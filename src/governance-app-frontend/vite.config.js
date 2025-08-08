@@ -1,3 +1,4 @@
+import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import dotenv from 'dotenv';
 import { fileURLToPath, URL } from 'url';
@@ -7,28 +8,29 @@ import environment from 'vite-plugin-environment';
 dotenv.config({ path: '../../.env' });
 
 export default defineConfig({
-  build: {
-    emptyOutDir: true,
-  },
-  optimizeDeps: {
-    esbuildOptions: {
-      define: {
-        global: 'globalThis',
-      },
+    build: {
+        emptyOutDir: true,
     },
-  },
-  plugins: [
-    react(),
-    environment('all', { prefix: 'CANISTER_' }),
-    environment('all', { prefix: 'DFX_' }),
-  ],
-  resolve: {
-    alias: [
-      {
-        find: 'declarations',
-        replacement: fileURLToPath(new URL('../declarations', import.meta.url)),
-      },
+    optimizeDeps: {
+        esbuildOptions: {
+            define: {
+                global: 'globalThis',
+            },
+        },
+    },
+    plugins: [
+        react(),
+        environment('all', { prefix: 'CANISTER_' }),
+        environment('all', { prefix: 'DFX_' }),
+        tailwindcss(),
     ],
-    dedupe: ['@dfinity/agent'],
-  },
+    resolve: {
+        alias: [
+            {
+                find: 'declarations',
+                replacement: fileURLToPath(new URL('../declarations', import.meta.url)),
+            },
+        ],
+        dedupe: ['@dfinity/agent'],
+    },
 });
