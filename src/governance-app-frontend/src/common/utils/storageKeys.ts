@@ -1,3 +1,3 @@
 export enum STORAGE_KEYS {
-    THEME = 'style-theme',
+  THEME = 'style-theme',
 }

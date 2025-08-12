@@ -15,20 +15,20 @@ const queryClient = new QueryClient();
 const rootElement = document.getElementById('root') as HTMLElement;
 
 ReactDOM.createRoot(rootElement).render(
-    <React.StrictMode>
-        <InternetIdentityProvider
-            loginOptions={{
-                identityProvider:
-                    DFX_NETWORK === 'local'
-                        ? `http://${CANISTER_ID_INTERNET_IDENTITY}.localhost:8080`
-                        : 'https://identity.ic0.app',
-            }}
-        >
-            <QueryClientProvider client={queryClient}>
-                <ThemeProvider>
-                    <Homepage />
-                </ThemeProvider>
-            </QueryClientProvider>
-        </InternetIdentityProvider>
-    </React.StrictMode>,
+  <React.StrictMode>
+    <InternetIdentityProvider
+      loginOptions={{
+        identityProvider:
+          DFX_NETWORK === 'local'
+            ? `http://${CANISTER_ID_INTERNET_IDENTITY}.localhost:8080`
+            : 'https://identity.ic0.app',
+      }}
+    >
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <Homepage />
+        </ThemeProvider>
+      </QueryClientProvider>
+    </InternetIdentityProvider>
+  </React.StrictMode>,
 );
