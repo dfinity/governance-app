@@ -9,7 +9,7 @@
     "format": "prettier --write . && cargo fmt",
     "format:check": "prettier --check . && cargo fmt --check",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "lint:check": "npm run eslint -- --workspaces --if-present",
+    "lint:check": "npm run lint --workspaces --if-present",
     "prebuild": "npm run prebuild --workspaces --if-present",
     "pretest": "npm run prebuild --workspaces --if-present",
     "start": "npm start --workspaces --if-present",
