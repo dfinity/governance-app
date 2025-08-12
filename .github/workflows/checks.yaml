@@ -25,3 +25,15 @@ jobs:
 
       - name: Check formatting
         run: npm run format:check
+
+  all_checks_passed:
+    name: All checks passed
+    runs-on: ubuntu-latest
+    needs: [check_codestyle] # Add list of jobs that need to succeed
+    if: always()
+    steps:
+      - name: Check all jobs succeeded
+        run: |
+          # This will exit with code 1 if any job didn't succeed
+          echo '${{ toJSON(needs) }}' | jq -e 'all(.[] | .result == "success")' > /dev/null
+          echo "✅ All jobs passed!"
