@@ -9,34 +9,34 @@ import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import plugingImport from 'eslint-plugin-import';
 
 export default tseslint.config(
-    { ignores: ['dist'] },
-    {
-        extends: [
-            js.configs.recommended,
-            ...tseslint.configs.recommended,
-            ...pluginQuery.configs['flat/recommended'],
-        ],
-        files: ['**/*.{ts,tsx}'],
-        languageOptions: {
-            ecmaVersion: 'latest',
-            globals: globals.browser,
-        },
-        plugins: {
-            'react-hooks': reactHooks,
-            'react-refresh': reactRefresh,
-            'simple-import-sort': simpleImportSort,
-            import: plugingImport,
-            prettier,
-        },
-        rules: {
-            ...reactHooks.configs.recommended.rules,
-            'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
-            'prettier/prettier': 'error',
-            'simple-import-sort/imports': 'error',
-            'simple-import-sort/exports': 'error',
-            'import/first': 'error',
-            'import/newline-after-import': 'error',
-            'import/no-duplicates': 'error',
-        },
+  { ignores: ['dist'] },
+  {
+    extends: [
+      js.configs.recommended,
+      ...tseslint.configs.recommended,
+      ...pluginQuery.configs['flat/recommended'],
+    ],
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      globals: globals.browser,
     },
+    plugins: {
+      'react-hooks': reactHooks,
+      'react-refresh': reactRefresh,
+      'simple-import-sort': simpleImportSort,
+      import: plugingImport,
+      prettier,
+    },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      'prettier/prettier': 'error',
+      'simple-import-sort/imports': 'error',
+      'simple-import-sort/exports': 'error',
+      'import/first': 'error',
+      'import/newline-after-import': 'error',
+      'import/no-duplicates': 'error',
+    },
+  },
 );

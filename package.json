@@ -6,6 +6,8 @@
   "name": "test-nns",
   "scripts": {
     "build": "npm run build --workspaces --if-present",
+    "format": "prettier --write . && cargo fmt",
+    "format:check": "prettier --check . && cargo fmt --check",
     "prebuild": "npm run prebuild --workspaces --if-present",
     "pretest": "npm run prebuild --workspaces --if-present",
     "start": "npm start --workspaces --if-present",
