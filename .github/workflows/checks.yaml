@@ -25,6 +25,9 @@ jobs:
 
       - name: Check formatting
         run: npm run format:check
+
+      - name: Check linting
+        run: npm run lint:check
   all_checks_passed:
     name: All checks passed
     runs-on: ubuntu-latest
