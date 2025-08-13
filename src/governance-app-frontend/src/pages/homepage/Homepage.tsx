@@ -1,7 +1,7 @@
 import { useInternetIdentity } from 'ic-use-internet-identity';
 
-import { useTheme } from '../../common/hooks/useTheme';
-import { useQueryUpdateCall } from '../../common/queries/useQueryUpdateCall';
+import { useTheme } from '@/common/hooks/useTheme';
+import { useQueryUpdateCall } from '@/common/queries/useQueryUpdateCall';
 
 function Homepage() {
   const { login, identity } = useInternetIdentity();
