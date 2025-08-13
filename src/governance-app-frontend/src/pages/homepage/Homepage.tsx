@@ -1,32 +1,14 @@
 import { useInternetIdentity } from 'ic-use-internet-identity';
 
+import { useIcpLedgerTotalSupply } from '@/common/hooks/canisters/icpLedger/useIcpLedgerTotalSupply';
+
 import { useTheme } from '../../common/hooks/useTheme';
-import { useQueryUpdateCall } from '../../common/queries/useQueryUpdateCall';
 
 function Homepage() {
   const { login, identity } = useInternetIdentity();
   const { theme, toggleTheme } = useTheme();
 
-  const data = useQueryUpdateCall<{
-    message: string;
-  }>({
-    key: ['test'],
-    queryFn: () =>
-      new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({ message: 'Hello from the server!' });
-        }, 1000);
-      }),
-    updateFn: () =>
-      new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({ message: 'Hello from the server! CERTIFIED' });
-        }, 4000);
-      }),
-    options: {
-      enabled: identity !== undefined,
-    },
-  });
+  const { isReady, totalSupplyQuery } = useIcpLedgerTotalSupply();
 
   return (
     <main className="p-4">
@@ -42,12 +24,13 @@ function Homepage() {
         </button>
       </div>
 
-      {identity !== undefined && (
+      {
         <>
           <div className="pt-4">
-            {data.isLoading && <p>Loading...</p>}
-            {data.isError && <p>Error: {data.error.message}</p>}
-            {data.data && <p>{data.data.data.message}</p>}
+            Total supply: {isReady ? 'Ready' : 'Not ready'}
+            {totalSupplyQuery.isLoading && <p>Loading...</p>}
+            {totalSupplyQuery.isError && <p>Error: {totalSupplyQuery.error.message}</p>}
+            {Boolean(totalSupplyQuery.data) && <p>{totalSupplyQuery.data?.toString()}</p>}
           </div>
 
           <div className="text-2xl pt-4">
@@ -57,7 +40,7 @@ function Homepage() {
             </span>
           </div>
         </>
-      )}
+      }
 
       <div className="text-xs pt-4 flex items-center gap-2">
         You are using the theme: {theme}

@@ -15,7 +15,12 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["vite/client", "node"]
+    "types": ["vite/client", "node"],
+    "baseUrl": ".",
+    "paths": {
+      "@declarations/*": ["./../declarations/*"],
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["src"]
 }
