@@ -1,12 +1,12 @@
 import js from '@eslint/js';
 import pluginQuery from '@tanstack/eslint-plugin-query';
+import plugingImport from 'eslint-plugin-import';
 import prettier from 'eslint-plugin-prettier';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
+import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
-import simpleImportSort from 'eslint-plugin-simple-import-sort';
-import plugingImport from 'eslint-plugin-import';
 
 export default tseslint.config(
   { ignores: ['dist'] },
