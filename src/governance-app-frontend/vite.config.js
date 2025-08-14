@@ -28,11 +28,23 @@ export default defineConfig({
     alias: [
       {
         find: '@declarations',
-        replacement: fileURLToPath(new URL('../declarations', import.meta.url)),
+        replacement: fileURLToPath(new URL('../declarations/', import.meta.url)),
+      },
+      {
+        find: '@components',
+        replacement: fileURLToPath(new URL('./src/components/', import.meta.url)),
+      },
+      {
+        find: '@common',
+        replacement: fileURLToPath(new URL('./src/common/', import.meta.url)),
+      },
+      {
+        find: '@pages',
+        replacement: fileURLToPath(new URL('./src/pages/', import.meta.url)),
       },
       {
         find: '@',
-        replacement: fileURLToPath(new URL('./src', import.meta.url)),
+        replacement: fileURLToPath(new URL('./src/', import.meta.url)),
       },
     ],
     dedupe: ['@dfinity/agent'],

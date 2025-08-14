@@ -1,12 +1,11 @@
-import './common/styles/main.css';
+import '@common/styles/main.css';
 
+import { ThemeProvider } from '@common/contexts/themeProvider';
+import Homepage from '@pages/homepage/Homepage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { InternetIdentityProvider } from 'ic-use-internet-identity';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-
-import { ThemeProvider } from './common/contexts/themeProvider';
-import Homepage from './pages/homepage/Homepage';
 
 const DFX_NETWORK = process.env.DFX_NETWORK;
 const CANISTER_ID_INTERNET_IDENTITY = process.env.CANISTER_ID_INTERNET_IDENTITY;

@@ -1,11 +1,8 @@
-import { useInternetIdentity } from 'ic-use-internet-identity';
+import { useTheme } from '@common/hooks/useTheme';
 
 import { useIcpLedgerTotalSupply } from '@/common/hooks/canisters/icpLedger/useIcpLedgerTotalSupply';
 
-import { useTheme } from '../../common/hooks/useTheme';
-
 function Homepage() {
-  const { login, identity } = useInternetIdentity();
   const { theme, toggleTheme } = useTheme();
 
   const { isReady, totalSupplyQuery } = useIcpLedgerTotalSupply();

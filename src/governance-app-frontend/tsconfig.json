@@ -20,9 +20,9 @@
     "paths": {
       "@declarations/*": ["./../declarations/*"],
       "@components/*": ["./src/components/*"],
-      "@pages/*": ["./src/pages/*"],
       "@common/*": ["./src/common/*"],
-      "@*": ["./src/*"]
+      "@pages/*": ["./src/pages/*"],
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src"]
