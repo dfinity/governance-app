@@ -17,8 +17,6 @@
     "@dfinity/candid": "^3.2.0",
     "@dfinity/principal": "^3.2.0",
     "@tailwindcss/vite": "^4.1.11",
-    "@xstate/store": "^3.8.5",
-    "ic-use-actor": "^0.2.0",
     "@tanstack/react-query": "^5.85.0",
     "ic-use-internet-identity": "^0.4.0",
     "react": "^19.1.1",
