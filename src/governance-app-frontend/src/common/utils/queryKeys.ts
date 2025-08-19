@@ -1,5 +1,6 @@
 const ICP_LEDGER = {
-  TOTAL_SUPPLY: 'icpLedgerTotalSupply',
+  ACCOUNT_BALANCE: 'icpLedgerAccountBalance',
+  METADATA: 'icpLedgerMetadata',
 };
 
 export const QUERY_KEYS = { ICP_LEDGER };
