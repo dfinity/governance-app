@@ -21,6 +21,8 @@
     "@dfinity/utils": "^3.0.0-next-2025-08-14",
     "@tailwindcss/vite": "^4.1.11",
     "@tanstack/react-query": "^5.85.0",
+    "@tanstack/react-router": "^1.131.27",
+    "@tanstack/react-router-devtools": "^1.131.27",
     "classnames": "^2.5.1",
     "ic-use-internet-identity": "^0.4.0",
     "react": "^19.1.1",
@@ -29,6 +31,7 @@
   },
   "devDependencies": {
     "@tanstack/eslint-plugin-query": "^5.83.1",
+    "@tanstack/router-plugin": "^1.131.27",
     "@types/node": "^24.2.1",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
