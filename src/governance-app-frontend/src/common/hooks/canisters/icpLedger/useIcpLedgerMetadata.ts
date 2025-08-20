@@ -1,4 +1,4 @@
-import { useQueryThenCertifyCall } from '@common/queries/useQueryThenCertifyCall';
+import { useQueryThenUpdateCall } from '@common/queries/useQueryThenUpdateCall';
 import { QUERY_KEYS } from '@common/utils/queryKeys';
 
 import { useIcpLedger } from './useIcpLedger';
@@ -6,15 +6,15 @@ import { useIcpLedger } from './useIcpLedger';
 export const useIcpLedgerMetadata = () => {
   const { ready, canister } = useIcpLedger();
 
-  return useQueryThenCertifyCall({
+  return useQueryThenUpdateCall({
     queryKey: [QUERY_KEYS.ICP_LEDGER.METADATA],
-    uncertifiedFn: () =>
+    queryFn: () =>
       canister!
         .metadata({
           certified: false,
         })
         .then((res) => String(res)),
-    certifiedFn: () =>
+    updateFn: () =>
       canister!
         .metadata({
           certified: true,

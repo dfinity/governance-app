@@ -1,15 +1,16 @@
 import '@common/styles/main.css';
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { InternetIdentityProvider } from 'ic-use-internet-identity';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+
 import { Layout } from '@common/components/layout';
 import { CANISTER_ID_INTERNET_IDENTITY } from '@common/constants/canisterIds';
 import { IS_LOCAL } from '@common/constants/extra';
 import { AgentPoolProvider } from '@common/contexts/agentPoolProvider';
 import { ThemeProvider } from '@common/contexts/themeProvider';
 import Homepage from '@pages/homepage/Homepage';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { InternetIdentityProvider } from 'ic-use-internet-identity';
-import React from 'react';
-import ReactDOM from 'react-dom/client';
 
 const queryClient = new QueryClient();
 const rootElement = document.getElementById('root') as HTMLElement;

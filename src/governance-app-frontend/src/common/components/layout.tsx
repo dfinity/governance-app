@@ -1,11 +1,12 @@
-import { AgentPoolContext } from '@common/contexts/agentPoolContext';
-import { useTheme } from '@common/hooks/useTheme';
 import classNames from 'classnames';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { ReactNode, useContext } from 'react';
+import { ReactNode } from 'react';
+
+import { useAgentPool } from '@common/hooks/useAgentPool';
+import { useTheme } from '@common/hooks/useTheme';
 
 export const Layout = ({ children }: { children: ReactNode }) => {
-  const { anonymous, authenticated } = useContext(AgentPoolContext).agentPool;
+  const { anonymous, authenticated } = useAgentPool().agentPool;
   const isLoadingAgents = anonymous.loading || authenticated.loading;
   const { login, identity, clear } = useInternetIdentity();
   const { theme, toggleTheme } = useTheme();

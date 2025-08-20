@@ -1,5 +1,6 @@
-import { useIcpLedgerMetadata } from '@common/hooks/canisters/icpLedger/useIcpLedgerMetadata';
 import { useInternetIdentity } from 'ic-use-internet-identity';
+
+import { useIcpLedgerMetadata } from '@common/hooks/canisters/icpLedger/useIcpLedgerMetadata';
 
 function Homepage() {
   const { identity } = useInternetIdentity();
