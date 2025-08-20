@@ -18,5 +18,9 @@
   "type": "module",
   "workspaces": [
     "src/governance-app-frontend"
-  ]
+  ],
+  "dependencies": {
+    "i18next": "^25.3.6",
+    "react-i18next": "^15.6.1"
+  }
 }
