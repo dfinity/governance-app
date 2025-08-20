@@ -1,6 +1,6 @@
 import '@common/styles/main.css';
 
-import { Layout } from '@common/components/Layout';
+import { Layout } from '@common/components/layout';
 import { CANISTER_ID_INTERNET_IDENTITY } from '@common/constants/canisterIds';
 import { IS_LOCAL } from '@common/constants/extra';
 import { AgentPoolProvider } from '@common/contexts/agentPoolProvider';
