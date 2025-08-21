@@ -12,8 +12,12 @@
     "lint:check": "npm run lint --workspaces --if-present",
     "prebuild": "npm run prebuild --workspaces --if-present",
     "pretest": "npm run prebuild --workspaces --if-present",
-    "start": "npm start --workspaces --if-present",
-    "test": "npm test --workspaces --if-present"
+    "start": "npm run i18n && npm start --workspaces --if-present",
+    "test": "npm test --workspaces --if-present",
+    "i18n": "npm run i18n-merge && npm run i18n-toc && npm run i18n-interface && prettier --write src/governance-app-frontend/src/i18n/generated-*.ts",
+    "i18n-merge": "i18next-resources-for-ts merge -i ./src/governance-app-frontend/src/i18n/en -o ./src/governance-app-frontend/src/i18n/generated/en.json && i18next-resources-for-ts merge -i ./src/governance-app-frontend/src/i18n/de -o ./src/governance-app-frontend/src/i18n/generated/de.json",
+    "i18n-toc": "i18next-resources-for-ts toc -i ./src/governance-app-frontend/src/i18n/generated -o ./src/governance-app-frontend/src/i18n/generated-toc.ts",
+    "i18n-interface": "i18next-resources-for-ts interface -i src/governance-app-frontend/src/i18n/en -o ./src/governance-app-frontend/src/i18n/generated-i18n-resources.d.ts"
   },
   "type": "module",
   "workspaces": [
