@@ -9,8 +9,8 @@
     "prebuild": "dfx generate",
     "build": "tsc && vite build",
     "format": "prettier --write 'src/**/*.{json,js,jsx,ts,tsx,css,scss}'",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "eslint . --ext ts,tsx --fix"
+    "lint": "eslint . --ext ts,tsx,css --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext ts,tsx,css --fix"
   },
   "dependencies": {
     "@dfinity/agent": "^3.2.0",

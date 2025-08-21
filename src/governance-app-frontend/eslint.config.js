@@ -62,6 +62,7 @@ const cssConfiguration = {
   files: ['**/*.css'],
   plugins: {
     css,
+    prettier,
   },
   language: 'css/css',
   rules: {

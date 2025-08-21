@@ -1,7 +1,7 @@
 import { QUERY_KEYS } from '@common/utils/queryKeys';
+import { useQueryThenUpdateCall } from '@common/queries/useQueryThenUpdateCall';
 
 import { useIcpLedger } from './useIcpLedger';
-import { useQueryThenUpdateCall } from '@common/queries/useQueryThenUpdateCall';
 
 export const useIcpLedgerMetadata = () => {
   const { ready, canister } = useIcpLedger();

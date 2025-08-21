@@ -1,16 +1,16 @@
 import '@common/styles/main.css';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { createRouter, RouterProvider } from '@tanstack/react-router';
-import { StrictMode } from 'react';
-import { IS_LOCAL } from '@common/constants/extra';
 import ReactDOM from 'react-dom/client';
+import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { InternetIdentityProvider } from 'ic-use-internet-identity';
 
+import { IS_LOCAL } from '@common/constants/extra';
 import { CANISTER_ID_INTERNET_IDENTITY } from '@common/constants/canisterIds';
-import { ThemeProvider } from '@common/contexts/themeProvider';
-import { AgentPoolProvider } from '@common/contexts/agentPoolProvider';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { routeTree } from '@/routeTree.gen';
+import { AgentPoolProvider } from '@common/contexts/agentPoolProvider';
+import { StrictMode } from 'react';
+import { ThemeProvider } from '@common/contexts/themeProvider';
 
 const queryClient = new QueryClient();
 const router = createRouter({ routeTree });
