@@ -22,5 +22,8 @@ node_modules/
 dist/
 .svelte-kit/
 
+## i18n
+src/governance-app-frontend/src/i18n/generated*
+
 # environment variables
 .env
