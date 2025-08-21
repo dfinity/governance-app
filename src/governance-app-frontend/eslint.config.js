@@ -55,7 +55,7 @@ const tsConfiguration = tseslint.config(
       ],
     },
   },
-)[0];
+);
 
 const cssConfiguration = {
   ignores: ['dist', 'node_modules', 'init-arguments', 'src/routeTree.gen.ts'],
@@ -73,4 +73,4 @@ const cssConfiguration = {
   },
 };
 
-export default [tsConfiguration, cssConfiguration];
+export default tsConfiguration.concat(cssConfiguration);

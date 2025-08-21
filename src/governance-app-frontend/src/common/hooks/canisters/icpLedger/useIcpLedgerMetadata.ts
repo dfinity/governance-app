@@ -1,5 +1,5 @@
-import { QUERY_KEYS } from '@common/utils/queryKeys';
 import { useQueryThenUpdateCall } from '@common/queries/useQueryThenUpdateCall';
+import { QUERY_KEYS } from '@common/utils/queryKeys';
 
 import { useIcpLedger } from './useIcpLedger';
 

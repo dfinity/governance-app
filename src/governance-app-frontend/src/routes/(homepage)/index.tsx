@@ -1,6 +1,7 @@
-import { useIcpLedgerMetadata } from '@common/hooks/canisters/icpLedger/useIcpLedgerMetadata';
 import { createFileRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
+
+import { useIcpLedgerMetadata } from '@common/hooks/canisters/icpLedger/useIcpLedgerMetadata';
 
 export const Route = createFileRoute('/(homepage)/')({
   component: Homepage,

@@ -1,9 +1,9 @@
+import { Link } from '@tanstack/react-router';
 import classNames from 'classnames';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode } from 'react';
-import { Theme } from '@common/contexts/themeContext';
-import { Link } from '@tanstack/react-router';
 
+import { Theme } from '@common/contexts/themeContext';
 import { useAgentPool } from '@common/hooks/useAgentPool';
 import { useTheme } from '@common/hooks/useTheme';
 
