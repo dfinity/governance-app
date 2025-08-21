@@ -1,4 +1,5 @@
 import js from '@eslint/js';
+import css from '@eslint/css';
 import plugingImport from 'eslint-plugin-import';
 import prettier from 'eslint-plugin-prettier';
 import reactHooks from 'eslint-plugin-react-hooks';
@@ -7,8 +8,8 @@ import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
-export default tseslint.config(
-  { ignores: ['dist', 'src/routeTree.gen.ts'] },
+const tsConfiguration = tseslint.config(
+  { ignores: ['dist', 'node_modules', 'init-arguments', 'src/routeTree.gen.ts'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
@@ -25,12 +26,13 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      'react-hooks/react-compiler': 'error',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      'react-hooks/react-compiler': 'error',
       'prettier/prettier': 'error',
-      'import/first': 'error',
-      'import/no-duplicates': 'error',
+      'eol-last': 'error',
       'import/newline-after-import': 'error',
+      'import/no-duplicates': 'error',
+      'import/first': 'error',
       'simple-import-sort/exports': 'error',
       'simple-import-sort/imports': [
         'error',
@@ -53,4 +55,21 @@ export default tseslint.config(
       ],
     },
   },
-);
+)[0];
+
+const cssConfiguration = {
+  ignores: ['dist', 'node_modules', 'init-arguments', 'src/routeTree.gen.ts'],
+  files: ['**/*.css'],
+  plugins: {
+    css,
+  },
+  language: 'css/css',
+  rules: {
+    'css/no-invalid-properties': 'error',
+    'css/no-duplicate-imports': 'error',
+    'css/no-invalid-at-rules': 'error',
+    'css/no-empty-blocks': 'error',
+  },
+};
+
+export default [tsConfiguration, cssConfiguration];
