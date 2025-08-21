@@ -7,7 +7,7 @@ import { useQueryUpdateCall } from '@/common/queries/useQueryUpdateCall';
 function Homepage() {
   const { login, identity } = useInternetIdentity();
   const { theme, toggleTheme } = useTheme();
-  const { t, i18n } = useTranslation(undefined, { keyPrefix: 'demo' });
+  const { t, i18n } = useTranslation(['home', 'common']);
 
   const data = useQueryUpdateCall<{
     message: string;
@@ -40,7 +40,7 @@ function Homepage() {
           disabled={identity !== undefined}
           className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
         >
-          {t('login')}
+          {t('common:loading')}
         </button>
       </div>
 
