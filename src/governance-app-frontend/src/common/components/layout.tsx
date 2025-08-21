@@ -1,15 +1,16 @@
-import { AgentPoolContext } from '@common/contexts/agentPoolContext';
-import { Theme } from '@common/contexts/themeContext';
-import { useTheme } from '@common/hooks/useTheme';
 import { Link } from '@tanstack/react-router';
 import classNames from 'classnames';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { ReactNode, useContext } from 'react';
+import { ReactNode } from 'react';
+
+import { Theme } from '@common/contexts/themeContext';
+import { useAgentPool } from '@common/hooks/useAgentPool';
+import { useTheme } from '@common/hooks/useTheme';
 
 import styles from './layout.module.css';
 
 export const Layout = ({ children }: { children: ReactNode }) => {
-  const { anonymous, authenticated } = useContext(AgentPoolContext).agentPool;
+  const { anonymous, authenticated } = useAgentPool().agentPool;
   const isLoadingAgents = anonymous.loading || authenticated.loading;
   const { login, identity, clear } = useInternetIdentity();
   const { theme, toggleTheme } = useTheme();

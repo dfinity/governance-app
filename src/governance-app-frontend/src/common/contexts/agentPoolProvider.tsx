@@ -1,8 +1,9 @@
-import { IS_LOCAL, LOCAL_NETWORK, MAINNET_NETWORK } from '@common/constants/extra';
 import { AnonymousIdentity } from '@dfinity/agent';
 import { createAgent } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode, useEffect, useState } from 'react';
+
+import { IS_LOCAL, LOCAL_NETWORK, MAINNET_NETWORK } from '@common/constants/extra';
 
 import { AgentPool, AgentPoolContext } from './agentPoolContext';
 
@@ -10,7 +11,7 @@ export const AgentPoolProvider = ({ children }: { children: ReactNode }) => {
   const [agentPool, setAgentPool] = useState<AgentPool>({
     anonymous: {
       agent: undefined,
-      loading: false,
+      loading: true,
       error: undefined,
     },
     authenticated: {
@@ -21,15 +22,6 @@ export const AgentPoolProvider = ({ children }: { children: ReactNode }) => {
   });
 
   useEffect(() => {
-    setAgentPool((prev) => ({
-      ...prev,
-      anonymous: {
-        agent: undefined,
-        loading: true,
-        error: undefined,
-      },
-    }));
-
     createAgent({
       identity: new AnonymousIdentity(),
       host: IS_LOCAL ? LOCAL_NETWORK : MAINNET_NETWORK,

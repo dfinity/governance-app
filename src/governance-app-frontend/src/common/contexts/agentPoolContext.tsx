@@ -18,17 +18,4 @@ interface AgentPoolContext {
   agentPool: AgentPool;
 }
 
-export const AgentPoolContext = createContext<AgentPoolContext>({
-  agentPool: {
-    anonymous: {
-      agent: undefined,
-      loading: false,
-      error: undefined,
-    },
-    authenticated: {
-      agent: undefined,
-      loading: false,
-      error: undefined,
-    },
-  },
-});
+export const AgentPoolContext = createContext<AgentPoolContext | undefined>(undefined);

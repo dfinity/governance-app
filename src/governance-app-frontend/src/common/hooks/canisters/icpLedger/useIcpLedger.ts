@@ -1,16 +1,16 @@
-import { CANISTER_ID_ICP_LEDGER } from '@common/constants/canisterIds';
-import { AgentPoolContext } from '@common/contexts/agentPoolContext';
-import { CanisterStatus } from '@common/types/canisters';
 import { LedgerCanister } from '@dfinity/ledger-icp';
 import { Principal } from '@dfinity/principal';
-import { useContext } from 'react';
+
+import { CANISTER_ID_ICP_LEDGER } from '@common/constants/canisterIds';
+import { useAgentPool } from '@common/hooks/useAgentPool';
+import { CanisterStatus } from '@common/types/canisters';
 
 export const useIcpLedger = (): CanisterStatus<LedgerCanister> => {
   if (!CANISTER_ID_ICP_LEDGER) {
     throw new Error('useIcpLedger: the canister Id is not defined.');
   }
 
-  const { anonymous, authenticated } = useContext(AgentPoolContext).agentPool;
+  const { anonymous, authenticated } = useAgentPool().agentPool;
 
   if (!authenticated.agent && !anonymous.agent) {
     return {
