@@ -5,7 +5,9 @@ PRINCIPAL=$(dfx identity get-principal)
 # Convert principal to account identifier
 ACCOUNT_ID=$(dfx ledger account-id --of-principal $PRINCIPAL)
 
-cat > ledger-init.did << EOF
+mkdir -p ./init-arguments
+
+cat > ./init-arguments/icp-ledger.did << EOF
 (variant {
   Init = record {
     minting_account = "$ACCOUNT_ID";

@@ -1,5 +1,4 @@
 import js from '@eslint/js';
-import pluginQuery from '@tanstack/eslint-plugin-query';
 import plugingImport from 'eslint-plugin-import';
 import prettier from 'eslint-plugin-prettier';
 import reactHooks from 'eslint-plugin-react-hooks';
@@ -11,11 +10,7 @@ import tseslint from 'typescript-eslint';
 export default tseslint.config(
   { ignores: ['dist'] },
   {
-    extends: [
-      js.configs.recommended,
-      ...tseslint.configs.recommended,
-      ...pluginQuery.configs['flat/recommended'],
-    ],
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 'latest',
@@ -33,11 +28,29 @@ export default tseslint.config(
       'react-hooks/react-compiler': 'error',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       'prettier/prettier': 'error',
-      'simple-import-sort/imports': 'error',
-      'simple-import-sort/exports': 'error',
       'import/first': 'error',
-      'import/newline-after-import': 'error',
       'import/no-duplicates': 'error',
+      'import/newline-after-import': 'error',
+      'simple-import-sort/exports': 'error',
+      'simple-import-sort/imports': [
+        'error',
+        {
+          groups: [
+            // Side effect imports.
+            ['^\\u0000'],
+            // Node.js builtins.
+            ['^node:'],
+            // External packages.
+            ['^@?\\w'],
+            // Internal files.
+            ['^@declarations', '^@common', '^@components', '^@pages', '^@/'],
+            // Relative imports.
+            ['^\\.'],
+            // Anything not matched in another group.
+            ['^'],
+          ],
+        },
+      ],
     },
   },
 );
