@@ -1,6 +1,5 @@
 {
   "headline": "The Governance App",
-  "login": "Login with Internet Identity!",
   "yourPrincipal": "Hello world! You are: {{principal}}",
   "selectedTheme": "You are using the theme: {{theme}}",
   "toggleTheme": "Toggle theme",
