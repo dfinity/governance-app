@@ -22,5 +22,8 @@
   "dependencies": {
     "i18next": "^25.3.6",
     "react-i18next": "^15.6.1"
+  },
+  "devDependencies": {
+    "i18next-resources-for-ts": "^1.6.0"
   }
 }
