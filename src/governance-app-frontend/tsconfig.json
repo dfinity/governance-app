@@ -16,12 +16,13 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "types": ["vite/client", "node"],
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "@/components/*": ["./components/*"],
-      "@/pages/*": ["./pages/*"],
-      "@/common/*": ["./common/*"]
+      "@declarations/*": ["./../declarations/*"],
+      "@components/*": ["./src/components/*"],
+      "@common/*": ["./src/common/*"],
+      "@pages/*": ["./src/pages/*"],
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src"]
