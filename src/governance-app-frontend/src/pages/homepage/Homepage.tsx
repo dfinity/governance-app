@@ -1,23 +1,24 @@
 import { useInternetIdentity } from 'ic-use-internet-identity';
+import { useTranslation } from 'react-i18next';
 
 import { useIcpLedgerMetadata } from '@common/hooks/canisters/icpLedger/useIcpLedgerMetadata';
 
 function Homepage() {
   const { identity } = useInternetIdentity();
   const metadata = useIcpLedgerMetadata();
+  const { t } = useTranslation();
 
   return (
     <div>
       <div className="text-2xl pt-4">
         {identity ? (
           <>
-            You are:{' '}
-            <span className="underline italic text-purple-500">
-              {identity?.getPrincipal().toString()}
-            </span>
+            {t(($) => $.home.yourPrincipal, {
+              principal: identity?.getPrincipal().toString() ?? '',
+            })}
           </>
         ) : (
-          'Please log in!'
+          <>{t(($) => $.common.login)}</>
         )}
       </div>
       <div className="pt-4">
