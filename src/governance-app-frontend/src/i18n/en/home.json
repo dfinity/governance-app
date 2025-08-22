@@ -1,7 +1,0 @@
-{
-  "headline": "The Governance App",
-  "yourPrincipal": "Hello world! You are: {{principal}}",
-  "selectedTheme": "You are using the theme: {{theme}}",
-  "toggleTheme": "Toggle theme",
-  "changeLang": "Switch to {{lang}}"
-}

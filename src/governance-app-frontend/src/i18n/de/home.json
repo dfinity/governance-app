@@ -1,7 +1,0 @@
-{
-  "headline": "Die Governance-App",
-  "yourPrincipal": "Hallo Welt! Deine Principal-ID ist: {{principal}}",
-  "selectedTheme": "Du verwendest das Theme: {{theme}}",
-  "toggleTheme": "Theme wechseln",
-  "changeLang": "Zu {{lang}} wechseln"
-}
