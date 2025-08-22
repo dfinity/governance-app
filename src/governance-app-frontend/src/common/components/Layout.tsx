@@ -29,7 +29,12 @@ export const Layout = ({ children }: { children: ReactNode }) => {
             <Link to="/sns" className={styles.link}>
               SNS
             </Link>
-            <Link to="/vault" className={styles.link}>
+            <Link
+              to="/vault/$name"
+              params={{ name: 'John' }}
+              search={{ surname: 'Doe' }}
+              className={styles.link}
+            >
               VAULT
             </Link>
 

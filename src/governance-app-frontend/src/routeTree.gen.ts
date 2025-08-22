@@ -9,16 +9,11 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as VaultIndexRouteImport } from './routes/vault/index'
 import { Route as SnsIndexRouteImport } from './routes/sns/index'
 import { Route as NnsIndexRouteImport } from './routes/nns/index'
 import { Route as homepageIndexRouteImport } from './routes/(homepage)/index'
+import { Route as VaultNameRouteImport } from './routes/vault/$name'
 
-const VaultIndexRoute = VaultIndexRouteImport.update({
-  id: '/vault/',
-  path: '/vault/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SnsIndexRoute = SnsIndexRouteImport.update({
   id: '/sns/',
   path: '/sns/',
@@ -34,50 +29,48 @@ const homepageIndexRoute = homepageIndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VaultNameRoute = VaultNameRouteImport.update({
+  id: '/vault/$name',
+  path: '/vault/$name',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
+  '/vault/$name': typeof VaultNameRoute
   '/': typeof homepageIndexRoute
   '/nns': typeof NnsIndexRoute
   '/sns': typeof SnsIndexRoute
-  '/vault': typeof VaultIndexRoute
 }
 export interface FileRoutesByTo {
+  '/vault/$name': typeof VaultNameRoute
   '/': typeof homepageIndexRoute
   '/nns': typeof NnsIndexRoute
   '/sns': typeof SnsIndexRoute
-  '/vault': typeof VaultIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/vault/$name': typeof VaultNameRoute
   '/(homepage)/': typeof homepageIndexRoute
   '/nns/': typeof NnsIndexRoute
   '/sns/': typeof SnsIndexRoute
-  '/vault/': typeof VaultIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/nns' | '/sns' | '/vault'
+  fullPaths: '/vault/$name' | '/' | '/nns' | '/sns'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/nns' | '/sns' | '/vault'
-  id: '__root__' | '/(homepage)/' | '/nns/' | '/sns/' | '/vault/'
+  to: '/vault/$name' | '/' | '/nns' | '/sns'
+  id: '__root__' | '/vault/$name' | '/(homepage)/' | '/nns/' | '/sns/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  VaultNameRoute: typeof VaultNameRoute
   homepageIndexRoute: typeof homepageIndexRoute
   NnsIndexRoute: typeof NnsIndexRoute
   SnsIndexRoute: typeof SnsIndexRoute
-  VaultIndexRoute: typeof VaultIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/vault/': {
-      id: '/vault/'
-      path: '/vault'
-      fullPath: '/vault'
-      preLoaderRoute: typeof VaultIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/sns/': {
       id: '/sns/'
       path: '/sns'
@@ -99,14 +92,21 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof homepageIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vault/$name': {
+      id: '/vault/$name'
+      path: '/vault/$name'
+      fullPath: '/vault/$name'
+      preLoaderRoute: typeof VaultNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
+  VaultNameRoute: VaultNameRoute,
   homepageIndexRoute: homepageIndexRoute,
   NnsIndexRoute: NnsIndexRoute,
   SnsIndexRoute: SnsIndexRoute,
-  VaultIndexRoute: VaultIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
