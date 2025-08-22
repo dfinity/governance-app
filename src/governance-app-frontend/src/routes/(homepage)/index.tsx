@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
+import { useTranslation } from 'react-i18next';
 
 import { useIcpLedgerMetadata } from '@common/hooks/canisters/icpLedger/useIcpLedgerMetadata';
 
@@ -10,16 +11,19 @@ export const Route = createFileRoute('/(homepage)/')({
 function Homepage() {
   const { identity } = useInternetIdentity();
   const metadata = useIcpLedgerMetadata();
+  const { t } = useTranslation();
 
   return (
     <div>
       <div className="text-2xl">
         {identity ? (
           <>
-            You are: <span className="underline italic">{identity?.getPrincipal().toString()}</span>
+            {t(($) => $.home.yourPrincipal, {
+              principal: identity?.getPrincipal().toString() ?? '',
+            })}
           </>
         ) : (
-          'Please log in!'
+          <>{t(($) => $.common.login)}</>
         )}
       </div>
       <div className="pt-4">
