@@ -1,8 +1,9 @@
-import Resources from './generated-i18n-resources.d';
+import en from './en.json';
 
 declare module 'i18next' {
   interface CustomTypeOptions {
-    defaultNS: 'common';
-    resources: Resources;
+    defaultNS: 'labels';
+    resources: typeof en;
+    enableSelector: true;
   }
 }
