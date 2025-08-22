@@ -1,5 +1,5 @@
 import '@common/styles/main.css';
-import '@i18n/config';
+import './i18n/config';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { InternetIdentityProvider } from 'ic-use-internet-identity';
