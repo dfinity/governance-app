@@ -18,10 +18,13 @@ To run the dapp locally against a Replica we will be use the devenv to initializ
 
 - Create an ssh tunnel to your devenv instance forwarding port `8080`:
 ```sh
-ssh yhabib@yhabib.devenv.dfinity.network -L 8080:localhost:8080
+ssh <>@<>.devenv.dfinity.network -L 8080:localhost:8080
 ```
-- Initialize a container with `./gitlab-ci/ci/container/container-run.sh`.
-- Install `sns-testing` by running `bazel build //rs/sns/testing:sns_testing_bundle` this will generate a `.tar` file with everything needed to run the local Replica with the required canisters.
+- Initialize a container to guarantee that all the dependencies are met, and then install `sns-testing`. By the end, of these steps you should have a `.tar` file with everything needed to run the local Replica with the required canisters:
+```sh
+./gitlab-ci/ci/container/container-run.sh
+bazel build //rs/sns/testing:sns_testing_bundle
+```
 - Once it finished, it should spit out the location of the `.tar` file, something like:
 ```sh
 Target //rs/sns/testing:sns_testing_bundle up-to-date:
@@ -29,6 +32,7 @@ bazel-bin/rs/sns/testing/sns_testing_bundle.tar.gz
 ```
 - Create a folder at the root of the ic repo, something like `sns-testing-<date>`, move the file there and exit the container.
 ```sh
+mkdir sns-testing
 mv bazel-bin/rs/sns/testing/sns_testing_bundle.tar.gz sns-testing
 exit
 ```
@@ -37,10 +41,10 @@ exit
 cd sns-testing
 tar -xvf sns_testing_bundle.tar.gz
 ```
-- Start the PocketIc server with:
+- Start the PocketIc server with. Note that `ttl` represents the amount of time (in seconds) that the PocketIc server will be kept alive in the local Replica if idle:
 ```sh
 source sns_testing_env.sh
-$POCKET_IC_BIN --ttl 300 --port 8888
+$POCKET_IC_BIN --ttl 3000 --port 8888
 ```
 - We will initialize the local Replica by opening a new terminal tab. Access your development environment, navigate to the `ic` repository, and then to the previously created `sns-testing` folder. Run the following command to initialize the local Replica with the required canisters:
 ```sh
