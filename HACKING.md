@@ -4,17 +4,79 @@ This document list a couple of useful information to develop the Governance-dapp
 
 ## Table of Contents
 
-- [Tools](#tools)
-- [Local](#local)
+- [Development Environment](#local)
 
-## Tools
+## Development Environment
+
+There are two ways to run sns-testing as a local development environment:
+
+- Locally on your machine.
+- In a development environment (devenv).
+
+### Locally
+
+You can download a pre-built bundle for SNS testing, which will be based on the provided IC commit.
+
+- Set the following environment variables:
+
+```sh
+IC_COMMIT=c053a4439e87b44609df469ed8fc0713a3c619a0
+OS=darwin
+CDN=https://download.dfinity.systems
+NAME=sns_testing_bundle
+```
+
+- Download and extract the bundle:
+
+```sh
+mkdir $NAME
+cd $NAME
+curl --fail -L -O "$CDN/ic/${IC_COMMIT}/binaries/x86_64-${OS}/$NAME.tar.gz"
+tar -xvf $NAME.tar.gz
+```
+
+- Start the PocketIc server with. Note that `ttl` represents the amount of time (in seconds) that the PocketIc server will be kept alive in the local Replica if idle:
+
+```sh
+source sns_testing_env.sh
+$POCKET_IC_BIN --ttl 3000 --port 8888
+```
+
+- In a new terminal, navigate to the newly created folder and run the following commands to initialize the local Replica with the required canisters:
+
+```sh
+source sns_testing_env.sh
+./sns-testing-init \
+    --server-url "http://127.0.0.1:8888" \
+    --dev-identity sns-testing \
+    --deciding-nns-neuron-id 1
+```
+
+- Now, following canisters should be available in the following urls:
+  - NNS dapp: http://qoctq-giaaa-aaaaa-aaaea-cai.localhost:8080
+  - Internet Identity: http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:8080
+
+- We can now start the FE development server with the following commands from the root of the `governance-dapp` repo:
+
+```sh
+dfx deploy --network http://127.0.0.1:8080
+npm start
+```
+
+### DevEnv
+
+Pre-requisites:
 
 - A devenv instance `<username>@<username>.devenv.dfinity.network`
 - The [IC repo](https://github.com/dfinity/ic) in your devenv instance
 
-## Local
-
 To run the dapp locally against a Replica we will be use the devenv to initialize a local Replica through [sns-testing](https://github.com/dfinity/ic/tree/master/rs/sns/testing).
+
+- Create a dedicated identity to use for this scenario:
+
+```sh
+dfx identity new sns-testing --storage-mode=plaintext
+```
 
 - Create an ssh tunnel to your devenv instance forwarding port `8080`:
 
@@ -71,8 +133,8 @@ source sns_testing_env.sh
 ```
 
 - Now, following canisters should be available in the following urls:
-- NNS dapp: http://qoctq-giaaa-aaaaa-aaaea-cai.localhost:8080
-- Internet Identity: http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:8080
+  - NNS dapp: http://qoctq-giaaa-aaaaa-aaaea-cai.localhost:8080
+  - Internet Identity: http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:8080
 
 - We can now start the FE development server with the following commands from the root of the `governance-dapp` repo:
 
