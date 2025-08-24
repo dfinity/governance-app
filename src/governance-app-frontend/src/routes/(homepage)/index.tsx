@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
+import { useGovernanceListProposals } from '@common/hooks/canisters/governance/useGovernanceListProposals';
 import { useIcpLedgerMetadata } from '@common/hooks/canisters/icpLedger/useIcpLedgerMetadata';
 
 export const Route = createFileRoute('/(homepage)/')({
@@ -10,8 +11,9 @@ export const Route = createFileRoute('/(homepage)/')({
 
 function Homepage() {
   const { identity } = useInternetIdentity();
-  const metadata = useIcpLedgerMetadata();
   const { t } = useTranslation();
+  const metadata = useIcpLedgerMetadata();
+  const proposals = useGovernanceListProposals();
 
   return (
     <div>
@@ -40,6 +42,20 @@ function Homepage() {
           </p>
         )}
       </div>
+      <ul>
+        {proposals.isLoading && <p>Loading proposals...</p>}
+        {proposals.isError && <p>Error: {proposals.error.message}</p>}
+        {proposals.data &&
+          proposals.data.data.proposals.map((proposal) => (
+            <li key={proposal?.id?.toString()} className="pt-2">
+              Proposal ID: {proposal?.id?.toString()} - Status: {proposal.status} - Name:{' '}
+              {proposal.proposal?.title || 'No name provided'}
+            </li>
+          ))}
+        {proposals.data && proposals.data.data.proposals.length === 0 && (
+          <li>No proposals found.</li>
+        )}
+      </ul>
     </div>
   );
 }

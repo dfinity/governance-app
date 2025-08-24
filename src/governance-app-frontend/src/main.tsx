@@ -7,11 +7,11 @@ import { InternetIdentityProvider } from 'ic-use-internet-identity';
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 
+import { routeTree } from '@/routeTree.gen';
 import { CANISTER_ID_INTERNET_IDENTITY } from '@common/constants/canisterIds';
-import { IS_LOCAL } from '@common/constants/extra';
+import { HOST, IS_LOCAL } from '@common/constants/extra';
 import { AgentPoolProvider } from '@common/contexts/agentPoolProvider';
 import { ThemeProvider } from '@common/contexts/themeProvider';
-import { routeTree } from '@/routeTree.gen';
 
 const queryClient = new QueryClient();
 const router = createRouter({ routeTree });
@@ -20,15 +20,16 @@ declare module '@tanstack/react-router' {
     router: typeof router;
   }
 }
-
 const rootElement = document.getElementById('root') as HTMLElement;
+
+const localIdentityProvider = `http://${CANISTER_ID_INTERNET_IDENTITY}.${HOST}`;
+const mainnetIdentityProvider = 'https://identity.ic0.app';
+
 ReactDOM.createRoot(rootElement).render(
   <StrictMode>
     <InternetIdentityProvider
       loginOptions={{
-        identityProvider: IS_LOCAL
-          ? `http://${CANISTER_ID_INTERNET_IDENTITY}.localhost:8080`
-          : 'https://identity.ic0.app',
+        identityProvider: IS_LOCAL ? localIdentityProvider : mainnetIdentityProvider,
       }}
     >
       <QueryClientProvider client={queryClient}>
