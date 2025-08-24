@@ -13,6 +13,12 @@ There are two ways to run sns-testing as a local development environment:
 - Locally on your machine.
 - In a development environment (devenv).
 
+Both approaches benefit from having a dedicated identity for this scenario. You can create one by running:
+
+```sh
+dfx identity new sns-testing --storage-mode=plaintext
+```
+
 ### Locally
 
 You can download a pre-built bundle for SNS testing, which will be based on the provided IC commit.
@@ -71,12 +77,6 @@ Pre-requisites:
 - The [IC repo](https://github.com/dfinity/ic) in your devenv instance
 
 To run the dapp locally against a Replica we will be use the devenv to initialize a local Replica through [sns-testing](https://github.com/dfinity/ic/tree/master/rs/sns/testing).
-
-- Create a dedicated identity to use for this scenario:
-
-```sh
-dfx identity new sns-testing --storage-mode=plaintext
-```
 
 - Create an ssh tunnel to your devenv instance forwarding port `8080`:
 
