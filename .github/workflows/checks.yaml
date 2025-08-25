@@ -41,15 +41,6 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
-      - name: Install dfx
-        uses: dfinity/setup-dfx@main
-
-      - name: Setup dfx
-        shell: bash
-        run:
-          dfx start --background && dfx canister create governance-app-backend && dfx generate
-          governance-app-backend && dfx generate
-
       - name: Install dependencies
         shell: bash
         run: npm ci

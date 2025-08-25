@@ -9,7 +9,6 @@
     "format": "npm run format --workspaces --if-present && cargo fmt --check",
     "lint": "npm run lint --workspaces --if-present",
     "prebuild": "./scripts/generate-ledger-init.sh && npm run prebuild --workspaces --if-present",
-    "pretest": "npm run prebuild --workspaces --if-present",
     "start": "npm start --workspaces --if-present",
     "test": "npm test --workspaces --if-present"
   },
