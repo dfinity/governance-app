@@ -6,7 +6,7 @@
   "scripts": {
     "setup": "npm i && dfx canister create governance-app-backend && dfx generate governance-app-backend && dfx deploy",
     "start": "vite --port 3000",
-    "prebuild": "dfx build && dfx generate",
+    "prebuild": "dfx generate",
     "build": "tsc && vite build",
     "format": "prettier --check .",
     "format:fix": "prettier --write 'src/**/*.{json,js,jsx,ts,tsx,css,scss}'",
