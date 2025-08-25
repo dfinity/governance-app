@@ -58,4 +58,10 @@ export default defineConfig({
     ],
     dedupe: ['@dfinity/agent'],
   },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    // Run before each test file
+    setupFiles: ['vitest.setup.ts'],
+  },
 });

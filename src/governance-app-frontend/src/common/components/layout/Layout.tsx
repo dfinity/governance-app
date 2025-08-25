@@ -3,17 +3,15 @@ import classNames from 'classnames';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode } from 'react';
 
-import { Theme } from '@common/contexts/themeContext';
 import { useAgentPool } from '@common/hooks/useAgentPool';
-import { useTheme } from '@common/hooks/useTheme';
 
+import { ToggleTheme } from '../toggleTheme/ToggleTheme';
 import styles from './layout.module.css';
 
 export const Layout = ({ children }: { children: ReactNode }) => {
   const { anonymous, authenticated } = useAgentPool().agentPool;
   const isLoadingAgents = anonymous.loading || authenticated.loading;
   const { login, identity, clear } = useInternetIdentity();
-  const { theme, toggleTheme } = useTheme();
 
   return (
     <main className="p-4 flex justify-between flex-col gap-2 h-[100vh] max-w-[1920px] m-auto">
@@ -50,9 +48,7 @@ export const Layout = ({ children }: { children: ReactNode }) => {
               {identity ? 'Logout' : 'Login with Internet Identity!'}
             </button>
 
-            <span onClick={toggleTheme} className={classNames(styles.link, styles.theme)}>
-              {theme === Theme.Dark ? '☀️' : '🌙'}
-            </span>
+            <ToggleTheme />
           </div>
         </div>
 

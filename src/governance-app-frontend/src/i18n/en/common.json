@@ -1,3 +1,5 @@
 {
-  "login": "Login with Internet Identity!"
+  "login": "Login with Internet Identity!",
+  "switchToLightMode": "Switch to Light Mode",
+  "switchToDarkMode": "Switch to Dark Mode"
 }
