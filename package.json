@@ -3,13 +3,11 @@
     "node": "^24",
     "npm": "^11"
   },
-  "name": "test-nns",
+  "name": "the-governance-app",
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "format": "prettier --write . && cargo fmt",
-    "format:check": "prettier --check . && cargo fmt --check",
-    "lint": "eslint . --ext ts,tsx,css --report-unused-disable-directives --max-warnings 0",
-    "lint:check": "npm run lint --workspaces --if-present",
+    "format": "npm run format --workspaces --if-present && cargo fmt --check",
+    "lint": "npm run lint --workspaces --if-present",
     "prebuild": "./scripts/generate-ledger-init.sh && npm run prebuild --workspaces --if-present",
     "pretest": "npm run prebuild --workspaces --if-present",
     "start": "npm start --workspaces --if-present",
