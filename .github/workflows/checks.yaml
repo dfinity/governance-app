@@ -8,7 +8,7 @@ on:
 
 jobs:
   check_codestyle:
-    name: 1. Codestyle checks
+    name: 1. Codestyle
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -30,7 +30,7 @@ jobs:
         run: npm run lint
 
   check_unit_tests:
-    name: 2. Unit tests checks
+    name: 2. Unit-tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -47,8 +47,8 @@ jobs:
       - name: Setup dfx
         shell: bash
         run:
-          dfx canister create governance-app-backend && dfx generate governance-app-backend && dfx
-          build
+          dfx start --background && dfx canister create governance-app-backend && dfx generate
+          governance-app-backend && dfx deploy
 
       - name: Install dependencies
         shell: bash
