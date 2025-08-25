@@ -41,6 +41,9 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
+      - name: Install dfx
+        uses: dfinity/setup-dfx@main
+
       - name: Install dependencies
         shell: bash
         run: npm ci
