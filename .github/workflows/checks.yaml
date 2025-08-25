@@ -48,7 +48,7 @@ jobs:
         shell: bash
         run:
           dfx start --background && dfx canister create governance-app-backend && dfx generate
-          governance-app-backend && dfx deploy
+          governance-app-backend && dfx generate
 
       - name: Install dependencies
         shell: bash
