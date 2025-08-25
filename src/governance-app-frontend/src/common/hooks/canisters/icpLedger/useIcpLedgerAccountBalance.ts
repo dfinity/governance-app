@@ -1,7 +1,7 @@
 import { useInternetIdentity } from 'ic-use-internet-identity';
 
-import { useQueryThenUpdateCall } from '@common/queries/useQueryThenUpdateCall';
-import { QUERY_KEYS } from '@common/utils/queryKeys';
+import { useQueryThenUpdateCall } from '@queries/useQueryThenUpdateCall';
+import { QUERY_KEYS } from '@utils/queryKeys';
 
 import { useIcpLedger } from './useIcpLedger';
 

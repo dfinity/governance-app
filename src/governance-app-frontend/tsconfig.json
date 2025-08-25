@@ -19,9 +19,17 @@
     "baseUrl": ".",
     "paths": {
       "@declarations/*": ["./../declarations/*"],
-      "@components/*": ["./src/components/*"],
+
+      "@components/*": ["./src/common/components/*"],
+      "@constants/*": ["./src/common/constants/*"],
+      "@contexts/*": ["./src/common/contexts/*"],
+      "@hooks/*": ["./src/common/hooks/*"],
+      "@queries/*": ["./src/common/queries/*"],
+      "@typings/*": ["./src/common/types/*"],
+      "@utils/*": ["./src/common/utils/*"],
       "@common/*": ["./src/common/*"],
-      "@pages/*": ["./src/pages/*"],
+
+      "@routes/*": ["./src/routes/*"],
       "@/*": ["./src/*"]
     }
   },

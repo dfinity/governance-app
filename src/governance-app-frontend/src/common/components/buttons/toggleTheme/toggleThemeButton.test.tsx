@@ -2,16 +2,17 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
-import { Theme } from '@common/contexts/themeContext';
-import { STORAGE_KEYS } from '@common/utils/storageKeys';
-import { renderWithProviders } from '@common/utils/unitTests';
+import { Theme } from '@contexts/themeContext';
+import { STORAGE_KEYS } from '@utils/storageKeys';
+import { renderWithProviders } from '@utils/unitTests';
+
 import i18n from '@/i18n/config';
 
-import { ToggleTheme } from './ToggleTheme';
+import { ToggleThemeButton } from './ToggleThemeButton';
 
 describe('Theme', () => {
   it('Toggles Theme when clicked.', async () => {
-    renderWithProviders(<ToggleTheme />);
+    renderWithProviders(<ToggleThemeButton />);
     expect(localStorage.getItem(STORAGE_KEYS.THEME)).toBe(Theme.Light);
     expect(screen.getAllByTitle(i18n.t(($) => $.common.switchToDarkMode))).toBeDefined();
 

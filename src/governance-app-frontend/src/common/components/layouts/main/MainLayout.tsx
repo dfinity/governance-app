@@ -2,30 +2,34 @@ import { Link } from '@tanstack/react-router';
 import classNames from 'classnames';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
-import { useAgentPool } from '@common/hooks/useAgentPool';
+import { ToggleThemeButton } from '@components/buttons/toggleTheme/ToggleThemeButton';
+import { useAgentPool } from '@hooks/useAgentPool';
 
-import { ToggleTheme } from '../toggleTheme/ToggleTheme';
-import styles from './layout.module.css';
+import styles from './mainLayout.module.css';
 
-export const Layout = ({ children }: { children: ReactNode }) => {
+export const MainLayout = ({ children }: { children: ReactNode }) => {
   const { anonymous, authenticated } = useAgentPool().agentPool;
   const isLoadingAgents = anonymous.loading || authenticated.loading;
   const { login, identity, clear } = useInternetIdentity();
+  const { t } = useTranslation();
 
   return (
     <main className="p-4 flex justify-between flex-col gap-2 h-[100vh] max-w-[1920px] m-auto">
+      <title>{t(($) => $.home.title)}</title>
+
       <div>
         <div className="flex items-start justify-between shrink-0">
           <Link to="/">
-            <h1 className="text-4xl font-bold pb-4">The Governance App</h1>
+            <h1 className="text-4xl font-bold pb-4">{t(($) => $.home.title)}</h1>
           </Link>
           <div className="flex gap-5">
             <Link to="/nns" className={styles.link}>
-              NNS
+              {t(($) => $.common.nns)}
             </Link>
             <Link to="/sns" className={styles.link}>
-              SNS
+              {t(($) => $.common.sns)}
             </Link>
             <Link
               to="/vault/$name"
@@ -33,7 +37,7 @@ export const Layout = ({ children }: { children: ReactNode }) => {
               search={{ surname: 'Doe' }}
               className={styles.link}
             >
-              VAULT
+              {t(($) => $.common.vault)}
             </Link>
 
             <button
@@ -48,11 +52,11 @@ export const Layout = ({ children }: { children: ReactNode }) => {
               {identity ? 'Logout' : 'Login with Internet Identity!'}
             </button>
 
-            <ToggleTheme />
+            <ToggleThemeButton />
           </div>
         </div>
 
-        {isLoadingAgents ? <p>Initializing HTTP agents...</p> : children}
+        {isLoadingAgents ? <p>{t(($) => $.common.initializing)}</p> : children}
       </div>
 
       <div className="text-xs pt-4 flex items-center gap-2 flex-col">

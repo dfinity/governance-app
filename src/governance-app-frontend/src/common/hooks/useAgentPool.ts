@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 
-import { AgentPoolContext } from '@common/contexts/agentPoolContext';
+import { AgentPoolContext } from '@contexts/agentPoolContext';
 
 export function useAgentPool() {
   const context = useContext(AgentPoolContext);

@@ -3,7 +3,7 @@ import { createAgent } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode, useEffect, useState } from 'react';
 
-import { IS_LOCAL, LOCAL_NETWORK, MAINNET_NETWORK } from '@common/constants/extra';
+import { IS_LOCAL, LOCAL_NETWORK, MAINNET_NETWORK } from '@constants/extra';
 
 import { AgentPool, AgentPoolContext } from './agentPoolContext';
 
