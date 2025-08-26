@@ -24,7 +24,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
           <Link to="/">
             <h1 className="text-4xl font-bold pb-4">{t(($) => $.home.title)}</h1>
           </Link>
-          <div className="flex gap-5">
+          <div className="flex gap-4">
             <Link to="/nns" className={styles.link}>
               {t(($) => $.common.nns)}
             </Link>

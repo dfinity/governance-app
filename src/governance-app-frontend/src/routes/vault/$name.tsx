@@ -1,4 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
+
+import useTitle from '@hooks/useTitle';
 
 type SearchParams = {
   surname?: string;
@@ -27,10 +30,12 @@ export const Route = createFileRoute('/vault/$name')({
 function VaultIndex() {
   const { greet } = Route.useLoaderData();
   const { surname } = Route.useSearch();
+  const { t } = useTranslation();
+  useTitle(t(($) => $.common.vault));
 
   return (
-    <div>
-      Welcome to the Vault route! This is a placeholder for the Vault governance app frontend.
+    <div className="text-xl">
+      {t(($) => $.vault.description)}
       <p>
         {greet} {surname}
       </p>

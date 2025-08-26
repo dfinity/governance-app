@@ -1,6 +1,4 @@
 {
   "title": "The Governance App",
-  "yourPrincipal": "Hello world! You are: {{principal}}.",
-  "loadingProposals": "Loading proposals...",
-  "errorLoadingProposals": "Error loading proposals: {{error}}."
+  "yourPrincipal": "Hello world! You are: {{principal}}."
 }

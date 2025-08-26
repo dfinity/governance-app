@@ -1,6 +1,6 @@
 import { ListProposalsRequest } from '@dfinity/nns';
 
-import { DEFAULT_LIST_PAGINATION_LIMIT } from '@constants/extra';
+import { PAGINATION_LIMIT } from '@constants/extra';
 import { useQueryThenUpdateCall } from '@queries/useQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/queryKeys';
 
@@ -9,7 +9,7 @@ import { useNnsGovernanceCanister } from './useGovernanceCanister';
 export const useGovernanceListProposals = (
   request: ListProposalsRequest = {
     beforeProposal: undefined,
-    limit: DEFAULT_LIST_PAGINATION_LIMIT,
+    limit: PAGINATION_LIMIT,
     excludeTopic: [],
     includeRewardStatus: [],
     includeStatus: [],
