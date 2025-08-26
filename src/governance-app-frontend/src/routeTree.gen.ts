@@ -13,6 +13,7 @@ import { Route as SnsIndexRouteImport } from './routes/sns/index'
 import { Route as NnsIndexRouteImport } from './routes/nns/index'
 import { Route as homepageIndexRouteImport } from './routes/(homepage)/index'
 import { Route as VaultNameRouteImport } from './routes/vault/$name'
+import { Route as NnsProposalProposalRouteImport } from './routes/nns/proposal/$proposal'
 
 const SnsIndexRoute = SnsIndexRouteImport.update({
   id: '/sns/',
@@ -34,18 +35,25 @@ const VaultNameRoute = VaultNameRouteImport.update({
   path: '/vault/$name',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NnsProposalProposalRoute = NnsProposalProposalRouteImport.update({
+  id: '/nns/proposal/$proposal',
+  path: '/nns/proposal/$proposal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/vault/$name': typeof VaultNameRoute
   '/': typeof homepageIndexRoute
   '/nns': typeof NnsIndexRoute
   '/sns': typeof SnsIndexRoute
+  '/nns/proposal/$proposal': typeof NnsProposalProposalRoute
 }
 export interface FileRoutesByTo {
   '/vault/$name': typeof VaultNameRoute
   '/': typeof homepageIndexRoute
   '/nns': typeof NnsIndexRoute
   '/sns': typeof SnsIndexRoute
+  '/nns/proposal/$proposal': typeof NnsProposalProposalRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,20 @@ export interface FileRoutesById {
   '/(homepage)/': typeof homepageIndexRoute
   '/nns/': typeof NnsIndexRoute
   '/sns/': typeof SnsIndexRoute
+  '/nns/proposal/$proposal': typeof NnsProposalProposalRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/vault/$name' | '/' | '/nns' | '/sns'
+  fullPaths: '/vault/$name' | '/' | '/nns' | '/sns' | '/nns/proposal/$proposal'
   fileRoutesByTo: FileRoutesByTo
-  to: '/vault/$name' | '/' | '/nns' | '/sns'
-  id: '__root__' | '/vault/$name' | '/(homepage)/' | '/nns/' | '/sns/'
+  to: '/vault/$name' | '/' | '/nns' | '/sns' | '/nns/proposal/$proposal'
+  id:
+    | '__root__'
+    | '/vault/$name'
+    | '/(homepage)/'
+    | '/nns/'
+    | '/sns/'
+    | '/nns/proposal/$proposal'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +82,7 @@ export interface RootRouteChildren {
   homepageIndexRoute: typeof homepageIndexRoute
   NnsIndexRoute: typeof NnsIndexRoute
   SnsIndexRoute: typeof SnsIndexRoute
+  NnsProposalProposalRoute: typeof NnsProposalProposalRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +115,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VaultNameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/nns/proposal/$proposal': {
+      id: '/nns/proposal/$proposal'
+      path: '/nns/proposal/$proposal'
+      fullPath: '/nns/proposal/$proposal'
+      preLoaderRoute: typeof NnsProposalProposalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +130,7 @@ const rootRouteChildren: RootRouteChildren = {
   homepageIndexRoute: homepageIndexRoute,
   NnsIndexRoute: NnsIndexRoute,
   SnsIndexRoute: SnsIndexRoute,
+  NnsProposalProposalRoute: NnsProposalProposalRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
