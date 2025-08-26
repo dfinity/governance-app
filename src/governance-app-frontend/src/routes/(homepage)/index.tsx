@@ -3,15 +3,15 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
-import { useIcpLedgerMetadata } from '@hooks/canisters/icpLedger/useIcpLedgerMetadata';
+import { useGovernanceListProposals } from '@hooks/canisters/governance/useGovernanceListProposals';
 
 export const Route = createFileRoute('/(homepage)/')({
   component: Homepage,
 });
 
 function Homepage() {
+  const { isLoading, isError, error, data } = useGovernanceListProposals();
   const { identity } = useInternetIdentity();
-  const metadata = useIcpLedgerMetadata();
   const { t } = useTranslation();
 
   return (
@@ -24,13 +24,20 @@ function Homepage() {
           : t(($) => $.common.login)}
       </div>
 
-      <div className="pt-4">
-        {metadata.isLoading && <p>{t(($) => $.common.loadingWithDots)}</p>}
-        {metadata.isError && <p>{t(($) => $.common.error)}</p>}
-        {metadata.data && (
-          <p className="flex items-center gap-2 h-8">
-            {metadata.data.data} {metadata.data.certified && <CertifiedBadge />}
-          </p>
+      <div className="mt-4">
+        {isLoading && t(($) => $.home.loadingProposals)}
+        {isError && t(($) => $.home.errorLoadingProposals, { error: error.message })}
+        {data && (
+          <>
+            {data.response.proposals.map((proposal) => (
+              <div key={proposal?.id?.toString()} className="pt-2">
+                Proposal ID: {proposal?.id?.toString()} - Status: {proposal.status} - Name:{' '}
+                {proposal.proposal?.title || 'No name provided'}
+              </div>
+            ))}
+            {!data.response.proposals.length && <span>No proposals found.</span>}
+            {data.certified && <CertifiedBadge />}
+          </>
         )}
       </div>
     </div>

@@ -8,19 +8,21 @@ import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 
 import { CANISTER_ID_INTERNET_IDENTITY } from '@constants/canisterIds';
-import { IS_LOCAL } from '@constants/extra';
+import { HOST, IS_LOCAL } from '@constants/extra';
 import { AgentPoolProvider } from '@contexts/agentPoolProvider';
 import { ThemeProvider } from '@contexts/themeProvider';
 import { queryClientConfig, routerConfig } from '@utils/initializers';
 
 const rootElement = document.getElementById('root') as HTMLElement;
+
+const localIdentityProvider = `http://${CANISTER_ID_INTERNET_IDENTITY}.${HOST}`;
+const mainnetIdentityProvider = 'https://identity.ic0.app';
+
 ReactDOM.createRoot(rootElement).render(
   <StrictMode>
     <InternetIdentityProvider
       loginOptions={{
-        identityProvider: IS_LOCAL
-          ? `http://${CANISTER_ID_INTERNET_IDENTITY}.localhost:8080`
-          : 'https://identity.ic0.app',
+        identityProvider: IS_LOCAL ? localIdentityProvider : mainnetIdentityProvider,
       }}
     >
       <QueryClientProvider client={queryClientConfig}>
