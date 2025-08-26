@@ -15,13 +15,16 @@ describe('Theme', () => {
     renderWithProviders(<ToggleThemeButton />);
     expect(localStorage.getItem(STORAGE_KEYS.THEME)).toBe(Theme.Light);
     expect(screen.getAllByTitle(i18n.t(($) => $.common.switchToDarkMode))).toBeDefined();
+    expect(screen.getAllByTitle(i18n.t(($) => $.common.switchToLightMode))).not.toBeDefined();
 
     await userEvent.click(screen.getByRole('button'));
     expect(localStorage.getItem(STORAGE_KEYS.THEME)).toBe(Theme.Dark);
     expect(screen.getAllByTitle(i18n.t(($) => $.common.switchToLightMode))).toBeDefined();
+    expect(screen.getAllByTitle(i18n.t(($) => $.common.switchToDarkMode))).not.toBeDefined();
 
     await userEvent.click(screen.getByRole('button'));
     expect(localStorage.getItem(STORAGE_KEYS.THEME)).toBe(Theme.Light);
     expect(screen.getAllByTitle(i18n.t(($) => $.common.switchToDarkMode))).toBeDefined();
+    expect(screen.getAllByTitle(i18n.t(($) => $.common.switchToLightMode))).not.toBeDefined();
   });
 });

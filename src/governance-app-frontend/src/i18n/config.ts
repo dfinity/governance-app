@@ -4,6 +4,8 @@ import { initReactI18next } from 'react-i18next';
 import common from './en/common.json';
 import home from './en/home.json';
 
+// Using a single namespace "labels" for simplicity.
+// Files inside it (common, home, …) are grouped translations, not separate namespaces.
 export const resources = {
   en: {
     labels: {
