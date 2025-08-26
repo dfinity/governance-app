@@ -10,16 +10,4 @@
   &:global(.active) {
     background-color: rgb(171, 94, 171);
   }
-
-  &.theme {
-    cursor: pointer;
-    font-size: 18px;
-    background-color: darkblue;
-  }
-}
-
-[data-theme='dark'] {
-  .theme {
-    background-color: orangered;
-  }
 }

@@ -8,7 +8,7 @@ on:
 
 jobs:
   check_codestyle:
-    name: 1. Codestyle checks
+    name: 1. Codestyle
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -17,21 +17,41 @@ jobs:
       - name: Setup NodeJS
         uses: actions/setup-node@v4
         with:
-          node-version-file: ".nvmrc"
+          node-version-file: '.nvmrc'
 
       - name: Install dependencies
         shell: bash
         run: npm ci
 
       - name: Check formatting
-        run: npm run format:check
+        run: npm run format
 
       - name: Check linting
-        run: npm run lint:check
-  all_checks_passed:
-    name: 2. All checks passed
+        run: npm run lint
+
+  check_unit_tests:
+    name: 2. Unit-tests
     runs-on: ubuntu-latest
-    needs: [check_codestyle] # Add new jobs here
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install dependencies
+        shell: bash
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test
+
+  all_checks_passed:
+    name: 3. All checks passed
+    runs-on: ubuntu-latest
+    needs: [check_codestyle, check_unit_tests]
     if: always()
     steps:
       - name: Check all jobs succeeded

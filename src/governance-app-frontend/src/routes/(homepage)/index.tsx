@@ -2,7 +2,8 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
-import { useIcpLedgerMetadata } from '@common/hooks/canisters/icpLedger/useIcpLedgerMetadata';
+import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
+import { useIcpLedgerMetadata } from '@hooks/canisters/icpLedger/useIcpLedgerMetadata';
 
 export const Route = createFileRoute('/(homepage)/')({
   component: Homepage,
@@ -16,27 +17,19 @@ function Homepage() {
   return (
     <div>
       <div className="text-2xl">
-        {identity ? (
-          <>
-            {t(($) => $.home.yourPrincipal, {
+        {identity
+          ? t(($) => $.home.yourPrincipal, {
               principal: identity?.getPrincipal().toString() ?? '',
-            })}
-          </>
-        ) : (
-          <>{t(($) => $.common.login)}</>
-        )}
+            })
+          : t(($) => $.common.login)}
       </div>
+
       <div className="pt-4">
-        {metadata.isLoading && <p>Loading...</p>}
-        {metadata.isError && <p>Error: {metadata.error.message}</p>}
+        {metadata.isLoading && <p>{t(($) => $.common.loadingWithDots)}</p>}
+        {metadata.isError && <p>{t(($) => $.common.error)}</p>}
         {metadata.data && (
           <p className="flex items-center gap-2 h-8">
-            {metadata.data.data}{' '}
-            {metadata.data.certified && (
-              <span className="bg-green-200 text-green-900 font-bold text-sm uppercase px-2 py-1 rounded">
-                ✅ certified
-              </span>
-            )}
+            {metadata.data.data} {metadata.data.certified && <CertifiedBadge />}
           </p>
         )}
       </div>
