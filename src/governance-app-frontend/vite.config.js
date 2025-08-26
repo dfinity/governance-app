@@ -39,17 +39,43 @@ export default defineConfig({
         find: '@declarations',
         replacement: fileURLToPath(new URL('../declarations/', import.meta.url)),
       },
+
       {
         find: '@components',
-        replacement: fileURLToPath(new URL('./src/components/', import.meta.url)),
+        replacement: fileURLToPath(new URL('./src/common/components/', import.meta.url)),
+      },
+      {
+        find: '@constants',
+        replacement: fileURLToPath(new URL('./src/common/constants/', import.meta.url)),
+      },
+      {
+        find: '@contexts',
+        replacement: fileURLToPath(new URL('./src/common/contexts/', import.meta.url)),
+      },
+      {
+        find: '@hooks',
+        replacement: fileURLToPath(new URL('./src/common/hooks/', import.meta.url)),
+      },
+      {
+        find: '@queries',
+        replacement: fileURLToPath(new URL('./src/common/queries/', import.meta.url)),
+      },
+      {
+        find: '@types',
+        replacement: fileURLToPath(new URL('./src/common/types/', import.meta.url)),
+      },
+      {
+        find: '@utils',
+        replacement: fileURLToPath(new URL('./src/common/utils/', import.meta.url)),
       },
       {
         find: '@common',
         replacement: fileURLToPath(new URL('./src/common/', import.meta.url)),
       },
+
       {
-        find: '@pages',
-        replacement: fileURLToPath(new URL('./src/pages/', import.meta.url)),
+        find: '@routes',
+        replacement: fileURLToPath(new URL('./src/routes/', import.meta.url)),
       },
       {
         find: '@',
@@ -57,5 +83,11 @@ export default defineConfig({
       },
     ],
     dedupe: ['@dfinity/agent'],
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    // Run before each test file
+    setupFiles: ['vitest.setup.ts'],
   },
 });

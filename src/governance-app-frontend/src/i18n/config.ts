@@ -5,7 +5,7 @@ import common from './en/common.json';
 import home from './en/home.json';
 
 // Using a single namespace "labels" for simplicity.
-// Files inside it (common, home, …) are just grouped translations, not separate namespaces.
+// Files inside it (common, home, …) are grouped translations, not separate namespaces.
 export const resources = {
   en: {
     labels: {
@@ -22,7 +22,7 @@ i18n.use(initReactI18next).init({
   defaultNS: 'labels',
   ns: Object.keys(resources.en),
   resources,
-  interpolation: { escapeValue: false }, // done by react
+  interpolation: { escapeValue: false }, // Done by React.
   returnNull: false,
   returnObjects: true,
 });

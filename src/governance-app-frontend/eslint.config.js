@@ -45,7 +45,18 @@ const tsConfiguration = tseslint.config(
             // External packages.
             ['^@?\\w'],
             // Internal files.
-            ['^@declarations', '^@common', '^@components', '^@pages', '^@/'],
+            ['^@declarations'],
+            [
+              '^@components',
+              '^@constants',
+              '^@contexts',
+              '^@hooks',
+              '^@queries',
+              '^@typings',
+              '^@utils',
+              '^@common',
+            ],
+            ['^@routes', '^@/'],
             // Relative imports.
             ['^\\.'],
             // Anything not matched in another group.

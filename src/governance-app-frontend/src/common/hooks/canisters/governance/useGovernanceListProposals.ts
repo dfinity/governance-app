@@ -1,8 +1,8 @@
 import { ListProposalsRequest } from '@dfinity/nns';
 
-import { DEFAULT_LIST_PAGINATION_LIMIT } from '@common/constants/extra';
-import { useQueryThenUpdateCall } from '@common/queries/useQueryThenUpdateCall';
-import { QUERY_KEYS } from '@common/utils/queryKeys';
+import { DEFAULT_LIST_PAGINATION_LIMIT } from '@constants/extra';
+import { useQueryThenUpdateCall } from '@queries/useQueryThenUpdateCall';
+import { QUERY_KEYS } from '@utils/queryKeys';
 
 import { useNnsGovernanceCanister } from './useGovernanceCanister';
 
@@ -24,12 +24,10 @@ export const useGovernanceListProposals = (
   return useQueryThenUpdateCall({
     queryKey: [QUERY_KEYS.NNS_GOVERNANCE.LIST_PROPOSALS, request],
     queryFn: () =>
-      canister!
-        .listProposals({
-          request,
-          certified: false,
-        })
-        .then((res) => res),
+      canister!.listProposals({
+        request,
+        certified: false,
+      }),
     updateFn: () =>
       canister!.listProposals({
         request,

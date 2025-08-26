@@ -1,9 +1,9 @@
 import { GovernanceCanister } from '@dfinity/nns';
 import { Principal } from '@dfinity/principal';
 
-import { CANISTER_ID_NNS_GOVERNANCE } from '@common/constants/canisterIds';
-import { useAgentPool } from '@common/hooks/useAgentPool';
-import { CanisterStatus } from '@common/types/canisters';
+import { CANISTER_ID_NNS_GOVERNANCE } from '@constants/canisterIds';
+import { useAgentPool } from '@hooks/useAgentPool';
+import { CanisterStatus } from '@typings/canisters';
 
 export const useNnsGovernanceCanister = (): CanisterStatus<GovernanceCanister> => {
   if (!CANISTER_ID_NNS_GOVERNANCE) {

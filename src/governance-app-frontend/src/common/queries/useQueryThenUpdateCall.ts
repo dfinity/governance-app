@@ -6,7 +6,7 @@ export enum QueryType {
 }
 
 export type CertifiedData<TData> = {
-  data: TData;
+  response: TData;
   certified: boolean;
 };
 
@@ -24,7 +24,7 @@ export const useQueryThenUpdateCall = <TData>({
   options,
 }: Props<TData>) => {
   const queryCall = async (): Promise<CertifiedData<TData>> => ({
-    data: await queryFn(),
+    response: await queryFn(),
     certified: false,
   });
   const queryQuery = useQuery({
@@ -37,7 +37,7 @@ export const useQueryThenUpdateCall = <TData>({
   }
 
   const updateCall = async (): Promise<CertifiedData<TData>> => ({
-    data: await updateFn(),
+    response: await updateFn(),
     certified: true,
   });
   const updateQuery = useQuery({
