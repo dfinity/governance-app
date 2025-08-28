@@ -15,8 +15,5 @@
   "type": "module",
   "workspaces": [
     "src/governance-app-frontend"
-  ],
-  "dependencies": {
-    "react-loading-skeleton": "^3.5.0"
-  }
+  ]
 }
