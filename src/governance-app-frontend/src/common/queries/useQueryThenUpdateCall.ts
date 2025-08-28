@@ -1,14 +1,7 @@
 import { QueryKey, useQuery, UseQueryOptions } from '@tanstack/react-query';
 
-export enum QueryType {
-  NonCertified = 'non-certified',
-  Certified = 'certified',
-}
-
-export type CertifiedData<TData> = {
-  response: TData;
-  certified: boolean;
-};
+import { stringifyAll } from '@utils/strings';
+import { CertifiedData, QueryType } from '@common/typings/queries';
 
 type Props<TData> = {
   queryKey: QueryKey;
@@ -28,7 +21,7 @@ export const useQueryThenUpdateCall = <TData>({
     certified: false,
   });
   const queryQuery = useQuery({
-    queryKey: [...queryKey, QueryType.NonCertified],
+    queryKey: [stringifyAll(queryKey), QueryType.NonCertified],
     queryFn: queryCall,
     ...options,
   });

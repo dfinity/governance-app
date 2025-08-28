@@ -3,7 +3,7 @@ import { Principal } from '@dfinity/principal';
 
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { useAgentPool } from '@hooks/useAgentPool';
-import { CanisterStatus } from '@typings/canisters';
+import { CanisterStatus } from '@common/typings/canisters';
 
 export const useIcpLedger = (): CanisterStatus<LedgerCanister> => {
   if (!CANISTER_ID_ICP_LEDGER) {
