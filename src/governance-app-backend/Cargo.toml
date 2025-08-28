@@ -13,3 +13,4 @@ candid = "0.10"
 ic-cdk = "0.18"
 ic-http-certification = "3.0"
 ic-static-assets = { git = "https://github.com/ilbertt/ic-static-assets" }
+ic-asset-certification = "3.0.3"

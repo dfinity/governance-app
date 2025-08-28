@@ -258,6 +258,7 @@ name = "governance-app-backend"
 version = "0.1.0"
 dependencies = [
  "candid",
+ "ic-asset-certification",
  "ic-cdk",
  "ic-http-certification",
  "ic-static-assets",
