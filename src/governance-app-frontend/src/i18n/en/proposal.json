@@ -1,3 +1,13 @@
 {
-  "toProposal": "Proposal {{proposalId}}"
+  "toProposal": "Proposal {{proposalId}}",
+  "proposalId": "Proposal {{id}}",
+  "title": "Proposal Details",
+  "type": "Type",
+  "topic": "Topic",
+  "status": "Status",
+  "rewardStatus": "Reward Status",
+  "created": "Created",
+  "proposer": "Proposer",
+  "summary": "Proposal Summary",
+  "payload": "Proposal Payload"
 }
