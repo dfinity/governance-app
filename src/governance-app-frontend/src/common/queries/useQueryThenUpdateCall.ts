@@ -42,7 +42,13 @@ export const useQueryThenUpdateCall = <TData>({
     console.log('Error fetching certified data.', queryKey, updateQuery.error);
   }
 
-  // Return the query call (fast) in case the update call (slow/certified) is still loading or had an error,
-  // otherwise use the certified data
-  return updateQuery.isFetching || updateQuery.isError ? queryQuery : updateQuery;
+  // In case of an error, try returning the other.
+  if (updateQuery.error) {
+    return queryQuery;
+  } else if (queryQuery.error) {
+    return updateQuery;
+  }
+
+  // Return the query call (fast) in case the update call (slow/certified) is still loading.
+  return updateQuery.isLoading ? queryQuery : updateQuery;
 };

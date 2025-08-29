@@ -5,7 +5,6 @@
   "baseTitle": "The Governance App",
   "proposalsList": "Proposals list",
   "seeProposals": "See Proposals",
-  "loadingProposals": "Loading proposals...",
   "noProposals": "No proposals found.",
   "errorLoadingProposals": "Error loading proposals: {{error}}.",
   "nns": "NNS",
