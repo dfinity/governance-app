@@ -8,10 +8,10 @@ import { useGovernanceListProposals } from '@hooks/canisters/governance/useGover
 import useTitle from '@hooks/useTitle';
 
 export const Route = createFileRoute('/nns/proposals')({
-  component: RouteComponent,
+  component: ProposalsPage,
 });
 
-function RouteComponent() {
+function ProposalsPage() {
   const { isLoading, isError, error, data, hasNextPage, fetchNextPage, isFetchingNextPage } =
     useGovernanceListProposals();
   const { t } = useTranslation();
