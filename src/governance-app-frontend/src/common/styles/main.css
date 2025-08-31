@@ -1,2 +1,4 @@
+@import 'react-loading-skeleton/dist/skeleton.css';
+
 @import 'tailwindcss';
 @import './theme.css';

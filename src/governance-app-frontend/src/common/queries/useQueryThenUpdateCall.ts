@@ -1,14 +1,7 @@
 import { QueryKey, useQuery, UseQueryOptions } from '@tanstack/react-query';
 
-export enum QueryType {
-  NonCertified = 'non-certified',
-  Certified = 'certified',
-}
-
-export type CertifiedData<TData> = {
-  response: TData;
-  certified: boolean;
-};
+import { stringifyAll } from '@utils/strings';
+import { CertifiedData, QueryType } from '@common/typings/queries';
 
 type Props<TData> = {
   queryKey: QueryKey;
@@ -28,7 +21,7 @@ export const useQueryThenUpdateCall = <TData>({
     certified: false,
   });
   const queryQuery = useQuery({
-    queryKey: [...queryKey, QueryType.NonCertified],
+    queryKey: [stringifyAll(queryKey), QueryType.NonCertified],
     queryFn: queryCall,
     ...options,
   });
@@ -49,7 +42,13 @@ export const useQueryThenUpdateCall = <TData>({
     console.log('Error fetching certified data.', queryKey, updateQuery.error);
   }
 
-  // Return the query call (fast) in case the update call (slow/certified) is still loading or had an error,
-  // otherwise use the certified data
-  return updateQuery.isFetching || updateQuery.isError ? queryQuery : updateQuery;
+  // In case of an error, try returning the other.
+  if (updateQuery.error) {
+    return queryQuery;
+  } else if (queryQuery.error) {
+    return updateQuery;
+  }
+
+  // Return the query call (fast) in case the update call (slow/certified) is still loading.
+  return updateQuery.isLoading ? queryQuery : updateQuery;
 };

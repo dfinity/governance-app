@@ -1,11 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
+
+import useTitle from '@hooks/useTitle';
 
 export const Route = createFileRoute('/sns/')({
   component: SnsIndex,
 });
 
 function SnsIndex() {
-  return (
-    <div>Welcome to the SNS route! This is a placeholder for the SNS governance app frontend.</div>
-  );
+  const { t } = useTranslation();
+  useTitle(t(($) => $.common.sns));
+
+  return <div className="text-xl">{t(($) => $.sns.description)}</div>;
 }
