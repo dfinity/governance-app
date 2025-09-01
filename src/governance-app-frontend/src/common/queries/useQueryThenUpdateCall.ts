@@ -34,7 +34,7 @@ export const useQueryThenUpdateCall = <TData>({
     certified: true,
   });
   const updateQuery = useQuery({
-    queryKey: [...queryKey, QueryType.Certified],
+    queryKey: [stringifyAll(queryKey), QueryType.Certified],
     queryFn: updateCall,
     ...options,
   });
