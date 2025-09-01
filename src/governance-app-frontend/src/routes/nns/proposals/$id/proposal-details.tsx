@@ -6,8 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { useGovernanceGetProposal } from '@common/hooks/canisters/governance/useGovernanceGetProposal';
-
-import { CertifiedData } from '../../../../common/typings/queries';
+import { CertifiedData } from '@common/typings/queries';
 
 type ProposalDetailsProps = {
   proposalId: bigint;
@@ -24,8 +23,6 @@ export const ProposalDetails: React.FC<ProposalDetailsProps> = ({ proposalId }) 
     proposalId,
   });
   const proposalData = data?.response;
-
-  console.log(proposalData);
 
   return (
     <div>
