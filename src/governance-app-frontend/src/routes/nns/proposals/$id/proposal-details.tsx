@@ -39,66 +39,70 @@ export const ProposalDetails: React.FC<ProposalDetailsProps> = ({ proposalId }) 
             </h2>
 
             <h3 className="text-3xl font-bold pb-4">{t(($) => $.proposal.title)}</h3>
+            <div className="mb-1">{data.certified && <CertifiedBadge />}</div>
 
-            <div className="border p-4 rounded-lg">
+            <div className="border p-4 rounded-lg mb-4">
               {/* type */}
               <dl>
-                <dt>{t(($) => $.proposal.type)}</dt>
-                <dd>
-                  raw action: {JSON.stringify(proposalData.proposal?.action, jsonReplacer, 2)}
-                </dd>
+                <dt className="font-bold">{t(($) => $.proposal.type)}</dt>
+                <dd>{Object.keys(proposalData.proposal?.action ?? {})[0]}</dd>
               </dl>
               {/* topic */}
               <dl>
-                <dt>{t(($) => $.proposal.topic)}</dt>
-                <dd>raw: {Topic[proposalData.topic]}</dd>
+                <dt className="font-bold">{t(($) => $.proposal.topic)}</dt>
+                <dd>{Topic[proposalData.topic]}</dd>
               </dl>
               {/* status */}
               <dl>
-                <dt>{t(($) => $.proposal.status)}</dt>
-                <dd>raw: {ProposalStatus[proposalData.status]}</dd>
+                <dt className="font-bold">{t(($) => $.proposal.status)}</dt>
+                <dd>{ProposalStatus[proposalData.status]}</dd>
               </dl>
               {/* reward status */}
               <dl>
-                <dt>{t(($) => $.proposal.rewardStatus)}</dt>
-                <dd>raw: {ProposalRewardStatus[proposalData.rewardStatus]}</dd>
+                <dt className="font-bold">{t(($) => $.proposal.rewardStatus)}</dt>
+                <dd>{ProposalRewardStatus[proposalData.rewardStatus]}</dd>
               </dl>
               {/* created at */}
               <dl>
-                <dt>{t(($) => $.proposal.created)}</dt>
-                <dd>raw: {proposalData.proposalTimestampSeconds}</dd>
+                <dt className="font-bold">{t(($) => $.proposal.created)}</dt>
+                <dd>{proposalData.proposalTimestampSeconds}</dd>
               </dl>
               {/* TBD: decided, executed */}
               {/* proposer */}
               <dl>
-                <dt>{t(($) => $.proposal.proposer)}</dt>
-                <dd>raw: {proposalData.proposer?.toString()}</dd>
+                <dt className="font-bold">{t(($) => $.proposal.proposer)}</dt>
+                <dd>{proposalData.proposer?.toString()}</dd>
               </dl>
             </div>
 
-            <div className="border p-4 rounded-lg">
+            <div className="border p-4 rounded-lg mb-4">
               {/* summary */}
               <Link to={proposalData.proposal?.url ?? '#'}>{proposalData.proposal?.title}</Link>
               <dl>
-                <dt>{t(($) => $.proposal.summary)}</dt>
-                <dd>raw: {proposalData.proposal?.summary}</dd>
+                <dt className="font-bold">{t(($) => $.proposal.summary)}</dt>
+                <dd>{proposalData.proposal?.summary}</dd>
               </dl>
               {/* action */}
               <dl>
-                <dt>Raw action:</dt>
-                <dd>{JSON.stringify(proposalData.proposal?.action, jsonReplacer, 2)}</dd>
+                <dt className="font-bold">Action:</dt>
+                <dd>
+                  {proposalData.proposal?.action &&
+                    JSON.stringify(
+                      Object.values(proposalData.proposal?.action ?? {})[0],
+                      jsonReplacer,
+                      2,
+                    )}
+                </dd>
               </dl>
             </div>
 
-            <div className="border p-4 rounded-lg">
+            <div className="border p-4 rounded-lg mb-4">
               {/* payload */}
               <dl>
-                <dt>{t(($) => $.proposal.payload)}</dt>
+                <dt className="font-bold">{t(($) => $.proposal.payload)}</dt>
                 <dd>...</dd>
               </dl>
             </div>
-
-            {data.certified && <CertifiedBadge />}
           </>
         )}
       </div>
