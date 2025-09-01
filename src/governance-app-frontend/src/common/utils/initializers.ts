@@ -9,7 +9,14 @@ declare module '@tanstack/react-router' {
   }
 }
 
-export const queryClientConfig = new QueryClient();
+export const queryClientConfig = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 5, // 5 Minutes before revalidating.
+    },
+  },
+});
 
 export const routerConfig = createRouter({
   routeTree,

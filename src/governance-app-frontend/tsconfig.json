@@ -25,7 +25,7 @@
       "@contexts/*": ["./src/common/contexts/*"],
       "@hooks/*": ["./src/common/hooks/*"],
       "@queries/*": ["./src/common/queries/*"],
-      "@typings/*": ["./src/common/types/*"],
+      "@typings/*": ["src/common/typings/*"],
       "@utils/*": ["./src/common/utils/*"],
       "@common/*": ["./src/common/*"],
 

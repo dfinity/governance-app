@@ -2,7 +2,11 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 import common from './en/common.json';
+import enums from './en/enums.json';
 import home from './en/home.json';
+import nns from './en/nns.json';
+import sns from './en/sns.json';
+import vault from './en/vault.json';
 
 // Using a single namespace "labels" for simplicity.
 // Files inside it (common, home, …) are grouped translations, not separate namespaces.
@@ -10,7 +14,11 @@ export const resources = {
   en: {
     labels: {
       common,
+      enums,
       home,
+      nns,
+      sns,
+      vault,
     },
   },
 };

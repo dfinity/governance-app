@@ -1,0 +1,10 @@
+{
+  "ProposalStatus": {
+    "0": "Unknown",
+    "1": "Open",
+    "2": "Rejected",
+    "3": "Accepted",
+    "4": "Executed",
+    "5": "Failed"
+  }
+}

@@ -1,15 +1,16 @@
-import { ListProposalsRequest } from '@dfinity/nns';
+import { ListProposalsRequest, ListProposalsResponse, Option } from '@dfinity/nns';
 
-import { DEFAULT_LIST_PAGINATION_LIMIT } from '@constants/extra';
-import { useQueryThenUpdateCall } from '@queries/useQueryThenUpdateCall';
+import { MIN_ASYNC_DELAY, PAGINATION_LIMIT } from '@constants/extra';
+import { useInfiniteQueryThenUpdateCall } from '@queries/useInfiniteQueryThenUpdateCall';
+import { withMinimumDelay } from '@utils/async';
 import { QUERY_KEYS } from '@utils/queryKeys';
 
 import { useNnsGovernanceCanister } from './useGovernanceCanister';
 
 export const useGovernanceListProposals = (
-  request: ListProposalsRequest = {
+  options: ListProposalsRequest = {
     beforeProposal: undefined,
-    limit: DEFAULT_LIST_PAGINATION_LIMIT,
+    limit: PAGINATION_LIMIT,
     excludeTopic: [],
     includeRewardStatus: [],
     includeStatus: [],
@@ -21,18 +22,29 @@ export const useGovernanceListProposals = (
 ) => {
   const { ready, canister } = useNnsGovernanceCanister();
 
-  return useQueryThenUpdateCall({
-    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.LIST_PROPOSALS, request],
-    queryFn: () =>
-      canister!.listProposals({
-        request,
-        certified: false,
-      }),
-    updateFn: () =>
-      canister!.listProposals({
-        request,
-        certified: true,
-      }),
+  return useInfiniteQueryThenUpdateCall<ListProposalsResponse, Option<bigint>>({
+    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.LIST_PROPOSALS, options],
+    queryFn: (context) =>
+      withMinimumDelay(
+        canister!.listProposals({
+          request: { ...options, beforeProposal: context.pageParam },
+          certified: false,
+        }),
+        MIN_ASYNC_DELAY,
+      ),
+    updateFn: (context) =>
+      withMinimumDelay(
+        canister!.listProposals({
+          request: { ...options, beforeProposal: context.pageParam },
+          certified: true,
+        }),
+        MIN_ASYNC_DELAY,
+      ),
+    initialPageParam: undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.response.proposals.length === PAGINATION_LIMIT
+        ? lastPage.response.proposals.at(-1)?.id
+        : undefined,
     options: {
       enabled: ready,
     },
