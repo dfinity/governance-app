@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 type Props = {
   callback: () => void;
@@ -12,7 +12,7 @@ type Props = {
 export const InViewSentinel = ({
   callback,
   root = null,
-  rootMargin = '100px',
+  rootMargin = '300px',
   threshold = 0,
   retrigger,
   children,
