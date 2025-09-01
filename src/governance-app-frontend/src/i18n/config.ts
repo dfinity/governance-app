@@ -5,6 +5,7 @@ import common from './en/common.json';
 import enums from './en/enums.json';
 import home from './en/home.json';
 import nns from './en/nns.json';
+import proposal from './en/proposal.json';
 import sns from './en/sns.json';
 import vault from './en/vault.json';
 
@@ -17,6 +18,7 @@ export const resources = {
       enums,
       home,
       nns,
+      proposal,
       sns,
       vault,
     },
