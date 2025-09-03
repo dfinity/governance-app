@@ -73,4 +73,6 @@ jobs:
       - name: Upgrade canister
         env:
           CANISTER_ID: ${{ secrets.CANISTER_ID }}
-        run: dfx canister install "$CANISTER_ID" --mode upgrade --wasm ./${{ github.run_id }}-governance-app.wasm --network=ic
+        run: |
+          echo "Canister ID is: '$CANISTER_ID'"
+          dfx canister install $CANISTER_ID --mode upgrade --wasm ./${{ github.run_id }}-governance-app.wasm --network=ic
