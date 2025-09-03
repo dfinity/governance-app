@@ -10,8 +10,10 @@ jobs:
   check:
     name: Codestyle & tests
     uses: ./.github/workflows/check.yaml
+    secrets: inherit
 
   deploy:
     name: Deployment
     needs: [check]
     uses: ./.github/workflows/deploy.yaml
+    secrets: inherit

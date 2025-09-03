@@ -10,3 +10,4 @@ jobs:
   check:
     name: Codestyle & tests
     uses: ./.github/workflows/check.yaml
+    secrets: inherit
