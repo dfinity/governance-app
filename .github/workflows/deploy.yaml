@@ -66,9 +66,10 @@ jobs:
         env:
           DFX_IDENTITY_PEM: ${{ secrets.DFX_IDENTITY_KEY }}
         run: |
-          mkdir -p ~/.config/dfx/identity/NewGovAppController_GitHub
-          echo "$DFX_IDENTITY_PEM" > ~/.config/dfx/identity/NewGovAppController_GitHub/identity.pem
+          echo "$DFX_IDENTITY_PEM" > ./id.pem
+          dfx identity import NewGovAppController_GitHub ./id.pem
           dfx identity use NewGovAppController_GitHub
+          rm ./id.pem
 
       - name: Upgrade canister
         env:
