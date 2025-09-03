@@ -57,7 +57,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ github.run_id }}-governance-app.wasm
-          path: ./wasm/
+          path: .
 
       - name: Install DFX
         uses: dfinity/setup-dfx@main
@@ -75,4 +75,6 @@ jobs:
         env:
           CANISTER_ID: ${{ secrets.CANISTER_ID }}
           DFX_WARNING: "-mainnet_plaintext_identity"
-        run: dfx canister install $CANISTER_ID --mode upgrade --wasm ./governance-app/wasm/${{ github.run_id }}-governance-app.wasm --network=ic
+        run: |
+          pwd
+          dfx canister install $CANISTER_ID --mode upgrade --wasm ./${{ github.run_id }}-governance-app.wasm --network=ic
