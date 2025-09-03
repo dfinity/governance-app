@@ -1,15 +1,26 @@
 name: Deploy
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
+  workflow_run:
+    workflows: ["Check"]
+    types:
+      - completed
+#    branches:
+#      - main
 
 jobs:
-  generate_wasm:
-    name: 1. Generate WASM
+  start_deployment:
+    name: 1. Start deployment
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    steps:
+      - name: Success
+        run: echo "✅ Checks passed, starting deployment!"
+
+  generate_wasm:
+    name: 2. Generate WASM
+    runs-on: ubuntu-latest
+    needs: [start_deployment]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -46,13 +57,13 @@ jobs:
         run: cargo build --target wasm32-unknown-unknown --release -p governance-app-backend --locked
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ github.run_id }}-wasm-build
           path: target/wasm32-unknown-unknown/release/governance-app-backend.wasm
 
   upgrade_canister:
-    name: 2. Upgrade canister
+    name: 3. Upgrade canister
     runs-on: ubuntu-latest
     needs: [generate_wasm]
     steps:
@@ -76,8 +87,8 @@ jobs:
       - name: Upgrade canister
         run: dfx canister install ${{ secrets.CANISTER_ID }} --mode upgrade --wasm wasm/governance-app-backend.wasm --network=ic
 
-  all_steps_succeeded:
-    name: 3. All steps succeeded
+  all_jobs_succeeded:
+    name: 4. All jobs succeeded
     runs-on: ubuntu-latest
     needs: [upgrade_canister]
     if: always()
