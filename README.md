@@ -18,11 +18,4 @@ npm ci
 npm start
 ```
 
-Alternatively, you can use `dfx` to build the wasm with the frontend assets injected similar to a production setup.
-
-```bash
-dfx start --clean --background
-dfx deploy
-```
-
-The frontend will be available at `http://[canister-id].localhost:8080/`.
+Check the [HACKING](HACKING.md) document for more detailed instructions on setting up your development environment.
