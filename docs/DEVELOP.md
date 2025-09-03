@@ -79,7 +79,7 @@ ssh <>@<>.devenv.dfinity.network -L 8080:localhost:8080
 - Initialize a container to guarantee that all the dependencies are met, and then install `sns-testing`. By the end, of these steps you should have a `.tar` file with everything needed to run the local Replica with the required canisters:
 
 ```sh
-./gitlab-ci/ci/container/container-run.sh
+./ci/container/container-run.sh
 bazel build //rs/sns/testing:sns_testing_bundle
 ```
 
