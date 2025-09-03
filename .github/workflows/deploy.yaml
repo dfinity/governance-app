@@ -75,4 +75,4 @@ jobs:
         env:
           CANISTER_ID: ${{ secrets.CANISTER_ID }}
           DFX_WARNING: "-mainnet_plaintext_identity"
-        run: dfx canister install $CANISTER_ID --mode upgrade --wasm ./wasm/${{ github.run_id }}-governance-app.wasm --network=ic
+        run: dfx canister install $CANISTER_ID --mode upgrade --wasm ./governance-app/wasm/${{ github.run_id }}-governance-app.wasm --network=ic
