@@ -1,0 +1,9 @@
+name: Pipeline Dev
+
+on:
+  pull_request:
+
+jobs:
+  check:
+    name: Codestyle & tests
+    uses: ./.github/workflows/check.yml

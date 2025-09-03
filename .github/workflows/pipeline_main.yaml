@@ -1,0 +1,17 @@
+name: Pipeline Main
+
+on:
+  push:
+    branches:
+      - main
+  pull_request: # to remove
+
+jobs:
+  check:
+    name: Codestyle & tests
+    uses: ./.github/workflows/check.yml
+
+  deploy:
+    name: Deployment
+    needs: [check]
+    uses: ./.github/workflows/deploy.yml
