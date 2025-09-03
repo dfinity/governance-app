@@ -27,7 +27,7 @@ jobs:
         run: npm run lint
 
   unit_tests:
-    name: Unit-tests
+    name: Unit tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

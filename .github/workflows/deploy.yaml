@@ -60,7 +60,7 @@ jobs:
           path: wasm/
 
       - name: Install DFX
-        run: sh -ci "$(curl -fsSL https://internetcomputer.org/install.sh)" -- --yes
+        uses: dfinity/setup-dfx@main
 
       - name: Install DFX identity
         env:
