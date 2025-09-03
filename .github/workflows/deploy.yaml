@@ -45,8 +45,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.run_id }}-wasm-build
-          path: ./target/wasm32-unknown-unknown/release/governance-app-backend.wasm
+          name: ${{ github.run_id }}-governance-app.wasm
+          path: ./target/wasm32-unknown-unknown/release/governance_app_backend.wasm
 
   upgrade_canister:
     name: Upgrade canister
@@ -56,8 +56,8 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ github.run_id }}-wasm-build
-          path: wasm/
+          name: ${{ github.run_id }}-governance-app.wasm
+          path: ./
 
       - name: Install DFX
         uses: dfinity/setup-dfx@main
@@ -71,4 +71,4 @@ jobs:
           dfx identity use NewGovAppController_GitHub
 
       - name: Upgrade canister
-        run: dfx canister install ${{ secrets.CANISTER_ID }} --mode upgrade --wasm wasm/governance-app-backend.wasm --network=ic
+        run: dfx canister install ${{ secrets.CANISTER_ID }} --mode upgrade --wasm ./${{ github.run_id }}-governance-app.wasm --network=ic
