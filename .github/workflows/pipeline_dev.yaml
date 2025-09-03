@@ -1,7 +1,10 @@
 name: Pipeline Dev
 
-# on:
-#  pull_request:
+on:
+  push:
+    branches:
+      - XXX
+#   pull_request:
 
 jobs:
   check:
