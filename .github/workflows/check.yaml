@@ -48,7 +48,7 @@ jobs:
       - name: Run unit tests
         run: npm run test
 
-  all_checks_passed:
+  checks_passed:
     name: 3. All checks passed
     runs-on: ubuntu-latest
     needs: [check_codestyle, check_unit_tests]
@@ -57,7 +57,7 @@ jobs:
       - name: Fail
         if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
         run: |
-          echo "❌ One or more jobs failed or were cancelled."
+          echo "❌ One or more checks failed or were cancelled."
           exit 1
       - name: Success
-        run: echo "✅ All jobs passed!"
+        run: echo "✅ All checks passed!"

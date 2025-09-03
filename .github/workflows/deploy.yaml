@@ -2,10 +2,11 @@ name: Deploy
 
 on:
   workflow_run:
-    workflows: [Check]
+    workflows: ["Check"]
     types:
       - completed
     branches:
+      - main
       - feature/nns1-4095-mainnet-deployment
 
 jobs:
@@ -87,8 +88,8 @@ jobs:
       - name: Upgrade canister
         run: dfx canister install ${{ secrets.CANISTER_ID }} --mode upgrade --wasm wasm/governance-app-backend.wasm --network=ic
 
-  all_jobs_succeeded:
-    name: 4. All jobs succeeded
+  deployment_succeeded:
+    name: 4. Deployment succeeded
     runs-on: ubuntu-latest
     needs: [upgrade_canister]
     if: always()
@@ -96,7 +97,7 @@ jobs:
       - name: Fail
         if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
         run: |
-          echo "❌ One or more jobs failed or were cancelled."
+          echo "❌ The deployment failed or was cancelled."
           exit 1
       - name: Success
-        run: echo "✅ All jobs passed!"
+        run: echo "✅ The deployment succeeded!"
