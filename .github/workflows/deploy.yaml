@@ -67,7 +67,7 @@ jobs:
           DFX_IDENTITY_PEM: ${{ secrets.DFX_IDENTITY_KEY }}
         run: |
           echo "$DFX_IDENTITY_PEM" > ./id.pem
-          dfx identity import --storage-mode password-protected NewGovAppController_GitHub ./id.pem
+          dfx identity import --storage-mode plaintext NewGovAppController_GitHub ./id.pem
           dfx identity use NewGovAppController_GitHub
           rm ./id.pem
 
