@@ -9,9 +9,9 @@ on:
 jobs:
   check:
     name: Codestyle & tests
-    uses: ./.github/workflows/check.yml
+    uses: ./.github/workflows/check.yaml
 
   deploy:
     name: Deployment
     needs: [check]
-    uses: ./.github/workflows/deploy.yml
+    uses: ./.github/workflows/deploy.yaml

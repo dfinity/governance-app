@@ -6,4 +6,4 @@ on:
 jobs:
   check:
     name: Codestyle & tests
-    uses: ./check.yml
+    uses: ./.github/workflows/check.yaml
