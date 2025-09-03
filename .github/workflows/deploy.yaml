@@ -73,8 +73,4 @@ jobs:
       - name: Upgrade canister
         env:
           CANISTER_ID: ${{ secrets.CANISTER_ID }}
-          DFX_IDENTITY_PEM: ${{ secrets.DFX_IDENTITY_KEY }}
-        run: |
-          echo "Canister ID is: '$CANISTER_ID'"
-          echo "identity is: '$DFX_IDENTITY_PEM'"
-          dfx canister install $CANISTER_ID --mode upgrade --wasm ./${{ github.run_id }}-governance-app.wasm --network=ic
+        run: dfx canister install $CANISTER_ID --mode upgrade --wasm ./${{ github.run_id }}-governance-app.wasm --network=ic
