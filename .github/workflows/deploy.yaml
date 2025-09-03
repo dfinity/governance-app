@@ -1,0 +1,90 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  generate_wasm:
+    name: 1. Generate WASM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy env variables
+        run: cp .env.bk .env || true
+
+      - name: Install NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install NodeJS dependencies
+        shell: bash
+        run: npm ci
+
+      - name: Install DFX
+        run: sh -ci "$(curl -fsSL https://internetcomputer.org/install.sh)"
+
+      - name: Generate types
+        run: dfx generate
+
+      - name: Install Rust and Cargo
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+
+      - name: Build Front-end
+        run: npm run build
+
+      - name: Build Back-end
+        run: cargo build --target wasm32-unknown-unknown --release -p governance-app-backend --locked
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ github.run_id }}-wasm-build
+          path: target/wasm32-unknown-unknown/release/governance-app-backend.wasm
+
+  upgrade_canister:
+    name: 2. Upgrade canister
+    runs-on: ubuntu-latest
+    needs: [generate_wasm]
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ github.run_id }}-wasm-build
+          path: wasm/
+
+      - name: Install DFX
+        run: sh -ci "$(curl -fsSL https://internetcomputer.org/install.sh)"
+
+      - name: Install DFX identity
+        env:
+          DFX_IDENTITY_PEM: ${{ secrets.DFX_IDENTITY_KEY }}
+        run: |
+          mkdir -p ~/.config/dfx/identity/NewGovAppController_GitHub
+          echo "$DFX_IDENTITY_PEM" > ~/.config/dfx/identity/NewGovAppController_GitHub/identity.pem
+          dfx identity use NewGovAppController_GitHub
+
+      - name: Upgrade canister
+        run: dfx canister install ${{ secrets.CANISTER_ID }} --mode upgrade --wasm wasm/governance-app-backend.wasm --network=ic
+
+  all_steps_succeeded:
+    name: 3. All steps succeeded
+    runs-on: ubuntu-latest
+    needs: [upgrade_canister]
+    if: always()
+    steps:
+      - name: Fail
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: |
+          echo "❌ One or more jobs failed or were cancelled."
+          exit 1
+      - name: Success
+        run: echo "✅ All jobs passed!"

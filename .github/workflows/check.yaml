@@ -1,9 +1,6 @@
-name: Checks
+name: Check
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
 
 jobs:
@@ -54,10 +51,10 @@ jobs:
     needs: [check_codestyle, check_unit_tests]
     if: always()
     steps:
-      - name: Check all jobs succeeded
+      - name: Fail
         if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
         run: |
-          echo "❌ One or more jobs failed or were cancelled"
+          echo "❌ One or more jobs failed or were cancelled."
           exit 1
       - name: Success
         run: echo "✅ All jobs passed!"
