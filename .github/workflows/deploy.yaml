@@ -46,7 +46,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.run_id }}-wasm-build
-          path: target/wasm32-unknown-unknown/release/governance-app-backend.wasm
+          path: ./target/wasm32-unknown-unknown/release/governance-app-backend.wasm
 
   upgrade_canister:
     name: Upgrade canister
