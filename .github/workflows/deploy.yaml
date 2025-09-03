@@ -71,4 +71,6 @@ jobs:
           dfx identity use NewGovAppController_GitHub
 
       - name: Upgrade canister
-        run: dfx canister install ${{ secrets.CANISTER_ID }} --mode upgrade --wasm ./${{ github.run_id }}-governance-app.wasm --network=ic
+        env:
+          CANISTER_ID: ${{ secrets.CANISTER_ID }}
+        run: dfx canister install $CANISTER_ID --mode upgrade --wasm ./${{ github.run_id }}-governance-app.wasm --network=ic
