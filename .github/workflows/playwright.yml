@@ -110,9 +110,9 @@ jobs:
             --dev-identity sns-testing \
             --deciding-nns-neuron-id 1
 
-      - name: Start frontend
+      - name: dfx deploy local
         run: |
-          dfx deploy --network http://127.0.0.1:8080
+          dfx deploy --network local
 
       - name: Start frontend
         run: |
