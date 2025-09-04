@@ -9,7 +9,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 const tsConfiguration = tseslint.config(
-  { ignores: ['dist', 'node_modules', 'init-arguments', 'src/routeTree.gen.ts'] },
+  { ignores: ['dist', 'node_modules', 'src/routeTree.gen.ts'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
@@ -69,7 +69,7 @@ const tsConfiguration = tseslint.config(
 );
 
 const cssConfiguration = {
-  ignores: ['dist', 'node_modules', 'init-arguments', 'src/routeTree.gen.ts'],
+  ignores: ['dist', 'node_modules', 'src/routeTree.gen.ts'],
   files: ['**/*.css'],
   plugins: {
     css,
