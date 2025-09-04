@@ -87,15 +87,21 @@ jobs:
 
       - name: ls
         run: |
-          ls
+          ls -lat
+          cat sns_testing_env.sh
+
+      - name: patch sns_testing_env.sh
+        run: |
+          echo 'export LIFELINE_CANISTER_WASM_PATH="rs/sns/testing/sns_testing_canister.wasm.gz"' >> sns_testing_env.sh
+          cat sns_testing_env.sh
 
       - name: Init sns-testing
         run: |
           echo "🍏"
           cat sns_testing_env.sh
           # fake the LIFELINE_CANISTER
-          echo 'export LIFELINE_CANISTER_WASM_PATH="rs/sns/testing/sns_testing_canister.wasm.gz"' >> sns_testing_env.sh
-          echo "🍎"
+          # echo 'export LIFELINE_CANISTER_WASM_PATH="rs/sns/testing/sns_testing_canister.wasm.gz"' >> sns_testing_env.sh
+          # echo "🍎"
           cat sns_testing_env.sh
           source sns_testing_env.sh
           ./sns-testing-init \
