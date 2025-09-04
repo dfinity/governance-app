@@ -23,11 +23,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install dfx
+      - name: Install dfxvm
         run: |
-          DFX_VERSION=0.27.0
-          sh -ci "$(curl -fsSL https://internetcomputer.org/install.sh)"
-          echo "$HOME/bin" >> $GITHUB_PATH
+          curl -fsSL https://sdk.dfinity.org/install.sh | bash
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install dfx 0.27.0
+        run: |
+          dfxvm install 0.27.0
+          dfxvm default 0.27.0
+          dfx --version
 
       - name: Log dfx
         run: |
