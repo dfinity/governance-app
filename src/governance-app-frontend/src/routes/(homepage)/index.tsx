@@ -17,6 +17,7 @@ function Homepage() {
             principal: identity.getPrincipal().toString(),
           })
         : t(($) => $.common.login)}
+      TEST
     </div>
   );
 }
