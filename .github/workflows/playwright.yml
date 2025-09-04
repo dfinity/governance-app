@@ -35,6 +35,12 @@ jobs:
 
       - name: Install dfx
         uses: dfinity/setup-dfx@main
+      - name: Create sns-testing identity
+        run: |
+          dfx identity new sns-testing --storage-mode=plaintext || true
+          dfx identity use sns-testing
+          dfx identity get-principal
+
       - name: Confirm successful installation
         run: |
           dfx --version
