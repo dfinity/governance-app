@@ -39,7 +39,6 @@ jobs:
 
       - name: Start pocket-ic
         run: |
-          # nohup ./pocket-ic --ttl 3000 --port 8888 > pocket-ic.log 2>&1 &
           $POCKET_IC_BIN --ttl 3000 --port 8888 &
           echo $! > pocket-ic.pid
           npx wait-on http://127.0.0.1:8888 --timeout 15000
