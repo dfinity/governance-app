@@ -20,8 +20,8 @@ jobs:
           node -v
           npm -v
 
-      - name: Install dependencies
-        run: npm ci
+      # - name: Install dependencies
+      #   run: npm ci
 
       - name: Download sns_testing_bundle
         run: |
