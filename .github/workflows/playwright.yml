@@ -39,14 +39,15 @@ jobs:
 
       - name: Start pocket-ic
         run: |
-          ./sns_testing_bundle/pocket-ic --ttl 3000 --port 8888 &
+          # nohup ./pocket-ic --ttl 3000 --port 8888 > pocket-ic.log 2>&1 &
+          nohup $POCKET_IC_BIN --ttl 3000 --port 8888 &
           echo $! > pocket-ic.pid
-          npx wait-on http://127.0.0.1:8888
+          npx wait-on http://127.0.0.1:8888 --timeout 15000
 
       - name: Init sns-testing
         run: |
           source sns_testing_env.sh
-          ./sns_testing_bundle/sns-testing-init \
+          ./sns-testing-init \
             --server-url "http://127.0.0.1:8888" \
             --dev-identity sns-testing \
             --deciding-nns-neuron-id 1
@@ -55,8 +56,8 @@ jobs:
         run: |
           npm start &
           echo $! > frontend.pid
-          # wait until it responds (adjust port if needed)
-          npx wait-on http://127.0.0.1:3000
+          # wait until it responds
+          npx wait-on http://127.0.0.1:3000 --timeout 15000
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
