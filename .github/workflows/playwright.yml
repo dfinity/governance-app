@@ -31,9 +31,13 @@ jobs:
           NAME=sns_testing_bundle
           curl --fail -L -O "$CDN/ic/${IC_COMMIT}/binaries/x86_64-${OS}/$NAME.tar.gz"
           tar -xvf $NAME.tar.gz
+          ls
+          pwd
 
       - name: Start pocket-ic
         run: |
+          ls
+          pwd
           ./sns_testing_bundle/pocket-ic --ttl 3000 --port 8888 &
           echo $! > pocket-ic.pid
           npx wait-on http://127.0.0.1:8888
