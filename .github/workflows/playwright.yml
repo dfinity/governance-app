@@ -41,7 +41,7 @@ jobs:
         run: |
           $POCKET_IC_BIN --ttl 3000 --port 8888 &
           echo $! > pocket-ic.pid
-          npx wait-on http://127.0.0.1:8888 --timeout 15000
+          npx wait-on http://127.0.0.1:8888 --timeout 120000
 
       - name: Init sns-testing
         run: |
@@ -56,7 +56,7 @@ jobs:
           npm start &
           echo $! > frontend.pid
           # wait until it responds
-          npx wait-on http://127.0.0.1:3000 --timeout 15000
+          npx wait-on http://127.0.0.1:3000 --timeout 120000
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
