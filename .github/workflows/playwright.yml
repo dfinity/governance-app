@@ -82,6 +82,8 @@ jobs:
 
       - name: Init sns-testing
         run: |
+          cat sns_testing_env.sh
+          echo "\n\n\n\n\n"
           source sns_testing_env.sh
           ./sns-testing-init \
             --server-url "http://127.0.0.1:8888" \
