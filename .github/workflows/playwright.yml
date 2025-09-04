@@ -87,10 +87,12 @@ jobs:
 
       - name: Init sns-testing
         run: |
-          cat sns_testing_env.sh
           echo "🍏"
+          cat sns_testing_env.sh
           # fake the LIFELINE_CANISTER
           echo 'export LIFELINE_CANISTER_WASM_PATH="rs/sns/testing/sns_testing_canister.wasm.gz"' >> sns_testing_env.sh
+          echo "🍎"
+          cat sns_testing_env.sh
           source sns_testing_env.sh
           ./sns-testing-init \
             --server-url "http://127.0.0.1:8888" \
