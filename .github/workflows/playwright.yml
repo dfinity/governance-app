@@ -112,6 +112,10 @@ jobs:
 
       - name: Start frontend
         run: |
+          dfx deploy --network http://127.0.0.1:8080
+
+      - name: Start frontend
+        run: |
           npm start &
           echo $! > frontend.pid
           # wait until it responds
