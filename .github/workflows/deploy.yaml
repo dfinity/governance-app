@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Copy env variables
-        run: cp .env.bk .env
+        run: cp .env.bk .env && echo "DFX_NETWORK=ic" >> .env
 
       - name: Install NodeJS
         uses: actions/setup-node@v4
