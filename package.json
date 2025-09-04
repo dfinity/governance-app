@@ -16,5 +16,8 @@
   "type": "module",
   "workspaces": [
     "src/governance-app-frontend"
-  ]
+  ],
+  "devDependencies": {
+    "wait-on": "^8.0.4"
+  }
 }
