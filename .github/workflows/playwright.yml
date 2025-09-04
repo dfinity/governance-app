@@ -36,6 +36,7 @@ jobs:
         run: |
           ./pocket-ic --ttl 3000 --port 8888 &
           echo $! > pocket-ic.pid
+          npx wait-on http://127.0.0.1:8888
 
       - name: Init sns-testing
         run: |
