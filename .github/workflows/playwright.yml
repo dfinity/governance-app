@@ -32,7 +32,6 @@ jobs:
       #   run: |
       #     dfxvm install 0.27.0
       #     dfxvm default 0.27.0
-      #     dfx --version
 
       - name: Install dfx
         uses: dfinity/setup-dfx@main
