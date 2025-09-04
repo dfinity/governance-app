@@ -11,7 +11,7 @@
     "prebuild": "npm run prebuild --workspaces --if-present",
     "start": "npm start --workspaces --if-present",
     "test": "npm test --workspaces --if-present",
-    "test-e2e": "npm run test:e2e --workspace --if-present"
+    "test-e2e": "npm run test:e2e --workspace src/governance-app-frontend"
   },
   "type": "module",
   "workspaces": [
