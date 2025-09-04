@@ -10,7 +10,7 @@ thread_local! {
 }
 
 // Original copied from: https://github.com/ilbertt/ic-static-assets/blob/main/packages/ic-static-assets/src/certification.rs#L32
-const CUSTOM_CSP: &str = "default-src 'self' *.devenv.dfinity.network; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' *.devenv.dfinity.network http://*.devenv.dfinity.network http://localhost:* https://icp0.io https://*.icp0.io https://*.ic0.app https://icp-api.io https://fastly.jsdelivr.net; img-src 'self' https://*.icp0.io data: blob:; style-src * 'unsafe-inline'; style-src-elem * 'unsafe-inline'; font-src *; object-src 'none'; media-src 'self' data:; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests";
+const CUSTOM_CSP: &str = "default-src 'self' *.devenv.dfinity.network; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' *.devenv.dfinity.network http://*.devenv.dfinity.network http://localhost:* https://icp0.io https://*.icp0.io https://ic0.app https://icp-api.io https://fastly.jsdelivr.net; img-src 'self' https://*.icp0.io data: blob:; style-src * 'unsafe-inline'; style-src-elem * 'unsafe-inline'; font-src *; object-src 'none'; media-src 'self' data:; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests";
 
 fn certify_my_assets(
     assets: Vec<Asset<'static, '_>>,
