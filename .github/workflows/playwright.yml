@@ -110,16 +110,16 @@ jobs:
             --dev-identity sns-testing \
             --deciding-nns-neuron-id 1
 
-      - name: dfx deploy local
-        run: |
-          dfx deploy --network local
+      # - name: dfx deploy local
+      #   run: |
+      #     dfx deploy --network local
 
       - name: Start frontend
         run: |
           npm start &
           echo $! > frontend.pid
           # wait until it responds
-          npx wait-on http://127.0.0.1:3000 --timeout 120000
+          npx wait-on http://localhost:3000 --timeout 120000
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
