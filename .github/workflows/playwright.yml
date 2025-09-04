@@ -34,14 +34,14 @@ jobs:
 
       - name: Start pocket-ic
         run: |
-          ./pocket-ic --ttl 3000 --port 8888 &
+          ./sns_testing_bundle/pocket-ic --ttl 3000 --port 8888 &
           echo $! > pocket-ic.pid
           npx wait-on http://127.0.0.1:8888
 
       - name: Init sns-testing
         run: |
           source sns_testing_env.sh
-          ./sns-testing-init \
+          ./sns_testing_bundle/sns-testing-init \
             --server-url "http://127.0.0.1:8888" \
             --dev-identity sns-testing \
             --deciding-nns-neuron-id 1
