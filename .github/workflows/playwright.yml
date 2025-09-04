@@ -88,6 +88,7 @@ jobs:
           source sns_testing_env.sh
           # fake the LIFELINE_CANISTER
           LIFELINE_CANISTER_WASM_PATH="rs/nns/handlers/root/impl/root-canister.wasm.gz"
+          find . -type f -name "*.wasm.gz" | sort
           ./sns-testing-init \
             --server-url "http://127.0.0.1:8888" \
             --dev-identity sns-testing \
