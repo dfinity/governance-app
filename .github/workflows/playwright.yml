@@ -35,7 +35,9 @@ jobs:
       - name: Show the dir
         run: |
           echo "$POCKET_IC_BIN"
+          echo "current dir"
           pwd
+          echo "ls"
           ls
 
       - name: Start pocket-ic
