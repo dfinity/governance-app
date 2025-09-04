@@ -85,6 +85,10 @@ jobs:
         run: |
           find . -type f -name "*.wasm.gz" | sort
 
+      - name: ls
+        run: |
+          ls
+
       - name: Init sns-testing
         run: |
           echo "🍏"
