@@ -81,6 +81,10 @@ jobs:
           echo $! > pocket-ic.pid
           # npx wait-on http://127.0.0.1:8888 --timeout 120000
 
+      - name: Search for all canister
+        run: |
+          find . -type f -name "*.wasm.gz" | sort
+
       - name: Init sns-testing
         run: |
           cat sns_testing_env.sh
@@ -88,7 +92,6 @@ jobs:
           source sns_testing_env.sh
           # fake the LIFELINE_CANISTER
           LIFELINE_CANISTER_WASM_PATH="rs/nns/handlers/root/impl/root-canister.wasm.gz"
-          find . -type f -name "*.wasm.gz" | sort
           ./sns-testing-init \
             --server-url "http://127.0.0.1:8888" \
             --dev-identity sns-testing \
