@@ -1,13 +1,13 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-import common from './en/common.json';
-import enums from './en/enums.json';
-import home from './en/home.json';
-import nns from './en/nns.json';
-import proposal from './en/proposal.json';
-import sns from './en/sns.json';
-import vault from './en/vault.json';
+import common from './en/common.json' with { type: 'json' };
+import enums from './en/enums.json' with { type: 'json' };
+import home from './en/home.json' with { type: 'json' };
+import nns from './en/nns.json' with { type: 'json' };
+import proposal from './en/proposal.json' with { type: 'json' };
+import sns from './en/sns.json' with { type: 'json' };
+import vault from './en/vault.json' with { type: 'json' };
 
 // Using a single namespace "labels" for simplicity.
 // Files inside it (common, home, …) are grouped translations, not separate namespaces.
