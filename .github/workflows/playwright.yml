@@ -46,7 +46,7 @@ jobs:
         run: |
           ./rs/pocket_ic_server/pocket-ic-server --ttl 3000 --port 8888 &
           echo $! > pocket-ic.pid
-          npx wait-on http://127.0.0.1:8888 --timeout 120000
+          # npx wait-on http://127.0.0.1:8888 --timeout 120000
 
       - name: Init sns-testing
         run: |
