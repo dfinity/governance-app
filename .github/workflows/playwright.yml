@@ -34,6 +34,7 @@ jobs:
 
       - name: Show the dir
         run: |
+          echo "$POCKET_IC_BIN"
           pwd
           ls
 
