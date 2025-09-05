@@ -2,13 +2,16 @@ import { expect, test, type Page } from '@playwright/test';
 
 export const login = async ({ page }: { page: Page }) => {
   await test.step('Login', async () => {
+    console.log('✅ Login 0');
     await expect(page.getByTestId('login-btn')).toBeVisible();
     await expect(page.getByTestId('login-btn')).toBeEnabled();
 
+    console.log('✅ Login 1');
     const [newTab] = await Promise.all([
       page.waitForEvent('popup'), // catches the new tab
       page.getByRole('button', { name: 'Login' }).click(),
     ]);
+    console.log('✅ Login 2');
 
     console.log('✅ new title', await newTab.title());
 
