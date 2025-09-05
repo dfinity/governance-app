@@ -69,11 +69,11 @@ jobs:
       #     ls -lat
       #     cat sns_testing_env.sh
 
-      - name: patch sns_testing_env.sh
-        run: |
-          chmod +w sns_testing_env.sh
-          echo 'export LIFELINE_CANISTER_WASM_PATH="rs/sns/testing/sns_testing_canister.wasm.gz"' >> sns_testing_env.sh
-          # cat sns_testing_env.sh
+      # - name: patch sns_testing_env.sh
+      #   run: |
+      #     chmod +w sns_testing_env.sh
+      #     echo 'export LIFELINE_CANISTER_WASM_PATH="rs/sns/testing/sns_testing_canister.wasm.gz"' >> sns_testing_env.sh
+      #     # cat sns_testing_env.sh
 
       - name: Init sns-testing
         run: |
