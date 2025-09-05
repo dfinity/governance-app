@@ -1,25 +1,20 @@
-import { expect, test, type BrowserContext, type Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 export const login = async ({ page }: { page: Page }) => {
-  await test.step('Login', async (step) => {
+  await test.step('Login', async () => {
     await expect(page.getByTestId('login-btn')).toBeVisible();
     await expect(page.getByTestId('login-btn')).toBeEnabled();
 
     const [newTab] = await Promise.all([
       page.waitForEvent('popup'), // catches the new tab
-      page.getByTestId('login-btn').click(),
+      page.getByRole('button', { name: 'Login' }).click(),
     ]);
 
-    await page.getByTestId('login-btn').click();
-
-    await expect(newTab).toHaveTitle('Internet Identity');
-
-    await newTab.waitForLoadState('networkidle');
-
-    await newTab.getByRole('button', { name: 'Create Internet Identity' }).click();
-    await newTab.getByRole('button', { name: 'Create Passkey' }).click();
+    await expect(newTab).toHaveTitle(/Internet Identity/);
 
     // create new identity
+    await newTab.getByRole('button', { name: 'Create Internet Identity' }).click();
+    await newTab.getByRole('button', { name: 'Create Passkey' }).click();
     await newTab.locator('input#captchaInput').fill('a');
     await newTab.getByRole('button', { name: 'Next' }).click();
     await newTab.getByRole('button', { name: 'Continue' }).click();
