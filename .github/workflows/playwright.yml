@@ -38,6 +38,7 @@ jobs:
 
       - name: Download sns_testing_bundle
         run: |
+          set -x
           IC_COMMIT=8465248b4b79d19e8a9b5410bbab541712949df1
           OS=linux
           CDN=https://download.dfinity.systems
