@@ -14,6 +14,7 @@ test('has title', async ({ page }) => {
   await expect(page).toHaveTitle(/The Governance App/);
 
   console.log('✅ Page1', await page.title());
+  console.log(await page.innerHTML('body'));
   await expect(page.getByTestId('login-test')).toHaveText(/Login with Internet Identity!/);
 
   console.log('✅ Page2');
