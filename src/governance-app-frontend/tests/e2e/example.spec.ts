@@ -7,6 +7,8 @@ test('has title', async ({ page }) => {
   // Expect a title "to contain" a substring.
   await expect(page).toHaveTitle(/The Governance App/);
 
+  await expect(page.getByTestId('login-test')).toHaveText(/Login with Internet Identity!/);
+
   await login({ page });
 
   await expect(page.getByTestId('login-test')).toHaveText(/Hello world! You are: /);
