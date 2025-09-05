@@ -7,7 +7,7 @@ test('has title', async ({ page }) => {
   });
   console.log('✅ Page loaded');
 
-  await page.goto('http://localhost:3000/');
+  await page.goto('http://127.0.0.1:3000/');
   console.log('✅ Page0', await page.title());
   await expect(page.getByTestId('main-layout')).toBeVisible();
   console.log('✅ Page1', await page.title());
