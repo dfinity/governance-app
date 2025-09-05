@@ -67,8 +67,8 @@ How to deploy the Project.
 
 - Keep track of controllers, and add/remove them in case they change:
     - Francesco -> `frlnd-a2ffv-cu3x5-3lvcb-i2lrh-ha3sp-p36py-356y5-b7y77-bxuri-zae`.
-    - Max -> `XXX`.
-    - Yusef -> `XXX`.
+    - Max -> `hpikg-6exdt-jn33w-ndty3-fc7jc-tl2lr-buih3-cs3y7-tftkp-sfp62-gqe`.
+    - Yusef -> `pixf5-n6wii-oy2th-nnhvc-afaf4-2yu5l-aac32-pedif-s3o5c-i6qw7-uqe`.
     - GitHub -> `ldg4v-647m6-7j6tf-nrdea-wzdsu-espvw-cl2t4-vkzic-hi6dp-y2azm-yae`.
 - List all controllers: `dfx canister info CANISTER_ID --network=ic`.
 - Add a controller: `dfx canister update-settings CANISTER_ID --add-controller PRINCIPAL_ID`. 
