@@ -1,0 +1,26 @@
+name: Test Playwright shard action
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-shard-action:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Run shard 1 of 2
+        uses: ./.github/actions/run_playwright_e2e_shard
+        with:
+          test_filter: "*.spec.ts"
+          shard_count: 2
+          shard_number: 1
+
+      - name: Run shard 2 of 2
+        uses: ./.github/actions/run_playwright_e2e_shard
+        with:
+          test_filter: "*.spec.ts"
+          shard_count: 2
+          shard_number: 2
