@@ -6,6 +6,8 @@ test('has title', async ({ page }) => {
   });
 
   await page.goto('http://localhost:3000/nns/proposals');
+
+  await expect(page).toHaveTitle(/The Governance App/);
   await expect(page.getByTestId('main-layout')).toBeVisible();
 
   await expect(page.getByTestId('proposals')).toBeVisible();
