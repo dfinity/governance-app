@@ -10,6 +10,8 @@ export const login = async ({ page }: { page: Page }) => {
       page.getByRole('button', { name: 'Login' }).click(),
     ]);
 
+    console.log('✅ new title', await newTab.title());
+
     await expect(newTab).toHaveTitle(/Internet Identity/);
 
     // create new identity
