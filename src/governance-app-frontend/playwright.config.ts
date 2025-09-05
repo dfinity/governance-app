@@ -49,6 +49,19 @@ export default defineConfig({
     //   use: { ...devices['Desktop Safari'] },
     // },
 
+    // {
+    //   name: "mobile",
+    //   use: {
+    //     ...devices["Pixel 5"],
+    //     launchOptions: {
+    //       args: [
+    //         "--ignore-certificate-errors",
+    //         "--host-resolver-rules=MAP * localhost:5173, EXCLUDE localhost",
+    //       ],
+    //     },
+    //   },
+    // },
+
     /* Test against mobile viewports. */
     // {
     //   name: 'Mobile Chrome',
