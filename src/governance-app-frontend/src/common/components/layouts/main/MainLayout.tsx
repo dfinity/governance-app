@@ -41,6 +41,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
             </Link>
 
             <button
+              data-testid="login-btn"
               onClick={identity ? clear : login}
               className={classNames(
                 'text-nowrap rounded px-4 py-2 text-white hover:bg-blue-600 bg-blue-500',

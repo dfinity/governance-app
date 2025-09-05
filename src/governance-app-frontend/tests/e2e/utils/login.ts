@@ -2,6 +2,9 @@ import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 
 export const login = async ({ page }: { page: Page }) => {
   await test.step('Login', async (step) => {
+    await expect(page.getByTestId('login-btn')).toBeVisible();
+    await expect(page.getByTestId('login-btn')).toBeEnabled();
+
     const [newTab] = await Promise.all([
       page.waitForEvent('popup'), // catches the new tab
       page.getByTestId('login-btn').click(),
