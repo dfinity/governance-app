@@ -80,8 +80,7 @@ jobs:
           source sns_testing_env.sh
           ./sns-testing-init \
             --server-url "http://127.0.0.1:8888" \
-            --dev-identity sns-testing \
-            --deciding-nns-neuron-id 1
+            --dev-identity sns-testing
 
       - name: Start frontend
         run: |
