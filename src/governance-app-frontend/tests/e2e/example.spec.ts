@@ -9,7 +9,7 @@ test('has title', async ({ page }) => {
 
   await page.goto('http://localhost:3000/');
   console.log('✅ Page0', await page.title());
-  await page.waitForLoadState('networkidle');
+  await expect(page.getByTestId('main-layout')).toBeVisible();
   console.log('✅ Page1', await page.title());
   console.log(await page.innerHTML('body'));
 
