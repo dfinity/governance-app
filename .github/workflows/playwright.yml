@@ -77,21 +77,11 @@ jobs:
 
       - name: Init sns-testing
         run: |
+          set -x
           source sns_testing_env.sh
           ./sns-testing-init \
             --server-url "http://127.0.0.1:8888" \
             --dev-identity sns-testing
-
-      # - name: Start frontend
-      #   run: |
-      #     npm start &
-      #     echo $! > frontend.pid
-      #     # wait until it responds
-      # npx wait-on http://localhost:3000 --timeout 120000
-
-      - name: Deploy frontend
-        run: |
-          set -x
           echo "🍎 0"
           dfx canister create governance-app-backend
           echo "🍎 1"
@@ -101,9 +91,29 @@ jobs:
           echo "🍎 3"
           # npm run setup &
           echo "🍎 4"
-          # echo $! > frontend.pid
-          # wait until it responds
-          # npx wait-on http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080 --timeout 120000
+
+      # - name: Start frontend
+      #   run: |
+      #     npm start &
+      #     echo $! > frontend.pid
+      #     # wait until it responds
+      # npx wait-on http://localhost:3000 --timeout 120000
+
+      # - name: Deploy frontend
+      #   run: |
+      #     set -x
+      #     echo "🍎 0"
+      #     dfx canister create governance-app-backend
+      #     echo "🍎 1"
+      #     dfx generate governance-app-backend
+      #     echo "🍎 2"
+      #     dfx deploy
+      #     echo "🍎 3"
+      # npm run setup &
+      # echo "🍎 4"
+      # echo $! > frontend.pid
+      # wait until it responds
+      # npx wait-on http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080 --timeout 120000
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
