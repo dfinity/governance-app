@@ -46,14 +46,14 @@ jobs:
           curl --fail -L -O "$CDN/ic/${IC_COMMIT}/binaries/x86_64-${OS}/$NAME.tar.gz"
           tar -xvf $NAME.tar.gz
 
-      # - name: Show the dir
-      #   run: |
-      #     echo "current dir"
-      #     pwd
-      #     echo "ls"
-      #     ls
-      #     echo "ls rs/pocket_ic_server/"
-      #     ls rs/pocket_ic_server/
+      - name: Show the dir
+        run: |
+          echo "current dir"
+          pwd
+          echo "ls"
+          ls
+          echo "ls rs/pocket_ic_server/"
+          ls rs/pocket_ic_server/
 
       - name: Start pocket-ic
         run: |
@@ -91,10 +91,16 @@ jobs:
 
       - name: Deploy frontend
         run: |
+          set -x
+          echo "🍎 0"
           dfx canister create governance-app-backend
+          echo "🍎 1"
           dfx generate governance-app-backend
+          echo "🍎 2"
           dfx deploy
+          echo "🍎 3"
           # npm run setup &
+          echo "🍎 4"
           # echo $! > frontend.pid
           # wait until it responds
           # npx wait-on http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080 --timeout 120000
