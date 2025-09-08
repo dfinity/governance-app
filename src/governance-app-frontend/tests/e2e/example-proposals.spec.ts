@@ -5,7 +5,8 @@ test('has title', async ({ page }) => {
     console.log(`[browser] ${msg.type()}: ${msg.text()}`);
   });
 
-  await page.goto('http://localhost:3000/nns/proposals');
+  // await page.goto('http://localhost:3000/nns/proposals');
+  await page.goto('http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080');
 
   await expect(page).toHaveTitle(/The Governance App/);
   await expect(page.getByTestId('main-layout')).toBeVisible();

@@ -7,7 +7,8 @@ test.skip('has title', async ({ page }) => {
   });
   console.log('✅ Page loaded');
 
-  await page.goto('http://localhost:3000/');
+  // await page.goto('http://localhost:3000/');
+  await page.goto('http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080');
   console.log('✅ Page0', await page.title());
   await expect(page.getByTestId('main-layout')).toBeVisible();
   console.log('✅ Page1', await page.title());

@@ -26,7 +26,7 @@ You can download a pre-built bundle for SNS testing, which will be based on the 
 - Set the following environment variables:
 
 ```sh
-IC_COMMIT=c053a4439e87b44609df469ed8fc0713a3c619a0
+IC_COMMIT=0e4c8234a9e0508ae30c5b8a7498406294c25e95
 OS=darwin
 CDN=https://download.dfinity.systems
 NAME=sns_testing_bundle
@@ -55,7 +55,6 @@ source sns_testing_env.sh
 ./sns-testing-init \
     --server-url "http://127.0.0.1:8888" \
     --dev-identity sns-testing \
-    --deciding-nns-neuron-id 1
 ```
 
 - Now, following canisters should be available in the following urls:
