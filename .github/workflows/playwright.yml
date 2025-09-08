@@ -91,10 +91,13 @@ jobs:
 
       - name: Deploy frontend
         run: |
-          npm run setup &
-          echo $! > frontend.pid
+          dfx canister create governance-app-backend
+          dfx generate governance-app-backend
+          dfx deploy
+          # npm run setup &
+          # echo $! > frontend.pid
           # wait until it responds
-          npx wait-on http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080 --timeout 120000
+          # npx wait-on http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080 --timeout 120000
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
