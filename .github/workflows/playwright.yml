@@ -53,8 +53,9 @@ jobs:
         run: |
           set -x
           dfx identity list
-          mkdir ic
-          cd ic
+          # mkdir ic
+          # cd ic
+          cd ..
           IC_COMMIT=0e4c8234a9e0508ae30c5b8a7498406294c25e95
           OS=linux
           CDN=https://download.dfinity.systems
@@ -66,7 +67,8 @@ jobs:
 
       - name: Start pocket-ic
         run: |
-          cd ic
+          # cd ic
+          cd ..
           dfx identity list
           ./rs/pocket_ic_server/pocket-ic-server --ttl 3000 --port 8888 &
           echo $! > pocket-ic.pid
@@ -112,11 +114,12 @@ jobs:
         run: |
           dfx identity list
           source ./ic/sns_testing_env.sh
-          cd ic
+          # cd ic
+          cd ..
           ./sns-testing-init \
             --server-url "http://127.0.0.1:8888" \
             --dev-identity sns-testing
-          cd ..
+          cd governance-app
           echo "🍎 ls"
           ls
           echo "🍎 0"
