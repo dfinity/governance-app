@@ -200,10 +200,11 @@ jobs:
             fi
           done
 
+          npm run update-snapshots
           npm run test:e2e
 
       - uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
+        # if: ${{ !cancelled() }}
         with:
           name: playwright-report
           path: playwright-report/
