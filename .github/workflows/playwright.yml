@@ -187,7 +187,7 @@ jobs:
           echo "Waiting for server..."
           max_attempts=30
           for i in $(seq 1 $max_attempts); do
-            if curl -s --head http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080 | grep "200 OK" > /dev/null; then
+            if curl -i -H "" http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080 | grep "200 OK" > /dev/null; then
               echo "Server is up!"
               break
             fi
