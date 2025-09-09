@@ -54,7 +54,7 @@ jobs:
           curl --fail -L -O "$CDN/ic/${IC_COMMIT}/binaries/x86_64-${OS}/$NAME.tar.gz"
           tar -xvf ./$NAME.tar.gz
           echo "🍎 ls ../.dfx"
-          ls ../dfx
+          ls ../.dfx
           echo "🍎 ls"
           ls
 
