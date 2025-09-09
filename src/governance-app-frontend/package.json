@@ -15,7 +15,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:e2e:headed": "playwright test --headed --project=chromium"
+    "test:e2e:headed": "playwright test --headed --project=chromium",
+    "update-snapshots": "playwright test --update-snapshots"
   },
   "dependencies": {
     "@dfinity/agent": "^3.2.0",
