@@ -12,7 +12,6 @@
 
 # generated files
 **/declarations/
-**/init-arguments/
 
 # rust
 target/

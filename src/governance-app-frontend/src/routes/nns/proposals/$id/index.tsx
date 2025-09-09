@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
-import { ProposalDetails } from './proposal-details';
+import { ProposalDetails } from './-ProposalDetails';
 
 type LoaderParams = {
   id?: string;
