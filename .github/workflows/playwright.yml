@@ -53,10 +53,8 @@ jobs:
           NAME=sns_testing_bundle
           curl --fail -L -O "$CDN/ic/${IC_COMMIT}/binaries/x86_64-${OS}/$NAME.tar.gz"
           tar -xvf ./$NAME.tar.gz
-          echo "🍎 ls ../.dfx"
-          ls ../.dfx
-          echo "🍎 ls"
           ls
+          ls ..
 
       - name: Start pocket-ic
         run: |
