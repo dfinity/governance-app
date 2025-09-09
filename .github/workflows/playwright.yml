@@ -156,7 +156,18 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run Playwright tests
-        run: npm run test:e2e
+        run: |
+          echo "Waiting for server..."
+          for i in {1..30}; do
+            if curl -s --head http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080 | grep "200 OK" > /dev/null; then
+              echo "Server is up!"
+              break
+            fi
+            echo "Server not ready yet... sleeping 2s"
+            sleep 2
+          done
+
+          npm run test:e2e
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
