@@ -44,6 +44,7 @@ jobs:
       - name: Download sns_testing_bundle
         run: |
           set -x
+          dfx identity list
           mkdir ic
           cd ic
           IC_COMMIT=0e4c8234a9e0508ae30c5b8a7498406294c25e95
@@ -52,12 +53,15 @@ jobs:
           NAME=sns_testing_bundle
           curl --fail -L -O "$CDN/ic/${IC_COMMIT}/binaries/x86_64-${OS}/$NAME.tar.gz"
           tar -xvf ./$NAME.tar.gz
-          echo "🍎 0"
+          echo "🍎 ls ../dfx"
+          ls ../dfx
+          echo "🍎 ls"
           ls
 
       - name: Start pocket-ic
         run: |
           cd ic
+          dfx identity list
           ./rs/pocket_ic_server/pocket-ic-server --ttl 3000 --port 8888 &
           echo $! > pocket-ic.pid
           # npx wait-on http://localhost:8080/ --timeout 120000
@@ -100,19 +104,27 @@ jobs:
 
       - name: Init sns-testing
         run: |
-          set -x
+          dfx identity list
           source ./ic/sns_testing_env.sh
           cd ic
           ./sns-testing-init \
             --server-url "http://127.0.0.1:8888" \
             --dev-identity sns-testing
           cd ..
+          echo "🍎 ls dfx"
+          ls .dfx
           echo "🍎 0"
           dfx canister create governance-app-backend
+          echo "🍎 ls dfx"
+          ls .dfx
           echo "🍎 1"
           dfx generate governance-app-backend
+          echo "🍎 ls dfx"
+          ls .dfx
           echo "🍎 2"
           dfx deploy
+          echo "🍎 ls dfx"
+          ls .dfx
           echo "🍎 3"
           # npm run setup &
           echo "🍎 4"
