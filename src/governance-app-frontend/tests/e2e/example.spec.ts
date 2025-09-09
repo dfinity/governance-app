@@ -27,7 +27,7 @@ test('has title', async ({ page }) => {
 
   // Expect a title "to contain" a substring.
   await expect(page).toHaveTitle(/The Governance App/);
-  await takeSnapshot({ page, label: 'home-signed-out' });
+  // await takeSnapshot({ page, label: 'home-signed-out' });
 
   console.log('✅ Page2');
   await login({ page });
@@ -36,5 +36,5 @@ test('has title', async ({ page }) => {
   await expect(page.getByTestId('login-test')).toHaveText(/Hello world! You are: /);
   console.log('✅ Page4');
 
-  await takeSnapshot({ page, label: 'home-signed-in' });
+  // await takeSnapshot({ page, label: 'home-signed-in' });
 });
