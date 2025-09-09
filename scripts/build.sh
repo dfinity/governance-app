@@ -43,7 +43,7 @@ done
 # --- Main build process ---
 
 echo "Building Docker image..."
-docker build -t "$DOCKER_IMAGE_NAME" . -f docker/Dockerfile.build
+docker buildx build --platform linux/amd64 -t "$DOCKER_IMAGE_NAME" . -f docker/Dockerfile.build
 
 echo "Extracting WASM file from container..."
 CONTAINER_ID=$(docker create "$DOCKER_IMAGE_NAME")
