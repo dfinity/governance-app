@@ -5,7 +5,7 @@ How to create reproducible builds (via Docker).
 ## Base image
 
 - Generate a base image to fix all the toolings and versions (`Dockerfile.base`).
-    - `docker build -t builder-base:X.X.X -f docker/Dockerfile.base .`. 
+    - `docker buildx build --platform linux/amd64,linux/arm64 -t builder-base:X.X.X -f docker/Dockerfile.base .`.
 - Enter and verify that the image has everything you need.
     - `docker run --rm -it builder-base:X.X.X /bin/bash`.
 
