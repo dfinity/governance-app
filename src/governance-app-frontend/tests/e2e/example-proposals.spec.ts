@@ -14,6 +14,15 @@ test('has title', async ({ page }) => {
     console.log(req.url());
   });
 
+  page.on('response', async (response) => {
+    const url = response.url();
+    console.log('🚀RESPONSE:', url);
+    // if (url.endsWith('index-B78zhtbS.js')) {
+    const text = await response.text();
+    console.log('JS file content starts with:', text.slice(0, 200));
+    // }
+  });
+
   // await page.goto('http://localhost:3000/nns/proposals');
   await page.goto('http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080');
 
