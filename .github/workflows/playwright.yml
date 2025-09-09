@@ -109,20 +109,14 @@ jobs:
             --server-url "http://127.0.0.1:8888" \
             --dev-identity sns-testing
           cd ..
-          echo "🍎 ls dfx"
-          ls .dfx
+          echo "🍎 ls"
+          ls
           echo "🍎 0"
           dfx canister create governance-app-backend
-          echo "🍎 ls dfx"
-          ls .dfx
           echo "🍎 1"
           dfx generate governance-app-backend
-          echo "🍎 ls dfx"
-          ls .dfx
           echo "🍎 2"
           dfx deploy
-          echo "🍎 ls dfx"
-          ls .dfx
           echo "🍎 3"
           # npm run setup &
           echo "🍎 4"
