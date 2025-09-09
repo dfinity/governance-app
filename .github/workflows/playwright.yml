@@ -126,9 +126,9 @@ jobs:
           echo "🍎 0"
           dfx canister create governance-app-backend
           echo "🍎 1"
-          dfx generate governance-app-backend
+          # dfx generate governance-app-backend
           echo "🍎 2"
-          dfx deploy
+          dfx deploy governance-app-backend
           echo "🍎 3"
           # npm run setup &
           echo "🍎 4"
@@ -140,10 +140,10 @@ jobs:
           echo "🍎 K2"
           curl -v http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080
           echo "🍎 K3"
-          curl -v http://lqy7q-dh777-77777-aaaaq-cai.127.0.0.1:8080
+          # curl -v http://lqy7q-dh777-77777-aaaaq-cai.127.0.0.1:8080
           echo "🍎 K4"
           for i in $(seq 1 $max_attempts); do
-            if curl -s --head http://127.0.0.1:8080/?canisterId=lz3um-vp777-77777-aaaba-cai&id=lqy7q-dh777-77777-aaaaq-cai | grep "200 OK" > /dev/null; then
+            if curl -s --head http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080 | grep "200 OK" > /dev/null; then
               echo "Server is up!"
               break
             fi
