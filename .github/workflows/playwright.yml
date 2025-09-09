@@ -129,6 +129,22 @@ jobs:
           # npm run setup &
           echo "🍎 4"
 
+          echo "Waiting for server..."
+          max_attempts=30
+          for i in $(seq 1 $max_attempts); do
+            if curl -s --head http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080 | grep "200 OK" > /dev/null; then
+              echo "Server is up!"
+              break
+            fi
+            echo "Server not ready yet... attempt $i/$max_attempts"
+            sleep 2
+
+            if [ "$i" -eq "$max_attempts" ]; then
+              echo "Server did not become ready after $max_attempts attempts, exiting."
+              exit 1
+            fi
+          done
+          echo "🍎 Server is ready!"
       # - name: Start frontend
       #   run: |
       #     npm start &
@@ -158,13 +174,19 @@ jobs:
       - name: Run Playwright tests
         run: |
           echo "Waiting for server..."
-          for i in {1..30}; do
+          max_attempts=30
+          for i in $(seq 1 $max_attempts); do
             if curl -s --head http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080 | grep "200 OK" > /dev/null; then
               echo "Server is up!"
               break
             fi
-            echo "Server not ready yet... sleeping 2s"
+            echo "Server not ready yet... attempt $i/$max_attempts"
             sleep 2
+
+            if [ "$i" -eq "$max_attempts" ]; then
+              echo "Server did not become ready after $max_attempts attempts, exiting."
+              exit 1
+            fi
           done
 
           npm run test:e2e
