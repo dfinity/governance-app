@@ -1,18 +1,18 @@
 import { test, expect } from '@playwright/test';
 import { login } from './utils/login';
 
-test.skip('has title', async ({ page }) => {
+test('has title', async ({ page }) => {
   page.on('console', (msg) => {
     console.log(`[browser] ${msg.type()}: ${msg.text()}`);
   });
   console.log('✅ Page loaded');
 
-  page.on('request', (req) => {
-    console.log('🚀HEADERS:');
-    console.log(req.method());
-    console.log(req.headers());
-    console.log(req.url());
-  });
+  // page.on('request', (req) => {
+  //   console.log('🚀HEADERS:');
+  //   console.log(req.method());
+  //   console.log(req.headers());
+  //   console.log(req.url());
+  // });
 
   // await page.goto('http://localhost:3000/');
   await page.goto('http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080');

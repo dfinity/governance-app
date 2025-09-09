@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('has title', async ({ page }) => {
+test.skip('has title', async ({ page }) => {
   page.on('console', (msg) => {
     console.log(`[browser] ${msg.type()}: ${msg.text()}`);
   });
