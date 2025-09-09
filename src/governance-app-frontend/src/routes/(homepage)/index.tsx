@@ -12,6 +12,7 @@ function Homepage() {
 
   return (
     <div className="text-xl">
+      TEST
       {identity
         ? t(($) => $.home.yourPrincipal, {
             principal: identity.getPrincipal().toString(),
