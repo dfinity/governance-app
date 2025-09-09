@@ -17,6 +17,8 @@ test.skip('has title', async ({ page }) => {
   // Expect a title "to contain" a substring.
   await expect(page).toHaveTitle(/The Governance App/);
 
+  await expect(page).toHaveScreenshot('home-signed-out', { fullPage: true });
+
   await expect(page.getByTestId('login-test')).toHaveText(/Login with Internet Identity!/);
 
   console.log('✅ Page2');
@@ -25,4 +27,6 @@ test.skip('has title', async ({ page }) => {
   console.log('✅ Page3');
   await expect(page.getByTestId('login-test')).toHaveText(/Hello world! You are: /);
   console.log('✅ Page4');
+
+  await expect(page).toHaveScreenshot('home-signed-out', { fullPage: true });
 });
