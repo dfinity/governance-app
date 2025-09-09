@@ -1,0 +1,22 @@
+# Base image, to fix the tooling for better reproducibility.
+FROM rust:1.87.0-slim-bookworm
+
+# Set up environment variables for non-interactive installs.
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install curl and git first, as they are needed for the next steps.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install a specific version of Node.js from NodeSource.
+RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
+RUN apt-get install -y nodejs
+
+# Install DFX (Internet Computer SDK).
+RUN DFXVM_INIT_YES=true sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)"
+ENV PATH="/root/.local/share/dfx/bin:${PATH}"
+
+# Install the correct Rust target for Wasm compilation.
+RUN rustup target add wasm32-unknown-unknown

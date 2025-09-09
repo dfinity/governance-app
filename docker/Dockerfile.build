@@ -1,0 +1,14 @@
+# Use the base image previously created and published.
+FROM ghcr.io/dfinity/governance-app/builder-base:0.0.1
+
+WORKDIR /app
+COPY . .
+
+# Copy env variables and set DFX_NETWORK
+RUN cp .env.bk .env && echo "DFX_NETWORK=ic" >> .env
+
+# Run the build chain.
+RUN npm ci
+RUN dfx generate
+RUN npm run build
+RUN cargo build --target wasm32-unknown-unknown --release -p governance-app-backend --locked

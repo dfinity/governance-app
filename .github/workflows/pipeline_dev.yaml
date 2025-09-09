@@ -9,3 +9,10 @@ jobs:
     name: Codestyle & tests
     uses: ./.github/workflows/check.yaml
     secrets: inherit
+
+  # TEST, TO REMOVE
+  deploy:
+    name: Deployment
+    needs: [check]
+    uses: ./.github/workflows/deploy.yaml
+    secrets: inherit
