@@ -1,12 +1,4 @@
-# Hacking
-
-This document list a couple of useful information to develop the Governance-dapp frontend.
-
-## Table of Contents
-
-- [Development Environment](#local)
-
-## Development Environment
+# Development Environment
 
 There are two ways to run sns-testing as a local development environment:
 
@@ -19,7 +11,7 @@ Both approaches benefit from having a dedicated identity for this scenario. You 
 dfx identity new sns-testing --storage-mode=plaintext
 ```
 
-### Locally
+## Local
 
 You can download a pre-built bundle for SNS testing, which will be based on the provided IC commit.
 
@@ -69,7 +61,7 @@ dfx deploy --network http://127.0.0.1:8080
 npm start
 ```
 
-### DevEnv
+## DevEnv
 
 Pre-requisites:
 

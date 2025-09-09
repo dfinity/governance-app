@@ -1,0 +1,11 @@
+name: Pipeline Dev
+
+on:
+  pull_request:
+  merge_group:
+
+jobs:
+  check:
+    name: Codestyle & tests
+    uses: ./.github/workflows/check.yaml
+    secrets: inherit

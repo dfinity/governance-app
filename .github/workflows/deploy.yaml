@@ -1,0 +1,81 @@
+name: Deploy
+
+on:
+  workflow_call:
+
+jobs:
+  build_wasm:
+    name: Build WASM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy env variables
+        run: cp .env.bk .env && echo "DFX_NETWORK=ic" >> .env
+
+      - name: Install NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install NodeJS dependencies
+        shell: bash
+        run: npm ci
+
+      - name: Install DFX
+        uses: dfinity/setup-dfx@main
+
+      - name: Generate types
+        run: dfx generate
+
+      - name: Install Rust & Cargo
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+
+      - name: Build Front-end
+        run: npm run build
+
+      - name: Build Back-end
+        run: cargo build --target wasm32-unknown-unknown --release -p governance-app-backend --locked
+
+      - name: Show SHA
+        run: sha256sum ./target/wasm32-unknown-unknown/release/governance_app_backend.wasm | awk '{ print $1 }'
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.run_id }}-wasm
+          path: ./target/wasm32-unknown-unknown/release/governance_app_backend.wasm
+
+  upgrade_canister:
+    name: Upgrade canister
+    runs-on: ubuntu-latest
+    needs: [build_wasm]
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ github.run_id }}-wasm
+          path: ./
+
+      - name: Install DFX
+        uses: dfinity/setup-dfx@main
+
+      - name: Install DFX identity
+        env:
+          DFX_IDENTITY_PEM: ${{ secrets.DFX_IDENTITY_KEY }}
+        run: |
+          echo "$DFX_IDENTITY_PEM" > ./id.pem
+          dfx identity import --storage-mode plaintext NewGovAppController_GitHub ./id.pem
+          dfx identity use NewGovAppController_GitHub
+          rm ./id.pem
+
+      - name: Upgrade canister
+        env:
+          CANISTER_ID: ${{ secrets.CANISTER_ID }}
+          DFX_WARNING: "-mainnet_plaintext_identity"
+        run: dfx canister install $CANISTER_ID --mode upgrade --wasm ./governance_app_backend.wasm --network=ic
