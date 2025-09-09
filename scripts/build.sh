@@ -52,8 +52,8 @@ docker rm "$CONTAINER_ID"
 
 echo "WASM file extracted to: $WASM_FILE_NAME"
 
-echo "Calculating SHA256 of the WASM file..."
-sha256sum "./$WASM_FILE_NAME" | awk '{ print $1 }'
+echo -e "\033[1m\033[32mCalculating SHA256 of the WASM file...\033[0m"
+sha256sum "./$WASM_FILE_NAME" | awk '{ print $1 }' | echo -e "\033[1m\033[32m$(cat)\033[0m"
 
 # --- Conditional cleanup ---
 
