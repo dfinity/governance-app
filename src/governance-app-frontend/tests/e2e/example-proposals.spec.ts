@@ -7,19 +7,19 @@ test('has title', async ({ page }) => {
 
   console.log('✅ Page maybe loaded');
 
-  page.on('request', (req) => {
-    console.log('🚀HEADERS:');
-    console.log(req.method());
-    console.log(req.headers());
-    console.log(req.url());
-  });
+  // page.on('request', (req) => {
+  //   console.log('🚀HEADERS:');
+  //   console.log(req.method());
+  //   console.log(req.headers());
+  //   console.log(req.url());
+  // });
 
   page.on('response', async (response) => {
     const url = response.url();
-    console.log('🚀RESPONSE:', url);
+    console.log('🚀 RESPONSE:', url, (await response.text()).slice(0, 100));
     // if (url.endsWith('index-B78zhtbS.js')) {
-    const text = await response.text();
-    console.log('JS file content starts with:', text.slice(0, 200));
+    // const text = (await response.text()).slice(0, 100);
+    // console.log('JS file content starts with:', text);
     // }
   });
 
@@ -29,6 +29,9 @@ test('has title', async ({ page }) => {
   await expect(page).toHaveTitle(/The Governance App/);
   await expect(page.getByTestId('main-layout')).toBeVisible({ timeout: 15000 });
 
-  await expect(page.getByTestId('proposals')).toBeVisible();
+  await page.getByText('NNS', { exact: true }).click();
+  await page.getByText('See Proposals', { exact: true }).click();
+
+  await expect(page.getByTestId('proposals')).toBeVisible({ timeout: 15000 });
   await expect(page.getByTestId('proposals').locator('a')).toHaveCount(6);
 });
