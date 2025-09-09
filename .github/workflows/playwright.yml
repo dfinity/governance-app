@@ -20,11 +20,19 @@ jobs:
           node -v
           npm -v
 
+      - name: Install Rust & Cargo
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+
       - name: Install dependencies
         run: npm ci
 
       - name: Install dfx
         uses: dfinity/setup-dfx@main
+
       - name: Create sns-testing identity
         run: |
           dfx identity new sns-testing --storage-mode=plaintext || true
