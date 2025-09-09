@@ -200,7 +200,7 @@ jobs:
             fi
           done
 
-          npm run update-snapshots
+          # npm run update-snapshots
           npm run test:e2e
 
       - uses: actions/upload-artifact@v4
