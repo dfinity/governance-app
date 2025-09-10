@@ -1,0 +1,13 @@
+name: pocket-ic-stop
+description: Kill pocket-ic by PID
+inputs:
+  pid:
+    required: true
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        set -euo pipefail
+        run: |
+          kill $(cat ./ic-bin/pocket-ic.pid) || true
