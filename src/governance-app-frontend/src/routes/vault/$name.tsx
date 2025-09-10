@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
+import Skeleton from 'react-loading-skeleton';
 
 import useTitle from '@hooks/useTitle';
 
@@ -13,7 +14,7 @@ type LoaderParams = {
 
 export const Route = createFileRoute('/vault/$name')({
   component: VaultIndex,
-  pendingComponent: () => 'Loading...',
+  pendingComponent: () => <Skeleton count={3} />,
   validateSearch: (search): SearchParams => ({
     surname: search.surname ? String(search.surname) : undefined,
   }),

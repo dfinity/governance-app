@@ -1,13 +1,12 @@
 import { ListProposalsRequest, ListProposalsResponse, Option } from '@dfinity/nns';
 
-import { MIN_ASYNC_DELAY, PAGINATION_LIMIT } from '@constants/extra';
+import { PAGINATION_LIMIT } from '@constants/extra';
 import { useInfiniteQueryThenUpdateCall } from '@queries/useInfiniteQueryThenUpdateCall';
-import { withMinimumDelay } from '@utils/async';
 import { QUERY_KEYS } from '@utils/queryKeys';
 
 import { useNnsGovernanceCanister } from './useGovernanceCanister';
 
-export const useGovernanceListProposals = (
+export const useGovernanceGetProposals = (
   options: ListProposalsRequest = {
     beforeProposal: undefined,
     limit: PAGINATION_LIMIT,
@@ -23,23 +22,17 @@ export const useGovernanceListProposals = (
   const { ready, canister } = useNnsGovernanceCanister();
 
   return useInfiniteQueryThenUpdateCall<ListProposalsResponse, Option<bigint>>({
-    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.LIST_PROPOSALS, options],
+    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.GET_PROPOSALS, options],
     queryFn: (context) =>
-      withMinimumDelay(
-        canister!.listProposals({
-          request: { ...options, beforeProposal: context.pageParam },
-          certified: false,
-        }),
-        MIN_ASYNC_DELAY,
-      ),
+      canister!.listProposals({
+        request: { ...options, beforeProposal: context.pageParam },
+        certified: false,
+      }),
     updateFn: (context) =>
-      withMinimumDelay(
-        canister!.listProposals({
-          request: { ...options, beforeProposal: context.pageParam },
-          certified: true,
-        }),
-        MIN_ASYNC_DELAY,
-      ),
+      canister!.listProposals({
+        request: { ...options, beforeProposal: context.pageParam },
+        certified: true,
+      }),
     initialPageParam: undefined,
     getNextPageParam: (lastPage) =>
       lastPage.response.proposals.length === PAGINATION_LIMIT

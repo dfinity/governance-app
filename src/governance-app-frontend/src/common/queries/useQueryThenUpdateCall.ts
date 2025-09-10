@@ -1,5 +1,7 @@
 import { QueryKey, useQuery, UseQueryOptions } from '@tanstack/react-query';
 
+import { MIN_ASYNC_DELAY } from '@constants/extra';
+import { withMinimumDelay } from '@utils/async';
 import { stringifyAll } from '@utils/strings';
 import { CertifiedData, QueryType } from '@common/typings/queries';
 
@@ -17,7 +19,7 @@ export const useQueryThenUpdateCall = <TData>({
   options,
 }: Props<TData>) => {
   const queryCall = async (): Promise<CertifiedData<TData>> => ({
-    response: await queryFn(),
+    response: await withMinimumDelay(queryFn(), MIN_ASYNC_DELAY),
     certified: false,
   });
   const queryQuery = useQuery({
@@ -30,7 +32,7 @@ export const useQueryThenUpdateCall = <TData>({
   }
 
   const updateCall = async (): Promise<CertifiedData<TData>> => ({
-    response: await updateFn(),
+    response: await withMinimumDelay(updateFn(), MIN_ASYNC_DELAY),
     certified: true,
   });
   const updateQuery = useQuery({

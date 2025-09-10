@@ -20,7 +20,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
       <title>{t(($) => $.home.title)}</title>
 
       <div>
-        <div className="flex items-start justify-between shrink-0">
+        <div className="flex items-start justify-between shrink-0 gap-2">
           <Link to="/">
             <h1 className="text-4xl font-bold pb-4">{t(($) => $.home.title)}</h1>
           </Link>

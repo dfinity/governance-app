@@ -11,6 +11,7 @@ import { useNnsGovernanceCanister } from './useGovernanceCanister';
  */
 export const useGovernanceGetProposal = ({ proposalId }: { proposalId: bigint | undefined }) => {
   const { ready, canister } = useNnsGovernanceCanister();
+
   const request: ListProposalsRequest = {
     beforeProposal: proposalId && proposalId + 1n,
     limit: 1,
@@ -22,7 +23,7 @@ export const useGovernanceGetProposal = ({ proposalId }: { proposalId: bigint | 
   };
 
   return useQueryThenUpdateCall({
-    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.LIST_PROPOSALS, request],
+    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.GET_PROPOSAL, request],
     queryFn: async () => {
       const res = await canister!.listProposals({ request, certified: false });
       return res.proposals[0];
