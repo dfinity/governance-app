@@ -114,8 +114,10 @@ jobs:
             fi
           done
 
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium firefox webkit
+      - uses: microsoft/playwright-github-action@v1
+        with:
+          with-deps: true
+          browsers: chromium firefox webkit
 
       - name: Run Playwright tests
         run: |
