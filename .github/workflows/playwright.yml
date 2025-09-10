@@ -109,7 +109,8 @@ jobs:
 
       - name: Get Playwright version
         id: playwright_version
-        run: echo "version=$(node -p \"require('@playwright/test/package.json').version\")" >> $GITHUB_OUTPUT
+        run: |
+          echo "version=$(node -p 'require(\"@playwright/test/package.json\").version')" >> $GITHUB_OUTPUT
 
       - name: Show Playwright version
         run: echo "Using Playwright version ${{ steps.playwright_version.outputs.version }}"
