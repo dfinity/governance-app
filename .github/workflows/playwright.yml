@@ -34,13 +34,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          # Use `package-lock.json` hash to re-cache after version updates.
-          key: playwright-${{ runner.os }}-all-${{ hashFiles('package-lock.json') }}
-
       - name: Install dfx
         uses: dfinity/setup-dfx@main
 
@@ -114,10 +107,23 @@ jobs:
             fi
           done
 
-      - uses: microsoft/playwright-github-action@v1
+      - name: Get Playwright version
+        id: playwright_version
+        run: echo "version=$(node -p \"require('@playwright/test/package.json').version\")" >> $GITHUB_OUTPUT
+
+      - name: Show Playwright version
+        run: echo "Using Playwright version ${{ steps.playwright_version.outputs.version }}"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
         with:
-          with-deps: true
-          browsers: chromium firefox webkit
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright_version.outputs.version }}-all
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium firefox webkit
 
       - name: Run Playwright tests
         run: |
