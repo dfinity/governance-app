@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BASE_URL: http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080
+      IC_COMMIT: 0e4c8234a9e0508ae30c5b8a7498406294c25e95
     steps:
       - uses: actions/checkout@v4
 
@@ -41,11 +42,6 @@ jobs:
           dfx identity use sns-testing
           dfx identity get-principal
 
-      # - name: Install Bazel
-      #   uses: bazelbuild/setup-bazel@v7
-      #   with:
-      #     bazel-version: 7.1.2 # or whatever version you need
-
       - name: Confirm successful installation
         run: |
           dfx --version
@@ -53,28 +49,22 @@ jobs:
 
       - name: Download sns_testing_bundle
         run: |
-          set -x
-          dfx identity list
-          # mkdir ic
-          # cd ic
-          cd ..
-          IC_COMMIT=0e4c8234a9e0508ae30c5b8a7498406294c25e95
+          # Create a directory for sns-testing
+          mkdir ic-bin
+          cd ic-bin
+
           OS=linux
           CDN=https://download.dfinity.systems
           NAME=sns_testing_bundle
           curl --fail -L -O "$CDN/ic/${IC_COMMIT}/binaries/x86_64-${OS}/$NAME.tar.gz"
           tar -xvf ./$NAME.tar.gz
-          ls
-          ls ..
 
       - name: Start pocket-ic
         run: |
-          # cd ic
-          cd ..
+          cd ic-bin
           dfx identity list
           ./rs/pocket_ic_server/pocket-ic-server --ttl 3000 --port 8888 &
           echo $! > pocket-ic.pid
-          # npx wait-on http://localhost:8080/ --timeout 120000
 
       # - name: Clone ic repo
       #   run: |
@@ -114,19 +104,19 @@ jobs:
 
       - name: Init sns-testing
         run: |
-          dfx identity list
-          # source ./ic/sns_testing_env.sh
-          # cd ic
-          source ../sns_testing_env.sh
+          cd ic-bin
+          source ./sns_testing_env.sh
           cd ..
           ./sns-testing-init \
             --server-url "http://127.0.0.1:8888" \
             --dev-identity sns-testing
 
-          cd governance-app
+      - name: Deploy governance-app
+        run: |
           dfx canister create governance-app-backend
           dfx deploy governance-app-backend
 
+          # Verify deployment
           echo "Waiting for server..."
           max_attempts=30
           for i in $(seq 1 $max_attempts); do
@@ -142,7 +132,7 @@ jobs:
               exit 1
             fi
           done
-          echo "🍎 Server is ready!"
+
       # - name: Start frontend
       #   run: |
       #     npm start &
@@ -174,7 +164,7 @@ jobs:
           npm run test:e2e
 
       - uses: actions/upload-artifact@v4
-        # if: ${{ !cancelled() }}
+        if: ${{ !cancelled() }}
         with:
           name: playwright-report
           path: playwright-report/
@@ -183,5 +173,6 @@ jobs:
       - name: Cleanup background procs
         if: always()
         run: |
+          cat pocket-ic.pid
           kill $(cat pocket-ic.pid) || true
-          kill $(cat frontend.pid) || true
+          # kill $(cat frontend.pid) || true
