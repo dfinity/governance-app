@@ -6,8 +6,10 @@ on:
     branches: [main, master]
 jobs:
   test:
-    timeout-minutes: 30
+    timeout-minutes: 15
     runs-on: ubuntu-latest
+    env:
+      BASE_URL: http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080
     steps:
       - uses: actions/checkout@v4
 
@@ -120,30 +122,15 @@ jobs:
           ./sns-testing-init \
             --server-url "http://127.0.0.1:8888" \
             --dev-identity sns-testing
+
           cd governance-app
-          echo "🍎 ls"
-          ls
-          echo "🍎 0"
           dfx canister create governance-app-backend
-          echo "🍎 1"
-          # dfx generate governance-app-backend
-          echo "🍎 2"
           dfx deploy governance-app-backend
-          echo "🍎 3"
-          # npm run setup &
-          echo "🍎 4"
 
           echo "Waiting for server..."
           max_attempts=30
-          echo "🍎 K1"
-          curl -v http://127.0.0.1:8080/?canisterId=lz3um-vp777-77777-aaaba-cai&id=lqy7q-dh777-77777-aaaaq-cai
-          echo "🍎 K2"
-          curl -v http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080
-          echo "🍎 K3"
-          # curl -v http://lqy7q-dh777-77777-aaaaq-cai.127.0.0.1:8080
-          echo "🍎 K4"
           for i in $(seq 1 $max_attempts); do
-            if curl -i -H "" http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080 | grep "200 OK" > /dev/null; then
+            if curl -i $BASE_URL | grep "200 OK" > /dev/null; then
               echo "Server is up!"
               break
             fi
@@ -184,22 +171,6 @@ jobs:
 
       - name: Run Playwright tests
         run: |
-          echo "Waiting for server..."
-          max_attempts=30
-          for i in $(seq 1 $max_attempts); do
-            if curl -i -H "" http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080 | grep "200 OK" > /dev/null; then
-              echo "Server is up!"
-              break
-            fi
-            echo "Server not ready yet... attempt $i/$max_attempts"
-            sleep 2
-
-            if [ "$i" -eq "$max_attempts" ]; then
-              echo "Server did not become ready after $max_attempts attempts, exiting."
-              exit 1
-            fi
-          done
-          BASE_URL=http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080 npx playwright test
           npm run test:e2e
 
       - uses: actions/upload-artifact@v4
