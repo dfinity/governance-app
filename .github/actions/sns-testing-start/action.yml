@@ -1,7 +1,5 @@
 name: sns-testing-start
 runs:
-  env:
-    IC_COMMIT: 0e4c8234a9e0508ae30c5b8a7498406294c25e95
   using: "composite"
   steps:
     - name: Download sns_testing_bundle
@@ -10,6 +8,7 @@ runs:
         mkdir -p ic-bin
         cd ic-bin
         OS=linux
+        IC_COMMIT=0e4c8234a9e0508ae30c5b8a7498406294c25e95
         CDN=https://download.dfinity.systems
         NAME=sns_testing_bundle
         curl --fail -L -O "$CDN/ic/${IC_COMMIT}/binaries/x86_64-${OS}/$NAME.tar.gz"
