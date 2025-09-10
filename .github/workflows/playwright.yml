@@ -199,8 +199,7 @@ jobs:
               exit 1
             fi
           done
-
-          # npm run update-snapshots
+          BASE_URL=http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080 npx playwright test
           npm run test:e2e
 
       - uses: actions/upload-artifact@v4
