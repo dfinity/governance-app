@@ -82,6 +82,16 @@ jobs:
             --server-url "http://127.0.0.1:8888" \
             --dev-identity sns-testing
 
+      # To speed up the backend build.
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Deploy governance-app
         run: |
           dfx canister create governance-app-backend
