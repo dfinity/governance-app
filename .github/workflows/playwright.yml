@@ -172,6 +172,6 @@ jobs:
       - name: Cleanup background procs
         if: always()
         run: |
-          cat pocket-ic.pid
-          kill $(cat pocket-ic.pid) || true
+          cat ./ic-bin/pocket-ic.pid
+          kill $(cat ./ic-bin/pocket-ic.pid) || true
           # kill $(cat frontend.pid) || true
