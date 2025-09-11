@@ -109,6 +109,21 @@ jobs:
             npm run test:e2e
           fi
 
+      - name: Commit updated snapshots
+        if: ${{ inputs.update-snapshots == 'true' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # stage snapshot dirs
+          git add src/governance-app-frontend/tests/**/__screenshots__/
+
+          # create commit only if there are changes
+          git diff --cached --quiet || git commit -m "chore: update Playwright snapshots [skip ci]"
+
+          # push back to the selected/current branch
+          git push origin HEAD:${{ inputs.branch != '' && inputs.branch || github.head_ref || github.ref_name }}
+
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
