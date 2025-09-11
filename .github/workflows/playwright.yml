@@ -35,9 +35,9 @@ jobs:
           npm -v
           dfx --version
 
-          # sns-testing
-          - name: Create sns-testing identity
-          run: |
+      # sns-testing
+      - name: Create sns-testing identity
+        run: |
           dfx identity new sns-testing --storage-mode=plaintext || true
           dfx identity use sns-testing
           dfx identity get-principal
