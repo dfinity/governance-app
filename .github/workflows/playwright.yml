@@ -105,8 +105,10 @@ jobs:
       - name: Run Playwright tests
         run: |
           if [ "${{ inputs.update-snapshots }}" = "true" ]; then
+            echo "🚀 Updating snapshots"
             npm run update-snapshots
           else
+            echo "🚀 Running end-to-end tests"
             npm run test:e2e
           fi
 
