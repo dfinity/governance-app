@@ -1,5 +1,15 @@
 name: Playwright Tests
 on:
+  workflow_call:
+    inputs:
+      update-snapshots:
+        required: false
+        type: boolean
+        default: false
+      branch:
+        required: false
+        type: string
+        default: "" # empty means "use current branch"
   push:
     branches: [main, master]
   pull_request:
@@ -12,6 +22,9 @@ jobs:
       BASE_URL: http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch != '' && inputs.branch || github.ref_name }}
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -90,7 +103,11 @@ jobs:
 
       - name: Run Playwright tests
         run: |
-          npm run test:e2e
+          if [ "${{ inputs.update-snapshots }}" = "true" ]; then
+            npm run update-snapshots
+          else
+            npm run test:e2e
+          fi
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
@@ -104,15 +121,6 @@ jobs:
           name: governance_app_backend.wasm
           path: ./target/wasm32-unknown-unknown/release/governance_app_backend.wasm
           retention-days: 30
-      # - name: Add artifact links to summary
-      #   if: always()
-      #   run: |
-      #     {
-      #       echo "### 📦 Artifacts"
-      #       echo ""
-      #       echo "- [Playwright report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts)"
-      #       echo "- [governance_app_backend.wasm](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts)"
-      #     } >> $GITHUB_STEP_SUMMARY
 
       - uses: ./.github/actions/sns-testing-stop
         if: always()

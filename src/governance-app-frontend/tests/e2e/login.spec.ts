@@ -6,8 +6,6 @@ test('has title', async ({ page }) => {
     console.log(`[browser] ${msg.type()}: ${msg.text()}`);
   });
 
-  // const url = 'http://localhost:3000/';
-  // const url = 'http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080';
   await page.goto('/');
 
   await page.waitForLoadState('networkidle'); // ensures all assets loaded
