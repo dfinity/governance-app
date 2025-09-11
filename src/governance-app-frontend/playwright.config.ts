@@ -38,28 +38,29 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
 
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'] },
-    // },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
 
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
 
-    // {
-    //   name: "mobile",
-    //   use: {
-    //     ...devices["Pixel 5"],
-    //     launchOptions: {
-    //       args: [
-    //         "--ignore-certificate-errors",
-    //         "--host-resolver-rules=MAP * localhost:5173, EXCLUDE localhost",
-    //       ],
-    //     },
-    //   },
-    // },
+    {
+      name: 'mobile',
+      use: {
+        ...devices['iPhone 15 Pro Max'],
+      },
+    },
+
+    {
+      name: 'mobile',
+      use: {
+        ...devices['Pixel 7'],
+      },
+    },
 
     /* Test against mobile viewports. */
     // {
