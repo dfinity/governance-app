@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.branch != '' && inputs.branch || github.ref_name }}
+          ref: ${{ inputs.branch != '' && inputs.branch || github.head_ref || github.ref_name }}
           fetch-depth: 0
 
       - uses: actions/setup-node@v4
