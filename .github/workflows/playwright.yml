@@ -105,15 +105,26 @@ jobs:
       - name: Run Playwright tests
         run: |
           if [ "${{ inputs.update-snapshots }}" = "true" ]; then
-            echo "🚀 Updating snapshots"
-            npm run update-snapshots
+          npm run update-snapshots
           else
-            echo "🚀 Running end-to-end tests"
-            npm run test:e2e
+          echo "🚀 Running end-to-end tests"
+          npm run test:e2e
           fi
 
+      - name: Update snapshots
+        if: ${{ inputs.update-snapshots == true }}
+        run: |
+          echo "🚀 Updating snapshots"
+          npm run update-snapshots
+
+      - name: Run Playwright tests
+        if: ${{ inputs.update-snapshots != true }}
+        run: |
+          echo "🚀 Running end-to-end tests"
+          npm run test:e2e
+
       - name: Commit updated snapshots
-        if: ${{ inputs.update-snapshots == 'true' }}
+        if: ${{ inputs.update-snapshots == true }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

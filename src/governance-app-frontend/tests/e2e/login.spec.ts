@@ -13,10 +13,10 @@ test('has title', async ({ page }) => {
   await expect(page.getByTestId('main-layout')).toBeVisible({ timeout: 15000 });
   await expect(page).toHaveTitle('The Governance App');
 
-  await takeSnapshot({ page, label: 'home-signed-out' });
+  await takeSnapshot({ page, label: 'login--signed-out' });
 
   await login({ page });
   await expect(page.getByTestId('login-test')).toHaveText(/Hello world! You are: /);
 
-  await takeSnapshot({ page, label: 'home-signed-in' });
+  await takeSnapshot({ page, label: 'login--signed-in' });
 });
