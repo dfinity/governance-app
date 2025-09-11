@@ -98,6 +98,12 @@ jobs:
           name: playwright-report
           path: src/governance-app-frontend/playwright-report/
           retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: governance_app_backend.wasm
+          path: ./target/wasm32-unknown-unknown/release/governance_app_backend.wasm
+          retention-days: 30
 
       - uses: ./.github/actions/sns-testing-stop
         if: always()
