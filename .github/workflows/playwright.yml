@@ -104,6 +104,15 @@ jobs:
           name: governance_app_backend.wasm
           path: ./target/wasm32-unknown-unknown/release/governance_app_backend.wasm
           retention-days: 30
+      - name: Add artifact links to summary
+        if: always()
+        run: |
+          {
+            echo "### 📦 Artifacts"
+            echo ""
+            echo "- [Playwright report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts)"
+            echo "- [governance_app_backend.wasm](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts)"
+          } >> $GITHUB_STEP_SUMMARY
 
       - uses: ./.github/actions/sns-testing-stop
         if: always()
