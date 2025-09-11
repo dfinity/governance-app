@@ -10,4 +10,4 @@ runs:
       run: |
         set -euo pipefail
         run: |
-          kill $(cat ./ic-bin/pocket-ic.pid) || true
+          [ -f ./ic-bin/pocket-ic.pid ] && kill "$(cat ./ic-bin/pocket-ic.pid)" || true
