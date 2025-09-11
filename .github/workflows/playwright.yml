@@ -24,7 +24,7 @@ jobs:
           toolchain: stable
           target: wasm32-unknown-unknown
           override: true
-      - name: Install dependencies
+      - name: Install frontend dependencies
         run: npm ci
       - name: Install dfx
         uses: dfinity/setup-dfx@main
@@ -34,14 +34,14 @@ jobs:
           node -v
           npm -v
           dfx --version
-          dfx identity list
 
-      # sns-testing
-      - name: Create sns-testing identity
-        run: |
+          # sns-testing
+          - name: Create sns-testing identity
+          run: |
           dfx identity new sns-testing --storage-mode=plaintext || true
           dfx identity use sns-testing
           dfx identity get-principal
+          dfx identity list
       - uses: ./.github/actions/sns-testing-start
       # To speed up the backend build.
       - name: Cache cargo
@@ -104,15 +104,15 @@ jobs:
           name: governance_app_backend.wasm
           path: ./target/wasm32-unknown-unknown/release/governance_app_backend.wasm
           retention-days: 30
-      - name: Add artifact links to summary
-        if: always()
-        run: |
-          {
-            echo "### 📦 Artifacts"
-            echo ""
-            echo "- [Playwright report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts)"
-            echo "- [governance_app_backend.wasm](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts)"
-          } >> $GITHUB_STEP_SUMMARY
+      # - name: Add artifact links to summary
+      #   if: always()
+      #   run: |
+      #     {
+      #       echo "### 📦 Artifacts"
+      #       echo ""
+      #       echo "- [Playwright report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts)"
+      #       echo "- [governance_app_backend.wasm](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts)"
+      #     } >> $GITHUB_STEP_SUMMARY
 
       - uses: ./.github/actions/sns-testing-stop
         if: always()
