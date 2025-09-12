@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
+
 import { firstVisibleLocatorIndex } from './e2e';
 
 export const login = async ({ page }: { page: Page }) => {
