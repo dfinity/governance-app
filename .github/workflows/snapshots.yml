@@ -7,6 +7,9 @@ on:
 
 jobs:
   call-e2e:
+    # Guard "main" branch
+    if: ${{ github.ref_name != 'main' }}
+
     uses: ./.github/workflows/e2e.yml
     with:
       update-snapshots: true
