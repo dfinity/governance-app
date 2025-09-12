@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+
 import { login } from './utils/login';
 import { takeSnapshot } from './utils/take-snapshot';
 
