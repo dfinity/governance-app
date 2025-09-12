@@ -18,7 +18,7 @@ You can download a pre-built bundle for SNS testing, which will be based on the 
 - Set the following environment variables:
 
 ```sh
-IC_COMMIT=c053a4439e87b44609df469ed8fc0713a3c619a0
+IC_COMMIT=699e0c3351d44e7acdd2e743fede7c835b3b3558
 OS=darwin
 CDN=https://download.dfinity.systems
 NAME=sns_testing_bundle
