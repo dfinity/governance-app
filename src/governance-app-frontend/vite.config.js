@@ -90,6 +90,6 @@ export default defineConfig({
     // Run before each test file
     setupFiles: ['vitest.setup.ts'],
 
-    exclude: ['node_modules', 'dist', 'tests/e2e/**'],
+    exclude: ['./node_modules', './dist', './tests/e2e/**'],
   },
 });
