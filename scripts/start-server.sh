@@ -5,7 +5,8 @@ PATH="$SOURCE_DIR:$PATH"
 
 # Default configuration
 DEFAULT_PORT="8888"
-DEFAULT_BUNDLE_DIR="sns_testing_bundle"
+BUNDLE_DIR="sns_testing_bundle"
+TTL=30000000
 
 print_help() {
   cat <<-EOF
@@ -70,22 +71,19 @@ if [ "${STOP_SERVER:-false}" = "true" ]; then
 fi
 
 # Validate bundle directory exists
-if [ ! -d "$DEFAULT_BUNDLE_DIR" ]; then
-    echo "❌ Error: Bundle directory '$DEFAULT_BUNDLE_DIR' not found"
+if [ ! -d "$BUNDLE_DIR" ]; then
+    echo "❌ Error: Bundle directory '$BUNDLE_DIR' not found"
     echo "Please run download_sns-testing_bundle.sh first"
     exit 1
 fi
 
 # Check if PocketIC binary exists
-POCKET_IC_BINARY="$DEFAULT_BUNDLE_DIR/rs/pocket_ic_server/pocket-ic-server"
+POCKET_IC_BINARY="$BUNDLE_DIR/rs/pocket_ic_server/pocket-ic-server"
 if [ ! -f "$POCKET_IC_BINARY" ]; then
     echo "❌ Error: PocketIC server binary not found"
     echo "Please ensure the SNS testing bundle was downloaded correctly"
     exit 1
 fi
-
-# Make binary executable
-# chmod +x "$POCKET_IC_BINARY"
 
 # Check if server is already running
 if check_server_running; then
@@ -96,8 +94,8 @@ fi
 
 # Start server
 if [ "${BACKGROUND:-false}" = "true" ]; then
-    echo "🚀 Starting PocketIC server in background on port $DEFAULT_PORT..."
-    nohup "$POCKET_IC_BINARY" --port "$DEFAULT_PORT" > pocket-ic-server.log 2>&1 &
+    echo "🚀 Starting PocketIC server in background on port $DEFAULT_PORT with TTL $TTL..."
+    nohup "$POCKET_IC_BINARY" --port "$DEFAULT_PORT" --ttl "$TTL" > pocket-ic-server.log 2>&1 &
     sleep 2
     if check_server_running; then
         echo "✅ Server started successfully"
@@ -108,7 +106,7 @@ if [ "${BACKGROUND:-false}" = "true" ]; then
         exit 1
     fi
 else
-    echo "🚀 Starting PocketIC server on port $DEFAULT_PORT..."
+    echo "🚀 Starting PocketIC server on port $DEFAULT_PORT with TTL $TTL..."
     echo "💡 Press Ctrl+C to stop"
-    exec "$POCKET_IC_BINARY" --port "$DEFAULT_PORT"
+    exec "$POCKET_IC_BINARY" --port "$DEFAULT_PORT" --ttl "$TTL"
 fi
