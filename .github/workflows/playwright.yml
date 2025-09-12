@@ -1,11 +1,11 @@
-name: Playwright Tests
+name: E2E Tests
 on:
   workflow_call:
     inputs:
       update-snapshots:
         required: false
         type: boolean
-        default: true
+        default: false
       branch:
         required: false
         type: string
@@ -101,15 +101,6 @@ jobs:
           key: playwright-${{ runner.os }}-${{ steps.playwright_version.outputs.version }}-all
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium firefox
-
-      - name: Run Playwright tests
-        run: |
-          if [ "${{ inputs.update-snapshots }}" = "true" ]; then
-          npm run update-snapshots
-          else
-          echo "🚀 Running end-to-end tests"
-          npm run test:e2e
-          fi
 
       - name: Update snapshots
         if: ${{ inputs.update-snapshots == true }}

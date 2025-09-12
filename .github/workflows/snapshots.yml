@@ -1,11 +1,11 @@
 name: Update Snapshots
 on:
   workflow_dispatch:
-    inputs:
-      branch:
-        description: "Branch to update snapshots on"
-        required: true
-        default: main
+    # inputs:
+    #   branch:
+    #     description: "Branch to update snapshots on"
+    #     required: true
+    #     default: main
 
 jobs:
   call-e2e:
