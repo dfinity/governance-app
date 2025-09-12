@@ -2,16 +2,15 @@ import { expect, test } from '@playwright/test';
 
 import { login } from './utils/login';
 import { takeSnapshot } from './utils/take-snapshot';
+import { openApp } from './utils/app';
 
 test('has title', async ({ page }) => {
   page.on('console', (msg) => {
     console.log(`[browser] ${msg.type()}: ${msg.text()}`);
   });
 
-  await page.goto('/');
+  await openApp({ page });
 
-  await page.waitForLoadState('networkidle'); // ensures all assets loaded
-  await expect(page.getByTestId('main-layout')).toBeVisible({ timeout: 15000 });
   await expect(page).toHaveTitle('The Governance App');
 
   await takeSnapshot({ page, label: 'login--signed-out' });

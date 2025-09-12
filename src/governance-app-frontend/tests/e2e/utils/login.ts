@@ -1,6 +1,5 @@
-import { expect, type Page, test } from '@playwright/test';
-
-import { firstVisibleLocatorIndex } from './e2e';
+import { expect, test, type Page } from '@playwright/test';
+import { firstVisibleLocatorIndex } from './locator';
 
 export const login = async ({ page }: { page: Page }) => {
   await test.step('Login', async () => {
@@ -35,6 +34,7 @@ export const login = async ({ page }: { page: Page }) => {
     }
 
     await newTab.waitForEvent('close'); // wait until user is redirected back and tab closes
+
     await expect(newTab.isClosed()).toBe(true);
   });
 };
