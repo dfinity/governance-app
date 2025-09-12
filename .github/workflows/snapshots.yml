@@ -1,15 +1,9 @@
 name: Update Snapshots
 on:
   workflow_dispatch:
-    # inputs:
-    #   branch:
-    #     description: "Branch to update snapshots on"
-    #     required: true
-    #     default: main
 
 jobs:
   call-e2e:
     uses: ./.github/workflows/playwright.yml
     with:
       update-snapshots: true
-      branch: ${{ github.event.inputs.branch }}
