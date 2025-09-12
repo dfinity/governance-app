@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   # Trigger on pull requests
   pull_request:
-    branches: [main, master]
+    branches: [main, e2e-test-foundation]
 
 jobs:
   call-e2e:

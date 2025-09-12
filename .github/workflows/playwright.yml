@@ -7,9 +7,9 @@ on:
         type: boolean
         default: false
   push:
-    branches: [main, master]
+    branches: [main, e2e-test-foundation]
   pull_request:
-    branches: [main, master]
+    branches: [main, e2e-test-foundation]
 jobs:
   test:
     timeout-minutes: 15
