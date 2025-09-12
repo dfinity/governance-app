@@ -11,12 +11,15 @@ function Homepage() {
   const { t } = useTranslation();
 
   return (
-    <div className="text-xl" data-testid="login-test">
-      {identity
-        ? t(($) => $.home.yourPrincipal, {
-            principal: identity.getPrincipal().toString(),
-          })
-        : t(($) => $.common.login)}
-    </div>
+    <>
+      <h1 className="text-4xl font-bold pb-4">Lorem ipsum dolor sit amet 🙀</h1>
+      <div className="text-xl" data-testid="login-test">
+        {identity
+          ? t(($) => $.home.yourPrincipal, {
+              principal: identity.getPrincipal().toString(),
+            })
+          : t(($) => $.common.login)}
+      </div>
+    </>
   );
 }
