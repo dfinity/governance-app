@@ -23,10 +23,7 @@ function ProposalsPage() {
       {!isLoading && !data?.pages?.length && t(($) => $.common.noProposals)}
       {error && t(($) => $.common.errorLoadingProposals, { error: error.message })}
 
-      <div
-        data-testid="proposals"
-        className="text-lg grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-      >
+      <div className="text-lg grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {data?.pages?.map((page) =>
           page?.response.proposals.map((proposal) => (
             <Link to="/nns/proposals/$id" params={{ id: proposal.id?.toString() ?? '' }}>
