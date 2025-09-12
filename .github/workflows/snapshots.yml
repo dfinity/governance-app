@@ -6,10 +6,15 @@ on:
   #   branches: [main, master]
 
 jobs:
-  call-e2e:
-    # Guard "main" branch
-    if: ${{ github.ref_name != 'main' }}
+  guard-main:
+    runs-on: ubuntu-latest
+    steps:
+      - if: ${{ github.ref_name == 'main' }}
+        run: |
+          echo "🚨 Not allowed to update snapshots directly on \"main\"" branch 🚨"
+          exit 1
 
+  call-e2e:
     uses: ./.github/workflows/e2e.yml
     with:
       update-snapshots: true
