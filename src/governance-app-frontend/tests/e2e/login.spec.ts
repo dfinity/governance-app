@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
 
+import { openApp } from './utils/app';
 import { login } from './utils/login';
 import { takeSnapshot } from './utils/take-snapshot';
-import { openApp } from './utils/app';
 
 test('has title', async ({ page }) => {
   page.on('console', (msg) => {
