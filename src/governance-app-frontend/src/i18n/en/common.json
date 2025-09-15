@@ -2,6 +2,7 @@
   "login": "Login with Internet Identity!",
   "switchToLightMode": "Switch to Light Mode",
   "switchToDarkMode": "Switch to Dark Mode",
+  "switchToSystemMode": "Switch to System Mode",
   "baseTitle": "The Governance App",
   "proposalsList": "Proposals list",
   "neuronsList": "Neurons list",
