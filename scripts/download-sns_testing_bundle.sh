@@ -17,10 +17,10 @@ print_help() {
 	Downloads and extracts the SNS testing bundle from the IC CDN.
 
 	EXAMPLES:
-	    $0 --latest                          # Use latest commit from IC repo
-	    $0 --commit abc123def456             # Use specific commit
-	    $0 --latest --os linux               # Latest commit for Linux
-	    $0 --force --latest                  # Force download with latest commit
+	    $0                            # Use latest commit from IC repo
+	    $0 --commit abc123def456      # Use specific commit
+	    $0 --os linux                 # Latest commit for Linux
+	    $0 --force                    # Force download with latest commit
 
 	EOF
 }
@@ -29,8 +29,7 @@ print_help() {
 source "$SOURCE_DIR/scripts/clap.sh"
 
 # Define options
-clap.define short=c long=commit desc="Use specific IC commit hash" variable=IC_COMMIT default="$DEFAULT_IC_COMMIT"
-clap.define short=l long=latest desc="Fetch and use the latest commit from dfinity/ic repository" variable=USE_LATEST nargs=0
+clap.define short=c long=commit desc="Use specific IC commit hash" variable=IC_COMMIT
 clap.define short=o long=os desc="Target OS (darwin, linux)" variable=OS default="$DEFAULT_OS"
 clap.define short=d long=directory desc="Bundle directory" variable=BUNDLE_DIR default="$DEFAULT_DIR"
 clap.define short=f long=force desc="Force re-download even if directory exists" variable=FORCE_DOWNLOAD nargs=0
@@ -85,9 +84,14 @@ validate_os "$OS"
 # CDN configuration
 CDN="https://download.dfinity.systems"
 
-# Get latest commit if requested - EXECUTE ONLY ONCE and store result
-if [ "${USE_LATEST:-false}" = "true" ]; then
+# Determine which commit to use
+if [ -z "${IC_COMMIT:-}" ]; then
+    # No commit specified - fetch and use latest
+    echo "No specific commit provided - fetching latest..."
     IC_COMMIT=$(get_latest_commit)
+else
+    # Specific commit provided - use it
+    echo "Using specified commit: $IC_COMMIT"
 fi
 
 # Display configuration
@@ -144,8 +148,8 @@ echo ""
 echo "✅ Setup complete!"
 echo "📁 Bundle extracted to: $(pwd)"
 echo "🚀 Next steps:"
-echo "   1. Run './start-server.sh' to start the PocketIC server"
-echo "   2. In a new terminal, run '../init-replica.sh' to initialize the replica"
+echo "   1. Run './scripts/pocketic-server.sh -d $BUNDLE_DIR' to start the PocketIC server"
+echo "   2. In a new terminal, run './scripts/init-replica.sh -d $BUNDLE_DIR' to initialize the replica"
 
 # Save configuration for reference
 cat > setup_info.txt << EOF
