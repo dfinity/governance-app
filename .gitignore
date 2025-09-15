@@ -26,3 +26,7 @@ src/governance-app-frontend/src/i18n/generated*
 
 # environment variables
 .env
+
+# sns-testing
+pocket-ic-server.log
+dev-env-*
