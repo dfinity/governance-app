@@ -4,6 +4,7 @@ import { initReactI18next } from 'react-i18next';
 import common from './en/common.json';
 import enums from './en/enums.json';
 import home from './en/home.json';
+import neuron from './en/neuron.json';
 import nns from './en/nns.json';
 import proposal from './en/proposal.json';
 import sns from './en/sns.json';
@@ -19,6 +20,7 @@ export const resources = {
       home,
       nns,
       proposal,
+      neuron,
       sns,
       vault,
     },

@@ -43,7 +43,7 @@ function ProposalsPage() {
                 </p>
                 <div className="mt-4 flex items-end justify-between text-sm font-bold h-4">
                   {t(($) => $.enums.ProposalStatus[proposal.status])}
-                  {page?.certified ? <CertifiedBadge /> : <SkeletonLoader width={100} />}
+                  {page?.certified ? <CertifiedBadge /> : <SkeletonLoader width={90} />}
                 </div>
               </div>
             </Link>
