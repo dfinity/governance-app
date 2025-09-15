@@ -7,8 +7,6 @@ PATH="$SOURCE_DIR:$PATH"
 DEFAULT_SERVER_URL="http://127.0.0.1:8888"
 DEFAULT_IDENTITY="sns-testing"
 
-BUNDLE_DIR="sns_testing_bundle"
-
 print_help() {
   cat <<-EOF
 
@@ -32,6 +30,7 @@ source "$SOURCE_DIR/scripts/clap.sh"
 # Define options
 clap.define short=u long=server-url desc="PocketIC server URL" variable=SERVER_URL default="$DEFAULT_SERVER_URL"
 clap.define short=i long=identity desc="Dev identity name" variable=IDENTITY default="$DEFAULT_IDENTITY"
+clap.define short=d long=directory desc="Bundle directory" variable=BUNDLE_DIR
 
 # Source the output file ----------------------------------------------------------
 source "$(clap.build)"

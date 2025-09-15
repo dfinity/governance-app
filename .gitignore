@@ -29,4 +29,4 @@ src/governance-app-frontend/src/i18n/generated*
 
 # sns-testing
 pocket-ic-server.log
-sns_testing_bundle
+dev-env-*

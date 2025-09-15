@@ -6,7 +6,8 @@ PATH="$SOURCE_DIR:$PATH"
 # Default configuration
 DEFAULT_IC_COMMIT="699e0c3351d44e7acdd2e743fede7c835b3b3558"
 DEFAULT_OS="darwin"
-DEFAULT_NAME="sns_testing_bundle"
+DEFAULT_DIR="dev-env-$(date +%d-%m-%Y)"
+BUNDLE_NAME="sns_testing_bundle"
 
 print_help() {
   cat <<-EOF
@@ -31,7 +32,7 @@ source "$SOURCE_DIR/scripts/clap.sh"
 clap.define short=c long=commit desc="Use specific IC commit hash" variable=IC_COMMIT default="$DEFAULT_IC_COMMIT"
 clap.define short=l long=latest desc="Fetch and use the latest commit from dfinity/ic repository" variable=USE_LATEST nargs=0
 clap.define short=o long=os desc="Target OS (darwin, linux)" variable=OS default="$DEFAULT_OS"
-clap.define short=n long=name desc="Bundle name" variable=NAME default="$DEFAULT_NAME"
+clap.define short=d long=directory desc="Bundle directory" variable=BUNDLE_DIR default="$DEFAULT_DIR"
 clap.define short=f long=force desc="Force re-download even if directory exists" variable=FORCE_DOWNLOAD nargs=0
 
 # Source the output file ----------------------------------------------------------
@@ -94,29 +95,29 @@ echo "=== SNS Testing Environment Setup ==="
 echo "IC Commit: $IC_COMMIT"
 echo "OS: $OS"
 echo "CDN: $CDN"
-echo "Bundle Name: $NAME"
+echo "Bundle DirName: $BUNDLE_DIR"
 echo "Force Download: ${FORCE_DOWNLOAD:-false}"
 echo ""
 
 # Check if directory exists and handle accordingly
-if [ -d "$NAME" ]; then
+if [ -d "$BUNDLE_DIR" ]; then
     if [ "${FORCE_DOWNLOAD:-false}" = "true" ]; then
-        echo "Directory $NAME exists. Force download enabled - removing existing directory..."
-        rm -rf "$NAME"
+        echo "Directory $BUNDLE_DIR exists. Force download enabled - removing existing directory..."
+        rm -rf "$BUNDLE_DIR"
     else
-        echo "Directory $NAME already exists."
+        echo "Directory $BUNDLE_DIR already exists."
         echo "Use --force to re-download or choose a different name with --name"
         exit 1
     fi
 fi
 
 # Create and enter directory
-echo "Creating directory: $NAME"
-mkdir -p "$NAME"
-cd "$NAME"
+echo "Creating directory: $BUNDLE_DIR"
+mkdir -p "$BUNDLE_DIR"
+cd "$BUNDLE_DIR"
 
 # Construct download URL
-DOWNLOAD_URL="$CDN/ic/${IC_COMMIT}/binaries/x86_64-${OS}/$NAME.tar.gz"
+DOWNLOAD_URL="$CDN/ic/${IC_COMMIT}/binaries/x86_64-${OS}/${BUNDLE_NAME}.tar.gz"
 echo "Download URL: $DOWNLOAD_URL"
 
 # Download and extract bundle
@@ -131,7 +132,7 @@ if ! curl --fail -L -O "$DOWNLOAD_URL"; then
 fi
 
 echo "Extracting bundle..."
-tar -xvf "$NAME.tar.gz"
+tar -xvf "$BUNDLE_NAME.tar.gz"
 
 # Verify extraction
 if [ ! -f "sns_testing_env.sh" ]; then
@@ -143,7 +144,7 @@ echo ""
 echo "✅ Setup complete!"
 echo "📁 Bundle extracted to: $(pwd)"
 echo "🚀 Next steps:"
-echo "   1. Run '../start-server.sh' to start the PocketIC server"
+echo "   1. Run './start-server.sh' to start the PocketIC server"
 echo "   2. In a new terminal, run '../init-replica.sh' to initialize the replica"
 
 # Save configuration for reference
@@ -152,7 +153,7 @@ Setup Configuration:
 IC Commit: $IC_COMMIT
 OS: $OS
 CDN: $CDN
-Bundle Name: $NAME
+Bundle Dir: $BUNDLE_DIR
 Setup Date: $(date)
 Download URL: $DOWNLOAD_URL
 EOF

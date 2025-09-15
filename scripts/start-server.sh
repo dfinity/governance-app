@@ -5,8 +5,7 @@ PATH="$SOURCE_DIR:$PATH"
 
 # Default configuration
 DEFAULT_PORT="8888"
-BUNDLE_DIR="sns_testing_bundle"
-TTL=30000000
+DEFAULT_TTL=3000000 # ~34 days in seconds
 
 print_help() {
   cat <<-EOF
@@ -29,14 +28,17 @@ source "$SOURCE_DIR/scripts/clap.sh"
 
 # Define options
 clap.define short=b long=background desc="Run server in background" variable=BACKGROUND nargs=0
-clap.define long=stop desc="Stop any running PocketIC server" variable=STOP_SERVER nargs=0
+clap.define short=s long=stop desc="Stop any running PocketIC server" variable=STOP_SERVER nargs=0
+clap.define short=d long=directory desc="Bundle directory" variable=BUNDLE_DIR
+clap.define short=p long=port desc="Server port" variable=PORT default="$DEFAULT_PORT"
+clap.define short=t long=ttl desc="Server TTL in seconds" variable=TTL default="$DEFAULT_TTL"
 
 # Source the output file ----------------------------------------------------------
 source "$(clap.build)"
 
 # Function to check if server is already running
 check_server_running() {
-    if lsof -Pi :$DEFAULT_PORT -sTCP:LISTEN -t >/dev/null 2>&1; then
+    if lsof -Pi :$PORT -sTCP:LISTEN -t >/dev/null 2>&1; then
         return 0  # Server is running
     else
         return 1  # Server is not running
@@ -45,12 +47,12 @@ check_server_running() {
 
 # Function to stop server
 stop_server() {
-    echo "Checking for PocketIC server on port $DEFAULT_PORT..."
+    echo "Checking for PocketIC server on port $PORT..."
 
     if check_server_running; then
         echo "Stopping server..."
-        local pid=$(lsof -ti:$DEFAULT_PORT)
-        kill "$pid" 2>/dev/null || true
+        local pid=$(lsof -ti:$PORT)
+        kill -9 "$pid" 2>/dev/null || true
         sleep 2
 
         if ! check_server_running; then
@@ -60,7 +62,7 @@ stop_server() {
             exit 1
         fi
     else
-        echo "No server running on port $DEFAULT_PORT"
+        echo "No server running on port $PORT"
     fi
 }
 
@@ -87,15 +89,15 @@ fi
 
 # Check if server is already running
 if check_server_running; then
-    echo "❌ Error: Server is already running on port $DEFAULT_PORT"
+    echo "❌ Error: Server is already running on port $PORT"
     echo "Use --stop to stop it first"
     exit 1
 fi
 
 # Start server
 if [ "${BACKGROUND:-false}" = "true" ]; then
-    echo "🚀 Starting PocketIC server in background on port $DEFAULT_PORT with TTL $TTL..."
-    nohup "$POCKET_IC_BINARY" --port "$DEFAULT_PORT" --ttl "$TTL" > pocket-ic-server.log 2>&1 &
+    echo "🚀 Starting PocketIC server in background on port $PORT with TTL $TTL..."
+    nohup "$POCKET_IC_BINARY" --port "$PORT" --ttl "$TTL" > pocket-ic-server.log 2>&1 &
     sleep 2
     if check_server_running; then
         echo "✅ Server started successfully"
@@ -106,7 +108,7 @@ if [ "${BACKGROUND:-false}" = "true" ]; then
         exit 1
     fi
 else
-    echo "🚀 Starting PocketIC server on port $DEFAULT_PORT with TTL $TTL..."
+    echo "🚀 Starting PocketIC server on port $PORT with TTL $TTL..."
     echo "💡 Press Ctrl+C to stop"
-    exec "$POCKET_IC_BINARY" --port "$DEFAULT_PORT" --ttl "$TTL"
+    exec "$POCKET_IC_BINARY" --port "$PORT" --ttl "$TTL"
 fi
