@@ -1,5 +1,5 @@
-import js from '@eslint/js';
 import css from '@eslint/css';
+import js from '@eslint/js';
 import plugingImport from 'eslint-plugin-import';
 import prettier from 'eslint-plugin-prettier';
 import reactHooks from 'eslint-plugin-react-hooks';
@@ -46,6 +46,7 @@ const tsConfiguration = tseslint.config(
             ['^@?\\w'],
             // Internal files.
             ['^@declarations'],
+            ['^@untitledui'],
             [
               '^@components',
               '^@constants',

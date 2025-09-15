@@ -12,6 +12,7 @@ function Homepage() {
 
   return (
     <div className="text-xl" data-testid="login-test" data-snapshot-mask>
+    <div className="text-xl text-brand-secondary">
       {identity
         ? t(($) => $.home.yourPrincipal, {
             principal: identity.getPrincipal().toString(),

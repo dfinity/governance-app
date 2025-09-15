@@ -1,24 +1,18 @@
-import classNames from 'classnames';
-import { useTranslation } from 'react-i18next';
+import { Button } from '@untitledui/base/buttons/button';
+import { Moon01, Sun } from '@untitledui/icons';
 
-import { Theme } from '@contexts/themeContext';
 import { useTheme } from '@hooks/useTheme';
 
 export const ToggleThemeButton = () => {
-  const { theme, toggleTheme } = useTheme();
-  const { t } = useTranslation();
-
-  const isDark = theme === Theme.Dark;
+  const { theme, setTheme } = useTheme();
 
   return (
-    <button
-      title={t(($) => (isDark ? $.common.switchToLightMode : $.common.switchToDarkMode))}
-      className={classNames('fz-18 bg-blue-900 rounded px-4', {
-        ['bg-orange-900']: isDark,
-      })}
-      onClick={toggleTheme}
-    >
-      {isDark ? '☀️' : '🌙'}
-    </button>
+    <Button
+      aria-label="Toggle theme"
+      color="tertiary"
+      size="sm"
+      iconLeading={theme === 'light' ? Moon01 : Sun}
+      onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+    />
   );
 };
