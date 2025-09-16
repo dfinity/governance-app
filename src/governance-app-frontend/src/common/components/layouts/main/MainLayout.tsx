@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router';
+import { Link, useRouter } from '@tanstack/react-router';
 import classNames from 'classnames';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode } from 'react';
@@ -14,6 +14,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
   const { anonymous, authenticated } = useAgentPool().agentPool;
   const { login, identity, clear, isInitializing } = useInternetIdentity();
   const showLoader = anonymous.loading || authenticated.loading || isInitializing;
+  const { invalidate } = useRouter();
 
   const { t } = useTranslation();
 
@@ -50,7 +51,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
                     identity
                       ? () => {
                           clear();
-                          window.location.reload();
+                          invalidate();
                         }
                       : login
                   }
