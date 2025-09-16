@@ -27,6 +27,9 @@ src/governance-app-frontend/src/i18n/generated*
 # environment variables
 .env
 
+# tanstack temp
+.tanstack
+
 # sns-testing
 pocket-ic-server.log
 dev-env-*

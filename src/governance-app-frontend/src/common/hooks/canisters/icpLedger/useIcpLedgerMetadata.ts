@@ -9,17 +9,13 @@ export const useIcpLedgerMetadata = () => {
   return useQueryThenUpdateCall({
     queryKey: [QUERY_KEYS.ICP_LEDGER.METADATA],
     queryFn: () =>
-      canister!
-        .metadata({
-          certified: false,
-        })
-        .then((res) => String(res)),
+      canister!.metadata({
+        certified: false,
+      }),
     updateFn: () =>
-      canister!
-        .metadata({
-          certified: true,
-        })
-        .then((res) => String(res)),
+      canister!.metadata({
+        certified: true,
+      }),
     options: { enabled: ready },
   });
 };

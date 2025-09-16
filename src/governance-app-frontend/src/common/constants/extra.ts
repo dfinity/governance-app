@@ -5,3 +5,5 @@ export const MAINNET_NETWORK = 'https://ic0.app';
 
 export const PAGINATION_LIMIT = 100;
 export const MIN_ASYNC_DELAY = 200; // Avoids flashing of loading indicators.
+
+export const E8S = 100_000_000;

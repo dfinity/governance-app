@@ -13,12 +13,10 @@ export const useIcpLedgerAccountBalance = () => {
   return useQueryThenUpdateCall({
     queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE, accountIdentifier],
     queryFn: () =>
-      canister!
-        .accountBalance({
-          accountIdentifier,
-          certified: false,
-        })
-        .then((res) => res),
+      canister!.accountBalance({
+        accountIdentifier,
+        certified: false,
+      }),
     updateFn: () =>
       canister!.accountBalance({
         accountIdentifier,
