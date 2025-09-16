@@ -68,5 +68,4 @@ const tsConfiguration = tseslint.config(
   },
 );
 
-
 export default tsConfiguration;

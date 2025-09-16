@@ -1,3 +1,10 @@
 routeTree.gen.ts
 dist
 playwright-report
+
+# Build output
+dist/
+build/
+
+# Dependencies
+node_modules/
