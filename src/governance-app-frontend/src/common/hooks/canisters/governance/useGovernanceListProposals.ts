@@ -22,7 +22,7 @@ export const useGovernanceGetProposals = (
   const { ready, canister } = useNnsGovernanceCanister();
 
   return useInfiniteQueryThenUpdateCall<ListProposalsResponse, Option<bigint>>({
-    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.GET_PROPOSALS, options],
+    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS, options],
     queryFn: (context) =>
       canister!.listProposals({
         request: { ...options, beforeProposal: context.pageParam },

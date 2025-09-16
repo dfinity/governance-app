@@ -27,7 +27,7 @@ export const useGovernanceGetNeurons = (params?: RequestParams) => {
   };
 
   return useQueryThenUpdateCall({
-    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.GET_NEURONS, request],
+    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS, request],
     queryFn: () => canister!.listNeurons(request),
     updateFn: () => canister!.listNeurons({ ...request, certified: true }),
     options: {

@@ -7,7 +7,7 @@ export const useIcpLedgerMetadata = () => {
   const { ready, canister } = useIcpLedger();
 
   return useQueryThenUpdateCall({
-    queryKey: [QUERY_KEYS.ICP_LEDGER.GET_METADATA],
+    queryKey: [QUERY_KEYS.ICP_LEDGER.METADATA],
     queryFn: () =>
       canister!.metadata({
         certified: false,

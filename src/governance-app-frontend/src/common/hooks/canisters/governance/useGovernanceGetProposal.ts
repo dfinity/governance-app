@@ -23,7 +23,7 @@ export const useGovernanceGetProposal = ({ proposalId }: { proposalId: bigint | 
   };
 
   return useQueryThenUpdateCall({
-    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.GET_PROPOSAL, request],
+    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL, request],
     queryFn: async () => {
       const res = await canister!.listProposals({ request, certified: false });
       return res.proposals[0];
