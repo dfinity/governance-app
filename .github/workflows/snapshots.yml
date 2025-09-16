@@ -11,7 +11,7 @@ jobs:
     steps:
       - if: ${{ github.ref_name == 'main' }}
         run: |
-          echo "🚨 Not allowed to update snapshots directly on \"main\"" branch 🚨"
+          echo "🚨 Not allowed to update snapshots directly on 'main' branch 🚨"
           exit 1
 
   call-e2e:
