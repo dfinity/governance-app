@@ -18,4 +18,4 @@ npm ci
 npm start
 ```
 
-Check the [HACKING](HACKING.md) document for more detailed instructions on setting up your development environment.
+Check the `docs` folder for more detailed instructions on setting up your development environment and working with the codebase.
