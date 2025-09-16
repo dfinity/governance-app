@@ -4,8 +4,8 @@ FROM ghcr.io/dfinity/governance-app/builder-base:0.0.2
 WORKDIR /app
 COPY . .
 
-# Copy env variables and set DFX_NETWORK
-RUN cp .env.bk .env && echo "DFX_NETWORK=ic" >> .env
+# Copy env variables, set DFX_NETWORK and DFX_HOST for mainnet
+RUN ./scripts/config.sh -n ic
 
 # Run the build chain.
 RUN npm ci

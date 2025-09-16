@@ -3,7 +3,7 @@ import { createAgent } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode, useEffect, useState } from 'react';
 
-import { IS_LOCAL, LOCAL_NETWORK, MAINNET_NETWORK } from '@constants/extra';
+import { IS_LOCAL, NETWORK } from '@constants/extra';
 
 import { AgentPool, AgentPoolContext } from './agentPoolContext';
 
@@ -24,7 +24,7 @@ export const AgentPoolProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     createAgent({
       identity: new AnonymousIdentity(),
-      host: IS_LOCAL ? LOCAL_NETWORK : MAINNET_NETWORK,
+      host: NETWORK,
       fetchRootKey: IS_LOCAL,
     })
       .then((agent) => {
@@ -64,7 +64,7 @@ export const AgentPoolProvider = ({ children }: { children: ReactNode }) => {
 
       createAgent({
         identity,
-        host: IS_LOCAL ? LOCAL_NETWORK : MAINNET_NETWORK,
+        host: NETWORK,
         fetchRootKey: IS_LOCAL,
       })
         .then((agent) => {

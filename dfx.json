@@ -7,7 +7,7 @@
       "gzip": true,
       "optimize": "cycles",
       "build": [
-        "cp .env.bk .env || true",
+        "./scripts/config.sh -n local",
         "npm run build",
         "cargo build --target wasm32-unknown-unknown --release -p governance-app-backend --locked"
       ],
