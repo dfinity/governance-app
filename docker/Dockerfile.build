@@ -5,7 +5,7 @@ WORKDIR /app
 COPY . .
 
 # Copy env variables, set DFX_NETWORK and DFX_HOST for mainnet
-RUN ./scripts/config.sh -n mainnet
+RUN ./scripts/config.sh -n ic
 
 # Run the build chain.
 RUN npm ci

@@ -19,9 +19,9 @@ print_help() {
   echo "It will overwrite any existing .env file."
   echo
   echo "EXAMPLES:"
-  echo "  generate-env.sh                           # Generate for local network"
-  echo "  generate-env.sh --network ic              # Generate for ic"
-  echo "  generate-env.sh -n devenv -u peterp       # Generate for devenv with username"
+  echo "  config.sh                           # Generate for local network"
+  echo "  config.sh --network ic              # Generate for ic"
+  echo "  config.sh -n devenv -u peterp       # Generate for devenv with username"
   echo
   echo "NETWORKS:"
   echo "  local    - Local development (default)"
