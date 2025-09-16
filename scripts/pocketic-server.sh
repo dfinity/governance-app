@@ -6,7 +6,6 @@ PATH="$SOURCE_DIR:$PATH"
 # Default configuration
 DEFAULT_PORT="8888"
 DEFAULT_TTL=3000000 # ~34 days in seconds
-DEFAULT_DIR="dev-env-$(date +%d-%m-%Y)"
 
 print_help() {
   cat <<-EOF
@@ -30,7 +29,7 @@ source "$SOURCE_DIR/scripts/clap.sh"
 # Define options
 clap.define short=b long=background desc="Run server in background" variable=BACKGROUND nargs=0
 clap.define short=s long=stop desc="Stop any running PocketIC server" variable=STOP_SERVER nargs=0
-clap.define short=d long=directory desc="Bundle directory" variable=BUNDLE_DIR default="$DEFAULT_DIR"
+clap.define short=d long=directory desc="Bundle directory" variable=BUNDLE_DIR
 clap.define short=p long=port desc="Server port" variable=PORT default="$DEFAULT_PORT"
 clap.define short=t long=ttl desc="Server TTL in seconds" variable=TTL default="$DEFAULT_TTL"
 
