@@ -1,3 +1,4 @@
+import css from '@eslint/css';
 import js from '@eslint/js';
 import plugingImport from 'eslint-plugin-import';
 import prettier from 'eslint-plugin-prettier';
@@ -68,4 +69,20 @@ const tsConfiguration = tseslint.config(
   },
 );
 
-export default tsConfiguration;
+const cssConfiguration = {
+  ignores: ['dist', 'node_modules', 'src/routeTree.gen.ts', 'src/untitledui/**/*.css'],
+  files: ['**/*.css'],
+  plugins: {
+    css,
+    prettier,
+  },
+  language: 'css/css',
+  rules: {
+    'css/no-invalid-properties': 'error',
+    'css/no-duplicate-imports': 'error',
+    'css/no-invalid-at-rules': 'error',
+    'css/no-empty-blocks': 'error',
+  },
+};
+
+export default tsConfiguration.concat(cssConfiguration);
