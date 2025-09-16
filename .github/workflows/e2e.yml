@@ -144,4 +144,4 @@ jobs:
       - name: Stop sns-testing environment
         if: always()
         run: |
-          ./scripts/start-sns_testing.sh --stop
+          ./scripts/pocketic-server.sh --stop
