@@ -8,7 +8,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 const tsConfiguration = tseslint.config(
-  { ignores: ['dist', 'node_modules', 'src/routeTree.gen.ts'] },
+  { ignores: ['dist', 'node_modules', 'src/routeTree.gen.ts', 'src/untitledui'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],

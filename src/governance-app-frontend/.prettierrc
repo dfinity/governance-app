@@ -9,5 +9,5 @@
   "semi": true,
   "plugins": ["prettier-plugin-tailwindcss"],
   "tailwindStylesheet": "./src/common/styles/main.css",
-  "tailwindFunctions": ["cx"]
+  "tailwindFunctions": ["cx", "sortCx"]
 }
