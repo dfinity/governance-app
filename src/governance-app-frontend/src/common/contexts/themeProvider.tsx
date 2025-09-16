@@ -5,23 +5,29 @@ import { STORAGE_KEYS } from '@utils/storageKeys';
 
 interface ThemeProviderProps {
   children: ReactNode;
-  /**
-   * The default theme to use if no theme is stored in localStorage
-   * @default "system"
-   */
-  defaultTheme?: Theme;
 }
 
 const DARK_MODE_CLASS = 'dark-mode';
+const DEFAULT_THEME: Theme = 'system';
 
-export const ThemeProvider = ({ children, defaultTheme = 'system' }: ThemeProviderProps) => {
+export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME) as Theme | null;
-      return savedTheme || defaultTheme;
+      return savedTheme || DEFAULT_THEME;
     }
-    return defaultTheme;
+    return DEFAULT_THEME;
   });
+
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEYS.THEME && e.newValue) {
+        setTheme(e.newValue as Theme);
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
 
   useEffect(() => {
     const applyTheme = () => {

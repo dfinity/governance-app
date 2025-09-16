@@ -18,8 +18,6 @@ export const ToggleThemeButton = () => {
         return 'dark';
       case 'dark':
         return 'system';
-      default:
-        return 'system';
     }
   };
 
@@ -31,8 +29,6 @@ export const ToggleThemeButton = () => {
         return Sun;
       case 'dark':
         return Moon01;
-      default:
-        return Monitor01;
     }
   };
 
@@ -44,8 +40,6 @@ export const ToggleThemeButton = () => {
       case 'dark':
         return t(($) => $.common.switchToDarkMode);
       case 'system':
-        return t(($) => $.common.switchToSystemMode);
-      default:
         return t(($) => $.common.switchToSystemMode);
     }
   };
