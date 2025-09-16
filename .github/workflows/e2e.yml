@@ -51,7 +51,14 @@ jobs:
           dfx identity use sns-testing
           dfx identity get-principal
           dfx identity list
-      - uses: ./.github/actions/sns-testing-start
+
+      # - uses: ./.github/actions/sns-testing-start
+      - name: Start sns-testing environment
+        run: |
+          ./scripts/download-sns_testing_bundle.sh --latest --os linux --force
+          ./scripts/pocketic-server.sh -b
+          ./scripts/init-replica.sh
+
       # To speed up the backend build.
       - name: Cache cargo
         uses: actions/cache@v4
@@ -134,5 +141,7 @@ jobs:
           path: ./target/wasm32-unknown-unknown/release/governance_app_backend.wasm
           retention-days: 30
 
-      - uses: ./.github/actions/sns-testing-stop
+      - name: Stop sns-testing environment
         if: always()
+        run: |
+          ./scripts/start-sns_testing.sh --stop
