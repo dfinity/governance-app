@@ -1,4 +1,4 @@
-import { t } from 'i18next';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '@untitledui/base/buttons/button';
 import { Tooltip } from '@untitledui/base/tooltip/tooltip';
@@ -8,6 +8,7 @@ import { useTheme } from '@hooks/useTheme';
 
 export const ToggleThemeButton = () => {
   const { theme, setTheme } = useTheme();
+  const { t } = useTranslation();
 
   const getNextTheme = () => {
     switch (theme) {
