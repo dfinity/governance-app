@@ -13,44 +13,32 @@ dfx identity new sns-testing --storage-mode=plaintext
 
 ## Local
 
-You can download a pre-built bundle for SNS testing, which will be based on the provided IC commit.
+There are a list of scripts to help you set up a local development environment. The scripts will download a pre-built bundle containing everything needed to run a local Replica with the required canisters.
 
-- Set the following environment variables:
+- Download and extract the bundle. The script uses the latest version of IC to donwload the bundle. For more options, please refer to the script itself:
 
 ```sh
-IC_COMMIT=0e4c8234a9e0508ae30c5b8a7498406294c25e95
-OS=darwin
-CDN=https://download.dfinity.systems
-NAME=sns_testing_bundle
+./scripts/download-sns-testing-bundle.sh
 ```
 
-- Download and extract the bundle:
-
+- Start the PocketIc server:
 ```sh
-mkdir $NAME
-cd $NAME
-curl --fail -L -O "$CDN/ic/${IC_COMMIT}/binaries/x86_64-${OS}/$NAME.tar.gz"
-tar -xvf $NAME.tar.gz
+./scripts/pocketic-server.sh -d <directory>
 ```
 
-- Start the PocketIc server with. Note that `ttl` represents the amount of time (in seconds) that the PocketIc server will be kept alive in the local Replica if idle:
-
+- Note: If you have a running instace of pocketIc, the script will fail. You can stop the instance with:
 ```sh
-source sns_testing_env.sh
-$POCKET_IC_BIN --ttl 3000 --port 8888
+./scripts/pocketic-server.sh -s
 ```
 
-- In a new terminal, navigate to the newly created folder and run the following commands to initialize the local Replica with the required canisters:
-
+- In a new terminal, run the following script to initialize required canisters:
 ```sh
-source sns_testing_env.sh
-./sns-testing-init \
-    --server-url "http://127.0.0.1:8888" \
-    --dev-identity sns-testing \
+./scripts/init-replica.sh -d <directory>
 ```
 
 - Now, following canisters should be available in the following urls:
   - NNS dapp: http://qoctq-giaaa-aaaaa-aaaea-cai.localhost:8080
+  - SNS Aggregator: http://3r4gx-wqaaa-aaaaq-aaaia-cai.localhost:8080
   - Internet Identity: http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:8080
 
 - We can now start the FE development server with the following commands from the root of the `governance-dapp` repo:
@@ -61,6 +49,33 @@ npm start
 ```
 
 ## DevEnv
+
+It is also possible to run the pocketIc server in a devenv instance.
+
+- Create an ssh tunnel to your devenv instance forwarding port `8080`:
+```sh
+ssh <>@<>.devenv.dfinity.network -L 8080:localhost:8080
+```
+- Download and extract the bundle for the Linux version:
+
+```sh
+./scripts/download-sns-testing-bundle.sh -o linux
+```
+
+- Start the PocketIc server:
+```sh
+./scripts/pocketic-server.sh -d <directory>
+```
+
+- Initialize required canisters:
+
+```sh
+./scripts/init-replica.sh -d <directory>
+```
+
+### Custom Instance
+
+The main use case for running the replica in your DevEnv is to be able to customize the sns-testing-bundle. The following steps will guide you through the process of creating your own bundle and running it in your devenv instance.
 
 Pre-requisites:
 
