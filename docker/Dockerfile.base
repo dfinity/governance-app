@@ -15,7 +15,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
 RUN apt-get install -y nodejs
 
 # Install DFX (Internet Computer SDK).
-RUN DFXVM_INIT_YES=true sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)"
+RUN DFX_VERSION=0.29.0 DFXVM_INIT_YES=true sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)"
 ENV PATH="/root/.local/share/dfx/bin:${PATH}"
 
 # Install the correct Rust target for Wasm compilation.

@@ -1,6 +1,7 @@
 # Reproducibility
 
 How to create reproducible builds (via Docker).
+Skip to the last step if the tooling didn't change.
 
 ## Base image
 

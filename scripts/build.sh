@@ -1,7 +1,7 @@
-#!/bin/bash
-
-# Exit immediately if a command exits with a non-zero status.
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
+SOURCE_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")/.."
+PATH="$SOURCE_DIR:$PATH"
 
 # --- Configuration ---
 
@@ -19,26 +19,14 @@ show_help() {
   echo "By default, the WASM file is deleted. Use --keep-wasm to preserve it."
 }
 
-# --- Parse command-line flags ---
+# Source the clap.bash file ---------------------------------------------------
+source "$SOURCE_DIR/scripts/clap.sh"
 
-for arg in "$@"; do
-  case $arg in
-    --keep-wasm)
-      KEEP_WASM=true
-      shift
-      ;;
-    -h|--help)
-      show_help
-      exit 0
-      ;;
-    *)
-      # Unrecognized argument
-      echo "Error: Unrecognized argument '$arg'" >&2
-      show_help
-      exit 1
-      ;;
-  esac
-done
+# Define options
+clap.define short=k long=keep-wasm desc="Keep the generated WASM file." variable=KEEP_WASM default="$KEEP_WASM" nargs=0
+
+# Source the output file ----------------------------------------------------------
+source "$(clap.build)"
 
 # --- Main build process ---
 
