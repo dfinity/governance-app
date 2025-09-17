@@ -15,6 +15,7 @@ jobs:
           exit 1
 
   call-e2e:
+    needs: guard-main
     uses: ./.github/workflows/e2e.yml
     with:
       update-snapshots: true
