@@ -7,8 +7,7 @@ on:
         type: boolean
         default: false
 jobs:
-  test:
-    name: "run"
+  tests:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     env:
