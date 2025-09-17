@@ -8,6 +8,7 @@ on:
         default: false
 jobs:
   test:
+    name: "run"
     timeout-minutes: 15
     runs-on: ubuntu-latest
     env:
