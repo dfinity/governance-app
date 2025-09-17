@@ -16,7 +16,7 @@ test('has title', async ({ page }) => {
   await takeSnapshot({ page, label: 'login--signed-out' });
 
   await login({ page });
-  await expect(page.getByTestId('login-test')).toHaveText(/Hello world! You are: /);
+  await expect(page.getByTestId('login-test')).toHaveText(/^Hello world! You are:/);
 
   await takeSnapshot({ page, label: 'login--signed-in' });
 });
