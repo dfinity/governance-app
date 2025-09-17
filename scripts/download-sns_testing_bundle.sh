@@ -120,8 +120,7 @@ get_latest_valid_commit() {
     done <<< "$commits"
 
     echo "❌ Failed to find any commit with available bundle after trying $commit_count commits" >&2
-    echo "Falling back to default commit: $DEFAULT_IC_COMMIT" >&2
-    echo "$DEFAULT_IC_COMMIT"
+    exit 1
 }
 
 # Function to validate OS parameter
