@@ -89,11 +89,21 @@ get_latest_valid_commit() {
     local api_url="https://api.github.com/repos/dfinity/ic/commits?per_page=$MAX_COMMIT_RETRIES"
     local commits
 
-    commits=$(curl -s "$api_url" | jq -r '.[].sha')
+    # Fetch commits from GitHub API and check for errors
+    local curl_output
+    curl_output=$(curl -s "$api_url")
+
+    local curl_exit_code=$?
+    if [ $curl_exit_code -ne 0 ]; then
+        echo "Error: curl failed to fetch commits from GitHub API (exit code $curl_exit_code)" >&2
+        exit 1
+    fi
+
+    commits=$(echo "$curl_output" | jq -r '.[].sha')
 
     # Validate that we got some commits
     if [ -z "$commits" ]; then
-        echo "Error: Failed to fetch recent commits" >&2
+        echo "Error: Failed to fetch recent commits or no commits found" >&2
         exit 1
     fi
 
@@ -147,7 +157,7 @@ if [ -z "${IC_COMMIT:-}" ]; then
     echo "No specific commit provided - searching for latest commit with available bundle..."
     IC_COMMIT=$(get_latest_valid_commit "$OS" "$CDN" "$BUNDLE_NAME")
 else
-    # Specific commit provided - use it (no validation)
+    # Specific commit provided - use it
     echo "Using specified commit: $IC_COMMIT"
 fi
 
@@ -167,7 +177,7 @@ if [ -d "$BUNDLE_DIR" ]; then
         rm -rf "$BUNDLE_DIR"
     else
         echo "Directory $BUNDLE_DIR already exists."
-        echo "Use --force to re-download or choose a different name with --directory"
+        echo "Use --force to re-download or choose a different directory with --directory"
         exit 1
     fi
 fi
