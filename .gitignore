@@ -36,3 +36,4 @@ dev-env-*
 
 # e2e
 src/governance-app-frontend/playwright-report/
+src/governance-app-frontend/test-results/

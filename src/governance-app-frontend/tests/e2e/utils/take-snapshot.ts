@@ -2,6 +2,11 @@ import test, { expect, Page } from '@playwright/test';
 
 export const takeSnapshot = async ({ page, label }: { page: Page; label: string }) => {
   await test.step(`Take Snapshot (${label})`, async () => {
+    if (process.env.IGNORE_SCREENSHOTS) {
+      console.log(`⏭️ Skipping screenshot for ${label}`);
+      return;
+    }
+
     const masks = page.locator('[data-snapshot-mask]');
 
     // iPhone 16 pro viewport
