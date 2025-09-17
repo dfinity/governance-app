@@ -7,11 +7,11 @@ import { Monitor01, Moon01, Sun } from '@untitledui/icons';
 import { useTheme } from '@hooks/useTheme';
 
 export const ToggleThemeButton = () => {
-  const { theme, setTheme } = useTheme();
+  const { themePreference, setThemePreference } = useTheme();
   const { t } = useTranslation();
 
   const getNextTheme = () => {
-    switch (theme) {
+    switch (themePreference) {
       case 'system':
         return 'light';
       case 'light':
@@ -22,7 +22,7 @@ export const ToggleThemeButton = () => {
   };
 
   const getCurrentIcon = () => {
-    switch (theme) {
+    switch (themePreference) {
       case 'system':
         return Monitor01;
       case 'light':
@@ -43,15 +43,16 @@ export const ToggleThemeButton = () => {
         return t(($) => $.common.switchToSystemMode);
     }
   };
+  const title = getTooltipText();
 
   return (
-    <Tooltip title={getTooltipText()}>
+    <Tooltip title={title}>
       <Button
-        aria-label={getTooltipText()}
+        aria-label={title}
         color="tertiary"
         size="sm"
         iconLeading={getCurrentIcon()}
-        onClick={() => setTheme(getNextTheme())}
+        onClick={() => setThemePreference(getNextTheme())}
       />
     </Tooltip>
   );

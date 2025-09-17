@@ -17,8 +17,8 @@ function ProposalsPage() {
   useTitle(t(($) => $.common.proposalsList));
 
   return (
-    <div className="text-xl flex gap-2 flex-col">
-      <div className="flex gap-2 mb-2">{t(($) => $.common.proposalsList)}</div>
+    <div className="flex flex-col gap-2 text-xl">
+      <div className="mb-2 flex gap-2">{t(($) => $.common.proposalsList)}</div>
 
       {isLoading && <SkeletonLoader count={3} />}
       {!isLoading && !data?.pages?.length && (
@@ -36,12 +36,12 @@ function ProposalsPage() {
             >
               <div
                 style={{ backgroundColor: 'var(--background-color-secondary)' }}
-                className="border p-4 rounded-lg h-full flex flex-col justify-between"
+                className="flex h-full flex-col justify-between rounded-lg border p-4"
               >
-                <p className="overflow-ellipsis overflow-hidden">
+                <p className="overflow-hidden overflow-ellipsis">
                   #{proposal.id?.toString()} {proposal.proposal?.title}
                 </p>
-                <div className="mt-4 flex items-end justify-between text-sm font-bold h-4">
+                <div className="mt-4 flex h-4 items-end justify-between text-sm font-bold">
                   {t(($) => $.enums.ProposalStatus[proposal.status])}
                   {page?.certified ? <CertifiedBadge /> : <SkeletonLoader width={90} />}
                 </div>

@@ -1,10 +1,10 @@
 import { createContext } from 'react';
 
-export type Theme = 'light' | 'dark' | 'system';
+export type ThemePreference = 'light' | 'dark' | 'system';
 
 export interface ThemeContextType {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
+  themePreference: ThemePreference;
+  setThemePreference: (themePreference: ThemePreference) => void;
 }
 
 export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
