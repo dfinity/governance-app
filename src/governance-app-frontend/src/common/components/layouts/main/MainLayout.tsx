@@ -21,9 +21,9 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
   return (
     <main
       data-testid="main-layout"
-      className="m-auto flex h-[100vh] max-w-[1920px] flex-col justify-between gap-2 p-4"
+      className="m-auto flex h-[100vh] max-w-[1920px] flex-col justify-between gap-2 bg-primary p-4"
     >
-      {!showLoader ? (
+      {showLoader ? (
         <SkeletonLoader count={3} height={100} />
       ) : (
         <>
@@ -31,7 +31,9 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
           <div>
             <div className="flex shrink-0 items-start justify-between gap-2">
               <Link to="/">
-                <h1 className="pb-4 text-4xl font-bold">{t(($) => $.home.title)}</h1>
+                <h1 className="pb-4 text-4xl font-bold text-brand-primary">
+                  {t(($) => $.home.title)}
+                </h1>
               </Link>
               <div className="flex gap-4">
                 <Link to="/nns" className={styles.link}>
