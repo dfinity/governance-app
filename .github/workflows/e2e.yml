@@ -50,7 +50,7 @@ jobs:
 
       - name: Start sns-testing environment
         run: |
-          ./scripts/download-sns_testing_bundle.sh --os linux --force --commit 0e4c8234a9e0508ae30c5b8a7498406294c25e95 --directory "sns-testing-bundle"
+          ./scripts/download-sns_testing_bundle.sh --os linux --force --directory "sns-testing-bundle"
           ./scripts/pocketic-server.sh -b --directory "sns-testing-bundle"
           ./scripts/init-replica.sh --directory "sns-testing-bundle"
 
