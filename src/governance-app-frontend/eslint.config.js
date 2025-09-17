@@ -70,7 +70,7 @@ const tsConfiguration = tseslint.config(
 );
 
 const cssConfiguration = {
-  ignores: ['dist', 'node_modules', 'src/routeTree.gen.ts', 'src/untitledui/**/*.css'],
+  ignores: ['dist', 'node_modules', 'src/routeTree.gen.ts', 'src/untitledui'],
   files: ['**/*.css'],
   plugins: {
     css,
