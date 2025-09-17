@@ -7,6 +7,8 @@ import {
 } from '@tanstack/react-query';
 import { useCallback, useEffect } from 'react';
 
+import { MIN_ASYNC_DELAY } from '@constants/extra';
+import { withMinimumDelay } from '@utils/async';
 import { stringifyAll } from '@utils/strings';
 import { CertifiedData, QueryType } from '@common/typings/queries';
 
@@ -41,7 +43,7 @@ export const useInfiniteQueryThenUpdateCall = <TData, TPageParam>({
   const queryCall = async (
     context: QueryFunctionContext<QueryKey, TPageParam>,
   ): Promise<CertifiedData<TData>> => ({
-    response: await queryFn(context),
+    response: await withMinimumDelay(queryFn(context), MIN_ASYNC_DELAY),
     certified: false,
   });
   const queryQuery = useInfiniteQuery<
@@ -66,11 +68,11 @@ export const useInfiniteQueryThenUpdateCall = <TData, TPageParam>({
   const updateCall = async (
     context: QueryFunctionContext<QueryKey, TPageParam>,
   ): Promise<CertifiedData<TData>> => ({
-    response: await updateFn(context),
+    response: await withMinimumDelay(updateFn(context), MIN_ASYNC_DELAY),
     certified: true,
   });
   const updateQuery = useInfiniteQuery({
-    queryKey: [...queryKey, QueryType.Certified],
+    queryKey: [stringifyAll(queryKey), QueryType.Certified],
     queryFn: updateCall,
     initialPageParam,
     getNextPageParam,
