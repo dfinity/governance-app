@@ -44,3 +44,9 @@ jobs:
 
       - name: Run unit tests
         run: npm run test
+
+  e2e_tests:
+    name: E2E tests
+    uses: ./.github/workflows/e2e.yml
+    with:
+      update-snapshots: false
