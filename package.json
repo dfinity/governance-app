@@ -10,7 +10,9 @@
     "format": "npm run format --workspaces --if-present && cargo fmt --check",
     "lint": "npm run lint --workspaces --if-present",
     "start": "npm start --workspaces --if-present",
-    "test": "npm test --workspaces --if-present"
+    "test": "npm test --workspaces --if-present",
+    "test:e2e": "npm run test:e2e --workspaces --if-present",
+    "update-snapshots": "npm run update-snapshots --workspaces --if-present"
   },
   "type": "module",
   "workspaces": [

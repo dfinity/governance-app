@@ -1,0 +1,136 @@
+name: E2E Tests
+on:
+  workflow_call:
+    inputs:
+      update-snapshots:
+        required: false
+        type: boolean
+        default: false
+jobs:
+  tests:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    env:
+      BASE_URL: http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      # Requires for governance-app build before deployment
+      - name: Install Rust & Cargo
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Install dfx
+        uses: dfinity/setup-dfx@main
+
+      - name: Confirm successful installation
+        run: |
+          node -v
+          npm -v
+          dfx --version
+
+      # sns-testing
+      - name: Create sns-testing identity
+        run: |
+          dfx identity new sns-testing --storage-mode=plaintext || true
+          dfx identity use sns-testing
+          dfx identity get-principal
+          dfx identity list
+
+      - name: Start sns-testing environment
+        run: |
+          ./scripts/download-sns_testing_bundle.sh --os linux --force --commit 0e4c8234a9e0508ae30c5b8a7498406294c25e95 --directory "sns-testing-bundle"
+          ./scripts/pocketic-server.sh -b --directory "sns-testing-bundle"
+          ./scripts/init-replica.sh --directory "sns-testing-bundle"
+
+      # To speed up the backend build.
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Deploy governance-app
+        run: |
+          dfx canister create governance-app-backend
+          dfx deploy governance-app-backend
+
+          # Verify deployment
+          echo "Waiting for server..."
+          max_attempts=30
+          for i in $(seq 1 $max_attempts); do
+            if curl -i $BASE_URL | grep "200 OK" > /dev/null; then
+              echo "Server is up!"
+              break
+            fi
+            echo "Server not ready yet... attempt $i/$max_attempts"
+            sleep 2
+
+            if [ "$i" -eq "$max_attempts" ]; then
+              echo "Server did not become ready after $max_attempts attempts, exiting."
+              exit 1
+            fi
+          done
+
+      - name: Get Playwright version
+        id: playwright_version
+        run: |
+          echo "version=$(npm ls @playwright/test --depth=0 --json | jq -r '.dependencies["governance-app-frontend"].dependencies["@playwright/test"].version')" >> $GITHUB_OUTPUT
+      - name: Show Playwright version
+        run: echo "Using Playwright version ${{ steps.playwright_version.outputs.version }}"
+      # TODO: check the caching here
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright_version.outputs.version }}-all
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium firefox
+
+      - name: Update snapshots
+        if: ${{ inputs.update-snapshots == true }}
+        run: |
+          echo "🚀 Updating snapshots"
+          npm run update-snapshots
+
+      - name: Run Playwright tests
+        if: ${{ inputs.update-snapshots != true }}
+        run: |
+          echo "🚀 Running end-to-end tests"
+          npm run test:e2e
+
+      - name: Commit updated snapshots
+        if: ${{ inputs.update-snapshots == true }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/governance-app-frontend/tests/e2e/**/*.png
+          # create commit only if there are changes
+          git diff --cached --quiet || git commit -m "chore: update Playwright snapshots [skip ci]"
+          # push back to the selected/current branch
+          git push origin HEAD:${{ github.head_ref || github.ref_name }}
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: src/governance-app-frontend/playwright-report/
+          retention-days: 30
+
+      - name: Stop sns-testing environment
+        if: always()
+        run: |
+          ./scripts/pocketic-server.sh --stop --directory "sns-testing-bundle"
