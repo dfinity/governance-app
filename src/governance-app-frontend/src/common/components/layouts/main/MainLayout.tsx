@@ -19,7 +19,10 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
   const { t } = useTranslation();
 
   return (
-    <main className="p-4 flex justify-between flex-col gap-2 h-[100vh] max-w-[1920px] m-auto">
+    <main
+      data-testid="main-layout"
+      className="p-4 flex justify-between flex-col gap-2 h-[100vh] max-w-[1920px] m-auto"
+    >
       {showLoader ? (
         <SkeletonLoader count={3} height={100} />
       ) : (
@@ -47,6 +50,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
                 </Link>
 
                 <button
+                  data-testid="login-btn"
                   onClick={
                     identity
                       ? () => {
