@@ -4,10 +4,10 @@ SOURCE_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")/.."
 PATH="$SOURCE_DIR:$PATH"
 
 # Default configuration
-DEFAULT_IC_COMMIT="699e0c3351d44e7acdd2e743fede7c835b3b3558"
 DEFAULT_OS="darwin"
 DEFAULT_DIR="dev-env-$(date +%d-%m-%Y)"
 BUNDLE_NAME="sns_testing_bundle"
+MAX_COMMIT_RETRIES=20
 
 print_help() {
   cat <<-EOF
@@ -37,32 +37,91 @@ clap.define short=f long=force desc="Force re-download even if directory exists"
 # Source the output file ----------------------------------------------------------
 source "$(clap.build)"
 
-# Function to get latest commit from dfinity/ic repository
-get_latest_commit() {
-    echo "Fetching latest commit from dfinity/ic repository..." >&2
+build_download_url() {
+    local commit="$1"
+    local os="$2"
+    local cdn="$3"
+    local bundle_name="$4"
 
-    # Use GitHub API to get the latest commit from master branch
-    local api_url="https://api.github.com/repos/dfinity/ic/commits/master"
-    local latest_commit
+    echo "$cdn/ic/${commit}/binaries/x86_64-${os}/${bundle_name}.tar.gz"
+}
 
-    # Try to fetch using curl with error handling
-    if command -v curl >/dev/null 2>&1; then
-        latest_commit=$(curl -s "$api_url" | grep '"sha"' | head -1 | cut -d'"' -f4)
+# Function to check if bundle exists for a given commit
+check_bundle_exists() {
+    local commit="$1"
+    local os="$2"
+    local cdn="$3"
+    local bundle_name="$4"
+
+    local download_url=$(build_download_url "$commit" "$os" "$cdn" "$bundle_name")
+
+    # Use curl to check if the URL exists (HEAD request)
+    if curl --silent --fail --head "$download_url" >/dev/null 2>&1; then
+        return 0  # Bundle exists
     else
-        echo "Error: curl is required to fetch latest commit"
+        return 1  # Bundle doesn't exist
+    fi
+}
+
+# Function to get latest valid commit (one that has a bundle available)
+get_latest_valid_commit() {
+    local os="$1"
+    local cdn="$2"
+    local bundle_name="$3"
+
+    echo "Finding latest commit with available bundle..." >&2
+
+    # Check if jq is available
+    if ! command -v jq >/dev/null 2>&1; then
+        echo "Error: jq is required for JSON parsing. Please install jq." >&2
+        echo "On macOS: brew install jq" >&2
+        echo "On Ubuntu/Debian: apt-get install jq" >&2
         exit 1
     fi
 
-    # Validate that we got a commit hash
-    if [ -z "$latest_commit" ] || [ ${#latest_commit} -ne 40 ]; then
-        echo "Error: Failed to fetch latest commit or invalid commit hash received"
-        echo "Falling back to default commit: $DEFAULT_IC_COMMIT"
-        latest_commit="$DEFAULT_IC_COMMIT"
-    else
-        echo "Latest commit found: $latest_commit" >&2
+    # Check that curl is available
+    if ! command -v curl >/dev/null 2>&1; then
+      echo "Error: curl is required to fetch commits" >&2
+      exit 1
     fi
 
-    echo "$latest_commit"
+    # Use GitHub API to get recent commits from master branch
+    local api_url="https://api.github.com/repos/dfinity/ic/commits?per_page=$MAX_COMMIT_RETRIES"
+    local commits
+
+    commits=$(curl -s "$api_url" | jq -r '.[].sha')
+
+    # Validate that we got some commits
+    if [ -z "$commits" ]; then
+        echo "Error: Failed to fetch recent commits" >&2
+        exit 1
+    fi
+
+    local commit_count=0
+
+    while IFS= read -r commit; do
+        [ -z "$commit" ] && continue
+
+        commit_count=$((commit_count + 1))
+        echo "[$commit_count/$MAX_COMMIT_RETRIES] Checking commit: $commit" >&2
+
+        if check_bundle_exists "$commit" "$os" "$cdn" "$bundle_name"; then
+            echo "✅ Found valid commit with bundle: $commit" >&2
+            echo "$commit"
+            return 0
+        else
+            echo "❌ No bundle found for commit: $commit" >&2
+        fi
+
+        if [ $commit_count -ge $MAX_COMMIT_RETRIES ]; then
+            echo "⚠️  Reached maximum retry limit ($MAX_COMMIT_RETRIES commits)" >&2
+            break
+        fi
+    done <<< "$commits"
+
+    echo "❌ Failed to find any commit with available bundle after trying $commit_count commits" >&2
+    echo "Falling back to default commit: $DEFAULT_IC_COMMIT" >&2
+    echo "$DEFAULT_IC_COMMIT"
 }
 
 # Function to validate OS parameter
@@ -86,11 +145,10 @@ CDN="https://download.dfinity.systems"
 
 # Determine which commit to use
 if [ -z "${IC_COMMIT:-}" ]; then
-    # No commit specified - fetch and use latest
-    echo "No specific commit provided - fetching latest..."
-    IC_COMMIT=$(get_latest_commit)
+    echo "No specific commit provided - searching for latest commit with available bundle..."
+    IC_COMMIT=$(get_latest_valid_commit "$OS" "$CDN" "$BUNDLE_NAME")
 else
-    # Specific commit provided - use it
+    # Specific commit provided - use it (no validation)
     echo "Using specified commit: $IC_COMMIT"
 fi
 
@@ -110,7 +168,7 @@ if [ -d "$BUNDLE_DIR" ]; then
         rm -rf "$BUNDLE_DIR"
     else
         echo "Directory $BUNDLE_DIR already exists."
-        echo "Use --force to re-download or choose a different name with --name"
+        echo "Use --force to re-download or choose a different name with --directory"
         exit 1
     fi
 fi
@@ -121,10 +179,9 @@ mkdir -p "$BUNDLE_DIR"
 cd "$BUNDLE_DIR"
 
 # Construct download URL
-DOWNLOAD_URL="$CDN/ic/${IC_COMMIT}/binaries/x86_64-${OS}/${BUNDLE_NAME}.tar.gz"
+DOWNLOAD_URL=$(build_download_url "$IC_COMMIT" "$OS" "$CDN" "$BUNDLE_NAME")
 echo "Download URL: $DOWNLOAD_URL"
 
-# Download and extract bundle
 echo "Downloading bundle..."
 if ! curl --fail -L -O "$DOWNLOAD_URL"; then
     echo "Error: Failed to download bundle from $DOWNLOAD_URL"
