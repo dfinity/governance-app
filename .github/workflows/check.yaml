@@ -2,6 +2,9 @@ name: Check
 
 on:
   workflow_call:
+  pull_request:
+    branches:
+      - "**"
 
 jobs:
   codestyle:
@@ -14,7 +17,7 @@ jobs:
       - name: Setup NodeJS
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: ".nvmrc"
 
       - name: Install dependencies
         shell: bash
@@ -36,7 +39,7 @@ jobs:
       - name: Setup NodeJS
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: ".nvmrc"
 
       - name: Install dependencies
         shell: bash
