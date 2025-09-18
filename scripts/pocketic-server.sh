@@ -45,6 +45,23 @@ check_server_running() {
     fi
 }
 
+wait_server_running() {
+  local max_seconds=$1
+  local elapsed=0
+
+  while ! check_server_running; do
+    if [ "$elapsed" -ge "$max_seconds" ]; then
+      echo "Server did not start within ${max_seconds}s" >&2
+      return 1
+    fi
+    sleep 1
+    elapsed=$((elapsed + 1))
+  done
+
+  echo "Server is running after ${elapsed}s"
+  return 0
+}
+
 # Function to stop server
 stop_server() {
     echo "Checking for PocketIC server on port $PORT..."
@@ -98,8 +115,8 @@ fi
 if [ "${BACKGROUND:-false}" = "true" ]; then
     echo "🚀 Starting PocketIC server in background on port $PORT with TTL $TTL..."
     nohup "$POCKET_IC_BINARY" --port "$PORT" --ttl "$TTL" > pocket-ic-server.log 2>&1 &
-    sleep 2
-    if check_server_running; then
+
+    if wait_server_running 10; then
         echo "✅ Server started successfully"
         echo "📋 Log: pocket-ic-server.log"
         echo "🛑 Stop with: $0 --stop"

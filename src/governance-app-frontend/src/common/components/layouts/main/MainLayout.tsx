@@ -26,7 +26,10 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
   }, [identity, invalidate]);
 
   return (
-    <main className="p-4 flex justify-between flex-col gap-2 h-[100vh] max-w-[1920px] m-auto">
+    <main
+      data-testid="main-layout"
+      className="p-4 flex justify-between flex-col gap-2 h-[100vh] max-w-[1920px] m-auto"
+    >
       {showLoader ? (
         <SkeletonLoader count={6} />
       ) : (
@@ -55,6 +58,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
 
                 <button
                   onClick={identity ? clear : login}
+                  data-testid="login-btn"
                   className={classNames(
                     'text-nowrap rounded px-4 py-2 text-white hover:bg-blue-600 bg-blue-500',
                     {
