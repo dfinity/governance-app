@@ -11,7 +11,7 @@ function Homepage() {
   const { t } = useTranslation();
 
   return (
-    <div className="text-md" data-testid="login-test" data-snapshot-mask>
+    <div className="text-lg" data-testid="login-test" data-snapshot-mask>
       {identity
         ? t(($) => $.home.yourPrincipal, {
             principal: identity.getPrincipal().toString(),
