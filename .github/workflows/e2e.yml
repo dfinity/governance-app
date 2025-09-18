@@ -112,16 +112,32 @@ jobs:
           echo "🚀 Running end-to-end tests"
           npm run test:e2e
 
-      - name: Commit updated snapshots
+      - name: Commit Playwright updated snapshots
+        uses: EndBug/add-and-commit@v9
         if: ${{ inputs.update-snapshots == true }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add src/governance-app-frontend/tests/e2e/**/*.png
-          # create commit only if there are changes
-          git diff --cached --quiet || git commit -m "bot: update Playwright snapshots"
-          # push back to the selected/current branch
-          git push origin HEAD:${{ github.head_ref || github.ref_name }}
+        with:
+          add: src/governance-app-frontend/tests/e2e
+          default_author: github_actions
+          message: "bot: update Playwright snapshots"
+
+      # - name: Commit updated snapshots
+      #   if: ${{ inputs.update-snapshots == true }}
+      #   run: |
+      #     git config user.name "github-actions[bot]"
+      #     git config user.email "github-actions[bot]@users.noreply.github.com"
+      #     git add src/governance-app-frontend/tests/e2e/**/*.png
+      #     # create commit only if there are changes
+      #     git diff --cached --quiet || git commit -m "bot: update Playwright snapshots"
+      #     # push back to the selected/current branch
+      #     git push origin HEAD:${{ github.head_ref || github.ref_name }}
+
+      # - name: Trigger check workflow
+      #   if: ${{ inputs.update-snapshots == true }}
+      #   run: |
+      #     sudo apt-get install -y gh
+      #     gh workflow run "Check" \
+      #       -f reason="Snapshots updated" \
+      #       --ref "${{ github.head_ref || github.ref_name }}"
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
