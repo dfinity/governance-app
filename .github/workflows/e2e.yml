@@ -134,9 +134,3 @@ jobs:
         if: always()
         run: |
           ./scripts/pocketic-server.sh --stop --directory "sns-testing-bundle"
-
-  rerun-check-maybe:
-    name: Rerun checks after snapshots update
-    needs: tests
-    if: ${{ inputs.update-snapshots == true }}
-    uses: ./.github/workflows/check.yaml

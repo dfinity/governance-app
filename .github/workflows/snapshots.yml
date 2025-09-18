@@ -16,3 +16,8 @@ jobs:
     uses: ./.github/workflows/e2e.yml
     with:
       update-snapshots: true
+
+  rerun-check-maybe:
+    name: Rerun checks after snapshots update
+    needs: call-e2e
+    uses: ./.github/workflows/check.yaml
