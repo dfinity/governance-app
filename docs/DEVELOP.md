@@ -18,7 +18,7 @@ There are a list of scripts to help you set up a local development environment. 
 - Download and extract the bundle. The script uses the latest version of IC to donwload the bundle. For more options, please refer to the script itself:
 
 ```sh
-./scripts/download-sns-testing-bundle.sh
+./scripts/download-sns_testing_bundle.sh
 ```
 
 - Start the PocketIc server:

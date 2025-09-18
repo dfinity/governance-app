@@ -1,7 +1,7 @@
 import { Link, useRouter } from '@tanstack/react-router';
 import classNames from 'classnames';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ToggleThemeButton } from '@components/buttons/toggleTheme/ToggleThemeButton';
@@ -11,17 +11,24 @@ import { useAgentPool } from '@hooks/useAgentPool';
 import styles from './mainLayout.module.css';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
+  const { t } = useTranslation();
+
   const { anonymous, authenticated } = useAgentPool().agentPool;
   const { login, identity, clear, isInitializing } = useInternetIdentity();
   const showLoader = anonymous.loading || authenticated.loading || isInitializing;
-  const { invalidate } = useRouter();
 
-  const { t } = useTranslation();
+  // TODO: identity does not refresh when it auto-expires.
+  // Check this again when useInternetIdentity is updated.
+  // Kristofer will update the library in the next weeks.
+  const { invalidate } = useRouter();
+  useEffect(() => {
+    invalidate();
+  }, [identity, invalidate]);
 
   return (
     <main className="p-4 flex justify-between flex-col gap-2 h-[100vh] max-w-[1920px] m-auto">
       {showLoader ? (
-        <SkeletonLoader count={3} height={100} />
+        <SkeletonLoader count={6} />
       ) : (
         <>
           <title>{t(($) => $.home.title)}</title>
@@ -47,14 +54,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
                 </Link>
 
                 <button
-                  onClick={
-                    identity
-                      ? () => {
-                          clear();
-                          invalidate();
-                        }
-                      : login
-                  }
+                  onClick={identity ? clear : login}
                   className={classNames(
                     'text-nowrap rounded px-4 py-2 text-white hover:bg-blue-600 bg-blue-500',
                     {

@@ -110,7 +110,7 @@ if [ -d "$BUNDLE_DIR" ]; then
         rm -rf "$BUNDLE_DIR"
     else
         echo "Directory $BUNDLE_DIR already exists."
-        echo "Use --force to re-download or choose a different name with --name"
+        echo "Use -f or --force to re-download or choose a different name with --name"
         exit 1
     fi
 fi

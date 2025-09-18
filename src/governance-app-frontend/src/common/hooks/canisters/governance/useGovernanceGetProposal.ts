@@ -10,7 +10,7 @@ import { useNnsGovernanceCanister } from './useGovernanceCanister';
  * The payload rendering will rely on new backend fields (not yet implemented).
  */
 export const useGovernanceGetProposal = ({ proposalId }: { proposalId: bigint | undefined }) => {
-  const { ready, canister } = useNnsGovernanceCanister();
+  const { ready, canister, authenticated } = useNnsGovernanceCanister();
 
   const request: ListProposalsRequest = {
     beforeProposal: proposalId && proposalId + 1n,
@@ -23,7 +23,7 @@ export const useGovernanceGetProposal = ({ proposalId }: { proposalId: bigint | 
   };
 
   return useQueryThenUpdateCall({
-    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL, request],
+    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL, request, authenticated],
     queryFn: async () => {
       const res = await canister!.listProposals({ request, certified: false });
       return res.proposals[0];
