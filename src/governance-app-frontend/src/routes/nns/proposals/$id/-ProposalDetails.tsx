@@ -45,7 +45,7 @@ export const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
 
           <ProposalDetailsVoting proposal={proposalData} />
 
-          <div className="border p-4 rounded-lg mb-4">
+          <div className="mb-4 rounded-lg border p-4">
             {/* type */}
             <dl>
               <dt className="font-bold">{t(($) => $.proposal.type)}</dt>
