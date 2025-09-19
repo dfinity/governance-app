@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BASE_URL: http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,8 +26,10 @@ jobs:
           toolchain: stable
           target: wasm32-unknown-unknown
           override: true
+
       - name: Install frontend dependencies
         run: npm ci
+
       - name: Install dfx
         uses: dfinity/setup-dfx@main
 
@@ -61,11 +64,11 @@ jobs:
           key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Deploy governance-app
+        shell: bash
         run: |
           dfx canister create governance-app-backend
           dfx deploy governance-app-backend
 
-          # Verify deployment
           echo "Waiting for server..."
           max_attempts=30
           for i in $(seq 1 $max_attempts); do
@@ -75,7 +78,6 @@ jobs:
             fi
             echo "Server not ready yet... attempt $i/$max_attempts"
             sleep 2
-
             if [ "$i" -eq "$max_attempts" ]; then
               echo "Server did not become ready after $max_attempts attempts, exiting."
               exit 1
@@ -95,6 +97,7 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.playwright_version.outputs.version }}-all
+
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium firefox
 
@@ -103,23 +106,56 @@ jobs:
           echo "🚀 Updating snapshots"
           npm run update-snapshots
 
-      - name: Commit updated snapshots
-        if: ${{ !cancelled() }}
+      # Collect and upload changed/new PNG snapshots
+      - name: Collect changed/new screenshots
+        id: collect_snaps
+        shell: bash
         run: |
           set -euo pipefail
-          if [[ -n "$(git status --porcelain)" ]]; then
-            git config user.name "snapshot[bot]"
-            git config user.email "snapshot[bot]@users.noreply.github.com"
-            git add -A
-            git commit -m "bot: Update Playwright snapshots"
-            # ensure the remote uses the App token
-            git remote set-url origin "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository }}.git"
-            git push origin HEAD:${{ github.head_ref || github.ref_name }}
-            echo "Snapshots committed"
-          else
-            echo "No changes to commit."
+          SNAP_DIR="src/governance-app-frontend/tests/e2e"
+
+          # Modified tracked PNGs (vs checked-out ref)
+          mapfile -t MOD < <(git diff --name-only -- "$SNAP_DIR" | grep -E '\.png$' || true)
+          # New (untracked) PNGs
+          mapfile -t NEW < <(git ls-files --others --exclude-standard -- "$SNAP_DIR" | grep -E '\.png$' || true)
+
+          ALL=("${MOD[@]}" "${NEW[@]}")
+          if [ "${#ALL[@]}" -eq 0 ]; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "No snapshot changes."
+            exit 0
           fi
 
+          # newline-separated file list for upload-artifact
+          {
+            echo 'files<<__EOF__'
+            printf '%s\n' "${ALL[@]}" | sort -u
+            echo '__EOF__'
+          } >> "$GITHUB_OUTPUT"
+          echo "has_changes=true" >> "$GITHUB_OUTPUT"
+
+          # Summary
+          {
+            echo "### Snapshot updates"
+            echo "- Changed/new files: $(printf '%s\n' "${ALL[@]}" | sort -u | wc -l)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload updated screenshots
+        if: ${{ steps.collect_snaps.outputs.has_changes == 'true' && !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: updated-screenshots
+          path: ${{ steps.collect_snaps.outputs.files }}
+          if-no-files-found: error
+          retention-days: 5
+
+      - name: TMP/Add snapshot run link to summary
+        if: ${{ steps.collect_snaps.outputs.has_changes == 'true' && !cancelled() }}
+        run: |
+          echo "### Download" >> "$GITHUB_STEP_SUMMARY"
+          echo "- 👉 [Artifacts for this run](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> "$GITHUB_STEP_SUMMARY"
+
+      # Playwright HTML report (separate artifact)
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
