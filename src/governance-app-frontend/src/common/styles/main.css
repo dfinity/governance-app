@@ -1,4 +1,5 @@
 @import 'react-loading-skeleton/dist/skeleton.css';
 
 @import 'tailwindcss';
-@import './theme.css';
+@import '../../untitledui/styles/theme.css';
+@import '../../untitledui/styles/base.css';

@@ -31,12 +31,12 @@ export const ProposalDetails: React.FC<ProposalDetailsProps> = ({ proposalId }) 
       {isError && t(($) => $.common.errorLoadingProposals, { error: error.message })}
       {proposalData && (
         <>
-          <h2 className="text-xl pb-4 flex items-center justify-between">
+          <h2 className="flex items-center justify-between pb-4 text-xl">
             {t(($) => $.proposal.proposalId, { id: proposalData.id })}
             {data.certified ? <CertifiedBadge /> : <SkeletonLoader height={24} width={100} />}
           </h2>
 
-          <div className="border p-4 rounded-lg mb-4">
+          <div className="mb-4 rounded-lg border p-4">
             {/* type */}
             <dl>
               <dt className="font-bold">{t(($) => $.proposal.type)}</dt>
@@ -70,7 +70,7 @@ export const ProposalDetails: React.FC<ProposalDetailsProps> = ({ proposalId }) 
             </dl>
           </div>
 
-          <div className="border p-4 rounded-lg mb-4">
+          <div className="mb-4 rounded-lg border p-4">
             {/* summary */}
             <Link to={proposalData.proposal?.url ?? '#'}>{proposalData.proposal?.title}</Link>
             <dl>
@@ -91,7 +91,7 @@ export const ProposalDetails: React.FC<ProposalDetailsProps> = ({ proposalId }) 
             </dl>
           </div>
 
-          <div className="border p-4 rounded-lg mb-4">
+          <div className="mb-4 rounded-lg border p-4">
             {/* payload */}
             <dl>
               <dt className="font-bold">{t(($) => $.proposal.payload)}</dt>
