@@ -132,13 +132,6 @@ jobs:
           app-id: ${{ vars.CLA_BOT_APP_ID }}
           private-key: ${{ secrets.CLA_BOT_PRIVATE_KEY }}
 
-      # - name: Commit updated snapshots
-      #   if: ${{ inputs.update-snapshots == true }}
-      #   run: |
-      #     git config user.name "github-actions[bot]"
-      #     git config user.email "github-actions[bot]@users.noreply.github.com"
-      #     git add src/governance-app-frontend/tests/e2e/**/*.png
-
       - name: Commit updated snapshots
         if: ${{ inputs.update-snapshots == true }}
         run: |
@@ -147,6 +140,15 @@ jobs:
           git add src/governance-app-frontend/tests/e2e/**/*.png
           git diff --cached --quiet || git commit -m "bot: update Playwright snapshots"
           git push https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository }} HEAD:${{ github.head_ref || github.ref_name }}
+
+      - name: Trigger check workflow
+        if: ${{ inputs.update-snapshots == true }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }} # ← используем токен GitHub App
+          GH_REPO: ${{ github.repository }} # (не обязательно, но удобно)
+        run: |
+          gh workflow run "Pipeline Dev" \
+            --ref "${{ github.head_ref || github.ref_name }}"
 
       # - name: Trigger check workflow
       #   if: ${{ inputs.update-snapshots == true }}
