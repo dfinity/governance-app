@@ -17,8 +17,8 @@ function ProposalsPage() {
   useTitle(t(($) => $.common.proposalsList));
 
   return (
-    <div className="text-xl flex gap-2 flex-col">
-      <div className="flex gap-2 mb-2">{t(($) => $.common.proposalsList)}</div>
+    <div className="flex flex-col gap-2 text-xl">
+      <div className="mb-2 flex gap-2">{t(($) => $.common.proposalsList)}</div>
 
       {isLoading && <SkeletonLoader count={3} />}
       {!isLoading && !data?.pages?.length && (
@@ -26,7 +26,7 @@ function ProposalsPage() {
       )}
       {error && t(($) => $.common.errorLoadingProposals, { error: error.message })}
 
-      <div className="text-lg grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 text-lg sm:grid-cols-2 lg:grid-cols-3">
         {data?.pages?.map((page) =>
           page?.response.proposals.map((proposal) => (
             <Link
@@ -34,14 +34,11 @@ function ProposalsPage() {
               key={proposal.id?.toString()}
               to="/nns/proposals/$id"
             >
-              <div
-                style={{ backgroundColor: 'var(--background-color-secondary)' }}
-                className="border p-4 rounded-lg h-full flex flex-col justify-between"
-              >
-                <p className="overflow-ellipsis overflow-hidden">
+              <div className="flex h-full flex-col justify-between rounded-lg bg-primary p-4 shadow-xs ring-1 ring-secondary ring-inset focus-visible:outline-2 focus-visible:outline-offset-2">
+                <p className="overflow-hidden overflow-ellipsis text-secondary">
                   #{proposal.id?.toString()} {proposal.proposal?.title}
                 </p>
-                <div className="mt-4 flex items-end justify-between text-sm font-bold h-4">
+                <div className="mt-4 flex h-4 items-end justify-between text-sm font-bold text-secondary">
                   {t(($) => $.enums.ProposalStatus[proposal.status])}
                   {page?.certified ? <CertifiedBadge /> : <SkeletonLoader width={90} />}
                 </div>

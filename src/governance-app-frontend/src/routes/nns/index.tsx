@@ -12,12 +12,12 @@ function NnsIndex() {
   useTitle(t(($) => $.common.nns));
 
   return (
-    <div className="text-xl">
+    <div className="text-xl text-primary">
       {t(($) => $.nns.description)}
-      <p className="text-blue-500 underline italic mt-2">
+      <p className="mt-2 text-blue-500 italic underline">
         <Link to="/nns/proposals">{t(($) => $.common.seeProposals)}</Link>
       </p>
-      <p className="text-blue-500 underline italic mt-2">
+      <p className="mt-2 text-blue-500 italic underline">
         <Link to="/nns/neurons">{t(($) => $.common.seeNeurons)}</Link>
       </p>
     </div>

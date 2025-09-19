@@ -39,6 +39,16 @@ export default defineConfig({
         find: '@declarations',
         replacement: fileURLToPath(new URL('../declarations/', import.meta.url)),
       },
+      {
+        find: '@untitledui/icons',
+        replacement: fileURLToPath(
+          new URL('../../node_modules/@untitledui/icons/', import.meta.url),
+        ),
+      },
+      {
+        find: '@untitledui',
+        replacement: fileURLToPath(new URL('./src/untitledui/', import.meta.url)),
+      },
 
       {
         find: '@components',
