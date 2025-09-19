@@ -105,10 +105,6 @@ jobs:
         run: |
           echo "🚀 Updating snapshots"
           npm run update-snapshots
-          # create commit only if there are changes
-          # git diff --cached --quiet || git commit -m "bot: update Playwright snapshots"
-          # push back to the selected/current branch
-          # git push origin HEAD:${{ github.head_ref || github.ref_name }}
 
       - name: Run Playwright tests
         if: ${{ inputs.update-snapshots != true }}
@@ -124,29 +120,16 @@ jobs:
       #     default_author: github_actions
       #     message: "bot: update Playwright snapshots"
 
-      - name: Create GitHub App Token
-        if: ${{ inputs.update-snapshots == true }}
-        id: app-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ vars.CLA_BOT_APP_ID }}
-          private-key: ${{ secrets.CLA_BOT_PRIVATE_KEY }}
-
-      # - name: Commit updated snapshots
-      #   if: ${{ inputs.update-snapshots == true }}
-      #   run: |
-      #     git config user.name "github-actions[bot]"
-      #     git config user.email "github-actions[bot]@users.noreply.github.com"
-      #     git add src/governance-app-frontend/tests/e2e/**/*.png
-
       - name: Commit updated snapshots
         if: ${{ inputs.update-snapshots == true }}
         run: |
-          git config user.name "cla-bot[bot]"
-          git config user.email "cla-bot[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add src/governance-app-frontend/tests/e2e/**/*.png
+          # create commit only if there are changes
           git diff --cached --quiet || git commit -m "bot: update Playwright snapshots"
-          git push https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository }} HEAD:${{ github.head_ref || github.ref_name }}
+          # push back to the selected/current branch
+          git push origin HEAD:${{ github.head_ref || github.ref_name }}
 
       # - name: Trigger check workflow
       #   if: ${{ inputs.update-snapshots == true }}
