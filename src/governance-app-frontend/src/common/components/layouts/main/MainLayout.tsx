@@ -28,7 +28,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
   return (
     <main
       data-testid="main-layout"
-      className="m-auto flex h-[100vh] max-w-[1920px] flex-col justify-between gap-2 bg-primary p-4"
+      className="m-auto flex min-h-[100vh] max-w-[1920px] flex-col justify-between gap-2 p-4"
     >
       {showLoader ? (
         <SkeletonLoader count={6} />
