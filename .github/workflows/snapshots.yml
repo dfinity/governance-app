@@ -13,6 +13,7 @@ jobs:
 
   call-e2e:
     needs: guard-main
+    secrets: inherit
     uses: ./.github/workflows/e2e.yml
     with:
       update-snapshots: true
