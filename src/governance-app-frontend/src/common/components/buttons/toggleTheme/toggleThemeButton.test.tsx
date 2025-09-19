@@ -28,5 +28,11 @@ describe('Theme', () => {
     expect(screen.getByLabelText(i18n.t(($) => $.common.switchToSystemMode))).toBeDefined();
     expect(screen.queryByLabelText(i18n.t(($) => $.common.switchToLightMode))).toBeNull();
     expect(screen.queryByLabelText(i18n.t(($) => $.common.switchToDarkMode))).toBeNull();
+
+    await userEvent.click(screen.getByRole('button'));
+    expect(localStorage.getItem(STORAGE_KEYS.THEME)).toBe(null);
+    expect(screen.getByLabelText(i18n.t(($) => $.common.switchToLightMode))).toBeDefined();
+    expect(screen.queryByLabelText(i18n.t(($) => $.common.switchToDarkMode))).toBeNull();
+    expect(screen.queryByLabelText(i18n.t(($) => $.common.switchToSystemMode))).toBeNull();
   });
 });
