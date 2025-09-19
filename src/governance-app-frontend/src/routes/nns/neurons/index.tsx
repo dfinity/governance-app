@@ -29,7 +29,7 @@ function NeuronsPage() {
       )}
       {error && t(($) => $.common.errorLoadingNeurons, { error: error.message })}
 
-      <div className="grid grid-cols-1 gap-4 text-lg sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 text-lg text-secondary sm:grid-cols-2 lg:grid-cols-3">
         {data?.response.map((neuron) => (
           <div
             style={{ backgroundColor: 'var(--background-color-secondary)' }}
