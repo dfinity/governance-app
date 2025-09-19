@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@untitledui/base/buttons/button';
-import { Tooltip } from '@untitledui/base/tooltip/tooltip';
+import { Button, Tooltip } from '@untitledui/components';
 import { Monitor01, Moon01, Sun } from '@untitledui/icons';
 
 import { useTheme } from '@hooks/useTheme';

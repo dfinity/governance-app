@@ -6,7 +6,7 @@ import { isValidElement } from "react";
 import type { ButtonProps as AriaButtonProps } from "react-aria-components";
 import { Button as AriaButton } from "react-aria-components";
 
-import { Link } from "@untitledui/base";
+import { Link } from "@untitledui/components";
 import { cx, sortCx } from '@untitledui/utils/cx';
 import { isReactComponent } from '@untitledui/utils/is-react-component';
 
@@ -168,7 +168,7 @@ export interface ButtonProps extends CommonProps, DetailedHTMLProps<Omit<ButtonH
 /**
  * Props for the link variant (anchor tag)
  */
-interface LinkProps extends CommonProps, Omit<LinkComponentProps, 'color'> {}
+interface LinkProps extends CommonProps, Omit<LinkComponentProps, 'color'>  {}
 
 /** Union type of button and link props */
 export type Props = ButtonProps | LinkProps;
