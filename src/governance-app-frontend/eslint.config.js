@@ -1,5 +1,5 @@
-import js from '@eslint/js';
 import css from '@eslint/css';
+import js from '@eslint/js';
 import plugingImport from 'eslint-plugin-import';
 import prettier from 'eslint-plugin-prettier';
 import reactHooks from 'eslint-plugin-react-hooks';
@@ -9,7 +9,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 const tsConfiguration = tseslint.config(
-  { ignores: ['dist', 'node_modules', 'src/routeTree.gen.ts'] },
+  { ignores: ['dist', 'node_modules', 'src/routeTree.gen.ts', 'src/untitledui'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
@@ -46,6 +46,7 @@ const tsConfiguration = tseslint.config(
             ['^@?\\w'],
             // Internal files.
             ['^@declarations'],
+            ['^@untitledui'],
             [
               '^@components',
               '^@constants',
@@ -69,7 +70,7 @@ const tsConfiguration = tseslint.config(
 );
 
 const cssConfiguration = {
-  ignores: ['dist', 'node_modules', 'src/routeTree.gen.ts'],
+  ignores: ['dist', 'node_modules', 'src/routeTree.gen.ts', 'src/untitledui'],
   files: ['**/*.css'],
   plugins: {
     css,
