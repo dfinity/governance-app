@@ -1,17 +1,16 @@
 import { useTranslation } from 'react-i18next';
 
-import { Tag, TagGroup, TagList } from '@untitledui/components';
+import { BadgeWithDot } from '@untitledui/components';
 
-export const CertifiedBadge = () => {
+type Props = {
+  certified?: boolean;
+};
+export const CertifiedBadge = ({ certified = true }: Props) => {
   const { t } = useTranslation();
 
   return (
-    <TagGroup label="Tags" size="md">
-      <TagList className="flex gap-4">
-        <Tag dot className="text-xs">
-          {t(($) => $.common.certified)}
-        </Tag>
-      </TagList>
-    </TagGroup>
+    <BadgeWithDot color={certified ? 'success' : 'error'} className="text-xs">
+      {t(($) => $.common.certified)}
+    </BadgeWithDot>
   );
 };
