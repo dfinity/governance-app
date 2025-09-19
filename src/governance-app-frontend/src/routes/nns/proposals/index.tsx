@@ -78,7 +78,10 @@ function ProposalsPage() {
                     #{proposal.id?.toString()} {proposal.proposal?.title}
                   </p>
                   <div className="mt-4 flex h-4 items-end justify-between text-sm font-bold text-secondary">
-                    <BadgeWithIcon iconLeading={canIVote ? PlusCircle : undefined}>
+                    <BadgeWithIcon
+                      iconLeading={canIVote ? PlusCircle : undefined}
+                      color={canIVote ? 'blue-light' : 'blue'}
+                    >
                       {t(($) => $.enums.ProposalStatus[proposal.status])}
                     </BadgeWithIcon>
                     <CertifiedBadge certified={page?.certified} />
