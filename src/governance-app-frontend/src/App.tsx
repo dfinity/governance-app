@@ -2,6 +2,7 @@ import '@common/styles/main.css';
 import '@/i18n/config';
 
 import { QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { RouterProvider } from '@tanstack/react-router';
 import { InternetIdentityProvider } from 'ic-use-internet-identity';
 import { StrictMode } from 'react';
@@ -26,6 +27,7 @@ export const App = () => (
         <AgentPoolProvider>
           <ThemeProvider>
             <RouterProvider router={routerConfig} />
+            <ReactQueryDevtools initialIsOpen={false} />
           </ThemeProvider>
         </AgentPoolProvider>
       </QueryClientProvider>

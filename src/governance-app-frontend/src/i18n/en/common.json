@@ -22,5 +22,6 @@
   "no": "No",
   "vote": "Vote",
   "voted": "Voted",
-  "votingPower": "Voting Power"
+  "votingPower": "Voting power",
+  "results": "Results"
 }

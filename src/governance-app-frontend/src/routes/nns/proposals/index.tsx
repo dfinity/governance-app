@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { InViewSentinel } from '@components/extra/InViewSentinel';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
-import { useGovernanceGetProposals } from '@hooks/canisters/governance/useGovernanceListProposals';
+import { useGovernanceGetProposals } from '@hooks/canisters/governance/useGovernanceGetProposals';
 import useTitle from '@hooks/useTitle';
 
 export const Route = createFileRoute('/nns/proposals/')({

@@ -9,7 +9,7 @@ import { useCallback, useEffect } from 'react';
 
 import { MIN_ASYNC_DELAY } from '@constants/extra';
 import { withMinimumDelay } from '@utils/async';
-import { stringifyAll } from '@utils/strings';
+import { stringifyKeys } from '@utils/queryKeys';
 import { CertifiedData, QueryType } from '@common/typings/queries';
 
 type QueryOptions<TData, TPageParam> = UseInfiniteQueryOptions<
@@ -53,7 +53,7 @@ export const useInfiniteQueryThenUpdateCall = <TData, TPageParam>({
     QueryKey,
     TPageParam
   >({
-    queryKey: [stringifyAll(queryKey), QueryType.NonCertified],
+    queryKey: [...stringifyKeys(queryKey), QueryType.NonCertified],
     queryFn: queryCall,
     initialPageParam,
     getNextPageParam,
@@ -72,7 +72,7 @@ export const useInfiniteQueryThenUpdateCall = <TData, TPageParam>({
     certified: true,
   });
   const updateQuery = useInfiniteQuery({
-    queryKey: [stringifyAll(queryKey), QueryType.Certified],
+    queryKey: [...stringifyKeys(queryKey), QueryType.Certified],
     queryFn: updateCall,
     initialPageParam,
     getNextPageParam,

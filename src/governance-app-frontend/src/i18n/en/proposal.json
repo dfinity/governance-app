@@ -11,5 +11,6 @@
   "summary": "Proposal Summary",
   "payload": "Proposal Payload",
   "voting": "Voting ({{voted}}/{{total}})",
-  "ineligibleToVote": "Ineligible to vote"
+  "ineligibleToVote": "Ineligible to vote",
+  "action": "Action"
 }
