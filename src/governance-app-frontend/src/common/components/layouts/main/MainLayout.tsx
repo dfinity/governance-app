@@ -3,7 +3,7 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, Link } from '@untitledui/base';
+import { Button, Link } from '@untitledui/components';
 
 import { ToggleThemeButton } from '@components/buttons/toggleTheme/ToggleThemeButton';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
