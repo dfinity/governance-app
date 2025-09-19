@@ -11,5 +11,5 @@ function SnsIndex() {
   const { t } = useTranslation();
   useTitle(t(($) => $.common.sns));
 
-  return <div className="text-xl">{t(($) => $.sns.description)}</div>;
+  return <div className="text-xl text-primary">{t(($) => $.sns.description)}</div>;
 }

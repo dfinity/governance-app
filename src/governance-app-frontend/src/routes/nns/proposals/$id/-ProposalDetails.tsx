@@ -4,10 +4,10 @@ import { UseQueryResult } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
-import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
-import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { useGovernanceGetProposal } from '@common/hooks/canisters/governance/useGovernanceGetProposal';
 import { CertifiedData } from '@common/typings/queries';
+import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
+import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 
 type ProposalDetailsProps = {
   proposalId: bigint;
@@ -31,12 +31,12 @@ export const ProposalDetails: React.FC<ProposalDetailsProps> = ({ proposalId }) 
       {isError && t(($) => $.common.errorLoadingProposals, { error: error.message })}
       {proposalData && (
         <>
-          <h2 className="flex items-center justify-between pb-4 text-xl">
+          <h2 className="flex items-center justify-between pb-4 text-xl text-secondary">
             {t(($) => $.proposal.proposalId, { id: proposalData.id })}
             {data.certified ? <CertifiedBadge /> : <SkeletonLoader height={24} width={100} />}
           </h2>
 
-          <div className="mb-4 rounded-lg border p-4">
+          <div className="mb-4 rounded-lg border p-4 text-secondary">
             {/* type */}
             <dl>
               <dt className="font-bold">{t(($) => $.proposal.type)}</dt>
@@ -70,7 +70,7 @@ export const ProposalDetails: React.FC<ProposalDetailsProps> = ({ proposalId }) 
             </dl>
           </div>
 
-          <div className="mb-4 rounded-lg border p-4">
+          <div className="mb-4 rounded-lg border p-4 text-secondary">
             {/* summary */}
             <Link to={proposalData.proposal?.url ?? '#'}>{proposalData.proposal?.title}</Link>
             <dl>
@@ -91,7 +91,7 @@ export const ProposalDetails: React.FC<ProposalDetailsProps> = ({ proposalId }) 
             </dl>
           </div>
 
-          <div className="mb-4 rounded-lg border p-4">
+          <div className="mb-4 rounded-lg border p-4 text-secondary">
             {/* payload */}
             <dl>
               <dt className="font-bold">{t(($) => $.proposal.payload)}</dt>

@@ -35,7 +35,7 @@ function VaultIndex() {
   useTitle(t(($) => $.common.vault));
 
   return (
-    <div className="text-xl">
+    <div className="text-xl text-primary">
       {t(($) => $.vault.description)}
       <p>
         {greet} {surname}
