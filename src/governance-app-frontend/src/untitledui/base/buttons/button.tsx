@@ -186,8 +186,8 @@ export const Button = ({
     showTextWhileLoading,
     ...otherProps
 }: Props) => {
-    const href = "href" in otherProps ? otherProps.href : undefined;
-    const Component = href ? Link : AriaButton;
+    const to = "to" in otherProps ? otherProps.to : undefined;
+    const Component = to ? Link : AriaButton;
 
     const isIcon = (IconLeading || IconTrailing) && !children;
     const isLinkType = ["link-gray", "link-color", "link-destructive"].includes(color);
@@ -196,11 +196,11 @@ export const Button = ({
 
     let props = {};
 
-    if (href) {
+    if (to) {
         props = {
             ...otherProps,
 
-            href: disabled ? undefined : href,
+            to: disabled ? undefined : to,
 
             // Since anchor elements do not support the `disabled` attribute and state,
             // we need to specify `data-rac` and `data-disabled` in order to be able
@@ -227,7 +227,7 @@ export const Button = ({
                 styles.sizes[size].root,
                 styles.colors[color].root,
                 isLinkType && styles.sizes[size].linkRoot,
-                (loading || (href && (disabled || loading))) && "pointer-events-none",
+                (loading || (to && (disabled || loading))) && "pointer-events-none",
                 // If in `loading` state, hide everything except the loading icon (and text if `showTextWhileLoading` is true).
                 loading && (showTextWhileLoading ? "[&>*:not([data-icon=loading]):not([data-text])]:hidden" : "[&>*:not([data-icon=loading])]:invisible"),
                 className,
