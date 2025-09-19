@@ -1,11 +1,6 @@
 name: E2E Tests
 on:
   workflow_call:
-    # inputs:
-    #   update-snapshots:
-    #     required: false
-    #     type: boolean
-    #     default: true
 
 jobs:
   tests:
@@ -87,13 +82,16 @@ jobs:
             fi
           done
 
+      # Reliable Playwright version from the workspace that actually uses it
       - name: Get Playwright version
         id: playwright_version
         run: |
-          echo "version=$(npm ls @playwright/test --depth=0 --json | jq -r '.dependencies["governance-app-frontend"].dependencies["@playwright/test"].version')" >> $GITHUB_OUTPUT
+          ver=$(npm -w src/governance-app-frontend ls @playwright/test --depth=0 --json | jq -r '.dependencies["@playwright/test"].version')
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
+
       - name: Show Playwright version
         run: echo "Using Playwright version ${{ steps.playwright_version.outputs.version }}"
-      # TODO: check the caching here
+
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
@@ -110,65 +108,19 @@ jobs:
       - name: Commit updated snapshots
         if: ${{ !cancelled() }}
         run: |
-          git diff --cached --quiet || git commit -m "bot: Update Playwright snapshots"
-          git config user.name "snapshot[bot]"
-          git config user.email "snapshot[bot]@users.noreply.github.com"
-          # push back to the selected/current branch
-          git push origin HEAD:${{ github.head_ref || github.ref_name }}
-
-      # - name: Run Playwright tests
-      #   if: ${{ inputs.update-snapshots != true }}
-      #   run: |
-      #     echo "🚀 Running end-to-end tests"
-      #     npm run test:e2e
-
-      # - name: Commit Playwright updated snapshots
-      #   uses: EndBug/add-and-commit@v9
-      #   if: ${{ inputs.update-snapshots == true }}
-      #   with:
-      #     add: src/governance-app-frontend/tests/e2e
-      #     default_author: github_actions
-      #     message: "bot: update Playwright snapshots"
-
-      # - name: Create GitHub App Token
-      #   if: ${{ inputs.update-snapshots == true }}
-      #   id: app-token
-      #   uses: actions/create-github-app-token@v1
-      #   with:
-      #     app-id: ${{ vars.CLA_BOT_APP_ID }}
-      #     private-key: ${{ secrets.CLA_BOT_PRIVATE_KEY }}
-
-      # - name: Commit updated snapshots
-      #   if: ${{ !cancelled() && inputs.update-snapshots == true }}
-      #   run: |
-      #     git diff --cached --quiet || git commit -m "bot: Update Playwright snapshots"
-      #     git config user.name "snapshot[bot]"
-      #     git config user.email "snapshot[bot]@users.noreply.github.com"
-      #     # push back to the selected/current branch
-      #     git push origin HEAD:${{ github.head_ref || github.ref_name }}
-
-      # git config user.name "cla-bot[bot]"
-      # git config user.email "cla-bot[bot]@users.noreply.github.com"
-      # git add src/governance-app-frontend/tests/e2e/**/*.png
-      # git diff --cached --quiet || git commit -m "bot: update Playwright snapshots"
-      # git push https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository }} HEAD:${{ github.head_ref || github.ref_name }}
-
-      # - name: Trigger check workflow
-      #   if: ${{ inputs.update-snapshots == true }}
-      #   env:
-      #     GH_TOKEN: ${{ steps.app-token.outputs.token }} # ← используем токен GitHub App
-      #     GH_REPO: ${{ github.repository }} # (не обязательно, но удобно)
-      #   run: |
-      #     gh workflow run "Pipeline Dev" \
-      #       --ref "${{ github.head_ref || github.ref_name }}"
-
-      # - name: Trigger check workflow
-      #   if: ${{ inputs.update-snapshots == true }}
-      #   run: |
-      #     sudo apt-get install -y gh
-      #     gh workflow run "Check" \
-      #       -f reason="Snapshots updated" \
-      #       --ref "${{ github.head_ref || github.ref_name }}"
+          set -euo pipefail
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git config user.name "snapshot[bot]"
+            git config user.email "snapshot[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "bot: Update Playwright snapshots"
+            # ensure the remote uses the App token
+            git remote set-url origin "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository }}.git"
+            git push origin HEAD:${{ github.head_ref || github.ref_name }}
+            echo "Snapshots committed"
+          else
+            echo "No changes to commit."
+          fi
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
