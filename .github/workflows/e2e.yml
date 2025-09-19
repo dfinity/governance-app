@@ -46,9 +46,9 @@ jobs:
 
       - name: Start sns-testing environment
         run: |
-          ./scripts/download-sns_testing_bundle.sh --os linux --force --directory "sns-testing-bundle"
-          ./scripts/pocketic-server.sh -b --directory "sns-testing-bundle"
-          ./scripts/init-replica.sh --directory "sns-testing-bundle"
+          ./scripts/download-sns_testing_bundle.sh --os linux --force --directory "../sns-testing-bundle"
+          ./scripts/pocketic-server.sh -b --directory "../sns-testing-bundle"
+          ./scripts/init-replica.sh --directory "../sns-testing-bundle"
 
       # To speed up the backend build.
       - name: Cache cargo
@@ -82,12 +82,10 @@ jobs:
             fi
           done
 
-      # Reliable Playwright version from the workspace that actually uses it
       - name: Get Playwright version
         id: playwright_version
         run: |
-          ver=$(npm -w src/governance-app-frontend ls @playwright/test --depth=0 --json | jq -r '.dependencies["@playwright/test"].version')
-          echo "version=$ver" >> "$GITHUB_OUTPUT"
+          echo "version=$(npm ls @playwright/test --depth=0 --json | jq -r '.dependencies["governance-app-frontend"].dependencies["@playwright/test"].version')" >> $GITHUB_OUTPUT
 
       - name: Show Playwright version
         run: echo "Using Playwright version ${{ steps.playwright_version.outputs.version }}"
@@ -132,4 +130,4 @@ jobs:
       - name: Stop sns-testing environment
         if: always()
         run: |
-          ./scripts/pocketic-server.sh --stop --directory "sns-testing-bundle"
+          ./scripts/pocketic-server.sh --stop --directory "../sns-testing-bundle"
