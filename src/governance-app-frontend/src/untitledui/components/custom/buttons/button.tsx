@@ -155,6 +155,8 @@ export interface CommonProps {
     noTextPadding?: boolean;
     /** When true, keeps the text visible during loading state */
     showTextWhileLoading?: boolean;
+    /** Children content */
+    children?: ReactNode;
 }
 
 /**
@@ -168,7 +170,7 @@ export interface ButtonProps extends CommonProps, DetailedHTMLProps<Omit<ButtonH
 /**
  * Props for the link variant (anchor tag)
  */
-interface LinkProps extends CommonProps, Omit<LinkComponentProps, 'color'>  {}
+interface LinkProps extends CommonProps, Omit<LinkComponentProps, 'color'| 'children'> {}
 
 /** Union type of button and link props */
 export type Props = ButtonProps | LinkProps;
@@ -221,7 +223,7 @@ export const Button = ({
         <Component
             data-loading={loading ? true : undefined}
             data-icon-only={isIcon ? true : undefined}
-            {...props}
+            {...(props as any)}
             className={cx(
                 styles.common.root,
                 styles.sizes[size].root,
