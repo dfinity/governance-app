@@ -1,10 +1,12 @@
 "use client";
 
-import type { AnchorHTMLAttributes, ButtonHTMLAttributes, DetailedHTMLProps, FC, ReactNode } from "react";
+import { LinkComponentProps } from '@tanstack/react-router';
+import type { ButtonHTMLAttributes, DetailedHTMLProps, FC, ReactNode } from "react";
 import { isValidElement } from "react";
 import type { ButtonProps as AriaButtonProps } from "react-aria-components";
-import { Button as AriaButton, Link as AriaLink } from "react-aria-components";
+import { Button as AriaButton } from "react-aria-components";
 
+import { Link } from "@untitledui/base";
 import { cx, sortCx } from '@untitledui/utils/cx';
 import { isReactComponent } from '@untitledui/utils/is-react-component';
 
@@ -166,7 +168,7 @@ export interface ButtonProps extends CommonProps, DetailedHTMLProps<Omit<ButtonH
 /**
  * Props for the link variant (anchor tag)
  */
-interface LinkProps extends CommonProps, DetailedHTMLProps<Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "color">, HTMLAnchorElement> {}
+interface LinkProps extends CommonProps, Omit<LinkComponentProps, 'color'> {}
 
 /** Union type of button and link props */
 export type Props = ButtonProps | LinkProps;
@@ -185,7 +187,7 @@ export const Button = ({
     ...otherProps
 }: Props) => {
     const href = "href" in otherProps ? otherProps.href : undefined;
-    const Component = href ? AriaLink : AriaButton;
+    const Component = href ? Link : AriaButton;
 
     const isIcon = (IconLeading || IconTrailing) && !children;
     const isLinkType = ["link-gray", "link-color", "link-destructive"].includes(color);
