@@ -1,11 +1,12 @@
 name: E2E Tests
 on:
   workflow_call:
-    inputs:
-      update-snapshots:
-        required: false
-        type: boolean
-        default: true
+    # inputs:
+    #   update-snapshots:
+    #     required: false
+    #     type: boolean
+    #     default: true
+
 jobs:
   tests:
     timeout-minutes: 15
@@ -102,17 +103,24 @@ jobs:
         run: npx playwright install --with-deps chromium firefox
 
       - name: Update snapshots
-        if: ${{ inputs.update-snapshots == true }}
         run: |
           echo "🚀 Updating snapshots"
           npm run update-snapshots
-          # create commit only if there are changes
 
-      - name: Run Playwright tests
-        if: ${{ inputs.update-snapshots != true }}
+      - name: Commit updated snapshots
+        if: ${{ !cancelled() }}
         run: |
-          echo "🚀 Running end-to-end tests"
-          npm run test:e2e
+          git diff --cached --quiet || git commit -m "bot: Update Playwright snapshots"
+          git config user.name "snapshot[bot]"
+          git config user.email "snapshot[bot]@users.noreply.github.com"
+          # push back to the selected/current branch
+          git push origin HEAD:${{ github.head_ref || github.ref_name }}
+
+      # - name: Run Playwright tests
+      #   if: ${{ inputs.update-snapshots != true }}
+      #   run: |
+      #     echo "🚀 Running end-to-end tests"
+      #     npm run test:e2e
 
       # - name: Commit Playwright updated snapshots
       #   uses: EndBug/add-and-commit@v9
@@ -130,20 +138,20 @@ jobs:
       #     app-id: ${{ vars.CLA_BOT_APP_ID }}
       #     private-key: ${{ secrets.CLA_BOT_PRIVATE_KEY }}
 
-      - name: Commit updated snapshots
-        if: ${{ !cancelled() && inputs.update-snapshots == true }}
-        run: |
-          git diff --cached --quiet || git commit -m "bot: Update Playwright snapshots"
-          git config user.name "snapshot[bot]"
-          git config user.email "snapshot[bot]@users.noreply.github.com"
-          # push back to the selected/current branch
-          git push origin HEAD:${{ github.head_ref || github.ref_name }}
+      # - name: Commit updated snapshots
+      #   if: ${{ !cancelled() && inputs.update-snapshots == true }}
+      #   run: |
+      #     git diff --cached --quiet || git commit -m "bot: Update Playwright snapshots"
+      #     git config user.name "snapshot[bot]"
+      #     git config user.email "snapshot[bot]@users.noreply.github.com"
+      #     # push back to the selected/current branch
+      #     git push origin HEAD:${{ github.head_ref || github.ref_name }}
 
-          # git config user.name "cla-bot[bot]"
-          # git config user.email "cla-bot[bot]@users.noreply.github.com"
-          # git add src/governance-app-frontend/tests/e2e/**/*.png
-          # git diff --cached --quiet || git commit -m "bot: update Playwright snapshots"
-          # git push https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository }} HEAD:${{ github.head_ref || github.ref_name }}
+      # git config user.name "cla-bot[bot]"
+      # git config user.email "cla-bot[bot]@users.noreply.github.com"
+      # git add src/governance-app-frontend/tests/e2e/**/*.png
+      # git diff --cached --quiet || git commit -m "bot: update Playwright snapshots"
+      # git push https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository }} HEAD:${{ github.head_ref || github.ref_name }}
 
       # - name: Trigger check workflow
       #   if: ${{ inputs.update-snapshots == true }}
