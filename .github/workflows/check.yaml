@@ -14,7 +14,7 @@ jobs:
       - name: Setup NodeJS
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: ".nvmrc"
 
       - name: Install dependencies
         shell: bash
@@ -36,7 +36,7 @@ jobs:
       - name: Setup NodeJS
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: ".nvmrc"
 
       - name: Install dependencies
         shell: bash
@@ -48,5 +48,3 @@ jobs:
   e2e_tests:
     name: E2E
     uses: ./.github/workflows/e2e.yml
-    with:
-      update-snapshots: false
