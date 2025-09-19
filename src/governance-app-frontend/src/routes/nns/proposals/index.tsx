@@ -65,7 +65,6 @@ function ProposalsPage() {
         {data?.pages?.map((page) =>
           page?.response.proposals.map((proposal) => {
             const canIVote = votableProposals.includes(proposal.id);
-            console.log(votableProposals);
 
             return (
               <Link
