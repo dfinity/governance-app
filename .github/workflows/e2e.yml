@@ -131,13 +131,12 @@ jobs:
           # push back to the selected/current branch
           git push origin HEAD:${{ github.head_ref || github.ref_name }}
 
-      # - name: Trigger check workflow
-      #   if: ${{ inputs.update-snapshots == true }}
-      #   run: |
-      #     sudo apt-get install -y gh
-      #     gh workflow run "Check" \
-      #       -f reason="Snapshots updated" \
-      #       --ref "${{ github.head_ref || github.ref_name }}"
+      - name: Trigger check workflow
+        if: ${{ inputs.update-snapshots == true }}
+        run: |
+          sudo apt-get install -y gh
+          gh workflow run "Pipeline Dev" \
+            --ref "${{ github.head_ref || github.ref_name }}"
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
