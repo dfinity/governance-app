@@ -34,14 +34,11 @@ function ProposalsPage() {
               key={proposal.id?.toString()}
               to="/nns/proposals/$id"
             >
-              <div
-                style={{ backgroundColor: 'var(--background-color-secondary)' }}
-                className="flex h-full flex-col justify-between rounded-lg border p-4"
-              >
-                <p className="overflow-hidden overflow-ellipsis">
+              <div className="flex h-full flex-col justify-between rounded-lg bg-primary p-4 shadow-xs ring-1 ring-secondary ring-inset focus-visible:outline-2 focus-visible:outline-offset-2">
+                <p className="overflow-hidden overflow-ellipsis text-secondary">
                   #{proposal.id?.toString()} {proposal.proposal?.title}
                 </p>
-                <div className="mt-4 flex h-4 items-end justify-between text-sm font-bold">
+                <div className="mt-4 flex h-4 items-end justify-between text-sm font-bold text-secondary">
                   {t(($) => $.enums.ProposalStatus[proposal.status])}
                   {page?.certified ? <CertifiedBadge /> : <SkeletonLoader width={90} />}
                 </div>

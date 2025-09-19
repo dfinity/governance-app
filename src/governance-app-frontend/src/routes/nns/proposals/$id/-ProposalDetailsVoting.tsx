@@ -64,15 +64,15 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   if (!identity) return null;
 
   return (
-    <div className="border p-4 rounded-lg mb-4">
-      <p className="font-bold mb-2">
+    <div className="mb-4 rounded-lg border p-4 text-secondary">
+      <p className="mb-2 font-bold">
         {t(($) => $.proposal.voting, { voted, total: totalToVote })}
         {voted === totalToVote ? ' 🎉' : ''}
       </p>
-      <div className="inline-grid gap-1 sm:gap-3 sm:grid-cols-[max-content_max-content_max-content]">
+      <div className="inline-grid gap-1 sm:grid-cols-[max-content_max-content_max-content] sm:gap-3">
         {votingNeurons.map((neuron) => (
           <Fragment key={neuron.neuronId}>
-            <pre className="mt-4 sm:mt-0 rounded bg-amber-50 px-2 text-black ">
+            <pre className="mt-4 rounded bg-amber-50 px-2 text-black sm:mt-0">
               #{neuron.neuronId}
             </pre>
             <span>
@@ -89,7 +89,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
                     <>
                       <button
                         onClick={() => castVote(neuron.neuronId, Vote.Yes)}
-                        className="px-2 bg-green-100 rounded text-black"
+                        className="rounded bg-green-100 px-2 text-black"
                         disabled={!canTriggerVote}
                         type="button"
                       >
@@ -97,7 +97,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
                       </button>
                       <button
                         onClick={() => castVote(neuron.neuronId, Vote.No)}
-                        className="px-2 bg-red-100 rounded text-black"
+                        className="rounded bg-red-100 px-2 text-black"
                         disabled={!canTriggerVote}
                         type="button"
                       >
@@ -124,7 +124,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
       </div>
       {hasVotingData && (
         <div className="mt-4">
-          <p className="font-bold mb-2">{t(($) => $.common.results)}</p>
+          <p className="mb-2 font-bold">{t(($) => $.common.results)}</p>
           <p className="flex gap-2">
             <span>
               {t(($) => $.common.yes)}: {bigIntDiv(yes, total, 6).toFixed(6)}%
