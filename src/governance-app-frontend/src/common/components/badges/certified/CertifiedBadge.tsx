@@ -10,7 +10,7 @@ export const CertifiedBadge = ({ certified = true }: Props) => {
 
   return (
     <BadgeWithDot color={certified ? 'success' : 'error'} className="text-xs">
-      {t(($) => $.common.certified)}
+      {t(($) => (certified ? $.common.certified : $.common.uncertified))}
     </BadgeWithDot>
   );
 };
