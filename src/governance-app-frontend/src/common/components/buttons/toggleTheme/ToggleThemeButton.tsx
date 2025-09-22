@@ -1,7 +1,7 @@
+import { Monitor, Moon, Sun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button, Tooltip } from '@untitledui/components';
-import { Monitor01, Moon01, Sun } from '@untitledui/icons';
 
 import { useTheme } from '@hooks/useTheme';
 
@@ -23,11 +23,11 @@ export const ToggleThemeButton = () => {
   const getCurrentIcon = () => {
     switch (themePreference) {
       case 'system':
-        return Monitor01;
+        return Monitor;
       case 'light':
         return Sun;
       case 'dark':
-        return Moon01;
+        return Moon;
     }
   };
 
