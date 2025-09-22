@@ -23,9 +23,11 @@ to_local() {
 }
 
 # --- Determine latest run id for the current repo ---
-RUN_ID="$(gh run list -L 1 --json databaseId --jq '.[0].databaseId')"
+CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+RUN_ID="$(gh run list -L 1 --branch "$CURRENT_BRANCH" --json databaseId --jq '.[0].databaseId')"
+
 if [[ -z "${RUN_ID:-}" ]]; then
-  echo "❌ Could not find any workflow runs in this repository."
+  echo "❌ Could not find any workflow runs for branch '${CURRENT_BRANCH}'."
   exit 1
 fi
 
