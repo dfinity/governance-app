@@ -125,18 +125,12 @@ jobs:
             exit 0
           fi
 
-          # newline-separated file list for upload-artifact
-          {
-            echo 'files<<__EOF__'
-            printf '%s\n' "${ALL[@]}" | sort -u
-            echo '__EOF__'
-          } >> "$GITHUB_OUTPUT"
           echo "has_changes=true" >> "$GITHUB_OUTPUT"
 
           # Summary update
           {
             echo "### Snapshot updates"
-            echo "Run `./scripts/update-snapshots.sh` to update $(printf '%s\n' "${ALL[@]}" | sort -u | wc -l) snapshots locally."
+            echo "Run `./scripts/update-snapshots.sh` to update snapshots locally."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload updated snapshots
