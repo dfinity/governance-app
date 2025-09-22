@@ -1,4 +1,3 @@
-import { ProposalRewardStatus, ProposalStatus, Topic, votableNeurons } from '@dfinity/nns';
 import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
@@ -8,42 +7,14 @@ import { PlusCircle } from '@untitledui/icons';
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { InViewSentinel } from '@components/extra/InViewSentinel';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
-import { useGovernanceGetNeurons } from '@hooks/canisters/governance/useGovernanceGetNeurons';
 import { useGovernanceGetProposals } from '@hooks/canisters/governance/useGovernanceListProposals';
 import useTitle from '@hooks/useTitle';
+
+import { useVotableProposals } from './hooks/useVotableProposals';
 
 export const Route = createFileRoute('/nns/proposals/')({
   component: ProposalsPage,
 });
-
-function useVotableProposals() {
-  const { data: neuronsData } = useGovernanceGetNeurons();
-  const { data: proposalsData } = useGovernanceGetProposals();
-
-  const proposals = proposalsData?.pages?.flatMap((page) => page?.response.proposals) ?? [];
-
-  const acceptVotesProposals = proposals.filter(
-    (proposal) => proposal.rewardStatus === ProposalRewardStatus.AcceptVotes,
-  );
-  // Request Neuron Management proposals that are open and have an ineligible reward
-  // status because they don't have rewards (not ProposalRewardStatus.AcceptVotes),
-  // but are still votable.
-  // Only users which are listed explicitly in the followees of a Neuron Management proposal will get to
-  // see such a proposal in the query response. So for most users the response will be empty.
-  const neuronManagementProposals = proposals.filter(
-    (proposal) =>
-      proposal.topic === Topic.NeuronManagement &&
-      proposal.rewardStatus === ProposalRewardStatus.Ineligible &&
-      proposal.status === ProposalStatus.Open,
-  );
-
-  const votableProposals = [...acceptVotesProposals, ...neuronManagementProposals];
-  return votableProposals
-    .filter(
-      (proposal) => votableNeurons({ neurons: neuronsData?.response || [], proposal }).length > 0,
-    )
-    .map((p) => p.id);
-}
 
 function ProposalsPage() {
   const { isLoading, error, data, hasNextPage, fetchNextPage } = useGovernanceGetProposals();
@@ -64,7 +35,7 @@ function ProposalsPage() {
       <div className="grid grid-cols-1 gap-4 text-lg sm:grid-cols-2 lg:grid-cols-3">
         {data?.pages?.map((page) =>
           page?.response.proposals.map((proposal) => {
-            const canIVote = votableProposals.includes(proposal.id);
+            const canIVote = votableProposals.has(proposal.id);
 
             return (
               <Link
