@@ -101,12 +101,11 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium firefox
 
-      - name: Update snapshots
+      - name: E2E tests and update snapshots
         run: |
           echo "🚀 Updating snapshots"
           npm run update-snapshots
 
-      # Collect and upload changed/new PNG snapshots
       - name: Collect changed/new screenshots
         id: collect_snaps
         shell: bash
@@ -149,7 +148,6 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-      # Playwright HTML report (separate artifact)
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
