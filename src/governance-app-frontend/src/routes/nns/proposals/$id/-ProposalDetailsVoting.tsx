@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { Fragment } from 'react/jsx-runtime';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@untitledui/components';
+
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { useNnsGovernanceCanister } from '@hooks/canisters/governance/useGovernanceCanister';
 import { useGovernanceGetNeurons } from '@hooks/canisters/governance/useGovernanceGetNeurons';
@@ -87,22 +89,21 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
                     <SkeletonLoader width={90} height={20} />
                   ) : (
                     <>
-                      <button
+                      <Button
                         onClick={() => castVote(neuron.neuronId, Vote.Yes)}
-                        className="rounded bg-green-100 px-2 text-black"
                         disabled={!canTriggerVote}
+                        color="secondary"
                         type="button"
                       >
                         {t(($) => $.common.yes)}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={() => castVote(neuron.neuronId, Vote.No)}
-                        className="rounded bg-red-100 px-2 text-black"
-                        disabled={!canTriggerVote}
+                        color="secondary"
                         type="button"
                       >
                         {t(($) => $.common.no)}
-                      </button>
+                      </Button>
                     </>
                   )}
                 </span>
