@@ -7,7 +7,7 @@ import { PlusCircle } from '@untitledui/icons';
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { InViewSentinel } from '@components/extra/InViewSentinel';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
-import { useGovernanceGetProposals } from '@hooks/canisters/governance/useGovernanceListProposals';
+import { useGovernanceGetProposals } from '@hooks/canisters/governance';
 import useTitle from '@hooks/useTitle';
 
 import { useVotableProposals } from './hooks/useVotableProposals';
@@ -18,8 +18,9 @@ export const Route = createFileRoute('/nns/proposals/')({
 
 function ProposalsPage() {
   const { isLoading, error, data, hasNextPage, fetchNextPage } = useGovernanceGetProposals();
-  const votableProposals = useVotableProposals();
   const { t } = useTranslation();
+  const votableProposals = useVotableProposals();
+
   useTitle(t(($) => $.common.proposalsList));
 
   return (
