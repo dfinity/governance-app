@@ -8,10 +8,12 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@untitledui/components';
 
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
+import { VOTING_RESULTS_PRECISION } from '@constants/extra';
 import { useNnsGovernanceCanister } from '@hooks/canisters/governance/useGovernanceCanister';
 import { useGovernanceGetNeurons } from '@hooks/canisters/governance/useGovernanceGetNeurons';
 import { bigIntDiv } from '@utils/bigInt';
 import { QUERY_KEYS } from '@utils/queryKeys';
+import { addToSet, removeFromSet } from '@utils/set';
 
 type Props = {
   proposal: ProposalInfo;
@@ -26,10 +28,10 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   const { data: neurons } = useGovernanceGetNeurons();
   const votingNeurons =
     proposal.ballots.toSorted((a, b) => Number(a.neuronId) - Number(b.neuronId)) ?? [];
-  const votingNeuronsId = new Set<bigint>(votingNeurons.map((neuron) => neuron.neuronId));
+  const votingNeuronIds = new Set<bigint>(votingNeurons.map((neuron) => neuron.neuronId));
   const ineligibleNeurons =
     neurons?.response
-      .filter((neuron) => !votingNeuronsId.has(neuron.neuronId))
+      .filter((neuron) => !votingNeuronIds.has(neuron.neuronId))
       .toSorted((a, b) => Number(a.neuronId) - Number(b.neuronId)) ?? [];
 
   const voted = proposal.ballots.filter((neuron) => neuron.vote !== Vote.Unspecified).length;
@@ -41,27 +43,37 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   // Vote casting.
   const { ready, canister, authenticated } = useNnsGovernanceCanister();
   const [pending, setPending] = useState(new Set<bigint>());
+  const [error, setError] = useState(new Set<bigint>());
   const canTriggerVote = ready && authenticated;
-  const voteMutation = useMutation({
+
+  const voteMutation = useMutation<
+    void,
+    Error,
+    Parameters<NonNullable<typeof canister>['registerVote']>[0]
+  >({
     mutationFn: canister!.registerVote,
-    onSuccess: () => {
-      setPending((p) => {
-        const newSet = new Set(p);
-        newSet.delete(proposal.id!);
-        return newSet;
-      });
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL, proposal.id?.toString()],
-      });
+    onMutate: (args) => {
+      setPending((s) => addToSet(s, args.neuronId));
+      setError((s) => removeFromSet(s, args.neuronId));
+    },
+    onSuccess: (_, args) => {
+      queryClient
+        .invalidateQueries({
+          queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL, proposal.id?.toString()],
+        })
+        .then(() => setPending((s) => removeFromSet(s, args.neuronId)));
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS],
       });
     },
+    onError: (_, args) => {
+      setPending((s) => removeFromSet(s, args.neuronId));
+      setError((s) => addToSet(s, args.neuronId));
+    },
   });
-  const castVote = (neuronId: bigint, vote: Vote) => {
-    setPending((p) => new Set(p).add(neuronId));
+
+  const castVote = (neuronId: bigint, vote: Vote) =>
     voteMutation.mutate({ proposalId: proposal.id!, vote, neuronId });
-  };
 
   if (!identity) return null;
 
@@ -87,6 +99,8 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
                 <span className="inline-flex gap-2">
                   {pending.has(neuron.neuronId) ? (
                     <SkeletonLoader width={90} height={20} />
+                  ) : error.has(neuron.neuronId) ? (
+                    t(($) => $.proposal.voteError)
                   ) : (
                     <>
                       <Button
@@ -128,10 +142,12 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
           <p className="mb-2 font-bold">{t(($) => $.common.results)}</p>
           <p className="flex gap-2">
             <span>
-              {t(($) => $.common.yes)}: {bigIntDiv(yes, total, 6).toFixed(6)}%
+              {t(($) => $.common.yes)}:{' '}
+              {bigIntDiv(yes, total, VOTING_RESULTS_PRECISION).toFixed(VOTING_RESULTS_PRECISION)}%
             </span>
             <span>
-              {t(($) => $.common.no)}: {bigIntDiv(no, total, 6).toFixed(6)}%
+              {t(($) => $.common.no)}:{' '}
+              {bigIntDiv(no, total, VOTING_RESULTS_PRECISION).toFixed(VOTING_RESULTS_PRECISION)}%
             </span>
           </p>
         </div>

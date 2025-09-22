@@ -12,5 +12,6 @@
   "payload": "Proposal Payload",
   "voting": "Voting ({{voted}}/{{total}})",
   "ineligibleToVote": "Ineligible to vote",
-  "action": "Action"
+  "action": "Action",
+  "voteError": "An error occurred, please try again."
 }

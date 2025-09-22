@@ -22,14 +22,6 @@ export const stringifyKeys = (keys: readonly unknown[]) => {
       return k.toString();
     }
 
-    if (typeof k === 'function') {
-      return k.name || 'function';
-    }
-
-    if (typeof k === 'symbol') {
-      return k.toString();
-    }
-
     return k;
   });
 };

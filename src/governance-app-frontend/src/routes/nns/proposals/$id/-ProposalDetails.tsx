@@ -19,28 +19,23 @@ export const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
   const { t } = useTranslation();
 
   const {
-    isLoading: proposalLoading,
-    error: proposalsError,
-    data: proposalResult,
+    isLoading,
+    error,
+    data,
   }: UseQueryResult<CertifiedData<ProposalInfo>, Error> = useGovernanceGetProposal({
     proposalId,
   });
-  const proposalData = proposalResult?.response;
+  const proposalData = data?.response;
 
   return (
     <div>
-      {proposalLoading && <SkeletonLoader count={3} />}
-      {proposalsError &&
-        t(($) => $.common.errorLoadingProposals, { error: proposalsError.message })}
+      {isLoading && <SkeletonLoader count={3} />}
+      {error && t(($) => $.common.errorLoadingProposals, { error: error.message })}
       {proposalData && (
         <>
           <h2 className="flex items-center justify-between pb-4 text-xl text-secondary">
             {t(($) => $.proposal.proposalId, { id: proposalData.id })}
-            {proposalResult.certified ? (
-              <CertifiedBadge />
-            ) : (
-              <SkeletonLoader height={24} width={100} />
-            )}
+            {data.certified ? <CertifiedBadge /> : <SkeletonLoader height={24} width={100} />}
           </h2>
 
           <ProposalDetailsVoting proposal={proposalData} />
