@@ -14,13 +14,38 @@ TOP_DIR="$(git rev-parse --show-toplevel)"
 TARGET_DIR="${TOP_DIR}/src/governance-app-frontend/tests/e2e/snapshots"
 mkdir -p "$TARGET_DIR"
 
+# Helper: convert UTC ISO8601 -> local time
+to_local() {
+  local ts="$1"
+  # GNU date supports -d, BSD/macOS uses -j -f
+  date -d "$ts" '+%Y-%m-%d %H:%M:%S %Z' 2>/dev/null \
+    || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$ts" '+%Y-%m-%d %H:%M:%S %Z'
+}
+
 # --- Determine latest run id for the current repo ---
 RUN_ID="$(gh run list -L 1 --json databaseId --jq '.[0].databaseId')"
 if [[ -z "${RUN_ID:-}" ]]; then
   echo "❌ Could not find any workflow runs in this repository."
   exit 1
 fi
-echo "ℹ️  Latest run id: ${RUN_ID}"
+
+# --- Fetch run metadata ---
+eval "$(
+  gh run view "$RUN_ID" \
+    --json updatedAt,headBranch,url \
+    --jq '[
+      "RUN_UPDATED="+.updatedAt,
+      "RUN_BRANCH="+.headBranch,
+      "RUN_URL="+.url
+    ] | .[]'
+)"
+
+RUN_UPDATED_LOCAL="$(to_local "$RUN_UPDATED")"
+echo "ℹ️  Latest run:"
+echo "   id:          ${RUN_ID}"
+echo "   branch:      ${RUN_BRANCH}"
+echo "   updated at:  ${RUN_UPDATED_LOCAL}"
+echo "   url:         ${RUN_URL}"
 
 # --- Download artifact ---
 tmp_dir="$(mktemp -d)"
@@ -40,6 +65,7 @@ fi
 mapfile -t PNGS < <(find "$ART_DIR" -maxdepth 1 -type f -iname '*.png' | sort)
 if (( ${#PNGS[@]} == 0 )); then
   echo "⚠️ No PNGs found. Nothing to update."
+  echo '   Note: the "updated-snapshots" artifact is retained for only 1 day.'
   exit 0
 fi
 
