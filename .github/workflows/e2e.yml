@@ -111,7 +111,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          SNAP_DIR="src/governance-app-frontend/tests/e2e"
+          SNAP_DIR="src/governance-app-frontend/tests/e2e/snapshots"
 
           # Modified tracked PNGs (vs checked-out ref)
           mapfile -t MOD < <(git diff --name-only -- "$SNAP_DIR" | grep -E '\.png$' || true)
