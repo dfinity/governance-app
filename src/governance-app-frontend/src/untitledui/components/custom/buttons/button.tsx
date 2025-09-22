@@ -1,10 +1,12 @@
 "use client";
 
-import type { AnchorHTMLAttributes, ButtonHTMLAttributes, DetailedHTMLProps, FC, ReactNode } from "react";
+import { LinkComponentProps } from '@tanstack/react-router';
+import type { ButtonHTMLAttributes, DetailedHTMLProps, FC, ReactNode } from "react";
 import { isValidElement } from "react";
 import type { ButtonProps as AriaButtonProps } from "react-aria-components";
-import { Button as AriaButton, Link as AriaLink } from "react-aria-components";
+import { Button as AriaButton } from "react-aria-components";
 
+import { Link } from "@untitledui/components";
 import { cx, sortCx } from '@untitledui/utils/cx';
 import { isReactComponent } from '@untitledui/utils/is-react-component';
 
@@ -153,6 +155,8 @@ export interface CommonProps {
     noTextPadding?: boolean;
     /** When true, keeps the text visible during loading state */
     showTextWhileLoading?: boolean;
+    /** Children content */
+    children?: ReactNode;
 }
 
 /**
@@ -166,7 +170,7 @@ export interface ButtonProps extends CommonProps, DetailedHTMLProps<Omit<ButtonH
 /**
  * Props for the link variant (anchor tag)
  */
-interface LinkProps extends CommonProps, DetailedHTMLProps<Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "color">, HTMLAnchorElement> {}
+interface LinkProps extends CommonProps, Omit<LinkComponentProps, 'color'| 'children'> {}
 
 /** Union type of button and link props */
 export type Props = ButtonProps | LinkProps;
@@ -184,8 +188,8 @@ export const Button = ({
     showTextWhileLoading,
     ...otherProps
 }: Props) => {
-    const href = "href" in otherProps ? otherProps.href : undefined;
-    const Component = href ? AriaLink : AriaButton;
+    const to = "to" in otherProps ? otherProps.to : undefined;
+    const Component = to ? Link : AriaButton;
 
     const isIcon = (IconLeading || IconTrailing) && !children;
     const isLinkType = ["link-gray", "link-color", "link-destructive"].includes(color);
@@ -194,11 +198,11 @@ export const Button = ({
 
     let props = {};
 
-    if (href) {
+    if (to) {
         props = {
             ...otherProps,
 
-            href: disabled ? undefined : href,
+            to: disabled ? undefined : to,
 
             // Since anchor elements do not support the `disabled` attribute and state,
             // we need to specify `data-rac` and `data-disabled` in order to be able
@@ -219,13 +223,13 @@ export const Button = ({
         <Component
             data-loading={loading ? true : undefined}
             data-icon-only={isIcon ? true : undefined}
-            {...props}
+            {...(props as any)}
             className={cx(
                 styles.common.root,
                 styles.sizes[size].root,
                 styles.colors[color].root,
                 isLinkType && styles.sizes[size].linkRoot,
-                (loading || (href && (disabled || loading))) && "pointer-events-none",
+                (loading || (to && (disabled || loading))) && "pointer-events-none",
                 // If in `loading` state, hide everything except the loading icon (and text if `showTextWhileLoading` is true).
                 loading && (showTextWhileLoading ? "[&>*:not([data-icon=loading]):not([data-text])]:hidden" : "[&>*:not([data-icon=loading])]:invisible"),
                 className,
