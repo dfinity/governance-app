@@ -1,5 +1,7 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
+
+import { Link } from '@untitledui/components';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { InViewSentinel } from '@components/extra/InViewSentinel';
@@ -40,7 +42,7 @@ function ProposalsPage() {
                 </p>
                 <div className="mt-4 flex h-4 items-end justify-between text-sm font-bold text-secondary">
                   {t(($) => $.enums.ProposalStatus[proposal.status])}
-                  {page?.certified ? <CertifiedBadge /> : <SkeletonLoader width={90} />}
+                  <CertifiedBadge certified={page?.certified} />
                 </div>
               </div>
             </Link>

@@ -24,5 +24,6 @@
   "vote": "Vote",
   "voted": "Voted",
   "votingPower": "Voting power",
-  "results": "Results"
+  "results": "Results",
+  "uncertified": "Uncertified"
 }

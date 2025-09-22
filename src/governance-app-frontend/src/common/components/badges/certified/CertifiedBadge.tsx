@@ -1,11 +1,16 @@
 import { useTranslation } from 'react-i18next';
 
-export const CertifiedBadge = () => {
+import { BadgeWithDot } from '@untitledui/components';
+
+type Props = {
+  certified?: boolean;
+};
+export const CertifiedBadge = ({ certified = true }: Props) => {
   const { t } = useTranslation();
 
   return (
-    <span className="flex shrink-0 items-center rounded-md bg-green-200 px-2 py-1 text-xs font-bold text-green-900 uppercase">
-      ✅ {t(($) => $.common.certified)}
-    </span>
+    <BadgeWithDot color={certified ? 'success' : 'error'} className="text-xs">
+      {t(($) => (certified ? $.common.certified : $.common.uncertified))}
+    </BadgeWithDot>
   );
 };

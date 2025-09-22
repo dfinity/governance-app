@@ -1,14 +1,13 @@
-import { Link, useRouter } from '@tanstack/react-router';
-import classNames from 'classnames';
+import { useRouter } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Button, Link } from '@untitledui/components';
+
 import { ToggleThemeButton } from '@components/buttons/toggleTheme/ToggleThemeButton';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { useAgentPool } from '@hooks/useAgentPool';
-
-import styles from './mainLayout.module.css';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
   const { t } = useTranslation();
@@ -43,33 +42,19 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
                 </h1>
               </Link>
               <div className="flex gap-4">
-                <Link to="/nns" className={styles.link}>
-                  {t(($) => $.common.nns)}
-                </Link>
-                <Link to="/sns" className={styles.link}>
-                  {t(($) => $.common.sns)}
-                </Link>
-                <Link
-                  to="/vault/$name"
-                  params={{ name: 'John' }}
-                  search={{ surname: 'Doe' }}
-                  className={styles.link}
-                >
+                <Button to="/nns">{t(($) => $.common.nns)}</Button>
+                <Button to="/sns">{t(($) => $.common.sns)}</Button>
+                <Button to="/vault/$name" params={{ name: 'John' }} search={{ surname: 'Doe' }}>
                   {t(($) => $.common.vault)}
-                </Link>
+                </Button>
 
-                <button
-                  onClick={identity ? clear : login}
+                <Button
                   data-testid="login-btn"
-                  className={classNames(
-                    'rounded bg-blue-500 px-4 py-2 text-nowrap text-white hover:bg-blue-600',
-                    {
-                      'bg-red-500 hover:bg-red-600': identity,
-                    },
-                  )}
+                  color={identity ? 'secondary-destructive' : 'secondary'}
+                  onClick={identity ? clear : login}
                 >
                   {identity ? 'Logout' : 'Login with Internet Identity!'}
-                </button>
+                </Button>
 
                 <ToggleThemeButton />
               </div>
