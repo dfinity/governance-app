@@ -134,10 +134,10 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           echo "has_changes=true" >> "$GITHUB_OUTPUT"
 
-          # Summary
+          # Summary update
           {
             echo "### Snapshot updates"
-            echo "- Changed/new files: $(printf '%s\n' "${ALL[@]}" | sort -u | wc -l)"
+            echo "Run `./scripts/update-snapshots.sh` to update $(printf '%s\n' "${ALL[@]}" | sort -u | wc -l) snapshots locally."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload updated snapshots
@@ -147,13 +147,7 @@ jobs:
           name: updated-snapshots
           path: ${{ steps.collect_snaps.outputs.files }}
           if-no-files-found: error
-          retention-days: 5
-
-      - name: TMP/Add snapshot run link to summary
-        if: ${{ steps.collect_snaps.outputs.has_changes == 'true' && !cancelled() }}
-        run: |
-          echo "### Download" >> "$GITHUB_STEP_SUMMARY"
-          echo "- 👉 [Artifacts for this run](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})" >> "$GITHUB_STEP_SUMMARY"
+          retention-days: 1
 
       # Playwright HTML report (separate artifact)
       - uses: actions/upload-artifact@v4
@@ -162,6 +156,12 @@ jobs:
           name: playwright-report
           path: src/governance-app-frontend/playwright-report/
           retention-days: 30
+
+      - name: Fail workflow if snapshots changed
+        if: steps.collect_snaps.outputs.has_changes == 'true'
+        run: |
+          echo "::error:: Snapshots have changed. Please run `./scripts/update-snapshots.sh` locally and commit the updated PNG files."
+          exit 1
 
       - name: Stop sns-testing environment
         if: always()
