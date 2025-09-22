@@ -18,5 +18,6 @@
   "initializing": "Initializing...",
   "loadingWithDots": "Loading...",
   "error": "Error",
-  "certified": "Certified"
+  "certified": "Certified",
+  "uncertified": "Uncertified"
 }
