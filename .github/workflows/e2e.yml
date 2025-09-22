@@ -140,11 +140,11 @@ jobs:
             echo "- Changed/new files: $(printf '%s\n' "${ALL[@]}" | sort -u | wc -l)"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload updated screenshots
+      - name: Upload updated snapshots
         if: ${{ steps.collect_snaps.outputs.has_changes == 'true' && !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: updated-screenshots
+          name: updated-snapshots
           path: ${{ steps.collect_snaps.outputs.files }}
           if-no-files-found: error
           retention-days: 5
