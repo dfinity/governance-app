@@ -18,4 +18,4 @@ Additionally, we manually manage an `index.ts` file to export all components wit
 
 ### E2E
 
-If your branch is failing the E2E due to outdated snapshots, you can update them using the [Update Snapshots](https://github.com/dfinity/governance-app/actions/workflows/snapshots.yml) job, which can be triggered against the failing branch. This job will commit the updated snapshots to the branch.
+If your branch is failing E2E due to outdated snapshots, run the `scripts/update-snapshots.sh` script. It will download the updated files so you can review and commit them.

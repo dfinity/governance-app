@@ -1,17 +1,14 @@
 name: E2E Tests
 on:
   workflow_call:
-    inputs:
-      update-snapshots:
-        required: false
-        type: boolean
-        default: false
+
 jobs:
   tests:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     env:
       BASE_URL: http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,8 +26,10 @@ jobs:
           toolchain: stable
           target: wasm32-unknown-unknown
           override: true
+
       - name: Install frontend dependencies
         run: npm ci
+
       - name: Install dfx
         uses: dfinity/setup-dfx@main
 
@@ -50,9 +49,9 @@ jobs:
 
       - name: Start sns-testing environment
         run: |
-          ./scripts/download-sns_testing_bundle.sh --os linux --force --directory "sns-testing-bundle"
-          ./scripts/pocketic-server.sh -b --directory "sns-testing-bundle"
-          ./scripts/init-replica.sh --directory "sns-testing-bundle"
+          ./scripts/download-sns_testing_bundle.sh --os linux --force --directory "../sns-testing-bundle"
+          ./scripts/pocketic-server.sh -b --directory "../sns-testing-bundle"
+          ./scripts/init-replica.sh --directory "../sns-testing-bundle"
 
       # To speed up the backend build.
       - name: Cache cargo
@@ -63,12 +62,13 @@ jobs:
             ~/.cargo/git
             target
           key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Deploy governance-app
+        shell: bash
         run: |
           dfx canister create governance-app-backend
           dfx deploy governance-app-backend
 
-          # Verify deployment
           echo "Waiting for server..."
           max_attempts=30
           for i in $(seq 1 $max_attempts); do
@@ -78,7 +78,6 @@ jobs:
             fi
             echo "Server not ready yet... attempt $i/$max_attempts"
             sleep 2
-
             if [ "$i" -eq "$max_attempts" ]; then
               echo "Server did not become ready after $max_attempts attempts, exiting."
               exit 1
@@ -89,39 +88,65 @@ jobs:
         id: playwright_version
         run: |
           echo "version=$(npm ls @playwright/test --depth=0 --json | jq -r '.dependencies["governance-app-frontend"].dependencies["@playwright/test"].version')" >> $GITHUB_OUTPUT
+
       - name: Show Playwright version
         run: echo "Using Playwright version ${{ steps.playwright_version.outputs.version }}"
-      # TODO: check the caching here
+
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.playwright_version.outputs.version }}-all
+
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium firefox
 
-      - name: Update snapshots
-        if: ${{ inputs.update-snapshots == true }}
+      - name: E2E tests and update snapshots
         run: |
           echo "🚀 Updating snapshots"
           npm run update-snapshots
 
-      - name: Run Playwright tests
-        if: ${{ inputs.update-snapshots != true }}
+      - name: Collect changed/new screenshots
+        id: collect_snaps
+        shell: bash
         run: |
-          echo "🚀 Running end-to-end tests"
-          npm run test:e2e
+          set -euo pipefail
+          SNAP_DIR="src/governance-app-frontend/tests/e2e/snapshots"
 
-      - name: Commit updated snapshots
-        if: ${{ inputs.update-snapshots == true }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add src/governance-app-frontend/tests/e2e/**/*.png
-          # create commit only if there are changes
-          git diff --cached --quiet || git commit -m "bot: update Playwright snapshots"
-          # push back to the selected/current branch
-          git push origin HEAD:${{ github.head_ref || github.ref_name }}
+          # Modified tracked PNGs (vs checked-out ref)
+          mapfile -t MOD < <(git diff --name-only -- "$SNAP_DIR" | grep -E '\.png$' || true)
+          # New (untracked) PNGs
+          mapfile -t NEW < <(git ls-files --others --exclude-standard -- "$SNAP_DIR" | grep -E '\.png$' || true)
+
+          ALL=("${MOD[@]}" "${NEW[@]}")
+          if [ "${#ALL[@]}" -eq 0 ]; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "No snapshot changes."
+            exit 0
+          fi
+
+          # newline-separated file list for upload-artifact
+          {
+            echo 'files<<__EOF__'
+            printf '%s\n' "${ALL[@]}" | sort -u
+            echo '__EOF__'
+          } >> "$GITHUB_OUTPUT"
+          echo "has_changes=true" >> "$GITHUB_OUTPUT"
+
+          # Summary update
+          {
+            echo "### Snapshot updates"
+            echo "Run `./scripts/update-snapshots.sh` to update snapshots locally."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload updated snapshots
+        if: ${{ steps.collect_snaps.outputs.has_changes == 'true' && !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: updated-snapshots
+          path: ${{ steps.collect_snaps.outputs.files }}
+          if-no-files-found: error
+          retention-days: 1
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
@@ -130,7 +155,13 @@ jobs:
           path: src/governance-app-frontend/playwright-report/
           retention-days: 30
 
+      - name: Snapshots changed. Run ./scripts/update-snapshots.sh to update.
+        if: steps.collect_snaps.outputs.has_changes == 'true'
+        run: |
+          echo "::error:: Snapshots have changed. Please run ./scripts/update-snapshots.sh locally and commit the updated PNG files."
+          exit 1
+
       - name: Stop sns-testing environment
         if: always()
         run: |
-          ./scripts/pocketic-server.sh --stop --directory "sns-testing-bundle"
+          ./scripts/pocketic-server.sh --stop --directory "../sns-testing-bundle"
