@@ -31,11 +31,11 @@ function AccountsPage() {
       <div className="mb-2 flex gap-2">{t(($) => $.common.accounts)}</div>
 
       <div className="flex items-center gap-2">
-        <pre className="mt-4 rounded bg-amber-50 px-2 py-2 text-sm text-black sm:mt-0">
-          {accountId}:
+        <pre className="mt-4 overflow-hidden rounded bg-amber-50 px-2 py-2 text-sm text-ellipsis text-black sm:mt-0">
+          {accountId}
         </pre>
-        {isLoading && <SkeletonLoader count={1} height={24} width={120} />}
-        <div>
+        {isLoading && <SkeletonLoader count={1} height={24} width={100} />}
+        <div className="text-sm font-bold">
           {error && t(($) => $.common.errorLoadingBalance, { error: error.message })}
           {!isLoading &&
             !error &&
