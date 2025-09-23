@@ -10,6 +10,8 @@ export function useVotableLoadedProposals() {
   const { data: neuronsData } = useGovernanceGetNeurons();
   const { data: proposalsData } = useGovernanceGetProposals();
 
+  if (neuronsData?.response?.length === 0) return new Set<number>();
+
   const proposals = proposalsData?.pages?.flatMap((page) => page?.response.proposals) ?? [];
 
   const acceptVotesProposals = proposals.filter(
