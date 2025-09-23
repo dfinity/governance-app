@@ -3,11 +3,12 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
+import { WarningMessage } from '@components/extra/WarningMessage';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { E8S } from '@constants/extra';
 import { useGovernanceGetNeurons } from '@hooks/canisters/governance/useGovernanceGetNeurons';
 import useTitle from '@hooks/useTitle';
-import { requireIdentity } from '@utils/router';
+import { requireIdentity } from '@utils/routes';
 
 export const Route = createFileRoute('/nns/neurons/')({
   component: NeuronsPage,
@@ -25,7 +26,7 @@ function NeuronsPage() {
 
       {isLoading && <SkeletonLoader count={3} />}
       {!isLoading && !data?.response.length && (
-        <p className="text-sm font-bold text-orange-600">⚠️ {t(($) => $.common.noNeurons)}</p>
+        <WarningMessage message={t(($) => $.common.noNeurons)} />
       )}
       {error && t(($) => $.common.errorLoadingNeurons, { error: error.message })}
 
