@@ -1,6 +1,6 @@
 import { Dot } from "@untitledui/components/foundations/dot-icon";
-import { X as CloseX } from "@untitledui/icons";
 import { cx } from "@untitledui/utils/cx";
+import { X as CloseX } from "lucide-react";
 import type { MouseEventHandler, ReactNode } from "react";
 import type { BadgeColors, BadgeTypeToColorMap, BadgeTypes, FlagTypes, IconComponentType, Sizes } from "./badge-types";
 import { badgeTypes } from "./badge-types";

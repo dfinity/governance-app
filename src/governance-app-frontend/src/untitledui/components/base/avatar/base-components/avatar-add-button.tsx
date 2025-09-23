@@ -1,6 +1,6 @@
 import { Tooltip as AriaTooltip, TooltipTrigger as AriaTooltipTrigger } from "@untitledui/components/base/tooltip/tooltip";
-import { Plus } from "@untitledui/icons";
 import { cx } from "@untitledui/utils/cx";
+import { Plus } from "lucide-react";
 import type { ButtonProps as AriaButtonProps } from "react-aria-components";
 
 const sizes = {
