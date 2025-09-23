@@ -38,10 +38,10 @@ function ProposalsPage() {
               to="/nns/proposals/$id"
             >
               <div className="flex h-full flex-col justify-between rounded-lg bg-primary p-4 shadow-xs ring-1 ring-secondary ring-inset focus-visible:outline-2 focus-visible:outline-offset-2">
-                <p className="overflow-hidden overflow-ellipsis text-secondary">
+                <p className="overflow-hidden overflow-ellipsis">
                   #{proposal.id?.toString()} {proposal.proposal?.title}
                 </p>
-                <div className="mt-4 flex h-4 items-end justify-between text-sm font-bold text-secondary">
+                <div className="mt-4 flex h-4 items-end justify-between text-sm font-bold">
                   {t(($) => $.enums.ProposalStatus[proposal.status])}
                   <CertifiedBadge certified={page?.certified} />
                 </div>
