@@ -9,8 +9,7 @@ import { Button } from '@untitledui/components';
 
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { VOTING_RESULTS_PRECISION } from '@constants/extra';
-import { useNnsGovernanceCanister } from '@hooks/canisters/governance/useGovernanceCanister';
-import { useGovernanceGetNeurons } from '@hooks/canisters/governance/useGovernanceGetNeurons';
+import { useGovernanceGetNeurons, useNnsGovernanceCanister } from '@hooks/canisters/governance';
 import { bigIntDiv } from '@utils/bigInt';
 import { QUERY_KEYS } from '@utils/queryKeys';
 import { setWithItemAdded, setWithItemRemoved } from '@utils/sets';
