@@ -13,7 +13,7 @@ import { useNnsGovernanceCanister } from '@hooks/canisters/governance/useGoverna
 import { useGovernanceGetNeurons } from '@hooks/canisters/governance/useGovernanceGetNeurons';
 import { bigIntDiv } from '@utils/bigInts';
 import { QUERY_KEYS } from '@utils/queryKeys';
-import { addToSet, removeFromSet } from '@utils/set';
+import { setWithItemAdded, setWithItemRemoved } from '@utils/sets';
 
 type Props = {
   proposal: ProposalInfo;
@@ -53,22 +53,22 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   >({
     mutationFn: canister!.registerVote,
     onMutate: (args) => {
-      setPending((s) => addToSet(s, args.neuronId));
-      setError((s) => removeFromSet(s, args.neuronId));
+      setPending((s) => setWithItemAdded(s, args.neuronId));
+      setError((s) => setWithItemRemoved(s, args.neuronId));
     },
     onSuccess: (_, args) => {
       queryClient
         .invalidateQueries({
           queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL, proposal.id?.toString()],
         })
-        .then(() => setPending((s) => removeFromSet(s, args.neuronId)));
+        .then(() => setPending((s) => setWithItemRemoved(s, args.neuronId)));
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS],
       });
     },
     onError: (_, args) => {
-      setPending((s) => removeFromSet(s, args.neuronId));
-      setError((s) => addToSet(s, args.neuronId));
+      setPending((s) => setWithItemRemoved(s, args.neuronId));
+      setError((s) => setWithItemAdded(s, args.neuronId));
     },
   });
 
