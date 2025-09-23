@@ -11,7 +11,7 @@ import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { VOTING_RESULTS_PRECISION } from '@constants/extra';
 import { useNnsGovernanceCanister } from '@hooks/canisters/governance/useGovernanceCanister';
 import { useGovernanceGetNeurons } from '@hooks/canisters/governance/useGovernanceGetNeurons';
-import { bigIntDiv } from '@utils/bigInts';
+import { bigIntDiv } from '@utils/bigInt';
 import { QUERY_KEYS } from '@utils/queryKeys';
 import { setWithItemAdded, setWithItemRemoved } from '@utils/sets';
 
