@@ -2,8 +2,8 @@ import { ProposalInfo, Vote } from '@dfinity/nns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Fragment } from 'react/jsx-runtime';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '@untitledui/components';
 
