@@ -9,5 +9,9 @@
   "created": "Created",
   "proposer": "Proposer",
   "summary": "Proposal Summary",
-  "payload": "Proposal Payload"
+  "payload": "Proposal Payload",
+  "voting": "Voting ({{voted}}/{{total}})",
+  "ineligibleToVote": "Ineligible to vote",
+  "action": "Action",
+  "voteError": "An error occurred, please try again."
 }

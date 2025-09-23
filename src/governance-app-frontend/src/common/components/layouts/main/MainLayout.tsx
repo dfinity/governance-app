@@ -1,6 +1,6 @@
 import { useRouter } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button, Link } from '@untitledui/components';
@@ -10,20 +10,27 @@ import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { useAgentPool } from '@hooks/useAgentPool';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
+  const { t } = useTranslation();
+
   const { anonymous, authenticated } = useAgentPool().agentPool;
   const { login, identity, clear, isInitializing } = useInternetIdentity();
   const showLoader = anonymous.loading || authenticated.loading || isInitializing;
-  const { invalidate } = useRouter();
 
-  const { t } = useTranslation();
+  // TODO: identity does not refresh when it auto-expires.
+  // Check this again when useInternetIdentity is updated.
+  // Kristofer will update the library in the next weeks.
+  const { invalidate } = useRouter();
+  useEffect(() => {
+    invalidate();
+  }, [identity, invalidate]);
 
   return (
     <main
       data-testid="main-layout"
-      className="m-auto flex h-[100vh] max-w-[1920px] flex-col justify-between gap-2 bg-primary p-4"
+      className="m-auto flex min-h-[100vh] max-w-[1920px] flex-col justify-between gap-2 p-4"
     >
       {showLoader ? (
-        <SkeletonLoader count={3} height={100} />
+        <SkeletonLoader count={6} />
       ) : (
         <>
           <title>{t(($) => $.home.title)}</title>
@@ -44,14 +51,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
                 <Button
                   data-testid="login-btn"
                   color={identity ? 'secondary-destructive' : 'secondary'}
-                  onClick={
-                    identity
-                      ? () => {
-                          clear();
-                          invalidate();
-                        }
-                      : login
-                  }
+                  onClick={identity ? clear : login}
                 >
                   {identity ? 'Logout' : 'Login with Internet Identity!'}
                 </Button>

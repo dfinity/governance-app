@@ -19,5 +19,11 @@
   "loadingWithDots": "Loading...",
   "error": "Error",
   "certified": "Certified",
+  "yes": "Yes",
+  "no": "No",
+  "vote": "Vote",
+  "voted": "Voted",
+  "votingPower": "Voting power",
+  "results": "Results",
   "uncertified": "Uncertified"
 }

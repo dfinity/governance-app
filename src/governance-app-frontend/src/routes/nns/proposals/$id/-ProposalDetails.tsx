@@ -9,15 +9,17 @@ import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { useGovernanceGetProposal } from '@common/hooks/canisters/governance/useGovernanceGetProposal';
 import { CertifiedData } from '@common/typings/queries';
 
-type ProposalDetailsProps = {
+import { ProposalDetailsVoting } from './-ProposalDetailsVoting';
+
+type Props = {
   proposalId: bigint;
 };
 
-export const ProposalDetails: React.FC<ProposalDetailsProps> = ({ proposalId }) => {
+export const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
   const { t } = useTranslation();
+
   const {
     isLoading,
-    isError,
     error,
     data,
   }: UseQueryResult<CertifiedData<ProposalInfo>, Error> = useGovernanceGetProposal({
@@ -28,13 +30,15 @@ export const ProposalDetails: React.FC<ProposalDetailsProps> = ({ proposalId }) 
   return (
     <div>
       {isLoading && <SkeletonLoader count={3} />}
-      {isError && t(($) => $.common.errorLoadingProposals, { error: error.message })}
+      {error && t(($) => $.common.errorLoadingProposals, { error: error.message })}
       {proposalData && (
         <>
           <h2 className="flex items-center justify-between pb-4 text-xl text-secondary">
             {t(($) => $.proposal.proposalId, { id: proposalData.id })}
             {data.certified ? <CertifiedBadge /> : <SkeletonLoader height={24} width={100} />}
           </h2>
+
+          <ProposalDetailsVoting proposal={proposalData} />
 
           <div className="mb-4 rounded-lg border p-4 text-secondary">
             {/* type */}
@@ -79,7 +83,7 @@ export const ProposalDetails: React.FC<ProposalDetailsProps> = ({ proposalId }) 
             </dl>
             {/* action */}
             <dl>
-              <dt className="font-bold">Action:</dt>
+              <dt className="font-bold">{t(($) => $.proposal.action)}</dt>
               <dd>
                 {proposalData.proposal?.action &&
                   JSON.stringify(

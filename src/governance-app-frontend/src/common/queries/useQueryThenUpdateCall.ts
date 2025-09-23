@@ -2,7 +2,7 @@ import { QueryKey, useQuery, UseQueryOptions } from '@tanstack/react-query';
 
 import { MIN_ASYNC_DELAY } from '@constants/extra';
 import { withMinimumDelay } from '@utils/async';
-import { stringifyAll } from '@utils/strings';
+import { stringifyKeys } from '@utils/queryKeys';
 import { CertifiedData, QueryType } from '@common/typings/queries';
 
 type Props<TData> = {
@@ -23,7 +23,7 @@ export const useQueryThenUpdateCall = <TData>({
     certified: false,
   });
   const queryQuery = useQuery({
-    queryKey: [stringifyAll(queryKey), QueryType.NonCertified],
+    queryKey: [...stringifyKeys(queryKey), QueryType.NonCertified],
     queryFn: queryCall,
     ...options,
   });
@@ -36,7 +36,7 @@ export const useQueryThenUpdateCall = <TData>({
     certified: true,
   });
   const updateQuery = useQuery({
-    queryKey: [stringifyAll(queryKey), QueryType.Certified],
+    queryKey: [...stringifyKeys(queryKey), QueryType.Certified],
     queryFn: updateCall,
     ...options,
   });
