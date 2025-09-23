@@ -78,7 +78,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   if (!identity) return null;
 
   return (
-    <div className="mb-4 rounded-lg border p-4 text-secondary">
+    <div className="mb-4 rounded-lg border p-4">
       <p className="mb-2 font-bold">
         {t(($) => $.proposal.voting, { voted, total: totalToVote })}
         {voted === totalToVote ? ' 🎉' : ''}
