@@ -2,7 +2,11 @@ import { ProposalRewardStatus, ProposalStatus, Topic, votableNeurons } from '@df
 
 import { useGovernanceGetNeurons, useGovernanceGetProposals } from '@hooks/canisters/governance';
 
-export function useVotableProposals() {
+/**
+ * Returns a set of proposal IDs that the user can vote on based on their neurons.
+ * This function will not load new proposals but rather go throught the loaded data and check if they an be voted
+ **/
+export function useVotableLoadedProposals() {
   const { data: neuronsData } = useGovernanceGetNeurons();
   const { data: proposalsData } = useGovernanceGetProposals();
 
