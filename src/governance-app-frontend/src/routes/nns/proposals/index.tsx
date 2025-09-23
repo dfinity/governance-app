@@ -10,7 +10,7 @@ import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { useGovernanceGetProposals } from '@hooks/canisters/governance';
 import useTitle from '@hooks/useTitle';
 
-import { useVotableLoadedProposals } from './hooks/useVotableProposals';
+import { useVotableLoadedProposals } from './hooks/useVotableLoadedProposals';
 
 export const Route = createFileRoute('/nns/proposals/')({
   component: ProposalsPage,
