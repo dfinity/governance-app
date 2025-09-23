@@ -1,5 +1,5 @@
-import { User01 } from "@untitledui/icons";
 import { cx } from "@untitledui/utils/cx";
+import { User } from "lucide-react";
 import { type FC, type ReactNode, useState } from "react";
 import { AvatarOnlineIndicator, VerifiedTick } from "./base-components";
 
@@ -90,7 +90,7 @@ export const Avatar = ({
             return <PlaceholderIcon className={cx("text-fg-quaternary", styles[size].icon)} />;
         }
 
-        return placeholder || <User01 className={cx("text-fg-quaternary", styles[size].icon)} />;
+        return placeholder || <User className={cx("text-fg-quaternary", styles[size].icon)} />;
     };
 
     const renderBadgeContent = () => {

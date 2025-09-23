@@ -1,7 +1,7 @@
-import type { RefAttributes } from "react";
-import { XClose } from "@untitledui/icons";
-import { Button as AriaButton, type ButtonProps as AriaButtonProps } from "react-aria-components";
 import { cx } from "@untitledui/utils/cx";
+import { X as CloseX } from "lucide-react";
+import type { RefAttributes } from "react";
+import { Button as AriaButton, type ButtonProps as AriaButtonProps } from "react-aria-components";
 
 interface TagCloseXProps extends AriaButtonProps, RefAttributes<HTMLButtonElement> {
     size?: "sm" | "md" | "lg";
@@ -26,7 +26,7 @@ export const TagCloseX = ({ size = "md", className, ...otherProps }: TagCloseXPr
             )}
             {...otherProps}
         >
-            <XClose className={cx("transition-inherit-all", styles[size].icon)} strokeWidth="3" />
+            <CloseX className={cx("transition-inherit-all", styles[size].icon)} strokeWidth="3" />
         </AriaButton>
     );
 };

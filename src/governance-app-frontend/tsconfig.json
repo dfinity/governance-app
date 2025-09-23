@@ -29,7 +29,6 @@
       "@utils/*": ["./src/common/utils/*"],
       "@common/*": ["./src/common/*"],
 
-      "@untitledui/icons": ["../../node_modules/@untitledui/icons/"],
       "@untitledui/*": ["./src/untitledui/*"],
       "@routes/*": ["./src/routes/*"],
       "@/*": ["./src/*"]
