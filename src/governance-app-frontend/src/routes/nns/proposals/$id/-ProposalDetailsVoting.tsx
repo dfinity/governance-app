@@ -83,7 +83,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
         {t(($) => $.proposal.voting, { voted, total: totalToVote })}
         {voted === totalToVote ? ' 🎉' : ''}
       </p>
-      <div className="inline-grid gap-1 sm:grid-cols-[max-content_max-content_max-content] sm:gap-3">
+      <div className="inline-grid items-center gap-1 sm:grid-cols-[max-content_max-content_max-content] sm:gap-3">
         {votingNeurons.map((neuron) => (
           <Fragment key={neuron.neuronId}>
             <pre className="mt-4 rounded bg-amber-50 px-2 text-black sm:mt-0">
