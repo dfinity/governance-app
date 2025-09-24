@@ -1,5 +1,6 @@
 import { NeuronState } from '@dfinity/nns';
 import { createFileRoute } from '@tanstack/react-router';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
@@ -13,6 +14,8 @@ import { Input } from '@untitledui/components/base/input/input';
 import { useIcpLedgerAccountBalance } from '../../../common/hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
 import { Button } from '@untitledui/components';
 
+const MIN_STAKE_AMOUNT = 1;
+
 export const Route = createFileRoute('/nns/neurons/')({
   component: NeuronsPage,
   beforeLoad: requireIdentity,
@@ -24,34 +27,86 @@ function NeuronsPage() {
   useTitle(t(($) => $.common.neuronsList));
 
   const { data: balanceValue } = useIcpLedgerAccountBalance();
+  const canStake = balanceValue?.response !== undefined;
+  const maxStake = canStake ? Number(balanceValue.response) / E8S : null;
+  const [stakeAmount, setStakeAmount] = useState('');
+  const [stakeError, setStakeError] = useState<string | null>(null);
 
-  // log balanceValue to console
-  console.log('balanceValue', balanceValue);
+  const stake = () => {
+    if (!canStake || maxStake === null) {
+      return;
+    }
+
+    const enteredAmount = Number(stakeAmount);
+
+    if (Number.isNaN(enteredAmount)) {
+      setStakeError(t(($) => $.neuron.stakeNeuron.errors.invalidAmount));
+      return;
+    }
+
+    if (enteredAmount < MIN_STAKE_AMOUNT) {
+      setStakeError(
+        t(($) => $.neuron.stakeNeuron.errors.minimumStake, { amount: MIN_STAKE_AMOUNT }),
+      );
+      return;
+    }
+
+    if (enteredAmount > maxStake) {
+      setStakeError(t(($) => $.neuron.stakeNeuron.errors.insufficientBalance));
+      return;
+    }
+
+    setStakeError(null);
+    console.log(stakeAmount, typeof stakeAmount);
+  };
+
+  const handleStakeChange = (value: string) => {
+    setStakeAmount(value);
+
+    if (!canStake || maxStake === null) {
+      return;
+    }
+
+    if (stakeError) {
+      const nextAmount = Number(value);
+      if (!Number.isNaN(nextAmount) && nextAmount >= MIN_STAKE_AMOUNT && nextAmount <= maxStake) {
+        setStakeError(null);
+      }
+    }
+  };
+
+  const stakeHint = stakeError
+    ? stakeError
+    : canStake && maxStake !== null
+      ? `Minimum ${MIN_STAKE_AMOUNT} ICP, maximum ${maxStake} ${t(($) => $.common.icp)}`
+      : undefined;
 
   return (
     <div className="flex flex-col gap-2 text-xl">
       <div className="mb-2 flex gap-2">{t(($) => $.neuron.stake)}</div>
 
-      <div
-        className="mb-4 flex items-center gap-2 rounded-lg p-4 shadow-md"
-        style={{ backgroundColor: 'var(--background-color-secondary)' }}
-      >
-        <Input
-          isRequired
-          type="number"
-          label="How much ICP to stake"
-          hint={`Minimum 1 ICP, maximum ${
-            balanceValue?.response !== undefined
-              ? Number(balanceValue.response) / E8S + ' ' + t(($) => $.common.icp)
-              : '-'
-          } ICP`}
-          placeholder="10.00"
-          tooltip="This amount will be staked from your balance"
-        />
-        <Button onClick={() => alert('Not implemented yet')} className="w-fit">
-          {t(($) => $.neuron.stake)}
-        </Button>
-      </div>
+      {canStake && (
+        <div
+          data-testid="stake-neuron-form"
+          className="mb-4 flex items-center gap-2 rounded-lg p-4 shadow-md"
+          style={{ backgroundColor: 'var(--background-color-secondary)' }}
+        >
+          <Input
+            isRequired
+            type="number"
+            label="How much ICP to stake"
+            hint={stakeHint}
+            isInvalid={Boolean(stakeError)}
+            placeholder="10.00"
+            tooltip="This amount will be staked from your balance"
+            value={stakeAmount}
+            onChange={handleStakeChange}
+          />
+          <Button onClick={stake} className="w-fit">
+            {t(($) => $.neuron.stake)}
+          </Button>
+        </div>
+      )}
 
       <div className="mb-2 flex gap-2">{t(($) => $.common.neuronsList)}</div>
 

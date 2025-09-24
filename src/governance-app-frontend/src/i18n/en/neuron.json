@@ -4,5 +4,12 @@
   "age": "Age",
   "creationDate": "Creation Date",
   "maturity": "Maturity",
-  "status": "Status"
+  "status": "Status",
+  "stakeNeuron": {
+    "errors": {
+      "invalidAmount": "Enter a valid amount.",
+      "insufficientBalance": "Stake amount exceeds available balance.",
+      "minimumStake": "Stake at least {{amount}} ICP."
+    }
+  }
 }
