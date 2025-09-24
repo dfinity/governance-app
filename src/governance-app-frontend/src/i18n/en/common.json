@@ -9,14 +9,8 @@
   "seeProposals": "See Proposals",
   "seeNeurons": "See Neurons",
   "seeAccounts": "See Accounts",
-  "noProposals": "No proposals found.",
-  "noNeurons": "No neurons found.",
-  "noAccounts": "No accounts found.",
-  "noBalance": "No balance found.",
+  "loadingError": "Error loading data: {{error}}.",
   "errorLoadingProposals": "Error loading proposals: {{error}}.",
-  "errorLoadingNeurons": "Error loading neurons: {{error}}.",
-  "errorLoadingAccounts": "Error loading accounts: {{error}}.",
-  "errorLoadingBalance": "Error loading balance: {{error}}.",
   "nns": "NNS",
   "sns": "SNS",
   "vault": "Vault",
@@ -33,5 +27,7 @@
   "uncertified": "Uncertified",
   "accounts": "Accounts",
   "icp": "ICP",
-  "icps": "ICPs"
+  "icps": "ICPs",
+  "transactions": "Transactions",
+  "noData": "No data available"
 }
