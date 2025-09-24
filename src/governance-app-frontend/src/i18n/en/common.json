@@ -8,15 +8,10 @@
   "neuronsList": "Neurons list",
   "seeProposals": "See Proposals",
   "seeNeurons": "See Neurons",
-  "seeAccounts": "See Accounts",
   "noProposals": "No proposals found.",
   "noNeurons": "No neurons found.",
-  "noAccounts": "No accounts found.",
-  "noBalance": "No balance found.",
   "errorLoadingProposals": "Error loading proposals: {{error}}.",
   "errorLoadingNeurons": "Error loading neurons: {{error}}.",
-  "errorLoadingAccounts": "Error loading accounts: {{error}}.",
-  "errorLoadingBalance": "Error loading balance: {{error}}.",
   "nns": "NNS",
   "sns": "SNS",
   "vault": "Vault",
@@ -30,8 +25,5 @@
   "voted": "Voted",
   "votingPower": "Voting power",
   "results": "Results",
-  "uncertified": "Uncertified",
-  "accounts": "Accounts",
-  "account": "Account",
-  "balance": "Balance {{balance}}"
+  "uncertified": "Uncertified"
 }

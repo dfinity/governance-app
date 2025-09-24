@@ -33,14 +33,14 @@ export const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
       {error && t(($) => $.common.errorLoadingProposals, { error: error.message })}
       {proposalData && (
         <>
-          <h2 className="flex items-center justify-between pb-4 text-xl">
+          <h2 className="flex items-center justify-between pb-4 text-xl text-secondary">
             {t(($) => $.proposal.proposalId, { id: proposalData.id })}
             {data.certified ? <CertifiedBadge /> : <SkeletonLoader height={24} width={100} />}
           </h2>
 
           <ProposalDetailsVoting proposal={proposalData} />
 
-          <div className="mb-4 rounded-lg border p-4">
+          <div className="mb-4 rounded-lg border p-4 text-secondary">
             {/* type */}
             <dl>
               <dt className="font-bold">{t(($) => $.proposal.type)}</dt>
@@ -74,7 +74,7 @@ export const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
             </dl>
           </div>
 
-          <div className="mb-4 rounded-lg border p-4">
+          <div className="mb-4 rounded-lg border p-4 text-secondary">
             {/* summary */}
             <Link to={proposalData.proposal?.url ?? '#'}>{proposalData.proposal?.title}</Link>
             <dl>
@@ -95,7 +95,7 @@ export const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
             </dl>
           </div>
 
-          <div className="mb-4 rounded-lg border p-4">
+          <div className="mb-4 rounded-lg border p-4 text-secondary">
             {/* payload */}
             <dl>
               <dt className="font-bold">{t(($) => $.proposal.payload)}</dt>
