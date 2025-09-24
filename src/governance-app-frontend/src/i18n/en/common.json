@@ -32,6 +32,6 @@
   "results": "Results",
   "uncertified": "Uncertified",
   "accounts": "Accounts",
-  "account": "Account",
-  "balance": "Balance {{balance}}"
+  "icp": "ICP",
+  "icps": "ICPs"
 }

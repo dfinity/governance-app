@@ -9,6 +9,7 @@ import { useIcpLedger } from './useIcpLedger';
 export const useIcpLedgerAccountBalance = () => {
   const { identity } = useInternetIdentity();
   const { ready, authenticated, canister } = useIcpLedger();
+
   const accountIdentifier = AccountIdentifier.fromPrincipal({
     principal: identity!.getPrincipal(),
   });

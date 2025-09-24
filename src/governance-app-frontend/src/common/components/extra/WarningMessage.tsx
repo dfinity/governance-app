@@ -1,8 +1,8 @@
 import { AlertCircle } from 'lucide-react';
 
-interface Props {
+type Props = {
   message: string;
-}
+};
 
 export const WarningMessage = ({ message }: Props) => (
   <p className="flex items-center gap-1 text-sm font-bold text-orange-600">
