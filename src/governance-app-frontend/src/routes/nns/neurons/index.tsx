@@ -9,6 +9,9 @@ import { E8S } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceNeurons';
 import useTitle from '@hooks/useTitle';
 import { requireIdentity } from '@utils/routes';
+import { Input } from '@untitledui/components/base/input/input';
+import { useIcpLedgerAccountBalance } from '../../../common/hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
+import { Button } from '@untitledui/components';
 
 export const Route = createFileRoute('/nns/neurons/')({
   component: NeuronsPage,
@@ -20,8 +23,36 @@ function NeuronsPage() {
   const { t } = useTranslation();
   useTitle(t(($) => $.common.neuronsList));
 
+  const { data: balanceValue } = useIcpLedgerAccountBalance();
+
+  // log balanceValue to console
+  console.log('balanceValue', balanceValue);
+
   return (
     <div className="flex flex-col gap-2 text-xl">
+      <div className="mb-2 flex gap-2">{t(($) => $.neuron.stake)}</div>
+
+      <div
+        className="mb-4 flex items-center gap-2 rounded-lg p-4 shadow-md"
+        style={{ backgroundColor: 'var(--background-color-secondary)' }}
+      >
+        <Input
+          isRequired
+          type="number"
+          label="How much ICP to stake"
+          hint={`Minimum 1 ICP, maximum ${
+            balanceValue?.response !== undefined
+              ? Number(balanceValue.response) / E8S + ' ' + t(($) => $.common.icp)
+              : '-'
+          } ICP`}
+          placeholder="10.00"
+          tooltip="This amount will be staked from your balance"
+        />
+        <Button onClick={() => alert('Not implemented yet')} className="w-fit">
+          {t(($) => $.neuron.stake)}
+        </Button>
+      </div>
+
       <div className="mb-2 flex gap-2">{t(($) => $.common.neuronsList)}</div>
 
       {isLoading && <SkeletonLoader count={3} />}
