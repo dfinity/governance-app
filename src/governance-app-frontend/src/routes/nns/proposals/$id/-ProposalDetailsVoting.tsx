@@ -10,7 +10,7 @@ import { Button } from '@untitledui/components';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { VOTING_RESULTS_PRECISION } from '@constants/extra';
 import { useGovernanceGetNeurons, useNnsGovernanceCanister } from '@hooks/canisters/governance';
-import { bigIntDiv } from '@utils/bigInt';
+import { bigIntDiv } from '@utils/bigInts';
 import { QUERY_KEYS } from '@utils/queryKeys';
 import { setWithItemAdded, setWithItemRemoved } from '@utils/sets';
 
@@ -77,12 +77,12 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   if (!identity) return null;
 
   return (
-    <div className="mb-4 rounded-lg border p-4 text-secondary">
+    <div className="mb-4 rounded-lg border p-4">
       <p className="mb-2 font-bold">
         {t(($) => $.proposal.voting, { voted, total: totalToVote })}
         {voted === totalToVote ? ' 🎉' : ''}
       </p>
-      <div className="inline-grid items-center gap-1 sm:grid-cols-[max-content_max-content_max-content] sm:gap-3">
+      <div className="inline-grid gap-1 sm:grid-cols-[max-content_max-content_max-content] sm:gap-3">
         {votingNeurons.map((neuron) => (
           <Fragment key={neuron.neuronId}>
             <pre className="mt-4 rounded bg-amber-50 px-2 text-black sm:mt-0">

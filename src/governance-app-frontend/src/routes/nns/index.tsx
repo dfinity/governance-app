@@ -22,6 +22,9 @@ function NnsIndex() {
       <p className="mt-2 text-blue-500 italic underline">
         <Link to="/nns/neurons">{t(($) => $.common.seeNeurons)}</Link>
       </p>
+      <p className="mt-2 text-blue-500 italic underline">
+        <Link to="/nns/accounts">{t(($) => $.common.seeAccounts)}</Link>
+      </p>
     </div>
   );
 }

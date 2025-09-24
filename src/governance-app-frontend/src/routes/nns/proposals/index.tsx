@@ -6,6 +6,7 @@ import { BadgeWithIcon, Link } from '@untitledui/components';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { InViewSentinel } from '@components/extra/InViewSentinel';
+import { WarningMessage } from '@components/extra/WarningMessage';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { useGovernanceGetProposals } from '@hooks/canisters/governance';
 import useTitle from '@hooks/useTitle';
@@ -29,7 +30,7 @@ function ProposalsPage() {
 
       {isLoading && <SkeletonLoader count={3} />}
       {!isLoading && !data?.pages?.length && (
-        <p className="text-sm font-bold text-orange-600">⚠️ {t(($) => $.common.noProposals)}</p>
+        <WarningMessage message={t(($) => $.common.noProposals)} />
       )}
       {error && t(($) => $.common.errorLoadingProposals, { error: error.message })}
 
