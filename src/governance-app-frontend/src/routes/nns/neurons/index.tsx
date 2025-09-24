@@ -60,7 +60,9 @@ function NeuronsPage() {
                   </tr>
                   <tr>
                     <td className="pr-2 font-bold">{t(($) => $.neuron.stake)}:</td>
-                    <td>{Number(neuron.fullNeuron?.cachedNeuronStake) / E8S} ICPs</td>
+                    <td>
+                      {Number(neuron.fullNeuron?.cachedNeuronStake) / E8S} {t(($) => $.common.icp)}
+                    </td>
                   </tr>
                   <tr>
                     <td className="pr-2 font-bold">{t(($) => $.neuron.votingPower)}:</td>

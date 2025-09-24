@@ -42,7 +42,7 @@ function AccountsPage() {
             (!data?.response ? (
               <WarningMessage message={t(($) => $.common.noBalance)} />
             ) : (
-              bigIntDiv(data.response, E8Sn, 2) + ' ICPs'
+              bigIntDiv(data.response, E8Sn, 2) + ' ' + t(($) => $.common.icps)
             ))}
         </div>
       </div>

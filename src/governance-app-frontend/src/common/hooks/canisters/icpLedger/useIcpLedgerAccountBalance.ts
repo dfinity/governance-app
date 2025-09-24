@@ -1,3 +1,4 @@
+import { AnonymousIdentity } from '@dfinity/agent';
 import { AccountIdentifier } from '@dfinity/ledger-icp';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 
@@ -10,8 +11,10 @@ export const useIcpLedgerAccountBalance = () => {
   const { identity } = useInternetIdentity();
   const { ready, authenticated, canister } = useIcpLedger();
 
+  // If no identity is present, we use an anonymous identity to avoid errors.
+  // The query will be disabled anyway if not authenticated.
   const accountIdentifier = AccountIdentifier.fromPrincipal({
-    principal: identity!.getPrincipal(),
+    principal: identity?.getPrincipal() || new AnonymousIdentity().getPrincipal(),
   });
 
   return useQueryThenUpdateCall({
