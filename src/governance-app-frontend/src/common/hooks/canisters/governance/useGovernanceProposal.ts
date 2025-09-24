@@ -3,14 +3,14 @@ import { ListProposalsRequest } from '@dfinity/nns';
 import { useQueryThenUpdateCall } from '@queries/useQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/queryKeys';
 
-import { useNnsGovernanceCanister } from './useGovernanceCanister';
+import { useNnsGovernance } from './useGovernance';
 
 /**
  * Use the `list_proposals` API instead of `proposal_info` to take advantage of `omitLargeFields`.
  * The payload rendering will rely on new backend fields (not yet implemented).
  */
-export const useGovernanceGetProposal = ({ proposalId }: { proposalId: bigint | undefined }) => {
-  const { ready, canister, authenticated } = useNnsGovernanceCanister();
+export const useGovernanceProposal = ({ proposalId }: { proposalId: bigint | undefined }) => {
+  const { ready, canister, authenticated } = useNnsGovernance();
 
   const request: ListProposalsRequest = {
     beforeProposal: proposalId && proposalId + 1n,

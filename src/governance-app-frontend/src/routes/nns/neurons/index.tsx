@@ -3,11 +3,12 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
+import { WarningMessage } from '@components/extra/WarningMessage';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { E8S } from '@constants/extra';
-import { useGovernanceGetNeurons } from '@hooks/canisters/governance/useGovernanceGetNeurons';
+import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceNeurons';
 import useTitle from '@hooks/useTitle';
-import { requireIdentity } from '@utils/router';
+import { requireIdentity } from '@utils/routes';
 
 export const Route = createFileRoute('/nns/neurons/')({
   component: NeuronsPage,
@@ -15,7 +16,7 @@ export const Route = createFileRoute('/nns/neurons/')({
 });
 
 function NeuronsPage() {
-  const { isLoading, error, data } = useGovernanceGetNeurons();
+  const { isLoading, error, data } = useGovernanceNeurons();
   const { t } = useTranslation();
   useTitle(t(($) => $.common.neuronsList));
 
@@ -25,11 +26,11 @@ function NeuronsPage() {
 
       {isLoading && <SkeletonLoader count={3} />}
       {!isLoading && !data?.response.length && (
-        <p className="text-sm font-bold text-orange-600">⚠️ {t(($) => $.common.noNeurons)}</p>
+        <WarningMessage message={t(($) => $.common.noNeurons)} />
       )}
       {error && t(($) => $.common.errorLoadingNeurons, { error: error.message })}
 
-      <div className="grid grid-cols-1 gap-4 text-lg text-secondary sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 text-lg sm:grid-cols-2 lg:grid-cols-3">
         {data?.response.map((neuron) => (
           <div
             style={{ backgroundColor: 'var(--background-color-secondary)' }}
@@ -59,7 +60,9 @@ function NeuronsPage() {
                   </tr>
                   <tr>
                     <td className="pr-2 font-bold">{t(($) => $.neuron.stake)}:</td>
-                    <td>{Number(neuron.fullNeuron?.cachedNeuronStake) / E8S} ICPs</td>
+                    <td>
+                      {Number(neuron.fullNeuron?.cachedNeuronStake) / E8S} {t(($) => $.common.icp)}
+                    </td>
                   </tr>
                   <tr>
                     <td className="pr-2 font-bold">{t(($) => $.neuron.votingPower)}:</td>

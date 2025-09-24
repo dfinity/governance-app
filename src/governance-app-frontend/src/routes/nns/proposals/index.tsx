@@ -6,18 +6,19 @@ import { BadgeWithIcon, Link } from '@untitledui/components';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { InViewSentinel } from '@components/extra/InViewSentinel';
+import { WarningMessage } from '@components/extra/WarningMessage';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
-import { useGovernanceGetProposals } from '@hooks/canisters/governance';
+import { useGovernanceProposals } from '@hooks/canisters/governance';
 import useTitle from '@hooks/useTitle';
 
-import { useVotableLoadedProposals } from './hooks/useVotableLoadedProposals';
+import { useVotableLoadedProposals } from './-hooks/useVotableLoadedProposals';
 
 export const Route = createFileRoute('/nns/proposals/')({
   component: ProposalsPage,
 });
 
 function ProposalsPage() {
-  const { isLoading, error, data, hasNextPage, fetchNextPage } = useGovernanceGetProposals();
+  const { isLoading, error, data, hasNextPage, fetchNextPage } = useGovernanceProposals();
   const { t } = useTranslation();
   const votableProposals = useVotableLoadedProposals();
 
@@ -29,7 +30,7 @@ function ProposalsPage() {
 
       {isLoading && <SkeletonLoader count={3} />}
       {!isLoading && !data?.pages?.length && (
-        <p className="text-sm font-bold text-orange-600">⚠️ {t(($) => $.common.noProposals)}</p>
+        <WarningMessage message={t(($) => $.common.noProposals)} />
       )}
       {error && t(($) => $.common.errorLoadingProposals, { error: error.message })}
 
@@ -45,10 +46,10 @@ function ProposalsPage() {
                 to="/nns/proposals/$id"
               >
                 <div className="flex h-full flex-col justify-between rounded-lg bg-primary p-4 shadow-xs ring-1 ring-secondary ring-inset focus-visible:outline-2 focus-visible:outline-offset-2">
-                  <p className="overflow-hidden overflow-ellipsis text-secondary">
+                  <p className="overflow-hidden overflow-ellipsis">
                     #{proposal.id?.toString()} {proposal.proposal?.title}
                   </p>
-                  <div className="mt-4 flex h-4 items-end justify-between text-sm font-bold text-secondary">
+                  <div className="mt-4 flex h-4 items-end justify-between text-sm font-bold">
                     <BadgeWithIcon
                       iconLeading={canUserVote ? Vote : undefined}
                       color={canUserVote ? 'blue-light' : 'blue'}

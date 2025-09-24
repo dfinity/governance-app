@@ -1,13 +1,13 @@
-import { GovernanceCanister } from '@dfinity/nns';
+import { IndexCanister } from '@dfinity/ledger-icp';
 import { Principal } from '@dfinity/principal';
 
-import { CANISTER_ID_NNS_GOVERNANCE } from '@constants/canisterIds';
+import { CANISTER_ID_ICP_INDEX } from '@constants/canisterIds';
 import { useAgentPool } from '@hooks/useAgentPool';
 import { CanisterStatus } from '@common/typings/canisters';
 
-export const useNnsGovernanceCanister = (): CanisterStatus<GovernanceCanister> => {
-  if (!CANISTER_ID_NNS_GOVERNANCE) {
-    throw new Error('useGovernanceCanister: the canister Id is not defined.');
+export const useIcpIndex = (): CanisterStatus<IndexCanister> => {
+  if (!CANISTER_ID_ICP_INDEX) {
+    throw new Error('useIcpIndex: the canister Id is not defined.');
   }
 
   const { anonymous, authenticated } = useAgentPool().agentPool;
@@ -23,9 +23,9 @@ export const useNnsGovernanceCanister = (): CanisterStatus<GovernanceCanister> =
   return {
     ready: true,
     authenticated: !!authenticated.agent,
-    canister: GovernanceCanister.create({
+    canister: IndexCanister.create({
       agent: authenticated.agent || anonymous.agent,
-      canisterId: Principal.fromText(CANISTER_ID_NNS_GOVERNANCE),
+      canisterId: Principal.fromText(CANISTER_ID_ICP_INDEX),
     }),
   };
 };
