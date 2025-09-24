@@ -4,9 +4,9 @@ import { PAGINATION_LIMIT } from '@constants/extra';
 import { useInfiniteQueryThenUpdateCall } from '@queries/useInfiniteQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/queryKeys';
 
-import { useNnsGovernanceCanister } from './useGovernanceCanister';
+import { useNnsGovernance } from './useGovernance';
 
-export const useGovernanceGetProposals = (
+export const useGovernanceProposals = (
   options: ListProposalsRequest = {
     beforeProposal: undefined,
     limit: PAGINATION_LIMIT,
@@ -19,7 +19,7 @@ export const useGovernanceGetProposals = (
     omitLargeFields: true,
   },
 ) => {
-  const { ready, canister } = useNnsGovernanceCanister();
+  const { ready, canister } = useNnsGovernance();
 
   return useInfiniteQueryThenUpdateCall<ListProposalsResponse, Option<bigint>>({
     queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS, options],

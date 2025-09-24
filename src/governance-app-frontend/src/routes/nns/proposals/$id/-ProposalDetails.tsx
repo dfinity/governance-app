@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
-import { useGovernanceGetProposal } from '@common/hooks/canisters/governance/useGovernanceGetProposal';
+import { useGovernanceProposal } from '@hooks/canisters/governance/useGovernanceProposal';
 import { CertifiedData } from '@common/typings/queries';
 
 import { ProposalDetailsVoting } from './-ProposalDetailsVoting';
@@ -22,7 +22,7 @@ export const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
     isLoading,
     error,
     data,
-  }: UseQueryResult<CertifiedData<ProposalInfo>, Error> = useGovernanceGetProposal({
+  }: UseQueryResult<CertifiedData<ProposalInfo>, Error> = useGovernanceProposal({
     proposalId,
   });
   const proposalData = data?.response;
@@ -33,14 +33,14 @@ export const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
       {error && t(($) => $.common.errorLoadingProposals, { error: error.message })}
       {proposalData && (
         <>
-          <h2 className="flex items-center justify-between pb-4 text-xl text-secondary">
+          <h2 className="flex items-center justify-between pb-4 text-xl">
             {t(($) => $.proposal.proposalId, { id: proposalData.id })}
             {data.certified ? <CertifiedBadge /> : <SkeletonLoader height={24} width={100} />}
           </h2>
 
           <ProposalDetailsVoting proposal={proposalData} />
 
-          <div className="mb-4 rounded-lg border p-4 text-secondary">
+          <div className="mb-4 rounded-lg border p-4">
             {/* type */}
             <dl>
               <dt className="font-bold">{t(($) => $.proposal.type)}</dt>
@@ -74,7 +74,7 @@ export const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
             </dl>
           </div>
 
-          <div className="mb-4 rounded-lg border p-4 text-secondary">
+          <div className="mb-4 rounded-lg border p-4">
             {/* summary */}
             <Link to={proposalData.proposal?.url ?? '#'}>{proposalData.proposal?.title}</Link>
             <dl>
@@ -95,7 +95,7 @@ export const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
             </dl>
           </div>
 
-          <div className="mb-4 rounded-lg border p-4 text-secondary">
+          <div className="mb-4 rounded-lg border p-4">
             {/* payload */}
             <dl>
               <dt className="font-bold">{t(($) => $.proposal.payload)}</dt>

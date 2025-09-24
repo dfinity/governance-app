@@ -1,4 +1,4 @@
-export { useNnsGovernanceCanister } from './useGovernanceCanister';
-export { useGovernanceGetNeurons } from './useGovernanceGetNeurons';
-export { useGovernanceGetProposal } from './useGovernanceGetProposal';
-export { useGovernanceGetProposals } from './useGovernanceGetProposals';
+export { useNnsGovernance } from './useGovernance';
+export { useGovernanceNeurons } from './useGovernanceNeurons';
+export { useGovernanceProposal } from './useGovernanceProposal';
+export { useGovernanceProposals } from './useGovernanceProposals';

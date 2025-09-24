@@ -4,7 +4,7 @@ import { NeuronSubaccount } from '@dfinity/nns/dist/candid/governance';
 import { useQueryThenUpdateCall } from '@queries/useQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/queryKeys';
 
-import { useNnsGovernanceCanister } from './useGovernanceCanister';
+import { useNnsGovernance } from './useGovernance';
 
 type RequestParams = {
   certified: boolean;
@@ -14,8 +14,8 @@ type RequestParams = {
   neuronSubaccounts?: NeuronSubaccount[];
 };
 
-export const useGovernanceGetNeurons = (params?: RequestParams) => {
-  const { ready, canister, authenticated } = useNnsGovernanceCanister();
+export const useGovernanceNeurons = (params?: RequestParams) => {
+  const { ready, canister, authenticated } = useNnsGovernance();
 
   const request: RequestParams = {
     certified: false,

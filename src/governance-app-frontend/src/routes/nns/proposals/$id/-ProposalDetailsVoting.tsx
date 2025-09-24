@@ -9,8 +9,8 @@ import { Button } from '@untitledui/components';
 
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { VOTING_RESULTS_PRECISION } from '@constants/extra';
-import { useGovernanceGetNeurons, useNnsGovernanceCanister } from '@hooks/canisters/governance';
-import { bigIntDiv } from '@utils/bigInt';
+import { useGovernanceNeurons, useNnsGovernance } from '@hooks/canisters/governance';
+import { bigIntDiv } from '@utils/bigInts';
 import { QUERY_KEYS } from '@utils/queryKeys';
 import { setWithItemAdded, setWithItemRemoved } from '@utils/sets';
 
@@ -24,7 +24,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   const { t } = useTranslation();
 
   // Voting data.
-  const { data: neurons } = useGovernanceGetNeurons();
+  const { data: neurons } = useGovernanceNeurons();
   const votingNeurons =
     proposal.ballots.toSorted((a, b) => Number(a.neuronId) - Number(b.neuronId)) ?? [];
   const votingNeuronIds = new Set<bigint>(votingNeurons.map((neuron) => neuron.neuronId));
@@ -40,7 +40,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   const hasVotingData = yes !== undefined && no !== undefined && total !== undefined;
 
   // Vote casting.
-  const { ready, canister, authenticated } = useNnsGovernanceCanister();
+  const { ready, canister, authenticated } = useNnsGovernance();
   const [pending, setPending] = useState(new Set<bigint>());
   const [error, setError] = useState(new Set<bigint>());
   const canTriggerVote = ready && authenticated;
@@ -77,7 +77,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   if (!identity) return null;
 
   return (
-    <div className="mb-4 rounded-lg border p-4 text-secondary">
+    <div className="mb-4 rounded-lg border p-4">
       <p className="mb-2 font-bold">
         {t(($) => $.proposal.voting, { voted, total: totalToVote })}
         {voted === totalToVote ? ' 🎉' : ''}
