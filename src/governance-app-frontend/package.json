@@ -17,7 +17,7 @@
     "test:e2e": "playwright test",
     "test:e2e:headed": "IGNORE_SCREENSHOTS=1 playwright test --headed --project=chromium",
     "update-snapshots": "playwright test --update-snapshots",
-    "untitledui:add": "npx untitledui@latest add --path governance-app-frontend/src/untitledui/components/"
+    "untitledui:add": "npx untitledui@latest add --path untitledui/components/"
   },
   "dependencies": {
     "@dfinity/agent": "3.2.6",
