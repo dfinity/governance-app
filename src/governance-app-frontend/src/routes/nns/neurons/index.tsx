@@ -6,7 +6,7 @@ import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { WarningMessage } from '@components/extra/WarningMessage';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { E8S } from '@constants/extra';
-import { useGovernanceGetNeurons } from '@hooks/canisters/governance/useGovernanceGetNeurons';
+import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceNeurons';
 import useTitle from '@hooks/useTitle';
 import { requireIdentity } from '@utils/routes';
 
@@ -16,7 +16,7 @@ export const Route = createFileRoute('/nns/neurons/')({
 });
 
 function NeuronsPage() {
-  const { isLoading, error, data } = useGovernanceGetNeurons();
+  const { isLoading, error, data } = useGovernanceNeurons();
   const { t } = useTranslation();
   useTitle(t(($) => $.common.neuronsList));
 

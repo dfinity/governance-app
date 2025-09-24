@@ -5,7 +5,7 @@ import { CANISTER_ID_NNS_GOVERNANCE } from '@constants/canisterIds';
 import { useAgentPool } from '@hooks/useAgentPool';
 import { CanisterStatus } from '@common/typings/canisters';
 
-export const useNnsGovernanceCanister = (): CanisterStatus<GovernanceCanister> => {
+export const useNnsGovernance = (): CanisterStatus<GovernanceCanister> => {
   if (!CANISTER_ID_NNS_GOVERNANCE) {
     throw new Error('useGovernanceCanister: the canister Id is not defined.');
   }

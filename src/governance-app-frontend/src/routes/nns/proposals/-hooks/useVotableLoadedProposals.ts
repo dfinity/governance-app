@@ -1,14 +1,14 @@
 import { ProposalRewardStatus, ProposalStatus, Topic, votableNeurons } from '@dfinity/nns';
 
-import { useGovernanceGetNeurons, useGovernanceGetProposals } from '@hooks/canisters/governance';
+import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/canisters/governance';
 
 /**
  * Returns a set of proposal IDs that the user can vote on based on their neurons.
  * This function will not load new proposals but rather go through the loaded data and check if they can be voted
  **/
 export function useVotableLoadedProposals() {
-  const { data: neuronsData } = useGovernanceGetNeurons();
-  const { data: proposalsData } = useGovernanceGetProposals();
+  const { data: neuronsData } = useGovernanceNeurons();
+  const { data: proposalsData } = useGovernanceProposals();
 
   if (neuronsData?.response?.length === 0) return new Set<bigint>();
 

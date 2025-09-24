@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
-import { useGovernanceGetProposal } from '@common/hooks/canisters/governance/useGovernanceGetProposal';
+import { useGovernanceProposal } from '@hooks/canisters/governance/useGovernanceProposal';
 import { CertifiedData } from '@common/typings/queries';
 
 import { ProposalDetailsVoting } from './-ProposalDetailsVoting';
@@ -22,7 +22,7 @@ export const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
     isLoading,
     error,
     data,
-  }: UseQueryResult<CertifiedData<ProposalInfo>, Error> = useGovernanceGetProposal({
+  }: UseQueryResult<CertifiedData<ProposalInfo>, Error> = useGovernanceProposal({
     proposalId,
   });
   const proposalData = data?.response;

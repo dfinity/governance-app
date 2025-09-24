@@ -8,17 +8,17 @@ import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { InViewSentinel } from '@components/extra/InViewSentinel';
 import { WarningMessage } from '@components/extra/WarningMessage';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
-import { useGovernanceGetProposals } from '@hooks/canisters/governance';
+import { useGovernanceProposals } from '@hooks/canisters/governance';
 import useTitle from '@hooks/useTitle';
 
-import { useVotableLoadedProposals } from './hooks/useVotableLoadedProposals';
+import { useVotableLoadedProposals } from './-hooks/useVotableLoadedProposals';
 
 export const Route = createFileRoute('/nns/proposals/')({
   component: ProposalsPage,
 });
 
 function ProposalsPage() {
-  const { isLoading, error, data, hasNextPage, fetchNextPage } = useGovernanceGetProposals();
+  const { isLoading, error, data, hasNextPage, fetchNextPage } = useGovernanceProposals();
   const { t } = useTranslation();
   const votableProposals = useVotableLoadedProposals();
 
