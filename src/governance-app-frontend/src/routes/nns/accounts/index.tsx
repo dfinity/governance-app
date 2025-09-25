@@ -43,7 +43,7 @@ function AccountsPage() {
       <div className="mb-2 flex gap-2">{t(($) => $.common.accounts)}</div>
 
       <div className="flex items-center gap-2">
-        <pre className="mt-4 overflow-hidden rounded bg-amber-50 px-2 py-2 text-sm text-ellipsis text-black sm:mt-0">
+        <pre className="overflow-hidden rounded bg-amber-50 px-2 py-2 text-sm text-ellipsis text-black">
           {accountId}
         </pre>
         <QueryStates<CertifiedData<GetAccountIdentifierTransactionsResponse>>
