@@ -6,13 +6,19 @@ import { useTranslation } from 'react-i18next';
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { WarningMessage } from '@components/extra/WarningMessage';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
-import { E8S } from '@constants/extra';
+import { E8S, E8Sn, ICP_TRANSACTION_FEE_E8S } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceNeurons';
 import useTitle from '@hooks/useTitle';
 import { requireIdentity } from '@utils/routes';
 import { Input } from '@untitledui/components/base/input/input';
 import { useIcpLedgerAccountBalance } from '../../../common/hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
 import { Button } from '@untitledui/components';
+import { bigIntMul } from '../../../common/utils/bigInts';
+import { useInternetIdentity } from 'ic-use-internet-identity';
+import { AccountIdentifier } from '@dfinity/ledger-icp';
+import { AnonymousIdentity } from '@dfinity/agent';
+import { useNnsGovernance } from '../../../common/hooks/canisters/governance';
+import { useIcpLedger } from '../../../common/hooks/canisters/icpLedger/useIcpLedger';
 
 const MIN_STAKE_AMOUNT = 1;
 
@@ -31,9 +37,30 @@ function NeuronsPage() {
   const maxStake = canStake ? Number(balanceValue.response) / E8S : null;
   const [stakeAmount, setStakeAmount] = useState('');
   const [stakeError, setStakeError] = useState<string | null>(null);
+  const { identity } = useInternetIdentity();
+  const {
+    ready: governanceReady,
+    canister: governanceCanister,
+    authenticated,
+  } = useNnsGovernance();
+  const {
+    ready: ledgerReady,
+    authenticated: ledgerAuthenticated,
+    canister: ledgerCanister,
+  } = useIcpLedger();
 
-  const stake = () => {
-    if (!canStake || maxStake === null) {
+  const stake = async () => {
+    if (
+      !canStake ||
+      maxStake === null ||
+      !identity ||
+      !governanceCanister ||
+      !authenticated ||
+      !governanceReady ||
+      !ledgerCanister ||
+      !ledgerAuthenticated ||
+      !ledgerReady
+    ) {
       return;
     }
 
@@ -57,7 +84,49 @@ function NeuronsPage() {
     }
 
     setStakeError(null);
-    console.log(stakeAmount, typeof stakeAmount);
+
+    const stake = bigIntMul(E8Sn, enteredAmount);
+    const principal = identity!.getPrincipal();
+    const fee = ICP_TRANSACTION_FEE_E8S;
+
+    await governanceCanister.stakeNeuron({
+      stake,
+      principal,
+      ledgerCanister,
+      createdAt: BigInt(Date.now()) * 1_000_000n, // in nanoseconds
+      fee,
+    });
+
+    console.log(
+      `Staked ${enteredAmount} ICP into a new neuron for principal ${principal.toText()}`,
+    );
+
+    // const accountIdentity = await getAccountIdentity(accountIdentifier, identity!);
+    // const { ledgerCanisterIdentity, controller, fromSubAccount } = getStakeNeuronPropsByAccount({
+    //   account,
+    //   accountIdentity,
+    // });
+    // const { canister } = await governanceCanister({ identity });
+
+    // // The use case of staking from Ledger device uses a different agent for governance and ledger canister.
+    // const { canister: ledgerCanister } = await getLedgerCanister({
+    //   identity: ledgerCanisterIdentity,
+    // });
+
+    // // in nanoseconds
+    // const createdAt = BigInt(Date.now()) * 1_000_000n;
+    // const response = await canister.stakeNeuron({
+    //   stake,
+    //   principal: controller,
+    //   fromSubAccount,
+    //   ledgerCanister,
+    //   createdAt,
+    //   fee,
+    // });
+
+    // return response;
+
+    // TODO: reload neurons balance
   };
 
   const handleStakeChange = (value: string) => {
