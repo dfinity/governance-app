@@ -11,14 +11,14 @@ import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceN
 import useTitle from '@hooks/useTitle';
 import { requireIdentity } from '@utils/routes';
 import { Input } from '@untitledui/components/base/input/input';
-import { useIcpLedgerAccountBalance } from '../../../common/hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
+import { useIcpLedgerAccountBalance } from '@hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
 import { Button } from '@untitledui/components';
-import { bigIntMul } from '../../../common/utils/bigInts';
+import { bigIntMul } from '@utils/bigInts';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { useNnsGovernance } from '../../../common/hooks/canisters/governance';
-import { useIcpLedger } from '../../../common/hooks/canisters/icpLedger/useIcpLedger';
+import { useNnsGovernance } from '@hooks/canisters/governance';
+import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { QUERY_KEYS } from '../../../common/utils/queryKeys';
+import { QUERY_KEYS } from '@utils/queryKeys';
 
 const MIN_STAKE_AMOUNT = 1;
 
@@ -140,8 +140,12 @@ function NeuronsPage() {
 
   const stakeHint = stakeError
     ? stakeError
-    : canStake && maxStake !== null
-      ? `Minimum ${MIN_STAKE_AMOUNT} ICP, maximum ${maxStake} ${t(($) => $.common.icp)}`
+    : canStake
+      ? t(($) => $.neuron.stakeNeuron.hint, {
+          min: MIN_STAKE_AMOUNT,
+          max: maxStake,
+          unit: t(($) => $.common.icp),
+        })
       : undefined;
 
   return (
@@ -158,19 +162,19 @@ function NeuronsPage() {
             <Input
               isRequired
               type="number"
-              label="How much ICP to stake"
+              label={t(($) => $.neuron.stakeNeuron.label)}
               hint={stakeHint}
               isInvalid={Boolean(stakeError)}
-              isDisabled={!canStake}
-              placeholder="10.00"
-              tooltip="This ICP amount will be staked from your balance"
+              isDisabled={!canStake || stakeMutation.isPending}
+              placeholder={t(($) => $.neuron.stakeNeuron.placeholder)}
+              tooltip={t(($) => $.neuron.stakeNeuron.tooltip)}
               value={stakeAmount}
               onChange={handleStakeChange}
             />
             <Button
               onClick={stake}
               className="w-fit"
-              isDisabled={!canStake}
+              isDisabled={!canStake || stakeMutation.isPending}
               isLoading={stakeMutation.isPending}
               showTextWhileLoading
             >

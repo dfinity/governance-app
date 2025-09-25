@@ -6,6 +6,10 @@
   "maturity": "Maturity",
   "status": "Status",
   "stakeNeuron": {
+    "label": "How much ICP to stake",
+    "placeholder": "10.00",
+    "tooltip": "This ICP amount will be staked from your balance",
+    "hint": "Minimum {{min}} ICP, maximum {{max}} {{unit}}",
     "errors": {
       "invalidAmount": "Enter a valid amount.",
       "insufficientBalance": "Stake amount exceeds available balance.",
