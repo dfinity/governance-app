@@ -11,8 +11,8 @@ import { useIcpIndexTransactions } from '@hooks/canisters/icpIndex/useIcpIndexTr
 import { useIcpLedgerAccountBalance } from '@hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
 import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';
-import { bigIntDiv } from '@utils/bigInts';
-import { requireIdentity } from '@utils/routes';
+import { bigIntDiv } from '@utils/bigInt';
+import { requireIdentity } from '@utils/router';
 
 export const Route = createFileRoute('/nns/accounts/')({
   component: AccountsPage,

@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 
 import { ThemeContext, type ThemePreference } from '@contexts/themeContext';
-import { STORAGE_KEYS } from '@utils/storageKeys';
+import { STORAGE_KEYS } from '@utils/storage';
 
 interface ThemeProviderProps {
   children: ReactNode;

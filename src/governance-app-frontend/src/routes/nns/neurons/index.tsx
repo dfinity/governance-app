@@ -9,7 +9,7 @@ import { E8S } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceNeurons';
 import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';
-import { requireIdentity } from '@utils/routes';
+import { requireIdentity } from '@utils/router';
 
 export const Route = createFileRoute('/nns/neurons/')({
   component: NeuronsPage,

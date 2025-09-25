@@ -1,4 +1,4 @@
-import { stringifyAll } from './strings';
+import { stringifyAll } from './string';
 
 const ICP_LEDGER = {
   ACCOUNT_BALANCE: 'icpLedgerAccountBalance',

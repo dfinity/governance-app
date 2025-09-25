@@ -5,7 +5,7 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 
 import { PAGINATION_LIMIT } from '@constants/extra';
 import { useInfiniteQueryThenUpdateCall } from '@queries/useInfiniteQueryThenUpdateCall';
-import { QUERY_KEYS } from '@utils/queryKeys';
+import { QUERY_KEYS } from '@utils/query';
 
 import { useIcpIndex } from './useIcpIndex';
 

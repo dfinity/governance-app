@@ -3,7 +3,7 @@ import { AccountIdentifier } from '@dfinity/ledger-icp';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 
 import { useQueryThenUpdateCall } from '@queries/useQueryThenUpdateCall';
-import { QUERY_KEYS } from '@utils/queryKeys';
+import { QUERY_KEYS } from '@utils/query';
 
 import { useIcpLedger } from './useIcpLedger';
 
