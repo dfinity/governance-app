@@ -129,7 +129,7 @@ const TransactionItem = ({
 
           <div className="flex gap-0.5">
             <span className="font-bold">{t(($) => $.common.amount)}: </span>
-            {operation.Transfer.amount.e8s / E8Sn} {t(($) => $.common.icps)}
+            {bigIntDiv(operation.Transfer.amount.e8s, E8Sn, 2).toFixed(2)} {t(($) => $.common.icps)}
           </div>
 
           <div className="flex gap-0.5">
