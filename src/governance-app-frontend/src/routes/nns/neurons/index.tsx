@@ -9,6 +9,7 @@ import { E8S } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceNeurons';
 import useTitle from '@hooks/useTitle';
 import { requireIdentity } from '@utils/routes';
+
 import { StakeNeuron } from './-StakeNeuron';
 
 export const Route = createFileRoute('/nns/neurons/')({

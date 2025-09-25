@@ -1,16 +1,17 @@
+import { useIsFetching, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@untitledui/components';
+import { Input } from '@untitledui/components/base/input/input';
+
 import { E8S, E8Sn, ICP_TRANSACTION_FEE_E8S } from '@constants/extra';
-import { useIcpLedgerAccountBalance } from '@hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
 import { useNnsGovernance } from '@hooks/canisters/governance';
 import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
-import { Input } from '@untitledui/components/base/input/input';
-import { Button } from '@untitledui/components';
+import { useIcpLedgerAccountBalance } from '@hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
 import { bigIntMul } from '@utils/bigInts';
 import { QUERY_KEYS } from '@utils/queryKeys';
-import { useQueryClient, useMutation, useIsFetching } from '@tanstack/react-query';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 
 const MIN_STAKE_AMOUNT = 1;
 
