@@ -10,13 +10,11 @@ import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { useAgentPool } from '@hooks/useAgentPool';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
-  const { t } = useTranslation();
-
-  const { anonymous, authenticated } = useAgentPool().agentPool;
-
   // @TODO: verify resolution of login->logout->login issue.
   const { login, identity, clear, isInitializing } = useInternetIdentity();
 
+  const { t } = useTranslation();
+  const { anonymous, authenticated } = useAgentPool().agentPool;
   const showLoader = anonymous.loading || authenticated.loading || isInitializing;
 
   // @TODO: identity does not refresh when it auto-expires.
