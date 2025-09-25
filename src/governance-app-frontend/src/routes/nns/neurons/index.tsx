@@ -17,7 +17,7 @@ import { bigIntMul } from '@utils/bigInts';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useNnsGovernance } from '@hooks/canisters/governance';
 import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useIsFetching, useMutation, useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@utils/queryKeys';
 
 const MIN_STAKE_AMOUNT = 1;
@@ -93,8 +93,12 @@ function NeuronsPage() {
     },
   });
 
+  const neuronsFetching = useIsFetching({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] });
+  const balanceFetching = useIsFetching({ queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE] });
+  const isStakeBusy = stakeMutation.isPending || neuronsFetching > 0 || balanceFetching > 0;
+
   const stake = () => {
-    if (!canStake || stakeMutation.isPending) {
+    if (!canStake || isStakeBusy) {
       return;
     }
 
@@ -165,7 +169,7 @@ function NeuronsPage() {
               label={t(($) => $.neuron.stakeNeuron.label)}
               hint={stakeHint}
               isInvalid={Boolean(stakeError)}
-              isDisabled={!canStake || stakeMutation.isPending}
+              isDisabled={!canStake || isStakeBusy}
               placeholder={t(($) => $.neuron.stakeNeuron.placeholder)}
               tooltip={t(($) => $.neuron.stakeNeuron.tooltip)}
               value={stakeAmount}
@@ -174,8 +178,8 @@ function NeuronsPage() {
             <Button
               onClick={stake}
               className="w-fit"
-              isDisabled={!canStake || stakeMutation.isPending}
-              isLoading={stakeMutation.isPending}
+              isDisabled={!canStake || isStakeBusy}
+              isLoading={isStakeBusy}
               showTextWhileLoading
             >
               {t(($) => $.neuron.stake)}
