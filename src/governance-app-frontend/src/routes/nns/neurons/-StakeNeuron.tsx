@@ -35,7 +35,6 @@ export const StakeNeuron = () => {
 
   const canStake =
     balanceValue?.response !== undefined &&
-    maxStake > 0 &&
     !!identity &&
     !!governanceCanister &&
     governanceAuthenticated &&
@@ -127,47 +126,44 @@ export const StakeNeuron = () => {
   const stakeHint = stakeError
     ? stakeError
     : canStake
-    ? t(($) => $.neuron.stakeNeuron.hint, {
-        min: MIN_STAKE_AMOUNT,
-        max: maxStake,
-        unit: t(($) => $.common.icp),
-      })
-    : undefined;
+      ? t(($) => $.neuron.stakeNeuron.hint, {
+          min: MIN_STAKE_AMOUNT,
+          max: maxStake,
+          unit: t(($) => $.common.icp),
+        })
+      : undefined;
 
   if (!canStake) {
     return null;
   }
 
   return (
-    <>
-      <h2 className="mb-2 flex gap-2">{t(($) => $.neuron.stake)}</h2>
-      <div
-        data-testid="stake-neuron-form"
-        className="mb-4 flex items-center gap-2 rounded-lg p-4 shadow-md"
-        style={{ backgroundColor: 'var(--background-color-secondary)' }}
+    <div
+      data-testid="stake-neuron-form"
+      className="mb-4 flex items-center gap-2 rounded-lg p-4 shadow-md"
+      style={{ backgroundColor: 'var(--background-color-secondary)' }}
+    >
+      <Input
+        isRequired
+        type="number"
+        label={t(($) => $.neuron.stakeNeuron.label)}
+        hint={stakeHint}
+        isInvalid={Boolean(stakeError)}
+        isDisabled={isStakeBusy}
+        placeholder={t(($) => $.neuron.stakeNeuron.placeholder)}
+        tooltip={t(($) => $.neuron.stakeNeuron.tooltip)}
+        value={stakeAmount}
+        onChange={handleStakeChange}
+      />
+      <Button
+        onClick={stake}
+        className="w-fit"
+        isDisabled={isStakeBusy}
+        isLoading={isStakeBusy}
+        showTextWhileLoading
       >
-        <Input
-          isRequired
-          type="number"
-          label={t(($) => $.neuron.stakeNeuron.label)}
-          hint={stakeHint}
-          isInvalid={Boolean(stakeError)}
-          isDisabled={isStakeBusy}
-          placeholder={t(($) => $.neuron.stakeNeuron.placeholder)}
-          tooltip={t(($) => $.neuron.stakeNeuron.tooltip)}
-          value={stakeAmount}
-          onChange={handleStakeChange}
-        />
-        <Button
-          onClick={stake}
-          className="w-fit"
-          isDisabled={isStakeBusy}
-          isLoading={isStakeBusy}
-          showTextWhileLoading
-        >
-          {t(($) => $.neuron.stake)}
-        </Button>
-      </div>
-    </>
+        {t(($) => $.neuron.stake)}
+      </Button>
+    </div>
   );
 };
