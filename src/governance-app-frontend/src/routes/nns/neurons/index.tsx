@@ -19,6 +19,8 @@ import { AccountIdentifier } from '@dfinity/ledger-icp';
 import { AnonymousIdentity } from '@dfinity/agent';
 import { useNnsGovernance } from '../../../common/hooks/canisters/governance';
 import { useIcpLedger } from '../../../common/hooks/canisters/icpLedger/useIcpLedger';
+import { useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from '../../../common/utils/queryKeys';
 
 const MIN_STAKE_AMOUNT = 1;
 
@@ -32,6 +34,7 @@ function NeuronsPage() {
   const { t } = useTranslation();
   useTitle(t(($) => $.common.neuronsList));
 
+  const queryClient = useQueryClient();
   const { data: balanceValue } = useIcpLedgerAccountBalance();
   const canStake = balanceValue?.response !== undefined;
   const maxStake = canStake ? Number(balanceValue.response) / E8S : null;
@@ -89,7 +92,7 @@ function NeuronsPage() {
     const principal = identity!.getPrincipal();
     const fee = ICP_TRANSACTION_FEE_E8S;
 
-    await governanceCanister.stakeNeuron({
+    const result = await governanceCanister.stakeNeuron({
       stake,
       principal,
       ledgerCanister,
@@ -97,9 +100,11 @@ function NeuronsPage() {
       fee,
     });
 
-    console.log(
-      `Staked ${enteredAmount} ICP into a new neuron for principal ${principal.toText()}`,
-    );
+    console.log(result);
+
+    queryClient.invalidateQueries({
+      queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
+    });
 
     // const accountIdentity = await getAccountIdentity(accountIdentifier, identity!);
     // const { ledgerCanisterIdentity, controller, fromSubAccount } = getStakeNeuronPropsByAccount({
