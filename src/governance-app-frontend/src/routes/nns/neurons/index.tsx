@@ -78,7 +78,6 @@ function NeuronsPage() {
       setStakeError(null);
     },
     onSuccess: (newNeuronId) => {
-      console.log('staked new neuron: ', newNeuronId);
       setStakeAmount('');
 
       // Refresh neurons and account balance.
@@ -93,8 +92,6 @@ function NeuronsPage() {
       setStakeError(mutationError.message ?? t(($) => $.common.error));
     },
   });
-
-  const isStakeDisabled = !canStake || stakeMutation.isPending;
 
   const stake = () => {
     if (!canStake || stakeMutation.isPending) {
@@ -149,7 +146,7 @@ function NeuronsPage() {
 
   return (
     <div className="flex flex-col gap-2 text-xl">
-      <div className="mb-2 flex gap-2">{t(($) => $.neuron.stake)}</div>
+      <h2 className="mb-2 flex gap-2">{t(($) => $.neuron.stake)}</h2>
 
       {/* Stake a neuron form */}
       {canStake && (
@@ -164,19 +161,25 @@ function NeuronsPage() {
             label="How much ICP to stake"
             hint={stakeHint}
             isInvalid={Boolean(stakeError)}
-            isDisabled={isStakeDisabled}
+            isDisabled={!canStake}
             placeholder="10.00"
             tooltip="This ICP amount will be staked from your balance"
             value={stakeAmount}
             onChange={handleStakeChange}
           />
-          <Button onClick={stake} className="w-fit" disabled={isStakeDisabled}>
+          <Button
+            onClick={stake}
+            className="w-fit"
+            isDisabled={!canStake}
+            isLoading={stakeMutation.isPending}
+            showTextWhileLoading
+          >
             {t(($) => $.neuron.stake)}
           </Button>
         </div>
       )}
 
-      <div className="mb-2 flex gap-2">{t(($) => $.common.neuronsList)}</div>
+      <h2 className="mb-2 flex gap-2">{t(($) => $.common.neuronsList)}</h2>
 
       {isLoading && <SkeletonLoader count={3} />}
       {!isLoading && !data?.response.length && (
