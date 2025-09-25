@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { QueryStates } from '@components/extra/QueryStates';
+import { SimpleCard } from '@components/extra/SimpleCard';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { E8S } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceNeurons';
@@ -32,11 +33,7 @@ function NeuronsPage() {
         {(data) => (
           <div className="grid grid-cols-1 gap-4 text-lg sm:grid-cols-2 lg:grid-cols-3">
             {data?.response.map((neuron) => (
-              <div
-                style={{ backgroundColor: 'var(--background-color-secondary)' }}
-                className="flex h-full flex-col justify-between rounded-lg border p-4"
-                key={neuron.neuronId}
-              >
+              <SimpleCard key={neuron.neuronId}>
                 <div className="flex items-center justify-between gap-2">
                   <p className="overflow-hidden text-ellipsis">#{neuron.neuronId}</p>
                   {data?.certified ? <CertifiedBadge /> : <SkeletonLoader width={90} />}
@@ -72,7 +69,7 @@ function NeuronsPage() {
                     </tbody>
                   </table>
                 </div>
-              </div>
+              </SimpleCard>
             ))}
           </div>
         )}

@@ -35,11 +35,14 @@ export const useIcpIndexTransactions = () => {
         accountIdentifier,
         certified: true,
       }),
-    initialPageParam: 0n,
-    getNextPageParam: (lastPage, allPages) =>
-      lastPage.response.transactions.length === PAGINATION_LIMIT
-        ? BigInt(allPages.length * PAGINATION_LIMIT)
-        : undefined,
+    initialPageParam: undefined,
+    getNextPageParam: (lastPage) => {
+      const lastTransactionId = lastPage.response.transactions.at(-1)?.id;
+      const oldestTransactionId = lastPage.response.oldest_tx_id[0];
+      if (!oldestTransactionId || !lastTransactionId) return undefined;
+      if (lastTransactionId === oldestTransactionId) return undefined;
+      return lastTransactionId;
+    },
     options: {
       enabled: ready && authenticated,
     },

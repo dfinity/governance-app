@@ -25,7 +25,7 @@ export const useIcpIndex = (): CanisterStatus<IndexCanister> => {
     authenticated: !!authenticated.agent,
     canister: IndexCanister.create({
       agent: authenticated.agent || anonymous.agent,
-      canisterId: Principal.fromText(CANISTER_ID_ICP_INDEX),
+      canisterId: Principal.fromText('qhbym-qaaaa-aaaaa-aaafq-cai'), //CANISTER_ID_ICP_INDEX),
     }),
   };
 };

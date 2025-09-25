@@ -13,10 +13,13 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
   const { t } = useTranslation();
 
   const { anonymous, authenticated } = useAgentPool().agentPool;
+
+  // @TODO: verify resolution of login->logout->login issue.
   const { login, identity, clear, isInitializing } = useInternetIdentity();
+
   const showLoader = anonymous.loading || authenticated.loading || isInitializing;
 
-  // TODO: identity does not refresh when it auto-expires.
+  // @TODO: identity does not refresh when it auto-expires.
   // Check this again when useInternetIdentity is updated.
   // Kristofer will update the library in the next weeks.
   const { invalidate } = useRouter();
@@ -27,7 +30,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
   return (
     <main
       data-testid="main-layout"
-      className="m-auto flex min-h-[100vh] max-w-[1920px] flex-col justify-between gap-2 p-4"
+      className="m-auto flex min-h-[100vh] max-w-[1920px] flex-col justify-between gap-2 overflow-hidden p-4"
     >
       {showLoader ? (
         <SkeletonLoader count={6} />

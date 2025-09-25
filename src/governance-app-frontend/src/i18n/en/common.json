@@ -29,5 +29,10 @@
   "icp": "ICP",
   "icps": "ICPs",
   "transactions": "Transactions",
-  "noData": "No data available"
+  "noData": "No data available",
+  "from": "From",
+  "to": "To",
+  "amount": "Amount",
+  "fee": "Fee",
+  "date": "Date"
 }

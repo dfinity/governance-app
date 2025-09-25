@@ -7,6 +7,7 @@ import { BadgeWithIcon, Link } from '@untitledui/components';
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { InViewSentinel } from '@components/extra/InViewSentinel';
 import { QueryStates } from '@components/extra/QueryStates';
+import { SimpleCard } from '@components/extra/SimpleCard';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { useGovernanceProposals } from '@hooks/canisters/governance';
 import useTitle from '@hooks/useTitle';
@@ -41,7 +42,7 @@ function ProposalsPage() {
                     key={proposal.id?.toString()}
                     to="/nns/proposals/$id"
                   >
-                    <div className="flex h-full flex-col justify-between rounded-lg bg-primary p-4 shadow-xs ring-1 ring-secondary ring-inset focus-visible:outline-2 focus-visible:outline-offset-2">
+                    <SimpleCard>
                       <p className="overflow-hidden overflow-ellipsis">
                         #{proposal.id?.toString()} {proposal.proposal?.title}
                       </p>
@@ -54,7 +55,7 @@ function ProposalsPage() {
                         </BadgeWithIcon>
                         <CertifiedBadge certified={page?.certified} />
                       </div>
-                    </div>
+                    </SimpleCard>
                   </Link>
                 );
               }),

@@ -16,7 +16,7 @@ function ProposalDetailsWrapper() {
   const { t } = useTranslation();
   useTitle(t(($) => $.proposal.title));
 
-  // Validate id can be converted to BigInt
+  // Validate Id can be converted to BigInt.
   let validBigInt: bigint | undefined;
   try {
     if (id && /^\d+$/.test(id)) {
