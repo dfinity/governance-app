@@ -1,3 +1,4 @@
+import { nonNullish } from '@dfinity/utils';
 import { useIsFetching, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useState } from 'react';
@@ -19,7 +20,7 @@ export const StakeNeuron = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { data: balanceValue } = useIcpLedgerAccountBalance();
-  const maxStake = balanceValue?.response !== undefined ? Number(balanceValue.response) / E8S : 0;
+  const maxStake = nonNullish(balanceValue?.response) ? Number(balanceValue.response) / E8S : 0;
   const [stakeAmount, setStakeAmount] = useState('');
   const [stakeError, setStakeError] = useState<string | null>(null);
   const { identity } = useInternetIdentity();
@@ -35,12 +36,12 @@ export const StakeNeuron = () => {
   } = useIcpLedger();
 
   const canStake =
-    balanceValue?.response !== undefined &&
-    !!identity &&
-    !!governanceCanister &&
+    nonNullish(balanceValue?.response) &&
+    nonNullish(identity) &&
+    nonNullish(governanceCanister) &&
     governanceAuthenticated &&
     governanceReady &&
-    !!ledgerCanister &&
+    nonNullish(ledgerCanister) &&
     ledgerAuthenticated &&
     ledgerReady;
 
