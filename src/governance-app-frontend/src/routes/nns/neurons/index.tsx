@@ -146,37 +146,38 @@ function NeuronsPage() {
 
   return (
     <div className="flex flex-col gap-2 text-xl">
-      <h2 className="mb-2 flex gap-2">{t(($) => $.neuron.stake)}</h2>
-
       {/* Stake a neuron form */}
       {canStake && (
-        <div
-          data-testid="stake-neuron-form"
-          className="mb-4 flex items-center gap-2 rounded-lg p-4 shadow-md"
-          style={{ backgroundColor: 'var(--background-color-secondary)' }}
-        >
-          <Input
-            isRequired
-            type="number"
-            label="How much ICP to stake"
-            hint={stakeHint}
-            isInvalid={Boolean(stakeError)}
-            isDisabled={!canStake}
-            placeholder="10.00"
-            tooltip="This ICP amount will be staked from your balance"
-            value={stakeAmount}
-            onChange={handleStakeChange}
-          />
-          <Button
-            onClick={stake}
-            className="w-fit"
-            isDisabled={!canStake}
-            isLoading={stakeMutation.isPending}
-            showTextWhileLoading
+        <>
+          <h2 className="mb-2 flex gap-2">{t(($) => $.neuron.stake)}</h2>
+          <div
+            data-testid="stake-neuron-form"
+            className="mb-4 flex items-center gap-2 rounded-lg p-4 shadow-md"
+            style={{ backgroundColor: 'var(--background-color-secondary)' }}
           >
-            {t(($) => $.neuron.stake)}
-          </Button>
-        </div>
+            <Input
+              isRequired
+              type="number"
+              label="How much ICP to stake"
+              hint={stakeHint}
+              isInvalid={Boolean(stakeError)}
+              isDisabled={!canStake}
+              placeholder="10.00"
+              tooltip="This ICP amount will be staked from your balance"
+              value={stakeAmount}
+              onChange={handleStakeChange}
+            />
+            <Button
+              onClick={stake}
+              className="w-fit"
+              isDisabled={!canStake}
+              isLoading={stakeMutation.isPending}
+              showTextWhileLoading
+            >
+              {t(($) => $.neuron.stake)}
+            </Button>
+          </div>
+        </>
       )}
 
       <h2 className="mb-2 flex gap-2">{t(($) => $.common.neuronsList)}</h2>
