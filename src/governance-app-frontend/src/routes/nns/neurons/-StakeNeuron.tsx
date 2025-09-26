@@ -37,6 +37,7 @@ export const StakeNeuron = () => {
 
   const canStake =
     nonNullish(balanceValue?.response) &&
+    maxStake >= MIN_STAKE_AMOUNT &&
     nonNullish(identity) &&
     nonNullish(governanceCanister) &&
     governanceAuthenticated &&
@@ -76,42 +77,25 @@ export const StakeNeuron = () => {
   });
 
   const neuronsFetching = useIsFetching({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] });
-  const isStakeBusy = stakeMutation.isPending || neuronsFetching > 0 || balanceLoading;
-
-  const stake = () => {
-    const enteredAmount = Number(stakeInput);
-
-    if (enteredAmount < MIN_STAKE_AMOUNT) {
-      setStakeError(
-        t(($) => $.neuron.stakeNeuron.errors.minimumStake, { amount: MIN_STAKE_AMOUNT }),
-      );
-      return;
-    }
-
-    if (enteredAmount > maxStake) {
-      setStakeError(t(($) => $.neuron.stakeNeuron.errors.insufficientBalance));
-      return;
-    }
-
-    stakeMutation.mutate(enteredAmount);
-  };
+  const balanceFetching = useIsFetching({ queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE] });
+  const isStakeBusy =
+    stakeMutation.isPending || neuronsFetching > 0 || balanceLoading || balanceFetching > 0;
 
   const handleStakeChange = (value: string) => {
     setStakeInput(value);
 
+    // Clear errors as the user is typing.
     if (stakeMutation.isError) stakeMutation.reset();
-
-    if (stakeError) {
-      const nextAmount = Number(value);
-      if (!Number.isNaN(nextAmount) && nextAmount >= MIN_STAKE_AMOUNT && nextAmount <= maxStake) {
-        setStakeError(null);
-      }
-    }
+    if (stakeError) setStakeError(null);
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    stake();
+
+    const form = event.currentTarget;
+    if (!form.checkValidity()) return;
+
+    stakeMutation.mutate(Number(stakeInput));
   };
 
   const stakeHint = stakeError
@@ -140,8 +124,10 @@ export const StakeNeuron = () => {
           type="number"
           label={t(($) => $.neuron.stakeNeuron.label)}
           hint={stakeHint}
-          isInvalid={Boolean(stakeError)}
           isDisabled={isStakeBusy}
+          min={MIN_STAKE_AMOUNT}
+          max={maxStake}
+          step="any"
           placeholder={t(($) => $.neuron.stakeNeuron.placeholder)}
           tooltip={t(($) => $.neuron.stakeNeuron.tooltip)}
           value={stakeInput}
