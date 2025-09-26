@@ -8,15 +8,12 @@ import { Button, Link } from '@untitledui/components';
 import { ToggleThemeButton } from '@components/buttons/toggleTheme/ToggleThemeButton';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { useAgentPool } from '@hooks/useAgentPool';
-import useTitle from '@hooks/useTitle';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
   // @TODO: verify resolution of login->logout->login issue.
   const { login, identity, clear, isInitializing } = useInternetIdentity();
 
   const { t } = useTranslation();
-  useTitle(t(($) => $.home.title));
-
   const { anonymous, authenticated } = useAgentPool().agentPool;
   const showLoader = anonymous.loading || authenticated.loading || isInitializing;
 
@@ -37,6 +34,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
         <SkeletonLoader count={6} />
       ) : (
         <>
+          <title>{t(($) => $.home.title)}</title>
           <div>
             <div className="mb-10 flex flex-wrap items-start justify-center gap-2 sm:mb-0 sm:flex-nowrap sm:justify-between">
               <Link to="/">
