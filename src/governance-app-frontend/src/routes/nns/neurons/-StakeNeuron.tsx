@@ -1,5 +1,5 @@
 import { nonNullish } from '@dfinity/utils';
-import { useIsFetching, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -13,14 +13,13 @@ import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
 import { useIcpLedgerAccountBalance } from '@hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
 import { bigIntDiv, bigIntMul } from '@utils/bigInts';
 import { QUERY_KEYS } from '@utils/queryKeys';
-import { setWithItemAdded } from '../../../common/utils/sets';
 
 const MIN_STAKE_AMOUNT = 1;
 
 export const StakeNeuron = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { data: balanceValue, isLoading: balanceLoading } = useIcpLedgerAccountBalance();
+  const { data: balanceValue } = useIcpLedgerAccountBalance();
   const maxStake = nonNullish(balanceValue?.response)
     ? bigIntDiv(balanceValue.response, BigInt(E8S))
     : 0;
@@ -79,6 +78,7 @@ export const StakeNeuron = () => {
     },
     onError: (mutationError) => {
       setStakeError(mutationError.message ?? t(($) => $.common.error));
+      setPending(false);
     },
   });
 
