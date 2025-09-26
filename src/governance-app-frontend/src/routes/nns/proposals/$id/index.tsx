@@ -28,11 +28,7 @@ function ProposalDetailsWrapper() {
   }
 
   if (!validBigInt) {
-    return (
-      <div className="mt-4 text-red-600">
-        {t(($) => $.common.loadingError, { error: 'Invalid proposal ID.' })}
-      </div>
-    );
+    return <div className="mt-4 text-red-600">{t(($) => $.common.loadingError)}</div>;
   }
   return <ProposalDetails proposalId={validBigInt} />;
 }
