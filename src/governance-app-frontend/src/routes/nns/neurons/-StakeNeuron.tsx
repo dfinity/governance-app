@@ -19,9 +19,9 @@ const MIN_STAKE_AMOUNT = 1;
 export const StakeNeuron = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { data: balanceValue } = useIcpLedgerAccountBalance();
+  const { data: balanceValue, isLoading: balanceLoading } = useIcpLedgerAccountBalance();
   const maxStake = nonNullish(balanceValue?.response) ? Number(balanceValue.response) / E8S : 0;
-  const [stakeAmount, setStakeAmount] = useState('');
+  const [stakeInput, setStakeInput] = useState('');
   const [stakeError, setStakeError] = useState<string | null>(null);
   const { identity } = useInternetIdentity();
   const {
@@ -63,11 +63,11 @@ export const StakeNeuron = () => {
       setStakeError(null);
     },
     onSuccess: () => {
-      setStakeAmount('');
-      void queryClient.invalidateQueries({
+      setStakeInput('');
+      queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
       });
-      void queryClient.invalidateQueries({
+      queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE],
       });
     },
@@ -77,15 +77,14 @@ export const StakeNeuron = () => {
   });
 
   const neuronsFetching = useIsFetching({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] });
-  const balanceFetching = useIsFetching({ queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE] });
-  const isStakeBusy = stakeMutation.isPending || neuronsFetching > 0 || balanceFetching > 0;
+  const isStakeBusy = stakeMutation.isPending || neuronsFetching > 0 || balanceLoading;
 
   const stake = () => {
     if (!canStake || isStakeBusy) {
       return;
     }
 
-    const enteredAmount = Number(stakeAmount);
+    const enteredAmount = Number(stakeInput);
 
     if (Number.isNaN(enteredAmount)) {
       setStakeError(t(($) => $.neuron.stakeNeuron.errors.invalidAmount));
@@ -108,7 +107,7 @@ export const StakeNeuron = () => {
   };
 
   const handleStakeChange = (value: string) => {
-    setStakeAmount(value);
+    setStakeInput(value);
     if (stakeMutation.isError) {
       stakeMutation.reset();
     }
@@ -154,7 +153,7 @@ export const StakeNeuron = () => {
         isDisabled={isStakeBusy}
         placeholder={t(($) => $.neuron.stakeNeuron.placeholder)}
         tooltip={t(($) => $.neuron.stakeNeuron.tooltip)}
-        value={stakeAmount}
+        value={stakeInput}
         onChange={handleStakeChange}
       />
       <Button
