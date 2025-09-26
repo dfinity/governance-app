@@ -20,9 +20,7 @@ export const StakeNeuron = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { data: balanceValue } = useIcpLedgerAccountBalance();
-  const maxStake = nonNullish(balanceValue?.response)
-    ? bigIntDiv(balanceValue.response, BigInt(E8S))
-    : 0;
+  const maxStake = nonNullish(balanceValue?.response) ? bigIntDiv(balanceValue.response, E8Sn) : 0;
   const [stakeInput, setStakeInput] = useState('');
   const [stakeError, setStakeError] = useState<string | null>(null);
   const { identity } = useInternetIdentity();
