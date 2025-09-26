@@ -7,7 +7,6 @@
   "status": "Status",
   "stakeNeuron": {
     "label": "How many ICP to stake",
-    "placeholder": "10.00",
     "tooltip": "This ICP amount will be staked from your balance.",
     "hint": "Minimum {{min}} ICP, maximum {{max}} {{unit}}",
     "errors": {

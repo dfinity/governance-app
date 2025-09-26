@@ -121,6 +121,7 @@ export const StakeNeuron = () => {
         max: maxStake,
         unit: t(($) => $.common.icp),
       });
+  const stakePlaceholder = Math.max(maxStake - Number(ICP_TRANSACTION_FEE_E8S) / E8S, 0);
 
   if (!canStake) {
     return null;
@@ -142,7 +143,7 @@ export const StakeNeuron = () => {
           hint={stakeHint}
           isInvalid={Boolean(stakeError)}
           isDisabled={isStakeBusy}
-          placeholder={t(($) => $.neuron.stakeNeuron.placeholder)}
+          placeholder={`${stakePlaceholder}`}
           tooltip={t(($) => $.neuron.stakeNeuron.tooltip)}
           value={stakeInput}
           onChange={handleStakeChange}
