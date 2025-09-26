@@ -26,7 +26,7 @@ function NeuronsPage() {
     <div className="flex flex-col gap-2 text-xl">
       <StakeNeuron />
 
-      <h2 className="mb-2 flex gap-2">{t(($) => $.common.neuronsList)}</h2>
+      <h2 className="mb-2 text-primary">{t(($) => $.common.neuronsList)}</h2>
 
       {isLoading && <SkeletonLoader count={3} />}
       {!isLoading && !data?.response.length && (

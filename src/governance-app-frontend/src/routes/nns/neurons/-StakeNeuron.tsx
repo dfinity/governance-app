@@ -128,7 +128,7 @@ export const StakeNeuron = () => {
 
   return (
     <>
-      <h2 className="mb-2 flex gap-2">{t(($) => $.neuron.stake)}</h2>
+      <h2 className="mb-2 text-primary">{t(($) => $.neuron.stake)}</h2>
       <form
         onSubmit={handleSubmit}
         data-testid="stake-neuron-form"

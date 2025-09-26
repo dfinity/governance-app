@@ -26,7 +26,7 @@ function ProposalsPage() {
 
   return (
     <div className="flex flex-col gap-2 text-xl">
-      <div className="mb-2 flex gap-2 text-primary">{t(($) => $.common.proposalsList)}</div>
+      <h2 className="mb-2 text-primary">{t(($) => $.common.proposalsList)}</h2>
 
       {isLoading && <SkeletonLoader count={3} />}
       {!isLoading && !data?.pages?.length && (
