@@ -8,12 +8,15 @@ import { Button, Link } from '@untitledui/components';
 import { ToggleThemeButton } from '@components/buttons/toggleTheme/ToggleThemeButton';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { useAgentPool } from '@hooks/useAgentPool';
+import useTitle from '@hooks/useTitle';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
   // @TODO: verify resolution of login->logout->login issue.
   const { login, identity, clear, isInitializing } = useInternetIdentity();
 
   const { t } = useTranslation();
+  useTitle(t(($) => $.home.title));
+
   const { anonymous, authenticated } = useAgentPool().agentPool;
   const showLoader = anonymous.loading || authenticated.loading || isInitializing;
 
@@ -28,15 +31,14 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
   return (
     <main
       data-testid="main-layout"
-      className="m-auto flex min-h-[100vh] max-w-[1920px] flex-col justify-between gap-2 overflow-hidden p-4"
+      className="m-auto flex min-h-[100vh] max-w-[1920px] flex-col justify-between gap-2 overflow-auto p-4"
     >
       {showLoader ? (
         <SkeletonLoader count={6} />
       ) : (
         <>
-          <title>{t(($) => $.home.title)}</title>
           <div>
-            <div className="flex shrink-0 items-start justify-between gap-2">
+            <div className="mb-10 flex flex-wrap items-start justify-center gap-2 sm:mb-0 sm:flex-nowrap sm:justify-between">
               <Link to="/">
                 <h1 className="pb-4 text-4xl font-bold text-brand-primary">
                   {t(($) => $.home.title)}

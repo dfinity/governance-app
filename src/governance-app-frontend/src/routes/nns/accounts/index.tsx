@@ -32,9 +32,13 @@ function AccountsPage() {
   useTitle(t(($) => $.common.accounts));
 
   const { identity } = useInternetIdentity();
-  const accountId = AccountIdentifier.fromPrincipal({
-    principal: identity!.getPrincipal(),
-  }).toHex();
+
+  // Check if identity is defined: during logout it can be undefined for a brief moment before the router redirects to the homepage.
+  const accountId = identity
+    ? AccountIdentifier.fromPrincipal({
+        principal: identity?.getPrincipal(),
+      }).toHex()
+    : '';
 
   const transactions = useIcpIndexTransactions();
 
