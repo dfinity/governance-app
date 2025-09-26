@@ -13,6 +13,7 @@ import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
 import { useIcpLedgerAccountBalance } from '@hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
 import { bigIntDiv, bigIntMul } from '@utils/bigInts';
 import { QUERY_KEYS } from '@utils/queryKeys';
+import { setWithItemAdded } from '../../../common/utils/sets';
 
 const MIN_STAKE_AMOUNT = 1;
 
@@ -31,6 +32,7 @@ export const StakeNeuron = () => {
     canister: governanceCanister,
     authenticated: governanceAuthenticated,
   } = useNnsGovernance();
+  const [pending, setPending] = useState(false);
   const {
     ready: ledgerReady,
     authenticated: ledgerAuthenticated,
@@ -61,24 +63,24 @@ export const StakeNeuron = () => {
       });
     },
     onMutate: () => {
+      setPending(true);
       setStakeError(null);
     },
     onSuccess: () => {
       setStakeInput('');
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE],
-      });
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE],
+        }),
+      ]).finally(() => setPending(false));
     },
     onError: (mutationError) => {
       setStakeError(mutationError.message ?? t(($) => $.common.error));
     },
   });
-
-  const neuronsFetching = useIsFetching({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] });
-  const isStakeBusy = stakeMutation.isPending || neuronsFetching > 0 || balanceLoading;
 
   const stake = () => {
     const enteredAmount = Number(stakeInput);
@@ -144,13 +146,13 @@ export const StakeNeuron = () => {
           label={t(($) => $.neuron.stakeNeuron.label)}
           hint={stakeHint}
           isInvalid={Boolean(stakeError)}
-          isDisabled={isStakeBusy}
+          isDisabled={pending}
           placeholder={`${stakePlaceholder}`}
           tooltip={t(($) => $.neuron.stakeNeuron.tooltip)}
           value={stakeInput}
           onChange={handleStakeChange}
         />
-        <Button isDisabled={isStakeBusy} isLoading={isStakeBusy} showTextWhileLoading type="submit">
+        <Button isDisabled={pending} isLoading={pending} showTextWhileLoading type="submit">
           {t(($) => $.neuron.stake)}
         </Button>
       </form>
