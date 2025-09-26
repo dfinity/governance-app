@@ -11,7 +11,7 @@ import { E8S, E8Sn, ICP_TRANSACTION_FEE_E8S } from '@constants/extra';
 import { useNnsGovernance } from '@hooks/canisters/governance';
 import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
 import { useIcpLedgerAccountBalance } from '@hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
-import { bigIntMul } from '@utils/bigInts';
+import { bigIntDiv, bigIntMul } from '@utils/bigInts';
 import { QUERY_KEYS } from '@utils/queryKeys';
 
 const MIN_STAKE_AMOUNT = 1;
@@ -20,7 +20,9 @@ export const StakeNeuron = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { data: balanceValue, isLoading: balanceLoading } = useIcpLedgerAccountBalance();
-  const maxStake = nonNullish(balanceValue?.response) ? Number(balanceValue.response) / E8S : 0;
+  const maxStake = nonNullish(balanceValue?.response)
+    ? bigIntDiv(balanceValue.response, BigInt(E8S))
+    : 0;
   const [stakeInput, setStakeInput] = useState('');
   const [stakeError, setStakeError] = useState<string | null>(null);
   const { identity } = useInternetIdentity();
