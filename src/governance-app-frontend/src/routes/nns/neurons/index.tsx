@@ -18,7 +18,7 @@ export const Route = createFileRoute('/nns/neurons/')({
 });
 
 function NeuronsPage() {
-  const neurons = useGovernanceNeurons();
+  const neuronsQuery = useGovernanceNeurons();
   const { t } = useTranslation();
   useTitle(t(($) => $.common.neuronsList));
 
@@ -27,16 +27,16 @@ function NeuronsPage() {
       <div className="mb-2 flex gap-2">{t(($) => $.common.neuronsList)}</div>
 
       <QueryStates<CertifiedData<NeuronInfo[]>>
-        query={neurons}
-        isEmpty={(data) => data.response.length === 0}
+        query={neuronsQuery}
+        isEmpty={(neurons) => neurons.response.length === 0}
       >
-        {(data) => (
+        {(neurons) => (
           <div className="grid grid-cols-1 gap-4 text-lg sm:grid-cols-2 lg:grid-cols-3">
-            {data?.response.map((neuron) => (
+            {neurons?.response.map((neuron) => (
               <SimpleCard key={neuron.neuronId}>
                 <div className="flex items-center justify-between gap-2">
                   <p className="overflow-hidden text-ellipsis">#{neuron.neuronId}</p>
-                  {data?.certified ? <CertifiedBadge /> : <SkeletonLoader width={90} />}
+                  {neurons?.certified ? <CertifiedBadge /> : <SkeletonLoader width={90} />}
                 </div>
                 <div className="mt-2 gap-1 text-sm">
                   <table className="text-sm">

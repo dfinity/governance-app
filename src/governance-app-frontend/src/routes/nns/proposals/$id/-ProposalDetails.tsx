@@ -18,75 +18,79 @@ type Props = {
 export const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
   const { t } = useTranslation();
 
-  const proposal = useGovernanceProposal({
+  const proposalQuery = useGovernanceProposal({
     proposalId,
   });
 
   return (
     <QueryStates<CertifiedData<ProposalInfo>>
-      query={proposal}
-      isEmpty={(data) => data.response === undefined}
+      query={proposalQuery}
+      isEmpty={(proposal) => proposal.response === undefined}
     >
-      {({ response: data }) => (
+      {({ response: proposal }) => (
         <>
           <h2 className="flex items-center justify-between pb-4 text-xl">
-            {t(($) => $.proposal.proposalId, { id: data.id })}
-            {proposal.data?.certified ? (
+            {t(($) => $.proposal.proposalId, { id: proposal.id })}
+            {proposalQuery.data?.certified ? (
               <CertifiedBadge />
             ) : (
               <SkeletonLoader height={24} width={100} />
             )}
           </h2>
 
-          <ProposalDetailsVoting proposal={data} />
+          <ProposalDetailsVoting proposal={proposal} />
 
           <div className="mb-4 rounded-lg border p-4">
             {/* type */}
             <dl>
               <dt className="font-bold">{t(($) => $.proposal.type)}</dt>
-              <dd>{Object.keys(data.proposal?.action ?? {})[0]}</dd>
+              <dd>{Object.keys(proposal.proposal?.action ?? {})[0]}</dd>
             </dl>
             {/* topic */}
             <dl>
               <dt className="font-bold">{t(($) => $.proposal.topic)}</dt>
-              <dd>{Topic[data.topic]}</dd>
+              <dd>{Topic[proposal.topic]}</dd>
             </dl>
             {/* status */}
             <dl>
               <dt className="font-bold">{t(($) => $.proposal.status)}</dt>
-              <dd>{ProposalStatus[data.status]}</dd>
+              <dd>{ProposalStatus[proposal.status]}</dd>
             </dl>
             {/* reward status */}
             <dl>
               <dt className="font-bold">{t(($) => $.proposal.rewardStatus)}</dt>
-              <dd>{ProposalRewardStatus[data.rewardStatus]}</dd>
+              <dd>{ProposalRewardStatus[proposal.rewardStatus]}</dd>
             </dl>
             {/* created at */}
             <dl>
               <dt className="font-bold">{t(($) => $.proposal.created)}</dt>
-              <dd>{data.proposalTimestampSeconds}</dd>
+              <dd>{proposal.proposalTimestampSeconds}</dd>
             </dl>
             {/* TBD: decided, executed */}
             {/* proposer */}
             <dl>
               <dt className="font-bold">{t(($) => $.proposal.proposer)}</dt>
-              <dd>{data.proposer?.toString()}</dd>
+              <dd>{proposal.proposer?.toString()}</dd>
             </dl>
           </div>
 
           <div className="mb-4 rounded-lg border p-4">
             {/* summary */}
-            <Link to={data.proposal?.url ?? '#'}>{data.proposal?.title}</Link>
+            <Link to={proposal.proposal?.url ?? '#'}>{proposal.proposal?.title}</Link>
             <dl>
               <dt className="font-bold">{t(($) => $.proposal.summary)}</dt>
-              <dd>{data.proposal?.summary}</dd>
+              <dd>{proposal.proposal?.summary}</dd>
             </dl>
             {/* action */}
             <dl>
               <dt className="font-bold">{t(($) => $.proposal.action)}</dt>
               <dd>
-                {data.proposal?.action &&
-                  JSON.stringify(Object.values(data.proposal?.action ?? {})[0], jsonReplacer, 2)}
+                {proposal.proposal?.action &&
+                  JSON.stringify(
+                    Object.values(proposal.proposal?.action ?? {})[0],
+                    jsonReplacer,
+                    2,
+                  )}
               </dd>
             </dl>
           </div>

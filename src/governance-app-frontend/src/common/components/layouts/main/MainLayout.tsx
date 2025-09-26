@@ -28,7 +28,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
   return (
     <main
       data-testid="main-layout"
-      className="m-auto flex min-h-[100vh] max-w-[1920px] flex-col justify-between gap-2 overflow-auto p-4"
+      className="m-auto flex min-h-[100vh] max-w-[1920px] min-w-[385px] flex-col justify-between gap-2 overflow-auto p-4"
     >
       {showLoader ? (
         <SkeletonLoader count={6} />
@@ -42,7 +42,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
                   {t(($) => $.home.title)}
                 </h1>
               </Link>
-              <div className="flex gap-4">
+              <div className="flex flex-wrap justify-center gap-4 sm:flex-nowrap">
                 <Button to="/nns">{t(($) => $.common.nns)}</Button>
                 <Button to="/sns">{t(($) => $.common.sns)}</Button>
                 <Button to="/vault/$name" params={{ name: 'John' }} search={{ surname: 'Doe' }}>
@@ -54,7 +54,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
                   color={identity ? 'secondary-destructive' : 'secondary'}
                   onClick={identity ? clear : login}
                 >
-                  {identity ? 'Logout' : 'Login with Internet Identity!'}
+                  {identity ? t(($) => $.common.logout) : t(($) => $.common.login)}
                 </Button>
 
                 <ToggleThemeButton />

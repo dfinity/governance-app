@@ -5,7 +5,7 @@ import Skeleton from 'react-loading-skeleton';
 import { EmptyMessage } from './EmptyMessage';
 import { WarningMessage } from './WarningMessage';
 
-type infiniteQueryData<TData = unknown> = Partial<InfiniteData<TData, unknown>>;
+type InfiniteQueryData<TData = unknown> = Partial<InfiniteData<TData, unknown>>;
 
 type Props<TData> = (
   | {
@@ -17,11 +17,11 @@ type Props<TData> = (
   | {
       query?: undefined;
       infiniteQuery: Pick<
-        UseInfiniteQueryResult<infiniteQueryData<TData>, Error>,
+        UseInfiniteQueryResult<InfiniteQueryData<TData>, Error>,
         'data' | 'isLoading' | 'error'
       >;
-      isEmpty: (data: infiniteQueryData<TData>) => boolean;
-      children: (data: infiniteQueryData<TData>) => React.ReactNode;
+      isEmpty: (data: InfiniteQueryData<TData>) => boolean;
+      children: (data: InfiniteQueryData<TData>) => React.ReactNode;
     }
 ) & {
   loadingComponent?: React.ReactNode;
@@ -46,15 +46,7 @@ export const QueryStates = <TData,>({
   }
 
   if (q.error) {
-    return (
-      errorComponent || (
-        <WarningMessage
-          message={t(($) => $.common.loadingError, {
-            error: q.error.message,
-          })}
-        />
-      )
-    );
+    return errorComponent || <WarningMessage message={t(($) => $.common.loadingError)} />;
   }
 
   if (query) {

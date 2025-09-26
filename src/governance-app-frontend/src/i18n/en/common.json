@@ -1,5 +1,5 @@
 {
-  "login": "Login with Internet Identity!",
+  "login": "Login",
   "switchToLightMode": "Switch to Light Mode",
   "switchToDarkMode": "Switch to Dark Mode",
   "switchToSystemMode": "Switch to System Mode",
@@ -9,8 +9,7 @@
   "seeProposals": "See Proposals",
   "seeNeurons": "See Neurons",
   "seeAccounts": "See Accounts",
-  "loadingError": "Error loading data: {{error}}.",
-  "errorLoadingProposals": "Error loading proposals: {{error}}.",
+  "loadingError": "Error loading data.",
   "nns": "NNS",
   "sns": "SNS",
   "vault": "Vault",
@@ -34,5 +33,7 @@
   "to": "To",
   "amount": "Amount",
   "fee": "Fee",
-  "date": "Date"
+  "date": "Date",
+  "loginWithII": "Login with Internet Identity",
+  "logout": "Logout"
 }

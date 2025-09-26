@@ -30,7 +30,7 @@ function ProposalDetailsWrapper() {
   if (!validBigInt) {
     return (
       <div className="mt-4 text-red-600">
-        {t(($) => $.common.errorLoadingProposals, { error: 'Invalid proposal ID.' })}
+        {t(($) => $.common.loadingError, { error: 'Invalid proposal ID.' })}
       </div>
     );
   }

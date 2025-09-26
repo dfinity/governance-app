@@ -68,7 +68,7 @@ function AccountsPage() {
       <div className="mt-4 mb-2 flex gap-2">{t(($) => $.common.transactions)}</div>
       <QueryStates<CertifiedData<GetAccountIdentifierTransactionsResponse>>
         infiniteQuery={transactions}
-        isEmpty={(data) => !data.pages?.length}
+        isEmpty={(data) => !data.pages?.length || !data.pages[0].response.transactions.length}
       >
         {(data) => (
           <div className="flex flex-col gap-2">

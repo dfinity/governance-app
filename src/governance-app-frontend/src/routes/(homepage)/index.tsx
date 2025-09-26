@@ -16,7 +16,7 @@ function Homepage() {
         ? t(($) => $.home.yourPrincipal, {
             principal: identity.getPrincipal().toString(),
           })
-        : t(($) => $.common.login)}
+        : t(($) => $.common.loginWithII)}
     </div>
   );
 }
