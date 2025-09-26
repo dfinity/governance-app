@@ -49,14 +49,13 @@ export const StakeNeuron = () => {
     mutationFn: async (amount) => {
       const stake = bigIntMul(E8Sn, amount);
       const principal = identity!.getPrincipal();
-      const fee = ICP_TRANSACTION_FEE_E8S;
 
       return governanceCanister!.stakeNeuron({
         stake,
         principal,
         ledgerCanister: ledgerCanister!,
         createdAt: BigInt(Date.now()) * 1_000_000n,
-        fee,
+        fee: ICP_TRANSACTION_FEE_E8S,
       });
     },
     onMutate: () => {
@@ -80,16 +79,7 @@ export const StakeNeuron = () => {
   const isStakeBusy = stakeMutation.isPending || neuronsFetching > 0 || balanceLoading;
 
   const stake = () => {
-    if (!canStake || isStakeBusy) {
-      return;
-    }
-
     const enteredAmount = Number(stakeInput);
-
-    if (Number.isNaN(enteredAmount)) {
-      setStakeError(t(($) => $.neuron.stakeNeuron.errors.invalidAmount));
-      return;
-    }
 
     if (enteredAmount < MIN_STAKE_AMOUNT) {
       setStakeError(
@@ -112,10 +102,6 @@ export const StakeNeuron = () => {
       stakeMutation.reset();
     }
 
-    if (!canStake) {
-      return;
-    }
-
     if (stakeError) {
       const nextAmount = Number(value);
       if (!Number.isNaN(nextAmount) && nextAmount >= MIN_STAKE_AMOUNT && nextAmount <= maxStake) {
@@ -126,13 +112,11 @@ export const StakeNeuron = () => {
 
   const stakeHint = stakeError
     ? stakeError
-    : canStake
-      ? t(($) => $.neuron.stakeNeuron.hint, {
-          min: MIN_STAKE_AMOUNT,
-          max: maxStake,
-          unit: t(($) => $.common.icp),
-        })
-      : undefined;
+    : t(($) => $.neuron.stakeNeuron.hint, {
+        min: MIN_STAKE_AMOUNT,
+        max: maxStake,
+        unit: t(($) => $.common.icp),
+      });
 
   if (!canStake) {
     return null;
