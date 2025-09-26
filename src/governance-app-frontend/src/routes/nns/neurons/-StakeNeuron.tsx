@@ -1,7 +1,7 @@
 import { nonNullish } from '@dfinity/utils';
 import { useIsFetching, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@untitledui/components';
@@ -98,9 +98,8 @@ export const StakeNeuron = () => {
 
   const handleStakeChange = (value: string) => {
     setStakeInput(value);
-    if (stakeMutation.isError) {
-      stakeMutation.reset();
-    }
+
+    if (stakeMutation.isError) stakeMutation.reset();
 
     if (stakeError) {
       const nextAmount = Number(value);
@@ -108,6 +107,11 @@ export const StakeNeuron = () => {
         setStakeError(null);
       }
     }
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    stake();
   };
 
   const stakeHint = stakeError
@@ -123,32 +127,30 @@ export const StakeNeuron = () => {
   }
 
   return (
-    <div
-      data-testid="stake-neuron-form"
-      className="mb-4 flex items-center gap-2 rounded-lg p-4 shadow-md"
-      style={{ backgroundColor: 'var(--background-color-secondary)' }}
-    >
-      <Input
-        isRequired
-        type="number"
-        label={t(($) => $.neuron.stakeNeuron.label)}
-        hint={stakeHint}
-        isInvalid={Boolean(stakeError)}
-        isDisabled={isStakeBusy}
-        placeholder={t(($) => $.neuron.stakeNeuron.placeholder)}
-        tooltip={t(($) => $.neuron.stakeNeuron.tooltip)}
-        value={stakeInput}
-        onChange={handleStakeChange}
-      />
-      <Button
-        onClick={stake}
-        className="w-fit"
-        isDisabled={isStakeBusy}
-        isLoading={isStakeBusy}
-        showTextWhileLoading
+    <>
+      <h2 className="mb-2 flex gap-2">{t(($) => $.neuron.stake)}</h2>
+      <form
+        onSubmit={handleSubmit}
+        data-testid="stake-neuron-form"
+        className="mb-4 flex items-center gap-2 rounded-lg p-4 shadow-md"
+        style={{ backgroundColor: 'var(--background-color-secondary)' }}
       >
-        {t(($) => $.neuron.stake)}
-      </Button>
-    </div>
+        <Input
+          isRequired
+          type="number"
+          label={t(($) => $.neuron.stakeNeuron.label)}
+          hint={stakeHint}
+          isInvalid={Boolean(stakeError)}
+          isDisabled={isStakeBusy}
+          placeholder={t(($) => $.neuron.stakeNeuron.placeholder)}
+          tooltip={t(($) => $.neuron.stakeNeuron.tooltip)}
+          value={stakeInput}
+          onChange={handleStakeChange}
+        />
+        <Button isDisabled={isStakeBusy} isLoading={isStakeBusy} showTextWhileLoading type="submit">
+          {t(($) => $.neuron.stake)}
+        </Button>
+      </form>
+    </>
   );
 };
