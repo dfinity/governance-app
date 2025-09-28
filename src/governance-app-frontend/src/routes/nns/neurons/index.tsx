@@ -10,6 +10,7 @@ import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceN
 import useTitle from '@hooks/useTitle';
 import { requireIdentity } from '@utils/routes';
 
+import { SetDissolveDelayModal } from './-SetDissolveDelayModal';
 import { StakeNeuron } from './-StakeNeuron';
 
 export const Route = createFileRoute('/nns/neurons/')({
@@ -74,6 +75,9 @@ function NeuronsPage() {
                   </tr>
                 </tbody>
               </table>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <SetDissolveDelayModal neuronId={neuron.neuronId} />
             </div>
           </div>
         ))}
