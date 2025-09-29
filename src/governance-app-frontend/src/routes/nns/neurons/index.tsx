@@ -12,6 +12,8 @@ import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';
 import { requireIdentity } from '@utils/router';
 
+import { StakeNeuron } from './-StakeNeuron';
+
 export const Route = createFileRoute('/nns/neurons/')({
   component: NeuronsPage,
   beforeLoad: requireIdentity,
@@ -24,7 +26,9 @@ function NeuronsPage() {
 
   return (
     <div className="flex flex-col gap-2 text-xl">
-      <div className="mb-2 flex gap-2">{t(($) => $.common.neuronsList)}</div>
+      <StakeNeuron />
+
+      <h2 className="mb-2 text-primary">{t(($) => $.common.neuronsList)}</h2>
 
       <QueryStates<CertifiedData<NeuronInfo[]>>
         query={neuronsQuery}

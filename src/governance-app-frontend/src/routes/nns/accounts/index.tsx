@@ -44,7 +44,7 @@ function AccountsPage() {
 
   return (
     <div className="flex flex-col gap-2 text-xl">
-      <div className="mb-2 flex gap-2">{t(($) => $.common.accounts)}</div>
+      <h2 className="mb-2 text-primary">{t(($) => $.common.accounts)}</h2>
 
       <div className="flex items-center gap-2">
         <pre className="overflow-hidden rounded bg-amber-50 px-2 py-2 text-sm text-ellipsis text-black">
