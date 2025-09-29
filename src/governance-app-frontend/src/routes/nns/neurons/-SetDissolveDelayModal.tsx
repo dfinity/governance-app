@@ -17,6 +17,7 @@ import { useNnsGovernance } from '@hooks/canisters/governance';
 import { nonNullish } from '@dfinity/utils';
 import { bigIntDiv } from '@utils/bigInts';
 import { QUERY_KEYS } from '@utils/queryKeys';
+import { mapGovernanceCanisterError } from '@utils/nns-governance';
 
 interface Props {
   neuron: NeuronInfo;
@@ -76,7 +77,8 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
     onError: (mutationError) => {
       console.error('Set dissolve delay error', mutationError);
 
-      setError(mutationError?.message ?? t(($) => $.common.error));
+      // Use || because the message can be an empty string
+      setError(mutationError.message || mapGovernanceCanisterError(mutationError));
       setPending(false);
     },
   });

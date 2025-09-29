@@ -14,6 +14,7 @@ import { useIcpLedgerAccountBalance } from '@hooks/canisters/icpLedger/useIcpLed
 import { bigIntDiv, bigIntMul } from '@utils/bigInts';
 import { nowInSeconds } from '@utils/dateTime';
 import { QUERY_KEYS } from '@utils/queryKeys';
+import { mapGovernanceCanisterError } from '@utils/nns-governance';
 
 export const StakeNeuron = () => {
   const { t } = useTranslation();
@@ -74,7 +75,10 @@ export const StakeNeuron = () => {
       ]).finally(() => setPending(false));
     },
     onError: (mutationError) => {
-      setStakeError(mutationError.message ?? t(($) => $.common.error));
+      console.error('Error while staking neuron:', mutationError);
+
+      // Use "||" because the message can be an empty string
+      setStakeError(mutationError.message || mapGovernanceCanisterError(mutationError));
       setPending(false);
     },
   });
