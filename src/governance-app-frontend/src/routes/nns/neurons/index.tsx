@@ -77,7 +77,7 @@ function NeuronsPage() {
               </table>
             </div>
             <div className="mt-4 flex justify-end">
-              <SetDissolveDelayModal neuronId={neuron.neuronId} />
+              <SetDissolveDelayModal neuron={neuron} />
             </div>
           </div>
         ))}
