@@ -1,4 +1,5 @@
 import { NeuronInfo, NeuronState } from '@dfinity/nns';
+import { secondsToDuration } from '@dfinity/utils';
 import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
@@ -12,7 +13,6 @@ import { requireIdentity } from '@utils/routes';
 
 import { SetDissolveDelayModal } from './-SetDissolveDelayModal';
 import { StakeNeuron } from './-StakeNeuron';
-import { secondsToDuration } from '@dfinity/utils';
 
 export const Route = createFileRoute('/nns/neurons/')({
   component: NeuronsPage,

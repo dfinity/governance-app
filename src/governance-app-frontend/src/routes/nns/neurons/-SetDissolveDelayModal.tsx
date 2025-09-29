@@ -1,23 +1,24 @@
+import { NeuronInfo } from '@dfinity/nns';
+import { nonNullish } from '@dfinity/utils';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@untitledui/components';
-import { Input } from '@untitledui/components/base/input/input';
 import {
   Dialog,
   DialogTrigger,
   Modal,
   ModalOverlay,
 } from '@untitledui/components/application/modals/modal';
+import { Input } from '@untitledui/components/base/input/input';
+
 import { SECONDS_IN_DAY } from '@constants/extra';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { NeuronInfo } from '@dfinity/nns';
 import { ICP_MAX_DISSOLVE_DELAY_SECONDS, ICP_MIN_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { useNnsGovernance } from '@hooks/canisters/governance';
-import { nonNullish } from '@dfinity/utils';
 import { bigIntDiv } from '@utils/bigInts';
-import { QUERY_KEYS } from '@utils/queryKeys';
 import { mapGovernanceCanisterError } from '@utils/nns-governance';
+import { QUERY_KEYS } from '@utils/queryKeys';
 
 interface Props {
   neuron: NeuronInfo;

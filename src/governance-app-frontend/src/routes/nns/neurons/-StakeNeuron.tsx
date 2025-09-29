@@ -13,8 +13,8 @@ import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
 import { useIcpLedgerAccountBalance } from '@hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
 import { bigIntDiv, bigIntMul } from '@utils/bigInts';
 import { nowInSeconds } from '@utils/dateTime';
-import { QUERY_KEYS } from '@utils/queryKeys';
 import { mapGovernanceCanisterError } from '@utils/nns-governance';
+import { QUERY_KEYS } from '@utils/queryKeys';
 
 export const StakeNeuron = () => {
   const { t } = useTranslation();
