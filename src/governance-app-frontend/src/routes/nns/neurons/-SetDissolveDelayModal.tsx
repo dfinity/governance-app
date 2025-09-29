@@ -16,7 +16,7 @@ import { Input } from '@untitledui/components/base/input/input';
 import { SECONDS_IN_DAY } from '@constants/extra';
 import { ICP_MAX_DISSOLVE_DELAY_SECONDS, ICP_MIN_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { useNnsGovernance } from '@hooks/canisters/governance';
-import { bigIntDiv } from '@utils/bigInts';
+import { bigIntDiv, bigIntMul } from '@utils/bigInts';
 import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { QUERY_KEYS } from '@utils/queryKeys';
 
@@ -92,8 +92,9 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
   const handleSubmit = (close: () => void) => async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const additionalDissolveDelaySeconds =
-      Number(delayDaysInput) * SECONDS_IN_DAY - Number(neuron.dissolveDelaySeconds);
+    const additionalDissolveDelaySeconds = Number(
+      bigIntMul(BigInt(delayDaysInput), SECONDS_IN_DAY) - neuron.dissolveDelaySeconds,
+    );
 
     if (additionalDissolveDelaySeconds < 0) {
       setError(t(($) => $.neuron.setDissolveDelayModal.errors.decreasingDelay));
