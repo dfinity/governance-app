@@ -11,8 +11,8 @@ import { E8S, E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE_E8S } from '@const
 import { useNnsGovernance } from '@hooks/canisters/governance';
 import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
 import { useIcpLedgerAccountBalance } from '@hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
-import { bigIntDiv, bigIntMul } from '@utils/bigInts';
-import { QUERY_KEYS } from '@utils/queryKeys';
+import { bigIntDiv, bigIntMul } from '@utils/bigInt';
+import { QUERY_KEYS } from '@utils/query';
 
 export const StakeNeuron = () => {
   const { t } = useTranslation();
