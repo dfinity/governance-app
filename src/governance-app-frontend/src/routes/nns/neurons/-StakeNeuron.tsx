@@ -12,8 +12,8 @@ import { useNnsGovernance } from '@hooks/canisters/governance';
 import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
 import { useIcpLedgerAccountBalance } from '@hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
 import { bigIntDiv, bigIntMul } from '@utils/bigInts';
+import { nowInSeconds } from '@utils/dateTime';
 import { QUERY_KEYS } from '@utils/queryKeys';
-import { nowInSeconds } from '../../../utils/date-time';
 
 export const StakeNeuron = () => {
   const { t } = useTranslation();
