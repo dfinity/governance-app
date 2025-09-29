@@ -23,6 +23,7 @@
   "initializing": "Initializing...",
   "loadingWithDots": "Loading...",
   "error": "Error",
+  "unknownError": "An error occurred.",
   "certified": "Certified",
   "yes": "Yes",
   "no": "No",

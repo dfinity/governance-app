@@ -29,5 +29,5 @@ export const mapGovernanceCanisterError = (error: Error): string => {
     return t(($) => $.errors.nnsGovernanceErrors.UnsupportedValueError);
   }
 
-  return t(($) => $.errors.unknown);
+  return t(($) => $.common.unknownError);
 };

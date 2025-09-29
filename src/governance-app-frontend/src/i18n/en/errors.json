@@ -1,5 +1,4 @@
 {
-  "unknown": "An error occurred.",
   "nnsGovernanceErrors": {
     "CouldNotClaimNeuronError": "Could not find the neuron to claim.",
     "InsufficientAmountError": "The amount is not enough.",
