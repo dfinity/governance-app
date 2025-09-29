@@ -9,14 +9,14 @@
   "setDissolveDelayModal": {
     "title": "Set dissolve delay for {{neuronId}}",
     "description": "Dissolve delay is the minimum amount of time you have to wait for the neuron to unlock, and ICPs to be available again. Note, that dissolve delay only decreases when the neuron is in a dissolving state.",
-    "hint": "Minimum {{min}} days to receive rewards, maximum {{max}} days.",
+    "hint": "Minimum {{min}} days to have voting power, maximum {{max}} days.",
     "delayLabel": "Dissolve delay in days",
     "actions": {
       "confirm": "Set dissolve delay",
       "cancel": "Cancel"
     },
     "errors": {
-      "decreasingDelay": "Cannot decrease dissolve delay."
+      "decreasingDelay": "The dissolve delay cannot be decreased."
     }
   },
   "stakeNeuron": {
