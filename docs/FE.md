@@ -16,6 +16,18 @@ Additionally, we manually manage an `index.ts` file to export all components wit
 
 Icons are provided by [Lucide](https://lucide.dev/), an open-source icon library. We use the React version of Lucide, which is installed as a dependency in our project.
 
+### Sample steps to add a new Untitled UI component
+
+1. Run `npm run untitledui:add loading-indicator`
+2. Remove `src/governance-app-frontend/src/utils/cx.ts`
+3. (Optional) Fix imports:
+
+- `@utils/cx` → `@untitledui/utils/cx`
+- `@components/untitledui/` → `@untitledui/`
+- Replace icon files with `"lucide-react"` icons (most names are compatible).
+
+4. Remove the generated icon files, since we are using Lucide instead.
+
 ## Testing
 
 ### E2E

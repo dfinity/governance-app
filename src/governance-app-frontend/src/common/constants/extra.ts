@@ -8,4 +8,7 @@ export const MIN_ASYNC_DELAY = 300; // Avoids flashing of loading indicators.
 export const E8S = 100_000_000;
 export const E8Sn = 100_000_000n;
 
+export const ICP_TRANSACTION_FEE_E8S = 10_000n;
+export const ICP_MIN_STAKE_AMOUNT = 1;
+
 export const VOTING_RESULTS_PRECISION = 6; // Number of digits after the decimal point.
