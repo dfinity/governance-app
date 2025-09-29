@@ -7,14 +7,12 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@untitledui/components';
 import { Input } from '@untitledui/components/base/input/input';
 
-import { E8S, E8Sn, ICP_TRANSACTION_FEE_E8S } from '@constants/extra';
+import { E8S, E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE_E8S } from '@constants/extra';
 import { useNnsGovernance } from '@hooks/canisters/governance';
 import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
 import { useIcpLedgerAccountBalance } from '@hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
 import { bigIntDiv, bigIntMul } from '@utils/bigInts';
 import { QUERY_KEYS } from '@utils/queryKeys';
-
-const MIN_STAKE_AMOUNT = 1;
 
 export const StakeNeuron = () => {
   const { t } = useTranslation();
@@ -83,9 +81,9 @@ export const StakeNeuron = () => {
   const stake = () => {
     const enteredAmount = Number(stakeInput);
 
-    if (enteredAmount < MIN_STAKE_AMOUNT) {
+    if (enteredAmount < ICP_MIN_STAKE_AMOUNT) {
       setStakeError(
-        t(($) => $.neuron.stakeNeuron.errors.minimumStake, { amount: MIN_STAKE_AMOUNT }),
+        t(($) => $.neuron.stakeNeuron.errors.minimumStake, { amount: ICP_MIN_STAKE_AMOUNT }),
       );
       return;
     }
@@ -105,7 +103,11 @@ export const StakeNeuron = () => {
 
     if (stakeError) {
       const nextAmount = Number(value);
-      if (!Number.isNaN(nextAmount) && nextAmount >= MIN_STAKE_AMOUNT && nextAmount <= maxStake) {
+      if (
+        !Number.isNaN(nextAmount) &&
+        nextAmount >= ICP_MIN_STAKE_AMOUNT &&
+        nextAmount <= maxStake
+      ) {
         setStakeError(null);
       }
     }
@@ -119,7 +121,7 @@ export const StakeNeuron = () => {
   const stakeHint = stakeError
     ? stakeError
     : t(($) => $.neuron.stakeNeuron.hint, {
-        min: MIN_STAKE_AMOUNT,
+        min: ICP_MIN_STAKE_AMOUNT,
         max: maxStake,
         unit: t(($) => $.common.icp),
       });
@@ -134,7 +136,6 @@ export const StakeNeuron = () => {
       <h2 className="mb-2 text-primary">{t(($) => $.neuron.stake)}</h2>
       <form
         onSubmit={handleSubmit}
-        data-testid="stake-neuron-form"
         className="mb-4 flex items-center gap-2 rounded-lg p-4 shadow-md"
         style={{ backgroundColor: 'var(--background-color-secondary)' }}
       >
