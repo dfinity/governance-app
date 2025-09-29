@@ -33,5 +33,19 @@
   "uncertified": "Uncertified",
   "accounts": "Accounts",
   "icp": "ICP",
-  "icps": "ICPs"
+  "icps": "ICPs",
+  "durationUnits": {
+    "year": "year",
+    "year_plural": "years",
+    "month": "month",
+    "month_plural": "months",
+    "day": "day",
+    "day_plural": "days",
+    "hour": "hour",
+    "hour_plural": "hours",
+    "minute": "minute",
+    "minute_plural": "minutes",
+    "second": "second",
+    "second_plural": "seconds"
+  }
 }

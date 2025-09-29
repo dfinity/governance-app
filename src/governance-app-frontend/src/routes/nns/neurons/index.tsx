@@ -1,4 +1,4 @@
-import { NeuronState } from '@dfinity/nns';
+import { NeuronInfo, NeuronState } from '@dfinity/nns';
 import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
@@ -12,6 +12,7 @@ import { requireIdentity } from '@utils/routes';
 
 import { SetDissolveDelayModal } from './-SetDissolveDelayModal';
 import { StakeNeuron } from './-StakeNeuron';
+import { secondsToDuration } from '@dfinity/utils';
 
 export const Route = createFileRoute('/nns/neurons/')({
   component: NeuronsPage,
@@ -21,6 +22,11 @@ export const Route = createFileRoute('/nns/neurons/')({
 function NeuronsPage() {
   const { isLoading, error, data } = useGovernanceNeurons();
   const { t } = useTranslation();
+  const dissolveDelayRemaining = (neuron: NeuronInfo): string =>
+    secondsToDuration({
+      seconds: neuron.dissolveDelaySeconds,
+      i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
+    });
   useTitle(t(($) => $.common.neuronsList));
 
   return (
@@ -72,6 +78,10 @@ function NeuronsPage() {
                   <tr>
                     <td className="pr-2 font-bold">{t(($) => $.neuron.votingPower)}:</td>
                     <td>{neuron.votingPower}</td>
+                  </tr>
+                  <tr>
+                    <td className="pr-2 font-bold">{t(($) => $.neuron.dissolveDelay)}:</td>
+                    <td>{dissolveDelayRemaining(neuron)}</td>
                   </tr>
                 </tbody>
               </table>

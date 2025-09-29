@@ -13,6 +13,7 @@ import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
 import { useIcpLedgerAccountBalance } from '@hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
 import { bigIntDiv, bigIntMul } from '@utils/bigInts';
 import { QUERY_KEYS } from '@utils/queryKeys';
+import { nowInSeconds } from '../../../utils/date-time';
 
 export const StakeNeuron = () => {
   const { t } = useTranslation();
@@ -53,7 +54,7 @@ export const StakeNeuron = () => {
         stake,
         principal,
         ledgerCanister: ledgerCanister!,
-        createdAt: BigInt(Date.now()) * 1_000_000n,
+        createdAt: nowInSeconds(),
         fee: ICP_TRANSACTION_FEE_E8S,
       });
     },
