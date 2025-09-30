@@ -53,7 +53,8 @@ export const StakeNeuron = () => {
       return governanceCanister!.stakeNeuron({
         stake,
         principal,
-        ledgerCanister: ledgerCanister!,
+        ledgerCaniste
+        r: ledgerCanister!,
         createdAt: nowInBigIntNanoSeconds(),
         fee: ICP_TRANSACTION_FEE_E8S,
       });
@@ -75,9 +76,7 @@ export const StakeNeuron = () => {
     },
     onError: (mutationError) => {
       console.error('Error while staking neuron:', mutationError);
-
-      // Use "||" because the message can be an empty string
-      setStakeError(mutationError.message || mapGovernanceCanisterError(mutationError));
+      setStakeError(mapGovernanceCanisterError(mutationError));
       setPending(false);
     },
   });

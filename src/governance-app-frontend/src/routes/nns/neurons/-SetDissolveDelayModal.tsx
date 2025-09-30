@@ -20,9 +20,9 @@ import { bigIntDiv, bigIntMul } from '@utils/bigInts';
 import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { QUERY_KEYS } from '@utils/queryKeys';
 
-interface Props {
+type Props = {
   neuron: NeuronInfo;
-}
+};
 
 const dissolveDelayDays = (neuron: NeuronInfo): string => {
   return bigIntDiv(neuron.dissolveDelaySeconds, BigInt(SECONDS_IN_DAY)).toString();
@@ -63,7 +63,6 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
       setError(null);
     },
     onSuccess: (_, { neuron, additionalDissolveDelaySeconds }) => {
-      // TODO: Update only the current neuron later
       queryClient
         .invalidateQueries({
           queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
@@ -78,17 +77,17 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
     onError: (mutationError) => {
       console.error('Set dissolve delay error', mutationError);
 
-      // Use || because the message can be an empty string
-      setError(mutationError.message || mapGovernanceCanisterError(mutationError));
+      setError(mapGovernanceCanisterError(mutationError));
       setPending(false);
     },
   });
 
   const handleDaysChange = (value: string) => {
     setDelayDays(value);
-    if (setDissolveDelayMutation.isError) setDissolveDelayMutation.reset();
-    if (error) setError(null);
+    setDissolveDelayMutation.reset();
+    setError(null);
   };
+
   const handleSubmit = (close: () => void) => async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -96,7 +95,7 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
       bigIntMul(BigInt(delayDaysInput), SECONDS_IN_DAY) - neuron.dissolveDelaySeconds,
     );
 
-    if (additionalDissolveDelaySeconds < 0) {
+    if (additionalDissolveDelaySeconds <= 0) {
       setError(t(($) => $.neuron.setDissolveDelayModal.errors.decreasingDelay));
       return;
     }
