@@ -47,14 +47,16 @@ export const StakeNeuron = () => {
 
   const stakeMutation = useMutation<bigint, Error, number>({
     mutationFn: async (amount) => {
+      // TS sanity check
+      if (!canStake) return Promise.reject();
+
       const stake = bigIntMul(E8Sn, amount);
       const principal = identity!.getPrincipal();
 
       return governanceCanister!.stakeNeuron({
         stake,
         principal,
-        ledgerCaniste
-        r: ledgerCanister!,
+        ledgerCanister: ledgerCanister!,
         createdAt: nowInBigIntNanoSeconds(),
         fee: ICP_TRANSACTION_FEE_E8S,
       });
