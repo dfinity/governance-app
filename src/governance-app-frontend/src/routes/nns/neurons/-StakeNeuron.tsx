@@ -1,4 +1,4 @@
-import { nonNullish } from '@dfinity/utils';
+import { nonNullish, nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { FormEvent, useState } from 'react';
@@ -12,7 +12,6 @@ import { useNnsGovernance } from '@hooks/canisters/governance';
 import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
 import { useIcpLedgerAccountBalance } from '@hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
 import { bigIntDiv, bigIntMul } from '@utils/bigInts';
-import { nowInSeconds } from '@utils/dateTime';
 import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { QUERY_KEYS } from '@utils/queryKeys';
 
@@ -55,7 +54,7 @@ export const StakeNeuron = () => {
         stake,
         principal,
         ledgerCanister: ledgerCanister!,
-        createdAt: nowInSeconds(),
+        createdAt: nowInBigIntNanoSeconds(),
         fee: ICP_TRANSACTION_FEE_E8S,
       });
     },
