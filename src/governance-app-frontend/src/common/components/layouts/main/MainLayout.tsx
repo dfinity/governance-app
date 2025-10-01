@@ -16,7 +16,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
   // Check this again when useInternetIdentity is updated.
   // Kristofer will update the library in the next weeks.
   const { login, identity, clear, isInitializing } = useInternetIdentity();
-  const { clear: clearQueries } = useQueryClient();
+  const queryClient = useQueryClient();
   const { invalidate } = useRouter();
 
   const { t } = useTranslation();
@@ -29,9 +29,9 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
     invalidate();
     if (!identity) {
       // Logout/expiration: clear all react-query caches, that may contain user-specific data.
-      clearQueries();
+      queryClient.clear();
     }
-  }, [identity, invalidate, clearQueries]);
+  }, [identity, invalidate, queryClient]);
 
   return (
     <main
