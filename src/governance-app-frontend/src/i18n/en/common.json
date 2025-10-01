@@ -16,6 +16,7 @@
   "initializing": "Initializing...",
   "loadingWithDots": "Loading...",
   "error": "Error",
+  "unknownError": "An error occurred.",
   "certified": "Certified",
   "yes": "Yes",
   "no": "No",
@@ -35,5 +36,19 @@
   "fee": "Fee",
   "date": "Date",
   "loginWithII": "Login with Internet Identity",
-  "logout": "Logout"
+  "logout": "Logout",
+  "durationUnits": {
+    "year": "year",
+    "year_plural": "years",
+    "month": "month",
+    "month_plural": "months",
+    "day": "day",
+    "day_plural": "days",
+    "hour": "hour",
+    "hour_plural": "hours",
+    "minute": "minute",
+    "minute_plural": "minutes",
+    "second": "second",
+    "second_plural": "seconds"
+  }
 }

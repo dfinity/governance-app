@@ -1,4 +1,4 @@
-import { nonNullish } from '@dfinity/utils';
+import { nonNullish, nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { FormEvent, useState } from 'react';
@@ -12,6 +12,7 @@ import { useNnsGovernance } from '@hooks/canisters/governance';
 import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
 import { useIcpLedgerAccountBalance } from '@hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
+import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { QUERY_KEYS } from '@utils/query';
 
 export const StakeNeuron = () => {
@@ -46,6 +47,9 @@ export const StakeNeuron = () => {
 
   const stakeMutation = useMutation<bigint, Error, number>({
     mutationFn: async (amount) => {
+      // TS sanity check
+      if (!canStake) return Promise.reject();
+
       const stake = bigIntMul(E8Sn, amount);
       const principal = identity!.getPrincipal();
 
@@ -53,7 +57,7 @@ export const StakeNeuron = () => {
         stake,
         principal,
         ledgerCanister: ledgerCanister!,
-        createdAt: BigInt(Date.now()) * 1_000_000n,
+        createdAt: nowInBigIntNanoSeconds(),
         fee: ICP_TRANSACTION_FEE_E8S,
       });
     },
@@ -73,7 +77,8 @@ export const StakeNeuron = () => {
       ]).finally(() => setPending(false));
     },
     onError: (mutationError) => {
-      setStakeError(mutationError.message ?? t(($) => $.common.error));
+      console.error('Error while staking neuron:', mutationError);
+      setStakeError(mapGovernanceCanisterError(mutationError));
       setPending(false);
     },
   });
