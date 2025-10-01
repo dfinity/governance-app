@@ -3,6 +3,7 @@ import { initReactI18next } from 'react-i18next';
 
 import common from './en/common.json';
 import enums from './en/enums.json';
+import errors from './en/errors.json';
 import home from './en/home.json';
 import neuron from './en/neuron.json';
 import nns from './en/nns.json';
@@ -17,6 +18,7 @@ export const resources = {
     labels: {
       common,
       enums,
+      errors,
       home,
       nns,
       proposal,
