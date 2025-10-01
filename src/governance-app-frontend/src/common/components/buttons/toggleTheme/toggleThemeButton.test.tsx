@@ -2,8 +2,8 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
-import { STORAGE_KEYS } from '@utils/storageKeys';
-import { renderWithProviders } from '@utils/unitTests';
+import { STORAGE_KEYS } from '@utils/storage';
+import { renderWithProviders } from '@utils/unitTest';
 
 import i18n from '@/i18n/config';
 

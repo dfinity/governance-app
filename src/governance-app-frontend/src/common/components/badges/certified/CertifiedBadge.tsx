@@ -5,6 +5,7 @@ import { BadgeWithDot } from '@untitledui/components';
 type Props = {
   certified?: boolean;
 };
+
 export const CertifiedBadge = ({ certified = true }: Props) => {
   const { t } = useTranslation();
 
