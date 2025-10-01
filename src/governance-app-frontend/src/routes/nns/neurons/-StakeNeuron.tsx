@@ -43,7 +43,8 @@ export const StakeNeuron = () => {
     governanceReady &&
     nonNullish(ledgerCanister) &&
     ledgerAuthenticated &&
-    ledgerReady;
+    ledgerReady &&
+    maxStake >= ICP_MIN_STAKE_AMOUNT;
 
   const stakeMutation = useMutation<bigint, Error, number>({
     mutationFn: async (amount) => {

@@ -29,7 +29,10 @@ function ProposalsPage() {
     <div className="flex flex-col gap-2 text-xl">
       <h2 className="mb-2 text-primary">{t(($) => $.common.proposalsList)}</h2>
 
-      <QueryStates infiniteQuery={proposals} isEmpty={(data) => !data?.pages?.length}>
+      <QueryStates
+        infiniteQuery={proposals}
+        isEmpty={(data) => !data?.pages?.[0].response.proposals.length}
+      >
         {(data) => (
           <div className="grid grid-cols-1 gap-4 text-lg sm:grid-cols-2 lg:grid-cols-3">
             {data?.pages?.map((page) =>
