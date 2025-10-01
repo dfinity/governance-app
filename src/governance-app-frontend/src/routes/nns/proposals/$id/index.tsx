@@ -5,6 +5,7 @@ import Skeleton from 'react-loading-skeleton';
 import useTitle from '@hooks/useTitle';
 
 import { ProposalDetails } from './-ProposalDetails';
+import { stringToBigInt } from '@utils/bigInts';
 
 export const Route = createFileRoute('/nns/proposals/$id/')({
   component: ProposalDetailsWrapper,
@@ -16,16 +17,7 @@ function ProposalDetailsWrapper() {
   const { t } = useTranslation();
   useTitle(t(($) => $.proposal.title));
 
-  // Validate id can be converted to BigInt
-  let validBigInt: bigint | undefined;
-  try {
-    if (id && /^\d+$/.test(id)) {
-      validBigInt = BigInt(id);
-    }
-  } catch (e) {
-    console.error('Invalid proposal ID:', e);
-    validBigInt = undefined;
-  }
+  let validBigInt = stringToBigInt(id);
 
   if (!validBigInt) {
     return (
