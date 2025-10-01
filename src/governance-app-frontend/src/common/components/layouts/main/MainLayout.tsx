@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button, Link } from '@untitledui/components';
@@ -11,10 +11,6 @@ import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { useAgentPool } from '@hooks/useAgentPool';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
-  // @TODO: verify resolution of login->logout->login issue.
-  // @TODO: identity does not refresh when it auto-expires.
-  // Check this again when useInternetIdentity is updated.
-  // Kristofer will update the library in the next weeks.
   const { login, identity, clear, isInitializing } = useInternetIdentity();
   const queryClient = useQueryClient();
   const { invalidate } = useRouter();
@@ -23,14 +19,21 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
   const { anonymous, authenticated } = useAgentPool().agentPool;
   const showLoader = anonymous.loading || authenticated.loading || isInitializing;
 
+  // BE CAREFUL CHANGING THIS EFFECT!
   // Run on identity change: login, logout, but also auto-expiration.
+  const hadIdentity = useRef(!!identity);
   useEffect(() => {
-    // Revalidate routes guards.
+    // Revalidate route guards.
     invalidate();
-    if (!identity) {
-      // Logout/expiration: clear all react-query caches, that may contain user-specific data.
-      queryClient.clear();
+
+    // Logout or expiration change (single trigger).
+    if (hadIdentity.current && !identity) {
+      // Allow an async cycle for the authenticated agent to be removed.
+      setTimeout(() => queryClient.resetQueries(), 0);
     }
+
+    // Remember last identity state.
+    hadIdentity.current = !!identity;
   }, [identity, invalidate, queryClient]);
 
   return (
