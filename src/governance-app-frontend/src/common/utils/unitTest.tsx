@@ -4,7 +4,7 @@ import { ReactElement } from 'react';
 
 import { AgentPoolProvider } from '@contexts/agentPoolProvider';
 import { ThemeProvider } from '@contexts/themeProvider';
-import { queryClientConfig } from '@utils/initializers';
+import { queryClientConfig } from '@utils/initializer';
 
 // eslint-disable-next-line react-refresh/only-export-components
 const AllTheProviders = ({ children }: { children: React.ReactNode }) => {

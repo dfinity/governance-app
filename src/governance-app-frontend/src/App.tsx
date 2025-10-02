@@ -11,7 +11,7 @@ import { CANISTER_ID_INTERNET_IDENTITY } from '@constants/canisterIds';
 import { HOST, IS_LOCAL } from '@constants/extra';
 import { AgentPoolProvider } from '@contexts/agentPoolProvider';
 import { ThemeProvider } from '@contexts/themeProvider';
-import { queryClientConfig, routerConfig } from '@utils/initializers';
+import { queryClientConfig, routerConfig } from '@utils/initializer';
 
 const localIdentityProvider = `http://${CANISTER_ID_INTERNET_IDENTITY}.${HOST}`;
 const mainnetIdentityProvider = 'https://identity.ic0.app';

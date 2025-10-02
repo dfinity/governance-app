@@ -11,9 +11,9 @@ import { E8S, E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE_E8S } from '@const
 import { useNnsGovernance } from '@hooks/canisters/governance';
 import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
 import { useIcpLedgerAccountBalance } from '@hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
-import { bigIntDiv, bigIntMul } from '@utils/bigInts';
+import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { mapGovernanceCanisterError } from '@utils/nns-governance';
-import { QUERY_KEYS } from '@utils/queryKeys';
+import { QUERY_KEYS } from '@utils/query';
 
 export const StakeNeuron = () => {
   const { t } = useTranslation();
@@ -43,7 +43,8 @@ export const StakeNeuron = () => {
     governanceReady &&
     nonNullish(ledgerCanister) &&
     ledgerAuthenticated &&
-    ledgerReady;
+    ledgerReady &&
+    maxStake >= ICP_MIN_STAKE_AMOUNT;
 
   const stakeMutation = useMutation<bigint, Error, number>({
     mutationFn: async (amount) => {

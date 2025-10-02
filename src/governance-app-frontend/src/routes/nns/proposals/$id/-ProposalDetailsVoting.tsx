@@ -10,9 +10,9 @@ import { Button } from '@untitledui/components';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { VOTING_RESULTS_PRECISION } from '@constants/extra';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/canisters/governance';
-import { bigIntDiv } from '@utils/bigInts';
-import { QUERY_KEYS } from '@utils/queryKeys';
-import { setWithItemAdded, setWithItemRemoved } from '@utils/sets';
+import { bigIntDiv } from '@utils/bigInt';
+import { QUERY_KEYS } from '@utils/query';
+import { setWithItemAdded, setWithItemRemoved } from '@utils/set';
 
 type Props = {
   proposal: ProposalInfo;

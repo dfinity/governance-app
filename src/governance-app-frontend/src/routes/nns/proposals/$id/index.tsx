@@ -16,7 +16,7 @@ function ProposalDetailsWrapper() {
   const { t } = useTranslation();
   useTitle(t(($) => $.proposal.title));
 
-  // Validate id can be converted to BigInt
+  // Validate Id can be converted to BigInt.
   let validBigInt: bigint | undefined;
   try {
     if (id && /^\d+$/.test(id)) {
@@ -28,11 +28,7 @@ function ProposalDetailsWrapper() {
   }
 
   if (!validBigInt) {
-    return (
-      <div className="mt-4 text-red-600">
-        {t(($) => $.common.errorLoadingProposals, { error: 'Invalid proposal ID.' })}
-      </div>
-    );
+    return <div className="mt-4 text-red-600">{t(($) => $.common.loadingError)}</div>;
   }
   return <ProposalDetails proposalId={validBigInt} />;
 }
