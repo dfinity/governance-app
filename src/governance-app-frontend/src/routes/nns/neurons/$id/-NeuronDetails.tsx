@@ -16,35 +16,37 @@ type Props = {
 
 export const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
   const { t } = useTranslation();
-  // max: use "useGovernanceNeurons();" as fallback neuron source.
 
   // Use same api as for neuron list, as ic-js uses listNeurons under the hood anyway.
   // ref. https://github.com/dfinity/ic-js/blob/48a2ee1a6afa230eb86e2599147defe71cd16013/packages/nns/src/governance.canister.ts#L1009
-  const { isLoading, data } = useGovernanceNeurons({
+  const { isLoading, data: neuronData } = useGovernanceNeurons({
     certified: true,
     neuronIds: [neuronId],
   });
+  // Use neuron from the neuron list if available to display something while loading the certified neuron.
+  const { data: neuronListData } = useGovernanceNeurons();
+  const neuron =
+    neuronData?.response[0] ?? neuronListData?.response.find((n) => n.neuronId === neuronId);
 
-  const neuron = data?.response[0];
   const dissolveDelayRemaining = (current: NeuronInfo): string =>
     secondsToDuration({
       seconds: current.dissolveDelaySeconds,
       i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
     });
 
-  if (isLoading) {
-    return <SkeletonLoader count={1} />;
-  }
-
   if (isNullish(neuron)) {
-    return <WarningMessage message={t(($) => $.neuron.errors.neuronNotFound, { neuronId })} />;
+    return isLoading ? (
+      <SkeletonLoader count={1} />
+    ) : (
+      <WarningMessage message={t(($) => $.neuron.errors.neuronNotFound, { neuronId })} />
+    );
   }
 
   return (
     <div className="flex flex-col gap-6 text-lg">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-2xl font-semibold">#{neuron.neuronId?.toString()}</h2>
-        {data?.certified ? <CertifiedBadge /> : <SkeletonLoader width={90} />}
+        {neuronData?.certified ? <CertifiedBadge /> : <SkeletonLoader width={90} />}
       </div>
 
       <div className="overflow-x-auto">
