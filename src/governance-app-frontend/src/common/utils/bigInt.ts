@@ -21,7 +21,7 @@ export const stringToBigInt = (value: string): bigint | undefined => {
 
   try {
     return BigInt(value);
-  } catch (e) {
+  } catch {
     return undefined;
   }
 };
