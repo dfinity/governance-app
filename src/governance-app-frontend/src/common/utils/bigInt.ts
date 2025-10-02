@@ -19,5 +19,9 @@ export const stringToBigInt = (value: string): bigint | undefined => {
     return undefined;
   }
 
-  return BigInt(value);
+  try {
+    return BigInt(value);
+  } catch (e) {
+    return undefined;
+  }
 };
