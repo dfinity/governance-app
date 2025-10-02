@@ -17,6 +17,7 @@ import { Route as NnsProposalsIndexRouteImport } from './routes/nns/proposals/in
 import { Route as NnsNeuronsIndexRouteImport } from './routes/nns/neurons/index'
 import { Route as NnsAccountsIndexRouteImport } from './routes/nns/accounts/index'
 import { Route as NnsProposalsIdIndexRouteImport } from './routes/nns/proposals/$id/index'
+import { Route as NnsNeuronsIdIndexRouteImport } from './routes/nns/neurons/$id/index'
 
 const SnsIndexRoute = SnsIndexRouteImport.update({
   id: '/sns/',
@@ -58,6 +59,11 @@ const NnsProposalsIdIndexRoute = NnsProposalsIdIndexRouteImport.update({
   path: '/nns/proposals/$id/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NnsNeuronsIdIndexRoute = NnsNeuronsIdIndexRouteImport.update({
+  id: '/nns/neurons/$id/',
+  path: '/nns/neurons/$id/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/vault/$name': typeof VaultNameRoute
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/nns/accounts': typeof NnsAccountsIndexRoute
   '/nns/neurons': typeof NnsNeuronsIndexRoute
   '/nns/proposals': typeof NnsProposalsIndexRoute
+  '/nns/neurons/$id': typeof NnsNeuronsIdIndexRoute
   '/nns/proposals/$id': typeof NnsProposalsIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/nns/accounts': typeof NnsAccountsIndexRoute
   '/nns/neurons': typeof NnsNeuronsIndexRoute
   '/nns/proposals': typeof NnsProposalsIndexRoute
+  '/nns/neurons/$id': typeof NnsNeuronsIdIndexRoute
   '/nns/proposals/$id': typeof NnsProposalsIdIndexRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/nns/accounts/': typeof NnsAccountsIndexRoute
   '/nns/neurons/': typeof NnsNeuronsIndexRoute
   '/nns/proposals/': typeof NnsProposalsIndexRoute
+  '/nns/neurons/$id/': typeof NnsNeuronsIdIndexRoute
   '/nns/proposals/$id/': typeof NnsProposalsIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/nns/accounts'
     | '/nns/neurons'
     | '/nns/proposals'
+    | '/nns/neurons/$id'
     | '/nns/proposals/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/nns/accounts'
     | '/nns/neurons'
     | '/nns/proposals'
+    | '/nns/neurons/$id'
     | '/nns/proposals/$id'
   id:
     | '__root__'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/nns/accounts/'
     | '/nns/neurons/'
     | '/nns/proposals/'
+    | '/nns/neurons/$id/'
     | '/nns/proposals/$id/'
   fileRoutesById: FileRoutesById
 }
@@ -131,6 +143,7 @@ export interface RootRouteChildren {
   NnsAccountsIndexRoute: typeof NnsAccountsIndexRoute
   NnsNeuronsIndexRoute: typeof NnsNeuronsIndexRoute
   NnsProposalsIndexRoute: typeof NnsProposalsIndexRoute
+  NnsNeuronsIdIndexRoute: typeof NnsNeuronsIdIndexRoute
   NnsProposalsIdIndexRoute: typeof NnsProposalsIdIndexRoute
 }
 
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NnsProposalsIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/nns/neurons/$id/': {
+      id: '/nns/neurons/$id/'
+      path: '/nns/neurons/$id'
+      fullPath: '/nns/neurons/$id'
+      preLoaderRoute: typeof NnsNeuronsIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -203,6 +223,7 @@ const rootRouteChildren: RootRouteChildren = {
   NnsAccountsIndexRoute: NnsAccountsIndexRoute,
   NnsNeuronsIndexRoute: NnsNeuronsIndexRoute,
   NnsProposalsIndexRoute: NnsProposalsIndexRoute,
+  NnsNeuronsIdIndexRoute: NnsNeuronsIdIndexRoute,
   NnsProposalsIdIndexRoute: NnsProposalsIdIndexRoute,
 }
 export const routeTree = rootRouteImport
