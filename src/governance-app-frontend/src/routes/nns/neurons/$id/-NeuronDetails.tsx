@@ -28,9 +28,9 @@ export const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
   const neuron =
     neuronData?.response[0] ?? neuronListData?.response.find((n) => n.neuronId === neuronId);
 
-  const dissolveDelayRemaining = (current: NeuronInfo): string =>
+  const dissolveDelayRemaining = ({ dissolveDelaySeconds: seconds }: NeuronInfo): string =>
     secondsToDuration({
-      seconds: current.dissolveDelaySeconds,
+      seconds,
       i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
     });
 
