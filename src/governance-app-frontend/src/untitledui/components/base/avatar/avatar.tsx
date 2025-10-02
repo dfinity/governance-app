@@ -1,5 +1,5 @@
 import { type FC, type ReactNode, useState } from 'react';
-import { User01 } from '@untitledui/icons';
+import { User as User01 } from 'lucide-react';
 import { cx } from '@untitledui/utils/cx';
 import { AvatarOnlineIndicator, VerifiedTick } from './base-components';
 
