@@ -21,8 +21,6 @@ function NeuronDetailsWrapper() {
 
   const validId = stringToBigInt(id);
 
-  console.log('validId', { id, validId });
-
   if (isNullish(validId)) {
     return <WarningMessage message={t(($) => $.neuron.errors.neuronNotFound, { neuronId: id })} />;
   }
