@@ -3,6 +3,8 @@ import { secondsToDuration } from '@dfinity/utils';
 import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
+import { Link } from '@untitledui/components';
+
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { QueryStates } from '@components/extra/QueryStates';
 import { SimpleCard } from '@components/extra/SimpleCard';
@@ -14,7 +16,6 @@ import { CertifiedData } from '@typings/queries';
 import { requireIdentity } from '@utils/router';
 
 import { StakeNeuron } from './-StakeNeuron';
-import { Link } from '@untitledui/components';
 
 export const Route = createFileRoute('/nns/neurons/')({
   component: NeuronsPage,

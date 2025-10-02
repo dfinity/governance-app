@@ -1,13 +1,13 @@
+import { isNullish } from '@dfinity/utils';
 import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import Skeleton from 'react-loading-skeleton';
 
 import { WarningMessage } from '@components/extra/WarningMessage';
 import useTitle from '@hooks/useTitle';
+import { stringToBigInt } from '@utils/bigInt';
 
 import { NeuronDetails } from './-NeuronDetails';
-import { stringToBigInt } from '@utils/bigInt';
-import { isNullish } from '@dfinity/utils';
 
 export const Route = createFileRoute('/nns/neurons/$id/')({
   component: NeuronDetailsWrapper,
