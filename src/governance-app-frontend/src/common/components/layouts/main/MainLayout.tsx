@@ -1,6 +1,7 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button, Link } from '@untitledui/components';
@@ -10,24 +11,35 @@ import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { useAgentPool } from '@hooks/useAgentPool';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
-  const { t } = useTranslation();
-
-  const { anonymous, authenticated } = useAgentPool().agentPool;
   const { login, identity, clear, isInitializing } = useInternetIdentity();
+  const queryClient = useQueryClient();
+  const { invalidate } = useRouter();
+
+  const { t } = useTranslation();
+  const { anonymous, authenticated } = useAgentPool().agentPool;
   const showLoader = anonymous.loading || authenticated.loading || isInitializing;
 
-  // TODO: identity does not refresh when it auto-expires.
-  // Check this again when useInternetIdentity is updated.
-  // Kristofer will update the library in the next weeks.
-  const { invalidate } = useRouter();
+  // BE CAREFUL CHANGING THIS EFFECT!
+  // Run on identity change: login, logout, but also auto-expiration.
+  const hadIdentity = useRef(!!identity);
   useEffect(() => {
+    // Revalidate route guards.
     invalidate();
-  }, [identity, invalidate]);
+
+    // Logout or expiration change (single trigger).
+    if (hadIdentity.current && !identity) {
+      // Allow an async cycle for the authenticated agent to be removed.
+      setTimeout(() => queryClient.resetQueries(), 0);
+    }
+
+    // Remember last identity state.
+    hadIdentity.current = !!identity;
+  }, [identity, invalidate, queryClient]);
 
   return (
     <main
       data-testid="main-layout"
-      className="m-auto flex min-h-[100vh] max-w-[1920px] flex-col justify-between gap-2 p-4"
+      className="m-auto flex min-h-[100vh] max-w-[1920px] min-w-[385px] flex-col justify-between gap-2 overflow-auto p-4"
     >
       {showLoader ? (
         <SkeletonLoader count={6} />
@@ -35,13 +47,13 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
         <>
           <title>{t(($) => $.home.title)}</title>
           <div>
-            <div className="flex shrink-0 items-start justify-between gap-2">
+            <div className="mb-10 flex flex-wrap items-start justify-center gap-2 sm:mb-0 sm:flex-nowrap sm:justify-between">
               <Link to="/">
                 <h1 className="pb-4 text-4xl font-bold text-brand-primary">
                   {t(($) => $.home.title)}
                 </h1>
               </Link>
-              <div className="flex gap-4">
+              <div className="flex flex-wrap justify-center gap-4 sm:flex-nowrap">
                 <Button to="/nns">{t(($) => $.common.nns)}</Button>
                 <Button to="/sns">{t(($) => $.common.sns)}</Button>
                 <Button to="/vault/$name" params={{ name: 'John' }} search={{ surname: 'Doe' }}>
@@ -53,7 +65,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
                   color={identity ? 'secondary-destructive' : 'secondary'}
                   onClick={identity ? clear : login}
                 >
-                  {identity ? 'Logout' : 'Login with Internet Identity!'}
+                  {identity ? t(($) => $.common.logout) : t(($) => $.common.login)}
                 </Button>
 
                 <ToggleThemeButton />

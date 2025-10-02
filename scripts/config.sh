@@ -56,7 +56,7 @@ generate_env_content() {
   local username=$2
 
   cat << EOF
-CANISTER_ID_ICP_INDEX=q3fc5-haaaa-aaaaa-aaahq-cai
+CANISTER_ID_ICP_INDEX=qhbym-qaaaa-aaaaa-aaafq-cai
 CANISTER_ID_ICP_LEDGER=ryjl3-tyaaa-aaaaa-aaaba-cai
 CANISTER_ID_INTERNET_IDENTITY=rdmx6-jaaaa-aaaaa-aaadq-cai
 CANISTER_ID_NNS_GOVERNANCE=rrkah-fqaaa-aaaaa-aaaaq-cai

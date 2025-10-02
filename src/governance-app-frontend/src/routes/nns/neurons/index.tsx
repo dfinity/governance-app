@@ -45,11 +45,7 @@ function NeuronsPage() {
         {(neurons) => (
           <div className="grid grid-cols-1 gap-4 text-lg sm:grid-cols-2 lg:grid-cols-3">
             {neurons?.response.map((neuron) => (
-              <Link
-                to="/nns/neurons/$id"
-                params={{ id: neuron.neuronId }}
-                // className="flex flex-1 flex-col gap-2 focus-visible:outline-2 focus-visible:outline-offset-2"
-              >
+              <Link to="/nns/neurons/$id" params={{ id: neuron.neuronId }}>
                 <SimpleCard key={neuron.neuronId}>
                   <div className="flex items-center justify-between gap-2">
                     <p className="overflow-hidden text-ellipsis">#{neuron.neuronId}</p>

@@ -9,7 +9,7 @@ import { useCallback, useEffect } from 'react';
 
 import { MIN_ASYNC_DELAY } from '@constants/extra';
 import { withMinimumDelay } from '@utils/async';
-import { stringifyKeys } from '@utils/queryKeys';
+import { stringifyKeys } from '@utils/query';
 import { CertifiedData, QueryType } from '@common/typings/queries';
 
 type QueryOptions<TData, TPageParam> = UseInfiniteQueryOptions<

@@ -6,7 +6,7 @@ import { WarningMessage } from '@components/extra/WarningMessage';
 import useTitle from '@hooks/useTitle';
 
 import { NeuronDetails } from './-NeuronDetails';
-import { stringToBigInt } from '@utils/bigInts';
+import { stringToBigInt } from '@utils/bigInt';
 import { isNullish } from '@dfinity/utils';
 
 export const Route = createFileRoute('/nns/neurons/$id/')({
@@ -17,17 +17,14 @@ export const Route = createFileRoute('/nns/neurons/$id/')({
 function NeuronDetailsWrapper() {
   const { id } = Route.useParams();
   const { t } = useTranslation();
-  useTitle(t(($) => $.common.neuronsList));
+  useTitle(t(($) => $.common.neuronsDetails, { neuronId: id }));
 
-  // max: const?
   const validId = stringToBigInt(id);
 
+  console.log('validId', { id, validId });
+
   if (isNullish(validId)) {
-    return (
-      <WarningMessage
-        message={t(($) => $.common.errorLoadingNeurons, { error: 'Invalid neuron ID.' })}
-      />
-    );
+    return <WarningMessage message={t(($) => $.neuron.errors.neuronNotFound, { neuronId: id })} />;
   }
 
   return <NeuronDetails neuronId={validId} />;

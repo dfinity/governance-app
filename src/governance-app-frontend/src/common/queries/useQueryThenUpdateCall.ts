@@ -2,7 +2,7 @@ import { QueryKey, useQuery, UseQueryOptions } from '@tanstack/react-query';
 
 import { MIN_ASYNC_DELAY } from '@constants/extra';
 import { withMinimumDelay } from '@utils/async';
-import { stringifyKeys } from '@utils/queryKeys';
+import { stringifyKeys } from '@utils/query';
 import { CertifiedData, QueryType } from '@common/typings/queries';
 
 type Props<TData> = {

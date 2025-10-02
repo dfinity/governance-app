@@ -16,9 +16,9 @@ import { Input } from '@untitledui/components/base/input/input';
 import { SECONDS_IN_DAY } from '@constants/extra';
 import { ICP_MAX_DISSOLVE_DELAY_SECONDS, ICP_MIN_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { useNnsGovernance } from '@hooks/canisters/governance';
-import { bigIntDiv, bigIntMul } from '@utils/bigInts';
+import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { mapGovernanceCanisterError } from '@utils/nns-governance';
-import { QUERY_KEYS } from '@utils/queryKeys';
+import { QUERY_KEYS } from '@utils/query';
 
 type Props = {
   neuron: NeuronInfo;

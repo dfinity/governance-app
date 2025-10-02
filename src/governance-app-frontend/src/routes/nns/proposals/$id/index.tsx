@@ -5,7 +5,7 @@ import Skeleton from 'react-loading-skeleton';
 import useTitle from '@hooks/useTitle';
 
 import { ProposalDetails } from './-ProposalDetails';
-import { stringToBigInt } from '@utils/bigInts';
+import { stringToBigInt } from '@utils/bigInt';
 
 export const Route = createFileRoute('/nns/proposals/$id/')({
   component: ProposalDetailsWrapper,
@@ -20,11 +20,7 @@ function ProposalDetailsWrapper() {
   let validBigInt = stringToBigInt(id);
 
   if (!validBigInt) {
-    return (
-      <div className="mt-4 text-red-600">
-        {t(($) => $.common.errorLoadingProposals, { error: 'Invalid proposal ID.' })}
-      </div>
-    );
+    return <div className="mt-4 text-red-600">{t(($) => $.common.loadingError)}</div>;
   }
   return <ProposalDetails proposalId={validBigInt} />;
 }

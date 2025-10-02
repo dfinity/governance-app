@@ -20,7 +20,7 @@ export const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
 
   // Use same api as for neuron list, as ic-js uses listNeurons under the hood anyway.
   // ref. https://github.com/dfinity/ic-js/blob/48a2ee1a6afa230eb86e2599147defe71cd16013/packages/nns/src/governance.canister.ts#L1009
-  const { isLoading, error, data } = useGovernanceNeurons({
+  const { isLoading, data } = useGovernanceNeurons({
     certified: true,
     neuronIds: [neuronId],
   });
@@ -37,8 +37,7 @@ export const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
   }
 
   if (isNullish(neuron)) {
-    // neuron not found
-    return <WarningMessage message={t(($) => $.common.noNeurons)} />;
+    return <WarningMessage message={t(($) => $.neuron.errors.neuronNotFound, { neuronId })} />;
   }
 
   return (

@@ -2,7 +2,7 @@ import { NeuronId } from '@dfinity/nns';
 import { NeuronSubaccount } from '@dfinity/nns/dist/candid/governance';
 
 import { useQueryThenUpdateCall } from '@queries/useQueryThenUpdateCall';
-import { QUERY_KEYS } from '@utils/queryKeys';
+import { QUERY_KEYS } from '@utils/query';
 
 import { useNnsGovernance } from './useGovernance';
 
