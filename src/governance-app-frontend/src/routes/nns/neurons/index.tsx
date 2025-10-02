@@ -13,7 +13,6 @@ import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';
 import { requireIdentity } from '@utils/router';
 
-import { SetDissolveDelayModal } from './-SetDissolveDelayModal';
 import { StakeNeuron } from './-StakeNeuron';
 import { Link } from '@untitledui/components';
 
@@ -85,9 +84,6 @@ function NeuronsPage() {
                         </tr>
                       </tbody>
                     </table>
-                  </div>
-                  <div className="mt-4 flex justify-end">
-                    <SetDissolveDelayModal neuron={neuron} />
                   </div>
                 </SimpleCard>
               </Link>
