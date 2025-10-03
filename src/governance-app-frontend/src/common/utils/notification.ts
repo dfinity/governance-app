@@ -8,7 +8,7 @@ type NotificationOptions = {
 };
 
 const ephemeralNotification = {
-  duration: 1500,
+  duration: 2500,
   closeButton: false,
 };
 

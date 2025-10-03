@@ -57,5 +57,5 @@
   "warning": "Warning",
   "autoExpirationLogout": "Session expired, you have been logged out. Please log in again.",
   "restricted": "Restricted",
-  "restrictedPage": "You need to be logged-in to access this page."
+  "restrictedPage": "You need to be logged in to access this page."
 }

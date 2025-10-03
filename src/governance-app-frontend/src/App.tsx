@@ -22,7 +22,6 @@ export const App = () => (
     <InternetIdentityProvider
       loginOptions={{
         identityProvider: IS_LOCAL ? localIdentityProvider : mainnetIdentityProvider,
-        maxTimeToLive: BigInt(11_000_000_000),
       }}
     >
       <QueryClientProvider client={queryClientConfig}>
