@@ -16,8 +16,6 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
   const queryClient = useQueryClient();
   const { invalidate } = useRouter();
 
-  console.log(process.env.DFX_NETWORK);
-
   const { t } = useTranslation();
   const { anonymous, authenticated } = useAgentPool().agentPool;
   const showLoader = anonymous.loading || authenticated.loading || isInitializing;
