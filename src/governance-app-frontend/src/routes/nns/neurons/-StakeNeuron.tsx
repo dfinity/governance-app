@@ -4,8 +4,7 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@untitledui/components';
-import { Input } from '@untitledui/components/base/input/input';
+import { Button, Input } from '@untitledui/components';
 
 import { E8S, E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE_E8S } from '@constants/extra';
 import { useNnsGovernance } from '@hooks/canisters/governance';
