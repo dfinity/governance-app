@@ -1,6 +1,7 @@
 export const IS_LOCAL = process.env.DFX_NETWORK === 'local';
 export const HOST = process.env.DFX_HOST;
 export const NETWORK = `${IS_LOCAL ? 'http://' : 'https://'}${HOST}`;
+export const IS_TESTNET = !(HOST?.includes('.icp-api.io') || HOST?.includes('.ic0.app'));
 
 export const PAGINATION_LIMIT = 100;
 export const MIN_ASYNC_DELAY = 300; // Avoids flashing of loading indicators.

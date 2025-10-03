@@ -13,3 +13,5 @@ export {
 } from './application/modals/modal';
 
 export { Button } from './custom/buttons/button';
+
+export { Heading } from 'react-aria-components';
