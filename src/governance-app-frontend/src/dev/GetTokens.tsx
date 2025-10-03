@@ -27,7 +27,7 @@ const base64ToUInt8Array = (base64String: string): Uint8Array => {
   return Uint8Array.from(window.atob(base64String), (c) => c.charCodeAt(0));
 };
 
-// Reference:
+// Reference: https://github.com/dfinity/nns-dapp/blob/1575e2957cf611666ded606a522b301c7b534a4e/frontend/src/lib/api/dev.api.ts#L34
 const getTestAccountAgent = async (): Promise<Agent> => {
   const publicKey = 'Uu8wv55BKmk9ZErr6OIt5XR1kpEGXcOSOC1OYzrAwuk=';
   const privateKey =
@@ -83,7 +83,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
   const [value, setValue] = useState('');
   const { accountId } = props;
 
-  const acqurireTokensMutation = useMutation<
+  const acquireTokensMutation = useMutation<
     BlockHeight,
     Error,
     { accountId: AccountIdentifier; e8s: E8s }
@@ -112,7 +112,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
     }
 
     const e8s = BigInt(Math.floor(amount * Number(E8Sn)));
-    acqurireTokensMutation.mutateAsync({ e8s, accountId }).then(close);
+    acquireTokensMutation.mutateAsync({ e8s, accountId }).then(close);
   };
 
   return (
@@ -135,7 +135,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
                     type="submit"
                     color="primary"
                     size="sm"
-                    isLoading={acqurireTokensMutation.isPending}
+                    isLoading={acquireTokensMutation.isPending}
                   >
                     Top Up
                   </Button>
