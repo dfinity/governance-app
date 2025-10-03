@@ -13,5 +13,6 @@
   "voting": "Voting ({{voted}}/{{total}})",
   "ineligibleToVote": "Ineligible to vote",
   "action": "Action",
-  "voteError": "An error occurred, please try again."
+  "voteError": "Voting on proposal {{proposalId}} with neuron {{neuronId}} failed, please try again.",
+  "voteSuccess": "Voting on proposal {{proposalId}} with neuron {{neuronId}} succeeded."
 }

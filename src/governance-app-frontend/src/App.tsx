@@ -6,6 +6,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { RouterProvider } from '@tanstack/react-router';
 import { InternetIdentityProvider } from 'ic-use-internet-identity';
 import { StrictMode } from 'react';
+import { Toaster } from 'sonner';
 
 import { CANISTER_ID_INTERNET_IDENTITY } from '@constants/canisterIds';
 import { HOST, IS_LOCAL } from '@constants/extra';
@@ -29,6 +30,7 @@ export const App = () => (
             <RouterProvider router={routerConfig} />
             <ReactQueryDevtools initialIsOpen={false} />
           </ThemeProvider>
+          <Toaster richColors position="top-right" />
         </AgentPoolProvider>
       </QueryClientProvider>
     </InternetIdentityProvider>

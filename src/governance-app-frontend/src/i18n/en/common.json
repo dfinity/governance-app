@@ -50,5 +50,12 @@
     "minute_plural": "minutes",
     "second": "second",
     "second_plural": "seconds"
-  }
+  },
+  "success": "Success",
+  "alert": "Alert",
+  "info": "Info",
+  "warning": "Warning",
+  "autoExpirationLogout": "Session expired, you have been logged out. Please log in again.",
+  "restricted": "Restricted",
+  "restrictedPage": "You need to be logged-in to access this page."
 }

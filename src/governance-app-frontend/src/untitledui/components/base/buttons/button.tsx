@@ -9,7 +9,7 @@ import { isValidElement } from 'react';
 import type { ButtonProps as AriaButtonProps } from 'react-aria-components';
 import { Button as AriaButton, Link as AriaLink } from 'react-aria-components';
 import { cx, sortCx } from '@untitledui/utils/cx';
-import { isReactComponent } from '@/utils/is-react-component';
+import { isReactComponent } from '@untitledui/utils/is-react-component';
 
 export const styles = sortCx({
   common: {

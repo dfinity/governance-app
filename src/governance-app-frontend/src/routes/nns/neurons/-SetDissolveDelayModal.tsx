@@ -18,6 +18,7 @@ import { ICP_MAX_DISSOLVE_DELAY_SECONDS, ICP_MIN_DISSOLVE_DELAY_SECONDS } from '
 import { useNnsGovernance } from '@hooks/canisters/governance';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { mapGovernanceCanisterError } from '@utils/nns-governance';
+import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
 type Props = {
@@ -37,11 +38,11 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
     authenticated: governanceAuthenticated,
   } = useNnsGovernance();
   const [delayDaysInput, setDelayDays] = useState(dissolveDelayDays(neuron));
-  const [error, setError] = useState<string | null>(null);
+  const [inputError, setInputError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const canUpdate = nonNullish(governanceCanister) && governanceAuthenticated && governanceReady;
-  const hint = error
-    ? error
+  const hint = inputError
+    ? inputError
     : t(($) => $.neuron.setDissolveDelayModal.hint, {
         min: Math.ceil(ICP_MIN_DISSOLVE_DELAY_SECONDS / SECONDS_IN_DAY),
         max: Math.floor(ICP_MAX_DISSOLVE_DELAY_SECONDS / SECONDS_IN_DAY),
@@ -60,7 +61,6 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
     },
     onMutate: () => {
       setPending(true);
-      setError(null);
     },
     onSuccess: (_, { neuron, additionalDissolveDelaySeconds }) => {
       queryClient
@@ -73,19 +73,22 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
           setDelayDays(bigIntDiv(expectedDissolveDelaySeconds, BigInt(SECONDS_IN_DAY)).toString());
           setPending(false);
         });
+      successNotification({
+        description: t(($) => $.neuron.setDissolveDelayModal.success, { amount: delayDaysInput }),
+      });
     },
     onError: (mutationError) => {
-      console.error('Set dissolve delay error', mutationError);
-
-      setError(mapGovernanceCanisterError(mutationError));
       setPending(false);
+      errorNotification({
+        description: mapGovernanceCanisterError(mutationError),
+      });
     },
   });
 
   const handleDaysChange = (value: string) => {
     setDelayDays(value);
     setDissolveDelayMutation.reset();
-    setError(null);
+    setInputError(null);
   };
 
   const handleSubmit = (close: () => void) => async (event: FormEvent<HTMLFormElement>) => {
@@ -96,7 +99,7 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
     );
 
     if (additionalDissolveDelaySeconds <= 0) {
-      setError(t(($) => $.neuron.setDissolveDelayModal.errors.decreasingDelay));
+      setInputError(t(($) => $.neuron.setDissolveDelayModal.errors.decreasingDelay));
       return;
     }
 
@@ -137,7 +140,7 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
                   type="number"
                   isDisabled={pending}
                   isRequired
-                  isInvalid={nonNullish(error)}
+                  isInvalid={nonNullish(inputError)}
                   hint={hint}
                   value={delayDaysInput}
                   onChange={handleDaysChange}
