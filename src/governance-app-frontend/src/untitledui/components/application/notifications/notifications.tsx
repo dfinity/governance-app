@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import { AlertCircle, CheckCircle, Info as InfoCircle } from 'lucide-react';
 import { Avatar } from '@untitledui/components/base/avatar/avatar';
-import { Button } from '@untitledui/components/base/buttons/button';
+import { Button } from '@untitledui/components/custom/buttons/button';
 import { CloseButton } from '@untitledui/components/base/buttons/close-button';
 import { ProgressBar } from '@untitledui/components/base/progress-indicators/progress-indicators';
 import { FeaturedIcon } from '@untitledui/components/foundations/featured-icon/featured-icon';

@@ -26,6 +26,7 @@ Icons are provided by [Lucide](https://lucide.dev/), an open-source icon library
     - `@components/untitledui/` → `@untitledui/`.
     - Replace icon files with `"lucide-react"` icons (most names are compatible).
 4. Remove the generated icon files, since we are using Lucide instead.
+5. If some components are "custom", update the imports to use them, and delede the vanilla versions.
 
 ## Testing
 

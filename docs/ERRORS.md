@@ -11,7 +11,3 @@ How to handle errors in the Project.
 
 - Usually triggered by a user action, we want to notify the user even if he navigated away.
 - Handle independently of the page -> show a notification, that is persisting in case the page is changed.
-
-## Abstractions
-
-- More complex uses-cases and abstractions to be revied when/if they appear.

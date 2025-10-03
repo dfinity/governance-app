@@ -26,9 +26,15 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   const { t } = useTranslation();
 
   // Voting data.
-  const { data: neurons } = useGovernanceNeurons();
+  const { data: neurons, isLoading: isLoadingNeurons } = useGovernanceNeurons();
   const votingNeurons =
-    proposal.ballots.toSorted((a, b) => Number(a.neuronId) - Number(b.neuronId)) ?? [];
+    proposal.ballots.toSorted((a, b) => {
+      const fullA = neurons?.response.find((n) => n.neuronId === a.neuronId);
+      const fullB = neurons?.response.find((n) => n.neuronId === b.neuronId);
+      return Number(
+        (fullA?.createdTimestampSeconds ?? 0n) - (fullB?.createdTimestampSeconds ?? 0n),
+      );
+    }) ?? [];
   const votingNeuronIds = new Set<bigint>(votingNeurons.map((neuron) => neuron.neuronId));
   const ineligibleNeurons =
     neurons?.response.filter((neuron) => !votingNeuronIds.has(neuron.neuronId)) ?? [];
@@ -92,6 +98,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
         {voted === totalToVote ? <CircleCheckBig color="green" size={16} /> : ''}
       </p>
       <div className="inline-grid items-center gap-1 sm:grid-cols-[max-content_max-content_max-content] sm:gap-3">
+        {isLoadingNeurons && <SkeletonLoader count={4} />}
         {votingNeurons.map((neuron) => (
           <Fragment key={neuron.neuronId}>
             <pre className="mt-4 rounded bg-amber-50 px-2 text-black sm:mt-0">
