@@ -32,7 +32,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
       const fullA = neurons?.response.find((n) => n.neuronId === a.neuronId);
       const fullB = neurons?.response.find((n) => n.neuronId === b.neuronId);
       return Number(
-        (fullA?.createdTimestampSeconds ?? 0n) - (fullB?.createdTimestampSeconds ?? 0n),
+        (fullB?.createdTimestampSeconds ?? 0n) - (fullA?.createdTimestampSeconds ?? 0n),
       );
     }) ?? [];
   const votingNeuronIds = new Set<bigint>(votingNeurons.map((neuron) => neuron.neuronId));
