@@ -31,7 +31,7 @@
     "@tanstack/react-router": "1.131.50",
     "classnames": "2.5.1",
     "i18next": "25.5.2",
-    "ic-use-internet-identity": "0.6.1",
+    "ic-use-internet-identity": "0.6.2",
     "lucide-react": "0.544.0",
     "react": "19.1.1",
     "react-aria-components": "1.12.2",
