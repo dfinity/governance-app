@@ -1,7 +1,7 @@
 import { Agent } from '@dfinity/agent';
 import { Ed25519KeyIdentity } from '@dfinity/identity';
 import { AccountIdentifier, BlockHeight, E8s, LedgerCanister } from '@dfinity/ledger-icp';
-import { createAgent as createAgentUtils } from '@dfinity/utils';
+import { createAgent as createAgentUtils, nonNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
@@ -18,10 +18,6 @@ import {
 import { E8Sn, IS_TESTNET, NETWORK } from '@constants/extra';
 import { withMinimumDelay } from '@utils/async';
 import { QUERY_KEYS } from '@utils/query';
-
-const assertTestnet = () => {
-  if (!IS_TESTNET) throw new Error('The environment is not "testnet"');
-};
 
 const base64ToUInt8Array = (base64String: string): Uint8Array => {
   return Uint8Array.from(window.atob(base64String), (c) => c.charCodeAt(0));
@@ -44,9 +40,6 @@ const getTestAccountAgent = async (): Promise<Agent> => {
   });
 };
 
-// NOTE: This doesn't work check on ic-js
-// AccountIdentifier.fromHex(string);
-
 /*
  * Gives the caller the specified amount of (fake) ICPs.
  * Should/can only be used on testnets.
@@ -58,7 +51,7 @@ const acquireICPTs = async ({
   accountId: AccountIdentifier;
   e8s: E8s;
 }): Promise<BlockHeight> => {
-  assertTestnet();
+  if (!IS_TESTNET) throw new Error('The environment is not "testnet"');
 
   try {
     const agent = await getTestAccountAgent();
@@ -80,7 +73,8 @@ const acquireICPTs = async ({
 
 export const GetTokens = (props: { accountId: AccountIdentifier }) => {
   const queryClient = useQueryClient();
-  const [value, setValue] = useState('');
+  const [amountOfIcp, setAmountOfIcp] = useState('');
+  const [amountOfIcpError, setAmountOfIcpError] = useState<string | null>(null);
   const { accountId } = props;
 
   const acquireTokensMutation = useMutation<
@@ -95,19 +89,21 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
         queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS],
       });
 
-      setValue('');
+      setAmountOfIcp('');
     },
     onError: (error) => {
+      // TODO: Use the toast notification
       console.error('Failed to acquire tokens:', error);
     },
   });
 
   const handleSubmit = (close: () => void) => async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setAmountOfIcpError(null);
 
-    const amount = parseFloat(value);
+    const amount = parseFloat(amountOfIcp);
     if (amount <= 0 || isNaN(amount)) {
-      console.error('Invalid amount');
+      setAmountOfIcpError(`Invalid amount ${amount}. Must be a number greater than 0.`);
       return;
     }
 
@@ -130,7 +126,15 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
                 </Heading>
                 <p className="text-sm text-tertiary">Account: {accountId.toHex()}</p>
                 <div className="flex items-end gap-1">
-                  <Input type="number" size="sm" label="Amount" value={value} onChange={setValue} />
+                  <Input
+                    type="number"
+                    size="sm"
+                    label="Amount"
+                    value={amountOfIcp}
+                    onChange={setAmountOfIcp}
+                    hint={amountOfIcpError}
+                    isInvalid={nonNullish(amountOfIcpError)}
+                  />
                   <Button
                     type="submit"
                     color="primary"

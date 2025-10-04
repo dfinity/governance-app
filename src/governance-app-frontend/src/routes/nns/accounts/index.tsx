@@ -3,7 +3,7 @@ import {
   GetAccountIdentifierTransactionsResponse,
   TransactionWithId,
 } from '@dfinity/ledger-icp';
-import { nonNullish } from '@dfinity/utils';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ArrowDownToLine, ArrowUp } from 'lucide-react';
@@ -16,7 +16,7 @@ import { InViewSentinel } from '@components/extra/InViewSentinel';
 import { QueryStates } from '@components/extra/QueryStates';
 import { SimpleCard } from '@components/extra/SimpleCard';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
-import { E8Sn } from '@constants/extra';
+import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useIcpIndexTransactions } from '@hooks/canisters/icpIndex/useIcpIndexTransactions';
 import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';
@@ -45,13 +45,15 @@ function AccountsPage() {
 
   const transactions = useIcpIndexTransactions();
 
+  if (isNullish(accountId)) return null;
+
   return (
     <div className="flex flex-col gap-2 text-xl">
       <h2 className="mb-2 text-primary">{t(($) => $.common.accounts)}</h2>
 
       <div className="flex items-center gap-2">
         <pre className="overflow-hidden rounded bg-amber-50 px-2 py-2 text-sm text-ellipsis text-black">
-          {accountId?.toHex()}
+          {accountId.toHex()}
         </pre>
         <QueryStates<CertifiedData<GetAccountIdentifierTransactionsResponse>>
           infiniteQuery={transactions}
@@ -67,7 +69,7 @@ function AccountsPage() {
           )}
         </QueryStates>
 
-        {nonNullish(accountId) && (
+        {IS_TESTNET && (
           <div className="ml-auto">
             <GetTokens accountId={accountId} />
           </div>
@@ -85,7 +87,7 @@ function AccountsPage() {
               page.response.transactions.map((tx) => (
                 <TransactionItem
                   certified={page.certified}
-                  accountId={accountId?.toHex() ?? ''}
+                  accountId={accountId.toHex() ?? ''}
                   key={tx.id}
                   tx={tx}
                 />
