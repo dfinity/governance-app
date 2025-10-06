@@ -83,7 +83,6 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
     Error,
     { accountId: AccountIdentifier; e8s: E8s }
   >({
-    mutationKey: ['acquireICPTs'],
     mutationFn: acquireICPTs,
     onSuccess: () => {
       queryClient.invalidateQueries({
