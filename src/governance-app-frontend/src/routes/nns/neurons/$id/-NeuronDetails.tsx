@@ -16,17 +16,8 @@ type Props = {
 
 export const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
   const { t } = useTranslation();
-
-  // Use same api as for neuron list, as ic-js uses listNeurons under the hood anyway.
-  // ref. https://github.com/dfinity/ic-js/blob/48a2ee1a6afa230eb86e2599147defe71cd16013/packages/nns/src/governance.canister.ts#L1009
-  const { isLoading, data: neuronData } = useGovernanceNeurons({
-    certified: true,
-    neuronIds: [neuronId],
-  });
-  // Use neuron from the neuron list if available to display something while loading the certified neuron.
-  const { data: neuronListData } = useGovernanceNeurons();
-  const neuron =
-    neuronData?.response[0] ?? neuronListData?.response.find((n) => n.neuronId === neuronId);
+  const { data, isLoading } = useGovernanceNeurons();
+  const neuron = data?.response.find((n) => n.neuronId === neuronId);
 
   const dissolveDelayRemaining = ({ dissolveDelaySeconds: seconds }: NeuronInfo): string =>
     secondsToDuration({
@@ -46,7 +37,7 @@ export const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
     <div className="flex flex-col gap-6 text-lg">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-2xl font-semibold">#{neuron.neuronId?.toString()}</h2>
-        {neuronData?.certified ? <CertifiedBadge /> : <SkeletonLoader width={90} />}
+        {data?.certified ? <CertifiedBadge /> : <SkeletonLoader width={90} />}
       </div>
 
       <div className="overflow-x-auto">
