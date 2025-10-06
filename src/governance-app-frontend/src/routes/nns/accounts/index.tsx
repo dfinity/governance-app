@@ -87,7 +87,7 @@ function AccountsPage() {
               page.response.transactions.map((tx) => (
                 <TransactionItem
                   certified={page.certified}
-                  accountId={accountId.toHex() ?? ''}
+                  accountId={accountId.toHex()}
                   key={tx.id}
                   tx={tx}
                 />
