@@ -6,6 +6,7 @@
   "baseTitle": "The Governance App",
   "proposalsList": "Proposals list",
   "neuronsList": "Neurons list",
+  "neuronsDetails": "Neuron {{neuronId}} details",
   "seeProposals": "See Proposals",
   "seeNeurons": "See Neurons",
   "seeAccounts": "See Accounts",

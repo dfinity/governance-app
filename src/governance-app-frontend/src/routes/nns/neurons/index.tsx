@@ -3,6 +3,8 @@ import { secondsToDuration } from '@dfinity/utils';
 import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
+import { Link } from '@untitledui/components';
+
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { QueryStates } from '@components/extra/QueryStates';
 import { SimpleCard } from '@components/extra/SimpleCard';
@@ -13,7 +15,6 @@ import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';
 import { requireIdentity } from '@utils/router';
 
-import { SetDissolveDelayModal } from './-SetDissolveDelayModal';
 import { StakeNeuron } from './-StakeNeuron';
 
 export const Route = createFileRoute('/nns/neurons/')({
@@ -44,50 +45,49 @@ function NeuronsPage() {
         {(neurons) => (
           <div className="grid grid-cols-1 gap-4 text-lg sm:grid-cols-2 lg:grid-cols-3">
             {neurons?.response.map((neuron) => (
-              <SimpleCard key={neuron.neuronId}>
-                <div className="flex items-center justify-between gap-2">
-                  <p className="overflow-hidden text-ellipsis">#{neuron.neuronId}</p>
-                  {neurons?.certified ? <CertifiedBadge /> : <SkeletonLoader width={90} />}
-                </div>
-                <div className="mt-2 gap-1 text-sm">
-                  <table className="text-sm">
-                    <tbody>
-                      <tr>
-                        <td className="pr-2 font-bold">{t(($) => $.neuron.creationDate)}:</td>
-                        <td>
-                          {neuron.fullNeuron?.createdTimestampSeconds
-                            ? new Date(
-                                Number(neuron.fullNeuron.createdTimestampSeconds) * 1000,
-                              ).toLocaleDateString()
-                            : '-'}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="pr-2 font-bold">{t(($) => $.neuron.status)}:</td>
-                        <td>{NeuronState[neuron.state]}</td>
-                      </tr>
-                      <tr>
-                        <td className="pr-2 font-bold">{t(($) => $.neuron.stake)}:</td>
-                        <td>
-                          {Number(neuron.fullNeuron?.cachedNeuronStake) / E8S}{' '}
-                          {t(($) => $.common.icp)}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="pr-2 font-bold">{t(($) => $.neuron.votingPower)}:</td>
-                        <td>{neuron.votingPower}</td>
-                      </tr>
-                      <tr>
-                        <td className="pr-2 font-bold">{t(($) => $.neuron.dissolveDelay)}:</td>
-                        <td>{dissolveDelayRemaining(neuron)}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div className="mt-4 flex justify-end">
-                  <SetDissolveDelayModal neuron={neuron} />
-                </div>
-              </SimpleCard>
+              <Link to="/nns/neurons/$id" params={{ id: neuron.neuronId }} key={neuron.neuronId}>
+                <SimpleCard>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="overflow-hidden text-ellipsis">#{neuron.neuronId}</p>
+                    {neurons?.certified ? <CertifiedBadge /> : <SkeletonLoader width={90} />}
+                  </div>
+                  <div className="mt-2 gap-1 text-sm">
+                    <table className="text-sm">
+                      <tbody>
+                        <tr>
+                          <td className="pr-2 font-bold">{t(($) => $.neuron.creationDate)}:</td>
+                          <td>
+                            {neuron.fullNeuron?.createdTimestampSeconds
+                              ? new Date(
+                                  Number(neuron.fullNeuron.createdTimestampSeconds) * 1000,
+                                ).toLocaleDateString()
+                              : '-'}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="pr-2 font-bold">{t(($) => $.neuron.status)}:</td>
+                          <td>{NeuronState[neuron.state]}</td>
+                        </tr>
+                        <tr>
+                          <td className="pr-2 font-bold">{t(($) => $.neuron.stake)}:</td>
+                          <td>
+                            {Number(neuron.fullNeuron?.cachedNeuronStake) / E8S}{' '}
+                            {t(($) => $.common.icp)}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="pr-2 font-bold">{t(($) => $.neuron.votingPower)}:</td>
+                          <td>{neuron.votingPower}</td>
+                        </tr>
+                        <tr>
+                          <td className="pr-2 font-bold">{t(($) => $.neuron.dissolveDelay)}:</td>
+                          <td>{dissolveDelayRemaining(neuron)}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </SimpleCard>
+              </Link>
             ))}
           </div>
         )}
