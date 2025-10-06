@@ -14,12 +14,7 @@ export const bigIntMax = (...args: bigint[]) => args.reduce((m, e) => (e > m ? e
 // Returns the min bigint from the provided arguments
 export const bigIntMin = (...args: bigint[]) => args.reduce((m, e) => (e < m ? e : m));
 
-// Returning undefined if not a valid non-negative integer
 export const stringToBigInt = (value: string): bigint | undefined => {
-  if (!value || !/^\d+$/.test(value)) {
-    return undefined;
-  }
-
   try {
     return BigInt(value);
   } catch {
