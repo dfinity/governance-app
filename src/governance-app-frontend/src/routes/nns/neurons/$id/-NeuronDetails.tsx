@@ -1,5 +1,5 @@
 import { NeuronInfo, NeuronState } from '@dfinity/nns';
-import { isNullish, secondsToDuration } from '@dfinity/utils';
+import { isNullish, nonNullish, secondsToDuration } from '@dfinity/utils';
 import { useTranslation } from 'react-i18next';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
@@ -37,7 +37,11 @@ export const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
     <div className="flex flex-col gap-6 text-lg">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-2xl font-semibold">#{neuron.neuronId?.toString()}</h2>
-        {data?.certified ? <CertifiedBadge /> : <SkeletonLoader width={90} />}
+        {isNullish(data?.response) ? (
+          <SkeletonLoader width={90} />
+        ) : (
+          data.certified && <CertifiedBadge />
+        )}
       </div>
 
       <div className="overflow-x-auto">
