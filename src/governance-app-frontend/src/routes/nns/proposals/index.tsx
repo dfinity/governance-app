@@ -41,9 +41,9 @@ function ProposalsPage() {
 
                 return (
                   <Link
-                    params={{ id: proposal.id?.toString() ?? '' }}
-                    key={proposal.id?.toString()}
+                    params={{ id: proposal.id }}
                     to="/nns/proposals/$id"
+                    key={proposal.id?.toString()}
                   >
                     <SimpleCard>
                       <p className="overflow-hidden overflow-ellipsis">
