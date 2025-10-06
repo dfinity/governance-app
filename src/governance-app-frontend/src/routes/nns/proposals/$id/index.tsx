@@ -1,23 +1,27 @@
-import { isNullish } from '@dfinity/utils';
-import { createFileRoute, redirect } from '@tanstack/react-router';
-import { useTranslation } from 'react-i18next';
-import Skeleton from 'react-loading-skeleton';
-
-import { WarningMessage } from '@components/extra/WarningMessage';
-import useTitle from '@hooks/useTitle';
-import { stringToBigInt } from '@utils/bigInt';
-
 import { ProposalInfo, ProposalRewardStatus, ProposalStatus, Topic } from '@dfinity/nns';
 import { jsonReplacer } from '@dfinity/utils';
-import { Link } from '@tanstack/react-router';
+import { createFileRoute, Link, redirect } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
+import Skeleton from 'react-loading-skeleton';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { QueryStates } from '@components/extra/QueryStates';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { useGovernanceProposal } from '@hooks/canisters/governance/useGovernanceProposal';
+import useTitle from '@hooks/useTitle';
+import { stringToBigInt } from '@utils/bigInt';
 import { CertifiedData } from '@common/typings/queries';
 
 import { ProposalDetailsVoting } from './-ProposalDetailsVoting';
+
+const ProposalDetailsRouteComponent = () => {
+  const { t } = useTranslation();
+  const { id } = Route.useParams();
+
+  useTitle(t(($) => $.proposal.title));
+
+  return <ProposalDetails proposalId={id!} />;
+};
 
 export const Route = createFileRoute('/nns/proposals/$id/')({
   params: {
@@ -30,18 +34,7 @@ export const Route = createFileRoute('/nns/proposals/$id/')({
     if (!params.id) throw redirect({ to: '/nns/proposals', replace: true });
   },
   pendingComponent: () => <Skeleton count={3} />,
-  component: () => {
-    const { t } = useTranslation();
-    const { id } = Route.useParams();
-
-    useTitle(t(($) => $.proposal.title));
-
-    return isNullish(id) ? (
-      <WarningMessage message={t(($) => $.common.loadingError)} />
-    ) : (
-      <ProposalDetails proposalId={id} />
-    );
-  },
+  component: ProposalDetailsRouteComponent,
 });
 
 type Props = {

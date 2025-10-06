@@ -14,6 +14,15 @@ import { stringToBigInt } from '@utils/bigInt';
 
 import { SetDissolveDelayModal } from '../-SetDissolveDelayModal';
 
+const NeuronDetailsRouteComponent = () => {
+  const { t } = useTranslation();
+  const { id } = Route.useParams();
+
+  useTitle(t(($) => $.common.neuronsDetails, { neuronId: id }));
+
+  return <NeuronDetails neuronId={id!} />;
+};
+
 export const Route = createFileRoute('/nns/neurons/$id/')({
   params: {
     parse: ({ id }) => ({
@@ -25,14 +34,7 @@ export const Route = createFileRoute('/nns/neurons/$id/')({
     if (!params.id) throw redirect({ to: '/nns/neurons', replace: true });
   },
   pendingComponent: () => <Skeleton count={3} />,
-  component: () => {
-    const { t } = useTranslation();
-    const { id } = Route.useParams();
-
-    useTitle(t(($) => $.common.neuronsDetails, { neuronId: id }));
-
-    return <NeuronDetails neuronId={id!} />;
-  },
+  component: NeuronDetailsRouteComponent,
 });
 
 type Props = {
