@@ -17,6 +17,7 @@ import {
 
 import { E8Sn, IS_TESTNET, NETWORK } from '@constants/extra';
 import { withMinimumDelay } from '@utils/async';
+import { errorNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
 const base64ToUInt8Array = (base64String: string): Uint8Array => {
@@ -92,8 +93,9 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
       setAmountOfIcp('');
     },
     onError: (error) => {
-      // TODO: Use the toast notification
-      console.error('Failed to acquire tokens:', error);
+      errorNotification({
+        description: `Failed to acquire tokens: ${error}`,
+      });
     },
   });
 
