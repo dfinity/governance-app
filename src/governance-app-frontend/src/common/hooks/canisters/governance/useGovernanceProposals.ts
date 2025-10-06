@@ -1,5 +1,4 @@
 import { ListProposalsRequest, ListProposalsResponse, Option } from '@dfinity/nns';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 
 import { PAGINATION_LIMIT } from '@constants/extra';
 import { useInfiniteQueryThenUpdateCall } from '@queries/useInfiniteQueryThenUpdateCall';
@@ -20,11 +19,10 @@ export const useGovernanceProposals = (
     omitLargeFields: true,
   },
 ) => {
-  const { ready, canister } = useNnsGovernance();
-  const { identity } = useInternetIdentity();
+  const { ready, canister, authenticated } = useNnsGovernance();
 
   return useInfiniteQueryThenUpdateCall<ListProposalsResponse, Option<bigint>>({
-    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS, options, identity],
+    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS, options, authenticated],
     queryFn: (context) =>
       canister!.listProposals({
         request: { ...options, beforeProposal: context.pageParam },
