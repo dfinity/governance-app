@@ -45,8 +45,8 @@ function NeuronsPage() {
         {(neurons) => (
           <div className="grid grid-cols-1 gap-4 text-lg sm:grid-cols-2 lg:grid-cols-3">
             {neurons?.response.map((neuron) => (
-              <Link to="/nns/neurons/$id" params={{ id: neuron.neuronId.toString() }}>
-                <SimpleCard key={neuron.neuronId}>
+              <Link to="/nns/neurons/$id" params={{ id: neuron.neuronId }} key={neuron.neuronId}>
+                <SimpleCard>
                   <div className="flex items-center justify-between gap-2">
                     <p className="overflow-hidden text-ellipsis">#{neuron.neuronId}</p>
                     {neurons?.certified ? <CertifiedBadge /> : <SkeletonLoader width={90} />}
