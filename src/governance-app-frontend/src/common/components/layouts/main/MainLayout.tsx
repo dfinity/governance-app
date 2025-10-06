@@ -9,6 +9,7 @@ import { Button, Link } from '@untitledui/components';
 import { ToggleThemeButton } from '@components/buttons/toggleTheme/ToggleThemeButton';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { useAgentPool } from '@hooks/useAgentPool';
+import { infoNotification } from '@utils/notification';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
   const { login, identity, clear, isInitializing } = useInternetIdentity();
@@ -20,21 +21,32 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
   const showLoader = anonymous.loading || authenticated.loading || isInitializing;
 
   // BE CAREFUL CHANGING THIS EFFECT!
-  // Run on identity change: login, logout, but also auto-expiration.
+
+  // Track manual logout, to distinguish from expiration, and show a notification.
+  const wasManualLogout = useRef(false);
+  // Remember if we had an identity, to trigger a single change.
   const hadIdentity = useRef(!!identity);
+  // Run on identity change: login, logout, but also auto-expiration.
   useEffect(() => {
-    // Revalidate route guards.
+    // Revalidate/re-check route guards in all cases.
     invalidate();
 
     // Logout or expiration change (single trigger).
     if (hadIdentity.current && !identity) {
-      // Allow an async cycle for the authenticated agent to be removed.
+      // Allow an async cycle for the authenticated agent to be removed before refreshing the queries.
       setTimeout(() => queryClient.resetQueries(), 0);
+
+      // Show notification in case of expiration only.
+      if (!wasManualLogout.current) {
+        infoNotification({ description: t(($) => $.common.autoExpirationLogout) });
+      }
     }
 
+    // Reset manual logout tracking.
+    wasManualLogout.current = false;
     // Remember last identity state.
     hadIdentity.current = !!identity;
-  }, [identity, invalidate, queryClient]);
+  }, [identity, invalidate, queryClient, t]);
 
   return (
     <main
@@ -63,7 +75,14 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
                 <Button
                   data-testid="login-btn"
                   color={identity ? 'secondary-destructive' : 'secondary'}
-                  onClick={identity ? clear : login}
+                  onClick={
+                    identity
+                      ? () => {
+                          wasManualLogout.current = true;
+                          clear();
+                        }
+                      : login
+                  }
                 >
                   {identity ? t(($) => $.common.logout) : t(($) => $.common.login)}
                 </Button>

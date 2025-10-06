@@ -18,15 +18,15 @@ Icons are provided by [Lucide](https://lucide.dev/), an open-source icon library
 
 ### Sample steps to add a new Untitled UI component
 
-1. Run `npm run untitledui:add loading-indicator`
-2. Remove `src/governance-app-frontend/src/utils/cx.ts`
-3. (Optional) Fix imports:
-
-- `@utils/cx` → `@untitledui/utils/cx`
-- `@components/untitledui/` → `@untitledui/`
-- Replace icon files with `"lucide-react"` icons (most names are compatible).
-
+0. To access PRO (paid) components: `npx untitledui login`.
+1. Run `npx untitledui add {{name}}`.
+2. Remove `src/governance-app-frontend/src/utils/cx.ts`.
+3. Fix imports:
+    - `@utils/cx` → `@untitledui/utils/cx`.
+    - `@components/untitledui/` → `@untitledui/`.
+    - Replace icon files with `"lucide-react"` icons (most names are compatible).
 4. Remove the generated icon files, since we are using Lucide instead.
+5. If some components are "custom", update the imports to use them, and delede the vanilla versions.
 
 ## Testing
 

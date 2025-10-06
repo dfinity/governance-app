@@ -28,8 +28,18 @@ export const useGovernanceNeurons = (params?: RequestParams) => {
 
   return useQueryThenUpdateCall({
     queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS, request],
-    queryFn: () => canister!.listNeurons(request),
-    updateFn: () => canister!.listNeurons({ ...request, certified: true }),
+    queryFn: () =>
+      canister!
+        .listNeurons(request)
+        .then((data) =>
+          data.toSorted((a, b) => Number(b.createdTimestampSeconds - a.createdTimestampSeconds)),
+        ),
+    updateFn: () =>
+      canister!
+        .listNeurons({ ...request, certified: true })
+        .then((data) =>
+          data.toSorted((a, b) => Number(b.createdTimestampSeconds - a.createdTimestampSeconds)),
+        ),
     options: {
       enabled: ready && authenticated,
     },
