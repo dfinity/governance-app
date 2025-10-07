@@ -15,7 +15,7 @@ import {
   ModalOverlay,
 } from '@untitledui/components';
 
-import { E8Sn, IS_TESTNET, NETWORK } from '@constants/extra';
+import { E8Sn, ICP_TRANSACTION_PROPAGATION_DELAY_MS, IS_TESTNET, NETWORK } from '@constants/extra';
 import { withMinimumDelay } from '@utils/async';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
@@ -64,7 +64,7 @@ const acquireICPTs = async ({
     });
 
     // The new transaction block takes a bit of time to propagate so we intentionally make the call slower
-    return await withMinimumDelay(promise, 2000);
+    return await withMinimumDelay(promise, ICP_TRANSACTION_PROPAGATION_DELAY_MS);
   } catch (error) {
     throw new Error(
       `Failed to transfer tokens: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -117,7 +117,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
 
   return (
     <DialogTrigger>
-      <Button color="tertiary" size="sm">
+      <Button color="secondary" size="sm">
         Get Tokens
       </Button>
       <ModalOverlay isDismissable>

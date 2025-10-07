@@ -7,17 +7,20 @@ import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ArrowDownToLine, ArrowUp } from 'lucide-react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { cx } from '@untitledui/utils/cx';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
+import SendICPsButton from '@components/buttons/toggleTheme/SendICPsButton';
 import { InViewSentinel } from '@components/extra/InViewSentinel';
 import { QueryStates } from '@components/extra/QueryStates';
 import { SimpleCard } from '@components/extra/SimpleCard';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useIcpIndexTransactions } from '@hooks/canisters/icpIndex/useIcpIndexTransactions';
+import { useIcpIndexTransactionsPolling } from '@hooks/canisters/icpIndex/useIcpIndexTransactionsPolling';
 import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';
 import { bigIntDiv } from '@utils/bigInt';
@@ -44,6 +47,12 @@ function AccountsPage() {
     : null;
 
   const transactions = useIcpIndexTransactions();
+  useIcpIndexTransactionsPolling();
+
+  const retriggerSentinel = useMemo(
+    () => [transactions.data, transactions.isFetching],
+    [transactions.data, transactions.isFetching],
+  );
 
   if (isNullish(accountId)) return null;
 
@@ -60,13 +69,17 @@ function AccountsPage() {
           isEmpty={(data) => !data.pages?.length}
           loadingComponent={<SkeletonLoader width={100} height={24} />}
         >
-          {(data) => (
-            <div className="shrink-0 text-sm font-bold">
-              {bigIntDiv(data.pages?.[0].response.balance || 0n, E8Sn, 2) +
-                ' ' +
-                t(($) => $.common.icps)}
-            </div>
-          )}
+          {({ pages }) => {
+            const balanceICPs = bigIntDiv(pages?.[0].response.balance || 0n, E8Sn, 2);
+            return (
+              <>
+                <div className="shrink-0 px-2 py-2 text-sm font-bold">
+                  {balanceICPs + ' ' + t(($) => $.common.icps)}
+                </div>
+                <SendICPsButton balance={balanceICPs} />
+              </>
+            );
+          }}
         </QueryStates>
 
         {IS_TESTNET && (
@@ -95,7 +108,7 @@ function AccountsPage() {
             )}
 
             {transactions.hasNextPage && (
-              <InViewSentinel retrigger={data} callback={transactions.fetchNextPage}>
+              <InViewSentinel retrigger={retriggerSentinel} callback={transactions.fetchNextPage}>
                 <SkeletonLoader count={3} />
               </InViewSentinel>
             )}
