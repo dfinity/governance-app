@@ -96,9 +96,7 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
       return;
     }
 
-    setDissolveDelayMutation.mutateAsync({ additionalDissolveDelaySeconds, neuron }).then(() => {
-      close();
-    });
+    setDissolveDelayMutation.mutateAsync({ additionalDissolveDelaySeconds, neuron }).then(close);
   };
 
   return (

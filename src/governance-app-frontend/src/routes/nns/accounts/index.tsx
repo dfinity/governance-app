@@ -3,6 +3,7 @@ import {
   GetAccountIdentifierTransactionsResponse,
   TransactionWithId,
 } from '@dfinity/ledger-icp';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ArrowDownToLine, ArrowUp } from 'lucide-react';
@@ -15,12 +16,14 @@ import { InViewSentinel } from '@components/extra/InViewSentinel';
 import { QueryStates } from '@components/extra/QueryStates';
 import { SimpleCard } from '@components/extra/SimpleCard';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
-import { E8Sn } from '@constants/extra';
+import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useIcpIndexTransactions } from '@hooks/canisters/icpIndex/useIcpIndexTransactions';
 import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';
 import { bigIntDiv } from '@utils/bigInt';
 import { requireIdentity } from '@utils/router';
+
+import { GetTokens } from '@/dev/GetTokens';
 
 export const Route = createFileRoute('/nns/accounts/')({
   component: AccountsPage,
@@ -34,13 +37,15 @@ function AccountsPage() {
   const { identity } = useInternetIdentity();
 
   // Check if identity is defined: during logout it can be undefined for a brief moment before the router redirects to the homepage.
-  const accountId = identity
+  const accountId = nonNullish(identity)
     ? AccountIdentifier.fromPrincipal({
         principal: identity?.getPrincipal(),
-      }).toHex()
-    : '';
+      })
+    : null;
 
   const transactions = useIcpIndexTransactions();
+
+  if (isNullish(accountId)) return null;
 
   return (
     <div className="flex flex-col gap-2 text-xl">
@@ -48,7 +53,7 @@ function AccountsPage() {
 
       <div className="flex items-center gap-2">
         <pre className="overflow-hidden rounded bg-amber-50 px-2 py-2 text-sm text-ellipsis text-black">
-          {accountId}
+          {accountId.toHex()}
         </pre>
         <QueryStates<CertifiedData<GetAccountIdentifierTransactionsResponse>>
           infiniteQuery={transactions}
@@ -63,6 +68,12 @@ function AccountsPage() {
             </div>
           )}
         </QueryStates>
+
+        {IS_TESTNET && (
+          <div className="ml-auto">
+            <GetTokens accountId={accountId} />
+          </div>
+        )}
       </div>
 
       <div className="mt-4 mb-2 flex gap-2">{t(($) => $.common.transactions)}</div>
@@ -76,7 +87,7 @@ function AccountsPage() {
               page.response.transactions.map((tx) => (
                 <TransactionItem
                   certified={page.certified}
-                  accountId={accountId}
+                  accountId={accountId.toHex()}
                   key={tx.id}
                   tx={tx}
                 />
