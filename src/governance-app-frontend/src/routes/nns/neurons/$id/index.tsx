@@ -11,6 +11,7 @@ import { E8S } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceNeurons';
 import useTitle from '@hooks/useTitle';
 import { stringToBigInt } from '@utils/bigInt';
+import { requireIdentity } from '@utils/router';
 
 import { SetDissolveDelayModal } from '../-SetDissolveDelayModal';
 
@@ -30,7 +31,8 @@ export const Route = createFileRoute('/nns/neurons/$id/')({
     }),
     stringify: ({ id }) => ({ id: id?.toString() ?? '' }),
   },
-  beforeLoad: ({ params }) => {
+  beforeLoad: async ({ params }) => {
+    await requireIdentity();
     if (!params.id) throw redirect({ to: '/nns/neurons', replace: true });
   },
   pendingComponent: () => <Skeleton count={3} />,
