@@ -1,5 +1,5 @@
-import { AnonymousIdentity } from '@icp-sdk/core/agent';
 import { AccountIdentifier } from '@dfinity/ledger-icp';
+import { AnonymousIdentity } from '@icp-sdk/core/agent';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 
 import { useQueryThenUpdateCall } from '@queries/useQueryThenUpdateCall';
