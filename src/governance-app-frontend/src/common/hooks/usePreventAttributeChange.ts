@@ -7,19 +7,18 @@ type Props = {
 
 export const usePreventAttributeChange = ({ selector, attribute }: Props) => {
   useEffect(() => {
-    const element = document.querySelector(selector) as HTMLElement;
-    if (!element) return;
+    const element = document.querySelector(selector);
+    if (!(element instanceof HTMLElement)) return;
+    const initialValue = element.getAttribute(attribute);
 
-    // @ts-expect-error - dynamic attribute access
-    const initialValue = element[attribute];
-
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'attributes' && mutation.attributeName === attribute) {
-          // @ts-expect-error - dynamic attribute access
-          element[attribute] = initialValue;
+    const observer = new MutationObserver(() => {
+      if (element.getAttribute(attribute) !== initialValue) {
+        if (initialValue === null) {
+          element.removeAttribute(attribute);
+        } else {
+          element.setAttribute(attribute, initialValue);
         }
-      });
+      }
     });
 
     observer.observe(element, {

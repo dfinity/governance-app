@@ -35,7 +35,6 @@ export const App = () => {
             <ThemeProvider>
               <RouterProvider router={routerConfig} />
               <ReactQueryDevtools initialIsOpen={false} />
-              <Toaster richColors position="top-right" />
               {notificationContainer &&
                 createPortal(<Toaster richColors position="top-right" />, notificationContainer)}
             </ThemeProvider>
