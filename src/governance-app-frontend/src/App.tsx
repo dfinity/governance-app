@@ -20,7 +20,7 @@ const localIdentityProvider = `http://${CANISTER_ID_INTERNET_IDENTITY}.${HOST}`;
 const mainnetIdentityProvider = 'https://identity.ic0.app';
 
 export const App = () => {
-  const notificationContainer = document.getElementById('notifications');
+  const notificationsContainer = document.getElementById('notifications');
   usePreventAttributeChange({ selector: '#notifications', attribute: 'inert' });
 
   return (
@@ -35,8 +35,8 @@ export const App = () => {
             <ThemeProvider>
               <RouterProvider router={routerConfig} />
               <ReactQueryDevtools initialIsOpen={false} />
-              {notificationContainer &&
-                createPortal(<Toaster richColors position="top-right" />, notificationContainer)}
+              {notificationsContainer &&
+                createPortal(<Toaster richColors position="top-right" />, notificationsContainer)}
             </ThemeProvider>
           </AgentPoolProvider>
         </QueryClientProvider>
