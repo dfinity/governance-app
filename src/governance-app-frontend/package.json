@@ -21,13 +21,10 @@
     "untitledui:add": "npx untitledui@latest add --path untitledui/components/"
   },
   "dependencies": {
-    "@dfinity/agent": "3.2.7",
-    "@dfinity/candid": "3.2.7",
-    "@dfinity/identity": "3.2.7",
     "@dfinity/ledger-icp": "6.1.0",
     "@dfinity/nns": "10.2.0",
-    "@dfinity/principal": "3.2.7",
     "@dfinity/utils": "3.2.0",
+    "@icp-sdk/core": "4.0.5",
     "@tanstack/react-query": "5.90.1",
     "@tanstack/react-query-devtools": "5.89.0",
     "@tanstack/react-router": "1.131.50",

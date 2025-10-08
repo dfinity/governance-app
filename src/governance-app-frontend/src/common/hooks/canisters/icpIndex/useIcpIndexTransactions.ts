@@ -1,4 +1,4 @@
-import { AnonymousIdentity } from '@dfinity/agent';
+import { AnonymousIdentity } from '@icp-sdk/core/agent';
 import { AccountIdentifier, GetAccountIdentifierTransactionsResponse } from '@dfinity/ledger-icp';
 import { Option } from '@dfinity/nns';
 import { useInternetIdentity } from 'ic-use-internet-identity';
