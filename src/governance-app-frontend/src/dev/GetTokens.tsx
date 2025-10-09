@@ -1,7 +1,7 @@
-import { Agent } from '@dfinity/agent';
-import { Ed25519KeyIdentity } from '@dfinity/identity';
 import { AccountIdentifier, BlockHeight, E8s, LedgerCanister } from '@dfinity/ledger-icp';
 import { createAgent as createAgentUtils, nonNullish } from '@dfinity/utils';
+import { Agent } from '@icp-sdk/core/agent';
+import { Ed25519KeyIdentity } from '@icp-sdk/core/identity';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
