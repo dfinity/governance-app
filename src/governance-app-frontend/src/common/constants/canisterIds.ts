@@ -3,4 +3,6 @@ export const CANISTER_ID_GOVERNANCE_APP_BACKEND = process.env.CANISTER_ID_GOVERN
 export const CANISTER_ID_ICP_INDEX = process.env.CANISTER_ID_ICP_INDEX;
 export const CANISTER_ID_ICP_LEDGER = process.env.CANISTER_ID_ICP_LEDGER;
 export const CANISTER_ID_INTERNET_IDENTITY = process.env.CANISTER_ID_INTERNET_IDENTITY;
+export const CANISTER_ID_CKUSD_LEDGER = process.env.CANISTER_ID_CKUSD_LEDGER;
 export const CANISTER_ID_SELF = process.env.CANISTER_ID;
+export const ICP_SWAP_URL = process.env.ICP_SWAP_URL;
