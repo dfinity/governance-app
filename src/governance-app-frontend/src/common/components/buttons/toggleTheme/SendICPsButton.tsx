@@ -87,7 +87,7 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
     setAmountError('');
     if (!value) return;
     const numericValue = Number(value);
-    if (isNaN(numericValue) || numericValue < ICP_MIN_TRANSFER_AMOUNT || numericValue > max) {
+    if (numericValue < ICP_MIN_TRANSFER_AMOUNT || numericValue > max) {
       setAmountError(t(($) => $.account.amountError));
     }
   };
