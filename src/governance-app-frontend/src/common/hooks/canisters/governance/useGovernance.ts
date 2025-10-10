@@ -1,5 +1,5 @@
 import { GovernanceCanister } from '@dfinity/nns';
-import { Principal } from '@dfinity/principal';
+import { Principal } from '@icp-sdk/core/principal';
 
 import { CANISTER_ID_NNS_GOVERNANCE } from '@constants/canisterIds';
 import { useAgentPool } from '@hooks/useAgentPool';

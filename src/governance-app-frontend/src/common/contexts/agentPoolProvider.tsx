@@ -1,5 +1,5 @@
-import { AnonymousIdentity } from '@dfinity/agent';
 import { createAgent } from '@dfinity/utils';
+import { AnonymousIdentity } from '@icp-sdk/core/agent';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode, useEffect, useState } from 'react';
 

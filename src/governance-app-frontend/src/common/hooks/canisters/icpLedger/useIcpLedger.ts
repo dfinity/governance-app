@@ -1,5 +1,5 @@
 import { LedgerCanister } from '@dfinity/ledger-icp';
-import { Principal } from '@dfinity/principal';
+import { Principal } from '@icp-sdk/core/principal';
 
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { useAgentPool } from '@hooks/useAgentPool';
