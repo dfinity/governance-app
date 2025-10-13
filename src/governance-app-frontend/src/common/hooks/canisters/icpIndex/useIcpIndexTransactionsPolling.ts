@@ -8,13 +8,13 @@ export const useIcpIndexTransactionsPolling = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const isPageVisible = typeof document !== 'undefined' ? !document.hidden : true;
+      const isTabVisible = typeof document !== 'undefined' ? !document.hidden : true;
       const isFetchingTransactions = queryClient.isFetching({
         queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS],
       });
 
       // Stop polling when the tab is not visible (e.g. another tab is selected) to save resources, or when transactions are already re-fetching.
-      if (isPageVisible && !isFetchingTransactions) {
+      if (isTabVisible && !isFetchingTransactions) {
         queryClient.invalidateQueries({
           queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS],
         });
