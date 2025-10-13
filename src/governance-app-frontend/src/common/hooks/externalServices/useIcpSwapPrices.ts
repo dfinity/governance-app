@@ -24,11 +24,11 @@ export const useIcpSwapPrices = () => {
 
   return useQuery<TokenPrices>({
     queryKey: [QUERY_KEYS.EXTERNAL_SERVICES.ICP_SWAP.PRICES],
-    queryFn: () => fetch(`${ICP_SWAP_URL}/tickers`).then(toJson).then(parseTickers),
+    queryFn: () => fetch(`${ICP_SWAP_URL}/tickers`).then(toJson).then(parseIcpSwapTickers),
   });
 };
 
-export const parseTickers = (tickers: IcpSwapTicker[]): TokenPrices => {
+export const parseIcpSwapTickers = (tickers: IcpSwapTicker[]): TokenPrices => {
   if (!CANISTER_ID_CKUSD_LEDGER) {
     throw new Error('parseTickers: ckUSDC ledger canister ID is not defined.');
   }

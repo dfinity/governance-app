@@ -26,7 +26,7 @@ function Homepage() {
         : t(($) => $.common.loginWithII)}
 
       <div>
-        {t(($) => $.common.ICPprice)}:{' '}
+        {t(($) => $.common.icpPrice)}:{' '}
         <QueryStates<TokenPrices>
           query={prices}
           isEmpty={(data) => data.size === 0}
