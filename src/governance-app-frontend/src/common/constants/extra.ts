@@ -5,13 +5,19 @@ export const IS_TESTNET =
   IS_LOCAL && !(HOST?.includes('.icp-api.io') || HOST?.includes('.ic0.app'));
 
 export const PAGINATION_LIMIT = 100;
+// Somehow this one has a different limit in case of a certified request.
+export const PAGINATION_LIMIT_TRANSACTIONS = 50;
 export const MIN_ASYNC_DELAY = 300; // Avoids flashing of loading indicators.
 
 export const E8S = 100_000_000;
-export const E8Sn = 100_000_000n;
+export const E8Sn = BigInt(E8S);
 
-export const ICP_TRANSACTION_FEE_E8S = 10_000n;
 export const ICP_MIN_STAKE_AMOUNT = 1;
+export const ICP_MIN_TRANSFER_AMOUNT = 1;
+export const ICP_TRANSACTION_FEE = 0.0001;
+export const ICP_TRANSACTION_FEE_E8S = ICP_TRANSACTION_FEE * E8S;
+export const ICP_TRANSACTION_FEE_E8Sn = BigInt(ICP_TRANSACTION_FEE_E8S);
+export const ICP_TRANSACTION_PROPAGATION_DELAY_MS = 2_000;
 
 export const VOTING_RESULTS_PRECISION = 6; // Number of digits after the decimal point.
 

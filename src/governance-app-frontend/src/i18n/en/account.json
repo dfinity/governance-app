@@ -1,0 +1,9 @@
+{
+  "transferSuccess": "You have successfully sent {{amount}} ICPs to account {{toAccount}}.",
+  "transferError": "An error occurred while sending {{amount}} ICPs to account {{toAccount}}. Please try again later.",
+  "destinationAccount": "Destination account",
+  "transferTitle": "Send ICPs to another account.",
+  "transactionHint": "Min {{min}}, max {{max}}, fee {{fee}} ICPs.",
+  "accountError": "Please enter a valid account identifier.",
+  "amountError": "Please enter a valid amount."
+}

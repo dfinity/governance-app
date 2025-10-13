@@ -17,8 +17,7 @@
     "delayLabel": "Dissolve delay in days",
     "success": "You have successfully set a dissolve delay of {{amount}} days.",
     "actions": {
-      "confirm": "Set dissolve delay",
-      "cancel": "Cancel"
+      "confirm": "Set dissolve delay"
     },
     "errors": {
       "decreasingDelay": "The dissolve delay cannot be decreased."

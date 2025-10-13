@@ -3,7 +3,7 @@ import { Option } from '@dfinity/nns';
 import { AnonymousIdentity } from '@icp-sdk/core/agent';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 
-import { PAGINATION_LIMIT } from '@constants/extra';
+import { PAGINATION_LIMIT_TRANSACTIONS } from '@constants/extra';
 import { useInfiniteQueryThenUpdateCall } from '@queries/useInfiniteQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/query';
 
@@ -23,14 +23,14 @@ export const useIcpIndexTransactions = () => {
     queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS],
     queryFn: (context) =>
       canister!.getTransactions({
-        maxResults: BigInt(PAGINATION_LIMIT),
+        maxResults: BigInt(PAGINATION_LIMIT_TRANSACTIONS),
         start: context.pageParam,
         accountIdentifier,
         certified: false,
       }),
     updateFn: (context) =>
       canister!.getTransactions({
-        maxResults: BigInt(PAGINATION_LIMIT),
+        maxResults: BigInt(PAGINATION_LIMIT_TRANSACTIONS),
         start: context.pageParam,
         accountIdentifier,
         certified: true,
