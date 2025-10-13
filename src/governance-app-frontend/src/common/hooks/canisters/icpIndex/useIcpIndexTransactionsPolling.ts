@@ -13,7 +13,7 @@ export const useIcpIndexTransactionsPolling = () => {
         queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS],
       });
 
-      // Stop polling when the tab is not visible (e.g. another tab is selected) to save resources, or when transactions are already re-fetching.
+      // Skip polling tick when the tab is not visible (e.g. another tab is selected), or when transactions are already re-fetching, to save resources.
       if (isTabVisible && !isFetchingTransactions) {
         queryClient.invalidateQueries({
           queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS],
