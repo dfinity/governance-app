@@ -7,7 +7,13 @@ import { useTranslation } from 'react-i18next';
 import { Button, Input } from '@untitledui/components';
 
 import { SimpleCard } from '@components/extra/SimpleCard';
-import { E8S, E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE_E8S } from '@constants/extra';
+import {
+  E8S,
+  E8Sn,
+  ICP_MIN_STAKE_AMOUNT,
+  ICP_TRANSACTION_FEE_E8S,
+  ICP_TRANSACTION_FEE_E8Sn,
+} from '@constants/extra';
 import { useNnsGovernance } from '@hooks/canisters/governance';
 import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
 import { useIcpLedgerAccountBalance } from '@hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
@@ -57,7 +63,7 @@ export const StakeNeuron = () => {
         principal,
         ledgerCanister: ledgerCanister!,
         createdAt: nowInBigIntNanoSeconds(),
-        fee: ICP_TRANSACTION_FEE_E8S,
+        fee: ICP_TRANSACTION_FEE_E8Sn,
       });
     },
     onMutate: () => {

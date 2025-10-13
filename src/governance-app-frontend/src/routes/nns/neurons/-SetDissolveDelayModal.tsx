@@ -140,7 +140,7 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
 
                 <div className="flex justify-end gap-2">
                   <Button type="button" color="secondary" onClick={close} isDisabled={pending}>
-                    {t(($) => $.neuron.setDissolveDelayModal.actions.cancel)}
+                    {t(($) => $.common.close)}
                   </Button>
                   <Button type="submit" color="primary" isDisabled={pending}>
                     {t(($) => $.neuron.setDissolveDelayModal.actions.confirm)}
