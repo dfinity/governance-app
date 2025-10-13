@@ -59,5 +59,6 @@
   "autoExpirationLogout": "Session expired, you have been logged out. Please log in again.",
   "restricted": "Restricted",
   "restrictedPage": "You need to be logged in to access this page.",
-  "ICPtoUSD": "ICP to USD"
+  "ICPprice": "ICP price",
+  "NotAvailable": "N/A"
 }

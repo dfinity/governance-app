@@ -1,17 +1,17 @@
 import { isNullish } from '@dfinity/utils';
 import { useQuery } from '@tanstack/react-query';
 
-import {
-  CANISTER_ID_CKUSD_LEDGER,
-  CANISTER_ID_ICP_LEDGER,
-  ICP_SWAP_URL,
-} from '@constants/canisterIds';
+import { CANISTER_ID_CKUSD_LEDGER, CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
+import { ICP_SWAP_URL } from '@constants/externalServices';
 import { IcpSwapTicker } from '@typings/icpSwap';
+import { toJson } from '@utils/async';
+import { isFiniteNonZeroNumber } from '@utils/numbers';
 import { QUERY_KEYS } from '@utils/query';
 
-export type TokenPrices = Record<
+export type TokenPrices = Map<
   string,
   {
+    name: string;
     icp: number;
     usd: number;
   }
@@ -24,18 +24,7 @@ export const useIcpSwapPrices = () => {
 
   return useQuery<TokenPrices>({
     queryKey: [QUERY_KEYS.EXTERNAL_SERVICES.ICP_SWAP.PRICES],
-    queryFn: () =>
-      fetch(`${ICP_SWAP_URL}/tickers`).then((res) => {
-        try {
-          const data = res.json();
-          if (!Array.isArray(data)) {
-            throw new Error('useIcpSwapPrices: Unexpected response format from ICP Swap.');
-          }
-          return parseTickers(data);
-        } catch {
-          throw new Error('useIcpSwapPrices: Failed to parse JSON response.');
-        }
-      }),
+    queryFn: () => fetch(`${ICP_SWAP_URL}/tickers`).then(toJson).then(parseTickers),
   });
 };
 
@@ -46,6 +35,10 @@ export const parseTickers = (tickers: IcpSwapTicker[]): TokenPrices => {
 
   if (!CANISTER_ID_ICP_LEDGER) {
     throw new Error('parseTickers: ICP ledger canister ID is not defined.');
+  }
+
+  if (!Array.isArray(tickers)) {
+    throw new Error('parseTickers: Unexpected response format from ICP Swap.');
   }
 
   // First, get all ICP-based tickers.
@@ -62,49 +55,49 @@ export const parseTickers = (tickers: IcpSwapTicker[]): TokenPrices => {
     {} as Record<string, IcpSwapTicker[]>,
   );
 
-  // Apply volume filter only when there are multiple tickers for the same pair.
+  // Apply volume filtering in case there are multiple tickers for the same pair.
   const filteredTickers = Object.values(tickersByBaseId).flatMap((tickersForPair) => {
     if (tickersForPair.length === 1) {
-      // Single ticker for this pair - keep it regardless of volume.
+      // Single ticker for this pair: keep it regardless of volume.
       return tickersForPair;
     } else {
-      // Multiple tickers for this pair - filter by volume.
+      // Multiple tickers for this pair: take the one with highest volume.
       return tickersForPair
         .sort((a, b) => Number(b.target_volume_24H) - Number(a.target_volume_24H))
         .slice(0, 1);
     }
   });
 
-  const ledgerCanisterIdToTicker: Record<string, IcpSwapTicker> = Object.fromEntries(
-    filteredTickers.map((ticker) => [ticker.base_id, ticker]),
+  // Find ckUSDC ticker to get ICP price in ckUSDC.
+  const ckusdcTicker = filteredTickers.find(
+    (ticker) => ticker.base_id === CANISTER_ID_CKUSD_LEDGER,
   );
-
-  const ckusdcTicker = ledgerCanisterIdToTicker[CANISTER_ID_CKUSD_LEDGER];
   if (isNullish(ckusdcTicker)) {
     throw new Error('parseTickers: ckUSDC ticker not found.');
   }
-  const icpPriceInCkusdc = Number(ckusdcTicker?.last_price);
-  if (icpPriceInCkusdc === 0 || !Number.isFinite(icpPriceInCkusdc)) {
+  const icpPriceInCkusdc = Number(ckusdcTicker.last_price);
+  if (!isFiniteNonZeroNumber(icpPriceInCkusdc)) {
     throw new Error('parseTickers: invalid ICP ckUSDC price.');
   }
 
-  const result: TokenPrices = {};
-  for (const [ledgerCanisterId, ticker] of Object.entries(ledgerCanisterIdToTicker)) {
+  // Compute prices for all tickers in ICP and USD.
+  const result: TokenPrices = new Map();
+  for (const ticker of filteredTickers) {
     const lastPrice = Number(ticker.last_price);
-    if (lastPrice === 0 || !Number.isFinite(lastPrice)) {
-      continue;
-    }
+    // Skip invalid or zero prices.
+    if (!isFiniteNonZeroNumber(lastPrice)) continue;
 
     const priceInIcp = 1 / lastPrice;
     const priceInUsd = icpPriceInCkusdc * priceInIcp;
-    result[ledgerCanisterId] = {
+    result.set(ticker.base_id, {
+      name: ticker.ticker_name,
       icp: priceInIcp,
       usd: priceInUsd,
-    };
+    });
   }
 
-  // There is no ticker for ICP to ICP, but we do want the ICP price in ckUSDC.
-  result[CANISTER_ID_ICP_LEDGER] = { icp: 1, usd: icpPriceInCkusdc };
+  // There is no ticker for ICP to ICP, but we do want the ICP price as well.
+  result.set(CANISTER_ID_ICP_LEDGER, { name: 'ICP', icp: 1, usd: icpPriceInCkusdc });
 
   return result;
 };
