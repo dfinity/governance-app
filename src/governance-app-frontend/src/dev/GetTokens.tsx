@@ -91,12 +91,12 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
 
       setAmountOfIcp('');
       successNotification({
-        description: 'Transaction successful',
+        description: `Top-up of ${amountOfIcp} ICPs successful.`,
       });
     },
     onError: (error) => {
       errorNotification({
-        description: `Failed to acquire tokens: ${error}`,
+        description: `Failed to acquire tokens: ${error}.`,
       });
     },
   });
@@ -143,6 +143,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
                     type="submit"
                     color="primary"
                     size="sm"
+                    className="mb-[2px]"
                     isLoading={acquireTokensMutation.isPending}
                   >
                     Top Up
