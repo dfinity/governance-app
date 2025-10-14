@@ -34,7 +34,7 @@ describe('parseIcpSwapTickers', () => {
 const testData: IcpSwapTicker[] = [
   {
     ticker_id: 'fj6py-4yaaa-aaaag-qnfla-cai',
-    ticker_name: 'ALICE_ICP 2',
+    ticker_name: 'ALICE_ICP 1',
     base_id: 'oj6if-riaaa-aaaaq-aaeha-cai',
     base_currency: 'ALICE',
     target_id: 'ryjl3-tyaaa-aaaaa-aaaba-cai',
@@ -51,7 +51,7 @@ const testData: IcpSwapTicker[] = [
   },
   {
     ticker_id: 'fj6py-4yaaa-aaaag-qnfla-cai',
-    ticker_name: 'ALICE_ICP 3',
+    ticker_name: 'ALICE_ICP 2',
     base_id: 'oj6if-riaaa-aaaaq-aaeha-cai',
     base_currency: 'ALICE',
     target_id: 'ryjl3-tyaaa-aaaaa-aaaba-cai',
