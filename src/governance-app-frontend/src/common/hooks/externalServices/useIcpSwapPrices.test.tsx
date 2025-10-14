@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { IcpSwapTicker } from '@typings/icpSwap';
 
 import { parseIcpSwapTickers } from './useIcpSwapPrices';
@@ -23,7 +24,11 @@ describe('parseIcpSwapTickers', () => {
     expect(res.size).toBe(3); // Still ALICE, ckUSDC, ICP
 
     // The ICP ticker is always added.
-    expect(res.get('ryjl3-tyaaa-aaaaa-aaaba-cai')).toEqual({ name: 'ICP', icp: 1, usd: 3.537176 });
+    expect(res.get(CANISTER_ID_ICP_LEDGER!)).toEqual({
+      name: 'ICP',
+      icp: 1,
+      usd: 3.537176,
+    });
 
     // Throw in case the ICP price is not a finite non-zero number.
     const invalidCkUSDC = { ...ckUSDCTicker, last_price: '0' };
