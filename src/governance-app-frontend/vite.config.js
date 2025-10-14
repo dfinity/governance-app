@@ -90,11 +90,10 @@ export default defineConfig({
     dedupe: ['@dfinity/agent'],
   },
   test: {
-    environment: 'jsdom',
     globals: true,
+    environment: 'jsdom',
+    exclude: ['./node_modules', './dist', './tests/e2e/**'],
     // Run before each test file
     setupFiles: ['vitest.setup.ts'],
-
-    exclude: ['./node_modules', './dist', './tests/e2e/**'],
   },
 });

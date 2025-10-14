@@ -1,5 +1,8 @@
 import { vi } from 'vitest';
 
+// Mock environment variables
+vi.stubEnv('CANISTER_ID_CKUSD_LEDGER', 'xevnm-gaaaa-aaaar-qafnq-cai');
+
 // Mock matchMedia
 Object.defineProperty(globalThis, 'matchMedia', {
   writable: true,

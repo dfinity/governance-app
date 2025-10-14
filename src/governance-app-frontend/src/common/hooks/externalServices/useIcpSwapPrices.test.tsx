@@ -1,14 +1,10 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { IcpSwapTicker } from '@typings/icpSwap';
 
 import { parseIcpSwapTickers } from './useIcpSwapPrices';
 
 describe('parseIcpSwapTickers', () => {
-  beforeEach(() => {
-    process.env.CANISTER_ID_CKUSD_LEDGER = 'xevnm-gaaaa-aaaar-qafnq-cai';
-  });
-
   it('Parses IcpSwap tickers correctly.', () => {
     const data = [...testData];
 
