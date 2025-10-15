@@ -17,7 +17,7 @@ test('Has title.', async ({ page }) => {
 
   await login({ page });
   await expect(page.getByTestId('login-test-principal')).toHaveText(/^Hello world! You are:/);
-  await expect(page.getByTestId('login-test-icp-price')).toHaveText(/^ICP price:/);
+  await expect(page.getByTestId('login-test-icp-price')).toHaveText(/^ICP price: \d+\.\d+\$$/);
 
   await takeSnapshot({ page, label: 'login--signed-in' });
 });
