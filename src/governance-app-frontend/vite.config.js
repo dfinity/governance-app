@@ -6,7 +6,7 @@ import { fileURLToPath, URL } from 'url';
 import { defineConfig } from 'vite';
 import environment from 'vite-plugin-environment';
 
-dotenv.config({ path: '../../.env' });
+dotenv.config({ path: '../../.env', quiet: true });
 
 export default defineConfig({
   build: {
