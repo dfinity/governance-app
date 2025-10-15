@@ -5,7 +5,7 @@ import {
   fixture_IcpSwapTickers_Alice,
   fixture_IcpSwapTickers_ckUSDC,
   fixture_IcpSwapTickers_nonIcpBased,
-} from '@fixtures/XXXIcpSwap';
+} from '@fixtures/icpSwap';
 
 import { parseIcpSwapTickers } from './useIcpSwapPrices';
 

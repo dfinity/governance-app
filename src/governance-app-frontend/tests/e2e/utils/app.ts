@@ -1,6 +1,6 @@
 import { expect, type Page } from '@playwright/test';
 
-import { stubIcpSwap } from '../stubs/IcpSwap';
+import { stubIcpSwap } from '../stubs/icpSwap';
 
 export const openApp = async ({ page, url = '/' }: { page: Page; url?: string }) => {
   // Stub external services with test data for consistent behavior.
