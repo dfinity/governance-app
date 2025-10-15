@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { CANISTER_ID_CKUSD_LEDGER, CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { ICP_SWAP_URL } from '@constants/externalServices';
 import { IcpSwapTicker } from '@typings/icpSwap';
+import { triggerError } from '@utils/error';
 import { isFiniteNonZeroNumber } from '@utils/numbers';
 import { QUERY_KEYS } from '@utils/query';
 
@@ -20,7 +21,7 @@ export type TokenPrices = Map<
 
 export const useIcpSwapPrices = () => {
   if (!ICP_SWAP_URL) {
-    throw new Error('useIcpSwapPrices: ICP Swap URL is not defined.');
+    triggerError('useIcpSwapPrices', 'ICP Swap URL is not defined');
   }
 
   return useQuery<TokenPrices>({
@@ -35,15 +36,15 @@ export const useIcpSwapPrices = () => {
 
 export const parseIcpSwapTickers = (tickers: IcpSwapTicker[]): TokenPrices => {
   if (!CANISTER_ID_CKUSD_LEDGER) {
-    throw new Error('parseTickers: ckUSDC ledger canister ID is not defined.');
+    return triggerError('parseIcpSwapTickers', 'ckUSDC ledger canister ID is not defined');
   }
 
   if (!CANISTER_ID_ICP_LEDGER) {
-    throw new Error('parseTickers: ICP ledger canister ID is not defined.');
+    return triggerError('parseIcpSwapTickers', 'ICP ledger canister ID is not defined');
   }
 
   if (!Array.isArray(tickers)) {
-    throw new Error('parseTickers: Unexpected response format from ICP Swap.');
+    return triggerError('parseIcpSwapTickers', 'Unexpected response format from ICP Swap');
   }
 
   // First, get all ICP-based tickers.
@@ -78,11 +79,11 @@ export const parseIcpSwapTickers = (tickers: IcpSwapTicker[]): TokenPrices => {
     (ticker) => ticker.base_id === CANISTER_ID_CKUSD_LEDGER,
   );
   if (isNullish(ckusdcTicker)) {
-    throw new Error('parseTickers: ckUSDC ticker not found.');
+    return triggerError('parseIcpSwapTickers', 'ckUSDC ticker not found');
   }
   const icpPriceInCkusdc = Number(ckusdcTicker.last_price);
   if (!isFiniteNonZeroNumber(icpPriceInCkusdc)) {
-    throw new Error('parseTickers: invalid ICP ckUSDC price.');
+    return triggerError('parseIcpSwapTickers', 'invalid ICP ckUSDC price');
   }
 
   // Compute prices for all tickers in ICP and USD.
