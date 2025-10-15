@@ -17,7 +17,7 @@ import {
 
 import { E8Sn, ICP_TRANSACTION_PROPAGATION_DELAY_MS, IS_TESTNET, NETWORK } from '@constants/extra';
 import { withMinimumDelay } from '@utils/async';
-import { triggerError } from '@utils/error';
+import { errorMessage } from '@utils/error';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
@@ -53,7 +53,7 @@ const acquireICPs = async ({
   accountId: AccountIdentifier;
   e8s: E8s;
 }): Promise<BlockHeight> => {
-  if (!IS_TESTNET) return triggerError('acquireICPs', 'the environment is not "testnet"');
+  if (!IS_TESTNET) return errorMessage('acquireICPs', 'the environment is not "testnet"');
 
   try {
     const agent = await getTestAccountAgent();

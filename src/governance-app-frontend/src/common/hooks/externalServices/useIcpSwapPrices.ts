@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { CANISTER_ID_CKUSD_LEDGER, CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { ICP_SWAP_URL } from '@constants/externalServices';
 import { IcpSwapTicker } from '@typings/icpSwap';
-import { triggerError } from '@utils/error';
+import { errorMessage } from '@utils/error';
 import { isFiniteNonZeroNumber } from '@utils/numbers';
 import { QUERY_KEYS } from '@utils/query';
 
@@ -21,7 +21,7 @@ export type TokenPrices = Map<
 
 export const useIcpSwapPrices = () => {
   if (!ICP_SWAP_URL) {
-    triggerError('useIcpSwapPrices', 'ICP Swap URL is not defined');
+    throw errorMessage('useIcpSwapPrices', 'ICP Swap URL is not defined');
   }
 
   return useQuery<TokenPrices>({
@@ -36,15 +36,15 @@ export const useIcpSwapPrices = () => {
 
 export const parseIcpSwapTickers = (tickers: IcpSwapTicker[]): TokenPrices => {
   if (!CANISTER_ID_CKUSD_LEDGER) {
-    return triggerError('parseIcpSwapTickers', 'ckUSDC ledger canister ID is not defined');
+    throw errorMessage('parseIcpSwapTickers', 'ckUSDC ledger canister ID is not defined');
   }
 
   if (!CANISTER_ID_ICP_LEDGER) {
-    return triggerError('parseIcpSwapTickers', 'ICP ledger canister ID is not defined');
+    throw errorMessage('parseIcpSwapTickers', 'ICP ledger canister ID is not defined');
   }
 
   if (!Array.isArray(tickers)) {
-    return triggerError('parseIcpSwapTickers', 'Unexpected response format from ICP Swap');
+    throw errorMessage('parseIcpSwapTickers', 'Unexpected response format from ICP Swap');
   }
 
   // First, get all ICP-based tickers.
@@ -79,11 +79,11 @@ export const parseIcpSwapTickers = (tickers: IcpSwapTicker[]): TokenPrices => {
     (ticker) => ticker.base_id === CANISTER_ID_CKUSD_LEDGER,
   );
   if (isNullish(ckusdcTicker)) {
-    return triggerError('parseIcpSwapTickers', 'ckUSDC ticker not found');
+    throw errorMessage('parseIcpSwapTickers', 'ckUSDC ticker not found');
   }
   const icpPriceInCkusdc = Number(ckusdcTicker.last_price);
   if (!isFiniteNonZeroNumber(icpPriceInCkusdc)) {
-    return triggerError('parseIcpSwapTickers', 'invalid ICP ckUSDC price');
+    throw errorMessage('parseIcpSwapTickers', 'invalid ICP ckUSDC price');
   }
 
   // Compute prices for all tickers in ICP and USD.

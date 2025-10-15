@@ -3,12 +3,12 @@ import { Principal } from '@icp-sdk/core/principal';
 
 import { CANISTER_ID_NNS_GOVERNANCE } from '@constants/canisterIds';
 import { useAgentPool } from '@hooks/useAgentPool';
-import { triggerError } from '@utils/error';
+import { errorMessage } from '@utils/error';
 import { CanisterStatus } from '@common/typings/canisters';
 
 export const useNnsGovernance = (): CanisterStatus<GovernanceCanister> => {
   if (!CANISTER_ID_NNS_GOVERNANCE) {
-    return triggerError('useNnsGovernance', 'the canister Id is not defined');
+    throw errorMessage('useNnsGovernance', 'the canister Id is not defined');
   }
 
   const { anonymous, authenticated } = useAgentPool().agentPool;

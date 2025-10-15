@@ -1,3 +1,3 @@
-export const triggerError = (fn: string, message: string): never => {
-  throw new Error(`❌ ERROR (${fn}): ${message}.`);
+export const errorMessage = (source: string, message: string): Error => {
+  return new Error(`❌ ERROR (${source}): ${message}.`);
 };

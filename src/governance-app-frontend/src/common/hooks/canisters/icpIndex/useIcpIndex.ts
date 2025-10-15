@@ -3,12 +3,12 @@ import { Principal } from '@icp-sdk/core/principal';
 
 import { CANISTER_ID_ICP_INDEX } from '@constants/canisterIds';
 import { useAgentPool } from '@hooks/useAgentPool';
-import { triggerError } from '@utils/error';
+import { errorMessage } from '@utils/error';
 import { CanisterStatus } from '@common/typings/canisters';
 
 export const useIcpIndex = (): CanisterStatus<IndexCanister> => {
   if (!CANISTER_ID_ICP_INDEX) {
-    return triggerError('useIcpIndex', 'the canister Id is not defined');
+    throw errorMessage('useIcpIndex', 'the canister Id is not defined');
   }
 
   const { anonymous, authenticated } = useAgentPool().agentPool;
