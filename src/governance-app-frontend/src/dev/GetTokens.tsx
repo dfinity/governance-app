@@ -36,6 +36,8 @@ const acquireICPTs = async ({
   if (!IS_TESTNET) throw new Error('The environment is not "testnet"');
 
   try {
+    // For this to work it needs the anonymous agent
+    // https://github.com/dfinity/ic/blob/21bf0fd88f506d949e07c226335b3896caf2bd52/packages/pocket-ic/src/common/rest.rs#L591
     const ledgerCanister: LedgerCanister = LedgerCanister.create({ agent });
 
     const promise = ledgerCanister.transfer({
