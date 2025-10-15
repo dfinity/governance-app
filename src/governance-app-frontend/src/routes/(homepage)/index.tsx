@@ -19,7 +19,7 @@ function Homepage() {
 
   return (
     <div className="text-xl">
-      <div data-testid="login-test" data-snapshot-mask>
+      <div data-testid="login-test-principal" data-snapshot-mask>
         {identity
           ? t(($) => $.home.yourPrincipal, {
               principal: identity.getPrincipal().toString(),
@@ -27,7 +27,7 @@ function Homepage() {
           : t(($) => $.common.loginWithII)}
       </div>
 
-      <div>
+      <div data-testid="login-test-icp-price">
         {t(($) => $.common.icpPrice)}:{' '}
         <QueryStates<TokenPrices>
           query={prices}
