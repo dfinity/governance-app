@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@eslint/css": "0.11.0",
-    "@playwright/test": "1.55.0",
+    "@playwright/test": "1.56.0",
     "@tailwindcss/vite": "4.1.13",
     "@tanstack/eslint-plugin-query": "5.90.1",
     "@tanstack/react-router-devtools": "1.131.50",

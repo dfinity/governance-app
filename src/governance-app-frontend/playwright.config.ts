@@ -1,4 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
+import dotenv from 'dotenv';
+
+// Load environment variables from the root .env file
+dotenv.config({ path: '../../.env' });
 
 const baseURL = process.env.BASE_URL || 'http://localhost:3000';
 
