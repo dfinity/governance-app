@@ -4,7 +4,7 @@ import { openApp } from './utils/app';
 import { login } from './utils/login';
 import { takeSnapshot } from './utils/take-snapshot';
 
-test('has title', async ({ page }) => {
+test('Has title.', async ({ page }) => {
   page.on('console', (msg) => {
     console.log(`[browser] ${msg.type()}: ${msg.text()}`);
   });

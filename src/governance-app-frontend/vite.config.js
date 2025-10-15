@@ -74,6 +74,10 @@ export default defineConfig({
         replacement: fileURLToPath(new URL('./src/common/utils/', import.meta.url)),
       },
       {
+        find: '@fixtures',
+        replacement: fileURLToPath(new URL('./src/common/fixtures/', import.meta.url)),
+      },
+      {
         find: '@common',
         replacement: fileURLToPath(new URL('./src/common/', import.meta.url)),
       },
