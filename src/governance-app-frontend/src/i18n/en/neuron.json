@@ -6,6 +6,7 @@
   "maturity": "Maturity",
   "status": "Status",
   "setDissolveDelay": "Set dissolve delay",
+  "increaseMaturity": "Increase maturity",
   "dissolveDelay": "Dissolve delay",
   "errors": {
     "neuronNotFound": "Neuron {{neuronId}} not found."
@@ -32,5 +33,11 @@
       "minimumStake": "Stake at least {{amount}} ICP."
     },
     "success": "You have successfully staked {{amount}} ICP."
+  },
+  "increaseMaturityModal": {
+    "title": "Increase maturity for {{neuronId}}",
+    "description": "Manually increase the maturity of your neuron. Available only in TESTNET.",
+    "maturityLabel": "Maturity to add:",
+    "success": "You have successfully added {{amount}} of maturity into neuron {{neuronId}}."
   }
 }

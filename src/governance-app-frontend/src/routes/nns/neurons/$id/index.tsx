@@ -13,6 +13,7 @@ import useTitle from '@hooks/useTitle';
 import { stringToBigInt } from '@utils/bigInt';
 import { requireIdentity } from '@utils/router';
 
+import { IncreaseMaturityModal } from '../-IncreaseMaturityModal';
 import { SetDissolveDelayModal } from '../-SetDissolveDelayModal';
 
 const NeuronDetailsRouteComponent = () => {
@@ -118,8 +119,9 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
         </table>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-4 flex items-center gap-2">
         <SetDissolveDelayModal neuron={neuron} />
+        <IncreaseMaturityModal neuron={neuron} />
       </div>
     </div>
   );
