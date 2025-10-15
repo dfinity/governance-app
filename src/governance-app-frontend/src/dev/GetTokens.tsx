@@ -16,6 +16,7 @@ import {
 } from '@untitledui/components';
 
 import { E8Sn, ICP_TRANSACTION_PROPAGATION_DELAY_MS, IS_TESTNET, NETWORK } from '@constants/extra';
+import { useAgentPool } from '@hooks/useAgentPool';
 import { withMinimumDelay } from '@utils/async';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
@@ -48,14 +49,15 @@ const getTestAccountAgent = async (): Promise<Agent> => {
 const acquireICPTs = async ({
   accountId,
   e8s,
+  agent,
 }: {
   accountId: AccountIdentifier;
   e8s: E8s;
+  agent: Agent;
 }): Promise<BlockHeight> => {
   if (!IS_TESTNET) throw new Error('The environment is not "testnet"');
 
   try {
-    const agent = await getTestAccountAgent();
     const ledgerCanister: LedgerCanister = LedgerCanister.create({ agent });
 
     const promise = ledgerCanister.transfer({
@@ -76,12 +78,13 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
   const queryClient = useQueryClient();
   const [amountOfIcp, setAmountOfIcp] = useState('');
   const [amountOfIcpError, setAmountOfIcpError] = useState<string | null>(null);
+  const { anonymous } = useAgentPool().agentPool;
   const { accountId } = props;
 
   const acquireTokensMutation = useMutation<
     BlockHeight,
     Error,
-    { accountId: AccountIdentifier; e8s: E8s }
+    { accountId: AccountIdentifier; e8s: E8s; agent: Agent }
   >({
     mutationFn: acquireICPTs,
     onSuccess: () => {
@@ -112,7 +115,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
     }
 
     const e8s = BigInt(Math.floor(amount * Number(E8Sn)));
-    acquireTokensMutation.mutateAsync({ e8s, accountId }).then(close);
+    acquireTokensMutation.mutateAsync({ e8s, accountId, agent: anonymous.agent! }).then(close);
   };
 
   return (
