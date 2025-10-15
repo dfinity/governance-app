@@ -7,5 +7,3 @@ export async function withMinimumDelay<T>(
 }
 
 export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-export const toJson = (response: Response) => response.json();

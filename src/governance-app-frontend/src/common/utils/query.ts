@@ -16,9 +16,7 @@ const ICP_INDEX = {
 };
 
 const EXTERNAL_SERVICES = {
-  ICP_SWAP: {
-    PRICES: 'icpSwapPrices',
-  },
+  ICP_SWAP_PRICES: 'icpSwapPrices',
 };
 
 export const QUERY_KEYS = { ICP_LEDGER, NNS_GOVERNANCE, ICP_INDEX, EXTERNAL_SERVICES };

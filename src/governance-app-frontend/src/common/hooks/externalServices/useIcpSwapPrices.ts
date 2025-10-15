@@ -4,12 +4,13 @@ import { useQuery } from '@tanstack/react-query';
 import { CANISTER_ID_CKUSD_LEDGER, CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { ICP_SWAP_URL } from '@constants/externalServices';
 import { IcpSwapTicker } from '@typings/icpSwap';
-import { toJson } from '@utils/async';
 import { isFiniteNonZeroNumber } from '@utils/numbers';
 import { QUERY_KEYS } from '@utils/query';
 
+type CanisterId = string;
+
 export type TokenPrices = Map<
-  string,
+  CanisterId,
   {
     name: string;
     icp: number;
@@ -23,8 +24,12 @@ export const useIcpSwapPrices = () => {
   }
 
   return useQuery<TokenPrices>({
-    queryKey: [QUERY_KEYS.EXTERNAL_SERVICES.ICP_SWAP.PRICES],
-    queryFn: () => fetch(`${ICP_SWAP_URL}/tickers`).then(toJson).then(parseIcpSwapTickers),
+    queryKey: [QUERY_KEYS.EXTERNAL_SERVICES.ICP_SWAP_PRICES],
+    queryFn: () =>
+      fetch(`${ICP_SWAP_URL}/tickers`)
+        .then((response) => response.json())
+        .then(parseIcpSwapTickers),
+    staleTime: 15 * 60 * 1000, // Longer stale time on this one: the API updates every 15 minutes.
   });
 };
 

@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { cx } from '@untitledui/utils/cx';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
-import SendICPsButton from '@components/buttons/toggleTheme/SendICPsButton';
+import SendICPsButton from '@components/buttons/SendICPsButton';
 import { InViewSentinel } from '@components/extra/InViewSentinel';
 import { QueryStates } from '@components/extra/QueryStates';
 import { SimpleCard } from '@components/extra/SimpleCard';
