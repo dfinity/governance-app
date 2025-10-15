@@ -7,7 +7,7 @@ export const NotAvailableBadge = () => {
 
   return (
     <Badge type="color" color="warning" size="sm" className="inline">
-      {t(($) => $.common.NotAvailable)}
+      {t(($) => $.common.notAvailable)}
     </Badge>
   );
 };
