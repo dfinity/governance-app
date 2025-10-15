@@ -1,7 +1,6 @@
 import { AccountIdentifier, BlockHeight, E8s, LedgerCanister } from '@dfinity/ledger-icp';
-import { createAgent as createAgentUtils, nonNullish } from '@dfinity/utils';
+import { nonNullish } from '@dfinity/utils';
 import { Agent } from '@icp-sdk/core/agent';
-import { Ed25519KeyIdentity } from '@icp-sdk/core/identity';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
@@ -15,31 +14,11 @@ import {
   ModalOverlay,
 } from '@untitledui/components';
 
-import { E8Sn, ICP_TRANSACTION_PROPAGATION_DELAY_MS, IS_TESTNET, NETWORK } from '@constants/extra';
+import { E8Sn, ICP_TRANSACTION_PROPAGATION_DELAY_MS, IS_TESTNET } from '@constants/extra';
+import { useAgentPool } from '@hooks/useAgentPool';
 import { withMinimumDelay } from '@utils/async';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
-
-const base64ToUInt8Array = (base64String: string): Uint8Array => {
-  return Uint8Array.from(window.atob(base64String), (c) => c.charCodeAt(0));
-};
-
-// Reference: https://github.com/dfinity/nns-dapp/blob/1575e2957cf611666ded606a522b301c7b534a4e/frontend/src/lib/api/dev.api.ts#L34
-const getTestAccountAgent = async (): Promise<Agent> => {
-  const publicKey = 'Uu8wv55BKmk9ZErr6OIt5XR1kpEGXcOSOC1OYzrAwuk=';
-  const privateKey =
-    'N3HB8Hh2PrWqhWH2Qqgr1vbU9T3gb1zgdBD8ZOdlQnVS7zC/nkEqaT1kSuvo4i3ldHWSkQZdw5I4LU5jOsDC6Q==';
-  const identity = Ed25519KeyIdentity.fromKeyPair(
-    base64ToUInt8Array(publicKey),
-    base64ToUInt8Array(privateKey),
-  );
-
-  return await createAgentUtils({
-    host: NETWORK,
-    identity,
-    fetchRootKey: true,
-  });
-};
 
 /*
  * Gives the caller the specified amount of (fake) ICPs.
@@ -48,14 +27,17 @@ const getTestAccountAgent = async (): Promise<Agent> => {
 const acquireICPTs = async ({
   accountId,
   e8s,
+  agent,
 }: {
   accountId: AccountIdentifier;
   e8s: E8s;
+  agent: Agent;
 }): Promise<BlockHeight> => {
   if (!IS_TESTNET) throw new Error('The environment is not "testnet"');
 
   try {
-    const agent = await getTestAccountAgent();
+    // For this to work it needs the anonymous agent
+    // https://github.com/dfinity/ic/blob/21bf0fd88f506d949e07c226335b3896caf2bd52/packages/pocket-ic/src/common/rest.rs#L591
     const ledgerCanister: LedgerCanister = LedgerCanister.create({ agent });
 
     const promise = ledgerCanister.transfer({
@@ -76,12 +58,13 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
   const queryClient = useQueryClient();
   const [amountOfIcp, setAmountOfIcp] = useState('');
   const [amountOfIcpError, setAmountOfIcpError] = useState<string | null>(null);
+  const { anonymous } = useAgentPool().agentPool;
   const { accountId } = props;
 
   const acquireTokensMutation = useMutation<
     BlockHeight,
     Error,
-    { accountId: AccountIdentifier; e8s: E8s }
+    { accountId: AccountIdentifier; e8s: E8s; agent: Agent }
   >({
     mutationFn: acquireICPTs,
     onSuccess: () => {
@@ -112,7 +95,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
     }
 
     const e8s = BigInt(Math.floor(amount * Number(E8Sn)));
-    acquireTokensMutation.mutateAsync({ e8s, accountId }).then(close);
+    acquireTokensMutation.mutateAsync({ e8s, accountId, agent: anonymous.agent! }).then(close);
   };
 
   return (
