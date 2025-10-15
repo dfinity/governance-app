@@ -47,6 +47,9 @@ jobs:
           dfx identity get-principal
           dfx identity list
 
+      - name: Generate .env file
+        run: ./scripts/config.sh -n local
+
       - name: Start sns-testing environment
         run: |
           ./scripts/download-sns_testing_bundle.sh --os linux --force --directory "../sns-testing-bundle"

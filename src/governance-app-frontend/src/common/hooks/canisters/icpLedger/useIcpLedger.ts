@@ -3,11 +3,12 @@ import { Principal } from '@icp-sdk/core/principal';
 
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { useAgentPool } from '@hooks/useAgentPool';
+import { errorMessage } from '@utils/error';
 import { CanisterStatus } from '@common/typings/canisters';
 
 export const useIcpLedger = (): CanisterStatus<LedgerCanister> => {
   if (!CANISTER_ID_ICP_LEDGER) {
-    throw new Error('useIcpLedger: the canister Id is not defined.');
+    throw errorMessage('useIcpLedger', 'the canister Id is not defined');
   }
 
   const { anonymous, authenticated } = useAgentPool().agentPool;

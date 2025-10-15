@@ -1,6 +1,7 @@
 import { useContext } from 'react';
 
 import { ThemeContext } from '@contexts/themeContext';
+import { errorMessage } from '@utils/error';
 
 export type Theme = 'light' | 'dark';
 
@@ -9,7 +10,7 @@ export const useTheme = (): ThemeContext & {
 } => {
   const context = useContext(ThemeContext);
 
-  if (context === undefined) throw new Error('useTheme must be used within a ThemeProvider');
+  if (context === undefined) throw errorMessage('useTheme', 'must be used within a ThemeProvider');
 
   const theme: Theme =
     context.themePreference === 'system'

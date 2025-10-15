@@ -55,6 +55,7 @@ const tsConfiguration = tseslint.config(
               '^@queries',
               '^@typings',
               '^@utils',
+              '^@fixtures',
               '^@common',
             ],
             ['^@routes', '^@/'],

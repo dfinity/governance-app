@@ -27,6 +27,7 @@
       "@queries/*": ["./src/common/queries/*"],
       "@typings/*": ["src/common/typings/*"],
       "@utils/*": ["./src/common/utils/*"],
+      "@fixtures/*": ["./src/common/fixtures/*"],
       "@common/*": ["./src/common/*"],
 
       "@untitledui/*": ["./src/untitledui/*"],
@@ -34,5 +35,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "tests"]
 }

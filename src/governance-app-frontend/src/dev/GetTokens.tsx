@@ -17,6 +17,7 @@ import {
 import { E8Sn, ICP_TRANSACTION_PROPAGATION_DELAY_MS, IS_TESTNET } from '@constants/extra';
 import { useAgentPool } from '@hooks/useAgentPool';
 import { withMinimumDelay } from '@utils/async';
+import { errorMessage } from '@utils/error';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
@@ -24,7 +25,7 @@ import { QUERY_KEYS } from '@utils/query';
  * Gives the caller the specified amount of (fake) ICPs.
  * Should/can only be used on testnets.
  */
-const acquireICPTs = async ({
+const acquireICPs = async ({
   accountId,
   e8s,
   agent,
@@ -33,7 +34,7 @@ const acquireICPTs = async ({
   e8s: E8s;
   agent: Agent;
 }): Promise<BlockHeight> => {
-  if (!IS_TESTNET) throw new Error('The environment is not "testnet"');
+  if (!IS_TESTNET) throw errorMessage('acquireICPs', 'the environment is not "testnet"');
 
   try {
     // For this to work it needs the anonymous agent
@@ -66,7 +67,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
     Error,
     { accountId: AccountIdentifier; e8s: E8s; agent: Agent }
   >({
-    mutationFn: acquireICPTs,
+    mutationFn: acquireICPs,
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS],
@@ -74,12 +75,12 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
 
       setAmountOfIcp('');
       successNotification({
-        description: 'Transaction successful',
+        description: `Top-up of ${amountOfIcp} ICPs successful.`,
       });
     },
     onError: (error) => {
       errorNotification({
-        description: `Failed to acquire tokens: ${error}`,
+        description: `Failed to acquire tokens: ${error}.`,
       });
     },
   });
@@ -126,6 +127,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
                     type="submit"
                     color="primary"
                     size="sm"
+                    className="mb-[2px]"
                     isLoading={acquireTokensMutation.isPending}
                   >
                     Top Up

@@ -94,7 +94,7 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
 
   return (
     <DialogTrigger>
-      <Button disabled={!canTransfer} isLoading={isPending} color="secondary">
+      <Button isDisabled={!canTransfer} isLoading={isPending} color="secondary">
         {t(($) => $.common.send)}
       </Button>
 
@@ -154,4 +154,4 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
   );
 };
 
-export default SendICPsButton;
+export { SendICPsButton };

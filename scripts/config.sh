@@ -60,6 +60,8 @@ CANISTER_ID_ICP_INDEX=qhbym-qaaaa-aaaaa-aaafq-cai
 CANISTER_ID_ICP_LEDGER=ryjl3-tyaaa-aaaaa-aaaba-cai
 CANISTER_ID_INTERNET_IDENTITY=rdmx6-jaaaa-aaaaa-aaadq-cai
 CANISTER_ID_NNS_GOVERNANCE=rrkah-fqaaa-aaaaa-aaaaq-cai
+CANISTER_ID_CKUSD_LEDGER=xevnm-gaaaa-aaaar-qafnq-cai
+EXTRA_ICP_SWAP_URL='https://uvevg-iyaaa-aaaak-ac27q-cai.raw.ic0.app'
 EOF
 
   case "$network" in

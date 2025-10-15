@@ -6,7 +6,7 @@ import { fileURLToPath, URL } from 'url';
 import { defineConfig } from 'vite';
 import environment from 'vite-plugin-environment';
 
-dotenv.config({ path: '../../.env' });
+dotenv.config({ path: '../../.env', quiet: true });
 
 export default defineConfig({
   build: {
@@ -31,6 +31,7 @@ export default defineConfig({
     }),
     environment('all', { prefix: 'CANISTER_' }),
     environment('all', { prefix: 'DFX_' }),
+    environment('all', { prefix: 'EXTRA_' }),
     tailwindcss(),
   ],
   resolve: {
@@ -73,6 +74,10 @@ export default defineConfig({
         replacement: fileURLToPath(new URL('./src/common/utils/', import.meta.url)),
       },
       {
+        find: '@fixtures',
+        replacement: fileURLToPath(new URL('./src/common/fixtures/', import.meta.url)),
+      },
+      {
         find: '@common',
         replacement: fileURLToPath(new URL('./src/common/', import.meta.url)),
       },
@@ -89,11 +94,10 @@ export default defineConfig({
     dedupe: ['@dfinity/agent'],
   },
   test: {
-    environment: 'jsdom',
     globals: true,
+    environment: 'jsdom',
+    exclude: ['./node_modules', './dist', './tests/e2e/**'],
     // Run before each test file
     setupFiles: ['vitest.setup.ts'],
-
-    exclude: ['./node_modules', './dist', './tests/e2e/**'],
   },
 });
