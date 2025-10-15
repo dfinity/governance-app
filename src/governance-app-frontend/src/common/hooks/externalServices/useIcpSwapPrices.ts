@@ -102,7 +102,7 @@ export const parseIcpSwapTickers = (tickers: IcpSwapTicker[]): TokenPrices => {
     });
   }
 
-  // There is no ticker for ICP to ICP, but we do want the ICP price as well.
+  // There is no direct ticker for ICP itself in the dataset, but we do want the ICP price as well, so we add it manually.
   result.set(CANISTER_ID_ICP_LEDGER, { name: 'ICP', icp: 1, usd: icpPriceInCkusdc });
 
   return result;

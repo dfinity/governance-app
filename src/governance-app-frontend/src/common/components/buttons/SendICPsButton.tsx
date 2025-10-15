@@ -154,4 +154,4 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
   );
 };
 
-export default SendICPsButton;
+export { SendICPsButton };
