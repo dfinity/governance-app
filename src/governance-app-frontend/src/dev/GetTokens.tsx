@@ -53,7 +53,7 @@ const acquireICPs = async ({
   accountId: AccountIdentifier;
   e8s: E8s;
 }): Promise<BlockHeight> => {
-  if (!IS_TESTNET) return errorMessage('acquireICPs', 'the environment is not "testnet"');
+  if (!IS_TESTNET) throw errorMessage('acquireICPs', 'the environment is not "testnet"');
 
   try {
     const agent = await getTestAccountAgent();
