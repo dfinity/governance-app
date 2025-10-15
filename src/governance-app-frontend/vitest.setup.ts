@@ -1,8 +1,8 @@
+import dotenv from 'dotenv';
 import { vi } from 'vitest';
 
-// Mock environment variables
-vi.stubEnv('CANISTER_ID_CKUSD_LEDGER', 'xevnm-gaaaa-aaaar-qafnq-cai');
-vi.stubEnv('CANISTER_ID_ICP_LEDGER', 'ryjl3-tyaaa-aaaaa-aaaba-cai');
+// Load environment variables from the root .env file
+dotenv.config({ path: '../../.env' });
 
 // Mock matchMedia
 Object.defineProperty(globalThis, 'matchMedia', {

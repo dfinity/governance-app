@@ -1,3 +1,4 @@
+import { CANISTER_ID_CKUSD_LEDGER, CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { IcpSwapTicker } from '@typings/icpSwap';
 
 export const fixture_IcpSwapTickers_Alice: IcpSwapTicker[] = [
@@ -6,7 +7,7 @@ export const fixture_IcpSwapTickers_Alice: IcpSwapTicker[] = [
     ticker_name: 'ALICE_ICP 1',
     base_id: 'oj6if-riaaa-aaaaq-aaeha-cai',
     base_currency: 'ALICE',
-    target_id: 'ryjl3-tyaaa-aaaaa-aaaba-cai',
+    target_id: CANISTER_ID_ICP_LEDGER!,
     target_currency: 'ICP',
     last_price: '17.841726',
     base_volume: '0.000000',
@@ -23,7 +24,7 @@ export const fixture_IcpSwapTickers_Alice: IcpSwapTicker[] = [
     ticker_name: 'ALICE_ICP 2',
     base_id: 'oj6if-riaaa-aaaaq-aaeha-cai',
     base_currency: 'ALICE',
-    target_id: 'ryjl3-tyaaa-aaaaa-aaaba-cai',
+    target_id: CANISTER_ID_ICP_LEDGER!,
     target_currency: 'ICP',
     last_price: '1.841726',
     base_volume: '0.000000',
@@ -40,7 +41,7 @@ export const fixture_IcpSwapTickers_Alice: IcpSwapTicker[] = [
     ticker_name: 'ALICE_ICP 3',
     base_id: 'oj6if-riaaa-aaaaq-aaeha-cai',
     base_currency: 'ALICE',
-    target_id: 'ryjl3-tyaaa-aaaaa-aaaba-cai',
+    target_id: CANISTER_ID_ICP_LEDGER!,
     target_currency: 'ICP',
     last_price: '173.841726',
     base_volume: '0.000000',
@@ -57,9 +58,9 @@ export const fixture_IcpSwapTickers_Alice: IcpSwapTicker[] = [
 export const fixture_IcpSwapTickers_ckUSDC: IcpSwapTicker = {
   ticker_id: 'mohjv-bqaaa-aaaag-qjyia-cai',
   ticker_name: 'ckUSDC_ICP',
-  base_id: 'xevnm-gaaaa-aaaar-qafnq-cai',
+  base_id: CANISTER_ID_CKUSD_LEDGER!,
   base_currency: 'ckUSDC',
-  target_id: 'ryjl3-tyaaa-aaaaa-aaaba-cai',
+  target_id: CANISTER_ID_ICP_LEDGER!,
   target_currency: 'ICP',
   last_price: '3.537176',
   base_volume: '0.000000',
