@@ -1,0 +1,42 @@
+name: "PR Checks"
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - reopened
+      - synchronize
+      - labeled
+  merge_group:
+
+permissions: {}
+
+jobs:
+  check-pr-title:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    env:
+      TITLE: ${{ github.event.pull_request.title }}
+    steps:
+      - name: "Check PR Title"
+        if: ${{ github.event_name != 'merge_group' }}
+        run: |
+          # Enforce: action(target): description
+          # - action ∈ {feat, fix, chore, build, ci, docs, style, refactor, perf, test}
+          # - exactly one target using [A-Za-z0-9-]+
+          # - requires a non-empty description (at least one non-space char after ": ")
+          regex='^(feat|fix|chore|build|ci|docs|style|refactor|perf|test)\([A-Za-z0-9-]+\):[[:space:]]+[^[:space:]].*$'
+
+          if [[ "$TITLE" =~ $regex ]]; then
+              echo "PR Title passes"
+          else
+              echo "PR Title does not match conventions:"
+              echo "  action(target): description"
+              echo "Allowed actions: feat, fix, chore, build, ci, docs, style, refactor, perf, test"
+              echo "Examples:"
+              echo "  feat(wallet): add hardware signing"
+              echo "  fix(api): handle 401 on refresh"
+              exit 1
+          fi
