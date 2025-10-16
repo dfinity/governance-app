@@ -7,10 +7,10 @@ import Skeleton from 'react-loading-skeleton';
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { WarningMessage } from '@components/extra/WarningMessage';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
-import { E8S } from '@constants/extra';
+import { E8S, E8Sn } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceNeurons';
 import useTitle from '@hooks/useTitle';
-import { stringToBigInt } from '@utils/bigInt';
+import { bigIntDiv, stringToBigInt } from '@utils/bigInt';
 import { requireIdentity } from '@utils/router';
 
 import { IncreaseMaturityModal } from '../-IncreaseMaturityModal';
@@ -94,6 +94,16 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
                 {t(($) => $.neuron.status)}
               </th>
               <td>{NeuronState[neuron.state]}</td>
+            </tr>
+            <tr>
+              <th className="pr-4 text-sm font-bold text-secondary uppercase">
+                {t(($) => $.neuron.maturity)}
+              </th>
+              <td>
+                {neuron.fullNeuron?.maturityE8sEquivalent
+                  ? bigIntDiv(neuron.fullNeuron.maturityE8sEquivalent, E8Sn, 2)
+                  : t(($) => $.common.notAvailable)}
+              </td>
             </tr>
             <tr>
               <th className="pr-4 text-sm font-bold text-secondary uppercase">
