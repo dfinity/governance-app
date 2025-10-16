@@ -13,7 +13,8 @@ import useTitle from '@hooks/useTitle';
 import { bigIntDiv, stringToBigInt } from '@utils/bigInt';
 import { requireIdentity } from '@utils/router';
 
-import { IncreaseMaturityModal } from '../-IncreaseMaturityModal';
+import { IncreaseMaturityModal } from '@/dev/IncreaseMaturityModal';
+
 import { SetDissolveDelayModal } from '../-SetDissolveDelayModal';
 
 const NeuronDetailsRouteComponent = () => {

@@ -5,10 +5,8 @@ import { FormEvent, useState } from 'react';
 
 import { Button, Dialog, DialogTrigger, Input, Modal, ModalOverlay } from '@untitledui/components';
 
-import { SECONDS_IN_DAY } from '@constants/extra';
+import { E8S } from '@constants/extra';
 import { useNnsGovernanceTest } from '@hooks/canisters/governance/useGovernanceTest';
-import { bigIntDiv } from '@utils/bigInt';
-import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
@@ -25,43 +23,43 @@ export const IncreaseMaturityModal = ({ neuron }: Props) => {
     authenticated: governanceTestAuthenticated,
   } = useNnsGovernanceTest();
 
-  const [additionalMaturity, setAdditionalMaturity] = useState(maturityDays(neuron));
+  const [additionalMaturity, setAdditionalMaturity] = useState('');
   const [inputError, setInputError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const neuronId = neuron.neuronId.toString();
   const canUpdate =
     nonNullish(governanceTestCanister) && governanceTestAuthenticated && governanceTestReady;
 
   const setIncreaseMaturityMutation = useMutation({
     mutationFn: () => {
       if (isNullish(neuron.fullNeuron)) {
-        throw new Error(`Full neuron is not defined for neuron ${neuron.neuronId}.`);
+        throw new Error(`Full neuron is not defined for neuron #${neuronId}.`);
       }
 
       return governanceTestCanister!.updateNeuron({
         ...neuron.fullNeuron,
-        maturityE8sEquivalent: neuron.fullNeuron?.maturityE8sEquivalent || 0n,
+        maturityE8sEquivalent:
+          (neuron.fullNeuron?.maturityE8sEquivalent || 0n) +
+          BigInt(Number(additionalMaturity) * E8S),
       });
     },
     onMutate: () => setPending(true),
-    onSuccess: () => {
+    onSuccess: () =>
       queryClient
         .invalidateQueries({
           queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
         })
-        .finally(() => {
-          const expectedDissolveDelaySeconds =
-            neuron.dissolveDelaySeconds + BigInt(additionalDissolveDelaySeconds);
-          setDelayDays(bigIntDiv(expectedDissolveDelaySeconds, BigInt(SECONDS_IN_DAY)).toString());
+        .then(() => {
+          setAdditionalMaturity('');
+          successNotification({
+            description: `You have successfully added ${additionalMaturity} maturity to neuron #${neuronId}.`,
+          });
           setPending(false);
-        });
-      successNotification({
-        description: t(($) => $.neuron.setDissolveDelayModal.success, { amount: delayDaysInput }),
-      });
-    },
-    onError: (mutationError) => {
+        }),
+    onError: () => {
       setPending(false);
       errorNotification({
-        description: mapGovernanceCanisterError(mutationError),
+        description: `Failed to increase maturity for neuron #${neuronId}.`,
       });
     },
   });
@@ -72,14 +70,13 @@ export const IncreaseMaturityModal = ({ neuron }: Props) => {
     if (!value) return;
     const numericValue = Number(value);
     if (numericValue <= 0) {
-      setInputError(t(($) => $.neuron.increaseMaturityModal.errors.invalidMaturity));
+      setInputError('Additional maturity must be greater than 0.');
     }
   };
 
   const handleSubmit = (close: () => void) => async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIncreaseMaturityMutation.mutate();
-    close();
+    setIncreaseMaturityMutation.mutateAsync().then(close);
   };
 
   return (
@@ -97,7 +94,7 @@ export const IncreaseMaturityModal = ({ neuron }: Props) => {
               <form className="flex flex-col gap-4" onSubmit={handleSubmit(close)}>
                 <div>
                   <h3 className="text-lg font-semibold text-primary">
-                    Increase maturity for {neuron.neuronId.toString()}
+                    Increase maturity for #{neuronId}
                   </h3>
                   <p className="mt-1 text-sm text-secondary">
                     Manually increase the maturity of your neuron. Available only in TESTNET.
@@ -119,7 +116,7 @@ export const IncreaseMaturityModal = ({ neuron }: Props) => {
                   <Button type="button" color="secondary" onClick={close} isDisabled={pending}>
                     Close
                   </Button>
-                  <Button type="submit" color="primary" isDisabled={pending}>
+                  <Button type="submit" color="primary" isLoading={pending}>
                     Confirm
                   </Button>
                 </div>
