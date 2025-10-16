@@ -7,7 +7,7 @@ import Skeleton from 'react-loading-skeleton';
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { WarningMessage } from '@components/extra/WarningMessage';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
-import { E8S, E8Sn } from '@constants/extra';
+import { E8S, E8Sn, IS_TESTNET } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceNeurons';
 import useTitle from '@hooks/useTitle';
 import { bigIntDiv, stringToBigInt } from '@utils/bigInt';
@@ -132,7 +132,7 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
 
       <div className="mt-4 flex items-center gap-2">
         <SetDissolveDelayModal neuron={neuron} />
-        <IncreaseMaturityModal neuron={neuron} />
+        {IS_TESTNET && <IncreaseMaturityModal neuron={neuron} />}
       </div>
     </div>
   );

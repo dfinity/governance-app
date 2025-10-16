@@ -5,8 +5,9 @@ import { FormEvent, useState } from 'react';
 
 import { Button, Dialog, DialogTrigger, Input, Modal, ModalOverlay } from '@untitledui/components';
 
-import { E8S } from '@constants/extra';
+import { E8S, IS_TESTNET } from '@constants/extra';
 import { useNnsGovernanceTest } from '@hooks/canisters/governance/useGovernanceTest';
+import { errorMessage } from '@utils/error';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
@@ -15,6 +16,8 @@ type Props = {
 };
 
 export const IncreaseMaturityModal = ({ neuron }: Props) => {
+  if (!IS_TESTNET) throw errorMessage('increaseMaturityModal', 'the environment is not "testnet"');
+
   const queryClient = useQueryClient();
 
   const {
