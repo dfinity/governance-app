@@ -19,13 +19,13 @@ describe('parseIcpSwapTickers', () => {
     // Pairs are grouped by base_id, and the one with the highest target_volume_24H is chosen.
     data.push(fixture_IcpSwapTickers_ckUSDC);
     let res = parseIcpSwapTickers(data);
-    expect(res.size).toBe(3); // ALICE, ckUSDC, ICP
-    expect(res.get('oj6if-riaaa-aaaaq-aaeha-cai')?.name).toEqual('ALICE_ICP 3'); // Highest volume ticker for ALICE
+    expect(res.size).toBe(3); // ALICE, ckUSDC, ICP.
+    expect(res.get('oj6if-riaaa-aaaaq-aaeha-cai')?.name).toEqual('ALICE_ICP 3'); // Highest volume ticker for ALICE.
 
     // Non-ICP based tickers are ignored.
     data.push(fixture_IcpSwapTickers_nonIcpBased);
     res = parseIcpSwapTickers(data);
-    expect(res.size).toBe(3); // Still ALICE, ckUSDC, ICP
+    expect(res.size).toBe(3); // Still ALICE, ckUSDC, ICP.
 
     // The ICP ticker is always added.
     expect(res.get(CANISTER_ID_ICP_LEDGER!)).toEqual({

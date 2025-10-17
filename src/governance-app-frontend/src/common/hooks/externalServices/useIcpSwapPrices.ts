@@ -4,24 +4,19 @@ import { useQuery } from '@tanstack/react-query';
 import { CANISTER_ID_CKUSD_LEDGER, CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { ICP_SWAP_URL } from '@constants/externalServices';
 import { IcpSwapTicker } from '@typings/icpSwap';
+import { TokenPrices } from '@typings/tokenPrices';
 import { errorMessage } from '@utils/error';
 import { isFiniteNonZeroNumber } from '@utils/numbers';
 import { QUERY_KEYS } from '@utils/query';
 
-type CanisterId = string;
+type Props = {
+  enabled?: boolean;
+  retryCount?: number;
+};
 
-export type TokenPrices = Map<
-  CanisterId,
-  {
-    name: string;
-    icp: number;
-    usd: number;
-  }
->;
-
-export const useIcpSwapPrices = () => {
+export const useIcpSwapPrices = ({ enabled = true, retryCount = 3 }: Props) => {
   if (!ICP_SWAP_URL) {
-    throw errorMessage('useIcpSwapPrices', 'ICP Swap URL is not defined');
+    throw errorMessage('useIcpSwapPrices', 'icpSwap URL is not defined');
   }
 
   return useQuery<TokenPrices>({
@@ -31,6 +26,8 @@ export const useIcpSwapPrices = () => {
         .then((response) => response.json())
         .then(parseIcpSwapTickers),
     staleTime: 15 * 60 * 1000, // Longer stale time on this one: the API updates every 15 minutes.
+    enabled,
+    retry: (failureCount) => failureCount < retryCount,
   });
 };
 
