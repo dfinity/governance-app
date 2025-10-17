@@ -11,6 +11,7 @@ export const MIN_ASYNC_DELAY = 300; // Avoids flashing of loading indicators.
 
 export const E8S = 100_000_000;
 export const E8Sn = BigInt(E8S);
+export const u64Max = 2n ** 64n - 1n;
 
 export const ICP_MIN_STAKE_AMOUNT = 1;
 export const ICP_MIN_TRANSFER_AMOUNT = 1;
