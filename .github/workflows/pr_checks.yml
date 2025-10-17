@@ -14,7 +14,7 @@ permissions: {}
 
 jobs:
   check-pr-title:
-    name: 'Title format'
+    name: Title format
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
