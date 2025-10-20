@@ -62,5 +62,11 @@
   "send": "Send",
   "confirm": "Confirm",
   "cancel": "Cancel",
-  "close": "Close"
+  "close": "Close",
+  "numberInput": {
+    "invalidNumber": "Please enter a valid number.",
+    "infiniteValue": "Please enter a finite number.",
+    "minValueError": "Min values is: {{min}}.",
+    "maxValueError": "Max values is: {{max}}."
+  }
 }
