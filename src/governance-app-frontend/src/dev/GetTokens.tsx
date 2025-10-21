@@ -1,6 +1,6 @@
 import { AccountIdentifier, BlockHeight, E8s, LedgerCanister } from '@icp-sdk/canisters/ledger/icp';
 import { Agent } from '@icp-sdk/core/agent';
-import { nonNullish } from '@dfinity/utils';
+import { isNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
@@ -9,14 +9,15 @@ import {
   Dialog,
   DialogTrigger,
   Heading,
-  Input,
   Modal,
   ModalOverlay,
+  NumberInput,
 } from '@untitledui/components';
 
 import { E8Sn, ICP_TRANSACTION_PROPAGATION_DELAY_MS, IS_TESTNET } from '@constants/extra';
 import { useAgentPool } from '@hooks/useAgentPool';
 import { withMinimumDelay } from '@utils/async';
+import { bigIntMul } from '@utils/bigInt';
 import { errorMessage } from '@utils/error';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
@@ -56,10 +57,9 @@ const acquireICPs = async ({
 };
 
 export const GetTokens = (props: { accountId: AccountIdentifier }) => {
-  const queryClient = useQueryClient();
-  const [amountOfIcp, setAmountOfIcp] = useState('');
-  const [amountOfIcpError, setAmountOfIcpError] = useState<string | null>(null);
+  const [amountOfIcp, setAmountOfIcp] = useState<number>();
   const { anonymous } = useAgentPool().agentPool;
+  const queryClient = useQueryClient();
   const { accountId } = props;
 
   const acquireTokensMutation = useMutation<
@@ -75,7 +75,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE],
       });
-      setAmountOfIcp('');
+      setAmountOfIcp(undefined);
       successNotification({
         description: `Top-up of ${amountOfIcp} ICPs successful.`,
       });
@@ -89,15 +89,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
 
   const handleSubmit = (close: () => void) => async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setAmountOfIcpError(null);
-
-    const amount = parseFloat(amountOfIcp);
-    if (amount <= 0 || isNaN(amount)) {
-      setAmountOfIcpError(`Invalid amount ${amount}. Must be a number greater than 0.`);
-      return;
-    }
-
-    const e8s = BigInt(Math.floor(amount * Number(E8Sn)));
+    const e8s = bigIntMul(E8Sn, amountOfIcp!);
     acquireTokensMutation.mutateAsync({ e8s, accountId, agent: anonymous.agent! }).then(close);
   };
 
@@ -116,23 +108,22 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
                 </Heading>
                 <p className="text-sm text-tertiary">Account: {accountId.toHex()}</p>
                 <div className="flex items-end gap-1">
-                  <Input
-                    type="number"
-                    size="sm"
-                    label="Amount"
-                    value={amountOfIcp}
+                  <NumberInput
                     onChange={setAmountOfIcp}
-                    hint={amountOfIcpError}
-                    isInvalid={nonNullish(amountOfIcpError)}
+                    value={amountOfIcp}
+                    label="Amount"
+                    size="sm"
+                    min={1}
                   />
                   <Button
-                    type="submit"
-                    color="primary"
-                    size="sm"
-                    className="mb-[2px]"
                     isLoading={acquireTokensMutation.isPending}
+                    isDisabled={isNullish(amountOfIcp)}
+                    className="mb-[2px]"
+                    color="primary"
+                    type="submit"
+                    size="sm"
                   >
-                    Top Up
+                    Top-up
                   </Button>
                 </div>
               </form>
