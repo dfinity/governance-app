@@ -1,4 +1,4 @@
-import { Input, type InputBaseProps } from '@untitledui/components/base/input/input';
+import { Input, type InputBaseProps } from '@untitledui/components/custom/base/input/input';
 import React, { useEffect, useState } from 'react';
 import { clampNumber } from '@utils/numbers';
 import { KeyboardEvent } from '@react-types/shared';
@@ -11,55 +11,72 @@ type Props = Omit<InputBaseProps, 'value' | 'onChange'> & {
   max?: number;
 };
 
-// BE CAREFUL CHANGING THIS COMPONENT:
-// There are a lot of edge cases to consider.
+// BE CAREFUL CHANGING THIS COMPONENT!
+// There are a ton of edge cases to consider.
 export const NumberInput: React.FC<Props> = (props) => {
-  const { value, onChange, min, max, ...baseProps } = props;
+  const { value: externalValue, onChange, min, max, ...baseProps } = props;
   const [internalValue, setInternalValue] = useState('');
 
   // Ensure values coming externally are within the min and max bounds.
   useEffect(() => {
-    const acceptableNumber = clampNumber({ val: value, min, max });
-    if (acceptableNumber !== value) {
+    const acceptableNumber = clampNumber({ val: externalValue, min, max });
+    // If the value has changed and is out of bounds, call the onChange callback with the clamped value.
+    if (acceptableNumber !== externalValue) {
       onChange(acceptableNumber);
     } else {
-      setInternalValue(nonNullish(value) ? String(value) : '');
+      if (nonNullish(externalValue)) {
+        // If the value is defined and within bounds, update the internal value.
+        // Only update if the Number-converted values are different (in order to keep pasted numbers trailing decimal zeroes).
+        if (Number(externalValue) !== Number(internalValue)) {
+          setInternalValue(String(externalValue));
+        }
+      } else {
+        // If the value is undefined, clear the input.
+        setInternalValue('');
+      }
     }
-  }, [value, min, max, onChange]);
+  }, [externalValue, min, max, onChange]);
 
-  const handleChange = (inputValue: string) => {
-    // If the input is cleared, don't clamp it as it would restore the min value.
-    if (inputValue === '') {
+  const handleChange = (inputString: string) => {
+    // If the input is cleared, don't try to clamp it as it would treat it as zero (Number('')).
+    if (inputString === '') {
       onChange(undefined);
       setInternalValue('');
       return;
     }
 
-    // If the input is ending with a decimal point and a zero, allow it without clamping yet (as it would trigger the number conversion and remove the zeroes).
-    if (/\.(.*)0$/.test(inputValue)) {
-      setInternalValue(inputValue);
+    // Clamp the value to the min and max bounds.
+    const inputAsNumber = Number(inputString);
+    const clampedInputAsNumber = clampNumber({ val: inputAsNumber, min, max });
+
+    // If the input is ending with a decimal zero, and is withing the min and max bounds,
+    // then allow it without clamping yet (as it would trigger the number conversion and remove the zeroes).
+    if (/\.(.*)0$/.test(inputString) && clampedInputAsNumber === inputAsNumber) {
+      setInternalValue(inputString);
+      // If the value has changed, call the onChange callback (e.g. was pasted with trailing decimal zeroes).
+      if (inputAsNumber !== externalValue) onChange(clampedInputAsNumber);
       return;
     }
 
-    const val = clampNumber({ val: Number(inputValue), min, max });
-    if (val !== value) onChange(val);
-    setInternalValue(String(val));
+    // If the value has changed, the onChange callback.
+    if (clampedInputAsNumber !== externalValue) onChange(clampedInputAsNumber);
+    setInternalValue(String(clampedInputAsNumber));
   };
 
-  // Prevents scientific notation and negative numbers.
+  // Prevents scientific notation and negative numbers from being typed.
+  // In case they are pasted, they are immedately converted, and display as regular numbers.
   const handleKeyDown = (event: KeyboardEvent) => {
     if (['e', '-', '+'].includes(event.key)) event.preventDefault();
   };
 
-  console.log('internalValue', internalValue);
   return (
     <Input
-      isInvalid={false} // Avoids a bug when increasing the number with the arrows. Always valid anyway since the number is clamped. Can be overridden from the props if needed.
       {...baseProps}
-      onKeyDown={handleKeyDown}
       onChange={handleChange}
+      onKeyDown={handleKeyDown}
       value={internalValue}
       type="number"
+      step="any"
     />
   );
 };
