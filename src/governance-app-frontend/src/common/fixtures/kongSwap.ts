@@ -6,10 +6,10 @@ export const fixture_KongSwapTickers_Alice: KongSwapTicker = {
   base_currency: 'oj6if-riaaa-aaaaq-aaeha-cai',
   target_currency: CANISTER_ID_ICP_LEDGER!,
   pool_id: '139',
-  last_price: 0.005388,
+  last_price: 0.005388371583799956,
   base_volume: 0,
   target_volume: 0,
-  liquidity_in_usd: 64.674611,
+  liquidity_in_usd: 64.6746111132775,
 };
 
 export const fixture_KongSwapTickers_ckUSDC: KongSwapTicker = {
@@ -17,10 +17,10 @@ export const fixture_KongSwapTickers_ckUSDC: KongSwapTicker = {
   base_currency: CANISTER_ID_CKUSD_LEDGER!,
   target_currency: CANISTER_ID_ICP_LEDGER!,
   pool_id: '127',
-  last_price: 0.29962,
+  last_price: 0.2996200817363583,
   base_volume: 0.836893,
   target_volume: 0,
-  liquidity_in_usd: 70.589993,
+  liquidity_in_usd: 70.5899936936853,
 };
 
 export const fixture_KongSwapTickers_nonIcpBased: KongSwapTicker = {
