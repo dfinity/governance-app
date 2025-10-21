@@ -76,6 +76,7 @@ export const NumberInput: React.FC<Props> = (props) => {
       onKeyDown={handleKeyDown}
       value={internalValue}
       type="number"
+      // Allow any decimal precision, otherwise is considered invalid when decimals are present.
       step="any"
     />
   );
