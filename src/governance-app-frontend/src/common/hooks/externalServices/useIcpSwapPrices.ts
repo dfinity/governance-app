@@ -33,15 +33,15 @@ export const useIcpSwapPrices = ({ enabled = true, retryCount = 3 }: Props) => {
 
 export const parseIcpSwapTickers = (tickers: IcpSwapTicker[]): TokenPrices => {
   if (!CANISTER_ID_CKUSD_LEDGER) {
-    throw errorMessage('parseIcpSwapTickers', 'ckUSDC ledger canister ID is not defined');
+    throw errorMessage('parseIcpSwapTickers', 'ckUSDC ledger canister Id is not defined');
   }
 
   if (!CANISTER_ID_ICP_LEDGER) {
-    throw errorMessage('parseIcpSwapTickers', 'ICP ledger canister ID is not defined');
+    throw errorMessage('parseIcpSwapTickers', 'icpLedger canister Id is not defined');
   }
 
   if (!Array.isArray(tickers)) {
-    throw errorMessage('parseIcpSwapTickers', 'Unexpected response format from ICP Swap');
+    throw errorMessage('parseIcpSwapTickers', 'unexpected response format from icpSwap');
   }
 
   // First, get all ICP-based tickers.
