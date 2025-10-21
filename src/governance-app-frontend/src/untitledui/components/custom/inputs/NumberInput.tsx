@@ -58,13 +58,13 @@ export const NumberInput: React.FC<Props> = (props) => {
       return;
     }
 
-    // If the value has changed, the onChange callback.
+    // If the value has changed, call the onChange callback.
     if (clampedInputAsNumber !== externalValue) onChange(clampedInputAsNumber);
     setInternalValue(String(clampedInputAsNumber));
   };
 
   // Prevents scientific notation and negative numbers from being typed.
-  // In case they are pasted, they are immedately converted, and display as regular numbers.
+  // In case they are pasted, they are immedately converted, and displayed as regular numbers.
   const handleKeyDown = (event: KeyboardEvent) => {
     if (['e', '-', '+'].includes(event.key)) event.preventDefault();
   };
