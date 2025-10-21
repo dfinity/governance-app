@@ -5,7 +5,7 @@ import { FormEvent, useState } from 'react';
 
 import { Button, Dialog, DialogTrigger, Modal, ModalOverlay } from '@untitledui/components';
 
-import { IS_TESTNET, u64Max } from '@constants/extra';
+import { IS_TESTNET, U64_MAX } from '@constants/extra';
 import { useNnsGovernanceTest } from '@hooks/canisters/governance/useGovernanceTest';
 import { errorMessage } from '@utils/error';
 import { errorNotification, successNotification } from '@utils/notification';
@@ -41,7 +41,7 @@ export const UnlockNeuronModal = ({ neuron }: Props) => {
         ...neuron.fullNeuron,
         dissolveState: { WhenDissolvedTimestampSeconds: 0n },
         // Backend requirement: https://github.com/dfinity/ic/blob/a00685bd42a1d33e7c8c821b0216cb83f8e6f798/rs/nns/governance/src/neuron/types.rs#L1692
-        agingSinceTimestampSeconds: u64Max,
+        agingSinceTimestampSeconds: U64_MAX,
       });
     },
     onMutate: () => setPending(true),
