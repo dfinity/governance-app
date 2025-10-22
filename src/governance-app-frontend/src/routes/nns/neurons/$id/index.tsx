@@ -7,11 +7,13 @@ import Skeleton from 'react-loading-skeleton';
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { WarningMessage } from '@components/extra/WarningMessage';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
-import { E8S } from '@constants/extra';
+import { E8S, E8Sn, IS_TESTNET } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceNeurons';
 import useTitle from '@hooks/useTitle';
-import { stringToBigInt } from '@utils/bigInt';
+import { bigIntDiv, stringToBigInt } from '@utils/bigInt';
 import { requireIdentity } from '@utils/router';
+
+import { IncreaseMaturityModal } from '@/dev/IncreaseMaturityModal';
 
 import { SetDissolveDelayModal } from '../-SetDissolveDelayModal';
 
@@ -96,6 +98,16 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
             </tr>
             <tr>
               <th className="pr-4 text-sm font-bold text-secondary uppercase">
+                {t(($) => $.neuron.maturity)}
+              </th>
+              <td>
+                {neuron.fullNeuron?.maturityE8sEquivalent
+                  ? bigIntDiv(neuron.fullNeuron.maturityE8sEquivalent, E8Sn, 2)
+                  : t(($) => $.common.notAvailable)}
+              </td>
+            </tr>
+            <tr>
+              <th className="pr-4 text-sm font-bold text-secondary uppercase">
                 {t(($) => $.neuron.stake)}
               </th>
               <td>
@@ -118,8 +130,9 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
         </table>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-4 flex items-center gap-2">
         <SetDissolveDelayModal neuron={neuron} />
+        {IS_TESTNET && <IncreaseMaturityModal neuron={neuron} />}
       </div>
     </div>
   );
