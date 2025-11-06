@@ -43,8 +43,7 @@ const tsConfiguration = tseslint.config(
             // Node.js builtins.
             ['^node:'],
             // External packages.
-            ['^@icp-sdk'],
-            ['^@?\\w'],
+            ['^@icp-sdk', '^@?\\w'],
             // Internal files.
             ['^@declarations'],
             ['^@untitledui'],
