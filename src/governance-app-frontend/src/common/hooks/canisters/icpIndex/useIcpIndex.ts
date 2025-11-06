@@ -1,10 +1,10 @@
-import { IndexCanister } from '@dfinity/ledger-icp';
+import { IndexCanister } from '@icp-sdk/canisters/ledger/icp';
 import { Principal } from '@icp-sdk/core/principal';
 
+import { CanisterStatus } from '@common/typings/canisters';
 import { CANISTER_ID_ICP_INDEX } from '@constants/canisterIds';
 import { useAgentPool } from '@hooks/useAgentPool';
 import { errorMessage } from '@utils/error';
-import { CanisterStatus } from '@common/typings/canisters';
 
 export const useIcpIndex = (): CanisterStatus<IndexCanister> => {
   if (!CANISTER_ID_ICP_INDEX) {

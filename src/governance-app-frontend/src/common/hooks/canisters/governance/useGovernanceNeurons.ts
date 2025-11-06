@@ -1,5 +1,5 @@
-import { NeuronId } from '@dfinity/nns';
-import { NeuronSubaccount } from '@dfinity/nns/dist/candid/governance';
+import { NeuronId } from '@icp-sdk/canisters/nns';
+import { NeuronSubaccount } from '@icp-sdk/canisters/nns/dist/candid/governance';
 
 import { useQueryThenUpdateCall } from '@queries/useQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/query';

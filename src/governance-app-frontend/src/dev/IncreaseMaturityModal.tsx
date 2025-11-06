@@ -1,5 +1,5 @@
-import { NeuronInfo } from '@dfinity/nns';
 import { isNullish, nonNullish } from '@dfinity/utils';
+import { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 

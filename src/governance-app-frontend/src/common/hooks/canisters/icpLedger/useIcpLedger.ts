@@ -1,10 +1,10 @@
-import { LedgerCanister } from '@dfinity/ledger-icp';
+import { LedgerCanister } from '@icp-sdk/canisters/ledger/icp';
 import { Principal } from '@icp-sdk/core/principal';
 
+import { CanisterStatus } from '@common/typings/canisters';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { useAgentPool } from '@hooks/useAgentPool';
 import { errorMessage } from '@utils/error';
-import { CanisterStatus } from '@common/typings/canisters';
 
 export const useIcpLedger = (): CanisterStatus<LedgerCanister> => {
   if (!CANISTER_ID_ICP_LEDGER) {

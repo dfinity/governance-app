@@ -1,9 +1,9 @@
+import { isNullish, nonNullish } from '@dfinity/utils';
 import {
   AccountIdentifier,
   GetAccountIdentifierTransactionsResponse,
   TransactionWithId,
-} from '@dfinity/ledger-icp';
-import { isNullish, nonNullish } from '@dfinity/utils';
+} from '@icp-sdk/canisters/ledger/icp';
 import { createFileRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ArrowDownToLine, ArrowUp } from 'lucide-react';

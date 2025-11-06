@@ -4,7 +4,7 @@ import {
   InsufficientAmountError,
   UnrecognizedTypeError,
   UnsupportedValueError,
-} from '@dfinity/nns';
+} from '@icp-sdk/canisters/nns';
 import { t } from 'i18next';
 
 // ref. https://github.com/dfinity/ic-js/blob/48a2ee1a6afa230eb86e2599147defe71cd16013/packages/nns/src/errors/governance.errors.ts

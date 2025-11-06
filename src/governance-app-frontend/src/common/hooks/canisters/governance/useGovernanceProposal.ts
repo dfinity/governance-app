@@ -1,4 +1,4 @@
-import { ListProposalsRequest } from '@dfinity/nns';
+import { ListProposalsRequest } from '@icp-sdk/canisters/nns';
 
 import { useQueryThenUpdateCall } from '@queries/useQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/query';

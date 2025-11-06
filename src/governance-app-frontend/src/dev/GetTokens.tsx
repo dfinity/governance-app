@@ -1,5 +1,5 @@
-import { AccountIdentifier, BlockHeight, E8s, LedgerCanister } from '@dfinity/ledger-icp';
 import { nonNullish } from '@dfinity/utils';
+import { AccountIdentifier, BlockHeight, E8s, LedgerCanister } from '@icp-sdk/canisters/ledger/icp';
 import { Agent } from '@icp-sdk/core/agent';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
