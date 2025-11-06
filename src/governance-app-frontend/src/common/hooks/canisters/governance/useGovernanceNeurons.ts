@@ -1,5 +1,4 @@
 import { NeuronId } from '@icp-sdk/canisters/nns';
-import { NeuronSubaccount } from '@icp-sdk/canisters/nns/dist/candid/governance';
 
 import { useQueryThenUpdateCall } from '@queries/useQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/query';
@@ -11,7 +10,7 @@ type RequestParams = {
   neuronIds?: NeuronId[];
   includeEmptyNeurons?: boolean;
   includePublicNeurons?: boolean;
-  neuronSubaccounts?: NeuronSubaccount[];
+  neuronSubaccounts?: { subaccount: Uint8Array | number[] }[];
 };
 
 export const useGovernanceNeurons = (params?: RequestParams) => {
