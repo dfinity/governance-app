@@ -1,4 +1,4 @@
-import { LedgerCanister } from '@dfinity/ledger-icp';
+import { LedgerCanister } from '@icp-sdk/canisters/ledger/icp';
 import { Principal } from '@icp-sdk/core/principal';
 
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';

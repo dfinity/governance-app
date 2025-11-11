@@ -1,4 +1,4 @@
-import { ProposalInfo, Vote } from '@dfinity/nns';
+import { ProposalInfo, Vote } from '@icp-sdk/canisters/nns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { CircleCheckBig, ThumbsDown, ThumbsUp } from 'lucide-react';

@@ -1,4 +1,4 @@
-import { GovernanceCanister } from '@dfinity/nns';
+import { GovernanceCanister } from '@icp-sdk/canisters/nns';
 import { Principal } from '@icp-sdk/core/principal';
 
 import { CANISTER_ID_NNS_GOVERNANCE } from '@constants/canisterIds';

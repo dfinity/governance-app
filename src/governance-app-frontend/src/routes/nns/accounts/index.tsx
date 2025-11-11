@@ -2,7 +2,7 @@ import {
   AccountIdentifier,
   GetAccountIdentifierTransactionsResponse,
   TransactionWithId,
-} from '@dfinity/ledger-icp';
+} from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';

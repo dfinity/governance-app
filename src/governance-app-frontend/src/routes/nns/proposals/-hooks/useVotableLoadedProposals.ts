@@ -1,4 +1,9 @@
-import { ProposalRewardStatus, ProposalStatus, Topic, votableNeurons } from '@dfinity/nns';
+import {
+  ProposalRewardStatus,
+  ProposalStatus,
+  Topic,
+  votableNeurons,
+} from '@icp-sdk/canisters/nns';
 
 import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/canisters/governance';
 

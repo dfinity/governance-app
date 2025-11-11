@@ -1,4 +1,4 @@
-import { NeuronInfo, NeuronState } from '@dfinity/nns';
+import { NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
 import { isNullish, secondsToDuration } from '@dfinity/utils';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';

@@ -1,4 +1,4 @@
-import { ListProposalsRequest, ListProposalsResponse, Option } from '@dfinity/nns';
+import { ListProposalsRequest, ListProposalsResponse, Option } from '@icp-sdk/canisters/nns';
 
 import { PAGINATION_LIMIT } from '@constants/extra';
 import { useInfiniteQueryThenUpdateCall } from '@queries/useInfiniteQueryThenUpdateCall';

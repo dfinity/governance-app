@@ -1,4 +1,4 @@
-import { AccountIdentifier, isIcpAccountIdentifier } from '@dfinity/ledger-icp';
+import { AccountIdentifier, isIcpAccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { useMutation } from '@tanstack/react-query';
 import React, { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';

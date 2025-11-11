@@ -1,4 +1,4 @@
-import { IndexCanister } from '@dfinity/ledger-icp';
+import { IndexCanister } from '@icp-sdk/canisters/ledger/icp';
 import { Principal } from '@icp-sdk/core/principal';
 
 import { CANISTER_ID_ICP_INDEX } from '@constants/canisterIds';

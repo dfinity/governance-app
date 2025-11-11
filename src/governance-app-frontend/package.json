@@ -21,9 +21,8 @@
     "untitledui:add": "npx untitledui@latest add --path untitledui/components/"
   },
   "dependencies": {
-    "@dfinity/ledger-icp": "6.1.0",
-    "@dfinity/nns": "10.2.0",
-    "@dfinity/utils": "3.2.0",
+    "@dfinity/utils": "4.0.0",
+    "@icp-sdk/canisters": "1.1.0",
     "@icp-sdk/core": "4.0.5",
     "@tanstack/react-query": "5.90.1",
     "@tanstack/react-query-devtools": "5.89.0",
