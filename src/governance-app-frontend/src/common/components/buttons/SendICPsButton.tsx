@@ -3,7 +3,15 @@ import { useMutation } from '@tanstack/react-query';
 import React, { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, Dialog, DialogTrigger, Input, Modal, ModalOverlay } from '@untitledui/components';
+import {
+  Button,
+  Dialog,
+  DialogTrigger,
+  Input,
+  Modal,
+  ModalOverlay,
+  NumberInput,
+} from '@untitledui/components';
 
 import {
   E8Sn,
@@ -27,8 +35,7 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
     authenticated: ledgerAuthenticated,
   } = useIcpLedger();
 
-  const [amount, setAmount] = useState('');
-  const [amountError, setAmountError] = useState('');
+  const [amount, setAmount] = useState<number | undefined>(undefined);
   const [toAccount, setToAccount] = useState('');
   const [toAccountError, setToAccountError] = useState('');
   const [isPending, setIsPending] = useState(false);
@@ -46,7 +53,7 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
       // Wait 2 seconds to allow the backend to process the transaction.
       await delay(ICP_TRANSACTION_PROPAGATION_DELAY_MS);
       setToAccount('');
-      setAmount('');
+      setAmount(undefined);
       successNotification({
         description: t(($) => $.account.transferSuccess, { amount, toAccount }),
       });
@@ -82,16 +89,6 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
     }
   };
 
-  const handleAmountChange = (value: string) => {
-    setAmount(value);
-    setAmountError('');
-    if (!value) return;
-    const numericValue = Number(value);
-    if (numericValue < ICP_MIN_TRANSFER_AMOUNT || numericValue > max) {
-      setAmountError(t(($) => $.account.amountError));
-    }
-  };
-
   return (
     <DialogTrigger>
       <Button isDisabled={!canTransfer} isLoading={isPending} color="secondary">
@@ -118,14 +115,13 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
                   isRequired
                 />
 
-                <Input
+                <NumberInput
                   label={t(($) => $.common.amount)}
-                  onChange={handleAmountChange}
-                  isInvalid={!!amountError}
+                  min={ICP_MIN_TRANSFER_AMOUNT}
                   isDisabled={isPending}
-                  hint={amountError}
+                  onChange={setAmount}
                   value={amount}
-                  type="number"
+                  max={max}
                   isRequired
                 />
 
