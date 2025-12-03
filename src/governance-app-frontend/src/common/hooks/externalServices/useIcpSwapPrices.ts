@@ -41,7 +41,7 @@ export const parseIcpSwapTickers = (tickers: IcpSwapTicker[]): TokenPrices => {
   }
 
   if (!Array.isArray(tickers)) {
-    throw errorMessage('parseIcpSwapTickers', 'unexpected response format from icpSwap');
+    throw errorMessage('parseIcpSwapTickers', 'unexpected response format from IcpSwap');
   }
 
   // First, get all ICP-based tickers.
@@ -93,14 +93,14 @@ export const parseIcpSwapTickers = (tickers: IcpSwapTicker[]): TokenPrices => {
     const priceInIcp = 1 / lastPrice;
     const priceInUsd = icpPriceInCkusdc * priceInIcp;
     result.set(ticker.base_id, {
-      name: ticker.ticker_name,
+      _name: ticker.ticker_name,
       icp: priceInIcp,
       usd: priceInUsd,
     });
   }
 
   // There is no direct ticker for ICP itself in the dataset, but we do want the ICP price as well, so we add it manually.
-  result.set(CANISTER_ID_ICP_LEDGER, { name: 'ICP', icp: 1, usd: icpPriceInCkusdc });
+  result.set(CANISTER_ID_ICP_LEDGER, { _name: 'ICP', icp: 1, usd: icpPriceInCkusdc });
 
   return result;
 };

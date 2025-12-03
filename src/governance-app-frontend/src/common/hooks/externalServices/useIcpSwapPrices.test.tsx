@@ -20,7 +20,7 @@ describe('parseIcpSwapTickers', () => {
     data.push(fixture_IcpSwapTickers_ckUSDC);
     let res = parseIcpSwapTickers(data);
     expect(res.size).toBe(3); // ALICE, ckUSDC, ICP.
-    expect(res.get('oj6if-riaaa-aaaaq-aaeha-cai')?.name).toEqual('ALICE_ICP 3'); // Highest volume ticker for ALICE.
+    expect(res.get('oj6if-riaaa-aaaaq-aaeha-cai')?._name).toEqual('ALICE_ICP 3'); // Highest volume ticker for ALICE.
 
     // Non-ICP based tickers are ignored.
     data.push(fixture_IcpSwapTickers_nonIcpBased);
@@ -29,7 +29,7 @@ describe('parseIcpSwapTickers', () => {
 
     // The ICP ticker is always added.
     expect(res.get(CANISTER_ID_ICP_LEDGER!)).toEqual({
-      name: 'ICP',
+      _name: 'ICP',
       icp: 1,
       usd: 3.537176,
     });

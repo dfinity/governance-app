@@ -21,7 +21,7 @@ describe('parseKongSwapTickers', () => {
     let res = parseKongSwapTickers(data);
     expect(res.size).toBe(3); // ALICE, ckUSDC, ICP.
     expect(res.get(CANISTER_ID_CKUSD_LEDGER!)).toEqual({
-      name: 'N/A (KongSwap)',
+      _name: 'N/A (KongSwap)',
       icp: 0.2996200817363583,
       usd: 1,
     });
@@ -33,7 +33,7 @@ describe('parseKongSwapTickers', () => {
 
     // The ICP ticker is always added.
     expect(res.get(CANISTER_ID_ICP_LEDGER!)).toEqual({
-      name: 'ICP',
+      _name: 'ICP',
       icp: 1,
       usd: 3.3375600000000003,
     });

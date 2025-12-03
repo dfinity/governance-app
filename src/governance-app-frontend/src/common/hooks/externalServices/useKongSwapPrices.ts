@@ -70,14 +70,15 @@ export const parseKongSwapTickers = (tickers: KongSwapTicker[]): TokenPrices => 
     const priceInIcp = lastPrice;
     const priceInUsd = icpPriceInCkusdc * priceInIcp;
     result.set(ticker.base_currency, {
-      name: 'N/A (KongSwap)',
+      // KongSwap does not provide a name for the ticker, so we use a placeholder.
+      _name: 'N/A (KongSwap)',
       icp: priceInIcp,
       usd: priceInUsd,
     });
   }
 
   // There is no direct ticker for ICP itself in the dataset, but we do want the ICP price as well, so we add it manually.
-  result.set(CANISTER_ID_ICP_LEDGER, { name: 'ICP', icp: 1, usd: icpPriceInCkusdc });
+  result.set(CANISTER_ID_ICP_LEDGER, { _name: 'ICP', icp: 1, usd: icpPriceInCkusdc });
 
   return result;
 };
