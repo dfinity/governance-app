@@ -67,11 +67,6 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
               </Link>
               <div className="flex flex-wrap justify-center gap-4 sm:flex-nowrap">
                 <Button to="/nns">{t(($) => $.common.nns)}</Button>
-                <Button to="/sns">{t(($) => $.common.sns)}</Button>
-                <Button to="/vault/$name" params={{ name: 'John' }} search={{ surname: 'Doe' }}>
-                  {t(($) => $.common.vault)}
-                </Button>
-
                 <Button
                   data-testid="login-btn"
                   color={identity ? 'secondary-destructive' : 'secondary'}

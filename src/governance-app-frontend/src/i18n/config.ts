@@ -9,8 +9,6 @@ import home from './en/home.json';
 import neuron from './en/neuron.json';
 import nns from './en/nns.json';
 import proposal from './en/proposal.json';
-import sns from './en/sns.json';
-import vault from './en/vault.json';
 
 // Using a single namespace "labels" for simplicity.
 // Files inside it (common, home, …) are grouped translations, not separate namespaces.
@@ -24,8 +22,6 @@ export const resources = {
       nns,
       proposal,
       neuron,
-      sns,
-      vault,
       account,
     },
   },
