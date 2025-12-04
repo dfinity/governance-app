@@ -4,24 +4,19 @@ import { useQuery } from '@tanstack/react-query';
 import { CANISTER_ID_CKUSD_LEDGER, CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { ICP_SWAP_URL } from '@constants/externalServices';
 import { IcpSwapTicker } from '@typings/icpSwap';
+import { TokenPrices } from '@typings/tokenPrices';
 import { errorMessage } from '@utils/error';
 import { isFiniteNonZeroNumber } from '@utils/numbers';
 import { QUERY_KEYS } from '@utils/query';
 
-type CanisterId = string;
+type Props = {
+  enabled?: boolean;
+  retryCount?: number;
+};
 
-export type TokenPrices = Map<
-  CanisterId,
-  {
-    name: string;
-    icp: number;
-    usd: number;
-  }
->;
-
-export const useIcpSwapPrices = () => {
+export const useIcpSwapPrices = ({ enabled = true, retryCount = 3 }: Props) => {
   if (!ICP_SWAP_URL) {
-    throw errorMessage('useIcpSwapPrices', 'ICP Swap URL is not defined');
+    throw errorMessage('useIcpSwapPrices', 'icpSwap URL is not defined');
   }
 
   return useQuery<TokenPrices>({
@@ -31,20 +26,22 @@ export const useIcpSwapPrices = () => {
         .then((response) => response.json())
         .then(parseIcpSwapTickers),
     staleTime: 15 * 60 * 1000, // Longer stale time on this one: the API updates every 15 minutes.
+    enabled,
+    retry: (failureCount) => failureCount < retryCount,
   });
 };
 
 export const parseIcpSwapTickers = (tickers: IcpSwapTicker[]): TokenPrices => {
   if (!CANISTER_ID_CKUSD_LEDGER) {
-    throw errorMessage('parseIcpSwapTickers', 'ckUSDC ledger canister ID is not defined');
+    throw errorMessage('parseIcpSwapTickers', 'ckUSDC ledger canister Id is not defined');
   }
 
   if (!CANISTER_ID_ICP_LEDGER) {
-    throw errorMessage('parseIcpSwapTickers', 'ICP ledger canister ID is not defined');
+    throw errorMessage('parseIcpSwapTickers', 'icpLedger canister Id is not defined');
   }
 
   if (!Array.isArray(tickers)) {
-    throw errorMessage('parseIcpSwapTickers', 'Unexpected response format from ICP Swap');
+    throw errorMessage('parseIcpSwapTickers', 'unexpected response format from IcpSwap');
   }
 
   // First, get all ICP-based tickers.
@@ -96,14 +93,14 @@ export const parseIcpSwapTickers = (tickers: IcpSwapTicker[]): TokenPrices => {
     const priceInIcp = 1 / lastPrice;
     const priceInUsd = icpPriceInCkusdc * priceInIcp;
     result.set(ticker.base_id, {
-      name: ticker.ticker_name,
+      _name: ticker.ticker_name,
       icp: priceInIcp,
       usd: priceInUsd,
     });
   }
 
   // There is no direct ticker for ICP itself in the dataset, but we do want the ICP price as well, so we add it manually.
-  result.set(CANISTER_ID_ICP_LEDGER, { name: 'ICP', icp: 1, usd: icpPriceInCkusdc });
+  result.set(CANISTER_ID_ICP_LEDGER, { _name: 'ICP', icp: 1, usd: icpPriceInCkusdc });
 
   return result;
 };

@@ -6,7 +6,8 @@ import { NotAvailableBadge } from '@components/badges/certified/NotAvailableBadg
 import { QueryStates } from '@components/extra/QueryStates';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { TokenPrices, useIcpSwapPrices } from '@hooks/externalServices/useIcpSwapPrices';
+import { useTickerPrices } from '@hooks/externalServices/useTickerPrices';
+import { TokenPrices } from '@typings/tokenPrices';
 
 export const Route = createFileRoute('/(homepage)/')({
   component: Homepage,
@@ -14,7 +15,7 @@ export const Route = createFileRoute('/(homepage)/')({
 
 function Homepage() {
   const { identity } = useInternetIdentity();
-  const prices = useIcpSwapPrices();
+  const { tickerPrices } = useTickerPrices();
   const { t } = useTranslation();
 
   return (
@@ -30,7 +31,7 @@ function Homepage() {
       <div data-testid="login-test-icp-price">
         {t(($) => $.common.icpPrice)}:{' '}
         <QueryStates<TokenPrices>
-          query={prices}
+          query={tickerPrices}
           isEmpty={(data) => data.size === 0}
           loadingComponent={<SkeletonLoader width={50} height={20} />}
         >
