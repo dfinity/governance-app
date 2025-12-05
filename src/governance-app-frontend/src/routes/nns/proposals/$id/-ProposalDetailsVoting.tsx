@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Fragment } from 'react/jsx-runtime';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@untitledui/components';
+import { Button } from '@ui';
 
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { VOTING_RESULTS_PRECISION } from '@constants/extra';

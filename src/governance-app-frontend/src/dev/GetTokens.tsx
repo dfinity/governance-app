@@ -4,15 +4,7 @@ import { nonNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
-import {
-  Button,
-  Dialog,
-  DialogTrigger,
-  Heading,
-  Input,
-  Modal,
-  ModalOverlay,
-} from '@untitledui/components';
+import { Button, Dialog, DialogTrigger, Heading, Input, Modal, ModalOverlay } from '@ui';
 
 import { E8Sn, ICP_TRANSACTION_PROPAGATION_DELAY_MS, IS_TESTNET } from '@constants/extra';
 import { useAgentPool } from '@hooks/useAgentPool';

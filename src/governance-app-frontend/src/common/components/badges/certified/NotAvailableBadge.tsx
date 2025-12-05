@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { Badge } from '@untitledui/components';
+import { Badge } from '@ui';
 
 export const NotAvailableBadge = () => {
   const { t } = useTranslation();

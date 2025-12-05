@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, Dialog, DialogTrigger, Input, Modal, ModalOverlay } from '@untitledui/components';
+import { Button, Dialog, DialogTrigger, Input, Modal, ModalOverlay } from '@ui';
 
 import { SECONDS_IN_DAY } from '@constants/extra';
 import { ICP_MAX_DISSOLVE_DELAY_SECONDS, ICP_MIN_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';

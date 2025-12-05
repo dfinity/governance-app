@@ -3,7 +3,7 @@ import { secondsToDuration } from '@dfinity/utils';
 import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
-import { Link } from '@untitledui/components';
+import { Link } from '@ui';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { QueryStates } from '@components/extra/QueryStates';

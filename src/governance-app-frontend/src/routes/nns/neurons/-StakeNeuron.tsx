@@ -4,7 +4,7 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, Input } from '@untitledui/components';
+import { Button, Input } from '@ui';
 
 import { SimpleCard } from '@components/extra/SimpleCard';
 import {

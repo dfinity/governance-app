@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
-import { Link } from '@untitledui/components';
+import { Link } from '@ui';
 
 import useTitle from '@hooks/useTitle';
 

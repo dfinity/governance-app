@@ -1,7 +1,7 @@
 import { Monitor, Moon, Sun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, Tooltip } from '@untitledui/components';
+import { Button, Tooltip } from '@ui';
 
 import { useTheme } from '@hooks/useTheme';
 

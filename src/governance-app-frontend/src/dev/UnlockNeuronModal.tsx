@@ -3,7 +3,7 @@ import { isNullish, nonNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
-import { Button, Dialog, DialogTrigger, Modal, ModalOverlay } from '@untitledui/components';
+import { Button, Dialog, DialogTrigger, Modal, ModalOverlay } from '@ui';
 
 import { IS_TESTNET, U64_MAX } from '@constants/extra';
 import { useNnsGovernanceTest } from '@hooks/canisters/governance/useGovernanceTest';

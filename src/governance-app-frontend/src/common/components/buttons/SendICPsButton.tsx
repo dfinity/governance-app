@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import React, { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, Dialog, DialogTrigger, Input, Modal, ModalOverlay } from '@untitledui/components';
+import { Button, Dialog, DialogTrigger, Input, Modal, ModalOverlay } from '@ui';
 
 import {
   E8Sn,

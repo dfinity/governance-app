@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { BadgeWithDot } from '@untitledui/components';
+import { BadgeWithDot } from '@ui';
 
 type Props = {
   certified?: boolean;

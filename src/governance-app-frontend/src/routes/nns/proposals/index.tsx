@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { Vote } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { BadgeWithIcon, Link } from '@untitledui/components';
+import { BadgeWithIcon, Link } from '@ui';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { InViewSentinel } from '@components/extra/InViewSentinel';

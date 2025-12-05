@@ -19,7 +19,6 @@
     "baseUrl": ".",
     "paths": {
       "@declarations/*": ["./../declarations/*"],
-
       "@components/*": ["./src/common/components/*"],
       "@constants/*": ["./src/common/constants/*"],
       "@contexts/*": ["./src/common/contexts/*"],
@@ -29,8 +28,9 @@
       "@utils/*": ["./src/common/utils/*"],
       "@fixtures/*": ["./src/common/fixtures/*"],
       "@common/*": ["./src/common/*"],
-
       "@untitledui/*": ["./src/untitledui/*"],
+      "@ui/*": ["./src/common/ui/*"],
+      "@ui": ["./src/common/ui/index.ts"],
       "@routes/*": ["./src/routes/*"],
       "@/*": ["./src/*"]
     }
