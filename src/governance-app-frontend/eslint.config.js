@@ -46,6 +46,7 @@ const tsConfiguration = tseslint.config(
             ['^@icp-sdk', '^@?\\w'],
             // Internal files.
             ['^@declarations'],
+            ['^@ui'],
             ['^@untitledui'],
             [
               '^@components',
