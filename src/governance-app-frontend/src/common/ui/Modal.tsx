@@ -5,14 +5,21 @@ import {
     DialogTitle,
     DialogTrigger as ShadcnDialogTrigger,
 } from "@/components/ui/dialog";
+import {
+    Drawer,
+    DrawerContent,
+    DrawerTrigger as ShadcnDrawerTrigger,
+} from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 import { createContext, useContext, useState, Children, isValidElement, type ReactNode } from "react";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 
-// Context to provide 'close' function
-const ModalContext = createContext<{ close: () => void }>({ close: () => { } });
+// Context to provide 'close' function and screen state
+const ModalContext = createContext<{ close: () => void, isDesktop: boolean }>({ close: () => { }, isDesktop: true });
 
 export const DialogTrigger = ({ children }: { children: ReactNode }) => {
     const [open, setOpen] = useState(false);
+    const isDesktop = useMediaQuery("(min-width: 768px)");
     const close = () => setOpen(false);
 
     let trigger: ReactNode = null;
@@ -21,7 +28,6 @@ export const DialogTrigger = ({ children }: { children: ReactNode }) => {
     Children.map(children, (child) => {
         if (!isValidElement(child)) return;
         // Check for slot="trigger"
-        // Need to cast to any or ReactElement with props
         const element = child as any;
         if (element.props?.slot === "trigger") {
             trigger = child;
@@ -30,42 +36,65 @@ export const DialogTrigger = ({ children }: { children: ReactNode }) => {
         }
     });
 
-    // If no explicit trigger slot found, try first element? 
-    // UntitledUi usage seems consistent with slot="trigger".
+    if (isDesktop) {
+        return (
+            <ModalContext.Provider value={{ close, isDesktop: true }}>
+                <ShadcnDialog open={open} onOpenChange={setOpen}>
+                    <ShadcnDialogTrigger asChild>
+                        {trigger || <button>Open</button>}
+                    </ShadcnDialogTrigger>
+                    {content}
+                </ShadcnDialog>
+            </ModalContext.Provider>
+        );
+    }
 
     return (
-        <ModalContext.Provider value={{ close }}>
-            <ShadcnDialog open={open} onOpenChange={setOpen}>
-                <ShadcnDialogTrigger asChild>
+        <ModalContext.Provider value={{ close, isDesktop: false }}>
+            <Drawer open={open} onOpenChange={setOpen}>
+                <ShadcnDrawerTrigger asChild>
                     {trigger || <button>Open</button>}
-                </ShadcnDialogTrigger>
+                </ShadcnDrawerTrigger>
                 {content}
-            </ShadcnDialog>
+            </Drawer>
         </ModalContext.Provider>
     );
 };
 
 export const ModalOverlay = ({ children, isKeyboardDismissDisabled }: any) => {
-    // Shadcn Dialog handles overlay. 
-    // We just render children (which is Modal).
+    // Shadcn handles overlay internally in Content components.
     return <>{children}</>;
 };
 
 export interface ModalProps {
     children: ReactNode;
-    className?: string;
+    className?: string; // This usually comes with bg-primary/p-6 from the old code, which we removed or kept as p-6
 }
 
 export const Modal = ({ children, className }: ModalProps) => {
+    const { isDesktop } = useContext(ModalContext);
+
+    if (isDesktop) {
+        return (
+            <DialogContent className={cn("sm:max-w-lg", className, "max-h-[85vh] overflow-y-auto")}>
+                {children}
+                <div className="sr-only">
+                    <DialogTitle>Dialog</DialogTitle>
+                </div>
+            </DialogContent>
+        );
+    }
+
     return (
-        <DialogContent className={cn("sm:max-w-lg", className, "max-h-[85vh] overflow-y-auto")}>
-            {/* Render children. Often contains Dialog (Inner) or direct content */}
-            {children}
-            {/* Accessibility title fallback if needed */}
-            <div className="sr-only">
-                <DialogTitle>Dialog</DialogTitle>
+        <DrawerContent>
+            {/* Drawer content usually needs some padding and handling of the 'handle' */}
+            <div className={cn("px-4 pb-8 pt-4", className)}>
+                {children}
+                <div className="sr-only">
+                    <DialogTitle>Drawer</DialogTitle>
+                </div>
             </div>
-        </DialogContent>
+        </DrawerContent>
     );
 };
 
