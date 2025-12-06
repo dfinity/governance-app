@@ -11,7 +11,7 @@ const BasicLink = React.forwardRef<
   return (
     <a
       ref={ref}
-      className={cn('font-medium text-primary underline-offset-4 hover:underline', className)}
+      className={cn('font-medium text-primary', className)}
       {...props}
     />
   );

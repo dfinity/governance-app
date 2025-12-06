@@ -8,7 +8,7 @@ type Props = {
 
 export const SimpleCard = ({ children, className }: Props) => {
   return (
-    <Card className={cn('h-full', className)}>
+    <Card className={cn('h-full transition-colors hover:bg-muted/50 cursor-pointer', className)}>
       <CardContent className="flex h-full flex-col justify-between p-4">{children}</CardContent>
     </Card>
   );

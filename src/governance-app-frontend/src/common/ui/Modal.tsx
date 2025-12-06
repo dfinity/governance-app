@@ -23,7 +23,7 @@ import { useMediaQuery } from '../hooks/useMediaQuery';
 
 // Context to provide 'close' function and screen state
 const ModalContext = createContext<{ close: () => void; isDesktop: boolean }>({
-  close: () => {},
+  close: () => { },
   isDesktop: true,
 });
 
@@ -94,7 +94,7 @@ export const Modal = ({ children, className }: ModalProps) => {
   return (
     <DrawerContent>
       {/* Drawer content usually needs some padding and handling of the 'handle' */}
-      <div className={cn('px-4 pt-4 pb-8', className)}>
+      <div className={cn('mx-auto w-full max-w-md px-4 pt-4 pb-8', className)}>
         {children}
         <div className="sr-only">
           <DialogTitle>Drawer</DialogTitle>

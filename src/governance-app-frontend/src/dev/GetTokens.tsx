@@ -1,10 +1,10 @@
+import { nonNullish } from '@dfinity/utils';
 import { AccountIdentifier, BlockHeight, E8s, LedgerCanister } from '@icp-sdk/canisters/ledger/icp';
 import { Agent } from '@icp-sdk/core/agent';
-import { nonNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
-import { Button, Dialog, DialogTrigger, Heading, Input, Modal, ModalOverlay } from '@ui';
+import { Button, Dialog, DialogTrigger, Input, Modal, ModalOverlay } from '@ui';
 
 import { E8Sn, ICP_TRANSACTION_PROPAGATION_DELAY_MS, IS_TESTNET } from '@constants/extra';
 import { useAgentPool } from '@hooks/useAgentPool';
@@ -93,19 +93,19 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
 
   return (
     <DialogTrigger>
-      <Button color="secondary" size="sm">
+      <Button slot="trigger" color="secondary" size="sm">
         Get Tokens
       </Button>
       <ModalOverlay isDismissable>
-        <Modal className="max-w-xl rounded-2xl p-6 shadow-lg">
+        <Modal className="max-w-sm rounded-2xl p-6 shadow-lg">
           <Dialog>
             {({ close }) => (
               <form className="flex flex-col gap-4" onSubmit={handleSubmit(close)}>
-                <Heading slot="title" className="text-md font-semibold">
-                  Get Testnet ICPs
-                </Heading>
-                <p className="text-sm text-muted-foreground">Account: {accountId.toHex()}</p>
-                <div className="flex items-end gap-1">
+                <h3 className="text-lg font-semibold">Get Testnet ICPs</h3>
+                <p className="text-sm break-all text-muted-foreground">
+                  Account: {accountId.toHex()}
+                </p>
+                <div className="grid gap-2">
                   <Input
                     type="number"
                     size="sm"
@@ -119,7 +119,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
                     type="submit"
                     color="primary"
                     size="sm"
-                    className="mb-[2px]"
+                    className="w-full"
                     isLoading={acquireTokensMutation.isPending}
                   >
                     Top Up

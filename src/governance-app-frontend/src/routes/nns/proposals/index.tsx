@@ -27,7 +27,7 @@ function ProposalsPage() {
 
   return (
     <div className="flex flex-col gap-2 text-xl">
-      <h2 className="mb-2 text-primary">{t(($) => $.common.proposalsList)}</h2>
+      <h2 className="mb-2 text-3xl font-bold tracking-tight">{t(($) => $.common.proposalsList)}</h2>
 
       <QueryStates
         infiniteQuery={proposals}
