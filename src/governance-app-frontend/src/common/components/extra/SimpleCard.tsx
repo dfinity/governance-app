@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 type Props = {
@@ -8,10 +8,8 @@ type Props = {
 
 export const SimpleCard = ({ children, className }: Props) => {
   return (
-    <Card className={cn("h-full", className)}>
-      <CardContent className="p-4 flex h-full flex-col justify-between">
-        {children}
-      </CardContent>
+    <Card className={cn('h-full', className)}>
+      <CardContent className="flex h-full flex-col justify-between p-4">{children}</CardContent>
     </Card>
   );
 };

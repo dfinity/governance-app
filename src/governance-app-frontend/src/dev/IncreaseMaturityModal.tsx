@@ -96,9 +96,7 @@ export const IncreaseMaturityModal = ({ neuron }: Props) => {
             {({ close }) => (
               <form className="flex flex-col gap-4" onSubmit={handleSubmit(close)}>
                 <div>
-                  <h3 className="text-lg font-semibold">
-                    Increase maturity for #{neuronId}
-                  </h3>
+                  <h3 className="text-lg font-semibold">Increase maturity for #{neuronId}</h3>
                   <p className="mt-1 text-sm text-muted-foreground">
                     Manually increase the maturity of your neuron. Available only in TESTNET.
                   </p>

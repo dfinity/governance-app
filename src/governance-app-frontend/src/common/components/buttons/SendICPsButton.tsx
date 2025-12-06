@@ -103,9 +103,7 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
           <Dialog>
             {({ close }) => (
               <form className="flex flex-col gap-4" onSubmit={handleSubmit(close)}>
-                <h3 className="text-lg font-semibold">
-                  {t(($) => $.account.transferTitle)}
-                </h3>
+                <h3 className="text-lg font-semibold">{t(($) => $.account.transferTitle)}</h3>
 
                 <Input
                   label={t(($) => $.account.destinationAccount)}

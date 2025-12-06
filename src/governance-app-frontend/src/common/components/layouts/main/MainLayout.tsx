@@ -61,7 +61,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
           <div>
             <div className="mb-10 flex flex-wrap items-start justify-center gap-2 sm:mb-0 sm:flex-nowrap sm:justify-between">
               <Link to="/">
-                <h1 className="pb-4 text-4xl font-bold text-brand-primary">
+                <h1 className="text-brand-primary pb-4 text-4xl font-bold">
                   {t(($) => $.home.title)}
                 </h1>
               </Link>
@@ -73,9 +73,9 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
                   onClick={
                     identity
                       ? () => {
-                        wasManualLogout.current = true;
-                        clear();
-                      }
+                          wasManualLogout.current = true;
+                          clear();
+                        }
                       : login
                   }
                 >

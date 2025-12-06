@@ -37,9 +37,9 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
   const hint = inputError
     ? inputError
     : t(($) => $.neuron.setDissolveDelayModal.hint, {
-      min: Math.ceil(ICP_MIN_DISSOLVE_DELAY_SECONDS / SECONDS_IN_DAY),
-      max: Math.floor(ICP_MAX_DISSOLVE_DELAY_SECONDS / SECONDS_IN_DAY),
-    });
+        min: Math.ceil(ICP_MIN_DISSOLVE_DELAY_SECONDS / SECONDS_IN_DAY),
+        max: Math.floor(ICP_MAX_DISSOLVE_DELAY_SECONDS / SECONDS_IN_DAY),
+      });
 
   const setDissolveDelayMutation = useMutation<
     void,

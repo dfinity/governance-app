@@ -1,112 +1,118 @@
 import {
-    Dialog as ShadcnDialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger as ShadcnDialogTrigger,
-} from "@/components/ui/dialog";
+  Dialog as ShadcnDialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger as ShadcnDialogTrigger,
+} from '@/components/ui/dialog';
 import {
-    Drawer,
-    DrawerContent,
-    DrawerTrigger as ShadcnDrawerTrigger,
-} from "@/components/ui/drawer";
-import { cn } from "@/lib/utils";
-import { createContext, useContext, useState, Children, isValidElement, type ReactNode } from "react";
-import { useMediaQuery } from "../hooks/useMediaQuery";
+  Drawer,
+  DrawerContent,
+  DrawerTrigger as ShadcnDrawerTrigger,
+} from '@/components/ui/drawer';
+import { cn } from '@/lib/utils';
+import {
+  createContext,
+  useContext,
+  useState,
+  Children,
+  isValidElement,
+  type ReactNode,
+} from 'react';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 // Context to provide 'close' function and screen state
-const ModalContext = createContext<{ close: () => void, isDesktop: boolean }>({ close: () => { }, isDesktop: true });
+const ModalContext = createContext<{ close: () => void; isDesktop: boolean }>({
+  close: () => {},
+  isDesktop: true,
+});
 
 export const DialogTrigger = ({ children }: { children: ReactNode }) => {
-    const [open, setOpen] = useState(false);
-    const isDesktop = useMediaQuery("(min-width: 768px)");
-    const close = () => setOpen(false);
+  const [open, setOpen] = useState(false);
+  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const close = () => setOpen(false);
 
-    let trigger: ReactNode = null;
-    let content: ReactNode = null;
+  let trigger: ReactNode = null;
+  let content: ReactNode = null;
 
-    Children.map(children, (child) => {
-        if (!isValidElement(child)) return;
-        // Check for slot="trigger"
-        const element = child as any;
-        if (element.props?.slot === "trigger") {
-            trigger = child;
-        } else {
-            content = child;
-        }
-    });
-
-    if (isDesktop) {
-        return (
-            <ModalContext.Provider value={{ close, isDesktop: true }}>
-                <ShadcnDialog open={open} onOpenChange={setOpen}>
-                    <ShadcnDialogTrigger asChild>
-                        {trigger || <button>Open</button>}
-                    </ShadcnDialogTrigger>
-                    {content}
-                </ShadcnDialog>
-            </ModalContext.Provider>
-        );
+  Children.map(children, (child) => {
+    if (!isValidElement(child)) return;
+    // Check for slot="trigger"
+    const element = child as any;
+    if (element.props?.slot === 'trigger') {
+      trigger = child;
+    } else {
+      content = child;
     }
+  });
 
+  if (isDesktop) {
     return (
-        <ModalContext.Provider value={{ close, isDesktop: false }}>
-            <Drawer open={open} onOpenChange={setOpen}>
-                <ShadcnDrawerTrigger asChild>
-                    {trigger || <button>Open</button>}
-                </ShadcnDrawerTrigger>
-                {content}
-            </Drawer>
-        </ModalContext.Provider>
+      <ModalContext.Provider value={{ close, isDesktop: true }}>
+        <ShadcnDialog open={open} onOpenChange={setOpen}>
+          <ShadcnDialogTrigger asChild>{trigger || <button>Open</button>}</ShadcnDialogTrigger>
+          {content}
+        </ShadcnDialog>
+      </ModalContext.Provider>
     );
+  }
+
+  return (
+    <ModalContext.Provider value={{ close, isDesktop: false }}>
+      <Drawer open={open} onOpenChange={setOpen}>
+        <ShadcnDrawerTrigger asChild>{trigger || <button>Open</button>}</ShadcnDrawerTrigger>
+        {content}
+      </Drawer>
+    </ModalContext.Provider>
+  );
 };
 
 export const ModalOverlay = ({ children, isKeyboardDismissDisabled }: any) => {
-    // Shadcn handles overlay internally in Content components.
-    return <>{children}</>;
+  // Shadcn handles overlay internally in Content components.
+  return <>{children}</>;
 };
 
 export interface ModalProps {
-    children: ReactNode;
-    className?: string; // This usually comes with bg-primary/p-6 from the old code, which we removed or kept as p-6
+  children: ReactNode;
+  className?: string; // This usually comes with bg-primary/p-6 from the old code, which we removed or kept as p-6
 }
 
 export const Modal = ({ children, className }: ModalProps) => {
-    const { isDesktop } = useContext(ModalContext);
+  const { isDesktop } = useContext(ModalContext);
 
-    if (isDesktop) {
-        return (
-            <DialogContent className={cn("sm:max-w-lg", className, "max-h-[85vh] overflow-y-auto")}>
-                {children}
-                <div className="sr-only">
-                    <DialogTitle>Dialog</DialogTitle>
-                </div>
-            </DialogContent>
-        );
-    }
-
+  if (isDesktop) {
     return (
-        <DrawerContent>
-            {/* Drawer content usually needs some padding and handling of the 'handle' */}
-            <div className={cn("px-4 pb-8 pt-4", className)}>
-                {children}
-                <div className="sr-only">
-                    <DialogTitle>Drawer</DialogTitle>
-                </div>
-            </div>
-        </DrawerContent>
+      <DialogContent className={cn('sm:max-w-lg', className, 'max-h-[85vh] overflow-y-auto')}>
+        {children}
+        <div className="sr-only">
+          <DialogTitle>Dialog</DialogTitle>
+        </div>
+      </DialogContent>
     );
+  }
+
+  return (
+    <DrawerContent>
+      {/* Drawer content usually needs some padding and handling of the 'handle' */}
+      <div className={cn('px-4 pt-4 pb-8', className)}>
+        {children}
+        <div className="sr-only">
+          <DialogTitle>Drawer</DialogTitle>
+        </div>
+      </div>
+    </DrawerContent>
+  );
 };
 
 // Inner Dialog component which provides the 'close' render prop
 export const Dialog = ({ children }: { children: (props: { close: () => void }) => ReactNode }) => {
-    const { close } = useContext(ModalContext);
+  const { close } = useContext(ModalContext);
 
-    // Check if children is function
-    if (typeof children === "function") {
-        return <>{children({ close })}</>;
-    }
-    return <>{children}</>;
+  // Check if children is function
+  if (typeof children === 'function') {
+    return <>{children({ close })}</>;
+  }
+  return <>{children}</>;
 };
 
 export const ModalHeader = DialogHeader;

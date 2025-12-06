@@ -4,7 +4,7 @@ import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import Skeleton from 'react-loading-skeleton';
 
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { WarningMessage } from '@components/extra/WarningMessage';
@@ -79,25 +79,31 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
       </div>
 
       <Card>
-        <CardContent className="p-6 grid gap-6 md:grid-cols-2">
+        <CardContent className="grid gap-6 p-6 md:grid-cols-2">
           <div className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-muted-foreground uppercase">{t(($) => $.neuron.creationDate)}</span>
+            <span className="text-sm font-medium text-muted-foreground uppercase">
+              {t(($) => $.neuron.creationDate)}
+            </span>
             <span>
               {neuron.fullNeuron?.createdTimestampSeconds
                 ? new Date(
-                  Number(neuron.fullNeuron.createdTimestampSeconds) * 1000,
-                ).toLocaleDateString()
+                    Number(neuron.fullNeuron.createdTimestampSeconds) * 1000,
+                  ).toLocaleDateString()
                 : '-'}
             </span>
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-muted-foreground uppercase">{t(($) => $.neuron.status)}</span>
+            <span className="text-sm font-medium text-muted-foreground uppercase">
+              {t(($) => $.neuron.status)}
+            </span>
             <span>{NeuronState[neuron.state]}</span>
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-muted-foreground uppercase">{t(($) => $.neuron.maturity)}</span>
+            <span className="text-sm font-medium text-muted-foreground uppercase">
+              {t(($) => $.neuron.maturity)}
+            </span>
             <span>
               {neuron.fullNeuron?.maturityE8sEquivalent
                 ? bigIntDiv(neuron.fullNeuron.maturityE8sEquivalent, E8Sn, 2)
@@ -106,23 +112,29 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-muted-foreground uppercase">{t(($) => $.neuron.stake)}</span>
+            <span className="text-sm font-medium text-muted-foreground uppercase">
+              {t(($) => $.neuron.stake)}
+            </span>
             <span>
               {Number(neuron.fullNeuron?.cachedNeuronStake) / E8S} {t(($) => $.common.icp)}
             </span>
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-muted-foreground uppercase">{t(($) => $.neuron.votingPower)}</span>
+            <span className="text-sm font-medium text-muted-foreground uppercase">
+              {t(($) => $.neuron.votingPower)}
+            </span>
             <span>{neuron.votingPower}</span>
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-muted-foreground uppercase">{t(($) => $.neuron.dissolveDelay)}</span>
+            <span className="text-sm font-medium text-muted-foreground uppercase">
+              {t(($) => $.neuron.dissolveDelay)}
+            </span>
             <span>{dissolveDelayRemaining(neuron)}</span>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-wrap items-center gap-2 border-t p-6 bg-muted/20">
+        <CardFooter className="flex flex-wrap items-center gap-2 border-t bg-muted/20 p-6">
           <SetDissolveDelayModal neuron={neuron} />
           {IS_TESTNET && <IncreaseMaturityModal neuron={neuron} />}
           {IS_TESTNET && <UnlockNeuronModal neuron={neuron} />}

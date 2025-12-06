@@ -42,8 +42,8 @@ function AccountsPage() {
   // Check if identity is defined: during logout it can be undefined for a brief moment before the router redirects to the homepage.
   const accountId = nonNullish(identity)
     ? AccountIdentifier.fromPrincipal({
-      principal: identity?.getPrincipal(),
-    })
+        principal: identity?.getPrincipal(),
+      })
     : null;
 
   const transactions = useIcpIndexTransactions();
@@ -138,7 +138,12 @@ const TransactionItem = ({
     <SimpleCard key={tx.id}>
       <div className="flex items-center gap-2">
         <div
-          className={cn('mr-2 rounded p-4', isSending ? 'bg-destructive/15 text-destructive' : 'bg-green-500/15 text-green-600 dark:text-green-400')}
+          className={cn(
+            'mr-2 rounded p-4',
+            isSending
+              ? 'bg-destructive/15 text-destructive'
+              : 'bg-green-500/15 text-green-600 dark:text-green-400',
+          )}
         >
           {isSending ? <ArrowUp /> : <ArrowDownToLine />}
         </div>
@@ -148,7 +153,7 @@ const TransactionItem = ({
               <span className="font-bold">{t(($) => $.common.date)}: </span>
               {new Date(
                 Number((tx.transaction.created_at_time[0]?.timestamp_nanos ?? 0n) / 1_000_000n) ||
-                0,
+                  0,
               ).toLocaleString()}
             </div>
 
