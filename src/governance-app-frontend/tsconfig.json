@@ -2,7 +2,11 @@
   "compilerOptions": {
     "target": "ESNext",
     "useDefineForClassFields": true,
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
     "allowJs": false,
     "skipLibCheck": true,
     "esModuleInterop": false,
@@ -15,25 +19,58 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["vite/client", "node"],
+    "types": [
+      "vite/client",
+      "node"
+    ],
     "baseUrl": ".",
     "paths": {
-      "@declarations/*": ["./../declarations/*"],
-      "@components/*": ["./src/common/components/*"],
-      "@constants/*": ["./src/common/constants/*"],
-      "@contexts/*": ["./src/common/contexts/*"],
-      "@hooks/*": ["./src/common/hooks/*"],
-      "@queries/*": ["./src/common/queries/*"],
-      "@typings/*": ["src/common/typings/*"],
-      "@utils/*": ["./src/common/utils/*"],
-      "@fixtures/*": ["./src/common/fixtures/*"],
-      "@common/*": ["./src/common/*"],
-      "@untitledui/*": ["./src/untitledui/*"],
-      "@ui/*": ["./src/common/ui/*"],
-      "@ui": ["./src/common/ui/index.ts"],
-      "@routes/*": ["./src/routes/*"],
-      "@/*": ["./src/*"]
+      "@declarations/*": [
+        "./../declarations/*"
+      ],
+      "@components/*": [
+        "./src/common/components/*"
+      ],
+      "@constants/*": [
+        "./src/common/constants/*"
+      ],
+      "@contexts/*": [
+        "./src/common/contexts/*"
+      ],
+      "@hooks/*": [
+        "./src/common/hooks/*"
+      ],
+      "@queries/*": [
+        "./src/common/queries/*"
+      ],
+      "@typings/*": [
+        "src/common/typings/*"
+      ],
+      "@utils/*": [
+        "./src/common/utils/*"
+      ],
+      "@fixtures/*": [
+        "./src/common/fixtures/*"
+      ],
+      "@common/*": [
+        "./src/common/*"
+      ],
+      "@ui/*": [
+        "./src/common/ui/*"
+      ],
+      "@ui": [
+        "./src/common/ui/index.ts"
+      ],
+      "@routes/*": [
+        "./src/routes/*"
+      ],
+      "@/*": [
+        "./src/*"
+      ]
     }
   },
-  "include": ["src", "tests"]
+  "include": [
+    "src",
+    "tests"
+  ]
 }

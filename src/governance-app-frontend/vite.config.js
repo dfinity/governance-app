@@ -41,10 +41,6 @@ export default defineConfig({
         replacement: fileURLToPath(new URL('../declarations/', import.meta.url)),
       },
       {
-        find: '@untitledui',
-        replacement: fileURLToPath(new URL('./src/untitledui/', import.meta.url)),
-      },
-      {
         find: '@ui',
         replacement: fileURLToPath(new URL('./src/common/ui/', import.meta.url)),
       },

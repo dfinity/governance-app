@@ -37,9 +37,9 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
   const hint = inputError
     ? inputError
     : t(($) => $.neuron.setDissolveDelayModal.hint, {
-        min: Math.ceil(ICP_MIN_DISSOLVE_DELAY_SECONDS / SECONDS_IN_DAY),
-        max: Math.floor(ICP_MAX_DISSOLVE_DELAY_SECONDS / SECONDS_IN_DAY),
-      });
+      min: Math.ceil(ICP_MIN_DISSOLVE_DELAY_SECONDS / SECONDS_IN_DAY),
+      max: Math.floor(ICP_MAX_DISSOLVE_DELAY_SECONDS / SECONDS_IN_DAY),
+    });
 
   const setDissolveDelayMutation = useMutation<
     void,
@@ -108,7 +108,7 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
       )}
 
       <ModalOverlay isKeyboardDismissDisabled>
-        <Modal className={'max-w-md rounded-2xl bg-primary p-6 shadow-lg'}>
+        <Modal className={'max-w-md rounded-2xl p-6 shadow-lg'}>
           <Dialog
             aria-label={t(($) => $.neuron.setDissolveDelayModal.title, {
               neuronId: neuron.neuronId.toString(),
@@ -117,12 +117,12 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
             {({ close }) => (
               <form className="flex flex-col gap-4" onSubmit={handleSubmit(close)}>
                 <div>
-                  <h3 className="text-lg font-semibold text-primary">
+                  <h3 className="text-lg font-semibold">
                     {t(($) => $.neuron.setDissolveDelayModal.title, {
                       neuronId: neuron.neuronId.toString(),
                     })}
                   </h3>
-                  <p className="mt-1 text-sm text-secondary">
+                  <p className="mt-1 text-sm text-muted-foreground">
                     {t(($) => $.neuron.setDissolveDelayModal.description)}
                   </p>
                 </div>

@@ -1,6 +1,6 @@
 import { AlertCircle } from 'lucide-react';
 
-import { cx } from '@untitledui/utils/cx';
+import { cn } from '@/lib/utils';
 
 type Props = {
   message: string;
@@ -8,7 +8,7 @@ type Props = {
 };
 
 export const WarningMessage = ({ message, className }: Props) => (
-  <p className={cx('flex items-center gap-1 text-sm font-bold text-orange-600', className)}>
+  <p className={cn('flex items-center gap-1 text-sm font-bold text-orange-600', className)}>
     <AlertCircle className="inline" size={16} /> {message}
   </p>
 );

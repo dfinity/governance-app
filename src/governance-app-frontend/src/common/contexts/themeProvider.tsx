@@ -7,7 +7,7 @@ interface ThemeProviderProps {
   children: ReactNode;
 }
 
-const DARK_MODE_CLASS = 'dark-mode';
+const DARK_MODE_CLASS = 'dark';
 
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   const [themePreference, setThemePreference] = useState<ThemePreference>(() => {

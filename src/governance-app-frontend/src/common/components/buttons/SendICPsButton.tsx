@@ -99,11 +99,11 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
       </Button>
 
       <ModalOverlay isKeyboardDismissDisabled>
-        <Modal className={'max-w-xs rounded-2xl bg-primary p-6'}>
+        <Modal className={'max-w-xs rounded-2xl p-6'}>
           <Dialog>
             {({ close }) => (
               <form className="flex flex-col gap-4" onSubmit={handleSubmit(close)}>
-                <h3 className="text-lg font-semibold text-primary">
+                <h3 className="text-lg font-semibold">
                   {t(($) => $.account.transferTitle)}
                 </h3>
 

@@ -97,14 +97,14 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
         Get Tokens
       </Button>
       <ModalOverlay isDismissable>
-        <Modal className="max-w-xl rounded-2xl bg-primary p-6 shadow-lg">
+        <Modal className="max-w-xl rounded-2xl p-6 shadow-lg">
           <Dialog>
             {({ close }) => (
               <form className="flex flex-col gap-4" onSubmit={handleSubmit(close)}>
-                <Heading slot="title" className="text-md font-semibold text-primary">
+                <Heading slot="title" className="text-md font-semibold">
                   Get Testnet ICPs
                 </Heading>
-                <p className="text-sm text-tertiary">Account: {accountId.toHex()}</p>
+                <p className="text-sm text-muted-foreground">Account: {accountId.toHex()}</p>
                 <div className="flex items-end gap-1">
                   <Input
                     type="number"

@@ -78,13 +78,13 @@ export const UnlockNeuronModal = ({ neuron }: Props) => {
       )}
 
       <ModalOverlay isKeyboardDismissDisabled>
-        <Modal className={'max-w-sm rounded-2xl bg-primary p-6 shadow-lg'}>
+        <Modal className={'max-w-sm rounded-2xl p-6 shadow-lg'}>
           <Dialog>
             {({ close }) => (
               <form className="flex flex-col gap-4" onSubmit={handleSubmit(close)}>
                 <div>
-                  <h3 className="text-lg font-semibold text-primary">Unlock neuron #{neuronId}</h3>
-                  <p className="mt-1 text-sm text-secondary">
+                  <h3 className="text-lg font-semibold">Unlock neuron #{neuronId}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
                     Unlock the neuron. Available only in TESTNET.
                   </p>
                 </div>

@@ -16,13 +16,13 @@ function NnsIndex() {
   return (
     <div className="text-xl text-primary">
       {t(($) => $.nns.description)}
-      <p className="mt-2 text-blue-500 italic underline">
+      <p className="mt-2">
         <Link to="/nns/proposals">{t(($) => $.common.seeProposals)}</Link>
       </p>
-      <p className="mt-2 text-blue-500 italic underline">
+      <p className="mt-2">
         <Link to="/nns/neurons">{t(($) => $.common.seeNeurons)}</Link>
       </p>
-      <p className="mt-2 text-blue-500 italic underline">
+      <p className="mt-2">
         <Link to="/nns/accounts">{t(($) => $.common.seeAccounts)}</Link>
       </p>
     </div>

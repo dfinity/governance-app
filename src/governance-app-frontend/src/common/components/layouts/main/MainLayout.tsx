@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Button, Link } from '@ui';
 
-import { ToggleThemeButton } from '@components/buttons/toggleTheme/ToggleThemeButton';
+import { ModeToggle } from '@/components/mode-toggle';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { useAgentPool } from '@hooks/useAgentPool';
 import { infoNotification } from '@utils/notification';
@@ -73,16 +73,16 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
                   onClick={
                     identity
                       ? () => {
-                          wasManualLogout.current = true;
-                          clear();
-                        }
+                        wasManualLogout.current = true;
+                        clear();
+                      }
                       : login
                   }
                 >
                   {identity ? t(($) => $.common.logout) : t(($) => $.common.login)}
                 </Button>
 
-                <ToggleThemeButton />
+                <ModeToggle />
               </div>
             </div>
             {children}
