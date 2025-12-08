@@ -1,10 +1,11 @@
-import { Input as ShadcnInput } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
-import { HelpCircle, AlertCircle } from 'lucide-react';
+import { AlertCircle, HelpCircle } from 'lucide-react';
 import type { ComponentType, HTMLAttributes, ReactNode } from 'react';
 import { forwardRef } from 'react';
+
+import { Input as ShadcnInput } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 // Types matching UntitledUi
 type BaseInputAttributes = Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'onChange'>;

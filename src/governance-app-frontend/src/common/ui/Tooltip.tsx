@@ -1,10 +1,11 @@
+import type { ReactNode } from 'react';
+
 import {
   Tooltip as ShadcnTooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger as ShadcnTooltipTrigger,
 } from '@/components/ui/tooltip';
-import type { ReactNode } from 'react';
 
 export interface TooltipProps {
   title: ReactNode;

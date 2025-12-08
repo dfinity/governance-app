@@ -5,8 +5,9 @@ import { useTranslation } from 'react-i18next';
 import { Link } from '@ui';
 
 import { SimpleCard } from '@components/extra/SimpleCard';
-import { VotingPowerChart } from '@/features/dashboard/components/VotingPowerChart';
 import useTitle from '@hooks/useTitle';
+
+import { VotingPowerChart } from '@/features/dashboard/components/VotingPowerChart';
 
 export const Route = createFileRoute('/nns/')({
   component: NnsIndex,

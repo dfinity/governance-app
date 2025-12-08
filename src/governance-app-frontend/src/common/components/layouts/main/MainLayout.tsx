@@ -6,10 +6,11 @@ import { useTranslation } from 'react-i18next';
 
 import { Button, Link } from '@ui';
 
-import { ModeToggle } from '@/components/mode-toggle';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { useAgentPool } from '@hooks/useAgentPool';
 import { infoNotification } from '@utils/notification';
+
+import { ModeToggle } from '@/components/mode-toggle';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
   const { login, identity, clear, isInitializing } = useInternetIdentity();

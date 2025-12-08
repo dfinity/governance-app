@@ -1,8 +1,9 @@
 import { Monitor, Moon, Sun } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+
+import { useTheme } from '@hooks/useTheme';
 
 import { Button } from '@/components/ui/button';
-import { useTheme } from '@hooks/useTheme';
-import { useTranslation } from 'react-i18next';
 
 export function ModeToggle() {
   const { themePreference, setThemePreference } = useTheme();

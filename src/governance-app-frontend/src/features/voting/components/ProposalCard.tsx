@@ -2,10 +2,11 @@ import { ProposalInfo } from '@icp-sdk/canisters/nns';
 import { Vote } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { BadgeWithIcon } from '@ui';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
+
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 type ProposalCardProps = {
   proposal: ProposalInfo;

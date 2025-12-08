@@ -1,6 +1,7 @@
-import { cn } from '@/lib/utils';
 import type { HTMLAttributes } from 'react';
 import type React from 'react'; // Added this import for React.ElementType
+
+import { cn } from '@/lib/utils';
 
 interface HeadingProps extends HTMLAttributes<HTMLHeadingElement> {
   level?: 1 | 2 | 3 | 4 | 5 | 6;

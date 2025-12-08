@@ -1,9 +1,10 @@
-import { Button as ShadcnButton } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { Link, type LinkProps as RouterLinkProps } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
-import type { ButtonHTMLAttributes, DetailedHTMLProps, FC, ReactNode, ComponentProps } from 'react';
+import type { ButtonHTMLAttributes, ComponentProps, DetailedHTMLProps, FC, ReactNode } from 'react';
 import { isValidElement } from 'react';
+
+import { Button as ShadcnButton } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 type ShadcnButtonProps = ComponentProps<typeof ShadcnButton>;
 

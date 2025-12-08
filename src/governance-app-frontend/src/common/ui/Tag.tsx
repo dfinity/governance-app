@@ -1,6 +1,8 @@
-import { Badge, BadgeWithButton, BadgeWithDot, BadgeWithImage } from './Badge';
 import type { ReactNode } from 'react';
+
 import { cn } from '@/lib/utils';
+
+import { Badge, BadgeWithButton, BadgeWithDot, BadgeWithImage } from './Badge';
 
 // Tag API to match UntitledUi usage roughly, backed by Badge
 export interface TagProps {

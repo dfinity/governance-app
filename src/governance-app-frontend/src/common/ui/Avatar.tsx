@@ -1,6 +1,7 @@
+import type { FC, ReactNode } from 'react';
+
 import { Avatar as ShadcnAvatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import type { FC, ReactNode } from 'react';
 
 export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'xxs' | 'xxl' | '3xl' | '4xl';
 

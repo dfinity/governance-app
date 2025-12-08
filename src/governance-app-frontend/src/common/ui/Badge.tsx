@@ -1,6 +1,7 @@
+import type { FC, MouseEventHandler, ReactNode } from 'react';
+
 import { Badge as ShadcnBadge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import type { FC, MouseEventHandler, ReactNode } from 'react';
 
 // Types matching UntitledUi
 export type BadgeTypes = 'pill-color' | 'badge-color' | 'badge-modern' | 'color';

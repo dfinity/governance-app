@@ -10,8 +10,6 @@ import { ArrowDownToLine, ArrowUp } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { cn } from '@/lib/utils';
-
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { SendICPsButton } from '@components/buttons/SendICPsButton';
 import { InViewSentinel } from '@components/extra/InViewSentinel';
@@ -27,6 +25,7 @@ import { bigIntDiv } from '@utils/bigInt';
 import { requireIdentity } from '@utils/router';
 
 import { GetTokens } from '@/dev/GetTokens';
+import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/nns/accounts/')({
   component: AccountsPage,
