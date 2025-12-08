@@ -75,34 +75,46 @@ const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
               <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {/* type */}
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium text-muted-foreground uppercase">{t(($) => $.proposal.type)}</span>
+                  <span className="text-sm font-medium text-muted-foreground uppercase">
+                    {t(($) => $.proposal.type)}
+                  </span>
                   <span>{Object.keys(proposal.proposal?.action ?? {})[0]}</span>
                 </div>
                 {/* topic */}
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium text-muted-foreground uppercase">{t(($) => $.proposal.topic)}</span>
+                  <span className="text-sm font-medium text-muted-foreground uppercase">
+                    {t(($) => $.proposal.topic)}
+                  </span>
                   <span>{Topic[proposal.topic]}</span>
                 </div>
                 {/* status */}
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium text-muted-foreground uppercase">{t(($) => $.proposal.status)}</span>
+                  <span className="text-sm font-medium text-muted-foreground uppercase">
+                    {t(($) => $.proposal.status)}
+                  </span>
                   <span>{ProposalStatus[proposal.status]}</span>
                 </div>
                 {/* reward status */}
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium text-muted-foreground uppercase">{t(($) => $.proposal.rewardStatus)}</span>
+                  <span className="text-sm font-medium text-muted-foreground uppercase">
+                    {t(($) => $.proposal.rewardStatus)}
+                  </span>
                   <span>{ProposalRewardStatus[proposal.rewardStatus]}</span>
                 </div>
                 {/* created at */}
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium text-muted-foreground uppercase">{t(($) => $.proposal.created)}</span>
+                  <span className="text-sm font-medium text-muted-foreground uppercase">
+                    {t(($) => $.proposal.created)}
+                  </span>
                   <span>
                     {new Date(Number(proposal.proposalTimestampSeconds) * 1000).toLocaleString()}
                   </span>
                 </div>
                 {/* proposer */}
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium text-muted-foreground uppercase">{t(($) => $.proposal.proposer)}</span>
+                  <span className="text-sm font-medium text-muted-foreground uppercase">
+                    {t(($) => $.proposal.proposer)}
+                  </span>
                   <span className="break-all">{proposal.proposer?.toString()}</span>
                 </div>
               </CardContent>
@@ -119,14 +131,18 @@ const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
               <CardContent className="grid gap-4">
                 {/* summary */}
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium text-muted-foreground uppercase">{t(($) => $.proposal.summary)}</span>
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                  <span className="text-sm font-medium text-muted-foreground uppercase">
+                    {t(($) => $.proposal.summary)}
+                  </span>
+                  <div className="text-sm leading-relaxed whitespace-pre-wrap">
                     {proposal.proposal?.summary}
                   </div>
                 </div>
                 {/* action */}
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium text-muted-foreground uppercase">{t(($) => $.proposal.action)}</span>
+                  <span className="text-sm font-medium text-muted-foreground uppercase">
+                    {t(($) => $.proposal.action)}
+                  </span>
                   <pre className="overflow-x-auto rounded-lg bg-muted p-4 text-xs">
                     {proposal.proposal?.action &&
                       JSON.stringify(

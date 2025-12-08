@@ -1,5 +1,6 @@
-import { createLink, Link as RouterLink } from '@tanstack/react-router';
+import { createLink } from '@tanstack/react-router';
 import * as React from 'react';
+
 import { cn } from '@/lib/utils';
 
 // Basic Link component extending standard anchor
@@ -8,13 +9,7 @@ const BasicLink = React.forwardRef<
   HTMLAnchorElement,
   React.AnchorHTMLAttributes<HTMLAnchorElement>
 >(({ className, ...props }, ref) => {
-  return (
-    <a
-      ref={ref}
-      className={cn('font-medium text-primary', className)}
-      {...props}
-    />
-  );
+  return <a ref={ref} className={cn('font-medium text-primary', className)} {...props} />;
 });
 BasicLink.displayName = 'BasicLink';
 

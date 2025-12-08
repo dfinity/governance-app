@@ -1,14 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { Vote } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Link } from '@ui';
 
-import { BadgeWithIcon, Link } from '@ui';
-
-import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { InViewSentinel } from '@components/extra/InViewSentinel';
 import { QueryStates } from '@components/extra/QueryStates';
-import { SimpleCard } from '@components/extra/SimpleCard';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
+import { ProposalCard } from '@/features/voting/components/ProposalCard';
 import { useGovernanceProposals } from '@hooks/canisters/governance';
 import useTitle from '@hooks/useTitle';
 
@@ -34,7 +31,7 @@ function ProposalsPage() {
         isEmpty={(data) => !data?.pages?.[0].response.proposals.length}
       >
         {(data) => (
-          <div className="grid grid-cols-1 gap-4 text-lg sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {data?.pages?.map((page) =>
               page?.response.proposals.map((proposal) => {
                 const canUserVote = votableProposals.has(proposal.id);
@@ -44,21 +41,13 @@ function ProposalsPage() {
                     params={{ id: proposal.id }}
                     to="/nns/proposals/$id"
                     key={proposal.id?.toString()}
+                    className="group flex h-full flex-col"
                   >
-                    <SimpleCard>
-                      <p className="overflow-hidden overflow-ellipsis">
-                        #{proposal.id?.toString()} {proposal.proposal?.title}
-                      </p>
-                      <div className="mt-4 flex h-4 items-end justify-between text-sm font-bold">
-                        <BadgeWithIcon
-                          iconLeading={canUserVote ? Vote : undefined}
-                          color={canUserVote ? 'blue-light' : 'blue'}
-                        >
-                          {t(($) => $.enums.ProposalStatus[proposal.status])}
-                        </BadgeWithIcon>
-                        <CertifiedBadge certified={page?.certified} />
-                      </div>
-                    </SimpleCard>
+                    <ProposalCard
+                      proposal={proposal}
+                      canUserVote={canUserVote}
+                      certified={page?.certified}
+                    />
                   </Link>
                 );
               }),

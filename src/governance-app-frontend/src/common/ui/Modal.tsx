@@ -1,8 +1,18 @@
+import { cn } from '@/lib/utils';
 import {
-  Dialog as ShadcnDialog,
+  Children,
+  createContext,
+  isValidElement,
+  useContext,
+  useState,
+  type ReactNode,
+} from 'react';
+
+import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  Dialog as ShadcnDialog,
   DialogTrigger as ShadcnDialogTrigger,
 } from '@/components/ui/dialog';
 import {
@@ -10,20 +20,12 @@ import {
   DrawerContent,
   DrawerTrigger as ShadcnDrawerTrigger,
 } from '@/components/ui/drawer';
-import { cn } from '@/lib/utils';
-import {
-  createContext,
-  useContext,
-  useState,
-  Children,
-  isValidElement,
-  type ReactNode,
-} from 'react';
+
 import { useMediaQuery } from '../hooks/useMediaQuery';
 
 // Context to provide 'close' function and screen state
 const ModalContext = createContext<{ close: () => void; isDesktop: boolean }>({
-  close: () => { },
+  close: () => {},
   isDesktop: true,
 });
 
