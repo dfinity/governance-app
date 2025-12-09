@@ -1,5 +1,5 @@
-import '@common/styles/main.css';
 import '@/i18n/config';
+import '@common/styles/main.css';
 
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';

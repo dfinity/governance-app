@@ -1,21 +1,24 @@
 {
-    "$schema": "https://ui.shadcn.com/schema.json",
-    "style": "new-york",
-    "rsc": false,
-    "tsx": true,
-    "tailwind": {
-        "config": "",
-        "css": "src/common/styles/main.css",
-        "baseColor": "neutral",
-        "cssVariables": true,
-        "prefix": ""
-    },
-    "iconLibrary": "lucide",
-    "aliases": {
-        "components": "@/common/components",
-        "utils": "@/lib/utils",
-        "ui": "@/common/ui",
-        "lib": "@/lib",
-        "hooks": "@/hooks"
-    }
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/common/styles/main.css",
+    "baseColor": "neutral",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "iconLibrary": "lucide",
+  "aliases": {
+    "components": "@/common/components",
+    "utils": "@/lib/utils",
+    "ui": "@/common/ui",
+    "lib": "@/lib",
+    "hooks": "@/hooks"
+  },
+  "registries": {
+    "@magicui": "https://magicui.design/r/{name}.json"
+  }
 }

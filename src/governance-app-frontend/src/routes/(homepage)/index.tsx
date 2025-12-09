@@ -6,6 +6,7 @@ import { NotAvailableBadge } from '@components/badges/certified/NotAvailableBadg
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { useTickerPrices } from '@hooks/externalServices/useTickerPrices';
 import { TokenPrices } from '@typings/tokenPrices';
+import { TypingAnimation } from '@common/ui/typing-animation';
 
 import { QueryStates } from '@/common/ui/extra/QueryStates';
 import { SkeletonLoader } from '@/common/ui/loaders/SkeletonLoader';
@@ -22,11 +23,13 @@ function Homepage() {
   return (
     <div className="text-xl">
       <div data-testid="login-test-principal" data-snapshot-mask>
-        {identity
-          ? t(($) => $.home.yourPrincipal, {
-              principal: identity.getPrincipal().toString(),
-            })
-          : t(($) => $.common.loginWithII)}
+        <TypingAnimation>
+          {identity
+            ? t(($) => $.home.yourPrincipal, {
+                principal: identity.getPrincipal().toString(),
+              })
+            : t(($) => $.common.loginWithII)}
+        </TypingAnimation>
       </div>
 
       <div data-testid="login-test-icp-price">

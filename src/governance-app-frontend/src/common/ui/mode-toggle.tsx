@@ -6,26 +6,26 @@ import { useTheme } from '@hooks/useTheme';
 import { Button } from '@/common/ui/button';
 
 export function ModeToggle() {
-  const { themePreference, setThemePreference } = useTheme();
+  const { setTheme, theme } = useTheme();
   const { t } = useTranslation();
 
   const cycleTheme = () => {
-    if (themePreference === 'light') setThemePreference('dark');
-    else if (themePreference === 'dark') setThemePreference('system');
-    else setThemePreference('light');
+    if (theme === 'light') setTheme('dark');
+    else if (theme === 'dark') setTheme('system');
+    else setTheme('light');
   };
 
   const currentIcon = () => {
-    if (themePreference === 'light') return <Sun className="h-[1.2rem] w-[1.2rem]" />;
-    if (themePreference === 'dark') return <Moon className="h-[1.2rem] w-[1.2rem]" />;
+    if (theme === 'light') return <Sun className="h-[1.2rem] w-[1.2rem]" />;
+    if (theme === 'dark') return <Moon className="h-[1.2rem] w-[1.2rem]" />;
     return <Monitor className="h-[1.2rem] w-[1.2rem]" />;
   };
 
   // Determine label for accessibility
   const label =
-    themePreference === 'light'
+    theme === 'light'
       ? t(($) => $.common.switchToDarkMode)
-      : themePreference === 'dark'
+      : theme === 'dark'
         ? t(($) => $.common.switchToSystemMode)
         : t(($) => $.common.switchToLightMode);
 

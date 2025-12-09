@@ -4,7 +4,9 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Particles } from '@common/ui/particles';
 import { useAgentPool } from '@hooks/useAgentPool';
+import { useTheme } from '@hooks/useTheme';
 import { infoNotification } from '@utils/notification';
 
 import { Button } from '@/common/ui/button';
@@ -15,6 +17,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
   const { login, identity, clear, isInitializing } = useInternetIdentity();
   const queryClient = useQueryClient();
   const { invalidate } = useRouter();
+  const { theme } = useTheme();
 
   const { t } = useTranslation();
   const { anonymous, authenticated } = useAgentPool().agentPool;
@@ -57,6 +60,13 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
         <SkeletonLoader count={6} />
       ) : (
         <>
+          <Particles
+            className="absolute inset-0 z-0"
+            quantity={100}
+            ease={80}
+            color={theme === 'light' ? '#000000' : '#ffffff'}
+            refresh
+          />
           <title>{t(($) => $.home.title)}</title>
           <div>
             <div className="mb-10 flex flex-wrap items-start justify-center gap-2 sm:mb-0 sm:flex-nowrap sm:justify-between">
