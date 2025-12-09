@@ -1,15 +1,12 @@
 import { nonNullish, nowInBigIntNanoSeconds } from '@dfinity/utils';
-import { useNnsGovernance } from '@hooks/canisters/governance';
-import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
-import { useIcpLedgerAccountBalance } from '@hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { InfoIcon, Loader2 } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { SimpleCard } from '@components/extra/SimpleCard';
 import { Button } from '@ui/button';
-import { SimpleCard } from '@ui/extra/SimpleCard';
 import { Input } from '@ui/input';
 import { Label } from '@ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@ui/tooltip';
@@ -20,6 +17,9 @@ import {
   ICP_TRANSACTION_FEE_E8S,
   ICP_TRANSACTION_FEE_E8Sn,
 } from '@constants/extra';
+import { useNnsGovernance } from '@hooks/canisters/governance';
+import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
+import { useIcpLedgerAccountBalance } from '@hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { errorNotification, successNotification } from '@utils/notification';

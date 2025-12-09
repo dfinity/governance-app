@@ -1,6 +1,5 @@
 import { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { isNullish, nonNullish } from '@dfinity/utils';
-import { useNnsGovernanceTest } from '@hooks/canisters/governance/useGovernanceTest';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
@@ -15,6 +14,7 @@ import {
   ResponsiveDialogTrigger,
 } from '@ui/responsive-dialog';
 import { IS_TESTNET, U64_MAX } from '@constants/extra';
+import { useNnsGovernanceTest } from '@hooks/canisters/governance/useGovernanceTest';
 import { errorMessage } from '@utils/error';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';

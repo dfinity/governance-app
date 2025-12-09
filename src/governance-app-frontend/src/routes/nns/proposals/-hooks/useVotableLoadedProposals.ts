@@ -4,6 +4,7 @@ import {
   Topic,
   votableNeurons,
 } from '@icp-sdk/canisters/nns';
+
 import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/canisters/governance';
 
 /**

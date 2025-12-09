@@ -1,5 +1,4 @@
 import { ProposalInfo, Vote } from '@icp-sdk/canisters/nns';
-import { useGovernanceNeurons, useNnsGovernance } from '@hooks/canisters/governance';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { CircleCheckBig, ThumbsDown, ThumbsUp } from 'lucide-react';
@@ -10,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@ui/button';
 import { SkeletonLoader } from '@ui/loaders/SkeletonLoader';
 import { VOTING_RESULTS_PRECISION } from '@constants/extra';
+import { useGovernanceNeurons, useNnsGovernance } from '@hooks/canisters/governance';
 import { bigIntDiv } from '@utils/bigInt';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
@@ -122,23 +122,21 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
                     <SkeletonLoader width={90} height={20} />
                   ) : (
                     <>
-                      <>
-                        <Button
-                          onClick={() => castVote(neuron.neuronId, Vote.Yes)}
-                          disabled={!canTriggerVote}
-                          variant="outline"
-                          type="button"
-                        >
-                          {t(($) => $.common.yes)}
-                        </Button>
-                        <Button
-                          onClick={() => castVote(neuron.neuronId, Vote.No)}
-                          variant="outline"
-                          type="button"
-                        >
-                          {t(($) => $.common.no)}
-                        </Button>
-                      </>
+                      <Button
+                        onClick={() => castVote(neuron.neuronId, Vote.Yes)}
+                        disabled={!canTriggerVote}
+                        variant="outline"
+                        type="button"
+                      >
+                        {t(($) => $.common.yes)}
+                      </Button>
+                      <Button
+                        onClick={() => castVote(neuron.neuronId, Vote.No)}
+                        variant="outline"
+                        type="button"
+                      >
+                        {t(($) => $.common.no)}
+                      </Button>
                     </>
                   )}
                 </span>

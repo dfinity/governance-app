@@ -1,11 +1,11 @@
-import { useGovernanceProposals } from '@hooks/canisters/governance';
-import useTitle from '@hooks/useTitle';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
-import { InViewSentinel } from '@ui/extra/InViewSentinel';
-import { QueryStates } from '@ui/extra/QueryStates';
+import { InViewSentinel } from '@components/extra/InViewSentinel';
+import { QueryStates } from '@components/extra/QueryStates';
 import { SkeletonLoader } from '@ui/loaders/SkeletonLoader';
+import { useGovernanceProposals } from '@hooks/canisters/governance';
+import useTitle from '@hooks/useTitle';
 
 import { ProposalCard } from '@/features/voting/components/ProposalCard';
 

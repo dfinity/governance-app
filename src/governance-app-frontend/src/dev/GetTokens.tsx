@@ -1,6 +1,5 @@
 import { AccountIdentifier, BlockHeight, E8s, LedgerCanister } from '@icp-sdk/canisters/ledger/icp';
 import { Agent } from '@icp-sdk/core/agent';
-import { useAgentPool } from '@hooks/useAgentPool';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
@@ -17,6 +16,7 @@ import {
   ResponsiveDialogTrigger,
 } from '@ui/responsive-dialog';
 import { E8Sn, ICP_TRANSACTION_PROPAGATION_DELAY_MS, IS_TESTNET } from '@constants/extra';
+import { useAgentPool } from '@hooks/useAgentPool';
 import { withMinimumDelay } from '@utils/async';
 import { errorMessage } from '@utils/error';
 import { errorNotification, successNotification } from '@utils/notification';

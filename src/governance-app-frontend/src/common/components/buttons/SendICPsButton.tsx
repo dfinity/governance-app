@@ -1,5 +1,4 @@
 import { AccountIdentifier, isIcpAccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
-import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
 import { useMutation } from '@tanstack/react-query';
 import React, { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +21,7 @@ import {
   ICP_TRANSACTION_FEE,
   ICP_TRANSACTION_PROPAGATION_DELAY_MS,
 } from '@constants/extra';
+import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
 import { delay } from '@utils/async';
 import { bigIntMul } from '@utils/bigInt';
 import { errorNotification, successNotification } from '@utils/notification';

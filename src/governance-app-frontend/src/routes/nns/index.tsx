@@ -1,9 +1,9 @@
-import useTitle from '@hooks/useTitle';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Brain, Vote, Wallet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { SimpleCard } from '@ui/extra/SimpleCard';
+import { SimpleCard } from '@components/extra/SimpleCard';
+import useTitle from '@hooks/useTitle';
 
 export const Route = createFileRoute('/nns/')({
   component: NnsIndex,

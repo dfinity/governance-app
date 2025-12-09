@@ -1,5 +1,6 @@
-import { useTheme } from '@hooks/useTheme';
 import Skeleton, { SkeletonProps } from 'react-loading-skeleton';
+
+import { useTheme } from '@hooks/useTheme';
 
 export const SkeletonLoader = (props: SkeletonProps) => {
   const { theme } = useTheme();

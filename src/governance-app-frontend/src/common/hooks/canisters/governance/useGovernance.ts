@@ -1,8 +1,8 @@
 import { GovernanceCanister } from '@icp-sdk/canisters/nns';
 import { Principal } from '@icp-sdk/core/principal';
-import { useAgentPool } from '@hooks/useAgentPool';
 
 import { CANISTER_ID_NNS_GOVERNANCE } from '@constants/canisterIds';
+import { useAgentPool } from '@hooks/useAgentPool';
 import { errorMessage } from '@utils/error';
 import { CanisterStatus } from '@common/typings/canisters';
 

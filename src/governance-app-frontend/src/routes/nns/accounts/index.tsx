@@ -4,9 +4,6 @@ import {
   TransactionWithId,
 } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
-import { useIcpIndexTransactions } from '@hooks/canisters/icpIndex/useIcpIndexTransactions';
-import { useIcpIndexTransactionsPolling } from '@hooks/canisters/icpIndex/useIcpIndexTransactionsPolling';
-import useTitle from '@hooks/useTitle';
 import { createFileRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ArrowDownToLine, ArrowUp } from 'lucide-react';
@@ -15,11 +12,14 @@ import { useTranslation } from 'react-i18next';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { SendICPsButton } from '@components/buttons/SendICPsButton';
-import { InViewSentinel } from '@ui/extra/InViewSentinel';
-import { QueryStates } from '@ui/extra/QueryStates';
-import { SimpleCard } from '@ui/extra/SimpleCard';
+import { InViewSentinel } from '@components/extra/InViewSentinel';
+import { QueryStates } from '@components/extra/QueryStates';
+import { SimpleCard } from '@components/extra/SimpleCard';
 import { SkeletonLoader } from '@ui/loaders/SkeletonLoader';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
+import { useIcpIndexTransactions } from '@hooks/canisters/icpIndex/useIcpIndexTransactions';
+import { useIcpIndexTransactionsPolling } from '@hooks/canisters/icpIndex/useIcpIndexTransactionsPolling';
+import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';
 import { bigIntDiv } from '@utils/bigInt';
 import { requireIdentity } from '@utils/router';

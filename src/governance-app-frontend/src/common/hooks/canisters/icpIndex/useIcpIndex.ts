@@ -1,8 +1,8 @@
 import { IndexCanister } from '@icp-sdk/canisters/ledger/icp';
 import { Principal } from '@icp-sdk/core/principal';
-import { useAgentPool } from '@hooks/useAgentPool';
 
 import { CANISTER_ID_ICP_INDEX } from '@constants/canisterIds';
+import { useAgentPool } from '@hooks/useAgentPool';
 import { errorMessage } from '@utils/error';
 import { CanisterStatus } from '@common/typings/canisters';
 

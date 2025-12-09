@@ -1,5 +1,3 @@
-import { useAgentPool } from '@hooks/useAgentPool';
-import { useTheme } from '@hooks/useTheme';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link, useRouter } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
@@ -10,6 +8,8 @@ import { Button } from '@ui/button';
 import { SkeletonLoader } from '@ui/loaders/SkeletonLoader';
 import { ModeToggle } from '@ui/mode-toggle';
 import { Particles } from '@ui/particles';
+import { useAgentPool } from '@hooks/useAgentPool';
+import { useTheme } from '@hooks/useTheme';
 import { infoNotification } from '@utils/notification';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
