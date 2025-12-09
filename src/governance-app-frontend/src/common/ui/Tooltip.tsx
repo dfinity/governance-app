@@ -1,40 +1,55 @@
-import type { ReactNode } from 'react';
+import * as TooltipPrimitive from '@radix-ui/react-tooltip';
+import * as React from 'react';
 
-import {
-  Tooltip as ShadcnTooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger as ShadcnTooltipTrigger,
-} from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
-export interface TooltipProps {
-  title: ReactNode;
-  description?: ReactNode;
-  children: ReactNode;
-  arrow?: boolean; // Shadcn doesn't natively support arrow toggle quickly without class overrides, but typically it has a small arrow.
-  placement?: 'top' | 'bottom' | 'left' | 'right'; // Shadcn (radix) supports 'side'
+function TooltipProvider({
+  delayDuration = 0,
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Provider>) {
+  return (
+    <TooltipPrimitive.Provider
+      data-slot="tooltip-provider"
+      delayDuration={delayDuration}
+      {...props}
+    />
+  );
 }
 
-export const TooltipTrigger = ShadcnTooltipTrigger;
-
-export const Tooltip = ({ title, description, children, placement = 'top' }: TooltipProps) => {
-  // Map 'placement' to 'side'
-  // Radix uses 'top', 'bottom', 'left', 'right'. Matches.
-
+function Tooltip({ ...props }: React.ComponentProps<typeof TooltipPrimitive.Root>) {
   return (
     <TooltipProvider>
-      <ShadcnTooltip>
-        {/* Children usually contains the trigger. 
-                    If children is just a node, we might need to wrap in TooltipTrigger if not already. 
-                    UntitledUi usage: <Tooltip><TooltipTrigger>...</TooltipTrigger></Tooltip>
-                    So children is TooltipTrigger.
-                */}
-        {children}
-        <TooltipContent side={placement}>
-          <div className="text-xs font-semibold">{title}</div>
-          {description && <div className="text-xs text-muted-foreground">{description}</div>}
-        </TooltipContent>
-      </ShadcnTooltip>
+      <TooltipPrimitive.Root data-slot="tooltip" {...props} />
     </TooltipProvider>
   );
-};
+}
+
+function TooltipTrigger({ ...props }: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
+  return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />;
+}
+
+function TooltipContent({
+  className,
+  sideOffset = 0,
+  children,
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Content>) {
+  return (
+    <TooltipPrimitive.Portal>
+      <TooltipPrimitive.Content
+        data-slot="tooltip-content"
+        sideOffset={sideOffset}
+        className={cn(
+          'animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md bg-foreground px-3 py-1.5 text-xs text-balance text-background',
+          className,
+        )}
+        {...props}
+      >
+        {children}
+        <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] bg-foreground fill-foreground" />
+      </TooltipPrimitive.Content>
+    </TooltipPrimitive.Portal>
+  );
+}
+
+export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger };

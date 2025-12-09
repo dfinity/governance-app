@@ -5,14 +5,14 @@ import { useTranslation } from 'react-i18next';
 import Skeleton from 'react-loading-skeleton';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
-import { QueryStates } from '@components/extra/QueryStates';
-import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
+import { QueryStates } from '@/common/ui/extra/QueryStates';
+import { SkeletonLoader } from '@/common/ui/loaders/SkeletonLoader';
 import { useGovernanceProposal } from '@hooks/canisters/governance/useGovernanceProposal';
 import useTitle from '@hooks/useTitle';
 import { stringToBigInt } from '@utils/bigInt';
 import { CertifiedData } from '@common/typings/queries';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/common/ui/card';
 
 import { ProposalDetailsVoting } from './-ProposalDetailsVoting';
 

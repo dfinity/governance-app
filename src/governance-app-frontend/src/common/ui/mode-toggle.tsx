@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useTheme } from '@hooks/useTheme';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/common/ui/button';
 
 export function ModeToggle() {
   const { themePreference, setThemePreference } = useTheme();

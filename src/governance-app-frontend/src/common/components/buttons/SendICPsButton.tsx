@@ -3,7 +3,18 @@ import { useMutation } from '@tanstack/react-query';
 import React, { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, Dialog, DialogTrigger, Input, Modal, ModalOverlay } from '@ui';
+import { Button } from '@/common/ui/button';
+import { Input } from '@/common/ui/input';
+import { Label } from '@/common/ui/label';
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogTrigger,
+  ResponsiveDialogFooter,
+} from '@/common/ui/responsive-dialog';
 
 import {
   E8Sn,
@@ -27,6 +38,7 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
     authenticated: ledgerAuthenticated,
   } = useIcpLedger();
 
+  const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState('');
   const [amountError, setAmountError] = useState('');
   const [toAccount, setToAccount] = useState('');
@@ -51,6 +63,7 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
         description: t(($) => $.account.transferSuccess, { amount, toAccount }),
       });
       setIsPending(false);
+      setOpen(false);
     },
     onError: () => {
       errorNotification({
@@ -60,10 +73,9 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
     },
   });
 
-  const handleSubmit = (close: () => void) => async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     transferMutation.mutate();
-    close();
   };
 
   const canTransfer =
@@ -93,62 +105,70 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
   };
 
   return (
-    <DialogTrigger>
-      <Button slot="trigger" isDisabled={!canTransfer} isLoading={isPending} color="secondary">
-        {t(($) => $.common.send)}
-      </Button>
+    <ResponsiveDialog open={open} onOpenChange={setOpen}>
+      <ResponsiveDialogTrigger asChild>
+        <Button variant="outline" disabled={!canTransfer} className={isPending ? "opacity-50" : ""}>
+          {isPending ? "Sending..." : t(($) => $.common.send)}
+        </Button>
+      </ResponsiveDialogTrigger>
 
-      <ModalOverlay isKeyboardDismissDisabled>
-        <Modal className={'max-w-xs rounded-2xl p-6'}>
-          <Dialog>
-            {({ close }) => (
-              <form className="flex flex-col gap-4" onSubmit={handleSubmit(close)}>
-                <h3 className="text-lg font-semibold">{t(($) => $.account.transferTitle)}</h3>
+      <ResponsiveDialogContent className="max-w-xs">
+        <form onSubmit={handleSubmit}>
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>{t(($) => $.account.transferTitle)}</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="sr-only">
+              Transfer ICP tokens to another account.
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
 
-                <Input
-                  label={t(($) => $.account.destinationAccount)}
-                  onChange={handleAccountChange}
-                  isInvalid={!!toAccountError}
-                  isDisabled={isPending}
-                  hint={toAccountError}
-                  value={toAccount}
-                  type="string"
-                  isRequired
-                />
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="destination-account">{t(($) => $.account.destinationAccount)}</Label>
+              <Input
+                id="destination-account"
+                onChange={(e) => handleAccountChange(e.target.value)}
+                disabled={isPending}
+                value={toAccount}
+                className={toAccountError ? "border-destructive" : ""}
+                required
+              />
+              {toAccountError && <p className="text-sm text-destructive">{toAccountError}</p>}
+            </div>
 
-                <Input
-                  label={t(($) => $.common.amount)}
-                  onChange={handleAmountChange}
-                  isInvalid={!!amountError}
-                  isDisabled={isPending}
-                  hint={amountError}
-                  value={amount}
-                  type="number"
-                  isRequired
-                />
+            <div className="grid gap-2">
+              <Label htmlFor="amount">{t(($) => $.common.amount)}</Label>
+              <Input
+                id="amount"
+                type="number"
+                onChange={(e) => handleAmountChange(e.target.value)}
+                disabled={isPending}
+                value={amount}
+                className={amountError ? "border-destructive" : ""}
+                required
+              />
+              {amountError && <p className="text-sm text-destructive">{amountError}</p>}
+            </div>
 
-                <p className="text-xs">
-                  {t(($) => $.account.transactionHint, {
-                    min: ICP_MIN_TRANSFER_AMOUNT,
-                    max: max,
-                    fee: ICP_TRANSACTION_FEE,
-                  })}
-                </p>
+            <p className="text-xs text-muted-foreground">
+              {t(($) => $.account.transactionHint, {
+                min: ICP_MIN_TRANSFER_AMOUNT,
+                max: max,
+                fee: ICP_TRANSACTION_FEE,
+              })}
+            </p>
+          </div>
 
-                <div className="flex justify-end gap-2">
-                  <Button type="button" color="secondary" onClick={close} isDisabled={isPending}>
-                    {t(($) => $.common.close)}
-                  </Button>
-                  <Button type="submit" color="primary" isDisabled={isPending}>
-                    {t(($) => $.common.confirm)}
-                  </Button>
-                </div>
-              </form>
-            )}
-          </Dialog>
-        </Modal>
-      </ModalOverlay>
-    </DialogTrigger>
+          <ResponsiveDialogFooter className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={isPending}>
+              {t(($) => $.common.close)}
+            </Button>
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Sending..." : t(($) => $.common.confirm)}
+            </Button>
+          </ResponsiveDialogFooter>
+        </form>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 };
 

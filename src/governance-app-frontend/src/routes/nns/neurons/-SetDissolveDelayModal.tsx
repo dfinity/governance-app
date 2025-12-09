@@ -4,7 +4,18 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, Dialog, DialogTrigger, Input, Modal, ModalOverlay } from '@ui';
+import { Button } from '@/common/ui/button';
+import { Input } from '@/common/ui/input';
+import { Label } from '@/common/ui/label';
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogTrigger,
+  ResponsiveDialogFooter,
+} from '@/common/ui/responsive-dialog';
 
 import { SECONDS_IN_DAY } from '@constants/extra';
 import { ICP_MAX_DISSOLVE_DELAY_SECONDS, ICP_MIN_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
@@ -30,6 +41,7 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
     canister: governanceCanister,
     authenticated: governanceAuthenticated,
   } = useNnsGovernance();
+  const [open, setOpen] = useState(false);
   const [delayDaysInput, setDelayDays] = useState(dissolveDelayDays(neuron));
   const [inputError, setInputError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -37,9 +49,9 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
   const hint = inputError
     ? inputError
     : t(($) => $.neuron.setDissolveDelayModal.hint, {
-        min: Math.ceil(ICP_MIN_DISSOLVE_DELAY_SECONDS / SECONDS_IN_DAY),
-        max: Math.floor(ICP_MAX_DISSOLVE_DELAY_SECONDS / SECONDS_IN_DAY),
-      });
+      min: Math.ceil(ICP_MIN_DISSOLVE_DELAY_SECONDS / SECONDS_IN_DAY),
+      max: Math.floor(ICP_MAX_DISSOLVE_DELAY_SECONDS / SECONDS_IN_DAY),
+    });
 
   const setDissolveDelayMutation = useMutation<
     void,
@@ -65,6 +77,7 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
             neuron.dissolveDelaySeconds + BigInt(additionalDissolveDelaySeconds);
           setDelayDays(bigIntDiv(expectedDissolveDelaySeconds, BigInt(SECONDS_IN_DAY)).toString());
           setPending(false);
+          setOpen(false);
         });
       successNotification({
         description: t(($) => $.neuron.setDissolveDelayModal.success, { amount: delayDaysInput }),
@@ -84,7 +97,7 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
     setInputError(null);
   };
 
-  const handleSubmit = (close: () => void) => async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const additionalDissolveDelaySeconds = Number(
@@ -96,61 +109,58 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
       return;
     }
 
-    setDissolveDelayMutation.mutateAsync({ additionalDissolveDelaySeconds, neuron }).then(close);
+    setDissolveDelayMutation.mutateAsync({ additionalDissolveDelaySeconds, neuron });
   };
 
   return (
-    <DialogTrigger>
-      {canUpdate && (
-        <Button slot="trigger" color="secondary" size="sm">
-          {t(($) => $.neuron.setDissolveDelay)}
-        </Button>
-      )}
+    <ResponsiveDialog open={open} onOpenChange={setOpen}>
+      <ResponsiveDialogTrigger asChild>
+        {canUpdate ? (
+          <Button size="sm" variant="outline">
+            {t(($) => $.neuron.setDissolveDelay)}
+          </Button>
+        ) : <></>}
+      </ResponsiveDialogTrigger>
 
-      <ModalOverlay isKeyboardDismissDisabled>
-        <Modal className={'max-w-md rounded-2xl p-6 shadow-lg'}>
-          <Dialog
-            aria-label={t(($) => $.neuron.setDissolveDelayModal.title, {
-              neuronId: neuron.neuronId.toString(),
-            })}
-          >
-            {({ close }) => (
-              <form className="flex flex-col gap-4" onSubmit={handleSubmit(close)}>
-                <div>
-                  <h3 className="text-lg font-semibold">
-                    {t(($) => $.neuron.setDissolveDelayModal.title, {
-                      neuronId: neuron.neuronId.toString(),
-                    })}
-                  </h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {t(($) => $.neuron.setDissolveDelayModal.description)}
-                  </p>
-                </div>
+      <ResponsiveDialogContent className="max-w-md">
+        <form onSubmit={handleSubmit}>
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>
+              {t(($) => $.neuron.setDissolveDelayModal.title, {
+                neuronId: neuron.neuronId.toString(),
+              })}
+            </ResponsiveDialogTitle>
+            <ResponsiveDialogDescription>
+              {t(($) => $.neuron.setDissolveDelayModal.description)}
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
 
-                <Input
-                  type="number"
-                  isDisabled={pending}
-                  isRequired
-                  isInvalid={nonNullish(inputError)}
-                  hint={hint}
-                  value={delayDaysInput}
-                  onChange={handleDaysChange}
-                  label={t(($) => $.neuron.setDissolveDelayModal.delayLabel)}
-                />
+          <div className="grid gap-2 py-4">
+            <Label htmlFor="delay-days">{t(($) => $.neuron.setDissolveDelayModal.delayLabel)}</Label>
+            <Input
+              id="delay-days"
+              type="number"
+              disabled={pending}
+              required
+              className={inputError ? "border-destructive" : ""}
+              value={delayDaysInput}
+              onChange={(e) => handleDaysChange(e.target.value)}
+            />
+            <p className={`text-sm ${inputError ? "text-destructive" : "text-muted-foreground"}`}>
+              {hint}
+            </p>
+          </div>
 
-                <div className="flex justify-end gap-2">
-                  <Button type="button" color="secondary" onClick={close} isDisabled={pending}>
-                    {t(($) => $.common.close)}
-                  </Button>
-                  <Button type="submit" color="primary" isDisabled={pending}>
-                    {t(($) => $.neuron.setDissolveDelayModal.actions.confirm)}
-                  </Button>
-                </div>
-              </form>
-            )}
-          </Dialog>
-        </Modal>
-      </ModalOverlay>
-    </DialogTrigger>
+          <ResponsiveDialogFooter className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
+              {t(($) => $.common.close)}
+            </Button>
+            <Button type="submit" disabled={pending}>
+              {pending ? "Confirming..." : t(($) => $.neuron.setDissolveDelayModal.actions.confirm)}
+            </Button>
+          </ResponsiveDialogFooter>
+        </form>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 };

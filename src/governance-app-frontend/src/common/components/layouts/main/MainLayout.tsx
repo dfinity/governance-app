@@ -1,16 +1,15 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useRouter } from '@tanstack/react-router';
+import { Link, useRouter } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, Link } from '@ui';
-
-import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
+import { SkeletonLoader } from '@/common/ui/loaders/SkeletonLoader';
 import { useAgentPool } from '@hooks/useAgentPool';
 import { infoNotification } from '@utils/notification';
 
-import { ModeToggle } from '@/components/mode-toggle';
+import { ModeToggle } from '@/common/ui/mode-toggle';
+import { Button } from '@/common/ui/button';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
   const { login, identity, clear, isInitializing } = useInternetIdentity();
@@ -67,16 +66,23 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
                 </h1>
               </Link>
               <div className="flex flex-wrap justify-center gap-4 sm:flex-nowrap">
-                <Button to="/nns">{t(($) => $.common.nns)}</Button>
+                <Button asChild>
+                  <Link to="/nns">{t(($) => $.common.nns)}</Link>
+                </Button>
                 <Button
                   data-testid="login-btn"
-                  color={identity ? 'secondary-destructive' : 'secondary'}
+                  variant={identity ? 'outline' : 'secondary'}
+                  className={
+                    identity
+                      ? 'border-destructive/50 text-destructive hover:border-destructive hover:bg-destructive/10 hover:text-destructive'
+                      : ''
+                  }
                   onClick={
                     identity
                       ? () => {
-                          wasManualLogout.current = true;
-                          clear();
-                        }
+                        wasManualLogout.current = true;
+                        clear();
+                      }
                       : login
                   }
                 >

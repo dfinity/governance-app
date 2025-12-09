@@ -4,7 +4,18 @@ import { nonNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
-import { Button, Dialog, DialogTrigger, Input, Modal, ModalOverlay } from '@ui';
+import { Button } from '@/common/ui/button';
+import { Input } from '@/common/ui/input';
+import { Label } from '@/common/ui/label';
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogTrigger,
+  ResponsiveDialogFooter,
+} from '@/common/ui/responsive-dialog';
 
 import { E8Sn, ICP_TRANSACTION_PROPAGATION_DELAY_MS, IS_TESTNET } from '@constants/extra';
 import { useAgentPool } from '@hooks/useAgentPool';
@@ -49,6 +60,7 @@ const acquireICPs = async ({
 
 export const GetTokens = (props: { accountId: AccountIdentifier }) => {
   const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
   const [amountOfIcp, setAmountOfIcp] = useState('');
   const [amountOfIcpError, setAmountOfIcpError] = useState<string | null>(null);
   const { anonymous } = useAgentPool().agentPool;
@@ -69,6 +81,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
       successNotification({
         description: `Top-up of ${amountOfIcp} ICPs successful.`,
       });
+      setOpen(false);
     },
     onError: (error) => {
       errorNotification({
@@ -77,7 +90,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
     },
   });
 
-  const handleSubmit = (close: () => void) => async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setAmountOfIcpError(null);
 
@@ -88,48 +101,52 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
     }
 
     const e8s = BigInt(Math.floor(amount * Number(E8Sn)));
-    acquireTokensMutation.mutateAsync({ e8s, accountId, agent: anonymous.agent! }).then(close);
+    acquireTokensMutation.mutateAsync({ e8s, accountId, agent: anonymous.agent! });
   };
 
   return (
-    <DialogTrigger>
-      <Button slot="trigger" color="secondary" size="sm">
-        Get Tokens
-      </Button>
-      <ModalOverlay isDismissable>
-        <Modal className="max-w-sm rounded-2xl p-6 shadow-lg">
-          <Dialog>
-            {({ close }) => (
-              <form className="flex flex-col gap-4" onSubmit={handleSubmit(close)}>
-                <h3 className="text-lg font-semibold">Get Testnet ICPs</h3>
-                <p className="text-sm break-all text-muted-foreground">
-                  Account: {accountId.toHex()}
-                </p>
-                <div className="grid gap-2">
-                  <Input
-                    type="number"
-                    size="sm"
-                    label="Amount"
-                    value={amountOfIcp}
-                    onChange={setAmountOfIcp}
-                    hint={amountOfIcpError}
-                    isInvalid={nonNullish(amountOfIcpError)}
-                  />
-                  <Button
-                    type="submit"
-                    color="primary"
-                    size="sm"
-                    className="w-full"
-                    isLoading={acquireTokensMutation.isPending}
-                  >
-                    Top Up
-                  </Button>
-                </div>
-              </form>
-            )}
-          </Dialog>
-        </Modal>
-      </ModalOverlay>
-    </DialogTrigger>
+    <ResponsiveDialog open={open} onOpenChange={setOpen}>
+      <ResponsiveDialogTrigger asChild>
+        <Button size="sm" variant="outline">
+          Get Tokens
+        </Button>
+      </ResponsiveDialogTrigger>
+
+      <ResponsiveDialogContent className="max-w-sm">
+        <form onSubmit={handleSubmit}>
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>Get Testnet ICPs</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="break-all">
+              Account: {accountId.toHex()}
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
+
+          <div className="grid gap-2 py-4">
+            <Label htmlFor="tokens-amount">Amount</Label>
+            <Input
+              id="tokens-amount"
+              type="number"
+              className={amountOfIcpError ? "border-destructive" : ""}
+              value={amountOfIcp}
+              onChange={(e) => setAmountOfIcp(e.target.value)}
+            />
+            {amountOfIcpError && <p className="text-sm text-destructive">{amountOfIcpError}</p>}
+          </div>
+
+          <ResponsiveDialogFooter className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="w-full sm:w-auto"
+              disabled={acquireTokensMutation.isPending}
+            >
+              {acquireTokensMutation.isPending ? "Topping Up..." : "Top Up"}
+            </Button>
+          </ResponsiveDialogFooter>
+        </form>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 };

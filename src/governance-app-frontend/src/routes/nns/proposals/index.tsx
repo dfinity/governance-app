@@ -1,11 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
-import { Link } from '@ui';
-
-import { InViewSentinel } from '@components/extra/InViewSentinel';
-import { QueryStates } from '@components/extra/QueryStates';
-import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
+import { InViewSentinel } from '@/common/ui/extra/InViewSentinel';
+import { QueryStates } from '@/common/ui/extra/QueryStates';
+import { SkeletonLoader } from '@/common/ui/loaders/SkeletonLoader';
 import { useGovernanceProposals } from '@hooks/canisters/governance';
 import useTitle from '@hooks/useTitle';
 

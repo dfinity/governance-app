@@ -55,12 +55,6 @@
       "@common/*": [
         "./src/common/*"
       ],
-      "@ui/*": [
-        "./src/common/ui/*"
-      ],
-      "@ui": [
-        "./src/common/ui/index.ts"
-      ],
       "@routes/*": [
         "./src/routes/*"
       ],

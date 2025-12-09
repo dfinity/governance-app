@@ -40,10 +40,6 @@ export default defineConfig({
         find: '@declarations',
         replacement: fileURLToPath(new URL('../declarations/', import.meta.url)),
       },
-      {
-        find: '@ui',
-        replacement: fileURLToPath(new URL('./src/common/ui/', import.meta.url)),
-      },
 
       {
         find: '@components',

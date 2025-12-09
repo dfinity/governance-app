@@ -1,10 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { Brain, Vote, Wallet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Link } from '@ui';
-
-import { SimpleCard } from '@components/extra/SimpleCard';
+import { SimpleCard } from '@/common/ui/extra/SimpleCard';
 import useTitle from '@hooks/useTitle';
 
 import { VotingPowerChart } from '@/features/dashboard/components/VotingPowerChart';

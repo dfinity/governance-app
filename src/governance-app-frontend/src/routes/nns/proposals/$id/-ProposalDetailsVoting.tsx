@@ -6,9 +6,9 @@ import { useState } from 'react';
 import { Fragment } from 'react/jsx-runtime';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@ui';
+import { Button } from '@/common/ui/button';
 
-import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
+import { SkeletonLoader } from '@/common/ui/loaders/SkeletonLoader';
 import { VOTING_RESULTS_PRECISION } from '@constants/extra';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/canisters/governance';
 import { bigIntDiv } from '@utils/bigInt';
@@ -123,21 +123,23 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
                     <SkeletonLoader width={90} height={20} />
                   ) : (
                     <>
-                      <Button
-                        onClick={() => castVote(neuron.neuronId, Vote.Yes)}
-                        disabled={!canTriggerVote}
-                        color="secondary"
-                        type="button"
-                      >
-                        {t(($) => $.common.yes)}
-                      </Button>
-                      <Button
-                        onClick={() => castVote(neuron.neuronId, Vote.No)}
-                        color="secondary"
-                        type="button"
-                      >
-                        {t(($) => $.common.no)}
-                      </Button>
+                      <>
+                        <Button
+                          onClick={() => castVote(neuron.neuronId, Vote.Yes)}
+                          disabled={!canTriggerVote}
+                          variant="outline"
+                          type="button"
+                        >
+                          {t(($) => $.common.yes)}
+                        </Button>
+                        <Button
+                          onClick={() => castVote(neuron.neuronId, Vote.No)}
+                          variant="outline"
+                          type="button"
+                        >
+                          {t(($) => $.common.no)}
+                        </Button>
+                      </>
                     </>
                   )}
                 </span>

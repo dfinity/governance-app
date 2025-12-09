@@ -5,15 +5,15 @@ import { useTranslation } from 'react-i18next';
 import Skeleton from 'react-loading-skeleton';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
-import { WarningMessage } from '@components/extra/WarningMessage';
-import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
+import { WarningMessage } from '@/common/ui/extra/WarningMessage';
+import { SkeletonLoader } from '@/common/ui/loaders/SkeletonLoader';
 import { E8S, E8Sn, IS_TESTNET } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceNeurons';
 import useTitle from '@hooks/useTitle';
 import { bigIntDiv, stringToBigInt } from '@utils/bigInt';
 import { requireIdentity } from '@utils/router';
 
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/common/ui/card';
 import { IncreaseMaturityModal } from '@/dev/IncreaseMaturityModal';
 import { UnlockNeuronModal } from '@/dev/UnlockNeuronModal';
 
