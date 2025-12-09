@@ -40,14 +40,13 @@ export default defineConfig({
         find: '@declarations',
         replacement: fileURLToPath(new URL('../declarations/', import.meta.url)),
       },
-
-      {
-        find: '@components',
-        replacement: fileURLToPath(new URL('./src/common/components/', import.meta.url)),
-      },
       {
         find: '@ui',
         replacement: fileURLToPath(new URL('./src/common/ui/', import.meta.url)),
+      },
+      {
+        find: '@components',
+        replacement: fileURLToPath(new URL('./src/common/components/', import.meta.url)),
       },
       {
         find: '@constants',
