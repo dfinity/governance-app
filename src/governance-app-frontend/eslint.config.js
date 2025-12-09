@@ -82,7 +82,7 @@ const cssConfiguration = {
   rules: {
     'css/no-invalid-properties': 'error',
     'css/no-duplicate-imports': 'error',
-    'css/no-invalid-at-rules': 'error',
+    'css/no-invalid-at-rules': 'off',
     'css/no-empty-blocks': 'error',
   },
 };

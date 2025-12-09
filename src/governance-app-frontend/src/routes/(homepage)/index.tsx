@@ -3,11 +3,12 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
 import { NotAvailableBadge } from '@components/badges/certified/NotAvailableBadge';
-import { QueryStates } from '@/common/ui/extra/QueryStates';
-import { SkeletonLoader } from '@/common/ui/loaders/SkeletonLoader';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { useTickerPrices } from '@hooks/externalServices/useTickerPrices';
 import { TokenPrices } from '@typings/tokenPrices';
+
+import { QueryStates } from '@/common/ui/extra/QueryStates';
+import { SkeletonLoader } from '@/common/ui/loaders/SkeletonLoader';
 
 export const Route = createFileRoute('/(homepage)/')({
   component: Homepage,

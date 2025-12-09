@@ -4,19 +4,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/common/ui/button';
-import { Input } from '@/common/ui/input';
-import { Label } from '@/common/ui/label';
-import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogDescription,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-  ResponsiveDialogTrigger,
-  ResponsiveDialogFooter,
-} from '@/common/ui/responsive-dialog';
-
 import { SECONDS_IN_DAY } from '@constants/extra';
 import { ICP_MAX_DISSOLVE_DELAY_SECONDS, ICP_MIN_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { useNnsGovernance } from '@hooks/canisters/governance';
@@ -24,6 +11,19 @@ import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
+
+import { Button } from '@/common/ui/button';
+import { Input } from '@/common/ui/input';
+import { Label } from '@/common/ui/label';
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogTrigger,
+} from '@/common/ui/responsive-dialog';
 
 type Props = {
   neuron: NeuronInfo;
@@ -49,9 +49,9 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
   const hint = inputError
     ? inputError
     : t(($) => $.neuron.setDissolveDelayModal.hint, {
-      min: Math.ceil(ICP_MIN_DISSOLVE_DELAY_SECONDS / SECONDS_IN_DAY),
-      max: Math.floor(ICP_MAX_DISSOLVE_DELAY_SECONDS / SECONDS_IN_DAY),
-    });
+        min: Math.ceil(ICP_MIN_DISSOLVE_DELAY_SECONDS / SECONDS_IN_DAY),
+        max: Math.floor(ICP_MAX_DISSOLVE_DELAY_SECONDS / SECONDS_IN_DAY),
+      });
 
   const setDissolveDelayMutation = useMutation<
     void,
@@ -119,7 +119,9 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
           <Button size="sm" variant="outline">
             {t(($) => $.neuron.setDissolveDelay)}
           </Button>
-        ) : <></>}
+        ) : (
+          <></>
+        )}
       </ResponsiveDialogTrigger>
 
       <ResponsiveDialogContent className="max-w-md">
@@ -136,17 +138,19 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
           </ResponsiveDialogHeader>
 
           <div className="grid gap-2 py-4">
-            <Label htmlFor="delay-days">{t(($) => $.neuron.setDissolveDelayModal.delayLabel)}</Label>
+            <Label htmlFor="delay-days">
+              {t(($) => $.neuron.setDissolveDelayModal.delayLabel)}
+            </Label>
             <Input
               id="delay-days"
               type="number"
               disabled={pending}
               required
-              className={inputError ? "border-destructive" : ""}
+              className={inputError ? 'border-destructive' : ''}
               value={delayDaysInput}
               onChange={(e) => handleDaysChange(e.target.value)}
             />
-            <p className={`text-sm ${inputError ? "text-destructive" : "text-muted-foreground"}`}>
+            <p className={`text-sm ${inputError ? 'text-destructive' : 'text-muted-foreground'}`}>
               {hint}
             </p>
           </div>
@@ -156,7 +160,7 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
               {t(($) => $.common.close)}
             </Button>
             <Button type="submit" disabled={pending}>
-              {pending ? "Confirming..." : t(($) => $.neuron.setDissolveDelayModal.actions.confirm)}
+              {pending ? 'Confirming...' : t(($) => $.neuron.setDissolveDelayModal.actions.confirm)}
             </Button>
           </ResponsiveDialogFooter>
         </form>

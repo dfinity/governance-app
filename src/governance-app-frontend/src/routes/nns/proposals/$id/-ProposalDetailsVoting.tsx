@@ -6,15 +6,15 @@ import { useState } from 'react';
 import { Fragment } from 'react/jsx-runtime';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/common/ui/button';
-
-import { SkeletonLoader } from '@/common/ui/loaders/SkeletonLoader';
 import { VOTING_RESULTS_PRECISION } from '@constants/extra';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/canisters/governance';
 import { bigIntDiv } from '@utils/bigInt';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 import { setWithItemAdded, setWithItemRemoved } from '@utils/set';
+
+import { Button } from '@/common/ui/button';
+import { SkeletonLoader } from '@/common/ui/loaders/SkeletonLoader';
 
 type Props = {
   proposal: ProposalInfo;

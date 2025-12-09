@@ -1,22 +1,10 @@
 import { nonNullish, nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
+import { InfoIcon, Loader2 } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/common/ui/button';
-import { Input } from '@/common/ui/input';
-import { Label } from '@/common/ui/label';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/common/ui/tooltip';
-import { InfoIcon, Loader2 } from 'lucide-react';
-
-
-import { SimpleCard } from '@/common/ui/extra/SimpleCard';
 import {
   E8S,
   E8Sn,
@@ -31,6 +19,12 @@ import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
+
+import { Button } from '@/common/ui/button';
+import { SimpleCard } from '@/common/ui/extra/SimpleCard';
+import { Input } from '@/common/ui/input';
+import { Label } from '@/common/ui/label';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/common/ui/tooltip';
 
 export const StakeNeuron = () => {
   const { t } = useTranslation();
@@ -142,9 +136,9 @@ export const StakeNeuron = () => {
   const stakeHint = formError
     ? formError
     : t(($) => $.neuron.stakeNeuron.hint, {
-      min: ICP_MIN_STAKE_AMOUNT,
-      max: maxStake,
-    });
+        min: ICP_MIN_STAKE_AMOUNT,
+        max: maxStake,
+      });
   const stakePlaceholder = Math.max(maxStake - Number(ICP_TRANSACTION_FEE_E8S) / E8S, 0).toFixed(2);
 
   if (!canStake) {
@@ -155,7 +149,7 @@ export const StakeNeuron = () => {
     <>
       <h2 className="mb-2 text-primary">{t(($) => $.neuron.stake)}</h2>
       <SimpleCard className="mb-4 flex">
-        <form onSubmit={handleSubmit} className="flex items-start gap-2 w-full">
+        <form onSubmit={handleSubmit} className="flex w-full items-start gap-2">
           <div className="flex-1 space-y-1">
             <div className="flex items-center gap-2">
               <Label htmlFor="stake-input">{t(($) => $.neuron.stakeNeuron.label)}</Label>
@@ -173,17 +167,17 @@ export const StakeNeuron = () => {
             <Input
               id="stake-input"
               type="number"
-              className={formError ? "border-destructive" : ""}
+              className={formError ? 'border-destructive' : ''}
               disabled={pending}
               placeholder={stakePlaceholder}
               value={stakeInput}
               onChange={(e) => handleStakeChange(e.target.value)}
             />
-            <p className={`text-sm ${formError ? "text-destructive" : "text-muted-foreground"}`}>
+            <p className={`text-sm ${formError ? 'text-destructive' : 'text-muted-foreground'}`}>
               {stakeHint}
             </p>
           </div>
-          <Button disabled={pending} type="submit" className="self-start mt-7">
+          <Button disabled={pending} type="submit" className="mt-7 self-start">
             {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {t(($) => $.neuron.stake)}
           </Button>

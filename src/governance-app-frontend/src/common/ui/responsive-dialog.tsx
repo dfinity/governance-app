@@ -1,135 +1,131 @@
-import * as React from "react"
-import { useMediaQuery } from "@/common/hooks/useMediaQuery"
-import { Button } from "@/common/ui/button"
+import * as React from 'react';
+
+import { useMediaQuery } from '@/common/hooks/useMediaQuery';
+import { Button } from '@/common/ui/button';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/common/ui/dialog"
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/common/ui/dialog';
 import {
-    Drawer,
-    DrawerClose,
-    DrawerContent,
-    DrawerDescription,
-    DrawerFooter,
-    DrawerHeader,
-    DrawerTitle,
-    DrawerTrigger,
-} from "@/common/ui/drawer"
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/common/ui/drawer';
 
-export function ResponsiveDialog({
-    children,
-    ...props
-}: React.ComponentProps<typeof Dialog>) {
-    const isDesktop = useMediaQuery("(min-width: 768px)")
+export function ResponsiveDialog({ children, ...props }: React.ComponentProps<typeof Dialog>) {
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
-    if (isDesktop) {
-        return <Dialog {...props}>{children}</Dialog>
-    }
+  if (isDesktop) {
+    return <Dialog {...props}>{children}</Dialog>;
+  }
 
-    return <Drawer {...props}>{children}</Drawer>
+  return <Drawer {...props}>{children}</Drawer>;
 }
 
 export function ResponsiveDialogTrigger({
-    className,
-    ...props
+  className,
+  ...props
 }: React.ComponentProps<typeof DialogTrigger>) {
-    const isDesktop = useMediaQuery("(min-width: 768px)")
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
-    if (isDesktop) {
-        return <DialogTrigger className={className} {...props} />
-    }
+  if (isDesktop) {
+    return <DialogTrigger className={className} {...props} />;
+  }
 
-    return <DrawerTrigger className={className} {...props} />
+  return <DrawerTrigger className={className} {...props} />;
 }
 
 export function ResponsiveDialogContent({
-    className,
-    children,
-    ...props
+  className,
+  children,
+  ...props
 }: React.ComponentProps<typeof DialogContent>) {
-    const isDesktop = useMediaQuery("(min-width: 768px)")
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
-    if (isDesktop) {
-        return (
-            <DialogContent className={className} {...props}>
-                {children}
-            </DialogContent>
-        )
-    }
-
+  if (isDesktop) {
     return (
-        <DrawerContent className={className} {...props}>
-            <div className="mx-auto w-full max-w-sm">
-                {children}
-            </div>
-        </DrawerContent>
-    )
+      <DialogContent className={className} {...props}>
+        {children}
+      </DialogContent>
+    );
+  }
+
+  return (
+    <DrawerContent className={className} {...props}>
+      <div className="mx-auto w-full max-w-sm">{children}</div>
+    </DrawerContent>
+  );
 }
 
 export function ResponsiveDialogHeader({
-    className,
-    ...props
+  className,
+  ...props
 }: React.ComponentProps<typeof DialogHeader>) {
-    const isDesktop = useMediaQuery("(min-width: 768px)")
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
-    if (isDesktop) {
-        return <DialogHeader className={className} {...props} />
-    }
+  if (isDesktop) {
+    return <DialogHeader className={className} {...props} />;
+  }
 
-    return <DrawerHeader className="text-left" {...props} />
+  return <DrawerHeader className="text-left" {...props} />;
 }
 
 export function ResponsiveDialogTitle({
-    className,
-    ...props
+  className,
+  ...props
 }: React.ComponentProps<typeof DialogTitle>) {
-    const isDesktop = useMediaQuery("(min-width: 768px)")
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
-    if (isDesktop) {
-        return <DialogTitle className={className} {...props} />
-    }
+  if (isDesktop) {
+    return <DialogTitle className={className} {...props} />;
+  }
 
-    return <DrawerTitle className={className} {...props} />
+  return <DrawerTitle className={className} {...props} />;
 }
 
 export function ResponsiveDialogDescription({
-    className,
-    ...props
+  className,
+  ...props
 }: React.ComponentProps<typeof DialogDescription>) {
-    const isDesktop = useMediaQuery("(min-width: 768px)")
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
-    if (isDesktop) {
-        return <DialogDescription className={className} {...props} />
-    }
+  if (isDesktop) {
+    return <DialogDescription className={className} {...props} />;
+  }
 
-    return <DrawerDescription className={className} {...props} />
+  return <DrawerDescription className={className} {...props} />;
 }
 
 export function ResponsiveDialogFooter({
-    className,
-    children,
-    ...props
+  className,
+  children,
+  ...props
 }: React.ComponentProps<typeof DialogHeader>) {
-    const isDesktop = useMediaQuery("(min-width: 768px)")
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
-    if (isDesktop) {
-        return (
-            <div className={className} {...props}>
-                {children}
-            </div>
-        )
-    }
-
+  if (isDesktop) {
     return (
-        <DrawerFooter className="pt-2">
-            {children}
-            <DrawerClose asChild>
-                <Button variant="outline">Cancel</Button>
-            </DrawerClose>
-        </DrawerFooter>
-    )
+      <div className={className} {...props}>
+        {children}
+      </div>
+    );
+  }
+
+  return (
+    <DrawerFooter className="pt-2">
+      {children}
+      <DrawerClose asChild>
+        <Button variant="outline">Cancel</Button>
+      </DrawerClose>
+    </DrawerFooter>
+  );
 }

@@ -3,22 +3,22 @@ import { isNullish, nonNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
-import { Button } from '@/common/ui/button';
-import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogDescription,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-  ResponsiveDialogTrigger,
-  ResponsiveDialogFooter,
-} from '@/common/ui/responsive-dialog';
-
 import { IS_TESTNET, U64_MAX } from '@constants/extra';
 import { useNnsGovernanceTest } from '@hooks/canisters/governance/useGovernanceTest';
 import { errorMessage } from '@utils/error';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
+
+import { Button } from '@/common/ui/button';
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogTrigger,
+} from '@/common/ui/responsive-dialog';
 
 type Props = {
   neuron: NeuronInfo;
@@ -87,7 +87,9 @@ export const UnlockNeuronModal = ({ neuron }: Props) => {
           <Button variant="outline" size="sm">
             Unlock neuron
           </Button>
-        ) : <></>}
+        ) : (
+          <></>
+        )}
       </ResponsiveDialogTrigger>
 
       <ResponsiveDialogContent className="max-w-sm">
@@ -104,7 +106,7 @@ export const UnlockNeuronModal = ({ neuron }: Props) => {
               Close
             </Button>
             <Button type="submit" disabled={pending}>
-              {pending ? "Confirming..." : "Confirm"}
+              {pending ? 'Confirming...' : 'Confirm'}
             </Button>
           </ResponsiveDialogFooter>
         </form>

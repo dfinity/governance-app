@@ -3,19 +3,6 @@ import { useMutation } from '@tanstack/react-query';
 import React, { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/common/ui/button';
-import { Input } from '@/common/ui/input';
-import { Label } from '@/common/ui/label';
-import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogDescription,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-  ResponsiveDialogTrigger,
-  ResponsiveDialogFooter,
-} from '@/common/ui/responsive-dialog';
-
 import {
   E8Sn,
   ICP_MIN_TRANSFER_AMOUNT,
@@ -26,6 +13,19 @@ import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
 import { delay } from '@utils/async';
 import { bigIntMul } from '@utils/bigInt';
 import { errorNotification, successNotification } from '@utils/notification';
+
+import { Button } from '@/common/ui/button';
+import { Input } from '@/common/ui/input';
+import { Label } from '@/common/ui/label';
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogTrigger,
+} from '@/common/ui/responsive-dialog';
 
 type Props = { balance: number };
 
@@ -107,8 +107,8 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger asChild>
-        <Button variant="outline" disabled={!canTransfer} className={isPending ? "opacity-50" : ""}>
-          {isPending ? "Sending..." : t(($) => $.common.send)}
+        <Button variant="outline" disabled={!canTransfer} className={isPending ? 'opacity-50' : ''}>
+          {isPending ? 'Sending...' : t(($) => $.common.send)}
         </Button>
       </ResponsiveDialogTrigger>
 
@@ -129,7 +129,7 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
                 onChange={(e) => handleAccountChange(e.target.value)}
                 disabled={isPending}
                 value={toAccount}
-                className={toAccountError ? "border-destructive" : ""}
+                className={toAccountError ? 'border-destructive' : ''}
                 required
               />
               {toAccountError && <p className="text-sm text-destructive">{toAccountError}</p>}
@@ -143,7 +143,7 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
                 onChange={(e) => handleAmountChange(e.target.value)}
                 disabled={isPending}
                 value={amount}
-                className={amountError ? "border-destructive" : ""}
+                className={amountError ? 'border-destructive' : ''}
                 required
               />
               {amountError && <p className="text-sm text-destructive">{amountError}</p>}
@@ -159,11 +159,16 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
           </div>
 
           <ResponsiveDialogFooter className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={isPending}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setOpen(false)}
+              disabled={isPending}
+            >
               {t(($) => $.common.close)}
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? "Sending..." : t(($) => $.common.confirm)}
+              {isPending ? 'Sending...' : t(($) => $.common.confirm)}
             </Button>
           </ResponsiveDialogFooter>
         </form>

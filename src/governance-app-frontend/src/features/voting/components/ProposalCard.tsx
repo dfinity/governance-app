@@ -2,10 +2,9 @@ import { ProposalInfo } from '@icp-sdk/canisters/nns';
 import { Vote } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge } from '@/common/ui/badge';
-
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 
+import { Badge } from '@/common/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/common/ui/card';
 
 type ProposalCardProps = {
@@ -26,10 +25,7 @@ export function ProposalCard({ proposal, canUserVote, certified }: ProposalCardP
       </CardHeader>
       <CardContent className="flex-grow" />
       <CardFooter className="flex items-center justify-between gap-2 pt-2">
-        <Badge
-          variant={canUserVote ? 'info-subtle' : 'info'}
-          className="flex items-center gap-1"
-        >
+        <Badge variant={canUserVote ? 'info-subtle' : 'info'} className="flex items-center gap-1">
           {canUserVote && <Vote className="h-3 w-3" />}
           {t(($) => $.enums.ProposalStatus[proposal.status])}
         </Badge>

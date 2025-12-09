@@ -3,6 +3,12 @@ import { isNullish, nonNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
+import { E8S, IS_TESTNET } from '@constants/extra';
+import { useNnsGovernanceTest } from '@hooks/canisters/governance/useGovernanceTest';
+import { errorMessage } from '@utils/error';
+import { errorNotification, successNotification } from '@utils/notification';
+import { QUERY_KEYS } from '@utils/query';
+
 import { Button } from '@/common/ui/button';
 import { Input } from '@/common/ui/input';
 import { Label } from '@/common/ui/label';
@@ -10,17 +16,11 @@ import {
   ResponsiveDialog,
   ResponsiveDialogContent,
   ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
-  ResponsiveDialogFooter,
 } from '@/common/ui/responsive-dialog';
-
-import { E8S, IS_TESTNET } from '@constants/extra';
-import { useNnsGovernanceTest } from '@hooks/canisters/governance/useGovernanceTest';
-import { errorMessage } from '@utils/error';
-import { errorNotification, successNotification } from '@utils/notification';
-import { QUERY_KEYS } from '@utils/query';
 
 type Props = {
   neuron: NeuronInfo;
@@ -102,7 +102,9 @@ export const IncreaseMaturityModal = ({ neuron }: Props) => {
           <Button variant="outline" size="sm">
             Increase maturity
           </Button>
-        ) : <></>}
+        ) : (
+          <></>
+        )}
       </ResponsiveDialogTrigger>
 
       <ResponsiveDialogContent className="max-w-md">
@@ -118,7 +120,7 @@ export const IncreaseMaturityModal = ({ neuron }: Props) => {
             <Label htmlFor="maturity-input">Maturity to add:</Label>
             <Input
               id="maturity-input"
-              className={nonNullish(inputError) ? "border-destructive" : ""}
+              className={nonNullish(inputError) ? 'border-destructive' : ''}
               onChange={(e) => handleMaturityChange(e.target.value)}
               value={additionalMaturity}
               disabled={pending}
@@ -133,7 +135,7 @@ export const IncreaseMaturityModal = ({ neuron }: Props) => {
               Close
             </Button>
             <Button type="submit" disabled={pending}>
-              {pending ? "Confirming..." : "Confirm"}
+              {pending ? 'Confirming...' : 'Confirm'}
             </Button>
           </ResponsiveDialogFooter>
         </form>

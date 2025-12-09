@@ -12,10 +12,6 @@ import { useTranslation } from 'react-i18next';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { SendICPsButton } from '@components/buttons/SendICPsButton';
-import { InViewSentinel } from '@/common/ui/extra/InViewSentinel';
-import { QueryStates } from '@/common/ui/extra/QueryStates';
-import { SimpleCard } from '@/common/ui/extra/SimpleCard';
-import { SkeletonLoader } from '@/common/ui/loaders/SkeletonLoader';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useIcpIndexTransactions } from '@hooks/canisters/icpIndex/useIcpIndexTransactions';
 import { useIcpIndexTransactionsPolling } from '@hooks/canisters/icpIndex/useIcpIndexTransactionsPolling';
@@ -24,6 +20,10 @@ import { CertifiedData } from '@typings/queries';
 import { bigIntDiv } from '@utils/bigInt';
 import { requireIdentity } from '@utils/router';
 
+import { InViewSentinel } from '@/common/ui/extra/InViewSentinel';
+import { QueryStates } from '@/common/ui/extra/QueryStates';
+import { SimpleCard } from '@/common/ui/extra/SimpleCard';
+import { SkeletonLoader } from '@/common/ui/loaders/SkeletonLoader';
 import { GetTokens } from '@/dev/GetTokens';
 import { cn } from '@/lib/utils';
 

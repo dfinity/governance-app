@@ -2,10 +2,9 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { Brain, Vote, Wallet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { SimpleCard } from '@/common/ui/extra/SimpleCard';
 import useTitle from '@hooks/useTitle';
 
-import { VotingPowerChart } from '@/features/dashboard/components/VotingPowerChart';
+import { SimpleCard } from '@/common/ui/extra/SimpleCard';
 
 export const Route = createFileRoute('/nns/')({
   component: NnsIndex,
@@ -39,9 +38,6 @@ function NnsIndex() {
   return (
     <div className="flex flex-col gap-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="col-span-full lg:col-span-2">
-          <VotingPowerChart />
-        </div>
         <div className="col-span-full grid grid-cols-1 gap-4 sm:grid-cols-3 lg:col-span-2 lg:grid-cols-2">
           {cards.map((card) => (
             <Link to={card.href} key={card.title} className="group h-full">

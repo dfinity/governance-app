@@ -4,12 +4,12 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { SkeletonLoader } from '@/common/ui/loaders/SkeletonLoader';
 import { useAgentPool } from '@hooks/useAgentPool';
 import { infoNotification } from '@utils/notification';
 
-import { ModeToggle } from '@/common/ui/mode-toggle';
 import { Button } from '@/common/ui/button';
+import { SkeletonLoader } from '@/common/ui/loaders/SkeletonLoader';
+import { ModeToggle } from '@/common/ui/mode-toggle';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
   const { login, identity, clear, isInitializing } = useInternetIdentity();
@@ -80,9 +80,9 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
                   onClick={
                     identity
                       ? () => {
-                        wasManualLogout.current = true;
-                        clear();
-                      }
+                          wasManualLogout.current = true;
+                          clear();
+                        }
                       : login
                   }
                 >
