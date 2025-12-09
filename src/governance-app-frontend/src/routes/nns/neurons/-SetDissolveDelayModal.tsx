@@ -1,20 +1,13 @@
 import { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
+import { useNnsGovernance } from '@hooks/canisters/governance';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { SECONDS_IN_DAY } from '@constants/extra';
-import { ICP_MAX_DISSOLVE_DELAY_SECONDS, ICP_MIN_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
-import { useNnsGovernance } from '@hooks/canisters/governance';
-import { bigIntDiv, bigIntMul } from '@utils/bigInt';
-import { mapGovernanceCanisterError } from '@utils/nns-governance';
-import { errorNotification, successNotification } from '@utils/notification';
-import { QUERY_KEYS } from '@utils/query';
-
-import { Button } from '@/common/ui/button';
-import { Input } from '@/common/ui/input';
-import { Label } from '@/common/ui/label';
+import { Button } from '@ui/button';
+import { Input } from '@ui/input';
+import { Label } from '@ui/label';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -23,7 +16,13 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
-} from '@/common/ui/responsive-dialog';
+} from '@ui/responsive-dialog';
+import { SECONDS_IN_DAY } from '@constants/extra';
+import { ICP_MAX_DISSOLVE_DELAY_SECONDS, ICP_MIN_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
+import { bigIntDiv, bigIntMul } from '@utils/bigInt';
+import { mapGovernanceCanisterError } from '@utils/nns-governance';
+import { errorNotification, successNotification } from '@utils/notification';
+import { QUERY_KEYS } from '@utils/query';
 
 type Props = {
   neuron: NeuronInfo;

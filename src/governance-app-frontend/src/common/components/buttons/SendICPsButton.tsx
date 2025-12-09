@@ -1,22 +1,12 @@
 import { AccountIdentifier, isIcpAccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
+import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
 import { useMutation } from '@tanstack/react-query';
 import React, { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import {
-  E8Sn,
-  ICP_MIN_TRANSFER_AMOUNT,
-  ICP_TRANSACTION_FEE,
-  ICP_TRANSACTION_PROPAGATION_DELAY_MS,
-} from '@constants/extra';
-import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
-import { delay } from '@utils/async';
-import { bigIntMul } from '@utils/bigInt';
-import { errorNotification, successNotification } from '@utils/notification';
-
-import { Button } from '@/common/ui/button';
-import { Input } from '@/common/ui/input';
-import { Label } from '@/common/ui/label';
+import { Button } from '@ui/button';
+import { Input } from '@ui/input';
+import { Label } from '@ui/label';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -25,7 +15,16 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
-} from '@/common/ui/responsive-dialog';
+} from '@ui/responsive-dialog';
+import {
+  E8Sn,
+  ICP_MIN_TRANSFER_AMOUNT,
+  ICP_TRANSACTION_FEE,
+  ICP_TRANSACTION_PROPAGATION_DELAY_MS,
+} from '@constants/extra';
+import { delay } from '@utils/async';
+import { bigIntMul } from '@utils/bigInt';
+import { errorNotification, successNotification } from '@utils/notification';
 
 type Props = { balance: number };
 

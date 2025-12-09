@@ -1,7 +1,7 @@
+import { useMediaQuery } from '@hooks/useMediaQuery';
 import * as React from 'react';
 
-import { useMediaQuery } from '@/common/hooks/useMediaQuery';
-import { Button } from '@/common/ui/button';
+import { Button } from '@ui/button';
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/common/ui/dialog';
+} from '@ui/dialog';
 import {
   Drawer,
   DrawerClose,
@@ -19,7 +19,7 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from '@/common/ui/drawer';
+} from '@ui/drawer';
 
 export function ResponsiveDialog({ children, ...props }: React.ComponentProps<typeof Dialog>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');

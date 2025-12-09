@@ -1,6 +1,7 @@
 import '@/i18n/config';
 import '@common/styles/main.css';
 
+import { usePreventAttributeChange } from '@hooks/usePreventAttributeChange';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { RouterProvider } from '@tanstack/react-router';
@@ -13,7 +14,6 @@ import { CANISTER_ID_INTERNET_IDENTITY } from '@constants/canisterIds';
 import { HOST, IS_LOCAL } from '@constants/extra';
 import { AgentPoolProvider } from '@contexts/agentPoolProvider';
 import { ThemeProvider } from '@contexts/themeProvider';
-import { usePreventAttributeChange } from '@hooks/usePreventAttributeChange';
 import { queryClientConfig, routerConfig } from '@utils/initializer';
 
 const localIdentityProvider = `http://${CANISTER_ID_INTERNET_IDENTITY}.${HOST}`;

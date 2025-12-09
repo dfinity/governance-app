@@ -1,17 +1,16 @@
+import { useAgentPool } from '@hooks/useAgentPool';
+import { useTheme } from '@hooks/useTheme';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link, useRouter } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Particles } from '@common/ui/particles';
-import { useAgentPool } from '@hooks/useAgentPool';
-import { useTheme } from '@hooks/useTheme';
+import { Button } from '@ui/button';
+import { SkeletonLoader } from '@ui/loaders/SkeletonLoader';
+import { ModeToggle } from '@ui/mode-toggle';
+import { Particles } from '@ui/particles';
 import { infoNotification } from '@utils/notification';
-
-import { Button } from '@/common/ui/button';
-import { SkeletonLoader } from '@/common/ui/loaders/SkeletonLoader';
-import { ModeToggle } from '@/common/ui/mode-toggle';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
   const { login, identity, clear, isInitializing } = useInternetIdentity();

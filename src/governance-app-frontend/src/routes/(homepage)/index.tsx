@@ -1,15 +1,14 @@
+import { useTickerPrices } from '@hooks/externalServices/useTickerPrices';
 import { createFileRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
 import { NotAvailableBadge } from '@components/badges/certified/NotAvailableBadge';
+import { QueryStates } from '@ui/extra/QueryStates';
+import { SkeletonLoader } from '@ui/loaders/SkeletonLoader';
+import { TypingAnimation } from '@ui/typing-animation';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { useTickerPrices } from '@hooks/externalServices/useTickerPrices';
 import { TokenPrices } from '@typings/tokenPrices';
-import { TypingAnimation } from '@common/ui/typing-animation';
-
-import { QueryStates } from '@/common/ui/extra/QueryStates';
-import { SkeletonLoader } from '@/common/ui/loaders/SkeletonLoader';
 
 export const Route = createFileRoute('/(homepage)/')({
   component: Homepage,

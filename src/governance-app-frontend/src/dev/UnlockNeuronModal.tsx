@@ -1,15 +1,10 @@
 import { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { isNullish, nonNullish } from '@dfinity/utils';
+import { useNnsGovernanceTest } from '@hooks/canisters/governance/useGovernanceTest';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
-import { IS_TESTNET, U64_MAX } from '@constants/extra';
-import { useNnsGovernanceTest } from '@hooks/canisters/governance/useGovernanceTest';
-import { errorMessage } from '@utils/error';
-import { errorNotification, successNotification } from '@utils/notification';
-import { QUERY_KEYS } from '@utils/query';
-
-import { Button } from '@/common/ui/button';
+import { Button } from '@ui/button';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -18,7 +13,11 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
-} from '@/common/ui/responsive-dialog';
+} from '@ui/responsive-dialog';
+import { IS_TESTNET, U64_MAX } from '@constants/extra';
+import { errorMessage } from '@utils/error';
+import { errorNotification, successNotification } from '@utils/notification';
+import { QUERY_KEYS } from '@utils/query';
 
 type Props = {
   neuron: NeuronInfo;

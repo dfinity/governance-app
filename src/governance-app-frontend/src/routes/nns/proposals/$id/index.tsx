@@ -1,18 +1,17 @@
 import { ProposalInfo, ProposalRewardStatus, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { jsonReplacer } from '@dfinity/utils';
+import { useGovernanceProposal } from '@hooks/canisters/governance/useGovernanceProposal';
+import useTitle from '@hooks/useTitle';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import Skeleton from 'react-loading-skeleton';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
-import { useGovernanceProposal } from '@hooks/canisters/governance/useGovernanceProposal';
-import useTitle from '@hooks/useTitle';
+import { Card, CardContent, CardHeader, CardTitle } from '@ui/card';
+import { QueryStates } from '@ui/extra/QueryStates';
+import { SkeletonLoader } from '@ui/loaders/SkeletonLoader';
 import { stringToBigInt } from '@utils/bigInt';
 import { CertifiedData } from '@common/typings/queries';
-
-import { Card, CardContent, CardHeader, CardTitle } from '@/common/ui/card';
-import { QueryStates } from '@/common/ui/extra/QueryStates';
-import { SkeletonLoader } from '@/common/ui/loaders/SkeletonLoader';
 
 import { ProposalDetailsVoting } from './-ProposalDetailsVoting';
 

@@ -1,4 +1,5 @@
-import { Card, CardContent } from '@/common/ui/card';
+import { Card, CardContent } from '@ui/card';
+
 import { cn } from '@/lib/utils';
 
 type Props = {

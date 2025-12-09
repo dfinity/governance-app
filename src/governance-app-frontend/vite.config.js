@@ -46,6 +46,10 @@ export default defineConfig({
         replacement: fileURLToPath(new URL('./src/common/components/', import.meta.url)),
       },
       {
+        find: '@ui',
+        replacement: fileURLToPath(new URL('./src/common/ui/', import.meta.url)),
+      },
+      {
         find: '@constants',
         replacement: fileURLToPath(new URL('./src/common/constants/', import.meta.url)),
       },

@@ -12,11 +12,11 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@/common/components",
+    "components": "./src/common/components",
     "utils": "@/lib/utils",
-    "ui": "@/common/ui",
-    "lib": "@/lib",
-    "hooks": "@/hooks"
+    "ui": "./src/common/ui",
+    "lib": "./src/common/lib",
+    "hooks": "./src/common/hooks"
   },
   "registries": {
     "@magicui": "https://magicui.design/r/{name}.json"

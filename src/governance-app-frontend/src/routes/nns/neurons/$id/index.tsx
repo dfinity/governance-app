@@ -1,19 +1,19 @@
 import { NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
 import { isNullish, secondsToDuration } from '@dfinity/utils';
+import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceNeurons';
+import useTitle from '@hooks/useTitle';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import Skeleton from 'react-loading-skeleton';
 
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
+import { Card, CardContent, CardFooter } from '@ui/card';
+import { WarningMessage } from '@ui/extra/WarningMessage';
+import { SkeletonLoader } from '@ui/loaders/SkeletonLoader';
 import { E8S, E8Sn, IS_TESTNET } from '@constants/extra';
-import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceNeurons';
-import useTitle from '@hooks/useTitle';
 import { bigIntDiv, stringToBigInt } from '@utils/bigInt';
 import { requireIdentity } from '@utils/router';
 
-import { Card, CardContent, CardFooter } from '@/common/ui/card';
-import { WarningMessage } from '@/common/ui/extra/WarningMessage';
-import { SkeletonLoader } from '@/common/ui/loaders/SkeletonLoader';
 import { IncreaseMaturityModal } from '@/dev/IncreaseMaturityModal';
 import { UnlockNeuronModal } from '@/dev/UnlockNeuronModal';
 

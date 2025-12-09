@@ -1,18 +1,12 @@
 import { AccountIdentifier, BlockHeight, E8s, LedgerCanister } from '@icp-sdk/canisters/ledger/icp';
 import { Agent } from '@icp-sdk/core/agent';
+import { useAgentPool } from '@hooks/useAgentPool';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
-import { E8Sn, ICP_TRANSACTION_PROPAGATION_DELAY_MS, IS_TESTNET } from '@constants/extra';
-import { useAgentPool } from '@hooks/useAgentPool';
-import { withMinimumDelay } from '@utils/async';
-import { errorMessage } from '@utils/error';
-import { errorNotification, successNotification } from '@utils/notification';
-import { QUERY_KEYS } from '@utils/query';
-
-import { Button } from '@/common/ui/button';
-import { Input } from '@/common/ui/input';
-import { Label } from '@/common/ui/label';
+import { Button } from '@ui/button';
+import { Input } from '@ui/input';
+import { Label } from '@ui/label';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -21,7 +15,12 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
-} from '@/common/ui/responsive-dialog';
+} from '@ui/responsive-dialog';
+import { E8Sn, ICP_TRANSACTION_PROPAGATION_DELAY_MS, IS_TESTNET } from '@constants/extra';
+import { withMinimumDelay } from '@utils/async';
+import { errorMessage } from '@utils/error';
+import { errorNotification, successNotification } from '@utils/notification';
+import { QUERY_KEYS } from '@utils/query';
 
 /*
  * Gives the caller the specified amount of (fake) ICPs.

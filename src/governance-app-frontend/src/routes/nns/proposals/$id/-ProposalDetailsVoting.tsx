@@ -1,4 +1,5 @@
 import { ProposalInfo, Vote } from '@icp-sdk/canisters/nns';
+import { useGovernanceNeurons, useNnsGovernance } from '@hooks/canisters/governance';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { CircleCheckBig, ThumbsDown, ThumbsUp } from 'lucide-react';
@@ -6,15 +7,13 @@ import { useState } from 'react';
 import { Fragment } from 'react/jsx-runtime';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@ui/button';
+import { SkeletonLoader } from '@ui/loaders/SkeletonLoader';
 import { VOTING_RESULTS_PRECISION } from '@constants/extra';
-import { useGovernanceNeurons, useNnsGovernance } from '@hooks/canisters/governance';
 import { bigIntDiv } from '@utils/bigInt';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 import { setWithItemAdded, setWithItemRemoved } from '@utils/set';
-
-import { Button } from '@/common/ui/button';
-import { SkeletonLoader } from '@/common/ui/loaders/SkeletonLoader';
 
 type Props = {
   proposal: ProposalInfo;

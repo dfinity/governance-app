@@ -1,9 +1,8 @@
+import { useTheme } from '@hooks/useTheme';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { useTheme } from '@hooks/useTheme';
-
-import { Button } from '@/common/ui/button';
+import { Button } from '@ui/button';
 
 export function ModeToggle() {
   const { setTheme, theme } = useTheme();
