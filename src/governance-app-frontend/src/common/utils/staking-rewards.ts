@@ -3,7 +3,12 @@
 /// https://docs.google.com/document/d/1jjglDtCZpdTHwPLB1hwW_oR-p4jU_t6ad1Gmw5bbiBk
 /////////////////
 
-import { GovernanceCachedMetrics, NetworkEconomics, NeuronInfo } from '@icp-sdk/canisters/nns';
+import {
+  GovernanceCachedMetrics,
+  NetworkEconomics,
+  NeuronInfo,
+  NeuronState,
+} from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
 
 import { CANISTER_ID_SELF } from '@constants/canisterIds';
@@ -18,6 +23,7 @@ import {
   SECONDS_IN_DAY,
   SECONDS_IN_EIGHT_YEARS,
   SECONDS_IN_FOUR_YEARS,
+  SECONDS_IN_MONTH,
 } from '@constants/extra';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import {
@@ -34,6 +40,29 @@ import {
 } from '@utils/neuron';
 
 import { logWithTimestamp } from '@/dev/log';
+
+import { nowInSeconds } from './date';
+import { getApyTestNeuron } from './staking-rewards.spec';
+
+////////////// STAKING FLOW APY COMBINATIONS
+
+const stakingFlowApyDissolveDelay = [6, 12, 24, 48, 96];
+
+type StakingFlowApyPreview = Record<
+  (typeof stakingFlowApyDissolveDelay)[number],
+  {
+    autoStake: {
+      dissolving: number;
+      locked: number;
+    };
+    nonAutoStake: {
+      dissolving: number;
+      locked: number;
+    };
+  }
+>;
+
+/////////////
 
 export enum APY_CALC_ERROR {
   MISSING_DATA,
@@ -57,16 +86,17 @@ enum MaturityEstimatePeriod {
   DAY = 1,
   WEEK = 7,
   MONTH = 30,
-  THREE_MONTHS = 90,
-  SIX_MONTHS = 180,
+  THREE_MONTHS = 91,
+  SIX_MONTHS = 182,
   YEAR = 365,
 }
 
 export type StakingRewardData = {
-  loading: false;
-  rewardBalance: number;
   rewardEstimates: Map<MaturityEstimatePeriod, number>;
+  stakingFlowApyPreview: StakingFlowApyPreview;
+  rewardBalance: number;
   stakingRatio: number;
+  loading: false;
   apy: APY;
 };
 
@@ -79,12 +109,12 @@ export type StakingRewardResult =
     };
 
 export interface StakingRewardCalcParams {
-  isAuthenticated: boolean;
-  balance: number;
-  neurons: NeuronInfo[];
-  economics: NetworkEconomics;
   governanceMetrics: GovernanceCachedMetrics;
+  economics: NetworkEconomics;
+  isAuthenticated: boolean;
   totalVotingPower: bigint;
+  neurons: NeuronInfo[];
+  balance: number;
 }
 
 export const isStakingRewardDataReady = (data?: StakingRewardResult): data is StakingRewardData =>
@@ -116,6 +146,7 @@ export const getStakingRewardData = (
         rewardEstimates: apySimulation.curPeriodsRewards,
         stakingRatio: getStakingPower(params),
         apy: apySimulation,
+        stakingFlowApyPreview: getStakingFlowApyPreview(params, forceInitialDate),
       };
       logWithTimestamp('Staking rewards: calculation completed, fields ready.');
       return res;
@@ -239,6 +270,59 @@ const getAPY = (params: StakingRewardCalcParams, forceInitialDate?: Date) => {
     max: totalMax ? yearEstimatedMaxRewardTotal / totalMax : 0,
     neurons: singleNeuronsApy,
   };
+};
+
+// This doesn't change, cache for the full lifecycle of the app
+const getStakingFlowApyPreviewCache: StakingFlowApyPreview | undefined = undefined;
+const getStakingFlowApyPreview = (params: StakingRewardCalcParams, forceInitialDate?: Date) => {
+  if (getStakingFlowApyPreviewCache) {
+    return getStakingFlowApyPreviewCache;
+  }
+
+  const initialDateSeconds = forceInitialDate
+    ? Math.round(forceInitialDate.getTime() / 1000)
+    : nowInSeconds();
+
+  const result: StakingFlowApyPreview = {};
+  stakingFlowApyDissolveDelay.forEach((dissolveDelay) => {
+    result[dissolveDelay] = {
+      autoStake: { dissolving: 0, locked: 0 },
+      nonAutoStake: { dissolving: 0, locked: 0 },
+    };
+
+    for (let locked = 0; locked < 2; locked++) {
+      for (let autoStake = 0; autoStake < 2; autoStake++) {
+        const neuron = getApyTestNeuron(forceInitialDate);
+
+        neuron.fullNeuron.autoStakeMaturity = autoStake === 1;
+        neuron.dissolveDelaySeconds = BigInt(dissolveDelay * SECONDS_IN_MONTH);
+
+        if (locked === 1) {
+          neuron.state = NeuronState.Locked;
+          neuron.fullNeuron.dissolveState = {
+            DissolveDelaySeconds: BigInt(dissolveDelay * SECONDS_IN_MONTH),
+          };
+        } else {
+          neuron.state = NeuronState.Dissolving;
+          neuron.fullNeuron.dissolveState = {
+            WhenDissolvedTimestampSeconds: BigInt(
+              initialDateSeconds + dissolveDelay * SECONDS_IN_MONTH,
+            ),
+          };
+        }
+
+        const apy = getAPY(
+          { ...params, neurons: [neuron as NeuronInfo] },
+          forceInitialDate,
+        ).neurons.get(getNeuronId(neuron as NeuronInfo))?.cur;
+        result[dissolveDelay][autoStake === 1 ? 'autoStake' : 'nonAutoStake'][
+          locked === 1 ? 'locked' : 'dissolving'
+        ] = apy ?? 0;
+      }
+    }
+  });
+
+  return result;
 };
 
 /////////////////////

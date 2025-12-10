@@ -23,11 +23,11 @@ export const ICP_TRANSACTION_PROPAGATION_DELAY_MS = 2_000;
 
 export const VOTING_RESULTS_PRECISION = 6; // Number of digits after the decimal point.
 
+// Time constants
 export const SECONDS_IN_DAY = 60 * 60 * 24;
 // Taking into account 1/4 of leap year
 export const SECONDS_IN_YEAR = ((4 * 365 + 1) * SECONDS_IN_DAY) / 4;
-
-// Time constants
+export const SECONDS_IN_MONTH = SECONDS_IN_YEAR / 12;
 export const SECONDS_IN_FOUR_YEARS = SECONDS_IN_YEAR * 4;
 export const SECONDS_IN_EIGHT_YEARS = SECONDS_IN_YEAR * 8;
 export const DAYS_IN_AVG_YEAR = 365.25;
