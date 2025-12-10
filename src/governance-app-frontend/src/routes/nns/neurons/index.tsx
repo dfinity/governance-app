@@ -1,12 +1,12 @@
-import { NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
 import { secondsToDuration } from '@dfinity/utils';
+import { NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
-import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
+import { CertifiedBadge } from '@components/CertifiedBadge';
 import { QueryStates } from '@components/extra/QueryStates';
 import { SimpleCard } from '@components/extra/SimpleCard';
-import { SkeletonLoader } from '@ui/loaders/SkeletonLoader';
+import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { E8S } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceNeurons';
 import useTitle from '@hooks/useTitle';

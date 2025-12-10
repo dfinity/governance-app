@@ -2,10 +2,9 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
-import { NotAvailableBadge } from '@components/badges/certified/NotAvailableBadge';
+import { NotAvailableBadge } from '@components/NotAvailableBadge';
 import { QueryStates } from '@components/extra/QueryStates';
-import { SkeletonLoader } from '@ui/loaders/SkeletonLoader';
-import { TypingAnimation } from '@ui/typing-animation';
+import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { useTickerPrices } from '@hooks/externalServices/useTickerPrices';
 import { TokenPrices } from '@typings/tokenPrices';
@@ -22,13 +21,11 @@ function Homepage() {
   return (
     <div className="text-xl">
       <div data-testid="login-test-principal" data-snapshot-mask>
-        <TypingAnimation>
-          {identity
-            ? t(($) => $.home.yourPrincipal, {
-                principal: identity.getPrincipal().toString(),
-              })
-            : t(($) => $.common.loginWithII)}
-        </TypingAnimation>
+        {identity
+          ? t(($) => $.home.yourPrincipal, {
+              principal: identity.getPrincipal().toString(),
+            })
+          : t(($) => $.common.loginWithII)}
       </div>
 
       <div data-testid="login-test-icp-price">

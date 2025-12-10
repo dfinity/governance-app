@@ -1,21 +1,21 @@
+import { isNullish, nonNullish } from '@dfinity/utils';
 import {
   AccountIdentifier,
   GetAccountIdentifierTransactionsResponse,
   TransactionWithId,
 } from '@icp-sdk/canisters/ledger/icp';
-import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ArrowDownToLine, ArrowUp } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
-import { SendICPsButton } from '@components/buttons/SendICPsButton';
+import { CertifiedBadge } from '@components/CertifiedBadge';
+import { SendICPsButton } from '@components/SendICPsButton';
 import { InViewSentinel } from '@components/extra/InViewSentinel';
 import { QueryStates } from '@components/extra/QueryStates';
 import { SimpleCard } from '@components/extra/SimpleCard';
-import { SkeletonLoader } from '@ui/loaders/SkeletonLoader';
+import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useIcpIndexTransactions } from '@hooks/canisters/icpIndex/useIcpIndexTransactions';
 import { useIcpIndexTransactionsPolling } from '@hooks/canisters/icpIndex/useIcpIndexTransactionsPolling';
@@ -25,7 +25,7 @@ import { bigIntDiv } from '@utils/bigInt';
 import { requireIdentity } from '@utils/router';
 
 import { GetTokens } from '@/dev/GetTokens';
-import { cn } from '@/lib/utils';
+import { cn } from '@utils/utils';
 
 export const Route = createFileRoute('/nns/accounts/')({
   component: AccountsPage,

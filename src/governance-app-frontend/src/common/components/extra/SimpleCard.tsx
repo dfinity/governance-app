@@ -1,6 +1,6 @@
-import { Card, CardContent } from '@ui/card';
+import { Card, CardContent } from '@components/card';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@utils/utils';
 
 type Props = {
   children: React.ReactNode;

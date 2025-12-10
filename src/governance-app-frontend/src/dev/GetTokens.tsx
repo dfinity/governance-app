@@ -3,9 +3,9 @@ import { Agent } from '@icp-sdk/core/agent';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
-import { Button } from '@ui/button';
-import { Input } from '@ui/input';
-import { Label } from '@ui/label';
+import { Button } from '@components/button';
+import { Input } from '@components/input';
+import { Label } from '@components/label';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -14,7 +14,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
-} from '@ui/responsive-dialog';
+} from '@components/responsive-dialog';
 import { E8Sn, ICP_TRANSACTION_PROPAGATION_DELAY_MS, IS_TESTNET } from '@constants/extra';
 import { useAgentPool } from '@hooks/useAgentPool';
 import { withMinimumDelay } from '@utils/async';

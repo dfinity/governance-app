@@ -48,7 +48,6 @@ const tsConfiguration = tseslint.config(
             ['^@declarations'],
             [
               '^@components',
-              '^@ui',
               '^@constants',
               '^@contexts',
               '^@hooks',
@@ -81,7 +80,7 @@ const cssConfiguration = {
   rules: {
     'css/no-invalid-properties': 'error',
     'css/no-duplicate-imports': 'error',
-    'css/no-invalid-at-rules': 'off',
+    'css/no-invalid-at-rules': 'error',
     'css/no-empty-blocks': 'error',
   },
 };

@@ -3,11 +3,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { CircleCheckBig, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { useState } from 'react';
-import { Fragment } from 'react/jsx-runtime';
 import { useTranslation } from 'react-i18next';
+import { Fragment } from 'react/jsx-runtime';
 
-import { Button } from '@ui/button';
-import { SkeletonLoader } from '@ui/loaders/SkeletonLoader';
+import { Button } from '@components/button';
+import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { VOTING_RESULTS_PRECISION } from '@constants/extra';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/canisters/governance';
 import { bigIntDiv } from '@utils/bigInt';

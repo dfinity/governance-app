@@ -30,7 +30,6 @@
       "@fixtures/*": ["./src/common/fixtures/*"],
       "@common/*": ["./src/common/*"],
 
-      "@ui/*": ["./src/common/ui/*"],
       "@routes/*": ["./src/routes/*"],
       "@/*": ["./src/*"]
     }

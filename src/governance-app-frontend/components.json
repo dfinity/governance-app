@@ -13,12 +13,9 @@
   "iconLibrary": "lucide",
   "aliases": {
     "components": "@/common/components",
-    "utils": "@/lib/utils",
-    "ui": "@/common/ui",
+    "utils": "@/common/utils",
+    "ui": "@/common/components",
     "lib": "@/common/lib",
     "hooks": "@/common/hooks"
-  },
-  "registries": {
-    "@magicui": "https://magicui.design/r/{name}.json"
   }
 }

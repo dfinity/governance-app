@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { InViewSentinel } from '@components/extra/InViewSentinel';
 import { QueryStates } from '@components/extra/QueryStates';
-import { SkeletonLoader } from '@ui/loaders/SkeletonLoader';
+import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { useGovernanceProposals } from '@hooks/canisters/governance';
 import useTitle from '@hooks/useTitle';
 

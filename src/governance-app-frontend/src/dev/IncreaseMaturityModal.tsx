@@ -1,11 +1,11 @@
-import { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { isNullish, nonNullish } from '@dfinity/utils';
+import { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
-import { Button } from '@ui/button';
-import { Input } from '@ui/input';
-import { Label } from '@ui/label';
+import { Button } from '@components/button';
+import { Input } from '@components/input';
+import { Label } from '@components/label';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -14,7 +14,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
-} from '@ui/responsive-dialog';
+} from '@components/responsive-dialog';
 import { E8S, IS_TESTNET } from '@constants/extra';
 import { useNnsGovernanceTest } from '@hooks/canisters/governance/useGovernanceTest';
 import { errorMessage } from '@utils/error';

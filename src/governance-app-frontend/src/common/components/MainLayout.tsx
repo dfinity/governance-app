@@ -4,19 +4,16 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@ui/button';
-import { SkeletonLoader } from '@ui/loaders/SkeletonLoader';
-import { ModeToggle } from '@ui/mode-toggle';
-import { Particles } from '@ui/particles';
+import { Button } from '@components/button';
+import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
+import { ModeToggle } from '@components/mode-toggle';
 import { useAgentPool } from '@hooks/useAgentPool';
-import { useTheme } from '@hooks/useTheme';
 import { infoNotification } from '@utils/notification';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
   const { login, identity, clear, isInitializing } = useInternetIdentity();
   const queryClient = useQueryClient();
   const { invalidate } = useRouter();
-  const { theme } = useTheme();
 
   const { t } = useTranslation();
   const { anonymous, authenticated } = useAgentPool().agentPool;
@@ -59,13 +56,6 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
         <SkeletonLoader count={6} />
       ) : (
         <>
-          <Particles
-            className="absolute inset-0 z-0"
-            quantity={100}
-            ease={80}
-            color={theme === 'light' ? '#000000' : '#ffffff'}
-            refresh
-          />
           <title>{t(($) => $.home.title)}</title>
           <div>
             <div className="mb-10 flex flex-wrap items-start justify-center gap-2 sm:mb-0 sm:flex-nowrap sm:justify-between">

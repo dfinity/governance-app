@@ -5,11 +5,11 @@ import { InfoIcon, Loader2 } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@components/button';
 import { SimpleCard } from '@components/extra/SimpleCard';
-import { Button } from '@ui/button';
-import { Input } from '@ui/input';
-import { Label } from '@ui/label';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@ui/tooltip';
+import { Input } from '@components/input';
+import { Label } from '@components/label';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@components/tooltip';
 import {
   E8S,
   E8Sn,
