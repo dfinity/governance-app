@@ -10,7 +10,7 @@ const ThemeCard = () => {
   return (
     <Card className="rounded-md px-4 py-6">
       <CardContent className="p-0">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-y-4 md:flex-row md:items-center md:justify-between md:gap-y-0">
           <div className="space-y-1">
             <p className="leading-none font-medium">Theme</p>
             <p className="text-sm text-muted-foreground">
