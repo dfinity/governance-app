@@ -5,8 +5,8 @@ import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@components/card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
-import { QueryStates } from '@components/extra/QueryStates';
-import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
+import { QueryStates } from '@components/QueryStates';
+import { SkeletonLoader } from '@components/SkeletonLoader';
 import { useGovernanceProposal } from '@hooks/governance/useGovernanceProposal';
 import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';

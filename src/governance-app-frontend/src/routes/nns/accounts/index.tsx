@@ -11,11 +11,11 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { CertifiedBadge } from '@components/CertifiedBadge';
-import { InViewSentinel } from '@components/extra/InViewSentinel';
-import { QueryStates } from '@components/extra/QueryStates';
-import { SimpleCard } from '@components/extra/SimpleCard';
-import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
+import { InViewSentinel } from '@components/InViewSentinel';
+import { QueryStates } from '@components/QueryStates';
 import { SendICPsButton } from '@components/SendICPsButton';
+import { SimpleCard } from '@components/SimpleCard';
+import { SkeletonLoader } from '@components/SkeletonLoader';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
 import { useIcpIndexTransactionsPolling } from '@hooks/icpIndex/useIcpIndexTransactionsPolling';

@@ -5,8 +5,8 @@ import { ReactNode, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
-import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { ModeToggle } from '@components/mode-toggle';
+import { SkeletonLoader } from '@components/SkeletonLoader';
 import { useAgentPool } from '@hooks/useAgentPool';
 import { infoNotification } from '@utils/notification';
 

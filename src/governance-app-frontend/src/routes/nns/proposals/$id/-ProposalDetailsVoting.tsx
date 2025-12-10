@@ -7,7 +7,7 @@ import { Fragment } from 'react/jsx-runtime';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
-import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
+import { SkeletonLoader } from '@components/SkeletonLoader';
 import { VOTING_RESULTS_PRECISION } from '@constants/extra';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { bigIntDiv } from '@utils/bigInt';

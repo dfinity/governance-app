@@ -6,9 +6,9 @@ import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
-import { SimpleCard } from '@components/extra/SimpleCard';
 import { Input } from '@components/input';
 import { Label } from '@components/label';
+import { SimpleCard } from '@components/SimpleCard';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@components/tooltip';
 import {
   E8S,

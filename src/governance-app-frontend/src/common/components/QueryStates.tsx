@@ -1,9 +1,9 @@
 import { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
-import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
+import { SkeletonLoader } from '@components/SkeletonLoader';
 
-import { EmptyMessage } from '../EmptyMessage';
+import { EmptyMessage } from './EmptyMessage';
 import { WarningMessage } from './WarningMessage';
 
 type InfiniteQueryData<TData = unknown> = Partial<InfiniteData<TData, unknown>>;

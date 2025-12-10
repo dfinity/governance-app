@@ -5,8 +5,8 @@ import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent, CardFooter } from '@components/card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
-import { WarningMessage } from '@components/extra/WarningMessage';
-import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
+import { SkeletonLoader } from '@components/SkeletonLoader';
+import { WarningMessage } from '@components/WarningMessage';
 import { E8S, E8Sn, IS_TESTNET } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance/useGovernanceNeurons';
 import useTitle from '@hooks/useTitle';
