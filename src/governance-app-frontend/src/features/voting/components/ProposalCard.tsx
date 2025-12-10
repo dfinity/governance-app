@@ -3,7 +3,7 @@ import { Vote } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@components/badge';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@components/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
 
 type ProposalCardProps = {

@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@components/Button';
+import { Button } from '@components/button';
 import { Input } from '@components/Input';
 import { Label } from '@components/Label';
 import {

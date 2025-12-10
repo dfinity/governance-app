@@ -3,7 +3,7 @@ import { isNullish, nonNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
-import { Button } from '@components/Button';
+import { Button } from '@components/button';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,

@@ -5,7 +5,7 @@ import { InfoIcon, Loader2 } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@components/Button';
+import { Button } from '@components/button';
 import { Input } from '@components/Input';
 import { Label } from '@components/Label';
 import { SimpleCard } from '@components/SimpleCard';

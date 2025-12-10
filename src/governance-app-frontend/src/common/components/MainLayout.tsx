@@ -4,7 +4,7 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@components/Button';
+import { Button } from '@components/button';
 import { ModeToggle } from '@components/ModeToggle';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { useAgentPool } from '@hooks/useAgentPool';
