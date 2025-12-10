@@ -93,9 +93,6 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
             </div>
             {children}
           </div>
-          <div className="flex flex-col items-center gap-2 pt-4 text-xs">
-            <img src="/logo2.svg" alt="DFINITY logo" className="py-4" />
-          </div>
         </>
       )}
     </main>
