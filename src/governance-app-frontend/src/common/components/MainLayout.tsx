@@ -1,17 +1,18 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { Link, useRouter } from '@tanstack/react-router';
+import { useRouter } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@components/button';
-import { ModeToggle } from '@components/ModeToggle';
+import { BottomNav } from '@components/navigation/BottomNav';
+import { Header } from '@components/navigation/Header';
+import { Sidebar } from '@components/navigation/Sidebar';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { useAgentPool } from '@hooks/useAgentPool';
 import { infoNotification } from '@utils/notification';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
-  const { login, identity, clear, isInitializing } = useInternetIdentity();
+  const { identity, isInitializing } = useInternetIdentity();
   const queryClient = useQueryClient();
   const { invalidate } = useRouter();
 
@@ -48,53 +49,23 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
   }, [identity, invalidate, queryClient, t]);
 
   return (
-    <main
-      data-testid="main-layout"
-      className="m-auto flex min-h-[100vh] max-w-[1920px] min-w-[385px] flex-col justify-between gap-2 overflow-auto p-4"
-    >
+    <div className="flex min-h-screen w-full bg-background" data-testid="main-layout">
       {showLoader ? (
-        <SkeletonLoader count={6} />
+        <div className="h-full w-full p-4">
+          <SkeletonLoader count={6} />
+        </div>
       ) : (
         <>
-          <title>{t(($) => $.home.title)}</title>
-          <div>
-            <div className="mb-10 flex flex-wrap items-start justify-center gap-2 sm:mb-0 sm:flex-nowrap sm:justify-between">
-              <Link to="/">
-                <h1 className="text-brand-primary pb-4 text-4xl font-bold">
-                  {t(($) => $.home.title)}
-                </h1>
-              </Link>
-              <div className="flex flex-wrap justify-center gap-4 sm:flex-nowrap">
-                <Button asChild>
-                  <Link to="/nns">{t(($) => $.common.nns)}</Link>
-                </Button>
-                <Button
-                  data-testid="login-btn"
-                  variant={identity ? 'outline' : 'secondary'}
-                  className={
-                    identity
-                      ? 'border-destructive/50 text-destructive hover:border-destructive hover:bg-destructive/10 hover:text-destructive'
-                      : ''
-                  }
-                  onClick={
-                    identity
-                      ? () => {
-                          wasManualLogout.current = true;
-                          clear();
-                        }
-                      : login
-                  }
-                >
-                  {identity ? t(($) => $.common.logout) : t(($) => $.common.login)}
-                </Button>
-
-                <ModeToggle />
-              </div>
-            </div>
-            {children}
+          <Sidebar />
+          <div className="flex h-screen w-full flex-col overflow-hidden">
+            <Header />
+            <main className="relative mb-16 flex-1 overflow-auto p-4 lg:mb-0 lg:p-6">
+              {children}
+            </main>
+            <BottomNav />
           </div>
         </>
       )}
-    </main>
+    </div>
   );
 };
