@@ -1,7 +1,5 @@
 import { useLocation } from '@tanstack/react-router';
 
-import { ModeToggle } from '@components/ModeToggle';
-
 import { navigationItems } from './NavigationItems';
 import { UserMenu } from './UserMenu';
 
@@ -21,7 +19,6 @@ export const Header = () => {
       </div>
 
       <div className="flex items-center gap-2">
-        <ModeToggle />
         <UserMenu />
       </div>
     </header>

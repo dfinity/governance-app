@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as NnsIndexRouteImport } from './routes/nns/index'
 import { Route as homepageIndexRouteImport } from './routes/(homepage)/index'
 import { Route as NnsProposalsIndexRouteImport } from './routes/nns/proposals/index'
@@ -17,6 +18,11 @@ import { Route as NnsAccountsIndexRouteImport } from './routes/nns/accounts/inde
 import { Route as NnsProposalsIdIndexRouteImport } from './routes/nns/proposals/$id/index'
 import { Route as NnsNeuronsIdIndexRouteImport } from './routes/nns/neurons/$id/index'
 
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NnsIndexRoute = NnsIndexRouteImport.update({
   id: '/nns/',
   path: '/nns/',
@@ -56,6 +62,7 @@ const NnsNeuronsIdIndexRoute = NnsNeuronsIdIndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof homepageIndexRoute
   '/nns': typeof NnsIndexRoute
+  '/settings': typeof SettingsIndexRoute
   '/nns/accounts': typeof NnsAccountsIndexRoute
   '/nns/neurons': typeof NnsNeuronsIndexRoute
   '/nns/proposals': typeof NnsProposalsIndexRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof homepageIndexRoute
   '/nns': typeof NnsIndexRoute
+  '/settings': typeof SettingsIndexRoute
   '/nns/accounts': typeof NnsAccountsIndexRoute
   '/nns/neurons': typeof NnsNeuronsIndexRoute
   '/nns/proposals': typeof NnsProposalsIndexRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/(homepage)/': typeof homepageIndexRoute
   '/nns/': typeof NnsIndexRoute
+  '/settings/': typeof SettingsIndexRoute
   '/nns/accounts/': typeof NnsAccountsIndexRoute
   '/nns/neurons/': typeof NnsNeuronsIndexRoute
   '/nns/proposals/': typeof NnsProposalsIndexRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/nns'
+    | '/settings'
     | '/nns/accounts'
     | '/nns/neurons'
     | '/nns/proposals'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/nns'
+    | '/settings'
     | '/nns/accounts'
     | '/nns/neurons'
     | '/nns/proposals'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/(homepage)/'
     | '/nns/'
+    | '/settings/'
     | '/nns/accounts/'
     | '/nns/neurons/'
     | '/nns/proposals/'
@@ -114,6 +126,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   homepageIndexRoute: typeof homepageIndexRoute
   NnsIndexRoute: typeof NnsIndexRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
   NnsAccountsIndexRoute: typeof NnsAccountsIndexRoute
   NnsNeuronsIndexRoute: typeof NnsNeuronsIndexRoute
   NnsProposalsIndexRoute: typeof NnsProposalsIndexRoute
@@ -123,6 +136,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings/': {
+      id: '/settings/'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/nns/': {
       id: '/nns/'
       path: '/nns'
@@ -178,6 +198,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   homepageIndexRoute: homepageIndexRoute,
   NnsIndexRoute: NnsIndexRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
   NnsAccountsIndexRoute: NnsAccountsIndexRoute,
   NnsNeuronsIndexRoute: NnsNeuronsIndexRoute,
   NnsProposalsIndexRoute: NnsProposalsIndexRoute,
