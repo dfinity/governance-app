@@ -2,11 +2,11 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
-import { NotAvailableBadge } from '@components/badges/certified/NotAvailableBadge';
-import { QueryStates } from '@components/extra/QueryStates';
-import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
+import { NotAvailableBadge } from '@components/NotAvailableBadge';
+import { QueryStates } from '@components/QueryStates';
+import { SkeletonLoader } from '@components/SkeletonLoader';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { useTickerPrices } from '@hooks/externalServices/useTickerPrices';
+import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
 import { TokenPrices } from '@typings/tokenPrices';
 
 export const Route = createFileRoute('/(homepage)/')({

@@ -1,19 +1,20 @@
 import { AccountIdentifier, BlockHeight, E8s, LedgerCanister } from '@icp-sdk/canisters/ledger/icp';
 import { Agent } from '@icp-sdk/core/agent';
-import { nonNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
+import { Button } from '@components/button';
+import { Input } from '@components/Input';
+import { Label } from '@components/Label';
 import {
-  Button,
-  Dialog,
-  DialogTrigger,
-  Heading,
-  Input,
-  Modal,
-  ModalOverlay,
-} from '@untitledui/components';
-
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogTrigger,
+} from '@components/ResponsiveDialog';
 import { E8Sn, ICP_TRANSACTION_PROPAGATION_DELAY_MS, IS_TESTNET } from '@constants/extra';
 import { useAgentPool } from '@hooks/useAgentPool';
 import { withMinimumDelay } from '@utils/async';
@@ -57,6 +58,7 @@ const acquireICPs = async ({
 
 export const GetTokens = (props: { accountId: AccountIdentifier }) => {
   const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
   const [amountOfIcp, setAmountOfIcp] = useState('');
   const [amountOfIcpError, setAmountOfIcpError] = useState<string | null>(null);
   const { anonymous } = useAgentPool().agentPool;
@@ -77,6 +79,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
       successNotification({
         description: `Top-up of ${amountOfIcp} ICPs successful.`,
       });
+      setOpen(false);
     },
     onError: (error) => {
       errorNotification({
@@ -85,7 +88,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
     },
   });
 
-  const handleSubmit = (close: () => void) => async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setAmountOfIcpError(null);
 
@@ -96,48 +99,52 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
     }
 
     const e8s = BigInt(Math.floor(amount * Number(E8Sn)));
-    acquireTokensMutation.mutateAsync({ e8s, accountId, agent: anonymous.agent! }).then(close);
+    acquireTokensMutation.mutateAsync({ e8s, accountId, agent: anonymous.agent! });
   };
 
   return (
-    <DialogTrigger>
-      <Button color="secondary" size="sm">
-        Get Tokens
-      </Button>
-      <ModalOverlay isDismissable>
-        <Modal className="max-w-xl rounded-2xl bg-primary p-6 shadow-lg">
-          <Dialog>
-            {({ close }) => (
-              <form className="flex flex-col gap-4" onSubmit={handleSubmit(close)}>
-                <Heading slot="title" className="text-md font-semibold text-primary">
-                  Get Testnet ICPs
-                </Heading>
-                <p className="text-sm text-tertiary">Account: {accountId.toHex()}</p>
-                <div className="flex items-end gap-1">
-                  <Input
-                    type="number"
-                    size="sm"
-                    label="Amount"
-                    value={amountOfIcp}
-                    onChange={setAmountOfIcp}
-                    hint={amountOfIcpError}
-                    isInvalid={nonNullish(amountOfIcpError)}
-                  />
-                  <Button
-                    type="submit"
-                    color="primary"
-                    size="sm"
-                    className="mb-[2px]"
-                    isLoading={acquireTokensMutation.isPending}
-                  >
-                    Top Up
-                  </Button>
-                </div>
-              </form>
-            )}
-          </Dialog>
-        </Modal>
-      </ModalOverlay>
-    </DialogTrigger>
+    <ResponsiveDialog open={open} onOpenChange={setOpen}>
+      <ResponsiveDialogTrigger asChild>
+        <Button size="sm" variant="outline">
+          Get Tokens
+        </Button>
+      </ResponsiveDialogTrigger>
+
+      <ResponsiveDialogContent>
+        <form onSubmit={handleSubmit}>
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>Get Testnet ICPs</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="break-all">
+              Account: {accountId.toHex()}
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
+
+          <div className="grid gap-2 py-4">
+            <Label htmlFor="tokens-amount">Amount</Label>
+            <Input
+              id="tokens-amount"
+              type="number"
+              className={amountOfIcpError ? 'border-destructive' : ''}
+              value={amountOfIcp}
+              onChange={(e) => setAmountOfIcp(e.target.value)}
+            />
+            {amountOfIcpError && <p className="text-sm text-destructive">{amountOfIcpError}</p>}
+          </div>
+
+          <ResponsiveDialogFooter className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="w-full sm:w-auto"
+              disabled={acquireTokensMutation.isPending}
+            >
+              {acquireTokensMutation.isPending ? 'Topping Up...' : 'Top Up'}
+            </Button>
+          </ResponsiveDialogFooter>
+        </form>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 };

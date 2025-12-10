@@ -41,11 +41,6 @@ export default defineConfig({
         replacement: fileURLToPath(new URL('../declarations/', import.meta.url)),
       },
       {
-        find: '@untitledui',
-        replacement: fileURLToPath(new URL('./src/untitledui/', import.meta.url)),
-      },
-
-      {
         find: '@components',
         replacement: fileURLToPath(new URL('./src/common/components/', import.meta.url)),
       },
@@ -55,15 +50,11 @@ export default defineConfig({
       },
       {
         find: '@contexts',
-        replacement: fileURLToPath(new URL('./src/common/contexts/', import.meta.url)),
+        replacement: fileURLToPath(new URL('./src/app/contexts/', import.meta.url)),
       },
       {
         find: '@hooks',
         replacement: fileURLToPath(new URL('./src/common/hooks/', import.meta.url)),
-      },
-      {
-        find: '@queries',
-        replacement: fileURLToPath(new URL('./src/common/queries/', import.meta.url)),
       },
       {
         find: '@typings',
@@ -75,7 +66,7 @@ export default defineConfig({
       },
       {
         find: '@fixtures',
-        replacement: fileURLToPath(new URL('./src/common/fixtures/', import.meta.url)),
+        replacement: fileURLToPath(new URL('./tests/fixtures/', import.meta.url)),
       },
       {
         find: '@common',

@@ -3,10 +3,20 @@ import { isNullish, nonNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
-import { Button, Dialog, DialogTrigger, Input, Modal, ModalOverlay } from '@untitledui/components';
-
+import { Button } from '@components/button';
+import { Input } from '@components/Input';
+import { Label } from '@components/Label';
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogTrigger,
+} from '@components/ResponsiveDialog';
 import { E8S, IS_TESTNET } from '@constants/extra';
-import { useNnsGovernanceTest } from '@hooks/canisters/governance/useGovernanceTest';
+import { useNnsGovernanceTest } from '@hooks/governance/useGovernanceTest';
 import { errorMessage } from '@utils/error';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
@@ -26,6 +36,7 @@ export const IncreaseMaturityModal = ({ neuron }: Props) => {
     authenticated: governanceTestAuthenticated,
   } = useNnsGovernanceTest();
 
+  const [open, setOpen] = useState(false);
   const [additionalMaturity, setAdditionalMaturity] = useState('');
   const [inputError, setInputError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -58,6 +69,7 @@ export const IncreaseMaturityModal = ({ neuron }: Props) => {
             description: `You have successfully added ${additionalMaturity} maturity to neuron #${neuronId}.`,
           });
           setPending(false);
+          setOpen(false);
         }),
     onError: () => {
       setPending(false);
@@ -77,57 +89,56 @@ export const IncreaseMaturityModal = ({ neuron }: Props) => {
     }
   };
 
-  const handleSubmit = (close: () => void) => async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIncreaseMaturityMutation.mutateAsync().then(close);
+    setIncreaseMaturityMutation.mutate();
   };
 
   return (
-    <DialogTrigger>
-      {canUpdate && (
-        <Button slot="trigger" color="secondary" size="sm">
-          Increase maturity
-        </Button>
-      )}
+    <ResponsiveDialog open={open} onOpenChange={setOpen}>
+      <ResponsiveDialogTrigger asChild>
+        {canUpdate ? (
+          <Button variant="outline" size="sm">
+            Increase maturity
+          </Button>
+        ) : (
+          <></>
+        )}
+      </ResponsiveDialogTrigger>
 
-      <ModalOverlay isKeyboardDismissDisabled>
-        <Modal className={'max-w-md rounded-2xl bg-primary p-6 shadow-lg'}>
-          <Dialog>
-            {({ close }) => (
-              <form className="flex flex-col gap-4" onSubmit={handleSubmit(close)}>
-                <div>
-                  <h3 className="text-lg font-semibold text-primary">
-                    Increase maturity for #{neuronId}
-                  </h3>
-                  <p className="mt-1 text-sm text-secondary">
-                    Manually increase the maturity of your neuron. Available only in TESTNET.
-                  </p>
-                </div>
+      <ResponsiveDialogContent>
+        <form onSubmit={handleSubmit}>
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>Increase maturity for #{neuronId}</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription>
+              Manually increase the maturity of your neuron. Available only in TESTNET.
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
 
-                <Input
-                  label={'Maturity to add:'}
-                  isInvalid={nonNullish(inputError)}
-                  onChange={handleMaturityChange}
-                  value={additionalMaturity}
-                  isDisabled={pending}
-                  hint={inputError}
-                  type="number"
-                  isRequired
-                />
+          <div className="grid gap-2 py-4">
+            <Label htmlFor="maturity-input">Maturity to add:</Label>
+            <Input
+              id="maturity-input"
+              className={nonNullish(inputError) ? 'border-destructive' : ''}
+              onChange={(e) => handleMaturityChange(e.target.value)}
+              value={additionalMaturity}
+              disabled={pending}
+              type="number"
+              required
+            />
+            {inputError && <p className="text-sm text-destructive">{inputError}</p>}
+          </div>
 
-                <div className="flex justify-end gap-2">
-                  <Button type="button" color="secondary" onClick={close} isDisabled={pending}>
-                    Close
-                  </Button>
-                  <Button type="submit" color="primary" isLoading={pending}>
-                    Confirm
-                  </Button>
-                </div>
-              </form>
-            )}
-          </Dialog>
-        </Modal>
-      </ModalOverlay>
-    </DialogTrigger>
+          <ResponsiveDialogFooter className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
+              Close
+            </Button>
+            <Button type="submit" disabled={pending}>
+              {pending ? 'Confirming...' : 'Confirm'}
+            </Button>
+          </ResponsiveDialogFooter>
+        </form>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 };

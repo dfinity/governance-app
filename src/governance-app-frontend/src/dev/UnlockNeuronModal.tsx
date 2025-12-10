@@ -3,10 +3,18 @@ import { isNullish, nonNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
-import { Button, Dialog, DialogTrigger, Modal, ModalOverlay } from '@untitledui/components';
-
+import { Button } from '@components/button';
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogTrigger,
+} from '@components/ResponsiveDialog';
 import { IS_TESTNET, U64_MAX } from '@constants/extra';
-import { useNnsGovernanceTest } from '@hooks/canisters/governance/useGovernanceTest';
+import { useNnsGovernanceTest } from '@hooks/governance/useGovernanceTest';
 import { errorMessage } from '@utils/error';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
@@ -26,6 +34,7 @@ export const UnlockNeuronModal = ({ neuron }: Props) => {
     authenticated: governanceTestAuthenticated,
   } = useNnsGovernanceTest();
 
+  const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const neuronId = neuron.neuronId.toString();
   const canUpdate =
@@ -55,6 +64,7 @@ export const UnlockNeuronModal = ({ neuron }: Props) => {
             description: `You have successfully unlocked neuron #${neuronId}.`,
           });
           setPending(false);
+          setOpen(false);
         }),
     onError: () => {
       setPending(false);
@@ -64,44 +74,42 @@ export const UnlockNeuronModal = ({ neuron }: Props) => {
     },
   });
 
-  const handleSubmit = (close: () => void) => async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setUnlockNeuronMutation.mutateAsync().then(close);
+    setUnlockNeuronMutation.mutate();
   };
 
   return (
-    <DialogTrigger>
-      {canUpdate && (
-        <Button slot="trigger" color="secondary" size="sm">
-          Unlock neuron
-        </Button>
-      )}
+    <ResponsiveDialog open={open} onOpenChange={setOpen}>
+      <ResponsiveDialogTrigger asChild>
+        {canUpdate ? (
+          <Button variant="outline" size="sm">
+            Unlock neuron
+          </Button>
+        ) : (
+          <></>
+        )}
+      </ResponsiveDialogTrigger>
 
-      <ModalOverlay isKeyboardDismissDisabled>
-        <Modal className={'max-w-sm rounded-2xl bg-primary p-6 shadow-lg'}>
-          <Dialog>
-            {({ close }) => (
-              <form className="flex flex-col gap-4" onSubmit={handleSubmit(close)}>
-                <div>
-                  <h3 className="text-lg font-semibold text-primary">Unlock neuron #{neuronId}</h3>
-                  <p className="mt-1 text-sm text-secondary">
-                    Unlock the neuron. Available only in TESTNET.
-                  </p>
-                </div>
+      <ResponsiveDialogContent>
+        <form onSubmit={handleSubmit}>
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>Unlock neuron #{neuronId}</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription>
+              Unlock the neuron. Available only in TESTNET.
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
 
-                <div className="flex justify-end gap-2">
-                  <Button type="button" color="secondary" onClick={close} isDisabled={pending}>
-                    Close
-                  </Button>
-                  <Button type="submit" color="primary" isLoading={pending}>
-                    Confirm
-                  </Button>
-                </div>
-              </form>
-            )}
-          </Dialog>
-        </Modal>
-      </ModalOverlay>
-    </DialogTrigger>
+          <ResponsiveDialogFooter className="mt-4 flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
+              Close
+            </Button>
+            <Button type="submit" disabled={pending}>
+              {pending ? 'Confirming...' : 'Confirm'}
+            </Button>
+          </ResponsiveDialogFooter>
+        </form>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 };

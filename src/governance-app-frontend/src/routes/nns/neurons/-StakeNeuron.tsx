@@ -1,12 +1,15 @@
 import { nonNullish, nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
+import { InfoIcon, Loader2 } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, Input } from '@untitledui/components';
-
-import { SimpleCard } from '@components/extra/SimpleCard';
+import { Button } from '@components/button';
+import { Input } from '@components/Input';
+import { Label } from '@components/Label';
+import { SimpleCard } from '@components/SimpleCard';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@components/Tooltip';
 import {
   E8S,
   E8Sn,
@@ -14,9 +17,9 @@ import {
   ICP_TRANSACTION_FEE_E8S,
   ICP_TRANSACTION_FEE_E8Sn,
 } from '@constants/extra';
-import { useNnsGovernance } from '@hooks/canisters/governance';
-import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
-import { useIcpLedgerAccountBalance } from '@hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
+import { useNnsGovernance } from '@hooks/governance';
+import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
+import { useIcpLedgerAccountBalance } from '@hooks/icpLedger/useIcpLedgerAccountBalance';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { errorNotification, successNotification } from '@utils/notification';
@@ -145,19 +148,36 @@ export const StakeNeuron = () => {
     <>
       <h2 className="mb-2 text-primary">{t(($) => $.neuron.stake)}</h2>
       <SimpleCard className="mb-4 flex">
-        <form onSubmit={handleSubmit} className="flex items-center gap-2">
-          <Input
-            type="number"
-            label={t(($) => $.neuron.stakeNeuron.label)}
-            hint={stakeHint}
-            isInvalid={Boolean(formError)}
-            isDisabled={pending}
-            placeholder={`${stakePlaceholder}`}
-            tooltip={t(($) => $.neuron.stakeNeuron.tooltip)}
-            value={stakeInput}
-            onChange={handleStakeChange}
-          />
-          <Button isDisabled={pending} isLoading={pending} showTextWhileLoading type="submit">
+        <form onSubmit={handleSubmit} className="flex w-full items-start gap-2">
+          <div className="flex-1 space-y-1">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="stake-input">{t(($) => $.neuron.stakeNeuron.label)}</Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <InfoIcon className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t(($) => $.neuron.stakeNeuron.tooltip)}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <Input
+              id="stake-input"
+              type="number"
+              className={formError ? 'border-destructive' : ''}
+              disabled={pending}
+              placeholder={stakePlaceholder}
+              value={stakeInput}
+              onChange={(e) => handleStakeChange(e.target.value)}
+            />
+            <p className={`text-sm ${formError ? 'text-destructive' : 'text-muted-foreground'}`}>
+              {stakeHint}
+            </p>
+          </div>
+          <Button disabled={pending} type="submit" className="mt-7 self-start">
+            {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {t(($) => $.neuron.stake)}
           </Button>
         </form>

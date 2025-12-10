@@ -2,13 +2,13 @@ import { NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
 import { isNullish, secondsToDuration } from '@dfinity/utils';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import Skeleton from 'react-loading-skeleton';
 
-import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
-import { WarningMessage } from '@components/extra/WarningMessage';
-import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
+import { Card, CardContent, CardFooter } from '@components/Card';
+import { CertifiedBadge } from '@components/CertifiedBadge';
+import { SkeletonLoader } from '@components/SkeletonLoader';
+import { WarningMessage } from '@components/WarningMessage';
 import { E8S, E8Sn, IS_TESTNET } from '@constants/extra';
-import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceNeurons';
+import { useGovernanceNeurons } from '@hooks/governance/useGovernanceNeurons';
 import useTitle from '@hooks/useTitle';
 import { bigIntDiv, stringToBigInt } from '@utils/bigInt';
 import { requireIdentity } from '@utils/router';
@@ -38,7 +38,7 @@ export const Route = createFileRoute('/nns/neurons/$id/')({
     await requireIdentity();
     if (!params.id) throw redirect({ to: '/nns/neurons', replace: true });
   },
-  pendingComponent: () => <Skeleton count={3} />,
+  pendingComponent: () => <SkeletonLoader count={3} />,
   component: NeuronDetailsRouteComponent,
 });
 
@@ -76,66 +76,68 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
         )}
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-base">
-          <tbody>
-            <tr>
-              <th className="w-1/3 pr-4 text-sm font-bold text-secondary uppercase">
-                {t(($) => $.neuron.creationDate)}
-              </th>
-              <td>
-                {neuron.fullNeuron?.createdTimestampSeconds
-                  ? new Date(
-                      Number(neuron.fullNeuron.createdTimestampSeconds) * 1000,
-                    ).toLocaleDateString()
-                  : '-'}
-              </td>
-            </tr>
-            <tr>
-              <th className="pr-4 text-sm font-bold text-secondary uppercase">
-                {t(($) => $.neuron.status)}
-              </th>
-              <td>{NeuronState[neuron.state]}</td>
-            </tr>
-            <tr>
-              <th className="pr-4 text-sm font-bold text-secondary uppercase">
-                {t(($) => $.neuron.maturity)}
-              </th>
-              <td>
-                {neuron.fullNeuron?.maturityE8sEquivalent
-                  ? bigIntDiv(neuron.fullNeuron.maturityE8sEquivalent, E8Sn, 2)
-                  : t(($) => $.common.notAvailable)}
-              </td>
-            </tr>
-            <tr>
-              <th className="pr-4 text-sm font-bold text-secondary uppercase">
-                {t(($) => $.neuron.stake)}
-              </th>
-              <td>
-                {Number(neuron.fullNeuron?.cachedNeuronStake) / E8S} {t(($) => $.common.icp)}
-              </td>
-            </tr>
-            <tr>
-              <th className="pr-4 text-sm font-bold text-secondary uppercase">
-                {t(($) => $.neuron.votingPower)}
-              </th>
-              <td>{neuron.votingPower}</td>
-            </tr>
-            <tr>
-              <th className="pr-4 text-sm font-bold text-secondary uppercase">
-                {t(($) => $.neuron.dissolveDelay)}
-              </th>
-              <td>{dissolveDelayRemaining(neuron)}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <Card>
+        <CardContent className="grid gap-6 p-6 md:grid-cols-2">
+          <div className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-muted-foreground uppercase">
+              {t(($) => $.neuron.creationDate)}
+            </span>
+            <span>
+              {neuron.fullNeuron?.createdTimestampSeconds
+                ? new Date(
+                    Number(neuron.fullNeuron.createdTimestampSeconds) * 1000,
+                  ).toLocaleDateString()
+                : '-'}
+            </span>
+          </div>
 
-      <div className="mt-4 flex items-center gap-2">
-        <SetDissolveDelayModal neuron={neuron} />
-        {IS_TESTNET && <IncreaseMaturityModal neuron={neuron} />}
-        {IS_TESTNET && <UnlockNeuronModal neuron={neuron} />}
-      </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-muted-foreground uppercase">
+              {t(($) => $.neuron.status)}
+            </span>
+            <span>{NeuronState[neuron.state]}</span>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-muted-foreground uppercase">
+              {t(($) => $.neuron.maturity)}
+            </span>
+            <span>
+              {neuron.fullNeuron?.maturityE8sEquivalent
+                ? bigIntDiv(neuron.fullNeuron.maturityE8sEquivalent, E8Sn, 2)
+                : t(($) => $.common.notAvailable)}
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-muted-foreground uppercase">
+              {t(($) => $.neuron.stake)}
+            </span>
+            <span>
+              {Number(neuron.fullNeuron?.cachedNeuronStake) / E8S} {t(($) => $.common.icp)}
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-muted-foreground uppercase">
+              {t(($) => $.neuron.votingPower)}
+            </span>
+            <span>{neuron.votingPower}</span>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-muted-foreground uppercase">
+              {t(($) => $.neuron.dissolveDelay)}
+            </span>
+            <span>{dissolveDelayRemaining(neuron)}</span>
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-wrap items-center gap-2 border-t bg-muted/20 p-6">
+          <SetDissolveDelayModal neuron={neuron} />
+          {IS_TESTNET && <IncreaseMaturityModal neuron={neuron} />}
+          {IS_TESTNET && <UnlockNeuronModal neuron={neuron} />}
+        </CardFooter>
+      </Card>
     </div>
   );
 };

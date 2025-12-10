@@ -6,10 +6,12 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import globals from 'globals';
+import { tailwind4 } from 'tailwind-csstree';
 import tseslint from 'typescript-eslint';
 
 const tsConfiguration = tseslint.config(
-  { ignores: ['dist', 'node_modules', 'src/routeTree.gen.ts', 'src/untitledui'] },
+  // TODO: Revisit and fix integration errors with tailwind&shadcn
+  { ignores: ['dist', 'node_modules', 'src/routeTree.gen.ts', 'src/app/styles/main.css'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
@@ -46,13 +48,11 @@ const tsConfiguration = tseslint.config(
             ['^@icp-sdk', '^@?\\w'],
             // Internal files.
             ['^@declarations'],
-            ['^@untitledui'],
             [
               '^@components',
               '^@constants',
               '^@contexts',
               '^@hooks',
-              '^@queries',
               '^@typings',
               '^@utils',
               '^@fixtures',
@@ -71,11 +71,14 @@ const tsConfiguration = tseslint.config(
 );
 
 const cssConfiguration = {
-  ignores: ['dist', 'node_modules', 'src/routeTree.gen.ts', 'src/untitledui'],
   files: ['**/*.css'],
+  ignores: ['dist', 'node_modules'],
   plugins: {
     css,
     prettier,
+  },
+  languageOptions: {
+    customSyntax: tailwind4,
   },
   language: 'css/css',
   rules: {

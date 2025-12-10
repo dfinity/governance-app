@@ -2,15 +2,15 @@ import { ProposalInfo, ProposalRewardStatus, ProposalStatus, Topic } from '@icp-
 import { jsonReplacer } from '@dfinity/utils';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import Skeleton from 'react-loading-skeleton';
 
-import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
-import { QueryStates } from '@components/extra/QueryStates';
-import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
-import { useGovernanceProposal } from '@hooks/canisters/governance/useGovernanceProposal';
+import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
+import { CertifiedBadge } from '@components/CertifiedBadge';
+import { QueryStates } from '@components/QueryStates';
+import { SkeletonLoader } from '@components/SkeletonLoader';
+import { useGovernanceProposal } from '@hooks/governance/useGovernanceProposal';
 import useTitle from '@hooks/useTitle';
+import { CertifiedData } from '@typings/queries';
 import { stringToBigInt } from '@utils/bigInt';
-import { CertifiedData } from '@common/typings/queries';
 
 import { ProposalDetailsVoting } from './-ProposalDetailsVoting';
 
@@ -33,7 +33,7 @@ export const Route = createFileRoute('/nns/proposals/$id/')({
   beforeLoad: ({ params }) => {
     if (!params.id) throw redirect({ to: '/nns/proposals', replace: true });
   },
-  pendingComponent: () => <Skeleton count={3} />,
+  pendingComponent: () => <SkeletonLoader count={3} />,
   component: ProposalDetailsRouteComponent,
 });
 
@@ -66,67 +66,102 @@ const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
 
           <ProposalDetailsVoting proposal={proposal} />
 
-          <div className="mb-4 rounded-lg border p-4">
-            {/* type */}
-            <dl>
-              <dt className="font-bold">{t(($) => $.proposal.type)}</dt>
-              <dd>{Object.keys(proposal.proposal?.action ?? {})[0]}</dd>
-            </dl>
-            {/* topic */}
-            <dl>
-              <dt className="font-bold">{t(($) => $.proposal.topic)}</dt>
-              <dd>{Topic[proposal.topic]}</dd>
-            </dl>
-            {/* status */}
-            <dl>
-              <dt className="font-bold">{t(($) => $.proposal.status)}</dt>
-              <dd>{ProposalStatus[proposal.status]}</dd>
-            </dl>
-            {/* reward status */}
-            <dl>
-              <dt className="font-bold">{t(($) => $.proposal.rewardStatus)}</dt>
-              <dd>{ProposalRewardStatus[proposal.rewardStatus]}</dd>
-            </dl>
-            {/* created at */}
-            <dl>
-              <dt className="font-bold">{t(($) => $.proposal.created)}</dt>
-              <dd>{proposal.proposalTimestampSeconds}</dd>
-            </dl>
-            {/* TBD: decided, executed */}
-            {/* proposer */}
-            <dl>
-              <dt className="font-bold">{t(($) => $.proposal.proposer)}</dt>
-              <dd>{proposal.proposer?.toString()}</dd>
-            </dl>
-          </div>
+          <div className="grid gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Details</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {/* type */}
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium text-muted-foreground uppercase">
+                    {t(($) => $.proposal.type)}
+                  </span>
+                  <span>{Object.keys(proposal.proposal?.action ?? {})[0]}</span>
+                </div>
+                {/* topic */}
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium text-muted-foreground uppercase">
+                    {t(($) => $.proposal.topic)}
+                  </span>
+                  <span>{Topic[proposal.topic]}</span>
+                </div>
+                {/* status */}
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium text-muted-foreground uppercase">
+                    {t(($) => $.proposal.status)}
+                  </span>
+                  <span>{ProposalStatus[proposal.status]}</span>
+                </div>
+                {/* reward status */}
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium text-muted-foreground uppercase">
+                    {t(($) => $.proposal.rewardStatus)}
+                  </span>
+                  <span>{ProposalRewardStatus[proposal.rewardStatus]}</span>
+                </div>
+                {/* created at */}
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium text-muted-foreground uppercase">
+                    {t(($) => $.proposal.created)}
+                  </span>
+                  <span>
+                    {new Date(Number(proposal.proposalTimestampSeconds) * 1000).toLocaleString()}
+                  </span>
+                </div>
+                {/* proposer */}
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium text-muted-foreground uppercase">
+                    {t(($) => $.proposal.proposer)}
+                  </span>
+                  <span className="break-all">{proposal.proposer?.toString()}</span>
+                </div>
+              </CardContent>
+            </Card>
 
-          <div className="mb-4 rounded-lg border p-4">
-            {/* summary */}
-            <Link to={proposal.proposal?.url ?? '#'}>{proposal.proposal?.title}</Link>
-            <dl>
-              <dt className="font-bold">{t(($) => $.proposal.summary)}</dt>
-              <dd>{proposal.proposal?.summary}</dd>
-            </dl>
-            {/* action */}
-            <dl>
-              <dt className="font-bold">{t(($) => $.proposal.action)}</dt>
-              <dd>
-                {proposal.proposal?.action &&
-                  JSON.stringify(
-                    Object.values(proposal.proposal?.action ?? {})[0],
-                    jsonReplacer,
-                    2,
-                  )}
-              </dd>
-            </dl>
-          </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  <Link to={proposal.proposal?.url ?? '#'} className="hover:underline">
+                    {proposal.proposal?.title}
+                  </Link>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4">
+                {/* summary */}
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium text-muted-foreground uppercase">
+                    {t(($) => $.proposal.summary)}
+                  </span>
+                  <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                    {proposal.proposal?.summary}
+                  </div>
+                </div>
+                {/* action */}
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium text-muted-foreground uppercase">
+                    {t(($) => $.proposal.action)}
+                  </span>
+                  <pre className="overflow-x-auto rounded-lg bg-muted p-4 text-xs">
+                    {proposal.proposal?.action &&
+                      JSON.stringify(
+                        Object.values(proposal.proposal?.action ?? {})[0],
+                        jsonReplacer,
+                        2,
+                      )}
+                  </pre>
+                </div>
+              </CardContent>
+            </Card>
 
-          <div className="mb-4 rounded-lg border p-4">
-            {/* payload */}
-            <dl>
-              <dt className="font-bold">{t(($) => $.proposal.payload)}</dt>
-              <dd>...</dd>
-            </dl>
+            <Card>
+              <CardHeader>
+                <CardTitle>{t(($) => $.proposal.payload)}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground italic">...</p>
+              </CardContent>
+            </Card>
           </div>
         </>
       )}

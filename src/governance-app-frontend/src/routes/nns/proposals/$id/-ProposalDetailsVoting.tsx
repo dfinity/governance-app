@@ -6,11 +6,10 @@ import { useState } from 'react';
 import { Fragment } from 'react/jsx-runtime';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@untitledui/components';
-
-import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
+import { Button } from '@components/button';
+import { SkeletonLoader } from '@components/SkeletonLoader';
 import { VOTING_RESULTS_PRECISION } from '@constants/extra';
-import { useGovernanceNeurons, useNnsGovernance } from '@hooks/canisters/governance';
+import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { bigIntDiv } from '@utils/bigInt';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
@@ -126,14 +125,14 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
                       <Button
                         onClick={() => castVote(neuron.neuronId, Vote.Yes)}
                         disabled={!canTriggerVote}
-                        color="secondary"
+                        variant="outline"
                         type="button"
                       >
                         {t(($) => $.common.yes)}
                       </Button>
                       <Button
                         onClick={() => castVote(neuron.neuronId, Vote.No)}
-                        color="secondary"
+                        variant="outline"
                         type="button"
                       >
                         {t(($) => $.common.no)}

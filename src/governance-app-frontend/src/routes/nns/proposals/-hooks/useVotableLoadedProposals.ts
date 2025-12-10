@@ -5,7 +5,7 @@ import {
   votableNeurons,
 } from '@icp-sdk/canisters/nns';
 
-import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/canisters/governance';
+import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/governance';
 
 /**
  * Returns a set of proposal IDs that the user can vote on based on their neurons.

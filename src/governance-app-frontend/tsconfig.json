@@ -22,15 +22,13 @@
 
       "@components/*": ["./src/common/components/*"],
       "@constants/*": ["./src/common/constants/*"],
-      "@contexts/*": ["./src/common/contexts/*"],
+      "@contexts/*": ["./src/app/contexts/*"],
       "@hooks/*": ["./src/common/hooks/*"],
-      "@queries/*": ["./src/common/queries/*"],
       "@typings/*": ["src/common/typings/*"],
       "@utils/*": ["./src/common/utils/*"],
-      "@fixtures/*": ["./src/common/fixtures/*"],
+      "@fixtures/*": ["./tests/fixtures/*"],
       "@common/*": ["./src/common/*"],
 
-      "@untitledui/*": ["./src/untitledui/*"],
       "@routes/*": ["./src/routes/*"],
       "@/*": ["./src/*"]
     }

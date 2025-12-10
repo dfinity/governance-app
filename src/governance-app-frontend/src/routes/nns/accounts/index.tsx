@@ -10,21 +10,20 @@ import { ArrowDownToLine, ArrowUp } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { cx } from '@untitledui/utils/cx';
-
-import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
-import { SendICPsButton } from '@components/buttons/SendICPsButton';
-import { InViewSentinel } from '@components/extra/InViewSentinel';
-import { QueryStates } from '@components/extra/QueryStates';
-import { SimpleCard } from '@components/extra/SimpleCard';
-import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
+import { CertifiedBadge } from '@components/CertifiedBadge';
+import { InViewSentinel } from '@components/InViewSentinel';
+import { QueryStates } from '@components/QueryStates';
+import { SendICPsButton } from '@components/SendICPsButton';
+import { SimpleCard } from '@components/SimpleCard';
+import { SkeletonLoader } from '@components/SkeletonLoader';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
-import { useIcpIndexTransactions } from '@hooks/canisters/icpIndex/useIcpIndexTransactions';
-import { useIcpIndexTransactionsPolling } from '@hooks/canisters/icpIndex/useIcpIndexTransactionsPolling';
+import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
+import { useIcpIndexTransactionsPolling } from '@hooks/icpIndex/useIcpIndexTransactionsPolling';
 import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';
 import { bigIntDiv } from '@utils/bigInt';
 import { requireIdentity } from '@utils/router';
+import { cn } from '@utils/shadcn';
 
 import { GetTokens } from '@/dev/GetTokens';
 
@@ -138,7 +137,12 @@ const TransactionItem = ({
     <SimpleCard key={tx.id}>
       <div className="flex items-center gap-2">
         <div
-          className={cx('mr-2 rounded p-4 text-black', isSending ? 'bg-red-100' : 'bg-green-100')}
+          className={cn(
+            'mr-2 rounded p-4',
+            isSending
+              ? 'bg-destructive/15 text-destructive'
+              : 'bg-green-500/15 text-green-600 dark:text-green-400',
+          )}
         >
           {isSending ? <ArrowUp /> : <ArrowDownToLine />}
         </div>
