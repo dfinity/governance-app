@@ -1,5 +1,5 @@
-import { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { isNullish, nonNullish } from '@dfinity/utils';
+import { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
@@ -106,7 +106,7 @@ export const IncreaseMaturityModal = ({ neuron }: Props) => {
         )}
       </ResponsiveDialogTrigger>
 
-      <ResponsiveDialogContent className="max-w-md">
+      <ResponsiveDialogContent>
         <form onSubmit={handleSubmit}>
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>Increase maturity for #{neuronId}</ResponsiveDialogTitle>

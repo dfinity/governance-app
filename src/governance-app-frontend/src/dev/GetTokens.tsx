@@ -110,7 +110,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
         </Button>
       </ResponsiveDialogTrigger>
 
-      <ResponsiveDialogContent className="max-w-sm">
+      <ResponsiveDialogContent>
         <form onSubmit={handleSubmit}>
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>Get Testnet ICPs</ResponsiveDialogTitle>

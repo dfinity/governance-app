@@ -1,5 +1,5 @@
-import { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { isNullish, nonNullish } from '@dfinity/utils';
+import { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
@@ -91,7 +91,7 @@ export const UnlockNeuronModal = ({ neuron }: Props) => {
         )}
       </ResponsiveDialogTrigger>
 
-      <ResponsiveDialogContent className="max-w-sm">
+      <ResponsiveDialogContent>
         <form onSubmit={handleSubmit}>
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>Unlock neuron #{neuronId}</ResponsiveDialogTitle>

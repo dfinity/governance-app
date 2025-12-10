@@ -1,5 +1,5 @@
-import { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
+import { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -123,7 +123,7 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
         )}
       </ResponsiveDialogTrigger>
 
-      <ResponsiveDialogContent className="max-w-md">
+      <ResponsiveDialogContent>
         <form onSubmit={handleSubmit}>
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>

@@ -111,7 +111,7 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
         </Button>
       </ResponsiveDialogTrigger>
 
-      <ResponsiveDialogContent className="max-w-xs">
+      <ResponsiveDialogContent>
         <form onSubmit={handleSubmit}>
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>{t(($) => $.account.transferTitle)}</ResponsiveDialogTitle>
