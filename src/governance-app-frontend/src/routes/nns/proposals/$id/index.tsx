@@ -1,15 +1,15 @@
-import { jsonReplacer } from '@dfinity/utils';
 import { ProposalInfo, ProposalRewardStatus, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
+import { jsonReplacer } from '@dfinity/utils';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
-import { CertifiedData } from '@common/typings/queries';
-import { CertifiedBadge } from '@components/CertifiedBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/card';
+import { CertifiedBadge } from '@components/CertifiedBadge';
 import { QueryStates } from '@components/extra/QueryStates';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { useGovernanceProposal } from '@hooks/governance/useGovernanceProposal';
 import useTitle from '@hooks/useTitle';
+import { CertifiedData } from '@typings/queries';
 import { stringToBigInt } from '@utils/bigInt';
 
 import { ProposalDetailsVoting } from './-ProposalDetailsVoting';

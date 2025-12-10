@@ -1,5 +1,5 @@
-import { secondsToDuration } from '@dfinity/utils';
 import { NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
+import { secondsToDuration } from '@dfinity/utils';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 

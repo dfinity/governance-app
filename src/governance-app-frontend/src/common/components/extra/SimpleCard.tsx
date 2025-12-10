@@ -1,5 +1,4 @@
 import { Card, CardContent } from '@components/card';
-
 import { cn } from '@utils/shadcn';
 
 type Props = {

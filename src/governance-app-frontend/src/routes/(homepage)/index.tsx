@@ -2,9 +2,9 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
-import { NotAvailableBadge } from '@components/NotAvailableBadge';
 import { QueryStates } from '@components/extra/QueryStates';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
+import { NotAvailableBadge } from '@components/NotAvailableBadge';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { useTickerPrices } from '@hooks/externalServices/useTickerPrices';
 import { TokenPrices } from '@typings/tokenPrices';

@@ -2,6 +2,7 @@ import { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/
 import { useTranslation } from 'react-i18next';
 
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
+
 import { EmptyMessage } from '../EmptyMessage';
 import { WarningMessage } from './WarningMessage';
 

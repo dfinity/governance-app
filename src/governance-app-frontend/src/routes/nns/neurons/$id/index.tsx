@@ -1,10 +1,10 @@
-import { isNullish, secondsToDuration } from '@dfinity/utils';
 import { NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
+import { isNullish, secondsToDuration } from '@dfinity/utils';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
-import { CertifiedBadge } from '@components/CertifiedBadge';
 import { Card, CardContent, CardFooter } from '@components/card';
+import { CertifiedBadge } from '@components/CertifiedBadge';
 import { WarningMessage } from '@components/extra/WarningMessage';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { E8S, E8Sn, IS_TESTNET } from '@constants/extra';

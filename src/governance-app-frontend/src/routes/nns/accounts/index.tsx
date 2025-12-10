@@ -1,9 +1,9 @@
-import { isNullish, nonNullish } from '@dfinity/utils';
 import {
   AccountIdentifier,
   GetAccountIdentifierTransactionsResponse,
   TransactionWithId,
 } from '@icp-sdk/canisters/ledger/icp';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ArrowDownToLine, ArrowUp } from 'lucide-react';
@@ -11,11 +11,11 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { CertifiedBadge } from '@components/CertifiedBadge';
-import { SendICPsButton } from '@components/SendICPsButton';
 import { InViewSentinel } from '@components/extra/InViewSentinel';
 import { QueryStates } from '@components/extra/QueryStates';
 import { SimpleCard } from '@components/extra/SimpleCard';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
+import { SendICPsButton } from '@components/SendICPsButton';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
 import { useIcpIndexTransactionsPolling } from '@hooks/icpIndex/useIcpIndexTransactionsPolling';
@@ -23,9 +23,9 @@ import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';
 import { bigIntDiv } from '@utils/bigInt';
 import { requireIdentity } from '@utils/router';
+import { cn } from '@utils/shadcn';
 
 import { GetTokens } from '@/dev/GetTokens';
-import { cn } from '@utils/shadcn';
 
 export const Route = createFileRoute('/nns/accounts/')({
   component: AccountsPage,
