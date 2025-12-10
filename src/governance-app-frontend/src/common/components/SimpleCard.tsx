@@ -1,4 +1,4 @@
-import { Card, CardContent } from '@components/card';
+import { Card, CardContent } from '@components/Card';
 import { cn } from '@utils/shadcn';
 
 type Props = {

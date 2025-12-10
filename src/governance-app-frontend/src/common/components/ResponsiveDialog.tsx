@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { Button } from '@components/button';
+import { Button } from '@components/Button';
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@components/dialog';
+} from '@components/Dialog';
 import {
   Drawer,
   DrawerClose,
@@ -18,7 +18,7 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from '@components/drawer';
+} from '@components/Drawer';
 import { useMediaQuery } from '@hooks/useMediaQuery';
 
 export function ResponsiveDialog({ children, ...props }: React.ComponentProps<typeof Dialog>) {

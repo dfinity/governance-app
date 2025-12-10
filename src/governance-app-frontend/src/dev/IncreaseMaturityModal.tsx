@@ -3,9 +3,9 @@ import { isNullish, nonNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
-import { Button } from '@components/button';
-import { Input } from '@components/input';
-import { Label } from '@components/label';
+import { Button } from '@components/Button';
+import { Input } from '@components/Input';
+import { Label } from '@components/Label';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -14,7 +14,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
-} from '@components/responsive-dialog';
+} from '@components/ResponsiveDialog';
 import { E8S, IS_TESTNET } from '@constants/extra';
 import { useNnsGovernanceTest } from '@hooks/governance/useGovernanceTest';
 import { errorMessage } from '@utils/error';

@@ -3,7 +3,7 @@ import { isNullish, nonNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 
-import { Button } from '@components/button';
+import { Button } from '@components/Button';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -12,7 +12,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
-} from '@components/responsive-dialog';
+} from '@components/ResponsiveDialog';
 import { IS_TESTNET, U64_MAX } from '@constants/extra';
 import { useNnsGovernanceTest } from '@hooks/governance/useGovernanceTest';
 import { errorMessage } from '@utils/error';

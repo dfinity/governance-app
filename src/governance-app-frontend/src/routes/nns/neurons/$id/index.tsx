@@ -3,7 +3,7 @@ import { isNullish, secondsToDuration } from '@dfinity/utils';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
-import { Card, CardContent, CardFooter } from '@components/card';
+import { Card, CardContent, CardFooter } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { WarningMessage } from '@components/WarningMessage';

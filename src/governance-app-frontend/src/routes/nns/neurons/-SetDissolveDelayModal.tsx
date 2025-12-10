@@ -4,9 +4,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@components/button';
-import { Input } from '@components/input';
-import { Label } from '@components/label';
+import { Button } from '@components/Button';
+import { Input } from '@components/Input';
+import { Label } from '@components/Label';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -15,7 +15,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
-} from '@components/responsive-dialog';
+} from '@components/ResponsiveDialog';
 import { SECONDS_IN_DAY } from '@constants/extra';
 import { ICP_MAX_DISSOLVE_DELAY_SECONDS, ICP_MIN_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { useNnsGovernance } from '@hooks/governance';

@@ -1,4 +1,4 @@
-import { Skeleton } from '@components/skeleton';
+import { Skeleton } from '@components/Skeleton';
 
 type Props = {
   count?: number;

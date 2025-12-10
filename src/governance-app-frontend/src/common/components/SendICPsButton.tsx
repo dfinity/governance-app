@@ -3,9 +3,9 @@ import { useMutation } from '@tanstack/react-query';
 import React, { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@components/button';
-import { Input } from '@components/input';
-import { Label } from '@components/label';
+import { Button } from '@components/Button';
+import { Input } from '@components/Input';
+import { Label } from '@components/Label';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -14,7 +14,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
-} from '@components/responsive-dialog';
+} from '@components/ResponsiveDialog';
 import {
   E8Sn,
   ICP_MIN_TRANSFER_AMOUNT,
