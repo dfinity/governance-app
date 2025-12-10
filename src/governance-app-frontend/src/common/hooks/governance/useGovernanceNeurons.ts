@@ -10,7 +10,7 @@ type RequestParams = {
   neuronIds?: NeuronId[];
   includeEmptyNeurons?: boolean;
   includePublicNeurons?: boolean;
-  neuronSubaccounts?: { subaccount: Uint8Array | number[] }[];
+  neuronSubaccounts?: { subaccount: Uint8Array }[];
 };
 
 export const useGovernanceNeurons = (params?: RequestParams) => {

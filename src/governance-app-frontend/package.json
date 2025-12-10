@@ -21,8 +21,8 @@
   },
   "dependencies": {
     "@dfinity/utils": "4.0.0",
-    "@icp-sdk/canisters": "1.1.0",
-    "@icp-sdk/core": "4.0.5",
+    "@icp-sdk/canisters": "2.0.1",
+    "@icp-sdk/core": "4.2.3",
     "@radix-ui/react-avatar": "1.1.11",
     "@radix-ui/react-dialog": "1.1.15",
     "@radix-ui/react-dropdown-menu": "2.1.16",
