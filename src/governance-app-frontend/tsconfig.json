@@ -22,7 +22,7 @@
 
       "@components/*": ["./src/common/components/*"],
       "@constants/*": ["./src/common/constants/*"],
-      "@contexts/*": ["./src/common/contexts/*"],
+      "@contexts/*": ["./src/app/contexts/*"],
       "@hooks/*": ["./src/common/hooks/*"],
       "@typings/*": ["src/common/typings/*"],
       "@utils/*": ["./src/common/utils/*"],

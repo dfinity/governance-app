@@ -12,7 +12,7 @@ The application follows a modular architecture organized into four main levels:
 
 ```
 │ src/
-├── app/                 # Global app setup (providers, congfigs, env, main.tsx)
+├── app/                 # Global app setup (providers, configs, env, main.tsx)
 ├── common/              # Reusable code (everything shared by 2+ features/XXX)
 │   ├── components/      # All shared components (Shadcn primitives, custom reusable components)
 │   ├── constants/       # All shared constants (CANISTER_ID_ICP_LEDGER, ...)

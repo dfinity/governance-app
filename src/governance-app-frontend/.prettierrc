@@ -8,6 +8,6 @@
   "tabWidth": 2,
   "semi": true,
   "plugins": ["prettier-plugin-tailwindcss"],
-  "tailwindStylesheet": "./src/common/styles/main.css",
-  "tailwindFunctions": ["cx", "sortCx", "tw"]
+  "tailwindStylesheet": "./src/app/styles/main.css",
+  "tailwindFunctions": ["cn", "sortCx", "tw"]
 }

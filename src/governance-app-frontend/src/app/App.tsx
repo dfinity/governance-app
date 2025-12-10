@@ -1,5 +1,5 @@
+import '@/app/styles/main.css';
 import '@/i18n/config';
-import '@common/styles/main.css';
 
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -11,10 +11,11 @@ import { Toaster } from 'sonner';
 
 import { CANISTER_ID_INTERNET_IDENTITY } from '@constants/canisterIds';
 import { HOST, IS_LOCAL } from '@constants/extra';
-import { AgentPoolProvider } from '@contexts/agentPoolProvider';
-import { ThemeProvider } from '@contexts/themeProvider';
 import { usePreventAttributeChange } from '@hooks/usePreventAttributeChange';
 import { queryClientConfig, routerConfig } from '@utils/initializer';
+
+import { AgentPoolProvider } from '@/app/contexts/agentPoolProvider';
+import { ThemeProvider } from '@/app/contexts/themeProvider';
 
 const localIdentityProvider = `http://${CANISTER_ID_INTERNET_IDENTITY}.${HOST}`;
 const mainnetIdentityProvider = 'https://identity.ic0.app';

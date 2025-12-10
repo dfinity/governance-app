@@ -41,10 +41,6 @@ export default defineConfig({
         replacement: fileURLToPath(new URL('../declarations/', import.meta.url)),
       },
       {
-        find: '@ui',
-        replacement: fileURLToPath(new URL('./src/common/ui/', import.meta.url)),
-      },
-      {
         find: '@components',
         replacement: fileURLToPath(new URL('./src/common/components/', import.meta.url)),
       },
@@ -54,7 +50,7 @@ export default defineConfig({
       },
       {
         find: '@contexts',
-        replacement: fileURLToPath(new URL('./src/common/contexts/', import.meta.url)),
+        replacement: fileURLToPath(new URL('./src/app/contexts/', import.meta.url)),
       },
       {
         find: '@hooks',
