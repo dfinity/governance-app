@@ -27,15 +27,15 @@ const ThemeCard = () => {
           >
             <ToggleGroupItem value="light" aria-label="Toggle light">
               <Sun className="mr-2 h-4 w-4" />
-              Light
+              <span className="hidden xs:inline">Light</span>
             </ToggleGroupItem>
             <ToggleGroupItem value="dark" aria-label="Toggle dark">
               <Moon className="mr-2 h-4 w-4" />
-              Dark
+              <span className="hidden xs:inline">Dark</span>
             </ToggleGroupItem>
             <ToggleGroupItem value="system" aria-label="Toggle system">
               <Monitor className="mr-2 h-4 w-4" />
-              System
+              <span className="hidden xs:inline">System</span>
             </ToggleGroupItem>
           </ToggleGroup>
         </div>
