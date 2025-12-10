@@ -6,7 +6,14 @@ import i18n from '@/i18n/config';
 import { warningNotification } from './notification';
 
 export const requireIdentity = async () => {
-  const identity = await ensureInitialized();
+  let identity;
+
+  try {
+    identity = await ensureInitialized();
+  } catch (err) {
+    // If user interrupts login by closing II page, we just show the normal non-auth flow
+    if (!(err instanceof Error && err.message === 'UserInterrupt')) throw err;
+  }
 
   if (!identity) {
     console.log('[🔐 Protected Route]: identity not found, redirecting to homepage.');
