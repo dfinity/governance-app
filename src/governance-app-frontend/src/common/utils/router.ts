@@ -1,3 +1,4 @@
+import { ERROR_USER_INTERRUPT } from '@icp-sdk/auth/client';
 import { redirect } from '@tanstack/react-router';
 import { ensureInitialized } from 'ic-use-internet-identity';
 
@@ -11,8 +12,8 @@ export const requireIdentity = async () => {
   try {
     identity = await ensureInitialized();
   } catch (err) {
-    // If user interrupts login by closing II page, we just show the normal non-auth flow
-    if (!(err instanceof Error && err.message === 'UserInterrupt')) throw err;
+    // If user interrupts the login flow by closing the InternetIdentiy page, we just swallow the error (the user is just not authenticated, it is not an error in our app)
+    if (!(err instanceof Error && err.message === ERROR_USER_INTERRUPT)) throw err;
   }
 
   if (!identity) {
