@@ -1,5 +1,4 @@
-import { useQueryThenUpdateCall } from '@queries/useQueryThenUpdateCall';
-
+import { useQueryThenUpdateCall } from '@hooks/useQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/query';
 
 import { useIcpLedger } from './useIcpLedger';

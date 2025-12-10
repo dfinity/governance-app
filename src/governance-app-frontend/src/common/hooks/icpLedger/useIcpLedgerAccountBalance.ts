@@ -1,8 +1,8 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { AnonymousIdentity } from '@icp-sdk/core/agent';
-import { useQueryThenUpdateCall } from '@queries/useQueryThenUpdateCall';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 
+import { useQueryThenUpdateCall } from '@hooks/useQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/query';
 
 import { useIcpLedger } from './useIcpLedger';

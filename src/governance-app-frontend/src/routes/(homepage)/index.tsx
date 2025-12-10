@@ -6,7 +6,7 @@ import { QueryStates } from '@components/extra/QueryStates';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { NotAvailableBadge } from '@components/NotAvailableBadge';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { useTickerPrices } from '@hooks/externalServices/useTickerPrices';
+import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
 import { TokenPrices } from '@typings/tokenPrices';
 
 export const Route = createFileRoute('/(homepage)/')({

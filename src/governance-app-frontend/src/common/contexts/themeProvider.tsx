@@ -49,3 +49,4 @@ export function ThemeProvider({
     </ThemeProviderContext.Provider>
   );
 }
+export { ThemeProviderContext };
