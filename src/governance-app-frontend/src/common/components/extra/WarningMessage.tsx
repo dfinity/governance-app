@@ -1,6 +1,6 @@
 import { AlertCircle } from 'lucide-react';
 
-import { cn } from '@utils/utils';
+import { cn } from '@utils/shadcn';
 
 type Props = {
   message: string;

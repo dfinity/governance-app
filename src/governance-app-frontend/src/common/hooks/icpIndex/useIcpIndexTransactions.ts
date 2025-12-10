@@ -7,7 +7,7 @@ import { AnonymousIdentity } from '@icp-sdk/core/agent';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 
 import { PAGINATION_LIMIT_TRANSACTIONS } from '@constants/extra';
-import { useInfiniteQueryThenUpdateCall } from '@queries/useInfiniteQueryThenUpdateCall';
+import { useInfiniteQueryThenUpdateCall } from '@hooks/useInfiniteQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/query';
 
 import { useIcpIndex } from './useIcpIndex';

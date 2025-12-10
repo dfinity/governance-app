@@ -2,14 +2,13 @@ import { isNullish, secondsToDuration } from '@dfinity/utils';
 import { NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import Skeleton from 'react-loading-skeleton';
 
 import { CertifiedBadge } from '@components/CertifiedBadge';
 import { Card, CardContent, CardFooter } from '@components/card';
 import { WarningMessage } from '@components/extra/WarningMessage';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { E8S, E8Sn, IS_TESTNET } from '@constants/extra';
-import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceNeurons';
+import { useGovernanceNeurons } from '@hooks/governance/useGovernanceNeurons';
 import useTitle from '@hooks/useTitle';
 import { bigIntDiv, stringToBigInt } from '@utils/bigInt';
 import { requireIdentity } from '@utils/router';
@@ -39,7 +38,7 @@ export const Route = createFileRoute('/nns/neurons/$id/')({
     await requireIdentity();
     if (!params.id) throw redirect({ to: '/nns/neurons', replace: true });
   },
-  pendingComponent: () => <Skeleton count={3} />,
+  pendingComponent: () => <SkeletonLoader count={3} />,
   component: NeuronDetailsRouteComponent,
 });
 

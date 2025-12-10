@@ -16,7 +16,7 @@ import {
   ResponsiveDialogTrigger,
 } from '@components/responsive-dialog';
 import { E8S, IS_TESTNET } from '@constants/extra';
-import { useNnsGovernanceTest } from '@hooks/canisters/governance/useGovernanceTest';
+import { useNnsGovernanceTest } from '@hooks/governance/useGovernanceTest';
 import { errorMessage } from '@utils/error';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';

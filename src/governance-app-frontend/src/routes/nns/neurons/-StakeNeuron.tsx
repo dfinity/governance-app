@@ -17,9 +17,9 @@ import {
   ICP_TRANSACTION_FEE_E8S,
   ICP_TRANSACTION_FEE_E8Sn,
 } from '@constants/extra';
-import { useNnsGovernance } from '@hooks/canisters/governance';
-import { useIcpLedger } from '@hooks/canisters/icpLedger/useIcpLedger';
-import { useIcpLedgerAccountBalance } from '@hooks/canisters/icpLedger/useIcpLedgerAccountBalance';
+import { useNnsGovernance } from '@hooks/governance';
+import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
+import { useIcpLedgerAccountBalance } from '@hooks/icpLedger/useIcpLedgerAccountBalance';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { errorNotification, successNotification } from '@utils/notification';

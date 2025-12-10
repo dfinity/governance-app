@@ -17,15 +17,15 @@ import { QueryStates } from '@components/extra/QueryStates';
 import { SimpleCard } from '@components/extra/SimpleCard';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
-import { useIcpIndexTransactions } from '@hooks/canisters/icpIndex/useIcpIndexTransactions';
-import { useIcpIndexTransactionsPolling } from '@hooks/canisters/icpIndex/useIcpIndexTransactionsPolling';
+import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
+import { useIcpIndexTransactionsPolling } from '@hooks/icpIndex/useIcpIndexTransactionsPolling';
 import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';
 import { bigIntDiv } from '@utils/bigInt';
 import { requireIdentity } from '@utils/router';
 
 import { GetTokens } from '@/dev/GetTokens';
-import { cn } from '@utils/utils';
+import { cn } from '@utils/shadcn';
 
 export const Route = createFileRoute('/nns/accounts/')({
   component: AccountsPage,

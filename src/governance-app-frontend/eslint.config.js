@@ -51,7 +51,6 @@ const tsConfiguration = tseslint.config(
               '^@constants',
               '^@contexts',
               '^@hooks',
-              '^@queries',
               '^@typings',
               '^@utils',
               '^@fixtures',

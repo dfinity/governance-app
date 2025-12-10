@@ -18,7 +18,7 @@ import {
 } from '@components/responsive-dialog';
 import { SECONDS_IN_DAY } from '@constants/extra';
 import { ICP_MAX_DISSOLVE_DELAY_SECONDS, ICP_MIN_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
-import { useNnsGovernance } from '@hooks/canisters/governance';
+import { useNnsGovernance } from '@hooks/governance';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { errorNotification, successNotification } from '@utils/notification';

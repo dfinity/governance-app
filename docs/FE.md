@@ -61,6 +61,7 @@ The application follows a modular architecture organized into four main levels:
 4.  **`routes/`**: Handles the routing logic using TanStack Router.
     *   This layer acts as the "wiring" that connects URLs to `features`.
     *   Ideally, route files should be thin wrappers that import and render components from `features/`.
+5. **`dev/`**: Contains development utilities.
 
 ## Icons
 

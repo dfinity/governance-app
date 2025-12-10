@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { InViewSentinel } from '@components/extra/InViewSentinel';
 import { QueryStates } from '@components/extra/QueryStates';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
-import { useGovernanceProposals } from '@hooks/canisters/governance';
+import { useGovernanceProposals } from '@hooks/governance';
 import useTitle from '@hooks/useTitle';
 
 import { ProposalCard } from '@/features/voting/components/ProposalCard';

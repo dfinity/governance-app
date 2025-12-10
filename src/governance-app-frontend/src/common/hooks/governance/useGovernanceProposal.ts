@@ -1,6 +1,6 @@
 import { ListProposalsRequest } from '@icp-sdk/canisters/nns';
 
-import { useQueryThenUpdateCall } from '@queries/useQueryThenUpdateCall';
+import { useQueryThenUpdateCall } from '@hooks/useQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/query';
 
 import { useNnsGovernance } from './useGovernance';

@@ -1,8 +1,14 @@
-import Skeleton, { SkeletonProps } from 'react-loading-skeleton';
+import { Skeleton } from '@components/skeleton';
 
-import { useTheme } from '@hooks/useTheme';
+type Props = {
+  count?: number;
+  width?: number | string;
+  height?: number | string;
+};
 
-export const SkeletonLoader = (props: SkeletonProps) => {
-  const { theme } = useTheme();
-  return <Skeleton baseColor={theme === 'dark' ? '#333' : '#ddd'} {...props} />;
+// TODO: To be removed
+export const SkeletonLoader = (props: Props) => {
+  const { width = '100%', height = 16 } = props;
+
+  return <Skeleton style={{ width, height }} />;
 };

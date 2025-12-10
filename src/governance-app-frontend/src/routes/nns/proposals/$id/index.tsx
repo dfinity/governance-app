@@ -2,14 +2,13 @@ import { jsonReplacer } from '@dfinity/utils';
 import { ProposalInfo, ProposalRewardStatus, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import Skeleton from 'react-loading-skeleton';
 
 import { CertifiedData } from '@common/typings/queries';
 import { CertifiedBadge } from '@components/CertifiedBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/card';
 import { QueryStates } from '@components/extra/QueryStates';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
-import { useGovernanceProposal } from '@hooks/canisters/governance/useGovernanceProposal';
+import { useGovernanceProposal } from '@hooks/governance/useGovernanceProposal';
 import useTitle from '@hooks/useTitle';
 import { stringToBigInt } from '@utils/bigInt';
 
@@ -34,7 +33,7 @@ export const Route = createFileRoute('/nns/proposals/$id/')({
   beforeLoad: ({ params }) => {
     if (!params.id) throw redirect({ to: '/nns/proposals', replace: true });
   },
-  pendingComponent: () => <Skeleton count={3} />,
+  pendingComponent: () => <SkeletonLoader count={3} />,
   component: ProposalDetailsRouteComponent,
 });
 

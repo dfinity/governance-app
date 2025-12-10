@@ -61,10 +61,6 @@ export default defineConfig({
         replacement: fileURLToPath(new URL('./src/common/hooks/', import.meta.url)),
       },
       {
-        find: '@queries',
-        replacement: fileURLToPath(new URL('./src/common/queries/', import.meta.url)),
-      },
-      {
         find: '@typings',
         replacement: fileURLToPath(new URL('./src/common/typings/', import.meta.url)),
       },
@@ -74,7 +70,7 @@ export default defineConfig({
       },
       {
         find: '@fixtures',
-        replacement: fileURLToPath(new URL('./src/common/fixtures/', import.meta.url)),
+        replacement: fileURLToPath(new URL('./tests/fixtures/', import.meta.url)),
       },
       {
         find: '@common',

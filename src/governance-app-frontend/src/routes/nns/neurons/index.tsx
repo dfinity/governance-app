@@ -8,7 +8,7 @@ import { QueryStates } from '@components/extra/QueryStates';
 import { SimpleCard } from '@components/extra/SimpleCard';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { E8S } from '@constants/extra';
-import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceNeurons';
+import { useGovernanceNeurons } from '@hooks/governance/useGovernanceNeurons';
 import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';
 import { requireIdentity } from '@utils/router';

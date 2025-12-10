@@ -1,7 +1,7 @@
 import { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import Skeleton from 'react-loading-skeleton';
 
+import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { EmptyMessage } from '../EmptyMessage';
 import { WarningMessage } from './WarningMessage';
 
@@ -42,7 +42,7 @@ export const QueryStates = <TData,>({
   const q = query || infiniteQuery;
 
   if (q.isLoading) {
-    return loadingComponent || <Skeleton count={3} />;
+    return loadingComponent || <SkeletonLoader count={3} />;
   }
 
   if (q.error) {

@@ -1,7 +1,7 @@
 import { ListProposalsRequest, ListProposalsResponse, Option } from '@icp-sdk/canisters/nns';
 
 import { PAGINATION_LIMIT } from '@constants/extra';
-import { useInfiniteQueryThenUpdateCall } from '@queries/useInfiniteQueryThenUpdateCall';
+import { useInfiniteQueryThenUpdateCall } from '@hooks/useInfiniteQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/query';
 
 import { useNnsGovernance } from './useGovernance';
