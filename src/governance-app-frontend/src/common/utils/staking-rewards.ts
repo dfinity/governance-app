@@ -39,7 +39,7 @@ import {
   isNeuronEligibleToVote,
   maximiseNeuronParams,
 } from '@utils/neuron';
-import { getApyTestNeuron } from '@utils/staking-rewards.spec';
+import { getApyTestNeuron } from '@utils/staking-rewards-test';
 
 import { logWithTimestamp } from '@/dev/log';
 
