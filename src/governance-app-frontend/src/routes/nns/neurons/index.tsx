@@ -7,11 +7,19 @@ import { CertifiedBadge } from '@components/CertifiedBadge';
 import { QueryStates } from '@components/QueryStates';
 import { SimpleCard } from '@components/SimpleCard';
 import { SkeletonLoader } from '@components/SkeletonLoader';
+import { WarningMessage } from '@components/WarningMessage';
 import { E8S } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance/useGovernanceNeurons';
+import { useStakingRewards } from '@hooks/useStakingRewards';
 import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';
+import { getNeuronId } from '@utils/neuron';
 import { requireIdentity } from '@utils/router';
+import {
+  isStakingRewardDataError,
+  isStakingRewardDataLoading,
+  isStakingRewardDataReady,
+} from '@utils/staking-rewards';
 
 import { StakeNeuron } from './-StakeNeuron';
 
@@ -29,6 +37,8 @@ function NeuronsPage() {
       i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
     });
   useTitle(t(($) => $.common.neuronsList));
+
+  const apyData = useStakingRewards();
 
   return (
     <div className="flex flex-col gap-2 text-xl">
@@ -80,6 +90,25 @@ function NeuronsPage() {
                         <tr>
                           <td className="pr-2 font-bold">{t(($) => $.neuron.dissolveDelay)}:</td>
                           <td>{dissolveDelayRemaining(neuron)}</td>
+                        </tr>
+                        <tr>
+                          <td className="pr-2 font-bold">{t(($) => $.common.apy)}:</td>
+                          <td>
+                            {isStakingRewardDataLoading(apyData) && (
+                              <SkeletonLoader width={50} height={24} />
+                            )}
+                            {isStakingRewardDataError(apyData) && (
+                              <WarningMessage message={apyData.error} />
+                            )}
+                            {isStakingRewardDataReady(apyData) ? (
+                              <span>
+                                {(
+                                  (apyData.apy.neurons.get(getNeuronId(neuron))?.cur ?? 0) * 100
+                                ).toFixed(2)}
+                                %
+                              </span>
+                            ) : null}
+                          </td>
                         </tr>
                       </tbody>
                     </table>
