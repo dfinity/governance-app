@@ -9,7 +9,7 @@ type Props = {
 export const SimpleCard = ({ children, className }: Props) => {
   return (
     <Card className={cn('h-full cursor-pointer transition-colors hover:bg-muted/50', className)}>
-      <CardContent className="flex h-full flex-col justify-between p-4">{children}</CardContent>
+      <CardContent className="flex h-full flex-col justify-between px-4">{children}</CardContent>
     </Card>
   );
 };

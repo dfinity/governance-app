@@ -108,9 +108,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger asChild>
-        <Button size="sm" variant="outline">
-          Get Tokens
-        </Button>
+        <Button className="w-full">Buy ICP</Button>
       </ResponsiveDialogTrigger>
 
       <ResponsiveDialogContent>
