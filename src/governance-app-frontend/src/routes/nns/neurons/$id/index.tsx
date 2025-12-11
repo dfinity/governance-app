@@ -9,21 +9,21 @@ import { SkeletonLoader } from '@components/SkeletonLoader';
 import { WarningMessage } from '@components/WarningMessage';
 import { E8S, E8Sn, IS_TESTNET } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance/useGovernanceNeurons';
+import { useStakingRewards } from '@hooks/useStakingRewards';
 import useTitle from '@hooks/useTitle';
 import { bigIntDiv, stringToBigInt } from '@utils/bigInt';
+import { getNeuronId } from '@utils/neuron';
 import { requireIdentity } from '@utils/router';
-
-import { IncreaseMaturityModal } from '@/dev/IncreaseMaturityModal';
-import { UnlockNeuronModal } from '@/dev/UnlockNeuronModal';
-
-import { SetDissolveDelayModal } from '../-SetDissolveDelayModal';
-import { useStakingRewards } from '@hooks/useStakingRewards';
 import {
   isStakingRewardDataError,
   isStakingRewardDataLoading,
   isStakingRewardDataReady,
 } from '@utils/staking-rewards';
-import { getNeuronId } from '@utils/neuron';
+
+import { IncreaseMaturityModal } from '@/dev/IncreaseMaturityModal';
+import { UnlockNeuronModal } from '@/dev/UnlockNeuronModal';
+
+import { SetDissolveDelayModal } from '../-SetDissolveDelayModal';
 
 const NeuronDetailsRouteComponent = () => {
   const { t } = useTranslation();
