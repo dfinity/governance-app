@@ -65,6 +65,10 @@ export default defineConfig({
         replacement: fileURLToPath(new URL('./src/common/utils/', import.meta.url)),
       },
       {
+        find: '@features',
+        replacement: fileURLToPath(new URL('./src/features/', import.meta.url)),
+      },
+      {
         find: '@fixtures',
         replacement: fileURLToPath(new URL('./tests/fixtures/', import.meta.url)),
       },

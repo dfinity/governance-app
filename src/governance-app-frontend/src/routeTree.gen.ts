@@ -9,15 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VotingIndexRouteImport } from './routes/voting/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as NnsIndexRouteImport } from './routes/nns/index'
 import { Route as homepageIndexRouteImport } from './routes/(homepage)/index'
-import { Route as NnsProposalsIndexRouteImport } from './routes/nns/proposals/index'
 import { Route as NnsNeuronsIndexRouteImport } from './routes/nns/neurons/index'
 import { Route as NnsAccountsIndexRouteImport } from './routes/nns/accounts/index'
-import { Route as NnsProposalsIdIndexRouteImport } from './routes/nns/proposals/$id/index'
+import { Route as VotingProposalsIdIndexRouteImport } from './routes/voting/proposals/$id/index'
 import { Route as NnsNeuronsIdIndexRouteImport } from './routes/nns/neurons/$id/index'
 
+const VotingIndexRoute = VotingIndexRouteImport.update({
+  id: '/voting/',
+  path: '/voting/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsIndexRoute = SettingsIndexRouteImport.update({
   id: '/settings/',
   path: '/settings/',
@@ -33,11 +38,6 @@ const homepageIndexRoute = homepageIndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const NnsProposalsIndexRoute = NnsProposalsIndexRouteImport.update({
-  id: '/nns/proposals/',
-  path: '/nns/proposals/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const NnsNeuronsIndexRoute = NnsNeuronsIndexRouteImport.update({
   id: '/nns/neurons/',
   path: '/nns/neurons/',
@@ -48,9 +48,9 @@ const NnsAccountsIndexRoute = NnsAccountsIndexRouteImport.update({
   path: '/nns/accounts/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const NnsProposalsIdIndexRoute = NnsProposalsIdIndexRouteImport.update({
-  id: '/nns/proposals/$id/',
-  path: '/nns/proposals/$id/',
+const VotingProposalsIdIndexRoute = VotingProposalsIdIndexRouteImport.update({
+  id: '/voting/proposals/$id/',
+  path: '/voting/proposals/$id/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NnsNeuronsIdIndexRoute = NnsNeuronsIdIndexRouteImport.update({
@@ -63,32 +63,32 @@ export interface FileRoutesByFullPath {
   '/': typeof homepageIndexRoute
   '/nns': typeof NnsIndexRoute
   '/settings': typeof SettingsIndexRoute
+  '/voting': typeof VotingIndexRoute
   '/nns/accounts': typeof NnsAccountsIndexRoute
   '/nns/neurons': typeof NnsNeuronsIndexRoute
-  '/nns/proposals': typeof NnsProposalsIndexRoute
   '/nns/neurons/$id': typeof NnsNeuronsIdIndexRoute
-  '/nns/proposals/$id': typeof NnsProposalsIdIndexRoute
+  '/voting/proposals/$id': typeof VotingProposalsIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof homepageIndexRoute
   '/nns': typeof NnsIndexRoute
   '/settings': typeof SettingsIndexRoute
+  '/voting': typeof VotingIndexRoute
   '/nns/accounts': typeof NnsAccountsIndexRoute
   '/nns/neurons': typeof NnsNeuronsIndexRoute
-  '/nns/proposals': typeof NnsProposalsIndexRoute
   '/nns/neurons/$id': typeof NnsNeuronsIdIndexRoute
-  '/nns/proposals/$id': typeof NnsProposalsIdIndexRoute
+  '/voting/proposals/$id': typeof VotingProposalsIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/(homepage)/': typeof homepageIndexRoute
   '/nns/': typeof NnsIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/voting/': typeof VotingIndexRoute
   '/nns/accounts/': typeof NnsAccountsIndexRoute
   '/nns/neurons/': typeof NnsNeuronsIndexRoute
-  '/nns/proposals/': typeof NnsProposalsIndexRoute
   '/nns/neurons/$id/': typeof NnsNeuronsIdIndexRoute
-  '/nns/proposals/$id/': typeof NnsProposalsIdIndexRoute
+  '/voting/proposals/$id/': typeof VotingProposalsIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -96,46 +96,53 @@ export interface FileRouteTypes {
     | '/'
     | '/nns'
     | '/settings'
+    | '/voting'
     | '/nns/accounts'
     | '/nns/neurons'
-    | '/nns/proposals'
     | '/nns/neurons/$id'
-    | '/nns/proposals/$id'
+    | '/voting/proposals/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/nns'
     | '/settings'
+    | '/voting'
     | '/nns/accounts'
     | '/nns/neurons'
-    | '/nns/proposals'
     | '/nns/neurons/$id'
-    | '/nns/proposals/$id'
+    | '/voting/proposals/$id'
   id:
     | '__root__'
     | '/(homepage)/'
     | '/nns/'
     | '/settings/'
+    | '/voting/'
     | '/nns/accounts/'
     | '/nns/neurons/'
-    | '/nns/proposals/'
     | '/nns/neurons/$id/'
-    | '/nns/proposals/$id/'
+    | '/voting/proposals/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   homepageIndexRoute: typeof homepageIndexRoute
   NnsIndexRoute: typeof NnsIndexRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
+  VotingIndexRoute: typeof VotingIndexRoute
   NnsAccountsIndexRoute: typeof NnsAccountsIndexRoute
   NnsNeuronsIndexRoute: typeof NnsNeuronsIndexRoute
-  NnsProposalsIndexRoute: typeof NnsProposalsIndexRoute
   NnsNeuronsIdIndexRoute: typeof NnsNeuronsIdIndexRoute
-  NnsProposalsIdIndexRoute: typeof NnsProposalsIdIndexRoute
+  VotingProposalsIdIndexRoute: typeof VotingProposalsIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/voting/': {
+      id: '/voting/'
+      path: '/voting'
+      fullPath: '/voting'
+      preLoaderRoute: typeof VotingIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings/': {
       id: '/settings/'
       path: '/settings'
@@ -157,13 +164,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof homepageIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/nns/proposals/': {
-      id: '/nns/proposals/'
-      path: '/nns/proposals'
-      fullPath: '/nns/proposals'
-      preLoaderRoute: typeof NnsProposalsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/nns/neurons/': {
       id: '/nns/neurons/'
       path: '/nns/neurons'
@@ -178,11 +178,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NnsAccountsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/nns/proposals/$id/': {
-      id: '/nns/proposals/$id/'
-      path: '/nns/proposals/$id'
-      fullPath: '/nns/proposals/$id'
-      preLoaderRoute: typeof NnsProposalsIdIndexRouteImport
+    '/voting/proposals/$id/': {
+      id: '/voting/proposals/$id/'
+      path: '/voting/proposals/$id'
+      fullPath: '/voting/proposals/$id'
+      preLoaderRoute: typeof VotingProposalsIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/nns/neurons/$id/': {
@@ -199,11 +199,11 @@ const rootRouteChildren: RootRouteChildren = {
   homepageIndexRoute: homepageIndexRoute,
   NnsIndexRoute: NnsIndexRoute,
   SettingsIndexRoute: SettingsIndexRoute,
+  VotingIndexRoute: VotingIndexRoute,
   NnsAccountsIndexRoute: NnsAccountsIndexRoute,
   NnsNeuronsIndexRoute: NnsNeuronsIndexRoute,
-  NnsProposalsIndexRoute: NnsProposalsIndexRoute,
   NnsNeuronsIdIndexRoute: NnsNeuronsIdIndexRoute,
-  NnsProposalsIdIndexRoute: NnsProposalsIdIndexRoute,
+  VotingProposalsIdIndexRoute: VotingProposalsIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

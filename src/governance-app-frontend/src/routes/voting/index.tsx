@@ -1,3 +1,5 @@
+import { ProposalCard } from '@features/voting/components/ProposalCard';
+import { useVotableLoadedProposals } from '@features/voting/hooks/useVotableLoadedProposals';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
@@ -7,15 +9,11 @@ import { SkeletonLoader } from '@components/SkeletonLoader';
 import { useGovernanceProposals } from '@hooks/governance';
 import useTitle from '@hooks/useTitle';
 
-import { ProposalCard } from '@/features/voting/components/ProposalCard';
-
-import { useVotableLoadedProposals } from './-hooks/useVotableLoadedProposals';
-
-export const Route = createFileRoute('/nns/proposals/')({
-  component: ProposalsPage,
+export const Route = createFileRoute('/voting/')({
+  component: Voting,
 });
 
-function ProposalsPage() {
+function Voting() {
   const { t } = useTranslation();
   useTitle(t(($) => $.common.proposalsList));
 
@@ -23,9 +21,7 @@ function ProposalsPage() {
   const proposals = useGovernanceProposals();
 
   return (
-    <div className="flex flex-col gap-2 text-xl">
-      <h2 className="mb-2 text-3xl font-bold tracking-tight">{t(($) => $.common.proposalsList)}</h2>
-
+    <div>
       <QueryStates
         infiniteQuery={proposals}
         isEmpty={(data) => !data?.pages?.[0].response.proposals.length}

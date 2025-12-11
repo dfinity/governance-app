@@ -23,7 +23,7 @@ const ProposalDetailsRouteComponent = () => {
   return <ProposalDetails proposalId={id!} />;
 };
 
-export const Route = createFileRoute('/nns/proposals/$id/')({
+export const Route = createFileRoute('/voting/proposals/$id/')({
   params: {
     parse: ({ id }) => ({
       id: stringToBigInt(id),
