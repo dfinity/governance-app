@@ -1,7 +1,8 @@
-import { ProposalCard } from '@features/voting/components/ProposalCard';
-import { useVotableLoadedProposals } from '@features/voting/hooks/useVotableLoadedProposals';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
+
+import { ProposalCard } from '@features/proposals/components/ProposalCard';
+import { useVotableLoadedProposals } from '@features/proposals/hooks/useVotableLoadedProposals';
 
 import { InViewSentinel } from '@components/InViewSentinel';
 import { QueryStates } from '@components/QueryStates';
@@ -35,7 +36,7 @@ function Voting() {
                 return (
                   <Link
                     params={{ id: proposal.id }}
-                    to="/nns/proposals/$id"
+                    to="/voting/proposals/$id"
                     key={proposal.id?.toString()}
                     className="group flex h-full flex-col"
                   >

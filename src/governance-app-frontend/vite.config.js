@@ -41,16 +41,20 @@ export default defineConfig({
         replacement: fileURLToPath(new URL('../declarations/', import.meta.url)),
       },
       {
+        find: '@contexts',
+        replacement: fileURLToPath(new URL('./src/app/contexts/', import.meta.url)),
+      },
+      {
+        find: '@features',
+        replacement: fileURLToPath(new URL('./src/features/', import.meta.url)),
+      },
+      {
         find: '@components',
         replacement: fileURLToPath(new URL('./src/common/components/', import.meta.url)),
       },
       {
         find: '@constants',
         replacement: fileURLToPath(new URL('./src/common/constants/', import.meta.url)),
-      },
-      {
-        find: '@contexts',
-        replacement: fileURLToPath(new URL('./src/app/contexts/', import.meta.url)),
       },
       {
         find: '@hooks',
@@ -63,10 +67,6 @@ export default defineConfig({
       {
         find: '@utils',
         replacement: fileURLToPath(new URL('./src/common/utils/', import.meta.url)),
-      },
-      {
-        find: '@features',
-        replacement: fileURLToPath(new URL('./src/features/', import.meta.url)),
       },
       {
         find: '@fixtures',

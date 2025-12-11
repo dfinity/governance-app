@@ -3,6 +3,8 @@ import { jsonReplacer } from '@dfinity/utils';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
+import { ProposalDetailsVoting } from '@features/proposals/components/ProposalDetailsVoting';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
 import { QueryStates } from '@components/QueryStates';
@@ -11,8 +13,6 @@ import { useGovernanceProposal } from '@hooks/governance/useGovernanceProposal';
 import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';
 import { stringToBigInt } from '@utils/bigInt';
-
-import { ProposalDetailsVoting } from './-ProposalDetailsVoting';
 
 const ProposalDetailsRouteComponent = () => {
   const { t } = useTranslation();
@@ -31,7 +31,7 @@ export const Route = createFileRoute('/voting/proposals/$id/')({
     stringify: ({ id }) => ({ id: id?.toString() ?? '' }),
   },
   beforeLoad: ({ params }) => {
-    if (!params.id) throw redirect({ to: '/nns/proposals', replace: true });
+    if (!params.id) throw redirect({ to: '/voting', replace: true });
   },
   pendingComponent: () => <SkeletonLoader count={3} />,
   component: ProposalDetailsRouteComponent,
