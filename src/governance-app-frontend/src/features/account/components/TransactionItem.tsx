@@ -49,7 +49,7 @@ export const AccountTransactionItem = ({
               <span className="text-xs text-muted-foreground">
                 {new Date(
                   Number((tx.transaction.created_at_time[0]?.timestamp_nanos ?? 0n) / 1_000_000n) ||
-                  0,
+                    0,
                 ).toLocaleString()}
               </span>
 

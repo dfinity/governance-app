@@ -32,8 +32,8 @@ export function AccountCard() {
 
   const accountId = nonNullish(identity)
     ? AccountIdentifier.fromPrincipal({
-      principal: identity.getPrincipal(),
-    })
+        principal: identity.getPrincipal(),
+      })
     : null;
 
   const { tickerPrices } = useTickerPrices();
@@ -72,7 +72,11 @@ export function AccountCard() {
                         {(priceData) => {
                           const icpPrice = priceData.get(CANISTER_ID_ICP_LEDGER!);
                           const usdValue = icpPrice ? (balanceICPs * icpPrice.usd).toFixed(2) : '-';
-                          return <p className="text-xs text-muted-foreground">{t(($) => $.account.approxUsd, { value: usdValue })}</p>;
+                          return (
+                            <p className="text-xs text-muted-foreground">
+                              {t(($) => $.account.approxUsd, { value: usdValue })}
+                            </p>
+                          );
                         }}
                       </QueryStates>
                     </div>

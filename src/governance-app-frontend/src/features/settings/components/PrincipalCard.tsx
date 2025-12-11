@@ -1,7 +1,7 @@
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { useTranslation } from 'react-i18next';
 import { Check, Copy } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { Card, CardContent } from '@components/Card';
