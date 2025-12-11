@@ -21,7 +21,6 @@ import { withMinimumDelay } from '@utils/async';
 import { errorMessage } from '@utils/error';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
-import { Download } from 'lucide-react';
 
 /*
  * Gives the caller the specified amount of (fake) ICPs.
