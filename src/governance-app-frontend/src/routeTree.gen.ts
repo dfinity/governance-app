@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VotingIndexRouteImport } from './routes/voting/index'
+import { Route as StakesIndexRouteImport } from './routes/stakes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as NnsIndexRouteImport } from './routes/nns/index'
 import { Route as homepageIndexRouteImport } from './routes/(homepage)/index'
@@ -20,6 +21,11 @@ import { Route as NnsNeuronsIdIndexRouteImport } from './routes/nns/neurons/$id/
 const VotingIndexRoute = VotingIndexRouteImport.update({
   id: '/voting/',
   path: '/voting/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StakesIndexRoute = StakesIndexRouteImport.update({
+  id: '/stakes/',
+  path: '/stakes/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsIndexRoute = SettingsIndexRouteImport.update({
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof homepageIndexRoute
   '/nns': typeof NnsIndexRoute
   '/settings': typeof SettingsIndexRoute
+  '/stakes': typeof StakesIndexRoute
   '/voting': typeof VotingIndexRoute
   '/nns/neurons': typeof NnsNeuronsIndexRoute
   '/nns/neurons/$id': typeof NnsNeuronsIdIndexRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof homepageIndexRoute
   '/nns': typeof NnsIndexRoute
   '/settings': typeof SettingsIndexRoute
+  '/stakes': typeof StakesIndexRoute
   '/voting': typeof VotingIndexRoute
   '/nns/neurons': typeof NnsNeuronsIndexRoute
   '/nns/neurons/$id': typeof NnsNeuronsIdIndexRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/(homepage)/': typeof homepageIndexRoute
   '/nns/': typeof NnsIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/stakes/': typeof StakesIndexRoute
   '/voting/': typeof VotingIndexRoute
   '/nns/neurons/': typeof NnsNeuronsIndexRoute
   '/nns/neurons/$id/': typeof NnsNeuronsIdIndexRoute
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/nns'
     | '/settings'
+    | '/stakes'
     | '/voting'
     | '/nns/neurons'
     | '/nns/neurons/$id'
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/nns'
     | '/settings'
+    | '/stakes'
     | '/voting'
     | '/nns/neurons'
     | '/nns/neurons/$id'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/(homepage)/'
     | '/nns/'
     | '/settings/'
+    | '/stakes/'
     | '/voting/'
     | '/nns/neurons/'
     | '/nns/neurons/$id/'
@@ -115,6 +127,7 @@ export interface RootRouteChildren {
   homepageIndexRoute: typeof homepageIndexRoute
   NnsIndexRoute: typeof NnsIndexRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
+  StakesIndexRoute: typeof StakesIndexRoute
   VotingIndexRoute: typeof VotingIndexRoute
   NnsNeuronsIndexRoute: typeof NnsNeuronsIndexRoute
   NnsNeuronsIdIndexRoute: typeof NnsNeuronsIdIndexRoute
@@ -128,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: '/voting'
       fullPath: '/voting'
       preLoaderRoute: typeof VotingIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stakes/': {
+      id: '/stakes/'
+      path: '/stakes'
+      fullPath: '/stakes'
+      preLoaderRoute: typeof StakesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings/': {
@@ -179,6 +199,7 @@ const rootRouteChildren: RootRouteChildren = {
   homepageIndexRoute: homepageIndexRoute,
   NnsIndexRoute: NnsIndexRoute,
   SettingsIndexRoute: SettingsIndexRoute,
+  StakesIndexRoute: StakesIndexRoute,
   VotingIndexRoute: VotingIndexRoute,
   NnsNeuronsIndexRoute: NnsNeuronsIndexRoute,
   NnsNeuronsIdIndexRoute: NnsNeuronsIdIndexRoute,

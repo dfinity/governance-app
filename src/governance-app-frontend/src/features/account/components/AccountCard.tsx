@@ -1,8 +1,8 @@
+import { isNullish, nonNullish } from '@dfinity/utils';
 import {
   AccountIdentifier,
   GetAccountIdentifierTransactionsResponse,
 } from '@icp-sdk/canisters/ledger/icp';
-import { isNullish, nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { CreditCard, List } from 'lucide-react';
 import { useState } from 'react';
@@ -41,9 +41,11 @@ export function AccountCard() {
 
   return (
     <>
-      <Card>
+      <Card className="flex-1">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="font-semibold uppercase">{t(($) => $.common.accounts)}</CardTitle>
+          <CardTitle className="text-medium tracking-wide text-muted-foreground uppercase">
+            {t(($) => $.common.accounts)}
+          </CardTitle>
         </CardHeader>
 
         <CardContent>
