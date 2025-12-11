@@ -4,6 +4,7 @@ import {
   type NeuronInfo,
   NeuronState,
 } from '@icp-sdk/canisters/nns';
+import { describe, it } from 'vitest';
 
 import { E8S, SECONDS_IN_EIGHT_YEARS } from '@constants/extra';
 
@@ -61,4 +62,10 @@ export const getApyTestNeuron = (
     },
     autoStakeMaturity: true,
   },
+});
+
+describe('staking-rewards utils', () => {
+  it('TODO: should add tests for staking-rewards utility functions', () => {
+    // TODO: implement unit tests
+  });
 });
