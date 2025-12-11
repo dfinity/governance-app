@@ -1,8 +1,8 @@
-import { isNullish, nonNullish } from '@dfinity/utils';
 import {
   AccountIdentifier,
   GetAccountIdentifierTransactionsResponse,
 } from '@icp-sdk/canisters/ledger/icp';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { CreditCard, List } from 'lucide-react';
 import { useState } from 'react';
