@@ -26,15 +26,18 @@ const ThemeCard = () => {
             }}
             className="rounded-md border"
           >
-            <ToggleGroupItem value="light" aria-label={t(($) => $.settings.aria.toggleLight)}>
+            <ToggleGroupItem value={Theme.Light} aria-label={t(($) => $.settings.aria.toggleLight)}>
               <Sun className="mr-2 h-4 w-4" />
               <span className="hidden xs:inline">{t(($) => $.settings.modes.light)}</span>
             </ToggleGroupItem>
-            <ToggleGroupItem value="dark" aria-label={t(($) => $.settings.aria.toggleDark)}>
+            <ToggleGroupItem value={Theme.Dark} aria-label={t(($) => $.settings.aria.toggleDark)}>
               <Moon className="mr-2 h-4 w-4" />
               <span className="hidden xs:inline">{t(($) => $.settings.modes.dark)}</span>
             </ToggleGroupItem>
-            <ToggleGroupItem value="system" aria-label={t(($) => $.settings.aria.toggleSystem)}>
+            <ToggleGroupItem
+              value={Theme.System}
+              aria-label={t(($) => $.settings.aria.toggleSystem)}
+            >
               <Monitor className="mr-2 h-4 w-4" />
               <span className="hidden xs:inline">{t(($) => $.settings.modes.system)}</span>
             </ToggleGroupItem>
