@@ -1,4 +1,5 @@
 import { NeuronInfo } from '@icp-sdk/canisters/nns';
+import { Link } from '@tanstack/react-router';
 import { Coins, TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -10,7 +11,6 @@ import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8S } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
-import { Link } from '@tanstack/react-router';
 import { CertifiedData } from '@typings/queries';
 import { TokenPrices } from '@typings/tokenPrices';
 
@@ -33,8 +33,6 @@ export function StakedCard() {
           isEmpty={(neurons) => neurons.response.length === 0}
         >
           {(neurons) => {
-            console.log(neurons);
-
             const totalStaked = neurons.response.reduce((acc, neuron) => {
               const stake = Number(neuron.fullNeuron?.cachedNeuronStake) / E8S;
               return acc + stake;

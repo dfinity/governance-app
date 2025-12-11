@@ -1,9 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
 
-import { Button } from '@components/button';
+import { NeuronsList } from '@features/stakes/components/NeuronsList';
+import { StakeNeuronModal } from '@features/stakes/components/StakeNeuronModal';
 
-import { StakeNeuronModal } from '@features/neurons/components/StakeNeuronModal';
+import { Button } from '@components/button';
 
 export const Route = createFileRoute('/stakes/')({
   component: StakesComponent,
@@ -24,6 +25,7 @@ function StakesComponent() {
           </Button>
         </StakeNeuronModal>
       </div>
+      <NeuronsList />
     </div>
   );
 }
