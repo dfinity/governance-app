@@ -10,7 +10,6 @@ import { Label } from '@components/Label';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
-  ResponsiveDialogDescription,
   ResponsiveDialogFooter,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
@@ -119,9 +118,6 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
         <form onSubmit={handleSubmit}>
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>Get Testnet ICPs</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription className="break-all">
-              Account: {accountId.toHex()}
-            </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
 
           <div className="grid gap-2 py-4">
