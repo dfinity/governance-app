@@ -59,8 +59,8 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
           <Sidebar />
           <div className="flex h-screen w-full flex-col overflow-hidden">
             <Header />
-            <main className="relative mb-16 flex-1 overflow-auto p-4 lg:mb-0 lg:p-6">
-              {children}
+            <main className="relative mb-16 flex-1 overflow-auto lg:mb-0">
+              <div className="mx-auto w-full max-w-screen-xl p-8">{children}</div>
             </main>
             <BottomNav />
           </div>
