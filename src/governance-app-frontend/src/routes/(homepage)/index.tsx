@@ -3,8 +3,6 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 
 import { AccountCard } from '@features/account/components/AccountCard';
 
-import { Button } from '@components/button';
-
 export const Route = createFileRoute('/(homepage)/')({
   component: Homepage,
 });
