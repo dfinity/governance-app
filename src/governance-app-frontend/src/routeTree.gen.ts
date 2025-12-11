@@ -14,7 +14,6 @@ import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as NnsIndexRouteImport } from './routes/nns/index'
 import { Route as homepageIndexRouteImport } from './routes/(homepage)/index'
 import { Route as NnsNeuronsIndexRouteImport } from './routes/nns/neurons/index'
-import { Route as NnsAccountsIndexRouteImport } from './routes/nns/accounts/index'
 import { Route as VotingProposalsIdIndexRouteImport } from './routes/voting/proposals/$id/index'
 import { Route as NnsNeuronsIdIndexRouteImport } from './routes/nns/neurons/$id/index'
 
@@ -43,11 +42,6 @@ const NnsNeuronsIndexRoute = NnsNeuronsIndexRouteImport.update({
   path: '/nns/neurons/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const NnsAccountsIndexRoute = NnsAccountsIndexRouteImport.update({
-  id: '/nns/accounts/',
-  path: '/nns/accounts/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const VotingProposalsIdIndexRoute = VotingProposalsIdIndexRouteImport.update({
   id: '/voting/proposals/$id/',
   path: '/voting/proposals/$id/',
@@ -64,7 +58,6 @@ export interface FileRoutesByFullPath {
   '/nns': typeof NnsIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/voting': typeof VotingIndexRoute
-  '/nns/accounts': typeof NnsAccountsIndexRoute
   '/nns/neurons': typeof NnsNeuronsIndexRoute
   '/nns/neurons/$id': typeof NnsNeuronsIdIndexRoute
   '/voting/proposals/$id': typeof VotingProposalsIdIndexRoute
@@ -74,7 +67,6 @@ export interface FileRoutesByTo {
   '/nns': typeof NnsIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/voting': typeof VotingIndexRoute
-  '/nns/accounts': typeof NnsAccountsIndexRoute
   '/nns/neurons': typeof NnsNeuronsIndexRoute
   '/nns/neurons/$id': typeof NnsNeuronsIdIndexRoute
   '/voting/proposals/$id': typeof VotingProposalsIdIndexRoute
@@ -85,7 +77,6 @@ export interface FileRoutesById {
   '/nns/': typeof NnsIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/voting/': typeof VotingIndexRoute
-  '/nns/accounts/': typeof NnsAccountsIndexRoute
   '/nns/neurons/': typeof NnsNeuronsIndexRoute
   '/nns/neurons/$id/': typeof NnsNeuronsIdIndexRoute
   '/voting/proposals/$id/': typeof VotingProposalsIdIndexRoute
@@ -97,7 +88,6 @@ export interface FileRouteTypes {
     | '/nns'
     | '/settings'
     | '/voting'
-    | '/nns/accounts'
     | '/nns/neurons'
     | '/nns/neurons/$id'
     | '/voting/proposals/$id'
@@ -107,7 +97,6 @@ export interface FileRouteTypes {
     | '/nns'
     | '/settings'
     | '/voting'
-    | '/nns/accounts'
     | '/nns/neurons'
     | '/nns/neurons/$id'
     | '/voting/proposals/$id'
@@ -117,7 +106,6 @@ export interface FileRouteTypes {
     | '/nns/'
     | '/settings/'
     | '/voting/'
-    | '/nns/accounts/'
     | '/nns/neurons/'
     | '/nns/neurons/$id/'
     | '/voting/proposals/$id/'
@@ -128,7 +116,6 @@ export interface RootRouteChildren {
   NnsIndexRoute: typeof NnsIndexRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
   VotingIndexRoute: typeof VotingIndexRoute
-  NnsAccountsIndexRoute: typeof NnsAccountsIndexRoute
   NnsNeuronsIndexRoute: typeof NnsNeuronsIndexRoute
   NnsNeuronsIdIndexRoute: typeof NnsNeuronsIdIndexRoute
   VotingProposalsIdIndexRoute: typeof VotingProposalsIdIndexRoute
@@ -171,13 +158,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NnsNeuronsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/nns/accounts/': {
-      id: '/nns/accounts/'
-      path: '/nns/accounts'
-      fullPath: '/nns/accounts'
-      preLoaderRoute: typeof NnsAccountsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/voting/proposals/$id/': {
       id: '/voting/proposals/$id/'
       path: '/voting/proposals/$id'
@@ -200,7 +180,6 @@ const rootRouteChildren: RootRouteChildren = {
   NnsIndexRoute: NnsIndexRoute,
   SettingsIndexRoute: SettingsIndexRoute,
   VotingIndexRoute: VotingIndexRoute,
-  NnsAccountsIndexRoute: NnsAccountsIndexRoute,
   NnsNeuronsIndexRoute: NnsNeuronsIndexRoute,
   NnsNeuronsIdIndexRoute: NnsNeuronsIdIndexRoute,
   VotingProposalsIdIndexRoute: VotingProposalsIdIndexRoute,
