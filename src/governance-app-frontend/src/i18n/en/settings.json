@@ -1,0 +1,18 @@
+{
+    "general": "General",
+    "account": "Account",
+    "theme": "Theme",
+    "themeDescription": "Select your preferred theme for the application.",
+    "principalId": "Principal ID",
+    "notConnected": "Not connected",
+    "modes": {
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+    },
+    "aria": {
+        "toggleLight": "Toggle light",
+        "toggleDark": "Toggle dark",
+        "toggleSystem": "Toggle system"
+    }
+}

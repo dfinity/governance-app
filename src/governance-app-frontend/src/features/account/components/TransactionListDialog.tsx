@@ -32,8 +32,8 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
 
   const accountId = nonNullish(identity)
     ? AccountIdentifier.fromPrincipal({
-        principal: identity.getPrincipal(),
-      })
+      principal: identity.getPrincipal(),
+    })
     : null;
 
   const transactions = useIcpIndexTransactions();
@@ -44,7 +44,7 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
       <ResponsiveDialogContent className="max-h-[80vh] overflow-y-auto">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>{t(($) => $.common.transactions)}</ResponsiveDialogTitle>
-          <ResponsiveDialogDescription>Description comes here.</ResponsiveDialogDescription>
+          <ResponsiveDialogDescription>{t(($) => $.account.transactionListDescription)}</ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
         {isNullish(accountId) ? (

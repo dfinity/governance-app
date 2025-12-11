@@ -21,7 +21,7 @@ export const AccountTransactionItem = ({
 
   const operation = tx.transaction.operation;
   const isSending = 'Transfer' in operation && operation.Transfer.from === accountId;
-  const title = isSending ? 'Withdrawed ICP' : 'Deposited ICP';
+  const title = isSending ? t(($) => $.account.withdrawnIcp) : t(($) => $.account.depositedIcp);
 
   // @TODO: Display all the other operations as well.
   if (!('Transfer' in operation)) return null;
@@ -49,7 +49,7 @@ export const AccountTransactionItem = ({
               <span className="text-xs text-muted-foreground">
                 {new Date(
                   Number((tx.transaction.created_at_time[0]?.timestamp_nanos ?? 0n) / 1_000_000n) ||
-                    0,
+                  0,
                 ).toLocaleString()}
               </span>
 

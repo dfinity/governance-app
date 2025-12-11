@@ -6,7 +6,7 @@ type Props = {
   height?: number | string;
 };
 
-// TODO: To be removed
+// @TODO: To be removed
 export const SkeletonLoader = (props: Props) => {
   const { width = '100%', height = 16, count = 1 } = props;
 

@@ -5,5 +5,10 @@
   "transferTitle": "Send ICPs to another account.",
   "transactionHint": "Min {{min}}, max {{max}}, fee {{fee}} ICPs.",
   "accountError": "Please enter a valid account identifier.",
-  "amountError": "Please enter a valid amount."
+  "amountError": "Please enter a valid amount.",
+  "buyIcp": "Buy ICP",
+  "approxUsd": "≈ {{value}} USD",
+  "withdrawnIcp": "Withdrawn ICP",
+  "depositedIcp": "Deposited ICP",
+  "transactionListDescription": "Description comes here."
 }
