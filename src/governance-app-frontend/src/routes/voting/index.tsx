@@ -1,3 +1,5 @@
+import { ProposalCard } from '@features/voting/components/ProposalCard';
+import { useVotableLoadedProposals } from '@features/voting/hooks/useVotableLoadedProposals';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
