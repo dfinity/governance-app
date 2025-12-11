@@ -25,7 +25,7 @@ export const Header = () => {
       <div className="flex items-center gap-2">
         {/* Temporal until the login page is introduced */}
         {!identity && (
-          <Button onClick={login} variant="outline" size="sm">
+          <Button onClick={login} variant="outline" size="sm" data-testid="login-btn">
             <LogIn />
             {t(($) => $.common.login)}
           </Button>
