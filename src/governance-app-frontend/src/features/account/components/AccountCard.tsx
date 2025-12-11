@@ -18,7 +18,7 @@ import { SkeletonLoader } from '@components/SkeletonLoader';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
-import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
+import { useTickerPrices } from '@hooks/tickers';
 import { CertifiedData } from '@typings/queries';
 import { TokenPrices } from '@typings/tokenPrices';
 import { bigIntDiv } from '@utils/bigInt';
