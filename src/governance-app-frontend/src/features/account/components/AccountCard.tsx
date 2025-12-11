@@ -1,28 +1,29 @@
-import { isNullish, nonNullish } from '@dfinity/utils';
 import {
   AccountIdentifier,
   GetAccountIdentifierTransactionsResponse,
 } from '@icp-sdk/canisters/ledger/icp';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
+import { CreditCard, List } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { GetTokens } from '@/dev/GetTokens';
+import { TransactionListDialog } from '@features/account/components/TransactionListDialog';
+
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
 import { QueryStates } from '@components/QueryStates';
+import { SendICPsButton } from '@components/SendICPsButton';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
-import { TransactionListDialog } from '@features/account/components/TransactionListDialog';
 import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
 import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
 import { CertifiedData } from '@typings/queries';
 import { TokenPrices } from '@typings/tokenPrices';
-
-import { SendICPsButton } from '@components/SendICPsButton';
 import { bigIntDiv } from '@utils/bigInt';
-import { List } from 'lucide-react';
+
+import { GetTokens } from '@/dev/GetTokens';
 
 export function AccountCard() {
   const { t } = useTranslation();
@@ -76,8 +77,11 @@ export function AccountCard() {
                       </QueryStates>
                     </div>
 
-                    <div>
-                      <div className="flex gap-2">
+                    <div className="flex flex-col gap-3">
+                      <Button size="lg" className="pointer-events-none w-full">
+                        <CreditCard /> Buy ICP
+                      </Button>
+                      <div className="flex gap-3">
                         {IS_TESTNET && <GetTokens accountId={accountId} />}
 
                         <SendICPsButton balance={balanceICPs} />
@@ -85,7 +89,8 @@ export function AccountCard() {
 
                       <Button
                         variant="outline"
-                        className="mt-2 w-full"
+                        className="w-full"
+                        size="lg"
                         onClick={() => setIsDialogOpen(true)}
                       >
                         <List />

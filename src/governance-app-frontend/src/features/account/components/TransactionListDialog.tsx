@@ -1,13 +1,13 @@
-import { isNullish, nonNullish } from '@dfinity/utils';
 import {
   AccountIdentifier,
   GetAccountIdentifierTransactionsResponse,
 } from '@icp-sdk/canisters/ledger/icp';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { InViewSentinel } from '@components/InViewSentinel';
+import { AccountTransactionItem } from '@features/account/components/TransactionItem';
+
 import { QueryStates } from '@components/QueryStates';
 import {
   ResponsiveDialog,
@@ -17,7 +17,6 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { SkeletonLoader } from '@components/SkeletonLoader';
-import { AccountTransactionItem } from '@features/account/components/TransactionItem';
 import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
 import { useIcpIndexTransactionsPolling } from '@hooks/icpIndex/useIcpIndexTransactionsPolling';
 import { CertifiedData } from '@typings/queries';
@@ -33,17 +32,12 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
 
   const accountId = nonNullish(identity)
     ? AccountIdentifier.fromPrincipal({
-      principal: identity.getPrincipal(),
-    })
+        principal: identity.getPrincipal(),
+      })
     : null;
 
   const transactions = useIcpIndexTransactions();
   useIcpIndexTransactionsPolling();
-
-  const retriggerSentinel = useMemo(
-    () => [transactions.data, transactions.isFetching],
-    [transactions.data, transactions.isFetching],
-  );
 
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
@@ -61,9 +55,7 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
           <div className="flex flex-col gap-2">
             <QueryStates<CertifiedData<GetAccountIdentifierTransactionsResponse>>
               infiniteQuery={transactions}
-              isEmpty={(data) =>
-                !data.pages?.length || !data.pages[0].response.transactions.length
-              }
+              isEmpty={(data) => !data.pages?.length || !data.pages[0].response.transactions.length}
               loadingComponent={<SkeletonLoader count={3} />}
             >
               {(data) => (
@@ -77,15 +69,6 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
                         tx={tx}
                       />
                     )),
-                  )}
-
-                  {transactions.hasNextPage && (
-                    <InViewSentinel
-                      retrigger={retriggerSentinel}
-                      callback={transactions.fetchNextPage}
-                    >
-                      <SkeletonLoader count={3} />
-                    </InViewSentinel>
                   )}
                 </div>
               )}

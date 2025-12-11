@@ -1,6 +1,7 @@
 import { AccountIdentifier, BlockHeight, E8s, LedgerCanister } from '@icp-sdk/canisters/ledger/icp';
 import { Agent } from '@icp-sdk/core/agent';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Download } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 
 import { Button } from '@components/button';
@@ -21,7 +22,6 @@ import { withMinimumDelay } from '@utils/async';
 import { errorMessage } from '@utils/error';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
-import { Download } from 'lucide-react';
 
 /*
  * Gives the caller the specified amount of (fake) ICPs.
@@ -109,7 +109,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger asChild>
-        <Button variant="outline" className="flex-1">
+        <Button variant="outline" className="flex-1" size="lg">
           <Download />
           Deposit
         </Button>

@@ -1,5 +1,6 @@
 import { AccountIdentifier, isIcpAccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { useMutation } from '@tanstack/react-query';
+import { Send } from 'lucide-react';
 import React, { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -26,7 +27,6 @@ import { delay } from '@utils/async';
 import { bigIntMul } from '@utils/bigInt';
 import { errorNotification, successNotification } from '@utils/notification';
 import { cn } from '@utils/shadcn';
-import { Send } from 'lucide-react';
 
 type Props = { balance: number };
 
@@ -111,6 +111,7 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
         <Button
           variant="outline"
           disabled={!canTransfer}
+          size="lg"
           className={cn('flex-1', isPending && 'opacity-50')}
         >
           <Send />

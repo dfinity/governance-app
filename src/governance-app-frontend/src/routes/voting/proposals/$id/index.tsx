@@ -1,5 +1,5 @@
-import { jsonReplacer } from '@dfinity/utils';
 import { ProposalInfo, ProposalRewardStatus, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
+import { jsonReplacer } from '@dfinity/utils';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
