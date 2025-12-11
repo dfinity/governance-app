@@ -25,6 +25,8 @@ import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
 import { delay } from '@utils/async';
 import { bigIntMul } from '@utils/bigInt';
 import { errorNotification, successNotification } from '@utils/notification';
+import { cn } from '@utils/shadcn';
+import { Send } from 'lucide-react';
 
 type Props = { balance: number };
 
@@ -106,8 +108,13 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger asChild>
-        <Button variant="outline" disabled={!canTransfer} className={isPending ? 'opacity-50' : ''}>
-          {isPending ? 'Sending...' : t(($) => $.common.send)}
+        <Button
+          variant="outline"
+          disabled={!canTransfer}
+          className={cn('flex-1', isPending && 'opacity-50')}
+        >
+          <Send />
+          {isPending ? 'Sending...' : t(($) => $.common.withdraw)}
         </Button>
       </ResponsiveDialogTrigger>
 

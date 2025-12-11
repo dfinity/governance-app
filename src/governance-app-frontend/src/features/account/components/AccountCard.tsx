@@ -20,6 +20,7 @@ import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
 import { CertifiedData } from '@typings/queries';
 import { TokenPrices } from '@typings/tokenPrices';
 
+import { SendICPsButton } from '@components/SendICPsButton';
 import { bigIntDiv } from '@utils/bigInt';
 import { List } from 'lucide-react';
 
@@ -58,7 +59,7 @@ export function AccountCard() {
                 const numberOfTransactions = data.pages?.[0].response.transactions.length || [];
 
                 return (
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col gap-12">
                     <div>
                       <div className="text-2xl font-bold">{balanceICPs} ICP</div>
 
@@ -74,12 +75,13 @@ export function AccountCard() {
                         }}
                       </QueryStates>
                     </div>
+
                     <div>
-                      {IS_TESTNET && (
-                        <div className="mt-4">
-                          <GetTokens accountId={accountId} />
-                        </div>
-                      )}
+                      <div className="flex gap-2">
+                        {IS_TESTNET && <GetTokens accountId={accountId} />}
+
+                        <SendICPsButton balance={balanceICPs} />
+                      </div>
 
                       <Button
                         variant="outline"

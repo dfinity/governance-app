@@ -1,6 +1,5 @@
 import * as React from 'react';
 
-import { Button } from '@components/button';
 import {
   Dialog,
   DialogContent,
@@ -11,7 +10,6 @@ import {
 } from '@components/Dialog';
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerDescription,
   DrawerFooter,
@@ -120,12 +118,5 @@ export function ResponsiveDialogFooter({
     );
   }
 
-  return (
-    <DrawerFooter className="pt-2">
-      {children}
-      <DrawerClose asChild>
-        <Button variant="outline">Cancel</Button>
-      </DrawerClose>
-    </DrawerFooter>
-  );
+  return <DrawerFooter className="pt-2">{children}</DrawerFooter>;
 }

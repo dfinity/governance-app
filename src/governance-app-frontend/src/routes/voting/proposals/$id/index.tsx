@@ -1,5 +1,5 @@
-import { ProposalInfo, ProposalRewardStatus, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { jsonReplacer } from '@dfinity/utils';
+import { ProposalInfo, ProposalRewardStatus, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
@@ -63,8 +63,6 @@ const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
               <SkeletonLoader height={24} width={100} />
             )}
           </h2>
-
-          <ProposalDetailsVoting proposal={proposal} />
 
           <div className="grid gap-4">
             <Card>
@@ -153,7 +151,6 @@ const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
                 </div>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle>{t(($) => $.proposal.payload)}</CardTitle>
@@ -162,6 +159,8 @@ const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
                 <p className="text-muted-foreground italic">...</p>
               </CardContent>
             </Card>
+
+            <ProposalDetailsVoting proposal={proposal} />
           </div>
         </>
       )}

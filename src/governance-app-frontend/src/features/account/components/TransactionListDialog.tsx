@@ -33,8 +33,8 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
 
   const accountId = nonNullish(identity)
     ? AccountIdentifier.fromPrincipal({
-        principal: identity.getPrincipal(),
-      })
+      principal: identity.getPrincipal(),
+    })
     : null;
 
   const transactions = useIcpIndexTransactions();
@@ -61,7 +61,9 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
           <div className="flex flex-col gap-2">
             <QueryStates<CertifiedData<GetAccountIdentifierTransactionsResponse>>
               infiniteQuery={transactions}
-              isEmpty={(data) => !data.pages?.length || !data.pages[0].response.transactions.length}
+              isEmpty={(data) =>
+                !data.pages?.length || !data.pages[0].response.transactions.length
+              }
               loadingComponent={<SkeletonLoader count={3} />}
             >
               {(data) => (
