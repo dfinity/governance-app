@@ -1,5 +1,6 @@
 import { useLocation } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
+import { LogIn } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
@@ -7,7 +8,7 @@ import { Button } from '@components/button';
 import { navigationItems } from './NavigationItems';
 
 export const Header = () => {
-  const { login } = useInternetIdentity();
+  const { login, identity } = useInternetIdentity();
   const { t } = useTranslation();
   const location = useLocation();
 
@@ -23,9 +24,12 @@ export const Header = () => {
 
       <div className="flex items-center gap-2">
         {/* Temporal until the login page is introduced */}
-        <Button onClick={login} variant="outline" size="sm">
-          {t(($) => $.common.login)}
-        </Button>
+        {!identity && (
+          <Button onClick={login} variant="outline" size="sm">
+            <LogIn />
+            {t(($) => $.common.login)}
+          </Button>
+        )}
       </div>
     </header>
   );
