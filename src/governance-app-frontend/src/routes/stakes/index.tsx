@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { NeuronsList } from '@features/stakes/components/NeuronsList';
 import { StakeNeuronModal } from '@features/stakes/components/StakeNeuronModal';
 
+import { StakeNeuronModal } from '@features/neurons/components/StakeNeuronModal';
+
 export const Route = createFileRoute('/stakes/')({
   component: StakesComponent,
 });
