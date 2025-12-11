@@ -17,6 +17,13 @@ import { IncreaseMaturityModal } from '@/dev/IncreaseMaturityModal';
 import { UnlockNeuronModal } from '@/dev/UnlockNeuronModal';
 
 import { SetDissolveDelayModal } from '../-SetDissolveDelayModal';
+import { useStakingRewards } from '@hooks/useStakingRewards';
+import {
+  isStakingRewardDataError,
+  isStakingRewardDataLoading,
+  isStakingRewardDataReady,
+} from '@utils/staking-rewards';
+import { getNeuronId } from '@utils/neuron';
 
 const NeuronDetailsRouteComponent = () => {
   const { t } = useTranslation();
@@ -50,6 +57,7 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
   const { t } = useTranslation();
   const { data, isLoading } = useGovernanceNeurons();
   const neuron = data?.response.find((n) => n.neuronId === neuronId);
+  const apyData = useStakingRewards();
 
   const dissolveDelayRemaining = ({ dissolveDelaySeconds: seconds }: NeuronInfo): string =>
     secondsToDuration({
@@ -130,6 +138,21 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
               {t(($) => $.neuron.dissolveDelay)}
             </span>
             <span>{dissolveDelayRemaining(neuron)}</span>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-muted-foreground uppercase">
+              {t(($) => $.common.apy)}
+            </span>
+            <span>
+              {isStakingRewardDataLoading(apyData) && <SkeletonLoader width={50} height={24} />}
+              {isStakingRewardDataError(apyData) && <WarningMessage message={apyData.error} />}
+              {isStakingRewardDataReady(apyData) ? (
+                <span>
+                  {((apyData.apy.neurons.get(getNeuronId(neuron))?.cur ?? 0) * 100).toFixed(2)}%
+                </span>
+              ) : null}
+            </span>
           </div>
         </CardContent>
         <CardFooter className="flex flex-wrap items-center gap-2 border-t bg-muted/20 p-6">

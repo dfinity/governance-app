@@ -33,7 +33,7 @@ export const useGovernanceProposal = ({ proposalId }: { proposalId: bigint | und
       return res.proposals[0];
     },
     options: {
-      enabled: ready && !!proposalId,
+      enabled: ready,
     },
   });
 };
