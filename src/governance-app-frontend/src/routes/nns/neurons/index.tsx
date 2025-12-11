@@ -8,12 +8,20 @@ import { Link } from '@untitledui/components';
 import { CertifiedBadge } from '@components/badges/certified/CertifiedBadge';
 import { QueryStates } from '@components/extra/QueryStates';
 import { SimpleCard } from '@components/extra/SimpleCard';
+import { WarningMessage } from '@components/extra/WarningMessage';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { E8S } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceNeurons';
+import { useStakingRewards } from '@hooks/useStakingRewards';
 import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';
+import { getNeuronId } from '@utils/neuron';
 import { requireIdentity } from '@utils/router';
+import {
+  isStakingRewardDataError,
+  isStakingRewardDataLoading,
+  isStakingRewardDataReady,
+} from '@utils/staking-rewards';
 
 import { StakeNeuron } from './-StakeNeuron';
 
@@ -32,12 +40,13 @@ function NeuronsPage() {
     });
   useTitle(t(($) => $.common.neuronsList));
 
+  const apyData = useStakingRewards();
+
   return (
     <div className="flex flex-col gap-2 text-xl">
       <StakeNeuron />
 
       <h2 className="mb-2 text-primary">{t(($) => $.common.neuronsList)}</h2>
-
       <QueryStates<CertifiedData<NeuronInfo[]>>
         query={neuronsQuery}
         isEmpty={(neurons) => neurons.response.length === 0}
@@ -82,6 +91,25 @@ function NeuronsPage() {
                         <tr>
                           <td className="pr-2 font-bold">{t(($) => $.neuron.dissolveDelay)}:</td>
                           <td>{dissolveDelayRemaining(neuron)}</td>
+                        </tr>
+                        <tr>
+                          <td className="pr-2 font-bold">{t(($) => $.common.apy)}:</td>
+                          <td>
+                            {isStakingRewardDataLoading(apyData) && (
+                              <SkeletonLoader width={50} height={24} />
+                            )}
+                            {isStakingRewardDataError(apyData) && (
+                              <WarningMessage message={apyData.error} />
+                            )}
+                            {isStakingRewardDataReady(apyData) ? (
+                              <span>
+                                {(
+                                  (apyData.apy.neurons.get(getNeuronId(neuron))?.cur ?? 0) * 100
+                                ).toFixed(2)}
+                                %
+                              </span>
+                            ) : null}
+                          </td>
                         </tr>
                       </tbody>
                     </table>

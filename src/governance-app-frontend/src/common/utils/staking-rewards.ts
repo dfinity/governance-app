@@ -188,9 +188,8 @@ const getStakingPower = ({ neurons, balance }: StakingRewardCalcParams) => {
     };
   };
 
-  let totalValue = 0;
+  let totalValue = balance;
   let totalStaked = 0;
-  totalValue += balance;
   neurons.forEach((neuron) => {
     try {
       totalStaked += getStaking(neuron).staked;
@@ -292,7 +291,7 @@ const getStakingFlowApyPreview = (params: StakingRewardCalcParams, forceInitialD
 
     for (let locked = 0; locked < 2; locked++) {
       for (let autoStake = 0; autoStake < 2; autoStake++) {
-        const neuron = getApyTestNeuron(forceInitialDate);
+        const neuron = getApyTestNeuron(initialDateSeconds);
 
         neuron.fullNeuron.autoStakeMaturity = autoStake === 1;
         neuron.dissolveDelaySeconds = BigInt(dissolveDelay * SECONDS_IN_MONTH);

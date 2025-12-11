@@ -62,5 +62,6 @@
   "send": "Send",
   "confirm": "Confirm",
   "cancel": "Cancel",
-  "close": "Close"
+  "close": "Close",
+  "apy": "APY"
 }

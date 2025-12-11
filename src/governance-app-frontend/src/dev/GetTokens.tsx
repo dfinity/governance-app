@@ -72,6 +72,9 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS],
       });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE],
+      });
 
       setAmountOfIcp('');
       successNotification({

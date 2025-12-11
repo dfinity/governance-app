@@ -9,9 +9,16 @@ import { WarningMessage } from '@components/extra/WarningMessage';
 import { SkeletonLoader } from '@components/loaders/SkeletonLoader';
 import { E8S, E8Sn, IS_TESTNET } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/canisters/governance/useGovernanceNeurons';
+import { useStakingRewards } from '@hooks/useStakingRewards';
 import useTitle from '@hooks/useTitle';
 import { bigIntDiv, stringToBigInt } from '@utils/bigInt';
+import { getNeuronId } from '@utils/neuron';
 import { requireIdentity } from '@utils/router';
+import {
+  isStakingRewardDataError,
+  isStakingRewardDataLoading,
+  isStakingRewardDataReady,
+} from '@utils/staking-rewards';
 
 import { IncreaseMaturityModal } from '@/dev/IncreaseMaturityModal';
 import { UnlockNeuronModal } from '@/dev/UnlockNeuronModal';
@@ -50,6 +57,7 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
   const { t } = useTranslation();
   const { data, isLoading } = useGovernanceNeurons();
   const neuron = data?.response.find((n) => n.neuronId === neuronId);
+  const apyData = useStakingRewards();
 
   const dissolveDelayRemaining = ({ dissolveDelaySeconds: seconds }: NeuronInfo): string =>
     secondsToDuration({
@@ -126,6 +134,18 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
                 {t(($) => $.neuron.dissolveDelay)}
               </th>
               <td>{dissolveDelayRemaining(neuron)}</td>
+            </tr>
+            <tr>
+              <td className="pr-2 font-bold">{t(($) => $.common.apy)}:</td>
+              <td>
+                {isStakingRewardDataLoading(apyData) && <SkeletonLoader width={50} height={24} />}
+                {isStakingRewardDataError(apyData) && <WarningMessage message={apyData.error} />}
+                {isStakingRewardDataReady(apyData) ? (
+                  <span>
+                    {((apyData.apy.neurons.get(getNeuronId(neuron))?.cur ?? 0) * 100).toFixed(2)}%
+                  </span>
+                ) : null}
+              </td>
             </tr>
           </tbody>
         </table>
