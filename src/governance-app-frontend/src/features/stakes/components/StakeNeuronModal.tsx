@@ -1,7 +1,7 @@
 import { nonNullish, nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { InfoIcon, Loader2 } from 'lucide-react';
+import { InfoIcon, Loader2, Plus } from 'lucide-react';
 import { FormEvent, ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -36,7 +36,7 @@ interface StakeNeuronModalProps {
   children: ReactNode;
 }
 
-export const StakeNeuronModal = ({ children }: StakeNeuronModalProps) => {
+export const StakeNeuronModal = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { data: balanceValue } = useIcpLedgerAccountBalance();
@@ -165,7 +165,12 @@ export const StakeNeuronModal = ({ children }: StakeNeuronModalProps) => {
 
   return (
     <ResponsiveDialog open={isOpen} onOpenChange={setIsOpen}>
-      <ResponsiveDialogTrigger asChild>{children}</ResponsiveDialogTrigger>
+      <ResponsiveDialogTrigger asChild>
+        <Button size="lg">
+          <Plus />
+          {t(($) => $.neuron.stakeNeuron.trigger)}
+        </Button>
+      </ResponsiveDialogTrigger>
       <ResponsiveDialogContent>
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>{t(($) => $.neuron.stake)}</ResponsiveDialogTitle>

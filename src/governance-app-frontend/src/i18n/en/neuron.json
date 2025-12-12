@@ -1,4 +1,6 @@
 {
+  "title": "Your Stakes",
+  "description": "Manage your staked ICP neurons and their configurations",
   "votingPower": "Voting Power",
   "stake": "Stake",
   "age": "Age",
@@ -25,6 +27,7 @@
     }
   },
   "stakeNeuron": {
+    "trigger": "Stake ICPs",
     "label": "ICP amount:",
     "tooltip": "This ICP amount will be staked from your balance.",
     "hint": "Minimum {{min}}, maximum {{max}}",
