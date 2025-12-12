@@ -81,7 +81,7 @@ export const StakeNeuronModal = () => {
     },
     onSuccess: (_, amount) => {
       setStakeInput('');
-      setIsOpen(false); // Close modal on success
+      setIsOpen(false);
       Promise.all([
         queryClient.invalidateQueries({
           queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
@@ -148,20 +148,10 @@ export const StakeNeuronModal = () => {
       });
   const stakePlaceholder = Math.max(maxStake - Number(ICP_TRANSACTION_FEE_E8S) / E8S, 0).toFixed(2);
 
-  // If prerequisites are not met, we might want to disable the trigger or show a different state.
-  // For now, mirroring the original logic which returns null, but in a modal context we should probably render the dialog but show an error or loading state inside.
-  // However, specifically if !canStake, the original returned null.
-  // Let's keep the trigger active but maybe show a message inside if not ready, or just return null (which hides the button completely).
-  // The original component hid the entire card.
-  if (!canStake) {
-    // If we return null here, the Trigger (children) won't be rendered. This might be what we want if the user can't stake.
-    return null;
-  }
-
   return (
     <ResponsiveDialog open={isOpen} onOpenChange={setIsOpen}>
       <ResponsiveDialogTrigger asChild>
-        <Button size="lg">
+        <Button size="lg" disabled={!canStake}>
           <Plus />
           {t(($) => $.neuron.stakeNeuron.trigger)}
         </Button>
