@@ -15,7 +15,7 @@ function Homepage() {
 
   return (
     <div className="flex flex-col gap-12">
-      <div className="flex gap-4">
+      <div className="flex flex-col gap-4 md:flex-row">
         <AccountCard />
         <StakedCard />
       </div>

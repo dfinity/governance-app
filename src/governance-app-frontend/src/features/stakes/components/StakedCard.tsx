@@ -59,8 +59,8 @@ export function StakedCard() {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button size="lg" className="pointer-events-none flex-1" asChild>
-                    <Link to="/">
+                  <Button size="lg" className="flex-1" asChild>
+                    <Link to="/stakes">
                       <TrendingUp /> Stake More
                     </Link>
                   </Button>
