@@ -60,8 +60,14 @@
   "icpPrice": "ICP price",
   "notAvailable": "N/A",
   "send": "Send",
+  "sending": "Sending ...",
+  "withdraw": "Withdraw",
   "confirm": "Confirm",
   "cancel": "Cancel",
   "close": "Close",
-  "apy": "APY"
+  "apy": "APY",
+  "dashboard": "Dashboard",
+  "voting": "Voting",
+  "stakes": "Stakes",
+  "settings": "Settings"
 }

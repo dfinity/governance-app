@@ -9,6 +9,7 @@ import home from './en/home.json';
 import neuron from './en/neuron.json';
 import nns from './en/nns.json';
 import proposal from './en/proposal.json';
+import settings from './en/settings.json';
 
 // Using a single namespace "labels" for simplicity.
 // Files inside it (common, home, …) are grouped translations, not separate namespaces.
@@ -23,6 +24,7 @@ export const resources = {
       proposal,
       neuron,
       account,
+      settings,
     },
   },
 };

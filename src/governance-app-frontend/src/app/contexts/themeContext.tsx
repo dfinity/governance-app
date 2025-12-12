@@ -1,6 +1,10 @@
 import { createContext } from 'react';
 
-export type Theme = 'dark' | 'light' | 'system';
+export enum Theme {
+  Dark = 'dark',
+  Light = 'light',
+  System = 'system',
+}
 
 type ThemeProviderState = {
   theme: Theme;
@@ -8,7 +12,7 @@ type ThemeProviderState = {
 };
 
 const initialState: ThemeProviderState = {
-  theme: 'system',
+  theme: Theme.System,
   setTheme: () => null,
 };
 

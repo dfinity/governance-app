@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Brain, Vote, Wallet } from 'lucide-react';
+import { Brain, Wallet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { SimpleCard } from '@components/SimpleCard';
@@ -14,12 +14,6 @@ function NnsIndex() {
   useTitle(t(($) => $.common.nns));
 
   const cards = [
-    {
-      title: t(($) => $.common.seeProposals),
-      icon: Vote,
-      href: '/nns/proposals',
-      value: '12', // Mock value
-    },
     {
       title: t(($) => $.common.seeNeurons),
       icon: Brain,

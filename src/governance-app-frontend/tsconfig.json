@@ -20,14 +20,15 @@
     "paths": {
       "@declarations/*": ["./../declarations/*"],
 
+      "@features/*": ["./src/features/*"],
+      "@contexts/*": ["./src/app/contexts/*"],
       "@components/*": ["./src/common/components/*"],
       "@constants/*": ["./src/common/constants/*"],
-      "@contexts/*": ["./src/app/contexts/*"],
       "@hooks/*": ["./src/common/hooks/*"],
       "@typings/*": ["src/common/typings/*"],
       "@utils/*": ["./src/common/utils/*"],
-      "@fixtures/*": ["./tests/fixtures/*"],
       "@common/*": ["./src/common/*"],
+      "@fixtures/*": ["./tests/fixtures/*"],
 
       "@routes/*": ["./src/routes/*"],
       "@/*": ["./src/*"]

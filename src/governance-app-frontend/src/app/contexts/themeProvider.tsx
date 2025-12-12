@@ -10,7 +10,7 @@ type ThemeProviderProps = {
 
 export function ThemeProvider({
   children,
-  defaultTheme = 'system',
+  defaultTheme = Theme.System,
   storageKey = 'vite-ui-theme',
   ...props
 }: ThemeProviderProps) {

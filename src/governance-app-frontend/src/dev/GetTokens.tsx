@@ -1,6 +1,7 @@
 import { AccountIdentifier, BlockHeight, E8s, LedgerCanister } from '@icp-sdk/canisters/ledger/icp';
 import { Agent } from '@icp-sdk/core/agent';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Download } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 
 import { Button } from '@components/button';
@@ -9,7 +10,6 @@ import { Label } from '@components/Label';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
-  ResponsiveDialogDescription,
   ResponsiveDialogFooter,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
@@ -108,8 +108,9 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger asChild>
-        <Button size="sm" variant="outline">
-          Get Tokens
+        <Button variant="outline" className="flex-1" size="lg">
+          <Download />
+          Deposit
         </Button>
       </ResponsiveDialogTrigger>
 
@@ -117,9 +118,6 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
         <form onSubmit={handleSubmit}>
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>Get Testnet ICPs</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription className="break-all">
-              Account: {accountId.toHex()}
-            </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
 
           <div className="grid gap-2 py-4">

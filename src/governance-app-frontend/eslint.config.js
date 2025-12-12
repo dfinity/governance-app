@@ -10,7 +10,7 @@ import { tailwind4 } from 'tailwind-csstree';
 import tseslint from 'typescript-eslint';
 
 const tsConfiguration = tseslint.config(
-  // TODO: Revisit and fix integration errors with tailwind&shadcn
+  // @TODO: Revisit and fix integration errors with tailwind&shadcn
   { ignores: ['dist', 'node_modules', 'src/routeTree.gen.ts', 'src/app/styles/main.css'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
@@ -48,6 +48,7 @@ const tsConfiguration = tseslint.config(
             ['^@icp-sdk', '^@?\\w'],
             // Internal files.
             ['^@declarations'],
+            ['^@features'],
             [
               '^@components',
               '^@constants',
