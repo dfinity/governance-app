@@ -8,22 +8,22 @@ export interface NavigationItem {
 
 export const navigationItems: NavigationItem[] = [
   {
-    label: 'Dashboard',
+    label: 'common.dashboard',
     href: '/',
     icon: LayoutDashboard,
   },
   {
-    label: 'Stakes',
+    label: 'common.stakes',
     href: '/stakes',
     icon: Network,
   },
   {
-    label: 'Voting',
+    label: 'common.voting',
     href: '/voting',
     icon: Vote,
   },
   {
-    label: 'Settings',
+    label: 'common.settings',
     href: '/settings',
     icon: Settings,
   },

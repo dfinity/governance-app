@@ -115,7 +115,7 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
           className={cn('flex-1', isPending && 'opacity-50')}
         >
           <Send />
-          {isPending ? 'Sending...' : t(($) => $.common.withdraw)}
+          {t(($) => (isPending ? $.common.sending : $.common.withdraw))}
         </Button>
       </ResponsiveDialogTrigger>
 

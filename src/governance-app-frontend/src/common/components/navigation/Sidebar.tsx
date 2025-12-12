@@ -1,8 +1,11 @@
 import { Link } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 
 import { navigationItems } from './NavigationItems';
 
 export const Sidebar = () => {
+  const { t } = useTranslation();
+
   return (
     <aside className="sticky top-0 z-20 hidden h-screen w-72 flex-col border-r bg-card shadow-[1px_0_3px_rgba(0,0,0,0.04),1px_0_0_rgba(0,0,0,0.02)] lg:flex">
       <div className="p-6">
@@ -20,7 +23,7 @@ export const Sidebar = () => {
             }}
           >
             <item.icon className="h-6 w-6" />
-            <span>{item.label}</span>
+            <span>{t(item.label as never)}</span>
           </Link>
         ))}
       </nav>
