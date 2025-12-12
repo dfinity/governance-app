@@ -7,9 +7,17 @@ import { CertifiedBadge } from '@components/CertifiedBadge';
 import { QueryStates } from '@components/QueryStates';
 import { SimpleCard } from '@components/SimpleCard';
 import { SkeletonLoader } from '@components/SkeletonLoader';
+import { WarningMessage } from '@components/WarningMessage';
 import { E8S } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance/useGovernanceNeurons';
+import { useStakingRewards } from '@hooks/useStakingRewards';
 import { CertifiedData } from '@typings/queries';
+import { getNeuronId } from '@utils/neuron';
+import {
+  isStakingRewardDataError,
+  isStakingRewardDataLoading,
+  isStakingRewardDataReady,
+} from '@utils/staking-rewards';
 
 export const NeuronsList = () => {
   const neuronsQuery = useGovernanceNeurons();
@@ -20,6 +28,8 @@ export const NeuronsList = () => {
       i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
     });
 
+  const apyData = useStakingRewards();
+
   return (
     <div className="mt-4 flex flex-col gap-2 text-xl">
       <QueryStates<CertifiedData<NeuronInfo[]>>
@@ -29,7 +39,7 @@ export const NeuronsList = () => {
         {(neurons) => (
           <div className="grid grid-cols-1 gap-4 text-lg sm:grid-cols-2 lg:grid-cols-3">
             {neurons?.response.map((neuron) => (
-              <Link to="/nns/neurons/$id" params={{ id: neuron.neuronId }} key={neuron.neuronId}>
+              <Link to="/stakes/$id" params={{ id: neuron.neuronId }} key={neuron.neuronId}>
                 <SimpleCard>
                   <div className="flex items-center justify-between gap-2">
                     <p className="overflow-hidden text-ellipsis">#{neuron.neuronId}</p>
@@ -66,6 +76,25 @@ export const NeuronsList = () => {
                         <tr>
                           <td className="pr-2 font-bold">{t(($) => $.neuron.dissolveDelay)}:</td>
                           <td>{dissolveDelayRemaining(neuron)}</td>
+                        </tr>
+                        <tr>
+                          <td className="pr-2 font-bold">{t(($) => $.common.apy)}:</td>
+                          <td>
+                            {isStakingRewardDataLoading(apyData) && (
+                              <SkeletonLoader width={50} height={24} />
+                            )}
+                            {isStakingRewardDataError(apyData) && (
+                              <WarningMessage message={apyData.error} />
+                            )}
+                            {isStakingRewardDataReady(apyData) ? (
+                              <span>
+                                {(
+                                  (apyData.apy.neurons.get(getNeuronId(neuron))?.cur ?? 0) * 100
+                                ).toFixed(2)}
+                                %
+                              </span>
+                            ) : null}
+                          </td>
                         </tr>
                       </tbody>
                     </table>

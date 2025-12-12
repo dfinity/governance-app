@@ -3,6 +3,8 @@ import { isNullish, secondsToDuration } from '@dfinity/utils';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
+import { SetDissolveDelayModal } from '@features/stakes/components/SetDissolveDelay';
+
 import { Card, CardContent, CardFooter } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
 import { SkeletonLoader } from '@components/SkeletonLoader';
@@ -23,8 +25,6 @@ import {
 import { IncreaseMaturityModal } from '@/dev/IncreaseMaturityModal';
 import { UnlockNeuronModal } from '@/dev/UnlockNeuronModal';
 
-import { SetDissolveDelayModal } from '../-SetDissolveDelayModal';
-
 const NeuronDetailsRouteComponent = () => {
   const { t } = useTranslation();
   const { id } = Route.useParams();
@@ -34,7 +34,7 @@ const NeuronDetailsRouteComponent = () => {
   return <NeuronDetails neuronId={id!} />;
 };
 
-export const Route = createFileRoute('/nns/neurons/$id/')({
+export const Route = createFileRoute('/stakes/$id/')({
   params: {
     parse: ({ id }) => ({
       id: stringToBigInt(id),
@@ -43,7 +43,7 @@ export const Route = createFileRoute('/nns/neurons/$id/')({
   },
   beforeLoad: async ({ params }) => {
     await requireIdentity();
-    if (!params.id) throw redirect({ to: '/nns/neurons', replace: true });
+    if (!params.id) throw redirect({ to: '/stakes', replace: true });
   },
   pendingComponent: () => <SkeletonLoader count={3} />,
   component: NeuronDetailsRouteComponent,

@@ -2,7 +2,7 @@ import { nonNullish, nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { InfoIcon, Loader2, Plus } from 'lucide-react';
-import { FormEvent, ReactNode, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
@@ -25,16 +25,11 @@ import {
   ICP_TRANSACTION_FEE_E8Sn,
 } from '@constants/extra';
 import { useNnsGovernance } from '@hooks/governance';
-import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
-import { useIcpLedgerAccountBalance } from '@hooks/icpLedger/useIcpLedgerAccountBalance';
+import { useIcpLedger, useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
-
-interface StakeNeuronModalProps {
-  children: ReactNode;
-}
 
 export const StakeNeuronModal = () => {
   const { t } = useTranslation();
