@@ -41,7 +41,9 @@ export function StakedCard() {
             return (
               <div className="flex h-full flex-col justify-between">
                 <div>
-                  <div className="text-2xl font-bold">{totalStaked} ICP</div>
+                  <div className="text-2xl font-bold">
+                    {t(($) => $.common.inIcp, { value: totalStaked })}
+                  </div>
 
                   <QueryStates<TokenPrices>
                     query={tickerPrices}
@@ -53,7 +55,11 @@ export function StakedCard() {
                       const usdValue = icpPrice
                         ? (Number(totalStaked) * icpPrice.usd).toFixed(2)
                         : '-';
-                      return <p className="text-xs text-muted-foreground">≈ ${usdValue} USD</p>;
+                      return (
+                        <p className="text-xs text-muted-foreground">
+                          {t(($) => $.account.approxUsd, { value: usdValue })}
+                        </p>
+                      );
                     }}
                   </QueryStates>
                 </div>
@@ -61,12 +67,13 @@ export function StakedCard() {
                 <div className="flex gap-3">
                   <Button size="lg" className="flex-1" asChild>
                     <Link to="/stakes">
-                      <TrendingUp /> Stake More
+                      <TrendingUp />
+                      {t(($) => $.common.stakeMore)}
                     </Link>
                   </Button>
 
                   <Button size="lg" variant="outline" className="pointer-events-none flex-1">
-                    <Coins /> Withdraw
+                    <Coins /> {t(($) => $.common.withdraw)}
                   </Button>
                 </div>
               </div>

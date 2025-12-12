@@ -1,8 +1,8 @@
+import { isNullish, nonNullish } from '@dfinity/utils';
 import {
   AccountIdentifier,
   GetAccountIdentifierTransactionsResponse,
 } from '@icp-sdk/canisters/ledger/icp';
-import { isNullish, nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { CreditCard, List } from 'lucide-react';
 import { useState } from 'react';
@@ -64,7 +64,9 @@ export function AccountCard() {
                 return (
                   <div className="flex flex-col gap-12">
                     <div>
-                      <div className="text-2xl font-bold">{balanceICPs} ICP</div>
+                      <div className="text-2xl font-bold">
+                        {t(($) => $.common.inIcp, { value: balanceICPs })}
+                      </div>
 
                       <QueryStates<TokenPrices>
                         query={tickerPrices}
