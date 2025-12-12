@@ -19,7 +19,7 @@ export const BottomNav = () => {
             }}
           >
             <item.icon className="h-6 w-6" />
-            <span className="text-[12px] font-medium">{t(() => item.label)}</span>
+            <span className="text-[12px] font-medium">{t(item.label as never)}</span>
           </Link>
         ))}
       </div>
