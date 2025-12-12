@@ -23,7 +23,7 @@ export const Sidebar = () => {
             }}
           >
             <item.icon className="h-6 w-6" />
-            <span>{t(item.label as never)}</span>
+            <span>{t(() => item.label)}</span>
           </Link>
         ))}
       </nav>
