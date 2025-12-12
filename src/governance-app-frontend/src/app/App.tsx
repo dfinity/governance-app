@@ -18,7 +18,7 @@ import { AgentPoolProvider } from '@/app/contexts/agentPoolProvider';
 import { ThemeProvider } from '@/app/contexts/themeProvider';
 
 const localIdentityProvider = `http://${CANISTER_ID_INTERNET_IDENTITY}.${HOST}`;
-const mainnetIdentityProvider = 'https://identity.ic0.app';
+const mainnetIdentityProvider = 'https://id.ai';
 
 export const App = () => {
   const notificationsContainer = document.getElementById('notifications');
