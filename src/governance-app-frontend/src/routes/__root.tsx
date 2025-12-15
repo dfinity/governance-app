@@ -22,8 +22,6 @@ function RootComponent() {
 
   // BE CAREFUL CHANGING THIS EFFECT!
 
-  // Track manual logout, to distinguish from expiration, and show a notification.
-  const wasManualLogout = useRef(false);
   // Remember if we had an identity, to trigger a single change.
   const hadIdentity = useRef(!!identity);
   // Run on identity change: login, logout, but also auto-expiration.
@@ -36,14 +34,16 @@ function RootComponent() {
       // Allow an async cycle for the authenticated agent to be removed before refreshing the queries.
       setTimeout(() => queryClient.resetQueries(), 0);
 
+      // Check for manual logout flag.
+      const isManualLogout = sessionStorage.getItem('manual-logout') === 'true';
+      sessionStorage.removeItem('manual-logout');
+
       // Show notification in case of expiration only.
-      if (!wasManualLogout.current) {
+      if (!isManualLogout) {
         infoNotification({ description: t(($) => $.common.autoExpirationLogout) });
       }
     }
 
-    // Reset manual logout tracking.
-    wasManualLogout.current = false;
     // Remember last identity state.
     hadIdentity.current = !!identity;
   }, [identity, invalidate, queryClient, t]);

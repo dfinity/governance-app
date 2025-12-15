@@ -15,6 +15,11 @@ function Settings() {
   const { identity, clear } = useInternetIdentity();
   const { t } = useTranslation();
 
+  const handleLogout = () => {
+    sessionStorage.setItem('manual-logout', 'true');
+    clear();
+  };
+
   return (
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-2">
@@ -31,7 +36,13 @@ function Settings() {
         <PrincipalCard />
       </section>
 
-      <Button variant="destructive" size="lg" onClick={clear} disabled={!identity}>
+      <Button
+        variant="destructive"
+        size="lg"
+        onClick={handleLogout}
+        disabled={!identity}
+        data-testid="logout-btn"
+      >
         <LogOut className="mr-2 h-4 w-4" />
         {t(($) => $.common.logout)}
       </Button>
