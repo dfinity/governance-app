@@ -16,18 +16,15 @@ function RootComponent() {
   // While initializing, we might want to show a loader or nothing to prevent flicker
   if (isInitializing) return null;
 
-  // Redirect to login if not authenticated and not on login page
-  if (!identity && !isLoginPage) return <Navigate to="/login" />;
-
-  // If on login page, render without MainLayout
-  if (isLoginPage) {
+  if (isLoginPage)
     return (
       <>
         <Outlet />
         <TanStackRouterDevtools />
       </>
     );
-  }
+
+  if (!identity) return <Navigate to="/login" />;
 
   return (
     <MainLayout>
