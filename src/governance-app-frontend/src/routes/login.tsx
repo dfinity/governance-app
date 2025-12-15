@@ -16,10 +16,12 @@ function LoginPage() {
   if (identity) return <Navigate to="/" />;
 
   return (
-    <div className="flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-background p-4">
-      <div className="absolute top-1/2 left-1/2 -z-10 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 blur-[100px]" />
+    <div className="relative flex min-h-dvh w-full flex-col items-center justify-center p-4 py-8">
+      <div className="fixed inset-0 -z-10 overflow-hidden bg-background">
+        <div className="absolute top-1/2 left-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 blur-[100px]" />
+      </div>
 
-      <div className="relative z-10 flex w-full max-w-md flex-col items-center space-y-8 rounded-2xl border border-border/40 bg-card/30 p-8 text-center text-foreground shadow-2xl backdrop-blur-xl sm:p-12">
+      <div className="relative z-10 flex w-full max-w-md flex-col items-center space-y-6 rounded-2xl border border-border bg-card/50 p-6 text-center text-foreground shadow-2xl backdrop-blur-xl sm:p-12 md:space-y-8">
         <div className="flex flex-col items-center space-y-4">
           <div className="rounded-full bg-primary/10 p-4">
             <LaptopMinimalCheck className="h-10 w-10 text-primary" />
@@ -36,7 +38,7 @@ function LoginPage() {
             className="h-12 w-full text-base font-semibold shadow-lg transition-all hover:scale-[1.02] hover:shadow-primary/25"
             size="lg"
           >
-            <LogIn className="mr-2 h-5 w-5" />
+            <LogIn className="hidden h-5 w-5 sm:block" />
             {t(($) => $.common.loginWithII)}
           </Button>
 
