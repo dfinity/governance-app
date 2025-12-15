@@ -37,8 +37,9 @@ function LoginPage() {
             onClick={login}
             className="h-12 w-full text-base font-semibold shadow-lg transition-all hover:scale-[1.02] hover:shadow-primary/25"
             size="lg"
+            data-testid="login-btn"
           >
-            <LogIn className="hidden h-5 w-5 sm:block" />
+            <LogIn className="hidden h-5 w-5 xs:block" />
             {t(($) => $.common.loginWithII)}
           </Button>
 
