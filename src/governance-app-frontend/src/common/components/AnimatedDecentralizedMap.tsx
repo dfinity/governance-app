@@ -136,25 +136,67 @@ const ALL_MARKERS = [
   { lat: -9.4438, lng: 147.1803, size: 0.3 }, // Port Moresby
 ];
 
-const getRandomMarkers = (count: number) => {
-  const shuffled = [...ALL_MARKERS].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, count);
+const getRandomSubsetByModification = (currentMarkers: typeof ALL_MARKERS, targetCount: number) => {
+  if (currentMarkers.length === 0) {
+    const shuffled = [...ALL_MARKERS].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, targetCount).map((m) => ({
+      ...m,
+      style: { animationDelay: `${Math.random() * 2}s` },
+    }));
+  }
+
+  const keepCount = Math.max(0, currentMarkers.length - 5);
+  const keeping = [...currentMarkers].sort(() => 0.5 - Math.random()).slice(0, keepCount);
+
+  // Add new ones from ALL_MARKERS that are NOT in keeping
+  const availableToAdd = ALL_MARKERS.filter(
+    (m) => !keeping.some((k) => k.lat === m.lat && k.lng === m.lng),
+  );
+
+  const addCount = targetCount - keepCount;
+  const adding = availableToAdd
+    .sort(() => 0.5 - Math.random())
+    .slice(0, addCount)
+    .map((m) => ({
+      ...m,
+      style: { animationDelay: `${Math.random() * 2}s` },
+    }));
+
+  return [...keeping, ...adding];
 };
 
 export const AnimatedDecentralizedMap = () => {
-  const [activeMarkers, setActiveMarkers] = useState(getRandomMarkers(60));
+  const [activeMarkers, setActiveMarkers] = useState(getRandomSubsetByModification([], 50));
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveMarkers(getRandomMarkers(60));
-    }, 1000);
+      setActiveMarkers((current) => getRandomSubsetByModification(current, 50));
+    }, 100);
 
     return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="absolute h-full w-full animate-in overflow-hidden duration-1000 fade-in">
-      <DottedMap markers={activeMarkers} />
+      <style>
+        {`
+          @keyframes infinite-scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+        `}
+      </style>
+      <div
+        className="flex h-full w-[200%]"
+        style={{ animation: 'infinite-scroll 120s linear infinite' }}
+      >
+        <div className="h-full w-1/2">
+          <DottedMap markers={activeMarkers} markerColor="#9b5cfa" />
+        </div>
+        <div className="h-full w-1/2">
+          <DottedMap markers={activeMarkers} markerColor="#9b5cfa" />
+        </div>
+      </div>
     </div>
   );
 };

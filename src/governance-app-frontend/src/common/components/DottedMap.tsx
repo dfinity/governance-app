@@ -7,6 +7,7 @@ interface Marker {
   lat: number;
   lng: number;
   size?: number;
+  style?: React.CSSProperties;
 }
 
 export interface DottedMapProps extends React.SVGProps<SVGSVGElement> {
@@ -104,11 +105,35 @@ export function DottedMap({
   // but we memoized the result above. Ideally `addMarkers` is stable or we use the one from memo.
   const processedMarkers = React.useMemo(() => addMarkers(markers), [addMarkers, markers]);
 
+  const snappedMarkers = React.useMemo(() => {
+    return processedMarkers.map((marker) => {
+      let minDistance = Infinity;
+      let nearestPoint = points[0];
+
+      for (const point of points) {
+        const dx = point.x - marker.x;
+        const dy = point.y - marker.y;
+        const distance = dx * dx + dy * dy;
+
+        if (distance < minDistance) {
+          minDistance = distance;
+          nearestPoint = point;
+        }
+      }
+
+      return {
+        ...marker,
+        x: nearestPoint?.x ?? marker.x,
+        y: nearestPoint?.y ?? marker.y,
+      };
+    });
+  }, [processedMarkers, points]);
+
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
-      className={cn(className)}
-      style={{ width: '100%', height: '100%', ...style }}
+      className={cn('h-full w-full', className)}
+      style={style}
     >
       <MapBackground
         points={points}
@@ -118,7 +143,7 @@ export function DottedMap({
         stagger={stagger}
       />
 
-      {processedMarkers.map((marker, index) => {
+      {snappedMarkers.map((marker, index) => {
         const rowIndex = yToRowIndex.get(marker.y) ?? 0;
         const offsetX = stagger && rowIndex % 2 === 1 ? xStep / 2 : 0;
         return (
@@ -128,6 +153,7 @@ export function DottedMap({
             r={marker.size ?? dotRadius}
             fill={markerColor}
             className={markerClassName}
+            style={marker.style}
             key={`${marker.x}-${marker.y}-${index}`}
           />
         );
