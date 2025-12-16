@@ -1,6 +1,7 @@
 import { GovernanceCanister, MakeProposalRequest, NeuronInfo } from '@icp-sdk/canisters/nns';
 
 import { Button } from '@components/button';
+import { SECONDS_IN_HALF_YEAR, SECONDS_IN_MONTH } from '@constants/extra';
 import { useNnsGovernance } from '@hooks/governance';
 
 // Taken from proposal 22690
@@ -215,8 +216,6 @@ const makeMotionDummyProposalRequest = ({ title, url, summary, neuronId }: Props
   },
 });
 
-const SECONDS_IN_HALF_YEAR = 60n * 60n * 24n * 30n * 6n;
-const SECONDS_IN_MONTH = 60n * 60n * 24n * 30n;
 const makeNetworkEconomicsDummyProposalRequest = ({ title, url, summary, neuronId }: Props) => ({
   neuronId,
   title,
