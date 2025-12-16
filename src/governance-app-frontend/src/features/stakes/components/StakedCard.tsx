@@ -65,7 +65,7 @@ export function StakedCard() {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button size="lg" className="flex-1" asChild>
+                  <Button size="lg" className="flex-1 capitalize" asChild>
                     <Link to="/stakes">
                       <TrendingUp />
                       {t(($) => $.common.stakeMore)}
