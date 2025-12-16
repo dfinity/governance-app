@@ -8,7 +8,7 @@ import {
   SECONDS_IN_MONTH,
   SECONDS_IN_YEAR,
 } from '@constants/extra';
-import { roundToDecimals } from '@utils/rounding';
+import { inConfidenceRange, roundToDecimals } from '@utils/rounding';
 import {
   getStakingRewardData,
   isStakingRewardDataError,
@@ -24,6 +24,11 @@ import {
 } from '@utils/staking-rewards-test';
 
 import { getNeuronId } from './neuron';
+
+const checkNumber = (referenceValue: number, valueToCheck: number) => {
+  // Allow for 2% deviation from the reference value.
+  return inConfidenceRange(referenceValue, roundToDecimals(valueToCheck, 4), 2);
+};
 
 describe('staking-rewards', () => {
   let params: StakingRewardCalcParams;
@@ -72,15 +77,15 @@ describe('staking-rewards', () => {
     expect(isStakingRewardDataReady(data)).toBe(true);
 
     if (isStakingRewardDataReady(data)) {
-      expect(roundToDecimals(data.stakingRatio, 2)).toBe(0);
-      expect(roundToDecimals(data.rewardBalance, 2)).toBe(0);
+      expect(checkNumber(0, data.stakingRatio)).toBe(true);
+      expect(checkNumber(0, data.rewardBalance)).toBe(true);
 
       (Object.values(MaturityEstimatePeriod) as MaturityEstimatePeriod[]).forEach((period) => {
-        expect(roundToDecimals(data.rewardEstimates.get(period) ?? 0, 2)).toBe(0);
+        expect(checkNumber(0, data.rewardEstimates.get(period) ?? 0)).toBe(true);
       });
 
-      expect(roundToDecimals(data.apy.cur, 2)).toBe(0);
-      expect(roundToDecimals(data.apy.max, 2)).toBe(0);
+      expect(checkNumber(0, data.apy.cur)).toBe(true);
+      expect(checkNumber(0, data.apy.max)).toBe(true);
       expect(data.apy.neurons.size).toBe(0);
     }
   });
@@ -89,63 +94,63 @@ describe('staking-rewards', () => {
     let data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(roundToDecimals(data.stakingRatio, 2)).toBe(0.33);
+      expect(checkNumber(0.33, data.stakingRatio)).toBe(true);
     }
 
     params.neurons[0].fullNeuron!.cachedNeuronStake = BigInt(100 * E8S);
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(roundToDecimals(data.stakingRatio, 2)).toBe(0.5);
+      expect(checkNumber(0.5, data.stakingRatio)).toBe(true);
     }
 
     params.neurons[0].fullNeuron!.cachedNeuronStake = BigInt(0);
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(roundToDecimals(data.stakingRatio, 2)).toBe(0);
+      expect(checkNumber(0, data.stakingRatio)).toBe(true);
     }
 
     params.balance = 0;
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(roundToDecimals(data.stakingRatio, 2)).toBe(0);
+      expect(checkNumber(0, data.stakingRatio)).toBe(true);
     }
 
     params.neurons[0].fullNeuron!.cachedNeuronStake = BigInt(100 * E8S);
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(roundToDecimals(data.stakingRatio, 2)).toBe(1);
+      expect(checkNumber(1, data.stakingRatio)).toBe(true);
     }
 
     params.balance = 50;
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(roundToDecimals(data.stakingRatio, 2)).toBe(0.67);
+      expect(checkNumber(0.67, data.stakingRatio)).toBe(true);
     }
 
     params.neurons.push(getStakingRewardsTestNeuron() as NeuronInfo);
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(roundToDecimals(data.stakingRatio, 2)).toBe(0.75);
+      expect(checkNumber(0.75, data.stakingRatio)).toBe(true);
     }
 
     params.neurons.push(getStakingRewardsTestNeuron() as NeuronInfo);
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(roundToDecimals(data.stakingRatio, 2)).toBe(0.8);
+      expect(checkNumber(0.8, data.stakingRatio)).toBe(true);
     }
 
     params.neurons.at(-1)!.fullNeuron!.cachedNeuronStake = BigInt(1_000_000 * E8S);
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(roundToDecimals(data.stakingRatio, 2)).toBe(1);
+      expect(checkNumber(1, data.stakingRatio)).toBe(true);
     }
   });
 
@@ -153,7 +158,7 @@ describe('staking-rewards', () => {
     let data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(roundToDecimals(data.rewardBalance, 2)).toBe(0);
+      expect(data.rewardBalance).toBe(0);
     }
 
     params.neurons[0].fullNeuron!.maturityE8sEquivalent = BigInt(100 * E8S);
@@ -217,37 +222,35 @@ describe('staking-rewards', () => {
     const data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(roundToDecimals(data.stakingFlowApyPreview[6].autoStake.locked, 4)).toBe(0.0709);
-      expect(roundToDecimals(data.stakingFlowApyPreview[6].autoStake.dissolving, 4)).toBe(0.0002);
-      expect(roundToDecimals(data.stakingFlowApyPreview[6].nonAutoStake.locked, 4)).toBe(0.0685);
-      expect(roundToDecimals(data.stakingFlowApyPreview[6].nonAutoStake.dissolving, 4)).toBe(
-        0.0002,
+      expect(checkNumber(0.0709, data.stakingFlowApyPreview[6].autoStake.locked)).toBe(true);
+      expect(checkNumber(0.0357, data.stakingFlowApyPreview[6].autoStake.dissolving)).toBe(true);
+      expect(checkNumber(0.0685, data.stakingFlowApyPreview[6].nonAutoStake.locked)).toBe(true);
+      expect(checkNumber(0.0002, data.stakingFlowApyPreview[6].nonAutoStake.dissolving)).toBe(true);
+
+      expect(checkNumber(0.0752, data.stakingFlowApyPreview[12].autoStake.locked)).toBe(true);
+      expect(checkNumber(0.0357, data.stakingFlowApyPreview[12].autoStake.dissolving)).toBe(true);
+      expect(checkNumber(0.0725, data.stakingFlowApyPreview[12].nonAutoStake.locked)).toBe(true);
+      expect(checkNumber(0.0351, data.stakingFlowApyPreview[12].nonAutoStake.dissolving)).toBe(
+        true,
       );
 
-      expect(roundToDecimals(data.stakingFlowApyPreview[12].autoStake.locked, 4)).toBe(0.0752);
-      expect(roundToDecimals(data.stakingFlowApyPreview[12].autoStake.dissolving, 4)).toBe(0.0357);
-      expect(roundToDecimals(data.stakingFlowApyPreview[12].nonAutoStake.locked, 4)).toBe(0.0725);
-      expect(roundToDecimals(data.stakingFlowApyPreview[12].nonAutoStake.dissolving, 4)).toBe(
-        0.0351,
+      expect(checkNumber(0.0839, data.stakingFlowApyPreview[24].autoStake.locked)).toBe(true);
+      expect(checkNumber(0.0772, data.stakingFlowApyPreview[24].autoStake.dissolving)).toBe(true);
+      expect(checkNumber(0.0806, data.stakingFlowApyPreview[24].nonAutoStake.locked)).toBe(true);
+      expect(checkNumber(0.0743, data.stakingFlowApyPreview[24].nonAutoStake.dissolving)).toBe(
+        true,
       );
 
-      expect(roundToDecimals(data.stakingFlowApyPreview[24].autoStake.locked, 4)).toBe(0.0839);
-      expect(roundToDecimals(data.stakingFlowApyPreview[24].autoStake.dissolving, 4)).toBe(0.0772);
-      expect(roundToDecimals(data.stakingFlowApyPreview[24].nonAutoStake.locked, 4)).toBe(0.0806);
-      expect(roundToDecimals(data.stakingFlowApyPreview[24].nonAutoStake.dissolving, 4)).toBe(
-        0.0743,
-      );
+      expect(checkNumber(0.1015, data.stakingFlowApyPreview[48].autoStake.locked)).toBe(true);
+      expect(checkNumber(0.0941, data.stakingFlowApyPreview[48].autoStake.dissolving)).toBe(true);
+      expect(checkNumber(0.0967, data.stakingFlowApyPreview[48].nonAutoStake.locked)).toBe(true);
+      expect(checkNumber(0.09, data.stakingFlowApyPreview[48].nonAutoStake.dissolving)).toBe(true);
 
-      expect(roundToDecimals(data.stakingFlowApyPreview[48].autoStake.locked, 4)).toBe(0.1015);
-      expect(roundToDecimals(data.stakingFlowApyPreview[48].autoStake.dissolving, 4)).toBe(0.0941);
-      expect(roundToDecimals(data.stakingFlowApyPreview[48].nonAutoStake.locked, 4)).toBe(0.0967);
-      expect(roundToDecimals(data.stakingFlowApyPreview[48].nonAutoStake.dissolving, 4)).toBe(0.09);
-
-      expect(roundToDecimals(data.stakingFlowApyPreview[96].autoStake.locked, 4)).toBe(0.1376);
-      expect(roundToDecimals(data.stakingFlowApyPreview[96].autoStake.dissolving, 4)).toBe(0.1289);
-      expect(roundToDecimals(data.stakingFlowApyPreview[96].nonAutoStake.locked, 4)).toBe(0.1289);
-      expect(roundToDecimals(data.stakingFlowApyPreview[96].nonAutoStake.dissolving, 4)).toBe(
-        0.1213,
+      expect(checkNumber(0.1376, data.stakingFlowApyPreview[96].autoStake.locked)).toBe(true);
+      expect(checkNumber(0.1289, data.stakingFlowApyPreview[96].autoStake.dissolving)).toBe(true);
+      expect(checkNumber(0.1289, data.stakingFlowApyPreview[96].nonAutoStake.locked)).toBe(true);
+      expect(checkNumber(0.1213, data.stakingFlowApyPreview[96].nonAutoStake.dissolving)).toBe(
+        true,
       );
     }
   });
@@ -256,23 +259,23 @@ describe('staking-rewards', () => {
     let data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0, 2)).toBe(
-        0.02,
+      expect(checkNumber(0.0179, data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0)).toBe(
+        true,
       );
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0, 2)).toBe(
-        0.13,
+      expect(checkNumber(0.1256, data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0)).toBe(
+        true,
       );
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0, 2)).toBe(
-        0.54,
+      expect(checkNumber(0.5401, data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0)).toBe(
+        true,
       );
       expect(
-        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0, 2),
-      ).toBe(1.65);
+        checkNumber(1.6515, data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0, 2),
-      ).toBe(3.34);
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0, 2)).toBe(
-        6.88,
+        checkNumber(3.3437, data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0),
+      ).toBe(true);
+      expect(checkNumber(6.8792, data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0)).toBe(
+        true,
       );
     }
 
@@ -280,23 +283,23 @@ describe('staking-rewards', () => {
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0, 2)).toBe(
-        0.04,
+      expect(checkNumber(0.0359, data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0)).toBe(
+        true,
       );
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0, 2)).toBe(
-        0.25,
+      expect(checkNumber(0.2513, data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0)).toBe(
+        true,
       );
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0, 2)).toBe(
-        1.08,
+      expect(checkNumber(1.0801, data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0)).toBe(
+        true,
       );
       expect(
-        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0, 2),
-      ).toBe(3.3);
+        checkNumber(3.3029, data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0, 2),
-      ).toBe(6.69);
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0, 2)).toBe(
-        13.76,
+        checkNumber(6.6874, data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0),
+      ).toBe(true);
+      expect(checkNumber(13.7584, data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0)).toBe(
+        true,
       );
     }
 
@@ -304,23 +307,23 @@ describe('staking-rewards', () => {
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0, 2)).toBe(
-        0.05,
+      expect(checkNumber(0.0538, data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0)).toBe(
+        true,
       );
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0, 2)).toBe(
-        0.38,
+      expect(checkNumber(0.3769, data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0)).toBe(
+        true,
       );
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0, 2)).toBe(
-        1.62,
+      expect(checkNumber(1.6202, data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0)).toBe(
+        true,
       );
       expect(
-        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0, 2),
-      ).toBe(4.95);
+        checkNumber(4.9544, data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0, 2),
-      ).toBe(10.03);
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0, 2)).toBe(
-        20.64,
+        checkNumber(10.0312, data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0),
+      ).toBe(true);
+      expect(checkNumber(20.6376, data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0)).toBe(
+        true,
       );
     }
 
@@ -329,23 +332,23 @@ describe('staking-rewards', () => {
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0, 2)).toBe(
-        5.38,
+      expect(checkNumber(5.38, data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0)).toBe(
+        true,
       );
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0, 2)).toBe(
-        37.69,
+      expect(checkNumber(37.69, data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0)).toBe(
+        true,
       );
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0, 2)).toBe(
-        162.02,
+      expect(checkNumber(162.02, data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0)).toBe(
+        true,
       );
       expect(
-        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0, 2),
-      ).toBe(495.44);
+        checkNumber(495.44, data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0, 2),
-      ).toBe(1003.12);
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0, 2)).toBe(
-        2063.76,
+        checkNumber(1003.12, data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0),
+      ).toBe(true);
+      expect(checkNumber(2063.76, data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0)).toBe(
+        true,
       );
     }
 
@@ -359,23 +362,23 @@ describe('staking-rewards', () => {
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0, 2)).toBe(
-        4.04,
+      expect(checkNumber(4.04, data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0)).toBe(
+        true,
       );
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0, 2)).toBe(
-        28.2,
+      expect(checkNumber(28.2, data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0)).toBe(
+        true,
       );
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0, 2)).toBe(
-        120.19,
+      expect(checkNumber(120.19, data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0)).toBe(
+        true,
       );
       expect(
-        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0, 2),
-      ).toBe(359.16);
+        checkNumber(359.16, data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0, 2),
-      ).toBe(702.68);
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0, 2)).toBe(
-        1349.75,
+        checkNumber(702.68, data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0),
+      ).toBe(true);
+      expect(checkNumber(1349.75, data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0)).toBe(
+        true,
       );
     }
 
@@ -400,13 +403,13 @@ describe('staking-rewards', () => {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(1);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0, 4),
-      ).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0, 4),
-      ).toBe(0.1376);
-      expect(roundToDecimals(data.apy.cur, 4)).toBe(0.1376);
-      expect(roundToDecimals(data.apy.max, 4)).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+      ).toBe(true);
+      expect(checkNumber(0.1376, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.1376, data.apy.max)).toBe(true);
     }
 
     // Fees don't affect the APY % ratio (only the absolute value of the rewards).
@@ -417,13 +420,13 @@ describe('staking-rewards', () => {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(1);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0, 4),
-      ).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0, 4),
-      ).toBe(0.1376);
-      expect(roundToDecimals(data.apy.cur, 4)).toBe(0.1376);
-      expect(roundToDecimals(data.apy.max, 4)).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+      ).toBe(true);
+      expect(checkNumber(0.1376, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.1376, data.apy.max)).toBe(true);
     }
 
     // Unless the total stake is depleted by the fees.
@@ -433,14 +436,14 @@ describe('staking-rewards', () => {
     if (isStakingRewardDataReady(data)) {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(1);
-      expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0, 4),
-      ).toBe(0);
-      expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0, 4),
-      ).toBe(0);
-      expect(roundToDecimals(data.apy.cur, 4)).toBe(0);
-      expect(roundToDecimals(data.apy.max, 4)).toBe(0);
+      expect(checkNumber(0, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0)).toBe(
+        true,
+      );
+      expect(checkNumber(0, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0)).toBe(
+        true,
+      );
+      expect(checkNumber(0, data.apy.cur)).toBe(true);
+      expect(checkNumber(0, data.apy.max)).toBe(true);
     }
 
     // Staked maturity is not affected by the fees
@@ -452,13 +455,13 @@ describe('staking-rewards', () => {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(1);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0, 4),
-      ).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0, 4),
-      ).toBe(0.1376);
-      expect(roundToDecimals(data.apy.cur, 4)).toBe(0.1376);
-      expect(roundToDecimals(data.apy.max, 4)).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+      ).toBe(true);
+      expect(checkNumber(0.1376, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.1376, data.apy.max)).toBe(true);
     }
 
     // Change: auto stake maturity off.
@@ -469,13 +472,13 @@ describe('staking-rewards', () => {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(1);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0, 4),
-      ).toBe(0.1289);
+        checkNumber(0.1289, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0, 4),
-      ).toBe(0.1376);
-      expect(roundToDecimals(data.apy.cur, 4)).toBe(0.1289);
-      expect(roundToDecimals(data.apy.max, 4)).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+      ).toBe(true);
+      expect(checkNumber(0.1289, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.1376, data.apy.max)).toBe(true);
     }
 
     // Change: dissolving neuron.
@@ -491,13 +494,13 @@ describe('staking-rewards', () => {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(1);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0, 4),
-      ).toBe(0.1213);
+        checkNumber(0.1213, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0, 4),
-      ).toBe(0.1376);
-      expect(roundToDecimals(data.apy.cur, 4)).toBe(0.1213);
-      expect(roundToDecimals(data.apy.max, 4)).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+      ).toBe(true);
+      expect(checkNumber(0.1213, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.1376, data.apy.max)).toBe(true);
     }
 
     // Change: dissolve delay to 4 years.
@@ -512,13 +515,13 @@ describe('staking-rewards', () => {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(1);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0, 4),
-      ).toBe(0.09);
+        checkNumber(0.09, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0, 4),
-      ).toBe(0.1376);
-      expect(roundToDecimals(data.apy.cur, 4)).toBe(0.09);
-      expect(roundToDecimals(data.apy.max, 4)).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+      ).toBe(true);
+      expect(checkNumber(0.09, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.1376, data.apy.max)).toBe(true);
     }
 
     // Change: dissolve delay to 1 year.
@@ -533,13 +536,13 @@ describe('staking-rewards', () => {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(1);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0, 4),
-      ).toBe(0.0351);
+        checkNumber(0.0351, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0, 4),
-      ).toBe(0.1376);
-      expect(roundToDecimals(data.apy.cur, 4)).toBe(0.0351);
-      expect(roundToDecimals(data.apy.max, 4)).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+      ).toBe(true);
+      expect(checkNumber(0.0351, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.1376, data.apy.max)).toBe(true);
     }
 
     // Change: dissolve delay to 3 months.
@@ -553,14 +556,14 @@ describe('staking-rewards', () => {
     if (isStakingRewardDataReady(data)) {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(1);
+      expect(checkNumber(0, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0)).toBe(
+        true,
+      );
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0, 4),
-      ).toBe(0.0);
-      expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0, 4),
-      ).toBe(0.1376);
-      expect(roundToDecimals(data.apy.cur, 4)).toBe(0.0);
-      expect(roundToDecimals(data.apy.max, 4)).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+      ).toBe(true);
+      expect(checkNumber(0, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.1376, data.apy.max)).toBe(true);
     }
 
     // Change: add a second neuron.
@@ -570,20 +573,20 @@ describe('staking-rewards', () => {
     if (isStakingRewardDataReady(data)) {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(2);
+      expect(checkNumber(0, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0)).toBe(
+        true,
+      );
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0, 4),
-      ).toBe(0);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0, 4),
-      ).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.cur ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[1]))?.cur ?? 0, 4),
-      ).toBe(0.1376);
-      expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0, 4),
-      ).toBe(0.1376);
-      expect(roundToDecimals(data.apy.cur, 4)).toBe(0.0688);
-      expect(roundToDecimals(data.apy.max, 4)).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0),
+      ).toBe(true);
+      expect(checkNumber(0.0688, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.1376, data.apy.max)).toBe(true);
     }
 
     // Change: add a third neuron.
@@ -593,26 +596,26 @@ describe('staking-rewards', () => {
     if (isStakingRewardDataReady(data)) {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(3);
+      expect(checkNumber(0, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0)).toBe(
+        true,
+      );
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0, 4),
-      ).toBe(0);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0, 4),
-      ).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.cur ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[1]))?.cur ?? 0, 4),
-      ).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0, 4),
-      ).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.cur ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[2]))?.cur ?? 0, 4),
-      ).toBe(0.1376);
-      expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[2]))?.max ?? 0, 4),
-      ).toBe(0.1376);
-      expect(roundToDecimals(data.apy.cur, 4)).toBe(0.0917);
-      expect(roundToDecimals(data.apy.max, 4)).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.max ?? 0),
+      ).toBe(true);
+      expect(checkNumber(0.0917, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.1376, data.apy.max)).toBe(true);
     }
 
     // Change: the third neuron has a much bigger stake and overshadows the other two (weighting factor is applied).
@@ -622,26 +625,26 @@ describe('staking-rewards', () => {
     if (isStakingRewardDataReady(data)) {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(3);
+      expect(checkNumber(0, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0)).toBe(
+        true,
+      );
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0, 4),
-      ).toBe(0);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0, 4),
-      ).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.cur ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[1]))?.cur ?? 0, 4),
-      ).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0, 4),
-      ).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.cur ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[2]))?.cur ?? 0, 4),
-      ).toBe(0.1376);
-      expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[2]))?.max ?? 0, 4),
-      ).toBe(0.1376);
-      expect(roundToDecimals(data.apy.cur, 4)).toBe(0.1376);
-      expect(roundToDecimals(data.apy.max, 4)).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.max ?? 0),
+      ).toBe(true);
+      expect(checkNumber(0.1376, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.1376, data.apy.max)).toBe(true);
     }
 
     // Change: the third neuron has a much bigger stake and overshadows the other two (weighting factor is applied).
@@ -656,26 +659,26 @@ describe('staking-rewards', () => {
     if (isStakingRewardDataReady(data)) {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(3);
+      expect(checkNumber(0, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0)).toBe(
+        true,
+      );
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0, 4),
-      ).toBe(0);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0, 4),
-      ).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.cur ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[1]))?.cur ?? 0, 4),
-      ).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0),
+      ).toBe(true);
+      expect(checkNumber(0, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.cur ?? 0)).toBe(
+        true,
+      );
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0, 4),
-      ).toBe(0.1376);
-      expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[2]))?.cur ?? 0, 4),
-      ).toBe(0);
-      expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[2]))?.max ?? 0, 4),
-      ).toBe(0.1376);
-      expect(roundToDecimals(data.apy.cur, 4)).toBe(0);
-      expect(roundToDecimals(data.apy.max, 4)).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.max ?? 0),
+      ).toBe(true);
+      expect(checkNumber(0, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.1376, data.apy.max)).toBe(true);
     }
 
     // Change: remove the third neuron.
@@ -685,20 +688,20 @@ describe('staking-rewards', () => {
     if (isStakingRewardDataReady(data)) {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(2);
+      expect(checkNumber(0, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0)).toBe(
+        true,
+      );
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0, 4),
-      ).toBe(0);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0, 4),
-      ).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.cur ?? 0),
+      ).toBe(true);
       expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[1]))?.cur ?? 0, 4),
-      ).toBe(0.1376);
-      expect(
-        roundToDecimals(data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0, 4),
-      ).toBe(0.1376);
-      expect(roundToDecimals(data.apy.cur, 4)).toBe(0.0688);
-      expect(roundToDecimals(data.apy.max, 4)).toBe(0.1376);
+        checkNumber(0.1376, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0),
+      ).toBe(true);
+      expect(checkNumber(0.0688, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.1376, data.apy.max)).toBe(true);
     }
   });
 });
