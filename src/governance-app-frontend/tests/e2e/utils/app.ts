@@ -10,5 +10,7 @@ export const openApp = async ({ page, url = '/' }: { page: Page; url?: string })
 
   await page.goto(url);
   await page.waitForLoadState('networkidle'); // ensures all assets loaded
-  await expect(page.getByTestId('main-layout')).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText('Welcome to the Internet Computer Governance')).toBeVisible({
+    timeout: 15000,
+  });
 };

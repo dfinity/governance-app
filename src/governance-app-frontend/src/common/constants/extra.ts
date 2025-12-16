@@ -40,3 +40,6 @@ export const NNS_FINAL_REWARD_RATE = 0.05; // 5%
 // Neuron bonuses
 export const MAX_DISSOLVE_DELAY_BONUS = 1; // +100%
 export const MAX_AGE_BONUS = 0.25; // +25%
+
+// Local Storage Keys
+export const MANUAL_LOGOUT_KEY = 'manual-logout';

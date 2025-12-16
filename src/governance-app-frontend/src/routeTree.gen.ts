@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as VotingIndexRouteImport } from './routes/voting/index'
 import { Route as StakesIndexRouteImport } from './routes/stakes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
@@ -16,6 +17,11 @@ import { Route as homepageIndexRouteImport } from './routes/(homepage)/index'
 import { Route as StakesIdIndexRouteImport } from './routes/stakes/$id/index'
 import { Route as VotingProposalsIdIndexRouteImport } from './routes/voting/proposals/$id/index'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VotingIndexRoute = VotingIndexRouteImport.update({
   id: '/voting/',
   path: '/voting/',
@@ -48,6 +54,7 @@ const VotingProposalsIdIndexRoute = VotingProposalsIdIndexRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/login': typeof LoginRoute
   '/': typeof homepageIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/stakes': typeof StakesIndexRoute
@@ -56,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/voting/proposals/$id': typeof VotingProposalsIdIndexRoute
 }
 export interface FileRoutesByTo {
+  '/login': typeof LoginRoute
   '/': typeof homepageIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/stakes': typeof StakesIndexRoute
@@ -65,6 +73,7 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/login': typeof LoginRoute
   '/(homepage)/': typeof homepageIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/stakes/': typeof StakesIndexRoute
@@ -75,6 +84,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/login'
     | '/'
     | '/settings'
     | '/stakes'
@@ -83,6 +93,7 @@ export interface FileRouteTypes {
     | '/voting/proposals/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/login'
     | '/'
     | '/settings'
     | '/stakes'
@@ -91,6 +102,7 @@ export interface FileRouteTypes {
     | '/voting/proposals/$id'
   id:
     | '__root__'
+    | '/login'
     | '/(homepage)/'
     | '/settings/'
     | '/stakes/'
@@ -100,6 +112,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  LoginRoute: typeof LoginRoute
   homepageIndexRoute: typeof homepageIndexRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
   StakesIndexRoute: typeof StakesIndexRoute
@@ -110,6 +123,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/voting/': {
       id: '/voting/'
       path: '/voting'
@@ -156,6 +176,7 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
+  LoginRoute: LoginRoute,
   homepageIndexRoute: homepageIndexRoute,
   SettingsIndexRoute: SettingsIndexRoute,
   StakesIndexRoute: StakesIndexRoute,
