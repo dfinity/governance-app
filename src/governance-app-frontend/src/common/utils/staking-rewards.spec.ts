@@ -27,7 +27,7 @@ import { getNeuronId } from './neuron';
 
 const checkNumber = (referenceValue: number, valueToCheck: number) => {
   // Allow for 2% deviation from the reference value.
-  return inConfidenceRange(referenceValue, roundToDecimals(valueToCheck, 4), 2);
+  return inConfidenceRange(referenceValue, roundToDecimals(valueToCheck, 4), 0.02);
 };
 
 describe('staking-rewards', () => {
@@ -223,7 +223,7 @@ describe('staking-rewards', () => {
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
       expect(checkNumber(0.0709, data.stakingFlowApyPreview[6].autoStake.locked)).toBe(true);
-      expect(checkNumber(0.0357, data.stakingFlowApyPreview[6].autoStake.dissolving)).toBe(true);
+      expect(checkNumber(0.0002, data.stakingFlowApyPreview[6].autoStake.dissolving)).toBe(true);
       expect(checkNumber(0.0685, data.stakingFlowApyPreview[6].nonAutoStake.locked)).toBe(true);
       expect(checkNumber(0.0002, data.stakingFlowApyPreview[6].nonAutoStake.dissolving)).toBe(true);
 
