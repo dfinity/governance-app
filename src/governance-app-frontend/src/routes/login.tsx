@@ -3,6 +3,7 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ExternalLink, LaptopMinimalCheck, LogIn } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { AnimatedDecentralizedMap } from '@components/AnimatedDecentralizedMap';
 import { Button } from '@components/button';
 
 type LoginSearch = {
@@ -27,6 +28,8 @@ function LoginPage() {
 
   return (
     <div className="relative flex min-h-dvh w-full flex-col items-center justify-center p-4 py-8">
+      <AnimatedDecentralizedMap />
+
       <div className="fixed inset-0 -z-10 overflow-hidden bg-background">
         <div className="absolute top-1/2 left-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 blur-[100px]" />
       </div>
