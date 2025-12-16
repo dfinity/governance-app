@@ -24,12 +24,12 @@ export const getNeuronStakeE8s = (neuron: NeuronInfo): bigint => {
   return neuron.fullNeuron?.cachedNeuronStake ?? 0n;
 };
 
-export const getNeuronFees = (neuron: NeuronInfo): bigint => {
+export const getNeuronFeesE8s = (neuron: NeuronInfo): bigint => {
   return neuron.fullNeuron?.neuronFees ?? 0n;
 };
 
 export const getNeuronStakeAfterFeesE8s = (neuron: NeuronInfo): bigint => {
-  return bigIntMax(getNeuronStakeE8s(neuron) - getNeuronFees(neuron), 0n);
+  return bigIntMax(getNeuronStakeE8s(neuron) - getNeuronFeesE8s(neuron), 0n);
 };
 
 export const getNeuronTotalStakeAfterFeesE8s = (neuron: NeuronInfo): bigint => {
@@ -51,9 +51,8 @@ export const getNeuronIsDissolving = (neuron: NeuronInfo): boolean => {
 export const getNeuronDissolveDelaySeconds = (neuron: NeuronInfo, referenceDate?: Date): bigint => {
   if (getNeuronIsDissolving(neuron)) {
     return getDissolvingTimeInSeconds(neuron, referenceDate) ?? 0n;
-  } else {
-    return getLockedTimeInSeconds(neuron) ?? 0n;
   }
+  return getLockedTimeInSeconds(neuron) ?? 0n;
 };
 
 export const getNeuronAgeSeconds = (
@@ -122,7 +121,8 @@ export const getNeuronBonusRatio = (
 export const cloneNeurons = (neurons: NeuronInfo[]) => {
   return neurons.map((n) => ({
     ...n,
-    fullNeuron: n.fullNeuron ? { ...n.fullNeuron } : undefined,
+    fullNeuron: nonNullish(n.fullNeuron) ? { ...n.fullNeuron } : undefined,
+    recentBallots: nonNullish(n.recentBallots) ? { ...n.recentBallots } : undefined,
   })) as NeuronInfo[];
 };
 
