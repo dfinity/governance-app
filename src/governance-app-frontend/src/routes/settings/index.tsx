@@ -3,6 +3,8 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { MANUAL_LOGOUT_KEY } from '@constants/extra';
+
 import { Button } from '@/common/components/button';
 import { PrincipalCard } from '@/features/settings/components/PrincipalCard';
 import { ThemeCard } from '@/features/settings/components/ThemeCard';
@@ -16,7 +18,7 @@ function Settings() {
   const { t } = useTranslation();
 
   const handleLogout = () => {
-    sessionStorage.setItem('manual-logout', 'true');
+    localStorage.setItem(MANUAL_LOGOUT_KEY, 'true');
     clear();
   };
 

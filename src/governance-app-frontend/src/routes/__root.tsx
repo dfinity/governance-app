@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { MainLayout } from '@components/MainLayout';
+import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { infoNotification } from '@utils/notification';
 
 export const Route = createRootRoute({
@@ -35,8 +36,8 @@ function RootComponent() {
       setTimeout(() => queryClient.resetQueries(), 0);
 
       // Check for manual logout flag.
-      const isManualLogout = sessionStorage.getItem('manual-logout') === 'true';
-      sessionStorage.removeItem('manual-logout');
+      const isManualLogout = localStorage.getItem(MANUAL_LOGOUT_KEY) === 'true';
+      localStorage.removeItem(MANUAL_LOGOUT_KEY);
 
       // Show notification in case of expiration only.
       if (!isManualLogout) {
