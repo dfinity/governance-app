@@ -50,7 +50,7 @@ const MapBackground = React.memo(
         })}
       </g>
     );
-  }
+  },
 );
 
 export function DottedMap({
@@ -102,10 +102,7 @@ export function DottedMap({
   // Markers depend on `markers` prop, so we calculate them here.
   // Because createMap returns a new `addMarkers` function each time (if strict),
   // but we memoized the result above. Ideally `addMarkers` is stable or we use the one from memo.
-  const processedMarkers = React.useMemo(
-    () => addMarkers(markers),
-    [addMarkers, markers]
-  );
+  const processedMarkers = React.useMemo(() => addMarkers(markers), [addMarkers, markers]);
 
   return (
     <svg
