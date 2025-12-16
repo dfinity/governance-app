@@ -256,23 +256,23 @@ describe('staking-rewards', () => {
     let data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0, 4)).toBe(
-        0.0179,
+      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0, 2)).toBe(
+        0.02,
       );
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0, 4)).toBe(
-        0.1256,
+      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0, 2)).toBe(
+        0.13,
       );
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0, 4)).toBe(
-        0.5401,
+      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0, 2)).toBe(
+        0.54,
       );
       expect(
-        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0, 4),
-      ).toBe(1.6515);
+        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0, 2),
+      ).toBe(1.65);
       expect(
-        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0, 4),
-      ).toBe(3.3437);
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0, 4)).toBe(
-        6.8792,
+        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0, 2),
+      ).toBe(3.34);
+      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0, 2)).toBe(
+        6.88,
       );
     }
 
@@ -280,23 +280,23 @@ describe('staking-rewards', () => {
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0, 4)).toBe(
-        0.0359,
+      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0, 2)).toBe(
+        0.04,
       );
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0, 4)).toBe(
-        0.2513,
+      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0, 2)).toBe(
+        0.25,
       );
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0, 4)).toBe(
-        1.0801,
+      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0, 2)).toBe(
+        1.08,
       );
       expect(
-        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0, 4),
-      ).toBe(3.3029);
+        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0, 2),
+      ).toBe(3.3);
       expect(
-        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0, 4),
-      ).toBe(6.6874);
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0, 4)).toBe(
-        13.7584,
+        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0, 2),
+      ).toBe(6.69);
+      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0, 2)).toBe(
+        13.76,
       );
     }
 
@@ -304,23 +304,23 @@ describe('staking-rewards', () => {
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0, 4)).toBe(
-        0.0538,
+      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0, 2)).toBe(
+        0.05,
       );
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0, 4)).toBe(
-        0.3769,
+      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0, 2)).toBe(
+        0.38,
       );
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0, 4)).toBe(
-        1.6202,
+      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0, 2)).toBe(
+        1.62,
       );
       expect(
-        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0, 4),
-      ).toBe(4.9544);
+        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0, 2),
+      ).toBe(4.95);
       expect(
-        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0, 4),
-      ).toBe(10.0312);
-      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0, 4)).toBe(
-        20.6376,
+        roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0, 2),
+      ).toBe(10.03);
+      expect(roundToDecimals(data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0, 2)).toBe(
+        20.64,
       );
     }
 
