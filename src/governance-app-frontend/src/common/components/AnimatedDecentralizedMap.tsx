@@ -92,8 +92,7 @@ export const AnimatedDecentralizedMap = () => {
   }, []);
 
   return (
-    <div className="absolute h-full w-full overflow-hidden">
-      <div className="absolute inset-0 bg-radial from-transparent to-background to-70%" />
+    <div className="absolute h-full w-full animate-in overflow-hidden duration-1000 fade-in">
       <DottedMap markers={activeMarkers} />
     </div>
   );
