@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 
 import { AccountCard } from '@features/account/components/AccountCard';
+import { StakedCard } from '@features/stakes/components/StakedCard';
 
 export const Route = createFileRoute('/(homepage)/')({
   component: Homepage,
@@ -10,5 +11,14 @@ export const Route = createFileRoute('/(homepage)/')({
 function Homepage() {
   const { identity } = useInternetIdentity();
 
-  return <div className="flex flex-col gap-4">{identity && <AccountCard />}</div>;
+  if (!identity) return null;
+
+  return (
+    <div className="flex flex-col gap-12">
+      <div className="flex flex-col gap-4 md:flex-row">
+        <AccountCard />
+        <StakedCard />
+      </div>
+    </div>
+  );
 }

@@ -1,14 +1,21 @@
 import { nonNullish, nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { InfoIcon, Loader2 } from 'lucide-react';
+import { InfoIcon, Loader2, Plus } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
 import { Label } from '@components/Label';
-import { SimpleCard } from '@components/SimpleCard';
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogTrigger,
+} from '@components/ResponsiveDialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@components/Tooltip';
 import {
   E8S,
@@ -24,13 +31,14 @@ import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
-export const StakeNeuron = () => {
+export const StakeNeuronModal = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { data: balanceValue } = useIcpLedgerAccountBalance();
   const maxStake = nonNullish(balanceValue?.response) ? bigIntDiv(balanceValue.response, E8Sn) : 0;
   const [stakeInput, setStakeInput] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
   const { identity } = useInternetIdentity();
   const {
     ready: governanceReady,
@@ -73,6 +81,7 @@ export const StakeNeuron = () => {
     },
     onSuccess: (_, amount) => {
       setStakeInput('');
+      setIsOpen(false);
       Promise.all([
         queryClient.invalidateQueries({
           queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
@@ -139,21 +148,29 @@ export const StakeNeuron = () => {
       });
   const stakePlaceholder = Math.max(maxStake - Number(ICP_TRANSACTION_FEE_E8S) / E8S, 0).toFixed(2);
 
-  if (!canStake) {
-    return null;
-  }
-
   return (
-    <>
-      <h2 className="mb-2 text-primary">{t(($) => $.neuron.stake)}</h2>
-      <SimpleCard className="mb-4 flex">
-        <form onSubmit={handleSubmit} className="flex w-full items-start gap-2">
-          <div className="flex-1 space-y-1">
+    <ResponsiveDialog open={isOpen} onOpenChange={setIsOpen}>
+      <ResponsiveDialogTrigger asChild>
+        <Button size="lg" disabled={!canStake}>
+          <Plus />
+          {t(($) => $.neuron.stakeNeuron.trigger)}
+        </Button>
+      </ResponsiveDialogTrigger>
+      <ResponsiveDialogContent>
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>{t(($) => $.neuron.stake)}</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
+            {t(($) => $.neuron.stakeNeuron.tooltip)}
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
+
+        <form onSubmit={handleSubmit} className="flex w-full flex-col gap-4">
+          <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Label htmlFor="stake-input">{t(($) => $.neuron.stakeNeuron.label)}</Label>
               <TooltipProvider>
                 <Tooltip>
-                  <TooltipTrigger>
+                  <TooltipTrigger asChild>
                     <InfoIcon className="h-4 w-4 text-muted-foreground" />
                   </TooltipTrigger>
                   <TooltipContent>
@@ -175,12 +192,12 @@ export const StakeNeuron = () => {
               {stakeHint}
             </p>
           </div>
-          <Button disabled={pending} type="submit" className="mt-7 self-start">
+          <Button disabled={pending} type="submit" className="self-end">
             {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {t(($) => $.neuron.stake)}
           </Button>
         </form>
-      </SimpleCard>
-    </>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 };

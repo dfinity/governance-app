@@ -1,6 +1,6 @@
 import { NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
 import { secondsToDuration } from '@dfinity/utils';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
 import { CertifiedBadge } from '@components/CertifiedBadge';
@@ -11,24 +11,15 @@ import { WarningMessage } from '@components/WarningMessage';
 import { E8S } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance/useGovernanceNeurons';
 import { useStakingRewards } from '@hooks/useStakingRewards';
-import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';
 import { getNeuronId } from '@utils/neuron';
-import { requireIdentity } from '@utils/router';
 import {
   isStakingRewardDataError,
   isStakingRewardDataLoading,
   isStakingRewardDataReady,
 } from '@utils/staking-rewards';
 
-import { StakeNeuron } from './-StakeNeuron';
-
-export const Route = createFileRoute('/nns/neurons/')({
-  component: NeuronsPage,
-  beforeLoad: requireIdentity,
-});
-
-function NeuronsPage() {
+export const NeuronsList = () => {
   const neuronsQuery = useGovernanceNeurons();
   const { t } = useTranslation();
   const dissolveDelayRemaining = (neuron: NeuronInfo): string =>
@@ -36,16 +27,11 @@ function NeuronsPage() {
       seconds: neuron.dissolveDelaySeconds,
       i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
     });
-  useTitle(t(($) => $.common.neuronsList));
 
   const apyData = useStakingRewards();
 
   return (
-    <div className="flex flex-col gap-2 text-xl">
-      <StakeNeuron />
-
-      <h2 className="mb-2 text-primary">{t(($) => $.common.neuronsList)}</h2>
-
+    <div className="mt-4 flex flex-col gap-2 text-xl">
       <QueryStates<CertifiedData<NeuronInfo[]>>
         query={neuronsQuery}
         isEmpty={(neurons) => neurons.response.length === 0}
@@ -53,7 +39,7 @@ function NeuronsPage() {
         {(neurons) => (
           <div className="grid grid-cols-1 gap-4 text-lg sm:grid-cols-2 lg:grid-cols-3">
             {neurons?.response.map((neuron) => (
-              <Link to="/nns/neurons/$id" params={{ id: neuron.neuronId }} key={neuron.neuronId}>
+              <Link to="/stakes/$id" params={{ id: neuron.neuronId }} key={neuron.neuronId}>
                 <SimpleCard>
                   <div className="flex items-center justify-between gap-2">
                     <p className="overflow-hidden text-ellipsis">#{neuron.neuronId}</p>
@@ -121,4 +107,4 @@ function NeuronsPage() {
       </QueryStates>
     </div>
   );
-}
+};

@@ -41,9 +41,11 @@ export function AccountCard() {
 
   return (
     <>
-      <Card>
+      <Card className="flex-1">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="font-semibold uppercase">{t(($) => $.common.accounts)}</CardTitle>
+          <CardTitle className="text-medium tracking-wide text-muted-foreground uppercase">
+            {t(($) => $.common.accounts)}
+          </CardTitle>
         </CardHeader>
 
         <CardContent>
@@ -62,7 +64,9 @@ export function AccountCard() {
                 return (
                   <div className="flex flex-col gap-12">
                     <div>
-                      <div className="text-2xl font-bold">{balanceICPs} ICP</div>
+                      <div className="text-2xl font-bold">
+                        {t(($) => $.common.inIcp, { value: balanceICPs })}
+                      </div>
 
                       <QueryStates<TokenPrices>
                         query={tickerPrices}
