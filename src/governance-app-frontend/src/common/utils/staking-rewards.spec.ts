@@ -8,7 +8,6 @@ import {
   SECONDS_IN_MONTH,
   SECONDS_IN_YEAR,
 } from '@constants/extra';
-import { inConfidenceRange, roundToDecimals } from '@utils/rounding';
 import {
   getStakingRewardData,
   isStakingRewardDataError,
@@ -20,6 +19,8 @@ import {
 import {
   getStakingRewardsInitialMockedParams,
   getStakingRewardsTestNeuron,
+  inConfidenceRange,
+  roundToDecimals,
   stakingRewardsTestReferenceDate,
 } from '@utils/staking-rewards-test';
 
@@ -38,7 +39,7 @@ describe('staking-rewards', () => {
     params = getStakingRewardsInitialMockedParams() as unknown as StakingRewardCalcParams;
   });
 
-  it('Loading state if parameters are still undefined', () => {
+  it('loading state if parameters are still undefined', () => {
     // @ts-expect-error - we want to test the loading case
     params.totalVotingPower = undefined;
     const data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
@@ -48,7 +49,7 @@ describe('staking-rewards', () => {
     expect(isStakingRewardDataReady(data)).toBe(false);
   });
 
-  it('Error state if the user is not authenticated', () => {
+  it('error state if the user is not authenticated', () => {
     params.isAuthenticated = false;
     const data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
 
@@ -57,7 +58,7 @@ describe('staking-rewards', () => {
     expect(isStakingRewardDataReady(data)).toBe(false);
   });
 
-  it('Error state if parameters are missing (totalSupplyIcp)', () => {
+  it('error state if parameters are missing (totalSupplyIcp)', () => {
     // @ts-expect-error - we want to test the error case
     params.governanceMetrics = { totalSupplyIcp: undefined };
     const data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
@@ -67,7 +68,7 @@ describe('staking-rewards', () => {
     expect(isStakingRewardDataReady(data)).toBe(false);
   });
 
-  it('Works with an empty account', () => {
+  it('works with an empty account', () => {
     params.neurons = [];
     params.balance = 0;
     const data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
@@ -90,7 +91,7 @@ describe('staking-rewards', () => {
     }
   });
 
-  it('Calculates the staking ratio', () => {
+  it('calculates the staking ratio', () => {
     let data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
@@ -154,7 +155,7 @@ describe('staking-rewards', () => {
     }
   });
 
-  it('Calculates the reward balance', () => {
+  it('calculates the reward balance', () => {
     let data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
@@ -218,7 +219,7 @@ describe('staking-rewards', () => {
     }
   });
 
-  it('Calculates the staking flow APY preview', () => {
+  it('calculates the staking flow APY preview', () => {
     const data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
@@ -255,7 +256,7 @@ describe('staking-rewards', () => {
     }
   });
 
-  it('Calculates the reward estimates in maturity', () => {
+  it('calculates the reward estimates in maturity', () => {
     let data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
@@ -395,7 +396,7 @@ describe('staking-rewards', () => {
     }
   });
 
-  it('Calculates the APY in the different configurations', () => {
+  it('calculates the APY in the different configurations', () => {
     // Base case: 1 neuron, no fees, no staked maturity, auto stake maturity on, dissolve delay 8 years, locked.
     let data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
