@@ -23,6 +23,7 @@ import {
 } from '@utils/staking-rewards';
 
 import { IncreaseMaturityModal } from '@/dev/IncreaseMaturityModal';
+import { CreateDummyProposalsButton } from '@/dev/makeDummyProposals';
 import { UnlockNeuronModal } from '@/dev/UnlockNeuronModal';
 
 const NeuronDetailsRouteComponent = () => {
@@ -159,6 +160,7 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
           <SetDissolveDelayModal neuron={neuron} />
           {IS_TESTNET && <IncreaseMaturityModal neuron={neuron} />}
           {IS_TESTNET && <UnlockNeuronModal neuron={neuron} />}
+          {IS_TESTNET && <CreateDummyProposalsButton neuron={neuron} />}
         </CardFooter>
       </Card>
     </div>
