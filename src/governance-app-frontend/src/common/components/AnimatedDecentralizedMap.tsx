@@ -145,7 +145,7 @@ const getRandomSubsetByModification = (currentMarkers: typeof ALL_MARKERS, targe
     }));
   }
 
-  const keepCount = Math.max(0, currentMarkers.length - 5);
+  const keepCount = Math.max(0, currentMarkers.length - 10);
   const keeping = [...currentMarkers].sort(() => 0.5 - Math.random()).slice(0, keepCount);
 
   // Add new ones from ALL_MARKERS that are NOT in keeping
@@ -171,7 +171,7 @@ export const AnimatedDecentralizedMap = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveMarkers((current) => getRandomSubsetByModification(current, 50));
-    }, 100);
+    }, 250);
 
     return () => clearInterval(interval);
   }, []);
