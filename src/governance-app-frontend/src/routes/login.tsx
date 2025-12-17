@@ -34,10 +34,7 @@ function LoginPage() {
 
   return (
     <div className="relative flex min-h-dvh w-full flex-col items-center justify-center p-4 py-8">
-      <div
-        className="absolute inset-0 hidden h-full w-full overflow-hidden md:block"
-        data-snapshot-mask="true"
-      >
+      <div className="absolute inset-0 hidden h-full w-full overflow-hidden md:block">
         <Suspense fallback={null}>
           <AnimatedDecentralizedMap />
         </Suspense>

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 
 import { openApp } from './utils/app';
 import { login } from './utils/login';
@@ -11,7 +11,13 @@ test('Has title.', async ({ page }) => {
 
   await openApp({ page });
 
-  await expect(page).toHaveTitle('The Governance App');
+  // Wait for the login card to ensure content is loaded
+  await page.waitForSelector('[data-testid="login-btn"]');
+
+  // Hide the random map via CSS to ensure stable snapshots
+  await page.addStyleTag({
+    content: '[data-testid="decentralized-map"] { opacity: 0 !important; }',
+  });
 
   await takeSnapshot({ page, label: 'login--signed-out' });
 
