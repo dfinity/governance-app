@@ -177,7 +177,10 @@ export const AnimatedDecentralizedMap = () => {
   }, []);
 
   return (
-    <div className="absolute h-full w-full animate-in overflow-hidden duration-1000 fade-in">
+    <div
+      className="absolute h-full w-full animate-in overflow-hidden duration-1000 fade-in"
+      data-testid="decentralized-map"
+    >
       <style>
         {`
           @keyframes infinite-scroll {
