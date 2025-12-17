@@ -39,16 +39,16 @@ import {
   isNeuronEligibleToVote,
   maximiseNeuronParams,
 } from '@utils/neuron';
-import { getApyTestNeuron } from '@utils/staking-rewards-test';
+import { getStakingRewardsTestNeuron } from '@utils/staking-rewards-test';
 
 import { logWithTimestamp } from '@/dev/log';
 
 ////////////// STAKING FLOW APY COMBINATIONS
 
-const stakingFlowApyDissolveDelay = [6, 12, 24, 48, 96];
+const stakingFlowApyDissolveDelayInMonths = [6, 12, 24, 48, 96];
 
 type StakingFlowApyPreview = Record<
-  (typeof stakingFlowApyDissolveDelay)[number],
+  (typeof stakingFlowApyDissolveDelayInMonths)[number],
   {
     autoStake: {
       dissolving: number;
@@ -81,7 +81,7 @@ type APY = {
   error?: APY_CALC_ERROR;
 };
 
-enum MaturityEstimatePeriod {
+export enum MaturityEstimatePeriod {
   DAY = 1,
   WEEK = 7,
   MONTH = 30,
@@ -282,7 +282,7 @@ const getStakingFlowApyPreview = (params: StakingRewardCalcParams, forceInitialD
     : nowInSeconds();
 
   const result: StakingFlowApyPreview = {};
-  stakingFlowApyDissolveDelay.forEach((dissolveDelay) => {
+  stakingFlowApyDissolveDelayInMonths.forEach((dissolveDelay) => {
     result[dissolveDelay] = {
       autoStake: { dissolving: 0, locked: 0 },
       nonAutoStake: { dissolving: 0, locked: 0 },
@@ -290,7 +290,7 @@ const getStakingFlowApyPreview = (params: StakingRewardCalcParams, forceInitialD
 
     for (let locked = 0; locked < 2; locked++) {
       for (let autoStake = 0; autoStake < 2; autoStake++) {
-        const neuron = getApyTestNeuron(initialDateSeconds);
+        const neuron = getStakingRewardsTestNeuron(initialDateSeconds);
 
         neuron.fullNeuron.autoStakeMaturity = autoStake === 1;
         neuron.dissolveDelaySeconds = BigInt(dissolveDelay * SECONDS_IN_MONTH);
@@ -406,9 +406,8 @@ const getNeuronsRewardEstimate = (
     }, 0);
 
     neuronsTotalReward += totalDayReward;
-
-    if (days + 1 in MaturityEstimatePeriod) {
-      periodsRewards.set(days + 1, neuronsTotalReward);
+    if (i + 1 in MaturityEstimatePeriod) {
+      periodsRewards.set(i + 1, neuronsTotalReward);
     }
   }
 

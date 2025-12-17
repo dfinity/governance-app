@@ -5,9 +5,9 @@ import {
   NeuronState,
 } from '@icp-sdk/canisters/nns';
 
-import { E8S, SECONDS_IN_EIGHT_YEARS } from '@constants/extra';
+import { E8S, SECONDS_IN_EIGHT_YEARS, SECONDS_IN_HALF_YEAR } from '@constants/extra';
 
-type TestStakingRewardCalcParams = {
+export type StakingRewardTestParams = {
   isAuthenticated: boolean;
   totalVotingPower: bigint;
   balance: number;
@@ -25,28 +25,22 @@ type TestStakingRewardCalcParams = {
       >;
     }
   >;
-  economics: {
-    parameters: Pick<NetworkEconomics, 'neuronMinimumStake'> & {
-      votingPowerEconomics: Pick<
-        NonNullable<NetworkEconomics['votingPowerEconomics']>,
-        'neuronMinimumDissolveDelayToVoteSeconds'
-      >;
-    };
+  economics: Pick<NetworkEconomics, 'neuronMinimumStake'> & {
+    votingPowerEconomics: Pick<
+      NonNullable<NetworkEconomics['votingPowerEconomics']>,
+      'neuronMinimumDissolveDelayToVoteSeconds'
+    >;
   };
-  governanceMetrics: {
-    metrics: Pick<GovernanceCachedMetrics, 'totalSupplyIcp'>;
-  };
-
-  nnsTotalVotingPower: bigint;
+  governanceMetrics: Pick<GovernanceCachedMetrics, 'totalSupplyIcp'>;
 };
 
-const referenceDate = new Date('2025-07-04T00:00:00Z'); // 4 Jul 2025
-const referenceDateSeconds = referenceDate.getTime() / 1000;
+export const stakingRewardsTestReferenceDate = new Date('2025-07-04T00:00:00Z'); // 4 Jul 2025
+const stakingRewardsTestReferenceDateSeconds = stakingRewardsTestReferenceDate.getTime() / 1000;
 
 let neuronCounter = 0n;
-export const getApyTestNeuron = (
-  refDateSeconds: number = referenceDateSeconds,
-): TestStakingRewardCalcParams['neurons'][0] => ({
+export const getStakingRewardsTestNeuron = (
+  refDateSeconds: number = stakingRewardsTestReferenceDateSeconds,
+): StakingRewardTestParams['neurons'][0] => ({
   neuronId: neuronCounter++,
   state: NeuronState.Locked,
   dissolveDelaySeconds: BigInt(SECONDS_IN_EIGHT_YEARS),
@@ -62,3 +56,32 @@ export const getApyTestNeuron = (
     autoStakeMaturity: true,
   },
 });
+
+export const getStakingRewardsInitialMockedParams = (): StakingRewardTestParams => ({
+  isAuthenticated: true,
+  totalVotingPower: 50_276_005_084_190_970n, // 24 Jun 2025
+  balance: 100,
+  neurons: [getStakingRewardsTestNeuron()],
+  economics: {
+    neuronMinimumStake: BigInt(1 * E8S),
+    votingPowerEconomics: {
+      neuronMinimumDissolveDelayToVoteSeconds: BigInt(SECONDS_IN_HALF_YEAR),
+    },
+  },
+  governanceMetrics: { totalSupplyIcp: 534_809_202n }, // 24 Jun 2025
+});
+
+export const roundToDecimals = (value: number, decimals: number): number => {
+  const factor = Math.pow(10, decimals);
+  return Math.round(value * factor) / factor;
+};
+
+export const inConfidenceRange = (
+  referenceValue: number,
+  valueToCheck: number,
+  range: number,
+): boolean => {
+  const min = referenceValue * (1 - range);
+  const max = referenceValue * (1 + range);
+  return valueToCheck >= min && valueToCheck <= max;
+};
