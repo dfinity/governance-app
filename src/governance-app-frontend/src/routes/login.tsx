@@ -21,9 +21,9 @@ export const Route = createFileRoute('/login')({
 function LoginPage() {
   const { login, identity } = useInternetIdentity();
   const { t } = useTranslation();
-  const search = Route.useSearch();
+  const { redirect = '/' } = Route.useSearch();
 
-  if (identity) return <Navigate to={search.redirect || '/'} />;
+  if (identity) return <Navigate to={redirect} />;
 
   return (
     <div className="relative flex min-h-dvh w-full flex-col items-center justify-center p-4 py-8">
