@@ -13,40 +13,24 @@ dfx identity new sns-testing --storage-mode=plaintext
 
 ## Local
 
-There are a list of scripts to help you set up a local development environment. The scripts will download a pre-built bundle containing everything needed to run a local Replica with the required canisters.
+To run the project locally, you need to start the local replica and then deploy the application.
 
-- Download and extract the bundle. The script uses the latest version of IC to donwload the bundle. For more options, please refer to the script itself:
+1. **Start the local replica:**
 
-```sh
-./scripts/download-sns_testing_bundle.sh
-```
+   ```sh
+   npm run start:ic
+   ```
 
-- Start the PocketIc server:
-```sh
-./scripts/pocketic-server.sh -d <directory>
-```
-
-- Note: If you have a running instace of pocketIc, the script will fail. You can stop the instance with:
-```sh
-./scripts/pocketic-server.sh -s
-```
-
-- In a new terminal, run the following script to initialize required canisters:
-```sh
-./scripts/init-replica.sh -d <directory>
-```
-
-- Now, following canisters should be available in the following urls:
+This script downloads the required `pocket-ic` binary (version defined in `config.json`) if needed, and starts the replica with system canisters (NNS, II, SNS) enabled.
   - NNS dapp: http://qoctq-giaaa-aaaaa-aaaea-cai.localhost:8080
   - SNS Aggregator: http://3r4gx-wqaaa-aaaaq-aaaia-cai.localhost:8080
   - Internet Identity: http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:8080
 
-- We can now start the FE development server with the following commands from the root of the `governance-dapp` repo:
+2. **Start the frontend:**
 
-```sh
-dfx deploy --network http://127.0.0.1:8080
-npm start
-```
+   ```sh
+   npm start
+   ```
 
 ## DevEnv
 
