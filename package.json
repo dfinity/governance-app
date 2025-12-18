@@ -11,6 +11,8 @@
     "lint": "npm run lint --workspaces --if-present",
     "start": "npm start --workspaces --if-present",
     "start:ic": "./scripts/start-pocket-ic.sh",
+    "start:local": "./scripts/config.sh -n local && npm run start",
+    "start:mainnet": "./scripts/config.sh -n ic && npm run start",
     "test": "npm test --workspaces --if-present",
     "test:e2e": "npm run test:e2e --workspaces --if-present",
     "update-snapshots": "npm run update-snapshots --workspaces --if-present"
