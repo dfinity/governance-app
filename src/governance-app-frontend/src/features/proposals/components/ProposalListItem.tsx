@@ -33,15 +33,7 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
     neurons?.response.some((n) => n.neuronId === b.neuronId),
   );
 
-  // Check if I have voted with at least one neuron? Or all?
-  // User wanted "Vote cast: Yes/No".
-  // Let's see if *any* of my neurons voted.
-  const myVotes = myVotingNeurons.filter((b) => b.vote !== Vote.Unspecified);
-  const hasVoted = myVotes.length > 0;
-  // If mixed votes, we prioritize showing we voted.
-  // Ideally, show what the majority of my stake voted for, but for now simple check.
-  const voteValue = hasVoted ? myVotes[0].vote : Vote.Unspecified;
-
+  // Yes/No vote status
   const { yes, no, total } = proposal.latestTally || {};
   const yesPercent =
     nonNullish(yes) && nonNullish(total) && total > 0n
@@ -66,6 +58,12 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
   useEffect(() => {
     requestAnimationFrame(() => setIsMounted(true));
   }, []);
+
+  // TODO: Add mutations
+  // My votes
+  const myVotes = myVotingNeurons.filter((b) => b.vote !== Vote.Unspecified);
+  const hasVoted = myVotes.length > 0;
+  const voteValue = hasVoted ? myVotes[0].vote : Vote.Unspecified;
 
   const statusColor =
     status === ProposalStatus.Open
@@ -111,11 +109,11 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
               <div className="relative h-2 flex-grow overflow-hidden rounded-full bg-secondary">
                 <div className="absolute top-0 left-1/2 z-10 h-full w-0.5 -translate-x-1/2 bg-foreground/80" />
                 <div
-                  className="absolute top-0 bottom-0 left-0 bg-green-500 transition-all duration-5000 ease-out"
+                  className="absolute top-0 bottom-0 left-0 bg-green-500 transition-all duration-4000 ease-out"
                   style={{ width: `${isMounted ? yesPercent : 0}%` }}
                 />
                 <div
-                  className="absolute top-0 right-0 bottom-0 bg-red-500 transition-all duration-5000 ease-out"
+                  className="absolute top-0 right-0 bottom-0 bg-red-500 transition-all duration-4000 ease-out"
                   style={{ width: `${isMounted ? noPercent : 0}%` }}
                 />
               </div>
