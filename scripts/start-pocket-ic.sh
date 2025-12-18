@@ -26,4 +26,4 @@ echo "  - Internet Identity: http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:8080"
 echo ""
 
 # Start dfx in the background
-dfx start --system-canisters --artificial-delay 1000
+dfx start --system-canisters --artificial-delay 2000
