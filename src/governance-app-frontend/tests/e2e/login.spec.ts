@@ -16,6 +16,4 @@ test('Has title.', async ({ page }) => {
   await takeSnapshot({ page, label: 'login--signed-out' });
 
   await login({ page });
-
-  await takeSnapshot({ page, label: 'login--signed-in' });
 });
