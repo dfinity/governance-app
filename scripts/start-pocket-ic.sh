@@ -17,8 +17,10 @@ POCKET_IC_BIN="./pocket-ic/$IC_COMMIT"
 
 export POCKET_IC_BIN
 
+echo ""
 echo "🚀 Initializing local replica with required canisters..."
 
+echo ""
 echo "Following canisters will be available in the following urls:"
 echo "  - NNS dapp: http://qoctq-giaaa-aaaaa-aaaea-cai.localhost:8080"
 echo "  - SNS Aggregator: http://3r4gx-wqaaa-aaaaq-aaaia-cai.localhost:8080"
