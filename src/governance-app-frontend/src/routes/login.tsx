@@ -5,15 +5,25 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 
+type LoginSearch = {
+  redirect?: string;
+};
+
 export const Route = createFileRoute('/login')({
+  validateSearch: (search: Record<string, unknown>): LoginSearch => {
+    return {
+      redirect: typeof search.redirect === 'string' ? search.redirect : undefined,
+    };
+  },
   component: LoginPage,
 });
 
 function LoginPage() {
   const { login, identity } = useInternetIdentity();
   const { t } = useTranslation();
+  const search = Route.useSearch();
 
-  if (identity) return <Navigate to="/" />;
+  if (identity) return <Navigate to={search.redirect || '/'} />;
 
   return (
     <div className="relative flex min-h-dvh w-full flex-col items-center justify-center p-4 py-8">
