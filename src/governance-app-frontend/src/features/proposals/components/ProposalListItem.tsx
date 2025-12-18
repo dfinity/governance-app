@@ -3,6 +3,7 @@ import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nn
 import { Link } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { CheckCircle, Clock, Tag, ThumbsDown, ThumbsUp } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@components/badge';
@@ -43,11 +44,15 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
   // Ideally, show what the majority of my stake voted for, but for now simple check.
   const voteValue = hasVoted ? myVotes[0].vote : Vote.Unspecified;
 
-  const { yes, total } = proposal.latestTally || {};
+  const { yes, no, total } = proposal.latestTally || {};
   const yesPercent =
     nonNullish(yes) && nonNullish(total) && total > 0n
-      ? (bigIntDiv(yes, total, VOTING_RESULTS_PRECISION) * 100).toFixed(0)
-      : '0';
+      ? bigIntDiv(yes, total, VOTING_RESULTS_PRECISION) * 100
+      : 0;
+  const noPercent =
+    nonNullish(no) && nonNullish(total) && total > 0n
+      ? bigIntDiv(no, total, VOTING_RESULTS_PRECISION) * 100
+      : 0;
 
   // Time left
   const now = Date.now() / 1000;
@@ -59,6 +64,11 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
   });
 
   const status = proposal.status;
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    requestAnimationFrame(() => setIsMounted(true));
+  }, []);
+
   const statusColor =
     status === ProposalStatus.Open
       ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-100/80'
@@ -81,7 +91,7 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
             {proposal.proposal?.title}
           </h3>
 
-          <div className="flex flex-wrap gap-1 text-xs">
+          <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
             <Badge className={statusColor}>{ProposalStatus[status]}</Badge>
             {timeLeft.length > 0 && (
               <Badge variant="secondary" className="gap-1.5 font-normal">
@@ -90,13 +100,35 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
               </Badge>
             )}
             <Badge variant="secondary" className="gap-1.5 font-normal">
-              <CheckCircle className="h-3.5 w-3.5" />
-              {yesPercent}% Yes
-            </Badge>
-            <Badge variant="secondary" className="gap-1.5 font-normal">
               <Tag className="h-3.5 w-3.5" />
               {Topic[proposal.topic]}
             </Badge>
+
+            {/* Vote Progress Bar */}
+            <div className="ml-auto flex w-full max-w-[500px] min-w-[140px] flex-1 items-center gap-2 sm:w-auto">
+              <span className="text-[10px] font-bold text-green-600 dark:text-green-400">
+                {yesPercent.toFixed(1)}%
+              </span>
+              <div className="relative h-2 flex-grow overflow-hidden rounded-full bg-secondary">
+                {/* 50% Marker */}
+                <div className="absolute top-0 left-1/2 z-10 h-full w-0.5 -translate-x-1/2 bg-foreground/80" />
+
+                {/* Yes Bar (Left) */}
+                <div
+                  className="absolute top-0 bottom-0 left-0 bg-green-500 transition-all duration-1000 ease-out"
+                  style={{ width: `${isMounted ? yesPercent : 0}%` }}
+                />
+
+                {/* No Bar (Right) */}
+                <div
+                  className="absolute top-0 right-0 bottom-0 bg-red-500 transition-all duration-1000 ease-out"
+                  style={{ width: `${isMounted ? noPercent : 0}%` }}
+                />
+              </div>
+              <span className="text-[10px] font-bold text-red-600 dark:text-red-400">
+                {noPercent.toFixed(1)}%
+              </span>
+            </div>
           </div>
         </CardHeader>
 
