@@ -4,13 +4,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { CircleCheckBig, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Fragment } from 'react/jsx-runtime';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { VOTING_RESULTS_PRECISION } from '@constants/extra';
-import { nonNullish } from '@dfinity/utils';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { bigIntDiv } from '@utils/bigInt';
 import { errorNotification, successNotification } from '@utils/notification';
