@@ -1,7 +1,6 @@
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
 import { Link } from '@tanstack/react-router';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { CheckCircle, Clock, Tag, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -22,7 +21,6 @@ type Props = {
 
 export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
   const { t } = useTranslation();
-  const { identity } = useInternetIdentity();
 
   const { data: neurons } = useGovernanceNeurons();
   const votingNeurons =
@@ -79,49 +77,45 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
   return (
     <Link to="/voting/proposals/$id" params={{ id: proposal.id! }} className="w-full">
       <Card className="flex flex-col overflow-hidden transition-colors hover:bg-accent/50">
-        <CardHeader className="pb-2">
+        <CardHeader>
           <div className="flex items-center justify-between">
             <span className="text-xs tracking-wide text-muted-foreground uppercase">
-              Proposal #{proposal.id?.toString()}
+              {t(($) => $.proposal.proposalId, { id: proposal.id })}
             </span>
             <CertifiedBadge certified={certified} />
           </div>
 
-          <h3 className="mb-2 text-lg leading-tight font-bold decoration-primary underline-offset-4">
+          <h3 className="text-lg leading-tight font-bold decoration-primary underline-offset-4">
             {proposal.proposal?.title}
           </h3>
 
-          <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
-            <Badge className={statusColor}>{ProposalStatus[status]}</Badge>
-            {timeLeft.length > 0 && (
+          <div className="flex flex-col gap-2 text-xs lg:flex-row lg:flex-wrap lg:items-center">
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <Badge className={statusColor}>{ProposalStatus[status]}</Badge>
+              {timeLeft.length > 0 && (
+                <Badge variant="secondary" className="gap-1.5 font-normal">
+                  <Clock className="h-3.5 w-3.5" />
+                  {t(($) => $.proposal.timeLeft, { timeLeft })}
+                </Badge>
+              )}
               <Badge variant="secondary" className="gap-1.5 font-normal">
-                <Clock className="h-3.5 w-3.5" />
-                {timeLeft} left
+                <Tag className="h-3.5 w-3.5" />
+                {Topic[proposal.topic]}
               </Badge>
-            )}
-            <Badge variant="secondary" className="gap-1.5 font-normal">
-              <Tag className="h-3.5 w-3.5" />
-              {Topic[proposal.topic]}
-            </Badge>
+            </div>
 
-            {/* Vote Progress Bar */}
-            <div className="ml-auto flex w-full max-w-[500px] min-w-[140px] flex-1 items-center gap-2 sm:w-auto">
+            <div className="flex w-full min-w-[200px] flex-1 items-center gap-2 lg:ml-auto lg:w-auto lg:max-w-[500px]">
               <span className="text-[10px] font-bold text-green-600 dark:text-green-400">
                 {yesPercent.toFixed(1)}%
               </span>
               <div className="relative h-2 flex-grow overflow-hidden rounded-full bg-secondary">
-                {/* 50% Marker */}
                 <div className="absolute top-0 left-1/2 z-10 h-full w-0.5 -translate-x-1/2 bg-foreground/80" />
-
-                {/* Yes Bar (Left) */}
                 <div
-                  className="absolute top-0 bottom-0 left-0 bg-green-500 transition-all duration-1000 ease-out"
+                  className="absolute top-0 bottom-0 left-0 bg-green-500 transition-all duration-5000 ease-out"
                   style={{ width: `${isMounted ? yesPercent : 0}%` }}
                 />
-
-                {/* No Bar (Right) */}
                 <div
-                  className="absolute top-0 right-0 bottom-0 bg-red-500 transition-all duration-1000 ease-out"
+                  className="absolute top-0 right-0 bottom-0 bg-red-500 transition-all duration-5000 ease-out"
                   style={{ width: `${isMounted ? noPercent : 0}%` }}
                 />
               </div>
@@ -132,13 +126,13 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
           </div>
         </CardHeader>
 
-        {identity && (canUserVote || hasVoted) && (
+        {(canUserVote || hasVoted) && (
           <CardFooter className="pt-2 pb-4">
             {hasVoted ? (
               <div className="flex w-full items-center gap-2 rounded-md border border-green-200 bg-green-100 p-3 text-green-700 dark:border-green-800 dark:bg-green-900/30 dark:text-green-400">
                 <CheckCircle className="h-4 w-4" />
                 <span className="text-sm font-medium">
-                  Vote cast: {voteValue === Vote.Yes ? 'Yes' : 'No'}
+                  {voteValue === Vote.Yes ? <ThumbsUp /> : <ThumbsDown />}
                 </span>
               </div>
             ) : (
@@ -149,10 +143,10 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
                   size="sm"
                   className="flex-1 bg-green-600 text-white hover:bg-green-700"
                 >
-                  <ThumbsUp className="mr-2 h-4 w-4" /> Adopt
+                  <ThumbsUp className="mr-2 h-4 w-4" />
                 </Button>
                 <Button onClick={() => {}} variant="destructive" size="sm" className="flex-1">
-                  <ThumbsDown className="mr-2 h-4 w-4" /> Reject
+                  <ThumbsDown className="mr-2 h-4 w-4" />
                 </Button>
               </div>
             )}

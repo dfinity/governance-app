@@ -1,5 +1,4 @@
 {
-  "toProposal": "Proposal {{proposalId}}",
   "proposalId": "Proposal {{id}}",
   "title": "Proposal Details",
   "type": "Type",
@@ -14,5 +13,6 @@
   "ineligibleToVote": "Ineligible to vote",
   "action": "Action",
   "voteError": "Voting on proposal {{proposalId}} with neuron {{neuronId}} failed, please try again.",
-  "voteSuccess": "Voting on proposal {{proposalId}} with neuron {{neuronId}} succeeded."
+  "voteSuccess": "Voting on proposal {{proposalId}} with neuron {{neuronId}} succeeded.",
+  "timeLeft": "{{timeLeft}} left"
 }

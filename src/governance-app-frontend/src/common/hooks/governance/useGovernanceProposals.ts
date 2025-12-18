@@ -1,6 +1,6 @@
 import { ListProposalsRequest, ListProposalsResponse, Option } from '@icp-sdk/canisters/nns';
 
-import { PAGINATION_LIMIT } from '@constants/extra';
+import { PAGINATION_LIMIT_PROPOSALS } from '@constants/extra';
 import { useInfiniteQueryThenUpdateCall } from '@hooks/useInfiniteQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/query';
 
@@ -9,7 +9,7 @@ import { useNnsGovernance } from './useGovernance';
 export const useGovernanceProposals = (
   options: ListProposalsRequest = {
     beforeProposal: undefined,
-    limit: PAGINATION_LIMIT,
+    limit: PAGINATION_LIMIT_PROPOSALS,
     excludeTopic: [],
     includeRewardStatus: [],
     includeStatus: [],
@@ -35,7 +35,7 @@ export const useGovernanceProposals = (
       }),
     initialPageParam: undefined,
     getNextPageParam: (lastPage) =>
-      lastPage.response.proposals.length === PAGINATION_LIMIT
+      lastPage.response.proposals.length === PAGINATION_LIMIT_PROPOSALS
         ? lastPage.response.proposals.at(-1)?.id
         : undefined,
     options: {
