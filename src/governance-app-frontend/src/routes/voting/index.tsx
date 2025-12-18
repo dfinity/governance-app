@@ -1,7 +1,7 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
-import { ProposalCard } from '@features/proposals/components/ProposalCard';
+import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
 import { useVotableLoadedProposals } from '@features/proposals/hooks/useVotableLoadedProposals';
 
 import { InViewSentinel } from '@components/InViewSentinel';
@@ -28,30 +28,26 @@ function Voting() {
         isEmpty={(data) => !data?.pages?.[0].response.proposals.length}
       >
         {(data) => (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="flex flex-col gap-4">
             {data?.pages?.map((page) =>
               page?.response.proposals.map((proposal) => {
                 const canUserVote = votableProposals.has(proposal.id);
 
                 return (
-                  <Link
-                    params={{ id: proposal.id }}
-                    to="/voting/proposals/$id"
-                    key={proposal.id?.toString()}
-                    className="group flex h-full flex-col"
-                  >
-                    <ProposalCard
+                  <div key={proposal.id?.toString()} className="w-full">
+                    <ProposalListItem
                       proposal={proposal}
                       canUserVote={canUserVote}
                       certified={page?.certified}
                     />
-                  </Link>
+                  </div>
                 );
               }),
             )}
 
             {proposals.hasNextPage && (
               <InViewSentinel retrigger={data} callback={proposals.fetchNextPage}>
+                {/* @TODO: Update skeleton loader to match list item */}
                 <SkeletonLoader count={3} />
               </InViewSentinel>
             )}
