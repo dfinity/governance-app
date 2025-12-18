@@ -15,7 +15,7 @@ dfx identity new sns-testing --storage-mode=plaintext
 
 To run the project locally, you need to start the local replica and then deploy the application.
 
-1. **Start the local replica:**
+1. **Start the local replica:** This will download the version of `pocket-ic` specified in [config.json](/config.json) if it is not already present. It will then start `dfx` with system canisters (NNS, II, SNS) and a delay for Update calls to simulate real mainnet conditions.
 
    ```sh
    npm run start:ic
