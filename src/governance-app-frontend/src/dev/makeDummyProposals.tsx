@@ -1,8 +1,13 @@
 import { GovernanceCanister, MakeProposalRequest, NeuronInfo } from '@icp-sdk/canisters/nns';
+import { useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 
 import { Button } from '@components/button';
+import { Spinner } from '@components/spinner';
 import { SECONDS_IN_HALF_YEAR, SECONDS_IN_MONTH } from '@constants/extra';
 import { useNnsGovernance } from '@hooks/governance';
+import { errorNotification, successNotification } from '@utils/notification';
+import { QUERY_KEYS } from '@utils/query';
 
 // Taken from proposal 22690
 const addNodeToSubnetPayload = new Uint8Array([
@@ -495,6 +500,10 @@ const makeDummyProposals = async ({
       if (response.status === 'rejected') {
         console.error(`Failed to make proposal "${requests[index].log}":`);
         console.log(response.reason?.detail ?? response.reason);
+        errorNotification({
+          title: 'makeDummyProposals',
+          description: JSON.stringify(response.reason?.detail ?? response.reason),
+        });
       }
     });
     // Log success rate
@@ -503,6 +512,11 @@ const makeDummyProposals = async ({
 
     if (successCount !== requests.length) {
       throw new Error(`Only ${successCount} of ${requests.length} proposals were created.`);
+    } else {
+      successNotification({
+        title: 'makeDummyProposals',
+        description: `${successCount} proposals were created.`,
+      });
     }
   } catch (e) {
     console.error(e);
@@ -512,13 +526,24 @@ const makeDummyProposals = async ({
 
 export const CreateDummyProposalsButton = ({ neuron }: { neuron: NeuronInfo }) => {
   const { ready, canister, authenticated } = useNnsGovernance();
+  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleClick = () => {
+    setIsLoading(true);
     if (ready && canister && authenticated) {
-      makeDummyProposals({ canister, neuronId: neuron.neuronId });
+      makeDummyProposals({ canister, neuronId: neuron.neuronId })
+        .then(() => {
+          console.log('invalidating queries');
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS] });
+        })
+        .finally(() => setIsLoading(false));
     }
   };
+
   return (
-    <Button size="sm" onClick={handleClick} variant="outline">
+    <Button size="sm" onClick={handleClick} variant="outline" disabled={isLoading}>
+      {isLoading ? <Spinner /> : null}
       Make Dummy Proposals
     </Button>
   );
