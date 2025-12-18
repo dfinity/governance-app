@@ -29,7 +29,6 @@ This script downloads the required `pocket-ic` binary (version defined in `confi
 Note: This requires a version of dfx that supports the `--system-canisters` flag (version 0.30.1 or higher).
 It can be installed with `dfxvm install 0.30.1`.
 
-
 2. **Start the frontend:**
 
    ```sh
