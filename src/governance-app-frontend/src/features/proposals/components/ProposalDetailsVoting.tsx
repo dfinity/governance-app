@@ -9,6 +9,7 @@ import { Fragment } from 'react/jsx-runtime';
 import { Button } from '@components/button';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { VOTING_RESULTS_PRECISION } from '@constants/extra';
+import { nonNullish } from '@dfinity/utils';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { bigIntDiv } from '@utils/bigInt';
 import { errorNotification, successNotification } from '@utils/notification';
@@ -42,7 +43,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   const totalToVote = proposal.ballots.length;
 
   const { yes, no, total } = proposal.latestTally || {};
-  const hasVotingData = yes !== undefined && no !== undefined && total !== undefined;
+  const hasVotingData = nonNullish(yes) && nonNullish(no) && nonNullish(total);
 
   // Vote casting.
   const { ready, canister, authenticated } = useNnsGovernance();
@@ -164,11 +165,17 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
           <p className="flex gap-2">
             <span>
               {t(($) => $.common.yes)}:{' '}
-              {bigIntDiv(yes, total, VOTING_RESULTS_PRECISION).toFixed(VOTING_RESULTS_PRECISION)}%
+              {(bigIntDiv(yes, total, VOTING_RESULTS_PRECISION) * 100).toFixed(
+                VOTING_RESULTS_PRECISION,
+              )}
+              %
             </span>
             <span>
               {t(($) => $.common.no)}:{' '}
-              {bigIntDiv(no, total, VOTING_RESULTS_PRECISION).toFixed(VOTING_RESULTS_PRECISION)}%
+              {(bigIntDiv(no, total, VOTING_RESULTS_PRECISION) * 100).toFixed(
+                VOTING_RESULTS_PRECISION,
+              )}
+              %
             </span>
           </p>
         </div>

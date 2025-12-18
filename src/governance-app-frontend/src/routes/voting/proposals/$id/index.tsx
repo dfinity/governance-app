@@ -1,5 +1,5 @@
-import { ProposalInfo, ProposalRewardStatus, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { jsonReplacer } from '@dfinity/utils';
+import { ProposalInfo, ProposalRewardStatus, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
@@ -140,7 +140,7 @@ const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
                   <span className="text-sm font-medium text-muted-foreground uppercase">
                     {t(($) => $.proposal.action)}
                   </span>
-                  <pre className="overflow-x-auto rounded-lg bg-muted p-4 text-xs">
+                  <pre className="rounded-lg bg-muted p-4 text-xs break-all whitespace-pre-wrap">
                     {proposal.proposal?.action &&
                       JSON.stringify(
                         Object.values(proposal.proposal?.action ?? {})[0],

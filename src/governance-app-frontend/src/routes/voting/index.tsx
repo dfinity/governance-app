@@ -22,7 +22,10 @@ function Voting() {
   const proposals = useGovernanceProposals();
 
   return (
-    <div>
+    <div className="flex flex-col gap-4">
+      <h2 className="text-sm font-semibold tracking-wider text-muted-foreground uppercase">
+        Open proposals
+      </h2>
       <QueryStates
         infiniteQuery={proposals}
         isEmpty={(data) => !data?.pages?.[0].response.proposals.length}
