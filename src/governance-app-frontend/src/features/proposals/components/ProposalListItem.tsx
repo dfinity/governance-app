@@ -1,5 +1,5 @@
-import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
+import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
 import { Link } from '@tanstack/react-router';
 import { CheckCircle, Clock, Tag, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
