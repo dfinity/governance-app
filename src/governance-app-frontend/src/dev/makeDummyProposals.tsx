@@ -406,7 +406,7 @@ const makeDummyProposals = async ({
   canister,
 }: {
   neuronId: bigint;
-  canister: GovernanceCanister;
+  canister: NnsGovernanceCanister;
 }) => {
   try {
     console.log('Making dummy proposals...');

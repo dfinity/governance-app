@@ -1,7 +1,4 @@
-import {
-  AccountIdentifier,
-  GetAccountIdentifierTransactionsResponse,
-} from '@icp-sdk/canisters/ledger/icp';
+import { AccountIdentifier, IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { CreditCard, List } from 'lucide-react';
@@ -52,7 +49,7 @@ export function AccountCard() {
           {isNullish(accountId) ? (
             <SkeletonLoader width={100} height={16} />
           ) : (
-            <QueryStates<CertifiedData<GetAccountIdentifierTransactionsResponse>>
+            <QueryStates<CertifiedData<IcpIndexDid.GetAccountIdentifierTransactionsResponse>>
               infiniteQuery={transactions}
               isEmpty={(data) => !data.pages?.length}
             >

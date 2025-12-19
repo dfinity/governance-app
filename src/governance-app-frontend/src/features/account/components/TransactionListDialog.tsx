@@ -1,7 +1,4 @@
-import {
-  AccountIdentifier,
-  GetAccountIdentifierTransactionsResponse,
-} from '@icp-sdk/canisters/ledger/icp';
+import { AccountIdentifier, IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
@@ -55,7 +52,7 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            <QueryStates<CertifiedData<GetAccountIdentifierTransactionsResponse>>
+            <QueryStates<CertifiedData<IcpIndexDid.GetAccountIdentifierTransactionsResponse>>
               infiniteQuery={transactions}
               isEmpty={(data) => !data.pages?.length || !data.pages[0].response.transactions.length}
               loadingComponent={<SkeletonLoader count={3} />}
