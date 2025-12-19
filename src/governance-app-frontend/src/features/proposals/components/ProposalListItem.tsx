@@ -1,5 +1,5 @@
-import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
+import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
 import { CheckCircle, Clock, Tag, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -52,13 +52,13 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
 
   // TODO: Add mutations
   // My votes
-  const myVotingNeurons =
+  const myVotingBallots =
     proposal.ballots.filter((b) => {
       const n = neurons?.response.find((neuron) => neuron.neuronId === b.neuronId);
       return !!n;
     }) ?? [];
 
-  const myVotes = myVotingNeurons.filter((b) => b.vote !== Vote.Unspecified);
+  const myVotes = myVotingBallots.filter((b) => b.vote !== Vote.Unspecified);
   const hasVoted = myVotes.length > 0;
   const voteValue = hasVoted ? myVotes[0].vote : Vote.Unspecified;
 
