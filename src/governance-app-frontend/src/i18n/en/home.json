@@ -1,6 +1,5 @@
 {
   "title": "The Governance App",
-  "yourPrincipal": "Hello world! You are: {{principal}}.",
   "stakingRatio": "Staking ratio",
   "unstakedMaturity": "Unstaked maturity",
   "disbursed": "Disbursed"

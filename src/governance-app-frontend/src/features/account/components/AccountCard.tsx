@@ -84,7 +84,7 @@ export function AccountCard() {
                   </div>
 
                   <div className="flex flex-col gap-3">
-                    <Button size="lg" className="pointer-events-none w-full" disabled>
+                    <Button size="lg" className="w-full" disabled>
                       <CreditCard /> {t(($) => $.account.buyIcp)}
                     </Button>
                     <div className="flex gap-3">

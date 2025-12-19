@@ -140,12 +140,7 @@ export function StakedCard() {
                     </Link>
                   </Button>
 
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="pointer-events-none flex-1"
-                    disabled
-                  >
+                  <Button size="lg" variant="outline" className="flex-1" disabled>
                     <Coins /> {t(($) => $.common.withdraw)}
                   </Button>
                 </div>
