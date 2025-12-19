@@ -102,19 +102,29 @@ function Voting() {
             {(data) => (
               <div className="flex flex-col gap-4">
                 {data?.pages?.map((page) =>
-                  page?.response.proposals.map((proposal) => {
-                    const canUserVote = votableProposals.has(proposal.id);
+                  page?.response.proposals
+                    .toSorted((a, b) => {
+                      const isAOpen = a.status === 1;
+                      const isBOpen = b.status === 1;
 
-                    return (
-                      <div key={proposal.id?.toString()} className="w-full">
-                        <ProposalListItem
-                          proposal={proposal}
-                          canUserVote={canUserVote}
-                          certified={page?.certified}
-                        />
-                      </div>
-                    );
-                  }),
+                      // If both are open, or neither are open, keep original order
+                      if (isAOpen === isBOpen) return 0;
+                      if (isAOpen) return -1;
+                      return 1;
+                    })
+                    .map((proposal) => {
+                      const canUserVote = votableProposals.has(proposal.id);
+
+                      return (
+                        <div key={proposal.id?.toString()} className="w-full">
+                          <ProposalListItem
+                            proposal={proposal}
+                            canUserVote={canUserVote}
+                            certified={page?.certified}
+                          />
+                        </div>
+                      );
+                    }),
                 )}
 
                 {proposals.hasNextPage && (
