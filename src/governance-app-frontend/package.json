@@ -16,8 +16,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:headed": "IGNORE_SCREENSHOTS=1 playwright test --headed --project=chromium",
-    "update-snapshots": "playwright test --update-snapshots",
-    "update:ic-js": "npm i @dfinity/nns@latest @dfinity/utils@latest @dfinity/ledger-icp@latest"
+    "update-snapshots": "playwright test --update-snapshots"
   },
   "dependencies": {
     "@dfinity/utils": "4.0.0",
