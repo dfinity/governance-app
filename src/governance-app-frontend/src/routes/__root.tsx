@@ -60,7 +60,8 @@ function RootComponent() {
       </>
     );
 
-  if (!identity) return <Navigate to="/login" />;
+  const redirect = location.pathname !== '/' ? location.pathname : undefined;
+  if (!identity) return <Navigate to="/login" search={{ redirect }} />;
 
   return (
     <MainLayout>
