@@ -56,7 +56,7 @@ export function MaturitySymbol({ className = '' }: MaturitySymbolProps) {
               </h4>
               <ul className="list-inside list-disc space-y-1">
                 <li>
-                  <strong>{t(($) => $.maturityModal.howItWorks.accrualLabel)}</strong>{' '}
+                  <strong>{t(($) => $.maturityModal.howItWorks.accrualLabel)}:</strong>{' '}
                   {t(($) => $.maturityModal.howItWorks.accrual).toLowerCase()}
                 </li>
                 <li>
@@ -89,15 +89,15 @@ export function MaturitySymbol({ className = '' }: MaturitySymbolProps) {
               </h4>
               <ul className="list-inside list-disc space-y-1">
                 <li>
-                  <strong>{t(($) => $.maturityModal.managing.autoStakeLabel)}</strong>{' '}
+                  <strong>{t(($) => $.maturityModal.managing.autoStakeLabel)}:</strong>{' '}
                   {t(($) => $.maturityModal.managing.autoStake).toLowerCase()}
                 </li>
                 <li>
-                  <strong>{t(($) => $.maturityModal.managing.keepLiquidLabel)}</strong>{' '}
+                  <strong>{t(($) => $.maturityModal.managing.keepLiquidLabel)}:</strong>{' '}
                   {t(($) => $.maturityModal.managing.keepLiquid).toLowerCase()}
                 </li>
                 <li>
-                  <strong>{t(($) => $.maturityModal.managing.disburseLabel)}</strong>{' '}
+                  <strong>{t(($) => $.maturityModal.managing.disburseLabel)}:</strong>{' '}
                   {t(($) => $.maturityModal.managing.disburse).toLowerCase()}
                 </li>
               </ul>
