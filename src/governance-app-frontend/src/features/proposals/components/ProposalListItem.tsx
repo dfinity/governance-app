@@ -1,7 +1,7 @@
-import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
+import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
-import { CheckCircle, Clock, Tag, ThumbsDown, ThumbsUp } from 'lucide-react';
+import { CheckCircle, Clock, Tag, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -133,13 +133,11 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
               <div className="flex w-full items-center gap-2 rounded-md border border-green-200 bg-green-100 p-3 text-green-700 dark:border-green-800 dark:bg-green-900/30 dark:text-green-400">
                 <CheckCircle className="h-4 w-4" />
                 <span className="text-sm font-medium">
-                  {voteValue === VOTE_MIXED ? (
-                    'Mixed'
-                  ) : voteValue === Vote.Yes ? (
-                    <ThumbsUp />
-                  ) : (
-                    <ThumbsDown />
-                  )}
+                  {voteValue === VOTE_MIXED && [
+                    t(($) => $.proposal.voteStatusMixed),
+                    <TriangleAlert />,
+                  ]}
+                  {voteValue === Vote.Yes ? <ThumbsUp /> : <ThumbsDown />}
                 </span>
               </div>
             ) : (

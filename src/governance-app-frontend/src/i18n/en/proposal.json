@@ -14,5 +14,6 @@
   "action": "Action",
   "voteError": "Voting on proposal {{proposalId}} with neuron {{neuronId}} failed, please try again.",
   "voteSuccess": "Voting on proposal {{proposalId}} with neuron {{neuronId}} succeeded.",
-  "timeLeft": "{{timeLeft}} left"
+  "timeLeft": "{{timeLeft}} left",
+  "voteStatusMixed": "Mixed Voting"
 }
