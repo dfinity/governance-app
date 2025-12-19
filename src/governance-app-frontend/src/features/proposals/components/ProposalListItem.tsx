@@ -1,5 +1,5 @@
-import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
+import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
 import { Link } from '@tanstack/react-router';
 import { CheckCircle, Clock, Tag, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -23,15 +23,6 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
   const { t } = useTranslation();
 
   const { data: neurons } = useGovernanceNeurons();
-  const votingNeurons =
-    proposal.ballots.filter((b) => {
-      const n = neurons?.response.find((neuron) => neuron.neuronId === b.neuronId);
-      return !!n;
-    }) ?? [];
-
-  const myVotingNeurons = votingNeurons.filter((b) =>
-    neurons?.response.some((n) => n.neuronId === b.neuronId),
-  );
 
   // Yes/No vote status
   const { yes, no, total } = proposal.latestTally || {};
@@ -61,6 +52,12 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
 
   // TODO: Add mutations
   // My votes
+  const myVotingNeurons =
+    proposal.ballots.filter((b) => {
+      const n = neurons?.response.find((neuron) => neuron.neuronId === b.neuronId);
+      return !!n;
+    }) ?? [];
+
   const myVotes = myVotingNeurons.filter((b) => b.vote !== Vote.Unspecified);
   const hasVoted = myVotes.length > 0;
   const voteValue = hasVoted ? myVotes[0].vote : Vote.Unspecified;

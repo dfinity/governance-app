@@ -1,0 +1,9 @@
+{
+  "displayProposals": "Curious about what's being voted on?",
+  "showProposals": "View Proposals",
+  "hideProposals": "Hide Proposals",
+  "title": "Following",
+  "description": "These organizations will automatically vote on your behalf, allowing you to earn rewards.",
+  "setupFollowingReminder": "You may lose rewards by not following any neurons. Select a trusted organization to automatically vote on your behalf.",
+  "cta": "Change Following"
+}
