@@ -61,12 +61,8 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
   // @TODO: We have to refine this logic. What if a user votes differently in the nns-dapp and then not all neurons end up voting the same?
   const myVotes = myVotingBallots.filter((b) => b.vote !== Vote.Unspecified);
   const hasVoted = myVotes.length === myVotingBallots.length;
-  const VOTE_MIXED = 'mixed';
-  const voteValue = hasVoted
-    ? myVotes.every((v) => v.vote === myVotes[0].vote)
-      ? myVotes[0].vote
-      : VOTE_MIXED
-    : Vote.Unspecified;
+  const isVoteMixed = hasVoted && !myVotes.every((v) => v.vote === myVotes[0].vote);
+  const voteValue = hasVoted && !isVoteMixed ? myVotes[0].vote : Vote.Unspecified;
 
   const statusColor =
     status === ProposalStatus.Open
@@ -132,12 +128,14 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
             {hasVoted ? (
               <div className="flex w-full items-center gap-2 rounded-md border border-green-200 bg-green-100 p-3 text-green-700 dark:border-green-800 dark:bg-green-900/30 dark:text-green-400">
                 <CheckCircle className="h-4 w-4" />
-                <span className="text-sm font-medium">
-                  {voteValue === VOTE_MIXED && [
-                    t(($) => $.proposal.voteStatusMixed),
-                    <TriangleAlert />,
-                  ]}
-                  {voteValue === Vote.Yes ? <ThumbsUp /> : <ThumbsDown />}
+                <span className="text-sm font-medium capitalize">
+                  {isVoteMixed ? (
+                    [<TriangleAlert />, t(($) => $.proposal.voteStatusMixed)]
+                  ) : voteValue === Vote.Yes ? (
+                    <ThumbsUp />
+                  ) : (
+                    <ThumbsDown />
+                  )}
                 </span>
               </div>
             ) : (
