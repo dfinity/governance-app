@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
 import { useVotableLoadedProposals } from '@features/proposals/hooks/useVotableLoadedProposals';
 
-import { Alert, AlertDescription } from '@components/Alert';
+import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
 import { Card } from '@components/Card';
 import { InViewSentinel } from '@components/InViewSentinel';
@@ -43,31 +43,28 @@ function Voting() {
           <h2 className="text-lg font-semibold">{t(($) => $.voting.title)}</h2>
           <p className="text-sm text-muted-foreground">{t(($) => $.voting.description)}</p>
         </div>
-        <Button size="lg" disabled>
+        <Button size="xl" disabled>
           <Users />
           {t(($) => $.voting.cta)}
         </Button>
       </div>
       {!hasUserSetUpFollowing && (
-        <div>
-          <Alert variant="warning">
-            <AlertDescription>
-              <p>
-                <span className="pr-1 font-bold">{t(($) => $.voting.alert.title)}:</span>
-                {t(($) => $.voting.alert.description)}
-              </p>
-            </AlertDescription>
+        <>
+          <Alert className="flex gap-1" variant="warning">
+            <AlertTitle className="font-semibold">{t(($) => $.common.important)}:</AlertTitle>
+            <AlertDescription>{t(($) => $.voting.setupFollowingReminder)}</AlertDescription>
           </Alert>
 
-          <div className="flex flex-col items-center gap-6">
-            <Users
-              size={64}
-              className="bg-muted-background border p-2 text-shadow-muted-foreground"
-            />
+          <div className="mt-12 flex flex-col items-center justify-center gap-4 text-center">
+            <div className="flex h-18 w-18 items-center justify-center rounded-full border-2 bg-muted">
+              <Users className="h-10 w-10 text-muted-foreground" />
+            </div>
             <h3 className="text-2xl font-semibold">{t(($) => $.voting.noFollowing.title)}</h3>
-            <p className="text-muted-foreground">{t(($) => $.voting.noFollowing.description)}</p>
+            <p className="max-w-sm font-light text-muted-foreground">
+              {t(($) => $.voting.noFollowing.description)}
+            </p>
           </div>
-        </div>
+        </>
       )}
 
       <Separator className="mt-16 mb-4" />
