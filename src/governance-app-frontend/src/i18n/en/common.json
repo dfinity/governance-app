@@ -10,6 +10,7 @@
   "seeProposals": "See Proposals",
   "seeNeurons": "See Neurons",
   "seeAccounts": "See Accounts",
+  "loading": "Loading",
   "loadingError": "Error loading data.",
   "nns": "NNS",
   "initializing": "Initializing...",

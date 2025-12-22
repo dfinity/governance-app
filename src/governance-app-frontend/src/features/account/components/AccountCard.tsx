@@ -41,29 +41,28 @@ export function AccountCard() {
 
   return (
     <>
-      <Card className="flex-1">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <Card className="flex-1 gap-3 transition-all duration-300 hover:shadow-[0_0_25px_-5px_rgba(0,0,0,0.25)]">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-medium tracking-wide text-muted-foreground uppercase">
             {t(($) => $.common.accounts)}
           </CardTitle>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="flex-1">
           {isNullish(accountId) ? (
             <SkeletonLoader width={100} height={16} />
           ) : (
             <QueryStates<CertifiedData<GetAccountIdentifierTransactionsResponse>>
               infiniteQuery={transactions}
               isEmpty={(data) => !data.pages?.length}
-              loadingComponent={<SkeletonLoader width={100} height={32} />}
             >
               {(data) => {
                 const balanceICPs = bigIntDiv(data.pages?.[0].response.balance || 0n, E8Sn, 2);
                 const numberOfTransactions = data.pages?.[0].response.transactions.length || [];
 
                 return (
-                  <div className="flex flex-col gap-12">
-                    <div>
+                  <div className="flex h-full flex-col justify-between">
+                    <div className="pb-3">
                       <div className="text-2xl font-bold">
                         {t(($) => $.common.inIcp, { value: balanceICPs })}
                       </div>
@@ -86,7 +85,7 @@ export function AccountCard() {
                     </div>
 
                     <div className="flex flex-col gap-3">
-                      <Button size="lg" className="pointer-events-none w-full">
+                      <Button size="lg" className="w-full" disabled>
                         <CreditCard /> {t(($) => $.account.buyIcp)}
                       </Button>
                       <div className="flex gap-3">
@@ -112,7 +111,6 @@ export function AccountCard() {
           )}
         </CardContent>
       </Card>
-
       <TransactionListDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
     </>
   );
