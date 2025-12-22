@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useDeferredValue, useState } from 'react';
+import { useDeferredValue, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
@@ -10,7 +10,7 @@ import { Button } from '@components/button';
 import { Card } from '@components/Card';
 import { InViewSentinel } from '@components/InViewSentinel';
 import { QueryStates } from '@components/QueryStates';
-import { Separator } from '@components/separator';
+import { Separator } from '@components/Separator';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { useGovernanceProposals } from '@hooks/governance';
 import useTitle from '@hooks/useTitle';
@@ -25,11 +25,19 @@ function Voting() {
   useTitle(t(($) => $.common.proposalsList));
   const [showProposals, setShowProposals] = useState(false);
   const shouldShowProposals = useDeferredValue(showProposals);
+  const proposalsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (showProposals && proposalsRef.current) {
+      setTimeout(() => {
+        proposalsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 250);
+    }
+  }, [showProposals]);
 
   const votableProposals = useVotableLoadedProposals();
   const proposals = useGovernanceProposals();
   const toggleViewProposals = () => setShowProposals((prev) => !prev);
-
   // @TODO: Check if user has Neurons, if it does and non-advance mode use the value of a neuron?
   // what if multiple neurons have different followings because and update went wrong?
   // if no neurons, then no following -> if user sets following and then close the dapp without creating a neuron? localstorage?
@@ -69,7 +77,10 @@ function Voting() {
 
       <Separator className="mt-16 mb-4" />
 
-      <div className="mr-auto ml-auto flex items-center gap-1 text-muted-foreground">
+      <div
+        ref={proposalsRef}
+        className="mr-auto ml-auto flex scroll-mt-24 items-center gap-1 text-muted-foreground"
+      >
         <span>{t(($) => $.voting.proposals.title)}</span>
         <button
           onClick={toggleViewProposals}
