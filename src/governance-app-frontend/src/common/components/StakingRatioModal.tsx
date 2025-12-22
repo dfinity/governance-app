@@ -3,6 +3,7 @@ import { AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { Alert, AlertDescription, AlertTitle } from '@components/alert';
 import { Button } from '@components/button';
 import {
   ResponsiveDialog,
@@ -87,12 +88,14 @@ export function StakingRatioModal() {
             </ul>
           </div>
 
-          <p className="rounded-md border border-green-200 bg-green-50 p-2 pt-2 text-green-800">
-            <strong>{t(($) => $.stakingRatioModal.recommendationLabel)}:</strong>{' '}
-            {t(($) => $.stakingRatioModal.recommendation, {
-              available: availableBalance,
-            })}
-          </p>
+          <Alert variant="success">
+            <AlertTitle>{t(($) => $.stakingRatioModal.recommendationLabel)}</AlertTitle>
+            <AlertDescription>
+              {t(($) => $.stakingRatioModal.recommendation, {
+                available: availableBalance,
+              })}
+            </AlertDescription>
+          </Alert>
 
           <Button className="w-full" asChild>
             <Link to="/stakes">{t(($) => $.stakingRatioModal.button)}</Link>
