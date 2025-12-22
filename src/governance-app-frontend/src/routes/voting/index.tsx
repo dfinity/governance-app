@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { Users } from 'lucide-react';
 import { useDeferredValue, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -14,7 +15,6 @@ import { Separator } from '@components/Separator';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { useGovernanceProposals } from '@hooks/governance';
 import useTitle from '@hooks/useTitle';
-import { Users } from 'lucide-react';
 
 export const Route = createFileRoute('/voting/')({
   component: Voting,
@@ -23,9 +23,22 @@ export const Route = createFileRoute('/voting/')({
 function Voting() {
   const { t } = useTranslation();
   useTitle(t(($) => $.common.proposalsList));
-  const [showProposals, setShowProposals] = useState(false);
+
+  // @TODO: Check if user has Neurons, if it does and non-advance mode use the value of a neuron?
+  // what if multiple neurons have different followings because and update went wrong?
+  // if no neurons, then no following -> if user sets following and then close the dapp without creating a neuron? localstorage?
+  const hasUserSetUpFollowing = false;
+
+  // @TODO: The conditional rendering of the proposals list depends on the Advance Toggle
+  const hasUserSetAdvanceMode = false;
+
+  const [showProposals, setShowProposals] = useState(hasUserSetAdvanceMode);
   const shouldShowProposals = useDeferredValue(showProposals);
   const proposalsRef = useRef<HTMLDivElement>(null);
+
+  const votableProposals = useVotableLoadedProposals();
+  const proposals = useGovernanceProposals();
+  const toggleViewProposals = () => setShowProposals((prev) => !prev);
 
   useEffect(() => {
     if (showProposals && proposalsRef.current) {
@@ -35,17 +48,8 @@ function Voting() {
     }
   }, [showProposals]);
 
-  const votableProposals = useVotableLoadedProposals();
-  const proposals = useGovernanceProposals();
-  const toggleViewProposals = () => setShowProposals((prev) => !prev);
-  // @TODO: Check if user has Neurons, if it does and non-advance mode use the value of a neuron?
-  // what if multiple neurons have different followings because and update went wrong?
-  // if no neurons, then no following -> if user sets following and then close the dapp without creating a neuron? localstorage?
-  const hasUserSetUpFollowing = false;
-
-  // @TODO: The conditional rendering of the proposals list depends on the Advance Toggle
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6 lg:gap-8">
       <div className="flex flex-col gap-6 md:flex-row md:justify-between">
         <div className="flex flex-col gap-3">
           <h2 className="text-lg font-semibold">{t(($) => $.voting.title)}</h2>
@@ -56,14 +60,14 @@ function Voting() {
           {t(($) => $.voting.cta)}
         </Button>
       </div>
-      {!hasUserSetUpFollowing && (
+      {!hasUserSetAdvanceMode && !hasUserSetUpFollowing && (
         <>
           <Alert className="flex gap-1" variant="warning">
             <AlertTitle className="font-semibold">{t(($) => $.common.important)}:</AlertTitle>
             <AlertDescription>{t(($) => $.voting.setupFollowingReminder)}</AlertDescription>
           </Alert>
 
-          <div className="mt-12 flex flex-col items-center justify-center gap-4 text-center">
+          <div className="mt-6 flex flex-col items-center justify-center gap-4 text-center lg:mt-12">
             <div className="flex h-18 w-18 items-center justify-center rounded-full border-2 bg-muted">
               <Users className="h-10 w-10 text-muted-foreground" />
             </div>
@@ -75,20 +79,23 @@ function Voting() {
         </>
       )}
 
-      <Separator className="mt-16 mb-4" />
-
-      <div
-        ref={proposalsRef}
-        className="mr-auto ml-auto flex scroll-mt-24 items-center gap-1 text-muted-foreground"
-      >
-        <span>{t(($) => $.voting.proposals.title)}</span>
-        <button
-          onClick={toggleViewProposals}
-          className="font-medium text-primary capitalize underline-offset-4 hover:underline"
-        >
-          {t(($) => (showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow))}
-        </button>
-      </div>
+      {!hasUserSetAdvanceMode && (
+        <>
+          <Separator className="mt-8 mb-4 lg:mt-16" />
+          <div
+            ref={proposalsRef}
+            className="mx-auto flex scroll-mt-24 items-center gap-1 text-muted-foreground"
+          >
+            <span>{t(($) => $.voting.proposals.cta)}</span>
+            <button
+              onClick={toggleViewProposals}
+              className="font-medium text-primary capitalize underline-offset-4 hover:underline"
+            >
+              {t(($) => (showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow))}
+            </button>
+          </div>
+        </>
+      )}
       {showProposals &&
         (!shouldShowProposals ? (
           <div className="flex flex-col gap-4">
@@ -109,6 +116,9 @@ function Voting() {
           >
             {(data) => (
               <div className="flex flex-col gap-4">
+                <h3 className="text-xxl font-semibold text-muted-foreground uppercase">
+                  {t(($) => $.voting.proposals.title)}
+                </h3>
                 {data?.pages?.map((page) =>
                   page?.response.proposals
                     .toSorted((a, b) => {
