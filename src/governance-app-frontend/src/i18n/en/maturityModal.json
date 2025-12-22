@@ -1,0 +1,26 @@
+{
+  "title": "What is Maturity?",
+  "introduction": "Maturity is the staking reward you earn for participating in governance. It accumulates over time based on your neuron's voting activity and settings.",
+  "howItWorks": {
+    "title": "How it works",
+    "accrualLabel": "Accrual",
+    "accrual": "Maturity accumulates automatically as your neurons vote on proposals (either manually or via following).",
+    "rateLabel": "Rate",
+    "rate": "Higher dissolve delays and auto-staking earn more maturity (up to {{max}}% APY)."
+  },
+  "modulation": {
+    "title": "Maturity modulation",
+    "description": "Maturity conversion to ICP is non-deterministic. When disbursed, the rate varies between 0.95 to 1.05 ICP per unit of maturity (±5%) based on recent ICP/Cycles conversion rate trends.",
+    "learnMore": "Learn more about Maturity modulation"
+  },
+  "managing": {
+    "title": "Managing Maturity",
+    "autoStakeLabel": "Auto-stake",
+    "autoStake": "Automatically uses Maturity to increase your stake (compound growth).",
+    "keepLiquidLabel": "Keep-liquid",
+    "keepLiquid": "Maturity stays available for you to disburse whenever you want.",
+    "disburseLabel": "Disburse",
+    "disburse": "Convert Maturity to ICP and add it to your available balance."
+  },
+  "button": "Got it!"
+}

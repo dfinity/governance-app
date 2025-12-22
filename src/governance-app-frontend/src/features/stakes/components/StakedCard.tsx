@@ -117,8 +117,7 @@ export function StakedCard() {
                       {t(($) => $.home.unstakedMaturity)}
                     </p>
                     <p className="flex items-center justify-end gap-2 text-xl font-bold">
-                      {totalUnstakedMaturity}{' '}
-                      <MaturitySymbol onClick={() => alert('@TODO: Maturity modal')} />
+                      {totalUnstakedMaturity} <MaturitySymbol />
                     </p>
                   </div>
                   <div className="flex flex-col gap-1 rounded-md bg-gray-50 p-3 hover:bg-gray-200">
