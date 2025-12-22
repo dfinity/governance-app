@@ -13,7 +13,7 @@ type LoginSearch = {
 // Temporal Animation
 // Lazy load the map to avoid blocking the main thread during initial render
 const AnimatedDecentralizedMap = lazy(() =>
-  import('@components/temporal-animation/AnimatedDecentralizedMap').then((module) => ({
+  import('@components/temporary-animation/AnimatedDecentralizedMap').then((module) => ({
     default: module.AnimatedDecentralizedMap,
   })),
 );
