@@ -84,7 +84,7 @@ function Voting() {
           <Separator className="mt-8 mb-4 lg:mt-16" />
           <div
             ref={proposalsRef}
-            className="mx-auto flex scroll-mt-24 items-center gap-1 text-muted-foreground"
+            className="mx-auto flex scroll-mt-8 items-center gap-1 text-muted-foreground"
           >
             <span>{t(($) => $.voting.proposals.cta)}</span>
             <button
