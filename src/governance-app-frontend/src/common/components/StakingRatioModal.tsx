@@ -11,13 +11,12 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from '@components/ResponsiveDialog';
+import { Spinner } from '@components/spinner';
 import { E8Sn } from '@constants/extra';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
-
-import { Spinner } from './spinner';
 
 export function StakingRatioModal() {
   const [open, setOpen] = useState(false);
