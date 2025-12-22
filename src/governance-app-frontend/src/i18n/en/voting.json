@@ -1,9 +1,19 @@
 {
-  "displayProposals": "Curious about what's being voted on?",
-  "showProposals": "View Proposals",
-  "hideProposals": "Hide Proposals",
   "title": "Following",
   "description": "These organizations will automatically vote on your behalf, allowing you to earn rewards.",
+  "cta": "Change Following",
   "setupFollowingReminder": "You may lose rewards by not following any neurons. Select a trusted organization to automatically vote on your behalf.",
-  "cta": "Change Following"
+  "alert": {
+    "title": "Important",
+    "description": "You may lose rewards by not following any neurons. Select a trusted organization to automatically vote on your behalf."
+  },
+  "noFollowing": {
+    "title": "No Following Selected",
+    "description": "Select a trusted organization to automatically vote on your behalf and earn rewards."
+  },
+  "proposals": {
+    "title": "Curious about what's being voted on?",
+    "ctaShow": "View proposals",
+    "ctaHide": "Hide proposals"
+  }
 }
