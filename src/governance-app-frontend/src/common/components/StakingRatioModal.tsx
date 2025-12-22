@@ -41,7 +41,7 @@ export function StakingRatioModal() {
         disabled={isLoading}
       >
         {isLoading ? (
-          <span className="size-5 text-orange-400">
+          <span className="text-orange-400">
             <Spinner className="size-5" />
           </span>
         ) : (
