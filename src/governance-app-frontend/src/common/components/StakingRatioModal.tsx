@@ -94,7 +94,7 @@ export function StakingRatioModal() {
             })}
           </p>
 
-          <Button className="w-full" asChild onClick={() => setOpen(false)}>
+          <Button className="w-full" asChild>
             <Link to="/stakes">{t(($) => $.stakingRatioModal.button)}</Link>
           </Button>
         </div>
