@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { QueryStates } from '@components/QueryStates';
 import { SkeletonLoader } from '@components/SkeletonLoader';
+import { StakingRatioModal } from '@components/StakingRatioModal';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
@@ -84,11 +85,7 @@ export function StakedCard() {
                       {isStakingRewardDataReady(stakingRewards) ? (
                         <>
                           {(stakingRewards.stakingRatio * 100).toFixed(2)}%
-                          {stakingRewards.stakingRatio < 1 && (
-                            <AlertAction
-                              onClick={() => alert('@TODO: Staking ratio is below 100%')}
-                            />
-                          )}
+                          {stakingRewards.stakingRatio < 1 && <StakingRatioModal />}
                         </>
                       ) : (
                         <SkeletonLoader width={50} height={24} />
