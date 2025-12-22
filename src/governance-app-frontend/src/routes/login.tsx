@@ -9,12 +9,15 @@ import { Button } from '@components/button';
 type LoginSearch = {
   redirect?: string;
 };
+
+// Temporal Animation
 // Lazy load the map to avoid blocking the main thread during initial render
 const AnimatedDecentralizedMap = lazy(() =>
-  import('@components/AnimatedDecentralizedMap').then((module) => ({
+  import('@components/temporal-animation/AnimatedDecentralizedMap').then((module) => ({
     default: module.AnimatedDecentralizedMap,
   })),
 );
+// End of Temporal Animation
 
 export const Route = createFileRoute('/login')({
   validateSearch: (search: Record<string, unknown>): LoginSearch => {
@@ -34,11 +37,13 @@ function LoginPage() {
 
   return (
     <div className="relative flex min-h-dvh w-full flex-col items-center justify-center p-4 py-8">
+      {/* Temporal Animation*/}
       <div className="absolute inset-0 hidden h-full w-full overflow-hidden md:block">
         <Suspense fallback={null}>
           <AnimatedDecentralizedMap />
         </Suspense>
       </div>
+      {/*End of Temporal Animation*/}
 
       <div className="fixed inset-0 -z-10 overflow-hidden bg-background">
         <div className="absolute top-1/2 left-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 blur-[100px]" />
