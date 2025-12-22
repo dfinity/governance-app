@@ -13,11 +13,11 @@ import {
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
-interface MaturitySymbolProps {
+interface Props {
   className?: string;
 }
 
-export function MaturitySymbol({ className = '' }: MaturitySymbolProps) {
+export function MaturitySymbol({ className = '' }: Props) {
   const [open, setOpen] = useState(false);
   const { t } = useTranslation();
 
