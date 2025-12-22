@@ -1,4 +1,5 @@
 import { ProposalInfo, Vote } from '@icp-sdk/canisters/nns';
+import { nonNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { CircleCheckBig, ThumbsDown, ThumbsUp } from 'lucide-react';
@@ -42,7 +43,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   const totalToVote = proposal.ballots.length;
 
   const { yes, no, total } = proposal.latestTally || {};
-  const hasVotingData = yes !== undefined && no !== undefined && total !== undefined;
+  const hasVotingData = nonNullish(yes) && nonNullish(no) && nonNullish(total);
 
   // Vote casting.
   const { ready, canister, authenticated } = useNnsGovernance();
@@ -164,11 +165,17 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
           <p className="flex gap-2">
             <span>
               {t(($) => $.common.yes)}:{' '}
-              {bigIntDiv(yes, total, VOTING_RESULTS_PRECISION).toFixed(VOTING_RESULTS_PRECISION)}%
+              {(bigIntDiv(yes, total, VOTING_RESULTS_PRECISION) * 100).toFixed(
+                VOTING_RESULTS_PRECISION,
+              )}
+              %
             </span>
             <span>
               {t(($) => $.common.no)}:{' '}
-              {bigIntDiv(no, total, VOTING_RESULTS_PRECISION).toFixed(VOTING_RESULTS_PRECISION)}%
+              {(bigIntDiv(no, total, VOTING_RESULTS_PRECISION) * 100).toFixed(
+                VOTING_RESULTS_PRECISION,
+              )}
+              %
             </span>
           </p>
         </div>

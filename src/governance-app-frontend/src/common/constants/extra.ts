@@ -4,7 +4,7 @@ export const NETWORK = `${IS_LOCAL ? 'http://' : 'https://'}${HOST}`;
 export const IS_TESTNET =
   IS_LOCAL && !(HOST?.includes('.icp-api.io') || HOST?.includes('.ic0.app'));
 
-export const PAGINATION_LIMIT = 100;
+export const PAGINATION_LIMIT_PROPOSALS = 25;
 // Somehow this one has a different limit in case of a certified request.
 export const PAGINATION_LIMIT_TRANSACTIONS = 50;
 export const MIN_ASYNC_DELAY = 300; // Avoids flashing of loading indicators.
