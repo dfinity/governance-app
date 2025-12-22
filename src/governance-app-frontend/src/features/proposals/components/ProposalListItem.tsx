@@ -60,7 +60,7 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
 
   // @TODO: We have to refine this logic. What if a user votes differently in the nns-dapp and then not all neurons end up voting the same?
   const myVotes = myVotingBallots.filter((b) => b.vote !== Vote.Unspecified);
-  const hasVoted = myVotes.length === myVotingBallots.length;
+  const hasVoted = myVotingBallots.length > 0 && myVotes.length === myVotingBallots.length;
   const isVoteMixed = hasVoted && !myVotes.every((v) => v.vote === myVotes[0].vote);
   const voteValue = hasVoted && !isVoteMixed ? myVotes[0].vote : Vote.Unspecified;
 
