@@ -1,7 +1,7 @@
 {
   "title": "Following",
   "description": "These organizations will automatically vote on your behalf, allowing you to earn rewards.",
-  "cta": "Manage Following",
+  "cta": "Manage following",
   "setupFollowingReminder": "You may lose rewards by not following any neurons. Select a trusted organization to automatically vote on your behalf.",
   "alert": {
     "title": "Important",

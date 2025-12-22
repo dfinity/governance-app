@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Users } from 'lucide-react';
-import { useDeferredValue, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
@@ -33,7 +33,6 @@ function Voting() {
   const hasUserSetAdvanceMode = false;
 
   const [showProposals, setShowProposals] = useState(hasUserSetAdvanceMode);
-  const shouldShowProposals = useDeferredValue(showProposals);
   const proposalsRef = useRef<HTMLDivElement>(null);
 
   const votableProposals = useVotableLoadedProposals();
@@ -55,7 +54,7 @@ function Voting() {
           <h2 className="text-lg font-semibold">{t(($) => $.voting.title)}</h2>
           <p className="text-sm text-muted-foreground">{t(($) => $.voting.description)}</p>
         </div>
-        <Button size="xl" disabled>
+        <Button size="xl" className="capitalize" disabled>
           <Users />
           {t(($) => $.voting.cta)}
         </Button>
@@ -96,65 +95,65 @@ function Voting() {
           </div>
         </>
       )}
-      {showProposals &&
-        (!shouldShowProposals ? (
-          <div className="flex flex-col gap-4">
-            <Card>
-              <SkeletonLoader count={3} />
-            </Card>
-            <Card>
-              <SkeletonLoader count={3} />
-            </Card>
-            <Card>
-              <SkeletonLoader count={3} />
-            </Card>
-          </div>
-        ) : (
-          <QueryStates
-            infiniteQuery={proposals}
-            isEmpty={(data) => !data?.pages?.[0].response.proposals.length}
-          >
-            {(data) => (
-              <div className="flex flex-col gap-4">
-                <h3 className="text-xxl font-semibold text-muted-foreground uppercase">
-                  {t(($) => $.voting.proposals.title)}
-                </h3>
-                {data?.pages?.map((page) =>
-                  page?.response.proposals
-                    .toSorted((a, b) => {
-                      const isAOpen = a.status === 1;
-                      const isBOpen = b.status === 1;
+      {showProposals && (
+        <QueryStates
+          infiniteQuery={proposals}
+          isEmpty={(data) => !data?.pages?.[0].response.proposals.length}
+          loadingComponent={
+            <div className="flex flex-col gap-4">
+              <Card>
+                <SkeletonLoader count={3} />
+              </Card>
+              <Card>
+                <SkeletonLoader count={3} />
+              </Card>
+              <Card>
+                <SkeletonLoader count={3} />
+              </Card>
+            </div>
+          }
+        >
+          {(data) => (
+            <div className="flex flex-col gap-4">
+              <h3 className="text-xxl font-semibold text-muted-foreground uppercase">
+                {t(($) => $.voting.proposals.title)}
+              </h3>
+              {data?.pages?.map((page) =>
+                page?.response.proposals
+                  .toSorted((a, b) => {
+                    const isAOpen = a.status === 1;
+                    const isBOpen = b.status === 1;
 
-                      // If both are open, or neither are open, keep original order
-                      if (isAOpen === isBOpen) return 0;
-                      if (isAOpen) return -1;
-                      return 1;
-                    })
-                    .map((proposal) => {
-                      const canUserVote = votableProposals.has(proposal.id);
+                    // If both are open, or neither are open, keep original order
+                    if (isAOpen === isBOpen) return 0;
+                    if (isAOpen) return -1;
+                    return 1;
+                  })
+                  .map((proposal) => {
+                    const canUserVote = votableProposals.has(proposal.id);
 
-                      return (
-                        <div key={proposal.id?.toString()} className="w-full">
-                          <ProposalListItem
-                            proposal={proposal}
-                            canUserVote={canUserVote}
-                            certified={page?.certified}
-                          />
-                        </div>
-                      );
-                    }),
-                )}
+                    return (
+                      <div key={proposal.id?.toString()} className="w-full">
+                        <ProposalListItem
+                          proposal={proposal}
+                          canUserVote={canUserVote}
+                          certified={page?.certified}
+                        />
+                      </div>
+                    );
+                  }),
+              )}
 
-                {proposals.hasNextPage && (
-                  <InViewSentinel retrigger={data} callback={proposals.fetchNextPage}>
-                    {/* @TODO: Update skeleton loader to match list item */}
-                    <SkeletonLoader count={3} />
-                  </InViewSentinel>
-                )}
-              </div>
-            )}
-          </QueryStates>
-        ))}
+              {proposals.hasNextPage && (
+                <InViewSentinel retrigger={data} callback={proposals.fetchNextPage}>
+                  {/* @TODO: Update skeleton loader to match list item */}
+                  <SkeletonLoader count={3} />
+                </InViewSentinel>
+              )}
+            </div>
+          )}
+        </QueryStates>
+      )}
     </div>
   );
 }
