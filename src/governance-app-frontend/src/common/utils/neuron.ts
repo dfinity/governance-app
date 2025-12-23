@@ -1,6 +1,7 @@
 import { type NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
 
+import { SECONDS_IN_EIGHT_YEARS } from '@constants/extra';
 import { bigIntMax } from '@utils/bigInt';
 import { nowInSeconds } from '@utils/date';
 
@@ -46,6 +47,10 @@ export const getNeuronIsAutoStakingMaturity = (neuron: NeuronInfo): boolean => {
 
 export const getNeuronIsDissolving = (neuron: NeuronInfo): boolean => {
   return neuron.state === NeuronState.Dissolving;
+};
+
+export const getNeuronIsMaxDissolveDelay = (neuron: NeuronInfo): boolean => {
+  return neuron.dissolveDelaySeconds >= BigInt(SECONDS_IN_EIGHT_YEARS);
 };
 
 export const getNeuronDissolveDelaySeconds = (neuron: NeuronInfo, referenceDate?: Date): bigint => {

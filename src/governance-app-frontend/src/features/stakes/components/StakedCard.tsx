@@ -3,13 +3,14 @@ import { Link } from '@tanstack/react-router';
 import { Coins, TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { AlertAction } from '@components/AlertAction';
+import { ApyOptimizationModal } from '@features/stakes/components/ApyOptimizationModal';
+import { StakingRatioModal } from '@features/stakes/components/StakingRatioModal';
+
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { QueryStates } from '@components/QueryStates';
 import { SkeletonLoader } from '@components/SkeletonLoader';
-import { StakingRatioModal } from '@components/StakingRatioModal';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
@@ -101,7 +102,7 @@ export function StakedCard() {
                         <>
                           {(stakingRewards.apy.cur * 100).toFixed(2)}%
                           {stakingRewards.apy.cur < stakingRewards.apy.max && (
-                            <AlertAction onClick={() => alert('@TODO: APY is below max')} />
+                            <ApyOptimizationModal />
                           )}
                         </>
                       ) : (
