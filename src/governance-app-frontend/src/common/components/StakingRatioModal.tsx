@@ -3,7 +3,7 @@ import { AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
-import { Alert, AlertDescription, AlertTitle } from '@components/alert';
+import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
 import {
   ResponsiveDialog,
