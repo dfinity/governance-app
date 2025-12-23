@@ -1,0 +1,16 @@
+{
+  "title": "Maximize your staking",
+  "introduction": "You have <strong>{{available}} ICP available</strong> that isn't earning rewards. Staking 100% of your ICP maximizes your governance rewards.",
+  "whyStake": {
+    "title": "Why stake everything?",
+    "rewardsLabel": "Rewards",
+    "rewards": "Unstaked ICP earns 0%, while staked ICP earns up to {{maxApy}}% APY.",
+    "votingPowerLabel": "Voting power",
+    "votingPower": "More stake equals more influence in governance decisions.",
+    "flexibilityLabel": "Flexibility",
+    "flexibility": "You can dissolve neurons anytime (withdrawable after the locking period)."
+  },
+  "recommendationLabel": "Recommended",
+  "recommendation": "Stake your available {{available}} ICP with an 8-year delay to maximize your rewards.",
+  "button": "Stake now"
+}

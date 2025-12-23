@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { QueryStates } from '@components/QueryStates';
 import { SkeletonLoader } from '@components/SkeletonLoader';
+import { StakingRatioModal } from '@components/StakingRatioModal';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
@@ -80,26 +81,22 @@ export function StakedCard() {
                     <p className="text-xs font-medium text-muted-foreground uppercase">
                       {t(($) => $.home.stakingRatio)}
                     </p>
-                    <p className="flex items-center justify-end gap-2 text-xl font-bold">
+                    <div className="flex items-center justify-end gap-2 text-xl font-bold">
                       {isStakingRewardDataReady(stakingRewards) ? (
                         <>
                           {(stakingRewards.stakingRatio * 100).toFixed(2)}%
-                          {stakingRewards.stakingRatio < 1 && (
-                            <AlertAction
-                              onClick={() => alert('@TODO: Staking ratio is below 100%')}
-                            />
-                          )}
+                          {stakingRewards.stakingRatio < 1 && <StakingRatioModal />}
                         </>
                       ) : (
                         <SkeletonLoader width={50} height={24} />
                       )}
-                    </p>
+                    </div>
                   </div>
                   <div className="flex flex-col gap-1 rounded-md bg-gray-50 p-3 hover:bg-gray-200">
                     <p className="text-xs font-medium text-muted-foreground uppercase">
                       {t(($) => $.common.apy)}
                     </p>
-                    <p className="flex items-center justify-end gap-2 text-xl font-bold text-green-800">
+                    <div className="flex items-center justify-end gap-2 text-xl font-bold text-green-800">
                       {isStakingRewardDataReady(stakingRewards) ? (
                         <>
                           {(stakingRewards.apy.cur * 100).toFixed(2)}%
@@ -110,7 +107,7 @@ export function StakedCard() {
                       ) : (
                         <SkeletonLoader width={50} height={24} />
                       )}
-                    </p>
+                    </div>
                   </div>
                   <div className="flex flex-col gap-1 rounded-md bg-gray-50 p-3 hover:bg-gray-200">
                     <p className="text-xs font-medium text-muted-foreground uppercase">
