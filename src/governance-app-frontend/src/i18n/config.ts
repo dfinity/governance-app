@@ -12,6 +12,7 @@ import neuron from './en/neuron.json';
 import nns from './en/nns.json';
 import proposal from './en/proposal.json';
 import settings from './en/settings.json';
+import voting from './en/voting.json';
 
 // Using a single namespace "labels" for simplicity.
 // Files inside it (common, home, …) are grouped translations, not separate namespaces.
@@ -26,6 +27,7 @@ export const resources = {
       stakingRatioModal,
       nns,
       proposal,
+      voting,
       neuron,
       account,
       settings,
