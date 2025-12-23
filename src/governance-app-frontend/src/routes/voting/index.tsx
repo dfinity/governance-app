@@ -24,13 +24,10 @@ function Voting() {
   const { t } = useTranslation();
   useTitle(t(($) => $.common.proposalsList));
 
-  // @TODO: Check if user has Neurons, if it does and non-advance mode use the value of a neuron?
-  // what if multiple neurons have different followings because and update went wrong?
-  // if no neurons, then no following -> if user sets following and then close the dapp without creating a neuron? localstorage?
-  const hasUserSetUpFollowing = false;
-
-  // @TODO: The conditional rendering of the proposals list depends on the Advance Toggle
+  // @TODO: Derive this data from persisted user setting "advance mode", and user data(configuration of neurons).
   const hasUserSetAdvanceMode = false;
+  // @TODO: Based on the previous derive if the user has the Empty state or not.
+  const hasUserSetUpFollowing = false;
 
   const [showProposals, setShowProposals] = useState(hasUserSetAdvanceMode);
   const proposalsRef = useRef<HTMLDivElement>(null);
