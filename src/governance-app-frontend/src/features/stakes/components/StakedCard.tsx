@@ -77,7 +77,7 @@ export function StakedCard() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 py-3 text-right [&>*]:transition-all [&>*]:duration-300">
-                  <div className="flex flex-col gap-1 rounded-md bg-gray-50 p-3 hover:bg-gray-200">
+                  <div className="flex flex-col gap-1 rounded-md bg-muted p-3 hover:bg-gray-200 dark:hover:bg-zinc-700">
                     <p className="text-xs font-medium text-muted-foreground uppercase">
                       {t(($) => $.home.stakingRatio)}
                     </p>
@@ -92,11 +92,11 @@ export function StakedCard() {
                       )}
                     </div>
                   </div>
-                  <div className="flex flex-col gap-1 rounded-md bg-gray-50 p-3 hover:bg-gray-200">
+                  <div className="flex flex-col gap-1 rounded-md bg-muted p-3 hover:bg-gray-200 dark:hover:bg-zinc-700">
                     <p className="text-xs font-medium text-muted-foreground uppercase">
                       {t(($) => $.common.apy)}
                     </p>
-                    <div className="flex items-center justify-end gap-2 text-xl font-bold text-green-800">
+                    <div className="flex items-center justify-end gap-2 text-xl font-bold text-green-600">
                       {isStakingRewardDataReady(stakingRewards) ? (
                         <>
                           {(stakingRewards.apy.cur * 100).toFixed(2)}%
@@ -109,15 +109,15 @@ export function StakedCard() {
                       )}
                     </div>
                   </div>
-                  <div className="flex flex-col gap-1 rounded-md bg-gray-50 p-3 hover:bg-gray-200">
+                  <div className="flex flex-col gap-1 rounded-md bg-muted p-3 hover:bg-gray-200 dark:hover:bg-zinc-700">
                     <p className="text-xs font-medium text-muted-foreground uppercase">
                       {t(($) => $.home.unstakedMaturity)}
                     </p>
                     <p className="flex items-center justify-end gap-2 text-xl font-bold">
-                      {totalUnstakedMaturity} <MaturitySymbol />
+                      {totalUnstakedMaturity.toFixed(2)} <MaturitySymbol />
                     </p>
                   </div>
-                  <div className="flex flex-col gap-1 rounded-md bg-gray-50 p-3 hover:bg-gray-200">
+                  <div className="flex flex-col gap-1 rounded-md bg-muted p-3 hover:bg-gray-200 dark:hover:bg-zinc-700">
                     <p className="text-xs font-medium text-muted-foreground uppercase">
                       {t(($) => $.home.disbursed)}
                     </p>

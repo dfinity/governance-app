@@ -38,22 +38,22 @@ export function StakingRatioModal() {
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger
-        className="cursor-pointer rounded-sm border border-orange-300 bg-orange-100 p-0.5 transition-all duration-300 hover:scale-110 focus:outline-none"
+        className="cursor-pointer rounded-sm border border-orange-300 bg-orange-100 p-0.5 transition-all duration-300 hover:scale-110 focus:outline-none dark:border-orange-700 dark:bg-orange-900/30"
         disabled={isLoading}
       >
         {isLoading ? (
-          <span className="text-orange-400">
+          <span className="text-orange-500 dark:text-orange-400">
             <Spinner className="size-5" />
           </span>
         ) : (
-          <AlertCircle className="size-5 text-orange-400" />
+          <AlertCircle className="size-5 text-orange-500 dark:text-orange-400" />
         )}
       </ResponsiveDialogTrigger>
       <ResponsiveDialogContent className="flex max-h-[90vh] flex-col">
         <ResponsiveDialogHeader className="shrink-0">
           <div className="flex items-center gap-3">
-            <div className="rounded-md border border-orange-300 bg-orange-100 p-2">
-              <AlertCircle className="size-6 text-orange-400" />
+            <div className="rounded-md border border-orange-300 bg-orange-100 p-2 dark:border-orange-700 dark:bg-orange-900/30">
+              <AlertCircle className="size-6 text-orange-500 dark:text-orange-400" />
             </div>
             <ResponsiveDialogTitle>{t(($) => $.stakingRatioModal.title)}</ResponsiveDialogTitle>
           </div>
