@@ -44,7 +44,7 @@ export function AccountCard() {
       <Card className="flex-1 gap-3 transition-all duration-300 hover:shadow-[0_0_25px_-5px_rgba(0,0,0,0.25)]">
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-medium tracking-wide text-muted-foreground uppercase">
-            {t(($) => $.common.accounts)}
+            {t(($) => $.account.available)}
           </CardTitle>
         </CardHeader>
 
