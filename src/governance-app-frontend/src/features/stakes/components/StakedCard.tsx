@@ -3,13 +3,14 @@ import { Link } from '@tanstack/react-router';
 import { Coins, TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { AlertAction } from '@components/AlertAction';
+import { ApyOptimizationModal } from '@features/stakes/components/ApyOptimizationModal';
+import { StakingRatioModal } from '@features/stakes/components/StakingRatioModal';
+
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { QueryStates } from '@components/QueryStates';
 import { SkeletonLoader } from '@components/SkeletonLoader';
-import { StakingRatioModal } from '@components/StakingRatioModal';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
@@ -77,7 +78,7 @@ export function StakedCard() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 py-3 text-right [&>*]:transition-all [&>*]:duration-300">
-                  <div className="flex flex-col gap-1 rounded-md bg-gray-50 p-3 hover:bg-gray-200">
+                  <div className="flex flex-col gap-1 rounded-md bg-muted p-3 hover:bg-gray-200 dark:hover:bg-zinc-700">
                     <p className="text-xs font-medium text-muted-foreground uppercase">
                       {t(($) => $.home.stakingRatio)}
                     </p>
@@ -92,16 +93,16 @@ export function StakedCard() {
                       )}
                     </div>
                   </div>
-                  <div className="flex flex-col gap-1 rounded-md bg-gray-50 p-3 hover:bg-gray-200">
+                  <div className="flex flex-col gap-1 rounded-md bg-muted p-3 hover:bg-gray-200 dark:hover:bg-zinc-700">
                     <p className="text-xs font-medium text-muted-foreground uppercase">
                       {t(($) => $.common.apy)}
                     </p>
-                    <div className="flex items-center justify-end gap-2 text-xl font-bold text-green-800">
+                    <div className="flex items-center justify-end gap-2 text-xl font-bold text-green-600">
                       {isStakingRewardDataReady(stakingRewards) ? (
                         <>
                           {(stakingRewards.apy.cur * 100).toFixed(2)}%
                           {stakingRewards.apy.cur < stakingRewards.apy.max && (
-                            <AlertAction onClick={() => alert('@TODO: APY is below max')} />
+                            <ApyOptimizationModal />
                           )}
                         </>
                       ) : (
@@ -109,15 +110,15 @@ export function StakedCard() {
                       )}
                     </div>
                   </div>
-                  <div className="flex flex-col gap-1 rounded-md bg-gray-50 p-3 hover:bg-gray-200">
+                  <div className="flex flex-col gap-1 rounded-md bg-muted p-3 hover:bg-gray-200 dark:hover:bg-zinc-700">
                     <p className="text-xs font-medium text-muted-foreground uppercase">
                       {t(($) => $.home.unstakedMaturity)}
                     </p>
                     <p className="flex items-center justify-end gap-2 text-xl font-bold">
-                      {totalUnstakedMaturity} <MaturitySymbol />
+                      {totalUnstakedMaturity.toFixed(2)} <MaturitySymbol />
                     </p>
                   </div>
-                  <div className="flex flex-col gap-1 rounded-md bg-gray-50 p-3 hover:bg-gray-200">
+                  <div className="flex flex-col gap-1 rounded-md bg-muted p-3 hover:bg-gray-200 dark:hover:bg-zinc-700">
                     <p className="text-xs font-medium text-muted-foreground uppercase">
                       {t(($) => $.home.disbursed)}
                     </p>

@@ -30,15 +30,15 @@ export function MaturitySymbol({ className = '' }: Props) {
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger
-        className={`cursor-help rounded-sm border border-amber-400 bg-amber-100 p-0.5 transition-all duration-300 hover:scale-110 focus:outline-none ${className}`}
+        className={`cursor-help rounded-sm border border-amber-400 bg-amber-100 p-0.5 transition-all duration-300 hover:scale-110 focus:outline-none dark:border-amber-600 dark:bg-amber-900/30 ${className}`}
       >
-        <Sparkles className="size-5 text-amber-500" />
+        <Sparkles className="size-5 text-amber-500 dark:text-amber-400" />
       </ResponsiveDialogTrigger>
       <ResponsiveDialogContent className="flex max-h-[90vh] flex-col">
         <ResponsiveDialogHeader className="shrink-0">
           <div className="flex items-center gap-3">
-            <div className="rounded-md border border-amber-400 bg-amber-100 p-2">
-              <Sparkles className="size-6 text-amber-500" />
+            <div className="rounded-md border border-amber-400 bg-amber-100 p-2 dark:border-amber-600 dark:bg-amber-900/30">
+              <Sparkles className="size-6 text-amber-500 dark:text-amber-400" />
             </div>
             <ResponsiveDialogTitle>{t(($) => $.maturityModal.title)}</ResponsiveDialogTitle>
           </div>

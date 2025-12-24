@@ -6,6 +6,7 @@ import common from './en/common.json';
 import enums from './en/enums.json';
 import errors from './en/errors.json';
 import home from './en/home.json';
+import apyOptimizationModal from './en/modals/apyOptimization.json';
 import maturityModal from './en/modals/maturity.json';
 import stakingRatioModal from './en/modals/stakingRatio.json';
 import neuron from './en/neuron.json';
@@ -23,6 +24,7 @@ export const resources = {
       enums,
       errors,
       home,
+      apyOptimizationModal,
       maturityModal,
       stakingRatioModal,
       nns,

@@ -1,0 +1,25 @@
+{
+  "title": "Maximize your APY",
+  "introduction": "Maximize your voting rewards by optimizing your neurons' parameters. The maximum APY of <strong>{{maxApy}}%</strong> is achieved with:",
+  "optimalSettings": {
+    "title": "Optimal settings",
+    "lockedLabel": "Locked state",
+    "locked": "Not dissolving (countdown paused for maximum rewards).",
+    "delayLabel": "8-Year dissolve delay",
+    "delay": "The longest delay period.",
+    "autoStakeLabel": "Auto-stake Maturity",
+    "autoStake": "Compound growth for even higher long-term returns."
+  },
+  "yourNeurons": "Your neurons",
+  "neuronLabel": "Neuron #{{id}}",
+  "fullyOptimized": "Fully optimized",
+  "allOptimized": "All neurons are fully optimized!",
+  "noNeurons": "No neurons yet. Create one to start earning rewards!",
+  "issues": {
+    "notLocked": "Not locked",
+    "delayLow": "Delay < 8Y",
+    "notAutoStaking": "Not auto-staking"
+  },
+  "maximize": "Maximize",
+  "optimizeAll": "Optimize all neurons"
+}
