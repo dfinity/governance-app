@@ -44,8 +44,7 @@ jobs:
         run: ./scripts/config.sh -n local
 
       - name: Start local dfx replica
-        run: |
-          ./scripts/start-pocket-ic.sh --background --delay 0
+        run: ./scripts/start-pocket-ic.sh --background --delay 0 --clean
 
       # To speed up the backend build.
       - name: Cache cargo
