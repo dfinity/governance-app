@@ -50,4 +50,5 @@ if [ "${CLEAN:-false}" = "true" ]; then
 fi
 
 # Start dfx
+echo "Starting dfx with arguments: $DFX_ARGS"
 dfx start $DFX_ARGS

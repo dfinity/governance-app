@@ -43,7 +43,7 @@ jobs:
       - name: Generate .env file
         run: ./scripts/config.sh -n local
 
-      - name: Start sns-testing environment
+      - name: Start local dfx replica
         run: |
           ./scripts/start-pocket-ic.sh --background --delay 0
 
