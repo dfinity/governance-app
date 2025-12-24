@@ -58,8 +58,8 @@ function Voting() {
       </div>
       {!hasUserSetAdvanceMode && !hasUserSetUpFollowing && (
         <>
-          <Alert className="flex gap-1" variant="warning">
-            <AlertTitle className="font-semibold">{t(($) => $.common.important)}:</AlertTitle>
+          <Alert variant="warning">
+            <AlertTitle className="font-semibold">{t(($) => $.common.important)}</AlertTitle>
             <AlertDescription>{t(($) => $.voting.setupFollowingReminder)}</AlertDescription>
           </Alert>
 
@@ -78,16 +78,15 @@ function Voting() {
       {!hasUserSetAdvanceMode && (
         <>
           <Separator className="mt-8 mb-4 lg:mt-16" />
-          <div
-            ref={proposalsRef}
-            className="mx-auto flex scroll-mt-8 items-center gap-1 text-muted-foreground"
-          >
-            <span>{t(($) => $.voting.proposals.cta)}</span>
-            <button
-              onClick={toggleViewProposals}
-              className="font-medium text-primary capitalize underline-offset-4 hover:underline"
-            >
-              {t(($) => (showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow))}
+          <div ref={proposalsRef} className="mx-auto flex scroll-mt-8 items-center gap-1">
+            <button onClick={toggleViewProposals} className="text-sm text-muted-foreground">
+              <span>{t(($) => $.voting.proposals.cta)}</span>
+              <span className="font-medium text-primary capitalize underline-offset-4 hover:underline">
+                {' '}
+                {t(($) =>
+                  showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow,
+                )}
+              </span>
             </button>
           </div>
         </>
