@@ -121,18 +121,18 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
             className="relative h-3 w-full overflow-hidden rounded-full bg-secondary"
             role="progressbar"
             aria-label={t(($) => $.proposal.voteProgress)}
-            aria-valuenow={yes}
+            aria-valuenow={yes + no}
             aria-valuemin={0}
             aria-valuemax={total}
           >
             <div className="absolute top-0 left-1/2 z-10 h-full w-0.5 -translate-x-1/2 bg-foreground/10" />
             <div
               className="absolute top-0 bottom-0 left-0 bg-emerald-800 transition-all duration-1000 ease-out dark:bg-emerald-400"
-              style={{ width: formatPercent(isMounted ? yesProportion * 100 : 0) }}
+              style={{ width: `${isMounted ? yesProportion * 100 : 0}%` }}
             />
             <div
               className="absolute top-0 right-0 bottom-0 bg-red-700 transition-all duration-1000 ease-out dark:bg-red-400"
-              style={{ width: formatPercent(isMounted ? noProportion * 100 : 0) }}
+              style={{ width: `${isMounted ? noProportion * 100 : 0}%` }}
             />
           </div>
         </div>
@@ -142,7 +142,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
             <span className="text-xs text-muted-foreground capitalize">
               {t(($) => $.proposal.totalVotingPower)}
             </span>
-            <span className="font-semibold">{formatVotingPower(total ?? 0n)}</span>
+            <span className="font-semibold">{formatVotingPower(total)}</span>
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground capitalize">
@@ -155,7 +155,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
               {t(($) => $.proposal.yesVotes)}
             </span>
             <span className="font-semibold text-emerald-800 dark:text-emerald-400">
-              {formatVotingPower(yes ?? 0n)}
+              {formatVotingPower(yes)}
             </span>
           </div>
           <div className="flex flex-col gap-1">
@@ -163,7 +163,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
               {t(($) => $.proposal.noVotes)}
             </span>
             <span className="font-semibold text-red-700 dark:text-red-400">
-              {formatVotingPower(no ?? 0n)}
+              {formatVotingPower(no)}
             </span>
           </div>
         </div>

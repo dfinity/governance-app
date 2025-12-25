@@ -95,18 +95,18 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
                 className="relative h-2 flex-grow overflow-hidden rounded-full bg-secondary"
                 role="progressbar"
                 aria-label={t(($) => $.proposal.voteProgress)}
-                aria-valuenow={yes}
+                aria-valuenow={yes + no}
                 aria-valuemin={0}
                 aria-valuemax={total}
               >
                 <div className="absolute top-0 left-1/2 z-10 h-full w-0.5 -translate-x-1/2 bg-foreground/10" />
                 <div
-                  className="absolute top-0 bottom-0 left-0 bg-emerald-700 transition-all duration-4000 ease-out dark:text-emerald-400"
-                  style={{ width: formatPercent(isMounted ? yesProportion * 100 : 0) }}
+                  className="absolute top-0 bottom-0 left-0 bg-emerald-700 transition-all duration-4000 ease-out dark:bg-emerald-400"
+                  style={{ width: `${isMounted ? yesProportion * 100 : 0}%` }}
                 />
                 <div
                   className="absolute top-0 right-0 bottom-0 bg-red-700 transition-all duration-4000 ease-out"
-                  style={{ width: formatPercent(isMounted ? noProportion * 100 : 0) }}
+                  style={{ width: `${isMounted ? noProportion * 100 : 0}%` }}
                 />
               </div>
               <span className="text-[10px] font-bold text-red-700 dark:text-red-400">
