@@ -1,4 +1,5 @@
 {
+  "available": "Available",
   "transferSuccess": "You have successfully sent {{amount}} ICPs to account {{toAccount}}.",
   "transferError": "An error occurred while sending {{amount}} ICPs to account {{toAccount}}. Please try again later.",
   "destinationAccount": "Destination account",
@@ -7,7 +8,7 @@
   "accountError": "Please enter a valid account identifier.",
   "amountError": "Please enter a valid amount.",
   "buyIcp": "Buy ICP",
-  "approxUsd": "≈ {{value}} USD",
+  "approxUsd": "≈ ${{value}}",
   "withdrawnIcp": "Withdrawn ICP",
   "depositedIcp": "Deposited ICP",
   "transactionListDescription": "A list of all the transactions made by this account."
