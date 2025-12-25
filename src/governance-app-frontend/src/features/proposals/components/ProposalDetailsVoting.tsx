@@ -131,7 +131,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
               style={{ width: `${isMounted ? yesProportion * 100 : 0}%` }}
             />
             <div
-              className="absolute top-0 right-0 bottom-0 bg-red-700 transition-all duration-1000 ease-out dark:bg-red-400"
+              className="absolute top-0 right-0 bottom-0 bg-red-800 transition-all duration-1000 ease-out dark:bg-red-400"
               style={{ width: `${isMounted ? noProportion * 100 : 0}%` }}
             />
           </div>
@@ -162,7 +162,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
             <span className="text-xs text-muted-foreground capitalize">
               {t(($) => $.proposal.noVotes)}
             </span>
-            <span className="font-semibold text-red-700 dark:text-red-400">
+            <span className="font-semibold text-red-800 dark:text-red-400">
               {formatVotingPower(no)}
             </span>
           </div>
