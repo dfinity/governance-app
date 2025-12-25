@@ -110,9 +110,6 @@ function Voting() {
         >
           {(data) => (
             <div className="flex flex-col gap-4">
-              <h3 className="text-xxl font-semibold text-muted-foreground uppercase">
-                {t(($) => $.voting.proposals.title)}
-              </h3>
               {data?.pages?.map((page) =>
                 page?.response.proposals
                   .toSorted((a, b) => {
