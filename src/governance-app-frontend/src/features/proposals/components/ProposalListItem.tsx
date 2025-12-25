@@ -1,5 +1,5 @@
 import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
-import { nonNullish, secondsToDuration } from '@dfinity/utils';
+import { secondsToDuration } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
 import { CheckCircle, Clock, Tag, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -9,9 +9,10 @@ import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card, CardFooter, CardHeader } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
-import { VOTING_RESULTS_PRECISION } from '@constants/extra';
+import { E8S } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
-import { bigIntDiv } from '@utils/bigInt';
+
+import { formatPercent, getProposalStatusColor, getProposalTimeLeftInSeconds } from '../utils';
 
 type Props = {
   proposal: ProposalInfo;
@@ -21,34 +22,22 @@ type Props = {
 
 export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
   const { t } = useTranslation();
+  const [isMounted, setIsMounted] = useState(false);
 
   const { data: neurons } = useGovernanceNeurons();
 
-  // Yes/No vote status
-  const { yes, no, total } = proposal.latestTally || {};
-  const yesPercent =
-    nonNullish(yes) && nonNullish(total) && total > 0n
-      ? bigIntDiv(yes, total, VOTING_RESULTS_PRECISION) * 100
-      : 0;
-  const noPercent =
-    nonNullish(no) && nonNullish(total) && total > 0n
-      ? bigIntDiv(no, total, VOTING_RESULTS_PRECISION) * 100
-      : 0;
+  const yes = Number(proposal.latestTally?.yes ?? 0n) / E8S;
+  const no = Number(proposal.latestTally?.no ?? 0n) / E8S;
+  const total = Number(proposal.latestTally?.total ?? 0n) / E8S;
 
-  // Time left
-  const now = Date.now() / 1000;
-  const deadline = Number(proposal.deadlineTimestampSeconds ?? 0n);
-  const timeLeftSeconds = BigInt(Math.floor(Math.max(deadline - now, 0)));
+  const yesProportion = total > 0 ? yes / total : 0;
+  const noProportion = total > 0 ? no / total : 0;
+
   const timeLeft = secondsToDuration({
-    seconds: timeLeftSeconds,
+    seconds: getProposalTimeLeftInSeconds(proposal),
     i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
   });
-
-  const status = proposal.status;
-  const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => {
-    requestAnimationFrame(() => setIsMounted(true));
-  }, []);
+  const statusColor = getProposalStatusColor(proposal);
 
   // TODO: Add mutations
   // My votes
@@ -64,12 +53,9 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
   const isVoteMixed = hasVoted && !myVotes.every((v) => v.vote === myVotes[0].vote);
   const voteValue = hasVoted && !isVoteMixed ? myVotes[0].vote : Vote.Unspecified;
 
-  const statusColor =
-    status === ProposalStatus.Open
-      ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-100/80'
-      : status === ProposalStatus.Executed
-        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-100/80'
-        : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 hover:bg-red-100/80';
+  useEffect(() => {
+    requestAnimationFrame(() => setIsMounted(true));
+  }, []);
 
   return (
     <Link to="/voting/proposals/$id" params={{ id: proposal.id! }} className="w-full">
@@ -88,7 +74,7 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
 
           <div className="flex flex-col gap-2 text-xs lg:flex-row lg:flex-wrap lg:items-center">
             <div className="flex flex-wrap items-center gap-2 text-xs">
-              <Badge className={statusColor}>{ProposalStatus[status]}</Badge>
+              <Badge className={statusColor}>{ProposalStatus[proposal.status]}</Badge>
               {timeLeft.length > 0 && (
                 <Badge variant="secondary" className="gap-1.5 font-normal">
                   <Clock className="h-3.5 w-3.5" />
@@ -102,22 +88,29 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
             </div>
 
             <div className="flex w-full min-w-[200px] flex-1 items-center gap-2 lg:ml-auto lg:w-auto lg:max-w-[500px]">
-              <span className="text-[10px] font-bold text-green-600 dark:text-green-400">
-                {yesPercent.toFixed(1)}%
+              <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">
+                {formatPercent(yesProportion * 100)}
               </span>
-              <div className="relative h-2 flex-grow overflow-hidden rounded-full bg-secondary">
-                <div className="absolute top-0 left-1/2 z-10 h-full w-0.5 -translate-x-1/2 bg-foreground/80" />
+              <div
+                className="relative h-2 flex-grow overflow-hidden rounded-full bg-secondary"
+                role="progressbar"
+                aria-label={t(($) => $.proposal.voteProgress)}
+                aria-valuenow={yes}
+                aria-valuemin={0}
+                aria-valuemax={total}
+              >
+                <div className="absolute top-0 left-1/2 z-10 h-full w-0.5 -translate-x-1/2 bg-foreground/10" />
                 <div
-                  className="absolute top-0 bottom-0 left-0 bg-green-500 transition-all duration-4000 ease-out"
-                  style={{ width: `${isMounted ? yesPercent : 0}%` }}
+                  className="absolute top-0 bottom-0 left-0 bg-emerald-700 transition-all duration-4000 ease-out dark:text-emerald-400"
+                  style={{ width: formatPercent(isMounted ? yesProportion * 100 : 0) }}
                 />
                 <div
-                  className="absolute top-0 right-0 bottom-0 bg-red-500 transition-all duration-4000 ease-out"
-                  style={{ width: `${isMounted ? noPercent : 0}%` }}
+                  className="absolute top-0 right-0 bottom-0 bg-red-700 transition-all duration-4000 ease-out"
+                  style={{ width: formatPercent(isMounted ? noProportion * 100 : 0) }}
                 />
               </div>
-              <span className="text-[10px] font-bold text-red-600 dark:text-red-400">
-                {noPercent.toFixed(1)}%
+              <span className="text-[10px] font-bold text-red-700 dark:text-red-400">
+                {formatPercent(noProportion * 100)}
               </span>
             </div>
           </div>
