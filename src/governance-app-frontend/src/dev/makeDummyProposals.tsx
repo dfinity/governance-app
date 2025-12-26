@@ -1,4 +1,4 @@
-import { MakeProposalRequest, NeuronInfo } from '@icp-sdk/canisters/nns';
+import { MakeProposalRequest, NeuronInfo, NnsGovernanceCanister } from '@icp-sdk/canisters/nns';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
