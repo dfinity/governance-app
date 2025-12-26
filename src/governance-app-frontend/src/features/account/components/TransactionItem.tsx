@@ -1,4 +1,4 @@
-import { TransactionWithId } from '@icp-sdk/canisters/ledger/icp';
+import { IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { ArrowDownToLine, ArrowUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -13,7 +13,7 @@ export const AccountTransactionItem = ({
   accountId,
   certified,
 }: {
-  tx: TransactionWithId;
+  tx: IcpIndexDid.TransactionWithId;
   accountId: string;
   certified: boolean;
 }) => {

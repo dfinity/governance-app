@@ -1,4 +1,4 @@
-import { LedgerCanister } from '@icp-sdk/canisters/ledger/icp';
+import { IcpLedgerCanister } from '@icp-sdk/canisters/ledger/icp';
 import { Principal } from '@icp-sdk/core/principal';
 
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
@@ -6,7 +6,7 @@ import { useAgentPool } from '@hooks/useAgentPool';
 import { errorMessage } from '@utils/error';
 import { CanisterStatus } from '@common/typings/canisters';
 
-export const useIcpLedger = (): CanisterStatus<LedgerCanister> => {
+export const useIcpLedger = (): CanisterStatus<IcpLedgerCanister> => {
   if (!CANISTER_ID_ICP_LEDGER) {
     throw errorMessage('useIcpLedger', 'the canister Id is not defined');
   }
@@ -24,7 +24,7 @@ export const useIcpLedger = (): CanisterStatus<LedgerCanister> => {
   return {
     ready: true,
     authenticated: !!authenticated.agent,
-    canister: LedgerCanister.create({
+    canister: IcpLedgerCanister.create({
       agent: authenticated.agent || anonymous.agent,
       canisterId: Principal.fromText(CANISTER_ID_ICP_LEDGER),
     }),

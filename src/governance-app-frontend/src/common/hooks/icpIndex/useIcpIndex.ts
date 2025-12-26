@@ -1,4 +1,4 @@
-import { IndexCanister } from '@icp-sdk/canisters/ledger/icp';
+import { IcpIndexCanister } from '@icp-sdk/canisters/ledger/icp';
 import { Principal } from '@icp-sdk/core/principal';
 
 import { CANISTER_ID_ICP_INDEX } from '@constants/canisterIds';
@@ -6,7 +6,7 @@ import { useAgentPool } from '@hooks/useAgentPool';
 import { errorMessage } from '@utils/error';
 import { CanisterStatus } from '@common/typings/canisters';
 
-export const useIcpIndex = (): CanisterStatus<IndexCanister> => {
+export const useIcpIndex = (): CanisterStatus<IcpIndexCanister> => {
   if (!CANISTER_ID_ICP_INDEX) {
     throw errorMessage('useIcpIndex', 'the canister Id is not defined');
   }
@@ -24,7 +24,7 @@ export const useIcpIndex = (): CanisterStatus<IndexCanister> => {
   return {
     ready: true,
     authenticated: !!authenticated.agent,
-    canister: IndexCanister.create({
+    canister: IcpIndexCanister.create({
       agent: authenticated.agent || anonymous.agent,
       canisterId: Principal.fromText(CANISTER_ID_ICP_INDEX),
     }),

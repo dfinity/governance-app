@@ -1,4 +1,4 @@
-import { GovernanceCanister, MakeProposalRequest, NeuronInfo } from '@icp-sdk/canisters/nns';
+import { MakeProposalRequest, NeuronInfo, NnsGovernanceCanister } from '@icp-sdk/canisters/nns';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
@@ -406,7 +406,7 @@ const makeDummyProposals = async ({
   canister,
 }: {
   neuronId: bigint;
-  canister: GovernanceCanister;
+  canister: NnsGovernanceCanister;
 }) => {
   try {
     console.log('Making dummy proposals...');

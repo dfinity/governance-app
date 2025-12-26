@@ -1,7 +1,4 @@
-import {
-  AccountIdentifier,
-  GetAccountIdentifierTransactionsResponse,
-} from '@icp-sdk/canisters/ledger/icp';
+import { AccountIdentifier, IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { Option } from '@icp-sdk/canisters/nns';
 import { AnonymousIdentity } from '@icp-sdk/core/agent';
 import { useInternetIdentity } from 'ic-use-internet-identity';
@@ -22,7 +19,10 @@ export const useIcpIndexTransactions = () => {
     principal: identity?.getPrincipal() || new AnonymousIdentity().getPrincipal(),
   });
 
-  return useInfiniteQueryThenUpdateCall<GetAccountIdentifierTransactionsResponse, Option<bigint>>({
+  return useInfiniteQueryThenUpdateCall<
+    IcpIndexDid.GetAccountIdentifierTransactionsResponse,
+    Option<bigint>
+  >({
     queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS],
     queryFn: (context) =>
       canister!.getTransactions({
