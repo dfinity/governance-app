@@ -39,7 +39,7 @@
     "classnames": "2.5.1",
     "clsx": "2.1.1",
     "i18next": "25.7.2",
-    "ic-use-internet-identity": "0.6.2",
+    "ic-use-internet-identity": "0.7.0",
     "lucide-react": "0.544.0",
     "motion": "12.23.25",
     "react": "19.1.1",
