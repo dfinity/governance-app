@@ -28,3 +28,12 @@ export const formatPercent = (value: number) =>
     minFraction: 0,
     maxFraction: 2,
   })}`;
+
+// Validate and parse showProposals from URL search params
+export const getShowProposalUrlStatus = ({
+  showProposals,
+}: Record<string, unknown>): { showProposals?: boolean } => {
+  return {
+    showProposals: showProposals === true || showProposals === 'true' ? true : undefined,
+  };
+};

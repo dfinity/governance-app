@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
 import { useVotableLoadedProposals } from '@features/proposals/hooks/useVotableLoadedProposals';
+import { getShowProposalUrlStatus } from '@features/proposals/utils';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
@@ -17,11 +18,7 @@ import { useGovernanceProposals } from '@hooks/governance';
 import useTitle from '@hooks/useTitle';
 
 export const Route = createFileRoute('/voting/')({
-  validateSearch: ({ showProposals }: Record<string, unknown>): { showProposals?: boolean } => {
-    return {
-      showProposals: showProposals === true || showProposals === 'true' ? true : undefined,
-    };
-  },
+  validateSearch: getShowProposalUrlStatus,
   component: Voting,
 });
 
@@ -36,7 +33,7 @@ function Voting() {
 
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
-  const showProposals = search.showProposals ?? hasUserSetAdvanceMode;
+  const showProposals = hasUserSetAdvanceMode || search.showProposals;
   const proposalsRef = useRef<HTMLDivElement>(null);
 
   const votableProposals = useVotableLoadedProposals();
@@ -142,6 +139,7 @@ function Voting() {
                           params={{ id: proposal.id! }}
                           search={{ showProposals }}
                           className="w-full"
+                          preload="intent"
                         >
                           <ProposalListItem
                             proposal={proposal}

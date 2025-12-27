@@ -57,7 +57,7 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
   }, []);
 
   return (
-    <Card className="flex flex-col overflow-hidden transition-colors hover:bg-accent/50">
+    <Card className="flex w-full flex-col overflow-hidden transition-colors hover:bg-accent/50">
       <CardHeader>
         <div className="flex items-center justify-between">
           <span className="text-xs tracking-wide text-muted-foreground uppercase">

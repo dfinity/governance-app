@@ -5,7 +5,11 @@ import { ArrowLeft, Clock, Link as LinkIcon, Tag, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalDetailsVoting } from '@features/proposals/components/ProposalDetailsVoting';
-import { getProposalStatusColor, getProposalTimeLeftInSeconds } from '@features/proposals/utils';
+import {
+  getProposalStatusColor,
+  getProposalTimeLeftInSeconds,
+  getShowProposalUrlStatus,
+} from '@features/proposals/utils';
 
 import { Badge } from '@components/badge';
 import { Button } from '@components/button';
@@ -35,11 +39,7 @@ export const Route = createFileRoute('/voting/proposals/$id/')({
     }),
     stringify: ({ id }) => ({ id: id?.toString() ?? '' }),
   },
-  validateSearch: ({ showProposals }: Record<string, unknown>): { showProposals?: boolean } => {
-    return {
-      showProposals: showProposals === true || showProposals === 'true' ? true : undefined,
-    };
-  },
+  validateSearch: getShowProposalUrlStatus,
   beforeLoad: ({ params }) => {
     if (!params.id) throw redirect({ to: '/voting', replace: true });
   },
