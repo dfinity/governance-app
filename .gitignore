@@ -34,6 +34,7 @@ src/governance-app-frontend/src/i18n/generated*
 pocket-ic-server.log
 dev-env-*
 pocket-ic
+stats.html
 
 # e2e
 src/governance-app-frontend/playwright-report/
