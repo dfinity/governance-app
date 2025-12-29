@@ -2,6 +2,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react';
 import dotenv from 'dotenv';
+import { visualizer } from 'rollup-plugin-visualizer';
 import { fileURLToPath, URL } from 'url';
 import { defineConfig } from 'vite';
 import environment from 'vite-plugin-environment';
@@ -11,6 +12,27 @@ dotenv.config({ path: '../../.env', quiet: true });
 export default defineConfig({
   build: {
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            // Keep React/DOM in their own super-stable chunk
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'vendor-core-react';
+            }
+            // Isolate the ICP SDKs as they are heavy
+            if (id.includes('@dfinity') || id.includes('@icp-sdk')) {
+              return 'vendor-icp';
+            }
+            if (id.includes('svg-dotted-map')) {
+              return 'vendor-map-data';
+            }
+            // Everything else (Lucide, Radix, Motion)
+            return 'vendor-libs';
+          }
+        },
+      },
+    },
   },
   optimizeDeps: {
     esbuildOptions: {
@@ -20,6 +42,7 @@ export default defineConfig({
     },
   },
   plugins: [
+    visualizer({ open: true }),
     tanstackRouter({
       target: 'react',
       autoCodeSplitting: true,
