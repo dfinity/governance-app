@@ -11,11 +11,12 @@ import {
   getShowProposalUrlStatus,
 } from '@features/proposals/utils';
 
+import { lazy, Suspense } from 'react';
+
 import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
-import { MarkdownRenderer } from '@components/MarkdownRenderer';
 import { QueryStates } from '@components/QueryStates';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { useGovernanceProposal } from '@hooks/governance/useGovernanceProposal';
@@ -23,6 +24,10 @@ import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';
 import { stringToBigInt } from '@utils/bigInt';
 import { safeParseUrl } from '@utils/urls';
+
+const MarkdownRenderer = lazy(() =>
+  import('@components/MarkdownRenderer').then((module) => ({ default: module.MarkdownRenderer })),
+);
 
 const ProposalDetailsRouteComponent = () => {
   const { t } = useTranslation();
@@ -96,7 +101,7 @@ const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
                     {proposalQuery.data?.certified ? (
                       <CertifiedBadge />
                     ) : (
-                      <SkeletonLoader height={24} width={100} />
+                      <SkeletonLoader height={8} width={8} />
                     )}
                   </div>
                   <CardTitle className="mt-2 text-2xl leading-tight font-bold">
@@ -139,7 +144,9 @@ const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
                       </a>
                     )}
                   </div>
-                  <MarkdownRenderer content={proposal.proposal?.summary || ''} />
+                  <Suspense fallback={<SkeletonLoader height={200} />}>
+                    <MarkdownRenderer content={proposal.proposal?.summary || ''} />
+                  </Suspense>
                 </CardContent>
               </Card>
 
