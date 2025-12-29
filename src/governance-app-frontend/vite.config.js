@@ -16,17 +16,20 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            // Keep React/DOM in their own super-stable chunk
-            if (id.includes('react') || id.includes('react-dom')) {
+            if (
+              id.includes('node_modules/react/') ||
+              id.includes('node_modules/react-dom/') ||
+              id.includes('node_modules/scheduler/') // React 19 dependency
+            )
               return 'vendor-core-react';
-            }
+
+            if (id.includes('@tanstack')) return 'vendor-tanstack';
+
             // Isolate the ICP SDKs as they are heavy
-            if (id.includes('@dfinity') || id.includes('@icp-sdk')) {
-              return 'vendor-icp';
-            }
-            if (id.includes('svg-dotted-map')) {
-              return 'vendor-map-data';
-            }
+            if (id.includes('@dfinity') || id.includes('@icp-sdk')) return 'vendor-icp';
+
+            if (id.includes('svg-dotted-map')) return 'vendor-map-data';
+
             // Everything else (Lucide, Radix, Motion)
             return 'vendor-libs';
           }
