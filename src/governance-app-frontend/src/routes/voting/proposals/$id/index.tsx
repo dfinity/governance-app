@@ -1,8 +1,7 @@
-import { ProposalInfo, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { jsonReplacer, secondsToDuration } from '@dfinity/utils';
+import { ProposalInfo, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { ArrowLeft, Clock, Link as LinkIcon, Tag, User } from 'lucide-react';
-import { lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalDetailsVoting } from '@features/proposals/components/ProposalDetailsVoting';
@@ -16,6 +15,7 @@ import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
+import { MarkdownRenderer } from '@components/MarkdownRenderer';
 import { QueryStates } from '@components/QueryStates';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { useGovernanceProposal } from '@hooks/governance/useGovernanceProposal';
@@ -23,10 +23,6 @@ import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';
 import { stringToBigInt } from '@utils/bigInt';
 import { safeParseUrl } from '@utils/urls';
-
-const MarkdownRenderer = lazy(() =>
-  import('@components/MarkdownRenderer').then((module) => ({ default: module.MarkdownRenderer })),
-);
 
 const ProposalDetailsRouteComponent = () => {
   const { t } = useTranslation();
@@ -90,18 +86,13 @@ const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
 
           return (
             <>
-              {/* Main Card */}
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <span className="text-xs tracking-wide text-muted-foreground uppercase">
                       {t(($) => $.proposal.proposalId, { id: proposal.id })}
                     </span>
-                    {proposalQuery.data?.certified ? (
-                      <CertifiedBadge />
-                    ) : (
-                      <SkeletonLoader height={8} width={8} />
-                    )}
+                    <CertifiedBadge certified={proposalQuery.data?.certified} />
                   </div>
                   <CardTitle className="mt-2 text-2xl leading-tight font-bold">
                     {proposal.proposal?.title}
@@ -143,9 +134,7 @@ const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
                       </a>
                     )}
                   </div>
-                  <Suspense fallback={<SkeletonLoader height={200} />}>
-                    <MarkdownRenderer content={proposal.proposal?.summary || ''} />
-                  </Suspense>
+                  <MarkdownRenderer content={proposal.proposal?.summary || ''} />
                 </CardContent>
               </Card>
 
