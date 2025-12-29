@@ -26,7 +26,12 @@ export default defineConfig({
             if (id.includes('@tanstack')) return 'vendor-tanstack';
 
             // Isolate the ICP SDKs as they are heavy
-            if (id.includes('@dfinity') || id.includes('@icp-sdk')) return 'vendor-icp';
+            if (
+              id.includes('@dfinity') ||
+              id.includes('@icp-sdk') ||
+              id.includes('ic-use-internet-identity')
+            )
+              return 'vendor-icp';
 
             if (id.includes('svg-dotted-map')) return 'vendor-map-data';
 
