@@ -26,11 +26,11 @@ jobs:
       - name: Check linting
         run: npm run lint
 
-  # --- NEW BUILD STATS JOB ---
   build_stats:
     name: Build Stats
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pull-requests: write # Required to post comments
     steps:
       - name: Checkout code
