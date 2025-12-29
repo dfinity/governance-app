@@ -1,10 +1,11 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { Users } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
 import { useVotableLoadedProposals } from '@features/proposals/hooks/useVotableLoadedProposals';
+import { getShowProposalUrlStatus } from '@features/proposals/utils';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
@@ -17,6 +18,7 @@ import { useGovernanceProposals } from '@hooks/governance';
 import useTitle from '@hooks/useTitle';
 
 export const Route = createFileRoute('/voting/')({
+  validateSearch: getShowProposalUrlStatus,
   component: Voting,
 });
 
@@ -29,12 +31,18 @@ function Voting() {
   // @TODO: Based on the previous derive if the user has the Empty state or not.
   const hasUserSetUpFollowing = false;
 
-  const [showProposals, setShowProposals] = useState(hasUserSetAdvanceMode);
+  const navigate = Route.useNavigate();
+  const search = Route.useSearch();
+  const showProposals = hasUserSetAdvanceMode || search.showProposals;
   const proposalsRef = useRef<HTMLDivElement>(null);
 
   const votableProposals = useVotableLoadedProposals();
   const proposals = useGovernanceProposals();
-  const toggleViewProposals = () => setShowProposals((prev) => !prev);
+  const toggleViewProposals = () =>
+    navigate({
+      search: (prev) => ({ ...prev, showProposals: !showProposals ? true : undefined }),
+      replace: true,
+    });
 
   useEffect(() => {
     if (showProposals && proposalsRef.current) {
@@ -126,11 +134,19 @@ function Voting() {
 
                     return (
                       <div key={proposal.id?.toString()} className="w-full">
-                        <ProposalListItem
-                          proposal={proposal}
-                          canUserVote={canUserVote}
-                          certified={page?.certified}
-                        />
+                        <Link
+                          to="/voting/proposals/$id"
+                          params={{ id: proposal.id! }}
+                          search={{ showProposals }}
+                          className="w-full"
+                          preload="intent"
+                        >
+                          <ProposalListItem
+                            proposal={proposal}
+                            canUserVote={canUserVote}
+                            certified={page?.certified}
+                          />
+                        </Link>
                       </div>
                     );
                   }),

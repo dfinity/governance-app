@@ -1,6 +1,5 @@
 import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
 import { secondsToDuration } from '@dfinity/utils';
-import { Link } from '@tanstack/react-router';
 import { CheckCircle, Clock, Tag, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -58,97 +57,95 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
   }, []);
 
   return (
-    <Link to="/voting/proposals/$id" params={{ id: proposal.id! }} className="w-full">
-      <Card className="flex flex-col overflow-hidden transition-colors hover:bg-accent/50">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <span className="text-xs tracking-wide text-muted-foreground uppercase">
-              {t(($) => $.proposal.proposalId, { id: proposal.id })}
-            </span>
-            <CertifiedBadge certified={certified} />
-          </div>
+    <Card className="flex w-full flex-col overflow-hidden transition-colors hover:bg-accent/50">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <span className="text-xs tracking-wide text-muted-foreground uppercase">
+            {t(($) => $.proposal.proposalId, { id: proposal.id })}
+          </span>
+          <CertifiedBadge certified={certified} />
+        </div>
 
-          <h3 className="text-lg leading-tight font-bold decoration-primary underline-offset-4">
-            {proposal.proposal?.title}
-          </h3>
+        <h3 className="text-lg leading-tight font-bold decoration-primary underline-offset-4">
+          {proposal.proposal?.title}
+        </h3>
 
-          <div className="flex flex-col gap-2 text-xs lg:flex-row lg:flex-wrap lg:items-center">
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              <Badge className={statusColor}>{ProposalStatus[proposal.status]}</Badge>
-              {timeLeft.length > 0 && (
-                <Badge variant="secondary" className="gap-1.5 font-normal">
-                  <Clock className="h-3.5 w-3.5" />
-                  {t(($) => $.proposal.timeLeft, { timeLeft })}
-                </Badge>
-              )}
+        <div className="flex flex-col gap-2 text-xs lg:flex-row lg:flex-wrap lg:items-center">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <Badge className={statusColor}>{ProposalStatus[proposal.status]}</Badge>
+            {timeLeft.length > 0 && (
               <Badge variant="secondary" className="gap-1.5 font-normal">
-                <Tag className="h-3.5 w-3.5" />
-                {Topic[proposal.topic]}
+                <Clock className="h-3.5 w-3.5" />
+                {t(($) => $.proposal.timeLeft, { timeLeft })}
               </Badge>
-            </div>
-
-            <div className="flex w-full min-w-[200px] flex-1 items-center gap-2 lg:ml-auto lg:w-auto lg:max-w-[500px]">
-              <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400">
-                {formatPercent(yesProportion * 100)}
-              </span>
-              <div
-                className="relative h-2 flex-grow overflow-hidden rounded-full bg-secondary"
-                role="progressbar"
-                aria-label={t(($) => $.proposal.voteProgress)}
-                aria-valuenow={yes + no}
-                aria-valuemin={0}
-                aria-valuemax={total}
-              >
-                <div className="absolute top-0 left-1/2 z-10 h-full w-0.5 -translate-x-1/2 bg-foreground/10" />
-                <div
-                  className="absolute top-0 bottom-0 left-0 bg-emerald-800 transition-all duration-4000 ease-out dark:bg-emerald-400"
-                  style={{ width: `${isMounted ? yesProportion * 100 : 0}%` }}
-                />
-                <div
-                  className="absolute top-0 right-0 bottom-0 bg-red-800 transition-all duration-4000 ease-out dark:bg-red-400"
-                  style={{ width: `${isMounted ? noProportion * 100 : 0}%` }}
-                />
-              </div>
-              <span className="text-[10px] font-bold text-red-800 dark:text-red-400">
-                {formatPercent(noProportion * 100)}
-              </span>
-            </div>
-          </div>
-        </CardHeader>
-
-        {(canUserVote || hasVoted) && (
-          <CardFooter className="pt-2 pb-4">
-            {hasVoted ? (
-              <div className="flex w-full items-center gap-2 rounded-md border border-green-200 bg-green-100 p-3 text-green-700 dark:border-green-800 dark:bg-green-900/30 dark:text-green-400">
-                <CheckCircle className="h-4 w-4" />
-                <span className="text-sm font-medium capitalize">
-                  {isVoteMixed ? (
-                    [<TriangleAlert />, t(($) => $.proposal.voteStatusMixed)]
-                  ) : voteValue === Vote.Yes ? (
-                    <ThumbsUp />
-                  ) : (
-                    <ThumbsDown />
-                  )}
-                </span>
-              </div>
-            ) : (
-              <div className="flex w-full items-center gap-3">
-                <Button
-                  onClick={() => {}}
-                  variant="default"
-                  size="sm"
-                  className="flex-1 bg-green-600 text-white hover:bg-green-700"
-                >
-                  <ThumbsUp className="mr-2 h-4 w-4" />
-                </Button>
-                <Button onClick={() => {}} variant="destructive" size="sm" className="flex-1">
-                  <ThumbsDown className="mr-2 h-4 w-4" />
-                </Button>
-              </div>
             )}
-          </CardFooter>
-        )}
-      </Card>
-    </Link>
+            <Badge variant="secondary" className="gap-1.5 font-normal">
+              <Tag className="h-3.5 w-3.5" />
+              {Topic[proposal.topic]}
+            </Badge>
+          </div>
+
+          <div className="flex w-full min-w-[200px] flex-1 items-center gap-2 lg:ml-auto lg:w-auto lg:max-w-[500px]">
+            <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400">
+              {formatPercent(yesProportion * 100)}
+            </span>
+            <div
+              className="relative h-2 flex-grow overflow-hidden rounded-full bg-secondary"
+              role="progressbar"
+              aria-label={t(($) => $.proposal.voteProgress)}
+              aria-valuenow={yes + no}
+              aria-valuemin={0}
+              aria-valuemax={total}
+            >
+              <div className="absolute top-0 left-1/2 z-10 h-full w-0.5 -translate-x-1/2 bg-foreground/10" />
+              <div
+                className="absolute top-0 bottom-0 left-0 bg-emerald-800 transition-all duration-4000 ease-out dark:bg-emerald-400"
+                style={{ width: `${isMounted ? yesProportion * 100 : 0}%` }}
+              />
+              <div
+                className="absolute top-0 right-0 bottom-0 bg-red-800 transition-all duration-4000 ease-out dark:bg-red-400"
+                style={{ width: `${isMounted ? noProportion * 100 : 0}%` }}
+              />
+            </div>
+            <span className="text-[10px] font-bold text-red-800 dark:text-red-400">
+              {formatPercent(noProportion * 100)}
+            </span>
+          </div>
+        </div>
+      </CardHeader>
+
+      {(canUserVote || hasVoted) && (
+        <CardFooter className="pt-2 pb-4">
+          {hasVoted ? (
+            <div className="flex w-full items-center gap-2 rounded-md border border-green-200 bg-green-100 p-3 text-green-700 dark:border-green-800 dark:bg-green-900/30 dark:text-green-400">
+              <CheckCircle className="h-4 w-4" />
+              <span className="text-sm font-medium capitalize">
+                {isVoteMixed ? (
+                  [<TriangleAlert />, t(($) => $.proposal.voteStatusMixed)]
+                ) : voteValue === Vote.Yes ? (
+                  <ThumbsUp />
+                ) : (
+                  <ThumbsDown />
+                )}
+              </span>
+            </div>
+          ) : (
+            <div className="flex w-full items-center gap-3">
+              <Button
+                onClick={() => {}}
+                variant="default"
+                size="sm"
+                className="flex-1 bg-green-600 text-white hover:bg-green-700"
+              >
+                <ThumbsUp className="mr-2 h-4 w-4" />
+              </Button>
+              <Button onClick={() => {}} variant="destructive" size="sm" className="flex-1">
+                <ThumbsDown className="mr-2 h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </CardFooter>
+      )}
+    </Card>
   );
 }

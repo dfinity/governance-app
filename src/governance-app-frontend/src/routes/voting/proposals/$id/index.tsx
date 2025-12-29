@@ -5,7 +5,11 @@ import { ArrowLeft, Clock, Link as LinkIcon, Tag, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalDetailsVoting } from '@features/proposals/components/ProposalDetailsVoting';
-import { getProposalStatusColor, getProposalTimeLeftInSeconds } from '@features/proposals/utils';
+import {
+  getProposalStatusColor,
+  getProposalTimeLeftInSeconds,
+  getShowProposalUrlStatus,
+} from '@features/proposals/utils';
 
 import { Badge } from '@components/badge';
 import { Button } from '@components/button';
@@ -35,6 +39,7 @@ export const Route = createFileRoute('/voting/proposals/$id/')({
     }),
     stringify: ({ id }) => ({ id: id?.toString() ?? '' }),
   },
+  validateSearch: getShowProposalUrlStatus,
   beforeLoad: ({ params }) => {
     if (!params.id) throw redirect({ to: '/voting', replace: true });
   },
@@ -48,6 +53,7 @@ type Props = {
 
 const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
   const { t } = useTranslation();
+  const search = Route.useSearch();
 
   const proposalQuery = useGovernanceProposal({
     proposalId,
@@ -57,7 +63,7 @@ const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
     <div className="flex flex-col gap-4">
       <div>
         <Button variant="link" asChild className="p-0! font-normal">
-          <Link to="/voting">
+          <Link to="/voting" search={{ showProposals: search.showProposals }}>
             <ArrowLeft className="size-5" />
             {t(($) => $.proposal.backToProposals)}
           </Link>
