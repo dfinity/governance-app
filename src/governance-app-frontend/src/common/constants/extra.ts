@@ -43,4 +43,5 @@ export const MAX_DISSOLVE_DELAY_BONUS = 1; // +100%
 export const MAX_AGE_BONUS = 0.25; // +25%
 
 // Local Storage Keys
-export const MANUAL_LOGOUT_KEY = 'manual-logout';
+export const MANUAL_LOGOUT_KEY = 'nns-manual-logout';
+export const WELCOME_MODAL_STORAGE_KEY = 'nns-welcome-modal-seen';

@@ -7,6 +7,7 @@ import { Sidebar } from '@components/navigation/Sidebar';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { useAgentPool } from '@hooks/useAgentPool';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
+import { WelcomeModal } from '@features/onboarding/WelcomeModal';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
   const { isInitializing } = useInternetIdentity();
@@ -23,6 +24,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
         </div>
       ) : (
         <>
+          <WelcomeModal />
           <Sidebar />
           <div className="flex h-screen w-full flex-col overflow-hidden">
             <Header />
