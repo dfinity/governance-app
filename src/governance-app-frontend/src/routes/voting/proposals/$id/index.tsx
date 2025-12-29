@@ -1,5 +1,5 @@
-import { ProposalInfo, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { jsonReplacer, secondsToDuration } from '@dfinity/utils';
+import { ProposalInfo, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { ArrowLeft, Clock, Link as LinkIcon, Tag, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +15,7 @@ import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
+import { MarkdownRenderer } from '@components/MarkdownRenderer';
 import { QueryStates } from '@components/QueryStates';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { useGovernanceProposal } from '@hooks/governance/useGovernanceProposal';
@@ -98,7 +99,7 @@ const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
                       <SkeletonLoader height={24} width={100} />
                     )}
                   </div>
-                  <CardTitle className="mt-2 text-xl leading-tight font-bold">
+                  <CardTitle className="mt-2 text-2xl leading-tight font-bold">
                     {proposal.proposal?.title}
                   </CardTitle>
                 </CardHeader>
@@ -138,9 +139,7 @@ const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
                       </a>
                     )}
                   </div>
-                  <div className="text-sm leading-relaxed whitespace-pre-wrap text-muted-foreground">
-                    {proposal.proposal?.summary}
-                  </div>
+                  <MarkdownRenderer content={proposal.proposal?.summary || ''} />
                 </CardContent>
               </Card>
 
