@@ -29,11 +29,14 @@ export default defineConfig({
             if (
               id.includes('@dfinity') ||
               id.includes('@icp-sdk') ||
+              id.includes('@noble') ||
               id.includes('ic-use-internet-identity')
             )
               return 'vendor-icp';
 
             if (id.includes('svg-dotted-map')) return 'vendor-map-data';
+            if (id.includes('markdown') || id.includes('remark') || id.includes('micromark'))
+              return 'vendor-md';
 
             // Everything else (Lucide, Radix, Motion)
             return 'vendor-libs';

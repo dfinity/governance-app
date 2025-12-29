@@ -15,6 +15,7 @@ import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
+import { MarkdownRenderer } from '@components/MarkdownRenderer';
 import { QueryStates } from '@components/QueryStates';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { useGovernanceProposal } from '@hooks/governance/useGovernanceProposal';
@@ -85,20 +86,15 @@ const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
 
           return (
             <>
-              {/* Main Card */}
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <span className="text-xs tracking-wide text-muted-foreground uppercase">
                       {t(($) => $.proposal.proposalId, { id: proposal.id })}
                     </span>
-                    {proposalQuery.data?.certified ? (
-                      <CertifiedBadge />
-                    ) : (
-                      <SkeletonLoader height={24} width={100} />
-                    )}
+                    <CertifiedBadge certified={proposalQuery.data?.certified} />
                   </div>
-                  <CardTitle className="mt-2 text-xl leading-tight font-bold">
+                  <CardTitle className="mt-2 text-2xl leading-tight font-bold">
                     {proposal.proposal?.title}
                   </CardTitle>
                 </CardHeader>
@@ -138,9 +134,7 @@ const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
                       </a>
                     )}
                   </div>
-                  <div className="text-sm leading-relaxed whitespace-pre-wrap text-muted-foreground">
-                    {proposal.proposal?.summary}
-                  </div>
+                  <MarkdownRenderer content={proposal.proposal?.summary || ''} />
                 </CardContent>
               </Card>
 
