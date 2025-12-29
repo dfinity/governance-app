@@ -1,7 +1,7 @@
 {
   "proposalId": "Proposal #{{id}}",
   "backToProposals": "Back to Proposals",
-  "title": "Proposal details",
+  "title": "Proposal {{id}} details",
   "type": "Type",
   "topic": "Topic",
   "status": "Status",

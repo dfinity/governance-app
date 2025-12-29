@@ -6,9 +6,11 @@ import { Header } from '@components/navigation/Header';
 import { Sidebar } from '@components/navigation/Sidebar';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { useAgentPool } from '@hooks/useAgentPool';
+import { useThemeShortcut } from '@hooks/useThemeShortcut';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
   const { isInitializing } = useInternetIdentity();
+  useThemeShortcut();
 
   const { anonymous, authenticated } = useAgentPool().agentPool;
   const showLoader = anonymous.loading || authenticated.loading || isInitializing;

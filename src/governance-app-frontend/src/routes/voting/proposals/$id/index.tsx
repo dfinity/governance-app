@@ -1,5 +1,5 @@
-import { ProposalInfo, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { jsonReplacer, secondsToDuration } from '@dfinity/utils';
+import { ProposalInfo, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { ArrowLeft, Clock, Link as LinkIcon, Tag, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -24,15 +24,6 @@ import { CertifiedData } from '@typings/queries';
 import { stringToBigInt } from '@utils/bigInt';
 import { safeParseUrl } from '@utils/urls';
 
-const ProposalDetailsRouteComponent = () => {
-  const { t } = useTranslation();
-  const { id } = Route.useParams();
-
-  useTitle(t(($) => $.proposal.title));
-
-  return <ProposalDetails proposalId={id!} />;
-};
-
 export const Route = createFileRoute('/voting/proposals/$id/')({
   params: {
     parse: ({ id }) => ({
@@ -48,16 +39,15 @@ export const Route = createFileRoute('/voting/proposals/$id/')({
   component: ProposalDetailsRouteComponent,
 });
 
-type Props = {
-  proposalId: bigint;
-};
-
-const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
+function ProposalDetailsRouteComponent() {
   const { t } = useTranslation();
+  const { id } = Route.useParams();
   const search = Route.useSearch();
 
+  useTitle(t(($) => $.proposal.title, { id: id?.toString() }));
+
   const proposalQuery = useGovernanceProposal({
-    proposalId,
+    proposalId: id,
   });
 
   return (
@@ -161,4 +151,4 @@ const ProposalDetails: React.FC<Props> = ({ proposalId }) => {
       </QueryStates>
     </div>
   );
-};
+}
