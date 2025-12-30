@@ -53,8 +53,9 @@ function Voting() {
       warningNotification({
         description: t(($) => $.voting.warnings.stakeRequired),
       });
-      // return;
+      return;
     }
+
     navigate({ to: '/voting/known-neurons' });
   };
 

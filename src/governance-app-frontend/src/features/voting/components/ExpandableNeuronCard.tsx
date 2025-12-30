@@ -1,6 +1,6 @@
 import { KnownNeuron } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
-import { ChevronDown, ChevronUp, Circle, Disc, LinkIcon } from 'lucide-react';
+import { ChevronDown, ChevronUp, Circle, CircleDot, LinkIcon } from 'lucide-react';
 import { useState } from 'react';
 
 import { Badge } from '@components/badge';
@@ -37,8 +37,8 @@ export const ExpandableNeuronCard = ({ neuron, isSelected, onSelect }: Props) =>
   return (
     <Card
       className={cn(
-        'cursor-pointer p-4 transition-all hover:border-primary/50',
-        isSelected ? 'border-2 border-foreground bg-accent/50' : 'border',
+        'cursor-pointer border-2 p-4 transition-all hover:border-primary/50',
+        isSelected ? 'border-2 border-primary/50' : 'border-2',
         isExpanded ? 'h-auto' : 'h-20',
       )}
       onClick={() => onSelect(neuron)}
@@ -46,7 +46,7 @@ export const ExpandableNeuronCard = ({ neuron, isSelected, onSelect }: Props) =>
       <div className="flex gap-4">
         <div className="mt-2 flex-shrink-0">
           {isSelected ? (
-            <Disc className="h-6 w-6 stroke-[3px]" />
+            <CircleDot className="h-6 w-6 stroke-[3px]" />
           ) : (
             <Circle className="h-6 w-6 text-muted-foreground" />
           )}
@@ -75,7 +75,7 @@ export const ExpandableNeuronCard = ({ neuron, isSelected, onSelect }: Props) =>
                       onClick={(e) => e.stopPropagation()}
                     >
                       <Badge
-                        variant="secondary"
+                        variant="outline"
                         className="gap-1.5 font-normal hover:bg-secondary/80"
                       >
                         <LinkIcon className="h-3.5 w-3.5" />
