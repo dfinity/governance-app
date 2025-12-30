@@ -21,6 +21,7 @@ import { warningNotification } from '@utils/notification';
 export const Route = createFileRoute('/voting/')({
   validateSearch: getShowProposalUrlStatus,
   component: Voting,
+  pendingComponent: () => <SkeletonLoader count={3} />,
   staticData: {
     title: 'common.voting',
   },
