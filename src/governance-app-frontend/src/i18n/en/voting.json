@@ -16,5 +16,8 @@
     "cta": "Curious about what's being voted on?",
     "ctaShow": "View proposals",
     "ctaHide": "Hide proposals"
+  },
+  "warnings": {
+    "stakeRequired": "You need at least one stake to follow a neuron. Please stake ICP first."
   }
 }
