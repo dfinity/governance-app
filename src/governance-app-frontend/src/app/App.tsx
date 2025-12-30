@@ -7,8 +7,8 @@ import { RouterProvider } from '@tanstack/react-router';
 import { InternetIdentityProvider } from 'ic-use-internet-identity';
 import { StrictMode } from 'react';
 import { createPortal } from 'react-dom';
-import { Toaster } from 'sonner';
 
+import { Sonner } from '@components/Sonner';
 import { CANISTER_ID_INTERNET_IDENTITY } from '@constants/canisterIds';
 import { HOST, IS_LOCAL } from '@constants/extra';
 import { usePreventAttributeChange } from '@hooks/usePreventAttributeChange';
@@ -37,7 +37,7 @@ export const App = () => {
               <RouterProvider router={routerConfig} />
               <ReactQueryDevtools initialIsOpen={false} />
               {notificationsContainer &&
-                createPortal(<Toaster richColors position="top-right" />, notificationsContainer)}
+                createPortal(<Sonner position="top-center" />, notificationsContainer)}
             </ThemeProvider>
           </AgentPoolProvider>
         </QueryClientProvider>
