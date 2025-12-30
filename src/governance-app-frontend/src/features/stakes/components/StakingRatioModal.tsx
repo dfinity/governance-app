@@ -12,7 +12,7 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from '@components/ResponsiveDialog';
-import { Spinner } from '@components/spinner';
+import { Spinner } from '@components/Spinner';
 import { E8Sn } from '@constants/extra';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useStakingRewards } from '@hooks/useStakingRewards';
