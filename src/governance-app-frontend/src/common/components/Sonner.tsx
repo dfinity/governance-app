@@ -31,11 +31,6 @@ const Sonner = ({ ...props }: ToasterProps) => {
           '--border-radius': 'var(--radius)',
         } as React.CSSProperties
       }
-      toastOptions={{
-        classNames: {
-          success: 'border-green-500/50',
-        },
-      }}
       {...props}
     />
   );

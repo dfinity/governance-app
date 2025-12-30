@@ -8,7 +8,7 @@ type NotificationOptions = {
 };
 
 const ephemeralNotification: ToasterProps = {
-  duration: 22500,
+  duration: 2500,
   closeButton: false,
 };
 

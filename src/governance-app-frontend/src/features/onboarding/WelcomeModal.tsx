@@ -2,9 +2,6 @@ import { Vote } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@components/button';
-import { WELCOME_MODAL_STORAGE_KEY } from '@constants/extra';
-import { successNotification } from '@utils/notification';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -12,6 +9,9 @@ import {
   ResponsiveDialogFooter,
   ResponsiveDialogTitle,
 } from '@common/components/ResponsiveDialog';
+import { Button } from '@components/button';
+import { WELCOME_MODAL_STORAGE_KEY } from '@constants/extra';
+import { successNotification } from '@utils/notification';
 
 export function WelcomeModal() {
   const { t } = useTranslation();
@@ -19,7 +19,7 @@ export function WelcomeModal() {
 
   useEffect(() => {
     const hasSeenModal = localStorage.getItem(WELCOME_MODAL_STORAGE_KEY);
-    if (hasSeenModal) setIsOpen(true);
+    if (!hasSeenModal) setIsOpen(true);
   }, []);
 
   const handleClose = () => {
