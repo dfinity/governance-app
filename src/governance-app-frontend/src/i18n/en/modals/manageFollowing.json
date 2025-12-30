@@ -1,0 +1,6 @@
+{
+  "title": "Choose a Neuron to Follow",
+  "description": "Select one trusted organization to vote on your behalf for all your stakes",
+  "success": "Now following {{name}} for all your stakes",
+  "seeDetails": "See details"
+}

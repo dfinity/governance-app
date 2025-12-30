@@ -7,6 +7,7 @@ import enums from './en/enums.json';
 import errors from './en/errors.json';
 import home from './en/home.json';
 import apyOptimizationModal from './en/modals/apyOptimization.json';
+import manageFollowingModal from './en/modals/manageFollowing.json';
 import maturityModal from './en/modals/maturity.json';
 import stakingRatioModal from './en/modals/stakingRatio.json';
 import welcomeModal from './en/modals/welcome.json';
@@ -35,6 +36,7 @@ export const resources = {
       account,
       settings,
       welcomeModal,
+      manageFollowingModal,
     },
   },
 };

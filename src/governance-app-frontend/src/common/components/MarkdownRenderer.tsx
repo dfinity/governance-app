@@ -16,6 +16,16 @@ export const MarkdownRenderer = ({ content }: Props) => {
               <table {...props} />
             </div>
           ),
+          a: ({ node, ...props }) => {
+            const isExternal = props.href?.startsWith('http');
+            return (
+              <a
+                target={isExternal ? '_blank' : undefined}
+                rel={isExternal ? 'noopener noreferrer' : undefined}
+                {...props}
+              />
+            );
+          },
         }}
       >
         {content}

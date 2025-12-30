@@ -14,6 +14,7 @@ import { Route as VotingIndexRouteImport } from './routes/voting/index'
 import { Route as StakesIndexRouteImport } from './routes/stakes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as homepageIndexRouteImport } from './routes/(homepage)/index'
+import { Route as VotingKnownNeuronsIndexRouteImport } from './routes/voting/known-neurons/index'
 import { Route as StakesIdIndexRouteImport } from './routes/stakes/$id/index'
 import { Route as VotingProposalsIdIndexRouteImport } from './routes/voting/proposals/$id/index'
 
@@ -42,6 +43,11 @@ const homepageIndexRoute = homepageIndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VotingKnownNeuronsIndexRoute = VotingKnownNeuronsIndexRouteImport.update({
+  id: '/voting/known-neurons/',
+  path: '/voting/known-neurons/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StakesIdIndexRoute = StakesIdIndexRouteImport.update({
   id: '/stakes/$id/',
   path: '/stakes/$id/',
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/stakes': typeof StakesIndexRoute
   '/voting': typeof VotingIndexRoute
   '/stakes/$id': typeof StakesIdIndexRoute
+  '/voting/known-neurons': typeof VotingKnownNeuronsIndexRoute
   '/voting/proposals/$id': typeof VotingProposalsIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/stakes': typeof StakesIndexRoute
   '/voting': typeof VotingIndexRoute
   '/stakes/$id': typeof StakesIdIndexRoute
+  '/voting/known-neurons': typeof VotingKnownNeuronsIndexRoute
   '/voting/proposals/$id': typeof VotingProposalsIdIndexRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/stakes/': typeof StakesIndexRoute
   '/voting/': typeof VotingIndexRoute
   '/stakes/$id/': typeof StakesIdIndexRoute
+  '/voting/known-neurons/': typeof VotingKnownNeuronsIndexRoute
   '/voting/proposals/$id/': typeof VotingProposalsIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/stakes'
     | '/voting'
     | '/stakes/$id'
+    | '/voting/known-neurons'
     | '/voting/proposals/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/stakes'
     | '/voting'
     | '/stakes/$id'
+    | '/voting/known-neurons'
     | '/voting/proposals/$id'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/stakes/'
     | '/voting/'
     | '/stakes/$id/'
+    | '/voting/known-neurons/'
     | '/voting/proposals/$id/'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   StakesIndexRoute: typeof StakesIndexRoute
   VotingIndexRoute: typeof VotingIndexRoute
   StakesIdIndexRoute: typeof StakesIdIndexRoute
+  VotingKnownNeuronsIndexRoute: typeof VotingKnownNeuronsIndexRoute
   VotingProposalsIdIndexRoute: typeof VotingProposalsIdIndexRoute
 }
 
@@ -158,6 +171,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof homepageIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/voting/known-neurons/': {
+      id: '/voting/known-neurons/'
+      path: '/voting/known-neurons'
+      fullPath: '/voting/known-neurons'
+      preLoaderRoute: typeof VotingKnownNeuronsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/stakes/$id/': {
       id: '/stakes/$id/'
       path: '/stakes/$id'
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   StakesIndexRoute: StakesIndexRoute,
   VotingIndexRoute: VotingIndexRoute,
   StakesIdIndexRoute: StakesIdIndexRoute,
+  VotingKnownNeuronsIndexRoute: VotingKnownNeuronsIndexRoute,
   VotingProposalsIdIndexRoute: VotingProposalsIdIndexRoute,
 }
 export const routeTree = rootRouteImport
