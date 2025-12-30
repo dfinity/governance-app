@@ -11,6 +11,9 @@ import { ThemeCard } from '@/features/settings/components/ThemeCard';
 
 export const Route = createFileRoute('/settings/')({
   component: Settings,
+  staticData: {
+    title: 'common.settings',
+  },
 });
 
 function Settings() {

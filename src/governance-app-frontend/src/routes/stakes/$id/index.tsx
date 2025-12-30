@@ -48,6 +48,9 @@ export const Route = createFileRoute('/stakes/$id/')({
   },
   pendingComponent: () => <SkeletonLoader count={3} />,
   component: NeuronDetailsRouteComponent,
+  staticData: {
+    title: 'common.stakes',
+  },
 });
 
 type Props = {

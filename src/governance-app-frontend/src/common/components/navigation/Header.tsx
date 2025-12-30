@@ -1,14 +1,13 @@
-import { useMatchRoute } from '@tanstack/react-router';
+import { useMatches } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-
-import { navigationItems } from './NavigationItems';
 
 export const Header = () => {
   const { t } = useTranslation();
-  const matchRoute = useMatchRoute();
+  const matches = useMatches();
 
-  const currentItem = navigationItems.find((item) => matchRoute({ to: item.href, fuzzy: true }));
-  const title = currentItem ? currentItem.label : 'common.baseTitle';
+  const match = matches.find((m) => m.staticData?.title);
+
+  const title = match?.staticData?.title ?? 'common.baseTitle';
 
   return (
     <header className="sticky top-0 z-10 flex w-full items-center justify-between border-b bg-background p-6">
