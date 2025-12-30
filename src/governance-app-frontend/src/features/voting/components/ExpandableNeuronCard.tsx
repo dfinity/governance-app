@@ -37,9 +37,8 @@ export const ExpandableNeuronCard = ({ neuron, isSelected, onSelect }: Props) =>
   return (
     <Card
       className={cn(
-        'cursor-pointer border-2 p-4 transition-all hover:border-primary/50',
-        isSelected ? 'border-2 border-primary/50' : 'border-2',
-        isExpanded ? 'h-auto' : 'h-20',
+        'h-auto cursor-pointer border-2 p-4 transition-all hover:border-muted-foreground',
+        isSelected && 'border-muted-foreground',
       )}
       onClick={() => onSelect(neuron)}
     >
