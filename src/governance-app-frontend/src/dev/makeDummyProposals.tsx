@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
 import { Button } from '@components/button';
-import { Spinner } from '@components/spinner';
+import { Spinner } from '@components/Spinner';
 import { SECONDS_IN_HALF_YEAR, SECONDS_IN_MONTH } from '@constants/extra';
 import { useNnsGovernance } from '@hooks/governance';
 import { errorNotification, successNotification } from '@utils/notification';

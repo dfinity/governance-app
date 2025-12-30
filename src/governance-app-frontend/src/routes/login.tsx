@@ -1,6 +1,6 @@
 import { createFileRoute, Navigate } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { ExternalLink, LaptopMinimalCheck, LogIn } from 'lucide-react';
+import { ExternalLink, LogIn, Vote } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -52,7 +52,7 @@ function LoginPage() {
       <div className="relative z-10 flex w-full max-w-md flex-col items-center space-y-6 rounded-2xl border border-border bg-card/50 p-6 text-center text-foreground shadow-2xl backdrop-blur-xl sm:p-12 md:space-y-8">
         <div className="flex flex-col items-center space-y-4">
           <div className="rounded-full bg-primary/10 p-4">
-            <LaptopMinimalCheck className="h-10 w-10 text-primary" />
+            <Vote className="h-10 w-10 text-primary" />
           </div>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             {t(($) => $.common.loginTitle)}

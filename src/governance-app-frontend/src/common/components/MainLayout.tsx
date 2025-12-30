@@ -1,6 +1,8 @@
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode } from 'react';
 
+import { WelcomeModal } from '@features/onboarding/WelcomeModal';
+
 import { BottomNav } from '@components/navigation/BottomNav';
 import { Header } from '@components/navigation/Header';
 import { Sidebar } from '@components/navigation/Sidebar';
@@ -23,6 +25,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
         </div>
       ) : (
         <>
+          <WelcomeModal />
           <Sidebar />
           <div className="flex h-screen w-full flex-col overflow-hidden">
             <Header />

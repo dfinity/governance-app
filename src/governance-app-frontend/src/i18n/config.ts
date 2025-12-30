@@ -9,6 +9,7 @@ import home from './en/home.json';
 import apyOptimizationModal from './en/modals/apyOptimization.json';
 import maturityModal from './en/modals/maturity.json';
 import stakingRatioModal from './en/modals/stakingRatio.json';
+import welcomeModal from './en/modals/welcome.json';
 import neuron from './en/neuron.json';
 import nns from './en/nns.json';
 import proposal from './en/proposal.json';
@@ -33,6 +34,7 @@ export const resources = {
       neuron,
       account,
       settings,
+      welcomeModal,
     },
   },
 };

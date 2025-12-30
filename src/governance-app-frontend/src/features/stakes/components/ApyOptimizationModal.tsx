@@ -14,7 +14,7 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from '@components/ResponsiveDialog';
-import { Spinner } from '@components/spinner';
+import { Spinner } from '@components/Spinner';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import {
