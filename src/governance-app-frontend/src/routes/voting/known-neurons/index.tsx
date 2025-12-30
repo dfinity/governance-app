@@ -23,7 +23,7 @@ export const Route = createFileRoute('/voting/known-neurons/')({
 function KnownNeuronsList() {
   const { t } = useTranslation();
   const search = Route.useSearch();
-  useTitle(t(($) => $.manageFollowingModal.title));
+  useTitle(t(($) => $.knownNeurons.title));
 
   const { data } = useGovernanceKnownNeurons();
 
@@ -35,7 +35,7 @@ function KnownNeuronsList() {
     // @TODO: Batch operation for all the neurons.
 
     successNotification({
-      description: t(($) => $.manageFollowingModal.success, { name: neuron.name }),
+      description: t(($) => $.knownNeurons.success, { name: neuron.name }),
     });
   };
 
@@ -50,10 +50,8 @@ function KnownNeuronsList() {
         </Button>
       </div>
       <div className="flex flex-col gap-2">
-        <h2 className="text-2xl font-semibold">{t(($) => $.manageFollowingModal.title)}</h2>
-        <p className="text-sm text-muted-foreground">
-          {t(($) => $.manageFollowingModal.description)}
-        </p>
+        <h2 className="text-2xl font-semibold">{t(($) => $.knownNeurons.title)}</h2>
+        <p className="text-sm text-muted-foreground">{t(($) => $.knownNeurons.description)}</p>
       </div>
 
       <div className="flex flex-col gap-4">
