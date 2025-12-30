@@ -5,7 +5,7 @@ import { routeTree } from '@/routeTree.gen';
 
 declare module '@tanstack/react-router' {
   interface StaticDataRouteOption {
-    title: string;
+    title?: string;
   }
 
   interface Register {
