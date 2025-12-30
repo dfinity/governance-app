@@ -6,11 +6,12 @@ const ICP_LEDGER = {
 };
 
 const NNS_GOVERNANCE = {
-  PROPOSALS: 'nnsGovernanceProposals',
   ECONOMICS: 'nnsGovernanceEconomics',
-  PROPOSAL: 'nnsGovernanceProposal',
-  NEURONS: 'nnsGovernanceNeurons',
+  KNOWN_NEURONS: 'nnsGovernanceKnownNeurons',
   METRICS: 'nnsGovernanceMetrics',
+  NEURONS: 'nnsGovernanceNeurons',
+  PROPOSAL: 'nnsGovernanceProposal',
+  PROPOSALS: 'nnsGovernanceProposals',
 };
 
 const ICP_INDEX = {

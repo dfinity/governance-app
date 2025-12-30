@@ -19,7 +19,7 @@ const Sonner = ({ ...props }: ToasterProps) => {
       icons={{
         success: <CircleCheckBig className="size-4 text-emerald-700 dark:text-emerald-400" />,
         info: <InfoIcon className="size-4" />,
-        warning: <TriangleAlertIcon className="size-4" />,
+        warning: <TriangleAlertIcon className="size-4 text-amber-700 dark:text-amber-400" />,
         error: <OctagonXIcon className="size-4" />,
         loading: <Loader2Icon className="size-4 animate-spin" />,
       }}

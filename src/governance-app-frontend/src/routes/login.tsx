@@ -77,7 +77,7 @@ function LoginPage() {
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary hover:underline"
           >
-            <ExternalLink className="h-4 w-4" />
+            <ExternalLink className="size-4" />
             <span>{t(($) => $.common.legacyNnsDapp)}</span>
           </a>
         </div>

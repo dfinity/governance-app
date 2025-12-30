@@ -6,6 +6,7 @@ import common from './en/common.json';
 import enums from './en/enums.json';
 import errors from './en/errors.json';
 import home from './en/home.json';
+import knownNeurons from './en/knownNeurons.json';
 import apyOptimizationModal from './en/modals/apyOptimization.json';
 import maturityModal from './en/modals/maturity.json';
 import stakingRatioModal from './en/modals/stakingRatio.json';
@@ -35,6 +36,7 @@ export const resources = {
       account,
       settings,
       welcomeModal,
+      knownNeurons,
     },
   },
 };

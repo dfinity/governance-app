@@ -54,7 +54,7 @@ function ProposalDetailsRouteComponent() {
   });
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <div>
         <Button variant="link" asChild className="p-0! font-normal">
           <Link to="/voting" search={{ showProposals: search.showProposals }}>
@@ -112,7 +112,7 @@ function ProposalDetailsRouteComponent() {
                     </Badge>
                     {proposalUrl && (
                       <a
-                        href={proposal.proposal?.url}
+                        href={proposalUrl.href}
                         target="_blank"
                         rel="noreferrer"
                         className="no-underline"

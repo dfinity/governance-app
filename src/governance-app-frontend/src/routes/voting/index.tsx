@@ -14,12 +14,14 @@ import { InViewSentinel } from '@components/InViewSentinel';
 import { QueryStates } from '@components/QueryStates';
 import { Separator } from '@components/Separator';
 import { SkeletonLoader } from '@components/SkeletonLoader';
-import { useGovernanceProposals } from '@hooks/governance';
+import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/governance';
 import useTitle from '@hooks/useTitle';
+import { warningNotification } from '@utils/notification';
 
 export const Route = createFileRoute('/voting/')({
   validateSearch: getShowProposalUrlStatus,
   component: Voting,
+  pendingComponent: () => <SkeletonLoader count={3} />,
   staticData: {
     title: 'common.voting',
   },
@@ -41,6 +43,23 @@ function Voting() {
 
   const votableProposals = useVotableLoadedProposals();
   const proposals = useGovernanceProposals();
+
+  const { data: neurons } = useGovernanceNeurons({
+    includeEmptyNeurons: false,
+    certified: false,
+  });
+
+  const handleManageFollowing = () => {
+    if (!neurons?.response?.length) {
+      warningNotification({
+        description: t(($) => $.voting.warnings.stakeRequired),
+      });
+      return;
+    }
+
+    navigate({ to: '/voting/known-neurons' });
+  };
+
   const toggleViewProposals = () =>
     navigate({
       search: (prev) => ({ ...prev, showProposals: !showProposals ? true : undefined }),
@@ -62,7 +81,7 @@ function Voting() {
           <h2 className="text-lg font-semibold">{t(($) => $.voting.title)}</h2>
           <p className="text-sm text-muted-foreground">{t(($) => $.voting.description)}</p>
         </div>
-        <Button size="xl" className="capitalize" disabled>
+        <Button size="xl" className="capitalize" onClick={handleManageFollowing}>
           <Users />
           {t(($) => $.voting.cta)}
         </Button>

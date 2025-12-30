@@ -11,11 +11,23 @@ export const MarkdownRenderer = ({ content }: Props) => {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          table: (props) => (
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          table: ({ node: _, ...props }) => (
             <div className="overflow-x-auto">
               <table {...props} />
             </div>
           ),
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          a: ({ node: _, ...props }) => {
+            return (
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                className="word-break-all break-all"
+                {...props}
+              />
+            );
+          },
         }}
       >
         {content}
