@@ -1,5 +1,5 @@
-import { KnownNeuron } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
+import { KnownNeuron } from '@icp-sdk/canisters/nns';
 import { ChevronDown, ChevronUp, Circle, CircleDot, LinkIcon } from 'lucide-react';
 import { useState } from 'react';
 
@@ -98,7 +98,9 @@ export const ExpandableNeuronCard = ({ neuron, isSelected, onSelect }: Props) =>
                   </div>
                 )}
 
-                <MarkdownRenderer content={neuron.description || ''} />
+                {nonNullish(neuron.description) && (
+                  <MarkdownRenderer content={neuron.description} />
+                )}
               </div>
             </div>
           )}
