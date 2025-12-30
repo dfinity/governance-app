@@ -1,7 +1,5 @@
 import { toast, ToasterProps } from 'sonner';
 
-import i18n from '@/i18n/config';
-
 type NotificationOptions = {
   title?: string;
   description: React.ReactNode;
@@ -30,19 +28,19 @@ export const successNotification = ({ title, description }: NotificationOptions)
   });
 
 export const warningNotification = ({ title, description }: NotificationOptions) =>
-  toast.warning(title || i18n.t(($) => $.common.warning), {
+  toast.warning(title, {
     description,
     ...ephemeralNotification,
   });
 
 export const infoNotification = ({ title, description }: NotificationOptions) =>
-  toast.info(title || i18n.t(($) => $.common.info), {
+  toast.info(title, {
     description,
     ...ephemeralNotification,
   });
 
 export const errorNotification = ({ title, description }: NotificationOptions) =>
-  toast.error(title || i18n.t(($) => $.common.error), {
+  toast.error(title, {
     description,
     ...persistentNotification,
   });
