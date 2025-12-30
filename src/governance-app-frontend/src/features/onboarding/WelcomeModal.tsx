@@ -33,6 +33,7 @@ export function WelcomeModal() {
   return (
     <ResponsiveDialog open={isOpen} onOpenChange={setIsOpen}>
       <ResponsiveDialogContent
+        onPointerDownOutside={(e) => e.preventDefault()}
         showCloseButton={false}
         className="flex flex-col gap-8 lg:max-w-xl lg:px-8"
       >
