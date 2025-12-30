@@ -1,13 +1,14 @@
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode } from 'react';
 
+import { WelcomeModal } from '@features/onboarding/WelcomeModal';
+
 import { BottomNav } from '@components/navigation/BottomNav';
 import { Header } from '@components/navigation/Header';
 import { Sidebar } from '@components/navigation/Sidebar';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { useAgentPool } from '@hooks/useAgentPool';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
-import { WelcomeModal } from '@features/onboarding/WelcomeModal';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
   const { isInitializing } = useInternetIdentity();

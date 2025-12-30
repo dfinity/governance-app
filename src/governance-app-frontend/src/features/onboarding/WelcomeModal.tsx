@@ -2,6 +2,9 @@ import { Vote } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@components/button';
+import { WELCOME_MODAL_STORAGE_KEY } from '@constants/extra';
+import { successNotification } from '@utils/notification';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -9,8 +12,6 @@ import {
   ResponsiveDialogFooter,
   ResponsiveDialogTitle,
 } from '@common/components/ResponsiveDialog';
-import { Button } from '@components/button';
-import { WELCOME_MODAL_STORAGE_KEY } from '@constants/extra';
 
 export function WelcomeModal() {
   const { t } = useTranslation();
@@ -18,17 +19,23 @@ export function WelcomeModal() {
 
   useEffect(() => {
     const hasSeenModal = localStorage.getItem(WELCOME_MODAL_STORAGE_KEY);
-    if (!hasSeenModal) setIsOpen(true);
+    if (hasSeenModal) setIsOpen(true);
   }, []);
 
   const handleClose = () => {
     setIsOpen(false);
     localStorage.setItem(WELCOME_MODAL_STORAGE_KEY, 'true');
+    successNotification({
+      description: t(($) => $.welcomeModal.toast),
+    });
   };
 
   return (
     <ResponsiveDialog open={isOpen} onOpenChange={setIsOpen}>
-      <ResponsiveDialogContent className="flex flex-col gap-8 lg:max-w-xl lg:px-12">
+      <ResponsiveDialogContent
+        showCloseButton={false}
+        className="flex flex-col gap-8 lg:max-w-xl lg:px-8"
+      >
         <div className="flex flex-col items-center gap-6">
           <div className="size-16">
             <Vote className="size-16 text-primary" />
@@ -41,7 +48,7 @@ export function WelcomeModal() {
           </ResponsiveDialogDescription>
         </div>
         <ResponsiveDialogFooter>
-          <Button onClick={handleClose} className="w-full" size="xl">
+          <Button onClick={handleClose} className="mt-4 w-full lg:mt-0" size="xxl">
             {t(($) => $.welcomeModal.cta)}
           </Button>
         </ResponsiveDialogFooter>
