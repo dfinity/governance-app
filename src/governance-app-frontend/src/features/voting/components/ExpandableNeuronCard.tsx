@@ -51,7 +51,7 @@ export const ExpandableNeuronCard = ({ neuron, isSelected, onSelect }: Props) =>
           )}
         </div>
 
-        <div className="flex grow-1 flex-col">
+        <div className="flex min-w-0 grow-1 flex-col">
           <div className="flex grow-1 items-center justify-between">
             <h4 className="leading-none font-semibold">{neuron.name}</h4>
 
@@ -61,7 +61,7 @@ export const ExpandableNeuronCard = ({ neuron, isSelected, onSelect }: Props) =>
           </div>
 
           {isExpanded && (
-            <div className="animate-in text-sm text-muted-foreground fade-in slide-in-from-top-1">
+            <div className="animate-in pr-8 text-sm text-muted-foreground fade-in slide-in-from-top-1">
               <div className="flex flex-col gap-3">
                 <div className="flex flex-wrap items-center gap-2">
                   {links.map(({ href, hostname }) => (
