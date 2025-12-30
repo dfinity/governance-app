@@ -37,6 +37,9 @@ export const Route = createFileRoute('/voting/proposals/$id/')({
   },
   pendingComponent: () => <SkeletonLoader count={3} />,
   component: ProposalDetailsRouteComponent,
+  staticData: {
+    title: 'common.voting',
+  },
 });
 
 function ProposalDetailsRouteComponent() {

@@ -6,6 +6,9 @@ import { StakedCard } from '@features/stakes/components/StakedCard';
 
 export const Route = createFileRoute('/(homepage)/')({
   component: Homepage,
+  staticData: {
+    title: 'common.dashboard',
+  },
 });
 
 function Homepage() {

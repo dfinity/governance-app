@@ -20,6 +20,9 @@ import useTitle from '@hooks/useTitle';
 export const Route = createFileRoute('/voting/')({
   validateSearch: getShowProposalUrlStatus,
   component: Voting,
+  staticData: {
+    title: 'common.voting',
+  },
 });
 
 function Voting() {

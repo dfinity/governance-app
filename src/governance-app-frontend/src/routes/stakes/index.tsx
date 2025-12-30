@@ -6,6 +6,9 @@ import { StakeNeuronModal } from '@features/stakes/components/StakeNeuronModal';
 
 export const Route = createFileRoute('/stakes/')({
   component: StakesComponent,
+  staticData: {
+    title: 'common.stakes',
+  },
 });
 
 function StakesComponent() {
