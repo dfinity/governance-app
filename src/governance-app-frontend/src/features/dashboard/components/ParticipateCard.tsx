@@ -1,6 +1,6 @@
 import { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { useEffect, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 import { Card, CardContent } from '@components/Card';
 import { SkeletonLoader } from '@components/SkeletonLoader';
@@ -72,6 +72,7 @@ export const ParticipateCard = () => {
     const animate = () => {
       if (!canvas || !ctx) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.filter = 'blur(10px)';
       time += 0.003;
 
       for (let layer = 0; layer < flowLayers; layer++) {
@@ -131,17 +132,19 @@ export const ParticipateCard = () => {
 
       <CardContent className="relative z-10 flex h-full flex-col justify-between px-8 py-2">
         <div className="mt-4 space-y-2 text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-foreground">
-            {t(($) => $.home.participateTitle)}
+          <h2 className="text-3xl font-semibold tracking-tight text-foreground">
+            <Trans
+              i18nKey={($) => $.home.participateTitle}
+              components={{ strong: <strong className="text-foreground" /> }}
+            />
           </h2>
-          <p className="text-muted-foreground">{t(($) => $.home.participateSubtitle)}</p>
+          <p className="text-light">{t(($) => $.home.participateSubtitle)}</p>
         </div>
 
-        {/* Bottom Content */}
         <div className="mt-12 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
           {/* Left: Total Value */}
           <div className="space-y-1">
-            <p className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+            <p className="text-xs font-bold tracking-wider uppercase">
               {t(($) => $.home.totalValue)}
             </p>
             <div className="flex items-baseline gap-2">
@@ -157,9 +160,7 @@ export const ParticipateCard = () => {
               {isLoading || !totalAssetsUsd ? (
                 <SkeletonLoader width={100} height={20} />
               ) : (
-                <span className="text-sm font-semibold text-muted-foreground">
-                  ≈ ${totalAssetsUsd}
-                </span>
+                <span className="text-sm font-semibold">≈ ${totalAssetsUsd}</span>
               )}
             </div>
           </div>
