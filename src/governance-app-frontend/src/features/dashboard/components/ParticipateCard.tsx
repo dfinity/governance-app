@@ -13,11 +13,13 @@ import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronFreeMaturityE8s, getNeuronStakeE8s } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
 
+// @TODO: Add endpoint to backend
+const TVL = 721974123;
+
 export const ParticipateCard = () => {
   const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const tvl = 721974123; // @TODO: Add endpoint to backend
 
   // Data Fetching
   const { tickerPrices } = useTickerPrices();
@@ -128,7 +130,12 @@ export const ParticipateCard = () => {
       className="relative overflow-hidden border-none bg-white shadow-sm dark:bg-zinc-900"
       ref={containerRef}
     >
-      <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 z-0" />
+      <canvas
+        ref={canvasRef}
+        className="pointer-events-none absolute inset-0 z-0"
+        role="presentation"
+        aria-hidden="true"
+      />
 
       <CardContent className="relative z-10 flex h-full flex-col justify-between px-8 py-2">
         <div className="mt-4 space-y-2 text-center">
@@ -138,7 +145,7 @@ export const ParticipateCard = () => {
               components={{ strong: <strong className="text-foreground" /> }}
             />
           </h2>
-          <p className="text-light">{t(($) => $.home.participateSubtitle)}</p>
+          <p className="font-light">{t(($) => $.home.participateSubtitle)}</p>
         </div>
 
         <div className="mt-12 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
@@ -167,7 +174,6 @@ export const ParticipateCard = () => {
 
           {/* Right: Metrics  */}
           <div className="flex flex-col gap-3 sm:flex-row">
-            {/* ICP/USD */}
             <div className="flex min-w-[160px] flex-col rounded-xl border border-border/50 bg-white/50 p-3 text-right shadow-sm backdrop-blur-sm dark:bg-zinc-800/50">
               <span className="mb-1 text-[10px] font-bold text-muted-foreground uppercase">
                 {t(($) => $.home.icpUsd)}
@@ -177,7 +183,6 @@ export const ParticipateCard = () => {
               </span>
             </div>
 
-            {/* TLV */}
             <a
               href="https://dashboard.internetcomputer.org/neurons"
               target="_blank"
@@ -188,7 +193,7 @@ export const ParticipateCard = () => {
                 {t(($) => $.home.tvl)}
               </span>
               <span className="text-lg font-bold">
-                $ {formatNumber(tvl, { minFraction: 0, maxFraction: 0 })}
+                $ {formatNumber(TVL, { minFraction: 0, maxFraction: 0 })}
               </span>
             </a>
           </div>
