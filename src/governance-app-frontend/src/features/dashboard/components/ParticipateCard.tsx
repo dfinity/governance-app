@@ -68,9 +68,6 @@ export const ParticipateCard = () => {
       }
     };
 
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-
     const animate = () => {
       if (!canvas || !ctx) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -115,10 +112,24 @@ export const ParticipateCard = () => {
       requestID = requestAnimationFrame(animate);
     };
 
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(requestID);
+      } else {
+        animate();
+      }
+    };
+
+    // Initialize
+    resizeCanvas();
     animate();
+
+    window.addEventListener('resize', resizeCanvas);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       window.removeEventListener('resize', resizeCanvas);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       cancelAnimationFrame(requestID);
     };
   }, []);
