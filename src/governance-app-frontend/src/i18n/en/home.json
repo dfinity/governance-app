@@ -2,5 +2,13 @@
   "title": "The Governance App",
   "stakingRatio": "Staking ratio",
   "unstakedMaturity": "Unstaked maturity",
-  "disbursed": "Disbursed"
+  "disbursed": "Disbursed",
+  "participateTitle": "Participate in the <strong>Largest Global DAO</strong>",
+  "participateSubtitle": "Stake, vote, earn up to 12.6% per year.",
+  "totalValue": "Total Value",
+  "icpUsd": "ICP/USD",
+  "tvl": {
+    "title": "Total Value Locked",
+    "label": "View Total Value Locked on ICP Dashboard (opens in new tab)"
+  }
 }
