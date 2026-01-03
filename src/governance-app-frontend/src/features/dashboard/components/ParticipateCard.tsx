@@ -1,9 +1,8 @@
 import { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { useEffect, useRef } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Card, CardContent } from '@components/Card';
-import { SkeletonLoader } from '@components/SkeletonLoader';
+import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
@@ -13,16 +12,16 @@ import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronFreeMaturityE8s, getNeuronStakeE8s } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
 
+import { useWaveAnimation } from '../hooks/useWaveAnimation';
+
 // @TODO: Add endpoint to backend
 // Total value locked (TVL) in USD
 const TVL = 721974123;
 
+// @TODO: How do we display errors?
 export const ParticipateCard = () => {
   const { t } = useTranslation();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Data Fetching
   const { tickerPrices } = useTickerPrices();
   const transactionsQuery = useIcpIndexTransactions();
   const neuronsQuery = useGovernanceNeurons();
@@ -47,96 +46,12 @@ export const ParticipateCard = () => {
 
   // Prices
   const icpPrice = tickerPrices.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const totalAssetsUsd = icpPrice ? (totalAssets * icpPrice.usd).toFixed(2) : undefined;
-  const icpPriceUsd = icpPrice ? icpPrice.usd.toFixed(2) : undefined;
-
-  // Animation
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || !containerRef.current) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let requestID: number;
-    let time = 0;
-    const flowLayers = 5;
-
-    const resizeCanvas = () => {
-      if (containerRef.current && canvas) {
-        canvas.width = containerRef.current.offsetWidth;
-        canvas.height = containerRef.current.offsetHeight;
-      }
-    };
-
-    const animate = () => {
-      if (!canvas || !ctx) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.filter = 'blur(10px)';
-      time += 0.003;
-
-      for (let layer = 0; layer < flowLayers; layer++) {
-        ctx.beginPath();
-
-        const layerOffset = layer * 50;
-        const waveHeight = 60 + layer * 20;
-        const frequency = 0.008 - layer * 0.002;
-        const speed = 1 + layer * 0.3;
-
-        ctx.moveTo(0, canvas.height / 2);
-
-        for (let x = 0; x <= canvas.width; x += 5) {
-          const y1 = Math.sin(x * frequency + time * speed) * waveHeight;
-          const y2 = Math.cos(x * frequency * 1.5 - time * speed * 0.7) * (waveHeight * 0.5);
-          // Adjust y so waves are at the bottom
-          const y = canvas.height * 0.7 + y1 + y2 + layerOffset - 50;
-          ctx.lineTo(x, y);
-        }
-
-        ctx.lineTo(canvas.width, canvas.height);
-        ctx.lineTo(0, canvas.height);
-        ctx.closePath();
-
-        const opacity1 = 0.3 + layer * 0.06;
-        const opacity2 = 0.2 + layer * 0.04;
-
-        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-
-        // Purple colors
-        gradient.addColorStop(0, `rgba(126, 34, 206,  ${opacity1})`); // purple-700
-        gradient.addColorStop(0.5, `rgba(168, 85, 247, ${(opacity1 + opacity2) / 2})`); // purple-400
-        gradient.addColorStop(1, `rgba(126, 34, 206, ${opacity2})`);
-
-        ctx.fillStyle = gradient;
-        ctx.fill();
-      }
-
-      requestID = requestAnimationFrame(animate);
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        cancelAnimationFrame(requestID);
-      } else {
-        animate();
-      }
-    };
-
-    // Initialize
-    resizeCanvas();
-    animate();
-
-    window.addEventListener('resize', resizeCanvas);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener('resize', resizeCanvas);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      cancelAnimationFrame(requestID);
-    };
-  }, []);
+  const icpPriceUsd = icpPrice ? formatNumber(icpPrice.usd) : undefined;
+  const totalAssetsUsd = icpPrice ? formatNumber(totalAssets * icpPrice.usd) : undefined;
 
   const isLoading = transactionsQuery.isLoading || neuronsQuery.isLoading;
+
+  const { canvasRef, containerRef } = useWaveAnimation();
 
   return (
     <Card
@@ -169,7 +84,7 @@ export const ParticipateCard = () => {
             </p>
             <div className="flex items-baseline gap-2">
               {isLoading ? (
-                <SkeletonLoader width={150} height={40} />
+                <Skeleton className="h-11 w-36" />
               ) : (
                 <span className="text-4xl font-bold text-foreground">
                   {formatNumber(totalAssets)} ICP
@@ -178,7 +93,7 @@ export const ParticipateCard = () => {
             </div>
             <div>
               {isLoading || !totalAssetsUsd ? (
-                <SkeletonLoader width={100} height={20} />
+                <Skeleton className="h-5 w-14" />
               ) : (
                 <span className="text-sm font-semibold">≈ ${totalAssetsUsd}</span>
               )}
@@ -191,8 +106,8 @@ export const ParticipateCard = () => {
               <span className="mb-1 text-[10px] font-bold text-muted-foreground uppercase">
                 {t(($) => $.home.icpUsd)}
               </span>
-              <span className="text-lg font-bold">
-                {icpPriceUsd ? `$${icpPriceUsd}` : <SkeletonLoader width={60} height={24} />}
+              <span className="text-lg font-semibold">
+                {icpPriceUsd ? `$${icpPriceUsd}` : <Skeleton className="h-7 w-32" />}
               </span>
             </div>
 
@@ -201,11 +116,12 @@ export const ParticipateCard = () => {
               target="_blank"
               rel="noopener noreferrer"
               className="flex min-w-[160px] flex-col rounded-xl border border-border/50 bg-white/50 p-3 text-right shadow-sm backdrop-blur-sm transition-all hover:bg-white/70 dark:bg-zinc-800/50 dark:hover:bg-zinc-800/70"
+              aria-label={t(($) => $.home.tvl.label)}
             >
               <span className="mb-1 text-[10px] font-bold text-muted-foreground uppercase">
-                {t(($) => $.home.tvl)}
+                {t(($) => $.home.tvl.title)}
               </span>
-              <span className="text-lg font-bold">
+              <span className="text-lg font-semibold">
                 $ {formatNumber(TVL, { minFraction: 0, maxFraction: 0 })}
               </span>
             </a>
