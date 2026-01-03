@@ -12,14 +12,17 @@ import { MaturitySymbol } from '@components/MaturitySymbol';
 import { QueryStates } from '@components/QueryStates';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { E8Sn } from '@constants/extra';
+import { E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
+import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
 import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { CertifiedData } from '@typings/queries';
 import { TokenPrices } from '@typings/tokenPrices';
 import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronFreeMaturityE8s, getNeuronStakeE8s } from '@utils/neuron';
+import { warningNotification } from '@utils/notification';
+import { formatNumber, formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 export function StakedCard() {
@@ -28,6 +31,18 @@ export function StakedCard() {
   const neuronsQuery = useGovernanceNeurons();
   const { tickerPrices } = useTickerPrices();
   const stakingRewards = useStakingRewards();
+  const transactions = useIcpIndexTransactions();
+
+  const handleStakeMoreClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    const balanceICPs = bigIntDiv(transactions.data?.pages?.[0]?.response?.balance || 0n, E8Sn, 2);
+    if (balanceICPs < ICP_MIN_STAKE_AMOUNT + ICP_TRANSACTION_FEE) {
+      e.preventDefault();
+
+      warningNotification({
+        description: t(($) => $.neuron.stakeNeuron.errors.insufficientBalance),
+      });
+    }
+  };
 
   return (
     <Card className="flex-1 gap-3 transition-all duration-300 hover:shadow-[0_0_25px_-5px_rgba(0,0,0,0.25)]">
@@ -38,20 +53,19 @@ export function StakedCard() {
       </CardHeader>
 
       <CardContent className="flex-1">
-        <QueryStates<CertifiedData<NeuronInfo[]>>
-          query={neuronsQuery}
-          isEmpty={({ response: neurons }) => neurons.length === 0}
-        >
+        <QueryStates<CertifiedData<NeuronInfo[]>> query={neuronsQuery} isEmpty={() => false}>
           {({ response: neurons }) => {
             let totalStaked = 0;
             let totalUnstakedMaturity = 0;
 
-            neurons.forEach((neuron) => {
-              const stake = bigIntDiv(getNeuronStakeE8s(neuron), E8Sn, 2);
-              const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn, 2);
-              totalStaked += stake;
-              totalUnstakedMaturity += unstakedMaturity;
-            });
+            if (neurons) {
+              neurons.forEach((neuron) => {
+                const stake = bigIntDiv(getNeuronStakeE8s(neuron), E8Sn, 2);
+                const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn, 2);
+                totalStaked += stake;
+                totalUnstakedMaturity += unstakedMaturity;
+              });
+            }
 
             return (
               <div className="flex h-full flex-col justify-between">
@@ -85,7 +99,7 @@ export function StakedCard() {
                     <div className="flex items-center justify-end gap-2 text-xl font-bold">
                       {isStakingRewardDataReady(stakingRewards) ? (
                         <>
-                          {(stakingRewards.stakingRatio * 100).toFixed(2)}%
+                          {formatPercentage(stakingRewards.stakingRatio)}
                           {stakingRewards.stakingRatio < 1 && <StakingRatioModal />}
                         </>
                       ) : (
@@ -97,10 +111,10 @@ export function StakedCard() {
                     <p className="text-xs font-medium text-muted-foreground uppercase">
                       {t(($) => $.common.apy)}
                     </p>
-                    <div className="flex items-center justify-end gap-2 text-xl font-bold text-green-600">
+                    <div className="flex items-center justify-end gap-2 text-xl font-bold text-emerald-800 dark:text-emerald-400">
                       {isStakingRewardDataReady(stakingRewards) ? (
                         <>
-                          {(stakingRewards.apy.cur * 100).toFixed(2)}%
+                          {formatPercentage(stakingRewards.apy.cur)}
                           {stakingRewards.apy.cur < stakingRewards.apy.max && (
                             <ApyOptimizationModal />
                           )}
@@ -115,7 +129,7 @@ export function StakedCard() {
                       {t(($) => $.home.unstakedMaturity)}
                     </p>
                     <p className="flex items-center justify-end gap-2 text-xl font-bold">
-                      {totalUnstakedMaturity.toFixed(2)} <MaturitySymbol />
+                      {formatNumber(totalUnstakedMaturity)} <MaturitySymbol />
                     </p>
                   </div>
                   <div className="flex flex-col gap-1 rounded-md bg-muted p-3 hover:bg-gray-200 dark:hover:bg-zinc-700">
@@ -124,13 +138,18 @@ export function StakedCard() {
                     </p>
                     <p className="text-xl font-bold">
                       {/* @TODO: add disbursed amount */}
-                      {t(($) => $.common.inIcp, { value: 0.0 })}
+                      {t(($) => $.common.inIcp, { value: formatNumber(0) })}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex gap-3">
-                  <Button size="lg" className="flex-1 capitalize" asChild>
+                  <Button
+                    size="lg"
+                    className="flex-1 capitalize"
+                    asChild
+                    onClick={handleStakeMoreClick}
+                  >
                     <Link to="/stakes">
                       <TrendingUp />
                       {t(($) => $.common.stakeMore)}
