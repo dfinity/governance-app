@@ -39,7 +39,6 @@ export const useWaveAnimation = () => {
     const animate = () => {
       if (!canvas || !ctx) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.filter = 'blur(10px)';
       time += TIME_INCREMENT;
 
       for (let layer = 0; layer < FLOW_LAYERS; layer++) {

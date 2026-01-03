@@ -60,7 +60,7 @@ export const ParticipateCard = () => {
     >
       <canvas
         ref={canvasRef}
-        className="pointer-events-none absolute inset-0 z-0"
+        className="pointer-events-none absolute inset-0 z-0 blur-md"
         role="presentation"
         aria-hidden="true"
       />
