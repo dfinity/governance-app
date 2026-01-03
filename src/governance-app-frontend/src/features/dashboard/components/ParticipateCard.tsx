@@ -51,7 +51,7 @@ export const ParticipateCard = () => {
 
   const isLoading = transactionsQuery.isLoading || neuronsQuery.isLoading;
 
-  const { canvasRef, containerRef } = useWaveAnimation({ dependencies: [totalAssets, icpPrice] });
+  const { canvasRef, containerRef } = useWaveAnimation();
 
   return (
     <Card
@@ -124,7 +124,7 @@ export const ParticipateCard = () => {
                 {t(($) => $.home.tvl.title)}
               </span>
               <span className="text-lg font-semibold">
-                $ {formatNumber(TVL, { minFraction: 0, maxFraction: 0 })}
+                {`$${formatNumber(TVL, { minFraction: 0, maxFraction: 0 })}`}
               </span>
             </a>
           </div>
