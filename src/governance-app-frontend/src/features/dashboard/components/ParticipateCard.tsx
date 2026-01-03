@@ -14,6 +14,7 @@ import { getNeuronFreeMaturityE8s, getNeuronStakeE8s } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
 
 // @TODO: Add endpoint to backend
+// Total value locked (TVL) in USD
 const TVL = 721974123;
 
 export const ParticipateCard = () => {
@@ -100,10 +101,11 @@ export const ParticipateCard = () => {
         const opacity2 = 0.2 + layer * 0.04;
 
         const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        // Using purple colors as requested
-        gradient.addColorStop(0, 'rgba(126, 34, 206, ' + opacity1 + ')'); // purple-700
-        gradient.addColorStop(0.5, 'rgba(168, 85, 247, ' + (opacity1 + opacity2) / 2 + ')'); // purple-400
-        gradient.addColorStop(1, 'rgba(126, 34, 206, ' + opacity2 + ')');
+
+        // Purple colors
+        gradient.addColorStop(0, `rgba(126, 34, 206,  ${opacity1})`); // purple-700
+        gradient.addColorStop(0.5, `rgba(168, 85, 247, ${(opacity1 + opacity2) / 2})`); // purple-400
+        gradient.addColorStop(1, `rgba(126, 34, 206, ${opacity2})`);
 
         ctx.fillStyle = gradient;
         ctx.fill();
