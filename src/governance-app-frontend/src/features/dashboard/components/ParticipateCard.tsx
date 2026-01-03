@@ -51,7 +51,7 @@ export const ParticipateCard = () => {
 
   const isLoading = transactionsQuery.isLoading || neuronsQuery.isLoading;
 
-  const { canvasRef, containerRef } = useWaveAnimation();
+  const { canvasRef, containerRef } = useWaveAnimation({ dependencies: [totalAssets, icpPrice] });
 
   return (
     <Card
@@ -84,18 +84,20 @@ export const ParticipateCard = () => {
             </p>
             <div className="flex items-baseline gap-2">
               {isLoading ? (
-                <Skeleton className="h-11 w-36" />
+                <Skeleton className="h-10 w-36" />
               ) : (
                 <span className="text-4xl font-bold text-foreground">
-                  {formatNumber(totalAssets)} ICP
+                  {t(($) => $.common.inIcp, { value: formatNumber(totalAssets) })}
                 </span>
               )}
             </div>
-            <div>
+            <div className="flex items-baseline gap-2">
               {isLoading || !totalAssetsUsd ? (
                 <Skeleton className="h-5 w-14" />
               ) : (
-                <span className="text-sm font-semibold">≈ ${totalAssetsUsd}</span>
+                <span className="text-sm font-semibold">
+                  {t(($) => $.account.approxUsd, { value: totalAssetsUsd })}
+                </span>
               )}
             </div>
           </div>
