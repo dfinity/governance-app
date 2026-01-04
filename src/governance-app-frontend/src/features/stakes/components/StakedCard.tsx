@@ -12,7 +12,7 @@ import { MaturitySymbol } from '@components/MaturitySymbol';
 import { QueryStates } from '@components/QueryStates';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE } from '@constants/extra';
+import { E8Sn } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
 import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
@@ -23,6 +23,7 @@ import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronFreeMaturityE8s, getNeuronStakeE8s } from '@utils/neuron';
 import { warningNotification } from '@utils/notification';
 import { formatNumber, formatPercentage } from '@utils/numbers';
+import { hasEnoughBalanceToStake } from '@utils/staking';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 export function StakedCard() {
@@ -35,7 +36,8 @@ export function StakedCard() {
 
   const handleStakeMoreClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const balanceICPs = bigIntDiv(transactions.data?.pages?.[0]?.response?.balance || 0n, E8Sn, 2);
-    if (balanceICPs < ICP_MIN_STAKE_AMOUNT + ICP_TRANSACTION_FEE) {
+
+    if (hasEnoughBalanceToStake(balanceICPs)) {
       e.preventDefault();
 
       warningNotification({
@@ -58,14 +60,12 @@ export function StakedCard() {
             let totalStaked = 0;
             let totalUnstakedMaturity = 0;
 
-            if (neurons) {
-              neurons.forEach((neuron) => {
-                const stake = bigIntDiv(getNeuronStakeE8s(neuron), E8Sn, 2);
-                const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn, 2);
-                totalStaked += stake;
-                totalUnstakedMaturity += unstakedMaturity;
-              });
-            }
+            neurons.forEach((neuron) => {
+              const stake = bigIntDiv(getNeuronStakeE8s(neuron), E8Sn, 2);
+              const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn, 2);
+              totalStaked += stake;
+              totalUnstakedMaturity += unstakedMaturity;
+            });
 
             return (
               <div className="flex h-full flex-col justify-between">
