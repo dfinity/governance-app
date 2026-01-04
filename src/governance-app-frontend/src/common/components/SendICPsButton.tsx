@@ -27,7 +27,6 @@ import { delay } from '@utils/async';
 import { bigIntMul } from '@utils/bigInt';
 import { errorNotification, successNotification } from '@utils/notification';
 import { cn } from '@utils/shadcn';
-import { hasEnoughBalanceToStake } from '@utils/staking';
 
 type Props = { balance: number };
 
@@ -81,7 +80,10 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
   };
 
   const canTransfer =
-    hasEnoughBalanceToStake(balance) && ledgerReady && ledgerAuthenticated && !isPending;
+    balance >= ICP_MIN_TRANSFER_AMOUNT + ICP_TRANSACTION_FEE &&
+    ledgerReady &&
+    ledgerAuthenticated &&
+    !isPending;
   const max = balance - ICP_TRANSACTION_FEE;
 
   const handleAccountChange = (value: string) => {
