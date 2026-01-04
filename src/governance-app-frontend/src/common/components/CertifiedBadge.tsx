@@ -10,7 +10,7 @@ export const CertifiedBadge = ({ certified = true }: Props) => {
       <span
         className={cn(
           'absolute inline-flex h-full w-full animate-ping rounded-full opacity-75',
-          certified ? 'bg-emerald-600 dark:bg-emerald-200' : 'bg-red-500 dark:bg-red-100',
+          certified ? 'bg-emerald-600 dark:bg-emerald-200' : 'bg-red-500 dark:bg-red-200',
         )}
       ></span>
       <span
