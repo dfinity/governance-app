@@ -103,10 +103,7 @@ export function StakedCard() {
                     <div className="flex items-center justify-end gap-2 text-xl font-bold">
                       {isStakingRewardDataReady(stakingRewards) ? (
                         <>
-                          {formatPercentage(stakingRewards.stakingRatio, {
-                            minFraction: 2,
-                            maxFraction: 2,
-                          })}
+                          {formatPercentage(stakingRewards.stakingRatio)}
                           {stakingRewards.stakingRatio < 1 && <StakingRatioModal />}
                         </>
                       ) : (
@@ -121,10 +118,7 @@ export function StakedCard() {
                     <div className="flex items-center justify-end gap-2 text-xl font-bold text-emerald-800 dark:text-emerald-400">
                       {isStakingRewardDataReady(stakingRewards) ? (
                         <>
-                          {formatPercentage(stakingRewards.apy.cur, {
-                            minFraction: 2,
-                            maxFraction: 2,
-                          })}
+                          {formatPercentage(stakingRewards.apy.cur)}
                           {stakingRewards.apy.cur < stakingRewards.apy.max && (
                             <ApyOptimizationModal />
                           )}

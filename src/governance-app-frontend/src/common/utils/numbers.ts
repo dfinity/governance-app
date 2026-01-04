@@ -27,12 +27,12 @@ export const formatNumber = (
 };
 
 /**
- * Default format: 0.150123 -> "15.012%"
+ * Default format: 0.150123 -> "15.01%"
  */
 export const formatPercentage = (
   value: number,
   options?: { minFraction: number; maxFraction: number },
 ) => {
-  const { minFraction = 3, maxFraction = 3 } = options || {};
+  const { minFraction = 2, maxFraction = 2 } = options || {};
   return `${formatNumber(value * 100, { minFraction, maxFraction })}%`;
 };
