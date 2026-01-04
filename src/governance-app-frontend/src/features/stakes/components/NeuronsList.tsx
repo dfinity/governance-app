@@ -43,7 +43,7 @@ export const NeuronsList = () => {
                 <SimpleCard>
                   <div className="flex items-center justify-between gap-2">
                     <p className="overflow-hidden text-ellipsis">#{neuron.neuronId}</p>
-                    {neurons?.certified ? <CertifiedBadge /> : <SkeletonLoader width={90} />}
+                    <CertifiedBadge certified={neurons?.certified} />
                   </div>
                   <div className="mt-2 gap-1 text-sm">
                     <table className="text-sm">
