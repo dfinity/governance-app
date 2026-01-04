@@ -37,11 +37,15 @@ export function StakedCard() {
   const handleStakeMoreClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const balanceICPs = bigIntDiv(transactions.data?.pages?.[0]?.response?.balance || 0n, E8Sn, 2);
 
-    if (hasEnoughBalanceToStake(balanceICPs)) {
+    if (!hasEnoughBalanceToStake(balanceICPs)) {
       e.preventDefault();
 
       warningNotification({
-        description: t(($) => $.neuron.stakeNeuron.errors.insufficientBalance),
+        description: t(($) =>
+          balanceICPs === 0
+            ? $.neuron.stakeNeuron.errors.zeroBalance
+            : $.neuron.stakeNeuron.errors.insufficientBalance,
+        ),
       });
     }
   };
@@ -99,7 +103,10 @@ export function StakedCard() {
                     <div className="flex items-center justify-end gap-2 text-xl font-bold">
                       {isStakingRewardDataReady(stakingRewards) ? (
                         <>
-                          {formatPercentage(stakingRewards.stakingRatio)}
+                          {formatPercentage(stakingRewards.stakingRatio, {
+                            minFraction: 2,
+                            maxFraction: 2,
+                          })}
                           {stakingRewards.stakingRatio < 1 && <StakingRatioModal />}
                         </>
                       ) : (
@@ -114,7 +121,10 @@ export function StakedCard() {
                     <div className="flex items-center justify-end gap-2 text-xl font-bold text-emerald-800 dark:text-emerald-400">
                       {isStakingRewardDataReady(stakingRewards) ? (
                         <>
-                          {formatPercentage(stakingRewards.apy.cur)}
+                          {formatPercentage(stakingRewards.apy.cur, {
+                            minFraction: 2,
+                            maxFraction: 2,
+                          })}
                           {stakingRewards.apy.cur < stakingRewards.apy.max && (
                             <ApyOptimizationModal />
                           )}

@@ -32,7 +32,8 @@
     "tooltip": "This ICP amount will be staked from your balance.",
     "hint": "Minimum {{min}}, maximum {{max}}",
     "errors": {
-      "insufficientBalance": "You need ICP to stake. Please buy or deposit ICP first.",
+      "zeroBalance": "You need ICP to stake. Please buy or deposit ICP first.",
+      "insufficientBalance": "Stake amount exceeds available balance.",
       "minimumStake": "Stake at least {{amount}} ICP."
     },
     "success": "You have successfully staked {{amount}} ICP."
