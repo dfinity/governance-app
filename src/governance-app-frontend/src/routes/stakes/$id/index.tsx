@@ -1,5 +1,5 @@
-import { NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
 import { isNullish, secondsToDuration } from '@dfinity/utils';
+import { NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
@@ -81,11 +81,7 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
     <div className="flex flex-col gap-6 text-lg">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-2xl font-semibold">#{neuron.neuronId?.toString()}</h2>
-        {isNullish(data?.response) ? (
-          <SkeletonLoader width={90} />
-        ) : (
-          data.certified && <CertifiedBadge />
-        )}
+        <CertifiedBadge certified={data?.certified} />
       </div>
 
       <Card>
