@@ -1,10 +1,10 @@
 import { cn } from '@utils/shadcn';
 
 type Props = {
-  certified?: boolean;
+  certified: boolean | undefined;
 };
 
-export const CertifiedBadge = ({ certified = true }: Props) => {
+export const CertifiedBadge = ({ certified = false }: Props) => {
   return (
     <span className="relative flex size-1.5">
       <span
