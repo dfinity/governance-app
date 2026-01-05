@@ -1,3 +1,4 @@
+import { isNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
@@ -7,6 +8,8 @@ import { CopyButton } from '@components/CopyButton';
 const PrincipalCard = () => {
   const { identity } = useInternetIdentity();
   const { t } = useTranslation();
+
+  if (isNullish(identity)) return null;
 
   return (
     <Card className="rounded-md px-4 py-6">
@@ -19,10 +22,7 @@ const PrincipalCard = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <CopyButton
-              value={identity ? identity.getPrincipal().toText() : ''}
-              disabled={!identity}
-            />
+            <CopyButton value={identity.getPrincipal().toText()} />
           </div>
         </div>
       </CardContent>
