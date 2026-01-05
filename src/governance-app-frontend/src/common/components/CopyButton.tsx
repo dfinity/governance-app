@@ -49,7 +49,13 @@ export const CopyButton = ({ value, onCopy, className, disabled, label }: Props)
       size="icon-lg"
       onClick={handleCopy}
       disabled={isCopied || disabled}
-      aria-label={t(($) => $.common.copyToClipboard)}
+      aria-label={
+        isCopied
+          ? t(($) => $.common.copiedToClipboard, {
+              label,
+            })
+          : t(($) => $.common.copyToClipboard)
+      }
       className={cn(
         'transition-colors duration-200 disabled:opacity-100',
         isCopied &&
