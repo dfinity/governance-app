@@ -1,5 +1,6 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { Download } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -41,6 +42,22 @@ export const DepositICPsButton = ({ accountId }: Props) => {
         </ResponsiveDialogHeader>
 
         <div className="mt-4 flex flex-col gap-4">
+          <div className="flex justify-center p-4">
+            <div className="rounded-lg border bg-white p-4">
+              <QRCodeSVG
+                value={accountId.toHex()}
+                size={220}
+                level="H"
+                imageSettings={{
+                  src: '/icp-logo.svg',
+                  height: 40,
+                  width: 40,
+                  excavate: true,
+                }}
+              />
+            </div>
+          </div>
+
           <div className="flex flex-col gap-2">
             <span className="text-sm font-medium">{t(($) => $.depositModal.yourAccountId)}</span>
             <div className="flex items-center justify-between overflow-hidden rounded-md border bg-muted px-3 py-2">

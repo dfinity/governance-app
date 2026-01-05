@@ -41,6 +41,7 @@
     "ic-use-internet-identity": "0.7.0",
     "lucide-react": "0.544.0",
     "motion": "12.23.25",
+    "qrcode.react": "4.2.0",
     "react": "19.1.1",
     "react-aria-components": "1.12.2",
     "react-dom": "19.1.1",
