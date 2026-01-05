@@ -8,6 +8,7 @@ import errors from './en/errors.json';
 import home from './en/home.json';
 import knownNeurons from './en/knownNeurons.json';
 import apyOptimizationModal from './en/modals/apyOptimization.json';
+import depositModal from './en/modals/deposit.json';
 import maturityModal from './en/modals/maturity.json';
 import stakingRatioModal from './en/modals/stakingRatio.json';
 import welcomeModal from './en/modals/welcome.json';
@@ -37,6 +38,7 @@ export const resources = {
       settings,
       welcomeModal,
       knownNeurons,
+      depositModal,
     },
   },
 };
