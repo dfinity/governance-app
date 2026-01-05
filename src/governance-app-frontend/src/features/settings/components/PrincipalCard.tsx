@@ -1,9 +1,8 @@
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
-import { CopyButton } from '@components/CopyButton';
-import { Button } from '@components/button';
 import { Card, CardContent } from '@components/Card';
+import { CopyButton } from '@components/CopyButton';
 
 const PrincipalCard = () => {
   const { identity } = useInternetIdentity();

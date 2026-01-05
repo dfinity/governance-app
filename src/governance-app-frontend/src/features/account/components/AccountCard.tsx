@@ -25,9 +25,6 @@ import { GetTokens } from '@/dev/GetTokens';
 import { BuyIcpsButton } from './BuyIcpsButton';
 import { DepositICPsButton } from './DepositICPsButton';
 
-import { BuyIcpsButton } from './BuyIcpsButton';
-import { DepositICPsButton } from './DepositICPsButton';
-
 export function AccountCard() {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
