@@ -1,5 +1,6 @@
 {
   "title": "Deposit ICP",
-  "yourAccountId": "Your Account Id",
+  "yourAccountId": "Your account id",
+  "qrCodeLabel": "QR code of your account id",
   "warning": "Note: Only send ICP to this address. Sending other tokens may result in permanent loss."
 }
