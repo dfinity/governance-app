@@ -1,9 +1,14 @@
+import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { Download } from 'lucide-react';
 
 import { Button } from '@components/button';
 import { cn } from '@utils/shadcn';
 
-export const DepositICPsButton = () => {
+type Props = {
+  accountId: AccountIdentifier;
+};
+
+export const DepositICPsButton = ({ accountId }: Props) => {
   const isPending = false;
 
   return (
