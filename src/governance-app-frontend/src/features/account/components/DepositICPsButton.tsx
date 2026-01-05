@@ -21,9 +21,9 @@ type Props = {
 };
 
 // Aspect ratio (width / height) of the ICP logo based on the source SVG asset.
-const QR_CODE_LOG_ASPECT_RATIO = 464 / 272;
+const QR_CODE_LOGO_ASPECT_RATIO = 464 / 272;
 const QR_CODE_LOGO_HEIGHT = 35;
-const QR_CODE_LOGO_WIDTH = QR_CODE_LOGO_HEIGHT * QR_CODE_LOG_ASPECT_RATIO;
+const QR_CODE_LOGO_WIDTH = QR_CODE_LOGO_HEIGHT * QR_CODE_LOGO_ASPECT_RATIO;
 
 export const DepositICPsButton = ({ accountId }: Props) => {
   const { t } = useTranslation();
