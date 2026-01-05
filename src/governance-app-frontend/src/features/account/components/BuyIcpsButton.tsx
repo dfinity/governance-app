@@ -38,7 +38,7 @@ export const BuyIcpsButton = ({ accountId }: Props) => {
   return (
     <Button size="lg" className="w-full" asChild>
       <a href={url} target="_blank" rel="noopener noreferrer">
-        <CreditCard /> {t(($) => $.account.buyIcp)}
+        <CreditCard aria-hidden="true" /> {t(($) => $.account.buyIcp)}
       </a>
     </Button>
   );
