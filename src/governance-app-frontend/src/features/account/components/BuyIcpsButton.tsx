@@ -10,7 +10,6 @@ const staticQueryParams = {
   fiatAmount: 100,
   fiatType: 'USD',
   coinType: 'ICP',
-  lockFiat: 'true',
   orderMode: 'BUY',
   backgroundColor: '2a1a47',
   primaryColor: '9b6ef7',
