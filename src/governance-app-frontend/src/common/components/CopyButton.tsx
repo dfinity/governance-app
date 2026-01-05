@@ -48,13 +48,13 @@ export const CopyButton = ({ value, onCopy, className, disabled }: Props) => {
       <div className="relative flex items-center justify-center">
         <Copy
           className={cn(
-            'absolute transition-all duration-300',
+            'absolute size-4 transition-all duration-300',
             isCopied ? 'scale-0 opacity-0' : 'scale-100 opacity-100',
           )}
         />
         <Check
           className={cn(
-            'transition-all duration-300',
+            'size-4 transition-all duration-300',
             isCopied ? 'scale-100 opacity-100' : 'scale-0 opacity-0',
           )}
         />
