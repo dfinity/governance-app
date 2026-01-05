@@ -50,8 +50,8 @@ export const DepositICPsButton = ({ accountId }: Props) => {
                 level="H"
                 imageSettings={{
                   src: '/icp-logo.svg',
-                  height: 40,
-                  width: 40,
+                  height: 25,
+                  width: 55,
                   excavate: true,
                 }}
               />
