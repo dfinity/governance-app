@@ -53,7 +53,7 @@ export const DepositICPsButton = ({ accountId }: Props) => {
         </Button>
       </ResponsiveDialogTrigger>
 
-      <ResponsiveDialogContent className="lg:min-w-[640px]">
+      <ResponsiveDialogContent>
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>{t(($) => $.depositModal.title)}</ResponsiveDialogTitle>
           <ResponsiveDialogDescription className="sr-only">
@@ -68,7 +68,7 @@ export const DepositICPsButton = ({ accountId }: Props) => {
             </span>
             <div className="flex items-center gap-2">
               <div
-                className="flex-1 overflow-hidden rounded-md border bg-muted px-3 py-2 text-sm break-all text-ellipsis text-muted-foreground"
+                className="flex-1 overflow-hidden rounded-md border bg-muted px-3 py-2 text-sm break-all text-muted-foreground"
                 title={accountId.toHex()}
               >
                 {accountId.toHex()}
