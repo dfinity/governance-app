@@ -27,7 +27,7 @@ export const CopyButton = ({ value, onCopy, className, disabled, label }: Props)
       }, ANIMATION_DURATION);
       return () => clearTimeout(timeout);
     }
-  }, [isCopied, t]);
+  }, [isCopied]);
 
   const handleCopy = () => {
     if (!value) return;
@@ -44,38 +44,35 @@ export const CopyButton = ({ value, onCopy, className, disabled, label }: Props)
   };
 
   return (
-    <>
-      {' '}
-      <Button
-        variant="outline"
-        size="icon-lg"
-        onClick={handleCopy}
-        disabled={isCopied || disabled}
-        aria-label={t(($) => $.common.copyToClipboard)}
-        className={cn(
-          'transition-colors duration-200 disabled:opacity-100',
-          isCopied &&
-            'border-emerald-800 bg-green-50 text-emerald-900 hover:bg-green-50 dark:border-emerald-400 dark:text-emerald-400',
-          className,
-        )}
-      >
-        <div className="relative flex items-center justify-center">
-          <Copy
-            className={cn(
-              'absolute size-4 transition-all duration-300',
-              isCopied ? 'scale-0 opacity-0' : 'scale-100 opacity-100',
-            )}
-            aria-hidden="true"
-          />
-          <Check
-            className={cn(
-              'size-4 transition-all duration-300',
-              isCopied ? 'scale-100 opacity-100' : 'scale-0 opacity-0',
-            )}
-            aria-hidden="true"
-          />
-        </div>
-      </Button>
-    </>
+    <Button
+      variant="outline"
+      size="icon-lg"
+      onClick={handleCopy}
+      disabled={isCopied || disabled}
+      aria-label={t(($) => $.common.copyToClipboard)}
+      className={cn(
+        'transition-colors duration-200 disabled:opacity-100',
+        isCopied &&
+          'border-emerald-800 bg-green-50 text-emerald-900 hover:bg-green-50 dark:border-emerald-400 dark:text-emerald-400',
+        className,
+      )}
+    >
+      <div className="relative flex items-center justify-center">
+        <Copy
+          className={cn(
+            'absolute size-4 transition-all duration-300',
+            isCopied ? 'scale-0 opacity-0' : 'scale-100 opacity-100',
+          )}
+          aria-hidden="true"
+        />
+        <Check
+          className={cn(
+            'size-4 transition-all duration-300',
+            isCopied ? 'scale-100 opacity-100' : 'scale-0 opacity-0',
+          )}
+          aria-hidden="true"
+        />
+      </div>
+    </Button>
   );
 };
