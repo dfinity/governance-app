@@ -1,5 +1,5 @@
-import { AccountIdentifier, IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
+import { AccountIdentifier, IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { List } from 'lucide-react';
 import { useState } from 'react';
@@ -14,6 +14,7 @@ import { QueryStates } from '@components/QueryStates';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
+import { SendICPsButton } from '@features/account/components/SendICPsButton';
 import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
 import { useTickerPrices } from '@hooks/tickers';
 import { CertifiedData } from '@typings/queries';
@@ -21,6 +22,8 @@ import { TokenPrices } from '@typings/tokenPrices';
 import { bigIntDiv } from '@utils/bigInt';
 
 import { GetTokens } from '@/dev/GetTokens';
+import { BuyIcpsButton } from './BuyIcpsButton';
+import { DepositICPsButton } from './DepositICPsButton';
 
 import { BuyIcpsButton } from './BuyIcpsButton';
 import { DepositICPsButton } from './DepositICPsButton';
