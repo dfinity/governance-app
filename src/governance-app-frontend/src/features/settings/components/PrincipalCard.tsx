@@ -22,7 +22,7 @@ const PrincipalCard = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <CopyButton value={identity.getPrincipal().toText()} />
+            <CopyButton value={identity.getPrincipal().toText()} label="principalId" />
           </div>
         </div>
       </CardContent>

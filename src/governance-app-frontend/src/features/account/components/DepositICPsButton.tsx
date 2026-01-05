@@ -14,7 +14,6 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from '@components/ResponsiveDialog';
-import { successNotification } from '@utils/notification';
 
 type Props = {
   accountId: AccountIdentifier;
@@ -23,14 +22,6 @@ type Props = {
 export const DepositICPsButton = ({ accountId }: Props) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-
-  const handleCopy = () => {
-    successNotification({
-      description: t(($) => $.common.copiedToClipboard, {
-        label: t(($) => $.depositModal.yourAccountId),
-      }),
-    });
-  };
 
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
@@ -52,14 +43,11 @@ export const DepositICPsButton = ({ accountId }: Props) => {
         <div className="mt-4 flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <span className="text-sm font-medium">{t(($) => $.depositModal.yourAccountId)}</span>
-            <div
-              className="flex items-center justify-between overflow-hidden rounded-md border bg-muted px-3 py-2"
-              title={accountId.toHex()}
-            >
-              <span className="flex-1 rounded-md text-sm break-all text-muted-foreground">
+            <div className="flex items-center justify-between overflow-hidden rounded-md border bg-muted px-3 py-2">
+              <span className="flex-1 text-sm break-all text-muted-foreground">
                 {accountId.toHex()}
               </span>
-              <CopyButton value={accountId.toHex()} onCopy={handleCopy} />
+              <CopyButton value={accountId.toHex()} label="accountId" />
             </div>
           </div>
 
