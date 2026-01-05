@@ -9,10 +9,8 @@ const BASE_URL = 'https://checkout.banxa.com/';
 const staticQueryParams = {
   fiatAmount: 100,
   fiatType: 'USD',
-  coinAmount: 0.00244394,
   coinType: 'ICP',
   lockFiat: 'true',
-  blockchain: 'ICP',
   orderMode: 'BUY',
   backgroundColor: '2a1a47',
   primaryColor: '9b6ef7',
