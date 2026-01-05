@@ -85,7 +85,11 @@ export function AccountCard() {
                     </div>
 
                     <div className="flex flex-col gap-3">
-                      {IS_TESTNET ? <GetTokens accountId={accountId} /> : <BuyIcpsButton />}
+                      {IS_TESTNET ? (
+                        <GetTokens accountId={accountId} />
+                      ) : (
+                        <BuyIcpsButton accountId={accountId} />
+                      )}
                       <div className="flex gap-3">
                         <DepositICPsButton accountId={accountId} />
                         <SendICPsButton balance={balanceICPs} />
