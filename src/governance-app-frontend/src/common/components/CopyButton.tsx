@@ -40,8 +40,9 @@ export const CopyButton = ({ value, onCopy, className, disabled }: Props) => {
       onClick={handleCopy}
       disabled={isCopied || disabled}
       className={cn(
-        'transition-colors duration-200',
-        isCopied && 'border-green-600 bg-green-50 text-green-600 dark:bg-green-900',
+        'transition-colors duration-200 disabled:opacity-100',
+        isCopied &&
+          'border-emerald-800 bg-green-50 text-emerald-900 hover:bg-green-50 dark:border-emerald-400 dark:text-emerald-400',
         className,
       )}
     >

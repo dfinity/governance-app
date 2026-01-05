@@ -59,7 +59,7 @@ export const DepositICPsButton = ({ accountId }: Props) => {
               <span className="flex-1 rounded-md text-sm break-all text-muted-foreground">
                 {accountId.toHex()}
               </span>
-              <CopyButton value={accountId.toHex()} onCopy={handleCopy} className="shrink-0" />
+              <CopyButton value={accountId.toHex()} onCopy={handleCopy} />
             </div>
           </div>
 
