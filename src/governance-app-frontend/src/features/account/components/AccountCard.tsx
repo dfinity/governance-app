@@ -1,5 +1,5 @@
-import { AccountIdentifier, IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
+import { AccountIdentifier, IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { List } from 'lucide-react';
 import { useState } from 'react';
@@ -85,7 +85,11 @@ export function AccountCard() {
                     </div>
 
                     <div className="flex flex-col gap-3">
-                      {IS_TESTNET ? <GetTokens accountId={accountId} /> : <BuyIcpsButton />}
+                      {IS_TESTNET ? (
+                        <GetTokens accountId={accountId} />
+                      ) : (
+                        <BuyIcpsButton accountId={accountId} />
+                      )}
                       <div className="flex gap-3">
                         <DepositICPsButton accountId={accountId} />
                         <SendICPsButton balance={balanceICPs} />
