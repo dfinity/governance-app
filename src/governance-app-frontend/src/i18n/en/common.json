@@ -75,11 +75,14 @@
   "stakes": "Stakes",
   "settings": "Settings",
   "deposit": "Deposit",
-  "copyToClipboard": "Copy to clipboard",
-  "copiedToClipboard": "Your {{label}} was copied to the clipboard.",
   "loginTitle": "Welcome to the Internet Computer Governance",
   "loginSubtitle": "Stake ICP, participate in the Governance, and earn rewards on the Internet Computer",
   "legacyNnsDapp": "Go to the legacy NNS Dapp",
   "maturity": "Maturity",
-  "important": "Important"
+  "important": "Important",
+  "clipboard": {
+    "copy": "Copy to clipboard",
+    "copied": "Your {{label}} was copied to the clipboard.",
+    "error": "An error occurred while copying to clipboard."
+  }
 }

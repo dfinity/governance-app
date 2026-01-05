@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
-import { successNotification } from '@utils/notification';
+import { errorNotification, successNotification } from '@utils/notification';
 import { cn } from '@utils/shadcn';
 
 type Props = {
@@ -31,16 +31,21 @@ export const CopyButton = ({ value, onCopy, className, disabled, label }: Props)
 
   const handleCopy = () => {
     if (!value) return;
-    navigator.clipboard.writeText(value);
-    setIsCopied(true);
+    try {
+      navigator.clipboard.writeText(value);
+      setIsCopied(true);
 
-    successNotification({
-      description: t(($) => $.common.copiedToClipboard, {
-        label,
-      }),
-    });
+      successNotification({
+        description: t(($) => $.common.clipboard.copied, {
+          label,
+        }),
+      });
 
-    onCopy?.();
+      onCopy?.();
+    } catch (e) {
+      console.error('Failed to copy to clipboard', e);
+      errorNotification({ description: t(($) => $.common.clipboard.error) });
+    }
   };
 
   return (
@@ -51,10 +56,10 @@ export const CopyButton = ({ value, onCopy, className, disabled, label }: Props)
       disabled={isCopied || disabled}
       aria-label={
         isCopied
-          ? t(($) => $.common.copiedToClipboard, {
+          ? t(($) => $.common.clipboard.copied, {
               label,
             })
-          : t(($) => $.common.copyToClipboard)
+          : t(($) => $.common.clipboard.copy)
       }
       className={cn(
         'transition-colors duration-200 disabled:opacity-100',
