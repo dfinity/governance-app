@@ -20,8 +20,9 @@ type Props = {
   accountId: AccountIdentifier;
 };
 
-const SVG_HEIGHT = 35;
-const SVG_WIDTH = SVG_HEIGHT * 1.9;
+// Aspect ratio (width / height) of the ICP logo based on the source SVG asset.
+const QR_CODE_LOGO_HEIGHT = 35;
+const QR_CODE_LOGO_WIDTH = QR_CODE_LOGO_HEIGHT * 1.9;
 
 export const DepositICPsButton = ({ accountId }: Props) => {
   const { t } = useTranslation();
@@ -44,19 +45,21 @@ export const DepositICPsButton = ({ accountId }: Props) => {
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
-        <div className="mt-4 flex flex-col gap-4">
+        <div className="mt-4 flex flex-col gap-4 pb-4 lg:pb-0">
           <div className="flex justify-center p-4">
-            <div className="rounded-lg border bg-white p-4">
+            <div className="rounded-lg border p-4">
               <QRCodeSVG
                 value={accountId.toHex()}
                 size={220}
                 level="H"
                 imageSettings={{
                   src: '/icp-logo.svg',
-                  height: SVG_HEIGHT,
-                  width: SVG_WIDTH,
+                  height: QR_CODE_LOGO_HEIGHT,
+                  width: QR_CODE_LOGO_WIDTH,
                   excavate: true,
                 }}
+                role="img"
+                aria-label={t(($) => $.depositModal.yourAccountId)}
               />
             </div>
           </div>
