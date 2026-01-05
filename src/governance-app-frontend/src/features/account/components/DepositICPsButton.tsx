@@ -20,8 +20,8 @@ type Props = {
   accountId: AccountIdentifier;
 };
 
-const SVG_HEIGHT = 25;
-const SVG_WIDTH = SVG_HEIGHT * 2.119;
+const SVG_HEIGHT = 35;
+const SVG_WIDTH = SVG_HEIGHT * 1.9;
 
 export const DepositICPsButton = ({ accountId }: Props) => {
   const { t } = useTranslation();
