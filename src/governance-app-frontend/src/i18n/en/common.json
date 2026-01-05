@@ -74,6 +74,8 @@
   "voting": "Voting",
   "stakes": "Stakes",
   "settings": "Settings",
+  "deposit": "Deposit",
+  "copiedToClipboard": "{{label}} copied to clipboard.",
   "loginTitle": "Welcome to the Internet Computer Governance",
   "loginSubtitle": "Stake ICP, participate in the Governance, and earn rewards on the Internet Computer",
   "legacyNnsDapp": "Go to the legacy NNS Dapp",

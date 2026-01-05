@@ -1,16 +1,16 @@
 import { AccountIdentifier, IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { CreditCard, List } from 'lucide-react';
+import { List } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { SendICPsButton } from '@features/account/components/SendICPsButton';
 import { TransactionListDialog } from '@features/account/components/TransactionListDialog';
 
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
 import { QueryStates } from '@components/QueryStates';
-import { SendICPsButton } from '@components/SendICPsButton';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
@@ -21,6 +21,9 @@ import { TokenPrices } from '@typings/tokenPrices';
 import { bigIntDiv } from '@utils/bigInt';
 
 import { GetTokens } from '@/dev/GetTokens';
+
+import { BuyIcpsButton } from './BuyIcpsButton';
+import { DepositICPsButton } from './DepositICPsButton';
 
 export function AccountCard() {
   const { t } = useTranslation();
@@ -51,7 +54,7 @@ export function AccountCard() {
           ) : (
             <QueryStates<CertifiedData<IcpIndexDid.GetAccountIdentifierTransactionsResponse>>
               infiniteQuery={transactions}
-              isEmpty={(data) => !data.pages?.length}
+              isEmpty={() => false}
             >
               {(data) => {
                 const balanceICPs = bigIntDiv(data.pages?.[0].response.balance || 0n, E8Sn, 2);
@@ -82,12 +85,9 @@ export function AccountCard() {
                     </div>
 
                     <div className="flex flex-col gap-3">
-                      <Button size="lg" className="w-full" disabled>
-                        <CreditCard /> {t(($) => $.account.buyIcp)}
-                      </Button>
+                      {IS_TESTNET ? <GetTokens accountId={accountId} /> : <BuyIcpsButton />}
                       <div className="flex gap-3">
-                        {IS_TESTNET && <GetTokens accountId={accountId} />}
-
+                        <DepositICPsButton accountId={accountId} />
                         <SendICPsButton balance={balanceICPs} />
                       </div>
 
