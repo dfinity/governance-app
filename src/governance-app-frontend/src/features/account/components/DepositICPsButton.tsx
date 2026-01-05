@@ -60,7 +60,7 @@ export const DepositICPsButton = ({ accountId }: Props) => {
 
           <div className="flex flex-col gap-2">
             <span className="text-sm font-medium">{t(($) => $.depositModal.yourAccountId)}</span>
-            <div className="flex items-center justify-between overflow-hidden rounded-md border bg-muted px-3 py-2">
+            <div className="flex items-center justify-between gap-4 overflow-hidden rounded-md border bg-muted px-3 py-2">
               <span className="flex-1 text-sm break-all text-muted-foreground">
                 {accountId.toHex()}
               </span>
