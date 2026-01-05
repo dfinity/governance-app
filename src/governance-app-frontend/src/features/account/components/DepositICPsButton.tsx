@@ -47,7 +47,7 @@ export const DepositICPsButton = ({ accountId }: Props) => {
               <span className="flex-1 text-sm break-all text-muted-foreground">
                 {accountId.toHex()}
               </span>
-              <CopyButton value={accountId.toHex()} label="accountId" />
+              <CopyButton value={accountId.toHex()} label={t(($) => $.account.accountIdentifier)} />
             </div>
           </div>
 

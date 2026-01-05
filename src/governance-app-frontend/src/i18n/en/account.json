@@ -1,5 +1,6 @@
 {
   "available": "Available",
+  "accountIdentifier": "account id",
   "transferSuccess": "You have successfully sent {{amount}} ICPs to account {{toAccount}}.",
   "transferError": "An error occurred while sending {{amount}} ICPs to account {{toAccount}}. Please try again later.",
   "destinationAccount": "Destination account",

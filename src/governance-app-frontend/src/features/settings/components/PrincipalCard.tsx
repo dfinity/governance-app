@@ -22,7 +22,10 @@ const PrincipalCard = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <CopyButton value={identity.getPrincipal().toText()} label="principalId" />
+            <CopyButton
+              value={identity.getPrincipal().toText()}
+              label={t(($) => $.settings.principalIdentifier)}
+            />
           </div>
         </div>
       </CardContent>
