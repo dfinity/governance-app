@@ -13,7 +13,7 @@ import { QueryStates } from '@components/QueryStates';
 import { Skeleton } from '@components/Skeleton';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE } from '@constants/extra';
+import { E8Sn } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
@@ -34,18 +34,6 @@ export function StakedCard() {
   const balanceQuery = useIcpLedgerAccountBalance();
   const { tickerPrices } = useTickerPrices();
   const stakingRewards = useStakingRewards();
-  const transactions = useIcpIndexTransactions();
-
-  const handleStakeMoreClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    const balanceICPs = bigIntDiv(transactions.data?.pages?.[0]?.response?.balance || 0n, E8Sn, 2);
-    if (balanceICPs < ICP_MIN_STAKE_AMOUNT + ICP_TRANSACTION_FEE) {
-      e.preventDefault();
-
-      warningNotification({
-        description: t(($) => $.neuron.stakeNeuron.errors.insufficientBalance),
-      });
-    }
-  };
 
   const handleStakeMoreClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const balanceICPs = bigIntDiv(balanceQuery.data?.response || 0n, E8Sn, 4);
