@@ -20,6 +20,9 @@ type Props = {
   accountId: AccountIdentifier;
 };
 
+const SVG_HEIGHT = 25;
+const SVG_WIDTH = SVG_HEIGHT * 2.119;
+
 export const DepositICPsButton = ({ accountId }: Props) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -50,8 +53,8 @@ export const DepositICPsButton = ({ accountId }: Props) => {
                 level="H"
                 imageSettings={{
                   src: '/icp-logo.svg',
-                  height: 25,
-                  width: 55,
+                  height: SVG_HEIGHT,
+                  width: SVG_WIDTH,
                   excavate: true,
                 }}
               />
