@@ -6,7 +6,7 @@ import {
 } from '@icp-sdk/canisters/ledger/icp';
 import { Agent } from '@icp-sdk/core/agent';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Download } from 'lucide-react';
+import { CreditCard } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 
 import { Button } from '@components/button';
@@ -113,9 +113,9 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger asChild>
-        <Button variant="outline" className="flex-1" size="lg">
-          <Download />
-          Deposit
+        <Button className="w-full" size="lg">
+          <CreditCard />
+          Buy Testnet ICPs
         </Button>
       </ResponsiveDialogTrigger>
 
