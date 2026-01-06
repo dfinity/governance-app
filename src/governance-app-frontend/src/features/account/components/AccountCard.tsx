@@ -10,14 +10,13 @@ import { TransactionListDialog } from '@features/account/components/TransactionL
 
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
-import { QueryStates } from '@components/QueryStates';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers';
-import { TokenPrices } from '@typings/tokenPrices';
 import { bigIntDiv } from '@utils/bigInt';
+import { formatNumber } from '@utils/numbers';
 
 import { GetTokens } from '@/dev/GetTokens';
 
@@ -29,7 +28,7 @@ export function AccountCard() {
   const { identity } = useInternetIdentity();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const { tickerPrices } = useTickerPrices();
+  const { tickerPrices: tickersQuery } = useTickerPrices();
   const balanceQuery = useIcpLedgerAccountBalance();
 
   const accountId = nonNullish(identity)
@@ -41,6 +40,8 @@ export function AccountCard() {
   if (isNullish(accountId)) return null;
 
   const balanceICPs = bigIntDiv(balanceQuery.data?.response || 0n, E8Sn, 2);
+  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
+  const usdValue = icpPrice ? formatNumber(balanceICPs * icpPrice.usd) : '-';
 
   return (
     <>
@@ -62,21 +63,13 @@ export function AccountCard() {
                 </p>
               )}
 
-              <QueryStates<TokenPrices>
-                query={tickerPrices}
-                isEmpty={(data) => data.size === 0}
-                loadingComponent={<Skeleton className="h-4 w-20" />}
-              >
-                {(priceData) => {
-                  const icpPrice = priceData.get(CANISTER_ID_ICP_LEDGER!);
-                  const usdValue = icpPrice ? (balanceICPs * icpPrice.usd).toFixed(2) : '-';
-                  return (
-                    <p className="text-xs text-muted-foreground">
-                      {t(($) => $.account.approxUsd, { value: usdValue })}
-                    </p>
-                  );
-                }}
-              </QueryStates>
+              {balanceQuery.isLoading || tickersQuery.isLoading ? (
+                <Skeleton className="h-4 w-20" />
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  {t(($) => $.account.approxUsd, { value: usdValue })}
+                </p>
+              )}
             </div>
 
             <div className="flex flex-col gap-3">

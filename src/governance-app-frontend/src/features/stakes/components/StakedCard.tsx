@@ -8,7 +8,6 @@ import { StakingRatioModal } from '@features/stakes/components/StakingRatioModal
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
-import { QueryStates } from '@components/QueryStates';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
@@ -16,7 +15,6 @@ import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
 import { useStakingRewards } from '@hooks/useStakingRewards';
-import { TokenPrices } from '@typings/tokenPrices';
 import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronFreeMaturityE8s, getNeuronStakeE8s } from '@utils/neuron';
 import { warningNotification } from '@utils/notification';
@@ -29,7 +27,7 @@ export function StakedCard() {
 
   const neuronsQuery = useGovernanceNeurons();
   const balanceQuery = useIcpLedgerAccountBalance();
-  const { tickerPrices } = useTickerPrices();
+  const { tickerPrices: tickersQuery } = useTickerPrices();
   const stakingRewards = useStakingRewards();
 
   const handleStakeMoreClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -48,15 +46,17 @@ export function StakedCard() {
     }
   };
 
-  let totalStaked = 0;
-  let totalUnstakedMaturity = 0;
+  const [totalStaked, totalUnstakedMaturity] = neuronsQuery.data?.response?.reduce(
+    (acc, neuron) => {
+      const stake = bigIntDiv(getNeuronStakeE8s(neuron), E8Sn);
+      const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
+      return [acc[0] + stake, acc[1] + unstakedMaturity];
+    },
+    [0, 0],
+  ) ?? [0, 0];
 
-  neuronsQuery.data?.response.forEach((neuron) => {
-    const stake = bigIntDiv(getNeuronStakeE8s(neuron), E8Sn);
-    const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
-    totalStaked += stake;
-    totalUnstakedMaturity += unstakedMaturity;
-  });
+  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
+  const usdValue = icpPrice ? formatNumber(totalStaked * icpPrice.usd) : '-';
 
   return (
     <Card className="flex-1 gap-3 transition-all duration-300 hover:shadow-[0_0_25px_-5px_rgba(0,0,0,0.25)]">
@@ -77,21 +77,13 @@ export function StakedCard() {
               </p>
             )}
 
-            <QueryStates<TokenPrices>
-              query={tickerPrices}
-              isEmpty={(data) => data.size === 0}
-              loadingComponent={<Skeleton className="h-4 w-20" />}
-            >
-              {(priceData) => {
-                const icpPrice = priceData.get(CANISTER_ID_ICP_LEDGER!);
-                const usdValue = icpPrice ? formatNumber(totalStaked * icpPrice.usd) : '-';
-                return (
-                  <p className="text-xs text-muted-foreground">
-                    {t(($) => $.account.approxUsd, { value: usdValue })}
-                  </p>
-                );
-              }}
-            </QueryStates>
+            {balanceQuery.isLoading || neuronsQuery.isLoading || tickersQuery.isLoading ? (
+              <Skeleton className="h-4 w-20" />
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                {t(($) => $.account.approxUsd, { value: usdValue })}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3 py-3 text-right [&>*]:transition-all [&>*]:duration-300">

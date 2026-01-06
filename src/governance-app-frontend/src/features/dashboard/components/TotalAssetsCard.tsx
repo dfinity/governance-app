@@ -23,7 +23,7 @@ import { useWaveAnimation } from '../hooks/useWaveAnimation';
 export const TotalAssetsCard = () => {
   const { t } = useTranslation();
 
-  const { tickerPrices } = useTickerPrices();
+  const { tickerPrices: tickersQuery } = useTickerPrices();
   const neuronsQuery = useGovernanceNeurons();
   const balanceQuery = useIcpLedgerAccountBalance();
   const stakingRewards = useStakingRewards();
@@ -47,11 +47,9 @@ export const TotalAssetsCard = () => {
   const totalAssets = liquidBalance + stakedBalance + maturityBalance;
 
   // Prices
-  const icpPrice = tickerPrices.data?.get(CANISTER_ID_ICP_LEDGER!);
+  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const icpPriceUsd = icpPrice ? formatNumber(icpPrice.usd) : undefined;
   const totalAssetsUsd = icpPrice ? formatNumber(totalAssets * icpPrice.usd) : undefined;
-
-  const isLoading = balanceQuery.isLoading || neuronsQuery.isLoading;
 
   const { canvasRef, containerRef } = useWaveAnimation();
 
@@ -87,7 +85,7 @@ export const TotalAssetsCard = () => {
               {t(($) => $.home.totalValue)}
             </p>
             <div className="flex items-baseline gap-2">
-              {isLoading ? (
+              {balanceQuery.isLoading || neuronsQuery.isLoading ? (
                 <Skeleton className="h-13 w-44" />
               ) : (
                 <p className="text-5xl font-bold text-foreground">
@@ -96,7 +94,7 @@ export const TotalAssetsCard = () => {
               )}
             </div>
             <div className="flex items-baseline gap-2">
-              {isLoading || !totalAssetsUsd ? (
+              {balanceQuery.isLoading || neuronsQuery.isLoading || tickersQuery.isLoading ? (
                 <Skeleton className="h-6 w-24" />
               ) : (
                 <p className="text-lg font-semibold">
@@ -128,7 +126,7 @@ export const TotalAssetsCard = () => {
               <div className="flex items-center justify-end gap-1.5">
                 {isStakingRewardDataReady(stakingRewards) ? (
                   <span className="text-lg font-semibold text-emerald-800 dark:text-emerald-400">
-                    +{` `}
+                    +
                     {formatNumber(
                       stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.WEEK) || 0,
                     )}
@@ -144,13 +142,13 @@ export const TotalAssetsCard = () => {
               <p className="text-[10px] font-bold tracking-wide text-muted-foreground uppercase">
                 {t(($) => $.home.forecast.oneYear)}
               </p>
-              <div className="flex items-center justify-end gap-1.5 text-lg font-semibold text-emerald-800 dark:text-emerald-400">
+              <div className="flex items-center justify-end gap-1.5">
                 {isStakingRewardDataReady(stakingRewards) ? (
                   <span className="text-lg font-semibold text-emerald-800 dark:text-emerald-400">
-                    +{` `}
+                    +
                     {formatNumber(
                       stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) || 0,
-                    )}{' '}
+                    )}
                   </span>
                 ) : (
                   <Skeleton className="h-7 w-13" />
