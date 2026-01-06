@@ -71,7 +71,6 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
         </div>
         {nonNullish(apy) && (
           <div
-            role="button"
             className={cn(
               'flex items-center gap-2 rounded-sm border p-2',
 
@@ -85,11 +84,13 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
               e.stopPropagation();
               alert('@TODO: Implement optimization modal');
             }}
+            role="button"
+            tabIndex={0}
           >
-            <span className="text-[13px] font-semibold">
+            <p className="text-[13px] font-semibold">
               {formatPercentage(apy.cur)}{' '}
               <span className="hidden sm:block">{t(($) => $.common.apy)} </span>
-            </span>
+            </p>
             {apy.cur < apy.max && <CircleAlert className="hidden size-4 sm:block" />}
           </div>
         )}
@@ -98,37 +99,35 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
       <CardContent>
         <div className="flex flex-col">
           <div className="flex items-center justify-between border-b border-border/50 py-3">
-            <span className="text-[13px] text-muted-foreground capitalize">
+            <p className="text-[13px] text-muted-foreground capitalize">
               {t(($) => $.neuron.stakedAmount)}
-            </span>
-            <span className="text-[15px] font-semibold">
+            </p>
+            <p className="text-[15px] font-semibold">
               {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
-            </span>
+            </p>
           </div>
 
           <div className="flex items-center justify-between border-b border-border/50 py-3">
-            <span className="text-[13px] text-muted-foreground capitalize">
+            <p className="text-[13px] text-muted-foreground capitalize">
               {t(($) => $.neuron.dissolveDelay)}
-            </span>
+            </p>
             <div className="flex items-center gap-2">
-              <span className="text-[15px] font-semibold capitalize">{durationText}</span>
+              <p className="text-[15px] font-semibold capitalize">{durationText}</p>
               <div className="flex items-center gap-1 rounded-sm border border-gray-200 bg-gray-100 px-2 py-0.5 text-gray-600 hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-900/30 dark:text-gray-400">
                 {isDissolving ? <Timer className="size-3" /> : <Lock className="size-3" />}
-                <span className="text-[11px] font-medium">
+                <p className="text-[11px] font-medium">
                   {isDissolving ? t(($) => $.neuron.dissolving) : t(($) => $.neuron.locked)}
-                </span>
+                </p>
               </div>
             </div>
           </div>
 
           {/* Staked Maturity */}
           <div className="flex items-center justify-between border-b border-border/50 py-3">
-            <span className="text-[13px] text-muted-foreground capitalize">
+            <p className="text-[13px] text-muted-foreground capitalize">
               {t(($) => $.neuron.stakedMaturity)}
-            </span>
-            <div className="flex items-center gap-1">
-              <span className="text-[15px] font-medium">{formatNumber(stakedMaturity)}</span>
-            </div>
+            </p>
+            <p className="text-[15px] font-medium">{formatNumber(stakedMaturity)}</p>
           </div>
 
           {/* Unstaked Maturity */}
@@ -143,12 +142,12 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
 
           {/* Maturity Mode */}
           <div className="flex items-center justify-between py-3">
-            <span className="text-[13px] text-muted-foreground capitalize">
+            <p className="text-[13px] text-muted-foreground capitalize">
               {t(($) => $.neuron.maturityMode)}
-            </span>
-            <span className="text-[15px] font-semibold capitalize">
+            </p>
+            <p className="text-[15px] font-semibold capitalize">
               {isAutoStake ? t(($) => $.neuron.autoStake) : t(($) => $.neuron.keepLiquid)}
-            </span>
+            </p>
           </div>
         </div>
       </CardContent>
