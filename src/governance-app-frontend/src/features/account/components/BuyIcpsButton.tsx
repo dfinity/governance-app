@@ -33,7 +33,7 @@ export const BuyIcpsButton = ({ accountId }: Props) => {
     .join('&')}`;
 
   return (
-    <Button size="lg" className="w-full" asChild>
+    <Button size="xl" className="w-full" asChild>
       <a href={url} target="_blank" rel="noopener noreferrer">
         <CreditCard aria-hidden="true" /> {t(($) => $.account.buyIcp)}
       </a>
