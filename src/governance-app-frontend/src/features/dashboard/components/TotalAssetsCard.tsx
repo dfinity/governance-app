@@ -114,7 +114,7 @@ export const TotalAssetsCard = () => {
                 {icpPriceUsd ? (
                   <span className="text-lg font-semibold">${icpPriceUsd}</span>
                 ) : (
-                  <Skeleton className="h-7 w-13" />
+                  <Skeleton className="h-7 w-14" />
                 )}
               </div>
             </div>
@@ -132,7 +132,7 @@ export const TotalAssetsCard = () => {
                     )}
                   </span>
                 ) : (
-                  <Skeleton className="h-7 w-13" />
+                  <Skeleton className="h-7 w-14" />
                 )}
                 <MaturitySymbol />
               </div>
