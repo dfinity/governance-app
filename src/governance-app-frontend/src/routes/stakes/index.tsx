@@ -17,9 +17,9 @@ function StakesComponent() {
   return (
     <div>
       <div className="flex justify-between">
-        <div>
-          <h2 className="mb-2 text-lg font-semibold">{t(($) => $.neuron.title)}</h2>
-          <p className="text-sm">{t(($) => $.neuron.description)}</p>
+        <div className="flex flex-col gap-3">
+          <h2 className="text-lg font-semibold">{t(($) => $.voting.title)}</h2>
+          <p className="text-sm text-muted-foreground">{t(($) => $.voting.description)}</p>
         </div>
         <StakeNeuronModal />
       </div>
