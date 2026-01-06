@@ -13,6 +13,7 @@ import {
   getNeuronIsDissolving,
 } from '@utils/neuron';
 import { formatNumber, formatPercentage } from '@utils/numbers';
+import { cn } from '@utils/shadcn';
 import { APY } from '@utils/staking-rewards';
 
 type Props = {
@@ -59,7 +60,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
 
   return (
     <Card className="gap-3 transition-colors hover:border-foreground">
-      <CardHeader className="flex flex-row items-start justify-between space-y-0">
+      <CardHeader className="flex flex-col items-start justify-between space-y-0 xs:flex-row">
         <div>
           <h3 className="text-base font-semibold">
             {t(($) => $.neuron.neuronId, { neuronId: neuron.neuronId })}
@@ -71,7 +72,14 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
         {nonNullish(apy) && (
           <div
             aria-role="button"
-            className="flex items-center gap-2 rounded-sm border border-orange-200 bg-orange-100 p-2 text-orange-600 hover:bg-orange-100 dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-400"
+            className={cn(
+              'flex items-center gap-2 rounded-sm border p-2',
+
+              apy.cur === apy.max &&
+                'border-emerald-200 bg-emerald-100 text-emerald-600 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
+              apy.cur < apy.max &&
+                'border-orange-200 bg-orange-100 text-orange-600 hover:bg-orange-100 dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
+            )}
             onClick={(e) => {
               e.preventDefault();
               alert('@TODO: Implement optimization modal');
@@ -80,7 +88,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
             <span className="text-[13px] font-semibold">
               {formatPercentage(apy.cur)} {t(($) => $.common.apy)}
             </span>
-            {apy.cur < apy.max && <CircleAlert className="size-4" />}
+            {apy.cur < apy.max && <CircleAlert className="hidden size-4 sm:block" />}
           </div>
         )}
       </CardHeader>

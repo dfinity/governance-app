@@ -16,7 +16,7 @@ function StakesComponent() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex justify-between">
+      <div className="flex flex-col gap-6 md:flex-row md:justify-between">
         <div className="flex flex-col gap-2">
           <h2 className="text-lg font-semibold">{t(($) => $.neuron.title)}</h2>
           <p className="text-sm text-muted-foreground">{t(($) => $.neuron.description)}</p>
