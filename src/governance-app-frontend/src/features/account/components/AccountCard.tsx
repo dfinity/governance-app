@@ -53,7 +53,7 @@ export function AccountCard() {
         </CardHeader>
 
         <CardContent className="flex-1">
-          <div className="flex h-full flex-col justify-between">
+          <div className="flex h-full flex-col justify-between gap-4">
             <div className="flex flex-col gap-0.5">
               {balanceQuery.isLoading ? (
                 <Skeleton className="h-8 w-32" />

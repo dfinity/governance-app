@@ -67,7 +67,7 @@ export function StakedCard() {
       </CardHeader>
 
       <CardContent className="flex-1">
-        <div className="flex h-full flex-col justify-between">
+        <div className="flex h-full flex-col justify-between gap-4">
           <div className="flex flex-col gap-0.5">
             {neuronsQuery.isLoading ? (
               <Skeleton className="h-8 w-32" />
@@ -86,7 +86,7 @@ export function StakedCard() {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3 py-3 text-right [&>*]:transition-all [&>*]:duration-300">
+          <div className="grid grid-cols-2 gap-3 text-right [&>*]:transition-all [&>*]:duration-300">
             <div className="flex flex-col gap-1 rounded-md bg-muted p-3 hover:bg-gray-200 dark:hover:bg-zinc-700">
               <p className="text-xs font-medium text-muted-foreground uppercase">
                 {t(($) => $.home.stakingRatio)}
