@@ -1,5 +1,5 @@
-import { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
+import { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Card, CardContent } from '@components/Card';
@@ -82,13 +82,13 @@ export const TotalAssetsCard = () => {
 
         <div className="mt-12 flex flex-col items-start justify-between gap-6 sm:flex-row">
           {/* Left: Total Value */}
-          <div className="space-y-1">
+          <div className="min-h-[100px] space-y-1">
             <p className="text-xs font-bold tracking-wider uppercase">
               {t(($) => $.home.totalValue)}
             </p>
             <div className="flex items-baseline gap-2">
               {isLoading ? (
-                <Skeleton className="h-10 w-36" />
+                <Skeleton className="h-13 w-36" />
               ) : (
                 <span className="text-5xl font-bold text-foreground">
                   {t(($) => $.common.inIcp, { value: formatNumber(totalAssets) })}
@@ -97,7 +97,7 @@ export const TotalAssetsCard = () => {
             </div>
             <div className="flex items-baseline gap-2">
               {isLoading || !totalAssetsUsd ? (
-                <Skeleton className="h-5 w-14" />
+                <Skeleton className="h-6 w-14" />
               ) : (
                 <span className="text-lg font-semibold">
                   {t(($) => $.account.approxUsd, { value: totalAssetsUsd })}
@@ -112,12 +112,12 @@ export const TotalAssetsCard = () => {
               <span className="mb-1 text-[10px] font-bold text-muted-foreground uppercase">
                 {t(($) => $.home.icpUsd)}
               </span>
-              <span className="text-lg font-semibold">
-                {icpPriceUsd ? `$${icpPriceUsd}` : <Skeleton className="h-7 w-32" />}
+              <span className="flex justify-end text-lg font-semibold">
+                {icpPriceUsd ? `$${icpPriceUsd}` : <Skeleton className="h-7 w-13" />}
               </span>
             </div>
 
-            <div className="flex flex-col gap-1 rounded-xl border border-border/50 bg-white/50 px-4 py-[10px] text-right shadow-sm backdrop-blur-sm dark:bg-zinc-800/50">
+            <div className="flex min-w-[120px] flex-col gap-1 rounded-xl border border-border/50 bg-white/50 px-4 py-[10px] text-right shadow-sm backdrop-blur-sm dark:bg-zinc-800/50">
               <span className="text-[10px] font-bold tracking-wide text-muted-foreground uppercase">
                 {t(($) => $.home.forecast.oneWeek)}
               </span>
@@ -125,13 +125,13 @@ export const TotalAssetsCard = () => {
                 {isStakingRewardDataReady(stakingRewards) ? (
                   `+${formatNumber(stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.WEEK) || 0)} `
                 ) : (
-                  <Skeleton className="h-7 w-16" />
+                  <Skeleton className="h-7 w-13" />
                 )}
                 <MaturitySymbol />
               </span>
             </div>
 
-            <div className="flex flex-col gap-1 rounded-xl border border-border/50 bg-white/50 px-4 py-[10px] text-right shadow-sm backdrop-blur-sm dark:bg-zinc-800/50">
+            <div className="flex min-w-[120px] flex-col gap-1 rounded-xl border border-border/50 bg-white/50 px-4 py-[10px] text-right shadow-sm backdrop-blur-sm dark:bg-zinc-800/50">
               <span className="text-[10px] font-bold tracking-wide text-muted-foreground uppercase">
                 {t(($) => $.home.forecast.oneYear)}
               </span>
@@ -139,7 +139,7 @@ export const TotalAssetsCard = () => {
                 {isStakingRewardDataReady(stakingRewards) ? (
                   `+ ${formatNumber(stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) || 0)} `
                 ) : (
-                  <Skeleton className="h-7 w-16" />
+                  <Skeleton className="h-7 w-13" />
                 )}
                 <MaturitySymbol />
               </span>
