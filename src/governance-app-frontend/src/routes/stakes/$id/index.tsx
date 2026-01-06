@@ -9,7 +9,7 @@ import { Card, CardContent, CardFooter } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { WarningMessage } from '@components/WarningMessage';
-import { E8S, E8Sn, IS_TESTNET } from '@constants/extra';
+import { E8S, E8Sn, IS_TESTNET, MILLISECONDS_IN_SECOND } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance/useGovernanceNeurons';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import useTitle from '@hooks/useTitle';
@@ -77,10 +77,22 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
     );
   }
 
+  const creationDate = neuron.fullNeuron?.createdTimestampSeconds
+    ? new Date(
+        Number(neuron.fullNeuron.createdTimestampSeconds) * MILLISECONDS_IN_SECOND,
+      ).toLocaleDateString(undefined, {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
+    : '-';
+
   return (
     <div className="flex flex-col gap-6 text-lg">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-2xl font-semibold">#{neuron.neuronId?.toString()}</h2>
+        <h2 className="text-2xl font-semibold">
+          {t(($) => $.neuron.neuronId, { neuronId: neuron.neuronId })}
+        </h2>
         <CertifiedBadge certified={data?.certified} />
       </div>
 
@@ -90,13 +102,7 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
             <span className="text-sm font-medium text-muted-foreground uppercase">
               {t(($) => $.neuron.creationDate)}
             </span>
-            <span>
-              {neuron.fullNeuron?.createdTimestampSeconds
-                ? new Date(
-                    Number(neuron.fullNeuron.createdTimestampSeconds) * 1000,
-                  ).toLocaleDateString()
-                : '-'}
-            </span>
+            <span>{creationDate}</span>
           </div>
 
           <div className="flex flex-col gap-1">
