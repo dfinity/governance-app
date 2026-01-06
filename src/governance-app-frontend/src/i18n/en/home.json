@@ -7,6 +7,10 @@
   "participateSubtitle": "Stake, vote, earn up to 12.6% per year.",
   "totalValue": "Total Value",
   "icpUsd": "ICP/USD",
+  "forecast": {
+    "oneWeek": "1w maturity",
+    "oneYear": "1y maturity"
+  },
   "tvl": {
     "title": "Total Value Locked",
     "label": "View Total Value Locked on ICP Dashboard (opens in new tab)"
