@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 
 import { AccountCard } from '@features/account/components/AccountCard';
 import { TotalAssetsCard } from '@features/dashboard/components/TotalAssetsCard';
@@ -13,10 +12,6 @@ export const Route = createFileRoute('/(homepage)/')({
 });
 
 function Homepage() {
-  const { identity } = useInternetIdentity();
-
-  if (!identity) return null;
-
   return (
     <div className="flex flex-col gap-6">
       <TotalAssetsCard />
