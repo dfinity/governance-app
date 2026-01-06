@@ -8,7 +8,7 @@
   "totalValue": "Total Value",
   "icpUsd": "ICP/USD",
   "forecast": {
-    "oneWeek": "1w  maturity",
+    "oneWeek": "1w maturity",
     "oneYear": "1y maturity"
   },
   "tvl": {
