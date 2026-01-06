@@ -92,7 +92,7 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
     setAmountError('');
     if (!value) return;
     const numericValue = Number(value);
-    if (numericValue < ICP_TRANSACTION_FEE || numericValue > max) {
+    if (numericValue <= 0 || numericValue > max) {
       setAmountError(t(($) => $.account.amountError));
     }
   };
@@ -150,7 +150,7 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
 
             <p className="text-xs text-muted-foreground">
               {t(($) => $.account.transactionHint, {
-                min: 0,
+                min: ICP_TRANSACTION_FEE,
                 max: max,
                 fee: ICP_TRANSACTION_FEE,
               })}
