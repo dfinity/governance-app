@@ -1,26 +1,26 @@
-import { nonNullish } from '@dfinity/utils';
 import { NeuronInfo } from '@icp-sdk/canisters/nns';
+import { nonNullish } from '@dfinity/utils';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Card, CardContent } from '@components/Card';
+import { MaturitySymbol } from '@components/MaturitySymbol';
+import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers';
+import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronFreeMaturityE8s, getNeuronStakeE8s } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
-
-import { MaturitySymbol } from '@components/MaturitySymbol';
-import { Separator } from '@components/Separator';
-import { useStakingRewards } from '@hooks/useStakingRewards';
 import { isStakingRewardDataReady, MaturityEstimatePeriod } from '@utils/staking-rewards';
+
 import { useWaveAnimation } from '../hooks/useWaveAnimation';
 
 // @TODO: How do we display errors loading data?
-export const ParticipateCard = () => {
+export const TotalAssetsCard = () => {
   const { t } = useTranslation();
 
   const { tickerPrices } = useTickerPrices();
