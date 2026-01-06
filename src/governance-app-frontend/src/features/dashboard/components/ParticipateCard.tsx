@@ -14,6 +14,7 @@ import { getNeuronFreeMaturityE8s, getNeuronStakeE8s } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
 
 import { MaturitySymbol } from '@components/MaturitySymbol';
+import { Separator } from '@components/Separator';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { isStakingRewardDataReady, MaturityEstimatePeriod } from '@utils/staking-rewards';
 import { useWaveAnimation } from '../hooks/useWaveAnimation';
@@ -68,16 +69,18 @@ export const ParticipateCard = () => {
 
       <CardContent className="relative z-10 flex h-full flex-col justify-between px-8 py-2">
         <div className="mt-4 space-y-2 text-center">
-          <h2 className="text-3xl font-semibold tracking-tight text-foreground">
+          <h2 className="text-4xl font-semibold tracking-tight text-foreground">
             <Trans
               i18nKey={($) => $.home.participateTitle}
               components={{ strong: <strong className="text-foreground" /> }}
             />
           </h2>
-          <p className="font-light">{t(($) => $.home.participateSubtitle)}</p>
+          <p className="text-lg font-light">{t(($) => $.home.participateSubtitle)}</p>
         </div>
 
-        <div className="mt-12 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
+        <Separator className="my-6 mr-auto ml-auto w-2/3! bg-blend-difference" />
+
+        <div className="mt-12 flex flex-col items-start justify-between gap-6 sm:flex-row">
           {/* Left: Total Value */}
           <div className="space-y-1">
             <p className="text-xs font-bold tracking-wider uppercase">
@@ -87,7 +90,7 @@ export const ParticipateCard = () => {
               {isLoading ? (
                 <Skeleton className="h-10 w-36" />
               ) : (
-                <span className="text-4xl font-bold text-foreground">
+                <span className="text-5xl font-bold text-foreground">
                   {t(($) => $.common.inIcp, { value: formatNumber(totalAssets) })}
                 </span>
               )}
@@ -96,7 +99,7 @@ export const ParticipateCard = () => {
               {isLoading || !totalAssetsUsd ? (
                 <Skeleton className="h-5 w-14" />
               ) : (
-                <span className="text-sm font-semibold">
+                <span className="text-lg font-semibold">
                   {t(($) => $.account.approxUsd, { value: totalAssetsUsd })}
                 </span>
               )}
@@ -104,7 +107,7 @@ export const ParticipateCard = () => {
           </div>
 
           {/* Right: Metrics  */}
-          <div className="grid w-full grid-cols-1 gap-3 xs:w-auto xs:grid-cols-2">
+          <div className="grid w-full grid-cols-1 gap-3 xs:grid-cols-2 sm:w-auto">
             <div className="flex flex-col rounded-xl border border-border/50 bg-white/50 px-4 py-[10px] text-right shadow-sm backdrop-blur-sm xs:col-span-2 dark:bg-zinc-800/50">
               <span className="mb-1 text-[10px] font-bold text-muted-foreground uppercase">
                 {t(($) => $.home.icpUsd)}
