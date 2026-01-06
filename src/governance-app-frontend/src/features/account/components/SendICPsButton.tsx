@@ -111,7 +111,7 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
         <Button
           variant="outline"
           disabled={!canTransfer}
-          size="lg"
+          size="xl"
           className={cn('flex-1', isPending && 'opacity-50')}
         >
           <Send />

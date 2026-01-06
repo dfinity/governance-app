@@ -113,7 +113,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger asChild>
-        <Button className="w-full" size="lg">
+        <Button className="w-full" size="xl">
           <CreditCard />
           Buy Testnet ICPs
         </Button>

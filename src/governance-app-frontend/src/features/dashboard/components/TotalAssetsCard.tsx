@@ -23,7 +23,7 @@ import { useWaveAnimation } from '../hooks/useWaveAnimation';
 export const TotalAssetsCard = () => {
   const { t } = useTranslation();
 
-  const { tickerPrices } = useTickerPrices();
+  const { tickerPrices: tickersQuery } = useTickerPrices();
   const neuronsQuery = useGovernanceNeurons();
   const balanceQuery = useIcpLedgerAccountBalance();
   const stakingRewards = useStakingRewards();
@@ -47,11 +47,9 @@ export const TotalAssetsCard = () => {
   const totalAssets = liquidBalance + stakedBalance + maturityBalance;
 
   // Prices
-  const icpPrice = tickerPrices.data?.get(CANISTER_ID_ICP_LEDGER!);
+  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const icpPriceUsd = icpPrice ? formatNumber(icpPrice.usd) : undefined;
   const totalAssetsUsd = icpPrice ? formatNumber(totalAssets * icpPrice.usd) : undefined;
-
-  const isLoading = balanceQuery.isLoading || neuronsQuery.isLoading;
 
   const { canvasRef, containerRef } = useWaveAnimation();
 
@@ -87,21 +85,21 @@ export const TotalAssetsCard = () => {
               {t(($) => $.home.totalValue)}
             </p>
             <div className="flex items-baseline gap-2">
-              {isLoading ? (
-                <Skeleton className="h-13 w-36" />
+              {balanceQuery.isLoading || neuronsQuery.isLoading ? (
+                <Skeleton className="h-13 w-44" />
               ) : (
-                <span className="text-5xl font-bold text-foreground">
+                <p className="text-5xl font-bold text-foreground">
                   {t(($) => $.common.inIcp, { value: formatNumber(totalAssets) })}
-                </span>
+                </p>
               )}
             </div>
             <div className="flex items-baseline gap-2">
-              {isLoading || !totalAssetsUsd ? (
-                <Skeleton className="h-6 w-14" />
+              {balanceQuery.isLoading || neuronsQuery.isLoading || tickersQuery.isLoading ? (
+                <Skeleton className="h-6 w-24" />
               ) : (
-                <span className="text-lg font-semibold">
+                <p className="text-lg font-semibold">
                   {t(($) => $.account.approxUsd, { value: totalAssetsUsd })}
-                </span>
+                </p>
               )}
             </div>
           </div>
@@ -109,40 +107,54 @@ export const TotalAssetsCard = () => {
           {/* Right: Metrics  */}
           <div className="grid w-full grid-cols-1 gap-3 xs:grid-cols-2 sm:w-auto">
             <div className="flex flex-col rounded-xl border border-border/50 bg-white/50 px-4 py-[10px] text-right shadow-sm backdrop-blur-sm xs:col-span-2 dark:bg-zinc-800/50">
-              <span className="mb-1 text-[10px] font-bold text-muted-foreground uppercase">
+              <p className="mb-1 text-[10px] font-bold text-muted-foreground uppercase">
                 {t(($) => $.home.icpUsd)}
-              </span>
-              <span className="flex justify-end text-lg font-semibold">
-                {icpPriceUsd ? `$${icpPriceUsd}` : <Skeleton className="h-7 w-13" />}
-              </span>
+              </p>
+              <div className="flex justify-end">
+                {icpPriceUsd ? (
+                  <span className="text-lg font-semibold">${icpPriceUsd}</span>
+                ) : (
+                  <Skeleton className="h-7 w-14" />
+                )}
+              </div>
             </div>
 
             <div className="flex min-w-[120px] flex-col gap-1 rounded-xl border border-border/50 bg-white/50 px-4 py-[10px] text-right shadow-sm backdrop-blur-sm dark:bg-zinc-800/50">
-              <span className="text-[10px] font-bold tracking-wide text-muted-foreground uppercase">
+              <p className="text-[10px] font-bold tracking-wide text-muted-foreground uppercase">
                 {t(($) => $.home.forecast.oneWeek)}
-              </span>
-              <span className="flex items-center justify-end gap-1.5 text-lg font-semibold text-emerald-800 dark:text-emerald-400">
+              </p>
+              <div className="flex items-center justify-end gap-1.5">
                 {isStakingRewardDataReady(stakingRewards) ? (
-                  `+${formatNumber(stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.WEEK) || 0)} `
+                  <span className="text-lg font-semibold text-emerald-800 dark:text-emerald-400">
+                    +
+                    {formatNumber(
+                      stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.WEEK) || 0,
+                    )}
+                  </span>
                 ) : (
-                  <Skeleton className="h-7 w-13" />
+                  <Skeleton className="h-7 w-14" />
                 )}
                 <MaturitySymbol />
-              </span>
+              </div>
             </div>
 
             <div className="flex min-w-[120px] flex-col gap-1 rounded-xl border border-border/50 bg-white/50 px-4 py-[10px] text-right shadow-sm backdrop-blur-sm dark:bg-zinc-800/50">
-              <span className="text-[10px] font-bold tracking-wide text-muted-foreground uppercase">
+              <p className="text-[10px] font-bold tracking-wide text-muted-foreground uppercase">
                 {t(($) => $.home.forecast.oneYear)}
-              </span>
-              <span className="flex items-center justify-end gap-1.5 text-lg font-semibold text-emerald-800 dark:text-emerald-400">
+              </p>
+              <div className="flex items-center justify-end gap-1.5">
                 {isStakingRewardDataReady(stakingRewards) ? (
-                  `+ ${formatNumber(stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) || 0)} `
+                  <span className="text-lg font-semibold text-emerald-800 dark:text-emerald-400">
+                    +
+                    {formatNumber(
+                      stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) || 0,
+                    )}
+                  </span>
                 ) : (
                   <Skeleton className="h-7 w-13" />
                 )}
                 <MaturitySymbol />
-              </span>
+              </div>
             </div>
           </div>
         </div>

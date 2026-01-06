@@ -1,4 +1,4 @@
-import { AccountIdentifier, IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
+import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { List } from 'lucide-react';
@@ -10,15 +10,13 @@ import { TransactionListDialog } from '@features/account/components/TransactionL
 
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
-import { QueryStates } from '@components/QueryStates';
-import { SkeletonLoader } from '@components/SkeletonLoader';
+import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
-import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
+import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers';
-import { CertifiedData } from '@typings/queries';
-import { TokenPrices } from '@typings/tokenPrices';
 import { bigIntDiv } from '@utils/bigInt';
+import { formatNumber } from '@utils/numbers';
 
 import { GetTokens } from '@/dev/GetTokens';
 
@@ -30,14 +28,20 @@ export function AccountCard() {
   const { identity } = useInternetIdentity();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  const { tickerPrices: tickersQuery } = useTickerPrices();
+  const balanceQuery = useIcpLedgerAccountBalance();
+
   const accountId = nonNullish(identity)
     ? AccountIdentifier.fromPrincipal({
         principal: identity.getPrincipal(),
       })
     : null;
 
-  const { tickerPrices } = useTickerPrices();
-  const transactions = useIcpIndexTransactions();
+  if (isNullish(accountId)) return null;
+
+  const balanceICPs = bigIntDiv(balanceQuery.data?.response || 0n, E8Sn, 2);
+  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
+  const usdValue = icpPrice ? formatNumber(balanceICPs * icpPrice.usd) : '-';
 
   return (
     <>
@@ -49,67 +53,47 @@ export function AccountCard() {
         </CardHeader>
 
         <CardContent className="flex-1">
-          {isNullish(accountId) ? (
-            <SkeletonLoader width={100} height={16} />
-          ) : (
-            <QueryStates<CertifiedData<IcpIndexDid.GetAccountIdentifierTransactionsResponse>>
-              infiniteQuery={transactions}
-              isEmpty={() => false}
-            >
-              {(data) => {
-                const balanceICPs = bigIntDiv(data.pages?.[0].response.balance || 0n, E8Sn, 2);
-                const numberOfTransactions = data.pages?.[0].response.transactions.length || [];
+          <div className="flex h-full flex-col justify-between gap-4">
+            <div className="flex flex-col gap-0.5">
+              {balanceQuery.isLoading ? (
+                <Skeleton className="h-8 w-32" />
+              ) : (
+                <p className="text-2xl font-bold">
+                  {t(($) => $.common.inIcp, { value: balanceICPs })}
+                </p>
+              )}
 
-                return (
-                  <div className="flex h-full flex-col justify-between">
-                    <div className="pb-3">
-                      <div className="text-2xl font-bold">
-                        {t(($) => $.common.inIcp, { value: balanceICPs })}
-                      </div>
+              {balanceQuery.isLoading || tickersQuery.isLoading ? (
+                <Skeleton className="h-4 w-20" />
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  {t(($) => $.account.approxUsd, { value: usdValue })}
+                </p>
+              )}
+            </div>
 
-                      <QueryStates<TokenPrices>
-                        query={tickerPrices}
-                        isEmpty={(data) => data.size === 0}
-                        loadingComponent={<SkeletonLoader width={50} height={16} />}
-                      >
-                        {(priceData) => {
-                          const icpPrice = priceData.get(CANISTER_ID_ICP_LEDGER!);
-                          const usdValue = icpPrice ? (balanceICPs * icpPrice.usd).toFixed(2) : '-';
-                          return (
-                            <p className="text-xs text-muted-foreground">
-                              {t(($) => $.account.approxUsd, { value: usdValue })}
-                            </p>
-                          );
-                        }}
-                      </QueryStates>
-                    </div>
+            <div className="flex flex-col gap-3">
+              {IS_TESTNET ? (
+                <GetTokens accountId={accountId} />
+              ) : (
+                <BuyIcpsButton accountId={accountId} />
+              )}
+              <div className="flex gap-3">
+                <DepositICPsButton accountId={accountId} />
+                <SendICPsButton balance={balanceICPs} />
+              </div>
 
-                    <div className="flex flex-col gap-3">
-                      {IS_TESTNET ? (
-                        <GetTokens accountId={accountId} />
-                      ) : (
-                        <BuyIcpsButton accountId={accountId} />
-                      )}
-                      <div className="flex gap-3">
-                        <DepositICPsButton accountId={accountId} />
-                        <SendICPsButton balance={balanceICPs} />
-                      </div>
-
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        size="lg"
-                        onClick={() => setIsDialogOpen(true)}
-                      >
-                        <List />
-                        {numberOfTransactions} {t(($) => $.common.transactions)}
-                      </Button>
-                    </div>
-                  </div>
-                );
-              }}
-            </QueryStates>
-          )}
+              <Button
+                variant="outline"
+                className="w-full"
+                size="xl"
+                onClick={() => setIsDialogOpen(true)}
+              >
+                <List />
+                {t(($) => $.common.transactions)}
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
       <TransactionListDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />

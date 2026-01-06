@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 
 import { MainLayout } from '@components/MainLayout';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
+import { useThemeShortcut } from '@hooks/useThemeShortcut';
 import { infoNotification } from '@utils/notification';
 
 export const Route = createRootRoute({
@@ -49,16 +50,12 @@ function RootComponent() {
     hadIdentity.current = !!identity;
   }, [identity, invalidate, queryClient, t]);
 
+  useThemeShortcut();
+
   // While initializing, we might want to show a loader or nothing to prevent flicker
   if (isInitializing) return null;
 
-  if (isLoginPage)
-    return (
-      <>
-        <Outlet />
-        <TanStackRouterDevtools />
-      </>
-    );
+  if (isLoginPage) return <Outlet />;
 
   const redirect = location.pathname !== '/' ? location.pathname : undefined;
   if (!identity) return <Navigate to="/login" search={{ redirect }} />;

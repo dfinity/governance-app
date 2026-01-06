@@ -32,7 +32,7 @@ export const DepositICPsButton = ({ accountId }: Props) => {
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger asChild>
-        <Button variant="outline" size="lg" className="flex-1">
+        <Button variant="outline" size="xl" className="flex-1">
           <Download />
           {t(($) => $.common.deposit)}
         </Button>

@@ -28,7 +28,7 @@ import { useNnsGovernance } from '@hooks/governance';
 import { useIcpLedger, useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { mapGovernanceCanisterError } from '@utils/nns-governance';
-import { errorNotification, successNotification } from '@utils/notification';
+import { errorNotification, successNotification, warningNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
 export const StakeNeuronModal = () => {
@@ -61,6 +61,7 @@ export const StakeNeuronModal = () => {
     nonNullish(ledgerCanister) &&
     ledgerAuthenticated &&
     ledgerReady &&
+    // @TODO: What about fees?
     maxStake >= ICP_MIN_STAKE_AMOUNT;
 
   const stakeMutation = useMutation<bigint, Error, number>({
@@ -148,10 +149,25 @@ export const StakeNeuronModal = () => {
       });
   const stakePlaceholder = Math.max(maxStake - Number(ICP_TRANSACTION_FEE_E8S) / E8S, 0).toFixed(2);
 
+  const balanceICPs = bigIntDiv(balanceValue?.response || 0n, E8Sn);
+  const handleStakeIcpButton = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    if (!canStake) {
+      e.preventDefault();
+
+      warningNotification({
+        description: t(($) =>
+          balanceICPs === 0
+            ? $.neuron.stakeNeuron.errors.zeroBalance
+            : $.neuron.stakeNeuron.errors.insufficientBalance,
+        ),
+      });
+    }
+  };
+
   return (
     <ResponsiveDialog open={isOpen} onOpenChange={setIsOpen}>
       <ResponsiveDialogTrigger asChild>
-        <Button size="lg" disabled={!canStake}>
+        <Button size="lg" onClick={handleStakeIcpButton}>
           <Plus />
           {t(($) => $.neuron.stakeNeuron.trigger)}
         </Button>
