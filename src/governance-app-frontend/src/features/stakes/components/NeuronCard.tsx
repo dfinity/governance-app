@@ -73,11 +73,9 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
           <div
             className={cn(
               'flex items-center gap-2 rounded-sm border p-2',
-
-              apy.cur === apy.max &&
-                'border-emerald-200 bg-emerald-100 text-emerald-600 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
-              apy.cur < apy.max &&
-                'border-orange-200 bg-orange-100 text-orange-600 hover:bg-orange-100 dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
+              apy.cur < apy.max
+                ? 'border-orange-200 bg-orange-100 text-orange-600 hover:bg-orange-100 dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
+                : 'border-emerald-200 bg-emerald-100 text-emerald-600 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
             )}
             onClick={(e) => {
               e.preventDefault();
@@ -133,11 +131,11 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
 
           {/* Unstaked Maturity */}
           <div className="flex items-center justify-between border-b border-border/50 py-3">
-            <span className="text-[13px] text-muted-foreground capitalize">
+            <p className="text-[13px] text-muted-foreground capitalize">
               {t(($) => $.neuron.unstakedMaturity)}
-            </span>
+            </p>
             <div className="flex items-center gap-1">
-              <span className="text-[15px] font-medium">{formatNumber(unstakedMaturity)}</span>
+              <p className="text-[15px] font-medium">{formatNumber(unstakedMaturity)}</p>
             </div>
           </div>
 
