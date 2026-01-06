@@ -15,11 +15,11 @@ function StakesComponent() {
   const { t } = useTranslation();
 
   return (
-    <div>
+    <div className="flex flex-col gap-6">
       <div className="flex justify-between">
-        <div className="flex flex-col gap-3">
-          <h2 className="text-lg font-semibold">{t(($) => $.voting.title)}</h2>
-          <p className="text-sm text-muted-foreground">{t(($) => $.voting.description)}</p>
+        <div className="flex flex-col gap-2">
+          <h2 className="text-lg font-semibold">{t(($) => $.neuron.title)}</h2>
+          <p className="text-sm text-muted-foreground">{t(($) => $.neuron.description)}</p>
         </div>
         <StakeNeuronModal />
       </div>

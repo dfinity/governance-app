@@ -167,7 +167,7 @@ export const StakeNeuronModal = () => {
   return (
     <ResponsiveDialog open={isOpen} onOpenChange={setIsOpen}>
       <ResponsiveDialogTrigger asChild>
-        <Button size="lg" onClick={handleStakeIcpButton}>
+        <Button size="xl" onClick={handleStakeIcpButton}>
           <Plus />
           {t(($) => $.neuron.stakeNeuron.trigger)}
         </Button>

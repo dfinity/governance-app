@@ -68,7 +68,7 @@ export enum APY_CALC_ERROR {
   UNEXPECTED,
 }
 
-type APY = {
+export type APY = {
   cur: number;
   max: number;
   neurons: Map<
