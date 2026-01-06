@@ -1,5 +1,5 @@
-import { nonNullish } from '@dfinity/utils';
 import { NeuronInfo } from '@icp-sdk/canisters/nns';
+import { nonNullish } from '@dfinity/utils';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Card, CardContent } from '@components/Card';
@@ -112,9 +112,13 @@ export const TotalAssetsCard = () => {
               <p className="mb-1 text-[10px] font-bold text-muted-foreground uppercase">
                 {t(($) => $.home.icpUsd)}
               </p>
-              <p className="flex justify-end text-lg font-semibold">
-                {icpPriceUsd ? `$${icpPriceUsd}` : <Skeleton className="h-7 w-13" />}
-              </p>
+              <div className="flex justify-end">
+                {icpPriceUsd ? (
+                  <span className="text-lg font-semibold">${icpPriceUsd}</span>
+                ) : (
+                  <Skeleton className="h-7 w-13" />
+                )}
+              </div>
             </div>
 
             <div className="flex min-w-[120px] flex-col gap-1 rounded-xl border border-border/50 bg-white/50 px-4 py-[10px] text-right shadow-sm backdrop-blur-sm dark:bg-zinc-800/50">

@@ -1,5 +1,5 @@
-import { isNullish, nonNullish } from '@dfinity/utils';
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { List } from 'lucide-react';
 import { useState } from 'react';
@@ -8,7 +8,6 @@ import { useTranslation } from 'react-i18next';
 import { SendICPsButton } from '@features/account/components/SendICPsButton';
 import { TransactionListDialog } from '@features/account/components/TransactionListDialog';
 
-import { GetTokens } from '@/dev/GetTokens';
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
 import { QueryStates } from '@components/QueryStates';
@@ -19,6 +18,9 @@ import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers';
 import { TokenPrices } from '@typings/tokenPrices';
 import { bigIntDiv } from '@utils/bigInt';
+
+import { GetTokens } from '@/dev/GetTokens';
+
 import { BuyIcpsButton } from './BuyIcpsButton';
 import { DepositICPsButton } from './DepositICPsButton';
 
