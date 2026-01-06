@@ -1,4 +1,4 @@
-import { NeuronInfo } from '@icp-sdk/canisters/nns';
+import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import { CircleAlert, Lock, Timer } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -86,10 +86,11 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
             }}
             role="button"
             tabIndex={0}
+            aria-label="Optimize neuron APY"
           >
             <p className="text-[13px] font-semibold">
               {formatPercentage(apy.cur)}{' '}
-              <span className="hidden sm:block">{t(($) => $.common.apy)} </span>
+              <span className="hidden sm:inline">{t(($) => $.common.apy)} </span>
             </p>
             {apy.cur < apy.max && <CircleAlert className="hidden size-4 sm:block" />}
           </div>
