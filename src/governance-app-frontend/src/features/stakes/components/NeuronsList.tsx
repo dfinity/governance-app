@@ -1,4 +1,4 @@
-import { NeuronInfo } from '@icp-sdk/canisters/nns';
+import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { Link } from '@tanstack/react-router';
 
 import { QueryStates } from '@components/QueryStates';

@@ -4,7 +4,7 @@ import { CircleAlert, Lock, Timer } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent, CardHeader } from '@components/Card';
-import { E8Sn, MILISECONDS_IN_SECOND } from '@constants/extra';
+import { E8Sn, MILLISECONDS_IN_SECOND } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
 import {
   getDissolvingTimeInSeconds,
@@ -38,7 +38,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
 
   const creationDate = neuron.fullNeuron?.createdTimestampSeconds
     ? new Date(
-        Number(neuron.fullNeuron.createdTimestampSeconds) * MILISECONDS_IN_SECOND,
+        Number(neuron.fullNeuron.createdTimestampSeconds) * MILLISECONDS_IN_SECOND,
       ).toLocaleDateString(undefined, {
         day: '2-digit',
         month: '2-digit',
@@ -71,7 +71,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
         </div>
         {nonNullish(apy) && (
           <div
-            aria-role="button"
+            role="button"
             className={cn(
               'flex items-center gap-2 rounded-sm border p-2',
 
@@ -82,11 +82,13 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
             )}
             onClick={(e) => {
               e.preventDefault();
+              e.stopPropagation();
               alert('@TODO: Implement optimization modal');
             }}
           >
             <span className="text-[13px] font-semibold">
-              {formatPercentage(apy.cur)} {t(($) => $.common.apy)}
+              {formatPercentage(apy.cur)}{' '}
+              <span className="hidden sm:block">{t(($) => $.common.apy)} </span>
             </span>
             {apy.cur < apy.max && <CircleAlert className="hidden size-4 sm:block" />}
           </div>
