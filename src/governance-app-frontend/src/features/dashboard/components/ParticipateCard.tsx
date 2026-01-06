@@ -1,3 +1,4 @@
+import { nonNullish } from '@dfinity/utils';
 import { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { Trans, useTranslation } from 'react-i18next';
 
@@ -6,29 +7,29 @@ import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
-import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
+import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronFreeMaturityE8s, getNeuronStakeE8s } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
 
+import { MaturitySymbol } from '@components/MaturitySymbol';
+import { useStakingRewards } from '@hooks/useStakingRewards';
+import { isStakingRewardDataReady, MaturityEstimatePeriod } from '@utils/staking-rewards';
 import { useWaveAnimation } from '../hooks/useWaveAnimation';
 
-// @TODO: Add endpoint to backend
-// Total value locked (TVL) in USD
-const TVL = 721974123;
-
-// @TODO: How do we display errors?
+// @TODO: How do we display errors loading data?
 export const ParticipateCard = () => {
   const { t } = useTranslation();
 
   const { tickerPrices } = useTickerPrices();
-  const transactionsQuery = useIcpIndexTransactions();
   const neuronsQuery = useGovernanceNeurons();
+  const balanceQuery = useIcpLedgerAccountBalance();
+  const stakingRewards = useStakingRewards();
 
   // Calculate Total Assets
-  const liquidBalance = transactionsQuery.data?.pages?.[0]?.response?.balance
-    ? bigIntDiv(transactionsQuery.data.pages[0].response.balance, E8Sn, 2)
+  const liquidBalance = nonNullish(balanceQuery.data?.response)
+    ? bigIntDiv(balanceQuery.data.response, E8Sn, 2)
     : 0;
 
   const neurons = neuronsQuery.data?.response || [];
@@ -49,7 +50,7 @@ export const ParticipateCard = () => {
   const icpPriceUsd = icpPrice ? formatNumber(icpPrice.usd) : undefined;
   const totalAssetsUsd = icpPrice ? formatNumber(totalAssets * icpPrice.usd) : undefined;
 
-  const isLoading = transactionsQuery.isLoading || neuronsQuery.isLoading;
+  const isLoading = balanceQuery.isLoading || neuronsQuery.isLoading;
 
   const { canvasRef, containerRef } = useWaveAnimation();
 
@@ -103,8 +104,8 @@ export const ParticipateCard = () => {
           </div>
 
           {/* Right: Metrics  */}
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <div className="flex min-w-[160px] flex-col rounded-xl border border-border/50 bg-white/50 p-3 text-right shadow-sm backdrop-blur-sm dark:bg-zinc-800/50">
+          <div className="grid w-full grid-cols-1 gap-3 xs:w-auto xs:grid-cols-2">
+            <div className="flex flex-col rounded-xl border border-border/50 bg-white/50 px-4 py-[10px] text-right shadow-sm backdrop-blur-sm xs:col-span-2 dark:bg-zinc-800/50">
               <span className="mb-1 text-[10px] font-bold text-muted-foreground uppercase">
                 {t(($) => $.home.icpUsd)}
               </span>
@@ -113,20 +114,33 @@ export const ParticipateCard = () => {
               </span>
             </div>
 
-            <a
-              href="https://dashboard.internetcomputer.org/neurons"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex min-w-[160px] flex-col rounded-xl border border-border/50 bg-white/50 p-3 text-right shadow-sm backdrop-blur-sm transition-all hover:bg-white/70 dark:bg-zinc-800/50 dark:hover:bg-zinc-800/70"
-              aria-label={t(($) => $.home.tvl.label)}
-            >
-              <span className="mb-1 text-[10px] font-bold text-muted-foreground uppercase">
-                {t(($) => $.home.tvl.title)}
+            <div className="flex flex-col gap-1 rounded-xl border border-border/50 bg-white/50 px-4 py-[10px] text-right shadow-sm backdrop-blur-sm dark:bg-zinc-800/50">
+              <span className="text-[10px] font-bold tracking-wide text-muted-foreground uppercase">
+                {t(($) => $.home.forecast.oneWeek)}
               </span>
-              <span className="text-lg font-semibold">
-                {`$${formatNumber(TVL, { minFraction: 0, maxFraction: 0 })}`}
+              <span className="flex items-center justify-end gap-1.5 text-lg font-semibold text-emerald-800 dark:text-emerald-400">
+                {isStakingRewardDataReady(stakingRewards) ? (
+                  `+${formatNumber(stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.WEEK) || 0)} `
+                ) : (
+                  <Skeleton className="h-7 w-16" />
+                )}
+                <MaturitySymbol />
               </span>
-            </a>
+            </div>
+
+            <div className="flex flex-col gap-1 rounded-xl border border-border/50 bg-white/50 px-4 py-[10px] text-right shadow-sm backdrop-blur-sm dark:bg-zinc-800/50">
+              <span className="text-[10px] font-bold tracking-wide text-muted-foreground uppercase">
+                {t(($) => $.home.forecast.oneYear)}
+              </span>
+              <span className="flex items-center justify-end gap-1.5 text-lg font-semibold text-emerald-800 dark:text-emerald-400">
+                {isStakingRewardDataReady(stakingRewards) ? (
+                  `+ ${formatNumber(stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) || 0)} `
+                ) : (
+                  <Skeleton className="h-7 w-16" />
+                )}
+                <MaturitySymbol />
+              </span>
+            </div>
           </div>
         </div>
       </CardContent>
