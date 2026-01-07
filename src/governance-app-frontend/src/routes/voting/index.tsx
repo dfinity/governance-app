@@ -99,13 +99,21 @@ function Voting() {
         </Button>
       </div>
 
+      {(neuronsQuery.isError || knownNeuronsQuery.isError) && (
+        <Alert variant="destructive">
+          <AlertTitle>{t(($) => $.voting.errors.loadFollowing)}</AlertTitle>
+        </Alert>
+      )}
+
       {!hasUserSetAdvanceMode && (
         <>
           {isNullish(followedNeuron) ? (
             <>
               <Alert variant="warning">
                 <AlertTitle className="font-semibold">{t(($) => $.common.important)}</AlertTitle>
-                <AlertDescription>{t(($) => $.voting.setupFollowingReminder)}</AlertDescription>
+                <AlertDescription>
+                  {t(($) => $.voting.noFollowing.setupFollowingReminder)}
+                </AlertDescription>
               </Alert>
 
               <div className="mt-6 flex flex-col items-center justify-center gap-4 text-center lg:mt-12">
@@ -122,9 +130,7 @@ function Voting() {
             <>
               <Alert variant="warning">
                 <AlertTitle className="font-semibold">{t(($) => $.common.caution)}</AlertTitle>
-                <AlertDescription>
-                  {t(($) => $.voting.warnings.following_mismatch)}
-                </AlertDescription>
+                <AlertDescription>{t(($) => $.voting.warnings.followingMismatch)}</AlertDescription>
               </Alert>
               {/* @TODO: Improve how we inform users that they have a mix of following */}
             </>
