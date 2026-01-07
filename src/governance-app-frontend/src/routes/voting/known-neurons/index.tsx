@@ -1,7 +1,7 @@
 import { KnownNeuron, NeuronId, Topic } from '@icp-sdk/canisters/nns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link, useBlocker } from '@tanstack/react-router';
-import { ArrowLeft, Users } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -9,8 +9,8 @@ import { toast } from 'sonner';
 import { getShowProposalUrlStatus } from '@features/proposals/utils';
 import { ExpandableNeuronCard } from '@features/voting/components/ExpandableNeuronCard';
 
-import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
+import { Skeleton } from '@components/Skeleton';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import useTitle from '@hooks/useTitle';
@@ -34,26 +34,22 @@ function KnownNeuronsList() {
 
   const { canister } = useNnsGovernance();
 
-  // Fetch all user neurons
   const { data: neurons } = useGovernanceNeurons({
     includeEmptyNeurons: false,
     certified: false,
   });
-
-  const { data } = useGovernanceKnownNeurons();
+  const knownNeuronsQuery = useGovernanceKnownNeurons();
 
   const [selectedNeuronId, setSelectedNeuronId] = useState<string | null>(null);
 
-  const isProcessing = selectedNeuronId !== null;
-
   useBlocker({
     shouldBlockFn: () => {
-      if (!isProcessing) return false;
+      if (!updateFollowingMutation.isPending) return false;
       // @TODO: Improve UI
       const shouldLeave = window.confirm(t(($) => $.knownNeurons.confirmNavigation));
       return !shouldLeave;
     },
-    enableBeforeUnload: () => isProcessing,
+    // enableBeforeUnload: () => ,
   });
 
   const updateFollowingMutation = useMutation<
@@ -126,8 +122,6 @@ function KnownNeuronsList() {
     setSelectedNeuronId(null);
   };
 
-  const hasNeurons = (neurons?.response?.length ?? 0) > 0;
-
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -143,37 +137,23 @@ function KnownNeuronsList() {
         <p className="text-sm text-muted-foreground">{t(($) => $.knownNeurons.description)}</p>
       </div>
 
-      {!hasNeurons && (
-        <div className="flex flex-col gap-6">
-          <Alert variant="warning">
-            <AlertTitle className="font-semibold">{t(($) => $.common.important)}</AlertTitle>
-            <AlertDescription>{t(($) => $.voting.setupFollowingReminder)}</AlertDescription>
-          </Alert>
-
-          <div className="mt-6 flex flex-col items-center justify-center gap-4 text-center lg:mt-12">
-            <div className="flex h-18 w-18 items-center justify-center rounded-full border-2 bg-muted">
-              <Users className="h-10 w-10 text-muted-foreground" />
-            </div>
-            <h3 className="text-2xl font-semibold">{t(($) => $.voting.noFollowing.title)}</h3>
-            <p className="max-w-sm font-light text-muted-foreground">
-              {t(($) => $.voting.noFollowing.description)}
-            </p>
+      <div className="flex flex-col gap-4">
+        {knownNeuronsQuery.isLoading ? (
+          <div className="flex items-center gap-4 p-4">
+            <Skeleton className="h-6 w-6 rounded-2xl" />
+            <Skeleton className="h-8 w-80 rounded" />
           </div>
-        </div>
-      )}
-
-      {hasNeurons && (
-        <div className="flex flex-col gap-4">
-          {data?.response?.map((neuron) => (
+        ) : (
+          knownNeuronsQuery.data?.response?.map((neuron) => (
             <ExpandableNeuronCard
               key={neuron.id.toString()}
               neuron={neuron}
               isSelected={selectedNeuronId === neuron.id.toString()}
               onSelect={handleSelect}
             />
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 }
