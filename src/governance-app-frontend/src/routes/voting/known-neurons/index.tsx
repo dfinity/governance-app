@@ -46,8 +46,8 @@ function KnownNeuronsList() {
     shouldBlockFn: () => {
       if (!updateFollowingMutation.isPending) return false;
       // @TODO: Improve UI
-      const shouldLeave = window.confirm(t(($) => $.knownNeurons.confirmNavigation));
-      return !shouldLeave;
+      window.alert(t(($) => $.knownNeurons.confirmNavigation));
+      return true;
     },
     // enableBeforeUnload: () => ,
   });

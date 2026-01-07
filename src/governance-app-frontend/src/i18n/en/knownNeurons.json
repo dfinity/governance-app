@@ -8,5 +8,5 @@
     "success": "Successfully updated the following for {{neuronId}}",
     "error": "Failed to set the following for {{neuronId}}"
   },
-  "confirmNavigation": "Follow process in progress. Are you sure you want to leave?"
+  "confirmNavigation": "Follow process in progress."
 }
