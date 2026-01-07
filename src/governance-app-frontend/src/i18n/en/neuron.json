@@ -19,6 +19,7 @@
   "stakedAmount": "Staked amount",
   "locked": "Locked",
   "dissolving": "Dissolving",
+  "following": "Following",
   "errors": {
     "neuronNotFound": "Neuron #{{neuronId}} not found."
   },

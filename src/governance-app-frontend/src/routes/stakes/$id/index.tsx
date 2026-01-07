@@ -1,5 +1,5 @@
-import { NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
 import { isNullish, secondsToDuration } from '@dfinity/utils';
+import { NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
@@ -159,6 +159,13 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
                 </span>
               ) : null}
             </span>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-muted-foreground uppercase">
+              {t(($) => $.neuron.following)}
+            </span>
+            <span>{neuron.fullNeuron?.followees.join(', ')}</span>
           </div>
         </CardContent>
         <CardFooter className="flex flex-wrap items-center gap-2 border-t bg-muted/20 p-6">

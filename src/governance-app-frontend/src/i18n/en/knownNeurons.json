@@ -2,5 +2,10 @@
   "title": "Choose a Neuron to Follow",
   "description": "Select one trusted organization to vote on your behalf for all your stakes",
   "success": "Now following {{name}} for all your stakes",
-  "seeDetails": "See details"
+  "seeDetails": "See details",
+  "followingProgress": {
+    "loading": "Setting the following for neuron {{neuronId}}...",
+    "success": "Successfully updated updated the following of neuron {{neuronId}}",
+    "error": "Failed to set the following for neuron {{neuronId}}"
+  }
 }
