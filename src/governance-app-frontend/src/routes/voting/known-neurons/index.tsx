@@ -14,7 +14,7 @@ import { Skeleton } from '@components/Skeleton';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import useTitle from '@hooks/useTitle';
-import { delay } from '@utils/async';
+import { persistentNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
 export const Route = createFileRoute('/voting/known-neurons/')({
@@ -33,10 +33,7 @@ function KnownNeuronsList() {
 
   const { canister } = useNnsGovernance();
 
-  const { data: neurons } = useGovernanceNeurons({
-    includeEmptyNeurons: false,
-    certified: false,
-  });
+  const neuronsQuery = useGovernanceNeurons();
   const knownNeuronsQuery = useGovernanceKnownNeurons();
 
   const [selectedNeuronId, setSelectedNeuronId] = useState<string | null>(null);
@@ -76,12 +73,12 @@ function KnownNeuronsList() {
   });
 
   const handleSelect = async (knownNeuron: KnownNeuron) => {
-    if (!neurons?.response?.length || !canister) return;
+    if (!neuronsQuery?.data?.certified || !canister) return;
+    const neurons = neuronsQuery.data.response;
 
     setSelectedNeuronId(knownNeuron.id.toString());
 
-    // Sequential processing
-    for (const neuron of neurons.response) {
+    for (const neuron of neurons) {
       const promise = updateFollowingMutation.mutateAsync({
         neuronId: neuron.neuronId,
         knownNeuronId: knownNeuron.id,
@@ -97,6 +94,7 @@ function KnownNeuronsList() {
         error: t(($) => $.knownNeurons.followingProgress.error, {
           neuronId: neuron.neuronId.toString(),
         }),
+        ...persistentNotification,
       });
 
       // Wait for the current promise to complete before starting the next one
@@ -105,8 +103,6 @@ function KnownNeuronsList() {
       } catch (error) {
         // Mutation will be retried 3 times, what if it keeps failing?
         console.error(`Failed to follow for neuron ${neuron.neuronId}:`, error);
-      } finally {
-        await delay(300);
       }
     }
 
@@ -145,7 +141,7 @@ function KnownNeuronsList() {
               neuron={neuron}
               isSelected={selectedNeuronId === neuron.id.toString()}
               onSelect={handleSelect}
-              isDisabled={updateFollowingMutation.isPending}
+              isDisabled={updateFollowingMutation.isPending || !neuronsQuery.data?.certified}
             />
           ))
         )}

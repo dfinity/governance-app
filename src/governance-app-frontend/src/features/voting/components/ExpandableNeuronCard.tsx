@@ -43,6 +43,7 @@ export const ExpandableNeuronCard = ({ neuron, isSelected, onSelect, isDisabled 
         isDisabled ? 'cursor-not-allowed opacity-50' : 'hover:border-muted-foreground',
       )}
       aria-disabled={isDisabled}
+      role="button"
       onClick={() => !isDisabled && onSelect(neuron)}
     >
       <div className="flex gap-4">
