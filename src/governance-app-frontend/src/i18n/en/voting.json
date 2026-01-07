@@ -7,7 +7,6 @@
   "noFollowing": {
     "title": "No Following Selected",
     "description": "Select a trusted organization to automatically vote on your behalf and earn rewards.",
-
     "setupFollowingReminder": "You may lose rewards by not following any neurons. Select a trusted organization to automatically vote on your behalf."
   },
   "proposals": {
@@ -21,6 +20,6 @@
     "followingMismatch": "Neurons have different following configurations"
   },
   "errors": {
-    "loadFollowing": "Failed to load following information."
+    "loadFollowing": "Unable to load following data. Please try refreshing the page."
   }
 }

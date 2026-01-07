@@ -101,7 +101,8 @@ function Voting() {
 
       {(neuronsQuery.isError || knownNeuronsQuery.isError) && (
         <Alert variant="destructive">
-          <AlertTitle>{t(($) => $.voting.errors.loadFollowing)}</AlertTitle>
+          <AlertTitle>{t(($) => $.common.loadingError)}</AlertTitle>
+          <AlertDescription>{t(($) => $.voting.errors.loadFollowing)}</AlertDescription>
         </Alert>
       )}
 
