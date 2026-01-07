@@ -12,5 +12,5 @@ export const sortKnownNeurons = (a: KnownNeuron, b: KnownNeuron) => {
   if (aHasTopics && !bHasTopics) return -1;
   if (!aHasTopics && bHasTopics) return 1;
 
-  return Number(a.id - b.id);
+  return a.id < b.id ? -1 : 1;
 };
