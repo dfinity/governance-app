@@ -14,7 +14,7 @@ import { Skeleton } from '@components/Skeleton';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import useTitle from '@hooks/useTitle';
-import { persistentNotification } from '@utils/notification';
+import { persistentNotification, warningNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
 export const Route = createFileRoute('/voting/known-neurons/')({
@@ -75,6 +75,13 @@ function KnownNeuronsList() {
   const handleSelect = async (knownNeuron: KnownNeuron) => {
     if (!neuronsQuery?.data?.certified || !canister) return;
     const neurons = neuronsQuery.data.response;
+
+    if (neurons.length === 0) {
+      warningNotification({
+        description: t(($) => $.voting.warnings.stakeRequired),
+      });
+      return;
+    }
 
     setSelectedNeuronId(knownNeuron.id.toString());
 
