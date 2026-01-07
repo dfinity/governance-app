@@ -59,7 +59,7 @@ function KnownNeuronsList() {
       if (!canister) throw new Error(t(($) => $.common.unknownError));
       await canister.setFollowing({
         neuronId,
-        // Set following for all topics but "SNS and Neurons' Fund"
+        // Setting the following for topics `Unspecified` and `Governance` covers all topics but `SNS and Neurons' Fund`
         topicFollowing: [
           {
             topic: Topic.Unspecified,
