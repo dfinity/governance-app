@@ -66,6 +66,7 @@ function KnownNeuronsList() {
         ],
       });
     },
+    retry: 3,
   });
 
   const handleSelect = async (knownNeuron: KnownNeuron) => {
