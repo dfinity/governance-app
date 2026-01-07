@@ -8,14 +8,9 @@ A decentralized governance application built on the Internet Computer, featuring
 - [Rust](https://rustup.rs/) (for backend development)
 - [nvm](https://github.com/nvm-sh/nvm)(Node Version Manager)
 
-## Quick Start
+## Documentation
 
-For local development you can run the following commands:
-
-```bash
-nvm use
-npm ci
-npm start
-```
-
-Check the `docs` folder for more detailed instructions on setting up your development environment and working with the codebase.
+- [Frontend Documentation](./docs/FE.md)
+- [Development Setup](./docs/DEVELOP.md)
+- [Deploy](./docs/DEPLOY.md)
+- [Reproducibility](./docs/REPRODUCIBILITY.md)

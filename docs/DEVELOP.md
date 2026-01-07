@@ -32,7 +32,8 @@ It can be installed with `dfxvm install 0.30.1`.
 2. **Start the frontend:**
 
    ```sh
-   npm start
+   npm run start:local 		# Starts the frontend connected to the local replica
+	 npm run start:mainnet 	# Starts the frontend connected to the mainnet
    ```
 
 ## DevEnv
