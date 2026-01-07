@@ -4,9 +4,9 @@
   "success": "Now following {{name}} for all your stakes",
   "seeDetails": "See details",
   "followingProgress": {
-    "loading": "Setting the following for {{neuronId}}...",
-    "success": "Successfully updated the following for {{neuronId}}",
-    "error": "Failed to set the following for {{neuronId}}"
+    "loading": "Setting follow settings for {{neuronId}}...",
+    "success": "Successfully updated follow settings for {{neuronId}}",
+    "error": "Failed to set follow settings for {{neuronId}}"
   },
   "confirmNavigation": "Follow process in progress."
 }

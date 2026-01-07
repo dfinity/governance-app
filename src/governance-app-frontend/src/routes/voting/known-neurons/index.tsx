@@ -145,6 +145,7 @@ function KnownNeuronsList() {
               neuron={neuron}
               isSelected={selectedNeuronId === neuron.id.toString()}
               onSelect={handleSelect}
+              isDisabled={updateFollowingMutation.isPending}
             />
           ))
         )}
