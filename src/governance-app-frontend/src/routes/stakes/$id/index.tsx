@@ -165,7 +165,12 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
             <span className="text-sm font-medium text-muted-foreground uppercase">
               {t(($) => $.neuron.following)}
             </span>
-            <span>{neuron.fullNeuron?.followees?.join(', ')}</span>
+            <span>
+              {neuron.fullNeuron?.followees
+                ?.flatMap((f) => f.followees)
+                ?.map((f) => f.toString())
+                ?.join(', ')}
+            </span>
           </div>
         </CardContent>
         <CardFooter className="flex flex-wrap items-center gap-2 border-t bg-muted/20 p-6">

@@ -1,15 +1,13 @@
 {
   "title": "Following",
+  "following": "Following",
+  "non_known_neuron": "Non known neuron {{neuronId}}",
   "description": "These organizations will automatically vote on your behalf, allowing you to earn rewards.",
   "cta": "Manage following",
-  "setupFollowingReminder": "You may lose rewards by not following any neurons. Select a trusted organization to automatically vote on your behalf.",
-  "alert": {
-    "title": "Important",
-    "description": "You may lose rewards by not following any neurons. Select a trusted organization to automatically vote on your behalf."
-  },
   "noFollowing": {
     "title": "No Following Selected",
-    "description": "Select a trusted organization to automatically vote on your behalf and earn rewards."
+    "description": "Select a trusted organization to automatically vote on your behalf and earn rewards.",
+    "setupFollowingReminder": "You may lose rewards by not following any neurons. Select a trusted organization to automatically vote on your behalf."
   },
   "proposals": {
     "title": "Proposals",
@@ -18,6 +16,10 @@
     "ctaHide": "Hide proposals"
   },
   "warnings": {
-    "stakeRequired": "You need at least one stake to follow a neuron. Please stake ICP first."
+    "stakeRequired": "You need at least one stake to follow a neuron. Please stake ICP first.",
+    "followingMismatch": "Neurons have different following configurations"
+  },
+  "errors": {
+    "loadFollowing": "Unable to load following data. Please try refreshing the page."
   }
 }
