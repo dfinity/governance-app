@@ -11,12 +11,13 @@ import { cn } from '@utils/shadcn';
 import { safeParseUrl } from '@utils/urls';
 
 type Props = {
-  neuron: KnownNeuron;
+  isDisabled: boolean;
   isSelected: boolean;
+  neuron: KnownNeuron;
   onSelect: (neuron: KnownNeuron) => void;
 };
 
-export const ExpandableNeuronCard = ({ neuron, isSelected, onSelect }: Props) => {
+export const ExpandableNeuronCard = ({ neuron, isSelected, onSelect, isDisabled }: Props) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleExpanded = (e: React.MouseEvent) => {
@@ -37,10 +38,13 @@ export const ExpandableNeuronCard = ({ neuron, isSelected, onSelect }: Props) =>
   return (
     <Card
       className={cn(
-        'h-auto cursor-pointer border-2 p-4 transition-all hover:border-muted-foreground',
+        'h-auto cursor-pointer border-2 p-4 transition-all',
         isSelected && 'border-muted-foreground',
+        isDisabled ? 'cursor-not-allowed opacity-50' : 'hover:border-muted-foreground',
       )}
-      onClick={() => onSelect(neuron)}
+      aria-disabled={isDisabled}
+      role="button"
+      onClick={() => !isDisabled && onSelect(neuron)}
     >
       <div className="flex gap-4">
         <div className="mt-2 flex-shrink-0">
