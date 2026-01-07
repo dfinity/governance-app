@@ -14,7 +14,10 @@ import { InViewSentinel } from '@components/InViewSentinel';
 import { QueryStates } from '@components/QueryStates';
 import { Separator } from '@components/Separator';
 import { SkeletonLoader } from '@components/SkeletonLoader';
+import { isNullish, nonNullish } from '@dfinity/utils';
+import { ExpandableNeuronCard } from '@features/voting/components/ExpandableNeuronCard';
 import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/governance';
+import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import useTitle from '@hooks/useTitle';
 import { warningNotification } from '@utils/notification';
 
@@ -27,14 +30,12 @@ export const Route = createFileRoute('/voting/')({
   },
 });
 
+// @TODO: Derive this data from persisted user setting "advance mode", and user data(configuration of neurons).
+const hasUserSetAdvanceMode = false;
+
 function Voting() {
   const { t } = useTranslation();
   useTitle(t(($) => $.common.proposalsList));
-
-  // @TODO: Derive this data from persisted user setting "advance mode", and user data(configuration of neurons).
-  const hasUserSetAdvanceMode = false;
-  // @TODO: Based on the previous derive if the user has the Empty state or not.
-  const hasUserSetUpFollowing = false;
 
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
@@ -44,13 +45,23 @@ function Voting() {
   const votableProposals = useVotableLoadedProposals();
   const proposals = useGovernanceProposals();
 
-  const { data: neurons } = useGovernanceNeurons({
-    includeEmptyNeurons: false,
-    certified: false,
-  });
+  const neuronsQuery = useGovernanceNeurons();
+  const knownNeuronsQuery = useGovernanceKnownNeurons();
+
+  const userNeurons = neuronsQuery.data?.response ?? [];
+  const userFollowees = userNeurons
+    .flatMap((n) => n.fullNeuron?.followees)
+    .filter(nonNullish)
+    .flatMap((n) => n.followees);
+
+  const firstFollowee = userFollowees[0];
+  const hasConsistentFollowees = userFollowees.every((f) => f === firstFollowee);
+  const followedNeuron = hasConsistentFollowees
+    ? knownNeuronsQuery.data?.response?.find(({ id }) => id === firstFollowee)
+    : firstFollowee;
 
   const handleManageFollowing = () => {
-    if (!neurons?.response?.length) {
+    if (!neuronsQuery?.data?.response?.length) {
       warningNotification({
         description: t(($) => $.voting.warnings.stakeRequired),
       });
@@ -86,22 +97,53 @@ function Voting() {
           {t(($) => $.voting.cta)}
         </Button>
       </div>
-      {!hasUserSetAdvanceMode && !hasUserSetUpFollowing && (
+      {!hasUserSetAdvanceMode && (
         <>
-          <Alert variant="warning">
-            <AlertTitle className="font-semibold">{t(($) => $.common.important)}</AlertTitle>
-            <AlertDescription>{t(($) => $.voting.setupFollowingReminder)}</AlertDescription>
-          </Alert>
+          {isNullish(followedNeuron) && (
+            <>
+              <Alert variant="warning">
+                <AlertTitle className="font-semibold">{t(($) => $.common.important)}</AlertTitle>
+                <AlertDescription>{t(($) => $.voting.setupFollowingReminder)}</AlertDescription>
+              </Alert>
 
-          <div className="mt-6 flex flex-col items-center justify-center gap-4 text-center lg:mt-12">
-            <div className="flex h-18 w-18 items-center justify-center rounded-full border-2 bg-muted">
-              <Users className="h-10 w-10 text-muted-foreground" />
+              <div className="mt-6 flex flex-col items-center justify-center gap-4 text-center lg:mt-12">
+                <div className="flex h-18 w-18 items-center justify-center rounded-full border-2 bg-muted">
+                  <Users className="h-10 w-10 text-muted-foreground" />
+                </div>
+                <h3 className="text-2xl font-semibold">{t(($) => $.voting.noFollowing.title)}</h3>
+                <p className="max-w-sm font-light text-muted-foreground">
+                  {t(($) => $.voting.noFollowing.description)}
+                </p>
+              </div>
+            </>
+          )}
+
+          {!hasConsistentFollowees && (
+            <Alert variant="warning">
+              <AlertTitle className="font-semibold">{t(($) => $.common.caution)}</AlertTitle>
+              <AlertDescription>{t(($) => $.voting.warnings.following_mismatch)}</AlertDescription>
+            </Alert>
+          )}
+
+          {nonNullish(followedNeuron) && (
+            <div className="flex flex-col gap-4">
+              <h3 className="text-lg font-semibold">{t(($) => $.voting.following)}</h3>
+              {typeof followedNeuron === 'bigint' ? (
+                <Card className="p-4">
+                  <p className="font-semibold">
+                    {t(($) => $.voting.unknown_neuron)}: {followedNeuron.toString()}
+                  </p>
+                </Card>
+              ) : (
+                <ExpandableNeuronCard
+                  neuron={followedNeuron}
+                  isSelected={true}
+                  onSelect={() => {}}
+                  isDisabled={false}
+                />
+              )}
             </div>
-            <h3 className="text-2xl font-semibold">{t(($) => $.voting.noFollowing.title)}</h3>
-            <p className="max-w-sm font-light text-muted-foreground">
-              {t(($) => $.voting.noFollowing.description)}
-            </p>
-          </div>
+          )}
         </>
       )}
 

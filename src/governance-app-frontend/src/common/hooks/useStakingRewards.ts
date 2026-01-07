@@ -27,8 +27,6 @@ export const useStakingRewards = () => {
   const [data, setData] = useState<StakingRewardResult>({ loading: true });
 
   useEffect(() => {
-    setData({ loading: true });
-
     // We defer the calculation to the next tick to avoid blocking the main thread
     // on navigation. This is a heavy calculation that freezes the UI if done synchronously.
     const process = setTimeout(() => {

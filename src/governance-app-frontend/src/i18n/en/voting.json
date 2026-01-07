@@ -1,5 +1,7 @@
 {
   "title": "Following",
+  "following": "Following",
+  "unknown_neuron": "Unknown Neuron",
   "description": "These organizations will automatically vote on your behalf, allowing you to earn rewards.",
   "cta": "Manage following",
   "setupFollowingReminder": "You may lose rewards by not following any neurons. Select a trusted organization to automatically vote on your behalf.",
@@ -18,6 +20,7 @@
     "ctaHide": "Hide proposals"
   },
   "warnings": {
-    "stakeRequired": "You need at least one stake to follow a neuron. Please stake ICP first."
+    "stakeRequired": "You need at least one stake to follow a neuron. Please stake ICP first.",
+    "following_mismatch": "Neurons have different following configurations"
   }
 }
