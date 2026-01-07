@@ -1,7 +1,7 @@
 {
   "title": "Following",
   "following": "Following",
-  "unknown_neuron": "Unknown Neuron",
+  "non_known_neuron": "Non Known Neuron {{neuronId}}",
   "description": "These organizations will automatically vote on your behalf, allowing you to earn rewards.",
   "cta": "Manage following",
   "setupFollowingReminder": "You may lose rewards by not following any neurons. Select a trusted organization to automatically vote on your behalf.",

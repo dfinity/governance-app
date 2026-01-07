@@ -1,3 +1,4 @@
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Users } from 'lucide-react';
 import { useEffect, useRef } from 'react';
@@ -6,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
 import { useVotableLoadedProposals } from '@features/proposals/hooks/useVotableLoadedProposals';
 import { getShowProposalUrlStatus } from '@features/proposals/utils';
+import { ExpandableNeuronCard } from '@features/voting/components/ExpandableNeuronCard';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
@@ -14,8 +16,6 @@ import { InViewSentinel } from '@components/InViewSentinel';
 import { QueryStates } from '@components/QueryStates';
 import { Separator } from '@components/Separator';
 import { SkeletonLoader } from '@components/SkeletonLoader';
-import { isNullish, nonNullish } from '@dfinity/utils';
-import { ExpandableNeuronCard } from '@features/voting/components/ExpandableNeuronCard';
 import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import useTitle from '@hooks/useTitle';
@@ -97,6 +97,7 @@ function Voting() {
           {t(($) => $.voting.cta)}
         </Button>
       </div>
+
       {!hasUserSetAdvanceMode && (
         <>
           {isNullish(followedNeuron) && (
@@ -129,9 +130,9 @@ function Voting() {
             <div className="flex flex-col gap-4">
               <h3 className="text-lg font-semibold">{t(($) => $.voting.following)}</h3>
               {typeof followedNeuron === 'bigint' ? (
-                <Card className="p-4">
-                  <p className="font-semibold">
-                    {t(($) => $.voting.unknown_neuron)}: {followedNeuron.toString()}
+                <Card className="h-auto p-4">
+                  <p className="font-semibold capitalize">
+                    {t(($) => $.voting.non_known_neuron, { neuronId: 100 })}
                   </p>
                 </Card>
               ) : (
