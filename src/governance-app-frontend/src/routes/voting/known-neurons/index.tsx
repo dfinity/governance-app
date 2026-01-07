@@ -15,7 +15,6 @@ import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import useTitle from '@hooks/useTitle';
 import { delay } from '@utils/async';
-import { successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
 export const Route = createFileRoute('/voting/known-neurons/')({
@@ -49,7 +48,6 @@ function KnownNeuronsList() {
       window.alert(t(($) => $.knownNeurons.confirmNavigation));
       return true;
     },
-    // enableBeforeUnload: () => ,
   });
 
   const updateFollowingMutation = useMutation<
@@ -105,7 +103,7 @@ function KnownNeuronsList() {
       try {
         await promise;
       } catch (error) {
-        // Continue to next neuron even if one fails
+        // Mutation will be retried 3 times, what if it keeps failing?
         console.error(`Failed to follow for neuron ${neuron.neuronId}:`, error);
       } finally {
         await delay(300);
@@ -116,9 +114,6 @@ function KnownNeuronsList() {
       queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
     });
 
-    successNotification({
-      description: t(($) => $.knownNeurons.success, { name: knownNeuron.name }),
-    });
     setSelectedNeuronId(null);
   };
 
