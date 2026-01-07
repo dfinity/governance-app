@@ -55,10 +55,12 @@ function Voting() {
     .flatMap((n) => n.followees);
 
   const firstFollowee = userFollowees[0];
-  const hasConsistentFollowees = userFollowees.every((f) => f === firstFollowee);
-  const followedNeuron = hasConsistentFollowees
-    ? knownNeuronsQuery.data?.response?.find(({ id }) => id === firstFollowee)
-    : firstFollowee;
+  const hasConsistentFollowees =
+    userFollowees.length > 0 && userFollowees.every((f) => f === firstFollowee);
+  const followedNeuron =
+    userFollowees.length > 0
+      ? (knownNeuronsQuery.data?.response?.find(({ id }) => id === firstFollowee) ?? firstFollowee)
+      : undefined;
 
   const handleManageFollowing = () => {
     if (!neuronsQuery?.data?.response?.length) {
@@ -100,7 +102,7 @@ function Voting() {
 
       {!hasUserSetAdvanceMode && (
         <>
-          {isNullish(followedNeuron) && (
+          {isNullish(followedNeuron) ? (
             <>
               <Alert variant="warning">
                 <AlertTitle className="font-semibold">{t(($) => $.common.important)}</AlertTitle>
@@ -117,22 +119,23 @@ function Voting() {
                 </p>
               </div>
             </>
-          )}
-
-          {!hasConsistentFollowees && (
-            <Alert variant="warning">
-              <AlertTitle className="font-semibold">{t(($) => $.common.caution)}</AlertTitle>
-              <AlertDescription>{t(($) => $.voting.warnings.following_mismatch)}</AlertDescription>
-            </Alert>
-          )}
-
-          {nonNullish(followedNeuron) && (
+          ) : !hasConsistentFollowees ? (
+            <>
+              <Alert variant="warning">
+                <AlertTitle className="font-semibold">{t(($) => $.common.caution)}</AlertTitle>
+                <AlertDescription>
+                  {t(($) => $.voting.warnings.following_mismatch)}
+                </AlertDescription>
+              </Alert>
+              {/* @TODO: Improve how we inform users that they have a mix of following */}
+            </>
+          ) : (
             <div className="flex flex-col gap-4">
               <h3 className="text-lg font-semibold">{t(($) => $.voting.following)}</h3>
               {typeof followedNeuron === 'bigint' ? (
                 <Card className="h-auto p-4">
                   <p className="font-semibold capitalize">
-                    {t(($) => $.voting.non_known_neuron, { neuronId: 100 })}
+                    {t(($) => $.voting.non_known_neuron, { neuronId: followedNeuron.toString() })}
                   </p>
                 </Card>
               ) : (
