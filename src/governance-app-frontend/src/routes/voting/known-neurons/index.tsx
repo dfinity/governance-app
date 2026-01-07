@@ -11,6 +11,7 @@ import { ExpandableNeuronCard } from '@features/voting/components/ExpandableNeur
 
 import { Button } from '@components/button';
 import { Skeleton } from '@components/Skeleton';
+import { sortKnownNeurons } from '@features/voting/utils/knownNeurons';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import useTitle from '@hooks/useTitle';
@@ -142,15 +143,17 @@ function KnownNeuronsList() {
             <Skeleton className="h-8 w-80 rounded" />
           </div>
         ) : (
-          knownNeuronsQuery.data?.response?.map((neuron) => (
-            <ExpandableNeuronCard
-              key={neuron.id.toString()}
-              neuron={neuron}
-              isSelected={selectedNeuronId === neuron.id.toString()}
-              onSelect={handleSelect}
-              isDisabled={updateFollowingMutation.isPending || !neuronsQuery.data?.certified}
-            />
-          ))
+          knownNeuronsQuery.data?.response
+            ?.toSorted(sortKnownNeurons)
+            ?.map((neuron) => (
+              <ExpandableNeuronCard
+                key={neuron.id.toString()}
+                neuron={neuron}
+                isSelected={selectedNeuronId === neuron.id.toString()}
+                onSelect={handleSelect}
+                isDisabled={updateFollowingMutation.isPending || !neuronsQuery.data?.certified}
+              />
+            ))
         )}
       </div>
     </div>

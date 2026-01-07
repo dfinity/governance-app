@@ -2,3 +2,5 @@ import { SECONDS_IN_YEAR } from './extra';
 
 export const ICP_MIN_DISSOLVE_DELAY_SECONDS = SECONDS_IN_YEAR / 2;
 export const ICP_MAX_DISSOLVE_DELAY_SECONDS = SECONDS_IN_YEAR * 8;
+
+export const DFINITY_NEURON_ID = 27n;
