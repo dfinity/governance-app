@@ -56,11 +56,10 @@ function Voting() {
 
   const firstFollowee = userFollowees[0];
   const hasConsistentFollowees =
-    userFollowees.length > 0 && userFollowees.every((f) => f === firstFollowee);
-  const followedNeuron =
-    userFollowees.length > 0
-      ? (knownNeuronsQuery.data?.response?.find(({ id }) => id === firstFollowee) ?? firstFollowee)
-      : undefined;
+    nonNullish(firstFollowee) && userFollowees.every((f) => f === firstFollowee);
+  const followedNeuron = nonNullish(firstFollowee)
+    ? (knownNeuronsQuery.data?.response?.find(({ id }) => id === firstFollowee) ?? firstFollowee)
+    : undefined;
 
   const handleManageFollowing = () => {
     if (!neuronsQuery?.data?.response?.length) {
