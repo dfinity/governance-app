@@ -1,5 +1,5 @@
-import { nonNullish } from '@dfinity/utils';
 import { GovernanceCachedMetrics } from '@icp-sdk/canisters/nns';
+import { nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useState } from 'react';
 
