@@ -16,12 +16,7 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from '@components/ResponsiveDialog';
-import {
-  E8Sn,
-  ICP_MIN_TRANSFER_AMOUNT,
-  ICP_TRANSACTION_FEE,
-  ICP_TRANSACTION_PROPAGATION_DELAY_MS,
-} from '@constants/extra';
+import { E8Sn, ICP_TRANSACTION_FEE, ICP_TRANSACTION_PROPAGATION_DELAY_MS } from '@constants/extra';
 import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
 import { delay } from '@utils/async';
 import { bigIntMul } from '@utils/bigInt';
@@ -80,10 +75,7 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
   };
 
   const canTransfer =
-    balance >= ICP_MIN_TRANSFER_AMOUNT + ICP_TRANSACTION_FEE &&
-    ledgerReady &&
-    ledgerAuthenticated &&
-    !isPending;
+    balance > ICP_TRANSACTION_FEE && ledgerReady && ledgerAuthenticated && !isPending;
   const max = balance - ICP_TRANSACTION_FEE;
 
   const handleAccountChange = (value: string) => {
@@ -100,7 +92,7 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
     setAmountError('');
     if (!value) return;
     const numericValue = Number(value);
-    if (numericValue < ICP_MIN_TRANSFER_AMOUNT || numericValue > max) {
+    if (numericValue <= 0 || numericValue > max) {
       setAmountError(t(($) => $.account.amountError));
     }
   };
@@ -158,7 +150,7 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
 
             <p className="text-xs text-muted-foreground">
               {t(($) => $.account.transactionHint, {
-                min: ICP_MIN_TRANSFER_AMOUNT,
+                min: ICP_TRANSACTION_FEE,
                 max: max,
                 fee: ICP_TRANSACTION_FEE,
               })}
