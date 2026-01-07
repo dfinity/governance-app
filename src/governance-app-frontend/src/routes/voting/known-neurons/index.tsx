@@ -8,10 +8,10 @@ import { toast } from 'sonner';
 
 import { getShowProposalUrlStatus } from '@features/proposals/utils';
 import { ExpandableNeuronCard } from '@features/voting/components/ExpandableNeuronCard';
+import { sortKnownNeurons } from '@features/voting/utils/knownNeurons';
 
 import { Button } from '@components/button';
 import { Skeleton } from '@components/Skeleton';
-import { sortKnownNeurons } from '@features/voting/utils/knownNeurons';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import useTitle from '@hooks/useTitle';

@@ -2,6 +2,7 @@ import { KnownNeuron } from '@icp-sdk/canisters/nns';
 import { describe, expect, it } from 'vitest';
 
 import { DFINITY_NEURON_ID } from '@constants/neuron';
+
 import { sortKnownNeurons } from './knownNeurons';
 
 describe('sortKnownNeurons', () => {

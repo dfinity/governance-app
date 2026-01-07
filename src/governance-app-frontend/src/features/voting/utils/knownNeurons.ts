@@ -1,5 +1,6 @@
-import { DFINITY_NEURON_ID } from '@constants/neuron';
 import { KnownNeuron } from '@icp-sdk/canisters/nns';
+
+import { DFINITY_NEURON_ID } from '@constants/neuron';
 
 export const sortKnownNeurons = (a: KnownNeuron, b: KnownNeuron) => {
   if (a.id === DFINITY_NEURON_ID) return -1;
