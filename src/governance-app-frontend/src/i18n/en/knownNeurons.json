@@ -7,5 +7,6 @@
     "loading": "Setting the following for neuron {{neuronId}}...",
     "success": "Successfully updated updated the following of neuron {{neuronId}}",
     "error": "Failed to set the following for neuron {{neuronId}}"
-  }
+  },
+  "confirmNavigation": "Follow process in progress. Are you sure you want to leave?"
 }

@@ -1,6 +1,6 @@
 import { KnownNeuron, NeuronId, Topic } from '@icp-sdk/canisters/nns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, Link, useBlocker } from '@tanstack/react-router';
 import { ArrowLeft, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -43,6 +43,18 @@ function KnownNeuronsList() {
   const { data } = useGovernanceKnownNeurons();
 
   const [selectedNeuronId, setSelectedNeuronId] = useState<string | null>(null);
+
+  const isProcessing = selectedNeuronId !== null;
+
+  useBlocker({
+    shouldBlockFn: () => {
+      if (!isProcessing) return false;
+      // @TODO: Improve UI
+      const shouldLeave = window.confirm(t(($) => $.knownNeurons.confirmNavigation));
+      return !shouldLeave;
+    },
+    enableBeforeUnload: () => isProcessing,
+  });
 
   const updateFollowingMutation = useMutation<
     void,
