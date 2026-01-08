@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { getShowProposalUrlStatus } from '@features/proposals/utils';
-import { KnownNeuronCard } from '@features/voting/components/ExpandableNeuronCard';
+import { KnownNeuronCard } from '@features/voting/components/KnownNeuronCard';
 import { getUsersFollowedNeurons, isKnownNeuron } from '@features/voting/utils/findFollowedNeuron';
 import { sortKnownNeurons } from '@features/voting/utils/knownNeurons';
 
