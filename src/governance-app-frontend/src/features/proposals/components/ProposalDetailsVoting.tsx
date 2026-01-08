@@ -179,6 +179,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
                       variant="default"
                       size="sm"
                       className="flex-1 bg-emerald-600 text-white hover:bg-emerald-700"
+                      aria-busy={isVoting}
                     >
                       {isVoting ? (
                         <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -193,6 +194,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
                       variant="destructive"
                       size="sm"
                       className="flex-1"
+                      aria-busy={isVoting}
                     >
                       {isVoting ? (
                         <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />

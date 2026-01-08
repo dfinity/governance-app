@@ -74,7 +74,7 @@ export const useVoting = (proposal: ProposalInfo) => {
 
   const isVoting = voteMutation.isPending;
 
-  const vote = async (vote: Vote) => {
+  const vote = async (ballot: Vote) => {
     if (!canister || eligibleCount === 0) return;
 
     for (let i = 0; i < eligibleCount; i++) {
@@ -84,7 +84,7 @@ export const useVoting = (proposal: ProposalInfo) => {
 
       const promise = voteMutation.mutateAsync({
         neuronId,
-        vote,
+        vote: ballot,
         current,
         total,
       });
@@ -92,7 +92,7 @@ export const useVoting = (proposal: ProposalInfo) => {
       toast.promise(promise, {
         loading: t(($) => $.proposal.votingProgress.loading, {
           action:
-            vote === Vote.Yes
+            ballot === Vote.Yes
               ? t(($) => $.proposal.actions.adopting)
               : t(($) => $.proposal.actions.rejecting),
           id: proposal.id,
@@ -101,7 +101,7 @@ export const useVoting = (proposal: ProposalInfo) => {
         }),
         success: t(($) => $.proposal.votingProgress.success, {
           action:
-            vote === Vote.Yes
+            ballot === Vote.Yes
               ? t(($) => $.proposal.actions.adopted)
               : t(($) => $.proposal.actions.rejected),
           id: proposal.id,

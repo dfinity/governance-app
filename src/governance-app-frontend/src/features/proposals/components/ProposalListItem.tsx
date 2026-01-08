@@ -1,5 +1,5 @@
-import { secondsToDuration } from '@dfinity/utils';
 import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
+import { secondsToDuration } from '@dfinity/utils';
 import { CheckCircle, Clock, Tag, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -165,11 +165,16 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
             canVote && (
               <div className="flex w-full items-center gap-2">
                 <Button
-                  onClick={(e) => voteHandler(Vote.Yes, e)}
-                  disabled={isVoting}
-                  variant="outline"
-                  size="xl"
+                  aria-busy={isVoting}
+                  aria-label={t(($) => $.proposal.ariaLabelVote, {
+                    vote: t(($) => $.proposal.yes),
+                    proposalId: proposal.id?.toString(),
+                  })}
                   className="flex-1 text-emerald-800 hover:border-emerald-700 hover:bg-emerald-100/10 hover:text-emerald-700 dark:text-emerald-400 dark:hover:border-emerald-300 dark:hover:bg-emerald-50/10 dark:hover:text-emerald-300"
+                  disabled={isVoting}
+                  onClick={(e) => voteHandler(Vote.Yes, e)}
+                  size="xl"
+                  variant="outline"
                 >
                   {isVoting && voted === Vote.Yes ? (
                     <Clock className="mr-2 size-4 animate-spin" />
@@ -179,11 +184,16 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
                   {t(($) => $.proposal.yes)}
                 </Button>
                 <Button
-                  onClick={(e) => voteHandler(Vote.No, e)}
+                  aria-busy={isVoting}
+                  aria-label={t(($) => $.proposal.ariaLabelVote, {
+                    vote: t(($) => $.proposal.yes),
+                    proposalId: proposal.id?.toString(),
+                  })}
+                  className="flex-1 text-red-800 hover:border-red-700 hover:bg-red-100/10 hover:text-red-700 dark:text-red-400 dark:hover:border-red-300 dark:hover:bg-red-900/10 dark:hover:text-red-300"
                   disabled={isVoting}
+                  onClick={(e) => voteHandler(Vote.No, e)}
                   size="xl"
                   variant="outline"
-                  className="flex-1 text-red-800 hover:border-red-700 hover:bg-red-100/10 hover:text-red-700 dark:text-red-400 dark:hover:border-red-300 dark:hover:bg-red-900/10 dark:hover:text-red-300"
                 >
                   {isVoting && voted === Vote.No ? (
                     <Clock className="mr-2 size-4 animate-spin" />

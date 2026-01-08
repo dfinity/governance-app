@@ -35,5 +35,6 @@
   "yes": "Yes",
   "no": "No",
   "mixed": "Mixed",
-  "confirmNavigation": "Voting in progress. Are you sure you want to leave?"
+  "confirmNavigation": "Voting in progress. Are you sure you want to leave?",
+  "ariaLabelVote": "Vote {{vote}} on proposal {{proposalId}}"
 }
