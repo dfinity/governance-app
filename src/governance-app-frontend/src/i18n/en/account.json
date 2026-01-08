@@ -13,6 +13,6 @@
   "withdrawnIcp": "Withdrawn ICP",
   "depositedIcp": "Deposited ICP",
   "stakedIcp": "Staked ICP",
-  "unkownTransaction": "Unknown transaction",
+  "unknownTransaction": "Unknown transaction",
   "transactionListDescription": "A list of all the transactions made by this account."
 }

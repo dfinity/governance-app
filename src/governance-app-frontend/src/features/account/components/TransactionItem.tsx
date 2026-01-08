@@ -41,7 +41,8 @@ export const AccountTransactionItem = ({
   const userNeuronsAccountIds = useNeuronAccountsIds();
 
   const operation = tx.transaction.operation;
-  if (!('Transfer' in operation)) return TransactionType.UNKNOWN;
+  if (!('Transfer' in operation)) return null;
+
   const type = getTransactionType(operation, accountId, userNeuronsAccountIds.accountIds);
 
   const title =
@@ -51,7 +52,7 @@ export const AccountTransactionItem = ({
         ? t(($) => $.account.depositedIcp)
         : type === TransactionType.STAKE
           ? t(($) => $.account.stakedIcp)
-          : t(($) => $.account.unkownTransaction);
+          : t(($) => $.account.unknownTransaction);
 
   return (
     <Card key={tx.id} className="p-0">
@@ -69,7 +70,7 @@ export const AccountTransactionItem = ({
               <ArrowUp className="size-5" />
             ) : type === TransactionType.RECEIVE ? (
               <ArrowDownToLine className="size-5" />
-            ) : TransactionType.STAKE ? (
+            ) : type === TransactionType.STAKE ? (
               <Lock className="size-5" />
             ) : (
               <CircleQuestionMark className="size-5" />
