@@ -12,9 +12,11 @@ type FindFollowedNeuronParams = {
  * 2. Consistent followed neurons: all user neurons follow the same neuron and returns that one neuron.
  * 3. Inconsistent followed neurons: user neurons follow different neurons and returns all unique followed neurons.
  *
+ * Note: It assumes that a user wants the same voting for all topics.
+ *
  * @param userNeurons - An array of the user's neurons.
  * @param knownNeurons - An array of known neurons to match against.
- * @returns An object containing the followed neurons and a boolean indicating if the followees are consistent.
+ * @returns An array containing the followed neurons.
  */
 export const getUsersFollowedNeurons = ({
   userNeurons,

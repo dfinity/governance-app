@@ -25,7 +25,7 @@ describe('getUsersFollowedNeurons', () => {
       id,
       name,
       description: '',
-      commited_topics: [],
+      committed_topics: [],
     }) as unknown as KnownNeuron;
 
   const knownNeurons = [createMockKnownNeuron(knowNeuronId, 'Known Neuron 100')];

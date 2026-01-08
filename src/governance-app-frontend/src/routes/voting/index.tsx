@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
 import { useVotableLoadedProposals } from '@features/proposals/hooks/useVotableLoadedProposals';
 import { getShowProposalUrlStatus } from '@features/proposals/utils';
-import { ExpandableKnownNeuronCard } from '@features/voting/components/ExpandableNeuronCard';
+import { KnownNeuronCard } from '@features/voting/components/ExpandableNeuronCard';
 import { getUsersFollowedNeurons, isKnownNeuron } from '@features/voting/utils/findFollowedNeuron';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
@@ -133,7 +133,7 @@ function Voting() {
         <div className="flex flex-col gap-4">
           <h3 className="text-lg font-semibold">{t(($) => $.voting.following)}</h3>
           {isKnownNeuron(followedNeuron) ? (
-            <ExpandableKnownNeuronCard
+            <KnownNeuronCard
               neuron={followedNeuron}
               isSelected={true}
               onSelect={() => {}}

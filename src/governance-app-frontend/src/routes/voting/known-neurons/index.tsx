@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { getShowProposalUrlStatus } from '@features/proposals/utils';
-import { ExpandableKnownNeuronCard } from '@features/voting/components/ExpandableNeuronCard';
+import { KnownNeuronCard } from '@features/voting/components/ExpandableNeuronCard';
 import { getUsersFollowedNeurons, isKnownNeuron } from '@features/voting/utils/findFollowedNeuron';
 import { sortKnownNeurons } from '@features/voting/utils/knownNeurons';
 
@@ -172,7 +172,7 @@ function KnownNeuronsList() {
           knownNeuronsQuery.data?.response
             ?.toSorted(sortKnownNeurons)
             ?.map((neuron) => (
-              <ExpandableKnownNeuronCard
+              <KnownNeuronCard
                 key={neuron.id.toString()}
                 neuron={neuron}
                 isSelected={selectedNeuronId === neuron.id.toString()}
