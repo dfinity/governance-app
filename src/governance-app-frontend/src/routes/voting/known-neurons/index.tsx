@@ -2,12 +2,13 @@ import { KnownNeuron, NeuronId, Topic } from '@icp-sdk/canisters/nns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link, useBlocker } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { getShowProposalUrlStatus } from '@features/proposals/utils';
-import { ExpandableNeuronCard } from '@features/voting/components/ExpandableNeuronCard';
+import { ExpandableKnownNeuronCard } from '@features/voting/components/ExpandableNeuronCard';
+import { getUsersFollowedNeurons, isKnownNeuron } from '@features/voting/utils/findFollowedNeuron';
 import { sortKnownNeurons } from '@features/voting/utils/knownNeurons';
 
 import { Button } from '@components/button';
@@ -15,7 +16,7 @@ import { Skeleton } from '@components/Skeleton';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import useTitle from '@hooks/useTitle';
-import { persistentNotification, warningNotification } from '@utils/notification';
+import { longNotification, warningNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
 export const Route = createFileRoute('/voting/known-neurons/')({
@@ -38,6 +39,31 @@ function KnownNeuronsList() {
   const knownNeuronsQuery = useGovernanceKnownNeurons();
 
   const [selectedNeuronId, setSelectedNeuronId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const userNeurons = neuronsQuery.data?.response;
+    const knownNeurons = knownNeuronsQuery.data?.response;
+
+    if (!userNeurons || !knownNeurons) return;
+
+    const followedNeurons = getUsersFollowedNeurons({
+      userNeurons,
+      knownNeurons,
+    });
+    const hasConsistentFollowees = followedNeurons.length === 1;
+
+    if (!hasConsistentFollowees) {
+      warningNotification({
+        description: t(($) => $.voting.warnings.followingMismatch),
+      });
+      return;
+    }
+
+    const target = followedNeurons[0];
+    if (isKnownNeuron(target)) {
+      setSelectedNeuronId(target.id.toString());
+    }
+  }, [neuronsQuery.data, knownNeuronsQuery.data, t]);
 
   useBlocker({
     shouldBlockFn: () => {
@@ -102,7 +128,7 @@ function KnownNeuronsList() {
         error: t(($) => $.knownNeurons.followingProgress.error, {
           neuronId: neuron.neuronId.toString(),
         }),
-        ...persistentNotification,
+        ...longNotification,
       });
 
       // Wait for the current promise to complete before starting the next one
@@ -146,7 +172,7 @@ function KnownNeuronsList() {
           knownNeuronsQuery.data?.response
             ?.toSorted(sortKnownNeurons)
             ?.map((neuron) => (
-              <ExpandableNeuronCard
+              <ExpandableKnownNeuronCard
                 key={neuron.id.toString()}
                 neuron={neuron}
                 isSelected={selectedNeuronId === neuron.id.toString()}

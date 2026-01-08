@@ -1,4 +1,4 @@
-import { isNullish, nonNullish } from '@dfinity/utils';
+import { isNullish } from '@dfinity/utils';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Users } from 'lucide-react';
 import { useEffect, useRef } from 'react';
@@ -7,7 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
 import { useVotableLoadedProposals } from '@features/proposals/hooks/useVotableLoadedProposals';
 import { getShowProposalUrlStatus } from '@features/proposals/utils';
-import { ExpandableNeuronCard } from '@features/voting/components/ExpandableNeuronCard';
+import { ExpandableKnownNeuronCard } from '@features/voting/components/ExpandableNeuronCard';
+import { getUsersFollowedNeurons, isKnownNeuron } from '@features/voting/utils/findFollowedNeuron';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
@@ -30,16 +31,13 @@ export const Route = createFileRoute('/voting/')({
   },
 });
 
-// @TODO: Derive this data from persisted user setting "advance mode", and user data(configuration of neurons).
-const hasUserSetAdvanceMode = false;
-
 function Voting() {
   const { t } = useTranslation();
   useTitle(t(($) => $.common.proposalsList));
 
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
-  const showProposals = hasUserSetAdvanceMode || search.showProposals;
+  const showProposals = search.showProposals;
   const proposalsRef = useRef<HTMLDivElement>(null);
 
   const votableProposals = useVotableLoadedProposals();
@@ -49,18 +47,16 @@ function Voting() {
   const knownNeuronsQuery = useGovernanceKnownNeurons();
 
   const userNeurons = neuronsQuery.data?.response ?? [];
-  const userFollowees = userNeurons
-    .flatMap((n) => n.fullNeuron?.followees)
-    .filter(nonNullish)
-    .flatMap((n) => n.followees);
+  const knownNeurons = knownNeuronsQuery.data?.response ?? [];
+  const followedNeurons = getUsersFollowedNeurons({
+    userNeurons,
+    knownNeurons,
+  });
+  // @TODO: Set  "noUncheckedIndexedAccess": true in tsconfig to handle possible undefined values more safely.
+  const hasConsistentFollowees = followedNeurons.length === 1;
+  const followedNeuron = followedNeurons[0];
 
-  const firstFollowee = userFollowees[0];
-  const hasConsistentFollowees =
-    nonNullish(firstFollowee) && userFollowees.every((f) => f === firstFollowee);
-  const followedNeuron = nonNullish(firstFollowee)
-    ? (knownNeuronsQuery.data?.response?.find(({ id }) => id === firstFollowee) ?? firstFollowee)
-    : undefined;
-
+  // @TODO: Prefer Link component when available
   const handleManageFollowing = () => {
     if (!neuronsQuery?.data?.response?.length) {
       warningNotification({
@@ -106,72 +102,64 @@ function Voting() {
         </Alert>
       )}
 
-      {!hasUserSetAdvanceMode && (
+      {isNullish(followedNeuron) ? (
         <>
-          {isNullish(followedNeuron) ? (
-            <>
-              <Alert variant="warning">
-                <AlertTitle className="font-semibold">{t(($) => $.common.important)}</AlertTitle>
-                <AlertDescription>
-                  {t(($) => $.voting.noFollowing.setupFollowingReminder)}
-                </AlertDescription>
-              </Alert>
+          <Alert variant="warning">
+            <AlertTitle className="font-semibold">{t(($) => $.common.important)}</AlertTitle>
+            <AlertDescription>
+              {t(($) => $.voting.noFollowing.setupFollowingReminder)}
+            </AlertDescription>
+          </Alert>
 
-              <div className="mt-6 flex flex-col items-center justify-center gap-4 text-center lg:mt-12">
-                <div className="flex h-18 w-18 items-center justify-center rounded-full border-2 bg-muted">
-                  <Users className="h-10 w-10 text-muted-foreground" />
-                </div>
-                <h3 className="text-2xl font-semibold">{t(($) => $.voting.noFollowing.title)}</h3>
-                <p className="max-w-sm font-light text-muted-foreground">
-                  {t(($) => $.voting.noFollowing.description)}
-                </p>
-              </div>
-            </>
-          ) : !hasConsistentFollowees ? (
-            <>
-              <Alert variant="warning">
-                <AlertTitle className="font-semibold">{t(($) => $.common.caution)}</AlertTitle>
-                <AlertDescription>{t(($) => $.voting.warnings.followingMismatch)}</AlertDescription>
-              </Alert>
-              {/* @TODO: Improve how we inform users that they have a mix of following */}
-            </>
-          ) : (
-            <div className="flex flex-col gap-4">
-              <h3 className="text-lg font-semibold">{t(($) => $.voting.following)}</h3>
-              {typeof followedNeuron === 'bigint' ? (
-                <Card className="h-auto p-4">
-                  <p className="font-semibold capitalize">
-                    {t(($) => $.voting.non_known_neuron, { neuronId: followedNeuron.toString() })}
-                  </p>
-                </Card>
-              ) : (
-                <ExpandableNeuronCard
-                  neuron={followedNeuron}
-                  isSelected={true}
-                  onSelect={() => {}}
-                  isDisabled={false}
-                />
-              )}
+          <div className="mt-6 flex flex-col items-center justify-center gap-4 text-center lg:mt-12">
+            <div className="flex h-18 w-18 items-center justify-center rounded-full border-2 bg-muted">
+              <Users className="h-10 w-10 text-muted-foreground" />
             </div>
-          )}
-        </>
-      )}
-
-      {!hasUserSetAdvanceMode && (
-        <>
-          <Separator className="mt-8 mb-4 lg:mt-16" />
-          <div ref={proposalsRef} className="mx-auto flex scroll-mt-8 items-center gap-1">
-            <button onClick={toggleViewProposals} className="text-sm text-muted-foreground">
-              <span>{t(($) => $.voting.proposals.cta)}</span>{' '}
-              <span className="font-medium text-primary capitalize underline-offset-4 hover:underline">
-                {t(($) =>
-                  showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow,
-                )}
-              </span>
-            </button>
+            <h3 className="text-2xl font-semibold">{t(($) => $.voting.noFollowing.title)}</h3>
+            <p className="max-w-sm font-light text-muted-foreground">
+              {t(($) => $.voting.noFollowing.description)}
+            </p>
           </div>
         </>
+      ) : !hasConsistentFollowees ? (
+        <>
+          <Alert variant="warning">
+            <AlertTitle className="font-semibold">{t(($) => $.common.caution)}</AlertTitle>
+            <AlertDescription>{t(($) => $.voting.warnings.followingMismatch)}</AlertDescription>
+          </Alert>
+          {/* @TODO: Improve how we inform users that they have a mix of following */}
+        </>
+      ) : (
+        <div className="flex flex-col gap-4">
+          <h3 className="text-lg font-semibold">{t(($) => $.voting.following)}</h3>
+          {isKnownNeuron(followedNeuron) ? (
+            <ExpandableKnownNeuronCard
+              neuron={followedNeuron}
+              isSelected={true}
+              onSelect={() => {}}
+              isDisabled={false}
+            />
+          ) : (
+            <Card className="h-auto p-4">
+              <p className="font-semibold capitalize">
+                {t(($) => $.voting.non_known_neuron, { neuronId: followedNeuron.toString() })}
+              </p>
+            </Card>
+          )}
+        </div>
       )}
+
+      <Separator className="mt-8 mb-4 lg:mt-16" />
+
+      <div ref={proposalsRef} className="mx-auto flex scroll-mt-8 items-center gap-1">
+        <button onClick={toggleViewProposals} className="text-sm text-muted-foreground">
+          <span>{t(($) => $.voting.proposals.cta)}</span>{' '}
+          <span className="font-medium text-primary capitalize underline-offset-4 hover:underline">
+            {t(($) => (showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow))}
+          </span>
+        </button>
+      </div>
+
       {showProposals && (
         <QueryStates
           infiniteQuery={proposals}
