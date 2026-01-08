@@ -99,7 +99,7 @@ function KnownNeuronsList() {
   });
 
   const handleSelect = async (knownNeuron: KnownNeuron) => {
-    if (!neuronsQuery?.data?.certified || !canister) return;
+    if (!neuronsQuery.data?.certified || !canister) return;
     const neurons = neuronsQuery.data.response;
 
     if (neurons.length === 0) {

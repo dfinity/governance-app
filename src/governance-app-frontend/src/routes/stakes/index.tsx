@@ -32,7 +32,7 @@ function StakesComponent() {
         <div
           className={cn(
             'flex-1 sm:flex-initial',
-            neuronsQuery.isSuccess && neuronsQuery?.data?.response.length === 0
+            neuronsQuery.isSuccess && neuronsQuery.data?.response.length === 0
               ? 'hidden sm:block'
               : '',
           )}

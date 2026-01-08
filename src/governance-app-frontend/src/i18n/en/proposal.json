@@ -34,5 +34,6 @@
   "voteCast": "Vote cast: <strong>{{vote}}</strong>",
   "yes": "Yes",
   "no": "No",
-  "mixed": "Mixed"
+  "mixed": "Mixed",
+  "confirmNavigation": "Voting in progress. Are you sure you want to leave?"
 }

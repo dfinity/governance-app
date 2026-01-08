@@ -58,7 +58,7 @@ function Voting() {
 
   // @TODO: Prefer Link component when available
   const handleManageFollowing = () => {
-    if (!neuronsQuery?.data?.response?.length) {
+    if (!neuronsQuery.data?.response?.length) {
       warningNotification({
         description: t(($) => $.voting.warnings.stakeRequired),
       });
