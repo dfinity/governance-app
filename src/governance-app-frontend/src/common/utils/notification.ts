@@ -10,6 +10,11 @@ const ephemeralNotification: ToasterProps = {
   closeButton: false,
 };
 
+export const longNotification: ToasterProps = {
+  duration: 10000,
+  closeButton: true,
+};
+
 export const persistentNotification: ToasterProps = {
   duration: Infinity,
   closeButton: true,

@@ -17,7 +17,7 @@ type Props = {
   onSelect: (neuron: KnownNeuron) => void;
 };
 
-export const ExpandableNeuronCard = ({ neuron, isSelected, onSelect, isDisabled }: Props) => {
+export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled }: Props) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleExpanded = (e: React.MouseEvent) => {
