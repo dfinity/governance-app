@@ -87,6 +87,7 @@ export const StakeNeuronModal = ({ trigger }: StakeNeuronModalProps) => {
     onSuccess: (_, amount) => {
       setStakeInput('');
       setIsOpen(false);
+
       Promise.all([
         queryClient.invalidateQueries({
           queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
@@ -95,6 +96,7 @@ export const StakeNeuronModal = ({ trigger }: StakeNeuronModalProps) => {
           queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE],
         }),
       ]).finally(() => setPending(false));
+
       successNotification({ description: t(($) => $.neuron.stakeNeuron.success, { amount }) });
     },
     onError: (mutationError) => {

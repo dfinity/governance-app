@@ -71,6 +71,7 @@ function KnownNeuronsList() {
       window.alert(t(($) => $.knownNeurons.confirmNavigation));
       return true;
     },
+    enableBeforeUnload: false,
   });
 
   const updateFollowingMutation = useMutation<

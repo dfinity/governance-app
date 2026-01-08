@@ -2,8 +2,8 @@ import { ProposalInfo, Vote } from '@icp-sdk/canisters/nns';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { CheckCircle, CircleCheckBig, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
 import { Fragment } from 'react/jsx-runtime';
+import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';

@@ -1,4 +1,4 @@
-import { ProposalInfo, votableNeurons, Vote } from '@icp-sdk/canisters/nns';
+import { ProposalInfo, votableNeurons, Vote, votedNeurons } from '@icp-sdk/canisters/nns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useBlocker } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
@@ -32,13 +32,14 @@ export const useVoting = (proposal: ProposalInfo) => {
   // Determine eligible neurons (those in the ballot)
   const eligibleNeurons = votableNeurons({ neurons, proposal });
   const eligibleNeuronsIds = eligibleNeurons.map((n) => n.neuronId);
-  const eligibleCount = eligibleNeuronsIds.length;
+  const eligibleCount = eligibleNeurons.length;
+  const eligibleVotedNeurons = votedNeurons({ neurons, proposal });
 
   // Track votes
   const eligibleBallots = proposal.ballots.filter((b) => neuronIds.has(b.neuronId));
   const votedBallots = eligibleBallots.filter((b) => b.vote !== Vote.Unspecified);
   const votedCount = votedBallots.length;
-  const hasVoted = votedCount > 0 && votedCount === eligibleCount;
+  const hasVoted = votedCount > 0 && votedCount === eligibleVotedNeurons.length;
 
   // // Mixed votes check
   const firstVote = votedBallots[0]?.vote;
@@ -60,8 +61,18 @@ export const useVoting = (proposal: ProposalInfo) => {
         neuronId,
       });
     },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL, proposal.id?.toString()],
+      });
+    },
     retry: 3,
   });
+
+  const isVoting = voteMutation.isPending;
 
   const vote = async (vote: Vote) => {
     if (!canister || eligibleCount === 0) return;
@@ -109,25 +120,20 @@ export const useVoting = (proposal: ProposalInfo) => {
         console.error(e);
       }
     }
-
-    await queryClient.invalidateQueries({
-      queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS],
-    });
-    await queryClient.invalidateQueries({
-      queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL, proposal.id?.toString()],
-    });
   };
 
   // Block navigation while voting
-  const isVoting = voteMutation.isPending;
-  useBlocker({
-    shouldBlockFn: () => {
-      if (!isVoting) return false;
+  const blockingFn = () => {
+    if (!isVoting) return false;
 
-      // @TODO: Improve UI
-      window.alert(t(($) => $.proposal.confirmNavigation));
-      return true;
-    },
+    // @TODO: Improve UI
+    window.alert(t(($) => $.proposal.confirmNavigation));
+    return true;
+  };
+
+  useBlocker({
+    shouldBlockFn: blockingFn,
+    enableBeforeUnload: blockingFn,
   });
 
   return {
