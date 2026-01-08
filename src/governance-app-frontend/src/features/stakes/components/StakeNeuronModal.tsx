@@ -2,7 +2,7 @@ import { nonNullish, nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { InfoIcon, Loader2, Plus } from 'lucide-react';
-import { FormEvent, useState } from 'react';
+import React, { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
@@ -31,7 +31,11 @@ import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { errorNotification, successNotification, warningNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
-export const StakeNeuronModal = () => {
+interface StakeNeuronModalProps {
+  trigger?: React.ReactElement<{ onClick?: React.MouseEventHandler<HTMLButtonElement> }>;
+}
+
+export const StakeNeuronModal = ({ trigger }: StakeNeuronModalProps) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { data: balanceValue } = useIcpLedgerAccountBalance();
@@ -164,14 +168,23 @@ export const StakeNeuronModal = () => {
     }
   };
 
+  const triggerElement = nonNullish(trigger) ? (
+    React.cloneElement(trigger, {
+      onClick: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        handleStakeIcpButton(e);
+        if (trigger.props.onClick) trigger.props.onClick(e);
+      },
+    })
+  ) : (
+    <Button size="xl" onClick={handleStakeIcpButton} className="w-full">
+      <Plus />
+      {t(($) => $.neuron.stakeNeuron.trigger)}
+    </Button>
+  );
+
   return (
     <ResponsiveDialog open={isOpen} onOpenChange={setIsOpen}>
-      <ResponsiveDialogTrigger asChild>
-        <Button size="xl" onClick={handleStakeIcpButton}>
-          <Plus />
-          {t(($) => $.neuron.stakeNeuron.trigger)}
-        </Button>
-      </ResponsiveDialogTrigger>
+      <ResponsiveDialogTrigger asChild>{triggerElement}</ResponsiveDialogTrigger>
       <ResponsiveDialogContent>
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>{t(($) => $.neuron.stake)}</ResponsiveDialogTitle>
