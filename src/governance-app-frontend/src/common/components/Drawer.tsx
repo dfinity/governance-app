@@ -54,7 +54,7 @@ function DrawerContent({
           // Custom styles
           'px-4',
           // @TODO: There is a bug when the Vaul has a lot of content.
-          'after:h-10!',
+          'after:h-0!',
           className,
         )}
         {...props}

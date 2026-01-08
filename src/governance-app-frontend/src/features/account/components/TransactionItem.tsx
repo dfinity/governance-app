@@ -80,7 +80,7 @@ export const AccountTransactionItem = ({
               <h4 className="text-sm font-semibold">{title}</h4>
               <CertifiedBadge certified={certified} />
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
               <div className="flex flex-col gap-1">
                 <span className="text-xs text-muted-foreground">
                   {new Date(
@@ -102,7 +102,7 @@ export const AccountTransactionItem = ({
               </div>
               <span
                 className={cn(
-                  'font-semibold',
+                  'text-base font-semibold',
                   type === TransactionType.RECEIVE
                     ? 'text-emerald-800 dark:text-emerald-400'
                     : 'text-red-800 dark:text-red-400',
