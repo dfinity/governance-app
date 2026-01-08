@@ -1,20 +1,17 @@
 import { ProposalInfo, Vote } from '@icp-sdk/canisters/nns';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { CircleCheckBig, ThumbsDown, ThumbsUp } from 'lucide-react';
+import { CheckCircle, CircleCheckBig, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { Fragment } from 'react/jsx-runtime';
-import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { E8S } from '@constants/extra';
-import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
-import { errorNotification, successNotification } from '@utils/notification';
-import { QUERY_KEYS } from '@utils/query';
-import { setWithItemAdded, setWithItemRemoved } from '@utils/set';
+import { useGovernanceNeurons } from '@hooks/governance';
 
+import { useVoting } from '../hooks/useVoting';
 import { formatPercent, formatVotingPower } from '../utils';
 
 type Props = {
@@ -23,7 +20,6 @@ type Props = {
 
 export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   const { identity } = useInternetIdentity();
-  const queryClient = useQueryClient();
   const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
 
@@ -53,48 +49,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   const totalToVote = proposal.ballots.length;
 
   // @TODO: Vote casting.
-  const { ready, canister, authenticated } = useNnsGovernance();
-  const [pending, setPending] = useState(new Set<bigint>());
-  const canTriggerVote = ready && authenticated;
-
-  const voteMutation = useMutation<
-    void,
-    Error,
-    Parameters<NonNullable<typeof canister>['registerVote']>[0]
-  >({
-    mutationFn: canister!.registerVote,
-    onMutate: (args) => {
-      setPending((s) => setWithItemAdded(s, args.neuronId));
-    },
-    onSuccess: (_, args) => {
-      queryClient
-        .invalidateQueries({
-          queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL, proposal.id?.toString()],
-        })
-        .then(() => setPending((s) => setWithItemRemoved(s, args.neuronId)));
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS],
-      });
-      successNotification({
-        description: t(($) => $.proposal.voteSuccess, {
-          proposalId: proposal.id,
-          neuronId: args.neuronId,
-        }),
-      });
-    },
-    onError: (_, args) => {
-      setPending((s) => setWithItemRemoved(s, args.neuronId));
-      errorNotification({
-        description: t(($) => $.proposal.voteError, {
-          proposalId: proposal.id,
-          neuronId: args.neuronId,
-        }),
-      });
-    },
-  });
-
-  const castVote = (neuronId: bigint, vote: Vote) =>
-    voteMutation.mutate({ proposalId: proposal.id!, vote, neuronId });
+  const { vote, isVoting, hasVoted, isVoteMixed, voteValue, canVote } = useVoting(proposal);
 
   useEffect(() => {
     requestAnimationFrame(() => setIsMounted(true));
@@ -111,10 +66,10 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
         <div className="flex flex-col gap-1">
           <div className="flex justify-between text-sm font-medium">
             <span className="text-emerald-800 dark:text-emerald-400">
-              {t(($) => $.common.yes)}: {formatPercent(yesProportion * 100)}
+              {t(($) => $.proposal.yes)}: {formatPercent(yesProportion * 100)}
             </span>
             <span className="text-red-700 dark:text-red-400">
-              {t(($) => $.common.no)}: {formatPercent(noProportion * 100)}
+              {t(($) => $.proposal.no)}: {formatPercent(noProportion * 100)}
             </span>
           </div>
           <div
@@ -196,29 +151,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
                     )}{' '}
                     {neuron.vote !== Vote.Unspecified && Vote[neuron.vote]}
                     {neuron.vote === Vote.Unspecified && (
-                      <span className="inline-flex gap-2">
-                        {pending.has(neuron.neuronId) ? (
-                          <SkeletonLoader width={90} height={20} />
-                        ) : (
-                          <>
-                            <Button
-                              onClick={() => castVote(neuron.neuronId, Vote.Yes)}
-                              disabled={!canTriggerVote}
-                              variant="outline"
-                              type="button"
-                            >
-                              {t(($) => $.common.yes)}
-                            </Button>
-                            <Button
-                              onClick={() => castVote(neuron.neuronId, Vote.No)}
-                              variant="outline"
-                              type="button"
-                            >
-                              {t(($) => $.common.no)}
-                            </Button>
-                          </>
-                        )}
-                      </span>
+                      <span className="text-muted-foreground">-</span>
                     )}
                   </span>
                 </Fragment>
@@ -237,6 +170,84 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
                   </span>
                 </Fragment>
               ))}
+
+              {canVote && !hasVoted && (
+                <div className="col-span-1 mt-4 sm:col-span-3">
+                  <div className="flex w-full items-center gap-3">
+                    <Button
+                      onClick={() => vote(Vote.Yes)}
+                      disabled={isVoting}
+                      variant="default"
+                      size="sm"
+                      className="flex-1 bg-emerald-600 text-white hover:bg-emerald-700"
+                    >
+                      {isVoting ? (
+                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      ) : (
+                        <ThumbsUp className="mr-2 h-4 w-4" />
+                      )}
+                      {t(($) => $.proposal.yes)}
+                    </Button>
+                    <Button
+                      onClick={() => vote(Vote.No)}
+                      disabled={isVoting}
+                      variant="destructive"
+                      size="sm"
+                      className="flex-1"
+                    >
+                      {isVoting ? (
+                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      ) : (
+                        <ThumbsDown className="mr-2 h-4 w-4" />
+                      )}
+                      {t(($) => $.proposal.no)}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {hasVoted && (
+                <div className="col-span-1 mt-4 sm:col-span-3">
+                  <div
+                    className={`flex w-full items-center gap-2 rounded-md border p-3 text-sm font-medium capitalize ${
+                      isVoteMixed
+                        ? 'border-amber-200 bg-amber-100 text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+                        : voteValue === Vote.Yes
+                          ? 'border-emerald-200 bg-emerald-100 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
+                          : 'border-red-200 bg-red-100 text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400'
+                    }`}
+                  >
+                    {isVoteMixed ? (
+                      <>
+                        <TriangleAlert className="size-4" />
+                        <Trans
+                          values={{ vote: t(($) => $.proposal.mixed) }}
+                          i18nKey={($) => $.proposal.voteCast}
+                          components={{ strong: <strong /> }}
+                        />
+                      </>
+                    ) : voteValue === Vote.Yes ? (
+                      <>
+                        <CheckCircle className="size-4" />
+                        <Trans
+                          values={{ vote: t(($) => $.proposal.yes) }}
+                          i18nKey={($) => $.proposal.voteCast}
+                          components={{ strong: <strong /> }}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="size-4" />
+                        <Trans
+                          values={{ vote: t(($) => $.proposal.no) }}
+                          i18nKey={($) => $.proposal.voteCast}
+                          components={{ strong: <strong /> }}
+                        />
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

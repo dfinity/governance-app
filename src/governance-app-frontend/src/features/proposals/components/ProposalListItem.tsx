@@ -1,16 +1,17 @@
-import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
 import { secondsToDuration } from '@dfinity/utils';
+import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
 import { CheckCircle, Clock, Tag, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card, CardFooter, CardHeader } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
 import { E8S } from '@constants/extra';
-import { useGovernanceNeurons } from '@hooks/governance';
 
+import { cn } from '@utils/shadcn';
+import { useVoting } from '../hooks/useVoting';
 import { formatPercent, getProposalStatusColor, getProposalTimeLeftInSeconds } from '../utils';
 
 type Props = {
@@ -22,8 +23,7 @@ type Props = {
 export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
   const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
-
-  const { data: neurons } = useGovernanceNeurons();
+  const [voted, setVoted] = useState<Vote.No | Vote.Yes | undefined>();
 
   const yes = Number(proposal.latestTally?.yes ?? 0n) / E8S;
   const no = Number(proposal.latestTally?.no ?? 0n) / E8S;
@@ -38,26 +38,29 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
   });
   const statusColor = getProposalStatusColor(proposal);
 
-  // TODO: Add mutations
-  // My votes
-  const myVotingBallots =
-    proposal.ballots.filter((b) => {
-      const n = neurons?.response.find((neuron) => neuron.neuronId === b.neuronId);
-      return !!n;
-    }) ?? [];
+  const { vote, isVoting, hasVoted, isVoteMixed, voteValue, canVote } = useVoting(proposal);
 
-  // @TODO: We have to refine this logic. What if a user votes differently in the nns-dapp and then not all neurons end up voting the same?
-  const myVotes = myVotingBallots.filter((b) => b.vote !== Vote.Unspecified);
-  const hasVoted = myVotingBallots.length > 0 && myVotes.length === myVotingBallots.length;
-  const isVoteMixed = hasVoted && !myVotes.every((v) => v.vote === myVotes[0].vote);
-  const voteValue = hasVoted && !isVoteMixed ? myVotes[0].vote : Vote.Unspecified;
+  const voteHandler = async (
+    ballot: Vote.Yes | Vote.No,
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ) => {
+    setVoted(ballot);
+    e.preventDefault();
+    await vote(ballot);
+    setVoted(undefined);
+  };
 
   useEffect(() => {
     requestAnimationFrame(() => setIsMounted(true));
   }, []);
 
   return (
-    <Card className="flex w-full flex-col overflow-hidden transition-colors hover:bg-accent/50">
+    <Card
+      className={cn(
+        'flex w-full flex-col overflow-hidden transition-colors hover:bg-accent/50',
+        isVoting && 'pointer-events-none opacity-70',
+      )}
+    >
       <CardHeader>
         <div className="flex items-center justify-between">
           <span className="text-xs tracking-wide text-muted-foreground uppercase">
@@ -115,34 +118,79 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
       </CardHeader>
 
       {(canUserVote || hasVoted) && (
-        <CardFooter className="pt-2 pb-4">
+        <CardFooter className="py-2">
           {hasVoted ? (
-            <div className="flex w-full items-center gap-2 rounded-md border border-green-200 bg-green-100 p-3 text-green-700 dark:border-green-800 dark:bg-green-900/30 dark:text-green-400">
-              <CheckCircle className="h-4 w-4" />
-              <span className="text-sm font-medium capitalize">
-                {isVoteMixed ? (
-                  [<TriangleAlert />, t(($) => $.proposal.voteStatusMixed)]
-                ) : voteValue === Vote.Yes ? (
-                  <ThumbsUp />
-                ) : (
-                  <ThumbsDown />
-                )}
-              </span>
+            <div
+              className={`flex w-full items-center gap-2 rounded-md border p-2 text-sm capitalize ${
+                isVoteMixed
+                  ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+                  : voteValue === Vote.Yes
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
+                    : 'border-red-200 bg-red-100 text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400'
+              }`}
+            >
+              {isVoteMixed ? (
+                <>
+                  <TriangleAlert className="size-4" />
+                  <Trans
+                    values={{ vote: t(($) => $.proposal.mixed) }}
+                    i18nKey={($) => $.proposal.voteCast}
+                    components={{ strong: <strong /> }}
+                  />
+                </>
+              ) : voteValue === Vote.Yes ? (
+                <>
+                  <CheckCircle className="size-4" />
+                  <Trans
+                    values={{ vote: t(($) => $.proposal.yes) }}
+                    i18nKey={($) => $.proposal.voteCast}
+                    components={{ strong: <strong /> }}
+                  />
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="size-4" />
+                  <Trans
+                    values={{ vote: t(($) => $.proposal.no) }}
+                    i18nKey={($) => $.proposal.voteCast}
+                    components={{ strong: <strong /> }}
+                  />
+                </>
+              )}
             </div>
           ) : (
-            <div className="flex w-full items-center gap-3">
-              <Button
-                onClick={() => {}}
-                variant="default"
-                size="sm"
-                className="flex-1 bg-green-600 text-white hover:bg-green-700"
-              >
-                <ThumbsUp className="mr-2 h-4 w-4" />
-              </Button>
-              <Button onClick={() => {}} variant="destructive" size="sm" className="flex-1">
-                <ThumbsDown className="mr-2 h-4 w-4" />
-              </Button>
-            </div>
+            canVote && (
+              <div className="flex w-full items-center gap-3">
+                <Button
+                  onClick={(e) => voteHandler(Vote.Yes, e)}
+                  disabled={isVoting}
+                  variant="outline"
+                  size="xl"
+                  className="flex-1 text-emerald-800 hover:border-emerald-700 hover:bg-emerald-100/10 hover:text-emerald-700"
+                >
+                  {isVoting && voted === Vote.Yes ? (
+                    <Clock className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <ThumbsUp className="mr-2 h-4 w-4" />
+                  )}
+                  {t(($) => $.proposal.yes)}
+                </Button>
+                <Button
+                  onClick={(e) => voteHandler(Vote.No, e)}
+                  disabled={isVoting}
+                  size="xl"
+                  variant="outline"
+                  className="flex-1 text-red-800 hover:border-red-700 hover:bg-red-100/10 hover:text-red-700"
+                >
+                  {isVoting && voted === Vote.No ? (
+                    <Clock className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <ThumbsDown className="mr-2 h-4 w-4" />
+                  )}
+                  {t(($) => $.proposal.no)}
+                </Button>
+              </div>
+            )
           )}
         </CardFooter>
       )}
