@@ -8,7 +8,7 @@ import { StakeNeuronModal } from '@features/stakes/components/StakeNeuronModal';
 
 import { QueryStates } from '@components/QueryStates';
 import { useGovernanceNeurons } from '@hooks/governance';
-import { CertifiedData } from '@typings/queries';
+import type { CertifiedData } from '@typings/queries';
 import { cn } from '@utils/shadcn';
 
 export const Route = createFileRoute('/stakes/')({
@@ -32,7 +32,9 @@ function StakesComponent() {
         <div
           className={cn(
             'flex-1 sm:flex-initial',
-            neuronsQuery?.data?.response.length === 0 ? 'hidden sm:block' : '',
+            neuronsQuery.isSuccess && neuronsQuery?.data?.response.length === 0
+              ? 'hidden sm:block'
+              : '',
           )}
         >
           <StakeNeuronModal />
