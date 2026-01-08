@@ -5,6 +5,17 @@ set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ROOT_DIR="$DIR/.."
 
+# Source the clap.bash file
+source "$DIR/clap.sh"
+
+# Define options
+clap.define short=b long=background desc="Run dfx in background" variable=BACKGROUND nargs=0
+clap.define short=d long=delay desc="Artificial delay in milliseconds" variable=DELAY default="2000"
+clap.define short=c long=clean desc="Start the replica in a clean state" variable=CLEAN nargs=0
+
+# Source the output file
+source "$(clap.build)"
+
 # Change to root directory
 cd "$ROOT_DIR"
 
@@ -27,5 +38,17 @@ echo "  - SNS Aggregator: http://3r4gx-wqaaa-aaaaq-aaaia-cai.localhost:8080"
 echo "  - Internet Identity: http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:8080"
 echo ""
 
-# Start dfx in the background
-dfx start --system-canisters --artificial-delay 2000
+# Construct dfx start arguments
+DFX_ARGS="--system-canisters --artificial-delay $DELAY"
+
+if [ "${BACKGROUND:-false}" = "true" ]; then
+    DFX_ARGS="$DFX_ARGS --background"
+fi
+
+if [ "${CLEAN:-false}" = "true" ]; then
+    DFX_ARGS="$DFX_ARGS --clean"
+fi
+
+# Start dfx
+echo "Starting dfx with arguments: $DFX_ARGS"
+dfx start $DFX_ARGS
