@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { getUsersFollowedNeurons, isKnownNeuron } from './findFollowedNeuron';
 
 describe('getUsersFollowedNeurons', () => {
-  const knowNeuronId = 100n;
+  const knownNeuronId = 100n;
 
   const createMockNeuron = (id: bigint, followees: bigint[] = []): NeuronInfo =>
     ({
@@ -28,7 +28,7 @@ describe('getUsersFollowedNeurons', () => {
       committed_topics: [],
     }) as unknown as KnownNeuron;
 
-  const knownNeurons = [createMockKnownNeuron(knowNeuronId, 'Known Neuron 100')];
+  const knownNeurons = [createMockKnownNeuron(knownNeuronId, 'Known Neuron 100')];
 
   it('returns an empty array when user has no neurons', () => {
     const result = getUsersFollowedNeurons({ userNeurons: [], knownNeurons });
@@ -43,8 +43,8 @@ describe('getUsersFollowedNeurons', () => {
 
   it('returns a single followed known neuron', () => {
     const userNeurons = [
-      createMockNeuron(1n, [knowNeuronId]),
-      createMockNeuron(2n, [knowNeuronId]),
+      createMockNeuron(1n, [knownNeuronId]),
+      createMockNeuron(2n, [knownNeuronId]),
     ];
     const result = getUsersFollowedNeurons({ userNeurons, knownNeurons });
 
@@ -67,12 +67,12 @@ describe('getUsersFollowedNeurons', () => {
   });
 
   it('returns multiple followed neurons when user has a mix following', () => {
-    const userNeurons = [createMockNeuron(1n, [knowNeuronId]), createMockNeuron(2n, [200n])];
+    const userNeurons = [createMockNeuron(1n, [knownNeuronId]), createMockNeuron(2n, [200n])];
     const result = getUsersFollowedNeurons({ userNeurons, knownNeurons });
 
     expect(result).toHaveLength(2);
     expect(isKnownNeuron(result[0])).toBe(true);
-    expect((result[0] as KnownNeuron).id).toBe(knowNeuronId);
+    expect((result[0] as KnownNeuron).id).toBe(knownNeuronId);
 
     expect(typeof result[1]).toBe('bigint');
     expect(result[1]).toBe(200n);

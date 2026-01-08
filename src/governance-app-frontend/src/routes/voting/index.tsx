@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
 import { useVotableLoadedProposals } from '@features/proposals/hooks/useVotableLoadedProposals';
 import { getShowProposalUrlStatus } from '@features/proposals/utils';
-import { KnownNeuronCard } from '@features/voting/components/ExpandableNeuronCard';
+import { KnownNeuronCard } from '@features/voting/components/KnownNeuronCard';
 import { getUsersFollowedNeurons, isKnownNeuron } from '@features/voting/utils/findFollowedNeuron';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
@@ -52,7 +52,7 @@ function Voting() {
     userNeurons,
     knownNeurons,
   });
-  // @TODO: Set  "noUncheckedIndexedAccess": true in tsconfig to handle possible undefined values more safely.
+  // @TODO: Set "noUncheckedIndexedAccess": true in tsconfig to handle possible undefined values more safely.
   const hasConsistentFollowees = followedNeurons.length === 1;
   const followedNeuron = followedNeurons[0];
 

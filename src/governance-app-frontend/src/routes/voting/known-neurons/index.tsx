@@ -50,9 +50,8 @@ function KnownNeuronsList() {
       userNeurons,
       knownNeurons,
     });
-    const hasConsistentFollowees = followedNeurons.length === 1;
 
-    if (!hasConsistentFollowees) {
+    if (followedNeurons.length > 1) {
       warningNotification({
         description: t(($) => $.voting.warnings.followingMismatch),
       });
