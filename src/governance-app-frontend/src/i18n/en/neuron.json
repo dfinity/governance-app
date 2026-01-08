@@ -23,6 +23,11 @@
   "errors": {
     "neuronNotFound": "Neuron #{{neuronId}} not found."
   },
+  "empty": {
+    "title": "No neurons yet",
+    "description": "Create your first neuron to start earning voting rewards and participating in governance",
+    "cta": "Create your first neuron"
+  },
   "setDissolveDelayModal": {
     "title": "Set dissolve delay for #{{neuronId}}",
     "description": "Dissolve delay is the minimum amount of time you have to wait for the neuron to unlock, and ICPs to be available again. Note, that dissolve delay only decreases when the neuron is in a dissolving state.",
