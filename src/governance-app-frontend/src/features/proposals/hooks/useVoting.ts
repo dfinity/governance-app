@@ -14,10 +14,10 @@ import { QUERY_KEYS } from '@utils/query';
  * @returns
  *   - vote: function to cast votes for all eligible neurons
  *   - isVoting: boolean
- *   - hasVoted: boolean (all eligible neurons have voted and are consistent? No, just that they have voted)
+ *   - hasVoted: boolean - indicates whether all eligible neurons have cast their votes
  *   - isVoteMixed: boolean
  *   - voteValue: Vote.Yes | Vote.No | Vote.Unspecified (if mixed or not voted)
- *   - canVote: boolean (user has eligible neurons and is ready)
+ *   - canVote: boolean
  */
 export const useVoting = (proposal: ProposalInfo) => {
   const { t } = useTranslation();
@@ -41,7 +41,7 @@ export const useVoting = (proposal: ProposalInfo) => {
   const votedCount = votedBallots.length;
   const hasVoted = votedCount > 0 && votedCount === eligibleVotedNeurons.length;
 
-  // // Mixed votes check
+  // Mixed votes check
   const firstVote = votedBallots[0]?.vote;
   const isVoteMixed = hasVoted && !votedBallots.every((b) => b.vote === firstVote);
   const voteValue = hasVoted && !isVoteMixed ? firstVote : Vote.Unspecified;
@@ -122,18 +122,15 @@ export const useVoting = (proposal: ProposalInfo) => {
     }
   };
 
-  // Block navigation while voting
-  const blockingFn = () => {
-    if (!isVoting) return false;
-
-    // @TODO: Improve UI
-    window.alert(t(($) => $.proposal.confirmNavigation));
-    return true;
-  };
-
   useBlocker({
-    shouldBlockFn: blockingFn,
-    enableBeforeUnload: blockingFn,
+    shouldBlockFn: () => {
+      if (!isVoting) return false;
+
+      // @TODO: Improve UI
+      window.alert(t(($) => $.proposal.confirmNavigation));
+      return true;
+    },
+    enableBeforeUnload: isVoting,
   });
 
   return {

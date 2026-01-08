@@ -1,5 +1,5 @@
-import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
 import { secondsToDuration } from '@dfinity/utils';
+import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
 import { CheckCircle, Clock, Tag, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -186,7 +186,7 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
                   className="flex-1 text-red-800 hover:border-red-700 hover:bg-red-100/10 hover:text-red-700 dark:text-red-400 dark:hover:border-red-300 dark:hover:bg-red-900/10 dark:hover:text-red-300"
                 >
                   {isVoting && voted === Vote.No ? (
-                    <Clock className="mr-2 h-4 w-4 animate-spin" />
+                    <Clock className="mr-2 size-4 animate-spin" />
                   ) : (
                     <ThumbsDown className="mr-2 size-4" />
                   )}
