@@ -7,7 +7,7 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     env:
-      BASE_URL: http://lqy7q-dh777-77777-aaaaq-cai.localhost:8080
+      BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
 
     steps:
       - uses: actions/checkout@v4
