@@ -48,7 +48,6 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   const voted = proposal.ballots.filter((neuron) => neuron.vote !== Vote.Unspecified).length;
   const totalToVote = proposal.ballots.length;
 
-  // @TODO: Vote casting.
   const { vote, isVoting, hasVoted, isVoteMixed, voteValue, canVote } = useVoting(proposal);
 
   useEffect(() => {

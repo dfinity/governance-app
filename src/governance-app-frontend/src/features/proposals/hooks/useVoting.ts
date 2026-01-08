@@ -8,6 +8,17 @@ import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { longNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
+/**
+ * Hook to manage voting on a proposal
+ * @param proposal ProposalInfo
+ * @returns
+ *   - vote: function to cast votes for all eligible neurons
+ *   - isVoting: boolean
+ *   - hasVoted: boolean (all eligible neurons have voted and are consistent? No, just that they have voted)
+ *   - isVoteMixed: boolean
+ *   - voteValue: Vote.Yes | Vote.No | Vote.Unspecified (if mixed or not voted)
+ *   - canVote: boolean (user has eligible neurons and is ready)
+ */
 export const useVoting = (proposal: ProposalInfo) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -118,16 +129,6 @@ export const useVoting = (proposal: ProposalInfo) => {
       return true;
     },
   });
-
-  /*
-   * Returns:
-   * - vote: function to cast votes for all eligible neurons
-   * - isVoting: boolean
-   * - hasVoted: boolean (all eligible neurons have voted and are consistent? No, just that they have voted)
-   * - isVoteMixed: boolean
-   * - voteValue: Vote.Yes | Vote.No | Vote.Unspecified (if mixed or not voted)
-   * - canVote: boolean (user has eligible neurons and is ready)
-   */
 
   return {
     vote,
