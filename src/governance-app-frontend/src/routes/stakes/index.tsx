@@ -1,4 +1,4 @@
-import { NeuronInfo } from '@icp-sdk/canisters/nns';
+import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
@@ -31,7 +31,7 @@ function StakesComponent() {
         </div>
         <div
           className={cn(
-            'flex-1 sm:flex-0',
+            'flex-1 sm:flex-initial',
             neuronsQuery?.data?.response.length === 0 ? 'hidden sm:block' : '',
           )}
         >

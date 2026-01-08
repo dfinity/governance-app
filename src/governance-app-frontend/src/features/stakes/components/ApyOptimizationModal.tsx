@@ -1,4 +1,4 @@
-import { NeuronInfo } from '@icp-sdk/canisters/nns';
+import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { Link } from '@tanstack/react-router';
 import { TFunction } from 'i18next';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
