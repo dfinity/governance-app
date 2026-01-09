@@ -13,7 +13,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
       <Sidebar />
       <div className="flex h-screen w-full flex-col overflow-hidden">
         <Header />
-        <main className="relative mb-20 flex-1 overflow-auto p-6 lg:mb-0">
+        <main className="relative mb-20 flex-1 overflow-auto bg-main-content p-4 lg:mb-0">
           <div className="mx-auto w-full max-w-5xl">{children}</div>
         </main>
         <BottomNav />
