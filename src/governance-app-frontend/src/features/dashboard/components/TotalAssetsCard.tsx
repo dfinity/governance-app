@@ -3,7 +3,6 @@ import { nonNullish } from '@dfinity/utils';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Card, CardContent } from '@components/Card';
-import { MaturitySymbol } from '@components/MaturitySymbol';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
@@ -11,22 +10,18 @@ import { E8Sn } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers';
-import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronFreeMaturityE8s, getNeuronStakeE8s } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
-import { isStakingRewardDataReady, MaturityEstimatePeriod } from '@utils/staking-rewards';
 
 import { useWaveAnimation } from '../hooks/useWaveAnimation';
 
-// @TODO: How do we display errors loading data?
 export const TotalAssetsCard = () => {
   const { t } = useTranslation();
 
   const { tickerPrices: tickersQuery } = useTickerPrices();
   const neuronsQuery = useGovernanceNeurons();
   const balanceQuery = useIcpLedgerAccountBalance();
-  const stakingRewards = useStakingRewards();
 
   // Calculate Total Assets
   const liquidBalance = nonNullish(balanceQuery.data?.response)
@@ -78,8 +73,7 @@ export const TotalAssetsCard = () => {
 
         <Separator className="my-6 mr-auto ml-auto w-2/3! bg-blend-difference" />
 
-        <div className="mt-12 flex flex-col items-start justify-between gap-6 sm:flex-row">
-          {/* Left: Total Value */}
+        <div className="mt-12 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
           <div className="min-h-[100px] space-y-1">
             <p className="text-xs font-bold tracking-wider uppercase">
               {t(($) => $.home.totalValue)}
@@ -104,8 +98,7 @@ export const TotalAssetsCard = () => {
             </div>
           </div>
 
-          {/* Right: Metrics  */}
-          <div className="grid w-full grid-cols-1 gap-3 xs:grid-cols-2 sm:w-auto">
+          <div className="grid w-full sm:w-48">
             <div className="flex flex-col rounded-xl border border-border/50 bg-white/50 px-4 py-[10px] text-right shadow-sm backdrop-blur-sm xs:col-span-2 dark:bg-zinc-800/50">
               <p className="mb-1 text-[10px] font-bold text-muted-foreground uppercase">
                 {t(($) => $.home.icpUsd)}
@@ -116,44 +109,6 @@ export const TotalAssetsCard = () => {
                 ) : (
                   <Skeleton className="h-7 w-14" />
                 )}
-              </div>
-            </div>
-
-            <div className="flex min-w-[120px] flex-col gap-1 rounded-xl border border-border/50 bg-white/50 px-4 py-[10px] text-right shadow-sm backdrop-blur-sm dark:bg-zinc-800/50">
-              <p className="text-[10px] font-bold tracking-wide text-muted-foreground uppercase">
-                {t(($) => $.home.forecast.oneWeek)}
-              </p>
-              <div className="flex items-center justify-end gap-1.5">
-                {isStakingRewardDataReady(stakingRewards) ? (
-                  <span className="text-lg font-semibold text-emerald-800 dark:text-emerald-400">
-                    +
-                    {formatNumber(
-                      stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.WEEK) || 0,
-                    )}
-                  </span>
-                ) : (
-                  <Skeleton className="h-7 w-14" />
-                )}
-                <MaturitySymbol />
-              </div>
-            </div>
-
-            <div className="flex min-w-[120px] flex-col gap-1 rounded-xl border border-border/50 bg-white/50 px-4 py-[10px] text-right shadow-sm backdrop-blur-sm dark:bg-zinc-800/50">
-              <p className="text-[10px] font-bold tracking-wide text-muted-foreground uppercase">
-                {t(($) => $.home.forecast.oneYear)}
-              </p>
-              <div className="flex items-center justify-end gap-1.5">
-                {isStakingRewardDataReady(stakingRewards) ? (
-                  <span className="text-lg font-semibold text-emerald-800 dark:text-emerald-400">
-                    +
-                    {formatNumber(
-                      stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) || 0,
-                    )}
-                  </span>
-                ) : (
-                  <Skeleton className="h-7 w-13" />
-                )}
-                <MaturitySymbol />
               </div>
             </div>
           </div>

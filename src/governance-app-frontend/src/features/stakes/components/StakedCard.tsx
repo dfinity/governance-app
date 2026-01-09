@@ -20,7 +20,7 @@ import { getNeuronFreeMaturityE8s, getNeuronStakeE8s } from '@utils/neuron';
 import { warningNotification } from '@utils/notification';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { hasEnoughBalanceToStake } from '@utils/staking';
-import { isStakingRewardDataReady } from '@utils/staking-rewards';
+import { isStakingRewardDataReady, MaturityEstimatePeriod } from '@utils/staking-rewards';
 
 export function StakedCard() {
   const { t } = useTranslation();
@@ -136,12 +136,22 @@ export function StakedCard() {
             </div>
             <div className="flex flex-col gap-1 rounded-md bg-muted p-3 hover:bg-gray-200 dark:hover:bg-zinc-700">
               <p className="text-xs font-medium text-muted-foreground uppercase">
-                {t(($) => $.home.disbursed)}
+                {t(($) => $.home.forecast.oneYear)}
               </p>
-              <p className="text-xl font-bold">
-                {/* @TODO: add disbursed amount */}
-                {t(($) => $.common.inIcp, { value: formatNumber(0) })}
-              </p>
+              <div className="flex items-center justify-end gap-2">
+                {isStakingRewardDataReady(stakingRewards) ? (
+                  <span className="text-lg font-semibold text-emerald-800 dark:text-emerald-400">
+                    {t(($) => $.common.positiveNumber, {
+                      value: formatNumber(
+                        stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) || 0,
+                      ),
+                    })}
+                  </span>
+                ) : (
+                  <Skeleton className="h-7 w-13" />
+                )}
+                <MaturitySymbol />
+              </div>
             </div>
           </div>
 
