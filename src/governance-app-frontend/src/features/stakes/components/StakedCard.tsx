@@ -135,16 +135,17 @@ export function StakedCard() {
               </div>
             </div>
             <div className="flex flex-col gap-1 rounded-md bg-muted p-3 hover:bg-gray-200 dark:hover:bg-zinc-700">
-              <p className="text-[10px] font-bold tracking-wide text-muted-foreground uppercase">
+              <p className="text-xs font-medium text-muted-foreground uppercase">
                 {t(($) => $.home.forecast.oneYear)}
               </p>
-              <div className="flex items-center justify-end gap-1.5">
+              <div className="flex items-center justify-end gap-2">
                 {isStakingRewardDataReady(stakingRewards) ? (
                   <span className="text-lg font-semibold text-emerald-800 dark:text-emerald-400">
-                    +
-                    {formatNumber(
-                      stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) || 0,
-                    )}
+                    {t(($) => $.common.positiveNumber, {
+                      value: formatNumber(
+                        stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) || 0,
+                      ),
+                    })}
                   </span>
                 ) : (
                   <Skeleton className="h-7 w-13" />
