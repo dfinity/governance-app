@@ -63,10 +63,7 @@ export const TotalAssetsCard = () => {
       <CardContent className="relative z-10 flex h-full flex-col justify-between px-8 py-2">
         <div className="mt-4 space-y-2 text-center">
           <h2 className="text-4xl font-semibold tracking-tight text-foreground">
-            <Trans
-              i18nKey={($) => $.home.participateTitle}
-              components={{ strong: <strong className="text-foreground" /> }}
-            />
+            <Trans i18nKey={($) => $.home.participateTitle} />
           </h2>
           <p className="text-lg font-light">{t(($) => $.home.participateSubtitle)}</p>
         </div>
