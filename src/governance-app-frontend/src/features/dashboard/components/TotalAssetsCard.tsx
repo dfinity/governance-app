@@ -1,6 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent } from '@components/Card';
 import { Separator } from '@components/Separator';
@@ -63,10 +63,7 @@ export const TotalAssetsCard = () => {
       <CardContent className="relative z-10 flex h-full flex-col justify-between px-8 py-2">
         <div className="mt-4 space-y-2 text-center">
           <h2 className="text-4xl font-semibold tracking-tight text-foreground">
-            <Trans
-              i18nKey={($) => $.home.participateTitle}
-              components={{ strong: <strong className="text-foreground" /> }}
-            />
+            {t(($) => $.home.participateTitle)}
           </h2>
           <p className="text-lg font-light">{t(($) => $.home.participateSubtitle)}</p>
         </div>
@@ -75,7 +72,7 @@ export const TotalAssetsCard = () => {
 
         <div className="mt-12 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
           <div className="min-h-[100px] space-y-1">
-            <p className="text-xs font-bold tracking-wider uppercase">
+            <p className="text-sm font-semibold tracking-wide uppercase">
               {t(($) => $.home.totalValue)}
             </p>
             <div className="flex items-baseline gap-2">
