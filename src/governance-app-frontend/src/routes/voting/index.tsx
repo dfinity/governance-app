@@ -9,6 +9,7 @@ import { useVotableLoadedProposals } from '@features/proposals/hooks/useVotableL
 import { getShowProposalUrlStatus } from '@features/proposals/utils';
 import { FollowedNeuronCard } from '@features/voting/components/FollowedNeuronCard';
 import { getUsersFollowedNeurons } from '@features/voting/utils/findFollowedNeuron';
+import { sortProposals } from '@features/voting/utils/proposals';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
@@ -17,7 +18,6 @@ import { InViewSentinel } from '@components/InViewSentinel';
 import { QueryStates } from '@components/QueryStates';
 import { Separator } from '@components/Separator';
 import { SkeletonLoader } from '@components/SkeletonLoader';
-import { sortProposals } from '@features/voting/utils/proposals';
 import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import useTitle from '@hooks/useTitle';
