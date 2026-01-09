@@ -75,7 +75,7 @@ export const TotalAssetsCard = () => {
 
         <div className="mt-12 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
           <div className="min-h-[100px] space-y-1">
-            <p className="text-xs font-bold tracking-wider uppercase">
+            <p className="text-sm tracking-wide font-medium uppercase">
               {t(($) => $.home.totalValue)}
             </p>
             <div className="flex items-baseline gap-2">
