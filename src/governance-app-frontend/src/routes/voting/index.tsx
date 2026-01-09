@@ -17,6 +17,7 @@ import { InViewSentinel } from '@components/InViewSentinel';
 import { QueryStates } from '@components/QueryStates';
 import { Separator } from '@components/Separator';
 import { SkeletonLoader } from '@components/SkeletonLoader';
+import { sortProposals } from '@features/voting/utils/proposals';
 import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import useTitle from '@hooks/useTitle';
@@ -102,7 +103,7 @@ function Voting() {
         </Alert>
       )}
 
-      {!isNullish(followedNeuron) ? (
+      {isNullish(followedNeuron) ? (
         <>
           <Alert variant="warning">
             <AlertTitle className="font-semibold">{t(($) => $.common.important)}</AlertTitle>
@@ -123,11 +124,11 @@ function Voting() {
         </>
       ) : !hasConsistentFollowees ? (
         <>
+          {/* @TODO: Improve how we inform users that they have a mix of following */}
           <Alert variant="warning">
             <AlertTitle className="font-semibold">{t(($) => $.common.caution)}</AlertTitle>
             <AlertDescription>{t(($) => $.voting.warnings.followingMismatch)}</AlertDescription>
           </Alert>
-          {/* @TODO: Improve how we inform users that they have a mix of following */}
         </>
       ) : (
         <FollowedNeuronCard neuron={followedNeuron} />
@@ -165,37 +166,27 @@ function Voting() {
           {(data) => (
             <div className="flex flex-col gap-4">
               {data?.pages?.map((page) =>
-                page?.response.proposals
-                  .toSorted((a, b) => {
-                    const isAOpen = a.status === 1;
-                    const isBOpen = b.status === 1;
+                page?.response.proposals.toSorted(sortProposals).map((proposal) => {
+                  const canUserVote = votableProposals.has(proposal.id);
 
-                    // If both are open, or neither are open, keep original order
-                    if (isAOpen === isBOpen) return 0;
-                    if (isAOpen) return -1;
-                    return 1;
-                  })
-                  .map((proposal) => {
-                    const canUserVote = votableProposals.has(proposal.id);
-
-                    return (
-                      <div key={proposal.id?.toString()} className="w-full">
-                        <Link
-                          to="/voting/proposals/$id"
-                          params={{ id: proposal.id! }}
-                          search={{ showProposals }}
-                          className="w-full"
-                          preload="intent"
-                        >
-                          <ProposalListItem
-                            proposal={proposal}
-                            canUserVote={canUserVote}
-                            certified={page?.certified}
-                          />
-                        </Link>
-                      </div>
-                    );
-                  }),
+                  return (
+                    <div key={proposal.id?.toString()} className="w-full">
+                      <Link
+                        to="/voting/proposals/$id"
+                        params={{ id: proposal.id! }}
+                        search={{ showProposals }}
+                        className="w-full"
+                        preload="intent"
+                      >
+                        <ProposalListItem
+                          proposal={proposal}
+                          canUserVote={canUserVote}
+                          certified={page?.certified}
+                        />
+                      </Link>
+                    </div>
+                  );
+                }),
               )}
 
               {proposals.hasNextPage && (
