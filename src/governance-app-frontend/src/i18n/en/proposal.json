@@ -19,5 +19,22 @@
   "participation": "Participation",
   "yesVotes": "Yes votes",
   "noVotes": "No votes",
-  "voteProgress": "Vote progress"
+  "voteProgress": "Vote progress",
+  "actions": {
+    "adopting": "Adopting",
+    "rejecting": "Rejecting",
+    "adopted": "Adopted",
+    "rejected": "Rejected"
+  },
+  "votingProgress": {
+    "loading": "{{action}} proposal {{id}} {{current}}/{{total}}",
+    "success": "{{action}} proposal {{id}} {{current}}/{{total}}",
+    "error": "Failed to vote on proposal {{id}}"
+  },
+  "voteCast": "Vote cast: <strong>{{vote}}</strong>",
+  "yes": "Yes",
+  "no": "No",
+  "mixed": "Mixed",
+  "confirmNavigation": "Voting in progress. Are you sure you want to leave?",
+  "ariaLabelVote": "Vote {{vote}} on proposal {{proposalId}}"
 }

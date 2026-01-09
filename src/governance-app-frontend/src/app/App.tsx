@@ -37,7 +37,10 @@ export const App = () => {
               <RouterProvider router={routerConfig} />
               <ReactQueryDevtools initialIsOpen={false} />
               {notificationsContainer &&
-                createPortal(<Sonner position="top-center" />, notificationsContainer)}
+                createPortal(
+                  <Sonner position="top-center" visibleToasts={9} />,
+                  notificationsContainer,
+                )}
             </ThemeProvider>
           </AgentPoolProvider>
         </QueryClientProvider>

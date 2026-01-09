@@ -64,15 +64,6 @@ function KnownNeuronsList() {
     }
   }, [neuronsQuery.data, knownNeuronsQuery.data, t]);
 
-  useBlocker({
-    shouldBlockFn: () => {
-      if (!updateFollowingMutation.isPending) return false;
-      // @TODO: Improve UI
-      window.alert(t(($) => $.knownNeurons.confirmNavigation));
-      return true;
-    },
-  });
-
   const updateFollowingMutation = useMutation<
     void,
     Error,
@@ -99,7 +90,7 @@ function KnownNeuronsList() {
   });
 
   const handleSelect = async (knownNeuron: KnownNeuron) => {
-    if (!neuronsQuery?.data?.certified || !canister) return;
+    if (!neuronsQuery.data?.certified || !canister) return;
     const neurons = neuronsQuery.data.response;
 
     if (neurons.length === 0) {
@@ -142,9 +133,17 @@ function KnownNeuronsList() {
     await queryClient.invalidateQueries({
       queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
     });
-
-    setSelectedNeuronId(null);
   };
+
+  useBlocker({
+    shouldBlockFn: () => {
+      if (!updateFollowingMutation.isPending) return false;
+      // @TODO: Improve UI
+      window.alert(t(($) => $.knownNeurons.confirmNavigation));
+      return true;
+    },
+    enableBeforeUnload: updateFollowingMutation.isPending,
+  });
 
   return (
     <div className="flex flex-col gap-6">
