@@ -1,6 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent } from '@components/Card';
 import { Separator } from '@components/Separator';
@@ -63,7 +63,7 @@ export const TotalAssetsCard = () => {
       <CardContent className="relative z-10 flex h-full flex-col justify-between px-8 py-2">
         <div className="mt-4 space-y-2 text-center">
           <h2 className="text-4xl font-semibold tracking-tight text-foreground">
-            <Trans i18nKey={($) => $.home.participateTitle} />
+            {t(($) => $.home.participateTitle)}
           </h2>
           <p className="text-lg font-light">{t(($) => $.home.participateSubtitle)}</p>
         </div>
