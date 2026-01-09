@@ -7,7 +7,7 @@ export const Sidebar = () => {
   const { t } = useTranslation();
 
   return (
-    <aside className="sticky top-0 z-20 hidden h-screen w-72 flex-col border-r bg-card text-sm shadow-[1px_0_3px_rgba(0,0,0,0.04),1px_0_0_rgba(0,0,0,0.02)] lg:flex">
+    <aside className="sticky top-0 z-20 hidden h-screen w-72 flex-col border-r bg-card text-sm lg:flex">
       <div className="flex items-center p-6 pt-4">
         <img
           src="/governance-logo.svg"
