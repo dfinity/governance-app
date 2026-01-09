@@ -58,7 +58,7 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
               loadingComponent={<SkeletonLoader count={3} />}
             >
               {(data) => (
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-3">
                   {data.pages?.map((page) =>
                     page.response.transactions.map((tx) => (
                       <AccountTransactionItem

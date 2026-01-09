@@ -12,5 +12,7 @@
   "approxUsd": "≈ ${{value}}",
   "withdrawnIcp": "Withdrawn ICP",
   "depositedIcp": "Deposited ICP",
+  "stakedIcp": "Staked ICP",
+  "unknownTransaction": "Unknown transaction",
   "transactionListDescription": "A list of all the transactions made by this account."
 }
