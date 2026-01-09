@@ -33,7 +33,7 @@ describe('sortProposals', () => {
       createProposal(4n, ProposalStatus.Open),
     ];
 
-    const sorted = proposals.sort(sortProposals);
+    const sorted = proposals.toSorted(sortProposals);
 
     expect(sorted[0].id).toBe(2n);
     expect(sorted[1].id).toBe(4n);
