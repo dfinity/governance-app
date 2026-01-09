@@ -1,5 +1,5 @@
-import type { KnownNeuron } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
+import type { KnownNeuron } from '@icp-sdk/canisters/nns';
 import { ChevronDown, ChevronUp, Circle, CircleDot, LinkIcon } from 'lucide-react';
 import { useState } from 'react';
 
@@ -7,6 +7,7 @@ import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card } from '@components/Card';
 import { MarkdownRenderer } from '@components/MarkdownRenderer';
+import { DASHBOARD_URL } from '@constants/extra';
 import { cn } from '@utils/shadcn';
 import { safeParseUrl } from '@utils/urls';
 
@@ -24,10 +25,7 @@ export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled }: Pr
     e.stopPropagation();
     setIsExpanded(!isExpanded);
   };
-  const links = [
-    `https://dashboard.internetcomputer.org/neuron/${neuron.id}`,
-    ...(neuron?.links ?? []),
-  ]
+  const links = [`${DASHBOARD_URL}/${neuron.id}`, ...(neuron?.links ?? [])]
     .map(safeParseUrl)
     .filter(nonNullish);
 
