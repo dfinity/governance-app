@@ -124,13 +124,15 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
         <CardFooter className="py-2">
           {hasVoted ? (
             <div
-              className={`flex w-full items-center gap-2 rounded-md border p-2 text-sm capitalize ${
+              className={cn(
+                'flex w-full items-center gap-2 rounded-md border p-2 text-sm capitalize',
+
                 isVoteMixed
                   ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
                   : voteValue === Vote.Yes
                     ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
-                    : 'border-red-200 bg-red-100 text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400'
-              }`}
+                    : 'border-red-200 bg-red-100 text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400',
+              )}
             >
               {isVoteMixed ? (
                 <>
@@ -186,7 +188,7 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
                 <Button
                   aria-busy={isVoting}
                   aria-label={t(($) => $.proposal.ariaLabelVote, {
-                    vote: t(($) => $.proposal.yes),
+                    vote: t(($) => $.proposal.no),
                     proposalId: proposal.id?.toString(),
                   })}
                   className="flex-1 text-red-800 hover:border-red-700 hover:bg-red-100/10 hover:text-red-700 dark:text-red-400 dark:hover:border-red-300 dark:hover:bg-red-900/10 dark:hover:text-red-300"

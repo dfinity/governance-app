@@ -33,9 +33,9 @@ export const useVoting = (proposal: ProposalInfo) => {
   const eligibleNeurons = votableNeurons({ neurons, proposal });
   const eligibleNeuronsIds = eligibleNeurons.map((n) => n.neuronId);
   const eligibleCount = eligibleNeurons.length;
-  const eligibleVotedNeurons = votedNeurons({ neurons, proposal });
 
   // Track votes
+  const eligibleVotedNeurons = votedNeurons({ neurons, proposal });
   const eligibleBallots = proposal.ballots.filter((b) => neuronIds.has(b.neuronId));
   const votedBallots = eligibleBallots.filter((b) => b.vote !== Vote.Unspecified);
   const votedCount = votedBallots.length;
@@ -77,10 +77,11 @@ export const useVoting = (proposal: ProposalInfo) => {
   const vote = async (ballot: Vote) => {
     if (!canister || eligibleCount === 0) return;
 
-    for (let i = 0; i < eligibleCount; i++) {
+    const total = eligibleCount;
+
+    for (let i = 0; i < total; i++) {
       const neuronId = eligibleNeuronsIds[i];
       const current = i + 1;
-      const total = eligibleCount;
 
       const promise = voteMutation.mutateAsync({
         neuronId,
@@ -140,6 +141,5 @@ export const useVoting = (proposal: ProposalInfo) => {
     isVoteMixed,
     voteValue,
     canVote: ready && authenticated && eligibleCount > 0,
-    eligibleCount,
   };
 };
