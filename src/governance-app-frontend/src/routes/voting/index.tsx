@@ -7,8 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
 import { useVotableLoadedProposals } from '@features/proposals/hooks/useVotableLoadedProposals';
 import { getShowProposalUrlStatus } from '@features/proposals/utils';
-import { KnownNeuronCard } from '@features/voting/components/KnownNeuronCard';
-import { getUsersFollowedNeurons, isKnownNeuron } from '@features/voting/utils/findFollowedNeuron';
+import { FollowedNeuronCard } from '@features/voting/components/FollowedNeuronCard';
+import { getUsersFollowedNeurons } from '@features/voting/utils/findFollowedNeuron';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
@@ -102,7 +102,7 @@ function Voting() {
         </Alert>
       )}
 
-      {isNullish(followedNeuron) ? (
+      {!isNullish(followedNeuron) ? (
         <>
           <Alert variant="warning">
             <AlertTitle className="font-semibold">{t(($) => $.common.important)}</AlertTitle>
@@ -130,23 +130,7 @@ function Voting() {
           {/* @TODO: Improve how we inform users that they have a mix of following */}
         </>
       ) : (
-        <div className="flex flex-col gap-4">
-          <h3 className="text-lg font-semibold">{t(($) => $.voting.following)}</h3>
-          {isKnownNeuron(followedNeuron) ? (
-            <KnownNeuronCard
-              neuron={followedNeuron}
-              isSelected={true}
-              onSelect={() => {}}
-              isDisabled={false}
-            />
-          ) : (
-            <Card className="h-auto p-4">
-              <p className="font-semibold capitalize">
-                {t(($) => $.voting.non_known_neuron, { neuronId: followedNeuron.toString() })}
-              </p>
-            </Card>
-          )}
-        </div>
+        <FollowedNeuronCard neuron={followedNeuron} />
       )}
 
       <Separator className="mt-8 mb-4 lg:mt-16" />

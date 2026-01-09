@@ -85,5 +85,6 @@
     "copy": "Copy to clipboard",
     "copied": "Your {{label}} was copied to the clipboard.",
     "error": "An error occurred while copying to clipboard."
-  }
+  },
+  "seeDetails": "See details"
 }
