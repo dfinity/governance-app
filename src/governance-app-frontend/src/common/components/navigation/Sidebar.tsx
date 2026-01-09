@@ -28,7 +28,7 @@ export const Sidebar = () => {
                 'before:absolute before:left-0 before:w-[3px] before:h-6 before:bg-black before:rounded-xl bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary',
             }}
           >
-            <item.icon className="h-5 w-5" />
+            <item.icon className="size-5" />
             <span>{t(item.label as never)}</span>
           </Link>
         ))}
