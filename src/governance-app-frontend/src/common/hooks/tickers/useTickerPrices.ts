@@ -12,7 +12,7 @@ export const useTickerPrices = () => {
   const kongSwapPrices = useKongSwapPrices({ enabled: useFallback, retryCount: 1 });
 
   return {
-    // Fallback to IcpSwap if KongSwap fails.
+    // Fallback to KongSwap if IcpSwap fails.
     tickerPrices: useFallback ? kongSwapPrices : icpSwapPrices,
     tickerPricesSource: useFallback ? TickerPricesSource.KONG_SWAP : TickerPricesSource.ICP_SWAP,
   };
