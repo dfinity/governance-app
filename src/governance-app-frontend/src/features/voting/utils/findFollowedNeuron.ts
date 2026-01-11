@@ -1,5 +1,5 @@
-import { KnownNeuron, NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
+import { KnownNeuron, NeuronInfo } from '@icp-sdk/canisters/nns';
 
 type FindFollowedNeuronParams = {
   userNeurons: NeuronInfo[];
@@ -39,4 +39,4 @@ export const getUsersFollowedNeurons = ({
 };
 
 export const isKnownNeuron = (value: KnownNeuron | bigint): value is KnownNeuron =>
-  typeof value === 'object' && value !== null && 'id' in value;
+  typeof value !== 'bigint';

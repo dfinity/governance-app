@@ -31,11 +31,11 @@ import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { errorNotification, successNotification, warningNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
-interface StakeNeuronModalProps {
+type Props = {
   trigger?: React.ReactElement<{ onClick?: React.MouseEventHandler<HTMLButtonElement> }>;
-}
+};
 
-export const StakeNeuronModal = ({ trigger }: StakeNeuronModalProps) => {
+export const StakeNeuronModal = ({ trigger }: Props) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { data: balanceValue } = useIcpLedgerAccountBalance();
