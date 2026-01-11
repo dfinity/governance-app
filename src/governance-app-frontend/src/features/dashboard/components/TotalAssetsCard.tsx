@@ -1,5 +1,5 @@
-import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
+import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent } from '@components/Card';
@@ -14,6 +14,9 @@ import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronFreeMaturityE8s, getNeuronStakeE8s } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
 
+import { formatPercent } from '@features/proposals/utils';
+import { useStakingRewards } from '@hooks/useStakingRewards';
+import { isStakingRewardDataReady } from '@utils/staking-rewards';
 import { useWaveAnimation } from '../hooks/useWaveAnimation';
 
 export const TotalAssetsCard = () => {
@@ -22,6 +25,7 @@ export const TotalAssetsCard = () => {
   const { tickerPrices: tickersQuery } = useTickerPrices();
   const neuronsQuery = useGovernanceNeurons();
   const balanceQuery = useIcpLedgerAccountBalance();
+  const stakingRewards = useStakingRewards();
 
   // Calculate Total Assets
   const liquidBalance = nonNullish(balanceQuery.data?.response)
@@ -65,7 +69,15 @@ export const TotalAssetsCard = () => {
           <h2 className="text-4xl font-semibold tracking-tight text-foreground">
             {t(($) => $.home.participateTitle)}
           </h2>
-          <p className="text-lg font-light">{t(($) => $.home.participateSubtitle)}</p>
+          {isStakingRewardDataReady(stakingRewards) ? (
+            <p className="text-lg font-light">
+              {t(($) => $.home.participateSubtitle, {
+                value: formatPercent(stakingRewards.apy.max * 100),
+              })}
+            </p>
+          ) : (
+            <Skeleton className="mr-auto ml-auto h-5 w-60" />
+          )}
         </div>
 
         <Separator className="my-6 mr-auto ml-auto w-2/3! bg-blend-difference" />
