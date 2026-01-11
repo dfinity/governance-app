@@ -1,5 +1,5 @@
-import { nonNullish } from '@dfinity/utils';
 import { KnownNeuron, NeuronInfo } from '@icp-sdk/canisters/nns';
+import { nonNullish } from '@dfinity/utils';
 
 type FindFollowedNeuronParams = {
   userNeurons: NeuronInfo[];

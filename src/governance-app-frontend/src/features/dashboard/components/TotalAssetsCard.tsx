@@ -1,6 +1,8 @@
-import { nonNullish } from '@dfinity/utils';
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
+import { nonNullish } from '@dfinity/utils';
 import { useTranslation } from 'react-i18next';
+
+import { formatPercent } from '@features/proposals/utils';
 
 import { Card, CardContent } from '@components/Card';
 import { Separator } from '@components/Separator';
@@ -10,13 +12,12 @@ import { E8Sn } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers';
+import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronFreeMaturityE8s, getNeuronStakeE8s } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
-
-import { formatPercent } from '@features/proposals/utils';
-import { useStakingRewards } from '@hooks/useStakingRewards';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
+
 import { useWaveAnimation } from '../hooks/useWaveAnimation';
 
 export const TotalAssetsCard = () => {
