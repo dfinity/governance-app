@@ -33,14 +33,14 @@ function LoginPage() {
   if (identity) return <Navigate to={redirect} />;
 
   return (
-    <div className="dark relative flex min-h-dvh w-full flex-col justify-between overflow-hidden px-4 py-10 font-sans text-foreground sm:p-12">
+    <div className="dark relative flex min-h-dvh w-full flex-col justify-between overflow-hidden px-4 py-10 font-sans text-foreground 3xl:mx-auto 3xl:max-w-[2000px] 3xl:overflow-visible sm:p-12">
       {/* Background Image */}
       <div className="absolute inset-0 -z-10 flex h-full w-full lg:items-center">
-        <div className="absolute inset-0 bg-background" />
+        {/*<div className="absolute inset-0 bg-background" />*/}
         <img
           src="/core-bg.webp"
           alt=""
-          className="relative h-7/10 w-auto object-cover lg:h-9/10 lg:translate-x-[600px]"
+          className="relative max-h-[768px] w-fit object-cover 3xl:translate-x-2/3 lg:translate-x-1/3 xl:translate-x-1/2"
           aria-hidden={true}
         />
       </div>
