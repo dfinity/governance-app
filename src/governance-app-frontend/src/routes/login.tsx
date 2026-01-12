@@ -25,7 +25,7 @@ function LoginPage() {
   const { t } = useTranslation();
   const { redirect = '/' } = Route.useSearch();
 
-  // @TODO: TO be replaced with real data
+  // @TODO: To be replaced with real data
   const tvl = 812865900;
   const participants = 57986;
   const proposalsAdopted = 48;
@@ -61,32 +61,40 @@ function LoginPage() {
         {/* Stats Section (Desktop: Bottom Left / Mobile: Below Title) */}
         <dl className="order-1 mt-auto flex flex-col gap-8 lg:order-2 lg:my-auto lg:h-13 lg:flex-row lg:gap-16">
           <div className="flex flex-col-reverse gap-1">
-            <dd className="text-2xl leading-none font-bold lg:text-3xl">{proposalsAdopted}</dd>
             <dt className="text-sm font-light tracking-wider text-muted-foreground">
               {t(($) => $.login.proposalsAdopted)}
             </dt>
+            <dd className="text-2xl leading-none font-bold lg:text-3xl">{proposalsAdopted}</dd>
           </div>
 
-          <Separator orientation="vertical" className="hidden bg-muted-foreground lg:block" />
+          <Separator
+            orientation="vertical"
+            className="hidden bg-muted-foreground/50 lg:block"
+            aria-hidden={true}
+          />
 
           <div className="flex flex-col-reverse gap-1">
-            <dd className="text-2xl leading-none font-bold lg:text-3xl">
-              {formatNumber(participants, { maxFraction: 0, minFraction: 0 })}
-            </dd>
             <dt className="text-sm font-light tracking-wider text-muted-foreground">
               {t(($) => $.login.participants)}
             </dt>
+            <dd className="text-2xl leading-none font-bold lg:text-3xl">
+              {formatNumber(participants, { maxFraction: 0, minFraction: 0 })}
+            </dd>
           </div>
 
-          <Separator orientation="vertical" className="hidden bg-muted-foreground lg:block" />
+          <Separator
+            orientation="vertical"
+            className="hidden bg-muted-foreground/50 lg:block"
+            aria-hidden={true}
+          />
 
           <div className="flex flex-col-reverse gap-1">
-            <dd className="text-2xl leading-none font-bold lg:text-3xl">
-              $ {formatNumber(tvl, { maxFraction: 0, minFraction: 0 })}
-            </dd>
             <dt className="text-sm font-light tracking-wider text-muted-foreground">
               {t(($) => $.login.tvl)}
             </dt>
+            <dd className="text-2xl leading-none font-bold lg:text-3xl">
+              ${formatNumber(tvl, { maxFraction: 0, minFraction: 0 })}
+            </dd>
           </div>
         </dl>
 
