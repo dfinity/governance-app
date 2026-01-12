@@ -1,5 +1,5 @@
-import { nonNullish } from '@dfinity/utils';
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
+import { nonNullish } from '@dfinity/utils';
 import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent } from '@components/Card';
