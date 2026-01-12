@@ -17,8 +17,5 @@
     "ui": "@common/components",
     "lib": "@common/utils/shadcn",
     "hooks": "@common/hooks/shadcn"
-  },
-  "registries": {
-    "@magicui": "https://magicui.design/r/{name}.json"
   }
 }
