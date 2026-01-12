@@ -1,5 +1,5 @@
-import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
 import { secondsToDuration } from '@dfinity/utils';
+import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
 import { CheckCircle, Clock, Tag, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -11,8 +11,9 @@ import { CertifiedBadge } from '@components/CertifiedBadge';
 import { E8S } from '@constants/extra';
 import { cn } from '@utils/shadcn';
 
+import { formatPercentage } from '@utils/numbers';
 import { useVoting } from '../hooks/useVoting';
-import { formatPercent, getProposalStatusColor, getProposalTimeLeftInSeconds } from '../utils';
+import { getProposalStatusColor, getProposalTimeLeftInSeconds } from '../utils';
 
 type Props = {
   proposal: ProposalInfo;
@@ -93,7 +94,7 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
 
           <div className="flex w-full min-w-[200px] flex-1 items-center gap-2 lg:ml-auto lg:w-auto lg:max-w-[500px]">
             <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400">
-              {formatPercent(yesProportion * 100)}
+              {formatPercentage(yesProportion)}
             </span>
             <div
               className="relative h-2 flex-grow overflow-hidden rounded-full bg-secondary"
@@ -114,7 +115,7 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
               />
             </div>
             <span className="text-[10px] font-bold text-red-800 dark:text-red-400">
-              {formatPercent(noProportion * 100)}
+              {formatPercentage(noProportion)}
             </span>
           </div>
         </div>

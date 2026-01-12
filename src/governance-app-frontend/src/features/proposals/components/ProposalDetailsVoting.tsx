@@ -2,8 +2,8 @@ import { ProposalInfo, Vote } from '@icp-sdk/canisters/nns';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { CheckCircle, CircleCheckBig, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Fragment } from 'react/jsx-runtime';
 import { Trans, useTranslation } from 'react-i18next';
+import { Fragment } from 'react/jsx-runtime';
 
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
@@ -11,8 +11,9 @@ import { SkeletonLoader } from '@components/SkeletonLoader';
 import { E8S } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
 
+import { formatPercentage } from '@utils/numbers';
 import { useVoting } from '../hooks/useVoting';
-import { formatPercent, formatVotingPower } from '../utils';
+import { formatVotingPower } from '../utils';
 
 type Props = {
   proposal: ProposalInfo;
@@ -65,10 +66,10 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
         <div className="flex flex-col gap-1">
           <div className="flex justify-between text-sm font-medium">
             <span className="text-emerald-800 dark:text-emerald-400">
-              {t(($) => $.proposal.yes)}: {formatPercent(yesProportion * 100)}
+              {t(($) => $.proposal.yes)}: {formatPercentage(yesProportion)}
             </span>
             <span className="text-red-700 dark:text-red-400">
-              {t(($) => $.proposal.no)}: {formatPercent(noProportion * 100)}
+              {t(($) => $.proposal.no)}: {formatPercentage(noProportion)}
             </span>
           </div>
           <div
@@ -102,7 +103,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
             <span className="text-xs text-muted-foreground capitalize">
               {t(($) => $.proposal.participation)}
             </span>
-            <span className="font-semibold">{formatPercent(totalProportion * 100)}</span>
+            <span className="font-semibold">{formatPercentage(totalProportion)}</span>
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground capitalize">

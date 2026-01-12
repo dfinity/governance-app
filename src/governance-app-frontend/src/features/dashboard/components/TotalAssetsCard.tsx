@@ -1,8 +1,6 @@
-import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
+import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { useTranslation } from 'react-i18next';
-
-import { formatPercent } from '@features/proposals/utils';
 
 import { Card, CardContent } from '@components/Card';
 import { Separator } from '@components/Separator';
@@ -15,7 +13,7 @@ import { useTickerPrices } from '@hooks/tickers';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronFreeMaturityE8s, getNeuronStakeE8s } from '@utils/neuron';
-import { formatNumber } from '@utils/numbers';
+import { formatNumber, formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 import { useWaveAnimation } from '../hooks/useWaveAnimation';
@@ -73,7 +71,7 @@ export const TotalAssetsCard = () => {
           {isStakingRewardDataReady(stakingRewards) ? (
             <p className="text-lg font-light">
               {t(($) => $.home.participateSubtitle, {
-                value: formatPercent(stakingRewards.apy.max * 100),
+                value: formatPercentage(stakingRewards.apy.max),
               })}
             </p>
           ) : (
