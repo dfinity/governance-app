@@ -5,6 +5,7 @@
   "disbursed": "Disbursed",
   "participateTitle": "Participate in the Largest Global DAO",
   "participateSubtitle": "Stake, vote, earn up to {{value}} per year.",
+  "participateSubtitleStatic": "Stake, vote, and earn earn rewards.",
   "totalValue": "Total Value",
   "icpUsd": "ICP/USD",
   "forecast": {

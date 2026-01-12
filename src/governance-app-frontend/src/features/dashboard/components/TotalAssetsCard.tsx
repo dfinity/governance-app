@@ -14,7 +14,7 @@ import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronFreeMaturityE8s, getNeuronStakeE8s } from '@utils/neuron';
 import { formatNumber, formatPercentage } from '@utils/numbers';
-import { isStakingRewardDataReady } from '@utils/staking-rewards';
+import { isStakingRewardDataError, isStakingRewardDataReady } from '@utils/staking-rewards';
 
 import { useWaveAnimation } from '../hooks/useWaveAnimation';
 
@@ -71,11 +71,16 @@ export const TotalAssetsCard = () => {
           {isStakingRewardDataReady(stakingRewards) ? (
             <p className="text-lg font-light">
               {t(($) => $.home.participateSubtitle, {
-                value: formatPercentage(stakingRewards.apy.max),
+                value: formatPercentage(stakingRewards.stakingFlowApyPreview[96].autoStake.locked),
               })}
             </p>
+          ) : isStakingRewardDataError(stakingRewards) ? (
+            <p className="text-lg font-light">{t(($) => $.home.participateSubtitleStatic)}</p>
           ) : (
-            <Skeleton className="mr-auto ml-auto h-5 w-60" />
+            <>
+              <Skeleton className="mr-auto ml-auto h-5 w-60" />
+              <Skeleton className="mr-auto ml-auto h-6 w-30 sm:hidden" />
+            </>
           )}
         </div>
 
