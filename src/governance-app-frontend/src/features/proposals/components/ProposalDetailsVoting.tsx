@@ -2,16 +2,16 @@ import { ProposalInfo, Vote } from '@icp-sdk/canisters/nns';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { CheckCircle, CircleCheckBig, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
 import { Fragment } from 'react/jsx-runtime';
+import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { E8S } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
-
 import { formatPercentage } from '@utils/numbers';
+
 import { useVoting } from '../hooks/useVoting';
 import { formatVotingPower } from '../utils';
 

@@ -1,5 +1,5 @@
-import { secondsToDuration } from '@dfinity/utils';
 import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
+import { secondsToDuration } from '@dfinity/utils';
 import { CheckCircle, Clock, Tag, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -9,9 +9,9 @@ import { Button } from '@components/button';
 import { Card, CardFooter, CardHeader } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
 import { E8S } from '@constants/extra';
+import { formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
-import { formatPercentage } from '@utils/numbers';
 import { useVoting } from '../hooks/useVoting';
 import { getProposalStatusColor, getProposalTimeLeftInSeconds } from '../utils';
 
