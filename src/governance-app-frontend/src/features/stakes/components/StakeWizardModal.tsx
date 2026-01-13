@@ -1,9 +1,12 @@
 import { nonNullish } from '@dfinity/utils';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { ArrowLeft, Info, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
+import { Input } from '@components/Input';
+import { Label } from '@components/Label';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -166,23 +169,23 @@ export const StakeWizardModal = ({ trigger }: StakeWizardModalProps) => {
       <ResponsiveDialogTrigger asChild onClick={handleTriggerClick}>
         {trigger ?? defaultTrigger}
       </ResponsiveDialogTrigger>
-      <ResponsiveDialogContent className="flex max-h-[90vh] flex-col sm:max-w-md">
-        <ResponsiveDialogHeader className="relative shrink-0">
-          {showBackButton && (
-            <button
-              onClick={goBack}
-              className="absolute top-1/2 left-0 -translate-y-1/2 rounded-md p-1 hover:bg-muted"
-              aria-label={t(($) => $.common.back)}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-          )}
-          <ResponsiveDialogTitle className={showBackButton ? 'pl-8' : ''}>
-            {getStepTitle()}
-          </ResponsiveDialogTitle>
+      <ResponsiveDialogContent className="flex max-h-[90vh] flex-col sm:max-w-lg">
+        <ResponsiveDialogHeader className="shrink-0">
+          <div className="flex items-center gap-2">
+            {showBackButton && (
+              <button
+                onClick={goBack}
+                className="rounded-md p-1 hover:bg-muted"
+                aria-label={t(($) => $.common.back)}
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+            )}
+            <ResponsiveDialogTitle>{getStepTitle()}</ResponsiveDialogTitle>
+          </div>
         </ResponsiveDialogHeader>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto px-4 pb-4 md:px-0 md:pb-0">
           {step === WizardStep.Amount && (
             <StepAmount
               amount={formState.amount}
@@ -232,7 +235,7 @@ export const StakeWizardModal = ({ trigger }: StakeWizardModalProps) => {
 };
 
 // =============================================================================
-// Step Components (Placeholders)
+// Step 1: Amount
 // =============================================================================
 
 interface StepAmountProps {
@@ -242,18 +245,92 @@ interface StepAmountProps {
   onNext: () => void;
 }
 
-function StepAmount({ amount, maxStake, onNext }: StepAmountProps) {
+function StepAmount({ amount, maxStake, onAmountChange, onNext }: StepAmountProps) {
   const { t } = useTranslation();
+  const [error, setError] = useState<string | null>(null);
+
+  const handleAmountChange = (value: string) => {
+    onAmountChange(value);
+    setError(null);
+  };
+
+  const handleMax = () => {
+    onAmountChange(maxStake.toFixed(2));
+    setError(null);
+  };
+
+  const handleNext = () => {
+    const numericAmount = Number(amount);
+
+    if (amount === '' || numericAmount <= ICP_TRANSACTION_FEE) {
+      setError(t(($) => $.stakeWizardModal.errors.amountTooLow, { fee: ICP_TRANSACTION_FEE }));
+      return;
+    }
+
+    if (numericAmount > maxStake) {
+      setError(t(($) => $.stakeWizardModal.errors.insufficientBalance));
+      return;
+    }
+
+    onNext();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleNext();
+    }
+  };
 
   return (
-    <div className="space-y-4 p-4">
-      <p className="text-muted-foreground">{t(($) => $.stakeWizardModal.steps.amount.label)}</p>
-      <p>{t(($) => $.stakeWizardModal.steps.amount.available, { amount: amount || '0' })}</p>
-      <p>Max: {maxStake}</p>
-      <Button onClick={onNext}>{t(($) => $.stakeWizardModal.steps.amount.next)}</Button>
+    <div className="flex flex-col gap-4">
+      <div className="space-y-2">
+        <Label htmlFor="stake-amount">{t(($) => $.stakeWizardModal.steps.amount.label)}</Label>
+        <div className="relative">
+          <Input
+            id="stake-amount"
+            type="number"
+            placeholder="0.00"
+            step="0.01"
+            min="0"
+            max={maxStake}
+            value={amount}
+            onChange={(e) => handleAmountChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className={`[appearance:textfield] pr-20 focus-visible:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${error ? 'border-destructive' : 'border-foreground/30'}`}
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleMax}
+            className="absolute top-1/2 right-2 h-7 -translate-y-1/2 px-2 text-xs font-semibold text-primary hover:text-primary"
+          >
+            {t(($) => $.stakeWizardModal.steps.amount.maxButton)}
+          </Button>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          {t(($) => $.stakeWizardModal.steps.amount.available, { amount: maxStake.toFixed(2) })}
+        </p>
+        {error && <p className="text-sm text-destructive">{error}</p>}
+      </div>
+
+      <Alert className="border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900/50 dark:bg-blue-900/20 dark:text-blue-200 [&>svg]:text-blue-600 dark:[&>svg]:text-blue-400">
+        <Info className="h-4 w-4" />
+        <AlertDescription className="text-blue-700 dark:text-blue-300">
+          {t(($) => $.stakeWizardModal.infoBoxes.whatIsStaking)}
+        </AlertDescription>
+      </Alert>
+
+      <Button onClick={handleNext} className="w-full">
+        {t(($) => $.stakeWizardModal.steps.amount.next)}
+      </Button>
     </div>
   );
 }
+
+// =============================================================================
+// Step 2: Dissolve Delay (Placeholder)
+// =============================================================================
 
 interface StepDissolveDelayProps {
   dissolveDelayMonths: DissolveDelayPreset;
@@ -267,7 +344,7 @@ function StepDissolveDelay({ dissolveDelayMonths, onNext }: StepDissolveDelayPro
   const { t } = useTranslation();
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="flex flex-col gap-4">
       <p className="text-muted-foreground">
         {t(($) => $.stakeWizardModal.steps.dissolveDelay.description)}
       </p>
@@ -275,10 +352,16 @@ function StepDissolveDelay({ dissolveDelayMonths, onNext }: StepDissolveDelayPro
         {t(($) => $.stakeWizardModal.steps.dissolveDelay.presets['8years'])} ({dissolveDelayMonths}{' '}
         months)
       </p>
-      <Button onClick={onNext}>{t(($) => $.stakeWizardModal.steps.dissolveDelay.continue)}</Button>
+      <Button onClick={onNext} className="w-full">
+        {t(($) => $.stakeWizardModal.steps.dissolveDelay.continue)}
+      </Button>
     </div>
   );
 }
+
+// =============================================================================
+// Step 3: Configuration (Placeholder)
+// =============================================================================
 
 interface StepConfigurationProps {
   dissolveDelayMonths: DissolveDelayPreset;
@@ -293,7 +376,7 @@ function StepConfiguration({ maturityMode, initialState, onConfirm }: StepConfig
   const { t } = useTranslation();
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="flex flex-col gap-4">
       <p className="text-muted-foreground">
         {t(($) => $.stakeWizardModal.steps.configuration.maturity.label)}
       </p>
@@ -307,12 +390,16 @@ function StepConfiguration({ maturityMode, initialState, onConfirm }: StepConfig
           ? t(($) => $.stakeWizardModal.steps.configuration.state.locked)
           : t(($) => $.stakeWizardModal.steps.configuration.state.unlocking)}
       </p>
-      <Button onClick={onConfirm}>
+      <Button onClick={onConfirm} className="w-full">
         {t(($) => $.stakeWizardModal.steps.configuration.confirm)}
       </Button>
     </div>
   );
 }
+
+// =============================================================================
+// Step 4: Confirmation (Placeholder)
+// =============================================================================
 
 interface StepConfirmationProps {
   formState: WizardFormState;
@@ -326,7 +413,7 @@ function StepConfirmation({ formState, isProcessing, error, onDone }: StepConfir
   const { t } = useTranslation();
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="flex flex-col gap-4">
       <p className="text-muted-foreground">
         {isProcessing
           ? t(($) => $.stakeWizardModal.steps.confirmation.processing.title)
@@ -340,7 +427,7 @@ function StepConfirmation({ formState, isProcessing, error, onDone }: StepConfir
         {formState.dissolveDelayMonths} months
       </p>
       {error && <p className="text-destructive">{error}</p>}
-      <Button onClick={onDone}>
+      <Button onClick={onDone} className="w-full">
         {t(($) => $.stakeWizardModal.steps.confirmation.success.done)}
       </Button>
     </div>
