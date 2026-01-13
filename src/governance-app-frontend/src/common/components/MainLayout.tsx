@@ -6,12 +6,14 @@ import { WelcomeModal } from '@features/onboarding/WelcomeModal';
 import { BottomNav } from '@components/navigation/BottomNav';
 import { Header } from '@components/navigation/Header';
 import { Sidebar } from '@components/navigation/Sidebar';
+import { useThemeShortcut } from '@hooks/useThemeShortcut';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
   const { isInitializing } = useInternetIdentity();
 
-  if (isInitializing) return null;
+  useThemeShortcut();
 
+  if (isInitializing) return null;
   return (
     <div className="flex min-h-screen w-full bg-background" data-testid="main-layout">
       <WelcomeModal />

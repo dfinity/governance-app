@@ -7,6 +7,7 @@ import enums from './en/enums.json';
 import errors from './en/errors.json';
 import home from './en/home.json';
 import knownNeurons from './en/knownNeurons.json';
+import login from './en/login.json';
 import apyOptimizationModal from './en/modals/apyOptimization.json';
 import depositModal from './en/modals/deposit.json';
 import maturityModal from './en/modals/maturity.json';
@@ -41,6 +42,7 @@ export const resources = {
       welcomeModal,
       knownNeurons,
       depositModal,
+      login,
     },
   },
 };

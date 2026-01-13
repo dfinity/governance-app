@@ -34,7 +34,6 @@ export default defineConfig({
             )
               return 'vendor-icp';
 
-            if (id.includes('svg-dotted-map')) return 'vendor-map-data';
             if (id.includes('markdown') || id.includes('remark') || id.includes('micromark'))
               return 'vendor-md';
 
