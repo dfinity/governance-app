@@ -8,6 +8,7 @@ import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { Button } from '@/common/components/button';
 import { PrincipalCard } from '@/features/settings/components/PrincipalCard';
 import { ThemeCard } from '@/features/settings/components/ThemeCard';
+import { ManageIICard } from '@features/settings/components/ManageIICard';
 
 export const Route = createFileRoute('/settings/')({
   component: Settings,
@@ -38,7 +39,10 @@ function Settings() {
         <h2 className="mb-2 text-sm leading-relaxed font-semibold tracking-wider text-gray-500 uppercase">
           {t(($) => $.settings.account)}
         </h2>
-        <PrincipalCard />
+        <div className="flex flex-col gap-4">
+          <PrincipalCard />
+          <ManageIICard />
+        </div>
       </section>
 
       <Button

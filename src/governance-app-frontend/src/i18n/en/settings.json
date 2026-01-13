@@ -15,5 +15,6 @@
     "toggleLight": "Toggle light",
     "toggleDark": "Toggle dark",
     "toggleSystem": "Toggle system"
-  }
+  },
+  "manageII": "Manage your Internet Identity"
 }
