@@ -1,7 +1,11 @@
 {
   "title": "Choose a Known Neuron to Follow",
   "description": "Select one trusted organization to vote on your behalf for all your stakes",
-  "success": "Now following {{name}} for all your stakes",
+  "empty": "No known neurons available.",
+  "api": {
+    "success": "Now following {{name}} for all your stakes",
+    "error": "Failed to follow {{name}}"
+  },
   "seeDetails": "See details",
   "followingProgress": {
     "loading": "Setting follow settings for {{neuronId}}...",

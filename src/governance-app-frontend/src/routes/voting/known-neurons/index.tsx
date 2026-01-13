@@ -1,6 +1,6 @@
 import { KnownNeuron, NeuronId, Topic } from '@icp-sdk/canisters/nns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createFileRoute, Link, useBlocker } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -16,7 +16,7 @@ import { Skeleton } from '@components/Skeleton';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import useTitle from '@hooks/useTitle';
-import { longNotification, warningNotification } from '@utils/notification';
+import { warningNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
 export const Route = createFileRoute('/voting/known-neurons/')({
@@ -67,29 +67,71 @@ function KnownNeuronsList() {
   const updateFollowingMutation = useMutation<
     void,
     Error,
-    { neuronId: NeuronId; knownNeuronId: NeuronId }
+    { neurons: { neuronId: NeuronId }[]; knownNeuron: KnownNeuron },
+    { previousSelectedId: string | null }
   >({
-    mutationFn: async ({ neuronId, knownNeuronId }) => {
+    mutationFn: async ({ neurons, knownNeuron }) => {
       if (!canister) throw new Error(t(($) => $.common.unknownError));
-      await canister.setFollowing({
-        neuronId,
-        // Setting the following for topics `Unspecified` and `Governance` covers all topics but `SNS and Neurons' Fund`
-        topicFollowing: [
-          {
-            topic: Topic.Unspecified,
-            followees: [knownNeuronId],
-          },
-          {
-            topic: Topic.Governance,
-            followees: [knownNeuronId],
-          },
-        ],
+
+      const knownNeuronId = knownNeuron.id;
+      // Setting the following for topics `Unspecified`, `Governance` and `SNS and Neurons` to cover all topics
+      const results = await Promise.allSettled(
+        neurons.map((n) =>
+          canister.setFollowing({
+            neuronId: n.neuronId,
+            topicFollowing: [
+              {
+                topic: Topic.Unspecified,
+                followees: [knownNeuronId],
+              },
+              {
+                topic: Topic.Governance,
+                followees: [knownNeuronId],
+              },
+              {
+                topic: Topic.SnsAndCommunityFund,
+                followees: [knownNeuronId],
+              },
+            ],
+          }),
+        ),
+      );
+
+      const failed = results.filter((r) => r.status === 'rejected');
+      if (failed.length > 0) {
+        throw new Error(`Failed to update ${failed.length} of ${neurons.length} neurons`);
+      }
+    },
+    onMutate: () => {
+      return { previousSelectedId: selectedNeuronId };
+    },
+    onSuccess: async (_, variables) => {
+      await queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
       });
+
+      toast.success(
+        t(($) => $.knownNeurons.api.success, {
+          name: variables.knownNeuron.name,
+        }),
+      );
+    },
+    onError: (error, variables, context) => {
+      console.error('Failed to update neuron:', error);
+
+      // Roll back optimistic update
+      setSelectedNeuronId(context?.previousSelectedId ?? null);
+
+      toast.error(
+        t(($) => $.knownNeurons.api.error, {
+          name: variables.knownNeuron.name,
+        }),
+      );
     },
     retry: 3,
   });
 
-  const handleSelect = async (knownNeuron: KnownNeuron) => {
+  const handleSelect = (knownNeuron: KnownNeuron) => {
     if (!neuronsQuery.data?.certified || !canister) return;
     const neurons = neuronsQuery.data.response;
 
@@ -102,48 +144,14 @@ function KnownNeuronsList() {
 
     setSelectedNeuronId(knownNeuron.id.toString());
 
-    for (const neuron of neurons) {
-      const promise = updateFollowingMutation.mutateAsync({
-        neuronId: neuron.neuronId,
-        knownNeuronId: knownNeuron.id,
-      });
-
-      toast.promise(promise, {
-        loading: t(($) => $.knownNeurons.followingProgress.loading, {
-          neuronId: neuron.neuronId.toString(),
-        }),
-        success: t(($) => $.knownNeurons.followingProgress.success, {
-          neuronId: neuron.neuronId.toString(),
-        }),
-        error: t(($) => $.knownNeurons.followingProgress.error, {
-          neuronId: neuron.neuronId.toString(),
-        }),
-        ...longNotification,
-      });
-
-      // Wait for the current promise to complete before starting the next one
-      try {
-        await promise;
-      } catch (error) {
-        // Mutation will be retried 3 times, what if it keeps failing?
-        console.error(`Failed to follow for neuron ${neuron.neuronId}:`, error);
-      }
-    }
-
-    await queryClient.invalidateQueries({
-      queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
+    updateFollowingMutation.mutate({
+      neurons,
+      knownNeuron,
     });
   };
 
-  useBlocker({
-    shouldBlockFn: () => {
-      if (!updateFollowingMutation.isPending) return false;
-      // @TODO: Improve UI
-      window.alert(t(($) => $.knownNeurons.confirmNavigation));
-      return true;
-    },
-    enableBeforeUnload: updateFollowingMutation.isPending,
-  });
+  const knownNeurons = knownNeuronsQuery.data?.response;
+  const sortedKnownNeurons = knownNeurons?.toSorted(sortKnownNeurons);
 
   return (
     <div className="flex flex-col gap-6">
@@ -166,18 +174,24 @@ function KnownNeuronsList() {
             <Skeleton className="h-6 w-6 rounded-2xl" />
             <Skeleton className="h-8 w-80 rounded" />
           </div>
+        ) : knownNeuronsQuery.isError ? (
+          // @TODO: Improve error UI
+          <p className="text-destructive">{t(($) => $.common.loadingError)}</p>
+        ) : sortedKnownNeurons?.length === 0 ? (
+          <p className="text-muted-foreground">{t(($) => $.knownNeurons.empty)}</p>
         ) : (
-          knownNeuronsQuery.data?.response
-            ?.toSorted(sortKnownNeurons)
-            ?.map((neuron) => (
-              <KnownNeuronCard
-                key={neuron.id.toString()}
-                neuron={neuron}
-                isSelected={selectedNeuronId === neuron.id.toString()}
-                onSelect={handleSelect}
-                isDisabled={updateFollowingMutation.isPending || !neuronsQuery.data?.certified}
-              />
-            ))
+          sortedKnownNeurons?.map((neuron) => (
+            <KnownNeuronCard
+              key={neuron.id.toString()}
+              neuron={neuron}
+              isSelected={selectedNeuronId === neuron.id.toString()}
+              onSelect={handleSelect}
+              isLoading={
+                updateFollowingMutation.isPending && selectedNeuronId === neuron.id.toString()
+              }
+              isDisabled={updateFollowingMutation.isPending || !neuronsQuery.data?.certified}
+            />
+          ))
         )}
       </div>
     </div>
