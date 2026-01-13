@@ -5,8 +5,7 @@
       "title": "Stake ICPs",
       "label": "Amount to Stake",
       "available": "Available: {{amount}} ICPs",
-      "maxButton": "MAX",
-      "next": "Next"
+      "maxButton": "MAX"
     },
     "dissolveDelay": {
       "title": "Set Dissolve Delay",
@@ -17,8 +16,7 @@
         "2years": "2 Years",
         "4years": "4 Years",
         "8years": "8 Years"
-      },
-      "continue": "Continue"
+      }
     },
     "configuration": {
       "title": "Configure Neuron",
@@ -59,7 +57,7 @@
     }
   },
   "infoBoxes": {
-    "whatIsStaking": "Staking your ICP creates a neuron that earns voting rewards. You can earn up to ~12.6% APY depending on your lock period and participation.",
+    "whatIsStaking": "Staking your ICP creates a neuron that earns voting rewards. You can earn up to ~{{maxApy}}% APY depending on your lock period and participation.",
     "dissolveDelayWarning": "The lock period can only be increased, never decreased. The countdown only begins when you start unlocking.",
     "lockedVsUnlocking": "<strong>Locked:</strong> Neuron stays locked, earning maximum rewards. Start unlocking later when you want to withdraw.<br/><strong>Unlocking:</strong> Countdown begins immediately. After the lock period, you can withdraw your ICP."
   },
