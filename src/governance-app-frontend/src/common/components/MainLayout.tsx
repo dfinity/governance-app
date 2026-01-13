@@ -11,9 +11,9 @@ import { useThemeShortcut } from '@hooks/useThemeShortcut';
 export const MainLayout = ({ children }: { children: ReactNode }) => {
   const { isInitializing } = useInternetIdentity();
 
-  if (isInitializing) return null;
   useThemeShortcut();
 
+  if (isInitializing) return null;
   return (
     <div className="flex min-h-screen w-full bg-background" data-testid="main-layout">
       <WelcomeModal />
