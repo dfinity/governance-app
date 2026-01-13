@@ -90,3 +90,26 @@ describe('getUsersFollowedNeurons', () => {
     expect(result[1]).toBe(undefined);
   });
 });
+
+describe('isKnownNeuron', () => {
+  const createMockKnownNeuron = (id: bigint, name: string): KnownNeuron =>
+    ({
+      id,
+      name,
+      description: '',
+      committed_topics: [],
+    }) as unknown as KnownNeuron;
+
+  it('returns true for a KnownNeuron object', () => {
+    const knownNeuron = createMockKnownNeuron(100n, 'Test Neuron');
+    expect(isKnownNeuron(knownNeuron)).toBe(true);
+  });
+
+  it('returns false for a bigint value', () => {
+    expect(isKnownNeuron(500n)).toBe(false);
+  });
+
+  it('returns false for undefined', () => {
+    expect(isKnownNeuron(undefined)).toBe(false);
+  });
+});

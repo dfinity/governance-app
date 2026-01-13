@@ -46,4 +46,4 @@ export const getUsersFollowedNeurons = ({
 };
 
 export const isKnownNeuron = (value: KnownNeuron | bigint | undefined): value is KnownNeuron =>
-  typeof value !== 'bigint';
+  value !== undefined && typeof value !== 'bigint';
