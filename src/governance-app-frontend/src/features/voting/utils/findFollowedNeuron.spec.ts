@@ -77,4 +77,39 @@ describe('getUsersFollowedNeurons', () => {
     expect(typeof result[1]).toBe('bigint');
     expect(result[1]).toBe(200n);
   });
+
+  it('returns an array with two entries when the user has one neuron with the follow-up set and another without', () => {
+    const userNeurons = [createMockNeuron(1n, [knownNeuronId]), createMockNeuron(2n, [])];
+
+    const result = getUsersFollowedNeurons({ userNeurons, knownNeurons });
+
+    expect(result).toHaveLength(2);
+    expect(isKnownNeuron(result[0])).toBe(true);
+    expect((result[0] as KnownNeuron).id).toBe(knownNeuronId);
+
+    expect(result[1]).toBe(undefined);
+  });
+});
+
+describe('isKnownNeuron', () => {
+  const createMockKnownNeuron = (id: bigint, name: string): KnownNeuron =>
+    ({
+      id,
+      name,
+      description: '',
+      committed_topics: [],
+    }) as unknown as KnownNeuron;
+
+  it('returns true for a KnownNeuron object', () => {
+    const knownNeuron = createMockKnownNeuron(100n, 'Test Neuron');
+    expect(isKnownNeuron(knownNeuron)).toBe(true);
+  });
+
+  it('returns false for a bigint value', () => {
+    expect(isKnownNeuron(500n)).toBe(false);
+  });
+
+  it('returns false for undefined', () => {
+    expect(isKnownNeuron(undefined)).toBe(false);
+  });
 });

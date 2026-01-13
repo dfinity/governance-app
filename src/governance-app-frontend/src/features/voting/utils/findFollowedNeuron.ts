@@ -1,5 +1,4 @@
 import { KnownNeuron, NeuronInfo } from '@icp-sdk/canisters/nns';
-import { nonNullish } from '@dfinity/utils';
 
 type FindFollowedNeuronParams = {
   userNeurons: NeuronInfo[];
@@ -7,10 +6,11 @@ type FindFollowedNeuronParams = {
 };
 
 /**
- * Finds the neurons followed by the user's neurons. There are three possible scenarios:
+ * Finds the neurons followed by the user's neurons. There are four possible scenarios:
  * 1. No followed neurons: returns an empty array.
  * 2. Consistent followed neurons: all user neurons follow the same neuron and returns that one neuron.
  * 3. Inconsistent followed neurons: user neurons follow different neurons and returns all unique followed neurons.
+ * 4. Consistent followed neurons with some neurons not following anyone: returns all unique followed neurons plus `undefined`.
  *
  * Note: It assumes that a user wants the same voting for all topics.
  *
@@ -21,22 +21,29 @@ type FindFollowedNeuronParams = {
 export const getUsersFollowedNeurons = ({
   userNeurons,
   knownNeurons,
-}: FindFollowedNeuronParams): (KnownNeuron | bigint)[] => {
-  const userFollowees = userNeurons
-    .flatMap((n) => n.fullNeuron?.followees)
-    .filter(nonNullish)
-    .flatMap((n) => n.followees);
+}: FindFollowedNeuronParams): (KnownNeuron | bigint | undefined)[] => {
+  const followeesPerNeuron = userNeurons.map(
+    (n) => n.fullNeuron?.followees?.flatMap((f) => f.followees) ?? [],
+  );
 
-  if (userFollowees.length === 0) return [];
+  const allFollowees = followeesPerNeuron.flat();
 
-  const uniqueFollowees = Array.from(new Set(userFollowees));
+  if (allFollowees.length === 0) return [];
 
-  const followedNeurons = uniqueFollowees.map((id) => {
-    return knownNeurons.find((kn) => kn.id === id) ?? id;
-  });
+  const uniqueFollowees = Array.from(new Set(allFollowees));
+
+  const followedNeurons: (KnownNeuron | bigint | undefined)[] = uniqueFollowees.map(
+    (id) => knownNeurons.find((kn) => kn.id === id) ?? id,
+  );
+
+  // If any neuron has no followees while others do, include undefined to indicate inconsistency
+  const hasNeuronWithNoFollowees = followeesPerNeuron.some((f) => f.length === 0);
+  if (hasNeuronWithNoFollowees) {
+    followedNeurons.push(undefined);
+  }
 
   return followedNeurons;
 };
 
-export const isKnownNeuron = (value: KnownNeuron | bigint): value is KnownNeuron =>
-  typeof value === 'object' && value !== null && 'id' in value;
+export const isKnownNeuron = (value: KnownNeuron | bigint | undefined): value is KnownNeuron =>
+  value !== undefined && typeof value !== 'bigint';

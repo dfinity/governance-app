@@ -7,9 +7,9 @@ export enum TickerPricesSource {
 }
 
 export const useTickerPrices = () => {
-  const icpSwapPrices = useIcpSwapPrices({ enabled: true, retryCount: 3 });
+  const icpSwapPrices = useIcpSwapPrices({ enabled: true, retryCount: 1 });
   const useFallback = icpSwapPrices.isError;
-  const kongSwapPrices = useKongSwapPrices({ enabled: useFallback, retryCount: 1 });
+  const kongSwapPrices = useKongSwapPrices({ enabled: useFallback, retryCount: 3 });
 
   return {
     // Fallback to KongSwap if IcpSwap fails.

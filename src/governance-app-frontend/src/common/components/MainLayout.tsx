@@ -1,3 +1,4 @@
+import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode } from 'react';
 
 import { WelcomeModal } from '@features/onboarding/WelcomeModal';
@@ -7,6 +8,10 @@ import { Header } from '@components/navigation/Header';
 import { Sidebar } from '@components/navigation/Sidebar';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
+  const { isInitializing } = useInternetIdentity();
+
+  if (isInitializing) return null;
+
   return (
     <div className="flex min-h-screen w-full bg-background" data-testid="main-layout">
       <WelcomeModal />
