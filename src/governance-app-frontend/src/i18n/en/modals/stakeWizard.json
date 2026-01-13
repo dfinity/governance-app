@@ -1,0 +1,81 @@
+{
+  "title": "Stake ICPs",
+  "steps": {
+    "amount": {
+      "title": "Stake ICPs",
+      "label": "Amount to Stake",
+      "available": "Available: {{amount}} ICPs",
+      "maxButton": "MAX",
+      "next": "Next"
+    },
+    "dissolveDelay": {
+      "title": "Set Dissolve Delay",
+      "description": "Longer dissolve delays earn higher rewards.",
+      "presets": {
+        "6months": "6 Months",
+        "1year": "1 Year",
+        "2years": "2 Years",
+        "4years": "4 Years",
+        "8years": "8 Years"
+      },
+      "continue": "Continue"
+    },
+    "configuration": {
+      "title": "Configure Neuron",
+      "maturity": {
+        "label": "Manage Rewards",
+        "description": "Choose how to handle your staking rewards.",
+        "autoStake": "Auto-stake",
+        "keepLiquid": "Keep Liquid"
+      },
+      "state": {
+        "label": "Initial State",
+        "description": "Choose the starting state for your neuron.",
+        "locked": "Locked",
+        "unlocking": "Unlocking"
+      },
+      "confirm": "Confirm Stake"
+    },
+    "confirmation": {
+      "title": "Confirmation",
+      "processing": {
+        "title": "Processing...",
+        "description": "Creating your neuron and staking your ICPs",
+        "warning": "Please do not close this page or disconnect."
+      },
+      "success": {
+        "title": "Neuron Created!",
+        "descriptionLocked": "Your neuron is locked and earning rewards.",
+        "descriptionUnlocking": "The unlock countdown has started.",
+        "amountStaked": "Amount Staked",
+        "dissolveDelay": "Lock Period",
+        "expectedApy": "Expected APY",
+        "done": "Done"
+      },
+      "error": {
+        "title": "Something went wrong",
+        "retry": "Try Again"
+      }
+    }
+  },
+  "infoBoxes": {
+    "whatIsStaking": "Staking your ICP creates a neuron that earns voting rewards. You can earn up to ~12.6% APY depending on your lock period and participation.",
+    "dissolveDelayWarning": "The lock period can only be increased, never decreased. The countdown only begins when you start unlocking.",
+    "lockedVsUnlocking": "<strong>Locked:</strong> Neuron stays locked, earning maximum rewards. Start unlocking later when you want to withdraw.<br/><strong>Unlocking:</strong> Countdown begins immediately. After the lock period, you can withdraw your ICP."
+  },
+  "badges": {
+    "maxRewards": "Max Rewards"
+  },
+  "apyPreview": {
+    "label": "Expected APY",
+    "value": "~{{apy}}%"
+  },
+  "errors": {
+    "insufficientBalance": "Insufficient balance",
+    "amountTooLow": "Amount must be greater than the transaction fee ({{fee}} ICP)",
+    "stakeFailed": "Failed to create neuron",
+    "dissolveDelayFailed": "Failed to set lock period",
+    "autoStakeFailed": "Failed to configure rewards mode",
+    "startDissolvingFailed": "Failed to start unlocking"
+  }
+}
