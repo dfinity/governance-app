@@ -65,45 +65,45 @@ function KnownNeuronsList() {
   }, [neuronsQuery.data, knownNeuronsQuery.data, t]);
 
   const updateFollowingMutation = useMutation<
-    void,
+    void[],
     Error,
     { neurons: { neuronId: NeuronId }[]; knownNeuron: KnownNeuron },
     { previousSelectedId: string | null }
   >({
-    mutationFn: async ({ neurons, knownNeuron }) => {
+    mutationFn: ({ neurons, knownNeuron }) => {
       if (!canister) throw new Error(t(($) => $.common.unknownError));
 
       const knownNeuronId = knownNeuron.id;
-      // Setting the following for topics `Unspecified`, `Governance` and `SNS and Neurons` to cover all topics
-      const results = await Promise.allSettled(
-        neurons.map((n) =>
-          canister.setFollowing({
-            neuronId: n.neuronId,
-            topicFollowing: [
-              {
-                topic: Topic.Unspecified,
-                followees: [knownNeuronId],
-              },
-              {
-                topic: Topic.Governance,
-                followees: [knownNeuronId],
-              },
-              {
-                topic: Topic.SnsAndCommunityFund,
-                followees: [knownNeuronId],
-              },
-            ],
-          }),
-        ),
+      // Setting the following for topics `Unspecified`, `Governance` and `SNS and Community Fund` to cover all topics
+      const promises = neurons.map((n) =>
+        canister.setFollowing({
+          neuronId: n.neuronId,
+          topicFollowing: [
+            {
+              topic: Topic.Unspecified,
+              followees: [knownNeuronId],
+            },
+            {
+              topic: Topic.Governance,
+              followees: [knownNeuronId],
+            },
+            {
+              topic: Topic.SnsAndCommunityFund,
+              followees: [knownNeuronId],
+            },
+          ],
+        }),
       );
 
-      const failed = results.filter((r) => r.status === 'rejected');
-      if (failed.length > 0) {
-        throw new Error(`Failed to update ${failed.length} of ${neurons.length} neurons`);
-      }
+      return Promise.all(promises);
     },
-    onMutate: () => {
-      return { previousSelectedId: selectedNeuronId };
+    onMutate: (variables) => {
+      const previousSelectedId = selectedNeuronId;
+
+      // Optimistic update
+      setSelectedNeuronId(variables.knownNeuron.id.toString());
+
+      return { previousSelectedId };
     },
     onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({
@@ -141,8 +141,6 @@ function KnownNeuronsList() {
       });
       return;
     }
-
-    setSelectedNeuronId(knownNeuron.id.toString());
 
     updateFollowingMutation.mutate({
       neurons,
