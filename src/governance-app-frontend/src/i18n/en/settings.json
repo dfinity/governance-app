@@ -14,6 +14,8 @@
   "aria": {
     "toggleLight": "Toggle light",
     "toggleDark": "Toggle dark",
-    "toggleSystem": "Toggle system"
-  }
+    "toggleSystem": "Toggle system",
+    "iiLink": "Manage your Internet Identity (opens in new tab)"
+  },
+  "manageII": "Manage your Internet Identity"
 }

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@components/Card';
 import { CopyButton } from '@components/CopyButton';
 
-const PrincipalCard = () => {
+export const PrincipalCard = () => {
   const { identity } = useInternetIdentity();
   const { t } = useTranslation();
 
@@ -15,21 +15,18 @@ const PrincipalCard = () => {
     <Card className="rounded-md px-4 py-6">
       <CardContent className="p-0">
         <div className="flex items-center justify-between">
-          <div className="space-y-1">
+          <div className="flex flex-col gap-1">
             <p className="leading-none font-medium">{t(($) => $.settings.principalId)}</p>
             <p className="font-mono text-sm text-muted-foreground">
-              {identity ? identity.getPrincipal().toText() : t(($) => $.settings.notConnected)}
+              {identity.getPrincipal().toText()}
             </p>
           </div>
-          <div className="flex gap-2">
-            <CopyButton
-              value={identity.getPrincipal().toText()}
-              label={t(($) => $.settings.principalIdentifier)}
-            />
-          </div>
+          <CopyButton
+            value={identity.getPrincipal().toText()}
+            label={t(($) => $.settings.principalIdentifier)}
+          />
         </div>
       </CardContent>
     </Card>
   );
 };
-export { PrincipalCard };

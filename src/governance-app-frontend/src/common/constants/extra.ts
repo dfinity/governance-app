@@ -1,3 +1,5 @@
+import { CANISTER_ID_INTERNET_IDENTITY } from './canisterIds';
+
 export const IS_LOCAL = process.env.DFX_NETWORK === 'local';
 export const HOST = process.env.DFX_HOST;
 export const NETWORK = `${IS_LOCAL ? 'http://' : 'https://'}${HOST}`;
@@ -48,3 +50,7 @@ export const WELCOME_MODAL_STORAGE_KEY = 'nns-welcome-modal-seen';
 
 // External Links
 export const DASHBOARD_URL = `https://dashboard.internetcomputer.org/neuron`;
+
+const localIdentityProvider = `http://${CANISTER_ID_INTERNET_IDENTITY}.${HOST}`;
+const mainnetIdentityProvider = 'https://id.ai';
+export const IDENTITY_PROVIDER = IS_LOCAL ? localIdentityProvider : mainnetIdentityProvider;

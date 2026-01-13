@@ -9,16 +9,12 @@ import { StrictMode } from 'react';
 import { createPortal } from 'react-dom';
 
 import { Sonner } from '@components/Sonner';
-import { CANISTER_ID_INTERNET_IDENTITY } from '@constants/canisterIds';
-import { HOST, IS_LOCAL } from '@constants/extra';
+import { IDENTITY_PROVIDER } from '@constants/extra';
 import { usePreventAttributeChange } from '@hooks/usePreventAttributeChange';
 import { queryClientConfig, routerConfig } from '@utils/initializer';
 
 import { AgentPoolProvider } from '@/app/contexts/agentPoolProvider';
 import { ThemeProvider } from '@/app/contexts/themeProvider';
-
-const localIdentityProvider = `http://${CANISTER_ID_INTERNET_IDENTITY}.${HOST}`;
-const mainnetIdentityProvider = 'https://id.ai';
 
 export const App = () => {
   const notificationsContainer = document.getElementById('notifications');
@@ -28,7 +24,7 @@ export const App = () => {
     <StrictMode>
       <InternetIdentityProvider
         loginOptions={{
-          identityProvider: IS_LOCAL ? localIdentityProvider : mainnetIdentityProvider,
+          identityProvider: IDENTITY_PROVIDER,
         }}
       >
         <QueryClientProvider client={queryClientConfig}>
