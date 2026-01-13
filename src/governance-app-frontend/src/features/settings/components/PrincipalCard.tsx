@@ -18,7 +18,7 @@ export const PrincipalCard = () => {
           <div className="flex flex-col gap-1">
             <p className="leading-none font-medium">{t(($) => $.settings.principalId)}</p>
             <p className="font-mono text-sm text-muted-foreground">
-              {identity ? identity.getPrincipal().toText() : t(($) => $.settings.notConnected)}
+              {identity.getPrincipal().toText()}
             </p>
           </div>
           <CopyButton
