@@ -59,7 +59,8 @@
   "infoBoxes": {
     "whatIsStaking": "Staking your ICP creates a neuron that earns voting rewards. You can earn up to ~{{maxApy}}% APY depending on your lock period and participation.",
     "dissolveDelayWarning": "The lock period can only be increased, never decreased. The countdown only begins when you start unlocking.",
-    "lockedVsUnlocking": "<strong>Locked:</strong> Neuron stays locked, earning maximum rewards. Start unlocking later when you want to withdraw.<br/><strong>Unlocking:</strong> Countdown begins immediately. After the lock period, you can withdraw your ICP."
+    "lockedDescription": "<strong>Locked:</strong> neuron stays locked, earning maximum rewards. Start unlocking later when you want to withdraw.",
+    "unlockingDescription": "<strong>Unlocking:</strong> countdown begins immediately. After the lock period, you can withdraw your ICP."
   },
   "badges": {
     "maxRewards": "Max Rewards"

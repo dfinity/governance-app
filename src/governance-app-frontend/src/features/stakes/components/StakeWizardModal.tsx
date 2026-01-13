@@ -1,7 +1,7 @@
 import { nonNullish } from '@dfinity/utils';
 import { AlertTriangle, ArrowLeft, Award, Info, Plus } from 'lucide-react';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
@@ -407,7 +407,7 @@ function StepDissolveDelay({
         <span className="font-medium">
           {t(($) => $.stakeWizardModal.steps.dissolveDelay.presets[maxRewardsOption.labelKey])}
         </span>
-        <span className="ml-2 inline-flex items-center gap-1 rounded bg-green-500 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase shadow-sm">
+        <span className="ml-2 inline-flex items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase shadow-sm">
           <Award className="h-3 w-3" />
           {t(($) => $.stakeWizardModal.badges.maxRewards)}
         </span>
@@ -440,25 +440,120 @@ interface StepConfigurationProps {
   onConfirm: () => void;
 }
 
-function StepConfiguration({ maturityMode, initialState, onConfirm }: StepConfigurationProps) {
+function StepConfiguration({
+  maturityMode,
+  initialState,
+  onMaturityModeChange,
+  onInitialStateChange,
+  onConfirm,
+}: StepConfigurationProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col gap-4">
-      <p className="text-muted-foreground">
-        {t(($) => $.stakeWizardModal.steps.configuration.maturity.label)}
-      </p>
-      <p>
-        {maturityMode === MaturityMode.Auto
-          ? t(($) => $.stakeWizardModal.steps.configuration.maturity.autoStake)
-          : t(($) => $.stakeWizardModal.steps.configuration.maturity.keepLiquid)}
-      </p>
-      <p>
-        {initialState === InitialState.Locked
-          ? t(($) => $.stakeWizardModal.steps.configuration.state.locked)
-          : t(($) => $.stakeWizardModal.steps.configuration.state.unlocking)}
-      </p>
-      <Button onClick={onConfirm} className="w-full">
+    <div className="flex flex-col gap-6">
+      {/* Maturity Mode Section */}
+      <div className="space-y-3">
+        <div>
+          <h3 className="text-base font-semibold">
+            {t(($) => $.stakeWizardModal.steps.configuration.maturity.label)}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {t(($) => $.stakeWizardModal.steps.configuration.maturity.description)}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => onMaturityModeChange(MaturityMode.Auto)}
+            className={`flex flex-col items-center gap-1 rounded-lg border-2 px-4 py-3 transition-colors ${
+              maturityMode === MaturityMode.Auto
+                ? 'border-green-600 bg-gradient-to-br from-green-600/12 to-green-600/4'
+                : 'border-green-600/30 bg-gradient-to-br from-green-600/8 to-green-600/4 hover:from-green-600/14 hover:to-green-600/8'
+            }`}
+          >
+            <span className="font-medium">
+              {t(($) => $.stakeWizardModal.steps.configuration.maturity.autoStake)}
+            </span>
+            <span className="inline-flex items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase shadow-sm">
+              <Award className="h-3 w-3" />
+              {t(($) => $.stakeWizardModal.badges.maxRewards)}
+            </span>
+          </button>
+          <button
+            onClick={() => onMaturityModeChange(MaturityMode.Liquid)}
+            className={`rounded-lg border-2 px-4 py-3 font-medium transition-colors ${
+              maturityMode === MaturityMode.Liquid
+                ? 'border-primary bg-primary/5'
+                : 'border-border hover:bg-muted/50'
+            }`}
+          >
+            {t(($) => $.stakeWizardModal.steps.configuration.maturity.keepLiquid)}
+          </button>
+        </div>
+      </div>
+
+      {/* Initial State Section */}
+      <div className="space-y-3">
+        <div>
+          <h3 className="text-base font-semibold">
+            {t(($) => $.stakeWizardModal.steps.configuration.state.label)}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {t(($) => $.stakeWizardModal.steps.configuration.state.description)}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => onInitialStateChange(InitialState.Locked)}
+            className={`flex flex-col items-center gap-1 rounded-lg border-2 px-4 py-3 transition-colors ${
+              initialState === InitialState.Locked
+                ? 'border-green-600 bg-gradient-to-br from-green-600/12 to-green-600/4'
+                : 'border-green-600/30 bg-gradient-to-br from-green-600/8 to-green-600/4 hover:from-green-600/14 hover:to-green-600/8'
+            }`}
+          >
+            <span className="font-medium">
+              {t(($) => $.stakeWizardModal.steps.configuration.state.locked)}
+            </span>
+            <span className="inline-flex items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase shadow-sm">
+              <Award className="h-3 w-3" />
+              {t(($) => $.stakeWizardModal.badges.maxRewards)}
+            </span>
+          </button>
+          <button
+            onClick={() => onInitialStateChange(InitialState.Dissolving)}
+            className={`rounded-lg border-2 px-4 py-3 font-medium transition-colors ${
+              initialState === InitialState.Dissolving
+                ? 'border-primary bg-primary/5'
+                : 'border-border hover:bg-muted/50'
+            }`}
+          >
+            {t(($) => $.stakeWizardModal.steps.configuration.state.unlocking)}
+          </button>
+        </div>
+      </div>
+
+      {/* Info Box */}
+      <Alert className="border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900/50 dark:bg-blue-900/20 dark:text-blue-200 [&>svg]:text-blue-600 dark:[&>svg]:text-blue-400">
+        <Info className="h-4 w-4" />
+        <AlertDescription className="text-blue-700 dark:text-blue-300">
+          <div>
+            <Trans
+              i18nKey={($) => $.stakeWizardModal.infoBoxes.lockedDescription}
+              t={t}
+              components={{ strong: <strong /> }}
+            />
+            <br />
+            <Trans
+              i18nKey={($) => $.stakeWizardModal.infoBoxes.unlockingDescription}
+              t={t}
+              components={{ strong: <strong /> }}
+            />
+          </div>
+        </AlertDescription>
+      </Alert>
+
+      <Button onClick={onConfirm} size="xl" className="w-full">
         {t(($) => $.stakeWizardModal.steps.configuration.confirm)}
       </Button>
     </div>
