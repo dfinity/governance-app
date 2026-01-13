@@ -156,7 +156,7 @@ jobs:
           echo "::error:: Snapshots have changed. Please run ./scripts/update-snapshots.sh locally and commit the updated PNG files."
           exit 1
 
-      - name: Stop sns-testing environment
+      - name: Stop local dfx replica
         if: always()
         run: |
           dfx stop
