@@ -3,12 +3,13 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { ManageIICard } from '@features/settings/components/ManageIICard';
+
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 
 import { Button } from '@/common/components/button';
 import { PrincipalCard } from '@/features/settings/components/PrincipalCard';
 import { ThemeCard } from '@/features/settings/components/ThemeCard';
-import { ManageIICard } from '@features/settings/components/ManageIICard';
 
 export const Route = createFileRoute('/settings/')({
   component: Settings,
