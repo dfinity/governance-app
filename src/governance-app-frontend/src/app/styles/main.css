@@ -118,6 +118,7 @@
 
   /* Custom */
   --breakpoint-xs: 360px;
+  --breakpoint-3xl: 1980px;
 }
 
 @layer base {

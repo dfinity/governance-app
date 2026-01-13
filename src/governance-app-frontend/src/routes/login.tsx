@@ -1,23 +1,15 @@
 import { createFileRoute, Navigate } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { ExternalLink, LogIn, Vote } from 'lucide-react';
-import { lazy, Suspense } from 'react';
+import { ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
+import { Separator } from '@components/Separator';
+import { formatNumber } from '@utils/numbers';
 
 type LoginSearch = {
   redirect?: string;
 };
-
-// Temporal Animation
-// Lazy load the map to avoid blocking the main thread during initial render
-const AnimatedDecentralizedMap = lazy(() =>
-  import('@components/temporary-animation/AnimatedDecentralizedMap').then((module) => ({
-    default: module.AnimatedDecentralizedMap,
-  })),
-);
-// End of Temporal Animation
 
 export const Route = createFileRoute('/login')({
   validateSearch: (search: Record<string, unknown>): LoginSearch => {
@@ -33,53 +25,108 @@ function LoginPage() {
   const { t } = useTranslation();
   const { redirect = '/' } = Route.useSearch();
 
+  // @TODO: To be replaced with real data
+  const tvl = 812865900;
+  const participants = 57986;
+  const proposalsAdopted = 48;
+
   if (identity) return <Navigate to={redirect} />;
 
   return (
-    <div className="relative flex min-h-dvh w-full flex-col items-center justify-center p-4 py-8">
-      {/* Temporal Animation*/}
-      <div className="absolute inset-0 hidden h-full w-full overflow-hidden md:block">
-        <Suspense fallback={null}>
-          <AnimatedDecentralizedMap />
-        </Suspense>
+    <div className="dark relative flex min-h-dvh w-full flex-col justify-between overflow-hidden px-4 py-10 font-sans text-foreground 3xl:mx-auto 3xl:max-w-[2000px] 3xl:overflow-visible sm:p-12">
+      {/* Background Image */}
+      <div className="absolute inset-0 -z-10 flex h-full w-full lg:items-center">
+        <div className="absolute inset-0 bg-background" />
+        <img
+          src="/core-bg.webp"
+          alt=""
+          className="relative max-h-[720px] w-fit object-cover 3xl:translate-x-2/3 lg:max-h-[798px] lg:translate-x-1/3 xl:translate-x-1/2"
+          aria-hidden={true}
+          loading="lazy"
+        />
       </div>
-      {/*End of Temporal Animation*/}
 
-      <div className="fixed inset-0 -z-10 overflow-hidden bg-background">
-        <div className="absolute top-1/2 left-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 blur-[100px]" />
+      {/* Header Section */}
+      <div className="flex flex-col gap-6 md:gap-0">
+        <img
+          src="/governance-logo.svg"
+          alt={t(($) => $.common.alt.icpLogo)}
+          className="h-6 w-fit invert"
+        />
+        <h1 className="mt-4 max-w-xl text-4xl font-bold tracking-wide lg:mt-12 lg:max-w-3xl lg:text-7xl">
+          {t(($) => $.login.headerTitle)}
+        </h1>
       </div>
 
-      <div className="relative z-10 flex w-full max-w-md flex-col items-center space-y-6 rounded-2xl border border-border bg-card/50 p-6 text-center text-foreground shadow-2xl backdrop-blur-xl sm:p-12 md:space-y-8">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="rounded-full bg-primary/10 p-4">
-            <Vote className="h-10 w-10 text-primary" />
+      <div className="flex flex-1 flex-col gap-6 md:flex-row md:items-center lg:flex-col lg:items-stretch lg:gap-0">
+        {/* Stats Section (Desktop: Bottom Left / Mobile: Below Title) */}
+        <dl className="order-1 mt-auto flex flex-col gap-8 md:order-2 md:mt-0 lg:my-auto lg:mt-auto lg:h-13 lg:flex-row lg:gap-16">
+          <div className="flex flex-col-reverse gap-1">
+            <dt className="text-sm font-light tracking-wider text-muted-foreground">
+              {t(($) => $.login.proposalsAdopted)}
+            </dt>
+            <dd className="text-2xl leading-none font-bold lg:text-3xl">{proposalsAdopted}</dd>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            {t(($) => $.common.loginTitle)}
-          </h1>
-          <p className="text-muted-foreground">{t(($) => $.common.loginSubtitle)}</p>
-        </div>
 
-        <div className="flex w-full flex-col gap-4">
-          <Button
-            onClick={login}
-            className="h-12 w-full text-base font-semibold shadow-lg transition-all hover:scale-[1.02] hover:shadow-primary/25"
-            size="lg"
-            data-testid="login-btn"
-          >
-            <LogIn className="hidden h-5 w-5 xs:block" />
-            {t(($) => $.common.loginWithII)}
-          </Button>
+          <Separator
+            orientation="vertical"
+            className="hidden bg-muted-foreground/50 lg:block"
+            aria-hidden={true}
+          />
 
-          <a
-            href="https://nns.ic0.app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary hover:underline"
-          >
-            <ExternalLink className="size-4" />
-            <span>{t(($) => $.common.legacyNnsDapp)}</span>
-          </a>
+          <div className="flex flex-col-reverse gap-1">
+            <dt className="text-sm font-light tracking-wider text-muted-foreground">
+              {t(($) => $.login.participants)}
+            </dt>
+            <dd className="text-2xl leading-none font-bold lg:text-3xl">
+              {formatNumber(participants, { maxFraction: 0, minFraction: 0 })}
+            </dd>
+          </div>
+
+          <Separator
+            orientation="vertical"
+            className="hidden bg-muted-foreground/50 lg:block"
+            aria-hidden={true}
+          />
+
+          <div className="flex flex-col-reverse gap-1">
+            <dt className="text-sm font-light tracking-wider text-muted-foreground">
+              {t(($) => $.login.tvl)}
+            </dt>
+            <dd className="text-2xl leading-none font-bold lg:text-3xl">
+              ${formatNumber(tvl, { maxFraction: 0, minFraction: 0 })}
+            </dd>
+          </div>
+        </dl>
+
+        {/* Login Card Section (Desktop: Middle / Mobile: Bottom) */}
+        <div className="order-2 flex w-full max-w-lg flex-col gap-6 rounded-3xl border border-white/10 bg-white p-5 text-black backdrop-blur-md sm:p-7 md:order-1 lg:my-auto lg:min-w-lg">
+          <p className="text-xl font-light text-pretty lg:text-3xl">
+            {t(($) => $.login.accessText)}
+          </p>
+
+          <div className="flex flex-col gap-4">
+            <Button
+              onClick={login}
+              className="w-full max-w-92 bg-neutral-900 text-base font-medium text-white hover:bg-neutral-800"
+              variant="default"
+              size="xxl"
+              data-testid="login-btn"
+            >
+              <img src="/icp-logo.svg" alt="" aria-hidden={true} />
+              {t(($) => $.login.loginWithII)}
+            </Button>
+
+            <a
+              href="https://nns.ic0.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm tracking-wide text-neutral-500 transition-colors hover:text-black hover:underline lg:text-base"
+            >
+              <ExternalLink className="size-4" aria-hidden={true} />
+              <span>{t(($) => $.login.legacyNnsDapp)}</span>
+            </a>
+          </div>
         </div>
       </div>
     </div>
