@@ -1,5 +1,5 @@
-import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
 import { secondsToDuration } from '@dfinity/utils';
+import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
 import {
   CheckCircle,
   Clock,
@@ -188,7 +188,7 @@ export function ProposalListItem({ proposal, certified }: Props) {
                 variant="outline"
               >
                 {isVoting && votedBallot === Vote.Yes ? (
-                  <Loader2 className="size-4 animate-spin" />
+                  <Loader2 className="mr-2 size-4 animate-spin" />
                 ) : (
                   <ThumbsUp className="mr-2 size-4" />
                 )}
@@ -207,7 +207,7 @@ export function ProposalListItem({ proposal, certified }: Props) {
                 variant="outline"
               >
                 {isVoting && votedBallot === Vote.No ? (
-                  <Loader2 className="size-4 animate-spin" />
+                  <Loader2 className="mr-2 size-4 animate-spin" />
                 ) : (
                   <ThumbsDown className="mr-2 size-4" />
                 )}
