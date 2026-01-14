@@ -87,5 +87,6 @@
   "seeDetails": "See details",
   "alt": {
     "icpLogo": "Internet Computer (ICP) Logo"
-  }
+  },
+  "max": "Max"
 }

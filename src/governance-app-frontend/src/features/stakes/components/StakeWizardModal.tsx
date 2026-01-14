@@ -1,5 +1,5 @@
 import { nonNullish } from '@dfinity/utils';
-import { AlertTriangle, ArrowLeft, Award, Info, Plus } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Award, CheckCircle, Info, Loader2, Plus } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
@@ -22,11 +22,13 @@ import { bigIntDiv } from '@utils/bigInt';
 import { warningNotification } from '@utils/notification';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
+import { AnimatedApyBadge } from './AnimatedApyBadge';
+
 enum WizardStep {
-  Amount = 'amount',
-  DissolveDelay = 'dissolveDelay',
-  Configuration = 'configuration',
-  Confirmation = 'confirmation',
+  Amount,
+  DissolveDelay,
+  Configuration,
+  Confirmation,
 }
 
 enum DissolveDelayPreset {
@@ -38,13 +40,13 @@ enum DissolveDelayPreset {
 }
 
 enum MaturityMode {
-  Auto = 'auto',
-  Liquid = 'liquid',
+  Auto,
+  Liquid,
 }
 
 enum InitialState {
-  Locked = 'locked',
-  Dissolving = 'dissolving',
+  Locked,
+  Dissolving,
 }
 
 interface WizardFormState {
@@ -56,25 +58,17 @@ interface WizardFormState {
 
 const DEFAULT_FORM_STATE: WizardFormState = {
   amount: '',
-  dissolveDelayMonths: DissolveDelayPreset.OneYear,
+  dissolveDelayMonths: DissolveDelayPreset.TwoYears,
   maturityMode: MaturityMode.Liquid,
   initialState: InitialState.Locked,
 };
 
-interface StakeWizardModalProps {
-  trigger?: React.ReactNode;
-}
-
-export const StakeWizardModal = ({ trigger }: StakeWizardModalProps) => {
+export const StakeWizardModal = () => {
   const { t } = useTranslation();
   const { data: balanceValue } = useIcpLedgerAccountBalance();
   const maxStake = nonNullish(balanceValue?.response)
     ? bigIntDiv(balanceValue.response, E8Sn, 8)
     : 0;
-  const stakingRewards = useStakingRewards();
-  const maxApy = isStakingRewardDataReady(stakingRewards)
-    ? (stakingRewards.stakingFlowApyPreview[96].autoStake.locked * 100).toFixed(1)
-    : '12';
 
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<WizardStep>(WizardStep.Amount);
@@ -83,11 +77,11 @@ export const StakeWizardModal = ({ trigger }: StakeWizardModalProps) => {
   void setIsProcessing; // Will be used for API orchestration
   const [processingError, setProcessingError] = useState<string | null>(null);
 
-  const handleOpenChange = (open: boolean) => {
-    if (isProcessing && !open) return;
+  const handleOpenChange = (toOpen: boolean) => {
+    if (isProcessing && !toOpen) return;
+    setIsOpen(toOpen);
 
-    setIsOpen(open);
-    if (!open) {
+    if (!toOpen) {
       setStep(WizardStep.Amount);
       setFormState(DEFAULT_FORM_STATE);
       setProcessingError(null);
@@ -150,6 +144,26 @@ export const StakeWizardModal = ({ trigger }: StakeWizardModalProps) => {
   };
 
   const showBackButton = step === WizardStep.DissolveDelay || step === WizardStep.Configuration;
+  const showApyPreview = step === WizardStep.DissolveDelay || step === WizardStep.Configuration;
+
+  const stakingRewards = useStakingRewards();
+
+  const getCurrentApyValue = (): number => {
+    if (!isStakingRewardDataReady(stakingRewards)) {
+      return 0;
+    }
+    const preview = stakingRewards.stakingFlowApyPreview[formState.dissolveDelayMonths];
+    const maturityKey = formState.maturityMode === MaturityMode.Auto ? 'autoStake' : 'nonAutoStake';
+    const stateKey = formState.initialState === InitialState.Locked ? 'locked' : 'dissolving';
+    return preview[maturityKey][stateKey] * 100;
+  };
+
+  const getCurrentApyFormatted = (): string => {
+    if (!isStakingRewardDataReady(stakingRewards)) {
+      return '~...%';
+    }
+    return `~${(getCurrentApyValue() * 100).toFixed(2)}%`;
+  };
 
   const balanceICPs = bigIntDiv(balanceValue?.response || 0n, E8Sn);
   const canStake = balanceICPs > ICP_TRANSACTION_FEE;
@@ -166,25 +180,21 @@ export const StakeWizardModal = ({ trigger }: StakeWizardModalProps) => {
     }
   };
 
-  const defaultTrigger = (
-    <Button size="xl" onClick={handleTriggerClick} className="w-full">
-      <Plus />
-      {t(($) => $.stakeWizardModal.title)}
-    </Button>
-  );
-
   return (
     <ResponsiveDialog open={isOpen} onOpenChange={handleOpenChange}>
-      <ResponsiveDialogTrigger asChild onClick={handleTriggerClick}>
-        {trigger ?? defaultTrigger}
+      <ResponsiveDialogTrigger asChild>
+        <Button size="xl" onClick={handleTriggerClick} className="w-full">
+          <Plus />
+          {t(($) => $.stakeWizardModal.title)}
+        </Button>
       </ResponsiveDialogTrigger>
       <ResponsiveDialogContent className="flex max-h-[90vh] flex-col focus:outline-none">
-        <ResponsiveDialogHeader className="mb-4 shrink-0">
-          <div className="flex items-center gap-2">
+        <ResponsiveDialogHeader className="shrink-0">
+          <div className="relative flex items-center justify-center">
             {showBackButton && (
               <button
                 onClick={goBack}
-                className="rounded-md p-1 hover:bg-muted"
+                className="absolute left-0 rounded-md p-1 hover:bg-muted"
                 aria-label={t(($) => $.common.back)}
               >
                 <ArrowLeft className="h-5 w-5" />
@@ -192,14 +202,18 @@ export const StakeWizardModal = ({ trigger }: StakeWizardModalProps) => {
             )}
             <ResponsiveDialogTitle>{getStepTitle()}</ResponsiveDialogTitle>
           </div>
+          {showApyPreview && (
+            <div className="mt-0 flex justify-center">
+              <AnimatedApyBadge value={getCurrentApyValue()} />
+            </div>
+          )}
         </ResponsiveDialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-4 pb-4 md:px-0 md:pb-0">
+        <div className="mt-4 flex-1 overflow-y-auto px-4 pb-4 md:px-0 md:pb-0">
           {step === WizardStep.Amount && (
             <StepAmount
               amount={formState.amount}
               maxStake={maxStake}
-              maxApy={maxApy}
               onAmountChange={updateAmount}
               onNext={goNext}
             />
@@ -231,6 +245,7 @@ export const StakeWizardModal = ({ trigger }: StakeWizardModalProps) => {
               formState={formState}
               isProcessing={isProcessing}
               error={processingError}
+              expectedApy={getCurrentApyFormatted()}
               onDone={() => handleOpenChange(false)}
               onRetry={() => {
                 setProcessingError(null);
@@ -264,15 +279,19 @@ function MaxRewardsBadge({ label }: { label: string }) {
 interface StepAmountProps {
   amount: string;
   maxStake: number;
-  maxApy: string;
   onAmountChange: (amount: string) => void;
   onNext: () => void;
 }
 
-function StepAmount({ amount, maxStake, maxApy, onAmountChange, onNext }: StepAmountProps) {
+function StepAmount({ amount, maxStake, onAmountChange, onNext }: StepAmountProps) {
   const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const stakingRewards = useStakingRewards();
+  const maxApyFormatted = isStakingRewardDataReady(stakingRewards)
+    ? (stakingRewards.stakingFlowApyPreview[96].autoStake.locked * 100).toFixed(2)
+    : '...';
 
   const handleAmountChange = (value: string) => {
     onAmountChange(value);
@@ -282,9 +301,7 @@ function StepAmount({ amount, maxStake, maxApy, onAmountChange, onNext }: StepAm
   const handleMax = () => {
     onAmountChange(maxStake.toString());
     // Give focus back to input after clicking the Max button
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
+    inputRef?.current?.focus();
     setError(null);
   };
 
@@ -305,9 +322,7 @@ function StepAmount({ amount, maxStake, maxApy, onAmountChange, onNext }: StepAm
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleNext();
-    }
+    if (e.key === 'Enter') handleNext();
   };
 
   return (
@@ -316,16 +331,16 @@ function StepAmount({ amount, maxStake, maxApy, onAmountChange, onNext }: StepAm
         <Label htmlFor="stake-amount">{t(($) => $.stakeWizardModal.steps.amount.label)}</Label>
         <div className="relative">
           <Input
-            ref={inputRef}
-            id="stake-amount"
-            type="number"
-            placeholder="0.00"
-            min="0"
-            max={maxStake}
-            value={amount}
+            className={`h-14 [appearance:textfield] border-2 pr-24 !text-lg font-semibold focus-visible:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
             onChange={(e) => handleAmountChange(e.target.value)}
             onKeyDown={handleKeyDown}
-            className={`h-14 [appearance:textfield] border-2 pr-24 focus-visible:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
+            placeholder="0.00"
+            id="stake-amount"
+            ref={inputRef}
+            max={maxStake}
+            value={amount}
+            type="number"
+            min="0"
           />
           <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-1">
             <Button type="button" size="sm" onClick={handleMax} className="h-7 px-2 text-xs">
@@ -350,7 +365,7 @@ function StepAmount({ amount, maxStake, maxApy, onAmountChange, onNext }: StepAm
       <Alert className="border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900/50 dark:bg-blue-900/20 dark:text-blue-200 [&>svg]:text-blue-600 dark:[&>svg]:text-blue-400">
         <Info className="h-4 w-4" />
         <AlertDescription className="text-blue-700 dark:text-blue-300">
-          {t(($) => $.stakeWizardModal.infoBoxes.whatIsStaking, { maxApy })}
+          {t(($) => $.stakeWizardModal.infoBoxes.whatIsStaking, { maxApy: maxApyFormatted })}
         </AlertDescription>
       </Alert>
 
@@ -553,36 +568,121 @@ function StepConfiguration({
 }
 
 // =============================================================================
-// Step 4: Confirmation (Placeholder)
+// Step 4: Confirmation
 // =============================================================================
 
 interface StepConfirmationProps {
   formState: WizardFormState;
   isProcessing: boolean;
   error: string | null;
+  expectedApy: string;
   onDone: () => void;
   onRetry: () => void;
 }
 
-function StepConfirmation({ formState, isProcessing, error, onDone }: StepConfirmationProps) {
+function StepConfirmation({
+  formState,
+  isProcessing,
+  error,
+  expectedApy,
+  onDone,
+  onRetry,
+}: StepConfirmationProps) {
   const { t } = useTranslation();
 
+  // Processing state
+  if (isProcessing) {
+    return (
+      <div className="flex flex-col items-center gap-6 py-8 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+        <div className="space-y-2">
+          <h3 className="text-xl font-semibold">
+            {t(($) => $.stakeWizardModal.steps.confirmation.processing.title)}
+          </h3>
+          <p className="text-muted-foreground">
+            {t(($) => $.stakeWizardModal.steps.confirmation.processing.description)}
+          </p>
+        </div>
+        <Alert variant="warning">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            {t(($) => $.stakeWizardModal.steps.confirmation.processing.warning)}
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex flex-col items-center gap-6 py-8 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
+          <AlertTriangle className="h-8 w-8 text-destructive" />
+        </div>
+        <div className="space-y-2">
+          <h3 className="text-xl font-semibold">
+            {t(($) => $.stakeWizardModal.steps.confirmation.error.title)}
+          </h3>
+          <p className="text-destructive">{error}</p>
+        </div>
+        <Button onClick={onRetry} size="xl" className="w-full">
+          {t(($) => $.stakeWizardModal.steps.confirmation.error.retry)}
+        </Button>
+      </div>
+    );
+  }
+
+  // Success state
+  const dissolveDelayOption = DISSOLVE_DELAY_OPTIONS.find(
+    (opt) => opt.value === formState.dissolveDelayMonths,
+  );
+  const dissolveDelayLabel = dissolveDelayOption
+    ? t(($) => $.stakeWizardModal.steps.dissolveDelay.presets[dissolveDelayOption.labelKey])
+    : '';
+
   return (
-    <div className="flex flex-col gap-4">
-      <p className="text-muted-foreground">
-        {isProcessing
-          ? t(($) => $.stakeWizardModal.steps.confirmation.processing.title)
-          : t(($) => $.stakeWizardModal.steps.confirmation.success.title)}
-      </p>
-      <p>
-        {t(($) => $.stakeWizardModal.steps.confirmation.success.amountStaked)}: {formState.amount}
-      </p>
-      <p>
-        {t(($) => $.stakeWizardModal.steps.confirmation.success.dissolveDelay)}:{' '}
-        {formState.dissolveDelayMonths} months
-      </p>
-      {error && <p className="text-destructive">{error}</p>}
-      <Button onClick={onDone} className="w-full">
+    <div className="flex flex-col items-center gap-6 py-8 text-center">
+      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+        <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+      </div>
+      <div className="space-y-2">
+        <h3 className="text-xl font-semibold">
+          {t(($) => $.stakeWizardModal.steps.confirmation.success.title)}
+        </h3>
+        <p className="text-muted-foreground">
+          {formState.initialState === InitialState.Locked
+            ? t(($) => $.stakeWizardModal.steps.confirmation.success.descriptionLocked)
+            : t(($) => $.stakeWizardModal.steps.confirmation.success.descriptionUnlocking)}
+        </p>
+      </div>
+
+      <div className="w-full space-y-3 rounded-lg bg-muted p-4">
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">
+            {t(($) => $.stakeWizardModal.steps.confirmation.success.amountStaked)}
+          </span>
+          <span className="font-semibold">
+            {formState.amount} {t(($) => $.common.icp)}
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">
+            {t(($) => $.stakeWizardModal.steps.confirmation.success.dissolveDelay)}
+          </span>
+          <span className="font-semibold">{dissolveDelayLabel}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">
+            {t(($) => $.stakeWizardModal.steps.confirmation.success.expectedApy)}
+          </span>
+          <span className="font-semibold text-primary">{expectedApy}</span>
+        </div>
+      </div>
+
+      <Button onClick={onDone} size="xl" className="w-full">
         {t(($) => $.stakeWizardModal.steps.confirmation.success.done)}
       </Button>
     </div>
