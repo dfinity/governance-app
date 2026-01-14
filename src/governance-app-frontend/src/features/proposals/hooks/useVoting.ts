@@ -65,7 +65,23 @@ export const useVoting = (proposal: ProposalInfo) => {
           ? t(($) => $.proposal.actions.adopted)
           : t(($) => $.proposal.actions.rejected);
 
-      toast.promise(votingPromise, {
+      // We chain the invalidation to the voting promise so that:
+      // 1. The toast loading state persists until invalidation is done.
+      // 2. The mutation isPending state persists until invalidation is done.
+      // This ensures the UI updates (hasVoted becomes true) at the same time the spinner stops.
+      const extendedPromise = votingPromise.then(async (res) => {
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS],
+          }),
+          queryClient.invalidateQueries({
+            queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL, proposal.id?.toString()],
+          }),
+        ]);
+        return res;
+      });
+
+      toast.promise(extendedPromise, {
         loading: t(($) => $.proposal.votingProgress.loading, {
           id: proposal.id,
         }),
@@ -79,17 +95,7 @@ export const useVoting = (proposal: ProposalInfo) => {
         ...ephemeralNotification,
       });
 
-      return votingPromise;
-    },
-    onSuccess: () => {
-      Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS],
-        }),
-        queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL, proposal.id?.toString()],
-        }),
-      ]);
+      return extendedPromise;
     },
     onError: (error) => {
       console.error(error);
