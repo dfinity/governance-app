@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { filterProposalsInLastXDays } from './useProposalsAdoptedLastXDays';
 
-describe('filterProposalsExecutedInLastXDays', () => {
+describe('filterProposalsInLastXDays', () => {
   const SECONDS_IN_A_DAY = 86400;
 
   const mockNow = new Date('2026-01-14T00:00:00Z').getTime();
