@@ -379,7 +379,7 @@ function StepDissolveDelay({
       </p>
 
       {/* Regular preset buttons: 1 col mobile, 2 cols desktop */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {regularOptions.map((option) => {
           const isSelected = dissolveDelayMonths === option.value;
 
@@ -428,7 +428,69 @@ function StepDissolveDelay({
 }
 
 // =============================================================================
-// Step 3: Configuration (Placeholder)
+// Segmented Toggle Component
+// =============================================================================
+
+interface SegmentedToggleProps {
+  leftSelected: boolean;
+  onLeftClick: () => void;
+  onRightClick: () => void;
+  leftLabel: string;
+  rightLabel: string;
+  badgeLabel?: string;
+}
+
+function SegmentedToggle({
+  leftSelected,
+  onLeftClick,
+  onRightClick,
+  leftLabel,
+  rightLabel,
+
+  badgeLabel,
+}: SegmentedToggleProps) {
+  return (
+    <div className="relative grid grid-cols-2 rounded-xl bg-muted p-1">
+      {/* Sliding pill indicator */}
+      <div
+        className={`absolute top-1 h-[calc(100%-8px)] w-[calc(50%-4px)] rounded-lg shadow-sm transition-all duration-300 ease-out ${
+          leftSelected
+            ? 'left-1 border border-green-300 bg-green-50 dark:border-green-800 dark:bg-green-950'
+            : 'left-[calc(50%+2px)] bg-background'
+        }`}
+      />
+
+      {/* Left button */}
+      <button
+        onClick={onLeftClick}
+        className={`relative z-10 flex flex-col items-center gap-1 rounded-lg px-4 py-3 font-semibold transition-colors ${
+          leftSelected ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'
+        }`}
+      >
+        <span>{leftLabel}</span>
+        {badgeLabel && (
+          <span className="inline-flex items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase shadow-sm">
+            <Award className="h-3 w-3" />
+            {badgeLabel}
+          </span>
+        )}
+      </button>
+
+      {/* Right button */}
+      <button
+        onClick={onRightClick}
+        className={`relative z-10 rounded-lg px-4 py-3 font-semibold transition-colors ${
+          !leftSelected ? 'text-foreground' : 'text-muted-foreground'
+        }`}
+      >
+        {rightLabel}
+      </button>
+    </div>
+  );
+}
+
+// =============================================================================
+// Step 3: Configuration
 // =============================================================================
 
 interface StepConfigurationProps {
@@ -462,34 +524,14 @@ function StepConfiguration({
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() => onMaturityModeChange(MaturityMode.Auto)}
-            className={`flex flex-col items-center gap-1 rounded-lg border-2 px-4 py-3 transition-colors ${
-              maturityMode === MaturityMode.Auto
-                ? 'border-green-600 bg-gradient-to-br from-green-600/12 to-green-600/4'
-                : 'border-green-600/30 bg-gradient-to-br from-green-600/8 to-green-600/4 hover:from-green-600/14 hover:to-green-600/8'
-            }`}
-          >
-            <span className="font-medium">
-              {t(($) => $.stakeWizardModal.steps.configuration.maturity.autoStake)}
-            </span>
-            <span className="inline-flex items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase shadow-sm">
-              <Award className="h-3 w-3" />
-              {t(($) => $.stakeWizardModal.badges.maxRewards)}
-            </span>
-          </button>
-          <button
-            onClick={() => onMaturityModeChange(MaturityMode.Liquid)}
-            className={`rounded-lg border-2 px-4 py-3 font-medium transition-colors ${
-              maturityMode === MaturityMode.Liquid
-                ? 'border-primary bg-primary/5'
-                : 'border-border hover:bg-muted/50'
-            }`}
-          >
-            {t(($) => $.stakeWizardModal.steps.configuration.maturity.keepLiquid)}
-          </button>
-        </div>
+        <SegmentedToggle
+          leftSelected={maturityMode === MaturityMode.Auto}
+          onLeftClick={() => onMaturityModeChange(MaturityMode.Auto)}
+          onRightClick={() => onMaturityModeChange(MaturityMode.Liquid)}
+          leftLabel={t(($) => $.stakeWizardModal.steps.configuration.maturity.autoStake)}
+          rightLabel={t(($) => $.stakeWizardModal.steps.configuration.maturity.keepLiquid)}
+          badgeLabel={t(($) => $.stakeWizardModal.badges.maxRewards)}
+        />
       </div>
 
       {/* Initial State Section */}
@@ -503,34 +545,14 @@ function StepConfiguration({
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() => onInitialStateChange(InitialState.Locked)}
-            className={`flex flex-col items-center gap-1 rounded-lg border-2 px-4 py-3 transition-colors ${
-              initialState === InitialState.Locked
-                ? 'border-green-600 bg-gradient-to-br from-green-600/12 to-green-600/4'
-                : 'border-green-600/30 bg-gradient-to-br from-green-600/8 to-green-600/4 hover:from-green-600/14 hover:to-green-600/8'
-            }`}
-          >
-            <span className="font-medium">
-              {t(($) => $.stakeWizardModal.steps.configuration.state.locked)}
-            </span>
-            <span className="inline-flex items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase shadow-sm">
-              <Award className="h-3 w-3" />
-              {t(($) => $.stakeWizardModal.badges.maxRewards)}
-            </span>
-          </button>
-          <button
-            onClick={() => onInitialStateChange(InitialState.Dissolving)}
-            className={`rounded-lg border-2 px-4 py-3 font-medium transition-colors ${
-              initialState === InitialState.Dissolving
-                ? 'border-primary bg-primary/5'
-                : 'border-border hover:bg-muted/50'
-            }`}
-          >
-            {t(($) => $.stakeWizardModal.steps.configuration.state.unlocking)}
-          </button>
-        </div>
+        <SegmentedToggle
+          leftSelected={initialState === InitialState.Locked}
+          onLeftClick={() => onInitialStateChange(InitialState.Locked)}
+          onRightClick={() => onInitialStateChange(InitialState.Dissolving)}
+          leftLabel={t(($) => $.stakeWizardModal.steps.configuration.state.locked)}
+          rightLabel={t(($) => $.stakeWizardModal.steps.configuration.state.unlocking)}
+          badgeLabel={t(($) => $.stakeWizardModal.badges.maxRewards)}
+        />
       </div>
 
       {/* Info Box */}
