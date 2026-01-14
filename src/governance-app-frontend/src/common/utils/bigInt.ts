@@ -1,5 +1,5 @@
 // Returns the result of dividing a bigint by another bigint with specified precision
-export const bigIntDiv = (a: bigint, b: bigint, precision: number = 2): number => {
+export const bigIntDiv = (a: bigint, b: bigint, precision: number = 3): number => {
   return Number((a * 10n ** BigInt(precision)) / b) / 10 ** precision;
 };
 

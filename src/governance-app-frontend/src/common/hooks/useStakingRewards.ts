@@ -32,7 +32,7 @@ export const useStakingRewards = () => {
     const process = setTimeout(() => {
       setData(
         getStakingRewardData({
-          balance: nonNullish(balance) ? bigIntDiv(balance, E8Sn, 2) : undefined,
+          balance: nonNullish(balance) ? bigIntDiv(balance, E8Sn) : undefined,
           isAuthenticated: !!identity,
           economics,
           neurons,

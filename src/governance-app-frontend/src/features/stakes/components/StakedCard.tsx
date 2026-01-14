@@ -73,7 +73,7 @@ export function StakedCard() {
               <Skeleton className="h-8 w-32" />
             ) : (
               <p className="text-2xl font-bold">
-                {t(($) => $.common.inIcp, { value: totalStaked })}
+                {t(($) => $.common.inIcp, { value: formatNumber(totalStaked) })}
               </p>
             )}
 

@@ -1,5 +1,5 @@
-import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
+import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { List } from 'lucide-react';
 import { useState } from 'react';
@@ -59,7 +59,7 @@ export function AccountCard() {
                 <Skeleton className="h-8 w-32" />
               ) : (
                 <p className="text-2xl font-bold">
-                  {t(($) => $.common.inIcp, { value: balanceICP })}
+                  {t(($) => $.common.inIcp, { value: formatNumber(balanceICPs) })}
                 </p>
               )}
 
