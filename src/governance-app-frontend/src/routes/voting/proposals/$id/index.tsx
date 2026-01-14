@@ -87,7 +87,7 @@ function ProposalDetailsRouteComponent() {
                     </span>
                     <CertifiedBadge certified={proposalQuery.data?.certified} />
                   </div>
-                  <CardTitle className="mt-2 text-2xl leading-tight font-bold">
+                  <CardTitle className="mt-2 min-w-0 text-2xl leading-tight font-bold break-words">
                     {proposal.proposal?.title}
                   </CardTitle>
                 </CardHeader>
