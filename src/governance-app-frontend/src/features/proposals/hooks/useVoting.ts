@@ -31,7 +31,6 @@ export const useVoting = (proposal: ProposalInfo) => {
   const eligibleNeurons = votableNeurons({ neurons, proposal });
   const eligibleNeuronsIds = eligibleNeurons.map((n) => n.neuronId);
   const eligibleCount = eligibleNeurons.length;
-  console.log(eligibleNeurons);
 
   // Track votes
   const eligibleBallots = proposal.ballots.filter((b) => neuronIds.has(b.neuronId));
@@ -90,7 +89,6 @@ export const useVoting = (proposal: ProposalInfo) => {
         }),
       );
     },
-    retry: 3,
   });
 
   const isVoting = voteMutation.isPending;

@@ -31,7 +31,7 @@ type Props = {
 export function ProposalListItem({ proposal, certified }: Props) {
   const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
-  const [voted, setVoted] = useState<Vote.No | Vote.Yes | undefined>();
+  const [votedBallot, setVotedBallot] = useState<Vote.No | Vote.Yes | undefined>();
 
   const yes = Number(proposal.latestTally?.yes ?? 0n) / E8S;
   const no = Number(proposal.latestTally?.no ?? 0n) / E8S;
@@ -48,18 +48,20 @@ export function ProposalListItem({ proposal, certified }: Props) {
 
   const { vote, isVoting, hasVoted, isVoteMixed, voteValue, canVote } = useVoting(proposal);
 
-  const voteHandler = async (
+  const voteHandler = (
     ballot: Vote.Yes | Vote.No,
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ) => {
-    try {
-      setVoted(ballot);
-      e.preventDefault();
-      await vote(ballot);
-    } finally {
-      setVoted(undefined);
-    }
+    e.preventDefault();
+    setVotedBallot(ballot);
+    vote(ballot);
   };
+
+  useEffect(() => {
+    if (!isVoting) {
+      setVotedBallot(undefined);
+    }
+  }, [isVoting]);
 
   useEffect(() => {
     requestAnimationFrame(() => setIsMounted(true));
@@ -185,7 +187,7 @@ export function ProposalListItem({ proposal, certified }: Props) {
                 size="xl"
                 variant="outline"
               >
-                {isVoting && voted === Vote.Yes ? (
+                {isVoting && votedBallot === Vote.Yes ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (
                   <ThumbsUp className="mr-2 size-4" />
@@ -204,7 +206,7 @@ export function ProposalListItem({ proposal, certified }: Props) {
                 size="xl"
                 variant="outline"
               >
-                {isVoting && voted === Vote.No ? (
+                {isVoting && votedBallot === Vote.No ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (
                   <ThumbsDown className="mr-2 size-4" />
