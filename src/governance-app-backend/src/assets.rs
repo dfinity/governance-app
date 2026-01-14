@@ -1,6 +1,6 @@
-use std::cell::RefCell;
 use ic_asset_certification::{Asset, AssetCertificationError, AssetConfig, AssetRouter};
 use ic_http_certification::{Hash, HttpRequest, HttpResponse};
+use std::cell::RefCell;
 
 thread_local! {
     static ASSET_ROUTER: RefCell<AssetRouter<'static>> = RefCell::new(AssetRouter::default());
