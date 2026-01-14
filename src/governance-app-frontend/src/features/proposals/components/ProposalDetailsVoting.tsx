@@ -1,15 +1,19 @@
 import { ProposalInfo, Vote } from '@icp-sdk/canisters/nns';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { CheckCircle, CircleCheckBig, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
+import {
+  CheckCircle,
+  Loader2,
+  ThumbsDown,
+  ThumbsUp,
+  TriangleAlert,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Fragment } from 'react/jsx-runtime';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
-import { SkeletonLoader } from '@components/SkeletonLoader';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@components/Card';
 import { E8S } from '@constants/extra';
-import { useGovernanceNeurons } from '@hooks/governance';
+import { cn } from '@utils/shadcn';
 import { formatPercentage } from '@utils/numbers';
 
 import { useVoting } from '../hooks/useVoting';
@@ -23,6 +27,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   const { identity } = useInternetIdentity();
   const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
+  const [votedBallot, setVotedBallot] = useState<Vote.No | Vote.Yes | undefined>();
 
   const yes = Number(proposal.latestTally?.yes ?? 0n) / E8S;
   const no = Number(proposal.latestTally?.no ?? 0n) / E8S;
@@ -32,24 +37,22 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   const noProportion = total > 0 ? no / total : 0;
   const totalProportion = yesProportion + noProportion;
 
-  // Voting data.
-  const { data: neurons, isLoading: isLoadingNeurons } = useGovernanceNeurons();
-  const votingNeurons =
-    proposal.ballots.toSorted((a, b) => {
-      const fullA = neurons?.response.find((n) => n.neuronId === a.neuronId);
-      const fullB = neurons?.response.find((n) => n.neuronId === b.neuronId);
-      return Number(
-        (fullB?.createdTimestampSeconds ?? 0n) - (fullA?.createdTimestampSeconds ?? 0n),
-      );
-    }) ?? [];
-  const votingNeuronIds = new Set<bigint>(votingNeurons.map((neuron) => neuron.neuronId));
-  const ineligibleNeurons =
-    neurons?.response.filter((neuron) => !votingNeuronIds.has(neuron.neuronId)) ?? [];
-
-  const voted = proposal.ballots.filter((neuron) => neuron.vote !== Vote.Unspecified).length;
-  const totalToVote = proposal.ballots.length;
-
   const { vote, isVoting, hasVoted, isVoteMixed, voteValue, canVote } = useVoting(proposal);
+
+  const voteHandler = (
+    ballot: Vote.Yes | Vote.No,
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ) => {
+    e.preventDefault();
+    setVotedBallot(ballot);
+    vote(ballot);
+  };
+
+  useEffect(() => {
+    if (!isVoting) {
+      setVotedBallot(undefined);
+    }
+  }, [isVoting]);
 
   useEffect(() => {
     requestAnimationFrame(() => setIsMounted(true));
@@ -122,138 +125,94 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
             </span>
           </div>
         </div>
+      </CardContent>
 
-        {/* @TODO: My Votes Section */}
-        {totalToVote > 0 && (
-          <div className="rounded-lg border p-4">
-            <p className="mb-2 flex items-center gap-2 font-bold">
-              {t(($) => $.proposal.voting, { voted, total: totalToVote })}
-              {voted === totalToVote ? <CircleCheckBig color="green" size={16} /> : ''}
-            </p>
-            <div className="inline-grid items-center gap-1 sm:grid-cols-[max-content_max-content_max-content] sm:gap-3">
-              {isLoadingNeurons && <SkeletonLoader count={4} />}
-              {votingNeurons.map((neuron) => (
-                <Fragment key={neuron.neuronId}>
-                  <pre className="mt-4 rounded bg-amber-50 px-2 text-black sm:mt-0">
-                    #{neuron.neuronId}
-                  </pre>
-                  <span>
-                    {t(($) => $.common.votingPower)}: {neuron.votingPower}
-                  </span>
-                  <span className="flex items-center gap-2">
-                    {t(($) => $.common.vote)}:{' '}
-                    {neuron.vote === Vote.Yes ? (
-                      <ThumbsUp size={16} color="green" />
-                    ) : neuron.vote === Vote.No ? (
-                      <ThumbsDown size={16} color="red" />
-                    ) : (
-                      ''
-                    )}{' '}
-                    {neuron.vote !== Vote.Unspecified && Vote[neuron.vote]}
-                    {neuron.vote === Vote.Unspecified && (
-                      <span className="text-muted-foreground">-</span>
-                    )}
-                  </span>
-                </Fragment>
-              ))}
-
-              {ineligibleNeurons.map((neuron) => (
-                <Fragment key={neuron.neuronId}>
-                  <pre className="mt-4 rounded bg-amber-50 px-2 text-black sm:mt-0">
-                    #{neuron.neuronId}
-                  </pre>
-                  <span className="text-gray-500">
-                    {t(($) => $.common.votingPower)}: {neuron.votingPower}
-                  </span>
-                  <span className="text-gray-500">
-                    {t(($) => $.common.vote)}: {t(($) => $.proposal.ineligibleToVote)}
-                  </span>
-                </Fragment>
-              ))}
-
-              {canVote && !hasVoted && (
-                <div className="col-span-1 mt-4 sm:col-span-3">
-                  <div className="flex w-full items-center gap-3">
-                    <Button
-                      onClick={() => vote(Vote.Yes)}
-                      disabled={isVoting}
-                      variant="default"
-                      size="sm"
-                      className="flex-1 bg-emerald-600 text-white hover:bg-emerald-700"
-                      aria-busy={isVoting}
-                    >
-                      {isVoting ? (
-                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      ) : (
-                        <ThumbsUp className="mr-2 h-4 w-4" />
-                      )}
-                      {t(($) => $.proposal.yes)}
-                    </Button>
-                    <Button
-                      onClick={() => vote(Vote.No)}
-                      disabled={isVoting}
-                      variant="destructive"
-                      size="sm"
-                      className="flex-1"
-                      aria-busy={isVoting}
-                    >
-                      {isVoting ? (
-                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      ) : (
-                        <ThumbsDown className="mr-2 h-4 w-4" />
-                      )}
-                      {t(($) => $.proposal.no)}
-                    </Button>
-                  </div>
-                </div>
+      {(canVote || hasVoted) && (
+        <CardFooter className="py-2">
+          {hasVoted ? (
+            <div
+              className={cn(
+                'flex w-full items-center gap-2 rounded-md border p-2 text-sm capitalize',
+                isVoteMixed
+                  ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+                  : voteValue === Vote.Yes
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
+                    : 'border-red-200 bg-red-100 text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400',
               )}
-
-              {hasVoted && (
-                <div className="col-span-1 mt-4 sm:col-span-3">
-                  <div
-                    className={`flex w-full items-center gap-2 rounded-md border p-3 text-sm font-medium capitalize ${
-                      isVoteMixed
-                        ? 'border-amber-200 bg-amber-100 text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-                        : voteValue === Vote.Yes
-                          ? 'border-emerald-200 bg-emerald-100 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
-                          : 'border-red-200 bg-red-100 text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400'
-                    }`}
-                  >
-                    {isVoteMixed ? (
-                      <>
-                        <TriangleAlert className="size-4" />
-                        <Trans
-                          values={{ vote: t(($) => $.proposal.mixed) }}
-                          i18nKey={($) => $.proposal.voteCast}
-                          components={{ strong: <strong /> }}
-                        />
-                      </>
-                    ) : voteValue === Vote.Yes ? (
-                      <>
-                        <CheckCircle className="size-4" />
-                        <Trans
-                          values={{ vote: t(($) => $.proposal.yes) }}
-                          i18nKey={($) => $.proposal.voteCast}
-                          components={{ strong: <strong /> }}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="size-4" />
-                        <Trans
-                          values={{ vote: t(($) => $.proposal.no) }}
-                          i18nKey={($) => $.proposal.voteCast}
-                          components={{ strong: <strong /> }}
-                        />
-                      </>
-                    )}
-                  </div>
-                </div>
+            >
+              {isVoteMixed ? (
+                <>
+                  <TriangleAlert className="size-4" />
+                  <Trans
+                    values={{ vote: t(($) => $.proposal.mixed) }}
+                    i18nKey={($) => $.proposal.voteCast}
+                    components={{ strong: <strong /> }}
+                  />
+                </>
+              ) : voteValue === Vote.Yes ? (
+                <>
+                  <CheckCircle className="size-4" />
+                  <Trans
+                    values={{ vote: t(($) => $.proposal.yes) }}
+                    i18nKey={($) => $.proposal.voteCast}
+                    components={{ strong: <strong /> }}
+                  />
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="size-4" />
+                  <Trans
+                    values={{ vote: t(($) => $.proposal.no) }}
+                    i18nKey={($) => $.proposal.voteCast}
+                    components={{ strong: <strong /> }}
+                  />
+                </>
               )}
             </div>
-          </div>
-        )}
-      </CardContent>
+          ) : (
+            <div className="flex w-full items-center gap-2">
+              <Button
+                aria-busy={isVoting}
+                aria-label={t(($) => $.proposal.ariaLabelVote, {
+                  vote: t(($) => $.proposal.yes),
+                  proposalId: proposal.id?.toString(),
+                })}
+                className="flex-1 text-emerald-800 hover:border-emerald-700 hover:bg-emerald-100/10 hover:text-emerald-700 dark:text-emerald-400 dark:hover:border-emerald-300 dark:hover:bg-emerald-50/10 dark:hover:text-emerald-300"
+                disabled={isVoting}
+                onClick={(e) => voteHandler(Vote.Yes, e)}
+                size="xl"
+                variant="outline"
+              >
+                {isVoting && votedBallot === Vote.Yes ? (
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                ) : (
+                  <ThumbsUp className="mr-2 size-4" />
+                )}
+                {t(($) => $.proposal.yes)}
+              </Button>
+              <Button
+                aria-busy={isVoting}
+                aria-label={t(($) => $.proposal.ariaLabelVote, {
+                  vote: t(($) => $.proposal.no),
+                  proposalId: proposal.id?.toString(),
+                })}
+                className="flex-1 text-red-800 hover:border-red-700 hover:bg-red-100/10 hover:text-red-700 dark:text-red-400 dark:hover:border-red-300 dark:hover:bg-red-900/10 dark:hover:text-red-300"
+                disabled={isVoting}
+                onClick={(e) => voteHandler(Vote.No, e)}
+                size="xl"
+                variant="outline"
+              >
+                {isVoting && votedBallot === Vote.No ? (
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                ) : (
+                  <ThumbsDown className="mr-2 size-4" />
+                )}
+                {t(($) => $.proposal.no)}
+              </Button>
+            </div>
+          )}
+        </CardFooter>
+      )}
     </Card>
   );
 };
