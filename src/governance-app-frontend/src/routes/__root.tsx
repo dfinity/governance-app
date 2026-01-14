@@ -1,5 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { createRootRoute, Navigate, Outlet, useLocation, useRouter } from '@tanstack/react-router';
+import {
+  createRootRoute,
+  Navigate,
+  Outlet,
+  useLocation,
+  useMatches,
+  useRouter,
+} from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useRef } from 'react';
@@ -19,7 +26,9 @@ function RootComponent() {
   const { invalidate } = useRouter();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
-  const isLoginPage = location.pathname === '/login';
+
+  const matches = useMatches();
+  const isLoginPage = matches.some((m) => m.routeId === '/login');
 
   // BE CAREFUL CHANGING THIS EFFECT!
 
