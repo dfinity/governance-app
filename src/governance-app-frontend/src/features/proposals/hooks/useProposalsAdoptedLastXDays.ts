@@ -11,7 +11,7 @@ const SECONDS_IN_A_DAY = 86400n;
  * @param days - Number of days to look back
  * @returns Array of proposals executed within the specified time window
  */
-const filterProposalsExecutedInLastXDays = (
+export const filterProposalsExecutedInLastXDays = (
   proposals: ProposalInfo[],
   days: number,
 ): ProposalInfo[] => {
