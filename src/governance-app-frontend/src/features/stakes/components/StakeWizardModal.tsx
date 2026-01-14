@@ -151,14 +151,14 @@ export const StakeWizardModal = ({ trigger }: StakeWizardModalProps) => {
 
   const showBackButton = step === WizardStep.DissolveDelay || step === WizardStep.Configuration;
 
-  const balanceICP = bigIntDiv(balanceValue?.response || 0n, E8Sn);
-  const canStake = balanceICP > ICP_TRANSACTION_FEE;
+  const balanceICPs = bigIntDiv(balanceValue?.response || 0n, E8Sn);
+  const canStake = balanceICPs > ICP_TRANSACTION_FEE;
 
   const handleTriggerClick = () => {
     if (!canStake) {
       warningNotification({
         description: t(($) =>
-          balanceICP === 0
+          balanceICPs === 0
             ? $.neuron.stakeNeuron.errors.zeroBalance
             : $.neuron.stakeNeuron.errors.insufficientBalance,
         ),
