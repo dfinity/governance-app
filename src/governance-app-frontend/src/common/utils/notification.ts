@@ -5,7 +5,7 @@ type NotificationOptions = {
   description: React.ReactNode;
 };
 
-const ephemeralNotification: ToasterProps = {
+export const ephemeralNotification: ToasterProps = {
   duration: 2500,
   closeButton: false,
 };

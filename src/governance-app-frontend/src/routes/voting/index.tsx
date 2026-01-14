@@ -5,7 +5,6 @@ import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
-import { useVotableLoadedProposals } from '@features/proposals/hooks/useVotableLoadedProposals';
 import { getShowProposalUrlStatus } from '@features/proposals/utils';
 import { FollowedNeuronCard } from '@features/voting/components/FollowedNeuronCard';
 import { getUsersFollowedNeurons } from '@features/voting/utils/findFollowedNeuron';
@@ -41,7 +40,6 @@ function Voting() {
   const showProposals = search.showProposals;
   const proposalsRef = useRef<HTMLDivElement>(null);
 
-  const votableProposals = useVotableLoadedProposals();
   const proposals = useGovernanceProposals();
 
   const neuronsQuery = useGovernanceNeurons();
@@ -166,27 +164,19 @@ function Voting() {
           {(data) => (
             <div className="flex flex-col gap-4">
               {data?.pages?.map((page) =>
-                page?.response.proposals.toSorted(sortProposals).map((proposal) => {
-                  const canUserVote = votableProposals.has(proposal.id);
-
-                  return (
-                    <div key={proposal.id?.toString()} className="w-full">
-                      <Link
-                        to="/voting/proposals/$id"
-                        params={{ id: proposal.id! }}
-                        search={{ showProposals }}
-                        className="w-full"
-                        preload="intent"
-                      >
-                        <ProposalListItem
-                          proposal={proposal}
-                          canUserVote={canUserVote}
-                          certified={page?.certified}
-                        />
-                      </Link>
-                    </div>
-                  );
-                }),
+                page?.response.proposals.toSorted(sortProposals).map((proposal) => (
+                  <div key={proposal.id?.toString()} className="w-full">
+                    <Link
+                      to="/voting/proposals/$id"
+                      params={{ id: proposal.id! }}
+                      search={{ showProposals }}
+                      className="w-full"
+                      preload="intent"
+                    >
+                      <ProposalListItem proposal={proposal} certified={page?.certified} />
+                    </Link>
+                  </div>
+                )),
               )}
 
               {proposals.hasNextPage && (
