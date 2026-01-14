@@ -57,9 +57,30 @@ export const useVoting = (proposal: ProposalInfo) => {
         }),
       );
 
-      return Promise.all(promises);
+      const votingPromise = Promise.all(promises);
+
+      const successAction =
+        vote === Vote.Yes
+          ? t(($) => $.proposal.actions.adopted)
+          : t(($) => $.proposal.actions.rejected);
+
+      // Show persistent toast that updates on success/error
+      toast.promise(votingPromise, {
+        loading: t(($) => $.proposal.votingProgress.loading, {
+          id: proposal.id,
+        }),
+        success: t(($) => $.proposal.votingProgress.success, {
+          action: successAction,
+          id: proposal.id,
+        }),
+        error: t(($) => $.proposal.votingProgress.error, {
+          id: proposal.id,
+        }),
+      });
+
+      return votingPromise;
     },
-    onSuccess: async (_, { vote }) => {
+    onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS],
@@ -68,26 +89,9 @@ export const useVoting = (proposal: ProposalInfo) => {
           queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL, proposal.id?.toString()],
         }),
       ]);
-
-      const successAction =
-        vote === Vote.Yes
-          ? t(($) => $.proposal.actions.adopted)
-          : t(($) => $.proposal.actions.rejected);
-
-      toast.success(
-        t(($) => $.proposal.votingProgress.success, {
-          action: successAction,
-          id: proposal.id,
-        }),
-      );
     },
     onError: (error) => {
       console.error(error);
-      toast.error(
-        t(($) => $.proposal.votingProgress.error, {
-          id: proposal.id,
-        }),
-      );
     },
   });
 

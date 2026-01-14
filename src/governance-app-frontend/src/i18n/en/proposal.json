@@ -25,6 +25,7 @@
     "rejected": "Rejected"
   },
   "votingProgress": {
+    "loading": "Voting on proposal {{id}}...",
     "success": "{{action}} proposal {{id}}",
     "error": "Failed to vote on proposal {{id}}"
   },
