@@ -25,7 +25,7 @@ import { cn } from '@utils/shadcn';
 
 type Props = { balance: number };
 
-const SendICPsButton: React.FC<Props> = ({ balance }) => {
+export const SendICPButton: React.FC<Props> = ({ balance }) => {
   const { t } = useTranslation();
 
   const {
@@ -175,5 +175,3 @@ const SendICPsButton: React.FC<Props> = ({ balance }) => {
     </ResponsiveDialog>
   );
 };
-
-export { SendICPsButton };

@@ -31,14 +31,14 @@ export function StakedCard() {
   const stakingRewards = useStakingRewards();
 
   const handleStakeMoreClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    const balanceICPs = bigIntDiv(balanceQuery.data?.response || 0n, E8Sn, 4);
+    const balanceICP = bigIntDiv(balanceQuery.data?.response || 0n, E8Sn, 4);
 
-    if (!hasEnoughBalanceToStake(balanceICPs)) {
+    if (!hasEnoughBalanceToStake(balanceICP)) {
       e.preventDefault();
 
       warningNotification({
         description: t(($) =>
-          balanceICPs === 0
+          balanceICP === 0
             ? $.neuron.stakeNeuron.errors.zeroBalance
             : $.neuron.stakeNeuron.errors.insufficientBalance,
         ),

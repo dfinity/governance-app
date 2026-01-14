@@ -2,10 +2,49 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>The Governance App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Governance</title>
     <base href="/" />
-    <link rel="icon" href="/favicon.ico" />
+
+    <!-- Favicon (theme-aware) -->
+    <link rel="icon" type="image/svg+xml" href="/governance-logo.svg" />
+    <link
+      rel="icon"
+      type="image/png"
+      href="/favicon-dark.png"
+      media="(prefers-color-scheme: light)"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="/favicon-light.png"
+      media="(prefers-color-scheme: dark)"
+    />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#0e0e10" />
+
+    <!-- App Description -->
+    <meta
+      name="description"
+      content="Governance - Participate in decentralized governance on the Internet Computer"
+    />
+
+    <!-- Apple iOS Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Governance" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Mobile App Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Governance" />
+
+    <!-- Prevent telephone number detection -->
+    <meta name="format-detection" content="telephone=no" />
   </head>
 
   <body>

@@ -13,7 +13,7 @@ USERNAME=""
 
 # --- Function to display script help ---
 print_help() {
-  echo "Generate .env file for the governance app"
+  echo "Generate .env file for the app"
   echo
   echo "This script generates the appropriate .env file based on the target network."
   echo "It will overwrite any existing .env file."

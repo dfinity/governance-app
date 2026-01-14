@@ -25,7 +25,7 @@ const QR_CODE_LOGO_ASPECT_RATIO = 464 / 272;
 const QR_CODE_LOGO_HEIGHT = 35;
 const QR_CODE_LOGO_WIDTH = QR_CODE_LOGO_HEIGHT * QR_CODE_LOGO_ASPECT_RATIO;
 
-export const DepositICPsButton = ({ accountId }: Props) => {
+export const DepositICPButton = ({ accountId }: Props) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
@@ -54,7 +54,7 @@ export const DepositICPsButton = ({ accountId }: Props) => {
                 size={220}
                 level="H"
                 imageSettings={{
-                  src: '/icp-logo-colors.svg',
+                  src: '/governance-logo.svg',
                   height: QR_CODE_LOGO_HEIGHT,
                   width: QR_CODE_LOGO_WIDTH,
                   excavate: true,
