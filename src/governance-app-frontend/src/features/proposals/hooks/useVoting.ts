@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
+import { ephemeralNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
 /**
@@ -64,7 +65,6 @@ export const useVoting = (proposal: ProposalInfo) => {
           ? t(($) => $.proposal.actions.adopted)
           : t(($) => $.proposal.actions.rejected);
 
-      // Show persistent toast that updates on success/error
       toast.promise(votingPromise, {
         loading: t(($) => $.proposal.votingProgress.loading, {
           id: proposal.id,
@@ -76,6 +76,7 @@ export const useVoting = (proposal: ProposalInfo) => {
         error: t(($) => $.proposal.votingProgress.error, {
           id: proposal.id,
         }),
+        ...ephemeralNotification,
       });
 
       return votingPromise;
