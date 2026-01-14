@@ -128,10 +128,38 @@
 
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   button:not(:disabled),
   [role='button']:not(:disabled) {
     cursor: pointer;
+  }
+}
+
+@layer utilities {
+  .text-hero-responsive {
+    font-size: clamp(2rem, 5vh, 4.5rem);
+    line-height: 1.1;
+  }
+
+  @media (min-width: 768px) {
+    .text-hero-responsive {
+      font-size: clamp(3rem, 7vh, 6rem);
+      line-height: 1.1;
+    }
+  }
+
+  .login-card-responsive {
+    font-size: clamp(1.25rem, 2.5vh, 1.875rem);
+    line-height: 1.4;
+  }
+
+  @media (min-width: 768px) {
+    .login-card-responsive {
+      font-size: clamp(1.5rem, 3vh, 1.875rem);
+      line-height: 1.4;
+    }
   }
 }

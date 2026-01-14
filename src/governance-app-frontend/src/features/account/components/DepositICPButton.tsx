@@ -25,7 +25,7 @@ const QR_CODE_LOGO_ASPECT_RATIO = 464 / 272;
 const QR_CODE_LOGO_HEIGHT = 35;
 const QR_CODE_LOGO_WIDTH = QR_CODE_LOGO_HEIGHT * QR_CODE_LOGO_ASPECT_RATIO;
 
-export const DepositICPsButton = ({ accountId }: Props) => {
+export const DepositICPButton = ({ accountId }: Props) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
