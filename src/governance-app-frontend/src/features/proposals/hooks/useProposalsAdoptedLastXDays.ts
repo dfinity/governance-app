@@ -6,12 +6,12 @@ import { useGovernanceProposals } from '@hooks/governance';
 const SECONDS_IN_A_DAY = 86400n;
 
 /**
- * Filters proposals that have been executed within the last X days.
+ * Filters proposals within the last X days.
  * @param proposals - Array of ProposalInfo to filter
  * @param days - Number of days to look back
- * @returns Array of proposals executed within the specified time window
+ * @returns Array of proposals within the specified time window
  */
-export const filterProposalsExecutedInLastXDays = (
+export const filterProposalsInLastXDays = (
   proposals: ProposalInfo[],
   days: number,
 ): ProposalInfo[] => {
@@ -19,11 +19,9 @@ export const filterProposalsExecutedInLastXDays = (
   const cutoffTimestamp = nowInSeconds - BigInt(days) * SECONDS_IN_A_DAY;
 
   return proposals.filter((proposal) => {
-    const isExecuted = proposal.status === ProposalStatus.Executed;
     const executedTimestamp = proposal.executedTimestampSeconds;
 
-    // executedTimestampSeconds is 0n if not executed
-    return isExecuted && executedTimestamp > 0n && executedTimestamp >= cutoffTimestamp;
+    return executedTimestamp > 0n && executedTimestamp >= cutoffTimestamp;
   });
 };
 
@@ -47,7 +45,7 @@ export const useProposalsAdoptedLastXDays = (days: number) => {
     const allProposals =
       proposalsQuery.data?.pages?.flatMap((page) => page.response.proposals) ?? [];
 
-    return filterProposalsExecutedInLastXDays(allProposals, days);
+    return filterProposalsInLastXDays(allProposals, days);
   }, [proposalsQuery.data?.pages, days]);
 
   return {
