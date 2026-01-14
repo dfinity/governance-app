@@ -59,7 +59,7 @@ function LoginPage() {
       {/* Content */}
       <div className="relative flex min-h-dvh w-full flex-col justify-between px-4 py-10 3xl:mx-auto 3xl:max-w-[2000px] sm:p-12">
         {/* Header Section */}
-        <div className="flex flex-col gap-6 md:gap-0 md:mb-12">
+        <div className="flex flex-col gap-6 md:mb-12 md:gap-0">
           <img
             src="/governance-logo.svg"
             alt={t(($) => $.common.alt.icpLogo)}
