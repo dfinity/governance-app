@@ -27,7 +27,6 @@
   "staked": "Staked",
   "icp": "ICP",
   "inIcp": "{{value}} ICP",
-  "icps": "ICPs",
   "positiveNumber": "+ {{value}}",
   "negativeNumber": "- {{value}}",
   "transactions": "Transactions",

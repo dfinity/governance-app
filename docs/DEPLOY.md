@@ -10,11 +10,11 @@ How to deploy the Project.
     - `dfx identity new NewGovAppController`. 
 - Same for each member of the team.
 
-### ICPs & Cycles
+### ICP & Cycles
 
 - Get the ledger account.
     - `dfx ledger account-id`.
-- Ask for ICPs to be transferred via Slack `#icp-to-go`.
+- Ask for ICP to be transferred via Slack `#icp-to-go`.
     - Check the balance.
     - `dfx ledger balance --network=ic`.
 - Convert some of them to Cycles.

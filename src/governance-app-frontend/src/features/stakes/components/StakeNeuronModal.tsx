@@ -155,14 +155,14 @@ export const StakeNeuronModal = ({ trigger }: Props) => {
       });
   const stakePlaceholder = Math.max(maxStake - Number(ICP_TRANSACTION_FEE_E8S) / E8S, 0).toFixed(2);
 
-  const balanceICPs = bigIntDiv(balanceValue?.response || 0n, E8Sn);
+  const balanceICP = bigIntDiv(balanceValue?.response || 0n, E8Sn);
   const handleStakeIcpButton = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     if (!canStake) {
       e.preventDefault();
 
       warningNotification({
         description: t(($) =>
-          balanceICPs === 0
+          balanceICP === 0
             ? $.neuron.stakeNeuron.errors.zeroBalance
             : $.neuron.stakeNeuron.errors.insufficientBalance,
         ),

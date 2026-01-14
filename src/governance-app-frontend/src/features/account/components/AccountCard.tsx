@@ -5,7 +5,7 @@ import { List } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { SendICPsButton } from '@features/account/components/SendICPsButton';
+import { SendICPButton } from '@features/account/components/SendICPButton';
 import { TransactionListDialog } from '@features/account/components/TransactionListDialog';
 
 import { Button } from '@components/button';
@@ -21,7 +21,7 @@ import { formatNumber } from '@utils/numbers';
 import { GetTokens } from '@/dev/GetTokens';
 
 import { BuyIcpsButton } from './BuyIcpsButton';
-import { DepositICPsButton } from './DepositICPsButton';
+import { DepositICPButton } from './DepositICPButton';
 
 export function AccountCard() {
   const { t } = useTranslation();
@@ -39,9 +39,9 @@ export function AccountCard() {
 
   if (isNullish(accountId)) return null;
 
-  const balanceICPs = bigIntDiv(balanceQuery.data?.response || 0n, E8Sn, 2);
+  const balanceICP = bigIntDiv(balanceQuery.data?.response || 0n, E8Sn, 2);
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const usdValue = icpPrice ? formatNumber(balanceICPs * icpPrice.usd) : '-';
+  const usdValue = icpPrice ? formatNumber(balanceICP * icpPrice.usd) : '-';
 
   return (
     <>
@@ -59,7 +59,7 @@ export function AccountCard() {
                 <Skeleton className="h-8 w-32" />
               ) : (
                 <p className="text-2xl font-bold">
-                  {t(($) => $.common.inIcp, { value: balanceICPs })}
+                  {t(($) => $.common.inIcp, { value: balanceICP })}
                 </p>
               )}
 
@@ -79,8 +79,8 @@ export function AccountCard() {
                 <BuyIcpsButton accountId={accountId} />
               )}
               <div className="flex gap-3">
-                <DepositICPsButton accountId={accountId} />
-                <SendICPsButton balance={balanceICPs} />
+                <DepositICPButton accountId={accountId} />
+                <SendICPButton balance={balanceICP} />
               </div>
 
               <Button
