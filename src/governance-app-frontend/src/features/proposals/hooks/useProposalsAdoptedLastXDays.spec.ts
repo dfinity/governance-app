@@ -1,4 +1,4 @@
-import { ProposalInfo, ProposalStatus } from '@icp-sdk/canisters/nns';
+import { ProposalInfo } from '@icp-sdk/canisters/nns';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { filterProposalsInLastXDays } from './useProposalsAdoptedLastXDays';
@@ -66,9 +66,9 @@ describe('filterProposalsExecutedInLastXDays', () => {
 
   it('preserves the order of filtered proposals', () => {
     const proposals = [
-      createProposal(3n, ProposalStatus.Executed, BigInt(nowInSeconds - 3 * SECONDS_IN_A_DAY)),
-      createProposal(1n, ProposalStatus.Executed, BigInt(nowInSeconds - SECONDS_IN_A_DAY)),
-      createProposal(2n, ProposalStatus.Executed, BigInt(nowInSeconds - 2 * SECONDS_IN_A_DAY)),
+      createProposal(3n, BigInt(nowInSeconds - 3 * SECONDS_IN_A_DAY)),
+      createProposal(1n, BigInt(nowInSeconds - SECONDS_IN_A_DAY)),
+      createProposal(2n, BigInt(nowInSeconds - 2 * SECONDS_IN_A_DAY)),
     ];
 
     const result = filterProposalsInLastXDays(proposals, 30);
