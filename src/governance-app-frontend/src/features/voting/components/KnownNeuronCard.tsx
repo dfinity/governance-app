@@ -1,5 +1,5 @@
-import type { KnownNeuron } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
+import type { KnownNeuron } from '@icp-sdk/canisters/nns';
 import { ChevronDown, ChevronUp, Circle, CircleDot, LinkIcon, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -48,11 +48,11 @@ export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled, isLo
       <div className="flex gap-4">
         <div className="mt-2 flex-shrink-0">
           {isLoading ? (
-            <Loader2 className="h-6 w-6 animate-spin" />
+            <Loader2 className="size-6 animate-spin" />
           ) : isSelected ? (
-            <CircleDot className="h-6 w-6 stroke-[3px]" />
+            <CircleDot className="size-6 stroke-[3px]" />
           ) : (
-            <Circle className="h-6 w-6 text-muted-foreground" />
+            <Circle className="size-6 text-muted-foreground" />
           )}
         </div>
 

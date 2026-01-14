@@ -1,6 +1,14 @@
-import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
 import { secondsToDuration } from '@dfinity/utils';
-import { CheckCircle, Clock, Tag, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
+import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
+import {
+  CheckCircle,
+  Clock,
+  Loader2,
+  Tag,
+  ThumbsDown,
+  ThumbsUp,
+  TriangleAlert,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
@@ -17,11 +25,10 @@ import { getProposalStatusColor, getProposalTimeLeftInSeconds } from '../utils';
 
 type Props = {
   proposal: ProposalInfo;
-  canUserVote: boolean;
   certified?: boolean;
 };
 
-export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
+export function ProposalListItem({ proposal, certified }: Props) {
   const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
   const [voted, setVoted] = useState<Vote.No | Vote.Yes | undefined>();
@@ -121,7 +128,7 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
         </div>
       </CardHeader>
 
-      {(canUserVote || hasVoted) && (
+      {(canVote || hasVoted) && (
         <CardFooter className="py-2">
           {hasVoted ? (
             <div
@@ -165,48 +172,46 @@ export function ProposalListItem({ proposal, canUserVote, certified }: Props) {
               )}
             </div>
           ) : (
-            canVote && (
-              <div className="flex w-full items-center gap-2">
-                <Button
-                  aria-busy={isVoting}
-                  aria-label={t(($) => $.proposal.ariaLabelVote, {
-                    vote: t(($) => $.proposal.yes),
-                    proposalId: proposal.id?.toString(),
-                  })}
-                  className="flex-1 text-emerald-800 hover:border-emerald-700 hover:bg-emerald-100/10 hover:text-emerald-700 dark:text-emerald-400 dark:hover:border-emerald-300 dark:hover:bg-emerald-50/10 dark:hover:text-emerald-300"
-                  disabled={isVoting}
-                  onClick={(e) => voteHandler(Vote.Yes, e)}
-                  size="xl"
-                  variant="outline"
-                >
-                  {isVoting && voted === Vote.Yes ? (
-                    <Clock className="mr-2 size-4 animate-spin" />
-                  ) : (
-                    <ThumbsUp className="mr-2 size-4" />
-                  )}
-                  {t(($) => $.proposal.yes)}
-                </Button>
-                <Button
-                  aria-busy={isVoting}
-                  aria-label={t(($) => $.proposal.ariaLabelVote, {
-                    vote: t(($) => $.proposal.no),
-                    proposalId: proposal.id?.toString(),
-                  })}
-                  className="flex-1 text-red-800 hover:border-red-700 hover:bg-red-100/10 hover:text-red-700 dark:text-red-400 dark:hover:border-red-300 dark:hover:bg-red-900/10 dark:hover:text-red-300"
-                  disabled={isVoting}
-                  onClick={(e) => voteHandler(Vote.No, e)}
-                  size="xl"
-                  variant="outline"
-                >
-                  {isVoting && voted === Vote.No ? (
-                    <Clock className="mr-2 size-4 animate-spin" />
-                  ) : (
-                    <ThumbsDown className="mr-2 size-4" />
-                  )}
-                  {t(($) => $.proposal.no)}
-                </Button>
-              </div>
-            )
+            <div className="flex w-full items-center gap-2">
+              <Button
+                aria-busy={isVoting}
+                aria-label={t(($) => $.proposal.ariaLabelVote, {
+                  vote: t(($) => $.proposal.yes),
+                  proposalId: proposal.id?.toString(),
+                })}
+                className="flex-1 text-emerald-800 hover:border-emerald-700 hover:bg-emerald-100/10 hover:text-emerald-700 dark:text-emerald-400 dark:hover:border-emerald-300 dark:hover:bg-emerald-50/10 dark:hover:text-emerald-300"
+                disabled={isVoting}
+                onClick={(e) => voteHandler(Vote.Yes, e)}
+                size="xl"
+                variant="outline"
+              >
+                {isVoting && voted === Vote.Yes ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <ThumbsUp className="mr-2 size-4" />
+                )}
+                {t(($) => $.proposal.yes)}
+              </Button>
+              <Button
+                aria-busy={isVoting}
+                aria-label={t(($) => $.proposal.ariaLabelVote, {
+                  vote: t(($) => $.proposal.no),
+                  proposalId: proposal.id?.toString(),
+                })}
+                className="flex-1 text-red-800 hover:border-red-700 hover:bg-red-100/10 hover:text-red-700 dark:text-red-400 dark:hover:border-red-300 dark:hover:bg-red-900/10 dark:hover:text-red-300"
+                disabled={isVoting}
+                onClick={(e) => voteHandler(Vote.No, e)}
+                size="xl"
+                variant="outline"
+              >
+                {isVoting && voted === Vote.No ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <ThumbsDown className="mr-2 size-4" />
+                )}
+                {t(($) => $.proposal.no)}
+              </Button>
+            </div>
           )}
         </CardFooter>
       )}
