@@ -11,6 +11,7 @@ import {
   ResponsiveDialogTrigger,
 } from '@components/ResponsiveDialog';
 import { useStakingRewards } from '@hooks/useStakingRewards';
+import { cn } from '@utils/shadcn';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 interface Props {
@@ -30,7 +31,10 @@ export function MaturitySymbol({ className = '' }: Props) {
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger
-        className={`cursor-help rounded-sm border border-amber-400 bg-amber-100 p-0.5 transition-all duration-300 hover:scale-110 focus:outline-none dark:border-amber-600 dark:bg-amber-900/30 ${className}`}
+        className={cn(
+          'cursor-help rounded-sm border border-amber-400 bg-amber-100 p-0.5 transition-all duration-300 hover:scale-110 focus:outline-none dark:border-amber-600 dark:bg-amber-900/30',
+          className,
+        )}
       >
         <Sparkles className="size-5 text-amber-500 dark:text-amber-400" />
       </ResponsiveDialogTrigger>

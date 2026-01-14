@@ -1,6 +1,6 @@
 import type { KnownNeuron } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
-import { ChevronDown, ChevronUp, Circle, CircleDot, LinkIcon } from 'lucide-react';
+import { ChevronDown, ChevronUp, Circle, CircleDot, LinkIcon, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
 import { Badge } from '@components/badge';
@@ -13,12 +13,13 @@ import { safeParseUrl } from '@utils/urls';
 
 type Props = {
   isDisabled: boolean;
+  isLoading?: boolean;
   isSelected: boolean;
   neuron: KnownNeuron;
   onSelect: (neuron: KnownNeuron) => void;
 };
 
-export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled }: Props) => {
+export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled, isLoading }: Props) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleExpanded = (e: React.MouseEvent) => {
@@ -46,7 +47,9 @@ export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled }: Pr
     >
       <div className="flex gap-4">
         <div className="mt-2 flex-shrink-0">
-          {isSelected ? (
+          {isLoading ? (
+            <Loader2 className="h-6 w-6 animate-spin" />
+          ) : isSelected ? (
             <CircleDot className="h-6 w-6 stroke-[3px]" />
           ) : (
             <Circle className="h-6 w-6 text-muted-foreground" />
