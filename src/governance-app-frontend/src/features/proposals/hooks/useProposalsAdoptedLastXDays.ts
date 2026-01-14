@@ -1,9 +1,8 @@
 import { ProposalInfo, ProposalStatus } from '@icp-sdk/canisters/nns';
 import { useMemo } from 'react';
 
+import { SECONDS_IN_DAY } from '@constants/extra';
 import { useGovernanceProposals } from '@hooks/governance';
-
-const SECONDS_IN_A_DAY = 86400n;
 
 /**
  * Filters proposals within the last X days.
@@ -15,8 +14,8 @@ export const filterProposalsInLastXDays = (
   proposals: ProposalInfo[],
   days: number,
 ): ProposalInfo[] => {
-  const nowInSeconds = BigInt(Math.floor(Date.now() / 1000));
-  const cutoffTimestamp = nowInSeconds - BigInt(days) * SECONDS_IN_A_DAY;
+  const nowInSeconds = Math.floor(Date.now() / 1000);
+  const cutoffTimestamp = nowInSeconds - days * SECONDS_IN_DAY;
 
   return proposals.filter((proposal) => {
     const executedTimestamp = proposal.executedTimestampSeconds;
