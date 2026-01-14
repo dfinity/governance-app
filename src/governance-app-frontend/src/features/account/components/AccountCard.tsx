@@ -39,7 +39,7 @@ export function AccountCard() {
 
   if (isNullish(accountId)) return null;
 
-  const balanceICP = bigIntDiv(balanceQuery.data?.response || 0n, E8Sn, 2);
+  const balanceICP = bigIntDiv(balanceQuery.data?.response || 0n, E8Sn);
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const usdValue = icpPrice ? formatNumber(balanceICP * icpPrice.usd) : '-';
 
@@ -59,7 +59,7 @@ export function AccountCard() {
                 <Skeleton className="h-8 w-32" />
               ) : (
                 <p className="text-2xl font-bold">
-                  {t(($) => $.common.inIcp, { value: formatNumber(balanceICPs) })}
+                  {t(($) => $.common.inIcp, { value: formatNumber(balanceICP) })}
                 </p>
               )}
 
