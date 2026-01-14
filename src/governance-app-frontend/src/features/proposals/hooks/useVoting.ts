@@ -81,8 +81,8 @@ export const useVoting = (proposal: ProposalInfo) => {
 
       return votingPromise;
     },
-    onSuccess: async () => {
-      await Promise.all([
+    onSuccess: () => {
+      Promise.all([
         queryClient.invalidateQueries({
           queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS],
         }),
