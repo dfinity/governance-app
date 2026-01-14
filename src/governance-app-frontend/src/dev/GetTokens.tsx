@@ -28,10 +28,10 @@ import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
 /*
- * Gives the caller the specified amount of (fake) ICPs.
+ * Gives the caller the specified amount of (fake) ICP.
  * Should/can only be used on testnets.
  */
-const acquireICPs = async ({
+const acquireICP = async ({
   accountId,
   e8s,
   agent,
@@ -40,7 +40,7 @@ const acquireICPs = async ({
   e8s: E8s;
   agent: Agent;
 }): Promise<BlockHeight> => {
-  if (!IS_TESTNET) throw errorMessage('acquireICPs', 'the environment is not "testnet"');
+  if (!IS_TESTNET) throw errorMessage('acquireICP', 'the environment is not "testnet"');
 
   try {
     // For this to work it needs the anonymous agent
@@ -74,7 +74,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
     Error,
     { accountId: AccountIdentifier; e8s: E8s; agent: Agent }
   >({
-    mutationFn: acquireICPs,
+    mutationFn: acquireICP,
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS],
@@ -85,7 +85,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
 
       setAmountOfIcp('');
       successNotification({
-        description: `Top-up of ${amountOfIcp} ICPs successful.`,
+        description: `Top-up of ${amountOfIcp} ICP successful.`,
       });
       setOpen(false);
     },
@@ -115,14 +115,14 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
       <ResponsiveDialogTrigger asChild>
         <Button className="w-full" size="xl">
           <CreditCard />
-          Buy Testnet ICPs
+          Buy Testnet ICP
         </Button>
       </ResponsiveDialogTrigger>
 
       <ResponsiveDialogContent>
         <form onSubmit={handleSubmit}>
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>Get Testnet ICPs</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle>Get Testnet ICP</ResponsiveDialogTitle>
           </ResponsiveDialogHeader>
 
           <div className="grid gap-2 py-4">
