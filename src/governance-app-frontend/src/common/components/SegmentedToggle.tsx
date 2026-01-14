@@ -2,17 +2,16 @@ import { cn } from '@utils/shadcn';
 
 export type SegmentedToggleValue = 'left' | 'right';
 
-export interface SegmentedToggleProps {
+type Props = {
   value?: SegmentedToggleValue;
   onValueChange: (value: SegmentedToggleValue) => void;
   leftLabel: string;
   rightLabel: string;
   leftSubLabel?: React.ReactNode;
   rightSubLabel?: React.ReactNode;
-  /** Which value should use highlighted (green) styling when selected */
   highlightedValue?: SegmentedToggleValue;
   className?: string;
-}
+};
 
 export function SegmentedToggle({
   value,
@@ -23,7 +22,7 @@ export function SegmentedToggle({
   rightSubLabel,
   highlightedValue,
   className,
-}: SegmentedToggleProps) {
+}: Props) {
   const isLeftSelected = value === 'left';
   const isRightSelected = value === 'right';
   const isHighlightedSelected = value === highlightedValue;

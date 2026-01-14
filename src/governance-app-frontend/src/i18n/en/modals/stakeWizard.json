@@ -1,10 +1,10 @@
 {
-  "title": "Stake ICPs",
+  "title": "Stake ICP",
   "steps": {
     "amount": {
-      "title": "Stake ICPs",
+      "title": "Stake ICP",
       "label": "Amount to Stake",
-      "available": "Available: {{amount}} ICPs",
+      "available": "Available: {{amount}} ICP",
       "maxButton": "MAX"
     },
     "dissolveDelay": {
@@ -38,7 +38,7 @@
       "title": "Confirmation",
       "processing": {
         "title": "Processing...",
-        "description": "Creating your neuron and staking your ICPs",
+        "description": "Creating your neuron and staking your ICP",
         "warning": "Please do not close this page or disconnect."
       },
       "success": {

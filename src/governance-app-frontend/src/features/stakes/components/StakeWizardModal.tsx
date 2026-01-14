@@ -1,6 +1,6 @@
 import { nonNullish } from '@dfinity/utils';
 import { AlertTriangle, ArrowLeft, Award, Info, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
@@ -68,7 +68,9 @@ interface StakeWizardModalProps {
 export const StakeWizardModal = ({ trigger }: StakeWizardModalProps) => {
   const { t } = useTranslation();
   const { data: balanceValue } = useIcpLedgerAccountBalance();
-  const maxStake = nonNullish(balanceValue?.response) ? bigIntDiv(balanceValue.response, E8Sn) : 0;
+  const maxStake = nonNullish(balanceValue?.response)
+    ? bigIntDiv(balanceValue.response, E8Sn, 8)
+    : 0;
   const stakingRewards = useStakingRewards();
   const maxApy = isStakingRewardDataReady(stakingRewards)
     ? (stakingRewards.stakingFlowApyPreview[96].autoStake.locked * 100).toFixed(1)
@@ -149,14 +151,14 @@ export const StakeWizardModal = ({ trigger }: StakeWizardModalProps) => {
 
   const showBackButton = step === WizardStep.DissolveDelay || step === WizardStep.Configuration;
 
-  const balanceICPs = bigIntDiv(balanceValue?.response || 0n, E8Sn);
-  const canStake = balanceICPs > ICP_TRANSACTION_FEE;
+  const balanceICP = bigIntDiv(balanceValue?.response || 0n, E8Sn);
+  const canStake = balanceICP > ICP_TRANSACTION_FEE;
 
   const handleTriggerClick = () => {
     if (!canStake) {
       warningNotification({
         description: t(($) =>
-          balanceICPs === 0
+          balanceICP === 0
             ? $.neuron.stakeNeuron.errors.zeroBalance
             : $.neuron.stakeNeuron.errors.insufficientBalance,
         ),
@@ -177,7 +179,7 @@ export const StakeWizardModal = ({ trigger }: StakeWizardModalProps) => {
         {trigger ?? defaultTrigger}
       </ResponsiveDialogTrigger>
       <ResponsiveDialogContent className="flex max-h-[90vh] flex-col focus:outline-none">
-        <ResponsiveDialogHeader className="shrink-0">
+        <ResponsiveDialogHeader className="mb-4 shrink-0">
           <div className="flex items-center gap-2">
             {showBackButton && (
               <button
@@ -270,6 +272,7 @@ interface StepAmountProps {
 function StepAmount({ amount, maxStake, maxApy, onAmountChange, onNext }: StepAmountProps) {
   const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleAmountChange = (value: string) => {
     onAmountChange(value);
@@ -277,7 +280,11 @@ function StepAmount({ amount, maxStake, maxApy, onAmountChange, onNext }: StepAm
   };
 
   const handleMax = () => {
-    onAmountChange(maxStake.toFixed(2));
+    onAmountChange(maxStake.toString());
+    // Give focus back to input after clicking the Max button
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
     setError(null);
   };
 
@@ -305,32 +312,39 @@ function StepAmount({ amount, maxStake, maxApy, onAmountChange, onNext }: StepAm
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="space-y-2">
+      <div className="space-y-1">
         <Label htmlFor="stake-amount">{t(($) => $.stakeWizardModal.steps.amount.label)}</Label>
         <div className="relative">
           <Input
+            ref={inputRef}
             id="stake-amount"
             type="number"
             placeholder="0.00"
-            step="0.01"
             min="0"
             max={maxStake}
             value={amount}
             onChange={(e) => handleAmountChange(e.target.value)}
             onKeyDown={handleKeyDown}
-            className={`h-12 [appearance:textfield] border-2 pr-24 text-lg focus-visible:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${error ? 'border-destructive' : 'border-border'}`}
+            className={`h-14 [appearance:textfield] border-2 pr-24 focus-visible:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
           />
           <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-1">
             <Button type="button" size="sm" onClick={handleMax} className="h-7 px-2 text-xs">
               {t(($) => $.stakeWizardModal.steps.amount.maxButton)}
             </Button>
-            <span className="text-sm text-muted-foreground">{t(($) => $.common.icp)}</span>
+            <span className="text-sm font-semibold text-muted-foreground">
+              {t(($) => $.common.icp)}
+            </span>
           </div>
         </div>
         <p className="text-sm text-muted-foreground">
-          {t(($) => $.stakeWizardModal.steps.amount.available, { amount: maxStake.toFixed(2) })}
+          {t(($) => $.stakeWizardModal.steps.amount.available, { amount: maxStake.toString() })}
         </p>
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {error && (
+          <Alert variant="warning">
+            <AlertTriangle className="h-4 w-4 text-destructive" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
       </div>
 
       <Alert className="border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900/50 dark:bg-blue-900/20 dark:text-blue-200 [&>svg]:text-blue-600 dark:[&>svg]:text-blue-400">
@@ -392,40 +406,40 @@ function StepDissolveDelay({
         {t(($) => $.stakeWizardModal.steps.dissolveDelay.description)}
       </p>
 
-      {/* Regular preset buttons: 1 col mobile, 2 cols desktop */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {regularOptions.map((option) => {
-          const isSelected = dissolveDelayMonths === option.value;
+      <div>
+        <div className="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {regularOptions.map((option) => {
+            const isSelected = dissolveDelayMonths === option.value;
 
-          return (
-            <button
-              key={option.value}
-              onClick={() => onDissolveDelayChange(option.value)}
-              className={`rounded-lg border-2 px-4 py-3 text-center font-medium transition-colors ${isSelected ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}
-            >
-              {t(($) => $.stakeWizardModal.steps.dissolveDelay.presets[option.labelKey])}
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={option.value}
+                onClick={() => onDissolveDelayChange(option.value)}
+                className={`rounded-lg border-2 px-4 py-4 text-center font-medium transition-colors ${isSelected ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}
+              >
+                {t(($) => $.stakeWizardModal.steps.dissolveDelay.presets[option.labelKey])}
+              </button>
+            );
+          })}
+        </div>
+
+        <button
+          onClick={() => onDissolveDelayChange(maxRewardsOption.value)}
+          className={`w-full rounded-lg border-2 px-4 py-4 text-center transition-colors ${
+            isMaxRewardsSelected
+              ? 'border-green-600 bg-gradient-to-br from-green-600/12 to-green-600/4'
+              : 'border-green-600/30 bg-gradient-to-br from-green-600/8 to-green-600/4 hover:bg-gradient-to-br hover:from-green-600/14 hover:to-green-600/8'
+          }`}
+        >
+          <span className="font-medium">
+            {t(($) => $.stakeWizardModal.steps.dissolveDelay.presets[maxRewardsOption.labelKey])}
+          </span>
+          <span className="ml-2 inline-flex items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase shadow-sm">
+            <Award className="h-3 w-3" />
+            {t(($) => $.stakeWizardModal.badges.maxRewards)}
+          </span>
+        </button>
       </div>
-
-      {/* Max Rewards button: full width with green styling */}
-      <button
-        onClick={() => onDissolveDelayChange(maxRewardsOption.value)}
-        className={`rounded-lg border-2 px-4 py-3 text-center transition-colors ${
-          isMaxRewardsSelected
-            ? 'border-green-600 bg-gradient-to-br from-green-600/12 to-green-600/4'
-            : 'border-green-600/30 bg-gradient-to-br from-green-600/8 to-green-600/4 hover:bg-gradient-to-br hover:from-green-600/14 hover:to-green-600/8'
-        }`}
-      >
-        <span className="font-medium">
-          {t(($) => $.stakeWizardModal.steps.dissolveDelay.presets[maxRewardsOption.labelKey])}
-        </span>
-        <span className="ml-2 inline-flex items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase shadow-sm">
-          <Award className="h-3 w-3" />
-          {t(($) => $.stakeWizardModal.badges.maxRewards)}
-        </span>
-      </button>
 
       <Alert variant="warning">
         <AlertTriangle className="h-4 w-4" />
