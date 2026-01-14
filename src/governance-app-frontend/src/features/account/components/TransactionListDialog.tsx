@@ -51,7 +51,7 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
             <SkeletonLoader count={3} />
           </div>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 pb-2 lg:pb-0">
             <QueryStates<CertifiedData<IcpIndexDid.GetAccountIdentifierTransactionsResponse>>
               infiniteQuery={transactions}
               isEmpty={(data) => !data.pages?.length || !data.pages[0].response.transactions.length}
