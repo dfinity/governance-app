@@ -59,7 +59,7 @@ export function ResponsiveDialogContent({
 
   return (
     <DrawerContent className={className} {...props}>
-      <div className="mx-auto flex w-full flex-1 flex-col">{children}</div>
+      <div className="mx-auto flex min-h-0 w-full flex-1 flex-col">{children}</div>
     </DrawerContent>
   );
 }
