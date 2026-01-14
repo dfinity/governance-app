@@ -1,20 +1,14 @@
 import { ProposalInfo, Vote } from '@icp-sdk/canisters/nns';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import {
-  CheckCircle,
-  Loader2,
-  ThumbsDown,
-  ThumbsUp,
-  TriangleAlert,
-} from 'lucide-react';
+import { CheckCircle, Loader2, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@components/Card';
 import { E8S } from '@constants/extra';
-import { cn } from '@utils/shadcn';
 import { formatPercentage } from '@utils/numbers';
+import { cn } from '@utils/shadcn';
 
 import { useVoting } from '../hooks/useVoting';
 import { formatVotingPower } from '../utils';
