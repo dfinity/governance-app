@@ -31,7 +31,7 @@ export function StakedCard() {
   const stakingRewards = useStakingRewards();
 
   const handleStakeMoreClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    const balanceICP = bigIntDiv(balanceQuery.data?.response || 0n, E8Sn, 4);
+    const balanceICP = bigIntDiv(balanceQuery.data?.response || 0n, E8Sn);
 
     if (!hasEnoughBalanceToStake(balanceICP)) {
       e.preventDefault();
@@ -73,7 +73,7 @@ export function StakedCard() {
               <Skeleton className="h-8 w-32" />
             ) : (
               <p className="text-2xl font-bold">
-                {t(($) => $.common.inIcp, { value: totalStaked })}
+                {t(($) => $.common.inIcp, { value: formatNumber(totalStaked) })}
               </p>
             )}
 

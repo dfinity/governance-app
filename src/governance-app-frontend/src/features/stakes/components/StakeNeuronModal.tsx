@@ -70,7 +70,7 @@ export const StakeNeuronModal = ({ trigger }: Props) => {
 
   const stakeMutation = useMutation<bigint, Error, number>({
     mutationFn: async (amount) => {
-      const stake = bigIntMul(E8Sn, amount);
+      const stake = bigIntMul(E8Sn, amount, 2);
       const principal = identity!.getPrincipal();
 
       return governanceCanister!.stakeNeuron({
