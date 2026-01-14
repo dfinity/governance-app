@@ -74,7 +74,9 @@ function LoginPage() {
               <dt className="text-sm font-light tracking-wider text-muted-foreground">
                 {t(($) => $.login.proposalsAdopted)}
               </dt>
-              <dd className="text-2xl leading-none font-bold lg:text-3xl">{proposalsAdopted}</dd>
+              <dd className="text-2xl leading-none font-bold lg:text-3xl">
+                {isLoading ? <Skeleton className="h-7 w-8 lg:h-8" /> : proposalsAdopted}
+              </dd>
             </div>
 
             <Separator
