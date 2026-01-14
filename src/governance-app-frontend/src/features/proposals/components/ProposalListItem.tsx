@@ -91,12 +91,12 @@ export function ProposalListItem({ proposal, certified }: Props) {
             <Badge className={statusColor}>{ProposalStatus[proposal.status]}</Badge>
             {timeLeft.length > 0 && (
               <Badge variant="secondary" className="gap-1.5 font-normal">
-                <Clock className="h-3.5 w-3.5" />
+                <Clock className="size-3.5" />
                 {t(($) => $.proposal.timeLeft, { timeLeft })}
               </Badge>
             )}
             <Badge variant="secondary" className="gap-1.5 font-normal">
-              <Tag className="h-3.5 w-3.5" />
+              <Tag className="size-3.5" />
               {Topic[proposal.topic]}
             </Badge>
           </div>
