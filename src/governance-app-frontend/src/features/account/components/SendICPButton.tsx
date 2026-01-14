@@ -45,7 +45,7 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
     mutationFn: () =>
       ledgerCanister!.transfer({
         to: AccountIdentifier.fromHex(toAccount),
-        amount: bigIntMul(E8Sn, Number(amount), 8),
+        amount: bigIntMul(E8Sn, Number(amount)),
       }),
     onMutate: () => {
       setIsPending(true);
