@@ -14,6 +14,7 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from '@components/ResponsiveDialog';
+import { SegmentedToggle } from '@components/SegmentedToggle';
 import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useStakingRewards } from '@hooks/useStakingRewards';
@@ -242,6 +243,19 @@ export const StakeWizardModal = ({ trigger }: StakeWizardModalProps) => {
 };
 
 // =============================================================================
+// Max Rewards Badge
+// =============================================================================
+
+function MaxRewardsBadge({ label }: { label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase shadow-sm">
+      <Award className="h-3 w-3" />
+      {label}
+    </span>
+  );
+}
+
+// =============================================================================
 // Step 1: Amount
 // =============================================================================
 
@@ -428,68 +442,6 @@ function StepDissolveDelay({
 }
 
 // =============================================================================
-// Segmented Toggle Component
-// =============================================================================
-
-interface SegmentedToggleProps {
-  leftSelected: boolean;
-  onLeftClick: () => void;
-  onRightClick: () => void;
-  leftLabel: string;
-  rightLabel: string;
-  badgeLabel?: string;
-}
-
-function SegmentedToggle({
-  leftSelected,
-  onLeftClick,
-  onRightClick,
-  leftLabel,
-  rightLabel,
-
-  badgeLabel,
-}: SegmentedToggleProps) {
-  return (
-    <div className="relative grid grid-cols-2 rounded-xl bg-muted p-1">
-      {/* Sliding pill indicator */}
-      <div
-        className={`absolute top-1 h-[calc(100%-8px)] w-[calc(50%-4px)] rounded-lg shadow-sm transition-all duration-300 ease-out ${
-          leftSelected
-            ? 'left-1 border border-green-300 bg-green-50 dark:border-green-800 dark:bg-green-950'
-            : 'left-[calc(50%+2px)] bg-background'
-        }`}
-      />
-
-      {/* Left button */}
-      <button
-        onClick={onLeftClick}
-        className={`relative z-10 flex flex-col items-center gap-1 rounded-lg px-4 py-3 font-semibold transition-colors ${
-          leftSelected ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'
-        }`}
-      >
-        <span>{leftLabel}</span>
-        {badgeLabel && (
-          <span className="inline-flex items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase shadow-sm">
-            <Award className="h-3 w-3" />
-            {badgeLabel}
-          </span>
-        )}
-      </button>
-
-      {/* Right button */}
-      <button
-        onClick={onRightClick}
-        className={`relative z-10 rounded-lg px-4 py-3 font-semibold transition-colors ${
-          !leftSelected ? 'text-foreground' : 'text-muted-foreground'
-        }`}
-      >
-        {rightLabel}
-      </button>
-    </div>
-  );
-}
-
-// =============================================================================
 // Step 3: Configuration
 // =============================================================================
 
@@ -525,12 +477,14 @@ function StepConfiguration({
         </div>
 
         <SegmentedToggle
-          leftSelected={maturityMode === MaturityMode.Auto}
-          onLeftClick={() => onMaturityModeChange(MaturityMode.Auto)}
-          onRightClick={() => onMaturityModeChange(MaturityMode.Liquid)}
+          value={maturityMode === MaturityMode.Auto ? 'left' : 'right'}
+          onValueChange={(v) =>
+            onMaturityModeChange(v === 'left' ? MaturityMode.Auto : MaturityMode.Liquid)
+          }
           leftLabel={t(($) => $.stakeWizardModal.steps.configuration.maturity.autoStake)}
           rightLabel={t(($) => $.stakeWizardModal.steps.configuration.maturity.keepLiquid)}
-          badgeLabel={t(($) => $.stakeWizardModal.badges.maxRewards)}
+          highlightedValue="left"
+          leftSubLabel={<MaxRewardsBadge label={t(($) => $.stakeWizardModal.badges.maxRewards)} />}
         />
       </div>
 
@@ -546,12 +500,14 @@ function StepConfiguration({
         </div>
 
         <SegmentedToggle
-          leftSelected={initialState === InitialState.Locked}
-          onLeftClick={() => onInitialStateChange(InitialState.Locked)}
-          onRightClick={() => onInitialStateChange(InitialState.Dissolving)}
+          value={initialState === InitialState.Locked ? 'left' : 'right'}
+          onValueChange={(v) =>
+            onInitialStateChange(v === 'left' ? InitialState.Locked : InitialState.Dissolving)
+          }
           leftLabel={t(($) => $.stakeWizardModal.steps.configuration.state.locked)}
           rightLabel={t(($) => $.stakeWizardModal.steps.configuration.state.unlocking)}
-          badgeLabel={t(($) => $.stakeWizardModal.badges.maxRewards)}
+          highlightedValue="left"
+          leftSubLabel={<MaxRewardsBadge label={t(($) => $.stakeWizardModal.badges.maxRewards)} />}
         />
       </div>
 
