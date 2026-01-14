@@ -1,5 +1,5 @@
-import { secondsToDuration } from '@dfinity/utils';
 import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
+import { secondsToDuration } from '@dfinity/utils';
 import {
   CheckCircle,
   Clock,
