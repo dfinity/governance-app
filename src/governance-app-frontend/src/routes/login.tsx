@@ -3,8 +3,11 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { useProposalsAdoptedLastXDays } from '@features/proposals/hooks/useProposalsAdoptedLastXDays';
+
 import { Button } from '@components/button';
 import { Separator } from '@components/Separator';
+import { Skeleton } from '@components/Skeleton';
 import { formatNumber } from '@utils/numbers';
 
 type LoginSearch = {
@@ -28,7 +31,9 @@ function LoginPage() {
   // @TODO: To be replaced with real data
   const tvl = 812865900;
   const participants = 57986;
-  const proposalsAdopted = 48;
+
+  const { proposals, isLoading } = useProposalsAdoptedLastXDays(30);
+  const proposalsAdopted = proposals.length;
 
   if (identity) return <Navigate to={redirect} />;
 
@@ -69,7 +74,9 @@ function LoginPage() {
               <dt className="text-sm font-light tracking-wider text-muted-foreground">
                 {t(($) => $.login.proposalsAdopted)}
               </dt>
-              <dd className="text-2xl leading-none font-bold lg:text-3xl">{proposalsAdopted}</dd>
+              <dd className="text-2xl leading-none font-bold lg:text-3xl">
+                {isLoading ? <Skeleton className="h-7 w-8 lg:h-8" /> : proposalsAdopted}
+              </dd>
             </div>
 
             <Separator
