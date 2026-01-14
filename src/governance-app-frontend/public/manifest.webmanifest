@@ -4,8 +4,8 @@
   "description": "Decentralized governance application on the Internet Computer",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f0f0f",
-  "theme_color": "#0f0f0f",
+  "background_color": "#0e0e10",
+  "theme_color": "#0e0e10",
   "orientation": "portrait-primary",
   "scope": "/",
   "icons": [
@@ -27,7 +27,7 @@
       "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/icon-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
