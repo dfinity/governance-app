@@ -3,9 +3,8 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { useProposalsAdoptedLastXDays } from '@features/proposals/hooks/useProposalsAdoptedLastXDays';
-
 import { useTvlValue } from '@features/login/hooks/useTvlValue';
+import { useProposalsAdoptedLastXDays } from '@features/proposals/hooks/useProposalsAdoptedLastXDays';
 
 import { Button } from '@components/button';
 import { Separator } from '@components/Separator';
