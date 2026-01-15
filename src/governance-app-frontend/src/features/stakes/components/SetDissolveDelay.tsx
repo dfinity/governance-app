@@ -100,7 +100,7 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
     event.preventDefault();
 
     const additionalDissolveDelaySeconds = Number(
-      bigIntMul(BigInt(delayDaysInput), SECONDS_IN_DAY) - neuron.dissolveDelaySeconds,
+      bigIntMul(BigInt(delayDaysInput), SECONDS_IN_DAY, 2) - neuron.dissolveDelaySeconds,
     );
 
     if (additionalDissolveDelaySeconds <= 0) {

@@ -28,7 +28,7 @@ export const TotalAssetsCard = () => {
 
   // Calculate Total Assets
   const liquidBalance = nonNullish(balanceQuery.data?.response)
-    ? bigIntDiv(balanceQuery.data.response, E8Sn, 2)
+    ? bigIntDiv(balanceQuery.data.response, E8Sn)
     : 0;
 
   const neurons = neuronsQuery.data?.response || [];
@@ -37,8 +37,8 @@ export const TotalAssetsCard = () => {
 
   if (neuronsQuery.data?.response) {
     neurons.forEach((neuron: NeuronInfo) => {
-      stakedBalance += bigIntDiv(getNeuronStakeE8s(neuron), E8Sn, 2);
-      maturityBalance += bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn, 2);
+      stakedBalance += bigIntDiv(getNeuronStakeE8s(neuron), E8Sn);
+      maturityBalance += bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
     });
   }
 
