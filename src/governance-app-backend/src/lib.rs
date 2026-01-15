@@ -3,7 +3,10 @@ use ic_http_certification::{HttpRequest, HttpResponse};
 use ic_static_assets::include_assets;
 
 mod assets;
+mod canisters;
 mod tvl;
+
+pub use tvl::TvlResponse;
 
 // This is the important line that embeds the frontend assets into the backend!
 include_assets!(
