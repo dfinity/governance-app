@@ -21,7 +21,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   const { identity } = useInternetIdentity();
   const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
-  const [votedBallot, setVotedBallot] = useState<Vote.No | Vote.Yes | undefined>();
+  const [votingFor, setVotingFor] = useState<Vote.No | Vote.Yes | undefined>();
 
   const yes = Number(proposal.latestTally?.yes ?? 0n) / E8S;
   const no = Number(proposal.latestTally?.no ?? 0n) / E8S;
@@ -38,13 +38,13 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ) => {
     e.preventDefault();
-    setVotedBallot(ballot);
+    setVotingFor(ballot);
     vote(ballot);
   };
 
   useEffect(() => {
     if (!isVoting) {
-      setVotedBallot(undefined);
+      setVotingFor(undefined);
     }
   }, [isVoting]);
 
@@ -177,7 +177,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
                 size="xl"
                 variant="outline"
               >
-                {isVoting && votedBallot === Vote.Yes ? (
+                {isVoting && votingFor === Vote.Yes ? (
                   <Loader2 className="mr-2 size-4 animate-spin" />
                 ) : (
                   <ThumbsUp className="mr-2 size-4" />
@@ -196,7 +196,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
                 size="xl"
                 variant="outline"
               >
-                {isVoting && votedBallot === Vote.No ? (
+                {isVoting && votingFor === Vote.No ? (
                   <Loader2 className="mr-2 size-4 animate-spin" />
                 ) : (
                   <ThumbsDown className="mr-2 size-4" />
