@@ -1,3 +1,10 @@
+// TVL
+type TvlResponse = record {
+    tvl_icp_e8s : nat;
+    timestamp_seconds : nat;
+};
+// End TVL
+
 // HTTP
 type HeaderField = record { text; text };
 
@@ -17,6 +24,10 @@ type HttpResponse = record {
 // End HTTP
 
 service : {
+    // TVL
+    get_tvl : () -> (TvlResponse) query;
+    // End TVL
+
     // HTTP
     http_request : (request : HttpRequest) -> (HttpResponse) query;
     // End HTTP
