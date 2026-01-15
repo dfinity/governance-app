@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next';
 
 import { useProposalsAdoptedLastXDays } from '@features/proposals/hooks/useProposalsAdoptedLastXDays';
 
+import { useTvlValue } from '@features/login/hooks/useTvlValue';
+
 import { Button } from '@components/button';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
@@ -28,8 +30,7 @@ function LoginPage() {
   const { t } = useTranslation();
   const { redirect = '/' } = Route.useSearch();
 
-  // @TODO: To be replaced with real data
-  const tvl = 812865900;
+  const { tvl, isLoading: isTvlLoading, isError: isTvlError } = useTvlValue();
   const participants = 57986;
 
   const { proposals, isLoading } = useProposalsAdoptedLastXDays(30);
@@ -120,7 +121,13 @@ function LoginPage() {
                 {t(($) => $.login.tvl)}
               </dt>
               <dd className="text-2xl leading-none font-bold md:text-3xl">
-                ${formatNumber(tvl, { maxFraction: 0, minFraction: 0 })}
+                {isTvlLoading ? (
+                  <Skeleton className="h-7 w-20 md:h-8" />
+                ) : isTvlError || !tvl ? (
+                  '-'
+                ) : (
+                  `$${formatNumber(tvl, { maxFraction: 0, minFraction: 0 })}`
+                )}
               </dd>
             </div>
           </dl>
