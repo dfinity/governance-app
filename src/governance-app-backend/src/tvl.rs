@@ -11,8 +11,8 @@ mod state;
 
 #[derive(CandidType, Debug, PartialEq)]
 pub struct TvlResult {
-    tvl_icp_e8s: Nat,
-    timestamp_seconds: Nat,
+    pub tvl_icp_e8s: Nat,
+    pub timestamp_seconds: Nat,
 }
 
 #[derive(CandidType, Debug, PartialEq)]
@@ -49,7 +49,6 @@ async fn update_locked_icp() {
                 state.total_locked_icp_e8s = metrics.total_locked_e8s;
                 state.last_update_timestamp_seconds = timestamp;
             });
-            ic_cdk::println!("Updated TVL to {} e8s", metrics.total_locked_e8s);
         }
         Err(err) => {
             ic_cdk::println!("Failed to fetch governance metrics: {}", err);
