@@ -10,7 +10,7 @@ type Props = {
   value: number;
 };
 
-export function AnimatedApyBadge({ value }: Props) {
+export function StakingWizardAnimatedApyBadge({ value }: Props) {
   const stakingRewards = useStakingRewards();
 
   if (!isStakingRewardDataReady(stakingRewards)) {
@@ -29,7 +29,6 @@ type InnerProps = {
   maxApy: number;
 };
 
-// Presentation: pure component with no data fetching
 function AnimatedApyBadgeInner({ value, minApy, maxApy }: InnerProps) {
   const { t } = useTranslation();
 

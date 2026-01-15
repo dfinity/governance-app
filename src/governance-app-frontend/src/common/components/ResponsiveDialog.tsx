@@ -45,13 +45,14 @@ export function ResponsiveDialogTrigger({
 export function ResponsiveDialogContent({
   className,
   children,
+  showCloseButton,
   ...props
 }: React.ComponentProps<typeof DialogContent>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   if (isDesktop) {
     return (
-      <DialogContent className={className} {...props}>
+      <DialogContent className={className} showCloseButton={showCloseButton} {...props}>
         {children}
       </DialogContent>
     );

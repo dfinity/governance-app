@@ -4,8 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { EmptyNeuronsState } from '@features/stakes/components/EmptyNeuronsState';
 import { NeuronsList } from '@features/stakes/components/NeuronsList';
-import { StakeNeuronModal } from '@features/stakes/components/StakeNeuronModal';
-import { StakeWizardModal } from '@features/stakes/components/StakeWizardModal';
+import { StakingWizardModal } from '@features/stakes/components/stakingWizard';
 
 import { QueryStates } from '@components/QueryStates';
 import { useGovernanceNeurons } from '@hooks/governance';
@@ -38,8 +37,7 @@ function StakesComponent() {
               : '',
           )}
         >
-          <StakeNeuronModal />
-          <StakeWizardModal />
+          <StakingWizardModal />
         </div>
       </div>
 

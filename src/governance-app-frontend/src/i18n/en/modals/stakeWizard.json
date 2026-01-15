@@ -19,7 +19,7 @@
       }
     },
     "configuration": {
-      "title": "Configure Neuron",
+      "title": "Configure Stake",
       "maturity": {
         "label": "Manage Rewards",
         "description": "Choose how to handle your staking rewards.",
@@ -28,37 +28,44 @@
       },
       "state": {
         "label": "Initial State",
-        "description": "Choose the starting state for your neuron.",
+        "description": "Choose the starting state for your Stake.",
         "locked": "Locked",
         "unlocking": "Unlocking"
       },
-      "confirm": "Confirm Stake"
+      "confirm": "create"
     },
     "confirmation": {
-      "title": "Finalizing...",
+      "title": "Finalizing",
+      "successTitle": "Success",
       "processing": {
-        "description": "Hang tight, we're creating and configuring your new Stake!",
-        "warning": "Please do not close this page or disconnect. This process may take a few seconds."
+        "title": "Creating your Stake.",
+        "warning": "Please don't close this page. This process may take a few seconds.",
+        "steps": {
+          "createNeuron": "Reserving amount...",
+          "setDissolveDelay": "Setting lock period...",
+          "setAutoStake": "Configuring rewards...",
+          "startDissolving": "Starting countdown...",
+          "refreshingData": "Refreshing data..."
+        }
       },
       "success": {
-        "title": "Neuron Created!",
-        "descriptionLocked": "Your neuron is locked and earning rewards.",
-        "descriptionUnlocking": "The unlock countdown has started.",
+        "title": "You're now earning rewards!",
         "amountStaked": "Amount Staked",
         "dissolveDelay": "Lock Period",
         "expectedApy": "Expected APY",
         "done": "Done"
       },
       "error": {
-        "title": "Oops! Something went wrong.",
+        "title": "Something went wrong",
+        "failedAt": "Failed at: {{step}}",
         "retry": "Try Again"
       }
     }
   },
   "infoBoxes": {
-    "whatIsStaking": "Staking your ICP creates a neuron that earns voting rewards. You can earn up to ~{{maxApy}}% APY depending on your lock period and participation.",
+    "whatIsStaking": "Staking your ICP creates a Stake that earns voting rewards. You can earn up to ~{{maxApy}}% APY depending on your lock period and participation.",
     "dissolveDelayWarning": "The lock period can only be increased, never decreased. The countdown only begins when you start unlocking.",
-    "lockedDescription": "<strong>Locked:</strong> neuron stays locked, earning maximum rewards. Start unlocking later when you want to withdraw.",
+    "lockedDescription": "<strong>Locked:</strong> Stake stays locked, earning maximum rewards. Start unlocking later when you want to withdraw.",
     "unlockingDescription": "<strong>Unlocking:</strong> countdown begins immediately. After the lock period, you can withdraw your ICP."
   },
   "badges": {
@@ -71,9 +78,10 @@
   "errors": {
     "insufficientBalance": "Insufficient balance",
     "amountTooLow": "Amount must be greater than the transaction fee ({{fee}} ICP)",
-    "stakeFailed": "Failed to create neuron",
+    "stakeFailed": "Failed to create Stake",
     "dissolveDelayFailed": "Failed to set lock period",
     "autoStakeFailed": "Failed to configure rewards mode",
     "startDissolvingFailed": "Failed to start unlocking"
-  }
+  },
+  "confirmNavigation": "Your stake is being created. Are you sure you want to leave?"
 }
