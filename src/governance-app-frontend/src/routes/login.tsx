@@ -122,7 +122,7 @@ function LoginPage() {
               </dt>
               <dd className="text-2xl leading-none font-bold md:text-3xl">
                 {isTvlLoading ? (
-                  <Skeleton className="h-7 w-20 md:h-8" />
+                  <Skeleton className="h-7 w-52 md:h-8" />
                 ) : isTvlError || !tvl ? (
                   '-'
                 ) : (
