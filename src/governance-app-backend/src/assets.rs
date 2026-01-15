@@ -293,6 +293,26 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             )]),
             encodings: vec![],
         },
+        // WebM Video: Immutable cache
+        AssetConfig::Pattern {
+            pattern: "**/*.webm".to_string(),
+            content_type: Some("video/webm".to_string()),
+            headers: get_asset_headers(vec![(
+                CACHE_CONTROL_HEADER.to_string(),
+                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
+            )]),
+            encodings: vec![],
+        },
+        // MP4 Video: Immutable cache
+        AssetConfig::Pattern {
+            pattern: "**/*.mp4".to_string(),
+            content_type: Some("video/mp4".to_string()),
+            headers: get_asset_headers(vec![(
+                CACHE_CONTROL_HEADER.to_string(),
+                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
+            )]),
+            encodings: vec![],
+        },
         // .well-known files
         AssetConfig::Pattern {
             pattern: format!("{WELL_KNOWN_PATH}/*"),
