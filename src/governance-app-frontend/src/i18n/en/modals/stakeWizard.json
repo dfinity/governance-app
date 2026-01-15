@@ -35,11 +35,10 @@
       "confirm": "Confirm Stake"
     },
     "confirmation": {
-      "title": "Confirmation",
+      "title": "Finalizing...",
       "processing": {
-        "title": "Processing...",
-        "description": "Creating your neuron and staking your ICP",
-        "warning": "Please do not close this page or disconnect."
+        "description": "Hang tight, we're creating and configuring your new Stake!",
+        "warning": "Please do not close this page or disconnect. This process may take a few seconds."
       },
       "success": {
         "title": "Neuron Created!",
@@ -51,7 +50,7 @@
         "done": "Done"
       },
       "error": {
-        "title": "Something went wrong",
+        "title": "Oops! Something went wrong.",
         "retry": "Try Again"
       }
     }

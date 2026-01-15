@@ -1,5 +1,5 @@
 import { nonNullish } from '@dfinity/utils';
-import { AlertTriangle, ArrowLeft, Award, CheckCircle, Info, Loader2, Plus } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Award, CheckCircle, Info, Loader, Plus } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
@@ -162,7 +162,7 @@ export const StakeWizardModal = () => {
     if (!isStakingRewardDataReady(stakingRewards)) {
       return '~...%';
     }
-    return `~${(getCurrentApyValue() * 100).toFixed(2)}%`;
+    return `~${getCurrentApyValue().toFixed(2)}%`;
   };
 
   const balanceICPs = bigIntDiv(balanceValue?.response || 0n, E8Sn);
@@ -593,15 +593,12 @@ function StepConfirmation({
   // Processing state
   if (isProcessing) {
     return (
-      <div className="flex flex-col items-center gap-6 py-8 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex flex-col items-center gap-6 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-600/10">
+          <Loader className="h-8 w-8 animate-spin text-green-600" />
         </div>
         <div className="space-y-2">
-          <h3 className="text-xl font-semibold">
-            {t(($) => $.stakeWizardModal.steps.confirmation.processing.title)}
-          </h3>
-          <p className="text-muted-foreground">
+          <p className="text-lg font-semibold text-foreground">
             {t(($) => $.stakeWizardModal.steps.confirmation.processing.description)}
           </p>
         </div>
@@ -618,7 +615,7 @@ function StepConfirmation({
   // Error state
   if (error) {
     return (
-      <div className="flex flex-col items-center gap-6 py-8 text-center">
+      <div className="flex flex-col items-center gap-6 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
           <AlertTriangle className="h-8 w-8 text-destructive" />
         </div>
@@ -644,8 +641,8 @@ function StepConfirmation({
     : '';
 
   return (
-    <div className="flex flex-col items-center gap-6 py-8 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+    <div className="flex flex-col items-center gap-6 text-center">
+      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-600/10">
         <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
       </div>
       <div className="space-y-2">
