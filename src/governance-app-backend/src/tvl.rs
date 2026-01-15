@@ -21,6 +21,7 @@ pub enum TvlResponse {
 }
 
 const UPDATE_INTERVAL_SECONDS: u64 = 6 * 60 * 60; // 4 times a day
+const RETRY_INTERVAL_SECONDS: u64 = 60;
 const NANOS_PER_SECOND: u64 = 1_000_000_000;
 
 thread_local! {
@@ -51,7 +52,16 @@ async fn update_locked_icp() {
             });
         }
         Err(err) => {
-            ic_cdk::println!("Failed to fetch governance metrics: {}", err);
+            ic_cdk::println!(
+                "Failed to fetch governance metrics: {}, retrying in {} seconds",
+                err,
+                RETRY_INTERVAL_SECONDS
+            );
+
+            // Schedule a retry
+            set_timer(Duration::from_secs(RETRY_INTERVAL_SECONDS), || {
+                ic_cdk::futures::spawn(update_locked_icp());
+            });
         }
     }
 }
