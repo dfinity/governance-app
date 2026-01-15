@@ -43,13 +43,17 @@ function LoginPage() {
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute inset-0 bg-black" />
         <div className="flex h-full w-full 3xl:mx-auto 3xl:max-w-[2000px] md:items-center">
-          <img
-            src="/core-bg.webp"
-            alt=""
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
             className="relative max-h-[720px] w-fit object-cover 3xl:translate-x-2/3 md:max-h-[798px] md:translate-x-1/3 xl:translate-x-1/2"
             aria-hidden={true}
-            loading="lazy"
-          />
+          >
+            <source src="/core-bg.webm" type="video/webm" />
+            <source src="/core-bg.mp4" type="video/mp4" />
+          </video>
         </div>
       </div>
 
