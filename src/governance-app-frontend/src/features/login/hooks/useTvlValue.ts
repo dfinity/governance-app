@@ -1,7 +1,9 @@
 
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
+import { E8Sn } from '@constants/extra';
 import { useGovernanceMetrics } from '@hooks/governance';
 import { useIcpSwapPrices } from '@hooks/tickers/useIcpSwapPrices';
+import { bigIntDiv } from '@utils/bigInt';
 
 export const useTvlValue = () => {
     const { data: metrics, isLoading: isMetricsLoading, isError: isMetricsError } = useGovernanceMetrics();
@@ -12,7 +14,7 @@ export const useTvlValue = () => {
 
     let tvl: number | undefined;
     if (lockedIcpE8s && icpPrice) {
-        tvl = (Number(lockedIcpE8s) / 100_000_000) * icpPrice;
+        tvl = bigIntDiv(lockedIcpE8s, E8Sn) * icpPrice;
     }
 
     return {
