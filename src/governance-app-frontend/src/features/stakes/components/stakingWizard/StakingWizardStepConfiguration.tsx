@@ -47,7 +47,7 @@ export function StakingWizardStepConfiguration({
           leftLabel={t(($) => $.stakeWizardModal.steps.configuration.maturity.autoStake)}
           rightLabel={t(($) => $.stakeWizardModal.steps.configuration.maturity.keepLiquid)}
           highlightedValue="left"
-          leftSubLabel={<MaxRewardsBadge label={t(($) => $.stakeWizardModal.badges.maxRewards)} />}
+          leftSubLabel={<MaxRewardsBadge />}
         />
       </div>
 
@@ -74,7 +74,7 @@ export function StakingWizardStepConfiguration({
           leftLabel={t(($) => $.stakeWizardModal.steps.configuration.state.locked)}
           rightLabel={t(($) => $.stakeWizardModal.steps.configuration.state.unlocking)}
           highlightedValue="left"
-          leftSubLabel={<MaxRewardsBadge label={t(($) => $.stakeWizardModal.badges.maxRewards)} />}
+          leftSubLabel={<MaxRewardsBadge />}
         />
       </div>
 
@@ -105,11 +105,13 @@ export function StakingWizardStepConfiguration({
   );
 }
 
-function MaxRewardsBadge({ label }: { label: string }) {
+function MaxRewardsBadge() {
+  const { t } = useTranslation();
+
   return (
     <span className="inline-flex items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase shadow-sm">
       <Award className="h-3 w-3" />
-      {label}
+      {t(($) => $.stakeWizardModal.badges.maxRewards)}
     </span>
   );
 }

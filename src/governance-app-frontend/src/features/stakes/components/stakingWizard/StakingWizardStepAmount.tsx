@@ -24,11 +24,8 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch balance for this step only
   const { data: balanceValue } = useIcpLedgerAccountBalance();
-  const maxStake = nonNullish(balanceValue?.response)
-    ? bigIntDiv(balanceValue.response, E8Sn, 8)
-    : 0;
+  const maxStake = nonNullish(balanceValue?.response) ? bigIntDiv(balanceValue.response, E8Sn) : 0;
 
   const stakingRewards = useStakingRewards();
   const maxApyFormatted = isStakingRewardDataReady(stakingRewards)
