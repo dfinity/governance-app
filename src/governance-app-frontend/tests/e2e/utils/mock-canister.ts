@@ -6,9 +6,6 @@ import { CANISTER_ID_NNS_GOVERNANCE } from '@constants/canisterIds';
  * Mock governance canister calls to fail after N successful calls.
  * Useful for testing error recovery in multi-step flows.
  *
- * Note: Candid encodes variant names as numeric hashes, not strings,
- * so we can't match specific commands by name in the binary payload.
- *
  * @param page - Playwright page
  * @param skipCalls - Number of calls to let through before failing (default: 1)
  * @returns Cleanup function to remove the mock

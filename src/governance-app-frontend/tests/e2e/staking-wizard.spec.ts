@@ -5,20 +5,13 @@ import { getIcps } from './utils/getIcps';
 import { login } from './utils/login';
 import { mockGovernanceErrorAfter } from './utils/mock-canister';
 
-const openStakingWizard = async (page: Page) => {
-  await test.step('Open staking wizard', async () => {
-    await page.getByRole('button', { name: 'Stake ICP' }).click();
-    await expect(page.getByRole('dialog')).toBeVisible();
-  });
-};
-
 test.describe('Staking Wizard', () => {
   test.beforeEach(async ({ page }) => {
     await openApp({ page });
     await login({ page });
   });
 
-  test('1. Validation - Amount Step', async ({ page }) => {
+  test('Validates the amount input', async ({ page }) => {
     await getIcps(page, '10');
 
     // Navigate to stakes page
@@ -40,7 +33,7 @@ test.describe('Staking Wizard', () => {
     await expect(page.getByText('Set Dissolve Delay')).toBeVisible();
   });
 
-  test('2. Navigation - Back Button', async ({ page }) => {
+  test('Navigates back through the wizard', async ({ page }) => {
     await getIcps(page, '10');
 
     await page.getByRole('link', { name: 'Stakes' }).click();
@@ -68,7 +61,7 @@ test.describe('Staking Wizard', () => {
     await expect(page.locator('input[type="number"]')).toHaveValue('5');
   });
 
-  test('3. Modal Reset on Close', async ({ page }) => {
+  test('Resets the wizard when the modal is closed', async ({ page }) => {
     await getIcps(page, '10');
 
     await page.getByRole('link', { name: 'Stakes' }).click();
@@ -88,7 +81,7 @@ test.describe('Staking Wizard', () => {
     await expect(page.locator('input[type="number"]')).toHaveValue('');
   });
 
-  test('4. Happy Path - Successful Staking', async ({ page }) => {
+  test('Completes the staking flow successfully', async ({ page }) => {
     await getIcps(page, '10');
 
     await page.getByRole('link', { name: 'Stakes' }).click();
@@ -120,7 +113,7 @@ test.describe('Staking Wizard', () => {
     await expect(neuronCard.getByText('Keep Liquid')).toBeVisible(); // Maturity mode
   });
 
-  test('5. Error/Retry Flow', async ({ page }) => {
+  test('Recovers from errors in the staking flow', async ({ page }) => {
     await getIcps(page, '10');
 
     await page.getByRole('link', { name: 'Stakes' }).click();
@@ -156,3 +149,10 @@ test.describe('Staking Wizard', () => {
     await expect(neuronCard.getByText('Keep Liquid')).toBeVisible(); // Maturity mode
   });
 });
+
+const openStakingWizard = async (page: Page) => {
+  await test.step('Open staking wizard', async () => {
+    await page.getByRole('button', { name: 'Stake ICP' }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+  });
+};
