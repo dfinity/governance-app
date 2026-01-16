@@ -1,6 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
-import { CircleAlert, Lock, Timer } from 'lucide-react';
+import { Lock, Timer } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent, CardHeader } from '@components/Card';
@@ -79,10 +79,10 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
                 ? 'border-orange-200 bg-orange-100 text-orange-600 hover:bg-orange-100 dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
                 : 'border-emerald-200 bg-emerald-100 text-emerald-600 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
             )}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              alert('@TODO: Implement optimization modal');
+            onClick={() => {
+              // @TODO: Implement optimization modal
+              // e.preventDefault();
+              // e.stopPropagation();
             }}
             role="button"
             tabIndex={0}
@@ -92,7 +92,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
               {formatPercentage(apy.cur)}{' '}
               <span className="hidden sm:inline">{t(($) => $.common.apy)} </span>
             </p>
-            {!isMaxAPY && <CircleAlert className="hidden size-4 sm:block" />}
+            {/* !isMaxAPY && <CircleAlert className="hidden size-4 sm:block" /> */}
           </div>
         )}
       </CardHeader>
@@ -128,7 +128,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
             <p className="text-[13px] text-muted-foreground capitalize">
               {t(($) => $.neuron.stakedMaturity)}
             </p>
-            <p className="text-[15px] font-medium">{formatNumber(stakedMaturity)}</p>
+            <p className="text-[15px] font-semibold">{formatNumber(stakedMaturity)}</p>
           </div>
 
           {/* Unstaked Maturity */}
@@ -137,7 +137,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
               {t(($) => $.neuron.unstakedMaturity)}
             </p>
             <div className="flex items-center gap-1">
-              <p className="text-[15px] font-medium">{formatNumber(unstakedMaturity)}</p>
+              <p className="text-[15px] font-semibold">{formatNumber(unstakedMaturity)}</p>
             </div>
           </div>
 
