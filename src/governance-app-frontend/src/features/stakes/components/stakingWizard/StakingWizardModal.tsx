@@ -1,5 +1,5 @@
 import { ArrowLeft, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
@@ -53,6 +53,13 @@ export function StakingWizardModal({ triggerText }: Props) {
     autoStakeMaturity: formState.maturityMode === StakingWizardMaturityMode.Auto,
     startDissolving: formState.initialState === StakingWizardInitialState.Dissolving,
   });
+
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // Reset scroll position when step changes
+  useEffect(() => {
+    contentRef.current?.scrollTo(0, 0);
+  }, [step]);
 
   const handleOpenChange = (toOpen: boolean) => {
     if (createNeuron.isProcessing && !toOpen) return;
@@ -192,7 +199,7 @@ export function StakingWizardModal({ triggerText }: Props) {
           )}
         </ResponsiveDialogHeader>
 
-        <div className="mt-4 flex-1 overflow-y-auto px-4 pb-4 md:px-0 md:pb-0">
+        <div ref={contentRef} className="mt-4 flex-1 overflow-y-auto px-4 pb-4 md:px-0 md:pb-0">
           {step === StakingWizardStep.Amount && (
             <StakingWizardStepAmount
               amount={formState.amount}
