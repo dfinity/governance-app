@@ -25,7 +25,6 @@ thread_local! {
     static ASSET_ROUTER: RefCell<AssetRouter<'static>> = RefCell::new(AssetRouter::default());
 }
 
-// HTTP Header names and values for caching and security.
 const CACHE_CONTROL_HEADER: &str = "cache-control";
 const ACCESS_CONTROL_ALLOW_ORIGIN_HEADER: &str = "access-control-allow-origin";
 const IMMUTABLE_ASSET_CACHE_CONTROL: &str = "public, max-age=31536000, immutable";
@@ -35,9 +34,28 @@ const NO_CACHE_ASSET_CACHE_CONTROL: &str = "public, no-cache, no-store";
 const WELL_KNOWN_PATH: &str = "/.well-known";
 const II_ALTERNATIVE_ORIGINS_FILE_NAME: &str = "ii-alternative-origins";
 
-/// Custom Content Security Policy (CSP) to allow specific connections.
-/// This was carried over from the original implementation.
-const CUSTOM_CSP: &str = "default-src 'self' *.devenv.dfinity.network; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' *.devenv.dfinity.network http://*.devenv.dfinity.network http://localhost:* https://icp0.io https://*.icp0.io https://ic0.app https://*.raw.ic0.app https://icp-api.io https://fastly.jsdelivr.net https://api.kongswap.io; img-src 'self' https://*.icp0.io data: blob:; style-src * 'unsafe-inline'; style-src-elem * 'unsafe-inline'; font-src *; object-src 'none'; media-src 'self' data:; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests";
+/// Custom Content Security Policy (CSP) directives.
+/// Each directive is a separate entry for better readability and maintenance.
+const CSP_DIRECTIVES: &[&str] = &[
+    "default-src 'self' *.devenv.dfinity.network",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    "connect-src 'self' *.devenv.dfinity.network http://*.devenv.dfinity.network http://localhost:* https://icp0.io https://*.icp0.io https://ic0.app https://*.raw.ic0.app https://icp-api.io https://fastly.jsdelivr.net https://api.kongswap.io",
+    "img-src 'self' https://*.icp0.io data: blob:",
+    "style-src * 'unsafe-inline'",
+    "style-src-elem * 'unsafe-inline'",
+    "font-src *",
+    "object-src 'none'",
+    "media-src 'self' data:",
+    "base-uri 'self'",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    "upgrade-insecure-requests",
+];
+
+/// Joins CSP directives into a single string for the header value.
+fn get_csp_header_value() -> String {
+    CSP_DIRECTIVES.join("; ")
+}
 
 // =================================================================================================
 // PUBLIC API
@@ -99,7 +117,7 @@ fn certify_my_assets(
                 // Add our Custom CSP
                 headers.push((
                     "content-security-policy".to_string(),
-                    CUSTOM_CSP.to_string(),
+                    get_csp_header_value(),
                 ));
             }
             _ => {}
@@ -226,7 +244,6 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             aliased_by: vec!["/".to_string()],
             encodings: encodings.clone(),
         },
-        // JS: Immutable cache
         AssetConfig::Pattern {
             pattern: "**/*.js".to_string(),
             content_type: Some("text/javascript".to_string()),
@@ -236,7 +253,6 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             )]),
             encodings: encodings.clone(),
         },
-        // CSS: Immutable cache
         AssetConfig::Pattern {
             pattern: "**/*.css".to_string(),
             content_type: Some("text/css".to_string()),
@@ -246,7 +262,6 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             )]),
             encodings: encodings.clone(),
         },
-        // Images (PNG): Immutable cache
         AssetConfig::Pattern {
             pattern: "**/*.png".to_string(),
             content_type: Some("image/png".to_string()),
@@ -266,7 +281,6 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             )]),
             encodings: encodings.clone(),
         },
-        // Plain text: Immutable cache
         AssetConfig::Pattern {
             pattern: "**/*.txt".to_string(),
             content_type: Some("text/plain".to_string()),
@@ -276,7 +290,6 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             )]),
             encodings: encodings.clone(),
         },
-        // ICO: Immutable cache
         AssetConfig::Pattern {
             pattern: "**/*.ico".to_string(),
             content_type: Some("image/x-icon".to_string()),
@@ -286,7 +299,6 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             )]),
             encodings: vec![],
         },
-        // Fonts (OTF): Immutable cache
         AssetConfig::Pattern {
             pattern: "**/*.otf".to_string(),
             content_type: Some("application/x-font-opentype".to_string()),
@@ -296,7 +308,6 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             )]),
             encodings: vec![],
         },
-        // Images (WebP): Immutable cache
         AssetConfig::Pattern {
             pattern: "**/*.webp".to_string(),
             content_type: Some("image/webp".to_string()),
@@ -306,27 +317,6 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             )]),
             encodings: vec![],
         },
-        // Images (JPEG): Immutable cache
-        AssetConfig::Pattern {
-            pattern: "**/*.{jpg,jpeg}".to_string(),
-            content_type: Some("image/jpeg".to_string()),
-            headers: get_asset_headers(vec![(
-                CACHE_CONTROL_HEADER.to_string(),
-                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
-            )]),
-            encodings: vec![],
-        },
-        // Images (GIF): Immutable cache
-        AssetConfig::Pattern {
-            pattern: "**/*.gif".to_string(),
-            content_type: Some("image/gif".to_string()),
-            headers: get_asset_headers(vec![(
-                CACHE_CONTROL_HEADER.to_string(),
-                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
-            )]),
-            encodings: vec![],
-        },
-        // WebM Video: Immutable cache
         AssetConfig::Pattern {
             pattern: "**/*.webm".to_string(),
             content_type: Some("video/webm".to_string()),
@@ -336,7 +326,6 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             )]),
             encodings: vec![],
         },
-        // MP4 Video: Immutable cache
         AssetConfig::Pattern {
             pattern: "**/*.mp4".to_string(),
             content_type: Some("video/mp4".to_string()),
@@ -346,7 +335,6 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             )]),
             encodings: vec![],
         },
-        // Web App Manifest: No cache
         AssetConfig::Pattern {
             pattern: "**/*.webmanifest".to_string(),
             content_type: Some("application/manifest+json".to_string()),
@@ -356,54 +344,12 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             )]),
             encodings: vec![],
         },
-        // JSON files: Immutable cache
-        AssetConfig::Pattern {
-            pattern: "**/*.json".to_string(),
-            content_type: Some("application/json".to_string()),
-            headers: get_asset_headers(vec![(
-                CACHE_CONTROL_HEADER.to_string(),
-                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
-            )]),
-            encodings: encodings.clone(),
-        },
-        // WOFF2 Fonts: Immutable cache
-        AssetConfig::Pattern {
-            pattern: "**/*.woff2".to_string(),
-            content_type: Some("font/woff2".to_string()),
-            headers: get_asset_headers(vec![(
-                CACHE_CONTROL_HEADER.to_string(),
-                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
-            )]),
-            encodings: vec![],
-        },
-        // WOFF Fonts: Immutable cache
-        AssetConfig::Pattern {
-            pattern: "**/*.woff".to_string(),
-            content_type: Some("font/woff".to_string()),
-            headers: get_asset_headers(vec![(
-                CACHE_CONTROL_HEADER.to_string(),
-                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
-            )]),
-            encodings: vec![],
-        },
-        // TTF Fonts: Immutable cache
-        AssetConfig::Pattern {
-            pattern: "**/*.ttf".to_string(),
-            content_type: Some("font/ttf".to_string()),
-            headers: get_asset_headers(vec![(
-                CACHE_CONTROL_HEADER.to_string(),
-                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
-            )]),
-            encodings: vec![],
-        },
-        // .well-known files
         AssetConfig::Pattern {
             pattern: format!("{WELL_KNOWN_PATH}/*"),
             content_type: None,
             headers: well_known_asset_headers(),
             encodings: vec![],
         },
-        // Specific .well-known file with JSON type
         AssetConfig::File {
             path: format!("{WELL_KNOWN_PATH}/{II_ALTERNATIVE_ORIGINS_FILE_NAME}"),
             content_type: Some("application/json".to_string()),
