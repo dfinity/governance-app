@@ -79,7 +79,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
             )}
             onClick={(e) => {
               // @TODO: Implement optimization modal
-              //  e.preventDefault();
+              // e.preventDefault();
               // e.stopPropagation();
             }}
             role="button"
