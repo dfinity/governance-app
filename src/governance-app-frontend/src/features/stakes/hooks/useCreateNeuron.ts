@@ -84,7 +84,7 @@ export function useCreateNeuron(params: Props) {
       }
 
       if (!neuronId) {
-        throw new Error('Neuron ID not available');
+        throw new Error('Neuron ID not available.');
       }
 
       // Step 2: Set dissolve delay

@@ -118,7 +118,7 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
             </span>
             <span>
               {neuron.fullNeuron?.maturityE8sEquivalent
-                ? bigIntDiv(neuron.fullNeuron.maturityE8sEquivalent, E8Sn, 2)
+                ? bigIntDiv(neuron.fullNeuron.maturityE8sEquivalent, E8Sn).toFixed(2)
                 : t(($) => $.common.notAvailable)}
             </span>
           </div>

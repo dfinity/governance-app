@@ -27,7 +27,7 @@ export function StakingWizardStepDissolveDelay({
   const maxRewardsOption = STAKING_WIZARD_DISSOLVE_DELAY_OPTIONS.find(
     (opt) => opt.value === StakingWizardDissolveDelayPreset.EightYears,
   )!;
-  const isMaxRewardsSelected = dissolveDelayMonths === StakingWizardDissolveDelayPreset.EightYears;
+  const isMaxRewardsSelected = dissolveDelayMonths === maxRewardsOption.value;
 
   return (
     <div className="flex flex-col gap-4">

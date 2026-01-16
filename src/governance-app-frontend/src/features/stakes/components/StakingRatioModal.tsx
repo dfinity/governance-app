@@ -25,7 +25,7 @@ export function StakingRatioModal() {
 
   const balanceQuery = useIcpLedgerAccountBalance();
   const availableBalance = balanceQuery.data?.response
-    ? bigIntDiv(balanceQuery.data.response, E8Sn, 2).toFixed(2)
+    ? bigIntDiv(balanceQuery.data.response, E8Sn).toFixed(2)
     : '';
 
   const stakingRewards = useStakingRewards();
