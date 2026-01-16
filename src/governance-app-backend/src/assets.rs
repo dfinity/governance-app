@@ -16,11 +16,11 @@ use std::cell::RefCell;
 /// We point to the `dist` folder of the frontend build.
 static ASSETS_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/../governance-app-frontend/dist");
 
-/// Thread-local storage for the AssetRouter.
-///
-/// The AssetRouter is responsible for:
-/// 1. Certifying assets (generating a Merkle tree and root hash).
-/// 2. Serving assets (handling HTTP requests and generating witness proofs).
+// Thread-local storage for the AssetRouter.
+//
+// The AssetRouter is responsible for:
+// 1. Certifying assets (generating a Merkle tree and root hash).
+// 2. Serving assets (handling HTTP requests and generating witness proofs).
 thread_local! {
     static ASSET_ROUTER: RefCell<AssetRouter<'static>> = RefCell::new(AssetRouter::default());
 }
@@ -123,12 +123,9 @@ fn serve_my_assets(
     let data_certificate = ic_cdk::api::data_certificate().expect("Failed to get data certificate");
 
     ASSET_ROUTER.with_borrow(|router| {
-        let mut response = router
+        router
             .serve_asset(&data_certificate, req)
-            .expect("Failed to serve asset");
-
-        // Ensure the response is static-compatible
-        response
+            .expect("Failed to serve asset")
     })
 }
 
@@ -146,10 +143,16 @@ fn collect_files_recursive<'content, 'path>(
 ) {
     for file in dir.files() {
         let file_path = file.path();
-        if file_path.to_string_lossy().ends_with(".gitkeep") {
+        let path_str = file_path.to_string_lossy();
+
+        // Skip configuration and internal files that shouldn't be served
+        if path_str.ends_with(".gitkeep")
+            || path_str.ends_with(".ic-assets.json5")
+            || path_str.ends_with(".ic-assets.json")
+        {
             continue;
         }
-        assets.push(Asset::new(file_path.to_string_lossy(), file.contents()));
+        assets.push(Asset::new(path_str, file.contents()));
     }
 
     for subdir in dir.dirs() {
@@ -293,6 +296,36 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             )]),
             encodings: vec![],
         },
+        // Images (WebP): Immutable cache
+        AssetConfig::Pattern {
+            pattern: "**/*.webp".to_string(),
+            content_type: Some("image/webp".to_string()),
+            headers: get_asset_headers(vec![(
+                CACHE_CONTROL_HEADER.to_string(),
+                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
+            )]),
+            encodings: vec![],
+        },
+        // Images (JPEG): Immutable cache
+        AssetConfig::Pattern {
+            pattern: "**/*.{jpg,jpeg}".to_string(),
+            content_type: Some("image/jpeg".to_string()),
+            headers: get_asset_headers(vec![(
+                CACHE_CONTROL_HEADER.to_string(),
+                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
+            )]),
+            encodings: vec![],
+        },
+        // Images (GIF): Immutable cache
+        AssetConfig::Pattern {
+            pattern: "**/*.gif".to_string(),
+            content_type: Some("image/gif".to_string()),
+            headers: get_asset_headers(vec![(
+                CACHE_CONTROL_HEADER.to_string(),
+                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
+            )]),
+            encodings: vec![],
+        },
         // WebM Video: Immutable cache
         AssetConfig::Pattern {
             pattern: "**/*.webm".to_string(),
@@ -307,6 +340,56 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
         AssetConfig::Pattern {
             pattern: "**/*.mp4".to_string(),
             content_type: Some("video/mp4".to_string()),
+            headers: get_asset_headers(vec![(
+                CACHE_CONTROL_HEADER.to_string(),
+                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
+            )]),
+            encodings: vec![],
+        },
+        // Web App Manifest: No cache
+        AssetConfig::Pattern {
+            pattern: "**/*.webmanifest".to_string(),
+            content_type: Some("application/manifest+json".to_string()),
+            headers: get_asset_headers(vec![(
+                CACHE_CONTROL_HEADER.to_string(),
+                NO_CACHE_ASSET_CACHE_CONTROL.to_string(),
+            )]),
+            encodings: vec![],
+        },
+        // JSON files: Immutable cache
+        AssetConfig::Pattern {
+            pattern: "**/*.json".to_string(),
+            content_type: Some("application/json".to_string()),
+            headers: get_asset_headers(vec![(
+                CACHE_CONTROL_HEADER.to_string(),
+                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
+            )]),
+            encodings: encodings.clone(),
+        },
+        // WOFF2 Fonts: Immutable cache
+        AssetConfig::Pattern {
+            pattern: "**/*.woff2".to_string(),
+            content_type: Some("font/woff2".to_string()),
+            headers: get_asset_headers(vec![(
+                CACHE_CONTROL_HEADER.to_string(),
+                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
+            )]),
+            encodings: vec![],
+        },
+        // WOFF Fonts: Immutable cache
+        AssetConfig::Pattern {
+            pattern: "**/*.woff".to_string(),
+            content_type: Some("font/woff".to_string()),
+            headers: get_asset_headers(vec![(
+                CACHE_CONTROL_HEADER.to_string(),
+                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
+            )]),
+            encodings: vec![],
+        },
+        // TTF Fonts: Immutable cache
+        AssetConfig::Pattern {
+            pattern: "**/*.ttf".to_string(),
+            content_type: Some("font/ttf".to_string()),
             headers: get_asset_headers(vec![(
                 CACHE_CONTROL_HEADER.to_string(),
                 IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
