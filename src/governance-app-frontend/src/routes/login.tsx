@@ -9,6 +9,7 @@ import { useProposalsAdoptedLastXDays } from '@features/proposals/hooks/usePropo
 import { Button } from '@components/button';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
+import { isNullish } from '@dfinity/utils';
 import { formatNumber } from '@utils/numbers';
 
 type LoginSearch = {
@@ -122,7 +123,7 @@ function LoginPage() {
               <dd className="text-2xl leading-none font-bold md:text-3xl">
                 {isTvlLoading ? (
                   <Skeleton className="h-7 w-52 md:h-8" />
-                ) : isTvlError || !tvl ? (
+                ) : isTvlError || isNullish(tvl) ? (
                   '-'
                 ) : (
                   `$${formatNumber(tvl, { maxFraction: 0, minFraction: 0 })}`
