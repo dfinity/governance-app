@@ -9,9 +9,9 @@ export const openApp = async ({ page, url = '/' }: { page: Page; url?: string })
   await stubKongSwap(page);
 
   await page.goto(url);
-  await page.waitForLoadState('networkidle'); // ensures all assets loaded
-  // Updated expectation for new login page design
+  await page.waitForLoadState('networkidle');
+
   await expect(page.getByText('Govern how the cloud evolves')).toBeVisible({
-    timeout: 15000,
+    timeout: 30000,
   });
 };

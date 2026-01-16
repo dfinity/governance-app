@@ -29,14 +29,7 @@ function StakesComponent() {
           <h2 className="text-lg font-semibold">{t(($) => $.neuron.title)}</h2>
           <p className="text-sm text-muted-foreground">{t(($) => $.neuron.description)}</p>
         </div>
-        <div
-          className={cn(
-            'flex flex-1 gap-2 sm:flex-initial',
-            neuronsQuery.isSuccess && neuronsQuery.data?.response.length === 0
-              ? 'hidden sm:flex'
-              : '',
-          )}
-        >
+        <div className={cn('flex flex-1 gap-2 sm:flex-initial')}>
           <StakingWizardModal />
         </div>
       </div>
