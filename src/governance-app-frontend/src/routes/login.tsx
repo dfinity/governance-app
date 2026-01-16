@@ -1,8 +1,10 @@
+import { isNullish } from '@dfinity/utils';
 import { createFileRoute, Navigate } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { useTvlValue } from '@features/login/hooks/useTvlValue';
 import { useProposalsAdoptedLastXDays } from '@features/proposals/hooks/useProposalsAdoptedLastXDays';
 
 import { Button } from '@components/button';
@@ -28,8 +30,7 @@ function LoginPage() {
   const { t } = useTranslation();
   const { redirect = '/' } = Route.useSearch();
 
-  // @TODO: To be replaced with real data
-  const tvl = 812865900;
+  const { tvl, isLoading: isTvlLoading, isError: isTvlError } = useTvlValue();
   const participants = 57986;
 
   const { proposals, isLoading } = useProposalsAdoptedLastXDays(30);
@@ -120,7 +121,13 @@ function LoginPage() {
                 {t(($) => $.login.tvl)}
               </dt>
               <dd className="text-2xl leading-none font-bold md:text-3xl">
-                ${formatNumber(tvl, { maxFraction: 0, minFraction: 0 })}
+                {isTvlLoading ? (
+                  <Skeleton className="h-7 w-52 md:h-8" />
+                ) : isTvlError || isNullish(tvl) ? (
+                  '-'
+                ) : (
+                  `$${formatNumber(tvl, { maxFraction: 0, minFraction: 0 })}`
+                )}
               </dd>
             </div>
           </dl>
