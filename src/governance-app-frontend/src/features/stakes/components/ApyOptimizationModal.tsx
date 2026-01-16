@@ -151,16 +151,15 @@ export function ApyOptimizationModal() {
             )}
           </div>
 
-          {hasUnoptimized && (
+          {/* @TODO: Implement optimize all neurons - atomic API pending.
+           hasUnoptimized && (
             <Button
               className="w-full"
-              onClick={() => {
-                alert('@TODO: Optimize all neurons - atomic API pending.');
-              }}
+              onClick={() => {}}
             >
               {t(($) => $.apyOptimizationModal.optimizeAll)}
             </Button>
-          )}
+          )} */}
         </div>
       </ResponsiveDialogContent>
     </ResponsiveDialog>
