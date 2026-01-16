@@ -37,5 +37,12 @@ export const login = async ({ page }: { page: Page }) => {
     await newTab.waitForEvent('close'); // wait until user is redirected back and tab closes
 
     await expect(newTab.isClosed()).toBe(true);
+
+    // Close the welcome modal if it appears
+    const welcomeModal = page.getByText('Welcome to NNS Governance');
+    if (await welcomeModal.isVisible({ timeout: 30000 }).catch(() => false)) {
+      await page.getByRole('button', { name: 'Get Started' }).click();
+      await expect(welcomeModal).not.toBeVisible();
+    }
   });
 };
