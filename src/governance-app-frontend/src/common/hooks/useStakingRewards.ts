@@ -14,8 +14,6 @@ import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { bigIntDiv } from '@utils/bigInt';
 import { getStakingRewardData, StakingRewardResult } from '@utils/staking-rewards';
 
-let cache: StakingRewardResult = { loading: true };
-
 export const useStakingRewards = () => {
   const { identity } = useInternetIdentity();
 
@@ -26,12 +24,12 @@ export const useStakingRewards = () => {
   const totalVotingPower = useGovernanceProposal({ proposalId: undefined }).data?.response
     ?.totalPotentialVotingPower;
 
-  const [data, setData] = useState<StakingRewardResult>(cache);
+  const [data, setData] = useState<StakingRewardResult>({ loading: true });
 
   useEffect(() => {
     const id = requestIdleCallback(() => {
-      cache = getStakingRewardData({
-        balance: nonNullish(balance) ? bigIntDiv(balance, E8Sn, 2) : undefined,
+      const data = getStakingRewardData({
+        balance: nonNullish(balance) ? bigIntDiv(balance, E8Sn) : undefined,
         isAuthenticated: !!identity,
         economics,
         neurons,
@@ -42,7 +40,7 @@ export const useStakingRewards = () => {
           ? ({ totalSupplyIcp: 534_809_202n } as unknown as GovernanceCachedMetrics)
           : governanceMetrics,
       });
-      setData(cache);
+      setData(data);
     });
     return () => cancelIdleCallback(id);
   }, [balance, identity, neurons, economics, totalVotingPower, governanceMetrics]);
