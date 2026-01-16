@@ -1,3 +1,4 @@
+import { isNullish } from '@dfinity/utils';
 import { createFileRoute, Navigate } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ExternalLink } from 'lucide-react';
@@ -9,7 +10,6 @@ import { useProposalsAdoptedLastXDays } from '@features/proposals/hooks/usePropo
 import { Button } from '@components/button';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
-import { isNullish } from '@dfinity/utils';
 import { formatNumber } from '@utils/numbers';
 
 type LoginSearch = {
