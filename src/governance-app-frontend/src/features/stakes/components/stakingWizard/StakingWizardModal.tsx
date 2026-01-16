@@ -59,12 +59,9 @@ export function StakingWizardModal({ triggerText }: Props) {
     setIsOpen(toOpen);
 
     if (!toOpen) {
-      // Delay reset until close animation completes to avoid visual glitch
-      setTimeout(() => {
-        setStep(StakingWizardStep.Amount);
-        setFormState(STAKING_WIZARD_DEFAULT_FORM_STATE);
-        createNeuron.reset();
-      }, 200);
+      setStep(StakingWizardStep.Amount);
+      setFormState(STAKING_WIZARD_DEFAULT_FORM_STATE);
+      createNeuron.reset();
     }
   };
 
@@ -158,11 +155,7 @@ export function StakingWizardModal({ triggerText }: Props) {
   const handleTriggerClick = () => {
     if (!canStake) {
       warningNotification({
-        description: t(($) =>
-          balanceICPs === 0
-            ? $.neuron.stakeNeuron.errors.zeroBalance
-            : $.neuron.stakeNeuron.errors.insufficientBalance,
-        ),
+        description: t(($) => $.stakeWizardModal.errors.cannotStake),
       });
     }
   };

@@ -81,7 +81,8 @@
     "stakeFailed": "Failed to create Stake",
     "dissolveDelayFailed": "Failed to set lock period",
     "autoStakeFailed": "Failed to configure rewards mode",
-    "startDissolvingFailed": "Failed to start unlocking"
+    "startDissolvingFailed": "Failed to start unlocking",
+    "cannotStake": "You need ICP to stake. Please buy or deposit ICP first."
   },
   "confirmNavigation": "Your stake is being created. Are you sure you want to leave?"
 }
