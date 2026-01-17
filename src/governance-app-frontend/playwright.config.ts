@@ -13,9 +13,11 @@ export default defineConfig({
   testDir: './tests/e2e',
   snapshotPathTemplate: './tests/e2e/snapshots/{testFilePath}-{arg}-{projectName}-{platform}{ext}',
   /* Test timeout - increased for blockchain transactions */
-  timeout: 300000,
+  timeout: 180000,
   /* Run tests in files in parallel */
   fullyParallel: true,
+  /* Number of parallel workers - use more on CI */
+  workers: 4,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
