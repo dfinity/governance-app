@@ -24,7 +24,7 @@ test.describe('Staking Wizard', () => {
   test('Validates the amount input', async ({ page }) => {
     // Empty amount shows error
     await page.getByRole('button', { name: 'Next' }).click();
-    await expect(page.getByText(/Amount must be greater than the transaction fee/)).toBeVisible();
+    await expect(page.getByText(/Minimum stake is/)).toBeVisible();
 
     // Amount exceeding balance shows error
     await page.locator('input[type="number"]').fill('999999');
