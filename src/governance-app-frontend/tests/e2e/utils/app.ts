@@ -8,6 +8,11 @@ export const openApp = async ({ page, url = '/' }: { page: Page; url?: string })
   await stubIcpSwap(page);
   await stubKongSwap(page);
 
+  // Set e2e flag to disable TanStack Query retries
+  await page.addInitScript(() => {
+    window.localStorage.setItem('e2e-test', 'true');
+  });
+
   await page.goto(url);
   await page.waitForLoadState('networkidle');
 
