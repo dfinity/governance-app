@@ -20,6 +20,8 @@ static ASSETS_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/../governance-app
 const CACHE_CONTROL_HEADER: &str = "cache-control";
 const IMMUTABLE_ASSET_CACHE_CONTROL: &str = "public, max-age=31536000, immutable";
 const NO_CACHE_ASSET_CACHE_CONTROL: &str = "public, no-cache, no-store";
+// @TODO: Switch to IMMUTABLE_ASSET_CACHE_CONTROL once images/videos are finalized
+const DEV_ASSET_CACHE_CONTROL: &str = "public, max-age=3600"; // 1 hour cache for development
 
 // CORS header
 const ACCESS_CONTROL_ALLOW_ORIGIN_HEADER: &str = "access-control-allow-origin";
@@ -229,13 +231,12 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             )]),
             encodings: text_encodings.clone(),
         },
-        // Binary assets: immutable caching, no compression (already compressed or not compressible)
         AssetConfig::Pattern {
             pattern: "**/*.png".to_string(),
             content_type: Some("image/png".to_string()),
             headers: get_asset_headers(vec![(
                 CACHE_CONTROL_HEADER.to_string(),
-                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
+                DEV_ASSET_CACHE_CONTROL.to_string(),
             )]),
             encodings: vec![],
         },
@@ -262,7 +263,7 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             content_type: Some("image/webp".to_string()),
             headers: get_asset_headers(vec![(
                 CACHE_CONTROL_HEADER.to_string(),
-                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
+                DEV_ASSET_CACHE_CONTROL.to_string(),
             )]),
             encodings: vec![],
         },
@@ -271,7 +272,7 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             content_type: Some("video/webm".to_string()),
             headers: get_asset_headers(vec![(
                 CACHE_CONTROL_HEADER.to_string(),
-                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
+                DEV_ASSET_CACHE_CONTROL.to_string(),
             )]),
             encodings: vec![],
         },
@@ -280,7 +281,7 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             content_type: Some("video/mp4".to_string()),
             headers: get_asset_headers(vec![(
                 CACHE_CONTROL_HEADER.to_string(),
-                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
+                DEV_ASSET_CACHE_CONTROL.to_string(),
             )]),
             encodings: vec![],
         },
