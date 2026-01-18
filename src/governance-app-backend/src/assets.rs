@@ -22,7 +22,7 @@ static ASSETS_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/../governance-app
 // 1. Certifying assets (generating a Merkle tree and root hash).
 // 2. Serving assets (handling HTTP requests and generating witness proofs).
 thread_local! {
-    static ASSET_ROUTER: RefCell<AssetRouter<'static>> = RefCell::new(AssetRouter::default());
+    static STATE: RefCell<AssetRouter<'static>> = RefCell::new(AssetRouter::default());
 }
 
 const CACHE_CONTROL_HEADER: &str = "cache-control";
@@ -94,7 +94,7 @@ pub fn http_request_handler(req: &HttpRequest<'static>) -> HttpResponse<'static>
     // Determine the root hash (although dealing with dynamic state, for static assets
     // the router usually handles the proof generation based on the certified state).
     // Note: In strict mode, we might need to fetch the data certificate.
-    serve_my_assets(Vec::new(), req)
+    serve_my_assets(req)
 }
 
 // =================================================================================================
@@ -125,7 +125,7 @@ fn certify_my_assets(
     }
 
     // Use the router to process the assets and configs
-    ASSET_ROUTER.with_borrow_mut(|router| {
+    STATE.with_borrow_mut(|router| {
         router.certify_assets(assets, asset_configs)?;
         Ok(router.root_hash())
     })
@@ -134,13 +134,10 @@ fn certify_my_assets(
 /// Serves the assets using the thread-local AssetRouter.
 ///
 /// This generates the HTTP response, including the certification headers (authenticity proof).
-fn serve_my_assets(
-    _root_hash: Vec<u8>, // We rely on the router's internal state
-    req: &HttpRequest<'static>,
-) -> HttpResponse<'static> {
+fn serve_my_assets(req: &HttpRequest<'static>) -> HttpResponse<'static> {
     let data_certificate = ic_cdk::api::data_certificate().expect("Failed to get data certificate");
 
-    ASSET_ROUTER.with_borrow(|router| {
+    STATE.with_borrow(|router| {
         router
             .serve_asset(&data_certificate, req)
             .expect("Failed to serve asset")
@@ -163,11 +160,8 @@ fn collect_files_recursive<'content, 'path>(
         let file_path = file.path();
         let path_str = file_path.to_string_lossy();
 
-        // Skip configuration and internal files that shouldn't be served
-        if path_str.ends_with(".gitkeep")
-            || path_str.ends_with(".ic-assets.json5")
-            || path_str.ends_with(".ic-assets.json")
-        {
+        if path_str.ends_with(".gitkeep") {
+            // do not expose .gitkeep files
             continue;
         }
         assets.push(Asset::new(path_str, file.contents()));
@@ -189,7 +183,7 @@ fn get_asset_headers(additional_headers: Vec<HeaderField>) -> Vec<HeaderField> {
         ("x-frame-options".to_string(), "DENY".to_string()),
         ("x-content-type-options".to_string(), "nosniff".to_string()),
         ("referrer-policy".to_string(), "same-origin".to_string()),
-        ("permissions-policy".to_string(), "accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(self), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=(), clipboard-read=(), clipboard-write=(self), gamepad=(), speaker-selection=(), conversion-measurement=(), focus-without-user-activation=(), hid=(), idle-detection=(), interest-cohort=(), serial=(), sync-script=(), trust-token-redemption=(), window-placement=(), vertical-scroll=()".to_string()),
+        ("permissions-policy".to_string(), "accelerometer=(), ambient-light-sensor=(), autoplay=(self), battery=(), camera=(self), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=(), clipboard-read=(), clipboard-write=(self), gamepad=(), speaker-selection=(), conversion-measurement=(), focus-without-user-activation=(), hid=(), idle-detection=(), interest-cohort=(), serial=(), sync-script=(), trust-token-redemption=(), window-placement=(), vertical-scroll=()".to_string()),
         ("x-xss-protection".to_string(), "1; mode=block".to_string()),
     ];
     headers.extend(additional_headers);
@@ -211,8 +205,6 @@ fn well_known_asset_headers() -> Vec<HeaderField> {
 }
 
 /// Defines the rules for how different file types should be served.
-///
-/// This configurations mimics the default behavior of `ic-static-assets`.
 fn generate_default_asset_configs() -> Vec<AssetConfig> {
     let encodings = vec![
         AssetEncoding::Brotli.default_config(),
