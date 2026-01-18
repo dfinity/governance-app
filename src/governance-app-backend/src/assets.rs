@@ -20,7 +20,7 @@ static ASSETS_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/../governance-app
 const CACHE_CONTROL_HEADER: &str = "cache-control";
 const IMMUTABLE_ASSET_CACHE_CONTROL: &str = "public, max-age=31536000, immutable";
 const NO_CACHE_ASSET_CACHE_CONTROL: &str = "public, no-cache, no-store";
-// @TODO: Switch to IMMUTABLE_ASSET_CACHE_CONTROL once images/videos are finalized
+// TODO: Switch to IMMUTABLE_ASSET_CACHE_CONTROL once images/videos are finalized
 const DEV_ASSET_CACHE_CONTROL: &str = "public, max-age=3600"; // 1 hour cache for development
 
 // CORS header
@@ -94,6 +94,7 @@ fn certify_all_assets_with_internal_router(
 fn serve_asset(req: &HttpRequest<'static>) -> HttpResponse<'static> {
     let data_certificate = ic_cdk::api::data_certificate().expect("No data certificate available");
 
+    // TODO: Enhace error handling
     ASSET_ROUTER.with_borrow(|router| {
         router
             .serve_asset(&data_certificate, req)
@@ -132,7 +133,7 @@ fn collect_files_recursive<'content, 'path>(
 // =================================================================================================
 
 /// Returns security headers with optional additional headers appended.
-// @TODO: Review permissions-policy for production - some entries may be unnecessary.
+// TODO: Review permissions-policy for production - some entries may be unnecessary.
 fn get_asset_headers(additional_headers: Vec<HeaderField>) -> Vec<HeaderField> {
     let mut headers = vec![
         ("strict-transport-security".to_string(), "max-age=31536000; includeSubDomains".to_string()),
