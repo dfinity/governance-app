@@ -48,6 +48,7 @@ export function StakingWizardStepConfiguration({
           rightLabel={t(($) => $.stakeWizardModal.steps.configuration.maturity.keepLiquid)}
           highlightedValue="left"
           leftSubLabel={<MaxRewardsBadge />}
+          ariaLabel={t(($) => $.stakeWizardModal.steps.configuration.maturity.label)}
         />
       </div>
 
@@ -75,6 +76,7 @@ export function StakingWizardStepConfiguration({
           rightLabel={t(($) => $.stakeWizardModal.steps.configuration.state.unlocking)}
           highlightedValue="left"
           leftSubLabel={<MaxRewardsBadge />}
+          ariaLabel={t(($) => $.stakeWizardModal.steps.configuration.state.label)}
         />
       </div>
 
