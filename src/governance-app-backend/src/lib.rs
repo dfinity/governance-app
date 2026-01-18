@@ -6,13 +6,13 @@ mod assets;
 #[init]
 fn init() {
     // Initialize and certify the assets on deployment
-    assets::setup_assets();
+    assets::certify_assets_hook();
 }
 
 #[post_upgrade]
 fn post_upgrade() {
     // Re-certify the assets after an upgrade
-    assets::setup_assets();
+    assets::certify_assets_hook();
 }
 
 #[query]
