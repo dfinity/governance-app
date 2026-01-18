@@ -11,6 +11,7 @@ type Props = {
   rightSubLabel?: React.ReactNode;
   highlightedValue?: SegmentedToggleValue;
   className?: string;
+  ariaLabel?: string;
 };
 
 export function SegmentedToggle({
@@ -22,13 +23,18 @@ export function SegmentedToggle({
   rightSubLabel,
   highlightedValue,
   className,
+  ariaLabel,
 }: Props) {
   const isLeftSelected = value === 'left';
   const isRightSelected = value === 'right';
   const isHighlightedSelected = value === highlightedValue;
 
   return (
-    <div className={cn('relative grid grid-cols-2 rounded-xl bg-muted p-1', className)}>
+    <div
+      role="group"
+      aria-label={ariaLabel}
+      className={cn('relative grid grid-cols-2 rounded-xl bg-muted p-1', className)}
+    >
       {value && (
         <div
           className={cn(
@@ -43,6 +49,7 @@ export function SegmentedToggle({
 
       <button
         type="button"
+        aria-pressed={isLeftSelected}
         onClick={() => onValueChange('left')}
         className={cn(
           'relative z-10 flex flex-col items-center justify-center gap-0.5 rounded-lg px-4 py-2 font-semibold transition-colors',
@@ -59,6 +66,7 @@ export function SegmentedToggle({
 
       <button
         type="button"
+        aria-pressed={isRightSelected}
         onClick={() => onValueChange('right')}
         className={cn(
           'relative z-10 flex flex-col items-center justify-center gap-0.5 rounded-lg px-4 py-2 font-semibold transition-colors',

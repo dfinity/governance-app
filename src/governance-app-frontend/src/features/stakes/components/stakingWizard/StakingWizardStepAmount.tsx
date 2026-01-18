@@ -108,7 +108,7 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
         </AlertDescription>
       </Alert>
 
-      <Button onClick={handleNext} size="xl" className="up w-full uppercase">
+      <Button onClick={handleNext} size="xl" className="w-full uppercase">
         {t(($) => $.common.next)}
       </Button>
     </div>

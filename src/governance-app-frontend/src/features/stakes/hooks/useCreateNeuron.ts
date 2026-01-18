@@ -91,11 +91,11 @@ export function useCreateNeuron(params: Props) {
       if (currentStep <= StakingWizardCreateNeuronStep.SetDissolveDelay) {
         setCurrentStep(StakingWizardCreateNeuronStep.SetDissolveDelay);
 
-        const dissolveDelaySeconds =
+        const newDissolveTimestamp =
           Math.floor(Date.now() / 1000) + params.dissolveDelayMonths * SECONDS_IN_MONTH;
         await governanceCanister.setDissolveDelay({
           neuronId,
-          dissolveDelaySeconds,
+          dissolveDelaySeconds: newDissolveTimestamp,
         });
       }
 

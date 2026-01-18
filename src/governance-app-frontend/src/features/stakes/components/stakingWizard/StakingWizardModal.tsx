@@ -168,7 +168,11 @@ export function StakingWizardModal({ triggerText }: Props) {
   };
 
   return (
-    <ResponsiveDialog open={isOpen} onOpenChange={handleOpenChange}>
+    <ResponsiveDialog
+      open={isOpen}
+      onOpenChange={handleOpenChange}
+      dismissible={!createNeuron.isProcessing}
+    >
       <ResponsiveDialogTrigger asChild>
         <Button size="xl" onClick={handleTriggerClick} className="w-full">
           <Plus />

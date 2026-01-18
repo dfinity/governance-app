@@ -27,7 +27,11 @@ export const useStakingRewards = () => {
   const [data, setData] = useState<StakingRewardResult>({ loading: true });
 
   useEffect(() => {
-    const id = requestIdleCallback(() => {
+    // Safari doesn't support requestIdleCallback, fallback to setTimeout
+    const scheduleCallback = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 0));
+    const cancelCallback = window.cancelIdleCallback ?? clearTimeout;
+
+    const id = scheduleCallback(() => {
       const data = getStakingRewardData({
         balance: nonNullish(balance) ? bigIntDiv(balance, E8Sn) : undefined,
         isAuthenticated: !!identity,
@@ -42,7 +46,7 @@ export const useStakingRewards = () => {
       });
       setData(data);
     });
-    return () => cancelIdleCallback(id);
+    return () => cancelCallback(id);
   }, [balance, identity, neurons, economics, totalVotingPower, governanceMetrics]);
 
   return data;
