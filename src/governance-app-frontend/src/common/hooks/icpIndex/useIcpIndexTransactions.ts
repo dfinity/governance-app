@@ -23,7 +23,7 @@ export const useIcpIndexTransactions = () => {
     IcpIndexDid.GetAccountIdentifierTransactionsResponse,
     Option<bigint>
   >({
-    queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS],
+    queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS, accountIdentifier],
     queryFn: (context) =>
       canister!.getTransactions({
         maxResults: BigInt(PAGINATION_LIMIT_TRANSACTIONS),
