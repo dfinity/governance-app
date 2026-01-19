@@ -17,7 +17,7 @@ export const PrincipalCard = () => {
     <div className="flex items-center justify-between gap-4">
       <div className="flex min-w-0 flex-col gap-1.5">
         <p className="font-medium text-foreground">{t(($) => $.accountSettings.principalId)}</p>
-        <p className="font-mono text-sm break-all text-muted-foreground">
+        <p className="font-mono text-sm break-words text-muted-foreground">
           {identity.getPrincipal().toText()}
         </p>
       </div>
@@ -50,7 +50,7 @@ export const AccountIdCard = () => {
             {t(($) => $.accountSettings.accountIdExchangeBadge)}
           </Badge>
         </div>
-        <p className="font-mono text-sm break-all text-muted-foreground">{accountId}</p>
+        <p className="font-mono text-sm break-words text-muted-foreground">{accountId}</p>
       </div>
       <CopyButton
         value={accountId}

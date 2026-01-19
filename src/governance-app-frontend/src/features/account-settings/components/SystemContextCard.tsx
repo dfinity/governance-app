@@ -1,6 +1,8 @@
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { GOVERNANCE_INFO_URL, GOVERNANCE_DASHBOARD_URL } from '@constants/externalServices';
+
 export const SystemContextCard = () => {
   const { t } = useTranslation();
 
@@ -19,7 +21,7 @@ export const SystemContextCard = () => {
 
       <div className="flex flex-col gap-2">
         <a
-          href="https://internetcomputer.org/network/governance/"
+          href={GOVERNANCE_INFO_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="group inline-flex w-fit items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -28,7 +30,7 @@ export const SystemContextCard = () => {
           <ExternalLink className="ml-1.5 size-3 opacity-50 transition-transform group-hover:opacity-100" />
         </a>
         <a
-          href="https://dashboard.internetcomputer.org/governance"
+          href={GOVERNANCE_DASHBOARD_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="group inline-flex w-fit items-center text-sm text-muted-foreground transition-colors hover:text-foreground"

@@ -1,28 +1,47 @@
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useState } from 'react';
 
+interface IdentityWithDelegation {
+  getDelegation: () => {
+    delegations: Array<{
+      delegation: {
+        expiration: bigint;
+      };
+    }>;
+  };
+}
+
+const hasGetDelegation = (obj: unknown): obj is IdentityWithDelegation => {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'getDelegation' in obj &&
+    typeof (obj as { getDelegation?: unknown }).getDelegation === 'function'
+  );
+};
+
 export const useSessionTimeLeft = () => {
   const { identity } = useInternetIdentity();
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const identityAny = identity as any;
-    if (!identityAny || typeof identityAny.getDelegation !== 'function') {
+    if (!hasGetDelegation(identity)) {
       setTimeLeft(null);
       return;
     }
 
     const interval = setInterval(() => {
       try {
-        const delegation = identityAny.getDelegation();
+        const delegation = identity.getDelegation();
         const expiration = delegation.delegations[0]?.delegation.expiration;
         if (expiration) {
           const remaining = Number(expiration / BigInt(1_000_000)) - Date.now();
           setTimeLeft(Math.max(0, Math.floor(remaining / 1000)));
         }
       } catch (e) {
-        console.error('Failed to get session expiration', e);
+        if (import.meta.env.DEV) {
+          console.error('Failed to get session expiration', e);
+        }
         setTimeLeft(null);
       }
     }, 1000);

@@ -1,6 +1,6 @@
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { Headset, LogOut, User } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Avatar, AvatarFallback } from '@components/Avatar';
@@ -21,11 +21,16 @@ import {
 } from '@components/DropdownMenu';
 import { Separator } from '@components/Separator';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
+import { SUPPORT_URL } from '@constants/externalServices';
 import { useMediaQuery } from '@hooks/useMediaQuery';
 
+const PRINCIPAL_MIN_LENGTH = 10;
+const PRINCIPAL_START_CHARS = 4;
+const PRINCIPAL_END_CHARS = 3;
+
 const truncatePrincipal = (principal: string) => {
-  if (principal.length <= 10) return principal;
-  return `${principal.slice(0, 4)}-...-${principal.slice(-3)}`;
+  if (principal.length <= PRINCIPAL_MIN_LENGTH) return principal;
+  return `${principal.slice(0, PRINCIPAL_START_CHARS)}-...-${principal.slice(-PRINCIPAL_END_CHARS)}`;
 };
 
 interface AccountInfoProps {
@@ -87,60 +92,56 @@ export const UserMenu = () => {
     </Button>
   );
 
-  return (
-    <>
-      {isDesktop ? (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-64 p-2" collisionPadding={8}>
-            <AccountInfo principal={principal} />
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild className="cursor-pointer">
-              <a href="https://support.dfinity.org" target="_blank" rel="noopener noreferrer">
-                <Headset className="mr-2 size-4" />
+  return isDesktop ? (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-64 p-2" collisionPadding={8}>
+        <AccountInfo principal={principal} />
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild className="cursor-pointer">
+          <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">
+            <Headset className="mr-2 size-4" />
+            <span>{t(($) => $.common.support)}</span>
+          </a>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={handleLogout}
+          className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive dark:text-destructive-foreground dark:focus:bg-destructive/20"
+        >
+          <LogOut className="mr-2 size-4 text-destructive dark:text-destructive-foreground" />
+          <span>{t(($) => $.common.logout)}</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  ) : (
+    <Drawer>
+      <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>{t(($) => $.accountSettings.account)}</DrawerTitle>
+        </DrawerHeader>
+        <div className="flex flex-col gap-2 pb-8">
+          <AccountInfo principal={principal} isDrawer />
+          <div className="flex flex-col gap-2">
+            <Button variant="ghost" className="h-12 w-full justify-start px-4" asChild>
+              <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">
+                <Headset className="mr-3 size-5" />
                 <span>{t(($) => $.common.support)}</span>
               </a>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
+            </Button>
+            <Separator className="my-1" />
+            <Button
+              variant="outline"
+              className="h-12 justify-start border-destructive/50 px-4 text-destructive hover:bg-destructive/5 hover:text-destructive dark:border-destructive/60 dark:text-destructive-foreground dark:hover:bg-destructive/10"
               onClick={handleLogout}
-              className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive dark:text-destructive-foreground dark:focus:bg-destructive/20"
             >
-              <LogOut className="mr-2 size-4 text-destructive dark:text-destructive-foreground" />
+              <LogOut className="mr-3 size-5 text-destructive dark:text-destructive-foreground" />
               <span>{t(($) => $.common.logout)}</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ) : (
-        <Drawer>
-          <DrawerTrigger asChild>{trigger}</DrawerTrigger>
-          <DrawerContent>
-            <DrawerHeader>
-              <DrawerTitle>{t(($) => $.accountSettings.account)}</DrawerTitle>
-            </DrawerHeader>
-            <div className="flex flex-col gap-2 pb-8">
-              <AccountInfo principal={principal} isDrawer />
-              <div className="flex flex-col gap-2">
-                <Button variant="ghost" className="h-12 w-full justify-start px-4" asChild>
-                  <a href="https://support.dfinity.org" target="_blank" rel="noopener noreferrer">
-                    <Headset className="mr-3 size-5" />
-                    <span>{t(($) => $.common.support)}</span>
-                  </a>
-                </Button>
-                <Separator className="my-1" />
-                <Button
-                  variant="outline"
-                  className="h-12 justify-start border-destructive/50 px-4 text-destructive hover:bg-destructive/5 hover:text-destructive dark:border-destructive/60 dark:text-destructive-foreground dark:hover:bg-destructive/10"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="mr-3 size-5 text-destructive dark:text-destructive-foreground" />
-                  <span>{t(($) => $.common.logout)}</span>
-                </Button>
-              </div>
-            </div>
-          </DrawerContent>
-        </Drawer>
-      )}
-    </>
+            </Button>
+          </div>
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 };

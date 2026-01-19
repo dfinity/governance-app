@@ -17,7 +17,7 @@ import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
 import useTitle from '@hooks/useTitle';
 
 export const Route = createFileRoute('/account/')({
-  component: Settings,
+  component: Account,
   staticData: {
     title: 'common.accounts',
   },
@@ -53,7 +53,7 @@ const SettingsSection = ({
   </section>
 );
 
-function Settings() {
+function Account() {
   const { identity, clear } = useInternetIdentity();
   const { t } = useTranslation();
   useTitle(t(($) => $.common.accounts));
