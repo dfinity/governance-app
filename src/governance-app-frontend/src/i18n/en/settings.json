@@ -5,7 +5,6 @@
   "themeDescription": "Select your preferred theme for the application.",
   "principalId": "Principal ID",
   "principalIdentifier": "principal id",
-  "notConnected": "Not connected",
   "modes": {
     "light": "Light",
     "dark": "Dark",
