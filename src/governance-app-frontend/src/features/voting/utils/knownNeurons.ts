@@ -6,25 +6,21 @@ import { KNOWN_NEURONS_SORTING_MAP } from '../data/knownNeuronsSorting';
 
 // Neurons that have not participated yet and should be penalized (sorted last)
 const PENALIZED_NEURON_IDS = [
-  '428687636340283207', // CryptoIsGood
-  '4714336137769716208', // ELNA AI
-  '1100477100620240869', // ICP Hub Bulgaria
-  '2776371642396604393', // ICP Hub México
-  '55674167450360693', // ICPL.app
-  '5728549712200490799', // ICPMANUAL
-  '8777656085298269769', // Paul Young
-  '10323780370508631162', // Sonic AMM
-  '16673157401414569992', // Yuku AI
-  '3172308420039087400', // ZenithCode
+  428687636340283207n, // CryptoIsGood
+  4714336137769716208n, // ELNA AI
+  1100477100620240869n, // ICP Hub Bulgaria
+  2776371642396604393n, // ICP Hub México
+  55674167450360693n, // ICPL.app
+  5728549712200490799n, // ICPMANUAL
+  8777656085298269769n, // Paul Young
+  10323780370508631162n, // Sonic AMM
+  16673157401414569992n, // Yuku AI
+  3172308420039087400n, // ZenithCode
 ];
 
+export const removeInactiveKnownNeurons = (a: KnownNeuron) => !PENALIZED_NEURON_IDS.includes(a.id);
+
 export const sortKnownNeurons = (a: KnownNeuron, b: KnownNeuron) => {
-  const isAPenalized = PENALIZED_NEURON_IDS.includes(String(a.id));
-  const isBPenalized = PENALIZED_NEURON_IDS.includes(String(b.id));
-
-  if (isAPenalized && !isBPenalized) return 1;
-  if (!isAPenalized && isBPenalized) return -1;
-
   const aSortData = KNOWN_NEURONS_SORTING_MAP[String(a.id)];
   const bSortData = KNOWN_NEURONS_SORTING_MAP[String(b.id)];
 

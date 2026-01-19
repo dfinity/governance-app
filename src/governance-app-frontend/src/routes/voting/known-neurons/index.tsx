@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { getShowProposalUrlStatus } from '@features/proposals/utils';
 import { KnownNeuronCard } from '@features/voting/components/KnownNeuronCard';
 import { getUsersFollowedNeurons, isKnownNeuron } from '@features/voting/utils/findFollowedNeuron';
-import { sortKnownNeurons } from '@features/voting/utils/knownNeurons';
+import { removeInactiveKnownNeurons, sortKnownNeurons } from '@features/voting/utils/knownNeurons';
 
 import { Button } from '@components/button';
 import { Skeleton } from '@components/Skeleton';
@@ -149,7 +149,9 @@ function KnownNeuronsList() {
   };
 
   const knownNeurons = knownNeuronsQuery.data?.response;
-  const sortedKnownNeurons = knownNeurons?.toSorted(sortKnownNeurons);
+  const sortedKnownNeurons = knownNeurons
+    ?.filter(removeInactiveKnownNeurons)
+    .toSorted(sortKnownNeurons);
 
   return (
     <div className="flex flex-col gap-6">

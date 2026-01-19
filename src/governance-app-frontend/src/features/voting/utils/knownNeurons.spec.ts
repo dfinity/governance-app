@@ -4,13 +4,12 @@ import { describe, expect, it } from 'vitest';
 import { sortKnownNeurons } from './knownNeurons';
 
 describe('sortKnownNeurons', () => {
-  const createMockNeuron = (id: bigint, topics: unknown[] = []): KnownNeuron => ({
+  const createMockNeuron = (id: bigint): KnownNeuron => ({
     id,
     name: `Neuron ${id}`,
     description: '',
     links: [],
-    // @ts-expect-error - we test with minimal topic structure
-    committed_topics: topics,
+    committed_topics: [],
   });
 
   it('prioritizes neurons in KNOWN_NEURONS_SORTING_MAP by index', () => {
@@ -33,17 +32,5 @@ describe('sortKnownNeurons', () => {
     expect(sorted[1].id).toBe(id2);
     expect(sorted[2].id).toBe(id3);
     expect(sorted[3].id).toBe(unmappedId);
-  });
-
-  it('sorts penalized neurons last', () => {
-    const penalizedId = 428687636340283207n;
-    const normalId = 27n;
-
-    const neurons = [createMockNeuron(penalizedId), createMockNeuron(normalId)];
-
-    const sorted = neurons.toSorted(sortKnownNeurons);
-
-    expect(sorted[0].id).toBe(normalId);
-    expect(sorted[1].id).toBe(penalizedId);
   });
 });
