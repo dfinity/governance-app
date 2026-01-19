@@ -30,17 +30,17 @@ export const ThemeSwitcher = () => {
     () => [
       {
         value: Theme.Light,
-        label: t(($) => $.settings.modes.light),
+        label: t(($) => $.accountSettings.modes.light),
         icon: Sun,
       },
       {
         value: Theme.Dark,
-        label: t(($) => $.settings.modes.dark),
+        label: t(($) => $.accountSettings.modes.dark),
         icon: Moon,
       },
       {
         value: Theme.System,
-        label: t(($) => $.settings.modes.system),
+        label: t(($) => $.accountSettings.modes.system),
         icon: Monitor,
       },
     ],
@@ -54,7 +54,7 @@ export const ThemeSwitcher = () => {
     <Button
       variant="ghost"
       className="h-full w-14 rounded-none px-0"
-      aria-label={t(($) => $.settings.theme)}
+      aria-label={t(($) => $.accountSettings.theme)}
     >
       <Icon className="size-5" />
       <span className="sr-only">Toggle theme</span>
@@ -87,7 +87,7 @@ export const ThemeSwitcher = () => {
       <DrawerTrigger asChild>{trigger}</DrawerTrigger>
       <DrawerContent>
         <DrawerHeader>
-          <DrawerTitle>{t(($) => $.settings.theme)}</DrawerTitle>
+          <DrawerTitle>{t(($) => $.accountSettings.theme)}</DrawerTitle>
         </DrawerHeader>
         <div className="flex flex-col gap-1 px-4 pb-8">
           {themes.map((t) => (

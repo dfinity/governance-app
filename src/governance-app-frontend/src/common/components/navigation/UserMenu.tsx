@@ -1,5 +1,5 @@
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { Check, Copy, LogOut, User } from 'lucide-react';
+import { Headset, LogOut, User } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -22,7 +22,11 @@ import {
 import { Separator } from '@components/Separator';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { useMediaQuery } from '@hooks/useMediaQuery';
-import { errorNotification, successNotification } from '@utils/notification';
+
+const truncatePrincipal = (principal: string) => {
+  if (principal.length <= 10) return principal;
+  return `${principal.slice(0, 4)}-...-${principal.slice(-3)}`;
+};
 
 interface AccountInfoProps {
   principal: string;
@@ -42,8 +46,10 @@ const AccountInfo = ({ principal, isDrawer = false }: AccountInfoProps) => {
         </AvatarFallback>
       </Avatar>
       <div className="flex flex-col min-w-0">
-        <span className="text-sm font-medium truncate">{t(($) => $.settings.principalId)}</span>
-        <span className="text-xs text-muted-foreground truncate font-mono">{principal}</span>
+        <span className="text-sm font-medium truncate">{t(($) => $.accountSettings.principalId)}</span>
+        <span className="text-xs text-muted-foreground truncate font-mono">
+          {truncatePrincipal(principal)}
+        </span>
       </div>
     </div>
   );
@@ -53,7 +59,6 @@ export const UserMenu = () => {
   const { t } = useTranslation();
   const { identity, clear } = useInternetIdentity();
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const [isCopied, setIsCopied] = useState(false);
 
   const principal = identity?.getPrincipal().toText();
 
@@ -62,31 +67,13 @@ export const UserMenu = () => {
     clear();
   }, [clear]);
 
-  const copyAddress = useCallback(() => {
-    if (!principal) return;
-
-    try {
-      navigator.clipboard.writeText(principal);
-      setIsCopied(true);
-      successNotification({
-        description: t(($) => $.common.clipboard.copied, {
-          label: t(($) => $.settings.principalIdentifier),
-        }),
-      });
-      setTimeout(() => setIsCopied(false), 2000);
-    } catch (e) {
-      console.error('Failed to copy to clipboard', e);
-      errorNotification({ description: t(($) => $.common.clipboard.error) });
-    }
-  }, [principal, t]);
-
   if (!identity || !principal) return null;
 
   const trigger = (
     <Button
       variant="ghost"
       className="h-full w-14 rounded-none px-0"
-      aria-label={t(($) => $.settings.account)}
+      aria-label={t(($) => $.accountSettings.account)}
     >
       <Avatar className="size-8">
         <AvatarFallback className="bg-transparent">
@@ -96,65 +83,60 @@ export const UserMenu = () => {
     </Button>
   );
 
-  if (isDesktop) {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-64 p-2">
-          <AccountInfo principal={principal} />
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={copyAddress} className="cursor-pointer">
-            {isCopied ? (
-              <Check className="mr-2 size-4 text-green-500" />
-            ) : (
-              <Copy className="mr-2 size-4" />
-            )}
-            <span>{t(($) => $.common.clipboard.copy)}</span>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={handleLogout}
-            className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive dark:focus:bg-destructive/20"
-          >
-            <LogOut className="mr-2 size-4" />
-            <span>{t(($) => $.common.logout)}</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  }
-
   return (
-    <Drawer>
-      <DrawerTrigger asChild>{trigger}</DrawerTrigger>
-      <DrawerContent>
-        <DrawerHeader>
-          <DrawerTitle>{t(($) => $.settings.account)}</DrawerTitle>
-        </DrawerHeader>
-        <div className="flex flex-col gap-2 px-4 pb-8">
-          <AccountInfo principal={principal} isDrawer />
-          <div className="flex flex-col gap-2">
-            <Button variant="outline" className="justify-start h-12 px-4" onClick={copyAddress}>
-              {isCopied ? (
-                <Check className="mr-3 size-5 text-green-500" />
-              ) : (
-                <Copy className="mr-3 size-5" />
-              )}
-              <span>{t(($) => $.common.clipboard.copy)}</span>
-            </Button>
-            <Separator className="my-1" />
-            <Button
-              variant="outline"
-              className="justify-start h-12 px-4 border-destructive/50 text-destructive hover:bg-destructive/5 hover:text-destructive"
+    <>
+      {isDesktop ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-64 p-2">
+            <AccountInfo principal={principal} />
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <a href="https://support.dfinity.org" target="_blank" rel="noopener noreferrer">
+                <Headset className="mr-2 size-4" />
+                <span>{t(($) => $.common.support)}</span>
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
               onClick={handleLogout}
+              className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive dark:focus:bg-destructive/20"
             >
-              <LogOut className="mr-3 size-5" />
+              <LogOut className="mr-2 size-4 text-destructive" />
               <span>{t(($) => $.common.logout)}</span>
-            </Button>
-          </div>
-        </div>
-      </DrawerContent>
-    </Drawer>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : (
+        <Drawer>
+          <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+          <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>{t(($) => $.accountSettings.account)}</DrawerTitle>
+          </DrawerHeader>
+            <div className="flex flex-col gap-2 px-4 pb-8">
+              <AccountInfo principal={principal} isDrawer />
+              <div className="flex flex-col gap-2">
+                <Button variant="ghost" className="justify-start h-12 px-4 w-full" asChild>
+                  <a href="https://support.dfinity.org" target="_blank" rel="noopener noreferrer">
+                    <Headset className="mr-3 size-5" />
+                    <span>{t(($) => $.common.support)}</span>
+                  </a>
+                </Button>
+                <Separator className="my-1" />
+                <Button
+                  variant="outline"
+                  className="justify-start h-12 px-4 border-destructive/50 text-destructive hover:bg-destructive/5 hover:text-destructive"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="mr-3 size-5 text-destructive" />
+                  <span>{t(($) => $.common.logout)}</span>
+                </Button>
+              </div>
+            </div>
+          </DrawerContent>
+        </Drawer>
+      )}
+    </>
   );
 };
-
