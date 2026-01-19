@@ -115,7 +115,7 @@ function Settings() {
             variant="outline"
             size="lg"
             onClick={handleLogout}
-            className="w-full self-start border-destructive/50 text-destructive hover:bg-destructive/5 hover:text-destructive sm:w-auto"
+            className="w-full self-start border-destructive/50 text-destructive hover:bg-destructive/5 hover:text-destructive sm:w-auto dark:border-destructive/60 dark:text-destructive-foreground dark:hover:bg-destructive/10"
             data-testid="logout-btn"
           >
             <LogOut className="mr-2 size-5" />

@@ -3,9 +3,9 @@
   "accountDescription": "Manage your account information and identity.",
   "principalId": "Principal ID",
   "principalIdentifier": "principal id",
-  "accountId": "Account ID",
-  "accountIdExchangeBadge": "Use for exchanges",
-  "accountIdentifier": "account id",
+  "accountId": "ICP Wallet Address",
+  "accountIdExchangeBadge": "ICP tokens only",
+  "accountIdentifier": "icp wallet address",
   "notConnected": "Not connected",
   "modes": {
     "light": "Light",

@@ -25,7 +25,7 @@ export const SystemContextCard = () => {
           className="group inline-flex w-fit items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           {t(($) => $.accountSettings.governance.systemContext.links.learnHow)}
-          <ArrowRight className="ml-1 size-3 opacity-50 transition-transform group-hover:translate-x-0.5 group-hover:opacity-100" />
+          <ExternalLink className="ml-1.5 size-3 opacity-50 transition-transform group-hover:opacity-100" />
         </a>
         <a
           href="https://dashboard.internetcomputer.org/governance"

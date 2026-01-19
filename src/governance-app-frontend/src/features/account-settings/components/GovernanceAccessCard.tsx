@@ -84,7 +84,7 @@ export const GovernanceAccessCard = () => {
                   {t(($) => $.accountSettings.governance.access.links.learnHowModal.title)}
                 </ResponsiveDialogTitle>
               </ResponsiveDialogHeader>
-              <div className="px-4 pb-8 sm:px-0 sm:pb-0">
+              <div className="pb-8 sm:px-0 sm:pb-0">
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   {t(($) => $.accountSettings.governance.access.links.learnHowModal.content)}
                 </p>

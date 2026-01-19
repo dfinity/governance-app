@@ -13,7 +13,7 @@ export const Header = () => {
 
   return (
     <header className="sticky top-0 z-10 flex h-14 w-full items-center justify-between border-b bg-background">
-      <div className="flex h-full items-center px-4">
+      <div className="flex h-full items-center px-4 md:px-8">
         <h1 className="text-base font-semibold">{t(title as never)}</h1>
       </div>
 

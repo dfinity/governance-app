@@ -65,7 +65,7 @@ export const ThemeSwitcher = () => {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-32">
+        <DropdownMenuContent align="end" className="w-32" collisionPadding={8}>
           {themes.map((t) => (
             <DropdownMenuItem
               key={t.value}
@@ -89,7 +89,7 @@ export const ThemeSwitcher = () => {
         <DrawerHeader>
           <DrawerTitle>{t(($) => $.accountSettings.theme)}</DrawerTitle>
         </DrawerHeader>
-        <div className="flex flex-col gap-1 px-4 pb-8">
+        <div className="flex flex-col gap-1 pb-8">
           {themes.map((t) => (
             <Button
               key={t.value}

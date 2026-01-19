@@ -92,7 +92,7 @@ export const UserMenu = () => {
       {isDesktop ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-64 p-2">
+          <DropdownMenuContent align="end" className="w-64 p-2" collisionPadding={8}>
             <AccountInfo principal={principal} />
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild className="cursor-pointer">
@@ -104,9 +104,9 @@ export const UserMenu = () => {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={handleLogout}
-              className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive dark:focus:bg-destructive/20"
+              className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive dark:text-destructive-foreground dark:focus:bg-destructive/20"
             >
-              <LogOut className="mr-2 size-4 text-destructive" />
+              <LogOut className="mr-2 size-4 text-destructive dark:text-destructive-foreground" />
               <span>{t(($) => $.common.logout)}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -118,7 +118,7 @@ export const UserMenu = () => {
             <DrawerHeader>
               <DrawerTitle>{t(($) => $.accountSettings.account)}</DrawerTitle>
             </DrawerHeader>
-            <div className="flex flex-col gap-2 px-4 pb-8">
+            <div className="flex flex-col gap-2 pb-8">
               <AccountInfo principal={principal} isDrawer />
               <div className="flex flex-col gap-2">
                 <Button variant="ghost" className="h-12 w-full justify-start px-4" asChild>
@@ -130,10 +130,10 @@ export const UserMenu = () => {
                 <Separator className="my-1" />
                 <Button
                   variant="outline"
-                  className="h-12 justify-start border-destructive/50 px-4 text-destructive hover:bg-destructive/5 hover:text-destructive"
+                  className="h-12 justify-start border-destructive/50 px-4 text-destructive hover:bg-destructive/5 hover:text-destructive dark:border-destructive/60 dark:text-destructive-foreground dark:hover:bg-destructive/10"
                   onClick={handleLogout}
                 >
-                  <LogOut className="mr-3 size-5 text-destructive" />
+                  <LogOut className="mr-3 size-5 text-destructive dark:text-destructive-foreground" />
                   <span>{t(($) => $.common.logout)}</span>
                 </Button>
               </div>
