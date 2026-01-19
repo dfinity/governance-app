@@ -8,7 +8,7 @@ export const Sidebar = () => {
 
   return (
     <aside className="sticky top-0 z-20 hidden h-screen w-72 flex-col border-r bg-card text-sm lg:flex">
-      <div className="flex items-center p-6 pt-4">
+      <div className="flex h-14 items-center px-6">
         <img
           src="/governance-logo.svg"
           alt=""

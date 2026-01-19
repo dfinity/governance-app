@@ -1,0 +1,160 @@
+import { useInternetIdentity } from 'ic-use-internet-identity';
+import { Check, Copy, LogOut, User } from 'lucide-react';
+import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import { Avatar, AvatarFallback } from '@components/Avatar';
+import { Button } from '@components/button';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@components/Drawer';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@components/DropdownMenu';
+import { Separator } from '@components/Separator';
+import { MANUAL_LOGOUT_KEY } from '@constants/extra';
+import { useMediaQuery } from '@hooks/useMediaQuery';
+import { errorNotification, successNotification } from '@utils/notification';
+
+interface AccountInfoProps {
+  principal: string;
+  isDrawer?: boolean;
+}
+
+const AccountInfo = ({ principal, isDrawer = false }: AccountInfoProps) => {
+  const { t } = useTranslation();
+
+  return (
+    <div className={isDrawer ? 'flex items-center gap-4 py-4' : 'flex items-center gap-3 px-2 py-3'}>
+      <Avatar className={isDrawer ? 'size-12 border' : 'size-10 border'}>
+        <AvatarFallback className="bg-accent">
+          <User
+            className={isDrawer ? 'size-7 text-muted-foreground' : 'size-6 text-muted-foreground'}
+          />
+        </AvatarFallback>
+      </Avatar>
+      <div className="flex flex-col min-w-0">
+        <span className="text-sm font-medium truncate">{t(($) => $.settings.principalId)}</span>
+        <span className="text-xs text-muted-foreground truncate font-mono">{principal}</span>
+      </div>
+    </div>
+  );
+};
+
+export const UserMenu = () => {
+  const { t } = useTranslation();
+  const { identity, clear } = useInternetIdentity();
+  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const [isCopied, setIsCopied] = useState(false);
+
+  const principal = identity?.getPrincipal().toText();
+
+  const handleLogout = useCallback(() => {
+    localStorage.setItem(MANUAL_LOGOUT_KEY, 'true');
+    clear();
+  }, [clear]);
+
+  const copyAddress = useCallback(() => {
+    if (!principal) return;
+
+    try {
+      navigator.clipboard.writeText(principal);
+      setIsCopied(true);
+      successNotification({
+        description: t(($) => $.common.clipboard.copied, {
+          label: t(($) => $.settings.principalIdentifier),
+        }),
+      });
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (e) {
+      console.error('Failed to copy to clipboard', e);
+      errorNotification({ description: t(($) => $.common.clipboard.error) });
+    }
+  }, [principal, t]);
+
+  if (!identity || !principal) return null;
+
+  const trigger = (
+    <Button
+      variant="ghost"
+      className="h-full w-14 rounded-none px-0"
+      aria-label={t(($) => $.settings.account)}
+    >
+      <Avatar className="size-8">
+        <AvatarFallback className="bg-transparent">
+          <User className="size-5" />
+        </AvatarFallback>
+      </Avatar>
+    </Button>
+  );
+
+  if (isDesktop) {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-64 p-2">
+          <AccountInfo principal={principal} />
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={copyAddress} className="cursor-pointer">
+            {isCopied ? (
+              <Check className="mr-2 size-4 text-green-500" />
+            ) : (
+              <Copy className="mr-2 size-4" />
+            )}
+            <span>{t(($) => $.common.clipboard.copy)}</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={handleLogout}
+            className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive dark:focus:bg-destructive/20"
+          >
+            <LogOut className="mr-2 size-4" />
+            <span>{t(($) => $.common.logout)}</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
+
+  return (
+    <Drawer>
+      <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>{t(($) => $.settings.account)}</DrawerTitle>
+        </DrawerHeader>
+        <div className="flex flex-col gap-2 px-4 pb-8">
+          <AccountInfo principal={principal} isDrawer />
+          <div className="flex flex-col gap-2">
+            <Button variant="outline" className="justify-start h-12 px-4" onClick={copyAddress}>
+              {isCopied ? (
+                <Check className="mr-3 size-5 text-green-500" />
+              ) : (
+                <Copy className="mr-3 size-5" />
+              )}
+              <span>{t(($) => $.common.clipboard.copy)}</span>
+            </Button>
+            <Separator className="my-1" />
+            <Button
+              variant="outline"
+              className="justify-start h-12 px-4 border-destructive/50 text-destructive hover:bg-destructive/5 hover:text-destructive"
+              onClick={handleLogout}
+            >
+              <LogOut className="mr-3 size-5" />
+              <span>{t(($) => $.common.logout)}</span>
+            </Button>
+          </div>
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+};
+
