@@ -4,7 +4,7 @@ import { DFINITY_NEURON_ID } from '@common/constants/neuron';
 
 import { KNOWN_NEURONS_SORTING_MAP } from '../data/knownNeuronsSorting';
 
-// Neurons that have not participated yet and should be penalized (sorted last)
+// Neurons that have not participated yet and should be removed
 const PENALIZED_NEURON_IDS = [
   428687636340283207n, // CryptoIsGood
   4714336137769716208n, // ELNA AI
