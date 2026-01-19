@@ -2,6 +2,7 @@ import { isNullish } from '@dfinity/utils';
 import { createFileRoute, Navigate } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ExternalLink } from 'lucide-react';
+import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useTvlValue } from '@features/login/hooks/useTvlValue';
@@ -24,6 +25,11 @@ export const Route = createFileRoute('/login')({
   },
   component: LoginPage,
 });
+
+const FADE_MASK_STYLE: CSSProperties = {
+  maskImage: 'radial-gradient(ellipse at center, black 40%, transparent 85%)',
+  WebkitMaskImage: 'radial-gradient(ellipse at center, black 40%, transparent 85%)',
+};
 
 function LoginPage() {
   const { login, identity } = useInternetIdentity();
@@ -48,8 +54,9 @@ function LoginPage() {
           <img
             src="/core-bg.webp"
             alt=""
-            className="relative hidden max-h-[720px] w-fit object-cover motion-reduce:block 3xl:translate-x-2/3 md:max-h-[798px] md:translate-x-1/3 xl:translate-x-1/2"
+            className="relative hidden max-h-[720px] w-fit object-cover motion-reduce:block 3xl:translate-x-3/4 md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 xl:translate-x-1/2 2xl:translate-x-2/3"
             aria-hidden={true}
+            style={FADE_MASK_STYLE}
           />
           {/* Video background - hidden when reduced motion is preferred */}
           <video
@@ -57,8 +64,9 @@ function LoginPage() {
             loop
             muted
             playsInline
-            className="relative max-h-[720px] w-fit object-cover motion-reduce:hidden 3xl:translate-x-2/3 md:max-h-[798px] md:translate-x-1/3 xl:translate-x-1/2"
+            className="relative max-h-[720px] w-fit object-cover motion-reduce:hidden 3xl:translate-x-3/4 md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 xl:translate-x-1/2 2xl:translate-x-2/3"
             aria-hidden={true}
+            style={FADE_MASK_STYLE}
           >
             <source src="/core-bg.webm" type="video/webm" />
             <source src="/core-bg.mp4" type="video/mp4" />
@@ -67,7 +75,7 @@ function LoginPage() {
       </div>
 
       {/* Mobile overlay - behind content, above background */}
-      <div className="absolute inset-0 -z-[9] bg-black/25 md:hidden" />
+      <div className="absolute inset-0 -z-[9] bg-black/20 md:hidden" />
 
       {/* Content */}
       <div className="relative flex min-h-dvh w-full flex-col justify-between px-4 py-10 3xl:mx-auto 3xl:max-w-[2000px] sm:p-12">
