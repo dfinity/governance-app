@@ -31,8 +31,8 @@
       "@fixtures/*": ["./tests/fixtures/*"],
 
       "@routes/*": ["./src/routes/*"],
-      "@/*": ["./src/*"]
-    }
+      "@/*": ["./src/*"],
+    },
   },
   "include": ["src", "tests", "scripts"]
 }
