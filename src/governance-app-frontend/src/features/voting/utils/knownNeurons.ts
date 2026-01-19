@@ -18,7 +18,7 @@ const PENALIZED_NEURON_IDS = [
   3172308420039087400n, // ZenithCode
 ];
 
-export const removeInactiveKnownNeurons = (a: KnownNeuron) => !PENALIZED_NEURON_IDS.includes(a.id);
+export const isActiveKnownNeuron = (a: KnownNeuron) => !PENALIZED_NEURON_IDS.includes(a.id);
 
 export const sortKnownNeurons = (a: KnownNeuron, b: KnownNeuron) => {
   const aSortData = KNOWN_NEURONS_SORTING_MAP[String(a.id)];
