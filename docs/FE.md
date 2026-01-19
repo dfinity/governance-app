@@ -89,3 +89,11 @@ To add a new shadcn/ui component:
 ### E2E
 
 If your branch is failing E2E due to outdated snapshots, run the `scripts/update-snapshots.sh` script. It will download the updated files so you can review and commit them.
+
+## Scripts
+
+### Known Neurons
+
+-   **Script**: `src/governance-app-frontend/scripts/convert-known-neurons.ts`
+-   **Command**: `npm run generate:known-neurons`
+-   **Description**: Converts the `data/known-neurons.tsv` file into a TypeScript map used for sorting and displaying known neurons in the app. Run this script after updating the TSV data.
