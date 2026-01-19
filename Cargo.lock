@@ -261,7 +261,7 @@ dependencies = [
  "ic-asset-certification",
  "ic-cdk",
  "ic-http-certification",
- "ic-static-assets",
+ "include_dir",
 ]
 
 [[package]]
@@ -405,29 +405,6 @@ checksum = "c2800ba4910f21d9e1cb7b6ecbbbb0f76074bd2e127b4688c57d0936206caa6e"
 dependencies = [
  "leb128",
  "sha2",
-]
-
-[[package]]
-name = "ic-static-assets"
-version = "0.0.1"
-source = "git+https://github.com/ilbertt/ic-static-assets#cd0170812c1b8a27d5c1b71255e0a5fcd8bee6e0"
-dependencies = [
- "ic-asset-certification",
- "ic-cdk",
- "ic-http-certification",
- "ic-static-assets-macros",
- "include_dir",
-]
-
-[[package]]
-name = "ic-static-assets-macros"
-version = "0.0.1"
-source = "git+https://github.com/ilbertt/ic-static-assets#cd0170812c1b8a27d5c1b71255e0a5fcd8bee6e0"
-dependencies = [
- "include_dir",
- "proc-macro2",
- "quote",
- "syn 2.0.104",
 ]
 
 [[package]]
