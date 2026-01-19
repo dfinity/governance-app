@@ -3,7 +3,7 @@ import { cn } from '@utils/shadcn';
 export type SegmentedToggleValue = 'left' | 'right';
 
 type Props = {
-  value?: SegmentedToggleValue;
+  value: SegmentedToggleValue;
   onValueChange: (value: SegmentedToggleValue) => void;
   leftLabel: string;
   rightLabel: string;
@@ -31,25 +31,24 @@ export function SegmentedToggle({
 
   return (
     <div
-      role="group"
+      role="radiogroup"
       aria-label={ariaLabel}
       className={cn('relative grid grid-cols-2 rounded-xl bg-muted p-1', className)}
     >
-      {value && (
-        <div
-          className={cn(
-            'absolute top-1 h-[calc(100%-8px)] w-[calc(50%-4px)] rounded-lg shadow-sm transition-all duration-300 ease-out',
-            isLeftSelected ? 'left-1' : 'left-[calc(50%+2px)]',
-            isHighlightedSelected
-              ? 'border border-green-300 bg-green-50 dark:border-green-800 dark:bg-green-950'
-              : 'bg-background',
-          )}
-        />
-      )}
+      <div
+        className={cn(
+          'absolute top-1 h-[calc(100%-8px)] w-[calc(50%-4px)] rounded-lg shadow-sm transition-all duration-300 ease-out',
+          isLeftSelected ? 'left-1' : 'left-[calc(50%+2px)]',
+          isHighlightedSelected
+            ? 'border border-green-300 bg-green-50 dark:border-green-800 dark:bg-green-950'
+            : 'bg-background',
+        )}
+      />
 
       <button
         type="button"
-        aria-pressed={isLeftSelected}
+        role="radio"
+        aria-checked={isLeftSelected}
         onClick={() => onValueChange('left')}
         className={cn(
           'relative z-10 flex flex-col items-center justify-center gap-0.5 rounded-lg px-4 py-2 font-semibold transition-colors',
@@ -66,7 +65,8 @@ export function SegmentedToggle({
 
       <button
         type="button"
-        aria-pressed={isRightSelected}
+        role="radio"
+        aria-checked={isRightSelected}
         onClick={() => onValueChange('right')}
         className={cn(
           'relative z-10 flex flex-col items-center justify-center gap-0.5 rounded-lg px-4 py-2 font-semibold transition-colors',

@@ -58,7 +58,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
     ? bigIntDiv(neuron.fullNeuron.cachedNeuronStake, E8Sn)
     : 0;
 
-  const isMaxAPY = nonNullish(apy) && apy.cur.toFixed(2) === apy.max.toFixed(2);
+  const isMaxApy = nonNullish(apy) && apy.cur.toFixed(2) === apy.max.toFixed(2);
 
   return (
     <Card className="gap-3 transition-colors hover:border-foreground">
@@ -75,9 +75,9 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
           <div
             className={cn(
               'flex items-center gap-2 rounded-sm border p-2',
-              !isMaxAPY
-                ? 'border-orange-200 bg-orange-100 text-orange-600 hover:bg-orange-100 dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
-                : 'border-emerald-200 bg-emerald-100 text-emerald-600 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
+              isMaxApy
+                ? 'border-emerald-200 bg-emerald-100 text-emerald-600 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
+                : 'border-orange-200 bg-orange-100 text-orange-600 hover:bg-orange-100 dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
             )}
             onClick={() => {
               // @TODO: Implement optimization modal

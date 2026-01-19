@@ -3,28 +3,27 @@
   "steps": {
     "amount": {
       "title": "Stake ICP",
-      "label": "Amount to Stake",
-      "available": "Available: {{amount}} ICP",
-      "maxButton": "MAX"
+      "label": "Amount to stake",
+      "available": "Available: {{amount}} ICP"
     },
     "dissolveDelay": {
-      "title": "Set Dissolve Delay",
+      "title": "Set dissolve delay",
       "description": "Longer dissolve delays earn higher rewards.",
       "presets": {
-        "6months": "6 Months",
-        "1year": "1 Year",
-        "2years": "2 Years",
-        "4years": "4 Years",
-        "8years": "8 Years"
+        "6months": "6 months",
+        "1year": "1 year",
+        "2years": "2 years",
+        "4years": "4 years",
+        "8years": "8 years"
       }
     },
     "configuration": {
-      "title": "Configure Stake",
+      "title": "Configure stake",
       "maturity": {
-        "label": "Manage Rewards",
+        "label": "Manage rewards",
         "description": "Choose how to handle your staking rewards.",
         "autoStake": "Auto-stake",
-        "keepLiquid": "Keep Liquid"
+        "keepLiquid": "Keep liquid"
       },
       "state": {
         "label": "Initial State",
@@ -77,7 +76,7 @@
   },
   "errors": {
     "insufficientBalance": "Insufficient balance",
-    "amountTooLow": "Amount must be greater than the transaction fee ({{fee}} ICP)",
+    "amountTooLow": "Minimum stake is {{min}} ICP",
     "stakeFailed": "Failed to create Stake",
     "dissolveDelayFailed": "Failed to set lock period",
     "autoStakeFailed": "Failed to configure rewards mode",

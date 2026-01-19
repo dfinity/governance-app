@@ -1,7 +1,7 @@
 import { Network } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { StakingWizardModal } from './stakingWizard';
+import { StakingWizardModal } from './stakingWizard/StakingWizardModal';
 
 export const EmptyNeuronsState = () => {
   const { t } = useTranslation();

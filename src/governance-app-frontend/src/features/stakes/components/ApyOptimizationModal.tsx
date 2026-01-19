@@ -15,6 +15,7 @@ import {
   ResponsiveDialogTrigger,
 } from '@components/ResponsiveDialog';
 import { Spinner } from '@components/Spinner';
+import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import {
@@ -23,6 +24,7 @@ import {
   getNeuronIsDissolving,
   getNeuronIsMaxDissolveDelay,
 } from '@utils/neuron';
+import { formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 type NeuronOptimizationStatus = {
@@ -62,7 +64,9 @@ export function ApyOptimizationModal() {
 
   const stakingRewards = useStakingRewards();
   const maxApy = isStakingRewardDataReady(stakingRewards)
-    ? (stakingRewards.stakingFlowApyPreview[96].autoStake.locked * 100).toFixed(2)
+    ? formatPercentage(
+        stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_MONTHS].autoStake.locked,
+      )
     : '';
 
   const isLoading = neuronsQuery.isLoading || stakingRewards.loading;

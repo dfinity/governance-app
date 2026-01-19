@@ -2,8 +2,10 @@ import { motion, useSpring, useTransform } from 'motion/react';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { SkeletonLoader } from '@components/SkeletonLoader';
+import { Skeleton } from '@components/Skeleton';
+import { ICP_MAX_DISSOLVE_DELAY_MONTHS, ICP_MIN_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { useStakingRewards } from '@hooks/useStakingRewards';
+import { formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 type Props = {
@@ -14,11 +16,14 @@ export function StakingWizardAnimatedApyBadge({ value }: Props) {
   const stakingRewards = useStakingRewards();
 
   if (!isStakingRewardDataReady(stakingRewards)) {
-    return <SkeletonLoader height={34} width={180} />;
+    return <Skeleton className="h-[34px] w-[180px]" />;
   }
 
-  const minApy = stakingRewards.stakingFlowApyPreview[6].nonAutoStake.dissolving * 100;
-  const maxApy = stakingRewards.stakingFlowApyPreview[96].autoStake.locked * 100;
+  const minApy =
+    stakingRewards.stakingFlowApyPreview[ICP_MIN_DISSOLVE_DELAY_MONTHS].nonAutoStake.dissolving *
+    100;
+  const maxApy =
+    stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_MONTHS].autoStake.locked * 100;
 
   return <AnimatedApyBadgeInner value={value} minApy={minApy} maxApy={maxApy} />;
 }
@@ -35,7 +40,7 @@ function AnimatedApyBadgeInner({ value, minApy, maxApy }: InnerProps) {
   const isMax = value.toFixed(2) === maxApy.toFixed(2);
   const normalizedPosition = Math.max(0, Math.min(1, (value - minApy) / (maxApy - minApy)));
   const springValue = useSpring(value, { stiffness: 100, damping: 20 });
-  const displayValue = useTransform(springValue, (v) => `~${v.toFixed(2)}%`);
+  const displayValue = useTransform(springValue, (v) => `~${formatPercentage(v / 100)}`);
 
   const colorSpring = useSpring(normalizedPosition, { stiffness: 80, damping: 15 });
   const textColor = useTransform(colorSpring, (t) => interpolateColor(t));

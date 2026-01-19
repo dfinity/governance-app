@@ -28,7 +28,7 @@ export const useStakingRewards = () => {
 
   useEffect(() => {
     // Safari doesn't support requestIdleCallback, fallback to setTimeout
-    const scheduleCallback = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 0));
+    const scheduleCallback = window.requestIdleCallback ?? setTimeout;
     const cancelCallback = window.cancelIdleCallback ?? clearTimeout;
 
     const id = scheduleCallback(() => {

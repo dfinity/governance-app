@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { EmptyNeuronsState } from '@features/stakes/components/EmptyNeuronsState';
 import { NeuronsList } from '@features/stakes/components/NeuronsList';
-import { StakingWizardModal } from '@features/stakes/components/stakingWizard';
+import { StakingWizardModal } from '@features/stakes/components/stakingWizard/StakingWizardModal';
 
 import { QueryStates } from '@components/QueryStates';
 import { useGovernanceNeurons } from '@hooks/governance';

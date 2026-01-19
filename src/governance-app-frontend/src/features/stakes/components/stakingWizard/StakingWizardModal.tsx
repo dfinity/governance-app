@@ -15,6 +15,7 @@ import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
 import { warningNotification } from '@utils/notification';
+import { formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 import { useCreateNeuron } from '../../hooks/useCreateNeuron';
@@ -66,9 +67,13 @@ export function StakingWizardModal({ triggerText }: Props) {
     setIsOpen(toOpen);
 
     if (!toOpen) {
-      setStep(StakingWizardStep.Amount);
-      setFormState(STAKING_WIZARD_DEFAULT_FORM_STATE);
-      createNeuron.reset();
+      // Wait for the modal to close before resetting the step and form state
+      // to avoid an animation glitch.
+      setTimeout(() => {
+        setStep(StakingWizardStep.Amount);
+        setFormState(STAKING_WIZARD_DEFAULT_FORM_STATE);
+        createNeuron.reset();
+      }, 500);
     }
   };
 
@@ -146,14 +151,14 @@ export function StakingWizardModal({ triggerText }: Props) {
       formState.maturityMode === StakingWizardMaturityMode.Auto ? 'autoStake' : 'nonAutoStake';
     const stateKey =
       formState.initialState === StakingWizardInitialState.Locked ? 'locked' : 'dissolving';
-    return preview[maturityKey][stateKey] * 100;
+    return preview[maturityKey][stateKey];
   };
 
   const getCurrentApyFormatted = (): string => {
     if (!isStakingRewardDataReady(stakingRewards)) {
       return '~...%';
     }
-    return `~${getCurrentApyValue().toFixed(2)}%`;
+    return `~${formatPercentage(getCurrentApyValue())}`;
   };
 
   const balanceICPs = bigIntDiv(balanceValue?.response || 0n, E8Sn);
@@ -173,8 +178,8 @@ export function StakingWizardModal({ triggerText }: Props) {
       onOpenChange={handleOpenChange}
       dismissible={!createNeuron.isProcessing}
     >
-      <ResponsiveDialogTrigger asChild>
-        <Button size="xl" onClick={handleTriggerClick} className="w-full">
+      <ResponsiveDialogTrigger asChild disabled={!canStake}>
+        <Button size="xl" onClick={handleTriggerClick} className="w-full" disabled={!canStake}>
           <Plus />
           {triggerText ?? t(($) => $.stakeWizardModal.title)}
         </Button>
@@ -198,7 +203,7 @@ export function StakingWizardModal({ triggerText }: Props) {
           </div>
           {showApyPreview && (
             <div className="mt-0 flex justify-center">
-              <StakingWizardAnimatedApyBadge value={getCurrentApyValue()} />
+              <StakingWizardAnimatedApyBadge value={getCurrentApyValue() * 100} />
             </div>
           )}
         </ResponsiveDialogHeader>

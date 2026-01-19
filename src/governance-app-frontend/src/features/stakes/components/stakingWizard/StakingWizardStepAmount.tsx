@@ -7,10 +7,12 @@ import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
 import { Label } from '@components/Label';
-import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
+import { E8Sn, ICP_MIN_STAKE_AMOUNT } from '@constants/extra';
+import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
+import { formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 interface Props {
@@ -29,7 +31,9 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
 
   const stakingRewards = useStakingRewards();
   const maxApyFormatted = isStakingRewardDataReady(stakingRewards)
-    ? (stakingRewards.stakingFlowApyPreview[96].autoStake.locked * 100).toFixed(2)
+    ? formatPercentage(
+        stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_MONTHS].autoStake.locked,
+      )
     : '...';
 
   const handleAmountChange = (value: string) => {
@@ -47,8 +51,8 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
   const handleNext = () => {
     const numericAmount = Number(amount);
 
-    if (amount === '' || numericAmount <= ICP_TRANSACTION_FEE) {
-      setError(t(($) => $.stakeWizardModal.errors.amountTooLow, { fee: ICP_TRANSACTION_FEE }));
+    if (amount === '' || numericAmount < ICP_MIN_STAKE_AMOUNT) {
+      setError(t(($) => $.stakeWizardModal.errors.amountTooLow, { min: ICP_MIN_STAKE_AMOUNT }));
       return;
     }
 
@@ -82,8 +86,13 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
             min="0"
           />
           <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-1">
-            <Button type="button" size="sm" onClick={handleMax} className="h-7 px-2 text-xs">
-              {t(($) => $.stakeWizardModal.steps.amount.maxButton)}
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleMax}
+              className="h-7 px-2 text-xs uppercase"
+            >
+              {t(($) => $.common.max)}
             </Button>
             <span className="text-sm font-semibold text-muted-foreground">
               {t(($) => $.common.icp)}

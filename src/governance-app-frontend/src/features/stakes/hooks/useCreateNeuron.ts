@@ -14,12 +14,12 @@ import { QUERY_KEYS } from '@utils/query';
 
 import { StakingWizardCreateNeuronStep } from '../components/stakingWizard/types';
 
-interface Props {
+type Props = {
   amount: string;
   dissolveDelayMonths: number;
   autoStakeMaturity: boolean;
   startDissolving: boolean;
-}
+};
 
 /**
  * Hook to manage the neuron creation process
@@ -63,13 +63,12 @@ export function useCreateNeuron(params: Props) {
     setIsProcessing(true);
     setError(null);
 
-    let neuronId = createdNeuronId;
-
     try {
-      // Step 1: Create neuron
-      if (currentStep <= StakingWizardCreateNeuronStep.CreateNeuron) {
-        setCurrentStep(StakingWizardCreateNeuronStep.CreateNeuron);
+      let neuronId = createdNeuronId;
+      let step = currentStep;
 
+      // Step 1: Create neuron
+      if (step === StakingWizardCreateNeuronStep.CreateNeuron) {
         const stake = bigIntMul(E8Sn, Number(params.amount));
         const principal = identity.getPrincipal();
 
@@ -81,6 +80,8 @@ export function useCreateNeuron(params: Props) {
           fee: ICP_TRANSACTION_FEE_E8Sn,
         });
         setCreatedNeuronId(neuronId);
+        step = StakingWizardCreateNeuronStep.SetDissolveDelay;
+        setCurrentStep(step);
       }
 
       if (!neuronId) {
@@ -88,39 +89,37 @@ export function useCreateNeuron(params: Props) {
       }
 
       // Step 2: Set dissolve delay
-      if (currentStep <= StakingWizardCreateNeuronStep.SetDissolveDelay) {
-        setCurrentStep(StakingWizardCreateNeuronStep.SetDissolveDelay);
-
+      if (step === StakingWizardCreateNeuronStep.SetDissolveDelay) {
         const newDissolveTimestamp =
           Math.floor(Date.now() / 1000) + params.dissolveDelayMonths * SECONDS_IN_MONTH;
         await governanceCanister.setDissolveDelay({
           neuronId,
           dissolveDelaySeconds: newDissolveTimestamp,
         });
+        step = StakingWizardCreateNeuronStep.SetAutoStakeMaturity;
+        setCurrentStep(step);
       }
 
       // Step 3: Set auto-stake maturity (if enabled)
-      if (currentStep <= StakingWizardCreateNeuronStep.SetAutoStakeMaturity) {
+      if (step === StakingWizardCreateNeuronStep.SetAutoStakeMaturity) {
         if (params.autoStakeMaturity) {
-          setCurrentStep(StakingWizardCreateNeuronStep.SetAutoStakeMaturity);
-
           await governanceCanister.autoStakeMaturity({
             neuronId,
             autoStake: true,
           });
         }
+        step = StakingWizardCreateNeuronStep.StartDissolving;
+        setCurrentStep(step);
       }
 
       // Step 4: Start dissolving (if enabled)
-      if (currentStep <= StakingWizardCreateNeuronStep.StartDissolving) {
+      if (step === StakingWizardCreateNeuronStep.StartDissolving) {
         if (params.startDissolving) {
-          setCurrentStep(StakingWizardCreateNeuronStep.StartDissolving);
-
           await governanceCanister.startDissolving(neuronId);
         }
+        step = StakingWizardCreateNeuronStep.Done;
+        setCurrentStep(step);
       }
-
-      setCurrentStep(StakingWizardCreateNeuronStep.Done);
     } catch (err) {
       // Keep currentStep at the failed step for retry
       setError(mapGovernanceCanisterError(err as Error));
@@ -136,6 +135,7 @@ export function useCreateNeuron(params: Props) {
   };
 
   // Block navigation while processing
+  // @TODO improve this to avoid a blocker on navigation
   useBlocker({
     shouldBlockFn: () => {
       if (!isProcessing) return false;
