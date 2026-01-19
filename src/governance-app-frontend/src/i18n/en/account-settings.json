@@ -1,0 +1,58 @@
+{
+  "account": "Your account",
+  "accountDescription": "Manage your account information and identity.",
+  "principalId": "Principal ID",
+  "principalIdentifier": "principal id",
+  "accountId": "ICP Wallet Address",
+  "accountIdExchangeBadge": "ICP tokens only",
+  "accountIdentifier": "icp wallet address",
+  "notConnected": "Not connected",
+  "modes": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "aria": {
+    "toggleLight": "Toggle light",
+    "toggleDark": "Toggle dark",
+    "toggleSystem": "Toggle system",
+    "iiLink": "Manage your Internet Identity (opens in new tab)"
+  },
+  "theme": "Theme",
+  "themeDescription": "Select your preferred theme for the application.",
+  "manageII": "Manage your Internet Identity",
+  "governance": {
+    "title": "Governance",
+    "access": {
+      "title": "Account status",
+      "statusParticipating": "Status: Participating",
+      "descParticipating": "This account is participating in Internet Computer governance.",
+      "statusNotParticipating": "Status: Not participating",
+      "descNotParticipating": "This account is not currently participating in Internet Computer governance.",
+      "statusReadOnly": "Status: Read-only",
+      "descReadOnly": "This account can view governance activity but cannot participate.",
+      "links": {
+        "viewStakes": "View stakes",
+        "viewVotingActivity": "View voting activity",
+        "learnHow": "Learn how participation works",
+        "learnHowModal": {
+          "title": "Governance Participation",
+          "content": "To participate in governance, you need to stake ICP tokens into neurons. Neurons allow you to vote on proposals and earn rewards for your participation. The more ICP you stake and the longer you lock it for, the more voting power you have."
+        }
+      }
+    },
+    "systemContext": {
+      "title": "Network Nervous System",
+      "description": "The Network Nervous System governs protocol upgrades, economic parameters, and the evolution of the Internet Computer.",
+      "links": {
+        "readUpdate": "Dashboard: Governance System details",
+        "learnHow": "Learn how governance works"
+      }
+    }
+  },
+  "session": {
+    "title": "Session",
+    "signOutDescription": "Sign out of your current session.",
+    "timeLeft": "Session expires in {{minutes}}m {{seconds}}s"
+  }
+}
