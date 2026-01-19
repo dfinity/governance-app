@@ -11,6 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from './AlertDialog';
+import { buttonVariants } from './button';
 
 type Props = {
   isBlocked: boolean;
@@ -38,7 +39,7 @@ export function NavigationBlockerDialog({
   const dialogTitle = title ?? t(($) => $.common.warning);
   const dialogDescription = description ?? t(($) => $.common.confirmNavigation);
   const stayText = stayButtonText ?? t(($) => $.common.cancel);
-  const leaveText = leaveButtonText ?? t(($) => $.common.confirm);
+  const leaveText = leaveButtonText ?? t(($) => $.common.leave);
 
   return (
     <AlertDialog open={status === 'blocked'}>
@@ -49,7 +50,12 @@ export function NavigationBlockerDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={reset}>{stayText}</AlertDialogCancel>
-          <AlertDialogAction onClick={proceed}>{leaveText}</AlertDialogAction>
+          <AlertDialogAction
+            onClick={proceed}
+            className={buttonVariants({ variant: 'destructive' })}
+          >
+            {leaveText}
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
