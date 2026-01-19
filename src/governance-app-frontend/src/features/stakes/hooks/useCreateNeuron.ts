@@ -1,6 +1,5 @@
 import { nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useQueryClient } from '@tanstack/react-query';
-import { useBlocker } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -133,17 +132,6 @@ export function useCreateNeuron(params: Props) {
       setIsProcessing(false);
     }
   };
-
-  // Block navigation while processing
-  // @TODO improve this to avoid a blocker on navigation
-  useBlocker({
-    shouldBlockFn: () => {
-      if (!isProcessing) return false;
-      window.alert(t(($) => $.stakeWizardModal.confirmNavigation));
-      return true;
-    },
-    enableBeforeUnload: isProcessing,
-  });
 
   return {
     execute,

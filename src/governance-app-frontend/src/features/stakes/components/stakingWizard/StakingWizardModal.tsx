@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
+import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -173,81 +174,87 @@ export function StakingWizardModal({ triggerText }: Props) {
   };
 
   return (
-    <ResponsiveDialog
-      open={isOpen}
-      onOpenChange={handleOpenChange}
-      dismissible={!createNeuron.isProcessing}
-    >
-      <ResponsiveDialogTrigger asChild disabled={!canStake}>
-        <Button size="xl" onClick={handleTriggerClick} className="w-full" disabled={!canStake}>
-          <Plus />
-          {triggerText ?? t(($) => $.stakeWizardModal.title)}
-        </Button>
-      </ResponsiveDialogTrigger>
-      <ResponsiveDialogContent
-        className="flex max-h-[90vh] flex-col focus:outline-none"
-        showCloseButton={!createNeuron.isProcessing}
+    <>
+      <NavigationBlockerDialog
+        isBlocked={createNeuron.isProcessing}
+        description={t(($) => $.stakeWizardModal.confirmNavigation)}
+      />
+      <ResponsiveDialog
+        open={isOpen}
+        onOpenChange={handleOpenChange}
+        dismissible={!createNeuron.isProcessing}
       >
-        <ResponsiveDialogHeader className="shrink-0">
-          <div className="relative flex items-center justify-center">
-            {showBackButton && (
-              <button
-                onClick={goBack}
-                className="absolute left-0 rounded-md p-1 hover:bg-muted"
-                aria-label={t(($) => $.common.back)}
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </button>
-            )}
-            <ResponsiveDialogTitle>{getStepTitle()}</ResponsiveDialogTitle>
-          </div>
-          {showApyPreview && (
-            <div className="mt-0 flex justify-center">
-              <StakingWizardAnimatedApyBadge value={getCurrentApyValue() * 100} />
+        <ResponsiveDialogTrigger asChild disabled={!canStake}>
+          <Button size="xl" onClick={handleTriggerClick} className="w-full" disabled={!canStake}>
+            <Plus />
+            {triggerText ?? t(($) => $.stakeWizardModal.title)}
+          </Button>
+        </ResponsiveDialogTrigger>
+        <ResponsiveDialogContent
+          className="flex max-h-[90vh] flex-col focus:outline-none"
+          showCloseButton={!createNeuron.isProcessing}
+        >
+          <ResponsiveDialogHeader className="shrink-0">
+            <div className="relative flex items-center justify-center">
+              {showBackButton && (
+                <button
+                  onClick={goBack}
+                  className="absolute left-0 rounded-md p-1 hover:bg-muted"
+                  aria-label={t(($) => $.common.back)}
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
+              )}
+              <ResponsiveDialogTitle>{getStepTitle()}</ResponsiveDialogTitle>
             </div>
-          )}
-        </ResponsiveDialogHeader>
+            {showApyPreview && (
+              <div className="mt-0 flex justify-center">
+                <StakingWizardAnimatedApyBadge value={getCurrentApyValue() * 100} />
+              </div>
+            )}
+          </ResponsiveDialogHeader>
 
-        <div ref={contentRef} className="mt-4 flex-1 overflow-y-auto px-4 pb-4 md:px-0 md:pb-0">
-          {step === StakingWizardStep.Amount && (
-            <StakingWizardStepAmount
-              amount={formState.amount}
-              onAmountChange={updateAmount}
-              onNext={goNext}
-            />
-          )}
+          <div ref={contentRef} className="mt-4 flex-1 overflow-y-auto px-4 pb-4 md:px-0 md:pb-0">
+            {step === StakingWizardStep.Amount && (
+              <StakingWizardStepAmount
+                amount={formState.amount}
+                onAmountChange={updateAmount}
+                onNext={goNext}
+              />
+            )}
 
-          {step === StakingWizardStep.DissolveDelay && (
-            <StakingWizardStepDissolveDelay
-              dissolveDelayMonths={formState.dissolveDelayMonths}
-              onDissolveDelayChange={updateDissolveDelay}
-              onNext={goNext}
-            />
-          )}
+            {step === StakingWizardStep.DissolveDelay && (
+              <StakingWizardStepDissolveDelay
+                dissolveDelayMonths={formState.dissolveDelayMonths}
+                onDissolveDelayChange={updateDissolveDelay}
+                onNext={goNext}
+              />
+            )}
 
-          {step === StakingWizardStep.Configuration && (
-            <StakingWizardStepConfiguration
-              maturityMode={formState.maturityMode}
-              initialState={formState.initialState}
-              onMaturityModeChange={updateMaturityMode}
-              onInitialStateChange={updateInitialState}
-              onConfirm={goNext}
-            />
-          )}
+            {step === StakingWizardStep.Configuration && (
+              <StakingWizardStepConfiguration
+                maturityMode={formState.maturityMode}
+                initialState={formState.initialState}
+                onMaturityModeChange={updateMaturityMode}
+                onInitialStateChange={updateInitialState}
+                onConfirm={goNext}
+              />
+            )}
 
-          {step === StakingWizardStep.Confirmation && (
-            <StakingWizardStepConfirmation
-              formState={formState}
-              isProcessing={createNeuron.isProcessing}
-              currentStep={createNeuron.currentStep}
-              error={createNeuron.error}
-              expectedApy={getCurrentApyFormatted()}
-              onDone={() => handleOpenChange(false)}
-              onRetry={createNeuron.execute}
-            />
-          )}
-        </div>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+            {step === StakingWizardStep.Confirmation && (
+              <StakingWizardStepConfirmation
+                formState={formState}
+                isProcessing={createNeuron.isProcessing}
+                currentStep={createNeuron.currentStep}
+                error={createNeuron.error}
+                expectedApy={getCurrentApyFormatted()}
+                onDone={() => handleOpenChange(false)}
+                onRetry={createNeuron.execute}
+              />
+            )}
+          </div>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+    </>
   );
 }
