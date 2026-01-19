@@ -165,8 +165,9 @@ export function StakingWizardModal({ triggerText }: Props) {
   const balanceICPs = bigIntDiv(balanceValue?.response || 0n, E8Sn);
   const canStake = balanceICPs > ICP_TRANSACTION_FEE;
 
-  const handleTriggerClick = () => {
+  const handleTriggerClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (!canStake) {
+      event.preventDefault();
       warningNotification({
         description: t(($) => $.stakeWizardModal.errors.cannotStake),
       });
@@ -184,8 +185,8 @@ export function StakingWizardModal({ triggerText }: Props) {
         onOpenChange={handleOpenChange}
         dismissible={!createNeuron.isProcessing}
       >
-        <ResponsiveDialogTrigger asChild disabled={!canStake}>
-          <Button size="xl" onClick={handleTriggerClick} className="w-full" disabled={!canStake}>
+        <ResponsiveDialogTrigger asChild>
+          <Button size="xl" onClick={handleTriggerClick} className="w-full sm:w-auto">
             <Plus />
             {triggerText ?? t(($) => $.stakeWizardModal.title)}
           </Button>
