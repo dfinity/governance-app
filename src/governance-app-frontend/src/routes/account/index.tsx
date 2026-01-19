@@ -37,7 +37,7 @@ const SettingsSection = ({
       <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
       {description && <p className="text-sm text-muted-foreground">{description}</p>}
     </div>
-    <Card className="p-0 shadow-sm overflow-hidden">
+    <Card className="overflow-hidden p-0 shadow-sm">
       <div className="flex flex-col divide-y">
         {Array.isArray(children) ? (
           children.map((child, i) => (
@@ -81,7 +81,7 @@ function Settings() {
             {t(($) => $.accountSettings.governance.title)}
           </h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Card className="p-6 shadow-sm">
             <GovernanceAccessCard />
           </Card>
@@ -115,7 +115,7 @@ function Settings() {
             variant="outline"
             size="lg"
             onClick={handleLogout}
-            className="w-full sm:w-auto self-start border-destructive/50 text-destructive hover:bg-destructive/5 hover:text-destructive"
+            className="w-full self-start border-destructive/50 text-destructive hover:bg-destructive/5 hover:text-destructive sm:w-auto"
             data-testid="logout-btn"
           >
             <LogOut className="mr-2 size-5" />

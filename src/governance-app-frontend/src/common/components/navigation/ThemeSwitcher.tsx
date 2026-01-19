@@ -95,7 +95,7 @@ export const ThemeSwitcher = () => {
               key={t.value}
               variant="ghost"
               className={cn(
-                'justify-start h-12 px-4',
+                'h-12 justify-start px-4',
                 theme === t.value && 'bg-accent text-accent-foreground',
               )}
               onClick={() => setTheme(t.value)}
@@ -110,4 +110,3 @@ export const ThemeSwitcher = () => {
     </Drawer>
   );
 };
-

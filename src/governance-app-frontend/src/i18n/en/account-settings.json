@@ -34,14 +34,18 @@
       "links": {
         "viewStakes": "View stakes",
         "viewVotingActivity": "View voting activity",
-        "learnHow": "Learn how participation works"
+        "learnHow": "Learn how participation works",
+        "learnHowModal": {
+          "title": "Governance Participation",
+          "content": "To participate in governance, you need to stake ICP tokens into neurons. Neurons allow you to vote on proposals and earn rewards for your participation. The more ICP you stake and the longer you lock it for, the more voting power you have."
+        }
       }
     },
     "systemContext": {
       "title": "Network Nervous System",
       "description": "The Network Nervous System governs protocol upgrades, economic parameters, and the evolution of the Internet Computer.",
       "links": {
-        "readUpdate": "Read latest governance update",
+        "readUpdate": "Dashboard: Governance System details",
         "learnHow": "Learn how governance works"
       }
     }

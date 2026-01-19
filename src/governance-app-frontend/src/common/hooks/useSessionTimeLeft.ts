@@ -41,4 +41,3 @@ export const useSessionTimeLeft = () => {
     totalSeconds: timeLeft,
   };
 };
-

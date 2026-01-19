@@ -1,9 +1,17 @@
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, Circle } from 'lucide-react';
+import { ArrowRight, Circle, Info } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { useGovernanceNeurons } from '@hooks/governance';
 import { cn } from '@utils/shadcn';
+import { Button } from '@components/button';
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogTrigger,
+} from '@components/ResponsiveDialog';
 
 export const GovernanceAccessCard = () => {
   const { t } = useTranslation();
@@ -46,29 +54,43 @@ export const GovernanceAccessCard = () => {
           <>
             <Link
               to="/stakes"
-              className="group inline-flex items-center text-sm text-muted-foreground transition-colors hover:text-foreground w-fit"
+              className="group inline-flex w-fit items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               {t(($) => $.accountSettings.governance.access.links.viewStakes)}
               <ArrowRight className="ml-1 size-3 opacity-50 transition-transform group-hover:translate-x-0.5 group-hover:opacity-100" />
             </Link>
             <Link
               to="/voting"
-              className="group inline-flex items-center text-sm text-muted-foreground transition-colors hover:text-foreground w-fit"
+              className="group inline-flex w-fit items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               {t(($) => $.accountSettings.governance.access.links.viewVotingActivity)}
               <ArrowRight className="ml-1 size-3 opacity-50 transition-transform group-hover:translate-x-0.5 group-hover:opacity-100" />
             </Link>
           </>
         ) : (
-          <a
-            href="https://wiki.internetcomputer.org/wiki/Network_Nervous_System"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group inline-flex items-center text-sm text-muted-foreground transition-colors hover:text-foreground w-fit"
-          >
-            {t(($) => $.accountSettings.governance.access.links.learnHow)}
-            <ArrowRight className="ml-1 size-3 opacity-50 transition-transform group-hover:translate-x-0.5 group-hover:opacity-100" />
-          </a>
+          <ResponsiveDialog>
+            <ResponsiveDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                className="group h-auto justify-start p-0 text-sm text-muted-foreground hover:bg-transparent hover:text-foreground"
+              >
+                {t(($) => $.accountSettings.governance.access.links.learnHow)}
+                <Info className="ml-1.5 size-3.5 opacity-50 transition-transform group-hover:opacity-100" />
+              </Button>
+            </ResponsiveDialogTrigger>
+            <ResponsiveDialogContent className="sm:max-w-md">
+              <ResponsiveDialogHeader>
+                <ResponsiveDialogTitle>
+                  {t(($) => $.accountSettings.governance.access.links.learnHowModal.title)}
+                </ResponsiveDialogTitle>
+              </ResponsiveDialogHeader>
+              <div className="px-4 pb-8 sm:px-0 sm:pb-0">
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {t(($) => $.accountSettings.governance.access.links.learnHowModal.content)}
+                </p>
+              </div>
+            </ResponsiveDialogContent>
+          </ResponsiveDialog>
         )}
       </div>
     </div>

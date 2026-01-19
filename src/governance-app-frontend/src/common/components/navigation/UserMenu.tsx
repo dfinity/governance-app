@@ -37,7 +37,9 @@ const AccountInfo = ({ principal, isDrawer = false }: AccountInfoProps) => {
   const { t } = useTranslation();
 
   return (
-    <div className={isDrawer ? 'flex items-center gap-4 py-4' : 'flex items-center gap-3 px-2 py-3'}>
+    <div
+      className={isDrawer ? 'flex items-center gap-4 py-4' : 'flex items-center gap-3 px-2 py-3'}
+    >
       <Avatar className={isDrawer ? 'size-12 border' : 'size-10 border'}>
         <AvatarFallback className="bg-accent">
           <User
@@ -45,9 +47,11 @@ const AccountInfo = ({ principal, isDrawer = false }: AccountInfoProps) => {
           />
         </AvatarFallback>
       </Avatar>
-      <div className="flex flex-col min-w-0">
-        <span className="text-sm font-medium truncate">{t(($) => $.accountSettings.principalId)}</span>
-        <span className="text-xs text-muted-foreground truncate font-mono">
+      <div className="flex min-w-0 flex-col">
+        <span className="truncate text-sm font-medium">
+          {t(($) => $.accountSettings.principalId)}
+        </span>
+        <span className="truncate font-mono text-xs text-muted-foreground">
           {truncatePrincipal(principal)}
         </span>
       </div>
@@ -111,13 +115,13 @@ export const UserMenu = () => {
         <Drawer>
           <DrawerTrigger asChild>{trigger}</DrawerTrigger>
           <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>{t(($) => $.accountSettings.account)}</DrawerTitle>
-          </DrawerHeader>
+            <DrawerHeader>
+              <DrawerTitle>{t(($) => $.accountSettings.account)}</DrawerTitle>
+            </DrawerHeader>
             <div className="flex flex-col gap-2 px-4 pb-8">
               <AccountInfo principal={principal} isDrawer />
               <div className="flex flex-col gap-2">
-                <Button variant="ghost" className="justify-start h-12 px-4 w-full" asChild>
+                <Button variant="ghost" className="h-12 w-full justify-start px-4" asChild>
                   <a href="https://support.dfinity.org" target="_blank" rel="noopener noreferrer">
                     <Headset className="mr-3 size-5" />
                     <span>{t(($) => $.common.support)}</span>
@@ -126,7 +130,7 @@ export const UserMenu = () => {
                 <Separator className="my-1" />
                 <Button
                   variant="outline"
-                  className="justify-start h-12 px-4 border-destructive/50 text-destructive hover:bg-destructive/5 hover:text-destructive"
+                  className="h-12 justify-start border-destructive/50 px-4 text-destructive hover:bg-destructive/5 hover:text-destructive"
                   onClick={handleLogout}
                 >
                   <LogOut className="mr-3 size-5 text-destructive" />
