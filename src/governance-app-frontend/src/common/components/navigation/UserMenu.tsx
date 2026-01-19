@@ -1,5 +1,5 @@
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { Headset, LogOut, User } from 'lucide-react';
+import { ExternalLink, Headset, LogOut, User } from 'lucide-react';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -102,6 +102,7 @@ export const UserMenu = () => {
           <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">
             <Headset className="mr-2 size-4" />
             <span>{t(($) => $.common.support)}</span>
+            <ExternalLink className="ml-auto size-3.5 opacity-70" />
           </a>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -127,7 +128,8 @@ export const UserMenu = () => {
             <Button variant="ghost" className="h-12 w-full justify-start px-4" asChild>
               <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">
                 <Headset className="mr-3 size-5" />
-                <span>{t(($) => $.common.support)}</span>
+                <span className="flex-1">{t(($) => $.common.support)}</span>
+                <ExternalLink className="size-4 opacity-70" />
               </a>
             </Button>
             <Separator className="my-1" />
