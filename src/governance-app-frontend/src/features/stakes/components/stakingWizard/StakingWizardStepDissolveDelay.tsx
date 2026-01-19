@@ -29,8 +29,13 @@ export function StakingWizardStepDissolveDelay({
   )!;
   const isMaxRewardsSelected = dissolveDelayMonths === maxRewardsOption.value;
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onNext();
+  };
+
   return (
-    <div className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <p className="text-sm text-muted-foreground">
         {t(($) => $.stakeWizardModal.steps.dissolveDelay.description)}
       </p>
@@ -42,9 +47,10 @@ export function StakingWizardStepDissolveDelay({
 
             return (
               <button
+                type="button"
                 key={option.value}
                 onClick={() => onDissolveDelayChange(option.value)}
-                className={`rounded-lg border-2 px-4 py-4 text-center font-medium transition-colors ${isSelected ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}
+                className={`rounded-lg border-2 px-4 py-4 text-center font-medium transition-colors outline-none focus-visible:bg-muted/70 active:bg-muted ${isSelected ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}
               >
                 {t(($) => $.stakeWizardModal.steps.dissolveDelay.presets[option.labelKey])}
               </button>
@@ -53,8 +59,9 @@ export function StakingWizardStepDissolveDelay({
         </div>
 
         <button
+          type="button"
           onClick={() => onDissolveDelayChange(maxRewardsOption.value)}
-          className={`w-full rounded-lg border-2 px-4 py-4 text-center transition-colors ${
+          className={`w-full rounded-lg border-2 px-4 py-4 text-center transition-colors outline-none focus-visible:from-green-600/18 focus-visible:to-green-600/10 active:from-green-600/20 active:to-green-600/12 ${
             isMaxRewardsSelected
               ? 'border-green-600 bg-gradient-to-br from-green-600/12 to-green-600/4'
               : 'border-green-600/30 bg-gradient-to-br from-green-600/8 to-green-600/4 hover:bg-gradient-to-br hover:from-green-600/14 hover:to-green-600/8'
@@ -77,9 +84,9 @@ export function StakingWizardStepDissolveDelay({
         </AlertDescription>
       </Alert>
 
-      <Button onClick={onNext} size="xl" className="w-full uppercase">
+      <Button type="submit" size="xl" className="w-full uppercase">
         {t(($) => $.common.next)}
       </Button>
-    </div>
+    </form>
   );
 }

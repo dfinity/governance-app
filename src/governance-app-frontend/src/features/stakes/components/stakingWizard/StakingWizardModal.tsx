@@ -2,7 +2,17 @@ import { ArrowLeft, Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@components/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@components/AlertDialog';
+import { Button, buttonVariants } from '@components/button';
 import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
 import {
   ResponsiveDialog,
@@ -44,6 +54,7 @@ export function StakingWizardModal({ triggerText }: Props) {
   const { data: balanceValue } = useIcpLedgerAccountBalance();
 
   const [isOpen, setIsOpen] = useState(false);
+  const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
   const [step, setStep] = useState<StakingWizardStep>(StakingWizardStep.Amount);
   const [formState, setFormState] = useState<StakingWizardFormState>(
     STAKING_WIZARD_DEFAULT_FORM_STATE,
@@ -63,19 +74,42 @@ export function StakingWizardModal({ triggerText }: Props) {
     contentRef.current?.scrollTo(0, 0);
   }, [step]);
 
+  // Check if user has unsaved data (step 2 or 3, not processing)
+  const checkHasUnsavedData = () =>
+    step !== StakingWizardStep.Amount &&
+    step !== StakingWizardStep.Confirmation &&
+    !createNeuron.isProcessing;
+
+  const closeAndReset = () => {
+    setIsOpen(false);
+    // Wait for the modal to close before resetting the step and form state
+    // to avoid an animation glitch.
+    setTimeout(() => {
+      setStep(StakingWizardStep.Amount);
+      setFormState(STAKING_WIZARD_DEFAULT_FORM_STATE);
+      createNeuron.reset();
+    }, 500);
+  };
+
   const handleOpenChange = (toOpen: boolean) => {
     if (createNeuron.isProcessing && !toOpen) return;
-    setIsOpen(toOpen);
 
-    if (!toOpen) {
-      // Wait for the modal to close before resetting the step and form state
-      // to avoid an animation glitch.
-      setTimeout(() => {
-        setStep(StakingWizardStep.Amount);
-        setFormState(STAKING_WIZARD_DEFAULT_FORM_STATE);
-        createNeuron.reset();
-      }, 500);
+    // If closing and has unsaved data, show confirmation dialog
+    if (!toOpen && checkHasUnsavedData()) {
+      setShowCloseConfirmation(true);
+      return;
     }
+
+    if (toOpen) {
+      setIsOpen(true);
+    } else {
+      closeAndReset();
+    }
+  };
+
+  const handleConfirmClose = () => {
+    setShowCloseConfirmation(false);
+    closeAndReset();
   };
 
   const goBack = () => {
@@ -176,10 +210,36 @@ export function StakingWizardModal({ triggerText }: Props) {
 
   return (
     <>
+      {/* Block navigation during processing */}
       <NavigationBlockerDialog
         isBlocked={createNeuron.isProcessing}
         description={t(($) => $.stakeWizardModal.confirmNavigation)}
       />
+      {/* Block navigation when user has unsaved data */}
+      <NavigationBlockerDialog
+        isBlocked={isOpen && checkHasUnsavedData()}
+        description={t(($) => $.stakeWizardModal.confirmNavigationUnsaved)}
+      />
+      {/* Confirmation dialog when closing modal with unsaved data */}
+      <AlertDialog open={showCloseConfirmation} onOpenChange={setShowCloseConfirmation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t(($) => $.common.warning)}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t(($) => $.stakeWizardModal.confirmNavigationUnsaved)}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t(($) => $.common.cancel)}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmClose}
+              className={buttonVariants({ variant: 'destructive' })}
+            >
+              {t(($) => $.common.leave)}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <ResponsiveDialog
         open={isOpen}
         onOpenChange={handleOpenChange}
@@ -203,7 +263,7 @@ export function StakingWizardModal({ triggerText }: Props) {
                   className="absolute left-0 rounded-md p-1 hover:bg-muted"
                   aria-label={t(($) => $.common.back)}
                 >
-                  <ArrowLeft className="h-5 w-5" />
+                  <ArrowLeft className="size-5" />
                 </button>
               )}
               <ResponsiveDialogTitle>{getStepTitle()}</ResponsiveDialogTitle>

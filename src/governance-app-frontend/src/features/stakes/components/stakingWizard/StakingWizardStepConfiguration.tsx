@@ -24,8 +24,13 @@ export function StakingWizardStepConfiguration({
 }: Props) {
   const { t } = useTranslation();
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onConfirm();
+  };
+
   return (
-    <div className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       {/* Maturity Mode Section */}
       <div className="space-y-3">
         <div>
@@ -100,10 +105,10 @@ export function StakingWizardStepConfiguration({
         </AlertDescription>
       </Alert>
 
-      <Button onClick={onConfirm} size="xl" className="w-full uppercase">
+      <Button type="submit" size="xl" className="w-full uppercase">
         {t(($) => $.stakeWizardModal.steps.configuration.confirm)}
       </Button>
-    </div>
+    </form>
   );
 }
 

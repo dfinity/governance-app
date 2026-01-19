@@ -67,6 +67,10 @@ export function useCreateNeuron(params: Props) {
       let step = currentStep;
 
       // Step 1: Create neuron
+      // This is special step: the stakeNeuron call abstracts both the transfer and the claim_or_refresh_neuron.
+      // If the connection drops after the transfer but before the claim, there could be a need for manual intervention.
+      // At the moment we have not way to detect this and the user would need to manually claim the neuron.
+      // Future ICRC2 support should fix this potential issue.
       if (step === StakingWizardCreateNeuronStep.CreateNeuron) {
         const stake = bigIntMul(E8Sn, Number(params.amount));
         const principal = identity.getPrincipal();

@@ -64,19 +64,19 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
     onNext();
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleNext();
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleNext();
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="space-y-1">
         <Label htmlFor="stake-amount">{t(($) => $.stakeWizardModal.steps.amount.label)}</Label>
         <div className="relative">
           <Input
             className={`h-14 [appearance:textfield] border-2 pr-24 !text-lg font-semibold focus-visible:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
             onChange={(e) => handleAmountChange(e.target.value)}
-            onKeyDown={handleKeyDown}
             placeholder="0.00"
             id="stake-amount"
             ref={inputRef}
@@ -91,6 +91,7 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
               size="sm"
               onClick={handleMax}
               className="h-7 px-2 text-xs uppercase"
+              aria-label={t(($) => $.stakeWizardModal.steps.amount.maxButtonAriaLabel)}
             >
               {t(($) => $.common.max)}
             </Button>
@@ -117,9 +118,9 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
         </AlertDescription>
       </Alert>
 
-      <Button onClick={handleNext} size="xl" className="w-full uppercase">
+      <Button type="submit" size="xl" className="w-full uppercase">
         {t(($) => $.common.next)}
       </Button>
-    </div>
+    </form>
   );
 }

@@ -4,7 +4,8 @@
     "amount": {
       "title": "Stake ICP",
       "label": "Amount to stake",
-      "available": "Available: {{amount}} ICP"
+      "available": "Available: {{amount}} ICP",
+      "maxButtonAriaLabel": "Set amount to maximum available balance"
     },
     "dissolveDelay": {
       "title": "Set dissolve delay",
@@ -83,5 +84,6 @@
     "startDissolvingFailed": "Failed to start unlocking",
     "cannotStake": "You need ICP to stake. Please buy or deposit ICP first."
   },
-  "confirmNavigation": "Your stake is being created, leaving this page may cause unexpected results. Are you sure you want to leave?"
+  "confirmNavigation": "Your stake is being created, leaving this page may cause unexpected results. Are you sure you want to leave?",
+  "confirmNavigationUnsaved": "Your progress will not be saved. Are you sure you want to leave?"
 }
