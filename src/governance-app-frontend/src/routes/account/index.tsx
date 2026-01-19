@@ -8,6 +8,7 @@ import { GovernanceAccessCard } from '@features/account-settings/components/Gove
 import { ManageIICard } from '@features/account-settings/components/ManageIICard';
 import { AccountIdCard, PrincipalCard } from '@features/account-settings/components/PrincipalCard';
 import { SystemContextCard } from '@features/account-settings/components/SystemContextCard';
+import { ThemeCard } from '@features/account-settings/components/ThemeCard';
 
 import { Button } from '@components/button';
 import { Card } from '@components/Card';
@@ -89,6 +90,10 @@ function Account() {
           </Card>
         </div>
       </section>
+
+      <PageSection title={t(($) => $.accountSettings.theme)}>
+        <ThemeCard />
+      </PageSection>
 
       <section className="flex flex-col gap-4">
         <div className="space-y-1">
