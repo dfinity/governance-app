@@ -64,6 +64,8 @@ function LoginPage() {
             loop
             muted
             playsInline
+            preload="auto"
+            poster="/core-bg.webp"
             className="relative max-h-[720px] w-fit object-cover motion-reduce:hidden 3xl:translate-x-3/4 md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 xl:translate-x-1/2 2xl:translate-x-2/3"
             aria-hidden={true}
             style={FADE_MASK_STYLE}
