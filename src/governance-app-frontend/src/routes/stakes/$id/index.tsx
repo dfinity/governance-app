@@ -11,6 +11,7 @@ import { SkeletonLoader } from '@components/SkeletonLoader';
 import { WarningMessage } from '@components/WarningMessage';
 import { E8S, E8Sn, IS_TESTNET, MILLISECONDS_IN_SECOND } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance/useGovernanceNeurons';
+import { useApyColor } from '@hooks/useApyColor';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import useTitle from '@hooks/useTitle';
 import { bigIntDiv, stringToBigInt } from '@utils/bigInt';
@@ -63,6 +64,11 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
   const { data, isLoading } = useGovernanceNeurons();
   const neuron = data?.response.find((n) => n.neuronId === neuronId);
   const apyData = useStakingRewards();
+  const neuronApyValue =
+    isStakingRewardDataReady(apyData) && neuron
+      ? (apyData.apy.neurons.get(getNeuronId(neuron))?.cur ?? 0)
+      : 0;
+  const apyColor = useApyColor(neuronApyValue);
 
   const dissolveDelayRemaining = ({ dissolveDelaySeconds: seconds }: NeuronInfo): string =>
     secondsToDuration({
@@ -154,9 +160,16 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
             <span>
               {isStakingRewardDataLoading(apyData) && <SkeletonLoader width={50} height={24} />}
               {isStakingRewardDataError(apyData) && <WarningMessage message={apyData.error} />}
-              {isStakingRewardDataReady(apyData) ? (
-                <span>
-                  {formatPercentage(apyData.apy.neurons.get(getNeuronId(neuron))?.cur ?? 0)}
+              {isStakingRewardDataReady(apyData) && apyColor.ready ? (
+                <span className="inline-flex items-center gap-2">
+                  <span className="font-semibold" style={{ color: apyColor.textColor }}>
+                    {formatPercentage(apyData.apy.neurons.get(getNeuronId(neuron))?.cur ?? 0)}
+                  </span>
+                  {apyColor.isMax && (
+                    <span className="rounded bg-green-600 px-1 py-0.5 text-[10px] font-bold text-white uppercase">
+                      {t(($) => $.common.max)}
+                    </span>
+                  )}
                 </span>
               ) : null}
             </span>

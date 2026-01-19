@@ -14,6 +14,7 @@ import { E8Sn } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
+import { useApyColor } from '@hooks/useApyColor';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronFreeMaturityE8s, getNeuronStakeE8s } from '@utils/neuron';
@@ -29,6 +30,9 @@ export function StakedCard() {
   const balanceQuery = useIcpLedgerAccountBalance();
   const { tickerPrices: tickersQuery } = useTickerPrices();
   const stakingRewards = useStakingRewards();
+  const apyColor = useApyColor(
+    isStakingRewardDataReady(stakingRewards) ? stakingRewards.apy.cur : 0,
+  );
 
   const handleStakeMoreClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const balanceICP = bigIntDiv(balanceQuery.data?.response || 0n, E8Sn);
@@ -109,9 +113,9 @@ export function StakedCard() {
                 {t(($) => $.common.apy)}
               </p>
               <div className="flex items-center justify-end gap-2">
-                {isStakingRewardDataReady(stakingRewards) ? (
+                {isStakingRewardDataReady(stakingRewards) && apyColor.ready ? (
                   <div className="flex items-center gap-2">
-                    <span className="text-xl font-bold text-emerald-800 dark:text-emerald-400">
+                    <span className="text-xl font-bold" style={{ color: apyColor.textColor }}>
                       {formatPercentage(stakingRewards.apy.cur)}
                     </span>
                     {stakingRewards.apy.cur < stakingRewards.apy.max && <ApyOptimizationModal />}
@@ -140,7 +144,7 @@ export function StakedCard() {
               </p>
               <div className="flex items-center justify-end gap-2">
                 {isStakingRewardDataReady(stakingRewards) ? (
-                  <span className="text-lg font-bold text-emerald-800 dark:text-emerald-400">
+                  <span className="text-lg font-bold">
                     {t(($) => $.common.positiveNumber, {
                       value: formatNumber(
                         stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) || 0,
