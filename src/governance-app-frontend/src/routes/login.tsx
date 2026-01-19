@@ -54,7 +54,7 @@ function LoginPage() {
           <img
             src="/core-bg.webp"
             alt=""
-            className="relative hidden max-h-[720px] w-fit object-cover motion-reduce:block md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 xl:translate-x-1/2 2xl:translate-x-2/3 3xl:translate-x-3/4"
+            className="relative hidden max-h-[720px] w-fit object-cover motion-reduce:block 3xl:translate-x-3/4 md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 xl:translate-x-1/2 2xl:translate-x-2/3"
             aria-hidden={true}
             style={FADE_MASK_STYLE}
           />
@@ -64,7 +64,7 @@ function LoginPage() {
             loop
             muted
             playsInline
-            className="relative max-h-[720px] w-fit object-cover motion-reduce:hidden md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 xl:translate-x-1/2 2xl:translate-x-2/3 3xl:translate-x-3/4"
+            className="relative max-h-[720px] w-fit object-cover motion-reduce:hidden 3xl:translate-x-3/4 md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 xl:translate-x-1/2 2xl:translate-x-2/3"
             aria-hidden={true}
             style={FADE_MASK_STYLE}
           >
