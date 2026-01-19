@@ -20,8 +20,8 @@ import {
   DropdownMenuTrigger,
 } from '@components/DropdownMenu';
 import { Separator } from '@components/Separator';
-import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { SUPPORT_URL } from '@constants/externalServices';
+import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { useMediaQuery } from '@hooks/useMediaQuery';
 
 const PRINCIPAL_MIN_LENGTH = 10;

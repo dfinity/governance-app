@@ -4,15 +4,14 @@ import { LogOut } from 'lucide-react';
 import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ManageIICard } from '@features/account-settings/components/ManageIICard';
-import { PrincipalCard, AccountIdCard } from '@features/account-settings/components/PrincipalCard';
 import { GovernanceAccessCard } from '@features/account-settings/components/GovernanceAccessCard';
+import { ManageIICard } from '@features/account-settings/components/ManageIICard';
+import { AccountIdCard, PrincipalCard } from '@features/account-settings/components/PrincipalCard';
 import { SystemContextCard } from '@features/account-settings/components/SystemContextCard';
-
-import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 
 import { Button } from '@components/button';
 import { Card } from '@components/Card';
+import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
 import useTitle from '@hooks/useTitle';
 

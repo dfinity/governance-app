@@ -1,7 +1,7 @@
-import { ArrowRight, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { GOVERNANCE_INFO_URL, GOVERNANCE_DASHBOARD_URL } from '@constants/externalServices';
+import { GOVERNANCE_DASHBOARD_URL, GOVERNANCE_INFO_URL } from '@constants/externalServices';
 
 export const SystemContextCard = () => {
   const { t } = useTranslation();

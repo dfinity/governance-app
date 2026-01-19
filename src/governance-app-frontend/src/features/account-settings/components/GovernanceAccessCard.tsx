@@ -2,8 +2,6 @@ import { Link } from '@tanstack/react-router';
 import { ArrowRight, Circle, Info } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { useGovernanceNeurons } from '@hooks/governance';
-import { cn } from '@utils/shadcn';
 import { Button } from '@components/button';
 import {
   ResponsiveDialog,
@@ -12,6 +10,8 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from '@components/ResponsiveDialog';
+import { useGovernanceNeurons } from '@hooks/governance';
+import { cn } from '@utils/shadcn';
 
 export const GovernanceAccessCard = () => {
   const { t } = useTranslation();
