@@ -32,7 +32,7 @@
 
       "@routes/*": ["./src/routes/*"],
       "@/*": ["./src/*"]
-    },
+    }
   },
-  "include": ["src", "tests", "scripts"],
+  "include": ["src", "tests", "scripts"]
 }
