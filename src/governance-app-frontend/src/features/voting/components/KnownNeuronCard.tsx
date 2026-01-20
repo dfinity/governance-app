@@ -1,5 +1,5 @@
-import type { KnownNeuron } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
+import type { KnownNeuron } from '@icp-sdk/canisters/nns';
 import { ChevronDown, ChevronUp, Circle, CircleDot, LinkIcon, Loader2, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -44,7 +44,7 @@ export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled, isLo
   return (
     <Card
       className={cn(
-        'h-auto cursor-pointer border-2 p-4 transition-all',
+        'h-auto cursor-pointer border-2 p-0 transition-all',
         isSelected && 'border-muted-foreground',
         isDisabled ? 'cursor-not-allowed opacity-50' : 'hover:border-muted-foreground',
       )}
@@ -53,7 +53,7 @@ export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled, isLo
       onClick={() => !isDisabled && onSelect(neuron)}
     >
       <div className="flex gap-4">
-        <div className="mt-2 flex-shrink-0">
+        <div className="mt-2 flex-shrink-0 py-5 pl-5">
           {isLoading ? (
             <Loader2 className="size-6 animate-spin" />
           ) : isSelected ? (
@@ -65,7 +65,7 @@ export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled, isLo
 
         <div className="flex min-w-0 grow-1 flex-col">
           <div className="flex grow-1 items-center justify-between">
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1 py-5">
               <h4 className="leading-none font-semibold">{neuron.name}</h4>
               {nonNullish(votingPower) && (
                 <div className="flex items-center gap-1 text-muted-foreground">
@@ -77,13 +77,13 @@ export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled, isLo
               )}
             </div>
 
-            <Button variant="ghost" size="icon-lg" onClick={toggleExpanded}>
+            <Button variant="ghost" onClick={toggleExpanded} className="h-full min-w-20 rounded-xl">
               {isExpanded ? <ChevronUp className="size-6" /> : <ChevronDown className="size-6" />}
             </Button>
           </div>
 
           {isExpanded && (
-            <div className="animate-in pr-8 text-sm text-muted-foreground fade-in slide-in-from-top-1">
+            <div className="animate-in pr-4 pb-4 text-sm text-pretty text-muted-foreground fade-in slide-in-from-top-1 lg:pr-12">
               <div className="flex flex-col gap-3">
                 <div className="flex flex-wrap items-center gap-2">
                   {links.map(({ href, hostname }) => (
