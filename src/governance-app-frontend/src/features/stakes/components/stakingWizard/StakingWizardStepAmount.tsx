@@ -84,6 +84,7 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
             value={amount}
             type="number"
             min="0"
+            data-testid="staking-wizard-amount-input"
           />
           <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-1">
             <Button
@@ -104,7 +105,7 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
           {t(($) => $.stakeWizardModal.steps.amount.available, { amount: maxStake.toString() })}
         </p>
         {error && (
-          <Alert variant="warning">
+          <Alert variant="warning" data-testid="staking-wizard-amount-error">
             <AlertTriangle className="h-4 w-4 text-destructive" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
@@ -118,7 +119,12 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
         </AlertDescription>
       </Alert>
 
-      <Button type="submit" size="xl" className="w-full uppercase">
+      <Button
+        type="submit"
+        size="xl"
+        className="w-full uppercase"
+        data-testid="staking-wizard-next-btn"
+      >
         {t(($) => $.common.next)}
       </Button>
     </form>

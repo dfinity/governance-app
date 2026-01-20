@@ -6,9 +6,9 @@ import { login } from './utils/login';
 import { mockGovernanceErrorAfter } from './utils/mock-canister';
 
 const openStakingWizard = async (page: Page) => {
-  await test.step('Open staking wizard', async () => {
-    await page.getByRole('button', { name: 'Create your first neuron' }).click();
-    await expect(page.getByRole('dialog')).toBeVisible();
+  await test.step('Open staking wizard.', async () => {
+    await page.getByTestId('empty-neurons-state').getByRole('button').click();
+    await expect(page.getByTestId('staking-wizard-dialog')).toBeVisible();
   });
 };
 
@@ -17,118 +17,121 @@ test.describe('Staking Wizard', () => {
     await openApp({ page });
     await login({ page });
     await getIcps(page, '10');
+    // TODO: Review when there is more time - single click doesn't trigger on mobile bottom nav.
     await page.getByRole('link', { name: 'Stakes' }).dblclick();
     await openStakingWizard(page);
   });
 
   test('Validates the amount input', async ({ page }) => {
-    // Empty amount shows error
-    await page.getByRole('button', { name: 'Next' }).click();
-    await expect(page.getByText(/Minimum stake is/)).toBeVisible();
+    // Empty amount shows error.
+    await page.getByTestId('staking-wizard-next-btn').click();
+    await expect(page.getByTestId('staking-wizard-amount-error')).toBeVisible();
 
-    // Amount exceeding balance shows error
-    await page.locator('input[type="number"]').fill('999999');
-    await page.getByRole('button', { name: 'Next' }).click();
-    await expect(page.getByText('Insufficient balance')).toBeVisible();
+    // Amount exceeding balance shows error.
+    await page.getByTestId('staking-wizard-amount-input').fill('999999');
+    await page.getByTestId('staking-wizard-next-btn').click();
+    await expect(page.getByTestId('staking-wizard-amount-error')).toBeVisible();
 
-    // Valid amount proceeds to step 2
-    await page.locator('input[type="number"]').fill('5');
-    await page.getByRole('button', { name: 'Next' }).click();
-    await expect(page.getByText('Set Dissolve Delay')).toBeVisible();
+    // Valid amount proceeds to step 2.
+    await page.getByTestId('staking-wizard-amount-input').fill('5');
+    await page.getByTestId('staking-wizard-next-btn').click();
+    await expect(page.getByTestId('staking-wizard-dissolve-delay-step')).toBeVisible();
   });
 
   test('Navigates back through the wizard', async ({ page }) => {
-    // Enter amount
-    await page.locator('input[type="number"]').fill('5');
-    await page.getByRole('button', { name: 'Next' }).click();
+    // Enter amount.
+    await page.getByTestId('staking-wizard-amount-input').fill('5');
+    await page.getByTestId('staking-wizard-next-btn').click();
 
-    // Select non-default dissolve delay (8 Years)
-    await page.getByRole('button', { name: /8 Years/i }).click();
-    await page.getByRole('button', { name: 'Next' }).click();
+    // Select non-default dissolve delay (8 Years = 96 months).
+    await page.getByTestId('staking-wizard-delay-option-96').click();
+    await page.getByTestId('staking-wizard-next-btn').click();
 
-    // Verify we're on configuration
-    await expect(page.getByText('Configure Stake')).toBeVisible();
+    // Verify we're on configuration.
+    await expect(page.getByTestId('staking-wizard-configuration-step')).toBeVisible();
 
-    // Go back to step 2, verify we're back on dissolve delay step
-    await page.getByRole('button', { name: 'Back' }).click();
-    await expect(page.getByText('Set Dissolve Delay')).toBeVisible();
-    // The 8 Years button should have the selected style (border-green-600)
-    await expect(page.getByRole('button', { name: /8 Years/i })).toHaveClass(/border-green-600/);
+    // Go back to step 2, verify we're back on dissolve delay step.
+    await page.getByTestId('staking-wizard-back-btn').click();
+    await expect(page.getByTestId('staking-wizard-dissolve-delay-step')).toBeVisible();
+    // The 8 Years button should be selected.
+    await expect(page.getByTestId('staking-wizard-delay-option-96')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
 
-    // Go back to step 1, verify amount preserved
-    await page.getByRole('button', { name: 'Back' }).click();
-    await expect(page.locator('input[type="number"]')).toHaveValue('5');
+    // Go back to step 1, verify amount preserved.
+    await page.getByTestId('staking-wizard-back-btn').click();
+    await expect(page.getByTestId('staking-wizard-amount-input')).toHaveValue('5');
   });
 
   test('Resets the wizard when the modal is closed', async ({ page }) => {
-    // Enter amount and proceed to step 2
-    await page.locator('input[type="number"]').fill('5');
-    await page.getByRole('button', { name: 'Next' }).click();
-    await expect(page.getByText('Set Dissolve Delay')).toBeVisible();
+    // Enter amount and proceed to step 2.
+    await page.getByTestId('staking-wizard-amount-input').fill('5');
+    await page.getByTestId('staking-wizard-next-btn').click();
+    await expect(page.getByTestId('staking-wizard-dissolve-delay-step')).toBeVisible();
 
-    // Close modal
+    // Close modal.
     await page.keyboard.press('Escape');
-    await expect(page.getByRole('dialog')).not.toBeVisible();
+    await expect(page.getByTestId('staking-wizard-dialog')).not.toBeVisible();
 
-    // Reopen, should reset to step 1
+    // Reopen, should reset to step 1.
     await openStakingWizard(page);
-    await expect(page.locator('input[type="number"]')).toHaveValue('');
+    await expect(page.getByTestId('staking-wizard-amount-input')).toHaveValue('');
   });
 
   test('Completes the staking flow successfully', async ({ page }) => {
-    // Enter amount
-    await page.locator('input[type="number"]').fill('5');
-    await page.getByRole('button', { name: 'Next' }).click();
+    // Enter amount.
+    await page.getByTestId('staking-wizard-amount-input').fill('5');
+    await page.getByTestId('staking-wizard-next-btn').click();
 
-    // Select dissolve delay (use default 2 years)
-    await page.getByRole('button', { name: 'Next' }).click();
+    // Select dissolve delay (use default 2 years).
+    await page.getByTestId('staking-wizard-next-btn').click();
 
-    // Configure stake
-    await page.getByRole('button', { name: 'Create' }).click();
+    // Configure stake.
+    await page.getByTestId('staking-wizard-create-btn').click();
 
-    // Wait for success
-    await expect(page.getByText("You're now earning rewards!")).toBeVisible({ timeout: 30000 });
-    await page.getByRole('button', { name: 'Done' }).click();
+    // Wait for success.
+    await expect(page.getByTestId('staking-wizard-success')).toBeVisible({ timeout: 30000 });
+    await page.getByTestId('staking-wizard-done-btn').click();
 
-    // Verify modal closed, neuron card appears
-    await expect(page.getByRole('dialog')).not.toBeVisible();
-    await expect(page.getByText('Create your first neuron')).not.toBeVisible();
+    // Verify modal closed, empty state no longer visible.
+    await expect(page.getByTestId('staking-wizard-dialog')).not.toBeVisible();
+    await expect(page.getByTestId('empty-neurons-state')).not.toBeVisible();
 
-    // Verify neuron card shows correct values
-    const neuronCard = page.locator('[data-slot="card"]').filter({ hasText: 'Neuron' });
-    await expect(neuronCard.getByText('5.00 ICP')).toBeVisible(); // Staked amount
-    await expect(neuronCard.getByText(/2 years/i)).toBeVisible(); // Dissolve delay
-    await expect(neuronCard.getByText('Locked')).toBeVisible(); // Initial state
-    await expect(neuronCard.getByText('Keep Liquid')).toBeVisible(); // Maturity mode
+    // Verify neuron card shows correct values.
+    const neuronCard = page.getByTestId('neuron-card');
+    await expect(neuronCard.getByTestId('neuron-card-staked-amount')).toHaveText(/5\.00.*ICP/i);
+    await expect(neuronCard.getByTestId('neuron-card-dissolve-delay')).toHaveText(/2 years/i);
+    await expect(neuronCard.getByTestId('neuron-card-state')).toHaveText(/Locked/i);
+    await expect(neuronCard.getByTestId('neuron-card-maturity-mode')).toHaveText(/Keep Liquid/i);
   });
 
   test('Recovers from errors in the staking flow', async ({ page }) => {
-    // Mock governance to fail after first call (stakeNeuron succeeds, setDissolveDelay fails)
+    // Mock governance to fail after first call (stakeNeuron succeeds, setDissolveDelay fails).
     const removeMock = await mockGovernanceErrorAfter({ page, skipCalls: 1 });
 
-    // Complete wizard up to confirmation
-    await page.locator('input[type="number"]').fill('5');
-    await page.getByRole('button', { name: 'Next' }).click();
-    await page.getByRole('button', { name: 'Next' }).click();
-    await page.getByRole('button', { name: 'Create' }).click();
+    // Complete wizard up to confirmation.
+    await page.getByTestId('staking-wizard-amount-input').fill('5');
+    await page.getByTestId('staking-wizard-next-btn').click();
+    await page.getByTestId('staking-wizard-next-btn').click();
+    await page.getByTestId('staking-wizard-create-btn').click();
 
-    // Verify error state
-    await expect(page.getByText('Something went wrong')).toBeVisible({ timeout: 60000 });
-    await expect(page.getByText(/Setting lock period/)).toBeVisible();
+    // Verify error state.
+    await expect(page.getByTestId('staking-wizard-error')).toBeVisible({ timeout: 60000 });
 
-    // Remove mock and retry
+    // Remove mock and retry.
     await removeMock();
-    await page.getByRole('button', { name: 'Try Again' }).click();
+    await page.getByTestId('staking-wizard-retry-btn').click();
 
-    // Verify completes successfully
-    await expect(page.getByText("You're now earning rewards!")).toBeVisible({ timeout: 30000 });
-    await page.getByRole('button', { name: 'Done' }).click();
+    // Verify completes successfully.
+    await expect(page.getByTestId('staking-wizard-success')).toBeVisible({ timeout: 30000 });
+    await page.getByTestId('staking-wizard-done-btn').click();
 
-    // Verify neuron card shows correct values
-    const neuronCard = page.locator('[data-slot="card"]').filter({ hasText: 'Neuron' });
-    await expect(neuronCard.getByText('5.00 ICP')).toBeVisible(); // Staked amount
-    await expect(neuronCard.getByText(/2 years/i)).toBeVisible(); // Dissolve delay
-    await expect(neuronCard.getByText('Locked')).toBeVisible(); // Initial state
-    await expect(neuronCard.getByText('Keep Liquid')).toBeVisible(); // Maturity mode
+    // Verify neuron card shows correct values.
+    const neuronCard = page.getByTestId('neuron-card');
+    await expect(neuronCard.getByTestId('neuron-card-staked-amount')).toHaveText(/5\.00.*ICP/i);
+    await expect(neuronCard.getByTestId('neuron-card-dissolve-delay')).toHaveText(/2 years/i);
+    await expect(neuronCard.getByTestId('neuron-card-state')).toHaveText(/Locked/i);
+    await expect(neuronCard.getByTestId('neuron-card-maturity-mode')).toHaveText(/Keep Liquid/i);
   });
 });

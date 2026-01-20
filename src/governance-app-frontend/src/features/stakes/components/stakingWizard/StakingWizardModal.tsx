@@ -254,6 +254,7 @@ export function StakingWizardModal({ triggerText }: Props) {
         <ResponsiveDialogContent
           className="flex max-h-[90vh] flex-col focus:outline-none"
           showCloseButton={!createNeuron.isProcessing}
+          data-testid="staking-wizard-dialog"
         >
           <ResponsiveDialogHeader className="shrink-0">
             <div className="relative flex items-center justify-center">
@@ -262,6 +263,7 @@ export function StakingWizardModal({ triggerText }: Props) {
                   onClick={goBack}
                   className="absolute left-0 rounded-md p-1 hover:bg-muted"
                   aria-label={t(($) => $.common.back)}
+                  data-testid="staking-wizard-back-btn"
                 >
                   <ArrowLeft className="size-5" />
                 </button>

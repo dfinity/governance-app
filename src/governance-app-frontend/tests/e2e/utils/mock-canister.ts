@@ -17,6 +17,10 @@ export const mockGovernanceErrorAfter = async ({
   page: Page;
   skipCalls?: number;
 }): Promise<() => Promise<void>> => {
+  if (!CANISTER_ID_NNS_GOVERNANCE) {
+    throw new Error('CANISTER_ID_NNS_GOVERNANCE is not defined');
+  }
+
   let callCount = 0;
 
   const handler = async (route: Route) => {

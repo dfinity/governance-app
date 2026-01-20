@@ -13,8 +13,8 @@ declare module '@tanstack/react-router' {
   }
 }
 
-// Disable retries in E2E tests to speed up failure scenarios
-const isE2E = typeof window !== 'undefined' && window.localStorage.getItem('e2e-test') === 'true';
+// Disable retries in E2E tests to speed up failure scenarios.
+const isE2E = typeof window !== 'undefined' && window.isPlaywright;
 
 export const queryClientConfig = new QueryClient({
   defaultOptions: {

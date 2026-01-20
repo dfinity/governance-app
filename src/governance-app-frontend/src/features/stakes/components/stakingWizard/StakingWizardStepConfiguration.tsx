@@ -30,7 +30,11 @@ export function StakingWizardStepConfiguration({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-6"
+      data-testid="staking-wizard-configuration-step"
+    >
       {/* Maturity Mode Section */}
       <div className="space-y-3">
         <div>
@@ -105,7 +109,12 @@ export function StakingWizardStepConfiguration({
         </AlertDescription>
       </Alert>
 
-      <Button type="submit" size="xl" className="w-full uppercase">
+      <Button
+        type="submit"
+        size="xl"
+        className="w-full uppercase"
+        data-testid="staking-wizard-create-btn"
+      >
         {t(($) => $.stakeWizardModal.steps.configuration.confirm)}
       </Button>
     </form>
