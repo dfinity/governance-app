@@ -80,10 +80,9 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
             placeholder="0.00"
             id="stake-amount"
             ref={inputRef}
-            max={maxStake}
             value={amount}
             type="number"
-            min="0"
+            step="any"
             data-testid="staking-wizard-amount-input"
           />
           <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-1">
