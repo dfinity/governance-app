@@ -2,7 +2,7 @@ import { isNullish } from '@dfinity/utils';
 import { createFileRoute, Navigate } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ExternalLink } from 'lucide-react';
-import type { CSSProperties } from 'react';
+import { type CSSProperties, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useTvlValue } from '@features/login/hooks/useTvlValue';
@@ -36,6 +36,14 @@ function LoginPage() {
   const { t } = useTranslation();
   const { redirect = '/' } = Route.useSearch();
 
+  // Enforce dark theme on body for login page
+  useLayoutEffect(() => {
+    document.body.classList.add('dark');
+    return () => {
+      document.body.classList.remove('dark');
+    };
+  }, []);
+
   const { tvl, isLoading: isTvlLoading, isError: isTvlError } = useTvlValue();
   const participants = 57986;
 
@@ -45,9 +53,9 @@ function LoginPage() {
   if (identity) return <Navigate to={redirect} />;
 
   return (
-    <div className="dark relative min-h-dvh w-full font-sans text-foreground">
+    <div className="relative min-h-dvh w-full font-sans text-foreground">
       {/* Background */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
+      <div className="absolute inset-0 -z-10 overflow-hidden" data-testid="video-background">
         <div className="absolute inset-0 bg-black" />
         <div className="flex h-full w-full 3xl:mx-auto 3xl:max-w-[2000px] md:items-center">
           {/* Static image for users with reduced motion preference */}
@@ -65,13 +73,12 @@ function LoginPage() {
             muted
             playsInline
             preload="auto"
-            poster="/core-bg.webp"
             className="relative max-h-[720px] w-fit object-cover motion-reduce:hidden 3xl:translate-x-3/4 md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 xl:translate-x-1/2 2xl:translate-x-2/3"
             aria-hidden={true}
             style={FADE_MASK_STYLE}
           >
-            <source src="/core-bg.webm" type="video/webm" />
-            <source src="/core-bg.mp4" type="video/mp4" />
+            <source src="/core-bg-original.webm" type="video/webm" />
+            <source src="/core-bg-original.mp4" type="video/mp4" />
           </video>
         </div>
       </div>
