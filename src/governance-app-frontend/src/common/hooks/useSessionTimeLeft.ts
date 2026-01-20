@@ -9,7 +9,7 @@ type IdentityWithDelegation = {
       };
     }>;
   };
-}
+};
 
 const hasGetDelegation = (obj: unknown): obj is IdentityWithDelegation => {
   return (

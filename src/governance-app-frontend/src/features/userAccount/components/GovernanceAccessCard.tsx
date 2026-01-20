@@ -25,7 +25,7 @@ export const GovernanceAccessCard = () => {
       <div className="space-y-4">
         <div className="space-y-1">
           <p className="font-medium text-foreground">
-            {t(($) => $.accountSettings.governance.access.title)}
+            {t(($) => $.userAccount.governance.access.title)}
           </p>
         </div>
 
@@ -38,13 +38,13 @@ export const GovernanceAccessCard = () => {
               )}
             />
             {isParticipating
-              ? t(($) => $.accountSettings.governance.access.statusParticipating)
-              : t(($) => $.accountSettings.governance.access.statusNotParticipating)}
+              ? t(($) => $.userAccount.governance.access.statusParticipating)
+              : t(($) => $.userAccount.governance.access.statusNotParticipating)}
           </p>
           <p className="text-sm leading-relaxed text-muted-foreground">
             {isParticipating
-              ? t(($) => $.accountSettings.governance.access.descParticipating)
-              : t(($) => $.accountSettings.governance.access.descNotParticipating)}
+              ? t(($) => $.userAccount.governance.access.descParticipating)
+              : t(($) => $.userAccount.governance.access.descNotParticipating)}
           </p>
         </div>
       </div>
@@ -56,14 +56,14 @@ export const GovernanceAccessCard = () => {
               to="/stakes"
               className="group inline-flex w-fit items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
-              {t(($) => $.accountSettings.governance.access.links.viewStakes)}
+              {t(($) => $.userAccount.governance.access.links.viewStakes)}
               <ArrowRight className="ml-1 size-3 opacity-50 transition-transform group-hover:translate-x-0.5 group-hover:opacity-100" />
             </Link>
             <Link
               to="/voting"
               className="group inline-flex w-fit items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
-              {t(($) => $.accountSettings.governance.access.links.viewVotingActivity)}
+              {t(($) => $.userAccount.governance.access.links.viewVotingActivity)}
               <ArrowRight className="ml-1 size-3 opacity-50 transition-transform group-hover:translate-x-0.5 group-hover:opacity-100" />
             </Link>
           </>
@@ -74,19 +74,19 @@ export const GovernanceAccessCard = () => {
                 variant="ghost"
                 className="group h-auto justify-start p-0 text-sm text-muted-foreground hover:bg-transparent hover:text-foreground"
               >
-                {t(($) => $.accountSettings.governance.access.links.learnHow)}
+                {t(($) => $.userAccount.governance.access.links.learnHow)}
                 <Info className="ml-1.5 size-3.5 opacity-50 transition-transform group-hover:opacity-100" />
               </Button>
             </ResponsiveDialogTrigger>
             <ResponsiveDialogContent className="sm:max-w-md">
               <ResponsiveDialogHeader>
                 <ResponsiveDialogTitle>
-                  {t(($) => $.accountSettings.governance.access.links.learnHowModal.title)}
+                  {t(($) => $.userAccount.governance.access.links.learnHowModal.title)}
                 </ResponsiveDialogTitle>
               </ResponsiveDialogHeader>
               <div className="pb-8 sm:px-0 sm:pb-0">
                 <p className="text-sm leading-relaxed text-muted-foreground">
-                  {t(($) => $.accountSettings.governance.access.links.learnHowModal.content)}
+                  {t(($) => $.userAccount.governance.access.links.learnHowModal.content)}
                 </p>
               </div>
             </ResponsiveDialogContent>

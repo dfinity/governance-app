@@ -11,10 +11,10 @@ export const ManageIICard = () => {
       href={`${IDENTITY_PROVIDER}/login`}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label={t(($) => $.accountSettings.aria.iiLink)}
+      aria-label={t(($) => $.userAccount.aria.iiLink)}
       className="flex items-center justify-between transition-opacity hover:opacity-90"
     >
-      <p className="font-medium text-foreground">{t(($) => $.accountSettings.manageII)}</p>
+      <p className="font-medium text-foreground">{t(($) => $.userAccount.manageII)}</p>
       <ExternalLink className="size-5 text-muted-foreground" aria-hidden="true" />
     </a>
   );

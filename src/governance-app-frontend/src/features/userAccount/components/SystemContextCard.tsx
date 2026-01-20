@@ -11,10 +11,10 @@ export const SystemContextCard = () => {
       <div className="space-y-4">
         <div className="space-y-1">
           <p className="font-medium text-foreground">
-            {t(($) => $.accountSettings.governance.systemContext.title)}
+            {t(($) => $.userAccount.governance.systemContext.title)}
           </p>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            {t(($) => $.accountSettings.governance.systemContext.description)}
+            {t(($) => $.userAccount.governance.systemContext.description)}
           </p>
         </div>
       </div>
@@ -26,7 +26,7 @@ export const SystemContextCard = () => {
           rel="noopener noreferrer"
           className="group inline-flex w-fit items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
-          {t(($) => $.accountSettings.governance.systemContext.links.learnHow)}
+          {t(($) => $.userAccount.governance.systemContext.links.learnHow)}
           <ExternalLink className="ml-1.5 size-3 opacity-50 transition-transform group-hover:opacity-100" />
         </a>
         <a
@@ -35,7 +35,7 @@ export const SystemContextCard = () => {
           rel="noopener noreferrer"
           className="group inline-flex w-fit items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
-          {t(($) => $.accountSettings.governance.systemContext.links.readUpdate)}
+          {t(($) => $.userAccount.governance.systemContext.links.readUpdate)}
           <ExternalLink className="ml-1.5 size-3 opacity-50 transition-transform group-hover:opacity-100" />
         </a>
       </div>

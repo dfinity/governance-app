@@ -4,11 +4,11 @@ import { LogOut } from 'lucide-react';
 import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { GovernanceAccessCard } from '@features/account-settings/components/GovernanceAccessCard';
-import { ManageIICard } from '@features/account-settings/components/ManageIICard';
-import { AccountIdCard, PrincipalCard } from '@features/account-settings/components/PrincipalCard';
-import { SystemContextCard } from '@features/account-settings/components/SystemContextCard';
-import { ThemeCard } from '@features/account-settings/components/ThemeCard';
+import { GovernanceAccessCard } from '@features/userAccount/components/GovernanceAccessCard';
+import { ManageIICard } from '@features/userAccount/components/ManageIICard';
+import { AccountIdCard, PrincipalCard } from '@features/userAccount/components/PrincipalCard';
+import { SystemContextCard } from '@features/userAccount/components/SystemContextCard';
+import { ThemeCard } from '@features/userAccount/components/ThemeCard';
 
 import { Button } from '@components/button';
 import { Card } from '@components/Card';
@@ -67,8 +67,8 @@ function Account() {
   return (
     <div className="flex flex-col gap-12 pb-20">
       <PageSection
-        title={t(($) => $.accountSettings.account)}
-        description={t(($) => $.accountSettings.accountDescription)}
+        title={t(($) => $.userAccount.account)}
+        description={t(($) => $.userAccount.accountDescription)}
       >
         <PrincipalCard />
         <AccountIdCard />
@@ -78,7 +78,7 @@ function Account() {
       <section className="flex flex-col gap-4">
         <div className="space-y-1">
           <h2 className="text-xl font-semibold tracking-tight">
-            {t(($) => $.accountSettings.governance.title)}
+            {t(($) => $.userAccount.governance.title)}
           </h2>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -91,22 +91,22 @@ function Account() {
         </div>
       </section>
 
-      <PageSection title={t(($) => $.accountSettings.appearance)}>
+      <PageSection title={t(($) => $.userAccount.appearance)}>
         <ThemeCard />
       </PageSection>
 
       <section className="flex flex-col gap-4">
         <div className="space-y-1">
           <h2 className="text-xl font-semibold tracking-tight">
-            {t(($) => $.accountSettings.session.title)}
+            {t(($) => $.userAccount.session.title)}
           </h2>
           <div className="flex flex-col gap-1">
             <p className="text-sm text-muted-foreground">
-              {t(($) => $.accountSettings.session.signOutDescription)}
+              {t(($) => $.userAccount.session.signOutDescription)}
             </p>
             {timeLeft && (
               <p className="text-sm text-muted-foreground">
-                {t(($) => $.accountSettings.session.timeLeft, {
+                {t(($) => $.userAccount.session.timeLeft, {
                   minutes: timeLeft.minutes,
                   seconds: timeLeft.seconds.toString().padStart(2, '0'),
                 })}

@@ -2,7 +2,6 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 import account from './en/account.json';
-import accountSettings from './en/account-settings.json';
 import common from './en/common.json';
 import enums from './en/enums.json';
 import errors from './en/errors.json';
@@ -17,6 +16,7 @@ import welcomeModal from './en/modals/welcome.json';
 import neuron from './en/neuron.json';
 import nns from './en/nns.json';
 import proposal from './en/proposal.json';
+import userAccount from './en/userAccount.json';
 import voting from './en/voting.json';
 
 // Using a single namespace "labels" for simplicity.
@@ -36,7 +36,7 @@ export const resources = {
       voting,
       neuron,
       account,
-      accountSettings,
+      userAccount,
       welcomeModal,
       knownNeurons,
       depositModal,
