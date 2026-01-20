@@ -10,7 +10,7 @@ export const login = async ({ page }: { page: Page }) => {
     const [newTab] = await Promise.all([
       // Catches the new tab.
       page.waitForEvent('popup'),
-      page.getByRole('button', { name: 'Login' }).click(),
+      page.getByTestId('login-btn').click(),
     ]);
 
     // Ensures all assets loaded.
@@ -38,9 +38,9 @@ export const login = async ({ page }: { page: Page }) => {
     await expect(newTab.isClosed()).toBe(true);
 
     // Close the welcome modal if it appears.
-    const welcomeModal = page.getByText('Welcome to NNS Governance');
+    const welcomeModal = page.getByTestId('welcome-modal');
     if (await welcomeModal.isVisible({ timeout: 30000 }).catch(() => false)) {
-      await page.getByRole('button', { name: 'Get Started' }).click();
+      await page.getByTestId('welcome-modal-cta-btn').click();
       await expect(welcomeModal).not.toBeVisible();
     }
   });

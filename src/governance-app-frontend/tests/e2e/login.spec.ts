@@ -6,7 +6,7 @@ import { takeSnapshot } from './utils/take-snapshot';
 
 test('Successfully logs in', async ({ page }) => {
   await openApp({ page });
-  await page.waitForSelector('[data-testid="login-btn"]');
+  await page.getByTestId('login-btn');
   await takeSnapshot({ page, label: 'login--signed-out' });
   await login({ page });
 });
