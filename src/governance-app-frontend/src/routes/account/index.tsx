@@ -1,7 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { LogOut } from 'lucide-react';
-import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { GovernanceAccessCard } from '@features/userAccount/components/GovernanceAccessCard';
@@ -23,36 +22,6 @@ export const Route = createFileRoute('/account/')({
   },
 });
 
-const PageSection = ({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description?: string;
-  children: ReactNode;
-}) => (
-  <section className="flex flex-col gap-4">
-    <div className="space-y-1">
-      <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
-      {description && <p className="text-sm text-muted-foreground">{description}</p>}
-    </div>
-    <Card className="overflow-hidden p-0 shadow-sm">
-      <div className="flex flex-col divide-y">
-        {Array.isArray(children) ? (
-          children.map((child, i) => (
-            <div key={i} className="px-6 py-5">
-              {child}
-            </div>
-          ))
-        ) : (
-          <div className="px-6 py-5">{children}</div>
-        )}
-      </div>
-    </Card>
-  </section>
-);
-
 function Account() {
   const { identity, clear } = useInternetIdentity();
   const { t } = useTranslation();
@@ -66,14 +35,29 @@ function Account() {
 
   return (
     <div className="flex flex-col gap-12 pb-20">
-      <PageSection
-        title={t(($) => $.userAccount.account)}
-        description={t(($) => $.userAccount.accountDescription)}
-      >
-        <PrincipalCard />
-        <AccountIdCard />
-        <ManageIICard />
-      </PageSection>
+      <section className="flex flex-col gap-4">
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold tracking-tight">
+            {t(($) => $.userAccount.account)}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {t(($) => $.userAccount.accountDescription)}
+          </p>
+        </div>
+        <Card className="overflow-hidden p-0 shadow-sm">
+          <div className="flex flex-col divide-y">
+            <div className="px-6 py-5">
+              <PrincipalCard />
+            </div>
+            <div className="px-6 py-5">
+              <AccountIdCard />
+            </div>
+            <div className="px-6 py-5">
+              <ManageIICard />
+            </div>
+          </div>
+        </Card>
+      </section>
 
       <section className="flex flex-col gap-4">
         <div className="space-y-1">
@@ -91,9 +75,16 @@ function Account() {
         </div>
       </section>
 
-      <PageSection title={t(($) => $.userAccount.appearance)}>
-        <ThemeCard />
-      </PageSection>
+      <section className="flex flex-col gap-4">
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold tracking-tight">
+            {t(($) => $.userAccount.appearance)}
+          </h2>
+        </div>
+        <Card className="p-6 shadow-sm">
+          <ThemeCard />
+        </Card>
+      </section>
 
       <section className="flex flex-col gap-4">
         <div className="space-y-1">
