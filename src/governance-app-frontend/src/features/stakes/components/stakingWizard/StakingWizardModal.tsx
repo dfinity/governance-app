@@ -18,7 +18,7 @@ import {
   ResponsiveDialog,
   ResponsiveDialogContent,
   ResponsiveDialogHeader,
-  ResponsiveDialogTitle
+  ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
