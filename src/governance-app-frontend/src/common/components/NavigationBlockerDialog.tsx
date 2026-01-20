@@ -15,19 +15,10 @@ import { buttonVariants } from './button';
 
 type Props = {
   isBlocked: boolean;
-  title?: string;
-  description?: string;
-  stayButtonText?: string;
-  leaveButtonText?: string;
+  description: string;
 };
 
-export function NavigationBlockerDialog({
-  isBlocked,
-  title,
-  description,
-  stayButtonText,
-  leaveButtonText,
-}: Props) {
+export function NavigationBlockerDialog({ isBlocked, description }: Props) {
   const { t } = useTranslation();
 
   const { status, proceed, reset } = useBlocker({
@@ -36,25 +27,20 @@ export function NavigationBlockerDialog({
     enableBeforeUnload: isBlocked,
   });
 
-  const dialogTitle = title ?? t(($) => $.common.warning);
-  const dialogDescription = description ?? t(($) => $.common.confirmNavigation);
-  const stayText = stayButtonText ?? t(($) => $.common.cancel);
-  const leaveText = leaveButtonText ?? t(($) => $.common.leave);
-
   return (
     <AlertDialog open={status === 'blocked'}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{dialogTitle}</AlertDialogTitle>
-          <AlertDialogDescription>{dialogDescription}</AlertDialogDescription>
+          <AlertDialogTitle>{t(($) => $.common.warning)}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={reset}>{stayText}</AlertDialogCancel>
+          <AlertDialogCancel onClick={reset}>{t(($) => $.common.cancel)}</AlertDialogCancel>
           <AlertDialogAction
             onClick={proceed}
             className={buttonVariants({ variant: 'destructive' })}
           >
-            {leaveText}
+            {t(($) => $.common.leave)}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
