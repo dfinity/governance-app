@@ -107,12 +107,13 @@ test.describe('Staking Wizard', () => {
     await expect(page.getByTestId('staking-wizard-dialog')).not.toBeVisible();
     await expect(page.getByTestId('empty-neurons-state')).not.toBeVisible();
 
-    // Verify neuron card shows correct values.
-    const neuronCard = page.getByTestId('neuron-card');
-    await expect(neuronCard.getByTestId('neuron-card-staked-amount')).toHaveText(/5\.00.*ICP/i);
-    await expect(neuronCard.getByTestId('neuron-card-dissolve-delay')).toHaveText(/2 years/i);
-    await expect(neuronCard.getByTestId('neuron-card-state')).toHaveText(/Locked/i);
-    await expect(neuronCard.getByTestId('neuron-card-maturity-mode')).toHaveText(/Keep Liquid/i);
+    // Verify exactly 1 neuron card with correct values.
+    const neuronCards = page.getByTestId('neuron-card');
+    await expect(neuronCards).toHaveCount(1);
+    await expect(neuronCards.getByTestId('neuron-card-staked-amount')).toHaveText(/5\.00.*ICP/i);
+    await expect(neuronCards.getByTestId('neuron-card-dissolve-delay')).toHaveText(/2 years/i);
+    await expect(neuronCards.getByTestId('neuron-card-state')).toHaveText(/Locked/i);
+    await expect(neuronCards.getByTestId('neuron-card-maturity-mode')).toHaveText(/Keep Liquid/i);
   });
 
   test('Recovers from errors in the staking flow', async ({ page }) => {
@@ -136,11 +137,12 @@ test.describe('Staking Wizard', () => {
     await expect(page.getByTestId('staking-wizard-success')).toBeVisible({ timeout: 30000 });
     await page.getByTestId('staking-wizard-done-btn').click();
 
-    // Verify neuron card shows correct values.
-    const neuronCard = page.getByTestId('neuron-card');
-    await expect(neuronCard.getByTestId('neuron-card-staked-amount')).toHaveText(/5\.00.*ICP/i);
-    await expect(neuronCard.getByTestId('neuron-card-dissolve-delay')).toHaveText(/2 years/i);
-    await expect(neuronCard.getByTestId('neuron-card-state')).toHaveText(/Locked/i);
-    await expect(neuronCard.getByTestId('neuron-card-maturity-mode')).toHaveText(/Keep Liquid/i);
+    // Verify exactly 1 neuron card with correct values.
+    const neuronCards = page.getByTestId('neuron-card');
+    await expect(neuronCards).toHaveCount(1);
+    await expect(neuronCards.getByTestId('neuron-card-staked-amount')).toHaveText(/5\.00.*ICP/i);
+    await expect(neuronCards.getByTestId('neuron-card-dissolve-delay')).toHaveText(/2 years/i);
+    await expect(neuronCards.getByTestId('neuron-card-state')).toHaveText(/Locked/i);
+    await expect(neuronCards.getByTestId('neuron-card-maturity-mode')).toHaveText(/Keep Liquid/i);
   });
 });
