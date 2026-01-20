@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { EmptyNeuronsState } from '@features/stakes/components/EmptyNeuronsState';
 import { NeuronsList } from '@features/stakes/components/NeuronsList';
-import { StakeNeuronModal } from '@features/stakes/components/StakeNeuronModal';
+import { StakingWizardModal } from '@features/stakes/components/stakingWizard/StakingWizardModal';
 
 import { QueryStates } from '@components/QueryStates';
 import { useGovernanceNeurons } from '@hooks/governance';
@@ -31,13 +31,13 @@ function StakesComponent() {
         </div>
         <div
           className={cn(
-            'flex-1 sm:flex-initial',
+            'flex flex-1 gap-2 sm:flex-initial',
             neuronsQuery.isSuccess && neuronsQuery.data?.response.length === 0
-              ? 'hidden sm:block'
+              ? 'hidden sm:flex'
               : '',
           )}
         >
-          <StakeNeuronModal />
+          <StakingWizardModal />
         </div>
       </div>
 

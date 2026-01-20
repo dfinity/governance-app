@@ -240,14 +240,13 @@ const getAPY = (params: StakingRewardCalcParams, forceInitialDate?: Date) => {
   const singleNeuronsApy = new Map<string, { cur: number; max: number }>();
 
   params.neurons.forEach((neuron) => {
-    const neuronTotalStake = bigIntDiv(getNeuronTotalStakeAfterFeesE8s(neuron), BigInt(E8S), 8);
+    const neuronTotalStake = bigIntDiv(getNeuronTotalStakeAfterFeesE8s(neuron), BigInt(E8S));
     total += neuronTotalStake;
 
     const neuronTotalMaxStake = bigIntDiv(
       // Considering the un-staked maturity as well
       getNeuronTotalValueAfterFeesE8s(neuron),
       BigInt(E8S),
-      8,
     );
     totalMax += neuronTotalMaxStake;
 

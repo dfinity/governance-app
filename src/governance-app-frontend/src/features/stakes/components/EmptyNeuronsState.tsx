@@ -1,9 +1,7 @@
-import { Network, Plus } from 'lucide-react';
+import { Network } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@components/button';
-
-import { StakeNeuronModal } from './StakeNeuronModal';
+import { StakingWizardModal } from './stakingWizard/StakingWizardModal';
 
 export const EmptyNeuronsState = () => {
   const { t } = useTranslation();
@@ -17,14 +15,7 @@ export const EmptyNeuronsState = () => {
       <p className="max-w-sm text-base text-muted-foreground">
         {t(($) => $.neuron.empty.description)}
       </p>
-      <StakeNeuronModal
-        trigger={
-          <Button size="xl" className="w-full capitalize xs:w-auto">
-            <Plus className="mr-2 size-5" />
-            {t(($) => $.neuron.empty.cta)}
-          </Button>
-        }
-      />
+      <StakingWizardModal triggerText={t(($) => $.neuron.empty.cta)} />
     </div>
   );
 };

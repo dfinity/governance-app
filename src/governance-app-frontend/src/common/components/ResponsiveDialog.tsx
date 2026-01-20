@@ -19,14 +19,22 @@ import {
 } from '@components/Drawer';
 import { useMediaQuery } from '@hooks/useMediaQuery';
 
-export function ResponsiveDialog({ children, ...props }: React.ComponentProps<typeof Dialog>) {
+type Props = React.ComponentProps<typeof Dialog> & {
+  dismissible?: boolean;
+};
+
+export function ResponsiveDialog({ children, dismissible = true, ...props }: Props) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   if (isDesktop) {
     return <Dialog {...props}>{children}</Dialog>;
   }
 
-  return <Drawer {...props}>{children}</Drawer>;
+  return (
+    <Drawer dismissible={dismissible} {...props}>
+      {children}
+    </Drawer>
+  );
 }
 
 export function ResponsiveDialogTrigger({
@@ -45,13 +53,14 @@ export function ResponsiveDialogTrigger({
 export function ResponsiveDialogContent({
   className,
   children,
+  showCloseButton,
   ...props
 }: React.ComponentProps<typeof DialogContent>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   if (isDesktop) {
     return (
-      <DialogContent className={className} {...props}>
+      <DialogContent className={className} showCloseButton={showCloseButton} {...props}>
         {children}
       </DialogContent>
     );

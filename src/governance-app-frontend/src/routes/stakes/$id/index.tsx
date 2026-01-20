@@ -15,6 +15,7 @@ import { useStakingRewards } from '@hooks/useStakingRewards';
 import useTitle from '@hooks/useTitle';
 import { bigIntDiv, stringToBigInt } from '@utils/bigInt';
 import { getNeuronId } from '@utils/neuron';
+import { formatNumber, formatPercentage } from '@utils/numbers';
 import { requireIdentity } from '@utils/router';
 import {
   isStakingRewardDataError,
@@ -118,7 +119,7 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
             </span>
             <span>
               {neuron.fullNeuron?.maturityE8sEquivalent
-                ? bigIntDiv(neuron.fullNeuron.maturityE8sEquivalent, E8Sn, 2)
+                ? formatNumber(bigIntDiv(neuron.fullNeuron.maturityE8sEquivalent, E8Sn))
                 : t(($) => $.common.notAvailable)}
             </span>
           </div>
@@ -155,7 +156,7 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
               {isStakingRewardDataError(apyData) && <WarningMessage message={apyData.error} />}
               {isStakingRewardDataReady(apyData) ? (
                 <span>
-                  {((apyData.apy.neurons.get(getNeuronId(neuron))?.cur ?? 0) * 100).toFixed(2)}%
+                  {formatPercentage(apyData.apy.neurons.get(getNeuronId(neuron))?.cur ?? 0)}
                 </span>
               ) : null}
             </span>

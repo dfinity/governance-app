@@ -7,6 +7,7 @@ import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
+import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers';
@@ -71,7 +72,10 @@ export const TotalAssetsCard = () => {
           {isStakingRewardDataReady(stakingRewards) ? (
             <p className="text-lg font-light">
               {t(($) => $.home.participateSubtitle, {
-                value: formatPercentage(stakingRewards.stakingFlowApyPreview[96].autoStake.locked),
+                value: formatPercentage(
+                  stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_MONTHS].autoStake
+                    .locked,
+                ),
               })}
             </p>
           ) : isStakingRewardDataError(stakingRewards) ? (
