@@ -1,12 +1,15 @@
 import type { KnownNeuron } from '@icp-sdk/canisters/nns';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { isKnownNeuron } from '@features/voting/utils/findFollowedNeuron';
+import { KNOWN_NEURONS_SORTING_MAP } from '@features/voting/data/knownNeuronsSorting';
+import { formatVotingPower } from '@features/voting/utils/formatVotingPower';
 
 import { Badge } from '@components/badge';
 import { Card, CardContent } from '@components/Card';
 import { DASHBOARD_URL } from '@constants/extra';
+import { nonNullish } from '@dfinity/utils';
 
 type Props = {
   neuron: KnownNeuron | bigint;
@@ -28,6 +31,16 @@ export const FollowedNeuronCard = ({ neuron }: Props) => {
       return (
         <div className="flex min-w-0 flex-col gap-1">
           <h4 className="truncate text-base font-semibold">{neuron.name}</h4>
+          {(() => {
+            const votingPower = KNOWN_NEURONS_SORTING_MAP[String(neuron.id)]?.voting_power;
+
+            return nonNullish(votingPower) ? (
+              <div className="flex items-center gap-1 text-muted-foreground">
+                <Users className="size-3" />
+                <span className="text-xs">{formatVotingPower(votingPower)} voting power</span>
+              </div>
+            ) : null;
+          })()}
           {committedTopics.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
               {committedTopics.map((topic) => (
