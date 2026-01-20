@@ -47,7 +47,10 @@ export function StakingWizardStepConfirmation({
 
   if (isProcessing) {
     return (
-      <div className="flex flex-col items-center gap-6 text-center">
+      <div
+        className="flex flex-col items-center gap-6 text-center"
+        data-testid="staking-wizard-processing"
+      >
         <AnimatedLoader />
         <div>
           <p className="mb-3 text-lg font-semibold">
@@ -66,7 +69,10 @@ export function StakingWizardStepConfirmation({
 
   if (error) {
     return (
-      <div className="flex flex-col items-center gap-6 text-center">
+      <div
+        className="flex flex-col items-center gap-6 text-center"
+        data-testid="staking-wizard-error"
+      >
         <div className="flex size-20 items-center justify-center rounded-full bg-destructive/10">
           <AnimatedErrorIcon />
         </div>
@@ -80,7 +86,12 @@ export function StakingWizardStepConfirmation({
             })}
           </span>
         </div>
-        <Button onClick={onRetry} size="xl" className="w-full uppercase">
+        <Button
+          onClick={onRetry}
+          size="xl"
+          className="w-full uppercase"
+          data-testid="staking-wizard-retry-btn"
+        >
           {t(($) => $.stakeWizardModal.steps.confirmation.error.retry)}
         </Button>
       </div>
@@ -96,7 +107,10 @@ export function StakingWizardStepConfirmation({
     : '';
 
   return (
-    <div className="flex flex-col items-center gap-6 text-center">
+    <div
+      className="flex flex-col items-center gap-6 text-center"
+      data-testid="staking-wizard-success"
+    >
       <motion.div
         className="flex size-20 items-center justify-center rounded-full bg-green-600/10"
         initial={{ scale: 0.8, opacity: 0 }}
@@ -132,7 +146,12 @@ export function StakingWizardStepConfirmation({
         </div>
       </div>
 
-      <Button onClick={onDone} size="xl" className="w-full uppercase">
+      <Button
+        onClick={onDone}
+        size="xl"
+        className="w-full uppercase"
+        data-testid="staking-wizard-done-btn"
+      >
         {t(($) => $.stakeWizardModal.steps.confirmation.success.done)}
       </Button>
     </div>

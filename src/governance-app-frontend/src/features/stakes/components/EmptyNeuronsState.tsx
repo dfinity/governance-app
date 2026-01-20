@@ -1,9 +1,13 @@
-import { Network } from 'lucide-react';
+import { Network, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { StakingWizardModal } from './stakingWizard/StakingWizardModal';
+import { Button } from '@components/button';
 
-export const EmptyNeuronsState = () => {
+type Props = {
+  openStakingWizard: () => void;
+};
+
+export const EmptyNeuronsState = ({ openStakingWizard }: Props) => {
   const { t } = useTranslation();
 
   return (
@@ -15,7 +19,15 @@ export const EmptyNeuronsState = () => {
       <p className="max-w-sm text-base text-muted-foreground">
         {t(($) => $.neuron.empty.description)}
       </p>
-      <StakingWizardModal triggerText={t(($) => $.neuron.empty.cta)} />
+      <Button
+        data-testid="empty-neurons-state-open-staking-wizard-btn"
+        className="w-full sm:w-auto"
+        onClick={openStakingWizard}
+        size="xl"
+      >
+        <Plus />
+        {t(($) => $.neuron.empty.cta)}
+      </Button>
     </div>
   );
 };
