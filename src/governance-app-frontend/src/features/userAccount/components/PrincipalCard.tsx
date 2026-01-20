@@ -20,7 +20,7 @@ export const PrincipalCard = () => {
       </div>
       <CopyButton
         value={identity.getPrincipal().toText()}
-        label={t(($) => $.userAccount.principalIdentifier)}
+        label={t(($) => $.userAccount.principalId)}
         className="shrink-0"
       />
     </div>

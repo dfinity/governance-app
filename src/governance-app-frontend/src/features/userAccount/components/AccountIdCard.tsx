@@ -31,7 +31,7 @@ export const AccountIdCard = () => {
       </div>
       <CopyButton
         value={accountId}
-        label={t(($) => $.userAccount.accountIdentifier)}
+        label={t(($) => $.userAccount.accountId)}
         className="shrink-0"
       />
     </div>
