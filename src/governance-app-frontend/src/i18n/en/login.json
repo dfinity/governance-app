@@ -1,8 +1,8 @@
 {
   "headerTitle": "Govern how the cloud evolves",
-  "proposalsAdopted": "Proposals adopted (30d)",
+  "totalProposals": "Governance proposals",
   "participants": "Participants",
-  "tvl": "Total Value Locked",
+  "tvl": "Total value locked",
   "accessText": "Access ICP governance activity, staking, and rewards.",
   "loginWithII": "Login with Internet Identity",
   "legacyNnsDapp": "Go to the legacy NNS Dapp"

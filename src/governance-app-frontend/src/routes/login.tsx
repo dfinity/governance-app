@@ -6,11 +6,11 @@ import { type CSSProperties, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useTvlValue } from '@features/login/hooks/useTvlValue';
-import { useProposalsAdoptedLastXDays } from '@features/proposals/hooks/useProposalsAdoptedLastXDays';
 
 import { Button } from '@components/button';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
+import { useGovernanceProposals } from '@hooks/governance';
 import { formatNumber } from '@utils/numbers';
 
 type LoginSearch = {
@@ -46,9 +46,8 @@ function LoginPage() {
 
   const { tvl, isLoading: isTvlLoading, isError: isTvlError } = useTvlValue();
   const participants = 57986;
-
-  const { proposals, isLoading } = useProposalsAdoptedLastXDays(30);
-  const proposalsAdopted = proposals.length;
+  const proposalsQuery = useGovernanceProposals({ limit: 1 });
+  const totalProposals = proposalsQuery?.data?.pages?.[0]?.response?.proposals[0]?.id ?? 0n;
 
   if (identity) return <Navigate to={redirect} />;
 
@@ -104,11 +103,19 @@ function LoginPage() {
           {/* Stats Section (Desktop: Bottom / Mobile: Below Title) */}
           <dl className="order-1 mt-auto flex flex-col gap-8 md:order-2 md:mt-auto md:mb-6 md:h-13 md:flex-row md:gap-16">
             <div className="flex flex-col-reverse gap-1">
-              <dt className="text-sm font-light tracking-wider text-muted-foreground">
-                {t(($) => $.login.proposalsAdopted)}
+              <dt className="text-sm font-light tracking-wider text-muted-foreground capitalize">
+                {t(($) => $.login.totalProposals)}
               </dt>
               <dd className="text-2xl leading-none font-bold md:text-3xl">
-                {isLoading ? <Skeleton className="h-7 w-8 md:h-8" /> : proposalsAdopted}
+                {proposalsQuery?.isLoading ? (
+                  <Skeleton className="h-7 w-30 md:h-8" />
+                ) : proposalsQuery?.isError ? (
+                  '-/-'
+                ) : (
+                  // Safe Number casting as the number of proposals is within the range
+                  // totalProposals < Number.MAX_SAFE_INTEGER
+                  formatNumber(Number(totalProposals), { minFraction: 0, maxFraction: 0 })
+                )}
               </dd>
             </div>
 
@@ -123,7 +130,11 @@ function LoginPage() {
                 {t(($) => $.login.participants)}
               </dt>
               <dd className="text-2xl leading-none font-bold md:text-3xl">
-                {formatNumber(participants, { maxFraction: 0, minFraction: 0 })}
+                {isTvlLoading && proposalsQuery?.isLoading ? (
+                  <Skeleton className="h-7 w-26 md:h-8" />
+                ) : (
+                  formatNumber(participants, { maxFraction: 0, minFraction: 0 })
+                )}
               </dd>
             </div>
 
@@ -134,7 +145,7 @@ function LoginPage() {
             />
 
             <div className="flex flex-col-reverse gap-1">
-              <dt className="text-sm font-light tracking-wider text-muted-foreground">
+              <dt className="text-sm font-light tracking-wider text-muted-foreground capitalize">
                 {t(($) => $.login.tvl)}
               </dt>
               <dd className="text-2xl leading-none font-bold md:text-3xl">
