@@ -92,14 +92,14 @@ function Account() {
           <h2 className="text-xl font-semibold tracking-tight">
             {t(($) => $.userAccount.session.title)}
           </h2>
-          {timeLeft && (
+          {timeLeft.minutes > 0 || timeLeft.seconds > 0 ? (
             <p className="text-sm text-muted-foreground">
               {t(($) => $.userAccount.session.timeLeft, {
                 minutes: timeLeft.minutes,
                 seconds: timeLeft.seconds.toString().padStart(2, '0'),
               })}
             </p>
-          )}
+          ) : null}
         </div>
         {identity && (
           <Button

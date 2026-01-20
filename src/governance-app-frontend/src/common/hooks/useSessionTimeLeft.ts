@@ -55,7 +55,12 @@ export const useSessionTimeLeft = () => {
     return () => clearInterval(interval);
   }, [identity]);
 
-  if (timeLeft === null) return null;
+  if (timeLeft === null) {
+    return {
+      minutes: 0,
+      seconds: 0,
+    };
+  }
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
@@ -63,6 +68,5 @@ export const useSessionTimeLeft = () => {
   return {
     minutes,
     seconds,
-    totalSeconds: timeLeft,
   };
 };
