@@ -1,4 +1,4 @@
-import { ArrowLeft, Plus } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -12,14 +12,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@components/AlertDialog';
-import { Button, buttonVariants } from '@components/button';
+import { buttonVariants } from '@components/button';
 import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
   ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-  ResponsiveDialogTrigger,
+  ResponsiveDialogTitle
 } from '@components/ResponsiveDialog';
 import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
@@ -46,14 +45,15 @@ import {
 
 interface Props {
   triggerText?: string;
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
 }
 
-export function StakingWizardModal({ triggerText }: Props) {
+export function StakingWizardModal({ triggerText, isOpen, setIsOpen }: Props) {
   const { t } = useTranslation();
 
   const { data: balanceValue } = useIcpLedgerAccountBalance();
 
-  const [isOpen, setIsOpen] = useState(false);
   const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
   const [step, setStep] = useState<StakingWizardStep>(StakingWizardStep.Amount);
   const [formState, setFormState] = useState<StakingWizardFormState>(
@@ -246,12 +246,6 @@ export function StakingWizardModal({ triggerText }: Props) {
         onOpenChange={handleOpenChange}
         dismissible={!createNeuron.isProcessing}
       >
-        <ResponsiveDialogTrigger asChild>
-          <Button size="xl" onClick={handleTriggerClick} className="w-full sm:w-auto">
-            <Plus />
-            {triggerText ?? t(($) => $.stakeWizardModal.title)}
-          </Button>
-        </ResponsiveDialogTrigger>
         <ResponsiveDialogContent
           className="flex max-h-[90vh] flex-col focus:outline-none"
           showCloseButton={!createNeuron.isProcessing}

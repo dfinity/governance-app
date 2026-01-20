@@ -7,7 +7,7 @@ import { mockGovernanceErrorAfter } from './utils/mock-canister';
 
 const openStakingWizard = async (page: Page) => {
   await test.step('Open staking wizard.', async () => {
-    await page.getByTestId('empty-neurons-state').getByRole('button').click();
+    await page.getByTestId('empty-neurons-state-open-staking-wizard-btn').click();
     await expect(page.getByTestId('staking-wizard-dialog')).toBeVisible();
   });
 };
