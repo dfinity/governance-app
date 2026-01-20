@@ -3,9 +3,10 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { AccountIdCard } from '@features/userAccount/components/AccountIdCard';
 import { GovernanceAccessCard } from '@features/userAccount/components/GovernanceAccessCard';
 import { ManageIICard } from '@features/userAccount/components/ManageIICard';
-import { AccountIdCard, PrincipalCard } from '@features/userAccount/components/PrincipalCard';
+import { PrincipalCard } from '@features/userAccount/components/PrincipalCard';
 import { SystemContextCard } from '@features/userAccount/components/SystemContextCard';
 import { ThemeCard } from '@features/userAccount/components/ThemeCard';
 
