@@ -1,7 +1,6 @@
 {
   "baseTitle": "Governance",
   "proposalsList": "Proposals list",
-  "neuronsList": "Neurons list",
   "neuronsDetails": "Neuron {{neuronId}} details",
   "loading": "Loading",
   "loadingError": "Error loading data.",
