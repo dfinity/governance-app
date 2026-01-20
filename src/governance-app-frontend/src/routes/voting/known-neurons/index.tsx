@@ -11,13 +11,6 @@ import { KnownNeuronCard } from '@features/voting/components/KnownNeuronCard';
 import { getUsersFollowedNeurons, isKnownNeuron } from '@features/voting/utils/findFollowedNeuron';
 import { isActiveKnownNeuron, sortKnownNeurons } from '@features/voting/utils/knownNeurons';
 
-import { Button } from '@components/button';
-import { Skeleton } from '@components/Skeleton';
-import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
-import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
-import useTitle from '@hooks/useTitle';
-import { warningNotification } from '@utils/notification';
-import { QUERY_KEYS } from '@utils/query';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +21,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@common/components/AlertDialog';
+import { Button } from '@components/button';
+import { Skeleton } from '@components/Skeleton';
+import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
+import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
+import useTitle from '@hooks/useTitle';
+import { warningNotification } from '@utils/notification';
+import { QUERY_KEYS } from '@utils/query';
 
 export const Route = createFileRoute('/voting/known-neurons/')({
   component: KnownNeuronsList,
@@ -175,7 +175,7 @@ function KnownNeuronsList() {
   };
 
   const handleConfirmSelection = () => {
-    if (!pendingSelection || !neuronsQuery.data?.response) return;
+    if (!neuronsQuery.data?.certified || !canister || !pendingSelection) return;
 
     updateFollowingMutation.mutate({
       neurons: neuronsQuery.data.response,

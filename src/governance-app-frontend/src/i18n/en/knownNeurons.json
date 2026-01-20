@@ -15,7 +15,7 @@
   "confirmNavigation": "Follow process in progress.",
   "confirmation": {
     "title": "Confirm your selection",
-    "description": "You are going to setup all your stakes to follow the same Known Neuron. This will override existing configurations. Are you sure?",
+    "description": "You are going to set up all your stakes to follow the same Known Neuron. This will override existing configurations. Are you sure?",
     "confirm": "Confirm",
     "cancel": "Cancel"
   }
