@@ -1,5 +1,10 @@
 import { formatNumber } from '@common/utils/numbers';
 
+/**
+ * Prettifies a voting power number into a human-readable string with appropriate units (K, M).
+ * @param amount a positive number
+ * @returns a string with a prettify representation of the voting power
+ */
 export const formatVotingPower = (amount: number): string => {
   if (amount >= 100_000_000) {
     // Hundreds of millions -> 192M (0 decimals)
