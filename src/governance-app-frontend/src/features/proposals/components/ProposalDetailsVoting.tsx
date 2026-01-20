@@ -7,11 +7,10 @@ import { Trans, useTranslation } from 'react-i18next';
 import { Button } from '@components/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@components/Card';
 import { E8S } from '@constants/extra';
-import { formatPercentage } from '@utils/numbers';
+import { formatNumber, formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
 import { useVoting } from '../hooks/useVoting';
-import { formatVotingPower } from '../utils';
 
 type Props = {
   proposal: ProposalInfo;
@@ -94,7 +93,12 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
             <span className="text-xs text-muted-foreground capitalize">
               {t(($) => $.proposal.totalVotingPower)}
             </span>
-            <span className="font-semibold">{formatVotingPower(total)}</span>
+            <span className="font-semibold">
+              {formatNumber(total, {
+                minFraction: 0,
+                maxFraction: 0,
+              })}
+            </span>
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground capitalize">
@@ -107,7 +111,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
               {t(($) => $.proposal.yesVotes)}
             </span>
             <span className="font-semibold text-emerald-800 dark:text-emerald-400">
-              {formatVotingPower(yes)}
+              {formatNumber(yes, { minFraction: 0, maxFraction: 0 })}
             </span>
           </div>
           <div className="flex flex-col gap-1">
@@ -115,7 +119,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
               {t(($) => $.proposal.noVotes)}
             </span>
             <span className="font-semibold text-red-800 dark:text-red-400">
-              {formatVotingPower(no)}
+              {formatNumber(no, { minFraction: 0, maxFraction: 0 })}
             </span>
           </div>
         </div>
