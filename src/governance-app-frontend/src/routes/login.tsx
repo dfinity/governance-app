@@ -69,7 +69,7 @@ function LoginPage() {
             aria-hidden={true}
             style={FADE_MASK_STYLE}
           >
-            <source src="/core-bg-original.webm" type="video/mp4" />
+            <source src="/core-bg-original.webm" type="video/webm" />
             <source src="/core-bg-original.mp4" type="video/mp4" />
           </video>
         </div>
