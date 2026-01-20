@@ -30,4 +30,26 @@ describe('formatVotingPower', () => {
     expect(formatVotingPower(500)).toBe('500');
     expect(formatVotingPower(999)).toBe('999');
   });
+
+  describe('edge cases - truncation behavior', () => {
+    it('truncates hundreds of millions at boundary', () => {
+      expect(formatVotingPower(199_999_999)).toBe('199M');
+    });
+
+    it('truncates tens of millions at boundary', () => {
+      expect(formatVotingPower(99_999_999)).toBe('99.9M');
+    });
+
+    it('truncates hundreds of thousands at boundary', () => {
+      expect(formatVotingPower(999_999)).toBe('999K');
+    });
+
+    it('truncates thousands at boundary', () => {
+      expect(formatVotingPower(99_999)).toBe('99.9K');
+    });
+
+    it('truncates small numbers at boundary', () => {
+      expect(formatVotingPower(999)).toBe('999');
+    });
+  });
 });
