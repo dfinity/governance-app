@@ -1,7 +1,8 @@
-import { nonNullish } from '@dfinity/utils';
 import type { KnownNeuron } from '@icp-sdk/canisters/nns';
+import { nonNullish } from '@dfinity/utils';
 import { ChevronDown, ChevronUp, Circle, CircleDot, LinkIcon, Loader2, Users } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { KNOWN_NEURONS_SORTING_MAP } from '@features/voting/data/knownNeuronsSorting';
 import { formatVotingPower } from '@features/voting/utils/formatVotingPower';
@@ -13,7 +14,6 @@ import { MarkdownRenderer } from '@components/MarkdownRenderer';
 import { DASHBOARD_URL } from '@constants/extra';
 import { cn } from '@utils/shadcn';
 import { safeParseUrl } from '@utils/urls';
-import { useTranslation } from 'react-i18next';
 
 type Props = {
   isDisabled: boolean;
