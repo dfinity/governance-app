@@ -2,7 +2,7 @@ import { isNullish } from '@dfinity/utils';
 import { createFileRoute, Navigate } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ExternalLink } from 'lucide-react';
-import type { CSSProperties } from 'react';
+import { type CSSProperties, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useTvlValue } from '@features/login/hooks/useTvlValue';
@@ -36,6 +36,14 @@ function LoginPage() {
   const { t } = useTranslation();
   const { redirect = '/' } = Route.useSearch();
 
+  // Enforce dark theme on body for login page
+  useLayoutEffect(() => {
+    document.body.classList.add('dark');
+    return () => {
+      document.body.classList.remove('dark');
+    };
+  }, []);
+
   const { tvl, isLoading: isTvlLoading, isError: isTvlError } = useTvlValue();
   const participants = 57986;
 
@@ -45,7 +53,7 @@ function LoginPage() {
   if (identity) return <Navigate to={redirect} />;
 
   return (
-    <div className="dark relative min-h-dvh w-full font-sans text-foreground">
+    <div className="relative min-h-dvh w-full font-sans text-foreground">
       {/* Background */}
       <div className="absolute inset-0 -z-10 overflow-hidden" data-testid="video-background">
         <div className="absolute inset-0 bg-black" />
