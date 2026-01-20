@@ -1,4 +1,4 @@
-import { ArrowLeft, Plus } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -12,20 +12,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@components/AlertDialog';
-import { Button, buttonVariants } from '@components/button';
+import { buttonVariants } from '@components/button';
 import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
-  ResponsiveDialogTrigger,
 } from '@components/ResponsiveDialog';
-import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
-import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useStakingRewards } from '@hooks/useStakingRewards';
-import { bigIntDiv } from '@utils/bigInt';
-import { warningNotification } from '@utils/notification';
 import { formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
@@ -45,15 +40,13 @@ import {
 } from './types';
 
 interface Props {
-  triggerText?: string;
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
 }
 
-export function StakingWizardModal({ triggerText }: Props) {
+export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
   const { t } = useTranslation();
 
-  const { data: balanceValue } = useIcpLedgerAccountBalance();
-
-  const [isOpen, setIsOpen] = useState(false);
   const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
   const [step, setStep] = useState<StakingWizardStep>(StakingWizardStep.Amount);
   const [formState, setFormState] = useState<StakingWizardFormState>(
@@ -196,18 +189,6 @@ export function StakingWizardModal({ triggerText }: Props) {
     return `~${formatPercentage(getCurrentApyValue())}`;
   };
 
-  const balanceICPs = bigIntDiv(balanceValue?.response || 0n, E8Sn);
-  const canStake = balanceICPs > ICP_TRANSACTION_FEE;
-
-  const handleTriggerClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    if (!canStake) {
-      event.preventDefault();
-      warningNotification({
-        description: t(($) => $.stakeWizardModal.errors.cannotStake),
-      });
-    }
-  };
-
   return (
     <>
       {/* Block navigation during processing */}
@@ -222,7 +203,7 @@ export function StakingWizardModal({ triggerText }: Props) {
       />
       {/* Confirmation dialog when closing modal with unsaved data */}
       <AlertDialog open={showCloseConfirmation} onOpenChange={setShowCloseConfirmation}>
-        <AlertDialogContent>
+        <AlertDialogContent data-testid="staking-wizard-close-confirmation">
           <AlertDialogHeader>
             <AlertDialogTitle>{t(($) => $.common.warning)}</AlertDialogTitle>
             <AlertDialogDescription>
@@ -234,6 +215,7 @@ export function StakingWizardModal({ triggerText }: Props) {
             <AlertDialogAction
               onClick={handleConfirmClose}
               className={buttonVariants({ variant: 'destructive' })}
+              data-testid="staking-wizard-close-confirmation-leave"
             >
               {t(($) => $.common.leave)}
             </AlertDialogAction>
@@ -245,15 +227,10 @@ export function StakingWizardModal({ triggerText }: Props) {
         onOpenChange={handleOpenChange}
         dismissible={!createNeuron.isProcessing}
       >
-        <ResponsiveDialogTrigger asChild>
-          <Button size="xl" onClick={handleTriggerClick} className="w-full sm:w-auto">
-            <Plus />
-            {triggerText ?? t(($) => $.stakeWizardModal.title)}
-          </Button>
-        </ResponsiveDialogTrigger>
         <ResponsiveDialogContent
           className="flex max-h-[90vh] flex-col focus:outline-none"
           showCloseButton={!createNeuron.isProcessing}
+          data-testid="staking-wizard-dialog"
         >
           <ResponsiveDialogHeader className="shrink-0">
             <div className="relative flex items-center justify-center">
@@ -262,6 +239,7 @@ export function StakingWizardModal({ triggerText }: Props) {
                   onClick={goBack}
                   className="absolute left-0 rounded-md p-1 hover:bg-muted"
                   aria-label={t(($) => $.common.back)}
+                  data-testid="staking-wizard-back-btn"
                 >
                   <ArrowLeft className="size-5" />
                 </button>

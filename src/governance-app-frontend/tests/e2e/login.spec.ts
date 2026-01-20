@@ -4,14 +4,8 @@ import { openApp } from './utils/app';
 import { login } from './utils/login';
 import { takeSnapshot } from './utils/take-snapshot';
 
-test('Has title.', async ({ page }) => {
-  page.on('console', (msg) => {
-    console.log(`[browser] ${msg.type()}: ${msg.text()}`);
-  });
-
+test('Successfully logs in', async ({ page }) => {
   await openApp({ page });
-
-  // Wait for the login card to ensure content is loaded
   await page.waitForSelector('[data-testid="login-btn"]');
 
   // Hide the random map and video background via CSS to ensure stable snapshots
@@ -21,6 +15,5 @@ test('Has title.', async ({ page }) => {
   });
 
   await takeSnapshot({ page, label: 'login--signed-out' });
-
   await login({ page });
 });
