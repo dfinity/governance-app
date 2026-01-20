@@ -11,6 +11,16 @@ import { KnownNeuronCard } from '@features/voting/components/KnownNeuronCard';
 import { getUsersFollowedNeurons, isKnownNeuron } from '@features/voting/utils/findFollowedNeuron';
 import { isActiveKnownNeuron, sortKnownNeurons } from '@features/voting/utils/knownNeurons';
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@common/components/AlertDialog';
 import { Button } from '@components/button';
 import { Skeleton } from '@components/Skeleton';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
@@ -39,6 +49,7 @@ function KnownNeuronsList() {
   const knownNeuronsQuery = useGovernanceKnownNeurons();
 
   const [selectedNeuronId, setSelectedNeuronId] = useState<string | null>(null);
+  const [pendingSelection, setPendingSelection] = useState<KnownNeuron | null>(null);
 
   useEffect(() => {
     const userNeurons = neuronsQuery.data?.response;
@@ -134,6 +145,7 @@ function KnownNeuronsList() {
   const handleSelect = (knownNeuron: KnownNeuron) => {
     if (!neuronsQuery.data?.certified || !canister) return;
     const neurons = neuronsQuery.data.response;
+    const allKnownNeurons = knownNeuronsQuery.data?.response;
 
     if (neurons.length === 0) {
       warningNotification({
@@ -142,56 +154,104 @@ function KnownNeuronsList() {
       return;
     }
 
+    // Check if user already follows someone
+    if (allKnownNeurons) {
+      const followedNeurons = getUsersFollowedNeurons({
+        userNeurons: neurons,
+        knownNeurons: allKnownNeurons,
+      });
+
+      // If existing following (consistent or not), prompt for confirmation
+      if (followedNeurons.length > 0) {
+        setPendingSelection(knownNeuron);
+        return;
+      }
+    }
+
     updateFollowingMutation.mutate({
       neurons,
       knownNeuron,
     });
   };
 
+  const handleConfirmSelection = () => {
+    if (!pendingSelection || !neuronsQuery.data?.response) return;
+
+    updateFollowingMutation.mutate({
+      neurons: neuronsQuery.data.response,
+      knownNeuron: pendingSelection,
+    });
+    setPendingSelection(null);
+  };
+
   const knownNeurons = knownNeuronsQuery.data?.response;
   const sortedKnownNeurons = knownNeurons?.filter(isActiveKnownNeuron).toSorted(sortKnownNeurons);
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <Button variant="link" asChild className="p-0! font-normal">
-          <Link to="/voting" search={{ showProposals: search.showProposals }}>
-            <ArrowLeft className="size-5" />
-            {t(($) => $.proposal.backToProposals)}
-          </Link>
-        </Button>
-      </div>
-      <div className="flex flex-col gap-2">
-        <h2 className="text-2xl font-semibold">{t(($) => $.knownNeurons.title)}</h2>
-        <p className="text-sm text-muted-foreground">{t(($) => $.knownNeurons.description)}</p>
+    <>
+      <div className="flex flex-col gap-6">
+        <div>
+          <Button variant="link" asChild className="p-0! font-normal">
+            <Link to="/voting" search={{ showProposals: search.showProposals }}>
+              <ArrowLeft className="size-5" />
+              {t(($) => $.proposal.backToProposals)}
+            </Link>
+          </Button>
+        </div>
+        <div className="flex flex-col gap-2">
+          <h2 className="text-2xl font-semibold">{t(($) => $.knownNeurons.title)}</h2>
+          <p className="text-sm text-muted-foreground">{t(($) => $.knownNeurons.description)}</p>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          {knownNeuronsQuery.isLoading ? (
+            <div className="flex items-center gap-4 p-4">
+              <Skeleton className="h-6 w-6 rounded-2xl" />
+              <Skeleton className="h-8 w-80 rounded" />
+            </div>
+          ) : knownNeuronsQuery.isError ? (
+            // @TODO: Improve error UI
+            <p className="text-destructive">{t(($) => $.common.loadingError)}</p>
+          ) : sortedKnownNeurons?.length === 0 ? (
+            <p className="text-muted-foreground">{t(($) => $.knownNeurons.empty)}</p>
+          ) : (
+            sortedKnownNeurons?.map((neuron) => (
+              <KnownNeuronCard
+                key={neuron.id.toString()}
+                neuron={neuron}
+                isSelected={selectedNeuronId === neuron.id.toString()}
+                onSelect={handleSelect}
+                isLoading={
+                  updateFollowingMutation.isPending && selectedNeuronId === neuron.id.toString()
+                }
+                isDisabled={updateFollowingMutation.isPending || !neuronsQuery.data?.certified}
+              />
+            ))
+          )}
+        </div>
       </div>
 
-      <div className="flex flex-col gap-4">
-        {knownNeuronsQuery.isLoading ? (
-          <div className="flex items-center gap-4 p-4">
-            <Skeleton className="h-6 w-6 rounded-2xl" />
-            <Skeleton className="h-8 w-80 rounded" />
-          </div>
-        ) : knownNeuronsQuery.isError ? (
-          // @TODO: Improve error UI
-          <p className="text-destructive">{t(($) => $.common.loadingError)}</p>
-        ) : sortedKnownNeurons?.length === 0 ? (
-          <p className="text-muted-foreground">{t(($) => $.knownNeurons.empty)}</p>
-        ) : (
-          sortedKnownNeurons?.map((neuron) => (
-            <KnownNeuronCard
-              key={neuron.id.toString()}
-              neuron={neuron}
-              isSelected={selectedNeuronId === neuron.id.toString()}
-              onSelect={handleSelect}
-              isLoading={
-                updateFollowingMutation.isPending && selectedNeuronId === neuron.id.toString()
-              }
-              isDisabled={updateFollowingMutation.isPending || !neuronsQuery.data?.certified}
-            />
-          ))
-        )}
-      </div>
-    </div>
+      <AlertDialog
+        open={!!pendingSelection}
+        onOpenChange={(open: boolean) => !open && setPendingSelection(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t(($) => $.knownNeurons.confirmation.title)}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t(($) => $.knownNeurons.confirmation.description)}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingSelection(null)}>
+              {t(($) => $.knownNeurons.confirmation.cancel)}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmSelection}>
+              {t(($) => $.knownNeurons.confirmation.confirm)}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
