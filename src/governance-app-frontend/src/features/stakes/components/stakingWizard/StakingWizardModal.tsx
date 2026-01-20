@@ -20,11 +20,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
-import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
-import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useStakingRewards } from '@hooks/useStakingRewards';
-import { bigIntDiv } from '@utils/bigInt';
-import { warningNotification } from '@utils/notification';
 import { formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
@@ -44,15 +40,12 @@ import {
 } from './types';
 
 interface Props {
-  triggerText?: string;
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
 }
 
-export function StakingWizardModal({ triggerText, isOpen, setIsOpen }: Props) {
+export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
   const { t } = useTranslation();
-
-  const { data: balanceValue } = useIcpLedgerAccountBalance();
 
   const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
   const [step, setStep] = useState<StakingWizardStep>(StakingWizardStep.Amount);
@@ -194,18 +187,6 @@ export function StakingWizardModal({ triggerText, isOpen, setIsOpen }: Props) {
       return '~...%';
     }
     return `~${formatPercentage(getCurrentApyValue())}`;
-  };
-
-  const balanceICPs = bigIntDiv(balanceValue?.response || 0n, E8Sn);
-  const canStake = balanceICPs > ICP_TRANSACTION_FEE;
-
-  const handleTriggerClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    if (!canStake) {
-      event.preventDefault();
-      warningNotification({
-        description: t(($) => $.stakeWizardModal.errors.cannotStake),
-      });
-    }
   };
 
   return (

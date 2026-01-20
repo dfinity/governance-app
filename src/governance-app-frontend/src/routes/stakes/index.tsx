@@ -10,8 +10,12 @@ import { StakingWizardModal } from '@features/stakes/components/stakingWizard/St
 
 import { Button } from '@components/button';
 import { QueryStates } from '@components/QueryStates';
+import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
+import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import type { CertifiedData } from '@typings/queries';
+import { bigIntDiv } from '@utils/bigInt';
+import { warningNotification } from '@utils/notification';
 import { cn } from '@utils/shadcn';
 
 export const Route = createFileRoute('/stakes/')({
@@ -25,6 +29,19 @@ function StakesComponent() {
   const [isStakingWizardOpen, setIsStakingWizardOpen] = useState(false);
   const neuronsQuery = useGovernanceNeurons();
   const { t } = useTranslation();
+
+  const { data: balanceValue } = useIcpLedgerAccountBalance();
+  const balanceICPs = bigIntDiv(balanceValue?.response || 0n, E8Sn);
+  const canStake = balanceICPs > ICP_TRANSACTION_FEE;
+
+  const handleOpenStakingWizard = () => {
+    if (!canStake) {
+      warningNotification({
+        description: t(($) => $.stakeWizardModal.errors.cannotStake),
+      });
+    }
+    setIsStakingWizardOpen(true);
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -42,7 +59,7 @@ function StakesComponent() {
           )}
         >
           <Button
-            onClick={() => setIsStakingWizardOpen(true)}
+            onClick={handleOpenStakingWizard}
             data-testid="staking-wizard-trigger-btn"
             className="w-full sm:w-auto"
             size="xl"
@@ -56,9 +73,7 @@ function StakesComponent() {
       <QueryStates<CertifiedData<NeuronInfo[]>>
         query={neuronsQuery}
         isEmpty={(neurons) => neurons.response.length === 0}
-        emptyComponent={
-          <EmptyNeuronsState openStakingWizard={() => setIsStakingWizardOpen(true)} />
-        }
+        emptyComponent={<EmptyNeuronsState openStakingWizard={handleOpenStakingWizard} />}
       >
         {(neurons) => <NeuronsList neurons={neurons.response} />}
       </QueryStates>
