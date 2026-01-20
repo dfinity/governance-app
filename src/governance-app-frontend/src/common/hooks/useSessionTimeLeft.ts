@@ -1,7 +1,7 @@
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useState } from 'react';
 
-interface IdentityWithDelegation {
+type IdentityWithDelegation = {
   getDelegation: () => {
     delegations: Array<{
       delegation: {
