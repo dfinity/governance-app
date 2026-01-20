@@ -47,7 +47,7 @@ function LoginPage() {
   return (
     <div className="dark relative min-h-dvh w-full font-sans text-foreground">
       {/* Background */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
+      <div className="absolute inset-0 -z-10 overflow-hidden" data-testid="video-background">
         <div className="absolute inset-0 bg-black" />
         <div className="flex h-full w-full 3xl:mx-auto 3xl:max-w-[2000px] md:items-center">
           {/* Static image for users with reduced motion preference */}
