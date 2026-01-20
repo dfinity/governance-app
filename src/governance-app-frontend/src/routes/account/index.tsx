@@ -100,19 +100,14 @@ function Account() {
           <h2 className="text-xl font-semibold tracking-tight">
             {t(($) => $.userAccount.session.title)}
           </h2>
-          <div className="flex flex-col gap-1">
+          {timeLeft && (
             <p className="text-sm text-muted-foreground">
-              {t(($) => $.userAccount.session.signOutDescription)}
+              {t(($) => $.userAccount.session.timeLeft, {
+                minutes: timeLeft.minutes,
+                seconds: timeLeft.seconds.toString().padStart(2, '0'),
+              })}
             </p>
-            {timeLeft && (
-              <p className="text-sm text-muted-foreground">
-                {t(($) => $.userAccount.session.timeLeft, {
-                  minutes: timeLeft.minutes,
-                  seconds: timeLeft.seconds.toString().padStart(2, '0'),
-                })}
-              </p>
-            )}
-          </div>
+          )}
         </div>
         {identity && (
           <Button

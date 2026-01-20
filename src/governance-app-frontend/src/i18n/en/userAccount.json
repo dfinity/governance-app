@@ -53,7 +53,6 @@
   },
   "session": {
     "title": "Session",
-    "signOutDescription": "Sign out of your current session.",
     "timeLeft": "Session expires in {{minutes}}m {{seconds}}s"
   }
 }
