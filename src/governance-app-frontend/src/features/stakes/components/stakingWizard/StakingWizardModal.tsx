@@ -222,7 +222,7 @@ export function StakingWizardModal({ triggerText }: Props) {
       />
       {/* Confirmation dialog when closing modal with unsaved data */}
       <AlertDialog open={showCloseConfirmation} onOpenChange={setShowCloseConfirmation}>
-        <AlertDialogContent>
+        <AlertDialogContent data-testid="staking-wizard-close-confirmation">
           <AlertDialogHeader>
             <AlertDialogTitle>{t(($) => $.common.warning)}</AlertDialogTitle>
             <AlertDialogDescription>
@@ -234,6 +234,7 @@ export function StakingWizardModal({ triggerText }: Props) {
             <AlertDialogAction
               onClick={handleConfirmClose}
               className={buttonVariants({ variant: 'destructive' })}
+              data-testid="staking-wizard-close-confirmation-leave"
             >
               {t(($) => $.common.leave)}
             </AlertDialogAction>

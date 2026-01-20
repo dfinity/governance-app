@@ -27,6 +27,11 @@ test.describe('Staking Wizard', () => {
     await page.getByTestId('staking-wizard-next-btn').click();
     await expect(page.getByTestId('staking-wizard-amount-error')).toBeVisible();
 
+    // Amount below the min ICP stake amount (1 ICP) shows error.
+    await page.getByTestId('staking-wizard-amount-input').fill('0.99');
+    await page.getByTestId('staking-wizard-next-btn').click();
+    await expect(page.getByTestId('staking-wizard-amount-error')).toBeVisible();
+
     // Amount exceeding balance shows error.
     await page.getByTestId('staking-wizard-amount-input').fill('999999');
     await page.getByTestId('staking-wizard-next-btn').click();
@@ -70,8 +75,12 @@ test.describe('Staking Wizard', () => {
     await page.getByTestId('staking-wizard-next-btn').click();
     await expect(page.getByTestId('staking-wizard-dissolve-delay-step')).toBeVisible();
 
-    // Close modal.
+    // Try to close modal - confirmation dialog should appear.
     await page.keyboard.press('Escape');
+    await expect(page.getByTestId('staking-wizard-close-confirmation')).toBeVisible();
+
+    // Confirm close.
+    await page.getByTestId('staking-wizard-close-confirmation-leave').click();
     await expect(page.getByTestId('staking-wizard-dialog')).not.toBeVisible();
 
     // Reopen, should reset to step 1.
@@ -117,7 +126,7 @@ test.describe('Staking Wizard', () => {
     await page.getByTestId('staking-wizard-create-btn').click();
 
     // Verify error state.
-    await expect(page.getByTestId('staking-wizard-error')).toBeVisible({ timeout: 60000 });
+    await expect(page.getByTestId('staking-wizard-error')).toBeVisible({ timeout: 30000 });
 
     // Remove mock and retry.
     await removeMock();
