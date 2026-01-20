@@ -18,7 +18,8 @@
     "toggleSystem": "Toggle system",
     "iiLink": "Manage your Internet Identity (opens in new tab)"
   },
-  "theme": "Appearance",
+  "appearance": "Appearance",
+  "theme": "Theme",
   "themeDescription": "Select your preferred theme for the application.",
   "manageII": "Manage your Internet Identity",
   "governance": {

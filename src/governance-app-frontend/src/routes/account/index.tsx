@@ -91,7 +91,7 @@ function Account() {
         </div>
       </section>
 
-      <PageSection title={t(($) => $.accountSettings.theme)}>
+      <PageSection title={t(($) => $.accountSettings.appearance)}>
         <ThemeCard />
       </PageSection>
 
