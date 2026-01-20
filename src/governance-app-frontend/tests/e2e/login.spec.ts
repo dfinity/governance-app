@@ -10,8 +10,7 @@ test('Successfully logs in', async ({ page }) => {
 
   // Hide the random map and video background via CSS to ensure stable snapshots
   await page.addStyleTag({
-    content:
-      '[data-testid="decentralized-map"], [data-testid="video-background"] { opacity: 0 !important; }',
+    content: '[data-testid="video-background"] { opacity: 0 !important; }',
   });
 
   await takeSnapshot({ page, label: 'login--signed-out' });
