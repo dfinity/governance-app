@@ -61,7 +61,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
   const isMaxApy = nonNullish(apy) && apy.cur.toFixed(2) === apy.max.toFixed(2);
 
   return (
-    <Card className="gap-3 transition-colors hover:border-foreground">
+    <Card className="gap-3 transition-colors hover:border-foreground" data-testid="neuron-card">
       <CardHeader className="flex flex-col items-start justify-between space-y-0 xs:flex-row">
         <div>
           <h3 className="text-base font-semibold">
@@ -103,7 +103,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
             <p className="text-[13px] text-muted-foreground capitalize">
               {t(($) => $.neuron.stakedAmount)}
             </p>
-            <p className="text-[15px] font-semibold">
+            <p className="text-[15px] font-semibold" data-testid="neuron-card-staked-amount">
               {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
             </p>
           </div>
@@ -113,8 +113,16 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
               {t(($) => $.neuron.dissolveDelay)}
             </p>
             <div className="flex items-center gap-2">
-              <p className="text-[15px] font-semibold capitalize">{durationText}</p>
-              <div className="flex items-center gap-1 rounded-sm border border-gray-200 bg-gray-100 px-2 py-0.5 text-gray-600 hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-900/30 dark:text-gray-400">
+              <p
+                className="text-[15px] font-semibold capitalize"
+                data-testid="neuron-card-dissolve-delay"
+              >
+                {durationText}
+              </p>
+              <div
+                className="flex items-center gap-1 rounded-sm border border-gray-200 bg-gray-100 px-2 py-0.5 text-gray-600 hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-900/30 dark:text-gray-400"
+                data-testid="neuron-card-state"
+              >
                 {isDissolving ? <Timer className="size-3" /> : <Lock className="size-3" />}
                 <p className="text-[11px] font-medium">
                   {isDissolving ? t(($) => $.neuron.dissolving) : t(($) => $.neuron.locked)}
@@ -146,7 +154,10 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
             <p className="text-[13px] text-muted-foreground capitalize">
               {t(($) => $.neuron.maturityMode)}
             </p>
-            <p className="text-[15px] font-semibold capitalize">
+            <p
+              className="text-[15px] font-semibold capitalize"
+              data-testid="neuron-card-maturity-mode"
+            >
               {isAutoStake ? t(($) => $.neuron.autoStake) : t(($) => $.neuron.keepLiquid)}
             </p>
           </div>

@@ -35,7 +35,11 @@ export function StakingWizardStepDissolveDelay({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-4"
+      data-testid="staking-wizard-dissolve-delay-step"
+    >
       <p className="text-sm text-muted-foreground">
         {t(($) => $.stakeWizardModal.steps.dissolveDelay.description)}
       </p>
@@ -51,6 +55,8 @@ export function StakingWizardStepDissolveDelay({
                 key={option.value}
                 onClick={() => onDissolveDelayChange(option.value)}
                 className={`rounded-lg border-2 px-4 py-4 text-center font-medium transition-colors outline-none focus-visible:bg-muted/70 active:bg-muted ${isSelected ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}
+                data-testid={`staking-wizard-delay-option-${option.value}`}
+                aria-pressed={isSelected}
               >
                 {t(($) => $.stakeWizardModal.steps.dissolveDelay.presets[option.labelKey])}
               </button>
@@ -66,6 +72,8 @@ export function StakingWizardStepDissolveDelay({
               ? 'border-green-600 bg-gradient-to-br from-green-600/12 to-green-600/4'
               : 'border-green-600/30 bg-gradient-to-br from-green-600/8 to-green-600/4 hover:bg-gradient-to-br hover:from-green-600/14 hover:to-green-600/8'
           }`}
+          data-testid={`staking-wizard-delay-option-${maxRewardsOption.value}`}
+          aria-pressed={isMaxRewardsSelected}
         >
           <span className="font-medium">
             {t(($) => $.stakeWizardModal.steps.dissolveDelay.presets[maxRewardsOption.labelKey])}
@@ -84,7 +92,12 @@ export function StakingWizardStepDissolveDelay({
         </AlertDescription>
       </Alert>
 
-      <Button type="submit" size="xl" className="w-full uppercase">
+      <Button
+        type="submit"
+        size="xl"
+        className="w-full uppercase"
+        data-testid="staking-wizard-next-btn"
+      >
         {t(($) => $.common.next)}
       </Button>
     </form>

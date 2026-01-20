@@ -3,30 +3,29 @@ import { expect, type Page, test } from '@playwright/test';
 import { firstVisibleLocatorIndex } from './locator';
 
 export const login = async ({ page }: { page: Page }) => {
-  await test.step('Login', async () => {
+  await test.step('Can log in.', async () => {
     await expect(page.getByTestId('login-btn')).toBeVisible();
     await expect(page.getByTestId('login-btn')).toBeEnabled();
 
     const [newTab] = await Promise.all([
-      page.waitForEvent('popup'), // catches the new tab
+      // Catches the new tab.
+      page.waitForEvent('popup'),
       page.getByRole('button', { name: 'Login' }).click(),
     ]);
 
-    await newTab.waitForLoadState('networkidle'); // ensures all assets loaded
+    // Ensures all assets loaded.
+    await newTab.waitForLoadState('networkidle');
     await expect(newTab).toHaveTitle(/Internet Identity/);
 
-    // create new identity
+    // Create new identity.
     await newTab.getByRole('button', { name: 'Create Internet Identity' }).click();
-
     const passkeyBtn = newTab.getByRole('button', { name: 'Create Passkey' });
     const continueBtn = newTab.getByRole('button', { name: 'I saved it, continue' });
     const visibleIndex = await firstVisibleLocatorIndex([passkeyBtn, continueBtn]);
 
     if (visibleIndex === 1) {
-      console.log('🧪 ii: I saved it, continue', await newTab.title());
       await continueBtn.click();
     } else {
-      console.log('🧪 ii: Create Passkey', await newTab.title());
       await passkeyBtn.click();
       await newTab.getByRole('button', { name: 'Create Passkey' }).click();
       await newTab.locator('input#captchaInput').fill('a');
@@ -34,8 +33,15 @@ export const login = async ({ page }: { page: Page }) => {
       await newTab.getByRole('button', { name: 'Continue' }).click();
     }
 
-    await newTab.waitForEvent('close'); // wait until user is redirected back and tab closes
-
+    // Wait until user is redirected back and tab closes.
+    await newTab.waitForEvent('close');
     await expect(newTab.isClosed()).toBe(true);
+
+    // Close the welcome modal if it appears.
+    const welcomeModal = page.getByText('Welcome to NNS Governance');
+    if (await welcomeModal.isVisible({ timeout: 30000 }).catch(() => false)) {
+      await page.getByRole('button', { name: 'Get Started' }).click();
+      await expect(welcomeModal).not.toBeVisible();
+    }
   });
 };
