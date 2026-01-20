@@ -28,19 +28,20 @@ export const FollowedNeuronCard = ({ neuron }: Props) => {
         Object.keys(topic[0] ?? {}),
       );
 
+      const votingPower = KNOWN_NEURONS_SORTING_MAP[String(neuron.id)]?.voting_power;
+
       return (
         <div className="flex min-w-0 flex-col gap-1">
           <h4 className="truncate text-base font-semibold">{neuron.name}</h4>
-          {(() => {
-            const votingPower = KNOWN_NEURONS_SORTING_MAP[String(neuron.id)]?.voting_power;
-
-            return nonNullish(votingPower) ? (
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <Users className="size-3" />
-                <span className="text-xs">{formatVotingPower(votingPower)} voting power</span>
-              </div>
-            ) : null;
-          })()}
+          {nonNullish(votingPower) && (
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Users className="size-3" />
+              <span className="text-xs">
+                {t(($) => $.voting.votingPower, { ammount: formatVotingPower(votingPower) })}
+              </span>
+            </div>
+          )}
+          {/* @TODO: DO we want to keep this? */}
           {committedTopics.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
               {committedTopics.map((topic) => (

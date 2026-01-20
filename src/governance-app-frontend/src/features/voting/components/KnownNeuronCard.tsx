@@ -1,5 +1,5 @@
-import type { KnownNeuron } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
+import type { KnownNeuron } from '@icp-sdk/canisters/nns';
 import { ChevronDown, ChevronUp, Circle, CircleDot, LinkIcon, Loader2, Users } from 'lucide-react';
 import { useState } from 'react';
 
@@ -13,6 +13,7 @@ import { MarkdownRenderer } from '@components/MarkdownRenderer';
 import { DASHBOARD_URL } from '@constants/extra';
 import { cn } from '@utils/shadcn';
 import { safeParseUrl } from '@utils/urls';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   isDisabled: boolean;
@@ -24,6 +25,7 @@ type Props = {
 
 export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled, isLoading }: Props) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { t } = useTranslation();
 
   const votingPower = KNOWN_NEURONS_SORTING_MAP[String(neuron.id)]?.voting_power;
 
@@ -65,10 +67,12 @@ export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled, isLo
           <div className="flex grow-1 items-center justify-between">
             <div className="flex flex-col gap-1">
               <h4 className="leading-none font-semibold">{neuron.name}</h4>
-              {votingPower !== undefined && (
+              {nonNullish(votingPower) && (
                 <div className="flex items-center gap-1 text-muted-foreground">
                   <Users className="size-3" />
-                  <span className="text-xs">{formatVotingPower(votingPower)} voting power</span>
+                  <span className="text-xs">
+                    {t(($) => $.voting.votingPower, { ammount: formatVotingPower(votingPower) })}
+                  </span>
                 </div>
               )}
             </div>

@@ -9,6 +9,7 @@ describe('formatVotingPower', () => {
   });
 
   it('formats tens of millions correctly', () => {
+    expect(formatVotingPower(1_000_000)).toBe('1M');
     expect(formatVotingPower(1_100_000)).toBe('1.1M');
     expect(formatVotingPower(10_000_000)).toBe('10M'); // removal of .0
     expect(formatVotingPower(20_100_000)).toBe('20.1M');
@@ -16,7 +17,7 @@ describe('formatVotingPower', () => {
 
   it('formats hundreds of thousands correctly', () => {
     expect(formatVotingPower(100_000)).toBe('100K');
-    expect(formatVotingPower(999_000)).toBe('999K');
+    expect(formatVotingPower(999_999)).toBe('999K');
   });
 
   it('formats tens of thousands correctly', () => {
