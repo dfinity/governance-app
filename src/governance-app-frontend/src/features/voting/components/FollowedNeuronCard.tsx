@@ -1,15 +1,15 @@
 import type { KnownNeuron } from '@icp-sdk/canisters/nns';
+import { nonNullish } from '@dfinity/utils';
 import { ArrowRight, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { isKnownNeuron } from '@features/voting/utils/findFollowedNeuron';
 import { KNOWN_NEURONS_SORTING_MAP } from '@features/voting/data/knownNeuronsSorting';
+import { isKnownNeuron } from '@features/voting/utils/findFollowedNeuron';
 import { formatVotingPower } from '@features/voting/utils/formatVotingPower';
 
 import { Badge } from '@components/badge';
 import { Card, CardContent } from '@components/Card';
 import { DASHBOARD_URL } from '@constants/extra';
-import { nonNullish } from '@dfinity/utils';
 
 type Props = {
   neuron: KnownNeuron | bigint;
