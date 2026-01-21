@@ -22,10 +22,9 @@ export const requireIdentity = async () => {
       title: i18n.t(($) => $.common.restricted),
       description: i18n.t(($) => $.common.restrictedPage),
     });
+
     const redirectTo =
       location.pathname !== '/' ? encodeURIComponent(location.pathname) : undefined;
     throw redirect({ to: '/login', search: { redirect: redirectTo } });
   }
-
-  console.log('[🔐 Protected Route]: identity found, loading protected page.');
 };
