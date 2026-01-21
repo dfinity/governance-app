@@ -56,7 +56,11 @@ export const BetaBanner = ({ isLoggedIn = false }: BetaBannerProps) => {
   const { isCollapsed, setIsCollapsed } = useBetaBannerCollapsed();
 
   const handleToggle = () => {
-    setIsCollapsed(!isCollapsed);
+    const newValue = !isCollapsed;
+    setIsCollapsed(newValue);
+    // Update localStorage synchronously before dispatching event
+    // This is necessary so event listeners can read the updated value
+    localStorage.setItem('beta-banner-collapsed', String(newValue));
     // Dispatch custom event for same-window updates
     window.dispatchEvent(new Event('beta-banner-toggle'));
   };
