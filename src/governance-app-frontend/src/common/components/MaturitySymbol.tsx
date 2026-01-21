@@ -16,9 +16,9 @@ import { formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
-interface Props {
+type Props = {
   className?: string;
-}
+};
 
 export function MaturitySymbol({ className = '' }: Props) {
   const [open, setOpen] = useState(false);

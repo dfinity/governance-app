@@ -1,5 +1,5 @@
 import { Topic } from '@icp-sdk/canisters/nns';
-import { nowInBigIntNanoSeconds } from '@dfinity/utils';
+import { nonNullish, nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useState } from 'react';
@@ -135,16 +135,16 @@ export function useCreateNeuron(params: Props) {
           certified: true,
         });
 
-        const prevNeurons = userNeurons.filter((n) => n.neuronId !== neuronId);
+        const otherNeurons = userNeurons.filter((n) => n.neuronId !== neuronId);
 
-        if (prevNeurons.length > 0) {
+        if (otherNeurons.length > 0) {
           // Check if all existing neurons follow the same single neuron
           const followedNeurons = getUsersFollowedNeurons({
-            userNeurons: prevNeurons,
+            userNeurons: otherNeurons,
             knownNeurons: [],
           });
 
-          if (followedNeurons.length === 1 && followedNeurons[0] !== undefined) {
+          if (followedNeurons.length === 1 && nonNullish(followedNeurons[0])) {
             const followeeId = isKnownNeuron(followedNeurons[0])
               ? followedNeurons[0].id
               : followedNeurons[0];
