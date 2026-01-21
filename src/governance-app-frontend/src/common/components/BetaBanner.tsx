@@ -23,12 +23,12 @@ export const BetaBanner = ({ isLoggedIn = false }: BetaBannerProps) => {
   // Desktop: Different positioning based on login state
   const desktopPositionClasses = isLoggedIn
     ? 'fixed top-2 left-[11rem] z-50 hidden lg:flex px-1.5 py-0.5 text-[0.625rem] font-semibold'
-    : 'fixed top-[2.65rem] left-[5.5rem] z-50 hidden sm:flex px-1.5 py-0.5 text-[0.625rem] font-semibold sm:top-12 sm:left-[7rem]';
+    : 'absolute top-[2.65rem] left-[5.5rem] z-50 hidden sm:flex px-1.5 py-0.5 text-[0.625rem] font-semibold sm:top-12 sm:left-[7rem]';
 
   // Mobile: Different positioning based on login state  
   const mobilePositionClasses = isLoggedIn
     ? 'fixed top-3 right-2 z-50 flex lg:hidden px-2 py-1 text-xs font-semibold'
-    : 'fixed top-10 right-4 z-50 flex sm:hidden px-2 py-1 text-xs font-semibold';
+    : 'absolute top-10 right-4 z-50 flex sm:hidden px-2 py-1 text-xs font-semibold';
 
   return (
     <>
