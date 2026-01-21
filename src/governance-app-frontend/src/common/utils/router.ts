@@ -1,12 +1,12 @@
 import { ERROR_USER_INTERRUPT } from '@icp-sdk/auth/client';
-import { redirect } from '@tanstack/react-router';
+import { ParsedLocation, redirect } from '@tanstack/react-router';
 import { ensureInitialized } from 'ic-use-internet-identity';
 
 import i18n from '@/i18n/config';
 
 import { warningNotification } from './notification';
 
-export const requireIdentity = async () => {
+export const requireIdentity = async ({ location }: { location: ParsedLocation }) => {
   let identity;
 
   try {
@@ -23,10 +23,7 @@ export const requireIdentity = async () => {
       description: i18n.t(($) => $.common.restrictedPage),
     });
 
-    const redirectTo =
-      location.pathname !== '/'
-        ? encodeURIComponent(location.pathname + location.search)
-        : undefined;
+    const redirectTo = location.pathname !== '/' ? location.pathname : undefined;
     throw redirect({ to: '/login', search: { redirect: redirectTo } });
   }
 };

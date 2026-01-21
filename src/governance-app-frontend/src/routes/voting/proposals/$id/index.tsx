@@ -33,8 +33,8 @@ export const Route = createFileRoute('/voting/proposals/$id/')({
     stringify: ({ id }) => ({ id: id?.toString() ?? '' }),
   },
   validateSearch: getShowProposalUrlStatus,
-  beforeLoad: async ({ params }) => {
-    await requireIdentity();
+  beforeLoad: async ({ params, location }) => {
+    await requireIdentity({ location });
     if (!params.id) throw redirect({ to: '/voting', replace: true });
   },
   pendingComponent: () => <SkeletonLoader count={3} />,

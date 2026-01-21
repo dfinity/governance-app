@@ -43,8 +43,8 @@ export const Route = createFileRoute('/stakes/$id/')({
     }),
     stringify: ({ id }) => ({ id: id?.toString() ?? '' }),
   },
-  beforeLoad: async ({ params }) => {
-    await requireIdentity();
+  beforeLoad: async ({ params, location }) => {
+    await requireIdentity({ location });
     if (!params.id) throw redirect({ to: '/stakes', replace: true });
   },
   pendingComponent: () => <SkeletonLoader count={3} />,
