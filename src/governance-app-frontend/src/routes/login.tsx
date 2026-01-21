@@ -11,6 +11,7 @@ import { useProposalsAdoptedLastXDays } from '@features/proposals/hooks/usePropo
 import { Button } from '@components/button';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
+import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGovernanceLogo';
 import { formatNumber } from '@utils/numbers';
 
 type LoginSearch = {
