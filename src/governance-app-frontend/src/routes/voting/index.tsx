@@ -21,11 +21,13 @@ import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/governance'
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import useTitle from '@hooks/useTitle';
 import { warningNotification } from '@utils/notification';
+import { requireIdentity } from '@utils/router';
 
 export const Route = createFileRoute('/voting/')({
   validateSearch: getShowProposalUrlStatus,
   component: Voting,
   pendingComponent: () => <SkeletonLoader count={3} />,
+  beforeLoad: requireIdentity,
   staticData: {
     title: 'common.voting',
   },
