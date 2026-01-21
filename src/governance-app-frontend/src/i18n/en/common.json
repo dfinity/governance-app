@@ -64,16 +64,16 @@
     "beta": "Beta",
     "openInfo": "Open beta information",
     "modalTitle": "Beta · ICP Staking & Governance",
-    "modalDescription": "This application is in beta. Actions you take will affect your governance configuration.",
+    "modalDescription": "This app is in beta. Actions here affect your real governance setup.",
     "whatYouCanDo": "What you can do:",
     "canDo": {
-      "stake": "Stake ICP tokens and create neurons",
-      "vote": "Vote on governance proposals",
+      "stake": "Stake ICP and create neurons",
+      "vote": "Setup following, and vote on proposals",
       "viewActivity": "View your staking and voting activity"
     },
     "beAware": "Be aware:",
     "aware": {
-      "affectsConfig": "Actions affect your real governance configuration",
+      "affectsConfig": "Actions affect your live governance configuration",
       "testing": "Some features are still being tested",
       "reportIssues": "Please report any issues you encounter"
     }
