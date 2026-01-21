@@ -6,6 +6,8 @@ jobs:
   tests:
     timeout-minutes: 30
     runs-on: dind-small
+    container:
+      image: buildpack-deps:jammy
     env:
       BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
 
