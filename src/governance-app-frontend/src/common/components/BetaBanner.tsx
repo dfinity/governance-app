@@ -1,3 +1,4 @@
+import { Info } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -28,13 +29,13 @@ export const BetaBanner = ({ isLoggedIn = false }: BetaBannerProps) => {
     'hidden px-1.5 py-0.5 text-[0.625rem]',
     isLoggedIn
       ? 'lg:flex fixed top-2 left-[11rem]'
-      : 'sm:flex absolute top-[2.65rem] left-[5.5rem] sm:top-12 sm:left-[7rem]',
+      : 'sm:flex absolute top-[2.5rem] left-[8.5rem] sm:top-[3rem] sm:left-[7rem]',
   );
 
   const mobileClasses = cn(
     baseBadgeClasses,
-    'flex px-2 py-1 text-xs',
-    isLoggedIn ? 'lg:hidden fixed top-3 right-2' : 'sm:hidden absolute top-10 right-4',
+    'flex gap-1.5 px-2 py-1 text-xs',
+    isLoggedIn ? 'lg:hidden fixed top-3 right-2' : 'sm:hidden absolute top-[2.25rem] right-4',
   );
 
   const canDoItems = [
@@ -61,6 +62,7 @@ export const BetaBanner = ({ isLoggedIn = false }: BetaBannerProps) => {
       {/* Mobile badge */}
       <button onClick={handleOpen} className={mobileClasses} aria-label={t(($) => $.common.betaBanner.openInfo)}>
         {t(($) => $.common.betaBanner.beta)}
+        <Info className="size-3.5" />
       </button>
 
       {/* Modal/Drawer */}
