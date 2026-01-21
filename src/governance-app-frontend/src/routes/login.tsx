@@ -27,11 +27,7 @@ export const Route = createFileRoute('/login')({
   beforeLoad: async ({ search }) => {
     const identity = await ensureInitialized();
     if (nonNullish(identity)) {
-      const targetPath =
-        search.redirect && typeof search.redirect === 'string'
-          ? decodeURIComponent(search.redirect)
-          : '/';
-      throw redirect({ to: targetPath, replace: true });
+      throw redirect({ to: search.redirect, replace: true });
     }
   },
   component: LoginPage,
