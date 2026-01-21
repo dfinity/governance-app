@@ -7,7 +7,7 @@ import {
   useMatches,
   useRouter,
 } from '@tanstack/react-router';
-import { TanStackRouterDevtools } from '@tanstack/router-devtools';
+import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
