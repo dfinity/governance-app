@@ -15,9 +15,11 @@ import { Card } from '@components/Card';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
 import useTitle from '@hooks/useTitle';
+import { requireIdentity } from '@utils/router';
 
 export const Route = createFileRoute('/account/')({
   component: Account,
+  beforeLoad: requireIdentity,
   staticData: {
     title: 'common.accounts',
   },
@@ -26,6 +28,7 @@ export const Route = createFileRoute('/account/')({
 function Account() {
   const { identity, clear } = useInternetIdentity();
   const { t } = useTranslation();
+
   useTitle(t(($) => $.common.accounts));
   const timeLeft = useSessionTimeLeft();
 
