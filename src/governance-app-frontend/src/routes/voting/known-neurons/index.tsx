@@ -1,4 +1,5 @@
 import { KnownNeuron, NeuronId, Topic } from '@icp-sdk/canisters/nns';
+import { isNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
@@ -49,7 +50,8 @@ function KnownNeuronsList() {
   const knownNeuronsQuery = useGovernanceKnownNeurons();
 
   const [selectedNeuronId, setSelectedNeuronId] = useState<string | null>(null);
-  const [pendingSelection, setPendingSelection] = useState<KnownNeuron | null>(null);
+  const [openConfirmationDialogWithNeuron, setOpenConfirmationDialogWithNeuron] =
+    useState<KnownNeuron | null>(null);
 
   useEffect(() => {
     const userNeurons = neuronsQuery.data?.response;
@@ -82,6 +84,7 @@ function KnownNeuronsList() {
     { previousSelectedId: string | null }
   >({
     mutationFn: ({ neurons, knownNeuron }) => {
+      // This check is to satisfy TS
       if (!canister) throw new Error(t(($) => $.common.unknownError));
 
       const knownNeuronId = knownNeuron.id;
@@ -163,7 +166,7 @@ function KnownNeuronsList() {
 
       // If existing following (consistent or not), prompt for confirmation
       if (followedNeurons.length > 0) {
-        setPendingSelection(knownNeuron);
+        setOpenConfirmationDialogWithNeuron(knownNeuron);
         return;
       }
     }
@@ -175,13 +178,14 @@ function KnownNeuronsList() {
   };
 
   const handleConfirmSelection = () => {
-    if (!neuronsQuery.data?.certified || !canister || !pendingSelection) return;
+    // This check is to satisfy TS
+    if (!neuronsQuery.data?.certified || isNullish(openConfirmationDialogWithNeuron)) return;
 
     updateFollowingMutation.mutate({
       neurons: neuronsQuery.data.response,
-      knownNeuron: pendingSelection,
+      knownNeuron: openConfirmationDialogWithNeuron,
     });
-    setPendingSelection(null);
+    setOpenConfirmationDialogWithNeuron(null);
   };
 
   const knownNeurons = knownNeuronsQuery.data?.response;
@@ -224,7 +228,11 @@ function KnownNeuronsList() {
                 isLoading={
                   updateFollowingMutation.isPending && selectedNeuronId === neuron.id.toString()
                 }
-                isDisabled={updateFollowingMutation.isPending || !neuronsQuery.data?.certified}
+                isDisabled={
+                  isNullish(canister) ||
+                  updateFollowingMutation.isPending ||
+                  !neuronsQuery.data?.certified
+                }
               />
             ))
           )}
@@ -232,8 +240,8 @@ function KnownNeuronsList() {
       </div>
 
       <AlertDialog
-        open={!!pendingSelection}
-        onOpenChange={(open: boolean) => !open && setPendingSelection(null)}
+        open={!!openConfirmationDialogWithNeuron}
+        onOpenChange={(open: boolean) => !open && setOpenConfirmationDialogWithNeuron(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -243,11 +251,11 @@ function KnownNeuronsList() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setPendingSelection(null)}>
-              {t(($) => $.knownNeurons.confirmation.cancel)}
+            <AlertDialogCancel onClick={() => setOpenConfirmationDialogWithNeuron(null)}>
+              {t(($) => $.common.cancel)}
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmSelection}>
-              {t(($) => $.knownNeurons.confirmation.confirm)}
+              {t(($) => $.common.confirm)}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
