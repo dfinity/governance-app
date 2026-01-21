@@ -17,6 +17,9 @@ jobs:
           ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
 
+      - name: Install jq
+        run: apt-get update && apt-get install -y jq
+
       - uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
