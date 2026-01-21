@@ -39,9 +39,12 @@ export const login = async ({ page }: { page: Page }) => {
 
     // Close the welcome modal if it appears.
     const welcomeModal = page.getByTestId('welcome-modal');
-    if (await welcomeModal.isVisible({ timeout: 30000 }).catch(() => false)) {
+    try {
+      await welcomeModal.waitFor({ state: 'visible', timeout: 30000 });
       await page.getByTestId('welcome-modal-cta-btn').click();
       await expect(welcomeModal).not.toBeVisible();
+    } catch {
+      // Modal didn't appear, continue
     }
   });
 };

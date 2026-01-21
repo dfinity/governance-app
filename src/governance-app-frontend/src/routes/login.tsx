@@ -1,11 +1,10 @@
 import { isNullish, nonNullish } from '@dfinity/utils';
-import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createFileRoute, Navigate, redirect } from '@tanstack/react-router';
 import { ensureInitialized, useInternetIdentity } from 'ic-use-internet-identity';
 import { ExternalLink } from 'lucide-react';
 import { type CSSProperties, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGovernanceLogo';
 import { useTvlValue } from '@features/login/hooks/useTvlValue';
 import { useProposalsAdoptedLastXDays } from '@features/proposals/hooks/useProposalsAdoptedLastXDays';
 
@@ -26,6 +25,7 @@ export const Route = createFileRoute('/login')({
   },
   beforeLoad: async ({ search }) => {
     const identity = await ensureInitialized();
+
     if (nonNullish(identity)) {
       throw redirect({ to: search.redirect, replace: true });
     }
@@ -39,8 +39,9 @@ const FADE_MASK_STYLE: CSSProperties = {
 };
 
 function LoginPage() {
-  const { login, isLoggingIn } = useInternetIdentity();
+  const { login, isLoggingIn, identity } = useInternetIdentity();
   const { t } = useTranslation();
+  const { redirect: redirectTo = '/' } = Route.useSearch();
 
   // Enforce dark theme on body for login page
   useLayoutEffect(() => {
@@ -56,8 +57,11 @@ function LoginPage() {
   const { proposals, isLoading } = useProposalsAdoptedLastXDays(30);
   const proposalsAdopted = proposals.length;
 
+  // Redirect after successful login (beforeLoad handles initial page load, this handles post-login)
+  if (identity) return <Navigate to={redirectTo} replace />;
+
   return (
-    <div className="relative min-h-dvh w-full font-sans text-foreground">
+    <div className="dark relative min-h-dvh w-full font-sans text-foreground">
       {/* Loading Overlay */}
       {isLoggingIn && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
