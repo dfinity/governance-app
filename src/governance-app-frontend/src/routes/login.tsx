@@ -5,6 +5,7 @@ import { ExternalLink } from 'lucide-react';
 import { type CSSProperties, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGovernanceLogo';
 import { useTvlValue } from '@features/login/hooks/useTvlValue';
 import { useProposalsAdoptedLastXDays } from '@features/proposals/hooks/useProposalsAdoptedLastXDays';
 
@@ -42,7 +43,7 @@ const FADE_MASK_STYLE: CSSProperties = {
 };
 
 function LoginPage() {
-  const { login } = useInternetIdentity();
+  const { login, isLoggingIn } = useInternetIdentity();
   const { t } = useTranslation();
 
   // Enforce dark theme on body for login page
@@ -61,6 +62,16 @@ function LoginPage() {
 
   return (
     <div className="relative min-h-dvh w-full font-sans text-foreground">
+      {/* Loading Overlay */}
+      {isLoggingIn && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-6 text-white">
+            <AnimatedGovernanceLogo />
+            <p className="text-lg font-medium">{t(($) => $.login.authenticating)}</p>
+          </div>
+        </div>
+      )}
+
       {/* Background */}
       <div className="absolute inset-0 -z-10 overflow-hidden" data-testid="video-background">
         <div className="absolute inset-0 bg-black" />
@@ -165,13 +176,14 @@ function LoginPage() {
             <div className="flex flex-col gap-4">
               <Button
                 onClick={login}
+                disabled={isLoggingIn}
                 className="w-full bg-neutral-900 text-base font-medium text-white hover:bg-neutral-800"
                 variant="default"
                 size="xxl"
                 data-testid="login-btn"
               >
                 <img src="/icp-logo.svg" alt="" aria-hidden={true} />
-                {t(($) => $.login.loginWithII)}
+                {isLoggingIn ? t(($) => $.login.loggingIn) : t(($) => $.login.loginWithII)}
               </Button>
 
               <a
