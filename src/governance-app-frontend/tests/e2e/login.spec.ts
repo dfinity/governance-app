@@ -6,9 +6,9 @@ import { takeSnapshot } from './utils/take-snapshot';
 
 test('Successfully logs in', async ({ page }) => {
   await openApp({ page });
-  await page.waitForSelector('[data-testid="login-btn"]');
+  await page.getByTestId('login-btn');
 
-  // Hide the random map and video background via CSS to ensure stable snapshots
+  // Hide the video background via CSS to ensure stable snapshots
   await page.addStyleTag({
     content: '[data-testid="video-background"] { opacity: 0 !important; }',
   });

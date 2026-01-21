@@ -1,7 +1,6 @@
 {
   "title": "Following",
   "following": "Following",
-  "non_known_neuron": "Non known neuron {{neuronId}}",
   "description": "These organizations will automatically vote on your behalf, allowing you to earn rewards.",
   "cta": "Manage following",
   "votingPower": "{{ammount}} voting power",
@@ -11,7 +10,6 @@
     "setupFollowingReminder": "You may lose rewards by not following any neurons. Select a trusted organization to automatically vote on your behalf."
   },
   "proposals": {
-    "title": "Proposals",
     "cta": "Curious about what's being voted on?",
     "ctaShow": "View proposals",
     "ctaHide": "Hide proposals"

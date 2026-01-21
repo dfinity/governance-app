@@ -1,6 +1,6 @@
 {
   "title": "Maximize your APY",
-  "introduction": "Maximize your voting rewards by optimizing your neurons' parameters. The maximum APY of <strong>{{maxApy}}%</strong> is achieved with:",
+  "introduction": "Maximize your voting rewards by optimizing your neurons' parameters. The maximum APY of <strong>{{maxApy}}</strong> is achieved with:",
   "optimalSettings": {
     "title": "Optimal settings",
     "lockedLabel": "Locked state",
