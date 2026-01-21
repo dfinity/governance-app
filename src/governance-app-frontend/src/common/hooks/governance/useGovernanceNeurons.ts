@@ -1,4 +1,5 @@
 import { NeuronId } from '@icp-sdk/canisters/nns';
+import { useInternetIdentity } from 'ic-use-internet-identity';
 
 import { useQueryThenUpdateCall } from '@hooks/useQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/query';
@@ -14,6 +15,7 @@ type RequestParams = {
 };
 
 export const useGovernanceNeurons = (params?: RequestParams) => {
+  const { identity } = useInternetIdentity();
   const { ready, canister, authenticated } = useNnsGovernance();
 
   const request: RequestParams = {
@@ -25,8 +27,10 @@ export const useGovernanceNeurons = (params?: RequestParams) => {
     ...params,
   };
 
+  const principal = identity?.getPrincipal().toText();
+
   return useQueryThenUpdateCall({
-    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS, request],
+    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS, request, principal],
     queryFn: () =>
       canister!
         .listNeurons(request)

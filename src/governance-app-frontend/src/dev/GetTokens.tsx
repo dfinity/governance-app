@@ -113,13 +113,13 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger asChild>
-        <Button className="w-full" size="xl">
+        <Button className="w-full" size="xl" data-testid="get-testnet-icp-trigger-btn">
           <CreditCard />
           Buy Testnet ICP
         </Button>
       </ResponsiveDialogTrigger>
 
-      <ResponsiveDialogContent>
+      <ResponsiveDialogContent data-testid="get-testnet-icp-dialog">
         <form onSubmit={handleSubmit}>
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>Get Testnet ICP</ResponsiveDialogTitle>
@@ -129,6 +129,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
             <Label htmlFor="tokens-amount">Amount</Label>
             <Input
               id="tokens-amount"
+              data-testid="get-testnet-icp-amount-input"
               type="number"
               className={amountOfIcpError ? 'border-destructive' : ''}
               value={amountOfIcp}
@@ -145,6 +146,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
               type="submit"
               className="w-full sm:w-auto"
               disabled={acquireTokensMutation.isPending}
+              data-testid="get-testnet-icp-submit-btn"
             >
               {acquireTokensMutation.isPending ? 'Topping Up...' : 'Top Up'}
             </Button>

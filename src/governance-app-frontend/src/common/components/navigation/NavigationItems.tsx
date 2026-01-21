@@ -1,4 +1,4 @@
-import { LayoutDashboard, Network, Settings, Vote } from 'lucide-react';
+import { LayoutDashboard, Network, User, Vote } from 'lucide-react';
 
 export interface NavigationItem {
   label: string;
@@ -23,8 +23,8 @@ export const navigationItems: NavigationItem[] = [
     icon: Vote,
   },
   {
-    label: 'common.settings',
-    href: '/settings',
-    icon: Settings,
+    label: 'common.accounts',
+    href: '/account',
+    icon: User,
   },
 ];

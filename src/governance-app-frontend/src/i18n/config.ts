@@ -17,7 +17,7 @@ import welcomeModal from './en/modals/welcome.json';
 import neuron from './en/neuron.json';
 import nns from './en/nns.json';
 import proposal from './en/proposal.json';
-import settings from './en/settings.json';
+import userAccount from './en/userAccount.json';
 import voting from './en/voting.json';
 
 // Using a single namespace "labels" for simplicity.
@@ -38,7 +38,7 @@ export const resources = {
       voting,
       neuron,
       account,
-      settings,
+      userAccount,
       welcomeModal,
       knownNeurons,
       depositModal,

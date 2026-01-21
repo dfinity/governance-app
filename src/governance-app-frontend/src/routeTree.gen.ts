@@ -12,7 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as VotingIndexRouteImport } from './routes/voting/index'
 import { Route as StakesIndexRouteImport } from './routes/stakes/index'
-import { Route as SettingsIndexRouteImport } from './routes/settings/index'
+import { Route as AccountIndexRouteImport } from './routes/account/index'
 import { Route as homepageIndexRouteImport } from './routes/(homepage)/index'
 import { Route as VotingKnownNeuronsIndexRouteImport } from './routes/voting/known-neurons/index'
 import { Route as StakesIdIndexRouteImport } from './routes/stakes/$id/index'
@@ -33,9 +33,9 @@ const StakesIndexRoute = StakesIndexRouteImport.update({
   path: '/stakes/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SettingsIndexRoute = SettingsIndexRouteImport.update({
-  id: '/settings/',
-  path: '/settings/',
+const AccountIndexRoute = AccountIndexRouteImport.update({
+  id: '/account/',
+  path: '/account/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const homepageIndexRoute = homepageIndexRouteImport.update({
@@ -62,7 +62,7 @@ const VotingProposalsIdIndexRoute = VotingProposalsIdIndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/': typeof homepageIndexRoute
-  '/settings': typeof SettingsIndexRoute
+  '/account': typeof AccountIndexRoute
   '/stakes': typeof StakesIndexRoute
   '/voting': typeof VotingIndexRoute
   '/stakes/$id': typeof StakesIdIndexRoute
@@ -72,7 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/': typeof homepageIndexRoute
-  '/settings': typeof SettingsIndexRoute
+  '/account': typeof AccountIndexRoute
   '/stakes': typeof StakesIndexRoute
   '/voting': typeof VotingIndexRoute
   '/stakes/$id': typeof StakesIdIndexRoute
@@ -83,7 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/login': typeof LoginRoute
   '/(homepage)/': typeof homepageIndexRoute
-  '/settings/': typeof SettingsIndexRoute
+  '/account/': typeof AccountIndexRoute
   '/stakes/': typeof StakesIndexRoute
   '/voting/': typeof VotingIndexRoute
   '/stakes/$id/': typeof StakesIdIndexRoute
@@ -95,7 +95,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/login'
     | '/'
-    | '/settings'
+    | '/account'
     | '/stakes'
     | '/voting'
     | '/stakes/$id'
@@ -105,7 +105,7 @@ export interface FileRouteTypes {
   to:
     | '/login'
     | '/'
-    | '/settings'
+    | '/account'
     | '/stakes'
     | '/voting'
     | '/stakes/$id'
@@ -115,7 +115,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/login'
     | '/(homepage)/'
-    | '/settings/'
+    | '/account/'
     | '/stakes/'
     | '/voting/'
     | '/stakes/$id/'
@@ -126,7 +126,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   homepageIndexRoute: typeof homepageIndexRoute
-  SettingsIndexRoute: typeof SettingsIndexRoute
+  AccountIndexRoute: typeof AccountIndexRoute
   StakesIndexRoute: typeof StakesIndexRoute
   VotingIndexRoute: typeof VotingIndexRoute
   StakesIdIndexRoute: typeof StakesIdIndexRoute
@@ -157,11 +157,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StakesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/settings/': {
-      id: '/settings/'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsIndexRouteImport
+    '/account/': {
+      id: '/account/'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(homepage)/': {
@@ -198,7 +198,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   homepageIndexRoute: homepageIndexRoute,
-  SettingsIndexRoute: SettingsIndexRoute,
+  AccountIndexRoute: AccountIndexRoute,
   StakesIndexRoute: StakesIndexRoute,
   VotingIndexRoute: VotingIndexRoute,
   StakesIdIndexRoute: StakesIdIndexRoute,

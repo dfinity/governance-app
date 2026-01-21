@@ -36,6 +36,7 @@ export function WelcomeModal() {
         onPointerDownOutside={(e) => e.preventDefault()}
         showCloseButton={false}
         className="flex flex-col gap-8 lg:max-w-xl lg:px-8"
+        data-testid="welcome-modal"
       >
         <div className="flex flex-col items-center gap-6">
           <div className="size-16">
@@ -49,7 +50,12 @@ export function WelcomeModal() {
           </ResponsiveDialogDescription>
         </div>
         <ResponsiveDialogFooter>
-          <Button onClick={handleClose} className="mt-4 w-full lg:mt-0" size="xxl">
+          <Button
+            onClick={handleClose}
+            className="mt-4 w-full lg:mt-0"
+            size="xxl"
+            data-testid="welcome-modal-cta-btn"
+          >
             {t(($) => $.welcomeModal.cta)}
           </Button>
         </ResponsiveDialogFooter>

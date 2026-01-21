@@ -1,4 +1,5 @@
 import { ListProposalsRequest, ListProposalsResponse, Option } from '@icp-sdk/canisters/nns';
+import { useInternetIdentity } from 'ic-use-internet-identity';
 
 import { PAGINATION_LIMIT_PROPOSALS } from '@constants/extra';
 import { useInfiniteQueryThenUpdateCall } from '@hooks/useInfiniteQueryThenUpdateCall';
@@ -17,14 +18,15 @@ export const useGovernanceProposals = (options?: Partial<ListProposalsRequest>) 
     // This flag solves the issue when the proposal payload being too large.
     // (e.g. IC0504: Error from Canister rrkah-fqaaa-aaaaa-aaaaq-cai: Canister violated contract: ic0.msg_reply_data_append: application payload size (3661753) cannot be larger than 3145728.)
     omitLargeFields: true,
+  },
+) => {
+  const { identity } = useInternetIdentity();
+  const { ready, canister } = useNnsGovernance();
 
-    // Spread overrides
-    ...options,
-  };
-  const { ready, canister, authenticated } = useNnsGovernance();
+  const principal = identity?.getPrincipal().toText();
 
   return useInfiniteQueryThenUpdateCall<ListProposalsResponse, Option<bigint>>({
-    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS, args, authenticated],
+    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS, options, principal],
     queryFn: (context) =>
       canister!.listProposals({
         request: { ...args, beforeProposal: context.pageParam },
