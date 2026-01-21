@@ -18,10 +18,12 @@ import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownN
 import useTitle from '@hooks/useTitle';
 import { warningNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
+import { requireIdentity } from '@utils/router';
 
 export const Route = createFileRoute('/voting/known-neurons/')({
   component: KnownNeuronsList,
   validateSearch: getShowProposalUrlStatus,
+  beforeLoad: requireIdentity,
   staticData: {
     title: 'common.voting',
   },
