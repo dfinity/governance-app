@@ -67,7 +67,7 @@ export function ApyOptimizationModal() {
     ? formatPercentage(
         stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_MONTHS].autoStake.locked,
       )
-    : '';
+    : '...';
 
   const isLoading = neuronsQuery.isLoading || stakingRewards.loading;
 

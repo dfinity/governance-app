@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Skeleton } from '@components/Skeleton';
 import { ICP_MAX_DISSOLVE_DELAY_MONTHS, ICP_MIN_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { useStakingRewards } from '@hooks/useStakingRewards';
+import { interpolateApyColor } from '@utils/apy-colors';
 import { formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
@@ -43,9 +44,9 @@ function AnimatedApyBadgeInner({ value, minApy, maxApy }: InnerProps) {
   const displayValue = useTransform(springValue, (v) => `~${formatPercentage(v / 100)}`);
 
   const colorSpring = useSpring(normalizedPosition, { stiffness: 80, damping: 15 });
-  const textColor = useTransform(colorSpring, (t) => interpolateColor(t));
-  const bgColor = useTransform(colorSpring, (t) => interpolateColor(t, 0.1));
-  const borderColor = useTransform(colorSpring, (t) => interpolateColor(t, 0.3));
+  const textColor = useTransform(colorSpring, (t) => interpolateApyColor(t));
+  const bgColor = useTransform(colorSpring, (t) => interpolateApyColor(t, 0.1));
+  const borderColor = useTransform(colorSpring, (t) => interpolateApyColor(t, 0.3));
 
   useEffect(() => {
     springValue.set(value);
@@ -75,14 +76,4 @@ function AnimatedApyBadgeInner({ value, minApy, maxApy }: InnerProps) {
       </span>
     </motion.div>
   );
-}
-
-// Color interpolation from orange to green based on APY position
-// t is 0-1 (0 = min/orange, 1 = max/green), opacity controls transparency
-function interpolateColor(t: number, opacity: number = 1): string {
-  // Orange rgb(234, 88, 12) -> Green rgb(22, 163, 74)
-  const r = Math.round(234 - 212 * t);
-  const g = Math.round(88 + 75 * t);
-  const b = Math.round(12 + 62 * t);
-  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 }

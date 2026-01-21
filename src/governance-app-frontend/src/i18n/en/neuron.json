@@ -3,13 +3,11 @@
   "description": "Manage your staked ICP neurons and their configurations",
   "votingPower": "Voting Power",
   "stake": "Stake",
-  "age": "Age",
   "neuronId": "Neuron #{{neuronId}}",
   "creationDate": "Created {{date}}",
   "maturity": "Maturity",
   "status": "Status",
   "setDissolveDelay": "Set dissolve delay",
-  "increaseMaturity": "Increase maturity",
   "dissolveDelay": "Dissolve delay",
   "stakedMaturity": "Staked maturity",
   "unstakedMaturity": "Unstaked maturity",
@@ -42,15 +40,9 @@
     }
   },
   "stakeNeuron": {
-    "trigger": "Stake ICP",
-    "label": "ICP amount:",
-    "tooltip": "This ICP amount will be staked from your balance.",
-    "hint": "Minimum {{min}}, maximum {{max}}",
     "errors": {
       "zeroBalance": "You need ICP to stake. Please buy or deposit ICP first.",
-      "insufficientBalance": "Stake amount exceeds available balance.",
-      "minimumStake": "Stake at least {{amount}} ICP."
-    },
-    "success": "You have successfully staked {{amount}} ICP."
+      "insufficientBalance": "Stake amount exceeds available balance."
+    }
   }
 }

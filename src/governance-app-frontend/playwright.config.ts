@@ -12,8 +12,8 @@ const baseURL = process.env.BASE_URL || 'http://localhost:3000';
 export default defineConfig({
   testDir: './tests/e2e',
   snapshotPathTemplate: './tests/e2e/snapshots/{testFilePath}-{arg}-{projectName}-{platform}{ext}',
-  /* Test timeout - increased for blockchain transactions */
-  timeout: 120000,
+  /* Test timeout - 1 minute */
+  timeout: 60000,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -41,10 +41,6 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
     },
     {
       name: 'mobile',

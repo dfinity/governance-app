@@ -1,4 +1,5 @@
 import { ListProposalsRequest } from '@icp-sdk/canisters/nns';
+import { useInternetIdentity } from 'ic-use-internet-identity';
 
 import { useQueryThenUpdateCall } from '@hooks/useQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/query';
@@ -10,7 +11,8 @@ import { useNnsGovernance } from './useGovernance';
  * The payload rendering will rely on new backend fields (not yet implemented).
  */
 export const useGovernanceProposal = ({ proposalId }: { proposalId: bigint | undefined }) => {
-  const { ready, canister, authenticated } = useNnsGovernance();
+  const { identity } = useInternetIdentity();
+  const { ready, canister } = useNnsGovernance();
 
   const request: ListProposalsRequest = {
     beforeProposal: proposalId && proposalId + 1n,
@@ -22,8 +24,10 @@ export const useGovernanceProposal = ({ proposalId }: { proposalId: bigint | und
     omitLargeFields: true,
   };
 
+  const principal = identity?.getPrincipal().toText();
+
   return useQueryThenUpdateCall({
-    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL, proposalId, request, authenticated],
+    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL, proposalId, request, principal],
     queryFn: async () => {
       const res = await canister!.listProposals({ request, certified: false });
       return res.proposals[0];
