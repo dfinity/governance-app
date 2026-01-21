@@ -50,7 +50,7 @@ function LoginPage() {
   const { proposals, isLoading } = useProposalsAdoptedLastXDays(30);
   const proposalsAdopted = proposals.length;
 
-  if (identity) return <Navigate to={redirect} />;
+  if (identity) return <Navigate to={decodeURIComponent(redirect)} />;
 
   return (
     <div className="relative min-h-dvh w-full font-sans text-foreground">

@@ -63,6 +63,7 @@ function RootComponent() {
 
   if (isLoginPage) return <Outlet />;
 
+  // @TODO: This could be removed but it gurantees a check in case a new route is added without a beforeLoad check
   const redirect = location.pathname !== '/' ? location.pathname : undefined;
   if (!identity) return <Navigate to="/login" search={{ redirect }} />;
 

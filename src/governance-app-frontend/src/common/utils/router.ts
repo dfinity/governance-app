@@ -17,12 +17,14 @@ export const requireIdentity = async () => {
   }
 
   if (!identity) {
-    console.log('[🔐 Protected Route]: identity not found, redirecting to homepage.');
+    console.log('[🔐 Protected Route]: identity not found, redirecting to login page.');
     warningNotification({
       title: i18n.t(($) => $.common.restricted),
       description: i18n.t(($) => $.common.restrictedPage),
     });
-    throw redirect({ to: '/' });
+    const redirectTo =
+      location.pathname !== '/' ? encodeURIComponent(location.pathname) : undefined;
+    throw redirect({ to: '/login', search: { redirect: redirectTo } });
   }
 
   console.log('[🔐 Protected Route]: identity found, loading protected page.');
