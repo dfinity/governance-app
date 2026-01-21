@@ -11,6 +11,7 @@ import login from './en/login.json';
 import apyOptimizationModal from './en/modals/apyOptimization.json';
 import depositModal from './en/modals/deposit.json';
 import maturityModal from './en/modals/maturity.json';
+import neuronDetailModal from './en/modals/neuronDetail.json';
 import stakeWizardModal from './en/modals/stakeWizard.json';
 import stakingRatioModal from './en/modals/stakingRatio.json';
 import welcomeModal from './en/modals/welcome.json';
@@ -30,6 +31,7 @@ export const resources = {
       home,
       apyOptimizationModal,
       maturityModal,
+      neuronDetailModal,
       stakeWizardModal,
       stakingRatioModal,
       proposal,

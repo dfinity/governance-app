@@ -9,6 +9,10 @@ export const getNeuronId = (neuron: NeuronInfo): string => {
   return String(neuron.neuronId);
 };
 
+export const getNeuronIsDissolved = (neuron: NeuronInfo): boolean => {
+  return neuron.state === NeuronState.Dissolved;
+};
+
 export const getNeuronFreeMaturityE8s = (neuron: NeuronInfo): bigint => {
   return neuron.fullNeuron?.maturityE8sEquivalent ?? 0n;
 };

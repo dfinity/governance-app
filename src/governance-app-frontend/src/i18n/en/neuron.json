@@ -17,8 +17,11 @@
   "stakedAmount": "Staked amount",
   "locked": "Locked",
   "dissolving": "Dissolving",
+  "dissolved": "Dissolved",
   "following": "Following",
   "noFollowingWarning": "No voting delegation configured.",
+  "disburseIcp": "Disburse ICPs",
+  "disburseMaturity": "Disburse Maturity",
   "errors": {
     "neuronNotFound": "Stake #{{neuronId}} not found."
   },

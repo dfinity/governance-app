@@ -1,0 +1,51 @@
+{
+  "title": "Manage Stake #{{neuronId}}",
+  "actions": {
+    "increaseStake": "Increase Stake",
+    "increaseDelay": "Increase delay",
+    "maturityMode": "Maturity mode",
+    "startDissolving": "Start unlocking",
+    "stopDissolving": "Stop unlocking"
+  },
+  "increaseStake": {
+    "title": "Increase Stake",
+    "description": "Add more ICP to this Stake to increase your voting power and rewards.",
+    "amountLabel": "Amount to add",
+    "available": "Available: {{amount}} ICP",
+    "confirm": "Increase Stake",
+    "success": "Successfully added {{amount}} ICP to your Stake."
+  },
+  "increaseDelay": {
+    "title": "Increase dissolve delay",
+    "description": "Increasing the dissolve delay will increase your voting power and APY rewards.",
+    "warning": "The dissolve delay can only be increased, never decreased.",
+    "current": "Current delay: {{delay}}",
+    "confirm": "Increase delay",
+    "success": "Successfully increased dissolve delay."
+  },
+  "maturityMode": {
+    "title": "Maturity mode",
+    "description": "Choose how to handle your staking rewards (maturity).",
+    "autoStake": "Auto-stake",
+    "autoStakeDescription": "Maturity is automatically staked to compound your rewards.",
+    "keepLiquid": "Keep liquid",
+    "keepLiquidDescription": "Maturity stays available for withdrawal.",
+    "confirm": "Update maturity mode",
+    "success": "Maturity mode updated successfully."
+  },
+  "dissolve": {
+    "startTitle": "Start unlocking",
+    "stopTitle": "Stop unlocking",
+    "startDescription": "Starting to unlock will begin the countdown. After the dissolve delay period, you can withdraw your ICP.",
+    "stopDescription": "Stopping the unlock will pause the countdown and keep your Stake locked, maximizing your rewards.",
+    "warning": "While unlocking, your APY will decrease as the dissolve delay decreases.",
+    "confirmStart": "Start unlocking",
+    "confirmStop": "Stop unlocking",
+    "successStart": "Unlocking started. Your Stake will be available after the dissolve delay.",
+    "successStop": "Unlocking stopped. Your Stake is now locked."
+  },
+  "disabled": {
+    "noBalance": "No ICP available to stake",
+    "maxDelay": "Already at maximum delay"
+  }
+}

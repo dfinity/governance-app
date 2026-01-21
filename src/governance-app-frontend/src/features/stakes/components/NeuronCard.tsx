@@ -1,9 +1,10 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
-import { AlertTriangle, CircleAlert, Lock, Timer } from 'lucide-react';
+import { AlertTriangle, CheckCircle, CircleAlert, Coins, Lock, Timer } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Card, CardContent, CardHeader } from '@components/Card';
+import { Button } from '@components/button';
+import { Card, CardContent, CardFooter, CardHeader } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { E8Sn, MILLISECONDS_IN_SECOND } from '@constants/extra';
 import { useApyColor } from '@hooks/useApyColor';
@@ -11,8 +12,10 @@ import { bigIntDiv } from '@utils/bigInt';
 import {
   getDissolvingTimeInSeconds,
   getLockedTimeInSeconds,
+  getNeuronFreeMaturityE8s,
   getNeuronHasNoFollowing,
   getNeuronIsAutoStakingMaturity,
+  getNeuronIsDissolved,
   getNeuronIsDissolving,
 } from '@utils/neuron';
 import { formatNumber, formatPercentage } from '@utils/numbers';
@@ -27,9 +30,11 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
   const { t } = useTranslation();
   const apyColor = useApyColor(apy?.cur ?? 0);
 
+  const isDissolved = getNeuronIsDissolved(neuron);
   const isDissolving = getNeuronIsDissolving(neuron);
   const isAutoStake = getNeuronIsAutoStakingMaturity(neuron);
   const hasNoFollowing = getNeuronHasNoFollowing(neuron);
+  const hasUnstakedMaturity = getNeuronFreeMaturityE8s(neuron) > 0n;
 
   const dissolveDelaySeconds = isDissolving
     ? getDissolvingTimeInSeconds(neuron)
@@ -128,12 +133,26 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
                 {durationText}
               </p>
               <div
-                className="flex items-center gap-1 rounded-sm border border-gray-200 bg-gray-100 px-2 py-0.5 text-gray-600 hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-900/30 dark:text-gray-400"
+                className={`flex items-center gap-1 rounded-sm border px-2 py-0.5 ${
+                  isDissolving
+                    ? 'border-orange-200 bg-orange-100 text-orange-700 dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
+                    : 'border-gray-200 bg-gray-100 text-gray-600 dark:border-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
+                }`}
                 data-testid="neuron-card-state"
               >
-                {isDissolving ? <Timer className="size-3" /> : <Lock className="size-3" />}
+                {isDissolved ? (
+                  <CheckCircle className="size-3" />
+                ) : isDissolving ? (
+                  <Timer className="size-3" />
+                ) : (
+                  <Lock className="size-3" />
+                )}
                 <p className="text-[11px] font-medium">
-                  {isDissolving ? t(($) => $.neuron.dissolving) : t(($) => $.neuron.locked)}
+                  {isDissolved
+                    ? t(($) => $.neuron.dissolved)
+                    : isDissolving
+                      ? t(($) => $.neuron.dissolving)
+                      : t(($) => $.neuron.locked)}
                 </p>
               </div>
             </div>
@@ -186,6 +205,40 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
           )}
         </div>
       </CardContent>
+
+      {/* Disburse buttons */}
+      {(isDissolved || hasUnstakedMaturity) && (
+        <CardFooter className="flex flex-col gap-2 border-t pt-4">
+          {isDissolved && (
+            <Button
+              variant="default"
+              className="w-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                // @TODO: Implement DisburseIcpModal
+              }}
+              data-testid="neuron-card-disburse-icp-btn"
+            >
+              <Coins className="size-4" />
+              {t(($) => $.neuron.disburseIcp)}
+            </Button>
+          )}
+          {hasUnstakedMaturity && (
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                // @TODO: Implement DisburseMaturityModal
+              }}
+              data-testid="neuron-card-disburse-maturity-btn"
+            >
+              <Coins className="size-4" />
+              {t(($) => $.neuron.disburseMaturity)}
+            </Button>
+          )}
+        </CardFooter>
+      )}
     </Card>
   );
 };
