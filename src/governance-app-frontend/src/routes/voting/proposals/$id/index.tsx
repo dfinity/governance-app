@@ -22,6 +22,7 @@ import { useGovernanceProposal } from '@hooks/governance/useGovernanceProposal';
 import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';
 import { stringToBigInt } from '@utils/bigInt';
+import { requireIdentity } from '@utils/router';
 import { safeParseUrl } from '@utils/urls';
 
 export const Route = createFileRoute('/voting/proposals/$id/')({
@@ -32,7 +33,8 @@ export const Route = createFileRoute('/voting/proposals/$id/')({
     stringify: ({ id }) => ({ id: id?.toString() ?? '' }),
   },
   validateSearch: getShowProposalUrlStatus,
-  beforeLoad: ({ params }) => {
+  beforeLoad: async ({ params, location }) => {
+    await requireIdentity({ location });
     if (!params.id) throw redirect({ to: '/voting', replace: true });
   },
   pendingComponent: () => <SkeletonLoader count={3} />,

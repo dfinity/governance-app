@@ -1,10 +1,11 @@
-import { isNullish } from '@dfinity/utils';
-import { createFileRoute, Navigate } from '@tanstack/react-router';
-import { useInternetIdentity } from 'ic-use-internet-identity';
+import { isNullish, nonNullish } from '@dfinity/utils';
+import { createFileRoute, Navigate, redirect } from '@tanstack/react-router';
+import { ensureInitialized, useInternetIdentity } from 'ic-use-internet-identity';
 import { ExternalLink } from 'lucide-react';
 import { type CSSProperties, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGovernanceLogo';
 import { useTvlValue } from '@features/login/hooks/useTvlValue';
 import { useProposalsAdoptedLastXDays } from '@features/proposals/hooks/useProposalsAdoptedLastXDays';
 
@@ -23,6 +24,13 @@ export const Route = createFileRoute('/login')({
       redirect: typeof search.redirect === 'string' ? search.redirect : undefined,
     };
   },
+  beforeLoad: async ({ search }) => {
+    const identity = await ensureInitialized();
+
+    if (nonNullish(identity)) {
+      throw redirect({ to: search.redirect, replace: true });
+    }
+  },
   component: LoginPage,
 });
 
@@ -32,9 +40,9 @@ const FADE_MASK_STYLE: CSSProperties = {
 };
 
 function LoginPage() {
-  const { login, identity } = useInternetIdentity();
+  const { login, isLoggingIn, identity } = useInternetIdentity();
   const { t } = useTranslation();
-  const { redirect = '/' } = Route.useSearch();
+  const { redirect: redirectTo = '/' } = Route.useSearch();
 
   // Enforce dark theme on body for login page
   useLayoutEffect(() => {
@@ -50,10 +58,25 @@ function LoginPage() {
   const { proposals, isLoading } = useProposalsAdoptedLastXDays(30);
   const proposalsAdopted = proposals.length;
 
-  if (identity) return <Navigate to={redirect} />;
+  // Redirect after successful login (beforeLoad handles initial page load, this handles post-login)
+  if (identity) return <Navigate to={redirectTo} replace />;
 
   return (
-    <div className="relative min-h-dvh w-full font-sans text-foreground">
+    <div className="dark relative min-h-dvh w-full font-sans text-foreground">
+      {/* Loading Overlay */}
+      {isLoggingIn && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div
+            className="flex flex-col items-center gap-6 text-white"
+            role="status"
+            aria-live="polite"
+          >
+            <AnimatedGovernanceLogo />
+            <p className="text-lg font-medium">{t(($) => $.login.authenticating)}</p>
+          </div>
+        </div>
+      )}
+
       {/* Background */}
       <div className="absolute inset-0 -z-10 overflow-hidden" data-testid="video-background">
         <div className="absolute inset-0 bg-black" />
@@ -158,6 +181,7 @@ function LoginPage() {
             <div className="flex flex-col gap-4">
               <Button
                 onClick={login}
+                disabled={isLoggingIn}
                 className="w-full bg-neutral-900 text-base font-medium text-white hover:bg-neutral-800"
                 variant="default"
                 size="xxl"

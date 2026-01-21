@@ -1,12 +1,12 @@
 import { ERROR_USER_INTERRUPT } from '@icp-sdk/auth/client';
-import { redirect } from '@tanstack/react-router';
+import { ParsedLocation, redirect } from '@tanstack/react-router';
 import { ensureInitialized } from 'ic-use-internet-identity';
 
 import i18n from '@/i18n/config';
 
 import { warningNotification } from './notification';
 
-export const requireIdentity = async () => {
+export const requireIdentity = async ({ location }: { location: ParsedLocation }) => {
   let identity;
 
   try {
@@ -17,13 +17,13 @@ export const requireIdentity = async () => {
   }
 
   if (!identity) {
-    console.log('[🔐 Protected Route]: identity not found, redirecting to homepage.');
+    console.log('[🔐 Protected Route]: identity not found, redirecting to login page.');
     warningNotification({
       title: i18n.t(($) => $.common.restricted),
       description: i18n.t(($) => $.common.restrictedPage),
     });
-    throw redirect({ to: '/' });
-  }
 
-  console.log('[🔐 Protected Route]: identity found, loading protected page.');
+    const redirectTo = location.pathname !== '/' ? location.pathname : undefined;
+    throw redirect({ to: '/login', search: { redirect: redirectTo } });
+  }
 };
