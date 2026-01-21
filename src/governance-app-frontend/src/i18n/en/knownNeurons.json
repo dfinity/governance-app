@@ -5,5 +5,9 @@
   "api": {
     "success": "Now following {{name}} for all your stakes",
     "error": "Failed to follow {{name}}"
+  },
+  "confirmation": {
+    "title": "Confirm your selection",
+    "description": "You are going to set up all your stakes to follow the same Known Neuron. This will override existing configurations. Are you sure?"
   }
 }
