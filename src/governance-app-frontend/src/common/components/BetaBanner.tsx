@@ -17,23 +17,25 @@ export const BetaBanner = ({ isLoggedIn = false }: BetaBannerProps) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
-  // Different positioning based on login state
-  const positionClasses = isLoggedIn
-    ? // Logged in: Desktop - on top of Governance label
-      'fixed top-2 left-[11rem] z-50 hidden lg:flex items-center rounded-md border px-1.5 py-0.5 text-[0.625rem] font-semibold shadow-sm hover:shadow-md bg-black text-white border-zinc-700 cursor-pointer transition-all hover:scale-105'
-    : // Login page: next to logo
-      'fixed top-[2.65rem] left-[5.5rem] z-50 hidden sm:flex items-center rounded-md border bg-zinc-800 text-white border-zinc-700 px-1.5 py-0.5 text-[0.625rem] font-semibold shadow-sm hover:shadow-md sm:top-12 sm:left-[7rem] cursor-pointer transition-all hover:scale-105';
+  // Consistent badge styling
+  const badgeStyles = 'items-center rounded-md border border-zinc-700 bg-black text-white shadow-sm hover:shadow-md cursor-pointer transition-all hover:scale-105';
+  
+  // Desktop: Different positioning based on login state
+  const desktopPositionClasses = isLoggedIn
+    ? 'fixed top-2 left-[11rem] z-50 hidden lg:flex px-1.5 py-0.5 text-[0.625rem] font-semibold'
+    : 'fixed top-[2.65rem] left-[5.5rem] z-50 hidden sm:flex px-1.5 py-0.5 text-[0.625rem] font-semibold sm:top-12 sm:left-[7rem]';
 
+  // Mobile: Different positioning based on login state  
   const mobilePositionClasses = isLoggedIn
-    ? 'fixed top-3 right-2 z-50 flex lg:hidden items-center rounded-md border px-2 py-1 text-xs font-semibold shadow-sm hover:shadow-md bg-black text-white border-zinc-700 cursor-pointer transition-all hover:scale-105'
-    : 'fixed top-10 right-4 z-50 flex sm:hidden items-center rounded-md border px-2 py-1 text-[0.625rem] font-semibold shadow-sm hover:shadow-md bg-zinc-800 text-white border-zinc-700 cursor-pointer transition-all hover:scale-105';
+    ? 'fixed top-3 right-2 z-50 flex lg:hidden px-2 py-1 text-xs font-semibold'
+    : 'fixed top-10 right-4 z-50 flex sm:hidden px-2 py-1 text-xs font-semibold';
 
   return (
     <>
       {/* Desktop badge */}
       <button
         onClick={() => setIsOpen(true)}
-        className={positionClasses}
+        className={`${desktopPositionClasses} ${badgeStyles}`}
         aria-label={t(($) => $.common.betaBanner.openInfo)}
       >
         {t(($) => $.common.betaBanner.beta)}
@@ -42,7 +44,7 @@ export const BetaBanner = ({ isLoggedIn = false }: BetaBannerProps) => {
       {/* Mobile badge */}
       <button
         onClick={() => setIsOpen(true)}
-        className={mobilePositionClasses}
+        className={`${mobilePositionClasses} ${badgeStyles}`}
         aria-label={t(($) => $.common.betaBanner.openInfo)}
       >
         {t(($) => $.common.betaBanner.beta)}
