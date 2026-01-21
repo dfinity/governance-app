@@ -21,8 +21,7 @@ export const useStakingRewards = () => {
   const balance = useIcpLedgerAccountBalance().data?.response;
   const economics = useGovernanceEconomics().data?.response;
   const neurons = useGovernanceNeurons().data?.response;
-  const totalVotingPower = useGovernanceProposal({ proposalId: undefined }).data?.response
-    ?.totalPotentialVotingPower;
+  const totalVotingPower = useGovernanceProposal().data?.response?.totalPotentialVotingPower;
 
   const [data, setData] = useState<StakingRewardResult>({ loading: true });
 

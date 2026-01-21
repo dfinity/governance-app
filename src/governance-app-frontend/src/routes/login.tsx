@@ -10,7 +10,7 @@ import { useTvlValue } from '@features/login/hooks/useTvlValue';
 import { Button } from '@components/button';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
-import { useGovernanceProposals } from '@hooks/governance';
+import { useGovernanceProposal } from '@hooks/governance';
 import { formatNumber } from '@utils/numbers';
 
 type LoginSearch = {
@@ -46,8 +46,8 @@ function LoginPage() {
 
   const { tvl, isLoading: isTvlLoading, isError: isTvlError } = useTvlValue();
   const participants = 57986;
-  const proposalsQuery = useGovernanceProposals({ limit: 1 });
-  const totalProposals = proposalsQuery?.data?.pages?.[0]?.response?.proposals[0]?.id ?? 0n;
+  const proposalsQuery = useGovernanceProposal();
+  const totalProposals = proposalsQuery?.data?.response?.id ?? 0n;
 
   if (identity) return <Navigate to={redirect} />;
 

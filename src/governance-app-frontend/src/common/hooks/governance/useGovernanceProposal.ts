@@ -9,7 +9,8 @@ import { useNnsGovernance } from './useGovernance';
  * Use the `list_proposals` API instead of `proposal_info` to take advantage of `omitLargeFields`.
  * The payload rendering will rely on new backend fields (not yet implemented).
  */
-export const useGovernanceProposal = ({ proposalId }: { proposalId: bigint | undefined }) => {
+export const useGovernanceProposal = (props?: { proposalId?: bigint }) => {
+  const { proposalId } = props ?? {};
   const { ready, canister, authenticated } = useNnsGovernance();
 
   const request: ListProposalsRequest = {
