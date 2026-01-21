@@ -6,12 +6,12 @@ import { expect, type Page, test } from '@playwright/test';
  */
 export const getIcps = async (page: Page, amount: string) => {
   await test.step(`Get ${amount} test ICP`, async () => {
-    await page.getByRole('button', { name: 'Buy Testnet ICP' }).click();
-    await page.locator('#tokens-amount').fill(amount);
-    await page.getByRole('button', { name: 'Top Up' }).click();
-    await expect(page.getByText('Get Testnet ICP')).not.toBeVisible({ timeout: 30000 });
+    await page.getByTestId('get-testnet-icp-trigger-btn').click();
+    await page.getByTestId('get-testnet-icp-amount-input').fill(amount);
+    await page.getByTestId('get-testnet-icp-submit-btn').click();
+    await expect(page.getByTestId('get-testnet-icp-dialog')).not.toBeVisible({ timeout: 30000 });
     // Wait for balance to update in the "Available" card.
-    const availableCard = page.locator('[data-slot="card"]').filter({ hasText: 'Available' });
+    const availableCard = page.getByTestId('available-balance-card');
     await expect(availableCard.getByText(new RegExp(`${amount}(\\.\\d+)?\\s*ICP`))).toBeVisible();
   });
 };

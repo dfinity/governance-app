@@ -5,12 +5,5 @@
   "api": {
     "success": "Now following {{name}} for all your stakes",
     "error": "Failed to follow {{name}}"
-  },
-  "seeDetails": "See details",
-  "followingProgress": {
-    "loading": "Setting follow settings for {{neuronId}}...",
-    "success": "Successfully updated follow settings for {{neuronId}}",
-    "error": "Failed to set follow settings for {{neuronId}}"
-  },
-  "confirmNavigation": "Follow process in progress."
+  }
 }

@@ -1,10 +1,11 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
-import { Lock, Timer } from 'lucide-react';
+import { CircleAlert, Lock, Timer } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { E8Sn, MILLISECONDS_IN_SECOND } from '@constants/extra';
+import { useApyColor } from '@hooks/useApyColor';
 import { bigIntDiv } from '@utils/bigInt';
 import {
   getDissolvingTimeInSeconds,
@@ -13,7 +14,6 @@ import {
   getNeuronIsDissolving,
 } from '@utils/neuron';
 import { formatNumber, formatPercentage } from '@utils/numbers';
-import { cn } from '@utils/shadcn';
 import { APY } from '@utils/staking-rewards';
 
 type Props = {
@@ -23,6 +23,7 @@ type Props = {
 
 export const NeuronCard = ({ neuron, apy }: Props) => {
   const { t } = useTranslation();
+  const apyColor = useApyColor(apy?.cur ?? 0);
 
   const isDissolving = getNeuronIsDissolving(neuron);
   const isAutoStake = getNeuronIsAutoStakingMaturity(neuron);
@@ -58,8 +59,6 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
     ? bigIntDiv(neuron.fullNeuron.cachedNeuronStake, E8Sn)
     : 0;
 
-  const isMaxApy = nonNullish(apy) && apy.cur.toFixed(2) === apy.max.toFixed(2);
-
   return (
     <Card className="gap-3 transition-colors hover:border-foreground" data-testid="neuron-card">
       <CardHeader className="flex flex-col items-start justify-between space-y-0 xs:flex-row">
@@ -71,14 +70,14 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
             {t(($) => $.neuron.creationDate, { date: creationDate })}
           </p>
         </div>
-        {nonNullish(apy) && (
+        {nonNullish(apy) && apyColor.ready && (
           <div
-            className={cn(
-              'flex items-center gap-2 rounded-sm border p-2',
-              isMaxApy
-                ? 'border-emerald-200 bg-emerald-100 text-emerald-600 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
-                : 'border-orange-200 bg-orange-100 text-orange-600 hover:bg-orange-100 dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
-            )}
+            className="flex items-center gap-2 rounded-sm border p-2"
+            style={{
+              backgroundColor: apyColor.bgColor,
+              borderColor: apyColor.borderColor,
+              color: apyColor.textColor,
+            }}
             onClick={() => {
               // @TODO: Implement optimization modal
               // e.preventDefault();
@@ -92,7 +91,13 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
               {formatPercentage(apy.cur)}{' '}
               <span className="hidden sm:inline">{t(($) => $.common.apy)} </span>
             </p>
-            {/* !isMaxAPY && <CircleAlert className="hidden size-4 sm:block" /> */}
+            {apyColor.isMax ? (
+              <span className="rounded bg-green-600 px-1 py-0.5 text-[10px] font-bold text-white uppercase">
+                {t(($) => $.common.max)}
+              </span>
+            ) : (
+              <CircleAlert className="hidden size-4 sm:block" />
+            )}
           </div>
         )}
       </CardHeader>

@@ -14,6 +14,7 @@ import { usePreventAttributeChange } from '@hooks/usePreventAttributeChange';
 import { queryClientConfig, routerConfig } from '@utils/initializer';
 
 import { AgentPoolProvider } from '@/app/contexts/agentPoolProvider';
+import { StakingRewardsProvider } from '@/app/contexts/stakingRewardsProvider';
 import { ThemeProvider } from '@/app/contexts/themeProvider';
 
 export const App = () => {
@@ -29,15 +30,17 @@ export const App = () => {
       >
         <QueryClientProvider client={queryClientConfig}>
           <AgentPoolProvider>
-            <ThemeProvider>
-              <RouterProvider router={routerConfig} />
-              <ReactQueryDevtools initialIsOpen={false} />
-              {notificationsContainer &&
-                createPortal(
-                  <Sonner position="top-center" visibleToasts={9} />,
-                  notificationsContainer,
-                )}
-            </ThemeProvider>
+            <StakingRewardsProvider>
+              <ThemeProvider>
+                <RouterProvider router={routerConfig} />
+                <ReactQueryDevtools initialIsOpen={false} />
+                {notificationsContainer &&
+                  createPortal(
+                    <Sonner position="top-center" visibleToasts={9} />,
+                    notificationsContainer,
+                  )}
+              </ThemeProvider>
+            </StakingRewardsProvider>
           </AgentPoolProvider>
         </QueryClientProvider>
       </InternetIdentityProvider>

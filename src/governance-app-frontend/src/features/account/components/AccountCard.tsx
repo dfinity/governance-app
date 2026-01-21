@@ -45,7 +45,10 @@ export function AccountCard() {
 
   return (
     <>
-      <Card className="flex-1 gap-3 transition-all duration-300">
+      <Card
+        className="flex-1 gap-3 transition-all duration-300"
+        data-testid="available-balance-card"
+      >
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-sm font-medium tracking-wide text-muted-foreground uppercase">
             {t(($) => $.account.available)}
