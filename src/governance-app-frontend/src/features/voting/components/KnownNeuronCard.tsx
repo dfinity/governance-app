@@ -1,7 +1,11 @@
 import type { KnownNeuron } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
-import { ChevronDown, ChevronUp, Circle, CircleDot, LinkIcon, Loader2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Circle, CircleDot, LinkIcon, Loader2, Users } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import { KNOWN_NEURONS_SORTING_MAP } from '@features/voting/data/knownNeuronsSorting';
+import { formatVotingPower } from '@features/voting/utils/formatVotingPower';
 
 import { Badge } from '@components/badge';
 import { Button } from '@components/button';
@@ -21,6 +25,9 @@ type Props = {
 
 export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled, isLoading }: Props) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { t } = useTranslation();
+
+  const votingPower = KNOWN_NEURONS_SORTING_MAP[String(neuron.id)]?.voting_power;
 
   const toggleExpanded = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -58,7 +65,17 @@ export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled, isLo
 
         <div className="flex min-w-0 grow-1 flex-col">
           <div className="flex grow-1 items-center justify-between">
-            <h4 className="leading-none font-semibold">{neuron.name}</h4>
+            <div className="flex flex-col gap-1">
+              <h4 className="leading-none font-semibold">{neuron.name}</h4>
+              {nonNullish(votingPower) && (
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <Users className="size-3" />
+                  <span className="text-xs">
+                    {t(($) => $.voting.votingPower, { ammount: formatVotingPower(votingPower) })}
+                  </span>
+                </div>
+              )}
+            </div>
 
             <Button variant="ghost" size="icon-lg" onClick={toggleExpanded}>
               {isExpanded ? <ChevronUp className="size-6" /> : <ChevronDown className="size-6" />}

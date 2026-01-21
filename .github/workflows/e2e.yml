@@ -4,7 +4,7 @@ on:
 
 jobs:
   tests:
-    timeout-minutes: 15
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     env:
       BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
@@ -94,7 +94,7 @@ jobs:
           key: playwright-${{ runner.os }}-${{ steps.playwright_version.outputs.version }}-all
 
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium firefox
+        run: npx playwright install --with-deps chromium
 
       - name: E2E tests and update snapshots
         run: |

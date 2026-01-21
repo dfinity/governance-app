@@ -4,6 +4,7 @@
   "non_known_neuron": "Non known neuron {{neuronId}}",
   "description": "These organizations will automatically vote on your behalf, allowing you to earn rewards.",
   "cta": "Manage following",
+  "votingPower": "{{ammount}} voting power",
   "noFollowing": {
     "title": "No Following Selected",
     "description": "Select a trusted organization to automatically vote on your behalf and earn rewards.",

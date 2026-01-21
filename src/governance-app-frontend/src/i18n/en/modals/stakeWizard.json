@@ -1,0 +1,89 @@
+{
+  "title": "Stake ICP",
+  "steps": {
+    "amount": {
+      "title": "Stake ICP",
+      "label": "Amount to stake",
+      "available": "Available: {{amount}} ICP",
+      "maxButtonAriaLabel": "Set amount to maximum available balance"
+    },
+    "dissolveDelay": {
+      "title": "Set dissolve delay",
+      "description": "Longer dissolve delays earn higher rewards.",
+      "presets": {
+        "6months": "6 months",
+        "1year": "1 year",
+        "2years": "2 years",
+        "4years": "4 years",
+        "8years": "8 years"
+      }
+    },
+    "configuration": {
+      "title": "Configure stake",
+      "maturity": {
+        "label": "Manage rewards",
+        "description": "Choose how to handle your staking rewards.",
+        "autoStake": "Auto-stake",
+        "keepLiquid": "Keep liquid"
+      },
+      "state": {
+        "label": "Initial State",
+        "description": "Choose the starting state for your Stake.",
+        "locked": "Locked",
+        "unlocking": "Unlocking"
+      },
+      "confirm": "Create"
+    },
+    "confirmation": {
+      "title": "Finalizing",
+      "successTitle": "Success",
+      "processing": {
+        "title": "Creating your Stake.",
+        "warning": "Please don't close this page. This process may take a few seconds.",
+        "steps": {
+          "createNeuron": "Reserving amount...",
+          "setDissolveDelay": "Setting lock period...",
+          "setAutoStake": "Configuring rewards...",
+          "startDissolving": "Starting countdown...",
+          "refreshingData": "Refreshing data..."
+        }
+      },
+      "success": {
+        "title": "You're now earning rewards!",
+        "amountStaked": "Amount Staked",
+        "dissolveDelay": "Lock Period",
+        "expectedApy": "Expected APY",
+        "done": "Done"
+      },
+      "error": {
+        "title": "Something went wrong",
+        "failedAt": "Failed at: {{step}}",
+        "retry": "Try Again"
+      }
+    }
+  },
+  "infoBoxes": {
+    "whatIsStaking": "Staking your ICP creates a Stake that earns voting rewards. You can earn up to ~{{maxApy}}% APY depending on your lock period and participation.",
+    "dissolveDelayWarning": "The lock period can only be increased, never decreased. The countdown only begins when you start unlocking.",
+    "lockedDescription": "<strong>Locked:</strong> Stake stays locked, earning maximum rewards. Start unlocking later when you want to withdraw.",
+    "unlockingDescription": "<strong>Unlocking:</strong> countdown begins immediately. After the lock period, you can withdraw your ICP."
+  },
+  "badges": {
+    "maxRewards": "Max Rewards"
+  },
+  "apyPreview": {
+    "label": "Expected APY",
+    "value": "~{{apy}}%"
+  },
+  "errors": {
+    "insufficientBalance": "Insufficient balance",
+    "amountTooLow": "Minimum stake is {{min}} ICP",
+    "stakeFailed": "Failed to create Stake",
+    "dissolveDelayFailed": "Failed to set lock period",
+    "autoStakeFailed": "Failed to configure rewards mode",
+    "startDissolvingFailed": "Failed to start unlocking",
+    "cannotStake": "You need ICP to stake. Please buy or deposit ICP first."
+  },
+  "confirmNavigation": "Your stake is being created, leaving this page may cause unexpected results. Are you sure you want to leave?",
+  "confirmNavigationUnsaved": "Your progress will not be saved. Are you sure you want to leave?"
+}

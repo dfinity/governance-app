@@ -3,9 +3,11 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 
-import { StakeNeuronModal } from './StakeNeuronModal';
+type Props = {
+  openStakingWizard: () => void;
+};
 
-export const EmptyNeuronsState = () => {
+export const EmptyNeuronsState = ({ openStakingWizard }: Props) => {
   const { t } = useTranslation();
 
   return (
@@ -17,14 +19,15 @@ export const EmptyNeuronsState = () => {
       <p className="max-w-sm text-base text-muted-foreground">
         {t(($) => $.neuron.empty.description)}
       </p>
-      <StakeNeuronModal
-        trigger={
-          <Button size="xl" className="w-full capitalize xs:w-auto">
-            <Plus className="mr-2 size-5" />
-            {t(($) => $.neuron.empty.cta)}
-          </Button>
-        }
-      />
+      <Button
+        data-testid="empty-neurons-state-open-staking-wizard-btn"
+        className="w-full sm:w-auto"
+        onClick={openStakingWizard}
+        size="xl"
+      >
+        <Plus />
+        {t(($) => $.neuron.empty.cta)}
+      </Button>
     </div>
   );
 };

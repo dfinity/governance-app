@@ -27,8 +27,8 @@
   "staked": "Staked",
   "icp": "ICP",
   "inIcp": "{{value}} ICP",
-  "positiveNumber": "+ {{value}}",
-  "negativeNumber": "- {{value}}",
+  "positiveNumber": "+{{value}}",
+  "negativeNumber": "-{{value}}",
   "transactions": "Transactions",
   "noData": "No data available",
   "from": "From",
@@ -69,6 +69,8 @@
   "confirm": "Confirm",
   "cancel": "Cancel",
   "close": "Close",
+  "back": "Back",
+  "next": "Next",
   "apy": "APY",
   "dashboard": "Dashboard",
   "voting": "Voting",
@@ -86,5 +88,8 @@
   "support": "Support",
   "alt": {
     "icpLogo": "Internet Computer (ICP) Logo"
-  }
+  },
+  "max": "Max",
+  "confirmNavigation": "The app is still processing, please wait until it is complete. Are you sure you want to leave this page?",
+  "leave": "Leave"
 }
