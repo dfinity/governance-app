@@ -12,7 +12,7 @@ jobs:
       env:
         HOME: /root
     env:
-      BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
+      BASE_URL: http://127.0.0.1:8080/?canisterId=uxrrr-q7777-77774-qaaaq-cai
 
     steps:
       - uses: actions/checkout@v4
