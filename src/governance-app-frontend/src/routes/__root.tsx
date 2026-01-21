@@ -22,6 +22,9 @@ export const Route = createRootRoute({
   component: RootComponent,
 });
 
+// Banner height constant
+const BANNER_HEIGHT = 'pt-[42px]';
+
 function RootComponent() {
   const { identity, isInitializing } = useInternetIdentity();
   const location = useLocation();
@@ -32,6 +35,8 @@ function RootComponent() {
 
   const matches = useMatches();
   const isLoginPage = matches.some((m) => m.routeId === '/login');
+
+  const wrapperClassName = `transition-[padding] duration-200 ${isCollapsed ? '' : BANNER_HEIGHT}`;
 
   // BE CAREFUL CHANGING THIS EFFECT!
 
@@ -66,7 +71,7 @@ function RootComponent() {
 
   if (isLoginPage) {
     return (
-      <div className={`transition-[padding] duration-200 ${isCollapsed ? '' : 'pt-[42px]'}`}>
+      <div className={wrapperClassName}>
         <BetaBanner isLoggedIn={false} />
         <Outlet />
       </div>
@@ -77,7 +82,7 @@ function RootComponent() {
   if (!identity) return <Navigate to="/login" search={{ redirect }} />;
 
   return (
-    <div className={`transition-[padding] duration-200 ${isCollapsed ? '' : 'pt-[42px]'}`}>
+    <div className={wrapperClassName}>
       <BetaBanner isLoggedIn={true} />
       <MainLayout>
         <Outlet />

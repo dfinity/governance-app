@@ -28,4 +28,3 @@ export const useBetaBannerCollapsed = () => {
 
   return { isCollapsed, setIsCollapsed };
 };
-
