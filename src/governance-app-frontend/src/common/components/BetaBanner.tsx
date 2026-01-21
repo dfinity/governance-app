@@ -28,14 +28,14 @@ export const BetaBanner = ({ isLoggedIn = false }: BetaBannerProps) => {
     baseBadgeClasses,
     'hidden px-1.5 py-0.5 text-[0.625rem]',
     isLoggedIn
-      ? 'lg:flex fixed top-2 left-[11rem]'
-      : 'sm:flex absolute top-[2.5rem] left-[8.5rem] sm:top-[3rem] sm:left-[7rem]',
+      ? 'fixed top-2 left-[11rem] lg:flex'
+      : 'absolute top-[2.5rem] left-[8.5rem] sm:top-[3rem] sm:left-[7rem] sm:flex',
   );
 
   const mobileClasses = cn(
     baseBadgeClasses,
     'flex gap-1.5 px-2 py-1 text-xs',
-    isLoggedIn ? 'lg:hidden fixed top-3 right-2' : 'sm:hidden absolute top-[2.25rem] right-4',
+    isLoggedIn ? 'fixed top-3 right-2 lg:hidden' : 'absolute top-[2.25rem] right-4 sm:hidden',
   );
 
   const canDoItems = [
@@ -55,12 +55,20 @@ export const BetaBanner = ({ isLoggedIn = false }: BetaBannerProps) => {
   return (
     <>
       {/* Desktop badge */}
-      <button onClick={handleOpen} className={desktopClasses} aria-label={t(($) => $.common.betaBanner.openInfo)}>
+      <button
+        onClick={handleOpen}
+        className={desktopClasses}
+        aria-label={t(($) => $.common.betaBanner.openInfo)}
+      >
         {t(($) => $.common.betaBanner.beta)}
       </button>
 
       {/* Mobile badge */}
-      <button onClick={handleOpen} className={mobileClasses} aria-label={t(($) => $.common.betaBanner.openInfo)}>
+      <button
+        onClick={handleOpen}
+        className={mobileClasses}
+        aria-label={t(($) => $.common.betaBanner.openInfo)}
+      >
         {t(($) => $.common.betaBanner.beta)}
         <Info className="size-3.5" />
       </button>
@@ -69,7 +77,9 @@ export const BetaBanner = ({ isLoggedIn = false }: BetaBannerProps) => {
       <ResponsiveDialog open={isOpen} onOpenChange={setIsOpen}>
         <ResponsiveDialogContent>
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>{t(($) => $.common.betaBanner.modalTitle)}</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle>
+              {t(($) => $.common.betaBanner.modalTitle)}
+            </ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
               {t(($) => $.common.betaBanner.modalDescription)}
             </ResponsiveDialogDescription>
