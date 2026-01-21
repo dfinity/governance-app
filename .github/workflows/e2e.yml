@@ -5,7 +5,7 @@ on:
 jobs:
   tests:
     timeout-minutes: 30
-    runs-on: ubuntu-latest
+    runs-on: &dind-small-setup
     env:
       BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
 
