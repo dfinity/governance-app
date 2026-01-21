@@ -29,12 +29,12 @@ export const useGovernanceProposals = (
     queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS, options, principal],
     queryFn: (context) =>
       canister!.listProposals({
-        request: { ...args, beforeProposal: context.pageParam },
+        request: { ...options, beforeProposal: context.pageParam },
         certified: false,
       }),
     updateFn: (context) =>
       canister!.listProposals({
-        request: { ...args, beforeProposal: context.pageParam },
+        request: { ...options, beforeProposal: context.pageParam },
         certified: true,
       }),
     initialPageParam: undefined,
