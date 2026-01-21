@@ -7,8 +7,8 @@ import { QUERY_KEYS } from '@utils/query';
 
 import { useNnsGovernance } from './useGovernance';
 
-export const useGovernanceProposals = (options?: Partial<ListProposalsRequest>) => {
-  const args: ListProposalsRequest = {
+export const useGovernanceProposals = (
+  options: ListProposalsRequest = {
     beforeProposal: undefined,
     limit: PAGINATION_LIMIT_PROPOSALS,
     excludeTopic: [],
