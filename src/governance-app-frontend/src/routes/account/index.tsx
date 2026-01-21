@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { LogOut } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AccountIdCard } from '@features/userAccount/components/AccountIdCard';
@@ -15,6 +16,7 @@ import { Card } from '@components/Card';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
 import useTitle from '@hooks/useTitle';
+import { warningNotification } from '@utils/notification';
 
 export const Route = createFileRoute('/account/')({
   component: Account,
@@ -26,8 +28,24 @@ export const Route = createFileRoute('/account/')({
 function Account() {
   const { identity, clear } = useInternetIdentity();
   const { t } = useTranslation();
-  useTitle(t(($) => $.common.accounts));
   const timeLeft = useSessionTimeLeft();
+  const hasBeenNotified = useRef(false);
+
+  useTitle(t(($) => $.common.accounts));
+
+  useEffect(() => {
+    if (
+      timeLeft.minutes < 5 &&
+      (timeLeft.minutes > 0 || timeLeft.seconds > 0) &&
+      !hasBeenNotified.current
+    ) {
+      hasBeenNotified.current = true;
+
+      warningNotification({
+        description: t(($) => $.userAccount.session.warning),
+      });
+    }
+  }, [identity, t, timeLeft.minutes, timeLeft.seconds]);
 
   const handleLogout = () => {
     localStorage.setItem(MANUAL_LOGOUT_KEY, 'true');
