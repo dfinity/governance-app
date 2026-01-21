@@ -61,7 +61,11 @@ function LoginPage() {
       {/* Loading Overlay */}
       {isLoggingIn && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-          <div className="flex flex-col items-center gap-6 text-white">
+          <div
+            className="flex flex-col items-center gap-6 text-white"
+            role="status"
+            aria-live="polite"
+          >
             <AnimatedGovernanceLogo />
             <p className="text-lg font-medium">{t(($) => $.login.authenticating)}</p>
           </div>
