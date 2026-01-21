@@ -8,6 +8,9 @@ jobs:
     runs-on: dind-small
     container:
       image: buildpack-deps:jammy
+      options: --user root
+      env:
+        HOME: /root
     env:
       BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
 
