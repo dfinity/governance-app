@@ -18,6 +18,7 @@ import {
   DrawerTrigger,
 } from '@components/Drawer';
 import { useMediaQuery } from '@hooks/useMediaQuery';
+import { cn } from '@utils/shadcn';
 
 type Props = React.ComponentProps<typeof Dialog> & {
   dismissible?: boolean;
@@ -83,7 +84,7 @@ export function ResponsiveDialogHeader({
     return <DialogHeader className={className} {...props} />;
   }
 
-  return <DrawerHeader className="text-left" {...props} />;
+  return <DrawerHeader className={cn('text-left', className)} {...props} />;
 }
 
 export function ResponsiveDialogTitle({

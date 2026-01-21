@@ -4,6 +4,7 @@ import { AlertTriangle, CircleAlert, Lock, Timer } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent, CardHeader } from '@components/Card';
+import { MaturitySymbol } from '@components/MaturitySymbol';
 import { E8Sn, MILLISECONDS_IN_SECOND } from '@constants/extra';
 import { useApyColor } from '@hooks/useApyColor';
 import { bigIntDiv } from '@utils/bigInt';
@@ -143,7 +144,10 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
             <p className="text-[13px] text-muted-foreground capitalize">
               {t(($) => $.neuron.stakedMaturity)}
             </p>
-            <p className="text-[15px] font-semibold">{formatNumber(stakedMaturity)}</p>
+            <div className="flex items-center gap-1">
+              <p className="text-[15px] font-semibold">{formatNumber(stakedMaturity)}</p>
+              <MaturitySymbol />
+            </div>
           </div>
 
           {/* Unstaked Maturity */}
@@ -153,6 +157,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
             </p>
             <div className="flex items-center gap-1">
               <p className="text-[15px] font-semibold">{formatNumber(unstakedMaturity)}</p>
+              <MaturitySymbol />
             </div>
           </div>
 
