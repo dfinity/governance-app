@@ -12,7 +12,7 @@ jobs:
       env:
         HOME: /root
     env:
-      BASE_URL: http://127.0.0.1:8080/?canisterId=uxrrr-q7777-77774-qaaaq-cai
+      BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
 
     steps:
       - uses: actions/checkout@v4
@@ -50,6 +50,9 @@ jobs:
           dfx --version
 
       # local replica
+      - name: Configure localhost DNS resolution
+        run: echo "127.0.0.1 uxrrr-q7777-77774-qaaaq-cai.localhost" >> /etc/hosts
+
       - name: Generate .env file
         run: ./scripts/config.sh -n local
 
@@ -75,7 +78,7 @@ jobs:
           echo "Waiting for server..."
           max_attempts=30
           for i in $(seq 1 $max_attempts); do
-            if curl -i $BASE_URL | grep "200 OK" > /dev/null; then
+            if curl -i "http://127.0.0.1:8080/?canisterId=uxrrr-q7777-77774-qaaaq-cai" | grep "200 OK" > /dev/null; then
               echo "Server is up!"
               break
             fi
