@@ -12,8 +12,10 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { BetaBanner } from '@components/BetaBanner';
 import { MainLayout } from '@components/MainLayout';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
+import { useBetaBannerCollapsed } from '@hooks/useBetaBannerCollapsed';
 import { infoNotification } from '@utils/notification';
 
 export const Route = createRootRoute({
@@ -26,6 +28,7 @@ function RootComponent() {
   const { invalidate } = useRouter();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+  const { isCollapsed } = useBetaBannerCollapsed();
 
   const matches = useMatches();
   const isLoginPage = matches.some((m) => m.routeId === '/login');
@@ -61,15 +64,25 @@ function RootComponent() {
   // While initializing, we might want to show a loader or nothing to prevent flicker
   if (isInitializing) return null;
 
-  if (isLoginPage) return <Outlet />;
+  if (isLoginPage) {
+    return (
+      <div className={`transition-[padding] duration-200 ${isCollapsed ? '' : 'pt-[42px]'}`}>
+        <BetaBanner isLoggedIn={false} />
+        <Outlet />
+      </div>
+    );
+  }
 
   const redirect = location.pathname !== '/' ? location.pathname : undefined;
   if (!identity) return <Navigate to="/login" search={{ redirect }} />;
 
   return (
-    <MainLayout>
-      <Outlet />
-      <TanStackRouterDevtools />
-    </MainLayout>
+    <div className={`transition-[padding] duration-200 ${isCollapsed ? '' : 'pt-[42px]'}`}>
+      <BetaBanner isLoggedIn={true} />
+      <MainLayout>
+        <Outlet />
+        <TanStackRouterDevtools />
+      </MainLayout>
+    </div>
   );
 }

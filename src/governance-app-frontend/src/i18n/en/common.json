@@ -91,5 +91,12 @@
   },
   "max": "Max",
   "confirmNavigation": "The app is still processing, please wait until it is complete. Are you sure you want to leave this page?",
-  "leave": "Leave"
+  "leave": "Leave",
+  "betaBanner": {
+    "beta": "Beta",
+    "title": "ICP Staking & Governance",
+    "description": "Actions affect your governance configuration",
+    "collapse": "Collapse beta banner",
+    "expand": "Expand beta banner"
+  }
 }
