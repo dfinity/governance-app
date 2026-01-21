@@ -38,6 +38,8 @@ export function StakingWizardStepConfirmation({
         return t(($) => $.stakeWizardModal.steps.confirmation.processing.steps.setAutoStake);
       case StakingWizardCreateNeuronStep.StartDissolving:
         return t(($) => $.stakeWizardModal.steps.confirmation.processing.steps.startDissolving);
+      case StakingWizardCreateNeuronStep.SetFollowing:
+        return t(($) => $.stakeWizardModal.steps.confirmation.processing.steps.setFollowing);
       case StakingWizardCreateNeuronStep.Done:
         return t(($) => $.stakeWizardModal.steps.confirmation.processing.steps.refreshingData);
       default:
