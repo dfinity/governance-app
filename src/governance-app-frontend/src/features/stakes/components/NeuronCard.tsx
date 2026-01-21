@@ -1,6 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
-import { CircleAlert, Lock, Timer } from 'lucide-react';
+import { AlertTriangle, CircleAlert, Lock, Timer } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent, CardHeader } from '@components/Card';
@@ -10,6 +10,7 @@ import { bigIntDiv } from '@utils/bigInt';
 import {
   getDissolvingTimeInSeconds,
   getLockedTimeInSeconds,
+  getNeuronHasNoFollowing,
   getNeuronIsAutoStakingMaturity,
   getNeuronIsDissolving,
 } from '@utils/neuron';
@@ -27,6 +28,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
 
   const isDissolving = getNeuronIsDissolving(neuron);
   const isAutoStake = getNeuronIsAutoStakingMaturity(neuron);
+  const hasNoFollowing = getNeuronHasNoFollowing(neuron);
 
   const dissolveDelaySeconds = isDissolving
     ? getDissolvingTimeInSeconds(neuron)
@@ -166,6 +168,17 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
               {isAutoStake ? t(($) => $.neuron.autoStake) : t(($) => $.neuron.keepLiquid)}
             </p>
           </div>
+
+          {/* @TODO: Remove when advanced following is implemented */}
+          {hasNoFollowing && (
+            <div
+              className="mt-3 flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-amber-800 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
+              data-testid="neuron-card-no-following-warning"
+            >
+              <AlertTriangle className="size-4 shrink-0" />
+              <p className="text-[13px]">{t(($) => $.neuron.noFollowingWarning)}</p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

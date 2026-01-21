@@ -18,6 +18,7 @@
   "locked": "Locked",
   "dissolving": "Dissolving",
   "following": "Following",
+  "noFollowingWarning": "No voting delegation configured.",
   "errors": {
     "neuronNotFound": "Neuron #{{neuronId}} not found."
   },
