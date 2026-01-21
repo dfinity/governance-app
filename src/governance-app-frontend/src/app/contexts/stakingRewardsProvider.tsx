@@ -1,5 +1,5 @@
-import { GovernanceCachedMetrics } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
+import { GovernanceCachedMetrics } from '@icp-sdk/canisters/nns';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode, useEffect, useState } from 'react';
 
@@ -23,8 +23,7 @@ export const StakingRewardsProvider = ({ children }: { children: ReactNode }) =>
   const balance = useIcpLedgerAccountBalance().data?.response;
   const economics = useGovernanceEconomics().data?.response;
   const neurons = useGovernanceNeurons().data?.response;
-  const totalVotingPower = useGovernanceProposal({ proposalId: undefined }).data?.response
-    ?.totalPotentialVotingPower;
+  const totalVotingPower = useGovernanceProposal().data?.response?.totalPotentialVotingPower;
 
   const [data, setData] = useState<StakingRewardResult>({ loading: true });
 
