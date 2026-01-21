@@ -7,11 +7,12 @@ import {
   useMatches,
   useRouter,
 } from '@tanstack/react-router';
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
+import { TanStackRouterDevtools } from '@tanstack/router-devtools';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { BetaBanner } from '@components/BetaBanner';
 import { MainLayout } from '@components/MainLayout';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { infoNotification } from '@utils/notification';
@@ -61,15 +62,25 @@ function RootComponent() {
   // While initializing, we might want to show a loader or nothing to prevent flicker
   if (isInitializing) return null;
 
-  if (isLoginPage) return <Outlet />;
+  if (isLoginPage) {
+    return (
+      <>
+        <BetaBanner isLoggedIn={false} />
+        <Outlet />
+      </>
+    );
+  }
 
   const redirect = location.pathname !== '/' ? location.pathname : undefined;
   if (!identity) return <Navigate to="/login" search={{ redirect }} />;
 
   return (
-    <MainLayout>
-      <Outlet />
-      <TanStackRouterDevtools />
-    </MainLayout>
+    <>
+      <BetaBanner isLoggedIn={true} />
+      <MainLayout>
+        <Outlet />
+        <TanStackRouterDevtools />
+      </MainLayout>
+    </>
   );
 }
