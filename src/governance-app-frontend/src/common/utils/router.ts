@@ -24,7 +24,9 @@ export const requireIdentity = async () => {
     });
 
     const redirectTo =
-      location.pathname !== '/' ? encodeURIComponent(location.pathname) : undefined;
+      location.pathname !== '/'
+        ? encodeURIComponent(location.pathname + location.search)
+        : undefined;
     throw redirect({ to: '/login', search: { redirect: redirectTo } });
   }
 };

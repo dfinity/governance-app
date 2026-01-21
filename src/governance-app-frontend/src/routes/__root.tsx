@@ -42,7 +42,7 @@ function RootComponent() {
     // Logout or expiration change (single trigger).
     if (hadIdentity.current && !identity) {
       // Allow an async cycle for the authenticated agent to be removed before refreshing the queries.
-      setTimeout(() => queryClient.resetQueries(), 0);
+      setTimeout(queryClient.resetQueries, 0);
 
       // Check for manual logout flag.
       const isManualLogout = localStorage.getItem(MANUAL_LOGOUT_KEY) === 'true';
@@ -63,8 +63,9 @@ function RootComponent() {
 
   if (isLoginPage) return <Outlet />;
 
-  // @TODO: This could be removed but it gurantees a check in case a new route is added without a beforeLoad check
-  const redirect = location.pathname !== '/' ? location.pathname : undefined;
+  // @TODO: This could be removed but it guarantees a check in case a new route is added without a beforeLoad check
+  const redirect =
+    location.pathname !== '/' && location.pathname !== '/login' ? location.pathname : undefined;
   if (!identity) return <Navigate to="/login" search={{ redirect }} />;
 
   return (

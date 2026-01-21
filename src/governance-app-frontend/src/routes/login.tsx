@@ -1,6 +1,6 @@
-import { isNullish } from '@dfinity/utils';
-import { createFileRoute, Navigate } from '@tanstack/react-router';
-import { useInternetIdentity } from 'ic-use-internet-identity';
+import { isNullish, nonNullish } from '@dfinity/utils';
+import { createFileRoute, redirect } from '@tanstack/react-router';
+import { ensureInitialized, useInternetIdentity } from 'ic-use-internet-identity';
 import { ExternalLink } from 'lucide-react';
 import { type CSSProperties, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +23,16 @@ export const Route = createFileRoute('/login')({
       redirect: typeof search.redirect === 'string' ? search.redirect : undefined,
     };
   },
+  beforeLoad: async ({ search }) => {
+    const identity = await ensureInitialized();
+    if (nonNullish(identity)) {
+      const targetPath =
+        search.redirect && typeof search.redirect === 'string'
+          ? decodeURIComponent(search.redirect)
+          : '/';
+      throw redirect({ to: targetPath, replace: true });
+    }
+  },
   component: LoginPage,
 });
 
@@ -32,9 +42,8 @@ const FADE_MASK_STYLE: CSSProperties = {
 };
 
 function LoginPage() {
-  const { login, identity } = useInternetIdentity();
+  const { login } = useInternetIdentity();
   const { t } = useTranslation();
-  const { redirect = '/' } = Route.useSearch();
 
   // Enforce dark theme on body for login page
   useLayoutEffect(() => {
@@ -49,8 +58,6 @@ function LoginPage() {
 
   const { proposals, isLoading } = useProposalsAdoptedLastXDays(30);
   const proposalsAdopted = proposals.length;
-
-  if (identity) return <Navigate to={decodeURIComponent(redirect)} />;
 
   return (
     <div className="relative min-h-dvh w-full font-sans text-foreground">
