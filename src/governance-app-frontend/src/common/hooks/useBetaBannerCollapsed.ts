@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-const BETA_BANNER_COLLAPSED_KEY = 'beta-banner-collapsed';
+export const BETA_BANNER_COLLAPSED_KEY = 'beta-banner-collapsed';
 
 export const useBetaBannerCollapsed = () => {
   const [isCollapsed, setIsCollapsed] = useState(() => {

@@ -1,7 +1,7 @@
 import { Info, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { useBetaBannerCollapsed } from '@hooks/useBetaBannerCollapsed';
+import { BETA_BANNER_COLLAPSED_KEY, useBetaBannerCollapsed } from '@hooks/useBetaBannerCollapsed';
 
 interface BetaBannerProps {
   isLoggedIn?: boolean;
@@ -60,7 +60,7 @@ export const BetaBanner = ({ isLoggedIn = false }: BetaBannerProps) => {
     setIsCollapsed(newValue);
     // Update localStorage synchronously before dispatching event
     // This is necessary so event listeners can read the updated value
-    localStorage.setItem('beta-banner-collapsed', String(newValue));
+    localStorage.setItem(BETA_BANNER_COLLAPSED_KEY, String(newValue));
     // Dispatch custom event for same-window updates
     window.dispatchEvent(new Event('beta-banner-toggle'));
   };
