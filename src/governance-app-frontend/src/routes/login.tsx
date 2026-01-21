@@ -5,13 +5,13 @@ import { ExternalLink } from 'lucide-react';
 import { type CSSProperties, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGovernanceLogo';
 import { useTvlValue } from '@features/login/hooks/useTvlValue';
 import { useProposalsAdoptedLastXDays } from '@features/proposals/hooks/useProposalsAdoptedLastXDays';
 
 import { Button } from '@components/button';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
-import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGovernanceLogo';
 import { formatNumber } from '@utils/numbers';
 
 type LoginSearch = {
