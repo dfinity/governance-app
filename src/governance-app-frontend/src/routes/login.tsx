@@ -179,7 +179,7 @@ function LoginPage() {
                 data-testid="login-btn"
               >
                 <img src="/icp-logo.svg" alt="" aria-hidden={true} />
-                {isLoggingIn ? t(($) => $.login.loggingIn) : t(($) => $.login.loginWithII)}
+                {t(($) => $.login.loginWithII)}
               </Button>
 
               <a
