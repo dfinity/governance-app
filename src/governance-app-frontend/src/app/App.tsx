@@ -5,21 +5,26 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { RouterProvider } from '@tanstack/react-router';
 import { InternetIdentityProvider } from 'ic-use-internet-identity';
-import { StrictMode } from 'react';
+import { StrictMode, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+
+import { analytics } from '@features/analytics/service';
 
 import { Sonner } from '@components/Sonner';
 import { IDENTITY_PROVIDER } from '@constants/extra';
+import { AgentPoolProvider } from '@contexts/agentPoolProvider';
+import { StakingRewardsProvider } from '@contexts/stakingRewardsProvider';
+import { ThemeProvider } from '@contexts/themeProvider';
 import { usePreventAttributeChange } from '@hooks/usePreventAttributeChange';
 import { queryClientConfig, routerConfig } from '@utils/initializer';
-
-import { AgentPoolProvider } from '@/app/contexts/agentPoolProvider';
-import { StakingRewardsProvider } from '@/app/contexts/stakingRewardsProvider';
-import { ThemeProvider } from '@/app/contexts/themeProvider';
 
 export const App = () => {
   const notificationsContainer = document.getElementById('notifications');
   usePreventAttributeChange({ selector: '#notifications', attribute: 'inert' });
+
+  useEffect(() => {
+    analytics.init();
+  }, []);
 
   return (
     <StrictMode>
