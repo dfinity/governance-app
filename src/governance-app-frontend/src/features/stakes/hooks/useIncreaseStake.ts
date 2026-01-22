@@ -21,8 +21,8 @@ type IncreaseStakeParams = {
 /**
  * Hook to increase stake on an existing neuron.
  * Following the nns-dapp pattern:
- * 1. Transfer ICP to the neuron's account identifier
- * 2. Call claimOrRefreshNeuron to update the cached stake
+ * 1. Transfer ICP to the neuron's account identifier.
+ * 2. Call claimOrRefreshNeuron to update the cached stake.
  */
 export function useIncreaseStake() {
   const { t } = useTranslation();

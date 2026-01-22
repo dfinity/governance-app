@@ -23,9 +23,10 @@ import {
 } from '@utils/neuron';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
-import { IncreaseDelayView } from './IncreaseDelayView';
-import { IncreaseStakeView } from './IncreaseStakeView';
-import { SummaryView } from './SummaryView';
+import { NeuronDetailIncreaseDelayView } from './NeuronDetailIncreaseDelayView';
+import { NeuronDetailIncreaseStakeView } from './NeuronDetailIncreaseStakeView';
+import { NeuronDetailMaturityModeView } from './NeuronDetailMaturityModeView';
+import { NeuronDetailSummaryView } from './NeuronDetailSummaryView';
 import { NeuronDetailView } from './types';
 
 type Props = {
@@ -138,7 +139,7 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
 
           <div className="mt-4 flex-1 overflow-y-auto px-4 pb-4 md:px-0 md:pb-0">
             {displayView === NeuronDetailView.Summary && (
-              <SummaryView
+              <NeuronDetailSummaryView
                 neuron={displayNeuron}
                 apy={apy}
                 isApyLoading={!isStakingRewardDataReady(stakingRewards)}
@@ -152,7 +153,7 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
             )}
 
             {displayView === NeuronDetailView.IncreaseStake && (
-              <IncreaseStakeView
+              <NeuronDetailIncreaseStakeView
                 neuron={displayNeuron}
                 onSuccess={goBack}
                 onProcessingChange={setIsProcessing}
@@ -160,7 +161,7 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
             )}
 
             {displayView === NeuronDetailView.IncreaseDelay && (
-              <IncreaseDelayView
+              <NeuronDetailIncreaseDelayView
                 neuron={displayNeuron}
                 onSuccess={goBack}
                 onProcessingChange={setIsProcessing}
@@ -168,8 +169,10 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
             )}
 
             {displayView === NeuronDetailView.MaturityMode && (
-              <PlaceholderView
-                description={t(($) => $.neuronDetailModal.maturityMode.description)}
+              <NeuronDetailMaturityModeView
+                neuron={displayNeuron}
+                onSuccess={goBack}
+                onProcessingChange={setIsProcessing}
               />
             )}
 

@@ -1,10 +1,11 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { AlertTriangle, Award, Loader2 } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
+import { MaxRewardsBadge } from '@components/MaxRewardsBadge';
 import { SECONDS_IN_MONTH } from '@constants/extra';
 import { getNeuronDissolveDelaySeconds } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
@@ -19,7 +20,7 @@ type Props = {
   onProcessingChange: (isProcessing: boolean) => void;
 };
 
-export function IncreaseDelayView({ neuron, onSuccess, onProcessingChange }: Props) {
+export function NeuronDetailIncreaseDelayView({ neuron, onSuccess, onProcessingChange }: Props) {
   const { t } = useTranslation();
   const [selectedMonths, setSelectedMonths] = useState<number | null>(null);
 
@@ -131,9 +132,8 @@ export function IncreaseDelayView({ neuron, onSuccess, onProcessingChange }: Pro
                 {t(($) => $.neuronDetailModal.increaseDelay.presets[maxRewardsOption.labelKey])}
               </span>
               {!isDisabled && (
-                <span className="ml-2 inline-flex items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase shadow-sm">
-                  <Award className="h-3 w-3" />
-                  {t(($) => $.neuronDetailModal.increaseDelay.maxRewards)}
+                <span className="ml-2">
+                  <MaxRewardsBadge />
                 </span>
               )}
             </button>

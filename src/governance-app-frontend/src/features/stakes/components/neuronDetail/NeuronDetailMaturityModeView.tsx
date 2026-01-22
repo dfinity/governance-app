@@ -1,0 +1,115 @@
+import type { NeuronInfo } from '@icp-sdk/canisters/nns';
+import { Info, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
+
+import { Alert, AlertDescription } from '@components/Alert';
+import { Button } from '@components/button';
+import { MaxRewardsBadge } from '@components/MaxRewardsBadge';
+import { SegmentedToggle, type SegmentedToggleValue } from '@components/SegmentedToggle';
+import { getNeuronIsAutoStakingMaturity } from '@utils/neuron';
+import { errorNotification, successNotification } from '@utils/notification';
+
+import { useToggleMaturityMode } from '../../hooks/useToggleMaturityMode';
+
+type Props = {
+  neuron: NeuronInfo;
+  onSuccess: () => void;
+  onProcessingChange: (isProcessing: boolean) => void;
+};
+
+export function NeuronDetailMaturityModeView({ neuron, onSuccess, onProcessingChange }: Props) {
+  const { t } = useTranslation();
+
+  const currentMode: SegmentedToggleValue = getNeuronIsAutoStakingMaturity(neuron)
+    ? 'left'
+    : 'right';
+  const [selectedMode, setSelectedMode] = useState<SegmentedToggleValue>(currentMode);
+
+  const { execute, isProcessing } = useToggleMaturityMode();
+
+  const handleConfirm = async () => {
+    if (selectedMode === currentMode) {
+      return;
+    }
+
+    onProcessingChange(true);
+
+    const result = await execute({
+      neuronId: neuron.neuronId,
+      autoStake: selectedMode === 'left',
+    });
+
+    onProcessingChange(false);
+
+    if (result.success) {
+      successNotification({
+        description: t(($) => $.neuronDetailModal.maturityMode.success),
+      });
+      setTimeout(onSuccess);
+    } else if (result.error) {
+      errorNotification({
+        description: result.error,
+      });
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isProcessing) {
+      handleConfirm();
+    }
+  };
+
+  const hasChanges = selectedMode !== currentMode;
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <Alert className="border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900/50 dark:bg-blue-900/20 dark:text-blue-200 [&>svg]:text-blue-600 dark:[&>svg]:text-blue-400">
+        <Info className="h-4 w-4" />
+        <AlertDescription className="text-blue-700 dark:text-blue-300">
+          <div>
+            <Trans
+              i18nKey={($) => $.neuronDetailModal.maturityMode.infoAutoStake}
+              t={t}
+              components={{ strong: <strong /> }}
+            />
+            <br />
+            <Trans
+              i18nKey={($) => $.neuronDetailModal.maturityMode.infoKeepLiquid}
+              t={t}
+              components={{ strong: <strong /> }}
+            />
+          </div>
+        </AlertDescription>
+      </Alert>
+
+      <SegmentedToggle
+        value={selectedMode}
+        onValueChange={(v) => !isProcessing && setSelectedMode(v)}
+        leftLabel={t(($) => $.neuronDetailModal.maturityMode.autoStake)}
+        rightLabel={t(($) => $.neuronDetailModal.maturityMode.keepLiquid)}
+        highlightedValue="left"
+        leftSubLabel={<MaxRewardsBadge />}
+        ariaLabel={t(($) => $.neuronDetailModal.maturityMode.title)}
+      />
+
+      {!hasChanges && (
+        <p className="text-center text-sm text-muted-foreground">
+          {t(($) => $.neuronDetailModal.maturityMode.noChange)}
+        </p>
+      )}
+
+      <Button type="submit" disabled={isProcessing || !hasChanges}>
+        {isProcessing ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            {t(($) => $.neuronDetailModal.maturityMode.confirming)}
+          </>
+        ) : (
+          t(($) => $.neuronDetailModal.maturityMode.confirm)
+        )}
+      </Button>
+    </form>
+  );
+}

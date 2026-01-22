@@ -26,7 +26,7 @@ type Props = {
   onNavigate: (view: NeuronDetailView) => void;
 };
 
-export function SummaryView({
+export function NeuronDetailSummaryView({
   neuron,
   apy,
   isApyLoading,

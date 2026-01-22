@@ -1,3 +1,3 @@
 export { NeuronDetailModal } from './NeuronDetailModal';
-export { SummaryView } from './SummaryView';
+export { NeuronDetailSummaryView } from './NeuronDetailSummaryView';
 export { isValidNeuronDetailView, NeuronDetailView } from './types';

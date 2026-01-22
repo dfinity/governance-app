@@ -4,8 +4,8 @@
     "increaseStake": "Increase Stake",
     "increaseDelay": "Increase delay",
     "maturityMode": "Maturity mode",
-    "startDissolving": "Start unlocking",
-    "stopDissolving": "Stop unlocking"
+    "startDissolving": "Start dissolving",
+    "stopDissolving": "Stop dissolving"
   },
   "increaseStake": {
     "title": "Increase Stake",
@@ -24,7 +24,7 @@
     }
   },
   "increaseDelay": {
-    "title": "New dissolve delay",
+    "title": "Dissolve delay",
     "description": "Increasing the dissolve delay will increase your voting power and APY rewards.",
     "warning": "The dissolve delay can only be increased, never decreased.",
     "presets": {
@@ -46,24 +46,30 @@
   },
   "maturityMode": {
     "title": "Maturity mode",
-    "description": "Choose how to handle your staking rewards (maturity).",
+    "infoAutoStake": "<strong>Auto-stake:</strong> rewards automatically increase your Stake for compound growth.",
+    "infoKeepLiquid": "<strong>Keep Liquid:</strong> don't auto-stake rewards, keep them available for withdrawal.",
     "autoStake": "Auto-stake",
     "autoStakeDescription": "Maturity is automatically staked to compound your rewards.",
     "keepLiquid": "Keep liquid",
     "keepLiquidDescription": "Maturity stays available for withdrawal.",
     "confirm": "Update maturity mode",
-    "success": "Maturity mode updated successfully."
+    "confirming": "Updating maturity mode, please wait...",
+    "success": "Maturity mode updated successfully.",
+    "noChange": "Mode is already set to this option.",
+    "errors": {
+      "failed": "Failed to update maturity mode. Please try again."
+    }
   },
   "dissolve": {
-    "startTitle": "Start unlocking",
-    "stopTitle": "Stop unlocking",
-    "startDescription": "Starting to unlock will begin the countdown. After the dissolve delay period, you can withdraw your ICP.",
-    "stopDescription": "Stopping the unlock will pause the countdown and keep your Stake locked, maximizing your rewards.",
-    "warning": "While unlocking, your APY will decrease as the dissolve delay decreases.",
-    "confirmStart": "Start unlocking",
-    "confirmStop": "Stop unlocking",
-    "successStart": "Unlocking started. Your Stake will be available after the dissolve delay.",
-    "successStop": "Unlocking stopped. Your Stake is now locked."
+    "startTitle": "Start dissolving",
+    "stopTitle": "Stop dissolving",
+    "startDescription": "Starting to dissolve will begin the countdown. After the dissolve delay period, you can withdraw your ICP.",
+    "stopDescription": "Stopping the dissolve will pause the countdown and keep your Stake locked, maximizing your rewards.",
+    "warning": "While dissolving, your APY will decrease as the dissolve delay decreases.",
+    "confirmStart": "Start dissolving",
+    "confirmStop": "Stop dissolving",
+    "successStart": "Dissolving started. Your Stake will be available after the dissolve delay.",
+    "successStop": "Dissolving stopped. Your Stake is now locked."
   },
   "disabled": {
     "noBalance": "No ICP available to stake",

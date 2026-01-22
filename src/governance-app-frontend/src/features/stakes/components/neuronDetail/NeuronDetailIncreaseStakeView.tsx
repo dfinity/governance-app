@@ -21,7 +21,7 @@ type Props = {
   onProcessingChange: (isProcessing: boolean) => void;
 };
 
-export function IncreaseStakeView({ neuron, onSuccess, onProcessingChange }: Props) {
+export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingChange }: Props) {
   const { t } = useTranslation();
   const [amount, setAmount] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
