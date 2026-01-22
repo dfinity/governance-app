@@ -37,7 +37,11 @@ export function WelcomeModal() {
         className="flex flex-col gap-0 overflow-hidden p-0 lg:max-w-xl"
         data-testid="welcome-modal"
       >
-        <img src="/welcome-image.svg" alt="Welcome" className="mt-4 w-full md:mt-0 md:rounded-t-lg" />
+        <img
+          src="/welcome-image.svg"
+          alt="Welcome"
+          className="mt-4 w-full md:mt-0 md:rounded-t-lg"
+        />
         <div className="flex flex-col items-center gap-2 px-6 pt-8 pb-8 lg:px-8 lg:pb-0">
           <ResponsiveDialogTitle className="text-center text-2xl">
             {t(($) => $.welcomeModal.title)}
