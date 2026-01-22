@@ -126,7 +126,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
         setStep(StakingWizardStep.DissolveDelay);
         break;
       case StakingWizardStep.DissolveDelay:
-        analytics.event(AnalyticsEvent.StakingSetDissolveDelay, {});
+        analytics.event(AnalyticsEvent.StakingSetDissolveDelay);
         setStep(StakingWizardStep.Configuration);
         break;
       case StakingWizardStep.Configuration:

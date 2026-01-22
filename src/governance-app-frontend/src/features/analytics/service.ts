@@ -3,6 +3,7 @@ import { init, track } from '@plausible-analytics/tracker';
 
 import { PLAUSIBLE_DOMAIN_URL } from '@constants/externalServices';
 
+import { IS_LOCAL } from '@constants/extra';
 import { AnalyticsEvent } from './events';
 
 class AnalyticsService {
@@ -41,14 +42,14 @@ class AnalyticsService {
     options?: Omit<PlausibleEventOptions, 'props'>,
   ): void {
     if (!this.isInitialized) {
-      console.warn('Analytics tracker not initialized');
+      if (IS_LOCAL) console.warn('Analytics tracker not initialized');
       return;
     }
 
     try {
       track(event as string, { props, ...options });
     } catch (error) {
-      console.error('Plausible event error:', error);
+      if (IS_LOCAL) console.error('Plausible event error:', error);
     }
   }
 
