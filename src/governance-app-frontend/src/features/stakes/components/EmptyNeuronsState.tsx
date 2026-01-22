@@ -15,7 +15,7 @@ export const EmptyNeuronsState = ({ openStakingWizard }: Props) => {
       <div className="rounded-full border-2 border-secondary/90 bg-secondary/30 p-6">
         <Network className="size-10 text-muted-foreground" />
       </div>
-      <h3 className="text-2xl font-semibold capitalize">{t(($) => $.neuron.empty.title)}</h3>
+      <h3 className="text-2xl font-semibold">{t(($) => $.neuron.empty.title)}</h3>
       <p className="max-w-sm text-base text-muted-foreground">
         {t(($) => $.neuron.empty.description)}
       </p>
@@ -28,6 +28,9 @@ export const EmptyNeuronsState = ({ openStakingWizard }: Props) => {
         <Plus />
         {t(($) => $.neuron.empty.cta)}
       </Button>
+      <p className="max-w-md text-sm text-muted-foreground">
+        {t(($) => $.neuron.empty.helper)}
+      </p>
     </div>
   );
 };

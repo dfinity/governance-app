@@ -23,9 +23,10 @@
     "neuronNotFound": "Stake #{{neuronId}} not found."
   },
   "empty": {
-    "title": "No Stakes yet",
-    "description": "Create your first Stake to start earning voting rewards and participating in governance",
-    "cta": "Create your first Stake"
+    "title": "Start participating in governance",
+    "description": "Create your first stake to turn ICP into voting power. Stakes participate in voting and earn rewards over time.",
+    "cta": "Create your first stake",
+    "helper": "After staking, you can follow representatives or vote directly on proposals."
   },
   "setDissolveDelayModal": {
     "title": "Set dissolve delay for #{{neuronId}}",
