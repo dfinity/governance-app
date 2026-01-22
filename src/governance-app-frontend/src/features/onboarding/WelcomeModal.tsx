@@ -14,7 +14,7 @@ import {
 
 export function WelcomeModal() {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const hasSeenModal = localStorage.getItem(WELCOME_MODAL_STORAGE_KEY);
