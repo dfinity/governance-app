@@ -38,7 +38,7 @@ type InnerProps = {
 function AnimatedApyBadgeInner({ value, minApy, maxApy }: InnerProps) {
   const { t } = useTranslation();
 
-  const isMax = value.toFixed(2) === maxApy.toFixed(2);
+  const isMax = Number(value.toFixed(2)) >= Number(maxApy.toFixed(2));
   const normalizedPosition = Math.max(0, Math.min(1, (value - minApy) / (maxApy - minApy)));
   const springValue = useSpring(value, { stiffness: 100, damping: 20 });
   const displayValue = useTransform(springValue, (v) => `~${formatPercentage(v / 100)}`);

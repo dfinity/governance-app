@@ -11,9 +11,17 @@
     "title": "Increase Stake",
     "description": "Add more ICP to this Stake to increase your voting power and rewards.",
     "amountLabel": "Amount to add",
-    "available": "Available: {{amount}} ICP",
-    "confirm": "Increase Stake",
-    "success": "Successfully added {{amount}} ICP to your Stake."
+    "maxButtonAriaLabel": "Set amount to maximum available balance",
+    "currentAndAvailable": "Current: {{current}} ICP • Available: {{available}} ICP",
+    "info": "Adding ICP to your Stake increases your voting power and potential rewards. The added amount will be locked for the same dissolve delay period.",
+    "confirm": "Confirm increase",
+    "confirming": "Increasing Stake, please wait...",
+    "success": "Successfully added {{amount}} ICP to your Stake.",
+    "errors": {
+      "amountTooLow": "Minimum amount is {{min}} ICP.",
+      "insufficientBalance": "Insufficient balance.",
+      "failed": "Failed to increase Stake. Please try again."
+    }
   },
   "increaseDelay": {
     "title": "Increase dissolve delay",

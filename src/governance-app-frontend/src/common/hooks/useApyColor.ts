@@ -30,7 +30,7 @@ export function useApyColor(apyValue: number): ApyColorResult {
 
   const normalizedPosition = getApyNormalizedPosition(apyValue, minApy, maxApy);
   const colors = getApyColors(normalizedPosition);
-  const isMax = apyValue.toFixed(2) === maxApy.toFixed(2);
+  const isMax = Number(apyValue.toFixed(2)) >= Number(maxApy.toFixed(2));
 
   return {
     ready: true,
