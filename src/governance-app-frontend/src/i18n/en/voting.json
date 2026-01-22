@@ -7,7 +7,7 @@
   "noFollowing": {
     "title": "No Following Selected",
     "description": "Select a trusted organization to automatically vote on your behalf and earn rewards.",
-    "setupFollowingReminder": "You may lose rewards by not following any neurons. Select a trusted organization to automatically vote on your behalf."
+    "setupFollowingReminder": "You may lose rewards by not following any Representatives. Select a trusted organization to automatically vote on your behalf."
   },
   "proposals": {
     "cta": "Curious about what's being voted on?",
@@ -15,8 +15,8 @@
     "ctaHide": "Hide proposals"
   },
   "warnings": {
-    "stakeRequired": "You need at least one stake to follow a neuron. Please stake ICP first.",
-    "followingMismatch": "Neurons have different following configurations"
+    "stakeRequired": "You need at least one Stake to follow a Representative. Please stake ICP first.",
+    "followingMismatch": "Stakes have different following configurations"
   },
   "errors": {
     "loadFollowing": "Unable to load following data. Please try refreshing the page."

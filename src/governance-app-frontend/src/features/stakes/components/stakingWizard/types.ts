@@ -28,6 +28,7 @@ export enum StakingWizardCreateNeuronStep {
   SetDissolveDelay,
   SetAutoStakeMaturity,
   StartDissolving,
+  SetFollowing,
   Done,
 }
 

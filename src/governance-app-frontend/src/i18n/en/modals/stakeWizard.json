@@ -45,6 +45,7 @@
           "setDissolveDelay": "Setting lock period...",
           "setAutoStake": "Configuring rewards...",
           "startDissolving": "Starting countdown...",
+          "setFollowing": "Configuring voting...",
           "refreshingData": "Refreshing data..."
         }
       },
