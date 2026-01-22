@@ -1,7 +1,7 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
 import { AlertTriangle, Info, Loader2 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
@@ -18,9 +18,10 @@ import { useIncreaseStake } from '../../hooks/useIncreaseStake';
 type Props = {
   neuron: NeuronInfo;
   onSuccess: () => void;
+  onProcessingChange: (isProcessing: boolean) => void;
 };
 
-export function IncreaseStakeView({ neuron, onSuccess }: Props) {
+export function IncreaseStakeView({ neuron, onSuccess, onProcessingChange }: Props) {
   const { t } = useTranslation();
   const [amount, setAmount] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -38,6 +39,10 @@ export function IncreaseStakeView({ neuron, onSuccess }: Props) {
   const accountIdentifier = neuron.fullNeuron?.accountIdentifier;
 
   const { execute, isProcessing } = useIncreaseStake();
+
+  useEffect(() => {
+    onProcessingChange(isProcessing);
+  }, [isProcessing, onProcessingChange]);
 
   const handleAmountChange = (value: string) => {
     setAmount(value);

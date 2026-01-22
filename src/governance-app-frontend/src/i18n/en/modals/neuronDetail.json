@@ -68,5 +68,6 @@
   "disabled": {
     "noBalance": "No ICP available to stake",
     "maxDelay": "Already at maximum delay"
-  }
+  },
+  "confirmNavigation": "An action is in progress. Leaving this page may cause unexpected results. Are you sure you want to leave?"
 }

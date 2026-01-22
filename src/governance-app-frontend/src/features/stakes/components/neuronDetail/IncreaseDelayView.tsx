@@ -1,6 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { AlertTriangle, Award, Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
@@ -16,13 +16,18 @@ import { StakingWizardDissolveDelayPreset } from '../stakingWizard/types';
 type Props = {
   neuron: NeuronInfo;
   onSuccess: () => void;
+  onProcessingChange: (isProcessing: boolean) => void;
 };
 
-export function IncreaseDelayView({ neuron, onSuccess }: Props) {
+export function IncreaseDelayView({ neuron, onSuccess, onProcessingChange }: Props) {
   const { t } = useTranslation();
   const [selectedMonths, setSelectedMonths] = useState<number | null>(null);
 
   const { execute, isProcessing } = useIncreaseDelay();
+
+  useEffect(() => {
+    onProcessingChange(isProcessing);
+  }, [isProcessing, onProcessingChange]);
 
   // Get current dissolve delay in months
   const currentDelaySeconds = Number(getNeuronDissolveDelaySeconds(neuron));

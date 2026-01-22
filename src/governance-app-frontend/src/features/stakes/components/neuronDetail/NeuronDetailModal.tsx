@@ -1,8 +1,9 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { ArrowLeft } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -37,6 +38,7 @@ type Props = {
 
 export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewChange }: Props) {
   const { t } = useTranslation();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Keep neuron and view in refs to persist during close animation
   const neuronRef = useRef<NeuronInfo | null>(neuron);
@@ -71,7 +73,16 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
       ? stakingRewards.apy.neurons.get(getNeuronId(displayNeuron))
       : undefined;
 
-  const goBack = () => onViewChange(NeuronDetailView.Summary);
+  const goBack = () => {
+    if (!isProcessing) {
+      onViewChange(NeuronDetailView.Summary);
+    }
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (isProcessing && !open) return;
+    onOpenChange(open);
+  };
 
   if (!displayNeuron) return null;
 
@@ -98,66 +109,83 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
   };
 
   return (
-    <ResponsiveDialog open={isOpen} onOpenChange={onOpenChange}>
-      <ResponsiveDialogContent
-        className="flex max-h-[90vh] flex-col focus:outline-none"
-        data-testid="neuron-detail-modal"
-      >
-        <ResponsiveDialogHeader className="shrink-0">
-          <div className="relative flex items-center justify-center">
-            {displayView !== NeuronDetailView.Summary && (
-              <button
-                onClick={goBack}
-                className="absolute left-0 rounded-md p-1 hover:bg-muted"
-                aria-label={t(($) => $.common.back)}
-                data-testid="neuron-detail-back-btn"
-              >
-                <ArrowLeft className="size-5" />
-              </button>
+    <>
+      <NavigationBlockerDialog
+        isBlocked={isProcessing}
+        description={t(($) => $.neuronDetailModal.confirmNavigation)}
+      />
+      <ResponsiveDialog open={isOpen} onOpenChange={handleOpenChange} dismissible={!isProcessing}>
+        <ResponsiveDialogContent
+          className="flex max-h-[90vh] flex-col focus:outline-none"
+          showCloseButton={!isProcessing}
+          data-testid="neuron-detail-modal"
+        >
+          <ResponsiveDialogHeader className="shrink-0">
+            <div className="relative flex items-center justify-center">
+              {displayView !== NeuronDetailView.Summary && !isProcessing && (
+                <button
+                  onClick={goBack}
+                  className="absolute left-0 rounded-md p-1 hover:bg-muted"
+                  aria-label={t(($) => $.common.back)}
+                  data-testid="neuron-detail-back-btn"
+                >
+                  <ArrowLeft className="size-5" />
+                </button>
+              )}
+              <ResponsiveDialogTitle>{getTitle()}</ResponsiveDialogTitle>
+            </div>
+          </ResponsiveDialogHeader>
+
+          <div className="mt-4 flex-1 overflow-y-auto px-4 pb-4 md:px-0 md:pb-0">
+            {displayView === NeuronDetailView.Summary && (
+              <SummaryView
+                neuron={displayNeuron}
+                apy={apy}
+                isApyLoading={!isStakingRewardDataReady(stakingRewards)}
+                isDissolved={isDissolved}
+                isDissolving={isDissolving}
+                isAutoStake={isAutoStake}
+                isMaxDelay={isMaxDelay}
+                hasAvailableBalance={hasAvailableBalance}
+                onNavigate={onViewChange}
+              />
             )}
-            <ResponsiveDialogTitle>{getTitle()}</ResponsiveDialogTitle>
+
+            {displayView === NeuronDetailView.IncreaseStake && (
+              <IncreaseStakeView
+                neuron={displayNeuron}
+                onSuccess={goBack}
+                onProcessingChange={setIsProcessing}
+              />
+            )}
+
+            {displayView === NeuronDetailView.IncreaseDelay && (
+              <IncreaseDelayView
+                neuron={displayNeuron}
+                onSuccess={goBack}
+                onProcessingChange={setIsProcessing}
+              />
+            )}
+
+            {displayView === NeuronDetailView.MaturityMode && (
+              <PlaceholderView
+                description={t(($) => $.neuronDetailModal.maturityMode.description)}
+              />
+            )}
+
+            {displayView === NeuronDetailView.Dissolve && (
+              <PlaceholderView
+                description={
+                  isDissolving
+                    ? t(($) => $.neuronDetailModal.dissolve.stopDescription)
+                    : t(($) => $.neuronDetailModal.dissolve.startDescription)
+                }
+              />
+            )}
           </div>
-        </ResponsiveDialogHeader>
-
-        <div className="mt-4 flex-1 overflow-y-auto px-4 pb-4 md:px-0 md:pb-0">
-          {displayView === NeuronDetailView.Summary && (
-            <SummaryView
-              neuron={displayNeuron}
-              apy={apy}
-              isApyLoading={!isStakingRewardDataReady(stakingRewards)}
-              isDissolved={isDissolved}
-              isDissolving={isDissolving}
-              isAutoStake={isAutoStake}
-              isMaxDelay={isMaxDelay}
-              hasAvailableBalance={hasAvailableBalance}
-              onNavigate={onViewChange}
-            />
-          )}
-
-          {displayView === NeuronDetailView.IncreaseStake && (
-            <IncreaseStakeView neuron={displayNeuron} onSuccess={goBack} />
-          )}
-
-          {displayView === NeuronDetailView.IncreaseDelay && (
-            <IncreaseDelayView neuron={displayNeuron} onSuccess={goBack} />
-          )}
-
-          {displayView === NeuronDetailView.MaturityMode && (
-            <PlaceholderView description={t(($) => $.neuronDetailModal.maturityMode.description)} />
-          )}
-
-          {displayView === NeuronDetailView.Dissolve && (
-            <PlaceholderView
-              description={
-                isDissolving
-                  ? t(($) => $.neuronDetailModal.dissolve.stopDescription)
-                  : t(($) => $.neuronDetailModal.dissolve.startDescription)
-              }
-            />
-          )}
-        </div>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+    </>
   );
 }
 
