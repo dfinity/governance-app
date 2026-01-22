@@ -15,6 +15,7 @@ import { Card } from '@components/Card';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
 import useTitle from '@hooks/useTitle';
+import { getSessionTimeLeftForUi } from '@utils/date';
 import { requireIdentity } from '@utils/router';
 
 export const Route = createFileRoute('/account/')({
@@ -28,9 +29,9 @@ export const Route = createFileRoute('/account/')({
 function Account() {
   const { identity, clear } = useInternetIdentity();
   const { t } = useTranslation();
+  const timeLeft = useSessionTimeLeft();
 
   useTitle(t(($) => $.common.accounts));
-  const timeLeft = useSessionTimeLeft();
 
   const handleLogout = () => {
     localStorage.setItem(MANUAL_LOGOUT_KEY, 'true');
@@ -95,14 +96,11 @@ function Account() {
           <h2 className="text-xl font-semibold tracking-tight">
             {t(($) => $.userAccount.session.title)}
           </h2>
-          {timeLeft.minutes > 0 || timeLeft.seconds > 0 ? (
+          {(timeLeft.minutes > 0 || timeLeft.seconds > 0) && (
             <p className="text-sm text-muted-foreground">
-              {t(($) => $.userAccount.session.timeLeft, {
-                minutes: timeLeft.minutes,
-                seconds: timeLeft.seconds.toString().padStart(2, '0'),
-              })}
+              {t(($) => $.userAccount.session.timeLeft, getSessionTimeLeftForUi(timeLeft))}
             </p>
-          ) : null}
+          )}
         </div>
         {identity && (
           <Button
