@@ -52,7 +52,7 @@ function ProposalDetailsRouteComponent() {
   useTitle(t(($) => $.proposal.title, { id: id?.toString() }));
 
   const proposalQuery = useGovernanceProposal({
-    proposalId: id,
+    proposalId: id!,
   });
 
   return (
