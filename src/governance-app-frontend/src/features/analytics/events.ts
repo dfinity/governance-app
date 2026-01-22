@@ -14,3 +14,10 @@ export enum AnalyticsEvent {
   StakingSetConfiguration = 'staking_set_configuration',
   StakingConfirmation = 'staking_confirmation',
 }
+// @TODO:
+//  - successful login
+//  - click on the navigation items
+//  - click on dashboard buttons (deposit / withdraw / staking - apy warning icons)
+//  - view proposal link
+//  - manual voting
+//  - change of followee
