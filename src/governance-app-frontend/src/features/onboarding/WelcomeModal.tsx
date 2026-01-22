@@ -14,7 +14,7 @@ import {
 
 export function WelcomeModal() {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   useEffect(() => {
     const hasSeenModal = localStorage.getItem(WELCOME_MODAL_STORAGE_KEY);
@@ -37,16 +37,16 @@ export function WelcomeModal() {
         className="flex flex-col lg:max-w-xl overflow-hidden p-0 gap-0"
         data-testid="welcome-modal"
       >
-        <img src="/welcome-image.svg" alt="Welcome" className="w-full rounded-t-lg" />
-        <div className="flex flex-col items-center gap-6 px-6 lg:px-8 pt-8">
-          <ResponsiveDialogTitle className="text-2xl">
+        <img src="/welcome-image.svg" alt="Welcome" className="w-full rounded-t-lg mt-4 md:mt-0" />
+        <div className="flex flex-col items-center gap-2 px-6 lg:px-8 pt-8 pb-8 lg:pb-0">
+          <ResponsiveDialogTitle className="text-2xl text-center">
             {t(($) => $.welcomeModal.title)}
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription className="text-center text-[15px] text-pretty text-muted-foreground">
             {t(($) => $.welcomeModal.content)}
           </ResponsiveDialogDescription>
         </div>
-        <ResponsiveDialogFooter className="px-6 lg:px-8 pb-6 lg:pb-8 pt-8">
+        <ResponsiveDialogFooter className="px-6 lg:px-8 pb-6 lg:pb-8 pt-12">
           <Button
             onClick={handleClose}
             className="w-full"
