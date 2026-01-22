@@ -188,8 +188,10 @@ function ActionButton({ icon, label, onClick, disabled, disabledReason }: Action
       title={disabled ? disabledReason : undefined}
       data-testid={`neuron-detail-action-${label.toLowerCase().replace(/\s+/g, '-')}`}
     >
-      <span className="text-primary transition-all duration-300 ease-out group-hover:scale-[10] group-hover:opacity-0 group-focus-visible:scale-[10] group-focus-visible:opacity-0 group-disabled:group-hover:scale-100 group-disabled:group-hover:opacity-100 group-disabled:group-focus-visible:scale-100 group-disabled:group-focus-visible:opacity-100">
-        {icon}
+      <span className="transition-opacity duration-100 ease-out group-hover:opacity-0 group-focus-visible:opacity-0 group-disabled:group-hover:opacity-100 group-disabled:group-focus-visible:opacity-100">
+        <span className="block text-primary transition-transform duration-300 ease-out group-hover:scale-[10] group-focus-visible:scale-[10] group-disabled:group-hover:scale-100 group-disabled:group-focus-visible:scale-100">
+          {icon}
+        </span>
       </span>
       <span className="text-[15px] font-semibold transition-transform duration-500 ease-out group-hover:-translate-y-5 group-focus-visible:-translate-y-5 group-disabled:group-hover:translate-y-0 group-disabled:group-focus-visible:translate-y-0">
         {label}

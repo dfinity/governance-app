@@ -69,6 +69,28 @@
       "failed": "Failed to update dissolve state. Please try again."
     }
   },
+  "disburseIcp": {
+    "title": "Disburse Stake",
+    "info": "<strong>Amount: {{amount}} ICP.</strong> will be returned to your available balance. This Stake can be restaked at any time after disbursement.",
+    "cancel": "Cancel",
+    "confirm": "Disburse",
+    "confirming": "Disbursing, please wait...",
+    "success": "Stake has been disbursed. ICP returned to your balance.",
+    "errors": {
+      "failed": "Failed to disburse Stake. Please try again."
+    }
+  },
+  "disburseMaturity": {
+    "title": "Disburse Maturity",
+    "info": "<strong>Disbursement takes 1 week.</strong> {{amount}} maturity will be converted to ICP and added to your balance.",
+    "cancel": "Cancel",
+    "confirm": "Disburse",
+    "confirming": "Disbursing, please wait...",
+    "success": "Maturity disbursement started. ICP will be added to your balance in approximately 1 week.",
+    "errors": {
+      "failed": "Failed to disburse maturity. Please try again."
+    }
+  },
   "disabled": {
     "noBalance": "No ICP available to stake",
     "maxDelay": "Already at maximum delay"

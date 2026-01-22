@@ -43,6 +43,7 @@ function DrawerOverlay({
 function DrawerContent({
   className,
   children,
+  onClick,
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Content>) {
   return (
@@ -62,6 +63,10 @@ function DrawerContent({
           'after:h-0!',
           className,
         )}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick?.(e);
+        }}
         {...props}
       >
         <div className="mx-auto mt-4 hidden h-2 w-[100px] shrink-0 rounded-full bg-muted group-data-[vaul-drawer-direction=bottom]/drawer-content:block" />
