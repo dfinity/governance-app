@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next';
 
 import { MainLayout } from '@components/MainLayout';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
-import { useSessionCountdownToast } from '@hooks/useSessionCountdownToast';
 import { infoNotification } from '@utils/notification';
 
 export const Route = createRootRoute({
@@ -22,8 +21,6 @@ function RootComponent() {
 
   const matches = useMatches();
   const isLoginPage = matches.some((m) => m.routeId === '/login');
-
-  useSessionCountdownToast();
 
   // BE CAREFUL CHANGING THIS EFFECT!
 
