@@ -2,8 +2,8 @@ import type { PlausibleEventOptions } from '@plausible-analytics/tracker';
 import { init, track } from '@plausible-analytics/tracker';
 
 import { PLAUSIBLE_DOMAIN_URL } from '@constants/externalServices';
-
 import { IS_LOCAL } from '@constants/extra';
+
 import { AnalyticsEvent } from './events';
 
 class AnalyticsService {
