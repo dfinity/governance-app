@@ -1,13 +1,13 @@
 {
   "title": "Following",
   "following": "Following",
-  "description": "Following lets trusted representatives vote on your behalf when you don't vote yourself.",
+  "description": "Following lets trusted Representatives vote on your behalf when you don't vote yourself.",
   "cta": "Manage following",
   "votingPower": "{{ammount}} voting power",
   "noFollowing": {
-    "title": "Your stake isn't voting yet",
-    "description": "Choose trusted representatives to vote automatically, or vote manually on proposals as they appear.",
-    "setupFollowingReminder": "To earn voting rewards, your stake must vote on proposals, either directly or by following trusted representatives."
+    "title": "Your Stake isn't following yet",
+    "description": "Choose trusted Representatives to vote automatically, or vote manually on proposals as they appear.",
+    "setupFollowingReminder": "To earn voting rewards, your Stake must vote on proposals, either directly or by following trusted Representatives."
   },
   "proposals": {
     "cta": "Curious about what's being voted on?",
