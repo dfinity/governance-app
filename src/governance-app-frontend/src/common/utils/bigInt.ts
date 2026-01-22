@@ -11,9 +11,6 @@ export const bigIntMul = (a: bigint, b: number, precision: number = 8): bigint =
 // Returns the max bigint from the provided arguments
 export const bigIntMax = (...args: bigint[]) => args.reduce((m, e) => (e > m ? e : m));
 
-// Returns the min bigint from the provided arguments
-export const bigIntMin = (...args: bigint[]) => args.reduce((m, e) => (e < m ? e : m));
-
 export const stringToBigInt = (value: string): bigint | undefined => {
   try {
     return BigInt(value);

@@ -15,7 +15,6 @@ import stakeWizardModal from './en/modals/stakeWizard.json';
 import stakingRatioModal from './en/modals/stakingRatio.json';
 import welcomeModal from './en/modals/welcome.json';
 import neuron from './en/neuron.json';
-import nns from './en/nns.json';
 import proposal from './en/proposal.json';
 import userAccount from './en/userAccount.json';
 import voting from './en/voting.json';
@@ -33,7 +32,6 @@ export const resources = {
       maturityModal,
       stakeWizardModal,
       stakingRatioModal,
-      nns,
       proposal,
       voting,
       neuron,
