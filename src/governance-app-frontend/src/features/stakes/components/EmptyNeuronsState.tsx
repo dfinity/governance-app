@@ -28,9 +28,7 @@ export const EmptyNeuronsState = ({ openStakingWizard }: Props) => {
         <Plus />
         {t(($) => $.neuron.empty.cta)}
       </Button>
-      <p className="max-w-md text-sm text-muted-foreground">
-        {t(($) => $.neuron.empty.helper)}
-      </p>
+      <p className="max-w-md text-sm text-muted-foreground">{t(($) => $.neuron.empty.helper)}</p>
     </div>
   );
 };
