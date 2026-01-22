@@ -5,20 +5,20 @@ import { getNeuronId } from '@utils/neuron';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 import { NeuronCard } from './NeuronCard';
-import { NeuronDetailModal } from './neuronDetail';
+import { isValidNeuronDetailView, NeuronDetailModal, NeuronDetailView } from './neuronDetail';
 
 type Props = {
-  neurons: NeuronInfo[];
+  onSelectedNeuronChange: (neuronId: bigint | undefined, action?: string) => void;
   selectedNeuronId: bigint | undefined;
   selectedAction?: string;
-  onSelectedNeuronChange: (neuronId: bigint | undefined, action?: string) => void;
+  neurons: NeuronInfo[];
 };
 
 export const NeuronsList = ({
-  neurons,
+  onSelectedNeuronChange,
   selectedNeuronId,
   selectedAction,
-  onSelectedNeuronChange,
+  neurons,
 }: Props) => {
   const apyData = useStakingRewards();
 
@@ -27,8 +27,8 @@ export const NeuronsList = ({
 
   const handleCardClick = (neuronId: bigint) => onSelectedNeuronChange(neuronId);
   const handleModalClose = (open: boolean) => !open && onSelectedNeuronChange(undefined);
-  const handleActionChange = (action: string | undefined) =>
-    selectedNeuronId && onSelectedNeuronChange(selectedNeuronId, action);
+  const handleActionChange = (action: NeuronDetailView) =>
+    onSelectedNeuronChange(selectedNeuronId, action);
 
   return (
     <div className="flex flex-col gap-4 text-xl">
@@ -58,11 +58,11 @@ export const NeuronsList = ({
       </div>
 
       <NeuronDetailModal
-        neuron={selectedNeuron}
-        view={selectedAction}
-        isOpen={isModalOpen}
-        onOpenChange={handleModalClose}
+        view={isValidNeuronDetailView(selectedAction) ? selectedAction : NeuronDetailView.Summary}
         onViewChange={handleActionChange}
+        onOpenChange={handleModalClose}
+        neuron={selectedNeuron}
+        isOpen={isModalOpen}
       />
     </div>
   );

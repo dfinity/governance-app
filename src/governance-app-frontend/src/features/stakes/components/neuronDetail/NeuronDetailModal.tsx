@@ -1,5 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { ArrowLeft } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -22,26 +23,41 @@ import {
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 import { SummaryView } from './SummaryView';
-import { isValidNeuronDetailView, NeuronDetailView } from './types';
+import { NeuronDetailView } from './types';
 
 type Props = {
   neuron: NeuronInfo | null;
-  view?: string;
+  view: NeuronDetailView;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onViewChange: (view: string | undefined) => void;
+  onViewChange: (view: NeuronDetailView) => void;
 };
 
-export function NeuronDetailModal({
-  neuron,
-  view: viewProp,
-  isOpen,
-  onOpenChange,
-  onViewChange,
-}: Props) {
+export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewChange }: Props) {
   const { t } = useTranslation();
 
-  const view = isValidNeuronDetailView(viewProp) ? viewProp : NeuronDetailView.Summary;
+  // Keep neuron and view in refs to persist during close animation
+  const neuronRef = useRef<NeuronInfo | null>(neuron);
+  const viewRef = useRef<NeuronDetailView>(view);
+
+  useEffect(() => {
+    if (isOpen) {
+      // Update refs when modal is open
+      neuronRef.current = neuron;
+      viewRef.current = view;
+    } else {
+      // Clear refs after close animation finishes
+      const timer = setTimeout(() => {
+        neuronRef.current = null;
+        viewRef.current = NeuronDetailView.Summary;
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [neuron, view, isOpen]);
+
+  // Use props when open, refs during close animation
+  const displayNeuron = isOpen ? neuron : neuronRef.current;
+  const displayView = isOpen ? view : viewRef.current;
 
   const { data: balanceData } = useIcpLedgerAccountBalance();
   const availableBalance = bigIntDiv(balanceData?.response || 0n, E8Sn);
@@ -49,29 +65,23 @@ export function NeuronDetailModal({
 
   const stakingRewards = useStakingRewards();
   const apy =
-    neuron && isStakingRewardDataReady(stakingRewards)
-      ? stakingRewards.apy.neurons.get(getNeuronId(neuron))
+    displayNeuron && isStakingRewardDataReady(stakingRewards)
+      ? stakingRewards.apy.neurons.get(getNeuronId(displayNeuron))
       : undefined;
 
-  const handleViewChange = (newView: NeuronDetailView) => {
-    onViewChange(newView === NeuronDetailView.Summary ? undefined : newView);
-  };
+  const goBack = () => onViewChange(NeuronDetailView.Summary);
 
-  const goBack = () => handleViewChange(NeuronDetailView.Summary);
+  if (!displayNeuron) return null;
 
-  if (!neuron) {
-    throw new Error('Neuron not found');
-  }
-
-  const isDissolved = getNeuronIsDissolved(neuron);
-  const isDissolving = getNeuronIsDissolving(neuron);
-  const isAutoStake = getNeuronIsAutoStakingMaturity(neuron);
-  const isMaxDelay = getNeuronIsMaxDissolveDelay(neuron);
+  const isDissolved = getNeuronIsDissolved(displayNeuron);
+  const isDissolving = getNeuronIsDissolving(displayNeuron);
+  const isAutoStake = getNeuronIsAutoStakingMaturity(displayNeuron);
+  const isMaxDelay = getNeuronIsMaxDissolveDelay(displayNeuron);
 
   const getTitle = (): string => {
-    switch (view) {
+    switch (displayView) {
       case NeuronDetailView.Summary:
-        return t(($) => $.neuronDetailModal.title, { neuronId: neuron.neuronId.toString() });
+        return t(($) => $.neuronDetailModal.title, { neuronId: displayNeuron.neuronId.toString() });
       case NeuronDetailView.IncreaseStake:
         return t(($) => $.neuronDetailModal.increaseStake.title);
       case NeuronDetailView.IncreaseDelay:
@@ -93,7 +103,7 @@ export function NeuronDetailModal({
       >
         <ResponsiveDialogHeader className="shrink-0">
           <div className="relative flex items-center justify-center">
-            {view !== NeuronDetailView.Summary && (
+            {displayView !== NeuronDetailView.Summary && (
               <button
                 onClick={goBack}
                 className="absolute left-0 rounded-md p-1 hover:bg-muted"
@@ -108,9 +118,9 @@ export function NeuronDetailModal({
         </ResponsiveDialogHeader>
 
         <div className="mt-4 flex-1 overflow-y-auto px-4 pb-4 md:px-0 md:pb-0">
-          {view === NeuronDetailView.Summary && (
+          {displayView === NeuronDetailView.Summary && (
             <SummaryView
-              neuron={neuron}
+              neuron={displayNeuron}
               apy={apy}
               isApyLoading={!isStakingRewardDataReady(stakingRewards)}
               isDissolved={isDissolved}
@@ -118,27 +128,27 @@ export function NeuronDetailModal({
               isAutoStake={isAutoStake}
               isMaxDelay={isMaxDelay}
               hasAvailableBalance={hasAvailableBalance}
-              onNavigate={handleViewChange}
+              onNavigate={onViewChange}
             />
           )}
 
-          {view === NeuronDetailView.IncreaseStake && (
+          {displayView === NeuronDetailView.IncreaseStake && (
             <PlaceholderView
               description={t(($) => $.neuronDetailModal.increaseStake.description)}
             />
           )}
 
-          {view === NeuronDetailView.IncreaseDelay && (
+          {displayView === NeuronDetailView.IncreaseDelay && (
             <PlaceholderView
               description={t(($) => $.neuronDetailModal.increaseDelay.description)}
             />
           )}
 
-          {view === NeuronDetailView.MaturityMode && (
+          {displayView === NeuronDetailView.MaturityMode && (
             <PlaceholderView description={t(($) => $.neuronDetailModal.maturityMode.description)} />
           )}
 
-          {view === NeuronDetailView.Dissolve && (
+          {displayView === NeuronDetailView.Dissolve && (
             <PlaceholderView
               description={
                 isDissolving

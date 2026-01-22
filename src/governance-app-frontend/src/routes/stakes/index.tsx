@@ -47,8 +47,8 @@ function StakesComponent() {
   const handleSelectedNeuronChange = (neuronId: bigint | undefined, action?: string) => {
     navigate({
       search: neuronId ? { stakeId: neuronId.toString(), action } : {},
-      replace: true,
       resetScroll: false,
+      replace: true,
     });
   };
 
@@ -96,10 +96,10 @@ function StakesComponent() {
       >
         {(neurons) => (
           <NeuronsList
-            neurons={neurons.response}
+            onSelectedNeuronChange={handleSelectedNeuronChange}
             selectedNeuronId={selectedNeuronId}
             selectedAction={actionParam}
-            onSelectedNeuronChange={handleSelectedNeuronChange}
+            neurons={neurons.response}
           />
         )}
       </QueryStates>
