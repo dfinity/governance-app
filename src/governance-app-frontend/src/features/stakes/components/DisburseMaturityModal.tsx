@@ -46,7 +46,6 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   };
 
   const handleOpenChange = (open: boolean) => {
-    // Prevent closing while processing
     if (isProcessing && !open) return;
     onOpenChange(open);
   };
