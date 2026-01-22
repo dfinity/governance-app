@@ -18,6 +18,7 @@ import { queryClientConfig, routerConfig } from '@utils/initializer';
 
 export const App = () => {
   const notificationsContainer = document.getElementById('notifications');
+
   usePreventAttributeChange({ selector: '#notifications', attribute: 'inert' });
 
   return (
