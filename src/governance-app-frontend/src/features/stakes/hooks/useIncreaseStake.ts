@@ -1,7 +1,8 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
+import { nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { E8Sn, ICP_TRANSACTION_FEE_E8Sn } from '@constants/extra';
@@ -31,6 +32,8 @@ export function useIncreaseStake() {
   const { canister: ledgerCanister } = useIcpLedger();
 
   const [isProcessing, setIsProcessing] = useState(false);
+  // Keep the createdAt value for retry purposes (used for deduplication at the ledger level)
+  const createdAtRef = useRef<bigint | null>(null);
 
   const execute = async (
     params: IncreaseStakeParams,
@@ -47,11 +50,16 @@ export function useIncreaseStake() {
     try {
       const amountE8s = bigIntMul(E8Sn, params.amount);
 
+      // Use stored createdAt for retry deduplication, or generate a new one
+      const createdAt = createdAtRef.current ?? nowInBigIntNanoSeconds();
+      createdAtRef.current = createdAt;
+
       // Step 1: Transfer ICP to the neuron's account identifier
       await ledgerCanister.transfer({
         to: AccountIdentifier.fromHex(params.accountIdentifier),
         amount: amountE8s,
         fee: ICP_TRANSACTION_FEE_E8Sn,
+        createdAt,
       });
 
       // Step 2: Refresh the neuron to update the cached stake
@@ -59,6 +67,9 @@ export function useIncreaseStake() {
         neuronId: params.neuronId,
         by: { NeuronIdOrSubaccount: {} },
       });
+
+      // Reset createdAt only after the full flow succeeds
+      createdAtRef.current = null;
 
       return { success: true };
     } catch (err) {

@@ -22,6 +22,7 @@ import {
 } from '@utils/neuron';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
+import { IncreaseDelayView } from './IncreaseDelayView';
 import { IncreaseStakeView } from './IncreaseStakeView';
 import { SummaryView } from './SummaryView';
 import { NeuronDetailView } from './types';
@@ -138,9 +139,7 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
           )}
 
           {displayView === NeuronDetailView.IncreaseDelay && (
-            <PlaceholderView
-              description={t(($) => $.neuronDetailModal.increaseDelay.description)}
-            />
+            <IncreaseDelayView neuron={displayNeuron} onSuccess={goBack} />
           )}
 
           {displayView === NeuronDetailView.MaturityMode && (

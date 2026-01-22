@@ -24,12 +24,25 @@
     }
   },
   "increaseDelay": {
-    "title": "Increase dissolve delay",
+    "title": "New dissolve delay",
     "description": "Increasing the dissolve delay will increase your voting power and APY rewards.",
     "warning": "The dissolve delay can only be increased, never decreased.",
-    "current": "Current delay: {{delay}}",
-    "confirm": "Increase delay",
-    "success": "Successfully increased dissolve delay."
+    "presets": {
+      "6months": "6 Months",
+      "1year": "1 Year",
+      "2years": "2 Years",
+      "4years": "4 Years",
+      "8years": "8 Years"
+    },
+    "current": "Current",
+    "maxRewards": "Max rewards",
+    "alreadyMax": "Your Stake is already at maximum dissolve delay.",
+    "confirm": "Confirm change",
+    "confirming": "Updating delay, please wait...",
+    "success": "Successfully increased dissolve delay.",
+    "errors": {
+      "failed": "Failed to increase dissolve delay. Please try again."
+    }
   },
   "maturityMode": {
     "title": "Maturity mode",
