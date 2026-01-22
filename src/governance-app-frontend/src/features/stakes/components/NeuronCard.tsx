@@ -1,6 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
-import { AlertTriangle, CheckCircle, CircleAlert, Coins, Lock, Timer } from 'lucide-react';
+import { AlertTriangle, CircleAlert, Coins } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
@@ -20,6 +20,8 @@ import {
 } from '@utils/neuron';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { APY } from '@utils/staking-rewards';
+
+import { NeuronStateBadge } from './NeuronStateBadge';
 
 type Props = {
   neuron: NeuronInfo;
@@ -86,11 +88,6 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
               borderColor: apyColor.borderColor,
               color: apyColor.textColor,
             }}
-            onClick={() => {
-              // @TODO: Implement optimization modal
-              // e.preventDefault();
-              // e.stopPropagation();
-            }}
             role="button"
             tabIndex={0}
             aria-label="Optimize neuron APY"
@@ -132,29 +129,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
               >
                 {durationText}
               </p>
-              <div
-                className={`flex items-center gap-1 rounded-sm border px-2 py-0.5 ${
-                  isDissolving
-                    ? 'border-orange-200 bg-orange-100 text-orange-700 dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
-                    : 'border-gray-200 bg-gray-100 text-gray-600 dark:border-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
-                }`}
-                data-testid="neuron-card-state"
-              >
-                {isDissolved ? (
-                  <CheckCircle className="size-3" />
-                ) : isDissolving ? (
-                  <Timer className="size-3" />
-                ) : (
-                  <Lock className="size-3" />
-                )}
-                <p className="text-[11px] font-medium">
-                  {isDissolved
-                    ? t(($) => $.neuron.dissolved)
-                    : isDissolving
-                      ? t(($) => $.neuron.dissolving)
-                      : t(($) => $.neuron.locked)}
-                </p>
-              </div>
+              <NeuronStateBadge isDissolved={isDissolved} isDissolving={isDissolving} />
             </div>
           </div>
 
