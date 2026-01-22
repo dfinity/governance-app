@@ -13,7 +13,7 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
-  const { identity, isInitializing } = useInternetIdentity();
+  const { identity } = useInternetIdentity();
   const { invalidate } = useRouter();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
@@ -23,28 +23,26 @@ function RootComponent() {
   // Global identity change handler: login, logout, and auto-expiration
   useEffect(() => {
     // Revalidate/re-check route guards on any identity change
-    invalidate();
+    invalidate().finally(() => {
+      if (!hadIdentity.current || identity) return;
 
-    // Handle logout or session expiration
-    if (hadIdentity.current && !identity) {
+      // Handle logout or session expiration
+
       // Reset queries after identity is removed
-      setTimeout(() => queryClient.resetQueries(), 0);
+      queryClient.resetQueries();
 
       // Check if this was a manual logout or auto-expiration
       const isManualLogout = localStorage.getItem(MANUAL_LOGOUT_KEY) === 'true';
       localStorage.removeItem(MANUAL_LOGOUT_KEY);
 
+      if (isManualLogout) return;
+
       // Notify user only on auto-expiration
-      if (!isManualLogout) {
-        infoNotification({ description: t(($) => $.common.autoExpirationLogout) });
-      }
-    }
+      infoNotification({ description: t(($) => $.common.autoExpirationLogout) });
 
-    hadIdentity.current = !!identity;
+      hadIdentity.current = !!identity;
+    });
   }, [identity, invalidate, queryClient, t]);
-
-  // Prevent flicker during initialization
-  if (isInitializing) return null;
 
   return (
     <>

@@ -1,5 +1,5 @@
 import { isNullish, nonNullish } from '@dfinity/utils';
-import { createFileRoute, Navigate, redirect } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 import { ensureInitialized, useInternetIdentity } from 'ic-use-internet-identity';
 import { ExternalLink } from 'lucide-react';
 import { type CSSProperties, useLayoutEffect } from 'react';
@@ -13,6 +13,11 @@ import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { useGovernanceProposal } from '@hooks/governance';
 import { formatNumber } from '@utils/numbers';
+
+const FADE_MASK_STYLE: CSSProperties = {
+  maskImage: 'radial-gradient(ellipse at center, black 40%, transparent 85%)',
+  WebkitMaskImage: 'radial-gradient(ellipse at center, black 40%, transparent 85%)',
+};
 
 type LoginSearch = {
   redirect?: string;
@@ -28,21 +33,15 @@ export const Route = createFileRoute('/')({
     const identity = await ensureInitialized();
 
     if (nonNullish(identity)) {
-      throw redirect({ to: search.redirect, replace: true });
+      throw redirect({ to: search.redirect ?? '/dashboard', replace: true });
     }
   },
   component: LoginPage,
 });
 
-const FADE_MASK_STYLE: CSSProperties = {
-  maskImage: 'radial-gradient(ellipse at center, black 40%, transparent 85%)',
-  WebkitMaskImage: 'radial-gradient(ellipse at center, black 40%, transparent 85%)',
-};
-
 function LoginPage() {
-  const { login, isLoggingIn, identity } = useInternetIdentity();
+  const { login, isLoggingIn } = useInternetIdentity();
   const { t } = useTranslation();
-  const { redirect: redirectTo = '/dashboard' } = Route.useSearch();
 
   // Enforce dark theme on body for login page
   useLayoutEffect(() => {
@@ -56,9 +55,6 @@ function LoginPage() {
   const participants = 57986;
   const proposalsQuery = useGovernanceProposal();
   const totalProposals = proposalsQuery?.data?.response?.id ?? 0n;
-
-  // Redirect after successful login (beforeLoad handles initial page load, this handles post-login)
-  if (identity) return <Navigate to={redirectTo} replace />;
 
   return (
     <div className="dark relative min-h-dvh w-full font-sans text-foreground">
