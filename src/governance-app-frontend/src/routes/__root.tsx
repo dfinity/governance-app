@@ -5,9 +5,10 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { analytics } from '@features/analytics/service';
+
 import { MainLayout } from '@components/MainLayout';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
-import { analytics } from '@features/analytics/service';
 import { infoNotification } from '@utils/notification';
 
 export const Route = createRootRoute({

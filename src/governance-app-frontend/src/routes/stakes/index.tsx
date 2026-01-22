@@ -4,6 +4,8 @@ import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
 import { EmptyNeuronsState } from '@features/stakes/components/EmptyNeuronsState';
 import { NeuronsList } from '@features/stakes/components/NeuronsList';
 import { StakingWizardModal } from '@features/stakes/components/stakingWizard/StakingWizardModal';
@@ -11,8 +13,6 @@ import { StakingWizardModal } from '@features/stakes/components/stakingWizard/St
 import { Button } from '@components/button';
 import { QueryStates } from '@components/QueryStates';
 import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
-import { AnalyticsEvent } from '@features/analytics/events';
-import { analytics } from '@features/analytics/service';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import type { CertifiedData } from '@typings/queries';

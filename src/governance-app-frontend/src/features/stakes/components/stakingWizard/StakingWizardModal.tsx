@@ -2,6 +2,9 @@ import { ArrowLeft } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,8 +27,6 @@ import { useStakingRewards } from '@hooks/useStakingRewards';
 import { formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
-import { AnalyticsEvent } from '@features/analytics/events';
-import { analytics } from '@features/analytics/service';
 import { useCreateNeuron } from '../../hooks/useCreateNeuron';
 import { STAKING_WIZARD_DEFAULT_FORM_STATE } from './constants';
 import { StakingWizardAnimatedApyBadge } from './StakingWizardAnimatedApyBadge';
