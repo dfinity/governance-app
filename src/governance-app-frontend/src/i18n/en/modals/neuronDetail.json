@@ -9,7 +9,6 @@
   },
   "increaseStake": {
     "title": "Increase Stake",
-    "description": "Add more ICP to this Stake to increase your voting power and rewards.",
     "amountLabel": "Amount to add",
     "maxButtonAriaLabel": "Set amount to maximum available balance",
     "currentAndAvailable": "Current: {{current}} ICP • Available: {{available}} ICP",
@@ -25,7 +24,6 @@
   },
   "increaseDelay": {
     "title": "Dissolve delay",
-    "description": "Increasing the dissolve delay will increase your voting power and APY rewards.",
     "warning": "The dissolve delay can only be increased, never decreased.",
     "presets": {
       "6months": "6 Months",
@@ -34,8 +32,6 @@
       "4years": "4 Years",
       "8years": "8 Years"
     },
-    "current": "Current",
-    "maxRewards": "Max rewards",
     "alreadyMax": "Your Stake is already at maximum dissolve delay.",
     "confirm": "Confirm change",
     "confirming": "Updating delay, please wait...",
@@ -49,9 +45,7 @@
     "infoAutoStake": "<strong>Auto-stake:</strong> rewards automatically increase your Stake for compound growth.",
     "infoKeepLiquid": "<strong>Keep Liquid:</strong> don't auto-stake rewards, keep them available for withdrawal.",
     "autoStake": "Auto-stake",
-    "autoStakeDescription": "Maturity is automatically staked to compound your rewards.",
     "keepLiquid": "Keep liquid",
-    "keepLiquidDescription": "Maturity stays available for withdrawal.",
     "confirm": "Update maturity mode",
     "confirming": "Updating maturity mode, please wait...",
     "success": "Maturity mode updated successfully.",
