@@ -1,7 +1,7 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
 import { AlertTriangle, Info, Loader2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
@@ -40,10 +40,6 @@ export function IncreaseStakeView({ neuron, onSuccess, onProcessingChange }: Pro
 
   const { execute, isProcessing } = useIncreaseStake();
 
-  useEffect(() => {
-    onProcessingChange(isProcessing);
-  }, [isProcessing, onProcessingChange]);
-
   const handleAmountChange = (value: string) => {
     setAmount(value);
     setValidationError(null);
@@ -77,17 +73,22 @@ export function IncreaseStakeView({ neuron, onSuccess, onProcessingChange }: Pro
       return;
     }
 
+    onProcessingChange(true);
+
     const result = await execute({
       neuronId: neuron.neuronId,
       accountIdentifier,
       amount: numericAmount,
     });
 
+    onProcessingChange(false);
+
     if (result.success) {
       successNotification({
         description: t(($) => $.neuronDetailModal.increaseStake.success, { amount }),
       });
-      onSuccess();
+      // Wait for the naviagion blocker to be released (isProcessing propagated to false)
+      setTimeout(onSuccess);
     } else if (result.error) {
       errorNotification({
         description: result.error,

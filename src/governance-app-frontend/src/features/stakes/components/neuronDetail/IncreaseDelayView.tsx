@@ -1,6 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { AlertTriangle, Award, Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
@@ -25,10 +25,6 @@ export function IncreaseDelayView({ neuron, onSuccess, onProcessingChange }: Pro
 
   const { execute, isProcessing } = useIncreaseDelay();
 
-  useEffect(() => {
-    onProcessingChange(isProcessing);
-  }, [isProcessing, onProcessingChange]);
-
   // Get current dissolve delay in months
   const currentDelaySeconds = Number(getNeuronDissolveDelaySeconds(neuron));
   const currentDelayMonths = Math.round(currentDelaySeconds / SECONDS_IN_MONTH);
@@ -39,16 +35,21 @@ export function IncreaseDelayView({ neuron, onSuccess, onProcessingChange }: Pro
   const handleConfirm = async () => {
     if (!selectedMonths) return;
 
+    onProcessingChange(true);
+
     const result = await execute({
       neuronId: neuron.neuronId,
       dissolveDelayMonths: selectedMonths,
     });
 
+    onProcessingChange(false);
+
     if (result.success) {
       successNotification({
         description: t(($) => $.neuronDetailModal.increaseDelay.success),
       });
-      onSuccess();
+      // Wait for the naviagion blocker to be released (isProcessing propagated to false)
+      setTimeout(onSuccess);
     } else if (result.error) {
       errorNotification({
         description: result.error,
