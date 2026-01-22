@@ -20,7 +20,7 @@ function RootComponent() {
   const { t } = useTranslation();
 
   const matches = useMatches();
-  const isLoginPage = matches.some((m) => m.routeId === '/login');
+  const isLoginPage = matches.some((m) => m.routeId === '/');
 
   // BE CAREFUL CHANGING THIS EFFECT!
 
@@ -56,7 +56,7 @@ function RootComponent() {
   if (isLoginPage) return <Outlet />;
 
   // @TODO: This could be removed but it guarantees a check in case a new route is added without a beforeLoad check
-  if (!identity) return <Navigate to="/login" />;
+  if (!identity) return <Navigate to="/" />;
 
   return (
     <MainLayout>

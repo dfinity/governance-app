@@ -16,11 +16,9 @@ import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
 import useTitle from '@hooks/useTitle';
 import { getSessionTimeLeftForUi } from '@utils/date';
-import { requireIdentity } from '@utils/router';
 
-export const Route = createFileRoute('/account/')({
+export const Route = createFileRoute('/_auth/account/')({
   component: Account,
-  beforeLoad: requireIdentity,
   staticData: {
     title: 'common.accounts',
   },

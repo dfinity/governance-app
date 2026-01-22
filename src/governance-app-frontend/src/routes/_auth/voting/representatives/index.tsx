@@ -1,5 +1,5 @@
-import { isNullish } from '@dfinity/utils';
 import { KnownNeuron, NeuronId, Topic } from '@icp-sdk/canisters/nns';
+import { isNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
@@ -12,6 +12,13 @@ import { KnownNeuronCard } from '@features/voting/components/KnownNeuronCard';
 import { getUsersFollowedNeurons, isKnownNeuron } from '@features/voting/utils/findFollowedNeuron';
 import { isActiveKnownNeuron, sortKnownNeurons } from '@features/voting/utils/knownNeurons';
 
+import { Button } from '@components/button';
+import { Skeleton } from '@components/Skeleton';
+import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
+import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
+import useTitle from '@hooks/useTitle';
+import { warningNotification } from '@utils/notification';
+import { QUERY_KEYS } from '@utils/query';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,25 +29,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@common/components/AlertDialog';
-import { Button } from '@components/button';
-import { Skeleton } from '@components/Skeleton';
-import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
-import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
-import useTitle from '@hooks/useTitle';
-import { warningNotification } from '@utils/notification';
-import { QUERY_KEYS } from '@utils/query';
-import { requireIdentity } from '@utils/router';
 
-export const Route = createFileRoute('/voting/representatives/')({
-  component: KnownNeuronsList,
+export const Route = createFileRoute('/_auth/voting/representatives/')({
+  component: Representatives,
   validateSearch: getShowProposalUrlStatus,
-  beforeLoad: requireIdentity,
   staticData: {
     title: 'common.voting',
   },
 });
 
-function KnownNeuronsList() {
+function Representatives() {
   const { t } = useTranslation();
   const search = Route.useSearch();
   const queryClient = useQueryClient();
@@ -217,7 +215,7 @@ function KnownNeuronsList() {
             </div>
           ) : knownNeuronsQuery.isError ? (
             // @TODO: Improve error UI
-            (<p className="text-destructive">{t(($) => $.common.loadingError)}</p>)
+            <p className="text-destructive">{t(($) => $.common.loadingError)}</p>
           ) : sortedKnownNeurons?.length === 0 ? (
             <p className="text-muted-foreground">{t(($) => $.knownNeurons.empty)}</p>
           ) : (
@@ -262,5 +260,5 @@ function KnownNeuronsList() {
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
+  );
 }

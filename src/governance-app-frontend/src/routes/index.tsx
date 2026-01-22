@@ -18,7 +18,7 @@ type LoginSearch = {
   redirect?: string;
 };
 
-export const Route = createFileRoute('/login')({
+export const Route = createFileRoute('/')({
   validateSearch: (search: Record<string, unknown>): LoginSearch => {
     return {
       redirect: typeof search.redirect === 'string' ? search.redirect : undefined,
@@ -42,7 +42,7 @@ const FADE_MASK_STYLE: CSSProperties = {
 function LoginPage() {
   const { login, isLoggingIn, identity } = useInternetIdentity();
   const { t } = useTranslation();
-  const { redirect: redirectTo = '/' } = Route.useSearch();
+  const { redirect: redirectTo = '/dashboard' } = Route.useSearch();
 
   // Enforce dark theme on body for login page
   useLayoutEffect(() => {
