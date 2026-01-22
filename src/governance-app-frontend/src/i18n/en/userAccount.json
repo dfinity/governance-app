@@ -48,7 +48,6 @@
   },
   "session": {
     "title": "Session",
-    "timeLeft": "Session expires in {{minutes}}m {{seconds}}s",
-    "warning": "Session expiring in less than 5 minutes. Please be aware that you'll automatically be logged out."
+    "timeLeft": "Session expires in {{minutes}}m {{seconds}}s"
   }
 }
