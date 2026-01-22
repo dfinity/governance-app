@@ -1,11 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { createRootRoute, Navigate, Outlet, useMatches, useRouter } from '@tanstack/react-router';
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
+import { createRootRoute, Outlet, useRouter } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { MainLayout } from '@components/MainLayout';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { infoNotification } from '@utils/notification';
 
@@ -19,49 +17,33 @@ function RootComponent() {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
 
-  const matches = useMatches();
-  const isLoginPage = matches.some((m) => m.routeId === '/');
-
-  // BE CAREFUL CHANGING THIS EFFECT!
-
-  // Remember if we had an identity, to trigger a single change.
   const hadIdentity = useRef(!!identity);
-  // Run on identity change: login, logout, but also auto-expiration.
+
+  // Global identity change handler: login, logout, and auto-expiration
   useEffect(() => {
-    // Revalidate/re-check route guards in all cases.
+    // Revalidate/re-check route guards on any identity change
     invalidate();
 
-    // Logout or expiration change (single trigger).
+    // Handle logout or session expiration
     if (hadIdentity.current && !identity) {
-      // Allow an async cycle for the authenticated agent to be removed before refreshing the queries.
+      // Reset queries after identity is removed
       setTimeout(() => queryClient.resetQueries(), 0);
 
-      // Check for manual logout flag.
+      // Check if this was a manual logout or auto-expiration
       const isManualLogout = localStorage.getItem(MANUAL_LOGOUT_KEY) === 'true';
       localStorage.removeItem(MANUAL_LOGOUT_KEY);
 
-      // Show notification in case of expiration only.
+      // Notify user only on auto-expiration
       if (!isManualLogout) {
         infoNotification({ description: t(($) => $.common.autoExpirationLogout) });
       }
     }
 
-    // Remember last identity state.
     hadIdentity.current = !!identity;
   }, [identity, invalidate, queryClient, t]);
 
-  // While initializing, we might want to show a loader or nothing to prevent flicker
+  // Prevent flicker during initialization
   if (isInitializing) return null;
 
-  if (isLoginPage) return <Outlet />;
-
-  // @TODO: This could be removed but it guarantees a check in case a new route is added without a beforeLoad check
-  if (!identity) return <Navigate to="/" />;
-
-  return (
-    <MainLayout>
-      <Outlet />
-      <TanStackRouterDevtools />
-    </MainLayout>
-  );
+  return <Outlet />;
 }

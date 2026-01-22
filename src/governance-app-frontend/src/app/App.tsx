@@ -4,18 +4,18 @@ import '@/i18n/config';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { RouterProvider } from '@tanstack/react-router';
+import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { InternetIdentityProvider } from 'ic-use-internet-identity';
 import { StrictMode } from 'react';
 import { createPortal } from 'react-dom';
 
 import { Sonner } from '@components/Sonner';
 import { IDENTITY_PROVIDER } from '@constants/extra';
+import { AgentPoolProvider } from '@contexts/agentPoolProvider';
+import { StakingRewardsProvider } from '@contexts/stakingRewardsProvider';
+import { ThemeProvider } from '@contexts/themeProvider';
 import { usePreventAttributeChange } from '@hooks/usePreventAttributeChange';
 import { queryClientConfig, routerConfig } from '@utils/initializer';
-
-import { AgentPoolProvider } from '@/app/contexts/agentPoolProvider';
-import { StakingRewardsProvider } from '@/app/contexts/stakingRewardsProvider';
-import { ThemeProvider } from '@/app/contexts/themeProvider';
 
 export const App = () => {
   const notificationsContainer = document.getElementById('notifications');
@@ -34,6 +34,7 @@ export const App = () => {
             <StakingRewardsProvider>
               <ThemeProvider>
                 <RouterProvider router={routerConfig} />
+                <TanStackRouterDevtools />
                 <ReactQueryDevtools initialIsOpen={false} />
                 {notificationsContainer &&
                   createPortal(
