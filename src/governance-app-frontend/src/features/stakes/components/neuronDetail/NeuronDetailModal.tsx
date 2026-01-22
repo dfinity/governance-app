@@ -23,6 +23,7 @@ import {
 } from '@utils/neuron';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
+import { NeuronDetailDissolveView } from './NeuronDetailDissolveView';
 import { NeuronDetailIncreaseDelayView } from './NeuronDetailIncreaseDelayView';
 import { NeuronDetailIncreaseStakeView } from './NeuronDetailIncreaseStakeView';
 import { NeuronDetailMaturityModeView } from './NeuronDetailMaturityModeView';
@@ -177,34 +178,16 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
             )}
 
             {displayView === NeuronDetailView.Dissolve && (
-              <PlaceholderView
-                description={
-                  isDissolving
-                    ? t(($) => $.neuronDetailModal.dissolve.stopDescription)
-                    : t(($) => $.neuronDetailModal.dissolve.startDescription)
-                }
+              <NeuronDetailDissolveView
+                neuron={displayNeuron}
+                isDissolving={isDissolving}
+                onSuccess={goBack}
+                onProcessingChange={setIsProcessing}
               />
             )}
           </div>
         </ResponsiveDialogContent>
       </ResponsiveDialog>
     </>
-  );
-}
-
-// Placeholder View for sub-views (to be implemented)
-type PlaceholderViewProps = {
-  description: string;
-};
-
-function PlaceholderView({ description }: PlaceholderViewProps) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-4 py-8 text-center">
-      <p className="text-muted-foreground">{description}</p>
-      <p className="text-sm text-muted-foreground/60">
-        {/* @TODO: Implement this view */}
-        Coming soon...
-      </p>
-    </div>
   );
 }

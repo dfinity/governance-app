@@ -63,13 +63,17 @@
   "dissolve": {
     "startTitle": "Start dissolving",
     "stopTitle": "Stop dissolving",
-    "startDescription": "Starting to dissolve will begin the countdown. After the dissolve delay period, you can withdraw your ICP.",
-    "stopDescription": "Stopping the dissolve will pause the countdown and keep your Stake locked, maximizing your rewards.",
-    "warning": "While dissolving, your APY will decrease as the dissolve delay decreases.",
-    "confirmStart": "Start dissolving",
-    "confirmStop": "Stop dissolving",
+    "warningStart": "<strong>Important:</strong> Starting the dissolve process will begin the countdown. After the delay period ends, you can withdraw your ICP. You can stop dissolving and re-lock the Stake at any time. Note: starting to dissolve will reset any accumulated age bonus.",
+    "warningStop": "<strong>Important:</strong> Stopping the dissolve process will re-lock your Stake and pause the countdown. The dissolve delay can still be increased at any time.",
+    "confirmStart": "Confirm start dissolving",
+    "confirmStop": "Confirm stop dissolving",
+    "confirmingStart": "Starting dissolve, please wait...",
+    "confirmingStop": "Stopping dissolve, please wait...",
     "successStart": "Dissolving started. Your Stake will be available after the dissolve delay.",
-    "successStop": "Dissolving stopped. Your Stake is now locked."
+    "successStop": "Dissolving stopped. Your Stake is now locked.",
+    "errors": {
+      "failed": "Failed to update dissolve state. Please try again."
+    }
   },
   "disabled": {
     "noBalance": "No ICP available to stake",
