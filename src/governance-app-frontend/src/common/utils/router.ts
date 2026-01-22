@@ -2,9 +2,9 @@ import { ERROR_USER_INTERRUPT } from '@icp-sdk/auth/client';
 import { ParsedLocation, redirect } from '@tanstack/react-router';
 import { ensureInitialized } from 'ic-use-internet-identity';
 
-import i18n from '@/i18n/config';
-
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
+
+import i18n from '@/i18n/config';
 
 import { warningNotification } from './notification';
 
