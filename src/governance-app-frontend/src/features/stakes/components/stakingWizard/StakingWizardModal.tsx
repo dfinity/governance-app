@@ -24,6 +24,8 @@ import { useStakingRewards } from '@hooks/useStakingRewards';
 import { formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
 import { useCreateNeuron } from '../../hooks/useCreateNeuron';
 import { STAKING_WIZARD_DEFAULT_FORM_STATE } from './constants';
 import { StakingWizardAnimatedApyBadge } from './StakingWizardAnimatedApyBadge';
@@ -119,14 +121,27 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
   const goNext = () => {
     switch (step) {
       case StakingWizardStep.Amount:
+        analytics.event(AnalyticsEvent.StakingSetStakeAmount);
         setStep(StakingWizardStep.DissolveDelay);
         break;
       case StakingWizardStep.DissolveDelay:
+        analytics.event(AnalyticsEvent.StakingSetDissolveDelay, {});
         setStep(StakingWizardStep.Configuration);
         break;
       case StakingWizardStep.Configuration:
+        analytics.event(AnalyticsEvent.StakingSetConfiguration, {});
         setStep(StakingWizardStep.Confirmation);
-        createNeuron.execute();
+
+        createNeuron.execute().then(() => {
+          analytics.event(AnalyticsEvent.StakingConfirmation, {
+            amount: formState.amount,
+            dissolveDelayMonths: formState.dissolveDelayMonths.toString(),
+            maturityMode:
+              formState.maturityMode === StakingWizardMaturityMode.Auto ? 'auto' : 'liquid',
+            initialState:
+              formState.initialState === StakingWizardInitialState.Locked ? 'locked' : 'dissolving',
+          });
+        });
         break;
     }
   };
