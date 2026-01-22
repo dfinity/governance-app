@@ -11,6 +11,8 @@ import { StakingWizardModal } from '@features/stakes/components/stakingWizard/St
 import { Button } from '@components/button';
 import { QueryStates } from '@components/QueryStates';
 import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import type { CertifiedData } from '@typings/queries';
@@ -43,6 +45,7 @@ function StakesComponent() {
       });
     }
     setIsStakingWizardOpen(true);
+    analytics.event(AnalyticsEvent.StakingOpenWizard);
   };
 
   return (

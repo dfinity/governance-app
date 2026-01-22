@@ -6,21 +6,11 @@
  * // Usage in components:
  * analytics.event(EventName.ButtonClick, { button_id: 'submit' });
  */
-export enum EventName {
-  // Page events
-  PageView = 'page_view',
-
-  // User interaction events
-  ButtonClick = 'button_click',
-  LinkClick = 'link_click',
-  FormSubmit = 'form_submit',
-
-  // Navigation events
-  NavigationClick = 'navigation_click',
-  TabChange = 'tab_change',
-
-  // Feature-specific events (add your custom events below)
-  // Example:
-  // ProposalCreated = 'proposal_created',
-  // VoteCast = 'vote_cast',
+export enum AnalyticsEvent {
+  // Staking flow
+  StakingOpenWizard = 'staking_open_wizard',
+  StakingSetStakeAmount = 'staking_set_stake_amount',
+  StakingSetDissolveDelay = 'staking_set_dissolve_delay',
+  StakingSetConfiguration = 'staking_set_configuration',
+  StakingConfirmation = 'staking_confirmation',
 }

@@ -3,15 +3,13 @@ import { init, track } from '@plausible-analytics/tracker';
 
 import { PLAUSIBLE_DOMAIN_URL } from '@constants/externalServices';
 
-import { EventName } from './events';
+import { AnalyticsEvent } from './events';
 
 class AnalyticsService {
   private isInitialized = false;
 
   init(): void {
-    if (this.isInitialized || !PLAUSIBLE_DOMAIN_URL) {
-      return;
-    }
+    if (this.isInitialized || !PLAUSIBLE_DOMAIN_URL) return;
 
     init({
       // Required Your site's domain, as declared by you in Plausible's settings.
@@ -38,7 +36,7 @@ class AnalyticsService {
    * @param options - Optional tracking options (e.g., custom url, revenue)
    */
   event(
-    name: EventName,
+    event: AnalyticsEvent,
     props?: Record<string, string>,
     options?: Omit<PlausibleEventOptions, 'props'>,
   ): void {
@@ -48,7 +46,7 @@ class AnalyticsService {
     }
 
     try {
-      track(name, { props, ...options });
+      track(event as string, { props, ...options });
     } catch (error) {
       console.error('Plausible event error:', error);
     }

@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 
 import { MainLayout } from '@components/MainLayout';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
+import { analytics } from '@features/analytics/service';
 import { infoNotification } from '@utils/notification';
 
 export const Route = createRootRoute({
@@ -49,6 +50,10 @@ function RootComponent() {
     // Remember last identity state.
     hadIdentity.current = !!identity;
   }, [identity, invalidate, queryClient, t]);
+
+  useEffect(() => {
+    analytics.init();
+  }, []);
 
   // While initializing, we might want to show a loader or nothing to prevent flicker
   if (isInitializing) return null;

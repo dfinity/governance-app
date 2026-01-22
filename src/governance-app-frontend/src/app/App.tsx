@@ -5,10 +5,8 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { RouterProvider } from '@tanstack/react-router';
 import { InternetIdentityProvider } from 'ic-use-internet-identity';
-import { StrictMode, useEffect } from 'react';
+import { StrictMode } from 'react';
 import { createPortal } from 'react-dom';
-
-import { analytics } from '@features/analytics/service';
 
 import { Sonner } from '@components/Sonner';
 import { IDENTITY_PROVIDER } from '@constants/extra';
@@ -21,10 +19,6 @@ import { queryClientConfig, routerConfig } from '@utils/initializer';
 export const App = () => {
   const notificationsContainer = document.getElementById('notifications');
   usePreventAttributeChange({ selector: '#notifications', attribute: 'inert' });
-
-  useEffect(() => {
-    analytics.init();
-  }, []);
 
   return (
     <StrictMode>
