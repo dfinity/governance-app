@@ -17,7 +17,6 @@ import type { CertifiedData } from '@typings/queries';
 import { bigIntDiv } from '@utils/bigInt';
 import { warningNotification } from '@utils/notification';
 import { requireIdentity } from '@utils/router';
-import { cn } from '@utils/shadcn';
 
 export const Route = createFileRoute('/stakes/')({
   component: StakesComponent,
