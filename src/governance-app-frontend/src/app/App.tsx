@@ -4,7 +4,6 @@ import '@/i18n/config';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { RouterProvider } from '@tanstack/react-router';
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { InternetIdentityProvider } from 'ic-use-internet-identity';
 import { StrictMode } from 'react';
 import { createPortal } from 'react-dom';
@@ -34,7 +33,6 @@ export const App = () => {
             <StakingRewardsProvider>
               <ThemeProvider>
                 <RouterProvider router={routerConfig} />
-                <TanStackRouterDevtools />
                 <ReactQueryDevtools initialIsOpen={false} />
                 {notificationsContainer &&
                   createPortal(

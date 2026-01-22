@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { createRootRoute, Outlet, useRouter } from '@tanstack/react-router';
+import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -45,5 +46,10 @@ function RootComponent() {
   // Prevent flicker during initialization
   if (isInitializing) return null;
 
-  return <Outlet />;
+  return (
+    <>
+      <Outlet />
+      <TanStackRouterDevtools />
+    </>
+  );
 }
