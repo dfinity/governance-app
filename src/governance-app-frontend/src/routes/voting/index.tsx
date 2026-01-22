@@ -125,7 +125,7 @@ function Voting() {
             <div className="flex flex-col gap-3 sm:items-center">
               <Button
                 size="xl"
-                className="capitalize w-full sm:w-auto"
+                className="w-full capitalize sm:w-auto"
                 onClick={handleManageFollowing}
               >
                 <Users />
@@ -137,7 +137,9 @@ function Voting() {
                 onClick={toggleViewProposals}
                 className="w-full sm:w-auto"
               >
-                {t(($) => (showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow))}
+                {t(($) =>
+                  showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow,
+                )}
               </Button>
             </div>
           </div>
@@ -162,7 +164,9 @@ function Voting() {
             <button onClick={toggleViewProposals} className="text-sm text-muted-foreground">
               <span>{t(($) => $.voting.proposals.cta)}</span>{' '}
               <span className="font-medium text-primary capitalize underline-offset-4 hover:underline">
-                {t(($) => (showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow))}
+                {t(($) =>
+                  showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow,
+                )}
               </span>
             </button>
           </div>
