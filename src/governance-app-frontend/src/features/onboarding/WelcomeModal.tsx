@@ -1,4 +1,3 @@
-import { Vote } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -35,13 +34,11 @@ export function WelcomeModal() {
       <ResponsiveDialogContent
         onPointerDownOutside={(e) => e.preventDefault()}
         showCloseButton={false}
-        className="flex flex-col gap-8 lg:max-w-xl lg:px-8"
+        className="flex flex-col lg:max-w-xl overflow-hidden p-0 gap-0"
         data-testid="welcome-modal"
       >
-        <div className="flex flex-col items-center gap-6">
-          <div className="size-16">
-            <Vote className="size-16 text-primary" />
-          </div>
+        <img src="/welcome-image.svg" alt="Welcome" className="w-full rounded-t-lg" />
+        <div className="flex flex-col items-center gap-6 px-6 lg:px-8 pt-8">
           <ResponsiveDialogTitle className="text-2xl">
             {t(($) => $.welcomeModal.title)}
           </ResponsiveDialogTitle>
@@ -49,10 +46,10 @@ export function WelcomeModal() {
             {t(($) => $.welcomeModal.content)}
           </ResponsiveDialogDescription>
         </div>
-        <ResponsiveDialogFooter>
+        <ResponsiveDialogFooter className="px-6 lg:px-8 pb-6 lg:pb-8 pt-8">
           <Button
             onClick={handleClose}
-            className="mt-4 w-full lg:mt-0"
+            className="w-full"
             size="xxl"
             data-testid="welcome-modal-cta-btn"
           >
