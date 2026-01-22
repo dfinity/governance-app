@@ -66,7 +66,7 @@ function Voting() {
       return;
     }
 
-    navigate({ to: '/voting/known-neurons' });
+    navigate({ to: '/voting/representatives' });
   };
 
   const toggleViewProposals = () =>
