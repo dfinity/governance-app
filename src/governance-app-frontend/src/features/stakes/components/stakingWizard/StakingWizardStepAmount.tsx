@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
 import { Label } from '@components/Label';
-import { E8Sn, ICP_MIN_STAKE_AMOUNT } from '@constants/extra';
+import { E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useStakingRewards } from '@hooks/useStakingRewards';
@@ -27,7 +27,8 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { data: balanceValue } = useIcpLedgerAccountBalance();
-  const maxStake = nonNullish(balanceValue?.response) ? bigIntDiv(balanceValue.response, E8Sn) : 0;
+  const balance = nonNullish(balanceValue?.response) ? bigIntDiv(balanceValue.response, E8Sn) : 0;
+  const maxStake = Math.max(0, balance - ICP_TRANSACTION_FEE);
 
   const stakingRewards = useStakingRewards();
   const maxApyFormatted = isStakingRewardDataReady(stakingRewards)
@@ -101,7 +102,10 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
           </div>
         </div>
         <p className="text-sm text-muted-foreground">
-          {t(($) => $.stakeWizardModal.steps.amount.available, { amount: maxStake.toString() })}
+          {t(($) => $.stakeWizardModal.steps.amount.available, {
+            amount: maxStake.toString(),
+            fee: ICP_TRANSACTION_FEE,
+          })}
         </p>
         {error && (
           <Alert variant="warning" data-testid="staking-wizard-amount-error">

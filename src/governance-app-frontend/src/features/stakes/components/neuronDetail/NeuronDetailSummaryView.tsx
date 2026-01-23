@@ -21,8 +21,6 @@ type Props = {
   isDissolved: boolean;
   isDissolving: boolean;
   isAutoStake: boolean;
-  isMaxDelay: boolean;
-  hasAvailableBalance: boolean;
   onNavigate: (view: NeuronDetailView) => void;
 };
 
@@ -33,8 +31,6 @@ export function NeuronDetailSummaryView({
   isDissolved,
   isDissolving,
   isAutoStake,
-  isMaxDelay,
-  hasAvailableBalance,
   onNavigate,
 }: Props) {
   const { t } = useTranslation();
@@ -121,7 +117,6 @@ export function NeuronDetailSummaryView({
           icon={<PlusCircle className="size-8" />}
           label={t(($) => $.neuronDetailModal.actions.increaseStake)}
           onClick={() => onNavigate(NeuronDetailView.IncreaseStake)}
-          disabled={!hasAvailableBalance}
           disabledReason={t(($) => $.neuronDetailModal.disabled.noBalance)}
         />
 
@@ -129,7 +124,6 @@ export function NeuronDetailSummaryView({
           icon={<Clock className="size-8" />}
           label={t(($) => $.neuronDetailModal.actions.increaseDelay)}
           onClick={() => onNavigate(NeuronDetailView.IncreaseDelay)}
-          disabled={isMaxDelay}
           disabledReason={t(($) => $.neuronDetailModal.disabled.maxDelay)}
         />
 

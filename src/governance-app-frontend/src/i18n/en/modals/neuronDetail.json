@@ -11,7 +11,7 @@
     "title": "Increase Stake",
     "amountLabel": "Amount to add",
     "maxButtonAriaLabel": "Set amount to maximum available balance",
-    "currentAndAvailable": "Current: {{current}} ICP • Available: {{available}} ICP",
+    "currentAndAvailable": "Current: {{current}} ICP • Available: {{available}} ICP ({{fee}} ICP fee applies)",
     "info": "Adding ICP to your Stake increases your voting power and potential rewards. The added amount will be locked for the same dissolve delay period.",
     "confirm": "Confirm increase",
     "confirming": "Increasing Stake, please wait...",
@@ -49,7 +49,7 @@
     "confirm": "Update maturity mode",
     "confirming": "Updating maturity mode, please wait...",
     "success": "Maturity mode updated successfully.",
-    "noChange": "Mode is already set to this option.",
+    "noChange": "Maturity mode is already set to this option.",
     "errors": {
       "failed": "Failed to update maturity mode. Please try again."
     }

@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
 import { Label } from '@components/Label';
-import { E8Sn, ICP_MIN_STAKE_AMOUNT } from '@constants/extra';
+import { E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { bigIntDiv } from '@utils/bigInt';
 import { errorNotification, successNotification } from '@utils/notification';
@@ -28,9 +28,8 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { data: balanceValue } = useIcpLedgerAccountBalance();
-  const availableBalance = nonNullish(balanceValue?.response)
-    ? bigIntDiv(balanceValue.response, E8Sn)
-    : 0;
+  const balance = nonNullish(balanceValue?.response) ? bigIntDiv(balanceValue.response, E8Sn) : 0;
+  const availableBalance = Math.max(0, balance - ICP_TRANSACTION_FEE);
 
   const currentStake = neuron.fullNeuron?.cachedNeuronStake
     ? bigIntDiv(neuron.fullNeuron.cachedNeuronStake, E8Sn)
@@ -142,6 +141,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
           {t(($) => $.neuronDetailModal.increaseStake.currentAndAvailable, {
             current: currentStake.toString(),
             available: availableBalance.toString(),
+            fee: ICP_TRANSACTION_FEE,
           })}
         </p>
       </div>

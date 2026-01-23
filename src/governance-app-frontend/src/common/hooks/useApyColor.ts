@@ -1,6 +1,6 @@
 import { ICP_MAX_DISSOLVE_DELAY_MONTHS, ICP_MIN_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { useStakingRewards } from '@hooks/useStakingRewards';
-import { getApyColors, getApyNormalizedPosition } from '@utils/apy-colors';
+import { getApyColors, getApyNormalizedPosition, isMaxApy } from '@utils/apy-colors';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 type ApyColorResult =
@@ -30,7 +30,7 @@ export function useApyColor(apyValue: number): ApyColorResult {
 
   const normalizedPosition = getApyNormalizedPosition(apyValue, minApy, maxApy);
   const colors = getApyColors(normalizedPosition);
-  const isMax = Number(apyValue.toFixed(2)) >= Number(maxApy.toFixed(2));
+  const isMax = isMaxApy(apyValue, maxApy);
 
   return {
     ready: true,

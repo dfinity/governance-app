@@ -10,16 +10,12 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
-import { E8Sn } from '@constants/extra';
-import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useStakingRewards } from '@hooks/useStakingRewards';
-import { bigIntDiv } from '@utils/bigInt';
 import {
   getNeuronId,
   getNeuronIsAutoStakingMaturity,
   getNeuronIsDissolved,
   getNeuronIsDissolving,
-  getNeuronIsMaxDissolveDelay,
 } from '@utils/neuron';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
@@ -65,10 +61,6 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
   const displayNeuron = isOpen ? neuron : neuronRef.current;
   const displayView = isOpen ? view : viewRef.current;
 
-  const { data: balanceData } = useIcpLedgerAccountBalance();
-  const availableBalance = bigIntDiv(balanceData?.response || 0n, E8Sn);
-  const hasAvailableBalance = availableBalance > 0;
-
   const stakingRewards = useStakingRewards();
   const apy =
     displayNeuron && isStakingRewardDataReady(stakingRewards)
@@ -91,7 +83,6 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
   const isDissolved = getNeuronIsDissolved(displayNeuron);
   const isDissolving = getNeuronIsDissolving(displayNeuron);
   const isAutoStake = getNeuronIsAutoStakingMaturity(displayNeuron);
-  const isMaxDelay = getNeuronIsMaxDissolveDelay(displayNeuron);
 
   const getTitle = (): string => {
     switch (displayView) {
@@ -147,8 +138,6 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
                 isDissolved={isDissolved}
                 isDissolving={isDissolving}
                 isAutoStake={isAutoStake}
-                isMaxDelay={isMaxDelay}
-                hasAvailableBalance={hasAvailableBalance}
                 onNavigate={onViewChange}
               />
             )}
