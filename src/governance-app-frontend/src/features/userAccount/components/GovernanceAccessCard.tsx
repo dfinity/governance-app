@@ -61,6 +61,7 @@ export const GovernanceAccessCard = () => {
             </Link>
             <Link
               to="/voting"
+              search={{ showProposals: true }}
               className="group inline-flex w-fit items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               {t(($) => $.userAccount.governance.access.links.viewVotingActivity)}
