@@ -21,7 +21,9 @@ const hasGetDelegation = (obj: unknown): obj is IdentityWithDelegation => {
   );
 };
 
-export const useSessionTimeLeft = () => {
+type SessionTimeLeft = { minutes: number; seconds: number };
+
+export const useSessionTimeLeft = (): SessionTimeLeft | null => {
   const { identity } = useInternetIdentity();
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
@@ -65,18 +67,10 @@ export const useSessionTimeLeft = () => {
     return () => clearInterval(interval);
   }, [identity]);
 
-  if (timeLeft === null) {
-    return {
-      minutes: 0,
-      seconds: 0,
-    };
-  }
-
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = timeLeft % 60;
+  if (isNullish(timeLeft)) return null;
 
   return {
-    minutes,
-    seconds,
+    minutes: Math.floor(timeLeft / 60),
+    seconds: timeLeft % 60,
   };
 };

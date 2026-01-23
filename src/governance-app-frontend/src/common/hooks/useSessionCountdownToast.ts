@@ -13,6 +13,9 @@ export const useSessionCountdownToast = () => {
   const isDismissedByUser = useRef(false);
 
   useEffect(() => {
+    // Wait for session data to load
+    if (!timeLeft) return;
+
     // Only show when less than 5 minutes remaining
     if (timeLeft.minutes >= 5) return;
 
