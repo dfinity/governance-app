@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/_auth'
+import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthVotingIndexRouteImport } from './routes/_auth/voting/index'
 import { Route as AuthStakesIndexRouteImport } from './routes/_auth/stakes/index'
@@ -21,6 +22,11 @@ import { Route as AuthVotingProposalsIdIndexRouteImport } from './routes/_auth/v
 
 const AuthRoute = AuthRouteImport.update({
   id: '/_auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SplatRoute = SplatRouteImport.update({
+  id: '/$',
+  path: '/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -68,6 +74,7 @@ const AuthVotingProposalsIdIndexRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$': typeof SplatRoute
   '/account': typeof AuthAccountIndexRoute
   '/dashboard': typeof AuthDashboardIndexRoute
   '/stakes': typeof AuthStakesIndexRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$': typeof SplatRoute
   '/account': typeof AuthAccountIndexRoute
   '/dashboard': typeof AuthDashboardIndexRoute
   '/stakes': typeof AuthStakesIndexRoute
@@ -89,6 +97,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$': typeof SplatRoute
   '/_auth': typeof AuthRouteWithChildren
   '/_auth/account/': typeof AuthAccountIndexRoute
   '/_auth/dashboard/': typeof AuthDashboardIndexRoute
@@ -102,6 +111,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$'
     | '/account'
     | '/dashboard'
     | '/stakes'
@@ -112,6 +122,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$'
     | '/account'
     | '/dashboard'
     | '/stakes'
@@ -122,6 +133,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/$'
     | '/_auth'
     | '/_auth/account/'
     | '/_auth/dashboard/'
@@ -134,6 +146,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SplatRoute: typeof SplatRoute
   AuthRoute: typeof AuthRouteWithChildren
 }
 
@@ -144,6 +157,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: ''
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$': {
+      id: '/$'
+      path: '/$'
+      fullPath: '/$'
+      preLoaderRoute: typeof SplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -229,6 +249,7 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SplatRoute: SplatRoute,
   AuthRoute: AuthRouteWithChildren,
 }
 export const routeTree = rootRouteImport
