@@ -24,21 +24,20 @@ function RootComponent() {
   useEffect(() => {
     // Revalidate/re-check route guards on any identity change
     invalidate().finally(() => {
-      if (!hadIdentity.current || identity) return;
-
       // Handle logout or session expiration
+      if (hadIdentity.current && !identity) {
+        // Reset queries after identity is removed
+        queryClient.resetQueries();
 
-      // Reset queries after identity is removed
-      queryClient.resetQueries();
+        // Check if this was a manual logout or auto-expiration
+        const isManualLogout = localStorage.getItem(MANUAL_LOGOUT_KEY) === 'true';
+        localStorage.removeItem(MANUAL_LOGOUT_KEY);
 
-      // Check if this was a manual logout or auto-expiration
-      const isManualLogout = localStorage.getItem(MANUAL_LOGOUT_KEY) === 'true';
-      localStorage.removeItem(MANUAL_LOGOUT_KEY);
+        if (isManualLogout) return;
 
-      if (isManualLogout) return;
-
-      // Notify user only on auto-expiration
-      infoNotification({ description: t(($) => $.common.autoExpirationLogout) });
+        // Notify user only on auto-expiration
+        infoNotification({ description: t(($) => $.common.autoExpirationLogout) });
+      }
 
       hadIdentity.current = !!identity;
     });
