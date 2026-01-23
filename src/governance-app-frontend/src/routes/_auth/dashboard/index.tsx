@@ -4,17 +4,14 @@ import { AccountCard } from '@features/account/components/AccountCard';
 import { TotalAssetsCard } from '@features/dashboard/components/TotalAssetsCard';
 import { StakedCard } from '@features/stakes/components/StakedCard';
 
-import { requireIdentity } from '@utils/router';
-
-export const Route = createFileRoute('/(homepage)/')({
-  component: Homepage,
-  beforeLoad: requireIdentity,
+export const Route = createFileRoute('/_auth/dashboard/')({
+  component: Dashboard,
   staticData: {
     title: 'common.dashboard',
   },
 });
 
-function Homepage() {
+function Dashboard() {
   return (
     <div className="flex flex-col gap-6">
       <TotalAssetsCard />

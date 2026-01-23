@@ -5,13 +5,8 @@ import { WelcomeModal } from '@features/onboarding/WelcomeModal';
 import { BottomNav } from '@components/navigation/BottomNav';
 import { Header } from '@components/navigation/Header';
 import { Sidebar } from '@components/navigation/Sidebar';
-import { useSessionCountdownToast } from '@hooks/useSessionCountdownToast';
-import { useThemeShortcut } from '@hooks/useThemeShortcut';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
-  useThemeShortcut();
-  useSessionCountdownToast();
-
   return (
     <div className="flex min-h-screen w-full bg-background" data-testid="main-layout">
       <WelcomeModal />

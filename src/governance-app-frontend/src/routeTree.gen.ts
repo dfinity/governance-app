@@ -9,201 +9,227 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as VotingIndexRouteImport } from './routes/voting/index'
-import { Route as StakesIndexRouteImport } from './routes/stakes/index'
-import { Route as AccountIndexRouteImport } from './routes/account/index'
-import { Route as homepageIndexRouteImport } from './routes/(homepage)/index'
-import { Route as VotingKnownNeuronsIndexRouteImport } from './routes/voting/known-neurons/index'
-import { Route as StakesIdIndexRouteImport } from './routes/stakes/$id/index'
-import { Route as VotingProposalsIdIndexRouteImport } from './routes/voting/proposals/$id/index'
+import { Route as AuthRouteImport } from './routes/_auth'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthVotingIndexRouteImport } from './routes/_auth/voting/index'
+import { Route as AuthStakesIndexRouteImport } from './routes/_auth/stakes/index'
+import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
+import { Route as AuthAccountIndexRouteImport } from './routes/_auth/account/index'
+import { Route as AuthVotingRepresentativesIndexRouteImport } from './routes/_auth/voting/representatives/index'
+import { Route as AuthStakesIdIndexRouteImport } from './routes/_auth/stakes/$id/index'
+import { Route as AuthVotingProposalsIdIndexRouteImport } from './routes/_auth/voting/proposals/$id/index'
 
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const AuthRoute = AuthRouteImport.update({
+  id: '/_auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VotingIndexRoute = VotingIndexRouteImport.update({
-  id: '/voting/',
-  path: '/voting/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StakesIndexRoute = StakesIndexRouteImport.update({
-  id: '/stakes/',
-  path: '/stakes/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AccountIndexRoute = AccountIndexRouteImport.update({
-  id: '/account/',
-  path: '/account/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const homepageIndexRoute = homepageIndexRouteImport.update({
-  id: '/(homepage)/',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VotingKnownNeuronsIndexRoute = VotingKnownNeuronsIndexRouteImport.update({
-  id: '/voting/known-neurons/',
-  path: '/voting/known-neurons/',
-  getParentRoute: () => rootRouteImport,
+const AuthVotingIndexRoute = AuthVotingIndexRouteImport.update({
+  id: '/voting/',
+  path: '/voting/',
+  getParentRoute: () => AuthRoute,
 } as any)
-const StakesIdIndexRoute = StakesIdIndexRouteImport.update({
+const AuthStakesIndexRoute = AuthStakesIndexRouteImport.update({
+  id: '/stakes/',
+  path: '/stakes/',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthDashboardIndexRoute = AuthDashboardIndexRouteImport.update({
+  id: '/dashboard/',
+  path: '/dashboard/',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthAccountIndexRoute = AuthAccountIndexRouteImport.update({
+  id: '/account/',
+  path: '/account/',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthVotingRepresentativesIndexRoute =
+  AuthVotingRepresentativesIndexRouteImport.update({
+    id: '/voting/representatives/',
+    path: '/voting/representatives/',
+    getParentRoute: () => AuthRoute,
+  } as any)
+const AuthStakesIdIndexRoute = AuthStakesIdIndexRouteImport.update({
   id: '/stakes/$id/',
   path: '/stakes/$id/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthRoute,
 } as any)
-const VotingProposalsIdIndexRoute = VotingProposalsIdIndexRouteImport.update({
-  id: '/voting/proposals/$id/',
-  path: '/voting/proposals/$id/',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const AuthVotingProposalsIdIndexRoute =
+  AuthVotingProposalsIdIndexRouteImport.update({
+    id: '/voting/proposals/$id/',
+    path: '/voting/proposals/$id/',
+    getParentRoute: () => AuthRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/login': typeof LoginRoute
-  '/': typeof homepageIndexRoute
-  '/account': typeof AccountIndexRoute
-  '/stakes': typeof StakesIndexRoute
-  '/voting': typeof VotingIndexRoute
-  '/stakes/$id': typeof StakesIdIndexRoute
-  '/voting/known-neurons': typeof VotingKnownNeuronsIndexRoute
-  '/voting/proposals/$id': typeof VotingProposalsIdIndexRoute
+  '/': typeof IndexRoute
+  '/account': typeof AuthAccountIndexRoute
+  '/dashboard': typeof AuthDashboardIndexRoute
+  '/stakes': typeof AuthStakesIndexRoute
+  '/voting': typeof AuthVotingIndexRoute
+  '/stakes/$id': typeof AuthStakesIdIndexRoute
+  '/voting/representatives': typeof AuthVotingRepresentativesIndexRoute
+  '/voting/proposals/$id': typeof AuthVotingProposalsIdIndexRoute
 }
 export interface FileRoutesByTo {
-  '/login': typeof LoginRoute
-  '/': typeof homepageIndexRoute
-  '/account': typeof AccountIndexRoute
-  '/stakes': typeof StakesIndexRoute
-  '/voting': typeof VotingIndexRoute
-  '/stakes/$id': typeof StakesIdIndexRoute
-  '/voting/known-neurons': typeof VotingKnownNeuronsIndexRoute
-  '/voting/proposals/$id': typeof VotingProposalsIdIndexRoute
+  '/': typeof IndexRoute
+  '/account': typeof AuthAccountIndexRoute
+  '/dashboard': typeof AuthDashboardIndexRoute
+  '/stakes': typeof AuthStakesIndexRoute
+  '/voting': typeof AuthVotingIndexRoute
+  '/stakes/$id': typeof AuthStakesIdIndexRoute
+  '/voting/representatives': typeof AuthVotingRepresentativesIndexRoute
+  '/voting/proposals/$id': typeof AuthVotingProposalsIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/login': typeof LoginRoute
-  '/(homepage)/': typeof homepageIndexRoute
-  '/account/': typeof AccountIndexRoute
-  '/stakes/': typeof StakesIndexRoute
-  '/voting/': typeof VotingIndexRoute
-  '/stakes/$id/': typeof StakesIdIndexRoute
-  '/voting/known-neurons/': typeof VotingKnownNeuronsIndexRoute
-  '/voting/proposals/$id/': typeof VotingProposalsIdIndexRoute
+  '/': typeof IndexRoute
+  '/_auth': typeof AuthRouteWithChildren
+  '/_auth/account/': typeof AuthAccountIndexRoute
+  '/_auth/dashboard/': typeof AuthDashboardIndexRoute
+  '/_auth/stakes/': typeof AuthStakesIndexRoute
+  '/_auth/voting/': typeof AuthVotingIndexRoute
+  '/_auth/stakes/$id/': typeof AuthStakesIdIndexRoute
+  '/_auth/voting/representatives/': typeof AuthVotingRepresentativesIndexRoute
+  '/_auth/voting/proposals/$id/': typeof AuthVotingProposalsIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/login'
     | '/'
     | '/account'
+    | '/dashboard'
     | '/stakes'
     | '/voting'
     | '/stakes/$id'
-    | '/voting/known-neurons'
+    | '/voting/representatives'
     | '/voting/proposals/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/login'
     | '/'
     | '/account'
+    | '/dashboard'
     | '/stakes'
     | '/voting'
     | '/stakes/$id'
-    | '/voting/known-neurons'
+    | '/voting/representatives'
     | '/voting/proposals/$id'
   id:
     | '__root__'
-    | '/login'
-    | '/(homepage)/'
-    | '/account/'
-    | '/stakes/'
-    | '/voting/'
-    | '/stakes/$id/'
-    | '/voting/known-neurons/'
-    | '/voting/proposals/$id/'
+    | '/'
+    | '/_auth'
+    | '/_auth/account/'
+    | '/_auth/dashboard/'
+    | '/_auth/stakes/'
+    | '/_auth/voting/'
+    | '/_auth/stakes/$id/'
+    | '/_auth/voting/representatives/'
+    | '/_auth/voting/proposals/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  LoginRoute: typeof LoginRoute
-  homepageIndexRoute: typeof homepageIndexRoute
-  AccountIndexRoute: typeof AccountIndexRoute
-  StakesIndexRoute: typeof StakesIndexRoute
-  VotingIndexRoute: typeof VotingIndexRoute
-  StakesIdIndexRoute: typeof StakesIdIndexRoute
-  VotingKnownNeuronsIndexRoute: typeof VotingKnownNeuronsIndexRoute
-  VotingProposalsIdIndexRoute: typeof VotingProposalsIdIndexRoute
+  IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/voting/': {
-      id: '/voting/'
-      path: '/voting'
-      fullPath: '/voting'
-      preLoaderRoute: typeof VotingIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/stakes/': {
-      id: '/stakes/'
-      path: '/stakes'
-      fullPath: '/stakes'
-      preLoaderRoute: typeof StakesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/account/': {
-      id: '/account/'
-      path: '/account'
-      fullPath: '/account'
-      preLoaderRoute: typeof AccountIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/(homepage)/': {
-      id: '/(homepage)/'
+    '/': {
+      id: '/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof homepageIndexRouteImport
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/voting/known-neurons/': {
-      id: '/voting/known-neurons/'
-      path: '/voting/known-neurons'
-      fullPath: '/voting/known-neurons'
-      preLoaderRoute: typeof VotingKnownNeuronsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_auth/voting/': {
+      id: '/_auth/voting/'
+      path: '/voting'
+      fullPath: '/voting'
+      preLoaderRoute: typeof AuthVotingIndexRouteImport
+      parentRoute: typeof AuthRoute
     }
-    '/stakes/$id/': {
-      id: '/stakes/$id/'
+    '/_auth/stakes/': {
+      id: '/_auth/stakes/'
+      path: '/stakes'
+      fullPath: '/stakes'
+      preLoaderRoute: typeof AuthStakesIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/dashboard/': {
+      id: '/_auth/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthDashboardIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/account/': {
+      id: '/_auth/account/'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AuthAccountIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/voting/representatives/': {
+      id: '/_auth/voting/representatives/'
+      path: '/voting/representatives'
+      fullPath: '/voting/representatives'
+      preLoaderRoute: typeof AuthVotingRepresentativesIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/stakes/$id/': {
+      id: '/_auth/stakes/$id/'
       path: '/stakes/$id'
       fullPath: '/stakes/$id'
-      preLoaderRoute: typeof StakesIdIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthStakesIdIndexRouteImport
+      parentRoute: typeof AuthRoute
     }
-    '/voting/proposals/$id/': {
-      id: '/voting/proposals/$id/'
+    '/_auth/voting/proposals/$id/': {
+      id: '/_auth/voting/proposals/$id/'
       path: '/voting/proposals/$id'
       fullPath: '/voting/proposals/$id'
-      preLoaderRoute: typeof VotingProposalsIdIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthVotingProposalsIdIndexRouteImport
+      parentRoute: typeof AuthRoute
     }
   }
 }
 
+interface AuthRouteChildren {
+  AuthAccountIndexRoute: typeof AuthAccountIndexRoute
+  AuthDashboardIndexRoute: typeof AuthDashboardIndexRoute
+  AuthStakesIndexRoute: typeof AuthStakesIndexRoute
+  AuthVotingIndexRoute: typeof AuthVotingIndexRoute
+  AuthStakesIdIndexRoute: typeof AuthStakesIdIndexRoute
+  AuthVotingRepresentativesIndexRoute: typeof AuthVotingRepresentativesIndexRoute
+  AuthVotingProposalsIdIndexRoute: typeof AuthVotingProposalsIdIndexRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthAccountIndexRoute: AuthAccountIndexRoute,
+  AuthDashboardIndexRoute: AuthDashboardIndexRoute,
+  AuthStakesIndexRoute: AuthStakesIndexRoute,
+  AuthVotingIndexRoute: AuthVotingIndexRoute,
+  AuthStakesIdIndexRoute: AuthStakesIdIndexRoute,
+  AuthVotingRepresentativesIndexRoute: AuthVotingRepresentativesIndexRoute,
+  AuthVotingProposalsIdIndexRoute: AuthVotingProposalsIdIndexRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  LoginRoute: LoginRoute,
-  homepageIndexRoute: homepageIndexRoute,
-  AccountIndexRoute: AccountIndexRoute,
-  StakesIndexRoute: StakesIndexRoute,
-  VotingIndexRoute: VotingIndexRoute,
-  StakesIdIndexRoute: StakesIdIndexRoute,
-  VotingKnownNeuronsIndexRoute: VotingKnownNeuronsIndexRoute,
-  VotingProposalsIdIndexRoute: VotingProposalsIdIndexRoute,
+  IndexRoute: IndexRoute,
+  AuthRoute: AuthRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

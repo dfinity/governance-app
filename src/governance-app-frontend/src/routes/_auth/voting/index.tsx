@@ -21,13 +21,11 @@ import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/governance'
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import useTitle from '@hooks/useTitle';
 import { warningNotification } from '@utils/notification';
-import { requireIdentity } from '@utils/router';
 
-export const Route = createFileRoute('/voting/')({
+export const Route = createFileRoute('/_auth/voting/')({
   validateSearch: getShowProposalUrlStatus,
   component: Voting,
   pendingComponent: () => <SkeletonLoader count={3} />,
-  beforeLoad: requireIdentity,
   staticData: {
     title: 'common.voting',
   },
@@ -66,7 +64,7 @@ function Voting() {
       return;
     }
 
-    navigate({ to: '/voting/known-neurons' });
+    navigate({ to: '/voting/representatives' });
   };
 
   const toggleViewProposals = () =>

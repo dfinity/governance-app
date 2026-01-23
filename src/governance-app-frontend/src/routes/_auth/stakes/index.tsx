@@ -16,20 +16,18 @@ import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import type { CertifiedData } from '@typings/queries';
 import { bigIntDiv } from '@utils/bigInt';
 import { warningNotification } from '@utils/notification';
-import { requireIdentity } from '@utils/router';
 
 type StakesSearchParams = {
   stakeId?: string;
   action?: string;
 };
 
-export const Route = createFileRoute('/stakes/')({
-  component: StakesComponent,
-  beforeLoad: requireIdentity,
+export const Route = createFileRoute('/_auth/stakes/')({
   validateSearch: (search: Record<string, unknown>): StakesSearchParams => ({
     stakeId: typeof search.stakeId === 'string' ? search.stakeId : undefined,
     action: typeof search.action === 'string' ? search.action : undefined,
   }),
+  component: StakesComponent,
   staticData: {
     title: 'common.stakes',
   },
