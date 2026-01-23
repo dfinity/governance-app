@@ -1,7 +1,7 @@
 import { isNullish } from '@dfinity/utils';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Users } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { type MouseEvent, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
@@ -55,16 +55,13 @@ function Voting() {
   const hasConsistentFollowees = followedNeurons.length === 1;
   const followedNeuron = followedNeurons[0];
 
-  // @TODO: Prefer Link component when available
-  const handleManageFollowing = () => {
+  const handleManageFollowing = (e: MouseEvent<HTMLAnchorElement>) => {
     if (!neuronsQuery.data?.response?.length) {
+      e.preventDefault();
       warningNotification({
         description: t(($) => $.voting.warnings.stakeRequired),
       });
-      return;
     }
-
-    navigate({ to: '/voting/representatives' });
   };
 
   const toggleViewProposals = () =>
@@ -89,9 +86,11 @@ function Voting() {
             <h2 className="text-lg font-semibold">{t(($) => $.voting.title)}</h2>
             <p className="text-sm text-muted-foreground">{t(($) => $.voting.description)}</p>
           </div>
-          <Button size="xl" className="capitalize" onClick={handleManageFollowing}>
-            <Users />
-            {t(($) => $.voting.cta)}
+          <Button size="xl" className="capitalize" asChild>
+            <Link to="/voting/representatives" onClick={handleManageFollowing}>
+              <Users />
+              {t(($) => $.voting.cta)}
+            </Link>
           </Button>
         </div>
       )}
@@ -121,13 +120,11 @@ function Voting() {
               {t(($) => $.voting.noFollowing.description)}
             </p>
             <div className="flex flex-col gap-3 sm:items-center">
-              <Button
-                size="xl"
-                className="w-full capitalize sm:w-auto"
-                onClick={handleManageFollowing}
-              >
-                <Users />
-                {t(($) => $.voting.cta)}
+              <Button size="xl" className="w-full capitalize sm:w-auto" asChild>
+                <Link to="/voting/representatives" onClick={handleManageFollowing}>
+                  <Users />
+                  {t(($) => $.voting.cta)}
+                </Link>
               </Button>
               <Button
                 variant="ghost"
