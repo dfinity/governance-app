@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 
+import { BetaBanner } from '@components/BetaBanner';
 import { MainLayout } from '@components/MainLayout';
 import { useSessionCountdownToast } from '@hooks/useSessionCountdownToast';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
@@ -16,6 +17,7 @@ function AuthLayout() {
 
   return (
     <MainLayout>
+      <BetaBanner isLoggedIn={true} />
       <Outlet />
     </MainLayout>
   );
