@@ -11,11 +11,11 @@ import {
 } from '@components/ResponsiveDialog';
 import { cn } from '@utils/shadcn';
 
-interface BetaBannerProps {
+type Props = {
   isLoggedIn?: boolean;
-}
+};
 
-export const BetaBanner = ({ isLoggedIn = false }: BetaBannerProps) => {
+export const BetaBanner = ({ isLoggedIn = false }: Props) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 

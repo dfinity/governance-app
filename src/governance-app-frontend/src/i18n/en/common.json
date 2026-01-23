@@ -67,7 +67,7 @@
     "modalDescription": "This app is in beta. Actions here affect your real governance setup.",
     "whatYouCanDo": "What you can do:",
     "canDo": {
-      "stake": "Stake ICP and create neurons",
+      "stake": "Create and manage Stakes",
       "vote": "Setup following, and vote on proposals",
       "viewActivity": "View your staking and voting activity"
     },
