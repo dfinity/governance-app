@@ -16,7 +16,6 @@ import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import type { CertifiedData } from '@typings/queries';
 import { bigIntDiv } from '@utils/bigInt';
 import { warningNotification } from '@utils/notification';
-import { cn } from '@utils/shadcn';
 
 export const Route = createFileRoute('/_auth/stakes/')({
   component: StakesComponent,
