@@ -17,7 +17,6 @@ import useTitle from '@hooks/useTitle';
 import { bigIntDiv, stringToBigInt } from '@utils/bigInt';
 import { getNeuronId } from '@utils/neuron';
 import { formatNumber, formatPercentage } from '@utils/numbers';
-import { requireIdentity } from '@utils/router';
 import {
   isStakingRewardDataError,
   isStakingRewardDataLoading,
@@ -37,15 +36,14 @@ const NeuronDetailsRouteComponent = () => {
   return <NeuronDetails neuronId={id!} />;
 };
 
-export const Route = createFileRoute('/stakes/$id/')({
+export const Route = createFileRoute('/_auth/stakes/$id/')({
   params: {
     parse: ({ id }) => ({
       id: stringToBigInt(id),
     }),
     stringify: ({ id }) => ({ id: id?.toString() ?? '' }),
   },
-  beforeLoad: async ({ params, location }) => {
-    await requireIdentity({ location });
+  beforeLoad: async ({ params }) => {
     if (!params.id) throw redirect({ to: '/stakes', replace: true });
   },
   pendingComponent: () => <SkeletonLoader count={3} />,

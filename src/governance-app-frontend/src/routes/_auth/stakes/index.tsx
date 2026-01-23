@@ -16,11 +16,9 @@ import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import type { CertifiedData } from '@typings/queries';
 import { bigIntDiv } from '@utils/bigInt';
 import { warningNotification } from '@utils/notification';
-import { requireIdentity } from '@utils/router';
 
-export const Route = createFileRoute('/stakes/')({
+export const Route = createFileRoute('/_auth/stakes/')({
   component: StakesComponent,
-  beforeLoad: requireIdentity,
   staticData: {
     title: 'common.stakes',
   },

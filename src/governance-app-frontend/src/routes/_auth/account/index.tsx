@@ -1,3 +1,4 @@
+import { nonNullish } from '@dfinity/utils';
 import { createFileRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { LogOut } from 'lucide-react';
@@ -16,11 +17,9 @@ import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
 import useTitle from '@hooks/useTitle';
 import { getSessionTimeLeftForUi } from '@utils/date';
-import { requireIdentity } from '@utils/router';
 
-export const Route = createFileRoute('/account/')({
+export const Route = createFileRoute('/_auth/account/')({
   component: Account,
-  beforeLoad: requireIdentity,
   staticData: {
     title: 'common.accounts',
   },
@@ -96,7 +95,7 @@ function Account() {
           <h2 className="text-xl font-semibold tracking-tight">
             {t(($) => $.userAccount.session.title)}
           </h2>
-          {(timeLeft.minutes > 0 || timeLeft.seconds > 0) && (
+          {nonNullish(timeLeft) && (
             <p className="text-sm text-muted-foreground">
               {t(($) => $.userAccount.session.timeLeft, getSessionTimeLeftForUi(timeLeft))}
             </p>
