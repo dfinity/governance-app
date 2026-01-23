@@ -21,21 +21,30 @@ export const ThemeCard = () => {
         onValueChange={(value: Theme) => {
           if (value) setTheme(value);
         }}
-        className="rounded-md border"
+        className="w-full rounded-md border lg:w-auto"
       >
-        <ToggleGroupItem value={Theme.Light} aria-label={t(($) => $.userAccount.aria.toggleLight)}>
-          <Sun className="mr-2 h-4 w-4" />
+        <ToggleGroupItem
+          className="shrink-0 grow-1"
+          value={Theme.Light}
+          aria-label={t(($) => $.userAccount.aria.toggleLight)}
+        >
+          <Sun className="mr-2 size-4" />
           <span className="hidden xs:inline">{t(($) => $.userAccount.modes.light)}</span>
         </ToggleGroupItem>
-        <ToggleGroupItem value={Theme.Dark} aria-label={t(($) => $.userAccount.aria.toggleDark)}>
-          <Moon className="mr-2 h-4 w-4" />
+        <ToggleGroupItem
+          className="shrink-0 grow-1"
+          value={Theme.Dark}
+          aria-label={t(($) => $.userAccount.aria.toggleDark)}
+        >
+          <Moon className="mr-2 size-4" />
           <span className="hidden xs:inline">{t(($) => $.userAccount.modes.dark)}</span>
         </ToggleGroupItem>
         <ToggleGroupItem
+          className="shrink-0 grow-1"
           value={Theme.System}
           aria-label={t(($) => $.userAccount.aria.toggleSystem)}
         >
-          <Monitor className="mr-2 h-4 w-4" />
+          <Monitor className="mr-2 size-4" />
           <span className="hidden xs:inline">{t(($) => $.userAccount.modes.system)}</span>
         </ToggleGroupItem>
       </ToggleGroup>

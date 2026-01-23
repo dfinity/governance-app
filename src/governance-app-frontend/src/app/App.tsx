@@ -19,6 +19,7 @@ import { ThemeProvider } from '@/app/contexts/themeProvider';
 
 export const App = () => {
   const notificationsContainer = document.getElementById('notifications');
+
   usePreventAttributeChange({ selector: '#notifications', attribute: 'inert' });
 
   return (
