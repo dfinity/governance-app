@@ -39,6 +39,7 @@ function RootComponent() {
         infoNotification({ description: t(($) => $.common.autoExpirationLogout) });
       }
 
+      // Remember last identity state.
       hadIdentity.current = !!identity;
     });
   }, [identity, invalidate, queryClient, t]);
