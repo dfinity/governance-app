@@ -130,7 +130,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
         setStep(StakingWizardStep.Configuration);
         break;
       case StakingWizardStep.Configuration:
-        analytics.event(AnalyticsEvent.StakingSetConfiguration, {});
+        analytics.event(AnalyticsEvent.StakingSetConfiguration);
         setStep(StakingWizardStep.Confirmation);
 
         createNeuron.execute().then(() => {
