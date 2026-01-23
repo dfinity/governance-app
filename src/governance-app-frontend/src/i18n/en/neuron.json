@@ -1,7 +1,7 @@
 {
   "title": "Your Stakes",
   "description": "Manage your ICP Stakes and their configurations",
-  "votingPower": "Voting Power",
+  "votingPower": "Voting power",
   "stake": "Stake",
   "neuronId": "Stake #{{neuronId}}",
   "creationDate": "Created {{date}}",
@@ -21,7 +21,7 @@
   "following": "Following",
   "noFollowingWarning": "No voting delegation configured.",
   "disburseIcp": "Disburse ICPs",
-  "disburseMaturity": "Disburse Maturity",
+  "disburseMaturity": "Disburse maturity",
   "errors": {
     "neuronNotFound": "Stake #{{neuronId}} not found."
   },

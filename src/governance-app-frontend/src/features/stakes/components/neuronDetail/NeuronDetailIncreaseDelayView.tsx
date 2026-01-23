@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { MaxRewardsBadge } from '@components/MaxRewardsBadge';
 import { SECONDS_IN_MONTH } from '@constants/extra';
+import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { getNeuronDissolveDelaySeconds } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
 
@@ -30,8 +31,7 @@ export function NeuronDetailIncreaseDelayView({ neuron, onSuccess, onProcessingC
   const currentDelaySeconds = Number(getNeuronDissolveDelaySeconds(neuron));
   const currentDelayMonths = Math.round(currentDelaySeconds / SECONDS_IN_MONTH);
 
-  // Check if already at max delay (8 years = 96 months)
-  const isMaxDelay = currentDelayMonths >= 96;
+  const isMaxDelay = currentDelayMonths >= ICP_MAX_DISSOLVE_DELAY_MONTHS;
 
   const handleConfirm = async () => {
     if (!selectedMonths) return;
@@ -49,7 +49,7 @@ export function NeuronDetailIncreaseDelayView({ neuron, onSuccess, onProcessingC
       successNotification({
         description: t(($) => $.neuronDetailModal.increaseDelay.success),
       });
-      // Wait for the naviagion blocker to be released (isProcessing propagated to false)
+      // Wait for the navigation blocker to be released (isProcessing propagated to false)
       setTimeout(onSuccess);
     } else if (result.error) {
       errorNotification({
@@ -108,10 +108,10 @@ export function NeuronDetailIncreaseDelayView({ neuron, onSuccess, onProcessingC
           })}
         </div>
 
-        {/* Max rewards option (8 years) */}
+        {/* Max rewards option */}
         {(() => {
           const isSelected = selectedMonths === maxRewardsOption.value;
-          const isDisabled = maxRewardsOption.value <= currentDelayMonths;
+          const isDisabled = maxRewardsOption.value === currentDelayMonths;
 
           return (
             <button

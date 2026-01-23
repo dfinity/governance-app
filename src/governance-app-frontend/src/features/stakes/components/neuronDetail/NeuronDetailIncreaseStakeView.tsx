@@ -54,7 +54,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
   const handleConfirm = async () => {
     const numericAmount = Number(amount);
 
-    if (amount === '' || numericAmount < ICP_MIN_STAKE_AMOUNT) {
+    if (numericAmount < ICP_MIN_STAKE_AMOUNT) {
       setValidationError(
         t(($) => $.neuronDetailModal.increaseStake.errors.amountTooLow, {
           min: ICP_MIN_STAKE_AMOUNT,
@@ -87,7 +87,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
       successNotification({
         description: t(($) => $.neuronDetailModal.increaseStake.success, { amount }),
       });
-      // Wait for the naviagion blocker to be released (isProcessing propagated to false)
+      // Wait for the navigation blocker to be released (isProcessing propagated to false)
       setTimeout(onSuccess);
     } else if (result.error) {
       errorNotification({
