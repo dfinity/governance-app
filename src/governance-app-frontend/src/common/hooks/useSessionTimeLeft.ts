@@ -2,6 +2,9 @@ import { isNullish, nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useState } from 'react';
 
+// The II provider expires the session 10 seconds before the actual expiration
+const II_EARLY_EXPIRATION_SECONDS = 10;
+
 type IdentityWithDelegation = {
   getDelegation: () => {
     delegations: Array<{
@@ -48,7 +51,7 @@ export const useSessionTimeLeft = (): SessionTimeLeft | null => {
 
         if (nonNullish(minExpiration)) {
           const remaining = Number(minExpiration / BigInt(1_000_000)) - Date.now();
-          setTimeLeft(Math.max(0, Math.floor(remaining / 1000)));
+          setTimeLeft(Math.max(0, Math.floor(remaining / 1000) - II_EARLY_EXPIRATION_SECONDS));
         }
       } catch (e) {
         if (import.meta.env.DEV) {
