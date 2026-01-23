@@ -44,6 +44,7 @@ function Voting() {
 
   const neuronsQuery = useGovernanceNeurons();
   const knownNeuronsQuery = useGovernanceKnownNeurons();
+  const isLoadingFollowing = neuronsQuery.isLoading || knownNeuronsQuery.isLoading;
 
   const userNeurons = neuronsQuery.data?.response ?? [];
   const knownNeurons = knownNeuronsQuery.data?.response ?? [];
@@ -102,7 +103,9 @@ function Voting() {
         </Alert>
       )}
 
-      {isNullish(followedNeuron) ? (
+      {isLoadingFollowing ? (
+        <SkeletonLoader count={3} />
+      ) : isNullish(followedNeuron) ? (
         <>
           <Alert variant="warning">
             <AlertTitle className="font-semibold">{t(($) => $.common.important)}</AlertTitle>
