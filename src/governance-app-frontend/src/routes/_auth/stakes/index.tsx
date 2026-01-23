@@ -43,32 +43,29 @@ function StakesComponent() {
     setIsStakingWizardOpen(true);
   };
 
+  const hasNeurons = neuronsQuery.isSuccess && (neuronsQuery.data?.response.length ?? 0) > 0;
+
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-6 sm:flex-row sm:justify-between">
-        <div className="flex flex-col gap-2">
-          <h2 className="text-lg font-semibold">{t(($) => $.neuron.title)}</h2>
-          <p className="text-sm text-muted-foreground">{t(($) => $.neuron.description)}</p>
+      {hasNeurons && (
+        <div className="flex flex-col gap-6 sm:flex-row sm:justify-between">
+          <div className="flex flex-col gap-2">
+            <h2 className="text-lg font-semibold">{t(($) => $.neuron.title)}</h2>
+            <p className="text-sm text-muted-foreground">{t(($) => $.neuron.description)}</p>
+          </div>
+          <div className="flex flex-1 gap-2 sm:flex-initial">
+            <Button
+              onClick={handleOpenStakingWizard}
+              data-testid="staking-wizard-trigger-btn"
+              className="w-full sm:w-auto"
+              size="xl"
+            >
+              <Plus />
+              {t(($) => $.stakeWizardModal.title)}
+            </Button>
+          </div>
         </div>
-        <div
-          className={cn(
-            'flex flex-1 gap-2 sm:flex-initial',
-            neuronsQuery.isSuccess && neuronsQuery.data?.response.length === 0
-              ? 'hidden sm:flex'
-              : '',
-          )}
-        >
-          <Button
-            onClick={handleOpenStakingWizard}
-            data-testid="staking-wizard-trigger-btn"
-            className="w-full sm:w-auto"
-            size="xl"
-          >
-            <Plus />
-            {t(($) => $.stakeWizardModal.title)}
-          </Button>
-        </div>
-      </div>
+      )}
 
       <QueryStates<CertifiedData<NeuronInfo[]>>
         query={neuronsQuery}
