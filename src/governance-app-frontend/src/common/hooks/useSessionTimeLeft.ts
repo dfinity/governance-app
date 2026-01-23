@@ -1,3 +1,4 @@
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useState } from 'react';
 
@@ -33,9 +34,18 @@ export const useSessionTimeLeft = () => {
     const updateTimeLeft = () => {
       try {
         const delegation = identity.getDelegation();
-        const expiration = delegation.delegations[0]?.delegation.expiration;
-        if (expiration) {
-          const remaining = Number(expiration / BigInt(1_000_000)) - Date.now();
+        if (isNullish(delegation)) return;
+
+        // Find the earliest expiration in the chain
+        let minExpiration: bigint | null = null;
+
+        for (const d of delegation.delegations) {
+          const exp = d.delegation.expiration;
+          if (isNullish(minExpiration) || exp < minExpiration) minExpiration = exp;
+        }
+
+        if (nonNullish(minExpiration)) {
+          const remaining = Number(minExpiration / BigInt(1_000_000)) - Date.now();
           setTimeLeft(Math.max(0, Math.floor(remaining / 1000)));
         }
       } catch (e) {
