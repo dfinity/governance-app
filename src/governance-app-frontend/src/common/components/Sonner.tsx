@@ -7,7 +7,6 @@ import {
   OctagonXIcon,
   TriangleAlertIcon,
 } from 'lucide-react';
-import { useSyncExternalStore } from 'react';
 import { Toaster, type ToasterProps } from 'sonner';
 
 import { useTheme } from '@hooks/useTheme';
