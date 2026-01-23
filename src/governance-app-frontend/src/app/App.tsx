@@ -9,7 +9,7 @@ import { StrictMode } from 'react';
 import { createPortal } from 'react-dom';
 
 import { Sonner } from '@components/Sonner';
-import { IDENTITY_PROVIDER } from '@constants/extra';
+import { IDENTITY_PROVIDER, II_DERIVATION_ORIGIN } from '@constants/extra';
 import { usePreventAttributeChange } from '@hooks/usePreventAttributeChange';
 import { queryClientConfig, routerConfig } from '@utils/initializer';
 
@@ -26,6 +26,7 @@ export const App = () => {
       <InternetIdentityProvider
         loginOptions={{
           identityProvider: IDENTITY_PROVIDER,
+          derivationOrigin: II_DERIVATION_ORIGIN,
         }}
       >
         <QueryClientProvider client={queryClientConfig}>
