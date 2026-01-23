@@ -28,9 +28,11 @@ export const requireIdentity = async ({ location }: { location: ParsedLocation }
         title: i18n.t(($) => $.common.restricted),
         description: i18n.t(($) => $.common.restrictedPage),
       });
+
+      // If the user logs out, we don't want to save their last location
+      throw redirect({ to: '/' });
     }
 
-    const redirectTo = location.pathname !== '/' ? location.pathname : undefined;
-    throw redirect({ to: '/', search: { redirect: redirectTo } });
+    throw redirect({ to: '/', search: { redirect: location.pathname } });
   }
 };
