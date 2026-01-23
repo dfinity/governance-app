@@ -12,7 +12,7 @@
   "stakedMaturity": "Staked maturity",
   "unstakedMaturity": "Unstaked maturity",
   "maturityMode": "Maturity mode",
-  "autoStake": "Auto stake",
+  "autoStake": "Auto-stake",
   "keepLiquid": "Keep liquid",
   "stakedAmount": "Staked amount",
   "locked": "Locked",

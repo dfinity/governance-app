@@ -130,8 +130,8 @@ test.describe.serial('Neuron Detail Modal', () => {
       });
       await closeModal(page);
       const neuronCard = page.getByTestId('neuron-card');
-      // Text is 3 years, 365 days
-      await expect(neuronCard.getByTestId('neuron-card-dissolve-delay')).toHaveText(/3 years/i);
+      // Text can be: 3 years, 365 days or 4 years, testing for both
+      await expect(neuronCard.getByTestId('neuron-card-dissolve-delay')).toHaveText(/[34] years/i);
     });
   });
 
