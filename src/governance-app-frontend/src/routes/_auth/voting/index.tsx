@@ -16,6 +16,7 @@ import { Card } from '@components/Card';
 import { InViewSentinel } from '@components/InViewSentinel';
 import { QueryStates } from '@components/QueryStates';
 import { Separator } from '@components/Separator';
+import { Skeleton } from '@components/Skeleton';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
@@ -104,7 +105,11 @@ function Voting() {
       )}
 
       {isLoadingFollowing ? (
-        <SkeletonLoader count={3} />
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+        </div>
       ) : isNullish(followedNeuron) ? (
         <>
           <Alert variant="warning">

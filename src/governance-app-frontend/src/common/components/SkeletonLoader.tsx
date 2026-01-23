@@ -6,7 +6,9 @@ type Props = {
   height?: number | string;
 };
 
-// @TODO: To be removed
+/**
+ * @deprecated Replaced with a better implementation in components/Skeleton.tsx
+ */
 export const SkeletonLoader = (props: Props) => {
   const { width = '100%', height = 16, count = 1 } = props;
 
