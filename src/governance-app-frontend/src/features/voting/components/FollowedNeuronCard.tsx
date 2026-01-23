@@ -6,7 +6,9 @@ import { isKnownNeuron } from '@features/voting/utils/findFollowedNeuron';
 
 import { Badge } from '@components/badge';
 import { Card, CardContent } from '@components/Card';
+import { Skeleton } from '@components/Skeleton';
 import { DASHBOARD_URL } from '@constants/extra';
+import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 
 type Props = {
   neuron: KnownNeuron | bigint;
@@ -15,6 +17,7 @@ type Props = {
 export const FollowedNeuronCard = ({ neuron }: Props) => {
   const { t } = useTranslation();
   const isKnown = isKnownNeuron(neuron);
+  const knownNeuronsQuery = useGovernanceKnownNeurons();
 
   const neuronId = isKnown ? neuron.id : neuron;
   const neuronDetailsUrl = `${DASHBOARD_URL}/${neuronId}`;
@@ -54,7 +57,7 @@ export const FollowedNeuronCard = ({ neuron }: Props) => {
   return (
     <Card className="p-0">
       <CardContent className="flex items-center justify-between gap-4 p-4">
-        {renderContent()}
+        {knownNeuronsQuery.isLoading ? <Skeleton className="h-6 w-40" /> : renderContent()}
 
         <div className="flex shrink-0 flex-col items-end gap-2">
           <span className="rounded-sm border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-center text-xs font-semibold tracking-wide text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
