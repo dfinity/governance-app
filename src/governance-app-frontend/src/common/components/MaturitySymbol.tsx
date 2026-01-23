@@ -16,9 +16,9 @@ import { formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
-interface Props {
+type Props = {
   className?: string;
-}
+};
 
 export function MaturitySymbol({ className = '' }: Props) {
   const [open, setOpen] = useState(false);
@@ -35,14 +35,19 @@ export function MaturitySymbol({ className = '' }: Props) {
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger
         className={cn(
-          'cursor-help rounded-sm border border-amber-400 bg-amber-100 p-0.5 transition-all duration-300 hover:scale-110 focus:outline-none dark:border-amber-600 dark:bg-amber-900/30',
+          'cursor-help rounded-sm p-0.5 transition-all duration-300 hover:scale-110 focus:outline-none',
           className,
         )}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpen(true);
+        }}
       >
-        <Sparkles className="size-5 text-amber-500 dark:text-amber-400" />
+        <Sparkles className="size-5 text-muted-foreground" />
       </ResponsiveDialogTrigger>
       <ResponsiveDialogContent className="flex max-h-[90vh] flex-col">
-        <ResponsiveDialogHeader className="shrink-0">
+        <ResponsiveDialogHeader className="shrink-0 px-0">
           <div className="flex items-center gap-3">
             <div className="rounded-md border border-amber-400 bg-amber-100 p-2 dark:border-amber-600 dark:bg-amber-900/30">
               <Sparkles className="size-6 text-amber-500 dark:text-amber-400" />

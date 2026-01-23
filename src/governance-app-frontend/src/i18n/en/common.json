@@ -1,7 +1,7 @@
 {
   "baseTitle": "Governance",
   "proposalsList": "Proposals list",
-  "neuronsDetails": "Neuron {{neuronId}} details",
+  "neuronsDetails": "Stake {{neuronId}} details",
   "loading": "Loading",
   "loadingError": "Error loading data.",
   "unknownError": "An error occurred.",

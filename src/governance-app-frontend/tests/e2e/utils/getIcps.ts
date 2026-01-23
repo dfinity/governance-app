@@ -12,6 +12,8 @@ export const getIcps = async (page: Page, amount: string) => {
     await expect(page.getByTestId('get-testnet-icp-dialog')).not.toBeVisible({ timeout: 30000 });
     // Wait for balance to update in the "Available" card.
     const availableCard = page.getByTestId('available-balance-card');
-    await expect(availableCard.getByText(new RegExp(`${amount}(\\.\\d+)?\\s*ICP`))).toBeVisible();
+    await expect(availableCard.getByText(new RegExp(`${amount}(\\.\\d+)?\\s*ICP`))).toBeVisible({
+      timeout: 30000,
+    });
   });
 };

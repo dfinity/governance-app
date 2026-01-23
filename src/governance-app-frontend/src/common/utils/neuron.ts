@@ -174,3 +174,11 @@ export const getLockedTimeInSeconds = (neuron: NeuronInfo): bigint | undefined =
 
 export const hasAutoStakeMaturityOn = ({ fullNeuron }: NeuronInfo): boolean =>
   fullNeuron?.autoStakeMaturity === true;
+
+export const getNeuronHasNoFollowing = (neuron: NeuronInfo): boolean => {
+  const followees = neuron.fullNeuron?.followees ?? [];
+
+  if (followees.length === 0) return true;
+
+  return followees.every((topicFollowees) => topicFollowees.followees.length === 0);
+};

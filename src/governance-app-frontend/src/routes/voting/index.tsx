@@ -21,11 +21,13 @@ import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/governance'
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import useTitle from '@hooks/useTitle';
 import { warningNotification } from '@utils/notification';
+import { requireIdentity } from '@utils/router';
 
 export const Route = createFileRoute('/voting/')({
   validateSearch: getShowProposalUrlStatus,
   component: Voting,
   pendingComponent: () => <SkeletonLoader count={3} />,
+  beforeLoad: requireIdentity,
   staticData: {
     title: 'common.voting',
   },
@@ -83,16 +85,18 @@ function Voting() {
 
   return (
     <div className="flex flex-col gap-6 lg:gap-8">
-      <div className="flex flex-col gap-6 md:flex-row md:justify-between">
-        <div className="flex flex-col gap-3">
-          <h2 className="text-lg font-semibold">{t(($) => $.voting.title)}</h2>
-          <p className="text-sm text-muted-foreground">{t(($) => $.voting.description)}</p>
+      {!isNullish(followedNeuron) && (
+        <div className="flex flex-col gap-6 md:flex-row md:justify-between">
+          <div className="flex flex-col gap-3">
+            <h2 className="text-lg font-semibold">{t(($) => $.voting.title)}</h2>
+            <p className="text-sm text-muted-foreground">{t(($) => $.voting.description)}</p>
+          </div>
+          <Button size="xl" className="capitalize" onClick={handleManageFollowing}>
+            <Users />
+            {t(($) => $.voting.cta)}
+          </Button>
         </div>
-        <Button size="xl" className="capitalize" onClick={handleManageFollowing}>
-          <Users />
-          {t(($) => $.voting.cta)}
-        </Button>
-      </div>
+      )}
 
       {(neuronsQuery.isError || knownNeuronsQuery.isError) && (
         <Alert variant="destructive">
@@ -110,14 +114,34 @@ function Voting() {
             </AlertDescription>
           </Alert>
 
-          <div className="mt-6 flex flex-col items-center justify-center gap-4 text-center lg:mt-12">
-            <div className="flex h-18 w-18 items-center justify-center rounded-full border-2 bg-muted">
-              <Users className="h-10 w-10 text-muted-foreground" />
+          <div className="mt-20 flex flex-col items-center justify-center gap-4 text-center">
+            <div className="rounded-full border-2 border-secondary/90 bg-secondary/30 p-6">
+              <Users className="size-10 text-muted-foreground" />
             </div>
             <h3 className="text-2xl font-semibold">{t(($) => $.voting.noFollowing.title)}</h3>
-            <p className="max-w-sm font-light text-muted-foreground">
+            <p className="max-w-sm text-base text-muted-foreground">
               {t(($) => $.voting.noFollowing.description)}
             </p>
+            <div className="flex flex-col gap-3 sm:items-center">
+              <Button
+                size="xl"
+                className="w-full capitalize sm:w-auto"
+                onClick={handleManageFollowing}
+              >
+                <Users />
+                {t(($) => $.voting.cta)}
+              </Button>
+              <Button
+                variant="ghost"
+                size="xl"
+                onClick={toggleViewProposals}
+                className="w-full sm:w-auto"
+              >
+                {t(($) =>
+                  showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow,
+                )}
+              </Button>
+            </div>
           </div>
         </>
       ) : !hasConsistentFollowees ? (
@@ -132,16 +156,22 @@ function Voting() {
         <FollowedNeuronCard neuron={followedNeuron} />
       )}
 
-      <Separator className="mt-8 mb-4 lg:mt-16" />
+      {!isNullish(followedNeuron) && (
+        <>
+          <Separator className="mt-8 mb-4 lg:mt-16" />
 
-      <div ref={proposalsRef} className="mx-auto flex scroll-mt-8 items-center gap-1">
-        <button onClick={toggleViewProposals} className="text-sm text-muted-foreground">
-          <span>{t(($) => $.voting.proposals.cta)}</span>{' '}
-          <span className="font-medium text-primary capitalize underline-offset-4 hover:underline">
-            {t(($) => (showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow))}
-          </span>
-        </button>
-      </div>
+          <div ref={proposalsRef} className="mx-auto flex scroll-mt-8 items-center gap-1">
+            <button onClick={toggleViewProposals} className="text-sm text-muted-foreground">
+              <span>{t(($) => $.voting.proposals.cta)}</span>{' '}
+              <span className="font-medium text-primary capitalize underline-offset-4 hover:underline">
+                {t(($) =>
+                  showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow,
+                )}
+              </span>
+            </button>
+          </div>
+        </>
+      )}
 
       {showProposals && (
         <QueryStates

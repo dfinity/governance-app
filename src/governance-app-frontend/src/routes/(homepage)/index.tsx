@@ -4,8 +4,11 @@ import { AccountCard } from '@features/account/components/AccountCard';
 import { TotalAssetsCard } from '@features/dashboard/components/TotalAssetsCard';
 import { StakedCard } from '@features/stakes/components/StakedCard';
 
+import { requireIdentity } from '@utils/router';
+
 export const Route = createFileRoute('/(homepage)/')({
   component: Homepage,
+  beforeLoad: requireIdentity,
   staticData: {
     title: 'common.dashboard',
   },

@@ -8,7 +8,7 @@
     "votingPowerLabel": "Voting power",
     "votingPower": "More stake equals more influence in governance decisions.",
     "flexibilityLabel": "Flexibility",
-    "flexibility": "You can dissolve neurons anytime (withdrawable after the locking period)."
+    "flexibility": "You can dissolve Stakes anytime (withdrawable after the locking period)."
   },
   "recommendationLabel": "Recommended",
   "recommendation": "Stake your available {{available}} ICP with an 8-year delay to maximize your rewards.",

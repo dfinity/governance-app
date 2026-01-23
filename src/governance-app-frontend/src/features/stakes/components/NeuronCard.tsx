@@ -1,15 +1,17 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
-import { CircleAlert, Lock, Timer } from 'lucide-react';
+import { AlertTriangle, CircleAlert, Lock, Timer } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent, CardHeader } from '@components/Card';
+import { MaturitySymbol } from '@components/MaturitySymbol';
 import { E8Sn, MILLISECONDS_IN_SECOND } from '@constants/extra';
 import { useApyColor } from '@hooks/useApyColor';
 import { bigIntDiv } from '@utils/bigInt';
 import {
   getDissolvingTimeInSeconds,
   getLockedTimeInSeconds,
+  getNeuronHasNoFollowing,
   getNeuronIsAutoStakingMaturity,
   getNeuronIsDissolving,
 } from '@utils/neuron';
@@ -27,6 +29,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
 
   const isDissolving = getNeuronIsDissolving(neuron);
   const isAutoStake = getNeuronIsAutoStakingMaturity(neuron);
+  const hasNoFollowing = getNeuronHasNoFollowing(neuron);
 
   const dissolveDelaySeconds = isDissolving
     ? getDissolvingTimeInSeconds(neuron)
@@ -141,7 +144,10 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
             <p className="text-[13px] text-muted-foreground capitalize">
               {t(($) => $.neuron.stakedMaturity)}
             </p>
-            <p className="text-[15px] font-semibold">{formatNumber(stakedMaturity)}</p>
+            <div className="flex items-center gap-1">
+              <p className="text-[15px] font-semibold">{formatNumber(stakedMaturity)}</p>
+              <MaturitySymbol />
+            </div>
           </div>
 
           {/* Unstaked Maturity */}
@@ -151,6 +157,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
             </p>
             <div className="flex items-center gap-1">
               <p className="text-[15px] font-semibold">{formatNumber(unstakedMaturity)}</p>
+              <MaturitySymbol />
             </div>
           </div>
 
@@ -166,6 +173,17 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
               {isAutoStake ? t(($) => $.neuron.autoStake) : t(($) => $.neuron.keepLiquid)}
             </p>
           </div>
+
+          {/* @TODO: Remove when advanced following is implemented */}
+          {hasNoFollowing && (
+            <div
+              className="mt-3 flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-amber-800 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
+              data-testid="neuron-card-no-following-warning"
+            >
+              <AlertTriangle className="size-4 shrink-0" />
+              <p className="text-[13px]">{t(($) => $.neuron.noFollowingWarning)}</p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
