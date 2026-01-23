@@ -10,6 +10,7 @@ import { StakingWizardModal } from '@features/stakes/components/stakingWizard/St
 
 import { Button } from '@components/button';
 import { QueryStates } from '@components/QueryStates';
+import { SkeletonLoader } from '@components/SkeletonLoader';
 import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
@@ -44,11 +45,12 @@ function StakesComponent() {
     setIsStakingWizardOpen(true);
   };
 
-  const hasNeurons = neuronsQuery.isSuccess && neuronsQuery.data?.response.length > 0;
+  const hasNeurons = (neuronsQuery.data?.response.length ?? 0) > 0;
+  const showHeader = neuronsQuery.isSuccess && hasNeurons;
 
   return (
     <div className="flex flex-col gap-6">
-      {hasNeurons && (
+      {showHeader && (
         <div className="flex flex-col gap-6 sm:flex-row sm:justify-between">
           <div className="flex flex-col gap-2">
             <h2 className="text-lg font-semibold">{t(($) => $.neuron.title)}</h2>
@@ -70,8 +72,14 @@ function StakesComponent() {
 
       <QueryStates<CertifiedData<NeuronInfo[]>>
         query={neuronsQuery}
-        isEmpty={(neurons) => neurons.response.length === 0}
-        emptyComponent={<EmptyNeuronsState openStakingWizard={handleOpenStakingWizard} />}
+        isEmpty={(neurons) => neurons?.response?.length === 0}
+        emptyComponent={
+          !neuronsQuery.isFetching && neuronsQuery.isSuccess ? (
+            <EmptyNeuronsState openStakingWizard={handleOpenStakingWizard} />
+          ) : (
+            <SkeletonLoader count={3} />
+          )
+        }
       >
         {(neurons) => <NeuronsList neurons={neurons.response} />}
       </QueryStates>
