@@ -19,7 +19,6 @@ import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownN
 import useTitle from '@hooks/useTitle';
 import { warningNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
-import { requireIdentity } from '@utils/router';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,16 +30,15 @@ import {
   AlertDialogTitle,
 } from '@common/components/AlertDialog';
 
-export const Route = createFileRoute('/voting/known-neurons/')({
-  component: KnownNeuronsList,
+export const Route = createFileRoute('/_auth/voting/representatives/')({
+  component: Representatives,
   validateSearch: getShowProposalUrlStatus,
-  beforeLoad: requireIdentity,
   staticData: {
     title: 'common.voting',
   },
 });
 
-function KnownNeuronsList() {
+function Representatives() {
   const { t } = useTranslation();
   const search = Route.useSearch();
   const queryClient = useQueryClient();
@@ -240,7 +238,6 @@ function KnownNeuronsList() {
           )}
         </div>
       </div>
-
       <AlertDialog
         open={!!openConfirmationDialogWithNeuron}
         onOpenChange={(open: boolean) => !open && setOpenConfirmationDialogWithNeuron(null)}

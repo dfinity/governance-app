@@ -2,6 +2,9 @@ import { isNullish, nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useState } from 'react';
 
+// The II provider expires the session 10 seconds before the actual expiration
+const II_EARLY_EXPIRATION_SECONDS = 10;
+
 type IdentityWithDelegation = {
   getDelegation: () => {
     delegations: Array<{
@@ -21,7 +24,9 @@ const hasGetDelegation = (obj: unknown): obj is IdentityWithDelegation => {
   );
 };
 
-export const useSessionTimeLeft = () => {
+type SessionTimeLeft = { minutes: number; seconds: number };
+
+export const useSessionTimeLeft = (): SessionTimeLeft | null => {
   const { identity } = useInternetIdentity();
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
@@ -46,7 +51,7 @@ export const useSessionTimeLeft = () => {
 
         if (nonNullish(minExpiration)) {
           const remaining = Number(minExpiration / BigInt(1_000_000)) - Date.now();
-          setTimeLeft(Math.max(0, Math.floor(remaining / 1000)));
+          setTimeLeft(Math.max(0, Math.floor(remaining / 1000) - II_EARLY_EXPIRATION_SECONDS));
         }
       } catch (e) {
         if (import.meta.env.DEV) {
@@ -65,18 +70,10 @@ export const useSessionTimeLeft = () => {
     return () => clearInterval(interval);
   }, [identity]);
 
-  if (timeLeft === null) {
-    return {
-      minutes: 0,
-      seconds: 0,
-    };
-  }
-
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = timeLeft % 60;
+  if (isNullish(timeLeft)) return null;
 
   return {
-    minutes,
-    seconds,
+    minutes: Math.floor(timeLeft / 60),
+    seconds: timeLeft % 60,
   };
 };
