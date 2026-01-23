@@ -11,6 +11,9 @@ import { createPortal } from 'react-dom';
 
 import { Sonner } from '@components/Sonner';
 import { IDENTITY_PROVIDER, II_DERIVATION_ORIGIN } from '@constants/extra';
+import { AgentPoolProvider } from '@contexts/agentPoolProvider';
+import { StakingRewardsProvider } from '@contexts/stakingRewardsProvider';
+import { ThemeProvider } from '@contexts/themeProvider';
 import { usePreventAttributeChange } from '@hooks/usePreventAttributeChange';
 import { queryClientConfig, routerConfig } from '@utils/initializer';
 
