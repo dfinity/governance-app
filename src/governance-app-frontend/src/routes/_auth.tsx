@@ -1,4 +1,7 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { useEffect } from 'react';
+
+import { analytics } from '@features/analytics/service';
 
 import { BetaBanner } from '@components/BetaBanner';
 import { MainLayout } from '@components/MainLayout';
@@ -14,6 +17,10 @@ export const Route = createFileRoute('/_auth')({
 function AuthLayout() {
   useThemeShortcut();
   useSessionCountdownToast();
+
+  useEffect(() => {
+    analytics.init();
+  }, []);
 
   return (
     <MainLayout>

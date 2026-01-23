@@ -3,6 +3,7 @@ import { CANISTER_ID_INTERNET_IDENTITY } from './canisterIds';
 export const IS_LOCAL = process.env.DFX_NETWORK === 'local';
 export const HOST = process.env.DFX_HOST;
 export const NETWORK = `${IS_LOCAL ? 'http://' : 'https://'}${HOST}`;
+// @TODO: Review this for the new domain
 export const IS_TESTNET =
   IS_LOCAL && !(HOST?.includes('.icp-api.io') || HOST?.includes('.ic0.app'));
 

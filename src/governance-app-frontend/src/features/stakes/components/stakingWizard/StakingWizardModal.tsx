@@ -2,6 +2,9 @@ import { ArrowLeft } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -119,14 +122,34 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
   const goNext = () => {
     switch (step) {
       case StakingWizardStep.Amount:
+        analytics.event(AnalyticsEvent.StakingSetStakeAmount);
         setStep(StakingWizardStep.DissolveDelay);
         break;
       case StakingWizardStep.DissolveDelay:
+        analytics.event(AnalyticsEvent.StakingSetDissolveDelay);
         setStep(StakingWizardStep.Configuration);
         break;
       case StakingWizardStep.Configuration:
+        analytics.event(AnalyticsEvent.StakingSetConfiguration);
         setStep(StakingWizardStep.Confirmation);
-        createNeuron.execute();
+
+        createNeuron
+          .execute()
+          .then(() => {
+            analytics.event(AnalyticsEvent.StakingConfirmation, {
+              amount: formState.amount,
+              dissolveDelayMonths: formState.dissolveDelayMonths.toString(),
+              maturityMode:
+                formState.maturityMode === StakingWizardMaturityMode.Auto ? 'auto' : 'liquid',
+              initialState:
+                formState.initialState === StakingWizardInitialState.Locked
+                  ? 'locked'
+                  : 'dissolving',
+            });
+          })
+          .catch(() => {
+            analytics.event(AnalyticsEvent.StakingConfirmationError);
+          });
         break;
     }
   };
