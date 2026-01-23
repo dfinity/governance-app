@@ -1,5 +1,12 @@
 {
   "baseTitle": "Governance",
+  "notFound": {
+    "title": "Page not found",
+    "description": "Sorry, we couldn't find the page you're looking for. It might have been moved or doesn't exist.",
+    "goToDashboard": "Go to Dashboard",
+    "goToLogin": "Go to Login",
+    "goBack": "Go Back"
+  },
   "proposalsList": "Proposals list",
   "neuronsDetails": "Stake {{neuronId}} details",
   "loading": "Loading",
