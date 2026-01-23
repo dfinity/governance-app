@@ -5,6 +5,7 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { BetaBanner } from '@components/BetaBanner';
 import { MainLayout } from '@components/MainLayout';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { infoNotification } from '@utils/notification';
@@ -53,15 +54,25 @@ function RootComponent() {
   // While initializing, we might want to show a loader or nothing to prevent flicker
   if (isInitializing) return null;
 
-  if (isLoginPage) return <Outlet />;
+  if (isLoginPage) {
+    return (
+      <>
+        <BetaBanner isLoggedIn={false} />
+        <Outlet />
+      </>
+    );
+  }
 
   // @TODO: This could be removed but it guarantees a check in case a new route is added without a beforeLoad check
   if (!identity) return <Navigate to="/login" />;
 
   return (
-    <MainLayout>
-      <Outlet />
-      <TanStackRouterDevtools />
-    </MainLayout>
+    <>
+      <BetaBanner isLoggedIn={true} />
+      <MainLayout>
+        <Outlet />
+        <TanStackRouterDevtools />
+      </MainLayout>
+    </>
   );
 }
