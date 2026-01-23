@@ -133,16 +133,23 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
         analytics.event(AnalyticsEvent.StakingSetConfiguration);
         setStep(StakingWizardStep.Confirmation);
 
-        createNeuron.execute().then(() => {
-          analytics.event(AnalyticsEvent.StakingConfirmation, {
-            amount: formState.amount,
-            dissolveDelayMonths: formState.dissolveDelayMonths.toString(),
-            maturityMode:
-              formState.maturityMode === StakingWizardMaturityMode.Auto ? 'auto' : 'liquid',
-            initialState:
-              formState.initialState === StakingWizardInitialState.Locked ? 'locked' : 'dissolving',
+        createNeuron
+          .execute()
+          .then(() => {
+            analytics.event(AnalyticsEvent.StakingConfirmation, {
+              amount: formState.amount,
+              dissolveDelayMonths: formState.dissolveDelayMonths.toString(),
+              maturityMode:
+                formState.maturityMode === StakingWizardMaturityMode.Auto ? 'auto' : 'liquid',
+              initialState:
+                formState.initialState === StakingWizardInitialState.Locked
+                  ? 'locked'
+                  : 'dissolving',
+            });
+          })
+          .catch(() => {
+            analytics.event(AnalyticsEvent.StakingConfirmationError);
           });
-        });
         break;
     }
   };

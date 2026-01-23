@@ -13,6 +13,7 @@ export enum AnalyticsEvent {
   StakingSetDissolveDelay = 'staking_set_dissolve_delay',
   StakingSetConfiguration = 'staking_set_configuration',
   StakingConfirmation = 'staking_confirmation',
+  StakingConfirmationError = 'staking_confirmation_error',
 }
 // @TODO:
 //  - successful login
