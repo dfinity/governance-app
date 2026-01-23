@@ -80,6 +80,7 @@ export function NeuronDetailDissolveView({
         className="w-full"
         disabled={isProcessing}
         variant={isDissolving ? 'default' : 'destructive'}
+        data-testid="dissolve-confirm-btn"
       >
         {isProcessing ? (
           <>
