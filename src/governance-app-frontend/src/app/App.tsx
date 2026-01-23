@@ -1,6 +1,7 @@
 import '@/app/styles/main.css';
 import '@/i18n/config';
 
+import { nonNullish } from '@dfinity/utils';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { RouterProvider } from '@tanstack/react-router';
@@ -27,7 +28,7 @@ export const App = () => {
       <InternetIdentityProvider
         loginOptions={{
           identityProvider: IDENTITY_PROVIDER,
-          derivationOrigin: II_DERIVATION_ORIGIN,
+          ...(nonNullish(II_DERIVATION_ORIGIN) && { derivationOrigin: II_DERIVATION_ORIGIN }),
         }}
       >
         <QueryClientProvider client={queryClientConfig}>

@@ -54,4 +54,4 @@ export const DASHBOARD_URL = `https://dashboard.internetcomputer.org/neuron`;
 const localIdentityProvider = `http://${CANISTER_ID_INTERNET_IDENTITY}.${HOST}`;
 const mainnetIdentityProvider = 'https://id.ai/?feature_flag_guided_upgrade=true';
 export const IDENTITY_PROVIDER = IS_LOCAL ? localIdentityProvider : mainnetIdentityProvider;
-export const II_DERIVATION_ORIGIN = 'https://nns.ic0.app';
+export const II_DERIVATION_ORIGIN = IS_LOCAL ? null : 'https://nns.ic0.app';
