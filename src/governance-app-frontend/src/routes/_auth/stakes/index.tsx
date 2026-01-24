@@ -4,6 +4,8 @@ import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
 import { EmptyNeuronsState } from '@features/stakes/components/EmptyNeuronsState';
 import { NeuronsList } from '@features/stakes/components/NeuronsList';
 import { StakingWizardModal } from '@features/stakes/components/stakingWizard/StakingWizardModal';
@@ -61,6 +63,7 @@ function StakesComponent() {
       });
     }
     setIsStakingWizardOpen(true);
+    analytics.event(AnalyticsEvent.StakingOpenWizard);
   };
 
   const hasNeurons = neuronsQuery.isSuccess && (neuronsQuery.data?.response.length ?? 0) > 0;
