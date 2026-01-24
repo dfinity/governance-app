@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+import { isExternalLink } from '@utils/urls';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +15,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@common/components/AlertDialog';
-import { isExternalLink } from '@utils/urls';
 
 type Props = {
   content: string;
