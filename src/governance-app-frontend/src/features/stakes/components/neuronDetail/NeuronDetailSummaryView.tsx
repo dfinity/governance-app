@@ -58,20 +58,20 @@ export function NeuronDetailSummaryView({
     <div className="flex flex-col gap-4">
       {/* Neuron Info Section */}
       <div className="flex flex-col rounded-lg border bg-muted/30">
-        <InfoRow label={t(($) => $.neuron.stakedAmount)}>
+        <InfoRow label={t(($) => $.neuron.stakedAmount)} dataTestId="neuron-detail-staked-amount">
           <span className="font-semibold">
             {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
           </span>
         </InfoRow>
 
-        <InfoRow label={t(($) => $.neuron.dissolveDelay)}>
+        <InfoRow label={t(($) => $.neuron.dissolveDelay)} dataTestId="neuron-detail-dissolve-delay">
           <div className="flex items-center gap-2">
             <span className="font-semibold">{durationText}</span>
             <NeuronStateBadge isDissolved={isDissolved} isDissolving={isDissolving} />
           </div>
         </InfoRow>
 
-        <InfoRow label={t(($) => $.common.apy)}>
+        <InfoRow label={t(($) => $.common.apy)} dataTestId="neuron-detail-apy">
           {isApyLoading ? (
             <Skeleton className="h-5 w-16" />
           ) : nonNullish(apy) && apyColor.ready ? (
@@ -90,21 +90,31 @@ export function NeuronDetailSummaryView({
           )}
         </InfoRow>
 
-        <InfoRow label={t(($) => $.neuron.stakedMaturity)}>
+        <InfoRow
+          label={t(($) => $.neuron.stakedMaturity)}
+          dataTestId="neuron-detail-staked-maturity"
+        >
           <div className="flex items-center gap-1">
             <span className="font-semibold">{formatNumber(stakedMaturity)}</span>
             <MaturitySymbol />
           </div>
         </InfoRow>
 
-        <InfoRow label={t(($) => $.neuron.unstakedMaturity)}>
+        <InfoRow
+          label={t(($) => $.neuron.unstakedMaturity)}
+          dataTestId="neuron-detail-unstaked-maturity"
+        >
           <div className="flex items-center gap-1">
             <span className="font-semibold">{formatNumber(unstakedMaturity)}</span>
             <MaturitySymbol />
           </div>
         </InfoRow>
 
-        <InfoRow label={t(($) => $.neuron.maturityMode)} isLast>
+        <InfoRow
+          label={t(($) => $.neuron.maturityMode)}
+          isLast
+          dataTestId="neuron-detail-maturity-mode"
+        >
           <span className="font-semibold">
             {isAutoStake ? t(($) => $.neuron.autoStake) : t(($) => $.neuron.keepLiquid)}
           </span>
@@ -151,15 +161,18 @@ type InfoRowProps = {
   label: string;
   children: React.ReactNode;
   isLast?: boolean;
+  dataTestId?: string;
 };
 
-function InfoRow({ label, children, isLast = false }: InfoRowProps) {
+function InfoRow({ label, children, isLast = false, dataTestId }: InfoRowProps) {
   return (
     <div
       className={`flex items-center justify-between px-4 py-3 ${!isLast ? 'border-b border-border/50' : ''}`}
     >
       <span className="text-[13px] text-muted-foreground">{label}</span>
-      <div className="text-[15px]">{children}</div>
+      <div className="text-[15px]" data-testid={dataTestId}>
+        {children}
+      </div>
     </div>
   );
 }

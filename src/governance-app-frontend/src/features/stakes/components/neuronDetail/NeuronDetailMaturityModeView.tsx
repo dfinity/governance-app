@@ -100,7 +100,13 @@ export function NeuronDetailMaturityModeView({ neuron, onSuccess, onProcessingCh
         </p>
       )}
 
-      <Button type="submit" size="xl" className="w-full" disabled={isProcessing || !hasChanges}>
+      <Button
+        type="submit"
+        size="xl"
+        className="w-full"
+        disabled={isProcessing || !hasChanges}
+        data-testid="maturity-mode-confirm-btn"
+      >
         {isProcessing ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

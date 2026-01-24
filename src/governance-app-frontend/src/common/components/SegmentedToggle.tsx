@@ -33,6 +33,7 @@ export function SegmentedToggle({
     <div
       role="radiogroup"
       aria-label={ariaLabel}
+      data-testid="segmented-toggle"
       className={cn('relative grid grid-cols-2 rounded-xl bg-muted p-1', className)}
     >
       <div

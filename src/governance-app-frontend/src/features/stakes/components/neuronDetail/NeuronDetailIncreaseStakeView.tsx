@@ -139,7 +139,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
             </span>
           </div>
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground" data-testid="increase-stake-current-stake">
           {t(($) => $.neuronDetailModal.increaseStake.currentAndAvailable, {
             current: currentStake.toString(),
             available: availableBalance.toString(),
