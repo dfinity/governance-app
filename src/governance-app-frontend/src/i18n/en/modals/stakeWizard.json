@@ -4,7 +4,7 @@
     "amount": {
       "title": "Stake ICP",
       "label": "Amount to stake",
-      "available": "Available: {{amount}} ICP",
+      "available": "Available: {{amount}} ICP ({{fee}} ICP fee applies)",
       "maxButtonAriaLabel": "Set amount to maximum available balance"
     },
     "dissolveDelay": {
@@ -68,9 +68,6 @@
     "dissolveDelayWarning": "The lock period can only be increased, never decreased. The countdown only begins when you start unlocking.",
     "lockedDescription": "<strong>Locked:</strong> Stake stays locked, earning maximum rewards. Start unlocking later when you want to withdraw.",
     "unlockingDescription": "<strong>Unlocking:</strong> countdown begins immediately. After the lock period, you can withdraw your ICP."
-  },
-  "badges": {
-    "maxRewards": "Max Rewards"
   },
   "apyPreview": {
     "label": "Expected APY"

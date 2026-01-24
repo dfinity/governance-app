@@ -1,8 +1,9 @@
-import { AlertTriangle, Award } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
+import { MaxRewardsBadge } from '@components/MaxRewardsBadge';
 
 import { STAKING_WIZARD_DISSOLVE_DELAY_OPTIONS } from './constants';
 import { StakingWizardDissolveDelayPreset } from './types';
@@ -78,9 +79,8 @@ export function StakingWizardStepDissolveDelay({
           <span className="font-medium">
             {t(($) => $.stakeWizardModal.steps.dissolveDelay.presets[maxRewardsOption.labelKey])}
           </span>
-          <span className="ml-2 inline-flex items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase shadow-sm">
-            <Award className="h-3 w-3" />
-            {t(($) => $.stakeWizardModal.badges.maxRewards)}
+          <span className="ml-2">
+            <MaxRewardsBadge />
           </span>
         </button>
       </div>

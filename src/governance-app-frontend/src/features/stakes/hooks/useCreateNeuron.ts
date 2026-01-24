@@ -48,12 +48,15 @@ export function useCreateNeuron(params: Props) {
     StakingWizardCreateNeuronStep.CreateNeuron,
   );
   const [createdNeuronId, setCreatedNeuronId] = useState<bigint | null>(null);
+  // Keep the createdAt value for retry purposes (used for deduplication at the ledger level)
+  const [storedCreatedAt, setStoredCreatedAt] = useState<bigint | null>(null);
 
   const reset = () => {
     setIsProcessing(false);
     setError(null);
     setCurrentStep(StakingWizardCreateNeuronStep.CreateNeuron);
     setCreatedNeuronId(null);
+    setStoredCreatedAt(null);
   };
 
   const execute = async () => {
@@ -77,12 +80,14 @@ export function useCreateNeuron(params: Props) {
       if (step === StakingWizardCreateNeuronStep.CreateNeuron) {
         const stake = bigIntMul(E8Sn, Number(params.amount));
         const principal = identity.getPrincipal();
+        const createdAt = storedCreatedAt ?? nowInBigIntNanoSeconds();
+        setStoredCreatedAt(createdAt);
 
         neuronId = await governanceCanister.stakeNeuron({
           stake,
           principal,
           ledgerCanister,
-          createdAt: nowInBigIntNanoSeconds(),
+          createdAt,
           fee: ICP_TRANSACTION_FEE_E8Sn,
         });
         setCreatedNeuronId(neuronId);

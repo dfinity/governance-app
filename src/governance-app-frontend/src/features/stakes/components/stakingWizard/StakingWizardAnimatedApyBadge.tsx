@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Skeleton } from '@components/Skeleton';
 import { ICP_MAX_DISSOLVE_DELAY_MONTHS, ICP_MIN_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { useStakingRewards } from '@hooks/useStakingRewards';
-import { interpolateApyColor } from '@utils/apy-colors';
+import { interpolateApyColor, isMaxApy } from '@utils/apy-colors';
 import { formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
@@ -38,7 +38,7 @@ type InnerProps = {
 function AnimatedApyBadgeInner({ value, minApy, maxApy }: InnerProps) {
   const { t } = useTranslation();
 
-  const isMax = value.toFixed(2) === maxApy.toFixed(2);
+  const isMax = isMaxApy(value, maxApy);
   const normalizedPosition = Math.max(0, Math.min(1, (value - minApy) / (maxApy - minApy)));
   const springValue = useSpring(value, { stiffness: 100, damping: 20 });
   const displayValue = useTransform(springValue, (v) => `~${formatPercentage(v / 100)}`);

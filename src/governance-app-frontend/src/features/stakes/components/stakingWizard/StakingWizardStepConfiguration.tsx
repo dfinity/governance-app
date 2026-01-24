@@ -1,8 +1,9 @@
-import { Award, Info } from 'lucide-react';
+import { Info } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
+import { MaxRewardsBadge } from '@components/MaxRewardsBadge';
 import { SegmentedToggle } from '@components/SegmentedToggle';
 
 import { StakingWizardInitialState, StakingWizardMaturityMode } from './types';
@@ -118,16 +119,5 @@ export function StakingWizardStepConfiguration({
         {t(($) => $.stakeWizardModal.steps.configuration.confirm)}
       </Button>
     </form>
-  );
-}
-
-function MaxRewardsBadge() {
-  const { t } = useTranslation();
-
-  return (
-    <span className="inline-flex items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase shadow-sm">
-      <Award className="h-3 w-3" />
-      {t(($) => $.stakeWizardModal.badges.maxRewards)}
-    </span>
   );
 }

@@ -1,5 +1,5 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -16,10 +16,19 @@ import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import type { CertifiedData } from '@typings/queries';
-import { bigIntDiv } from '@utils/bigInt';
+import { bigIntDiv, stringToBigInt } from '@utils/bigInt';
 import { warningNotification } from '@utils/notification';
 
+type StakesSearchParams = {
+  stakeId?: string;
+  action?: string;
+};
+
 export const Route = createFileRoute('/_auth/stakes/')({
+  validateSearch: (search: Record<string, unknown>): StakesSearchParams => ({
+    stakeId: typeof search.stakeId === 'string' ? search.stakeId : undefined,
+    action: typeof search.action === 'string' ? search.action : undefined,
+  }),
   component: StakesComponent,
   staticData: {
     title: 'common.stakes',
@@ -30,6 +39,18 @@ function StakesComponent() {
   const [isStakingWizardOpen, setIsStakingWizardOpen] = useState(false);
   const neuronsQuery = useGovernanceNeurons();
   const { t } = useTranslation();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const { stakeId: neuronParam, action: actionParam } = Route.useSearch();
+
+  const selectedNeuronId = neuronParam ? stringToBigInt(neuronParam) : undefined;
+
+  const handleSelectedNeuronChange = (neuronId: bigint | undefined, action?: string) => {
+    navigate({
+      search: neuronId ? { stakeId: neuronId.toString(), action } : {},
+      resetScroll: false,
+      replace: true,
+    });
+  };
 
   const { data: balanceValue } = useIcpLedgerAccountBalance();
   const balanceICPs = bigIntDiv(balanceValue?.response || 0n, E8Sn);
@@ -74,7 +95,14 @@ function StakesComponent() {
         isEmpty={(neurons) => neurons.response.length === 0}
         emptyComponent={<EmptyNeuronsState openStakingWizard={handleOpenStakingWizard} />}
       >
-        {(neurons) => <NeuronsList neurons={neurons.response} />}
+        {(neurons) => (
+          <NeuronsList
+            onSelectedNeuronChange={handleSelectedNeuronChange}
+            selectedNeuronId={selectedNeuronId}
+            selectedAction={actionParam}
+            neurons={neurons.response}
+          />
+        )}
       </QueryStates>
 
       <StakingWizardModal isOpen={isStakingWizardOpen} setIsOpen={setIsStakingWizardOpen} />

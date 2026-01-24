@@ -1,0 +1,99 @@
+{
+  "title": "Manage Stake #{{neuronId}}",
+  "actions": {
+    "increaseStake": "Increase Stake",
+    "increaseDelay": "Increase delay",
+    "maturityMode": "Maturity mode",
+    "startDissolving": "Start dissolving",
+    "stopDissolving": "Stop dissolving"
+  },
+  "increaseStake": {
+    "title": "Increase Stake",
+    "amountLabel": "Amount to add",
+    "maxButtonAriaLabel": "Set amount to maximum available balance",
+    "currentAndAvailable": "Current: {{current}} ICP • Available: {{available}} ICP ({{fee}} ICP fee applies)",
+    "info": "Adding ICP to your Stake increases your voting power and potential rewards. The added amount will be locked for the same dissolve delay period.",
+    "confirm": "Confirm increase",
+    "confirming": "Increasing Stake, please wait...",
+    "success": "Successfully added {{amount}} ICP to your Stake.",
+    "errors": {
+      "amountTooLow": "Minimum amount is {{min}} ICP.",
+      "insufficientBalance": "Insufficient balance.",
+      "failed": "Failed to increase Stake. Please try again."
+    }
+  },
+  "increaseDelay": {
+    "title": "Dissolve delay",
+    "warning": "The dissolve delay can only be increased, never decreased.",
+    "presets": {
+      "6months": "6 Months",
+      "1year": "1 Year",
+      "2years": "2 Years",
+      "4years": "4 Years",
+      "8years": "8 Years"
+    },
+    "alreadyMax": "Your Stake is already at maximum dissolve delay.",
+    "confirm": "Confirm change",
+    "confirming": "Updating delay, please wait...",
+    "success": "Successfully increased dissolve delay.",
+    "errors": {
+      "failed": "Failed to increase dissolve delay. Please try again."
+    }
+  },
+  "maturityMode": {
+    "title": "Maturity mode",
+    "infoAutoStake": "<strong>Auto-stake:</strong> rewards automatically increase your Stake for compound growth.",
+    "infoKeepLiquid": "<strong>Keep Liquid:</strong> don't auto-stake rewards, keep them available for withdrawal.",
+    "autoStake": "Auto-stake",
+    "keepLiquid": "Keep liquid",
+    "confirm": "Update maturity mode",
+    "confirming": "Updating maturity mode, please wait...",
+    "success": "Maturity mode updated successfully.",
+    "noChange": "Maturity mode is already set to this option.",
+    "errors": {
+      "failed": "Failed to update maturity mode. Please try again."
+    }
+  },
+  "dissolve": {
+    "startTitle": "Start dissolving",
+    "stopTitle": "Stop dissolving",
+    "warningStart": "<strong>Important:</strong> Starting the dissolve process will begin the countdown. After the delay period ends, you can withdraw your ICP. You can stop dissolving and re-lock the Stake at any time. Note: starting to dissolve will reset any accumulated age bonus.",
+    "warningStop": "<strong>Important:</strong> Stopping the dissolve process will re-lock your Stake and pause the countdown. The dissolve delay can still be increased at any time.",
+    "confirmStart": "Confirm start dissolving",
+    "confirmStop": "Confirm stop dissolving",
+    "confirmingStart": "Starting dissolve, please wait...",
+    "confirmingStop": "Stopping dissolve, please wait...",
+    "successStart": "Dissolving started. Your Stake will be available after the dissolve delay.",
+    "successStop": "Dissolving stopped. Your Stake is now locked.",
+    "errors": {
+      "failed": "Failed to update dissolve state. Please try again."
+    }
+  },
+  "disburseIcp": {
+    "title": "Disburse Stake",
+    "info": "<strong>Disburse {{amount}} ICP.</strong> They will be returned to your available balance, and can be restaked at any time after disbursement.",
+    "cancel": "Cancel",
+    "confirm": "Disburse",
+    "confirming": "Disbursing, please wait...",
+    "success": "Stake has been disbursed. ICP returned to your balance.",
+    "errors": {
+      "failed": "Failed to disburse Stake. Please try again."
+    }
+  },
+  "disburseMaturity": {
+    "title": "Disburse Maturity",
+    "info": "<strong>Disbursement takes 1 week.</strong> {{amount}} maturity will be converted to ICP and added to your balance.",
+    "cancel": "Cancel",
+    "confirm": "Disburse",
+    "confirming": "Disbursing, please wait...",
+    "success": "Maturity disbursement started. ICP will be added to your balance in approximately 1 week.",
+    "errors": {
+      "failed": "Failed to disburse maturity. Please try again."
+    }
+  },
+  "disabled": {
+    "noBalance": "No ICP available to stake",
+    "maxDelay": "Already at maximum delay"
+  },
+  "confirmNavigation": "An action is in progress. Leaving this page may cause unexpected results. Are you sure you want to leave?"
+}

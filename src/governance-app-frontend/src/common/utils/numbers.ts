@@ -1,5 +1,7 @@
 import { nonNullish } from '@dfinity/utils';
 
+import { E8S_PRECISION } from '@constants/extra';
+
 export const isFiniteNonZeroNumber = (value: unknown): value is number =>
   typeof value === 'number' && !Number.isNaN(value) && Number.isFinite(value) && value !== 0;
 
@@ -35,4 +37,12 @@ export const formatPercentage = (
 ) => {
   const { minFraction = 2, maxFraction = 2 } = options || {};
   return `${formatNumber(value * 100, { minFraction, maxFraction })}%`;
+};
+
+/**
+ * Rounds a number to E8S precision to avoid floating-point precision issues.
+ */
+export const roundToE8sPrecision = (value: number): number => {
+  const factor = 10 ** E8S_PRECISION;
+  return Math.round(value * factor) / factor;
 };

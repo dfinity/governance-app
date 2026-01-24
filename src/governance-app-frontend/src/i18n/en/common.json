@@ -77,5 +77,6 @@
       "testing": "Some features are still being tested",
       "reportIssues": "Please report any issues you encounter"
     }
-  }
+  },
+  "maxRewards": "Max rewards"
 }
