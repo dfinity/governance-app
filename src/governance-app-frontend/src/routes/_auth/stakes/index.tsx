@@ -24,6 +24,7 @@ type StakesSearchParams = {
   action?: string;
   openWizard?: boolean;
 };
+import i18n from '@/i18n/config';
 
 export const Route = createFileRoute('/_auth/stakes/')({
   validateSearch: (search: Record<string, unknown>): StakesSearchParams => ({
@@ -32,6 +33,13 @@ export const Route = createFileRoute('/_auth/stakes/')({
     openWizard: search.openWizard === 'true' || search.openWizard === true ? true : undefined,
   }),
   component: StakesComponent,
+  head: () => {
+    const title = i18n.t(($) => $.common.head.stakes.title);
+
+    return {
+      meta: [{ title }],
+    };
+  },
   staticData: {
     title: 'common.stakes',
   },

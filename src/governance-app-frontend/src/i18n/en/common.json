@@ -88,5 +88,35 @@
     "title": "Leaving the app",
     "description": "You are about to navigate to {{url}}. Please verify this URL before continuing.",
     "continue": "Continue"
+  "maxRewards": "Max rewards"
+
+  "head": {
+    "appName": "Governance",
+    "defaultDescription": "Participate in decentralized governance on the Internet Computer",
+    "login": {
+      "title": "Governance - ICP Staking & Voting",
+      "description": "Participate in decentralized governance on the Internet Computer. Stake ICP, vote on proposals, and earn rewards."
+    },
+    "dashboard": {
+      "title": "Dashboard | Governance"
+    },
+    "stakes": {
+      "title": "Stakes | Governance"
+    },
+    "stakeDetails": {
+      "title": "Stake #{{stakeId}} | Governance"
+    },
+    "voting": {
+      "title": "Voting | Governance"
+    },
+    "representatives": {
+      "title": "Choose a Representative | Governance"
+    },
+    "proposalDetails": {
+      "title": "Proposal #{{proposalId}} | Governance"
+    },
+    "account": {
+      "title": "Account | Governance"
+    }
   }
 }

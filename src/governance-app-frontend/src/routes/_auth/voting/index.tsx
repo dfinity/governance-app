@@ -21,13 +21,22 @@ import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
-import useTitle from '@hooks/useTitle';
 import { warningNotification } from '@utils/notification';
+
+import i18n from '@/i18n/config';
 
 export const Route = createFileRoute('/_auth/voting/')({
   validateSearch: getShowProposalUrlStatus,
   component: Voting,
   pendingComponent: () => <MultipleSkeletons count={3} />,
+  pendingComponent: () => <SkeletonLoader count={3} />,
+  head: () => {
+    const title = i18n.t(($) => $.common.head.voting.title);
+
+    return {
+      meta: [{ title }],
+    };
+  },
   staticData: {
     title: 'common.voting',
   },
@@ -35,7 +44,6 @@ export const Route = createFileRoute('/_auth/voting/')({
 
 function Voting() {
   const { t } = useTranslation();
-  useTitle(t(($) => $.common.proposalsList));
 
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
