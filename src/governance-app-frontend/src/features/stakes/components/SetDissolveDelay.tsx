@@ -143,6 +143,7 @@ export const SetDissolveDelayModal = ({ neuron }: Props) => {
             <Input
               id="delay-days"
               type="number"
+              inputMode="decimal"
               disabled={pending}
               required
               className={inputError ? 'border-destructive' : ''}

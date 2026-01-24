@@ -16,7 +16,7 @@ import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import type { CertifiedData } from '@typings/queries';
-import { bigIntDiv } from '@utils/bigInt';
+import { bigIntDiv, stringToBigInt } from '@utils/bigInt';
 import { warningNotification } from '@utils/notification';
 
 type StakesSearchParams = {
@@ -42,7 +42,7 @@ function StakesComponent() {
   const navigate = useNavigate({ from: Route.fullPath });
   const { stakeId: neuronParam, action: actionParam } = Route.useSearch();
 
-  const selectedNeuronId = neuronParam ? BigInt(neuronParam) : undefined;
+  const selectedNeuronId = neuronParam ? stringToBigInt(neuronParam) : undefined;
 
   const handleSelectedNeuronChange = (neuronId: bigint | undefined, action?: string) => {
     navigate({

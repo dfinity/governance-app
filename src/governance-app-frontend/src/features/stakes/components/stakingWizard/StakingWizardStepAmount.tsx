@@ -12,7 +12,7 @@ import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
-import { formatPercentage } from '@utils/numbers';
+import { formatPercentage, roundToE8sPrecision } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 interface Props {
@@ -28,7 +28,7 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
 
   const { data: balanceValue } = useIcpLedgerAccountBalance();
   const balance = nonNullish(balanceValue?.response) ? bigIntDiv(balanceValue.response, E8Sn) : 0;
-  const maxStake = Math.max(0, balance - ICP_TRANSACTION_FEE);
+  const maxStake = Math.max(0, roundToE8sPrecision(balance - ICP_TRANSACTION_FEE));
 
   const stakingRewards = useStakingRewards();
   const maxApyFormatted = isStakingRewardDataReady(stakingRewards)
@@ -83,6 +83,7 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
             ref={inputRef}
             value={amount}
             type="number"
+            inputMode="decimal"
             step="any"
             data-testid="staking-wizard-amount-input"
           />

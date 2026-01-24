@@ -131,6 +131,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
               id="tokens-amount"
               data-testid="get-testnet-icp-amount-input"
               type="number"
+              inputMode="decimal"
               className={amountOfIcpError ? 'border-destructive' : ''}
               value={amountOfIcp}
               onChange={(e) => setAmountOfIcp(e.target.value)}

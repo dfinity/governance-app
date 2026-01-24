@@ -69,9 +69,6 @@
     "lockedDescription": "<strong>Locked:</strong> Stake stays locked, earning maximum rewards. Start unlocking later when you want to withdraw.",
     "unlockingDescription": "<strong>Unlocking:</strong> countdown begins immediately. After the lock period, you can withdraw your ICP."
   },
-  "badges": {
-    "maxRewards": "Max Rewards"
-  },
   "apyPreview": {
     "label": "Expected APY"
   },
