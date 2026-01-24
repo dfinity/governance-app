@@ -79,4 +79,9 @@
     }
   },
   "maxRewards": "Max rewards"
+  "externalLink": {
+    "title": "Leaving the app",
+    "description": "You are about to navigate to {{url}}. Please verify this URL before continuing.",
+    "continue": "Continue"
+  }
 }
