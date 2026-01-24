@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-import { isExternalLink } from '@utils/urls';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@common/components/AlertDialog';
+import { isExternalLink } from '@utils/urls';
 
 type Props = {
   content: string;
@@ -66,8 +66,6 @@ export const MarkdownRenderer = ({ content }: Props) => {
               return (
                 <a
                   href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="word-break-all break-all"
                   onClick={(e) => handleExternalLinkClick(e, href)}
                   {...props}
