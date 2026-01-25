@@ -1,7 +1,7 @@
 {
   "title": "Your Stakes",
   "description": "Manage your ICP Stakes and their configurations",
-  "votingPower": "Voting Power",
+  "votingPower": "Voting power",
   "stake": "Stake",
   "neuronId": "Stake #{{neuronId}}",
   "creationDate": "Created {{date}}",
@@ -12,20 +12,24 @@
   "stakedMaturity": "Staked maturity",
   "unstakedMaturity": "Unstaked maturity",
   "maturityMode": "Maturity mode",
-  "autoStake": "Auto stake",
+  "autoStake": "Auto-stake",
   "keepLiquid": "Keep liquid",
   "stakedAmount": "Staked amount",
   "locked": "Locked",
   "dissolving": "Dissolving",
+  "dissolved": "Dissolved",
   "following": "Following",
   "noFollowingWarning": "No voting delegation configured.",
+  "disburseIcp": "Disburse ICPs",
+  "disburseMaturity": "Disburse maturity",
   "errors": {
     "neuronNotFound": "Stake #{{neuronId}} not found."
   },
   "empty": {
-    "title": "No Stakes yet",
-    "description": "Create your first Stake to start earning voting rewards and participating in governance",
-    "cta": "Create your first Stake"
+    "title": "Start participating in governance",
+    "description": "Create your first stake to turn ICP into voting power. Stakes participate in voting and earn rewards over time.",
+    "cta": "Create your first stake",
+    "helper": "After staking, you can follow representatives or vote directly on proposals."
   },
   "setDissolveDelayModal": {
     "title": "Set dissolve delay for #{{neuronId}}",

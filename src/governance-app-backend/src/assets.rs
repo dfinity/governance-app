@@ -36,7 +36,7 @@ const II_ALTERNATIVE_ORIGINS_FILE_NAME: &str = "ii-alternative-origins";
 const CSP_DIRECTIVES: &[&str] = &[
     "default-src 'self' *.devenv.dfinity.network",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-    "connect-src 'self' *.devenv.dfinity.network http://*.devenv.dfinity.network http://localhost:* https://icp0.io https://*.icp0.io https://ic0.app https://*.raw.ic0.app https://icp-api.io https://fastly.jsdelivr.net https://api.kongswap.io",
+    "connect-src 'self' *.devenv.dfinity.network http://*.devenv.dfinity.network http://localhost:* https://icp0.io https://*.icp0.io https://ic0.app https://*.raw.ic0.app https://icp-api.io https://fastly.jsdelivr.net https://api.kongswap.io https://plausible.io/api/event",
     "img-src 'self' https://*.icp0.io data: blob:",
     "style-src * 'unsafe-inline'",
     "style-src-elem * 'unsafe-inline'",

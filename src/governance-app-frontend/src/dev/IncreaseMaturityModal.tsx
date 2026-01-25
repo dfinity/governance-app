@@ -124,6 +124,7 @@ export const IncreaseMaturityModal = ({ neuron }: Props) => {
               value={additionalMaturity}
               disabled={pending}
               type="number"
+              inputMode="decimal"
               required
             />
             {inputError && <p className="text-sm text-destructive">{inputError}</p>}

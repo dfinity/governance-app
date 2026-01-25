@@ -41,3 +41,10 @@ export function getApyColors(normalizedPosition: number) {
     borderColor: interpolateApyColor(normalizedPosition, 0.3),
   };
 }
+
+/**
+ * Check if the APY value is at or above the current network maximum
+ */
+export function isMaxApy(value: number, maxApy: number): boolean {
+  return Number(value.toFixed(2)) >= Number(maxApy.toFixed(2));
+}

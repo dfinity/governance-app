@@ -1,9 +1,11 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
-import { AlertTriangle, CircleAlert, Lock, Timer } from 'lucide-react';
+import { AlertTriangle, CircleAlert, Coins } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Card, CardContent, CardHeader } from '@components/Card';
+import { Button } from '@components/button';
+import { Card, CardContent, CardFooter, CardHeader } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { E8Sn, MILLISECONDS_IN_SECOND } from '@constants/extra';
 import { useApyColor } from '@hooks/useApyColor';
@@ -11,12 +13,18 @@ import { bigIntDiv } from '@utils/bigInt';
 import {
   getDissolvingTimeInSeconds,
   getLockedTimeInSeconds,
+  getNeuronFreeMaturityE8s,
   getNeuronHasNoFollowing,
   getNeuronIsAutoStakingMaturity,
+  getNeuronIsDissolved,
   getNeuronIsDissolving,
 } from '@utils/neuron';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { APY } from '@utils/staking-rewards';
+
+import { DisburseIcpModal } from './DisburseIcpModal';
+import { DisburseMaturityModal } from './DisburseMaturityModal';
+import { NeuronStateBadge } from './NeuronStateBadge';
 
 type Props = {
   neuron: NeuronInfo;
@@ -26,10 +34,14 @@ type Props = {
 export const NeuronCard = ({ neuron, apy }: Props) => {
   const { t } = useTranslation();
   const apyColor = useApyColor(apy?.cur ?? 0);
+  const [disburseIcpOpen, setDisburseIcpOpen] = useState(false);
+  const [disburseMaturityOpen, setDisburseMaturityOpen] = useState(false);
 
+  const isDissolved = getNeuronIsDissolved(neuron);
   const isDissolving = getNeuronIsDissolving(neuron);
   const isAutoStake = getNeuronIsAutoStakingMaturity(neuron);
   const hasNoFollowing = getNeuronHasNoFollowing(neuron);
+  const hasUnstakedMaturity = getNeuronFreeMaturityE8s(neuron) > 0n;
 
   const dissolveDelaySeconds = isDissolving
     ? getDissolvingTimeInSeconds(neuron)
@@ -63,129 +75,163 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
     : 0;
 
   return (
-    <Card className="gap-3 transition-colors hover:border-foreground" data-testid="neuron-card">
-      <CardHeader className="flex flex-col items-start justify-between space-y-0 xs:flex-row">
-        <div>
-          <h3 className="text-base font-semibold">
-            {t(($) => $.neuron.neuronId, { neuronId: neuron.neuronId })}
-          </h3>
-          <p className="text-[13px] text-muted-foreground">
-            {t(($) => $.neuron.creationDate, { date: creationDate })}
-          </p>
-        </div>
-        {nonNullish(apy) && apyColor.ready && (
-          <div
-            className="flex items-center gap-2 rounded-sm border p-2"
-            style={{
-              backgroundColor: apyColor.bgColor,
-              borderColor: apyColor.borderColor,
-              color: apyColor.textColor,
-            }}
-            onClick={() => {
-              // @TODO: Implement optimization modal
-              // e.preventDefault();
-              // e.stopPropagation();
-            }}
-            role="button"
-            tabIndex={0}
-            aria-label="Optimize neuron APY"
-          >
-            <p className="text-[13px] font-semibold">
-              {formatPercentage(apy.cur)}{' '}
-              <span className="hidden sm:inline">{t(($) => $.common.apy)} </span>
-            </p>
-            {apyColor.isMax ? (
-              <span className="rounded bg-green-600 px-1 py-0.5 text-[10px] font-bold text-white uppercase">
-                {t(($) => $.common.max)}
-              </span>
-            ) : (
-              <CircleAlert className="hidden size-4 sm:block" />
-            )}
-          </div>
-        )}
-      </CardHeader>
-
-      <CardContent>
-        <div className="flex flex-col">
-          <div className="flex items-center justify-between border-b border-border/50 py-3">
-            <p className="text-[13px] text-muted-foreground capitalize">
-              {t(($) => $.neuron.stakedAmount)}
-            </p>
-            <p className="text-[15px] font-semibold" data-testid="neuron-card-staked-amount">
-              {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
+    <>
+      <Card className="gap-3 transition-colors hover:border-foreground" data-testid="neuron-card">
+        <CardHeader className="flex flex-col items-start justify-between space-y-0 xs:flex-row">
+          <div>
+            <h3 className="text-base font-semibold">
+              {t(($) => $.neuron.neuronId, { neuronId: neuron.neuronId })}
+            </h3>
+            <p className="text-[13px] text-muted-foreground">
+              {t(($) => $.neuron.creationDate, { date: creationDate })}
             </p>
           </div>
-
-          <div className="flex items-center justify-between border-b border-border/50 py-3">
-            <p className="text-[13px] text-muted-foreground capitalize">
-              {t(($) => $.neuron.dissolveDelay)}
-            </p>
-            <div className="flex items-center gap-2">
-              <p
-                className="text-[15px] font-semibold capitalize"
-                data-testid="neuron-card-dissolve-delay"
-              >
-                {durationText}
-              </p>
-              <div
-                className="flex items-center gap-1 rounded-sm border border-gray-200 bg-gray-100 px-2 py-0.5 text-gray-600 hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-900/30 dark:text-gray-400"
-                data-testid="neuron-card-state"
-              >
-                {isDissolving ? <Timer className="size-3" /> : <Lock className="size-3" />}
-                <p className="text-[11px] font-medium">
-                  {isDissolving ? t(($) => $.neuron.dissolving) : t(($) => $.neuron.locked)}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Staked Maturity */}
-          <div className="flex items-center justify-between border-b border-border/50 py-3">
-            <p className="text-[13px] text-muted-foreground capitalize">
-              {t(($) => $.neuron.stakedMaturity)}
-            </p>
-            <div className="flex items-center gap-1">
-              <p className="text-[15px] font-semibold">{formatNumber(stakedMaturity)}</p>
-              <MaturitySymbol />
-            </div>
-          </div>
-
-          {/* Unstaked Maturity */}
-          <div className="flex items-center justify-between border-b border-border/50 py-3">
-            <p className="text-[13px] text-muted-foreground capitalize">
-              {t(($) => $.neuron.unstakedMaturity)}
-            </p>
-            <div className="flex items-center gap-1">
-              <p className="text-[15px] font-semibold">{formatNumber(unstakedMaturity)}</p>
-              <MaturitySymbol />
-            </div>
-          </div>
-
-          {/* Maturity Mode */}
-          <div className="flex items-center justify-between py-3">
-            <p className="text-[13px] text-muted-foreground capitalize">
-              {t(($) => $.neuron.maturityMode)}
-            </p>
-            <p
-              className="text-[15px] font-semibold capitalize"
-              data-testid="neuron-card-maturity-mode"
-            >
-              {isAutoStake ? t(($) => $.neuron.autoStake) : t(($) => $.neuron.keepLiquid)}
-            </p>
-          </div>
-
-          {/* @TODO: Remove when advanced following is implemented */}
-          {hasNoFollowing && (
+          {nonNullish(apy) && apyColor.ready && (
             <div
-              className="mt-3 flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-amber-800 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
-              data-testid="neuron-card-no-following-warning"
+              className="flex items-center gap-2 rounded-sm border p-2"
+              style={{
+                backgroundColor: apyColor.bgColor,
+                borderColor: apyColor.borderColor,
+                color: apyColor.textColor,
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label="Optimize neuron APY"
             >
-              <AlertTriangle className="size-4 shrink-0" />
-              <p className="text-[13px]">{t(($) => $.neuron.noFollowingWarning)}</p>
+              <p className="text-[13px] font-semibold">
+                {formatPercentage(apy.cur)}{' '}
+                <span className="hidden sm:inline">{t(($) => $.common.apy)} </span>
+              </p>
+              {apyColor.isMax ? (
+                <span className="rounded bg-green-600 px-1 py-0.5 text-[10px] font-bold text-white uppercase">
+                  {t(($) => $.common.max)}
+                </span>
+              ) : (
+                <CircleAlert className="hidden size-4 sm:block" />
+              )}
             </div>
           )}
-        </div>
-      </CardContent>
-    </Card>
+        </CardHeader>
+
+        <CardContent>
+          <div className="flex flex-col">
+            <div className="flex items-center justify-between border-b border-border/50 py-3">
+              <p className="text-[13px] text-muted-foreground capitalize">
+                {t(($) => $.neuron.stakedAmount)}
+              </p>
+              <p className="text-[15px] font-semibold" data-testid="neuron-card-staked-amount">
+                {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between border-b border-border/50 py-3">
+              <p className="text-[13px] text-muted-foreground capitalize">
+                {t(($) => $.neuron.dissolveDelay)}
+              </p>
+              <div className="flex items-center gap-2">
+                <p
+                  className="text-[15px] font-semibold capitalize"
+                  data-testid="neuron-card-dissolve-delay"
+                >
+                  {durationText}
+                </p>
+                <NeuronStateBadge isDissolved={isDissolved} isDissolving={isDissolving} />
+              </div>
+            </div>
+
+            {/* Staked Maturity */}
+            <div className="flex items-center justify-between border-b border-border/50 py-3">
+              <p className="text-[13px] text-muted-foreground capitalize">
+                {t(($) => $.neuron.stakedMaturity)}
+              </p>
+              <div className="flex items-center gap-1">
+                <p className="text-[15px] font-semibold">{formatNumber(stakedMaturity)}</p>
+                <MaturitySymbol />
+              </div>
+            </div>
+
+            {/* Unstaked Maturity */}
+            <div className="flex items-center justify-between border-b border-border/50 py-3">
+              <p className="text-[13px] text-muted-foreground capitalize">
+                {t(($) => $.neuron.unstakedMaturity)}
+              </p>
+              <div className="flex items-center gap-1">
+                <p className="text-[15px] font-semibold">{formatNumber(unstakedMaturity)}</p>
+                <MaturitySymbol />
+              </div>
+            </div>
+
+            {/* Maturity Mode */}
+            <div className="flex items-center justify-between py-3">
+              <p className="text-[13px] text-muted-foreground capitalize">
+                {t(($) => $.neuron.maturityMode)}
+              </p>
+              <p
+                className="text-[15px] font-semibold capitalize"
+                data-testid="neuron-card-maturity-mode"
+              >
+                {isAutoStake ? t(($) => $.neuron.autoStake) : t(($) => $.neuron.keepLiquid)}
+              </p>
+            </div>
+
+            {/* @TODO: Remove when advanced following is implemented */}
+            {hasNoFollowing && (
+              <div
+                className="mt-3 flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-amber-800 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
+                data-testid="neuron-card-no-following-warning"
+              >
+                <AlertTriangle className="size-4 shrink-0" />
+                <p className="text-[13px]">{t(($) => $.neuron.noFollowingWarning)}</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+
+        {/* Disburse buttons */}
+        {(isDissolved || hasUnstakedMaturity) && (
+          <CardFooter className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:gap-4">
+            {isDissolved && (
+              <Button
+                variant="outline"
+                className="w-full sm:flex-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDisburseIcpOpen(true);
+                }}
+                data-testid="neuron-card-disburse-icp-btn"
+              >
+                <Coins className="size-4" />
+                {t(($) => $.neuron.disburseIcp)}
+              </Button>
+            )}
+            {hasUnstakedMaturity && (
+              <Button
+                variant="outline"
+                className="w-full sm:flex-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDisburseMaturityOpen(true);
+                }}
+                data-testid="neuron-card-disburse-maturity-btn"
+              >
+                <Coins className="size-4" />
+                {t(($) => $.neuron.disburseMaturity)}
+              </Button>
+            )}
+          </CardFooter>
+        )}
+      </Card>
+
+      <DisburseIcpModal
+        neuron={neuron}
+        isOpen={disburseIcpOpen}
+        onOpenChange={setDisburseIcpOpen}
+      />
+      <DisburseMaturityModal
+        neuron={neuron}
+        isOpen={disburseMaturityOpen}
+        onOpenChange={setDisburseMaturityOpen}
+      />
+    </>
   );
 };

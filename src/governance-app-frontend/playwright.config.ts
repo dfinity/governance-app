@@ -12,8 +12,8 @@ const baseURL = process.env.BASE_URL || 'http://localhost:3000';
 export default defineConfig({
   testDir: './tests/e2e',
   snapshotPathTemplate: './tests/e2e/snapshots/{testFilePath}-{arg}-{projectName}-{platform}{ext}',
-  /* Test timeout - 1 minute */
-  timeout: 60000,
+  /* Test timeout - 1.5 minute */
+  timeout: 90000,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */

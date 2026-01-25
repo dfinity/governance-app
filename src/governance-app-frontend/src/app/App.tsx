@@ -1,6 +1,7 @@
 import '@/app/styles/main.css';
 import '@/i18n/config';
 
+import { nonNullish } from '@dfinity/utils';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { RouterProvider } from '@tanstack/react-router';
@@ -9,7 +10,7 @@ import { StrictMode } from 'react';
 import { createPortal } from 'react-dom';
 
 import { Sonner } from '@components/Sonner';
-import { IDENTITY_PROVIDER } from '@constants/extra';
+import { IDENTITY_PROVIDER, II_DERIVATION_ORIGIN } from '@constants/extra';
 import { AgentPoolProvider } from '@contexts/agentPoolProvider';
 import { StakingRewardsProvider } from '@contexts/stakingRewardsProvider';
 import { ThemeProvider } from '@contexts/themeProvider';
@@ -26,6 +27,7 @@ export const App = () => {
       <InternetIdentityProvider
         loginOptions={{
           identityProvider: IDENTITY_PROVIDER,
+          ...(nonNullish(II_DERIVATION_ORIGIN) && { derivationOrigin: II_DERIVATION_ORIGIN }),
         }}
       >
         <QueryClientProvider client={queryClientConfig}>

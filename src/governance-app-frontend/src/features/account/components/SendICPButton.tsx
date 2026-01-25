@@ -21,6 +21,7 @@ import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
 import { delay } from '@utils/async';
 import { bigIntMul } from '@utils/bigInt';
 import { errorNotification, successNotification } from '@utils/notification';
+import { roundToE8sPrecision } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
 type Props = { balance: number };
@@ -76,7 +77,7 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
 
   const canTransfer =
     balance > ICP_TRANSACTION_FEE && ledgerReady && ledgerAuthenticated && !isPending;
-  const max = balance - ICP_TRANSACTION_FEE;
+  const max = roundToE8sPrecision(balance - ICP_TRANSACTION_FEE);
 
   const handleAccountChange = (value: string) => {
     setToAccount(value);
@@ -139,6 +140,7 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
               <Input
                 id="amount"
                 type="number"
+                inputMode="decimal"
                 onChange={(e) => handleAmountChange(e.target.value)}
                 disabled={isPending}
                 value={amount}
