@@ -19,12 +19,13 @@ import type { CertifiedData } from '@typings/queries';
 import { bigIntDiv, stringToBigInt } from '@utils/bigInt';
 import { warningNotification } from '@utils/notification';
 
+import i18n from '@/i18n/config';
+
 type StakesSearchParams = {
   stakeId?: string;
   action?: string;
   openWizard?: boolean;
 };
-import i18n from '@/i18n/config';
 
 export const Route = createFileRoute('/_auth/stakes/')({
   validateSearch: (search: Record<string, unknown>): StakesSearchParams => ({
