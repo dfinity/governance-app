@@ -78,7 +78,7 @@
       "reportIssues": "Please report any issues you encounter"
     }
   },
-  "maxRewards": "Max rewards"
+  "maxRewards": "Max rewards",
   "externalLink": {
     "title": "Leaving the app",
     "description": "You are about to navigate to {{url}}. Please verify this URL before continuing.",
