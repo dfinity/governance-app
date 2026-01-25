@@ -12,7 +12,7 @@ import { useIcpIndexTransactions } from './useIcpIndexTransactions';
  * 2. Detects when new transactions appear by comparing the latest transaction ID
  * 3. Automatically invalidates the balance query when new transactions are detected
  */
-export const useGlobalTransactionPolling = () => {
+export const useIcpIndexGlobalPolling = () => {
   const queryClient = useQueryClient();
   const { identity } = useInternetIdentity();
   const transactions = useIcpIndexTransactions();

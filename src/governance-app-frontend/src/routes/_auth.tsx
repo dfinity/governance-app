@@ -5,7 +5,7 @@ import { analytics } from '@features/analytics/service';
 
 import { BetaBanner } from '@components/BetaBanner';
 import { MainLayout } from '@components/MainLayout';
-import { useGlobalTransactionPolling } from '@hooks/icpIndex/useGlobalTransactionPolling';
+import { useIcpIndexGlobalPolling } from '@hooks/icpIndex/useIcpIndexGlobalPolling';
 import { useSessionCountdownToast } from '@hooks/useSessionCountdownToast';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
 import { requireIdentity } from '@utils/router';
@@ -18,7 +18,7 @@ export const Route = createFileRoute('/_auth')({
 function AuthLayout() {
   useThemeShortcut();
   useSessionCountdownToast();
-  useGlobalTransactionPolling();
+  useIcpIndexGlobalPolling();
 
   useEffect(() => {
     analytics.init();
