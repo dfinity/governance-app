@@ -14,22 +14,22 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
       <div className="flex h-screen w-full flex-col overflow-hidden">
         <Header />
         {/*
-         * Mobile-first layout optimizations:
+         * Mobile/tablet-first layout optimizations (up to lg breakpoint):
          *
          * pt-[calc(0.5rem+env(safe-area-inset-top))]:
-         *   - Minimal 8px top padding on mobile (Header is hidden)
+         *   - Minimal 8px top padding on mobile/tablet (Header is hidden)
          *   - safe-area-inset-top handles the notch on iOS PWA (standalone mode)
          *
-         * pb-2: Reduced bottom padding (8px) on mobile to maximize vertical space
+         * pb-2: Reduced bottom padding (8px) to maximize vertical space
          *
          * mb-[calc(4rem+env(safe-area-inset-bottom))]:
          *   - 4rem (64px) matches BottomNav h-16 height
          *   - safe-area-inset-bottom handles the home indicator on iOS
          *
-         * md:* breakpoints restore comfortable padding on tablets/desktop where
+         * lg:* breakpoints restore comfortable padding on desktop where
          * the Header is visible and BottomNav is hidden (Sidebar takes over)
          */}
-        <main className="relative mb-[calc(4rem+env(safe-area-inset-bottom))] flex-1 overflow-auto bg-main-content px-4 pt-[calc(0.5rem+env(safe-area-inset-top))] pb-2 md:mb-0 md:px-8 md:pt-8 md:pb-8 lg:mb-0">
+        <main className="relative mb-[calc(4rem+env(safe-area-inset-bottom))] flex-1 overflow-auto bg-main-content px-4 pt-[calc(0.5rem+env(safe-area-inset-top))] pb-2 lg:mb-0 lg:px-8 lg:pt-8 lg:pb-8">
           <div className="mx-auto w-full max-w-5xl">{children}</div>
         </main>
         <BottomNav />

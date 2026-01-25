@@ -9,10 +9,10 @@ export const Header = () => {
 
   const title = match?.staticData?.title ?? 'common.baseTitle';
 
-  // Hidden on mobile (hidden) to maximize vertical space, shown on tablet+ (md:flex)
-  // The page title is not critical on mobile where screen real estate is limited
+  // Hidden on mobile/tablet (hidden) to maximize vertical space, shown on desktop (lg:flex)
+  // The page title is not critical on smaller screens where real estate is limited
   return (
-    <header className="sticky top-0 z-10 hidden w-full items-center justify-between border-b bg-background px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 md:flex">
+    <header className="sticky top-0 z-10 hidden w-full items-center justify-between border-b bg-background px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 lg:flex">
       <div className="flex items-center gap-4">
         <h1 className="text-base font-semibold">{t(title as never)}</h1>
       </div>
