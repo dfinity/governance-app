@@ -3,8 +3,8 @@
   "notFound": {
     "title": "Page not found",
     "description": "Sorry, we couldn't find the page you're looking for. It might have been moved or doesn't exist.",
-    "goToLogin": "Go to Login",
-    "goBack": "Go Back"
+    "goToLogin": "Go to login",
+    "goBack": "Go back"
   },
   "proposalsList": "Proposals list",
   "neuronsDetails": "Stake {{neuronId}} details",
