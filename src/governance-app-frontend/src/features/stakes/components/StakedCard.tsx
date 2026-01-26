@@ -161,7 +161,7 @@ export function StakedCard() {
 
           <div className="flex gap-3">
             <Button size="xl" className="flex-1 capitalize" asChild onClick={handleStakeMoreClick}>
-              <Link to="/stakes">
+              <Link to="/stakes" search={{ openWizard: true }}>
                 <TrendingUp />
                 {t(($) => $.common.stakeMore)}
               </Link>
