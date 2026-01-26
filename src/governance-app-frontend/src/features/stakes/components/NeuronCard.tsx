@@ -115,7 +115,6 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
 
         <CardContent>
           <div className="flex flex-col">
-            {/* Prominent Staked Amount */}
             <div className="mb-4">
               <p className="text-3xl font-bold" data-testid="neuron-card-staked-amount">
                 {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
