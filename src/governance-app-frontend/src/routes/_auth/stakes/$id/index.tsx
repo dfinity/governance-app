@@ -7,7 +7,8 @@ import { SetDissolveDelayModal } from '@features/stakes/components/SetDissolveDe
 
 import { Card, CardContent, CardFooter } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
-import { SkeletonLoader } from '@components/SkeletonLoader';
+import { MultipleSkeletons } from '@components/MultipleSkeletons';
+import { Skeleton } from '@components/Skeleton';
 import { WarningMessage } from '@components/WarningMessage';
 import { E8S, E8Sn, IS_TESTNET, MILLISECONDS_IN_SECOND } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance/useGovernanceNeurons';
@@ -46,7 +47,7 @@ export const Route = createFileRoute('/_auth/stakes/$id/')({
   beforeLoad: async ({ params }) => {
     if (!params.id) throw redirect({ to: '/stakes', replace: true });
   },
-  pendingComponent: () => <SkeletonLoader count={3} />,
+  pendingComponent: () => <MultipleSkeletons count={3} />,
   component: NeuronDetailsRouteComponent,
   staticData: {
     title: 'common.stakes',
@@ -76,7 +77,7 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
 
   if (isNullish(neuron)) {
     return isLoading ? (
-      <SkeletonLoader count={1} />
+      <Skeleton className="h-4 w-full" />
     ) : (
       <WarningMessage message={t(($) => $.neuron.errors.neuronNotFound, { neuronId })} />
     );
@@ -156,7 +157,7 @@ const NeuronDetails: React.FC<Props> = ({ neuronId }) => {
               {t(($) => $.common.apy)}
             </span>
             <span>
-              {isStakingRewardDataLoading(apyData) && <SkeletonLoader width={50} height={24} />}
+              {isStakingRewardDataLoading(apyData) && <Skeleton className="h-6 w-[50px]" />}
               {isStakingRewardDataError(apyData) && <WarningMessage message={apyData.error} />}
               {isStakingRewardDataReady(apyData) && apyColor.ready ? (
                 <span className="inline-flex items-center gap-2">

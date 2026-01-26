@@ -16,8 +16,8 @@ import { Card } from '@components/Card';
 import { InViewSentinel } from '@components/InViewSentinel';
 import { QueryStates } from '@components/QueryStates';
 import { Separator } from '@components/Separator';
+import { MultipleSkeletons } from '@components/MultipleSkeletons';
 import { Skeleton } from '@components/Skeleton';
-import { SkeletonLoader } from '@components/SkeletonLoader';
 import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import useTitle from '@hooks/useTitle';
@@ -26,7 +26,7 @@ import { warningNotification } from '@utils/notification';
 export const Route = createFileRoute('/_auth/voting/')({
   validateSearch: getShowProposalUrlStatus,
   component: Voting,
-  pendingComponent: () => <SkeletonLoader count={3} />,
+  pendingComponent: () => <MultipleSkeletons count={3} />,
   staticData: {
     title: 'common.voting',
   },
@@ -183,13 +183,13 @@ function Voting() {
           loadingComponent={
             <div className="flex flex-col gap-4">
               <Card>
-                <SkeletonLoader count={3} />
+                <MultipleSkeletons count={3} />
               </Card>
               <Card>
-                <SkeletonLoader count={3} />
+                <MultipleSkeletons count={3} />
               </Card>
               <Card>
-                <SkeletonLoader count={3} />
+                <MultipleSkeletons count={3} />
               </Card>
             </div>
           }
@@ -215,7 +215,7 @@ function Voting() {
               {proposals.hasNextPage && (
                 <InViewSentinel retrigger={data} callback={proposals.fetchNextPage}>
                   {/* @TODO: Update skeleton loader to match list item */}
-                  <SkeletonLoader count={3} />
+                  <MultipleSkeletons count={3} />
                 </InViewSentinel>
               )}
             </div>

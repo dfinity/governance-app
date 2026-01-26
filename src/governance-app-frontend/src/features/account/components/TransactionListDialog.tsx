@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { AccountTransactionItem } from '@features/account/components/TransactionItem';
 
+import { MultipleSkeletons } from '@components/MultipleSkeletons';
 import { QueryStates } from '@components/QueryStates';
 import {
   ResponsiveDialog,
@@ -13,7 +14,6 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
-import { SkeletonLoader } from '@components/SkeletonLoader';
 import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
 import { useIcpIndexTransactionsPolling } from '@hooks/icpIndex/useIcpIndexTransactionsPolling';
 import { CertifiedData } from '@typings/queries';
@@ -48,14 +48,14 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
 
         {isNullish(accountId) ? (
           <div className="flex flex-col gap-2">
-            <SkeletonLoader count={3} />
+            <MultipleSkeletons count={3} />
           </div>
         ) : (
           <div className="flex flex-col gap-2 pb-2 lg:pb-0">
             <QueryStates<CertifiedData<IcpIndexDid.GetAccountIdentifierTransactionsResponse>>
               infiniteQuery={transactions}
               isEmpty={(data) => !data.pages?.length || !data.pages[0].response.transactions.length}
-              loadingComponent={<SkeletonLoader count={3} />}
+              loadingComponent={<MultipleSkeletons count={3} />}
             >
               {(data) => (
                 <div className="flex flex-col gap-3">
