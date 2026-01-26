@@ -7,3 +7,8 @@ export const safeParseUrl = (url: string | undefined | null): URL | null => {
     return null;
   }
 };
+
+export const isExternalLink = (href?: string): boolean => {
+  if (!href) return false;
+  return href.startsWith('http://') || href.startsWith('https://');
+};

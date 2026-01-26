@@ -1,7 +1,7 @@
 import { isNullish } from '@dfinity/utils';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Users } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { type MouseEvent, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
@@ -14,9 +14,10 @@ import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
 import { Card } from '@components/Card';
 import { InViewSentinel } from '@components/InViewSentinel';
+import { MultipleSkeletons } from '@components/MultipleSkeletons';
 import { QueryStates } from '@components/QueryStates';
 import { Separator } from '@components/Separator';
-import { SkeletonLoader } from '@components/SkeletonLoader';
+import { Skeleton } from '@components/Skeleton';
 import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import useTitle from '@hooks/useTitle';
@@ -25,7 +26,7 @@ import { warningNotification } from '@utils/notification';
 export const Route = createFileRoute('/_auth/voting/')({
   validateSearch: getShowProposalUrlStatus,
   component: Voting,
-  pendingComponent: () => <SkeletonLoader count={3} />,
+  pendingComponent: () => <MultipleSkeletons count={3} />,
   staticData: {
     title: 'common.voting',
   },
@@ -44,6 +45,7 @@ function Voting() {
 
   const neuronsQuery = useGovernanceNeurons();
   const knownNeuronsQuery = useGovernanceKnownNeurons();
+  const isLoadingFollowing = neuronsQuery.isLoading || knownNeuronsQuery.isLoading;
 
   const userNeurons = neuronsQuery.data?.response ?? [];
   const knownNeurons = knownNeuronsQuery.data?.response ?? [];
@@ -55,16 +57,13 @@ function Voting() {
   const hasConsistentFollowees = followedNeurons.length === 1;
   const followedNeuron = followedNeurons[0];
 
-  // @TODO: Prefer Link component when available
-  const handleManageFollowing = () => {
+  const handleManageFollowing = (e: MouseEvent<HTMLAnchorElement>) => {
     if (!neuronsQuery.data?.response?.length) {
+      e.preventDefault();
       warningNotification({
         description: t(($) => $.voting.warnings.stakeRequired),
       });
-      return;
     }
-
-    navigate({ to: '/voting/representatives' });
   };
 
   const toggleViewProposals = () =>
@@ -89,9 +88,11 @@ function Voting() {
             <h2 className="text-lg font-semibold">{t(($) => $.voting.title)}</h2>
             <p className="text-sm text-muted-foreground">{t(($) => $.voting.description)}</p>
           </div>
-          <Button size="xl" className="capitalize" onClick={handleManageFollowing}>
-            <Users />
-            {t(($) => $.voting.cta)}
+          <Button size="xl" className="capitalize" asChild>
+            <Link to="/voting/representatives" onClick={handleManageFollowing}>
+              <Users />
+              {t(($) => $.voting.cta)}
+            </Link>
           </Button>
         </div>
       )}
@@ -103,7 +104,13 @@ function Voting() {
         </Alert>
       )}
 
-      {isNullish(followedNeuron) ? (
+      {isLoadingFollowing ? (
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+        </div>
+      ) : isNullish(followedNeuron) ? (
         <>
           <Alert variant="warning">
             <AlertTitle className="font-semibold">{t(($) => $.common.important)}</AlertTitle>
@@ -121,13 +128,11 @@ function Voting() {
               {t(($) => $.voting.noFollowing.description)}
             </p>
             <div className="flex flex-col gap-3 sm:items-center">
-              <Button
-                size="xl"
-                className="w-full capitalize sm:w-auto"
-                onClick={handleManageFollowing}
-              >
-                <Users />
-                {t(($) => $.voting.cta)}
+              <Button size="xl" className="w-full capitalize sm:w-auto" asChild>
+                <Link to="/voting/representatives" onClick={handleManageFollowing}>
+                  <Users />
+                  {t(($) => $.voting.cta)}
+                </Link>
               </Button>
               <Button
                 variant="ghost"
@@ -178,13 +183,13 @@ function Voting() {
           loadingComponent={
             <div className="flex flex-col gap-4">
               <Card>
-                <SkeletonLoader count={3} />
+                <MultipleSkeletons count={3} />
               </Card>
               <Card>
-                <SkeletonLoader count={3} />
+                <MultipleSkeletons count={3} />
               </Card>
               <Card>
-                <SkeletonLoader count={3} />
+                <MultipleSkeletons count={3} />
               </Card>
             </div>
           }
@@ -210,7 +215,7 @@ function Voting() {
               {proposals.hasNextPage && (
                 <InViewSentinel retrigger={data} callback={proposals.fetchNextPage}>
                   {/* @TODO: Update skeleton loader to match list item */}
-                  <SkeletonLoader count={3} />
+                  <MultipleSkeletons count={3} />
                 </InViewSentinel>
               )}
             </div>
