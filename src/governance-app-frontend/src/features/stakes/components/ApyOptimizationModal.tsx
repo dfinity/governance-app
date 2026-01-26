@@ -210,7 +210,7 @@ function NeuronOptimizationItem({ neuron, isOptimized, issues }: NeuronOptimizat
       </div>
       {!isOptimized && (
         <Button variant="secondary" size="sm" asChild>
-          <Link to="/stakes/$id" params={{ id: neuron.neuronId }}>
+          <Link to="/stakes" search={{ stakeId: neuron.neuronId.toString() }}>
             {t(($) => $.apyOptimizationModal.maximize)}
           </Link>
         </Button>

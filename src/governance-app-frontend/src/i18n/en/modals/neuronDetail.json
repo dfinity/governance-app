@@ -46,12 +46,12 @@
     "infoKeepLiquid": "<strong>Keep Liquid:</strong> don't auto-stake rewards, keep them available for withdrawal.",
     "autoStake": "Auto-stake",
     "keepLiquid": "Keep liquid",
-    "confirm": "Update maturity mode",
+    "confirm": "Update new maturity",
     "confirming": "Updating maturity mode, please wait...",
-    "success": "Maturity mode updated successfully.",
-    "noChange": "Maturity mode is already set to this option.",
+    "success": "New maturity updated successfully.",
+    "noChange": "New maturity is already set to this option.",
     "errors": {
-      "failed": "Failed to update maturity mode. Please try again."
+      "failed": "Failed to update new maturity. Please try again."
     }
   },
   "dissolve": {
