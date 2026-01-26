@@ -10,9 +10,11 @@ jobs:
     container: ghcr.io/dfinity/governance-app/builder-base:0.0.4
     env:
       BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
-      HOME: /root
 
     steps:
+      - name: Symlink dfx to /usr/local/bin
+        run: ln -sf /root/.local/share/dfx/versions/0.30.2-beta.2/dfx /usr/local/bin/dfx
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref || github.ref_name }}
