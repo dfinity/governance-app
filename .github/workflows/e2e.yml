@@ -1,9 +1,10 @@
-name: E2E Tests
+name: Pipeline E2E
 on:
   workflow_call:
 
 jobs:
   tests:
+    name: E2E Tests
     timeout-minutes: 30
     runs-on: dind-small
     container: ghcr.io/dfinity/governance-app/builder-base:0.0.2
