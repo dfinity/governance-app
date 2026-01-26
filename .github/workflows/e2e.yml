@@ -10,6 +10,7 @@ jobs:
     container: ghcr.io/dfinity/governance-app/builder-base:0.0.4
     env:
       BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
+      DFX_VERSION: 0.30.2-beta.2
 
     steps:
       - uses: actions/checkout@v4
