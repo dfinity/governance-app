@@ -6,8 +6,9 @@ jobs:
   tests:
     name: E2E Tests
     timeout-minutes: 30
-    # TODO: Switch to dind-small and container image
-    # Time needed to understand why playwright has connection issues within the container image
+    # @TODO: Switch to dind-small and docker container image.
+    # Time needed to understand why Playwright has connection issues within the container image.
+    # Seems that it can't reach the base URL (a cURL call inside the container works fine).
     runs-on: ubuntu-latest
     env:
       BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
