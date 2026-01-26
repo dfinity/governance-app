@@ -21,7 +21,8 @@ Skip to the last step if the tooling didn't change.
     - `docker tag builder-base:X.X.X ghcr.io/dfinity/governance-app/builder-base:X.X.X`.
 - Push it.
     - `docker push ghcr.io/dfinity/governance-app/builder-base:X.X.X`.
-- Set it as "public" in GHCR (so that everyone can download and use it to verify builds).
+- Set it as "public" in [GHCR](https://github.com/orgs/dfinity/packages/container/package/governance-app%2Fbuilder-base) so that everyone can download and use it to verify builds.
+- Update the codebase and CI scripts to reflect the new version.
 
 ## Build the WASM
 

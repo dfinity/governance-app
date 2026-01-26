@@ -14,8 +14,8 @@ permissions: {}
 
 jobs:
   check-pr-title:
-    name: Title format
-    runs-on: ubuntu-latest
+    name: Title Format
+    runs-on: dind-small
     permissions:
       pull-requests: read
     env:

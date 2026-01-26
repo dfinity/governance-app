@@ -4,19 +4,21 @@ FROM rust:1.87.0-slim-bookworm
 # Set up environment variables for non-interactive installs.
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install curl and git first, as they are needed for the next steps.
+# Install curl, git, and jq (needed for CI scripts).
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
+    jq \
     && rm -rf /var/lib/apt/lists/*
 
 # Install a specific version of Node.js from NodeSource.
 RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
 RUN apt-get install -y nodejs
 
-# Install DFX (Internet Computer SDK).
-RUN DFX_VERSION=0.30.2-beta.2 DFXVM_INIT_YES=true sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)"
-ENV PATH="/root/.local/share/dfx/bin:${PATH}"
+# Install DFX (Internet Computer SDK) and symlink to /usr/local/bin for CI access.
+ENV DFX_VERSION=0.30.2-beta.2
+RUN DFXVM_INIT_YES=true sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)" \
+    && ln -sf /root/.local/share/dfx/versions/${DFX_VERSION}/dfx /usr/local/bin/dfx
 
-# Install the correct Rust target for Wasm compilation.
-RUN rustup target add wasm32-unknown-unknown
+# Install the correct Rust target for Wasm compilation and rustfmt for cargo fmt.
+RUN rustup target add wasm32-unknown-unknown && rustup component add rustfmt

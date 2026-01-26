@@ -1,10 +1,14 @@
-name: E2E Tests
+name: Pipeline E2E
 on:
   workflow_call:
 
 jobs:
   tests:
+    name: E2E Tests
     timeout-minutes: 30
+    # @TODO: Switch to dind-small and docker container image.
+    # Time needed to understand why Playwright has connection issues within the container image.
+    # Seems that it can't reach the base URL (a cURL call inside the container works fine).
     runs-on: ubuntu-latest
     env:
       BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
@@ -19,7 +23,6 @@ jobs:
         with:
           node-version-file: ".nvmrc"
 
-      # Requires for governance-app build before deployment
       - name: Install Rust & Cargo
         uses: actions-rs/toolchain@v1
         with:
@@ -84,9 +87,6 @@ jobs:
         run: |
           echo "version=$(npm ls @playwright/test --depth=0 --json | jq -r '.dependencies["governance-app-frontend"].dependencies["@playwright/test"].version')" >> $GITHUB_OUTPUT
 
-      - name: Show Playwright version
-        run: echo "Using Playwright version ${{ steps.playwright_version.outputs.version }}"
-
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
@@ -98,7 +98,7 @@ jobs:
 
       - name: E2E tests and update snapshots
         run: |
-          echo "🚀 Updating snapshots"
+          echo "Updating snapshots"
           npm run update-snapshots
 
       - name: Collect changed/new screenshots
