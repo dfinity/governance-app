@@ -21,7 +21,7 @@ jobs:
           path: ./governance_app_backend.wasm
 
   upgrade_canister:
-    name: Upgrade canister
+    name: Upgrade Canister
     runs-on: dind-small
     container: ghcr.io/dfinity/governance-app/builder-base:0.0.5
     needs: [build_wasm]
