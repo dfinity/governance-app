@@ -7,23 +7,39 @@ jobs:
     name: E2E Tests
     timeout-minutes: 30
     runs-on: ubuntu-latest
-    container: ghcr.io/dfinity/governance-app/builder-base:0.0.4
     env:
       BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
 
     steps:
-      - name: Setup dfx and hosts
-        run: |
-          ln -sf /root/.local/share/dfx/versions/0.30.2-beta.2/dfx /usr/local/bin/dfx
-          echo "/usr/local/bin" >> $GITHUB_PATH
-
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Install Rust & Cargo
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+
       - name: Install frontend dependencies
         run: npm ci
+
+      - name: Install dfx
+        uses: dfinity/setup-dfx@main
+        with:
+          dfx-version: "0.30.2-beta.2"
+
+      - name: Confirm successful installation
+        run: |
+          node -v
+          npm -v
+          dfx --version
 
       # local replica
       - name: Generate .env file
@@ -31,6 +47,16 @@ jobs:
 
       - name: Start local dfx replica
         run: ./scripts/start-pocket-ic.sh --background --delay 0
+
+      # To speed up the backend build.
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Deploy governance-app
         shell: bash
@@ -68,7 +94,6 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: E2E tests and update snapshots
-        working-directory: src/governance-app-frontend
         run: |
           echo "Updating snapshots"
           npm run update-snapshots
