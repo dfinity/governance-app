@@ -16,8 +16,9 @@ RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
 RUN apt-get install -y nodejs
 
 # Install DFX (Internet Computer SDK) and symlink to /usr/local/bin for CI access.
-RUN DFX_VERSION=0.30.2-beta.2 DFXVM_INIT_YES=true sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)" \
-    && ln -sf /root/.local/share/dfx/versions/0.30.2-beta.2/dfx /usr/local/bin/dfx
+ENV DFX_VERSION=0.30.2-beta.2
+RUN DFXVM_INIT_YES=true sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)" \
+    && ln -sf /root/.local/share/dfx/versions/${DFX_VERSION}/dfx /usr/local/bin/dfx
 
 # Install the correct Rust target for Wasm compilation and rustfmt for cargo fmt.
 RUN rustup target add wasm32-unknown-unknown && rustup component add rustfmt
