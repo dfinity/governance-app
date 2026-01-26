@@ -6,22 +6,13 @@ jobs:
   tests:
     name: E2E Tests
     timeout-minutes: 30
-    runs-on: dind-small
+    runs-on: ubuntu-latest
     container: ghcr.io/dfinity/governance-app/builder-base:0.0.4
     env:
       BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
 
     steps:
-      - name: Setup dfx and hosts
-        run: |
-          ln -sf /root/.local/share/dfx/versions/0.30.2-beta.2/dfx /usr/local/bin/dfx
-          echo "/usr/local/bin" >> $GITHUB_PATH
-          # Add localhost entries for canister subdomains (Chromium needs this in containers)
-          echo "127.0.0.1 uxrrr-q7777-77774-qaaaq-cai.localhost" >> /etc/hosts
-          echo "127.0.0.1 rdmx6-jaaaa-aaaaa-aaadq-cai.localhost" >> /etc/hosts
-          echo "127.0.0.1 qoctq-giaaa-aaaaa-aaaea-cai.localhost" >> /etc/hosts
-          echo "127.0.0.1 3r4gx-wqaaa-aaaaq-aaaia-cai.localhost" >> /etc/hosts
-          echo "127.0.0.1 u6s2n-gx777-77774-qaaba-cai.localhost" >> /etc/hosts
+      
 
       - uses: actions/checkout@v4
         with:
