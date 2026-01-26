@@ -19,7 +19,7 @@
   "dissolving": "Dissolving",
   "dissolved": "Dissolved",
   "following": "Following",
-  "noFollowingWarning": "No voting delegation configured.",
+  "noFollowingWarning": "Not following anyone yet. Set up following in the Voting page.",
   "disburseIcp": "Disburse ICPs",
   "disburseMaturity": "Disburse maturity",
   "errors": {

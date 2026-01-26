@@ -79,7 +79,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
       <Card className="gap-3 transition-colors hover:border-foreground" data-testid="neuron-card">
         <CardHeader className="flex flex-col items-start justify-between space-y-0 xs:flex-row">
           <div>
-            <h3 className="text-base font-semibold">
+            <h3 className="text-sm font-medium text-muted-foreground">
               {t(($) => $.neuron.neuronId, { neuronId: neuron.neuronId })}
             </h3>
             <p className="text-[13px] text-muted-foreground">
@@ -115,12 +115,12 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
 
         <CardContent>
           <div className="flex flex-col">
-            <div className="flex items-center justify-between border-b border-border/50 py-3">
-              <p className="text-[13px] text-muted-foreground capitalize">
-                {t(($) => $.neuron.stakedAmount)}
-              </p>
-              <p className="text-[15px] font-semibold" data-testid="neuron-card-staked-amount">
+            <div className="mb-4">
+              <p className="text-3xl font-bold" data-testid="neuron-card-staked-amount">
                 {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
+              </p>
+              <p className="mt-1 text-[13px] text-muted-foreground capitalize">
+                {t(($) => $.neuron.stakedAmount)}
               </p>
             </div>
 
