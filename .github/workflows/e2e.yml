@@ -68,9 +68,10 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: E2E tests and update snapshots
+        working-directory: src/governance-app-frontend
         run: |
           echo "Updating snapshots"
-          npm run update-snapshots
+          npx playwright test --update-snapshots
 
       - name: Collect changed/new screenshots
         id: collect_snaps
