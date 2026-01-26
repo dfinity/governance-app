@@ -6,7 +6,7 @@ on:
 jobs:
   build_wasm:
     name: Build WASM
-    runs-on: ubuntu-latest
+    runs-on: dind-small
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -22,7 +22,8 @@ jobs:
 
   upgrade_canister:
     name: Upgrade canister
-    runs-on: ubuntu-latest
+    runs-on: dind-small
+    container: ghcr.io/dfinity/governance-app/builder-base:0.0.2
     needs: [build_wasm]
     steps:
       - name: Download artifact
@@ -30,9 +31,6 @@ jobs:
         with:
           name: ${{ github.run_id }}-wasm
           path: ./
-
-      - name: Install DFX
-        uses: dfinity/setup-dfx@main
 
       - name: Import DFX identity
         env:

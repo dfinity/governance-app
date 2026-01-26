@@ -5,7 +5,8 @@ on:
 jobs:
   tests:
     timeout-minutes: 30
-    runs-on: ubuntu-latest
+    runs-on: dind-small
+    container: ghcr.io/dfinity/governance-app/builder-base:0.0.2
     env:
       BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
 
@@ -15,31 +16,8 @@ jobs:
           ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: ".nvmrc"
-
-      # Requires for governance-app build before deployment
-      - name: Install Rust & Cargo
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: wasm32-unknown-unknown
-          override: true
-
       - name: Install frontend dependencies
         run: npm ci
-
-      - name: Install dfx
-        uses: dfinity/setup-dfx@main
-        with:
-          dfx-version: "0.30.2-beta.2"
-
-      - name: Confirm successful installation
-        run: |
-          node -v
-          npm -v
-          dfx --version
 
       # local replica
       - name: Generate .env file
@@ -47,16 +25,6 @@ jobs:
 
       - name: Start local dfx replica
         run: ./scripts/start-pocket-ic.sh --background --delay 0
-
-      # To speed up the backend build.
-      - name: Cache cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Deploy governance-app
         shell: bash
@@ -84,9 +52,6 @@ jobs:
         run: |
           echo "version=$(npm ls @playwright/test --depth=0 --json | jq -r '.dependencies["governance-app-frontend"].dependencies["@playwright/test"].version')" >> $GITHUB_OUTPUT
 
-      - name: Show Playwright version
-        run: echo "Using Playwright version ${{ steps.playwright_version.outputs.version }}"
-
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
@@ -98,7 +63,7 @@ jobs:
 
       - name: E2E tests and update snapshots
         run: |
-          echo "🚀 Updating snapshots"
+          echo "Updating snapshots"
           npm run update-snapshots
 
       - name: Collect changed/new screenshots
