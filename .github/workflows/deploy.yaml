@@ -23,7 +23,7 @@ jobs:
   upgrade_canister:
     name: Upgrade canister
     runs-on: dind-small
-    container: ghcr.io/dfinity/governance-app/builder-base:0.0.3
+    container: ghcr.io/dfinity/governance-app/builder-base:0.0.4
     needs: [build_wasm]
     steps:
       - name: Download artifact

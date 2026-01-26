@@ -7,7 +7,7 @@ jobs:
     name: E2E Tests
     timeout-minutes: 30
     runs-on: dind-small
-    container: ghcr.io/dfinity/governance-app/builder-base:0.0.3
+    container: ghcr.io/dfinity/governance-app/builder-base:0.0.4
     env:
       BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
 
