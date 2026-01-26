@@ -15,7 +15,6 @@ import {
 } from '@components/ResponsiveDialog';
 import { SkeletonLoader } from '@components/SkeletonLoader';
 import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
-import { useIcpIndexTransactionsPolling } from '@hooks/icpIndex/useIcpIndexTransactionsPolling';
 import { CertifiedData } from '@typings/queries';
 
 interface TransactionListDialogProps {
@@ -34,7 +33,6 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
     : null;
 
   const transactions = useIcpIndexTransactions();
-  useIcpIndexTransactionsPolling();
 
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>

@@ -1,26 +1,34 @@
+import { nonNullish } from '@dfinity/utils';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { QUERY_KEYS } from '@utils/query';
 
+import { useIcpIndexTransactions } from './useIcpIndexTransactions';
+
+/**
+ * Hook that detects new transactions and invalidates the balance query.
+ * Polling is handled by React Query's refetchInterval on useIcpIndexTransactions.
+ */
 export const useIcpIndexTransactionsPolling = () => {
   const queryClient = useQueryClient();
+  // Poll for new transactions every 2 seconds
+  const transactions = useIcpIndexTransactions({ refetchInterval: 2000 });
+  const lastTransactionIdRef = useRef<bigint | undefined>(undefined);
 
+  // Track the latest transaction ID and detect changes
   useEffect(() => {
-    const interval = setInterval(() => {
-      const isTabVisible = typeof document !== 'undefined' ? !document.hidden : true;
-      const isFetchingTransactions = queryClient.isFetching({
-        queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS],
-      });
+    const latestTxId = transactions.data?.pages?.[0]?.response.transactions[0]?.id;
 
-      // Skip polling tick when the tab is not visible (e.g. another tab is selected), or when transactions are already re-fetching, to save resources.
-      if (isTabVisible && !isFetchingTransactions) {
+    if (nonNullish(latestTxId) && nonNullish(lastTransactionIdRef.current)) {
+      if (latestTxId !== lastTransactionIdRef.current) {
+        // New transaction detected - invalidate balance
         queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS],
+          queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE],
         });
       }
-    }, 2000); // Poll every 2 seconds.
+    }
 
-    return () => clearInterval(interval);
-  }, [queryClient]);
+    lastTransactionIdRef.current = latestTxId;
+  }, [transactions.data, queryClient]);
 };

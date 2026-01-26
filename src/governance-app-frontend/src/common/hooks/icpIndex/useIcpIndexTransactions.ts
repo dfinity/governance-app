@@ -9,7 +9,11 @@ import { QUERY_KEYS } from '@utils/query';
 
 import { useIcpIndex } from './useIcpIndex';
 
-export const useIcpIndexTransactions = () => {
+type UseIcpIndexTransactionsOptions = {
+  refetchInterval?: number;
+};
+
+export const useIcpIndexTransactions = (options?: UseIcpIndexTransactionsOptions) => {
   const { identity } = useInternetIdentity();
   const { ready, authenticated, canister } = useIcpIndex();
 
@@ -48,6 +52,7 @@ export const useIcpIndexTransactions = () => {
     },
     options: {
       enabled: ready && authenticated,
+      refetchInterval: options?.refetchInterval,
     },
   });
 };
