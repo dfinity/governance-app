@@ -10,9 +10,17 @@ jobs:
     container: ghcr.io/dfinity/governance-app/builder-base:0.0.4
     env:
       BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
-      DFX_VERSION: 0.30.2-beta.2
+      DFXVM_HOME: /root/.local/share/dfx
 
     steps:
+      - name: Debug user info
+        run: |
+          echo "Current user: $(whoami || echo 'unknown')"
+          echo "User ID: $(id)"
+          echo "Home: $HOME"
+          echo "DFXVM_HOME: ${DFXVM_HOME:-not set}"
+          ls -la /root/.local/share/dfx/versions/ 2>/dev/null || echo "Cannot access /root/.local/share/dfx/versions/"
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref || github.ref_name }}
