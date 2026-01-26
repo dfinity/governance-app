@@ -1,6 +1,6 @@
 {
   "stakingRatio": "Staking ratio",
-  "unstakedMaturity": "Unstaked maturity",
+  "unstakedMaturity": "Liquid maturity",
   "participateTitle": "Participate in the Largest Global DAO",
   "participateSubtitle": "Stake, vote, earn up to {{value}} per year.",
   "participateSubtitleStatic": "Stake, vote, and earn earn rewards.",

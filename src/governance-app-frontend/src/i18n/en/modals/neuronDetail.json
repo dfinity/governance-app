@@ -3,7 +3,7 @@
   "actions": {
     "increaseStake": "Increase Stake",
     "increaseDelay": "Increase delay",
-    "maturityMode": "Maturity mode",
+    "maturityMode": "New maturity",
     "startDissolving": "Start dissolving",
     "stopDissolving": "Stop dissolving"
   },
@@ -41,7 +41,7 @@
     }
   },
   "maturityMode": {
-    "title": "Maturity mode",
+    "title": "New maturity",
     "infoAutoStake": "<strong>Auto-stake:</strong> rewards automatically increase your Stake for compound growth.",
     "infoKeepLiquid": "<strong>Keep Liquid:</strong> don't auto-stake rewards, keep them available for withdrawal.",
     "autoStake": "Auto-stake",
