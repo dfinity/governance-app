@@ -12,7 +12,10 @@ jobs:
       BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
 
     steps:
-      
+      - name: Setup dfx and hosts
+        run: |
+          ln -sf /root/.local/share/dfx/versions/0.30.2-beta.2/dfx /usr/local/bin/dfx
+          echo "/usr/local/bin" >> $GITHUB_PATH
 
       - uses: actions/checkout@v4
         with:
