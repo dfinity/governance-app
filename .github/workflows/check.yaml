@@ -6,15 +6,11 @@ on:
 jobs:
   codestyle:
     name: Codestyle
-    runs-on: ubuntu-latest
+    runs-on: dind-small
+    container: ghcr.io/dfinity/governance-app/builder-base:0.0.5
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Setup NodeJS
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: ".nvmrc"
 
       - name: Install dependencies
         shell: bash
@@ -28,18 +24,14 @@ jobs:
 
   build_stats:
     name: Build Stats
-    runs-on: ubuntu-latest
+    runs-on: dind-small
+    container: ghcr.io/dfinity/governance-app/builder-base:0.0.5
     permissions:
       contents: read
       pull-requests: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Setup NodeJS
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: ".nvmrc"
 
       - name: Install dependencies
         run: npm ci
@@ -64,19 +56,15 @@ jobs:
           message-id: build-stats
 
   unit_tests:
-    name: Unit tests
-    runs-on: ubuntu-latest
+    name: Unit Tests
+    runs-on: dind-small
+    container: ghcr.io/dfinity/governance-app/builder-base:0.0.5
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Generate .env file
         run: ./scripts/config.sh -n local
-
-      - name: Setup NodeJS
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: ".nvmrc"
 
       - name: Install dependencies
         shell: bash

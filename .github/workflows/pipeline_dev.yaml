@@ -6,6 +6,6 @@ on:
 
 jobs:
   check:
-    name: Codestyle & tests
+    name: Codestyle & Tests
     uses: ./.github/workflows/check.yaml
     secrets: inherit
