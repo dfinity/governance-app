@@ -14,7 +14,6 @@ type UseIcpIndexTransactionsOptions = {
 };
 
 export const useIcpIndexTransactions = (options?: UseIcpIndexTransactionsOptions) => {
-  const { refetchInterval = false } = options ?? {};
   const { identity } = useInternetIdentity();
   const { ready, authenticated, canister } = useIcpIndex();
 
@@ -53,7 +52,7 @@ export const useIcpIndexTransactions = (options?: UseIcpIndexTransactionsOptions
     },
     options: {
       enabled: ready && authenticated,
-      refetchInterval,
+      refetchInterval: options?.refetchInterval,
     },
   });
 };
