@@ -1,6 +1,6 @@
 import { Topic } from '@icp-sdk/canisters/nns';
 import { nonNullish, nowInBigIntNanoSeconds } from '@dfinity/utils';
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,8 +11,7 @@ import { E8Sn, ICP_TRANSACTION_FEE_E8Sn, SECONDS_IN_MONTH } from '@constants/ext
 import { useNnsGovernance } from '@hooks/governance';
 import { useIcpLedger } from '@hooks/icpLedger';
 import { bigIntMul } from '@utils/bigInt';
-import { mapGovernanceCanisterError } from '@utils/nns-governance';
-import { QUERY_KEYS } from '@utils/query';
+import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
 import { StakingWizardCreateNeuronStep } from '../components/stakingWizard/types';
 
@@ -29,11 +28,9 @@ type Props = {
  *
  * @param params Props - configuration for the new neuron
  * @returns
- *   - execute: function to start/retry the creation process
- *   - reset: function to reset the hook state
- *   - isProcessing: boolean - indicates if creation is in progress
- *   - error: string | null - error message if failed
+ *   - mutation properties (mutate, mutateAsync, isPending, error, reset, etc.)
  *   - currentStep: StakingWizardCreateNeuronStep - current/failed step for progress display
+ *   - reset: function to reset both mutation and step state
  */
 export function useCreateNeuron(params: Props) {
   const { t } = useTranslation();
@@ -42,8 +39,6 @@ export function useCreateNeuron(params: Props) {
   const { canister: governanceCanister } = useNnsGovernance();
   const { canister: ledgerCanister } = useIcpLedger();
 
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState<StakingWizardCreateNeuronStep>(
     StakingWizardCreateNeuronStep.CreateNeuron,
   );
@@ -51,24 +46,12 @@ export function useCreateNeuron(params: Props) {
   // Keep the createdAt value for retry purposes (used for deduplication at the ledger level)
   const [storedCreatedAt, setStoredCreatedAt] = useState<bigint | null>(null);
 
-  const reset = () => {
-    setIsProcessing(false);
-    setError(null);
-    setCurrentStep(StakingWizardCreateNeuronStep.CreateNeuron);
-    setCreatedNeuronId(null);
-    setStoredCreatedAt(null);
-  };
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (!governanceCanister || !ledgerCanister || !identity) {
+        throw new Error(t(($) => $.stakeWizardModal.errors.stakeFailed));
+      }
 
-  const execute = async () => {
-    if (!governanceCanister || !ledgerCanister || !identity) {
-      setError(t(($) => $.stakeWizardModal.errors.stakeFailed));
-      return;
-    }
-
-    setIsProcessing(true);
-    setError(null);
-
-    try {
       let neuronId = createdNeuronId;
       let step = currentStep;
 
@@ -168,25 +151,25 @@ export function useCreateNeuron(params: Props) {
         step = StakingWizardCreateNeuronStep.Done;
         setCurrentStep(step);
       }
-    } catch (err) {
-      // Keep currentStep at the failed step for retry
-      setError(mapGovernanceCanisterError(err as Error));
-    } finally {
+
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE] }),
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] }),
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS] }),
-      ]);
+      ]).catch(failedRefresh);
+    },
+  });
 
-      setIsProcessing(false);
-    }
+  const reset = () => {
+    mutation.reset();
+    setCurrentStep(StakingWizardCreateNeuronStep.CreateNeuron);
+    setCreatedNeuronId(null);
+    setStoredCreatedAt(null);
   };
 
   return {
-    execute,
-    reset,
-    isProcessing,
-    error,
+    ...mutation,
     currentStep,
+    reset,
   };
 }

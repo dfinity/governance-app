@@ -9,6 +9,7 @@ import { MaxRewardsBadge } from '@components/MaxRewardsBadge';
 import { SECONDS_IN_MONTH } from '@constants/extra';
 import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { getNeuronDissolveDelaySeconds } from '@utils/neuron';
+import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { errorNotification, successNotification } from '@utils/notification';
 
 import { useIncreaseDelay } from '../../hooks/useIncreaseDelay';
@@ -25,7 +26,7 @@ export function NeuronDetailIncreaseDelayView({ neuron, onSuccess, onProcessingC
   const { t } = useTranslation();
   const [selectedMonths, setSelectedMonths] = useState<number | null>(null);
 
-  const { execute, isProcessing } = useIncreaseDelay();
+  const { mutateAsync, isPending } = useIncreaseDelay();
 
   // Get current dissolve delay in months
   const currentDelaySeconds = Number(getNeuronDissolveDelaySeconds(neuron));
@@ -38,29 +39,30 @@ export function NeuronDetailIncreaseDelayView({ neuron, onSuccess, onProcessingC
 
     onProcessingChange(true);
 
-    const result = await execute({
-      neuronId: neuron.neuronId,
-      dissolveDelayMonths: selectedMonths,
-    });
+    try {
+      await mutateAsync({
+        neuronId: neuron.neuronId,
+        dissolveDelayMonths: selectedMonths,
+      });
 
-    onProcessingChange(false);
-
-    if (result.success) {
       successNotification({
         description: t(($) => $.neuronDetailModal.increaseDelay.success),
       });
-      // Wait for the navigation blocker to be released (isProcessing propagated to false)
+
+      // Wait for the navigation blocker to be released (isPending propagated to false)
       setTimeout(onSuccess);
-    } else if (result.error) {
+    } catch (err) {
       errorNotification({
-        description: result.error,
+        description: mapGovernanceCanisterError(err as Error),
       });
+    } finally {
+      onProcessingChange(false);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isProcessing && selectedMonths) {
+    if (!isPending && selectedMonths) {
       handleConfirm();
     }
   };
@@ -91,7 +93,7 @@ export function NeuronDetailIncreaseDelayView({ neuron, onSuccess, onProcessingC
                 type="button"
                 key={option.value}
                 onClick={() => !isDisabled && setSelectedMonths(option.value)}
-                disabled={isDisabled || isProcessing}
+                disabled={isDisabled || isPending}
                 className={`rounded-lg border-2 px-4 py-4 text-center font-medium transition-colors outline-none focus-visible:bg-muted/70 active:bg-muted ${
                   isSelected
                     ? 'border-primary bg-primary/5'
@@ -117,7 +119,7 @@ export function NeuronDetailIncreaseDelayView({ neuron, onSuccess, onProcessingC
             <button
               type="button"
               onClick={() => !isDisabled && setSelectedMonths(maxRewardsOption.value)}
-              disabled={isDisabled || isProcessing}
+              disabled={isDisabled || isPending}
               className={`w-full rounded-lg border-2 px-4 py-4 text-center transition-colors outline-none ${
                 isSelected
                   ? 'border-green-600 bg-gradient-to-br from-green-600/12 to-green-600/4'
@@ -151,10 +153,10 @@ export function NeuronDetailIncreaseDelayView({ neuron, onSuccess, onProcessingC
         type="submit"
         size="xl"
         className="w-full"
-        disabled={isProcessing || !selectedMonths}
+        disabled={isPending || !selectedMonths}
         data-testid="increase-delay-confirm-btn"
       >
-        {isProcessing ? (
+        {isPending ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             {t(($) => $.neuronDetailModal.increaseDelay.confirming)}

@@ -10,6 +10,7 @@
   "neuronsDetails": "Stake {{neuronId}} details",
   "loading": "Loading",
   "loadingError": "Error loading data.",
+  "refreshFailed": "Failed to automatically refresh the data. Please try reloading the page.",
   "unknownError": "An error occurred.",
   "staked": "Staked",
   "icp": "ICP",

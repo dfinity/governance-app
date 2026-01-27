@@ -13,6 +13,7 @@ import {
 import { E8Sn } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronStakeE8s } from '@utils/neuron';
+import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { errorNotification, successNotification } from '@utils/notification';
 import { formatNumber } from '@utils/numbers';
 
@@ -26,35 +27,34 @@ type Props = {
 
 export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation();
-  const { execute, isProcessing } = useDisburseNeuron();
+  const { mutateAsync, isPending } = useDisburseNeuron();
 
   const stakedAmount = bigIntDiv(getNeuronStakeE8s(neuron), E8Sn);
 
   const handleConfirm = async () => {
-    const result = await execute({ neuronId: neuron.neuronId });
-
-    if (result.success) {
+    try {
+      await mutateAsync({ neuronId: neuron.neuronId });
       successNotification({
         description: t(($) => $.neuronDetailModal.disburseIcp.success),
       });
       onOpenChange(false);
-    } else if (result.error) {
+    } catch (err) {
       errorNotification({
-        description: result.error,
+        description: mapGovernanceCanisterError(err as Error),
       });
     }
   };
 
   const handleOpenChange = (open: boolean) => {
-    if (isProcessing && !open) return;
+    if (isPending && !open) return;
     onOpenChange(open);
   };
 
   return (
-    <ResponsiveDialog open={isOpen} onOpenChange={handleOpenChange} dismissible={!isProcessing}>
+    <ResponsiveDialog open={isOpen} onOpenChange={handleOpenChange} dismissible={!isPending}>
       <ResponsiveDialogContent
         className="flex max-h-[90vh] flex-col focus:outline-none sm:max-w-md"
-        showCloseButton={!isProcessing}
+        showCloseButton={!isPending}
         data-testid="disburse-icp-modal"
       >
         <ResponsiveDialogHeader className="shrink-0">
@@ -77,19 +77,19 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
           </Alert>
 
           <div className="flex gap-3">
-            {!isProcessing && (
+            {!isPending && (
               <Button
                 variant="secondary"
                 size="xl"
                 className="flex-1"
                 onClick={() => onOpenChange(false)}
-                disabled={isProcessing}
+                disabled={isPending}
               >
                 {t(($) => $.neuronDetailModal.disburseIcp.cancel)}
               </Button>
             )}
-            <Button size="xl" className="flex-1" onClick={handleConfirm} disabled={isProcessing}>
-              {isProcessing ? (
+            <Button size="xl" className="flex-1" onClick={handleConfirm} disabled={isPending}>
+              {isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   {t(($) => $.neuronDetailModal.disburseIcp.confirming)}

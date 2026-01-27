@@ -8,6 +8,7 @@ import { Button } from '@components/button';
 import { MaxRewardsBadge } from '@components/MaxRewardsBadge';
 import { SegmentedToggle, type SegmentedToggleValue } from '@components/SegmentedToggle';
 import { getNeuronIsAutoStakingMaturity } from '@utils/neuron';
+import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { errorNotification, successNotification } from '@utils/notification';
 
 import { useToggleMaturityMode } from '../../hooks/useToggleMaturityMode';
@@ -26,7 +27,7 @@ export function NeuronDetailMaturityModeView({ neuron, onSuccess, onProcessingCh
     : 'right';
   const [selectedMode, setSelectedMode] = useState<SegmentedToggleValue>(currentMode);
 
-  const { execute, isProcessing } = useToggleMaturityMode();
+  const { mutateAsync, isPending } = useToggleMaturityMode();
 
   const handleConfirm = async () => {
     if (selectedMode === currentMode) {
@@ -35,28 +36,30 @@ export function NeuronDetailMaturityModeView({ neuron, onSuccess, onProcessingCh
 
     onProcessingChange(true);
 
-    const result = await execute({
-      neuronId: neuron.neuronId,
-      autoStake: selectedMode === 'left',
-    });
+    try {
+      await mutateAsync({
+        neuronId: neuron.neuronId,
+        autoStake: selectedMode === 'left',
+      });
 
-    onProcessingChange(false);
-
-    if (result.success) {
       successNotification({
         description: t(($) => $.neuronDetailModal.maturityMode.success),
       });
+
+      // Wait for the navigation blocker to be released (isPending propagated to false)
       setTimeout(onSuccess);
-    } else if (result.error) {
+    } catch (err) {
       errorNotification({
-        description: result.error,
+        description: mapGovernanceCanisterError(err as Error),
       });
+    } finally {
+      onProcessingChange(false);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isProcessing) {
+    if (!isPending) {
       handleConfirm();
     }
   };
@@ -86,7 +89,7 @@ export function NeuronDetailMaturityModeView({ neuron, onSuccess, onProcessingCh
 
       <SegmentedToggle
         value={selectedMode}
-        onValueChange={(v) => !isProcessing && setSelectedMode(v)}
+        onValueChange={(v) => !isPending && setSelectedMode(v)}
         leftLabel={t(($) => $.neuronDetailModal.maturityMode.autoStake)}
         rightLabel={t(($) => $.neuronDetailModal.maturityMode.keepLiquid)}
         highlightedValue="left"
@@ -104,10 +107,10 @@ export function NeuronDetailMaturityModeView({ neuron, onSuccess, onProcessingCh
         type="submit"
         size="xl"
         className="w-full"
-        disabled={isProcessing || !hasChanges}
+        disabled={isPending || !hasChanges}
         data-testid="maturity-mode-confirm-btn"
       >
-        {isProcessing ? (
+        {isPending ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             {t(($) => $.neuronDetailModal.maturityMode.confirming)}

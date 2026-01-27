@@ -24,6 +24,7 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { useStakingRewards } from '@hooks/useStakingRewards';
+import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
@@ -97,11 +98,11 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
   const hasUnsavedData =
     step !== StakingWizardStep.Amount &&
     step !== StakingWizardStep.Confirmation &&
-    !createNeuron.isProcessing;
+    !createNeuron.isPending;
 
   const handleOpenChange = (toOpen: boolean) => {
     // Block close during processing
-    if (createNeuron.isProcessing && !toOpen) return;
+    if (createNeuron.isPending && !toOpen) return;
 
     // If user already confirmed close, just close (skip confirmation logic)
     if (!toOpen && isCloseConfirmed) {
@@ -156,7 +157,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
         setStep(StakingWizardStep.Confirmation);
 
         createNeuron
-          .execute()
+          .mutateAsync()
           .then(() => {
             analytics.event(AnalyticsEvent.StakingConfirmation, {
               amount: formState.amount,
@@ -201,7 +202,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
       case StakingWizardStep.Configuration:
         return t(($) => $.stakeWizardModal.steps.configuration.title);
       case StakingWizardStep.Confirmation:
-        if (!createNeuron.isProcessing && !createNeuron.error) {
+        if (!createNeuron.isPending && !createNeuron.error) {
           return t(($) => $.stakeWizardModal.steps.confirmation.successTitle);
         }
         return t(($) => $.stakeWizardModal.steps.confirmation.title);
@@ -238,7 +239,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
     <>
       {/* Block navigation during processing */}
       <NavigationBlockerDialog
-        isBlocked={createNeuron.isProcessing}
+        isBlocked={createNeuron.isPending}
         description={t(($) => $.stakeWizardModal.confirmNavigation)}
       />
       {/* Block navigation when user has unsaved data (but not if they confirmed close) */}
@@ -270,11 +271,11 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
       <ResponsiveDialog
         open={isOpen}
         onOpenChange={handleOpenChange}
-        dismissible={!createNeuron.isProcessing}
+        dismissible={!createNeuron.isPending}
       >
         <ResponsiveDialogContent
           className="flex max-h-[90vh] flex-col focus:outline-none"
-          showCloseButton={!createNeuron.isProcessing}
+          showCloseButton={!createNeuron.isPending}
           data-testid="staking-wizard-dialog"
         >
           <ResponsiveDialogHeader className="shrink-0">
@@ -328,12 +329,12 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
             {step === StakingWizardStep.Confirmation && (
               <StakingWizardStepConfirmation
                 formState={formState}
-                isProcessing={createNeuron.isProcessing}
+                isProcessing={createNeuron.isPending}
                 currentStep={createNeuron.currentStep}
-                error={createNeuron.error}
+                error={createNeuron.error ? mapGovernanceCanisterError(createNeuron.error) : null}
                 expectedApy={getCurrentApyFormatted()}
                 onDone={() => handleOpenChange(false)}
-                onRetry={createNeuron.execute}
+                onRetry={() => createNeuron.mutateAsync()}
               />
             )}
           </div>
