@@ -18,6 +18,8 @@ import {
   getNeuronIsAutoStakingMaturity,
   getNeuronIsDissolved,
   getNeuronIsDissolving,
+  getNeuronStakedMaturityE8s,
+  getNeuronTotalStakeAfterFeesE8s,
 } from '@utils/neuron';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { APY } from '@utils/staking-rewards';
@@ -62,17 +64,9 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
       })
     : '-';
 
-  const stakedMaturity = neuron.fullNeuron?.stakedMaturityE8sEquivalent
-    ? bigIntDiv(neuron.fullNeuron.stakedMaturityE8sEquivalent, E8Sn)
-    : 0;
-
-  const unstakedMaturity = neuron.fullNeuron?.maturityE8sEquivalent
-    ? bigIntDiv(neuron.fullNeuron.maturityE8sEquivalent, E8Sn)
-    : 0;
-
-  const stakedAmount = neuron.fullNeuron?.cachedNeuronStake
-    ? bigIntDiv(neuron.fullNeuron.cachedNeuronStake, E8Sn)
-    : 0;
+  const stakedMaturity = bigIntDiv(getNeuronStakedMaturityE8s(neuron), E8Sn);
+  const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
+  const stakedAmount = bigIntDiv(getNeuronTotalStakeAfterFeesE8s(neuron), E8Sn);
 
   return (
     <>
