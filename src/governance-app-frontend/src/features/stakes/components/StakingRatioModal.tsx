@@ -102,7 +102,9 @@ export function StakingRatioModal() {
           </Alert>
 
           <Button className="w-full" asChild>
-            <Link to="/stakes">{t(($) => $.stakingRatioModal.button)}</Link>
+            <Link to="/stakes" search={{ openWizard: true }}>
+              {t(($) => $.stakingRatioModal.button)}
+            </Link>
           </Button>
         </div>
       </ResponsiveDialogContent>
