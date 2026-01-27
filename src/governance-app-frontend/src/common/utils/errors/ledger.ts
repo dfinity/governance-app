@@ -10,8 +10,6 @@ import {
 } from '@icp-sdk/canisters/ledger/icp';
 import { t } from 'i18next';
 
-// ref. https://github.com/nickcen/ic-js/blob/main/packages/ledger/src/errors/ledger.errors.ts
-
 /**
  * Maps ICP Ledger canister errors to user-friendly i18n messages.
  */

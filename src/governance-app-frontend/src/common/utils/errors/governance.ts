@@ -7,8 +7,6 @@ import {
 } from '@icp-sdk/canisters/nns';
 import { t } from 'i18next';
 
-// ref. https://github.com/nickcen/ic-js/blob/main/packages/nns/src/errors/governance.errors.ts
-
 /**
  * Maps NNS Governance canister errors to user-friendly i18n messages.
  */
