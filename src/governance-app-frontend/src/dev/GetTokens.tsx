@@ -24,6 +24,7 @@ import { E8Sn, ICP_TRANSACTION_PROPAGATION_DELAY_MS, IS_TESTNET } from '@constan
 import { useAgentPool } from '@hooks/useAgentPool';
 import { withMinimumDelay } from '@utils/async';
 import { errorMessage } from '@utils/error';
+import { mapCanisterError } from '@utils/errors';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
@@ -91,7 +92,7 @@ export const GetTokens = (props: { accountId: AccountIdentifier }) => {
     },
     onError: (error) => {
       errorNotification({
-        description: `Failed to acquire tokens: ${error}.`,
+        description: mapCanisterError(error),
       });
     },
   });

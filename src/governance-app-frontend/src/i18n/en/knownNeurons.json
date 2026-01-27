@@ -1,10 +1,10 @@
 {
   "title": "Choose a Representative to Follow",
-  "description": "Select one trusted organization to vote on your behalf for all your stakes",
+  "description": "Select one trusted organization to vote on your behalf for all your stakes.",
   "empty": "No Representatives available.",
   "api": {
-    "success": "Now following {{name}} for all your stakes",
-    "error": "Failed to follow {{name}}"
+    "success": "Now following {{name}} for all your stakes.",
+    "error": "Failed to follow {{name}}."
   },
   "confirmation": {
     "title": "Confirm your selection",

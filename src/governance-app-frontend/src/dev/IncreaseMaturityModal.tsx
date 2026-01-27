@@ -21,6 +21,7 @@ import {
 import { E8S, IS_TESTNET } from '@constants/extra';
 import { useNnsGovernanceTest } from '@hooks/governance/useGovernanceTest';
 import { errorMessage } from '@utils/error';
+import { mapCanisterError } from '@utils/errors';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
@@ -87,10 +88,10 @@ export const IncreaseMaturityModal = ({ neuron }: Props) => {
           setPending(false);
           setOpen(false);
         }),
-    onError: () => {
+    onError: (error) => {
       setPending(false);
       errorNotification({
-        description: t(($) => $.devActionsModal.increaseMaturity.errors.failed),
+        description: mapCanisterError(error),
       });
     },
   });
