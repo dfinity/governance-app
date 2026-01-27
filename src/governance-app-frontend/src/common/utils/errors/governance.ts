@@ -11,7 +11,6 @@ import { t } from 'i18next';
 
 /**
  * Maps NNS Governance canister errors to user-friendly i18n messages.
- * @returns The i18n message if the error is recognized, undefined otherwise.
  */
 export const mapGovernanceCanisterError = (error: Error): string | undefined => {
   if (error instanceof CouldNotClaimNeuronError) {
