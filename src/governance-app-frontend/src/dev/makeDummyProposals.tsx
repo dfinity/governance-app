@@ -16,6 +16,7 @@ import {
 } from '@components/ResponsiveDialog';
 import { SECONDS_IN_HALF_YEAR, SECONDS_IN_MONTH } from '@constants/extra';
 import { useNnsGovernance } from '@hooks/governance';
+import { mapCanisterError } from '@utils/errors';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
@@ -560,9 +561,9 @@ export const CreateDummyProposalsButton = ({ neuron }: { neuron: NeuronInfo }) =
           }),
         });
       }
-    } catch {
+    } catch (error) {
       errorNotification({
-        description: t(($) => $.devActionsModal.createProposals.errors.failed),
+        description: mapCanisterError(error as Error),
       });
     } finally {
       setPending(false);

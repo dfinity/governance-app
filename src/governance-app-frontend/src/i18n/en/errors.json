@@ -5,5 +5,15 @@
     "UnrecognizedTypeError": "The type is not recognized.",
     "GovernanceError": "An error occurred in the governance canister.",
     "UnsupportedValueError": "The value is not supported."
+  },
+  "ledgerErrors": {
+    "InsufficientFundsError": "Insufficient balance for this transfer.",
+    "BadFeeError": "The transaction fee is incorrect.",
+    "TxTooOldError": "The transaction is too old. Please try again.",
+    "TxCreatedInFutureError": "Invalid transaction timestamp.",
+    "TxDuplicateError": "This transaction has already been processed.",
+    "InvalidAccountIDError": "The destination account is invalid.",
+    "InvalidSenderError": "The sender account is invalid.",
+    "TransferError": "An error occurred during the transfer."
   }
 }

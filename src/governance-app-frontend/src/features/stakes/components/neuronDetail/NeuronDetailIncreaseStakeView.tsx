@@ -11,7 +11,7 @@ import { Label } from '@components/Label';
 import { E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { bigIntDiv } from '@utils/bigInt';
-import { mapGovernanceCanisterError } from '@utils/nns-governance';
+import { mapCanisterError } from '@utils/errors';
 import { errorNotification, successNotification } from '@utils/notification';
 import { roundToE8sPrecision } from '@utils/numbers';
 
@@ -91,7 +91,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
       setTimeout(onSuccess);
     } catch (err) {
       errorNotification({
-        description: mapGovernanceCanisterError(err as Error),
+        description: mapCanisterError(err as Error),
       });
     } finally {
       onProcessingChange(false);
