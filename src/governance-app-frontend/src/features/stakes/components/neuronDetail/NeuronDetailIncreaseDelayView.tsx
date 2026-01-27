@@ -8,8 +8,8 @@ import { Button } from '@components/button';
 import { MaxRewardsBadge } from '@components/MaxRewardsBadge';
 import { SECONDS_IN_MONTH } from '@constants/extra';
 import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
+import { mapCanisterError } from '@utils/errors';
 import { getNeuronDissolveDelaySeconds } from '@utils/neuron';
-import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { errorNotification, successNotification } from '@utils/notification';
 
 import { useIncreaseDelay } from '../../hooks/useIncreaseDelay';
@@ -53,7 +53,7 @@ export function NeuronDetailIncreaseDelayView({ neuron, onSuccess, onProcessingC
       setTimeout(onSuccess);
     } catch (err) {
       errorNotification({
-        description: mapGovernanceCanisterError(err as Error),
+        description: mapCanisterError(err as Error),
       });
     } finally {
       onProcessingChange(false);

@@ -20,6 +20,7 @@ import { E8Sn, ICP_TRANSACTION_FEE, ICP_TRANSACTION_PROPAGATION_DELAY_MS } from 
 import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
 import { delay } from '@utils/async';
 import { bigIntMul } from '@utils/bigInt';
+import { mapCanisterError } from '@utils/errors';
 import { errorNotification, successNotification } from '@utils/notification';
 import { roundToE8sPrecision } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
@@ -62,9 +63,9 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
       setIsPending(false);
       setOpen(false);
     },
-    onError: () => {
+    onError: (error) => {
       errorNotification({
-        description: t(($) => $.account.transferError, { amount, toAccount }),
+        description: mapCanisterError(error),
       });
       setIsPending(false);
     },

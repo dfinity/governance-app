@@ -7,8 +7,13 @@ import {
 } from '@icp-sdk/canisters/nns';
 import { t } from 'i18next';
 
-// ref. https://github.com/dfinity/ic-js/blob/48a2ee1a6afa230eb86e2599147defe71cd16013/packages/nns/src/errors/governance.errors.ts
-export const mapGovernanceCanisterError = (error: Error): string => {
+// ref. https://github.com/nickcen/ic-js/blob/main/packages/nns/src/errors/governance.errors.ts
+
+/**
+ * Maps NNS Governance canister errors to user-friendly i18n messages.
+ * @returns The i18n message if the error is recognized, undefined otherwise.
+ */
+export const mapGovernanceCanisterError = (error: Error): string | undefined => {
   if (error instanceof CouldNotClaimNeuronError) {
     return t(($) => $.errors.nnsGovernanceErrors.CouldNotClaimNeuronError);
   }
@@ -29,5 +34,5 @@ export const mapGovernanceCanisterError = (error: Error): string => {
     return t(($) => $.errors.nnsGovernanceErrors.UnsupportedValueError);
   }
 
-  return t(($) => $.common.unknownError);
+  return undefined;
 };

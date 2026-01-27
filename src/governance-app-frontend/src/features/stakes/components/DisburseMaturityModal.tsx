@@ -12,8 +12,8 @@ import {
 } from '@components/ResponsiveDialog';
 import { E8Sn } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
+import { mapCanisterError } from '@utils/errors';
 import { getNeuronFreeMaturityE8s } from '@utils/neuron';
-import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { errorNotification, successNotification } from '@utils/notification';
 import { formatNumber } from '@utils/numbers';
 
@@ -40,7 +40,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
       onOpenChange(false);
     } catch (err) {
       errorNotification({
-        description: mapGovernanceCanisterError(err as Error),
+        description: mapCanisterError(err as Error),
       });
     }
   };

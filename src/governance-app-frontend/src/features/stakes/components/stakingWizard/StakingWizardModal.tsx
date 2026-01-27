@@ -24,7 +24,7 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { useStakingRewards } from '@hooks/useStakingRewards';
-import { mapGovernanceCanisterError } from '@utils/nns-governance';
+import { mapCanisterError } from '@utils/errors';
 import { formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
@@ -331,7 +331,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
                 formState={formState}
                 isProcessing={createNeuron.isPending}
                 currentStep={createNeuron.currentStep}
-                error={createNeuron.error ? mapGovernanceCanisterError(createNeuron.error) : null}
+                error={createNeuron.error ? mapCanisterError(createNeuron.error) : null}
                 expectedApy={getCurrentApyFormatted()}
                 onDone={() => handleOpenChange(false)}
                 onRetry={() => createNeuron.mutateAsync()}
