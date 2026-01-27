@@ -1,8 +1,8 @@
 import { type NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
 
-import { SECONDS_IN_EIGHT_YEARS } from '@constants/extra';
-import { bigIntMax } from '@utils/bigInt';
+import { E8Sn, SECONDS_IN_EIGHT_YEARS } from '@constants/extra';
+import { bigIntDiv, bigIntMax } from '@utils/bigInt';
 import { nowInSeconds } from '@utils/date';
 
 export const getNeuronId = (neuron: NeuronInfo): string => {
@@ -185,4 +185,25 @@ export const getNeuronHasNoFollowing = (neuron: NeuronInfo): boolean => {
   if (followees.length === 0) return true;
 
   return followees.every((topicFollowees) => topicFollowees.followees.length === 0);
+};
+
+/**
+ * Aggregates staking data from multiple neurons.
+ * @param neurons - Array of neurons to aggregate data from
+ * @returns Object containing totalStaked and totalUnstakedMaturity
+ */
+export const getNeuronsAggregatedData = (
+  neurons: NeuronInfo[] = [],
+): { totalStaked: number; totalUnstakedMaturity: number } => {
+  return neurons.reduce(
+    (acc, neuron) => {
+      const stake = bigIntDiv(getNeuronTotalStakeAfterFeesE8s(neuron), E8Sn);
+      const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
+      return {
+        totalStaked: acc.totalStaked + stake,
+        totalUnstakedMaturity: acc.totalUnstakedMaturity + unstakedMaturity,
+      };
+    },
+    { totalStaked: 0, totalUnstakedMaturity: 0 },
+  );
 };

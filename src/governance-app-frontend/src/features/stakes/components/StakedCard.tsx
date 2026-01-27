@@ -17,7 +17,7 @@ import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
 import { useApyColor } from '@hooks/useApyColor';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
-import { getNeuronFreeMaturityE8s, getNeuronStakeE8s } from '@utils/neuron';
+import { getNeuronsAggregatedData } from '@utils/neuron';
 import { warningNotification } from '@utils/notification';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady, MaturityEstimatePeriod } from '@utils/staking-rewards';
@@ -44,14 +44,9 @@ export function StakedCard() {
     }
   };
 
-  const [totalStaked, totalUnstakedMaturity] = neuronsQuery.data?.response?.reduce(
-    (acc, neuron) => {
-      const stake = bigIntDiv(getNeuronStakeE8s(neuron), E8Sn);
-      const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
-      return [acc[0] + stake, acc[1] + unstakedMaturity];
-    },
-    [0, 0],
-  ) ?? [0, 0];
+  const { totalStaked, totalUnstakedMaturity } = getNeuronsAggregatedData(
+    neuronsQuery.data?.response,
+  );
 
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const usdValue = icpPrice ? formatNumber(totalStaked * icpPrice.usd) : '-';
