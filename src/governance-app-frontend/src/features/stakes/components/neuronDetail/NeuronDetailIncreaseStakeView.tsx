@@ -11,6 +11,7 @@ import { Label } from '@components/Label';
 import { E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { bigIntDiv } from '@utils/bigInt';
+import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { errorNotification, successNotification } from '@utils/notification';
 import { roundToE8sPrecision } from '@utils/numbers';
 
@@ -38,7 +39,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
 
   const accountIdentifier = neuron.fullNeuron?.accountIdentifier;
 
-  const { execute, isProcessing } = useIncreaseStake();
+  const { mutateAsync, isPending } = useIncreaseStake();
 
   const handleAmountChange = (value: string) => {
     setAmount(value);
@@ -75,30 +76,31 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
 
     onProcessingChange(true);
 
-    const result = await execute({
-      neuronId: neuron.neuronId,
-      accountIdentifier,
-      amount: numericAmount,
-    });
+    try {
+      await mutateAsync({
+        neuronId: neuron.neuronId,
+        accountIdentifier,
+        amount: numericAmount,
+      });
 
-    onProcessingChange(false);
-
-    if (result.success) {
       successNotification({
         description: t(($) => $.neuronDetailModal.increaseStake.success, { amount }),
       });
-      // Wait for the navigation blocker to be released (isProcessing propagated to false)
+
+      // Wait for the navigation blocker to be released (isPending propagated to false)
       setTimeout(onSuccess);
-    } else if (result.error) {
+    } catch (err) {
       errorNotification({
-        description: result.error,
+        description: mapGovernanceCanisterError(err as Error),
       });
+    } finally {
+      onProcessingChange(false);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isProcessing) {
+    if (!isPending) {
       handleConfirm();
     }
   };
@@ -120,7 +122,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
             type="number"
             inputMode="decimal"
             step="any"
-            disabled={isProcessing}
+            disabled={isPending}
             data-testid="increase-stake-amount-input"
           />
           <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-1">
@@ -128,7 +130,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
               type="button"
               size="sm"
               onClick={handleMax}
-              disabled={isProcessing}
+              disabled={isPending}
               className="h-7 px-2 text-xs uppercase"
               aria-label={t(($) => $.neuronDetailModal.increaseStake.maxButtonAriaLabel)}
             >
@@ -166,10 +168,10 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
         type="submit"
         size="xl"
         className="w-full"
-        disabled={isProcessing}
+        disabled={isPending}
         data-testid="increase-stake-confirm-btn"
       >
-        {isProcessing ? (
+        {isPending ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             {t(($) => $.neuronDetailModal.increaseStake.confirming)}
