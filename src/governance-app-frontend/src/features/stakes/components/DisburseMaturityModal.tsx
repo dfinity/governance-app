@@ -79,9 +79,9 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
           <div className="flex gap-3">
             {!isPending && (
               <Button
-                variant="secondary"
+                variant="outline"
                 size="xl"
-                className="flex-1"
+                className="flex-1 transition-colors hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0"
                 onClick={() => onOpenChange(false)}
                 disabled={isPending}
               >
