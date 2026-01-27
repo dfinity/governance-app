@@ -42,7 +42,7 @@ export const NeuronsList = ({
             <div
               key={String(neuron.neuronId)}
               onClick={() => handleCardClick(neuron.neuronId)}
-              className="cursor-pointer"
+              className="h-full cursor-pointer"
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
