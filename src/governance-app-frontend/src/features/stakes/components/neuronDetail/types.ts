@@ -6,6 +6,7 @@ export enum NeuronDetailView {
   IncreaseDelay = 'increaseDelay',
   MaturityMode = 'maturityMode',
   Dissolve = 'dissolve',
+  DevActions = 'devActions',
 }
 
 const NEURON_DETAIL_VIEWS = Object.values(NeuronDetailView);

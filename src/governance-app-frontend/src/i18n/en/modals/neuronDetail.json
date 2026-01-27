@@ -5,7 +5,8 @@
     "increaseDelay": "Increase delay",
     "maturityMode": "New maturity",
     "startDissolving": "Start dissolving",
-    "stopDissolving": "Stop dissolving"
+    "stopDissolving": "Stop dissolving",
+    "devActions": "Dev actions"
   },
   "increaseStake": {
     "title": "Increase Stake",
@@ -59,6 +60,7 @@
     "stopTitle": "Stop dissolving",
     "warningStart": "<strong>Important:</strong> Starting the dissolve process will begin the countdown. After the delay period ends, you can withdraw your ICP. You can stop dissolving and re-lock the Stake at any time. Note: starting to dissolve will reset any accumulated age bonus.",
     "warningStop": "<strong>Important:</strong> Stopping the dissolve process will re-lock your Stake and pause the countdown. The dissolve delay can still be increased at any time.",
+    "alreadyDissolved": "This Stake is already dissolved and ready for disbursement. To re-lock it, increase the dissolve delay first.",
     "confirmStart": "Confirm start dissolving",
     "confirmStop": "Confirm stop dissolving",
     "confirmingStart": "Starting dissolve, please wait...",
@@ -94,6 +96,9 @@
   "disabled": {
     "noBalance": "No ICP available to stake",
     "maxDelay": "Already at maximum delay"
+  },
+  "devActions": {
+    "title": "Dev actions"
   },
   "confirmNavigation": "An action is in progress. Leaving this page may cause unexpected results. Are you sure you want to leave?"
 }

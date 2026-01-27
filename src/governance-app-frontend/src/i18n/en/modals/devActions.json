@@ -1,0 +1,40 @@
+{
+  "description": "Development tools for testing Stake behaviors. Use these actions to simulate different scenarios.",
+  "increaseMaturity": {
+    "title": "Increase maturity",
+    "description": "Add maturity to this Stake for testing reward disbursement and auto-staking features.",
+    "amountLabel": "Maturity to add",
+    "confirm": "Confirm",
+    "confirming": "Adding maturity...",
+    "success": "Successfully added {{amount}} maturity.",
+    "errors": {
+      "amountTooLow": "Amount must be greater than 0.",
+      "failed": "Failed to increase maturity. Please try again."
+    }
+  },
+  "unlockStake": {
+    "title": "Unlock Stake",
+    "description": "Instantly unlock this Stake, bypassing the dissolve delay. The Stake will be ready for disbursement.",
+    "confirm": "Confirm",
+    "confirming": "Unlocking...",
+    "success": "Stake unlocked successfully.",
+    "errors": {
+      "failed": "Failed to unlock Stake. Please try again."
+    }
+  },
+  "createProposals": {
+    "title": "Create proposals",
+    "description": "Generate sample proposals to test voting functionality and proposal rendering.",
+    "button": "Create proposals",
+    "confirm": "Create",
+    "creating": "Creating...",
+    "success": "{{count}} proposals created successfully.",
+    "errors": {
+      "failed": "Failed to create proposals. Please try again.",
+      "partial": "Only {{success}} of {{total}} proposals were created."
+    }
+  },
+  "common": {
+    "close": "Close"
+  }
+}
