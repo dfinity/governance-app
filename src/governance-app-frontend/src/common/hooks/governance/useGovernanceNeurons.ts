@@ -21,7 +21,7 @@ export const useGovernanceNeurons = (params?: RequestParams) => {
   const request: RequestParams = {
     certified: false,
     neuronIds: undefined,
-    includeEmptyNeurons: true,
+    includeEmptyNeurons: false,
     includePublicNeurons: true,
     neuronSubaccounts: undefined,
     ...params,

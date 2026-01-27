@@ -1,8 +1,11 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { FormEvent, useState } from 'react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
+import { FormEvent, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
+import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
 import { Label } from '@components/Label';
@@ -28,7 +31,9 @@ type Props = {
 export const IncreaseMaturityModal = ({ neuron }: Props) => {
   if (!IS_TESTNET) throw errorMessage('increaseMaturityModal', 'the environment is not "testnet"');
 
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const {
     ready: governanceTestReady,
@@ -38,8 +43,17 @@ export const IncreaseMaturityModal = ({ neuron }: Props) => {
 
   const [open, setOpen] = useState(false);
   const [additionalMaturity, setAdditionalMaturity] = useState('');
-  const [inputError, setInputError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (!isOpen) {
+      // Reset state when modal closes
+      setAdditionalMaturity('');
+      setValidationError(null);
+    }
+  };
   const neuronId = neuron.neuronId.toString();
   const canUpdate =
     nonNullish(governanceTestCanister) && governanceTestAuthenticated && governanceTestReady;
@@ -64,42 +78,50 @@ export const IncreaseMaturityModal = ({ neuron }: Props) => {
           queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
         })
         .then(() => {
-          setAdditionalMaturity('');
           successNotification({
-            description: `You have successfully added ${additionalMaturity} maturity to neuron #${neuronId}.`,
+            description: t(($) => $.devActionsModal.increaseMaturity.success, {
+              amount: additionalMaturity,
+            }),
           });
+          setAdditionalMaturity('');
           setPending(false);
           setOpen(false);
         }),
     onError: () => {
       setPending(false);
       errorNotification({
-        description: `Failed to increase maturity for neuron #${neuronId}.`,
+        description: t(($) => $.devActionsModal.increaseMaturity.errors.failed),
       });
     },
   });
 
   const handleMaturityChange = (value: string) => {
     setAdditionalMaturity(value);
-    setInputError(null);
-    if (!value) return;
-    const numericValue = Number(value);
-    if (numericValue <= 0) {
-      setInputError('Additional maturity must be greater than 0.');
-    }
+    setValidationError(null);
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    const numericValue = Number(additionalMaturity);
+    if (numericValue <= 0) {
+      setValidationError(t(($) => $.devActionsModal.increaseMaturity.errors.amountTooLow));
+      return;
+    }
+
     setIncreaseMaturityMutation.mutate();
   };
 
   return (
-    <ResponsiveDialog open={open} onOpenChange={setOpen}>
+    <ResponsiveDialog open={open} onOpenChange={handleOpenChange}>
       <ResponsiveDialogTrigger asChild>
         {canUpdate ? (
-          <Button variant="outline" size="sm">
-            Increase maturity
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-auto py-4 transition-colors hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0"
+          >
+            {t(($) => $.devActionsModal.increaseMaturity.title)}
           </Button>
         ) : (
           <></>
@@ -109,33 +131,59 @@ export const IncreaseMaturityModal = ({ neuron }: Props) => {
       <ResponsiveDialogContent>
         <form onSubmit={handleSubmit}>
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>Increase maturity for #{neuronId}</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle>
+              {t(($) => $.devActionsModal.increaseMaturity.title)}
+            </ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
-              Manually increase the maturity of your neuron. Available only in TESTNET.
+              {t(($) => $.devActionsModal.increaseMaturity.description)}
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
 
-          <div className="grid gap-2 py-4">
-            <Label htmlFor="maturity-input">Maturity to add:</Label>
-            <Input
-              id="maturity-input"
-              className={nonNullish(inputError) ? 'border-destructive' : ''}
-              onChange={(e) => handleMaturityChange(e.target.value)}
-              value={additionalMaturity}
-              disabled={pending}
-              type="number"
-              inputMode="decimal"
-              required
-            />
-            {inputError && <p className="text-sm text-destructive">{inputError}</p>}
+          <div className="space-y-4 py-4">
+            <div className="space-y-1">
+              <Label htmlFor="maturity-input">
+                {t(($) => $.devActionsModal.increaseMaturity.amountLabel)}
+              </Label>
+              <Input
+                id="maturity-input"
+                className="h-14 [appearance:textfield] border-2 !text-lg font-semibold focus-visible:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                onChange={(e) => handleMaturityChange(e.target.value)}
+                placeholder="0.00"
+                ref={inputRef}
+                value={additionalMaturity}
+                disabled={pending}
+                type="number"
+                inputMode="decimal"
+                step="any"
+              />
+            </div>
+
+            {validationError && (
+              <Alert variant="warning">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>{validationError}</AlertDescription>
+              </Alert>
+            )}
           </div>
 
           <ResponsiveDialogFooter className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
-              Close
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => handleOpenChange(false)}
+              disabled={pending}
+            >
+              {t(($) => $.devActionsModal.common.close)}
             </Button>
             <Button type="submit" disabled={pending}>
-              {pending ? 'Confirming...' : 'Confirm'}
+              {pending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t(($) => $.devActionsModal.increaseMaturity.confirming)}
+                </>
+              ) : (
+                t(($) => $.devActionsModal.increaseMaturity.confirm)
+              )}
             </Button>
           </ResponsiveDialogFooter>
         </form>

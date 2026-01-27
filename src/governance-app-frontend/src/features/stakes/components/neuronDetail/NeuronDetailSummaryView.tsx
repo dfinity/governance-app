@@ -1,12 +1,12 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
-import { Clock, Lock, PlusCircle, Settings, Unlock } from 'lucide-react';
+import { Clock, Lock, PlusCircle, Settings, Unlock, Wrench } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { Skeleton } from '@components/Skeleton';
-import { E8Sn } from '@constants/extra';
+import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useApyColor } from '@hooks/useApyColor';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber, formatPercentage } from '@utils/numbers';
@@ -152,6 +152,15 @@ export function NeuronDetailSummaryView({
           }
           onClick={() => onNavigate(NeuronDetailView.Dissolve)}
         />
+
+        {IS_TESTNET && (
+          <ActionButton
+            icon={<Wrench className="size-8" />}
+            label={t(($) => $.neuronDetailModal.actions.devActions)}
+            onClick={() => onNavigate(NeuronDetailView.DevActions)}
+            className="col-span-2"
+          />
+        )}
       </div>
     </div>
   );
@@ -183,13 +192,21 @@ type ActionButtonProps = {
   onClick: () => void;
   disabled?: boolean;
   disabledReason?: string;
+  className?: string;
 };
 
-function ActionButton({ icon, label, onClick, disabled, disabledReason }: ActionButtonProps) {
+function ActionButton({
+  icon,
+  label,
+  onClick,
+  disabled,
+  disabledReason,
+  className,
+}: ActionButtonProps) {
   return (
     <Button
       variant="outline"
-      className="group flex h-auto flex-col items-center justify-center gap-2 overflow-hidden py-5 ring-0 ring-offset-0 transition-colors duration-200 outline-none hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0"
+      className={`group flex h-auto flex-col items-center justify-center gap-2 overflow-hidden py-5 ring-0 ring-offset-0 transition-colors duration-200 outline-none hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0 ${className ?? ''}`}
       onClick={onClick}
       disabled={disabled}
       title={disabled ? disabledReason : undefined}

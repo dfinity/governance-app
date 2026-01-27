@@ -10,6 +10,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
+import { IS_TESTNET } from '@constants/extra';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import {
   getNeuronId,
@@ -19,6 +20,7 @@ import {
 } from '@utils/neuron';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
+import { NeuronDetailDevActionsView } from './NeuronDetailDevActionsView';
 import { NeuronDetailDissolveView } from './NeuronDetailDissolveView';
 import { NeuronDetailIncreaseDelayView } from './NeuronDetailIncreaseDelayView';
 import { NeuronDetailIncreaseStakeView } from './NeuronDetailIncreaseStakeView';
@@ -98,6 +100,8 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
         return isDissolving
           ? t(($) => $.neuronDetailModal.dissolve.stopTitle)
           : t(($) => $.neuronDetailModal.dissolve.startTitle);
+      case NeuronDetailView.DevActions:
+        return t(($) => $.neuronDetailModal.devActions.title);
     }
   };
 
@@ -169,10 +173,15 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
             {displayView === NeuronDetailView.Dissolve && (
               <NeuronDetailDissolveView
                 neuron={displayNeuron}
+                isDissolved={isDissolved}
                 isDissolving={isDissolving}
                 onSuccess={goBack}
                 onProcessingChange={setIsProcessing}
               />
+            )}
+
+            {IS_TESTNET && displayView === NeuronDetailView.DevActions && (
+              <NeuronDetailDevActionsView neuron={displayNeuron} />
             )}
           </div>
         </ResponsiveDialogContent>

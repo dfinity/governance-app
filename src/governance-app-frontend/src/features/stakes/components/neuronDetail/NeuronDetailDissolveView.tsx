@@ -1,5 +1,5 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { AlertTriangle, Loader2 } from 'lucide-react';
+import { AlertTriangle, Info, Loader2 } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
@@ -10,6 +10,7 @@ import { useToggleDissolving } from '../../hooks/useToggleDissolving';
 
 type Props = {
   neuron: NeuronInfo;
+  isDissolved: boolean;
   isDissolving: boolean;
   onSuccess: () => void;
   onProcessingChange: (isProcessing: boolean) => void;
@@ -17,6 +18,7 @@ type Props = {
 
 export function NeuronDetailDissolveView({
   neuron,
+  isDissolved,
   isDissolving,
   onSuccess,
   onProcessingChange,
@@ -55,6 +57,30 @@ export function NeuronDetailDissolveView({
       handleConfirm();
     }
   };
+
+  // If already dissolved, show info message and disable action
+  if (isDissolved) {
+    return (
+      <div className="flex flex-col gap-4">
+        <Alert className="border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900/50 dark:bg-blue-900/20 dark:text-blue-200 [&>svg]:text-blue-600 dark:[&>svg]:text-blue-400">
+          <Info className="h-4 w-4" />
+          <AlertDescription className="text-blue-700 dark:text-blue-300">
+            {t(($) => $.neuronDetailModal.dissolve.alreadyDissolved)}
+          </AlertDescription>
+        </Alert>
+
+        <Button
+          type="button"
+          size="xl"
+          className="w-full"
+          disabled
+          data-testid="dissolve-confirm-btn"
+        >
+          {t(($) => $.neuronDetailModal.dissolve.confirmStart)}
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">

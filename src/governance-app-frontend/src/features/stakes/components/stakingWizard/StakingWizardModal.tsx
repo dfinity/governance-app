@@ -51,6 +51,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
   const { t } = useTranslation();
 
   const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
+  const [isCloseConfirmed, setIsCloseConfirmed] = useState(false);
   const [step, setStep] = useState<StakingWizardStep>(StakingWizardStep.Amount);
   const [formState, setFormState] = useState<StakingWizardFormState>(
     STAKING_WIZARD_DEFAULT_FORM_STATE,
@@ -70,42 +71,63 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
     contentRef.current?.scrollTo(0, 0);
   }, [step]);
 
+  // When user confirms close, close the modal (after state update)
+  useEffect(() => {
+    if (isCloseConfirmed) {
+      setIsOpen(false);
+    }
+  }, [isCloseConfirmed, setIsOpen]);
+
+  // Reset form state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      // Delay reset to allow close animation to complete
+      const timer = setTimeout(() => {
+        setStep(StakingWizardStep.Amount);
+        setFormState(STAKING_WIZARD_DEFAULT_FORM_STATE);
+        createNeuron.reset();
+        setShowCloseConfirmation(false);
+        setIsCloseConfirmed(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, createNeuron]);
+
   // Check if user has unsaved data (step 2 or 3, not processing)
-  const checkHasUnsavedData = () =>
+  const hasUnsavedData =
     step !== StakingWizardStep.Amount &&
     step !== StakingWizardStep.Confirmation &&
     !createNeuron.isProcessing;
 
-  const closeAndReset = () => {
-    setIsOpen(false);
-    // Wait for the modal to close before resetting the step and form state
-    // to avoid an animation glitch.
-    setTimeout(() => {
-      setStep(StakingWizardStep.Amount);
-      setFormState(STAKING_WIZARD_DEFAULT_FORM_STATE);
-      createNeuron.reset();
-    }, 500);
-  };
-
   const handleOpenChange = (toOpen: boolean) => {
+    // Block close during processing
     if (createNeuron.isProcessing && !toOpen) return;
 
-    // If closing and has unsaved data, show confirmation dialog
-    if (!toOpen && checkHasUnsavedData()) {
+    // If user already confirmed close, just close (skip confirmation logic)
+    if (!toOpen && isCloseConfirmed) {
+      setIsOpen(false);
+      return;
+    }
+
+    // If closing and has unsaved data, show confirmation dialog instead
+    if (!toOpen && hasUnsavedData && !showCloseConfirmation) {
       setShowCloseConfirmation(true);
       return;
     }
 
-    if (toOpen) {
-      setIsOpen(true);
-    } else {
-      closeAndReset();
-    }
+    // If confirmation is showing, block additional close attempts from Drawer
+    if (!toOpen && showCloseConfirmation) return;
+
+    setIsOpen(toOpen);
   };
 
   const handleConfirmClose = () => {
     setShowCloseConfirmation(false);
-    closeAndReset();
+    setIsCloseConfirmed(true); // This triggers the useEffect to close
+  };
+
+  const handleCancelClose = () => {
+    setShowCloseConfirmation(false);
   };
 
   const goBack = () => {
@@ -219,13 +241,13 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
         isBlocked={createNeuron.isProcessing}
         description={t(($) => $.stakeWizardModal.confirmNavigation)}
       />
-      {/* Block navigation when user has unsaved data */}
+      {/* Block navigation when user has unsaved data (but not if they confirmed close) */}
       <NavigationBlockerDialog
-        isBlocked={isOpen && checkHasUnsavedData()}
+        isBlocked={isOpen && hasUnsavedData && !isCloseConfirmed}
         description={t(($) => $.stakeWizardModal.confirmNavigationUnsaved)}
       />
       {/* Confirmation dialog when closing modal with unsaved data */}
-      <AlertDialog open={showCloseConfirmation} onOpenChange={setShowCloseConfirmation}>
+      <AlertDialog open={showCloseConfirmation} onOpenChange={handleCancelClose}>
         <AlertDialogContent data-testid="staking-wizard-close-confirmation">
           <AlertDialogHeader>
             <AlertDialogTitle>{t(($) => $.common.warning)}</AlertDialogTitle>

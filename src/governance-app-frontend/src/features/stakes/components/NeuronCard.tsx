@@ -76,7 +76,10 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
 
   return (
     <>
-      <Card className="gap-3 transition-colors hover:border-foreground" data-testid="neuron-card">
+      <Card
+        className="flex h-full flex-col gap-3 transition-colors hover:border-foreground"
+        data-testid="neuron-card"
+      >
         <CardHeader className="flex flex-col items-start justify-between space-y-0 xs:flex-row">
           <div>
             <h3 className="text-sm font-medium text-muted-foreground">
@@ -113,7 +116,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
           )}
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="flex-1">
           <div className="flex flex-col">
             <div className="mb-4">
               <p className="text-3xl font-bold" data-testid="neuron-card-staked-amount">

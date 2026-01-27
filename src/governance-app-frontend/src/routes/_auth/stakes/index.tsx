@@ -1,7 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
@@ -22,12 +21,14 @@ import { warningNotification } from '@utils/notification';
 type StakesSearchParams = {
   stakeId?: string;
   action?: string;
+  openWizard?: boolean;
 };
 
 export const Route = createFileRoute('/_auth/stakes/')({
   validateSearch: (search: Record<string, unknown>): StakesSearchParams => ({
     stakeId: typeof search.stakeId === 'string' ? search.stakeId : undefined,
     action: typeof search.action === 'string' ? search.action : undefined,
+    openWizard: search.openWizard === 'true' || search.openWizard === true ? true : undefined,
   }),
   component: StakesComponent,
   staticData: {
@@ -36,11 +37,10 @@ export const Route = createFileRoute('/_auth/stakes/')({
 });
 
 function StakesComponent() {
-  const [isStakingWizardOpen, setIsStakingWizardOpen] = useState(false);
   const neuronsQuery = useGovernanceNeurons();
   const { t } = useTranslation();
   const navigate = useNavigate({ from: Route.fullPath });
-  const { stakeId: neuronParam, action: actionParam } = Route.useSearch();
+  const { stakeId: neuronParam, action: actionParam, openWizard } = Route.useSearch();
 
   const selectedNeuronId = neuronParam ? stringToBigInt(neuronParam) : undefined;
 
@@ -56,14 +56,23 @@ function StakesComponent() {
   const balanceICPs = bigIntDiv(balanceValue?.response || 0n, E8Sn);
   const canStake = balanceICPs > ICP_TRANSACTION_FEE;
 
+  const handleStakingWizardOpenChange = (isOpen: boolean) => {
+    navigate({
+      search: isOpen ? { openWizard: true } : {},
+      replace: true,
+    });
+    if (isOpen) {
+      analytics.event(AnalyticsEvent.StakingOpenWizard);
+    }
+  };
+
   const handleOpenStakingWizard = () => {
     if (!canStake) {
       warningNotification({
         description: t(($) => $.stakeWizardModal.errors.cannotStake),
       });
     }
-    setIsStakingWizardOpen(true);
-    analytics.event(AnalyticsEvent.StakingOpenWizard);
+    handleStakingWizardOpenChange(true);
   };
 
   const hasNeurons = neuronsQuery.isSuccess && (neuronsQuery.data?.response.length ?? 0) > 0;
@@ -105,7 +114,7 @@ function StakesComponent() {
         )}
       </QueryStates>
 
-      <StakingWizardModal isOpen={isStakingWizardOpen} setIsOpen={setIsStakingWizardOpen} />
+      <StakingWizardModal isOpen={!!openWizard} setIsOpen={handleStakingWizardOpenChange} />
     </div>
   );
 }

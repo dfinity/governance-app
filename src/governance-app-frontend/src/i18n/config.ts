@@ -10,6 +10,7 @@ import knownNeurons from './en/knownNeurons.json';
 import login from './en/login.json';
 import apyOptimizationModal from './en/modals/apyOptimization.json';
 import depositModal from './en/modals/deposit.json';
+import devActionsModal from './en/modals/devActions.json';
 import maturityModal from './en/modals/maturity.json';
 import neuronDetailModal from './en/modals/neuronDetail.json';
 import stakeWizardModal from './en/modals/stakeWizard.json';
@@ -30,6 +31,7 @@ export const resources = {
       errors,
       home,
       apyOptimizationModal,
+      devActionsModal,
       maturityModal,
       neuronDetailModal,
       stakeWizardModal,

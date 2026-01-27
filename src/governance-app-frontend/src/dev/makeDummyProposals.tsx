@@ -1,9 +1,19 @@
 import { MakeProposalRequest, NeuronInfo, NnsGovernanceCanister } from '@icp-sdk/canisters/nns';
 import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { Loader2 } from 'lucide-react';
+import { FormEvent, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
-import { Spinner } from '@components/Spinner';
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogTrigger,
+} from '@components/ResponsiveDialog';
 import { SECONDS_IN_HALF_YEAR, SECONDS_IN_MONTH } from '@constants/extra';
 import { useNnsGovernance } from '@hooks/governance';
 import { errorNotification, successNotification } from '@utils/notification';
@@ -495,29 +505,20 @@ const makeDummyProposals = async ({
     const responses = await Promise.allSettled(
       requests.map(({ request }) => canister.makeProposal(request as MakeProposalRequest)),
     );
+
     // Log errors
     responses.forEach((response, index) => {
       if (response.status === 'rejected') {
         console.error(`Failed to make proposal "${requests[index].log}":`);
         console.log(response.reason?.detail ?? response.reason);
-        errorNotification({
-          title: 'makeDummyProposals',
-          description: JSON.stringify(response.reason?.detail ?? response.reason),
-        });
       }
     });
+
     // Log success rate
     const successCount = responses.filter((response) => response.status === 'fulfilled').length;
     console.log('Finished making dummy proposals: ', successCount, ' of ', requests.length);
 
-    if (successCount !== requests.length) {
-      throw new Error(`Only ${successCount} of ${requests.length} proposals were created.`);
-    } else {
-      successNotification({
-        title: 'makeDummyProposals',
-        description: `${successCount} proposals were created.`,
-      });
-    }
+    return { successCount, totalCount: requests.length };
   } catch (e) {
     console.error(e);
     throw e;
@@ -525,26 +526,93 @@ const makeDummyProposals = async ({
 };
 
 export const CreateDummyProposalsButton = ({ neuron }: { neuron: NeuronInfo }) => {
+  const { t } = useTranslation();
   const { ready, canister, authenticated } = useNnsGovernance();
   const queryClient = useQueryClient();
-  const [isLoading, setIsLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState(false);
 
-  const handleClick = () => {
-    setIsLoading(true);
-    if (ready && canister && authenticated) {
-      makeDummyProposals({ canister, neuronId: neuron.neuronId })
-        .then(() => {
-          console.log('invalidating queries');
-          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS] });
-        })
-        .finally(() => setIsLoading(false));
+  const canCreate = ready && canister && authenticated;
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!canCreate) return;
+
+    setPending(true);
+    try {
+      const { successCount, totalCount } = await makeDummyProposals({
+        canister,
+        neuronId: neuron.neuronId,
+      });
+      console.log('invalidating queries');
+      await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS] });
+
+      if (successCount === totalCount) {
+        successNotification({
+          description: t(($) => $.devActionsModal.createProposals.success, { count: successCount }),
+        });
+        setOpen(false);
+      } else {
+        errorNotification({
+          description: t(($) => $.devActionsModal.createProposals.errors.partial, {
+            success: successCount,
+            total: totalCount,
+          }),
+        });
+      }
+    } catch {
+      errorNotification({
+        description: t(($) => $.devActionsModal.createProposals.errors.failed),
+      });
+    } finally {
+      setPending(false);
     }
   };
 
   return (
-    <Button size="sm" onClick={handleClick} variant="outline" disabled={isLoading}>
-      {isLoading ? <Spinner /> : null}
-      Make Dummy Proposals
-    </Button>
+    <ResponsiveDialog open={open} onOpenChange={setOpen}>
+      <ResponsiveDialogTrigger asChild>
+        {canCreate ? (
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-auto py-4 transition-colors hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0"
+          >
+            {t(($) => $.devActionsModal.createProposals.button)}
+          </Button>
+        ) : (
+          <></>
+        )}
+      </ResponsiveDialogTrigger>
+
+      <ResponsiveDialogContent>
+        <form onSubmit={handleSubmit}>
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>
+              {t(($) => $.devActionsModal.createProposals.title)}
+            </ResponsiveDialogTitle>
+            <ResponsiveDialogDescription>
+              {t(($) => $.devActionsModal.createProposals.description)}
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
+
+          <ResponsiveDialogFooter className="mt-4 flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
+              {t(($) => $.devActionsModal.common.close)}
+            </Button>
+            <Button type="submit" disabled={pending}>
+              {pending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t(($) => $.devActionsModal.createProposals.creating)}
+                </>
+              ) : (
+                t(($) => $.devActionsModal.createProposals.confirm)
+              )}
+            </Button>
+          </ResponsiveDialogFooter>
+        </form>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 };

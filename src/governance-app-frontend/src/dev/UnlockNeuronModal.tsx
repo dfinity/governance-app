@@ -1,7 +1,9 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
 import { FormEvent, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import {
@@ -26,6 +28,7 @@ type Props = {
 export const UnlockNeuronModal = ({ neuron }: Props) => {
   if (!IS_TESTNET) throw errorMessage('unlockNeuronModal', 'the environment is not "testnet"');
 
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const {
@@ -61,7 +64,7 @@ export const UnlockNeuronModal = ({ neuron }: Props) => {
         })
         .then(() => {
           successNotification({
-            description: `You have successfully unlocked neuron #${neuronId}.`,
+            description: t(($) => $.devActionsModal.unlockStake.success),
           });
           setPending(false);
           setOpen(false);
@@ -69,7 +72,7 @@ export const UnlockNeuronModal = ({ neuron }: Props) => {
     onError: () => {
       setPending(false);
       errorNotification({
-        description: `Failed to unlock neuron #${neuronId}.`,
+        description: t(($) => $.devActionsModal.unlockStake.errors.failed),
       });
     },
   });
@@ -83,8 +86,12 @@ export const UnlockNeuronModal = ({ neuron }: Props) => {
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger asChild>
         {canUpdate ? (
-          <Button variant="outline" size="sm">
-            Unlock neuron
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-auto py-4 transition-colors hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0"
+          >
+            {t(($) => $.devActionsModal.unlockStake.title)}
           </Button>
         ) : (
           <></>
@@ -94,18 +101,27 @@ export const UnlockNeuronModal = ({ neuron }: Props) => {
       <ResponsiveDialogContent>
         <form onSubmit={handleSubmit}>
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>Unlock neuron #{neuronId}</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle>
+              {t(($) => $.devActionsModal.unlockStake.title)}
+            </ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
-              Unlock the neuron. Available only in TESTNET.
+              {t(($) => $.devActionsModal.unlockStake.description)}
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
 
           <ResponsiveDialogFooter className="mt-4 flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
-              Close
+              {t(($) => $.devActionsModal.common.close)}
             </Button>
             <Button type="submit" disabled={pending}>
-              {pending ? 'Confirming...' : 'Confirm'}
+              {pending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t(($) => $.devActionsModal.unlockStake.confirming)}
+                </>
+              ) : (
+                t(($) => $.devActionsModal.unlockStake.confirm)
+              )}
             </Button>
           </ResponsiveDialogFooter>
         </form>

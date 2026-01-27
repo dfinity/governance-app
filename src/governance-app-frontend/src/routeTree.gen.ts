@@ -16,7 +16,6 @@ import { Route as AuthStakesIndexRouteImport } from './routes/_auth/stakes/index
 import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
 import { Route as AuthAccountIndexRouteImport } from './routes/_auth/account/index'
 import { Route as AuthVotingRepresentativesIndexRouteImport } from './routes/_auth/voting/representatives/index'
-import { Route as AuthStakesIdIndexRouteImport } from './routes/_auth/stakes/$id/index'
 import { Route as AuthVotingProposalsIdIndexRouteImport } from './routes/_auth/voting/proposals/$id/index'
 
 const AuthRoute = AuthRouteImport.update({
@@ -54,11 +53,6 @@ const AuthVotingRepresentativesIndexRoute =
     path: '/voting/representatives/',
     getParentRoute: () => AuthRoute,
   } as any)
-const AuthStakesIdIndexRoute = AuthStakesIdIndexRouteImport.update({
-  id: '/stakes/$id/',
-  path: '/stakes/$id/',
-  getParentRoute: () => AuthRoute,
-} as any)
 const AuthVotingProposalsIdIndexRoute =
   AuthVotingProposalsIdIndexRouteImport.update({
     id: '/voting/proposals/$id/',
@@ -72,7 +66,6 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthDashboardIndexRoute
   '/stakes': typeof AuthStakesIndexRoute
   '/voting': typeof AuthVotingIndexRoute
-  '/stakes/$id': typeof AuthStakesIdIndexRoute
   '/voting/representatives': typeof AuthVotingRepresentativesIndexRoute
   '/voting/proposals/$id': typeof AuthVotingProposalsIdIndexRoute
 }
@@ -82,7 +75,6 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthDashboardIndexRoute
   '/stakes': typeof AuthStakesIndexRoute
   '/voting': typeof AuthVotingIndexRoute
-  '/stakes/$id': typeof AuthStakesIdIndexRoute
   '/voting/representatives': typeof AuthVotingRepresentativesIndexRoute
   '/voting/proposals/$id': typeof AuthVotingProposalsIdIndexRoute
 }
@@ -94,7 +86,6 @@ export interface FileRoutesById {
   '/_auth/dashboard/': typeof AuthDashboardIndexRoute
   '/_auth/stakes/': typeof AuthStakesIndexRoute
   '/_auth/voting/': typeof AuthVotingIndexRoute
-  '/_auth/stakes/$id/': typeof AuthStakesIdIndexRoute
   '/_auth/voting/representatives/': typeof AuthVotingRepresentativesIndexRoute
   '/_auth/voting/proposals/$id/': typeof AuthVotingProposalsIdIndexRoute
 }
@@ -106,7 +97,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/stakes'
     | '/voting'
-    | '/stakes/$id'
     | '/voting/representatives'
     | '/voting/proposals/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -116,7 +106,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/stakes'
     | '/voting'
-    | '/stakes/$id'
     | '/voting/representatives'
     | '/voting/proposals/$id'
   id:
@@ -127,7 +116,6 @@ export interface FileRouteTypes {
     | '/_auth/dashboard/'
     | '/_auth/stakes/'
     | '/_auth/voting/'
-    | '/_auth/stakes/$id/'
     | '/_auth/voting/representatives/'
     | '/_auth/voting/proposals/$id/'
   fileRoutesById: FileRoutesById
@@ -188,13 +176,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthVotingRepresentativesIndexRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/stakes/$id/': {
-      id: '/_auth/stakes/$id/'
-      path: '/stakes/$id'
-      fullPath: '/stakes/$id'
-      preLoaderRoute: typeof AuthStakesIdIndexRouteImport
-      parentRoute: typeof AuthRoute
-    }
     '/_auth/voting/proposals/$id/': {
       id: '/_auth/voting/proposals/$id/'
       path: '/voting/proposals/$id'
@@ -210,7 +191,6 @@ interface AuthRouteChildren {
   AuthDashboardIndexRoute: typeof AuthDashboardIndexRoute
   AuthStakesIndexRoute: typeof AuthStakesIndexRoute
   AuthVotingIndexRoute: typeof AuthVotingIndexRoute
-  AuthStakesIdIndexRoute: typeof AuthStakesIdIndexRoute
   AuthVotingRepresentativesIndexRoute: typeof AuthVotingRepresentativesIndexRoute
   AuthVotingProposalsIdIndexRoute: typeof AuthVotingProposalsIdIndexRoute
 }
@@ -220,7 +200,6 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthDashboardIndexRoute: AuthDashboardIndexRoute,
   AuthStakesIndexRoute: AuthStakesIndexRoute,
   AuthVotingIndexRoute: AuthVotingIndexRoute,
-  AuthStakesIdIndexRoute: AuthStakesIdIndexRoute,
   AuthVotingRepresentativesIndexRoute: AuthVotingRepresentativesIndexRoute,
   AuthVotingProposalsIdIndexRoute: AuthVotingProposalsIdIndexRoute,
 }
