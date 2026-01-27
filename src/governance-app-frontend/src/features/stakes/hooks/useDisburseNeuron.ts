@@ -4,7 +4,7 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
 import { useNnsGovernance } from '@hooks/governance';
-import { QUERY_KEYS } from '@utils/query';
+import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
 type DisburseNeuronParams = {
   neuronId: bigint;
@@ -35,13 +35,12 @@ export function useDisburseNeuron() {
         neuronId: params.neuronId,
         toAccountId,
       });
-    },
-    onSettled: () => {
-      Promise.all([
+
+      await Promise.all([
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE] }),
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] }),
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS] }),
-      ]);
+      ]).catch(failedRefresh);
     },
   });
 }

@@ -1,11 +1,9 @@
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useNnsGovernance } from '@hooks/governance';
-import { mapGovernanceCanisterError } from '@utils/nns-governance';
-import { QUERY_KEYS } from '@utils/query';
+import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
 type ToggleDissolvingParams = {
   neuronId: bigint;
@@ -23,44 +21,23 @@ export function useToggleDissolving() {
   const { identity } = useInternetIdentity();
   const { canister: governanceCanister } = useNnsGovernance();
 
-  const [isProcessing, setIsProcessing] = useState(false);
+  return useMutation({
+    mutationFn: async (params: ToggleDissolvingParams) => {
+      if (!governanceCanister || !identity) {
+        throw new Error(t(($) => $.neuronDetailModal.dissolve.errors.failed));
+      }
 
-  const execute = async (
-    params: ToggleDissolvingParams,
-  ): Promise<{ success: boolean; error?: string }> => {
-    if (!governanceCanister || !identity) {
-      return {
-        success: false,
-        error: t(($) => $.neuronDetailModal.dissolve.errors.failed),
-      };
-    }
-
-    setIsProcessing(true);
-
-    try {
       if (params.startDissolving) {
         await governanceCanister.startDissolving(params.neuronId);
       } else {
         await governanceCanister.stopDissolving(params.neuronId);
       }
 
-      return { success: true };
-    } catch (err) {
-      return {
-        success: false,
-        error: mapGovernanceCanisterError(err as Error),
-      };
-    } finally {
-      await queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
-      });
-
-      setIsProcessing(false);
-    }
-  };
-
-  return {
-    execute,
-    isProcessing,
-  };
+      await queryClient
+        .invalidateQueries({
+          queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
+        })
+        .catch(failedRefresh);
+    },
+  });
 }

@@ -3,7 +3,7 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
 import { useNnsGovernance } from '@hooks/governance';
-import { QUERY_KEYS } from '@utils/query';
+import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
 type DisburseMaturityParams = {
   neuronId: bigint;
@@ -30,11 +30,12 @@ export function useDisburseMaturity() {
         neuronId: params.neuronId,
         percentageToDisburse: 100,
       });
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
-      });
+
+      await queryClient
+        .invalidateQueries({
+          queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
+        })
+        .catch(failedRefresh);
     },
   });
 }

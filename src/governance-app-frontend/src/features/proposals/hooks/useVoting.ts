@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { ephemeralNotification } from '@utils/notification';
-import { QUERY_KEYS } from '@utils/query';
+import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
 /**
  * Hook to manage voting on a proposal
@@ -77,9 +77,7 @@ export const useVoting = (proposal: ProposalInfo) => {
           queryClient.invalidateQueries({
             queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL, proposal.id?.toString()],
           }),
-        ]).catch((err) => {
-          console.error('Failed to invalidate queries:', err);
-        });
+        ]).catch(failedRefresh);
         return res;
       });
 

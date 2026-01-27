@@ -4,6 +4,7 @@ import { Trans, useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
+import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { errorNotification, successNotification } from '@utils/notification';
 
 import { useToggleDissolving } from '../../hooks/useToggleDissolving';
@@ -25,35 +26,37 @@ export function NeuronDetailDissolveView({
 }: Props) {
   const { t } = useTranslation();
 
-  const { execute, isProcessing } = useToggleDissolving();
+  const { mutateAsync, isPending } = useToggleDissolving();
 
   const handleConfirm = async () => {
     onProcessingChange(true);
 
-    const result = await execute({
-      neuronId: neuron.neuronId,
-      startDissolving: !isDissolving,
-    });
+    try {
+      await mutateAsync({
+        neuronId: neuron.neuronId,
+        startDissolving: !isDissolving,
+      });
 
-    onProcessingChange(false);
-
-    if (result.success) {
       successNotification({
         description: isDissolving
           ? t(($) => $.neuronDetailModal.dissolve.successStop)
           : t(($) => $.neuronDetailModal.dissolve.successStart),
       });
+
+      // Wait for the navigation blocker to be released (isPending propagated to false)
       setTimeout(onSuccess);
-    } else if (result.error) {
+    } catch (err) {
       errorNotification({
-        description: result.error,
+        description: mapGovernanceCanisterError(err as Error),
       });
+    } finally {
+      onProcessingChange(false);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isProcessing) {
+    if (!isPending) {
       handleConfirm();
     }
   };
@@ -104,11 +107,11 @@ export function NeuronDetailDissolveView({
         type="submit"
         size="xl"
         className="w-full"
-        disabled={isProcessing}
+        disabled={isPending}
         variant={isDissolving ? 'default' : 'destructive'}
         data-testid="dissolve-confirm-btn"
       >
-        {isProcessing ? (
+        {isPending ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             {isDissolving
