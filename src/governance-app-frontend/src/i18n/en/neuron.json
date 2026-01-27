@@ -46,8 +46,7 @@
   },
   "stakeNeuron": {
     "errors": {
-      "zeroBalance": "You need ICP to stake. Please buy or deposit ICP first.",
-      "insufficientBalance": "Stake amount exceeds available balance."
+      "zeroBalance": "You need ICP to stake. Please buy or deposit ICP first."
     }
   }
 }

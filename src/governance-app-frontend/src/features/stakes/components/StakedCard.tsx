@@ -20,7 +20,6 @@ import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronFreeMaturityE8s, getNeuronStakeE8s } from '@utils/neuron';
 import { warningNotification } from '@utils/notification';
 import { formatNumber, formatPercentage } from '@utils/numbers';
-import { hasEnoughBalanceToStake } from '@utils/staking';
 import { isStakingRewardDataReady, MaturityEstimatePeriod } from '@utils/staking-rewards';
 
 export function StakedCard() {
@@ -37,15 +36,10 @@ export function StakedCard() {
   const handleStakeMoreClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const balanceICP = bigIntDiv(balanceQuery.data?.response || 0n, E8Sn);
 
-    if (!hasEnoughBalanceToStake(balanceICP)) {
+    if (balanceICP <= 0) {
       e.preventDefault();
-
       warningNotification({
-        description: t(($) =>
-          balanceICP === 0
-            ? $.neuron.stakeNeuron.errors.zeroBalance
-            : $.neuron.stakeNeuron.errors.insufficientBalance,
-        ),
+        description: t(($) => $.neuron.stakeNeuron.errors.zeroBalance),
       });
     }
   };
