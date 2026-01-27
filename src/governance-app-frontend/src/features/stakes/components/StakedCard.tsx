@@ -44,7 +44,7 @@ export function StakedCard() {
     }
   };
 
-  const { totalStaked, totalUnstakedMaturity } = getNeuronsAggregatedData(
+  const { totalStakedAfterFees: totalStaked, totalUnstakedMaturity } = getNeuronsAggregatedData(
     neuronsQuery.data?.response,
   );
 

@@ -31,7 +31,7 @@ export const TotalAssetsCard = () => {
     ? bigIntDiv(balanceQuery.data.response, E8Sn)
     : 0;
 
-  const { totalStaked: stakedBalance, totalUnstakedMaturity: maturityBalance } =
+  const { totalStakedAfterFees: stakedBalance, totalUnstakedMaturity: maturityBalance } =
     getNeuronsAggregatedData(neuronsQuery.data?.response);
 
   const totalAssets = liquidBalance + stakedBalance + maturityBalance;

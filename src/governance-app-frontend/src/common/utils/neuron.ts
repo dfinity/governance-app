@@ -190,20 +190,20 @@ export const getNeuronHasNoFollowing = (neuron: NeuronInfo): boolean => {
 /**
  * Aggregates staking data from multiple neurons.
  * @param neurons - Array of neurons to aggregate data from
- * @returns Object containing totalStaked and totalUnstakedMaturity
+ * @returns Object containing totalStakedAfterFees and totalUnstakedMaturity
  */
 export const getNeuronsAggregatedData = (
   neurons: NeuronInfo[] = [],
-): { totalStaked: number; totalUnstakedMaturity: number } => {
+): { totalStakedAfterFees: number; totalUnstakedMaturity: number } => {
   return neurons.reduce(
     (acc, neuron) => {
       const stake = bigIntDiv(getNeuronTotalStakeAfterFeesE8s(neuron), E8Sn);
       const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
       return {
-        totalStaked: acc.totalStaked + stake,
+        totalStakedAfterFees: acc.totalStakedAfterFees + stake,
         totalUnstakedMaturity: acc.totalUnstakedMaturity + unstakedMaturity,
       };
     },
-    { totalStaked: 0, totalUnstakedMaturity: 0 },
+    { totalStakedAfterFees: 0, totalUnstakedMaturity: 0 },
   );
 };

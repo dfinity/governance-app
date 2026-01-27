@@ -24,5 +24,5 @@
   "recommendation": "Stake your available {{available}} ICP with an 8-year delay to maximize your rewards.",
   "recommendationMaturityOnly": "Enable auto-stake maturity on your neurons to compound your {{available}} unstaked maturity.",
   "button": "Stake now",
-  "buttonMaturityOnly": "Manage stakes"
+  "buttonMaturityOnly": "Manage Stakes"
 }
