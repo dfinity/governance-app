@@ -138,13 +138,13 @@ test.describe.serial('Neuron Detail Modal', () => {
   test('Maturity Mode', async () => {
     await test.step('Opens view, shows current mode, and URL persists', async () => {
       await openNeuronDetailModal(page);
-      await page.getByTestId('neuron-detail-action-maturity-mode').click();
+      await page.getByTestId('neuron-detail-action-new-maturity').click();
       const url = page.url();
       expect(url).toContain('action=maturityMode');
       await expect(page.getByTestId('segmented-toggle')).toBeVisible();
       await page.getByTestId('neuron-detail-back-btn').click();
-      await expect(page.getByTestId('neuron-detail-action-maturity-mode')).toBeVisible();
-      await page.getByTestId('neuron-detail-action-maturity-mode').click();
+      await expect(page.getByTestId('neuron-detail-action-new-maturity')).toBeVisible();
+      await page.getByTestId('neuron-detail-action-new-maturity').click();
       await page.reload();
       await expect(page.getByTestId('segmented-toggle')).toBeVisible();
       await closeModal(page);
@@ -152,14 +152,14 @@ test.describe.serial('Neuron Detail Modal', () => {
 
     await test.step('Confirm button disabled when no change', async () => {
       await openNeuronDetailModal(page);
-      await page.getByTestId('neuron-detail-action-maturity-mode').click();
+      await page.getByTestId('neuron-detail-action-new-maturity').click();
       await expect(page.getByTestId('maturity-mode-confirm-btn')).toBeDisabled();
       await closeModal(page);
     });
 
     await test.step('Successfully changes mode to auto-stake', async () => {
       await openNeuronDetailModal(page);
-      await page.getByTestId('neuron-detail-action-maturity-mode').click();
+      await page.getByTestId('neuron-detail-action-new-maturity').click();
       const toggle = page.getByTestId('segmented-toggle');
       await toggle.getByRole('radio', { name: /auto-stake/i }).click();
       await expect(page.getByTestId('maturity-mode-confirm-btn')).toBeEnabled();
