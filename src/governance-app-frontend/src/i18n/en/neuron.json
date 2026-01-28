@@ -23,6 +23,7 @@
   "noFollowingWarning": "Not following anyone yet. Set up following in the Voting page.",
   "disburseIcp": "Disburse ICPs",
   "disburseMaturity": "Disburse maturity",
+  "stakeMaturity": "Stake maturity",
   "errors": {
     "neuronNotFound": "Stake #{{neuronId}} not found."
   },

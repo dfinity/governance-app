@@ -33,6 +33,4 @@ export const routerConfig = createRouter({
   routeTree,
   defaultPendingMs: 100,
   defaultPendingMinMs: 300,
-  scrollRestoration: true,
-  scrollToTopSelectors: ['main'],
 });

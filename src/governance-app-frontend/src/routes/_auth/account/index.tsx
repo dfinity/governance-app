@@ -40,10 +40,8 @@ function Account() {
   return (
     <div className="flex flex-col gap-12 pb-20">
       <section className="flex flex-col gap-4">
-        <div className="space-y-1">
-          <h2 className="text-xl font-semibold tracking-tight">
-            {t(($) => $.userAccount.account)}
-          </h2>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-semibold">{t(($) => $.userAccount.account)}</h2>
           <p className="text-sm text-muted-foreground">
             {t(($) => $.userAccount.accountDescription)}
           </p>
@@ -64,10 +62,8 @@ function Account() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <div className="space-y-1">
-          <h2 className="text-xl font-semibold tracking-tight">
-            {t(($) => $.userAccount.governance.title)}
-          </h2>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-semibold">{t(($) => $.userAccount.governance.title)}</h2>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Card className="p-6 shadow-sm">
@@ -80,10 +76,8 @@ function Account() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <div className="space-y-1">
-          <h2 className="text-xl font-semibold tracking-tight">
-            {t(($) => $.userAccount.appearance)}
-          </h2>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-semibold">{t(($) => $.userAccount.appearance)}</h2>
         </div>
         <Card className="p-6 shadow-sm">
           <ThemeCard />
@@ -91,10 +85,8 @@ function Account() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <div className="space-y-1">
-          <h2 className="text-xl font-semibold tracking-tight">
-            {t(($) => $.userAccount.session.title)}
-          </h2>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-semibold">{t(($) => $.userAccount.session.title)}</h2>
           {nonNullish(timeLeft) && (
             <p className="text-sm text-muted-foreground">
               {t(($) => $.userAccount.session.timeLeft, getSessionTimeLeftForUi(timeLeft))}

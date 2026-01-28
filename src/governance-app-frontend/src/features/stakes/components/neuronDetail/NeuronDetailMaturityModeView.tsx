@@ -7,8 +7,8 @@ import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { MaxRewardsBadge } from '@components/MaxRewardsBadge';
 import { SegmentedToggle, type SegmentedToggleValue } from '@components/SegmentedToggle';
+import { mapCanisterError } from '@utils/errors';
 import { getNeuronIsAutoStakingMaturity } from '@utils/neuron';
-import { mapGovernanceCanisterError } from '@utils/nns-governance';
 import { errorNotification, successNotification } from '@utils/notification';
 
 import { useToggleMaturityMode } from '../../hooks/useToggleMaturityMode';
@@ -50,7 +50,7 @@ export function NeuronDetailMaturityModeView({ neuron, onSuccess, onProcessingCh
       setTimeout(onSuccess);
     } catch (err) {
       errorNotification({
-        description: mapGovernanceCanisterError(err as Error),
+        description: mapCanisterError(err as Error),
       });
     } finally {
       onProcessingChange(false);

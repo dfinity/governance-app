@@ -8,8 +8,7 @@
     "confirming": "Adding maturity...",
     "success": "Successfully added {{amount}} maturity.",
     "errors": {
-      "amountTooLow": "Amount must be greater than 0.",
-      "failed": "Failed to increase maturity. Please try again."
+      "amountTooLow": "Amount must be greater than 0."
     }
   },
   "unlockStake": {
@@ -17,10 +16,7 @@
     "description": "Instantly unlock this Stake, bypassing the dissolve delay. The Stake will be ready for disbursement.",
     "confirm": "Confirm",
     "confirming": "Unlocking...",
-    "success": "Stake unlocked successfully.",
-    "errors": {
-      "failed": "Failed to unlock Stake. Please try again."
-    }
+    "success": "Stake unlocked successfully."
   },
   "createProposals": {
     "title": "Create proposals",
@@ -30,7 +26,6 @@
     "creating": "Creating...",
     "success": "{{count}} proposals created successfully.",
     "errors": {
-      "failed": "Failed to create proposals. Please try again.",
       "partial": "Only {{success}} of {{total}} proposals were created."
     }
   },

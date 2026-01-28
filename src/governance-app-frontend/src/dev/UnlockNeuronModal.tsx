@@ -18,6 +18,7 @@ import {
 import { IS_TESTNET, U64_MAX } from '@constants/extra';
 import { useNnsGovernanceTest } from '@hooks/governance/useGovernanceTest';
 import { errorMessage } from '@utils/error';
+import { mapCanisterError } from '@utils/errors';
 import { errorNotification, successNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
@@ -69,10 +70,10 @@ export const UnlockNeuronModal = ({ neuron }: Props) => {
           setPending(false);
           setOpen(false);
         }),
-    onError: () => {
+    onError: (error) => {
       setPending(false);
       errorNotification({
-        description: t(($) => $.devActionsModal.unlockStake.errors.failed),
+        description: mapCanisterError(error),
       });
     },
   });

@@ -4,7 +4,7 @@ import { Trans, useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
-import { mapGovernanceCanisterError } from '@utils/nns-governance';
+import { mapCanisterError } from '@utils/errors';
 import { errorNotification, successNotification } from '@utils/notification';
 
 import { useToggleDissolving } from '../../hooks/useToggleDissolving';
@@ -47,7 +47,7 @@ export function NeuronDetailDissolveView({
       setTimeout(onSuccess);
     } catch (err) {
       errorNotification({
-        description: mapGovernanceCanisterError(err as Error),
+        description: mapCanisterError(err as Error),
       });
     } finally {
       onProcessingChange(false);
