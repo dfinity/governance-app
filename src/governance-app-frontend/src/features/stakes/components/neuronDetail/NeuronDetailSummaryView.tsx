@@ -4,11 +4,15 @@ import { Clock, Lock, PlusCircle, Settings, Unlock, Wrench } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
+import { CopyButton } from '@components/CopyButton';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { Skeleton } from '@components/Skeleton';
+import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
+import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
 import { useApyColor } from '@hooks/useApyColor';
 import { bigIntDiv } from '@utils/bigInt';
+import { shortenNeuronId } from '@utils/neuron';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 
 import { NeuronStateBadge } from '../NeuronStateBadge';
@@ -35,10 +39,14 @@ export function NeuronDetailSummaryView({
 }: Props) {
   const { t } = useTranslation();
   const apyColor = useApyColor(apy?.cur ?? 0);
+  const { tickerPrices: tickersQuery } = useTickerPrices();
 
   const stakedAmount = neuron.fullNeuron?.cachedNeuronStake
     ? bigIntDiv(neuron.fullNeuron.cachedNeuronStake, E8Sn)
     : 0;
+
+  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
+  const usdValue = icpPrice ? formatNumber(stakedAmount * icpPrice.usd) : undefined;
 
   const stakedMaturity = neuron.fullNeuron?.stakedMaturityE8sEquivalent
     ? bigIntDiv(neuron.fullNeuron.stakedMaturityE8sEquivalent, E8Sn)
@@ -54,14 +62,41 @@ export function NeuronDetailSummaryView({
     i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
   });
 
+  const creationDate = formatTimestampToLocalDate(neuron.fullNeuron?.createdTimestampSeconds);
+
   return (
     <div className="flex flex-col gap-4">
+      {/* Staked Amount - Prominent Display */}
+      <div className="flex flex-col items-center gap-1 pb-2">
+        <p className="text-3xl font-bold md:text-4xl" data-testid="neuron-detail-staked-amount">
+          {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
+        </p>
+        {tickersQuery.isLoading ? (
+          <Skeleton className="h-5 w-24" />
+        ) : (
+          usdValue && (
+            <p className="text-sm text-muted-foreground md:text-base">
+              {t(($) => $.account.approxUsd, { value: usdValue })}
+            </p>
+          )
+        )}
+      </div>
+
       {/* Neuron Info Section */}
       <div className="flex flex-col rounded-lg border bg-muted/30">
-        <InfoRow label={t(($) => $.neuron.stakedAmount)} dataTestId="neuron-detail-staked-amount">
-          <span className="font-semibold">
-            {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
-          </span>
+        <InfoRow label="Stake ID" dataTestId="neuron-detail-stake-id">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold">#{shortenNeuronId(neuron.neuronId)}</span>
+            <CopyButton
+              value={neuron.neuronId.toString()}
+              label="Stake ID"
+              className="size-6 border-0 p-0 hover:bg-transparent"
+            />
+          </div>
+        </InfoRow>
+
+        <InfoRow label={t(($) => $.neuron.created)} dataTestId="neuron-detail-creation-date">
+          <span className="font-semibold">{creationDate}</span>
         </InfoRow>
 
         <InfoRow label={t(($) => $.neuron.dissolveDelay)} dataTestId="neuron-detail-dissolve-delay">

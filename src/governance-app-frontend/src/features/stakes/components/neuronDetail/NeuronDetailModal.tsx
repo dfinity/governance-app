@@ -89,7 +89,7 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
   const getTitle = (): string => {
     switch (displayView) {
       case NeuronDetailView.Summary:
-        return t(($) => $.neuronDetailModal.title, { neuronId: displayNeuron.neuronId.toString() });
+        return t(($) => $.neuronDetailModal.title);
       case NeuronDetailView.IncreaseStake:
         return t(($) => $.neuronDetailModal.increaseStake.title);
       case NeuronDetailView.IncreaseDelay:

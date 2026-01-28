@@ -1,5 +1,5 @@
 {
-  "title": "Manage Stake #{{neuronId}}",
+  "title": "Manage Stake",
   "actions": {
     "increaseStake": "Increase Stake",
     "increaseDelay": "Increase delay",

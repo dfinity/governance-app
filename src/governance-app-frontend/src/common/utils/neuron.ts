@@ -9,6 +9,12 @@ export const getNeuronId = (neuron: NeuronInfo): string => {
   return String(neuron.neuronId);
 };
 
+export const shortenNeuronId = (neuronId: bigint): string => {
+  const idString = neuronId.toString();
+  if (idString.length <= 10) return idString;
+  return `${idString.slice(0, 5)}...${idString.slice(-5)}`;
+};
+
 export const getNeuronIsDissolved = (neuron: NeuronInfo): boolean => {
   return neuron.state === NeuronState.Dissolved;
 };
