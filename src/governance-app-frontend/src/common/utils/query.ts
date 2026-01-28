@@ -1,6 +1,6 @@
 import i18n from '@/i18n/config';
 
-import { errorNotification } from './notification';
+import { warningNotification } from './notification';
 import { stringifyAll } from './string';
 
 const ICP_LEDGER = {
@@ -48,7 +48,7 @@ export const stringifyKeys = (keys: readonly unknown[]) => {
  */
 export const failedRefresh = (err: unknown) => {
   console.error('Failed to refresh data:', err);
-  errorNotification({
+  warningNotification({
     description: i18n.t(($) => $.common.refreshFailed),
   });
 };

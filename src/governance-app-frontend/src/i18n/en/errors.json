@@ -10,7 +10,7 @@
     "InsufficientFundsError": "Insufficient balance for this transfer.",
     "BadFeeError": "The transaction fee is incorrect.",
     "TxTooOldError": "The transaction is too old. Please try again.",
-    "TxCreatedInFutureError": "Invalid transaction timestamp.",
+    "TxCreatedInFutureError": "Invalid transaction timestamp, is your system time set correctly?",
     "TxDuplicateError": "This transaction has already been processed.",
     "InvalidAccountIDError": "The destination account is invalid.",
     "InvalidSenderError": "The sender account is invalid.",

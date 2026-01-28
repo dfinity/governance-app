@@ -1,4 +1,4 @@
-# Governande dApp
+# Governance dApp
 
 A decentralized governance application built on the Internet Computer, featuring a Rust backend canister and React frontend with Internet Identity authentication.
 
