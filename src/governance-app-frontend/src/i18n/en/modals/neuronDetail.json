@@ -83,7 +83,7 @@
     }
   },
   "disburseMaturity": {
-    "title": "Disburse Maturity",
+    "title": "Disburse maturity",
     "info": "<strong>Disbursement takes 1 week.</strong> {{amount}} maturity will be converted to ICP and added to your balance.",
     "cancel": "Cancel",
     "confirm": "Disburse",
@@ -91,6 +91,17 @@
     "success": "Maturity disbursement started. ICP will be added to your balance in approximately 1 week.",
     "errors": {
       "failed": "Failed to disburse maturity. Please try again."
+    }
+  },
+  "stakeMaturity": {
+    "title": "Stake maturity",
+    "info": "<strong>{{amount}} maturity will be staked.</strong> This increases your voting power and compounds your rewards.",
+    "cancel": "Cancel",
+    "confirm": "Stake",
+    "confirming": "Staking maturity, please wait...",
+    "success": "Maturity has been staked successfully.",
+    "errors": {
+      "failed": "Failed to stake maturity. Please try again."
     }
   },
   "disabled": {

@@ -1,6 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
-import { AlertTriangle, CircleAlert, Coins } from 'lucide-react';
+import { AlertTriangle, CircleAlert, Coins, PackagePlus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -27,6 +27,7 @@ import { APY } from '@utils/staking-rewards';
 import { DisburseIcpModal } from './DisburseIcpModal';
 import { DisburseMaturityModal } from './DisburseMaturityModal';
 import { NeuronStateBadge } from './NeuronStateBadge';
+import { StakeMaturityModal } from './StakeMaturityModal';
 
 type Props = {
   neuron: NeuronInfo;
@@ -38,6 +39,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
   const apyColor = useApyColor(apy?.cur ?? 0);
   const [disburseIcpOpen, setDisburseIcpOpen] = useState(false);
   const [disburseMaturityOpen, setDisburseMaturityOpen] = useState(false);
+  const [stakeMaturityOpen, setStakeMaturityOpen] = useState(false);
 
   const isDissolved = getNeuronIsDissolved(neuron);
   const isDissolving = getNeuronIsDissolving(neuron);
@@ -215,6 +217,20 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
                 {t(($) => $.neuron.disburseMaturity)}
               </Button>
             )}
+            {hasUnstakedMaturity && !isDissolved && (
+              <Button
+                variant="outline"
+                className="w-full sm:flex-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setStakeMaturityOpen(true);
+                }}
+                data-testid="neuron-card-stake-maturity-btn"
+              >
+                <PackagePlus className="size-4" />
+                {t(($) => $.neuron.stakeMaturity)}
+              </Button>
+            )}
           </CardFooter>
         )}
       </Card>
@@ -228,6 +244,11 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
         neuron={neuron}
         isOpen={disburseMaturityOpen}
         onOpenChange={setDisburseMaturityOpen}
+      />
+      <StakeMaturityModal
+        neuron={neuron}
+        isOpen={stakeMaturityOpen}
+        onOpenChange={setStakeMaturityOpen}
       />
     </>
   );
