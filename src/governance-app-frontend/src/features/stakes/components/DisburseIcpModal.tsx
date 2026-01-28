@@ -13,7 +13,7 @@ import {
 import { E8Sn } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
 import { mapCanisterError } from '@utils/errors';
-import { getNeuronStakeE8s } from '@utils/neuron';
+import { getNeuronStakeAfterFeesE8s } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
 import { formatNumber } from '@utils/numbers';
 
@@ -29,7 +29,7 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation();
   const { mutateAsync, isPending } = useDisburseNeuron();
 
-  const stakedAmount = bigIntDiv(getNeuronStakeE8s(neuron), E8Sn);
+  const stakedAmount = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
 
   const handleConfirm = async () => {
     try {
