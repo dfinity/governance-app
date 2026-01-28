@@ -4,6 +4,7 @@
   "votingPower": "Voting power",
   "stake": "Stake",
   "neuronId": "Stake #{{neuronId}}",
+  "stakeId": "Stake ID",
   "created": "Created",
   "creationDate": "Created {{date}}",
   "maturity": "Maturity",

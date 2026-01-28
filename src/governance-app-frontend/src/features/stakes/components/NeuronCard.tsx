@@ -122,7 +122,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
         <CardContent className="flex-1">
           <div className="flex flex-col">
             <div className="flex items-center justify-between border-b border-border/50 py-3">
-              <p className="text-[13px] text-muted-foreground">Stake ID</p>
+              <p className="text-[13px] text-muted-foreground">{t(($) => $.neuron.stakeId)}</p>
               <p className="text-[15px] font-semibold">#{shortenNeuronId(neuron.neuronId)}</p>
             </div>
 

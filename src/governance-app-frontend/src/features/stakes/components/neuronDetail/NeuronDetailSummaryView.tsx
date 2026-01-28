@@ -82,12 +82,12 @@ export function NeuronDetailSummaryView({
 
       {/* Neuron Info Section */}
       <div className="flex flex-col rounded-lg border bg-muted/30">
-        <InfoRow label="Stake ID" dataTestId="neuron-detail-stake-id">
+        <InfoRow label={t(($) => $.neuron.stakeId)} dataTestId="neuron-detail-stake-id">
           <div className="flex items-center gap-2">
             <span className="font-semibold">#{shortenNeuronId(neuron.neuronId)}</span>
             <CopyButton
               value={neuron.neuronId.toString()}
-              label="Stake ID"
+              label={t(($) => $.neuron.stakeId)}
               className="size-6 border-0 p-0 hover:bg-transparent"
             />
           </div>
