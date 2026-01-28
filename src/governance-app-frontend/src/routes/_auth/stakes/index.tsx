@@ -10,6 +10,7 @@ import { NeuronsList } from '@features/stakes/components/NeuronsList';
 import { StakingWizardModal } from '@features/stakes/components/stakingWizard/StakingWizardModal';
 
 import { Button } from '@components/button';
+import { PageHeader } from '@components/PageHeader';
 import { QueryStates } from '@components/QueryStates';
 import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
@@ -80,12 +81,10 @@ function StakesComponent() {
   return (
     <div className="flex flex-col gap-6">
       {hasNeurons && (
-        <div className="flex flex-col gap-6 sm:flex-row sm:justify-between">
-          <div className="flex flex-col gap-2">
-            <h2 className="text-lg font-semibold">{t(($) => $.neuron.title)}</h2>
-            <p className="text-sm text-muted-foreground">{t(($) => $.neuron.description)}</p>
-          </div>
-          <div className="flex flex-1 gap-2 sm:flex-initial">
+        <PageHeader
+          title={t(($) => $.neuron.title)}
+          description={t(($) => $.neuron.description)}
+          actions={
             <Button
               onClick={handleOpenStakingWizard}
               data-testid="staking-wizard-trigger-btn"
@@ -95,8 +94,8 @@ function StakesComponent() {
               <Plus />
               {t(($) => $.stakeWizardModal.title)}
             </Button>
-          </div>
-        </div>
+          }
+        />
       )}
 
       <QueryStates<CertifiedData<NeuronInfo[]>>

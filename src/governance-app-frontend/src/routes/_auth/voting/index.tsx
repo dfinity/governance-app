@@ -15,6 +15,7 @@ import { Button } from '@components/button';
 import { Card } from '@components/Card';
 import { InViewSentinel } from '@components/InViewSentinel';
 import { MultipleSkeletons } from '@components/MultipleSkeletons';
+import { PageHeader } from '@components/PageHeader';
 import { QueryStates } from '@components/QueryStates';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
@@ -83,18 +84,18 @@ function Voting() {
   return (
     <div className="flex flex-col gap-6 lg:gap-8">
       {!isNullish(followedNeuron) && (
-        <div className="flex flex-col gap-6 md:flex-row md:justify-between">
-          <div className="flex flex-col gap-3">
-            <h2 className="text-lg font-semibold">{t(($) => $.voting.title)}</h2>
-            <p className="text-sm text-muted-foreground">{t(($) => $.voting.description)}</p>
-          </div>
-          <Button size="xl" className="capitalize" asChild>
-            <Link to="/voting/representatives" onClick={handleManageFollowing}>
-              <Users />
-              {t(($) => $.voting.cta)}
-            </Link>
-          </Button>
-        </div>
+        <PageHeader
+          title={t(($) => $.voting.title)}
+          description={t(($) => $.voting.description)}
+          actions={
+            <Button size="xl" className="w-full capitalize sm:w-auto" asChild>
+              <Link to="/voting/representatives" onClick={handleManageFollowing}>
+                <Users />
+                {t(($) => $.voting.cta)}
+              </Link>
+            </Button>
+          }
+        />
       )}
 
       {(neuronsQuery.isError || knownNeuronsQuery.isError) && (
