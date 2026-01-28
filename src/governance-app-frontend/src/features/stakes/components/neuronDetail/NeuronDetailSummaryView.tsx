@@ -12,6 +12,7 @@ import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
 import { useApyColor } from '@hooks/useApyColor';
 import { bigIntDiv } from '@utils/bigInt';
+import { formatTimestampToLocalDate } from '@utils/date';
 import { shortenNeuronId } from '@utils/neuron';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 
