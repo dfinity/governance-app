@@ -13,11 +13,11 @@ import {
 import { E8Sn } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
 import { mapCanisterError } from '@utils/errors';
-import { getNeuronStakeAfterFeesE8s } from '@utils/neuron';
+import { getNeuronFreeMaturityE8s } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
 import { formatNumber } from '@utils/numbers';
 
-import { useDisburseNeuron } from '../hooks/useDisburseNeuron';
+import { useStakeMaturity } from '../hooks/useStakeMaturity';
 
 type Props = {
   neuron: NeuronInfo;
@@ -25,17 +25,17 @@ type Props = {
   onOpenChange: (open: boolean) => void;
 };
 
-export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
+export function StakeMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation();
-  const { mutateAsync, isPending } = useDisburseNeuron();
+  const { mutateAsync, isPending } = useStakeMaturity();
 
-  const stakedAmount = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
+  const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
 
   const handleConfirm = async () => {
     try {
       await mutateAsync({ neuronId: neuron.neuronId });
       successNotification({
-        description: t(($) => $.neuronDetailModal.disburseIcp.success),
+        description: t(($) => $.neuronDetailModal.stakeMaturity.success),
       });
       onOpenChange(false);
     } catch (err) {
@@ -55,11 +55,11 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
       <ResponsiveDialogContent
         className="flex max-h-[90vh] flex-col focus:outline-none sm:max-w-md"
         showCloseButton={!isPending}
-        data-testid="disburse-icp-modal"
+        data-testid="stake-maturity-modal"
       >
         <ResponsiveDialogHeader className="shrink-0">
           <ResponsiveDialogTitle>
-            {t(($) => $.neuronDetailModal.disburseIcp.title)}
+            {t(($) => $.neuronDetailModal.stakeMaturity.title)}
           </ResponsiveDialogTitle>
         </ResponsiveDialogHeader>
 
@@ -68,9 +68,9 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
             <Info className="h-4 w-4" />
             <AlertDescription>
               <Trans
-                i18nKey={($) => $.neuronDetailModal.disburseIcp.info}
+                i18nKey={($) => $.neuronDetailModal.stakeMaturity.info}
                 t={t}
-                values={{ amount: formatNumber(stakedAmount) }}
+                values={{ amount: formatNumber(unstakedMaturity) }}
                 components={{ strong: <strong /> }}
               />
             </AlertDescription>
@@ -85,17 +85,17 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
                 onClick={() => onOpenChange(false)}
                 disabled={isPending}
               >
-                {t(($) => $.neuronDetailModal.disburseIcp.cancel)}
+                {t(($) => $.neuronDetailModal.stakeMaturity.cancel)}
               </Button>
             )}
             <Button size="xl" className="flex-1" onClick={handleConfirm} disabled={isPending}>
               {isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t(($) => $.neuronDetailModal.disburseIcp.confirming)}
+                  {t(($) => $.neuronDetailModal.stakeMaturity.confirming)}
                 </>
               ) : (
-                t(($) => $.neuronDetailModal.disburseIcp.confirm)
+                t(($) => $.neuronDetailModal.stakeMaturity.confirm)
               )}
             </Button>
           </div>

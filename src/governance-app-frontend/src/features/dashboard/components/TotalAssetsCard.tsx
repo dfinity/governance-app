@@ -1,4 +1,3 @@
-import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
 import { useTranslation } from 'react-i18next';
 
@@ -13,7 +12,7 @@ import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
-import { getNeuronFreeMaturityE8s, getNeuronStakeE8s } from '@utils/neuron';
+import { getNeuronsAggregatedData } from '@utils/neuron';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataError, isStakingRewardDataReady } from '@utils/staking-rewards';
 
@@ -32,16 +31,8 @@ export const TotalAssetsCard = () => {
     ? bigIntDiv(balanceQuery.data.response, E8Sn)
     : 0;
 
-  const neurons = neuronsQuery.data?.response || [];
-  let stakedBalance = 0;
-  let maturityBalance = 0;
-
-  if (neuronsQuery.data?.response) {
-    neurons.forEach((neuron: NeuronInfo) => {
-      stakedBalance += bigIntDiv(getNeuronStakeE8s(neuron), E8Sn);
-      maturityBalance += bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
-    });
-  }
+  const { totalStakedAfterFees: stakedBalance, totalUnstakedMaturity: maturityBalance } =
+    getNeuronsAggregatedData(neuronsQuery.data?.response);
 
   const totalAssets = liquidBalance + stakedBalance + maturityBalance;
 

@@ -9,6 +9,11 @@ import { Skeleton } from '@components/Skeleton';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useApyColor } from '@hooks/useApyColor';
 import { bigIntDiv } from '@utils/bigInt';
+import {
+  getNeuronFreeMaturityE8s,
+  getNeuronStakeAfterFeesE8s,
+  getNeuronStakedMaturityE8s,
+} from '@utils/neuron';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 
 import { NeuronStateBadge } from '../NeuronStateBadge';
@@ -36,17 +41,9 @@ export function NeuronDetailSummaryView({
   const { t } = useTranslation();
   const apyColor = useApyColor(apy?.cur ?? 0);
 
-  const stakedAmount = neuron.fullNeuron?.cachedNeuronStake
-    ? bigIntDiv(neuron.fullNeuron.cachedNeuronStake, E8Sn)
-    : 0;
-
-  const stakedMaturity = neuron.fullNeuron?.stakedMaturityE8sEquivalent
-    ? bigIntDiv(neuron.fullNeuron.stakedMaturityE8sEquivalent, E8Sn)
-    : 0;
-
-  const unstakedMaturity = neuron.fullNeuron?.maturityE8sEquivalent
-    ? bigIntDiv(neuron.fullNeuron.maturityE8sEquivalent, E8Sn)
-    : 0;
+  const stakedAmount = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
+  const stakedMaturity = bigIntDiv(getNeuronStakedMaturityE8s(neuron), E8Sn);
+  const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
 
   const dissolveDelaySeconds = neuron.dissolveDelaySeconds;
   const durationText = secondsToDuration({

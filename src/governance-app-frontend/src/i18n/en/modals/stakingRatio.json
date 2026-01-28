@@ -1,16 +1,28 @@
 {
   "title": "Maximize your staking",
   "introduction": "You have <strong>{{available}} ICP available</strong> that isn't earning rewards. Staking 100% of your ICP maximizes your governance rewards.",
+  "introductionMaturityOnly": "You have <strong>{{available}} unstaked maturity</strong> that isn't compounding. Stake your maturity and enable auto-stake on your neurons to maximize your rewards.",
   "whyStake": {
     "title": "Why stake everything?",
     "rewardsLabel": "Rewards",
-    "rewards": "Unstaked ICP earns 0%, while staked ICP earns up to {{maxApy}}% APY.",
+    "rewards": "Unstaked ICP earns 0%, while staked ICP earns up to {{maxApy}} APY.",
     "votingPowerLabel": "Voting power",
     "votingPower": "More stake equals more influence in governance decisions.",
     "flexibilityLabel": "Flexibility",
     "flexibility": "You can dissolve Stakes anytime (withdrawable after the locking period)."
   },
+  "whyStakeMaturity": {
+    "title": "Why enable auto-stake maturity?",
+    "rewardsLabel": "Rewards",
+    "rewards": "Unstaked maturity earns 0%, while staked maturity compounds and earns up to {{maxApy}} APY.",
+    "votingPowerLabel": "Voting power",
+    "votingPower": "Staked maturity increases your neuron's voting power.",
+    "compoundingLabel": "Compounding",
+    "compounding": "Auto-staked maturity compounds automatically, boosting long-term rewards."
+  },
   "recommendationLabel": "Recommended",
   "recommendation": "Stake your available {{available}} ICP with an 8-year delay to maximize your rewards.",
-  "button": "Stake now"
+  "recommendationMaturityOnly": "Stake your maturity and enable auto-stake maturity on your neurons.",
+  "button": "Stake now",
+  "buttonMaturityOnly": "Manage Stakes"
 }

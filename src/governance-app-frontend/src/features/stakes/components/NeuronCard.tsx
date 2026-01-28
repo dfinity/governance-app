@@ -1,6 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
-import { AlertTriangle, CircleAlert, Coins } from 'lucide-react';
+import { AlertTriangle, CircleAlert, Coins, PackagePlus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -18,6 +18,8 @@ import {
   getNeuronIsAutoStakingMaturity,
   getNeuronIsDissolved,
   getNeuronIsDissolving,
+  getNeuronStakeAfterFeesE8s,
+  getNeuronStakedMaturityE8s,
 } from '@utils/neuron';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { APY } from '@utils/staking-rewards';
@@ -25,6 +27,7 @@ import { APY } from '@utils/staking-rewards';
 import { DisburseIcpModal } from './DisburseIcpModal';
 import { DisburseMaturityModal } from './DisburseMaturityModal';
 import { NeuronStateBadge } from './NeuronStateBadge';
+import { StakeMaturityModal } from './StakeMaturityModal';
 
 type Props = {
   neuron: NeuronInfo;
@@ -36,6 +39,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
   const apyColor = useApyColor(apy?.cur ?? 0);
   const [disburseIcpOpen, setDisburseIcpOpen] = useState(false);
   const [disburseMaturityOpen, setDisburseMaturityOpen] = useState(false);
+  const [stakeMaturityOpen, setStakeMaturityOpen] = useState(false);
 
   const isDissolved = getNeuronIsDissolved(neuron);
   const isDissolving = getNeuronIsDissolving(neuron);
@@ -62,17 +66,9 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
       })
     : '-';
 
-  const stakedMaturity = neuron.fullNeuron?.stakedMaturityE8sEquivalent
-    ? bigIntDiv(neuron.fullNeuron.stakedMaturityE8sEquivalent, E8Sn)
-    : 0;
-
-  const unstakedMaturity = neuron.fullNeuron?.maturityE8sEquivalent
-    ? bigIntDiv(neuron.fullNeuron.maturityE8sEquivalent, E8Sn)
-    : 0;
-
-  const stakedAmount = neuron.fullNeuron?.cachedNeuronStake
-    ? bigIntDiv(neuron.fullNeuron.cachedNeuronStake, E8Sn)
-    : 0;
+  const stakedMaturity = bigIntDiv(getNeuronStakedMaturityE8s(neuron), E8Sn);
+  const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
+  const stakedAmount = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
 
   return (
     <>
@@ -221,6 +217,20 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
                 {t(($) => $.neuron.disburseMaturity)}
               </Button>
             )}
+            {hasUnstakedMaturity && !isDissolved && (
+              <Button
+                variant="outline"
+                className="w-full sm:flex-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setStakeMaturityOpen(true);
+                }}
+                data-testid="neuron-card-stake-maturity-btn"
+              >
+                <PackagePlus className="size-4" />
+                {t(($) => $.neuron.stakeMaturity)}
+              </Button>
+            )}
           </CardFooter>
         )}
       </Card>
@@ -234,6 +244,11 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
         neuron={neuron}
         isOpen={disburseMaturityOpen}
         onOpenChange={setDisburseMaturityOpen}
+      />
+      <StakeMaturityModal
+        neuron={neuron}
+        isOpen={stakeMaturityOpen}
+        onOpenChange={setStakeMaturityOpen}
       />
     </>
   );

@@ -12,6 +12,7 @@ import { E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE } from '@constants/extr
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { bigIntDiv } from '@utils/bigInt';
 import { mapCanisterError } from '@utils/errors';
+import { getNeuronStakeAfterFeesE8s } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
 import { roundToE8sPrecision } from '@utils/numbers';
 
@@ -33,9 +34,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
   const balance = nonNullish(balanceValue?.response) ? bigIntDiv(balanceValue.response, E8Sn) : 0;
   const availableBalance = Math.max(0, roundToE8sPrecision(balance - ICP_TRANSACTION_FEE));
 
-  const currentStake = neuron.fullNeuron?.cachedNeuronStake
-    ? bigIntDiv(neuron.fullNeuron.cachedNeuronStake, E8Sn)
-    : 0;
+  const currentStake = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
 
   const accountIdentifier = neuron.fullNeuron?.accountIdentifier;
 
