@@ -7,9 +7,13 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@components/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
-import { E8Sn, MILLISECONDS_IN_SECOND } from '@constants/extra';
+import { Skeleton } from '@components/Skeleton';
+import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
+import { E8Sn } from '@constants/extra';
+import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
 import { useApyColor } from '@hooks/useApyColor';
 import { bigIntDiv } from '@utils/bigInt';
+import { formatTimestampToLocalDate } from '@utils/date';
 import {
   getDissolvingTimeInSeconds,
   getLockedTimeInSeconds,
@@ -20,6 +24,7 @@ import {
   getNeuronIsDissolving,
   getNeuronStakeAfterFeesE8s,
   getNeuronStakedMaturityE8s,
+  shortenNeuronId,
 } from '@utils/neuron';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { APY } from '@utils/staking-rewards';
@@ -37,6 +42,7 @@ type Props = {
 export const NeuronCard = ({ neuron, apy }: Props) => {
   const { t } = useTranslation();
   const apyColor = useApyColor(apy?.cur ?? 0);
+  const { tickerPrices: tickersQuery } = useTickerPrices();
   const [disburseIcpOpen, setDisburseIcpOpen] = useState(false);
   const [disburseMaturityOpen, setDisburseMaturityOpen] = useState(false);
   const [stakeMaturityOpen, setStakeMaturityOpen] = useState(false);
@@ -56,19 +62,14 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
     i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
   });
 
-  const creationDate = neuron.fullNeuron?.createdTimestampSeconds
-    ? new Date(
-        Number(neuron.fullNeuron.createdTimestampSeconds) * MILLISECONDS_IN_SECOND,
-      ).toLocaleDateString(undefined, {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      })
-    : '-';
+  const creationDate = formatTimestampToLocalDate(neuron.fullNeuron?.createdTimestampSeconds);
 
   const stakedMaturity = bigIntDiv(getNeuronStakedMaturityE8s(neuron), E8Sn);
   const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
   const stakedAmount = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
+
+  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
+  const usdValue = icpPrice ? formatNumber(stakedAmount * icpPrice.usd) : undefined;
 
   return (
     <>
@@ -76,14 +77,20 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
         className="flex h-full flex-col gap-3 transition-colors hover:border-foreground"
         data-testid="neuron-card"
       >
-        <CardHeader className="flex flex-col items-start justify-between space-y-0 xs:flex-row">
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground">
-              {t(($) => $.neuron.neuronId, { neuronId: neuron.neuronId })}
-            </h3>
-            <p className="text-[13px] text-muted-foreground">
-              {t(($) => $.neuron.creationDate, { date: creationDate })}
+        <CardHeader className="flex flex-row items-start justify-between space-y-0">
+          <div className="flex flex-col gap-1">
+            <p className="text-3xl font-bold" data-testid="neuron-card-staked-amount">
+              {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
             </p>
+            {tickersQuery.isLoading ? (
+              <Skeleton className="h-4 w-20" />
+            ) : (
+              usdValue && (
+                <p className="text-sm text-muted-foreground">
+                  {t(($) => $.account.approxUsd, { value: usdValue })}
+                </p>
+              )
+            )}
           </div>
           {nonNullish(apy) && apyColor.ready && (
             <div
@@ -114,13 +121,14 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
 
         <CardContent className="flex-1">
           <div className="flex flex-col">
-            <div className="mb-4">
-              <p className="text-3xl font-bold" data-testid="neuron-card-staked-amount">
-                {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
-              </p>
-              <p className="mt-1 text-[13px] text-muted-foreground capitalize">
-                {t(($) => $.neuron.stakedAmount)}
-              </p>
+            <div className="flex items-center justify-between border-b border-border/50 py-3">
+              <p className="text-[13px] text-muted-foreground">{t(($) => $.neuron.stakeId)}</p>
+              <p className="text-[15px] font-semibold">#{shortenNeuronId(neuron.neuronId)}</p>
+            </div>
+
+            <div className="flex items-center justify-between border-b border-border/50 py-3">
+              <p className="text-[13px] text-muted-foreground">{t(($) => $.neuron.created)}</p>
+              <p className="text-[15px] font-semibold">{creationDate}</p>
             </div>
 
             <div className="flex items-center justify-between border-b border-border/50 py-3">
