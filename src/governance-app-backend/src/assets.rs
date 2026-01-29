@@ -31,16 +31,14 @@ const ACCESS_CONTROL_ALLOW_ORIGIN_HEADER: &str = "access-control-allow-origin";
 const WELL_KNOWN_PATH: &str = "/.well-known";
 const II_ALTERNATIVE_ORIGINS_FILE_NAME: &str = "ii-alternative-origins";
 
-// TODO: Review CSP directives for production - some entries may be overly permissive.
 /// Content Security Policy directives. Each entry is joined with "; " to form the header value.
 const CSP_DIRECTIVES: &[&str] = &[
     "default-src 'self' *.devenv.dfinity.network",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-    "connect-src 'self' *.devenv.dfinity.network http://*.devenv.dfinity.network http://localhost:* https://icp0.io https://*.icp0.io https://ic0.app https://*.raw.ic0.app https://icp-api.io https://fastly.jsdelivr.net https://api.kongswap.io https://plausible.io/api/event",
+    "script-src 'self' 'unsafe-inline'",
+    "connect-src 'self' *.devenv.dfinity.network http://*.devenv.dfinity.network http://localhost:* https://icp0.io https://*.icp0.io https://ic0.app https://*.raw.ic0.app https://icp-api.io https://api.kongswap.io https://plausible.io/api/event",
     "img-src 'self' https://*.icp0.io data: blob:",
-    "style-src * 'unsafe-inline'",
-    "style-src-elem * 'unsafe-inline'",
-    "font-src *",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
     "object-src 'none'",
     "media-src 'self' data:",
     "base-uri 'self'",
