@@ -1,6 +1,13 @@
 import { nonNullish } from '@dfinity/utils';
 import { useQueryClient } from '@tanstack/react-query';
-import { createRootRoute, HeadContent, Outlet, Scripts, useRouter } from '@tanstack/react-router';
+import {
+  createRootRoute,
+  HeadContent,
+  Link,
+  Outlet,
+  Scripts,
+  useRouter,
+} from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ArrowLeft, LogIn } from 'lucide-react';
