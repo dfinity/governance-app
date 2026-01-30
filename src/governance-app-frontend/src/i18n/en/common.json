@@ -88,8 +88,7 @@
     "title": "Leaving the app",
     "description": "You are about to navigate to {{url}}. Please verify this URL before continuing.",
     "continue": "Continue"
-  "maxRewards": "Max rewards"
-
+  },
   "head": {
     "appName": "Governance",
     "defaultDescription": "Participate in decentralized governance on the Internet Computer",

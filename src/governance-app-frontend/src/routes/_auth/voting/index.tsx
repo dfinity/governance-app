@@ -29,7 +29,6 @@ export const Route = createFileRoute('/_auth/voting/')({
   validateSearch: getShowProposalUrlStatus,
   component: Voting,
   pendingComponent: () => <MultipleSkeletons count={3} />,
-  pendingComponent: () => <SkeletonLoader count={3} />,
   head: () => {
     const title = i18n.t(($) => $.common.head.voting.title);
 
