@@ -90,7 +90,10 @@ export function StakedCard() {
                     <span className="text-xl font-bold">
                       {formatPercentage(stakingRewards.stakingRatio)}
                     </span>
-                    {stakingRewards.stakingRatio < 1 && <StakingRatioModal />}
+                    {/* Take rounding into account */}
+                    {formatPercentage(stakingRewards.stakingRatio) !== '100.00%' && (
+                      <StakingRatioModal />
+                    )}
                   </div>
                 ) : (
                   <Skeleton className="h-7 w-28" />
