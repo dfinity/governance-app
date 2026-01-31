@@ -19,10 +19,16 @@ const Sonner = ({ ...props }: ToasterProps) => {
   const { theme } = useTheme();
   const { identity } = useInternetIdentity();
 
+  /*
+   * offset: Includes safe-area-inset-top for iOS PWA notch support.
+   * Note: This assumes toasts appear at the top (default). If position changes
+   * to bottom-*, update to use safe-area-inset-bottom instead.
+   */
   return (
     <Toaster
       theme={isNullish(identity) ? NON_AUTH_THEME : theme}
       className="toaster group"
+      offset="calc(1rem + env(safe-area-inset-top))"
       icons={{
         success: <CircleCheckBig className="size-4 text-emerald-700 dark:text-emerald-400" />,
         info: <InfoIcon className="size-4" />,
