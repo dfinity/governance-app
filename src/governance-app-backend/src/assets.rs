@@ -31,16 +31,14 @@ const ACCESS_CONTROL_ALLOW_ORIGIN_HEADER: &str = "access-control-allow-origin";
 const WELL_KNOWN_PATH: &str = "/.well-known";
 const II_ALTERNATIVE_ORIGINS_FILE_NAME: &str = "ii-alternative-origins";
 
-// TODO: Review CSP directives for production - some entries may be overly permissive.
 /// Content Security Policy directives. Each entry is joined with "; " to form the header value.
 const CSP_DIRECTIVES: &[&str] = &[
     "default-src 'self' *.devenv.dfinity.network",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-    "connect-src 'self' *.devenv.dfinity.network http://*.devenv.dfinity.network http://localhost:* https://icp0.io https://*.icp0.io https://ic0.app https://*.raw.ic0.app https://icp-api.io https://fastly.jsdelivr.net https://api.kongswap.io https://plausible.io/api/event",
+    "script-src 'self'",
+    "connect-src 'self' http://localhost:* https://icp0.io https://*.icp0.io https://ic0.app https://*.raw.ic0.app https://icp-api.io https://api.kongswap.io https://plausible.io/api/event",
     "img-src 'self' https://*.icp0.io data: blob:",
-    "style-src * 'unsafe-inline'",
-    "style-src-elem * 'unsafe-inline'",
-    "font-src *",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
     "object-src 'none'",
     "media-src 'self' data:",
     "base-uri 'self'",
@@ -139,7 +137,8 @@ fn get_asset_headers(additional_headers: Vec<HeaderField>) -> Vec<HeaderField> {
         ("strict-transport-security".to_string(), "max-age=31536000; includeSubDomains".to_string()),
         ("x-frame-options".to_string(), "DENY".to_string()),
         ("x-content-type-options".to_string(), "nosniff".to_string()),
-        ("content-security-policy".to_string(), get_csp_header_value()),
+        // TODO: Change to "content-security-policy" to enforce once validated in test/staging
+        ("content-security-policy-report-only".to_string(), get_csp_header_value()),
         ("referrer-policy".to_string(), "same-origin".to_string()),
         ("permissions-policy".to_string(), "accelerometer=(), ambient-light-sensor=(), autoplay=(self), battery=(), camera=(self), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=(), clipboard-read=(), clipboard-write=(self), gamepad=(), speaker-selection=(), conversion-measurement=(), focus-without-user-activation=(), hid=(), idle-detection=(), interest-cohort=(), serial=(), sync-script=(), trust-token-redemption=(), window-placement=(), vertical-scroll=()".to_string()),
         ("x-xss-protection".to_string(), "1; mode=block".to_string()),
