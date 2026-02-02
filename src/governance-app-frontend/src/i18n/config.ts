@@ -3,7 +3,6 @@ import { initReactI18next } from 'react-i18next';
 
 import account from './en/account.json';
 import common from './en/common.json';
-import enums from './en/enums.json';
 import errors from './en/errors.json';
 import home from './en/home.json';
 import knownNeurons from './en/knownNeurons.json';
@@ -27,7 +26,6 @@ export const resources = {
   en: {
     labels: {
       common,
-      enums,
       errors,
       home,
       apyOptimizationModal,

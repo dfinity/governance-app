@@ -1,51 +1,27 @@
 {
   "title": "Your Stakes",
   "description": "Manage your ICP Stakes and their configurations",
-  "votingPower": "Voting power",
-  "stake": "Stake",
   "neuronId": "Stake #{{neuronId}}",
   "stakeId": "Stake ID",
   "created": "Created",
-  "creationDate": "Created {{date}}",
-  "maturity": "Maturity",
-  "status": "Status",
-  "setDissolveDelay": "Set dissolve delay",
   "dissolveDelay": "Dissolve delay",
   "stakedMaturity": "Staked maturity",
   "unstakedMaturity": "Liquid maturity",
   "maturityMode": "New maturity",
   "autoStake": "Auto-stake",
   "keepLiquid": "Keep liquid",
-  "stakedAmount": "Staked amount",
   "locked": "Locked",
   "dissolving": "Dissolving",
   "dissolved": "Dissolved",
-  "following": "Following",
   "noFollowingWarning": "Not following anyone yet. Set up following in the Voting page.",
   "disburseIcp": "Disburse ICPs",
   "disburseMaturity": "Disburse maturity",
   "stakeMaturity": "Stake maturity",
-  "errors": {
-    "neuronNotFound": "Stake #{{neuronId}} not found."
-  },
   "empty": {
     "title": "Start participating in governance",
     "description": "Create your first stake to turn ICP into voting power. Stakes participate in voting and earn rewards over time.",
     "cta": "Create your first stake",
     "helper": "After staking, you can follow representatives or vote directly on proposals."
-  },
-  "setDissolveDelayModal": {
-    "title": "Set dissolve delay for #{{neuronId}}",
-    "description": "Dissolve delay is the minimum amount of time you have to wait for the Stake to unlock, and ICP to be available again. Note, that dissolve delay only decreases when the Stake is in a dissolving state.",
-    "hint": "Minimum {{min}} days to have voting power, maximum {{max}} days.",
-    "delayLabel": "Dissolve delay in days",
-    "success": "You have successfully set a dissolve delay of {{amount}} days.",
-    "actions": {
-      "confirm": "Set dissolve delay"
-    },
-    "errors": {
-      "decreasingDelay": "The dissolve delay cannot be decreased."
-    }
   },
   "stakeNeuron": {
     "errors": {
