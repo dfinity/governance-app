@@ -102,9 +102,6 @@
     "stakes": {
       "title": "Stakes | Governance"
     },
-    "stakeDetails": {
-      "title": "Stake #{{stakeId}} | Governance"
-    },
     "voting": {
       "title": "Voting | Governance"
     },
