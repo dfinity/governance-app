@@ -3,7 +3,6 @@
   "following": "Following",
   "description": "Following lets trusted Representatives vote on your behalf when you don't vote yourself.",
   "cta": "Manage following",
-  "votingPower": "{{ammount}} voting power",
   "noFollowing": {
     "title": "Your Stake isn't following yet",
     "description": "Choose trusted Representatives to vote automatically, or vote manually on proposals as they appear.",

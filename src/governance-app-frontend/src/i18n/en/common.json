@@ -7,7 +7,6 @@
     "goBack": "Go back"
   },
   "proposalsList": "Proposals list",
-  "neuronsDetails": "Stake {{neuronId}} details",
   "loading": "Loading",
   "loadingError": "Error loading data.",
   "refreshFailed": "Failed to automatically refresh the data. Please try reloading the page.",
@@ -39,7 +38,6 @@
   "autoExpirationLogout": "Session expired, you have been logged out. Please log in again.",
   "restricted": "Restricted",
   "restrictedPage": "You need to be logged in to access this page.",
-  "notAvailable": "N/A",
   "sending": "Sending ...",
   "withdraw": "Withdraw",
   "stakeMore": "Stake more",
