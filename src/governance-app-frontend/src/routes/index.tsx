@@ -51,12 +51,12 @@ export const Route = createFileRoute('/')({
         // Open Graph
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },
-        { property: 'og:image', content: '/og-image.png' },
+        { property: 'og:image', content: '/og-image.webp' },
         // Twitter Card
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: '/og-image.png' },
+        { name: 'twitter:image', content: '/og-image.webp' },
       ],
     };
   },
