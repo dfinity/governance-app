@@ -27,7 +27,7 @@ export const BetaBanner = ({ isLoggedIn = false }: Props) => {
   const desktopClasses = cn(
     baseBadgeClasses,
     'hidden px-1.5 py-0.5 text-[0.625rem]',
-    isLoggedIn ? 'fixed top-2 left-[11rem] lg:flex' : 'sm:flex', // Inline badge for login page
+    isLoggedIn ? 'fixed top-2 left-[11rem] lg:flex' : 'sm:flex',
   );
 
   const mobileClasses = cn(
