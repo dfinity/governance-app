@@ -55,12 +55,30 @@ Before approving an Orbit request, verify the build:
 3. `sha256sum governance_app_backend.wasm`
 4. Compare the hash with the one in the Orbit request.
 
+## Canister IDs
+
+| Canister | ID | Purpose |
+|----------|-----|---------|
+| Governance App | `mc7vh-sqaaa-aaaai-q33na-cai` | Main application canister |
+| Asset Canister | `p6zoc-uyaaa-aaaai-q5zja-cai` | Stores WASM chunks for Orbit deployments |
+| Orbit Station | `fv4dp-biaaa-aaaal-amrua-cai` | Multi-sig deployment approvals |
+| CycleOps | `cpbhu-5iaaa-aaaad-aalta-cai` | Automatic cycle top-ups |
+
 ## Controllers
 
 - Keep track of controllers, and add/remove them in case they change:
-    - CycleOps canister -> `cpbhu-5iaaa-aaaad-aalta-cai`.
     - Orbit canister -> `fv4dp-biaaa-aaaal-amrua-cai`.
+    - NNS root (emergency option) -> `r7inp-6aaaa-aaaaa-aaabq-cai`.
+    - @TODO evaluate if using Orbit for top-ups instead:
+        - CycleOps canister -> `cpbhu-5iaaa-aaaad-aalta-cai`.
+    - @TODO remove after testead and go-live:
+        - Francesco -> `frlnd-a2ffv-cu3x5-3lvcb-i2lrh-ha3sp-p36py-356y5-b7y77-bxuri-zae`.
+        - Yusef -> `pixf5-n6wii-oy2th-nnhvc-afaf4-2yu5l-aac32-pedif-s3o5c-i6qw7-uqe`.
 - List all controllers: `dfx canister info mc7vh-sqaaa-aaaai-q33na-cai --network=ic`.
 - Add a controller: via Orbit. 
 - Remove a controller: via Orbit. 
 - Canister ID on Mainnet: `mc7vh-sqaaa-aaaai-q33na-cai`.
+
+## Asset Canister
+
+The asset canister is used by dfx-orbit to upload large WASM files in chunks before installation. The asset canister must be on the **same subnet** as the governance-app canister because the IC's `install_chunked_code` method requires the chunk storage to be co-located with the target canister.

@@ -31,7 +31,7 @@ source "$(clap.build)"
 # Configuration
 ORBIT_STATION_ID="fv4dp-biaaa-aaaal-amrua-cai"
 CANISTER_ID="mc7vh-sqaaa-aaaai-q33na-cai"
-ASSET_CANISTER_ID="qoju7-6iaaa-aaaal-amsga-cai"
+ASSET_CANISTER_ID="p6zoc-uyaaa-aaaai-q5zja-cai"
 WORKFLOW_NAME="Pipeline Main"
 WASM_FILENAME="governance_app_backend.wasm"
 
