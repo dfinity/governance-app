@@ -1,77 +1,64 @@
 # Deployment Process
 
-How to deploy the Project.
+## Production Deployment (via Orbit)
 
-## Pre Steps (skip if already done)
+Production deployments are managed through Orbit for security and auditability.
 
-### Identity
+### Prerequisites (one-time setup)
 
-- Generate a new DFX dev-identity for yourself.
-    - `dfx identity new NewGovAppController`. 
-- Same for each member of the team.
+1. Install GitHub CLI (`gh`):
+    - Required to download CI artifacts.
+    - See: https://cli.github.com/
 
-### ICP & Cycles
+2. Install dfx-orbit:
+    - `cargo install -f --git https://github.com/dfinity/orbit.git --bin dfx-orbit`
 
-- Get the ledger account.
-    - `dfx ledger account-id`.
-- Ask for ICP to be transferred via Slack `#icp-to-go`.
-    - Check the balance.
-    - `dfx ledger balance --network=ic`.
-- Convert some of them to Cycles.
-    - `dfx cycles convert --amount AMOUNT --network=ic`. 
-- Check the balance.
-    - `dfx cycles balance --network=ic`.
-- Base fees:
-    - Canister creation: `500,000,000,000` (500B) cycles.
-    - Transfer (if using cycles ledger): `100,000,000` (100M) cycles.
-    - Recommended starting amount: `5,000,000,000,000` (5T) cycles.
-    - Conversion rate: 1T cycles equals 1 XDR, that is around 1.30 USD as of early 2025.
+3. Create a password-protected dfx identity (dfx-orbit doesn't support Keyring):
+    - `dfx identity new --storage-mode password-protected orbit`
 
-### Canister
+4. Add the Orbit station:
+    - `dfx-orbit station add --station-id fv4dp-biaaa-aaaal-amrua-cai --network ic "governance-team"`
 
-- Use the previous identity.
-    - `dfx identity use NewGovAppController`. 
-- Create a new canister.
-    - `dfx canister create governance-app-backend --network=ic`.
-- Add the dev-identities of the other team members as controllers.
-    - `dfx identity get-principal`. 
-    - `dfx canister update-settings CANISTER_ID --add-controller PRINCIPAL_ID --network ic`. 
-- Top-up the canister.
-    - `dfx cycles top-up CANISTER_ID CYCLES_AMOUNT --network ic`.
-- Check the canister balance.
-    - `dfx canister status CANISTER_ID --network=ic | grep Balance`.
+5. Register your identity with Orbit:
+    - Get your principal: `dfx identity get-principal --identity orbit`
+    - Ask a team member to add your principal to the Orbit station.
 
-## Deploy
+6. Get asset canister permissions (Prepare and Commit):
+    - These are required to upload large WASMs. Ask a team member if you don't have them.
 
-### Build
+### Deployment Steps
 
-- Refer to the other docs for these steps:
-    - Download the repository & install the dependencies.
-    - Build the code: front-end + back-End (with Asset Certification).
-    - Get the resulting WASM.
+1. Ensure CI has built your commit successfully (check GitHub Actions).
 
-### Manual Deployment
+2. Run the release script:
+    ```bash
+    # Deploy latest main
+    ./scripts/release-prod
 
-- `dfx canister install CANISTER_ID --mode upgrade --wasm PATH-TO-WASM --network ic`.
+    # Deploy specific commit
+    ./scripts/release-prod --commit <COMMIT_HASH>
 
-### Automated Deployment (CI/CD)
+    # Skip pre-flight checks (if you know they pass)
+    ./scripts/release-prod --skip-checks
+    ```
 
-- Use the steps above to:
-    - Create a new DFX dev-identity for the GitHub pipeline.
-    - Add it as a canister new controller.
-- Export the DFX dev-identity `.pem` file.
-- Store it in a GitHub Actions secret.
-- Create a new GitHub Action that replicates the Build and Manual Deployment steps.
+3. Have another team member verify and approve the request in Orbit.
+
+## Verification Steps (for reviewers)
+
+Before approving an Orbit request, verify the build:
+
+1. `git fetch && git checkout <COMMIT>`
+2. `./scripts/build.sh --keep-wasm`
+3. `sha256sum governance_app_backend.wasm`
+4. Compare the hash with the one in the Orbit request.
 
 ## Controllers
 
 - Keep track of controllers, and add/remove them in case they change:
-    - Francesco -> `frlnd-a2ffv-cu3x5-3lvcb-i2lrh-ha3sp-p36py-356y5-b7y77-bxuri-zae`.
-    - Yusef -> `pixf5-n6wii-oy2th-nnhvc-afaf4-2yu5l-aac32-pedif-s3o5c-i6qw7-uqe`.
-    - GitHub -> `ldg4v-647m6-7j6tf-nrdea-wzdsu-espvw-cl2t4-vkzic-hi6dp-y2azm-yae`.
     - CycleOps canister -> `cpbhu-5iaaa-aaaad-aalta-cai`.
-    - Orbit -> `fv4dp-biaaa-aaaal-amrua-cai`.
-- List all controllers: `dfx canister info CANISTER_ID --network=ic`.
-- Add a controller: `dfx canister update-settings --network=ic CANISTER_ID --add-controller PRINCIPAL_ID`. 
-- Remove a controller: `dfx canister update-settings --network=ic CANISTER_ID --remove-controller PRINCIPAL_ID`. 
+    - Orbit canister -> `fv4dp-biaaa-aaaal-amrua-cai`.
+- List all controllers: `dfx canister info mc7vh-sqaaa-aaaai-q33na-cai --network=ic`.
+- Add a controller: via Orbit. 
+- Remove a controller: via Orbit. 
 - Canister ID on Mainnet: `mc7vh-sqaaa-aaaai-q33na-cai`.
