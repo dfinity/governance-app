@@ -1,5 +1,7 @@
 # Deployment Process
 
+Using the same approach as the (old) NNS Beta deployment process https://github.com/dfinity/nns-dapp/blob/main/scripts/nns-dapp/release-beta.
+
 ## Production Deployment (via Orbit)
 
 Production deployments are managed through Orbit for security and auditability.
@@ -17,7 +19,7 @@ Production deployments are managed through Orbit for security and auditability.
     - `dfx identity new --storage-mode password-protected orbit`
 
 4. Add the Orbit station:
-    - `dfx-orbit station add --station-id fv4dp-biaaa-aaaal-amrua-cai --network ic "governance-team"`
+    - `dfx-orbit station add --station-id fv4dp-biaaa-aaaal-amrua-cai --network ic "governance-team-mainnet"`
 
 5. Register your identity with Orbit:
     - Get your principal: `dfx identity get-principal --identity orbit`

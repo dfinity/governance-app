@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# BLUEPRINT (OLD) NNS BETA DEPLOYMENT: https://github.com/dfinity/nns-dapp/blob/main/scripts/nns-dapp/release-beta
 set -euo pipefail
 SOURCE_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
@@ -19,7 +20,7 @@ print_help() {
 source "$SOURCE_DIR/clap.sh"
 # Define options
 clap.define short=i long=identity desc="The dfx identity to use" variable=DFX_IDENTITY default="orbit"
-clap.define short=s long=station desc="The orbit station to use" variable=STATION default="governance-team"
+clap.define short=s long=station desc="The orbit station to use" variable=STATION default="governance-team-mainnet"
 clap.define long=skip-checks desc="Skip the checks that dfx-orbit is set up correctly" variable=SKIP_CHECKS nargs=0
 clap.define short=c long=commit desc="The commit to download the wasm for" variable=COMMIT default="main"
 clap.define long=install-mode desc="Install mode" variable=INSTALL_MODE default="upgrade"
@@ -52,7 +53,7 @@ check_dfx_orbit_station() {
   if ! dfx-orbit station use "$STATION"; then
     {
       echo "You need to have the '$STATION' station set up. Set it up with:"
-      echo "dfx-orbit station add --station-id $ORBIT_STATION_ID --network ic \"$STATION\""
+      echo "dfx-orbit station add --station-id $ORBIT_STATION_ID --network ic \"governance-team-mainnet\""
     } >&2
     exit 1
   fi
@@ -102,7 +103,7 @@ check_dfx_orbit_identity() {
 has_asset_permission() {
   principal="$1"
   permission="$2"
-  dfx canister call "$ASSET_CANISTER_ID" list_permitted "(record { permission = variant { $permission } })" --identity anonymous --network mainnet | idl2json | jq -r '.[]' | grep -q "$principal"
+  dfx canister call "$ASSET_CANISTER_ID" list_permitted "(record { permission = variant { $permission } })" --identity anonymous --network ic | idl2json | jq -r '.[]' | grep -q "$principal"
 }
 
 require_asset_permission() {
