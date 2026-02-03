@@ -26,18 +26,15 @@ export const BetaBanner = ({ isLoggedIn = false }: Props) => {
   // Position-specific classes
   const desktopClasses = cn(
     baseBadgeClasses,
-    'hidden px-1.5 py-0.5 text-[0.625rem]',
     isLoggedIn
-      ? 'fixed top-[calc(0.5rem+env(safe-area-inset-top))] left-[calc(11rem+env(safe-area-inset-left))] lg:flex'
-      : 'sm:flex',
+      ? 'safe-top-2 safe-left-44 fixed hidden px-1.5 py-0.5 text-[0.625rem] lg:flex'
+      : 'flex px-2 py-1 text-xs sm:px-1.5 sm:py-0.5 sm:text-[0.625rem]',
   );
 
   const mobileClasses = cn(
     baseBadgeClasses,
     'flex gap-1.5 px-2 py-1 text-xs',
-    isLoggedIn
-      ? 'fixed top-[calc(0.75rem+env(safe-area-inset-top))] right-[calc(0.5rem+env(safe-area-inset-right))] lg:hidden'
-      : 'absolute top-[calc(0.75rem+env(safe-area-inset-top))] right-[calc(1rem+env(safe-area-inset-right))] sm:hidden',
+    isLoggedIn ? 'safe-top-4 safe-right-4 fixed lg:hidden' : 'hidden',
   );
 
   const canDoItems = [

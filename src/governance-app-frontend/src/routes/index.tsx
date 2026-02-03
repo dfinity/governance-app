@@ -107,7 +107,7 @@ function LoginPage() {
         <div className="absolute inset-0 -z-[9] bg-black/20 md:hidden" />
 
         {/* Content */}
-        <div className="relative flex min-h-dvh w-full flex-col justify-between px-4 py-10 3xl:mx-auto 3xl:max-w-[2000px] sm:p-12">
+        <div className="safe-pt-8 sm:safe-pt-12 safe-pb-10 sm:safe-pb-12 relative flex min-h-dvh w-full flex-col justify-between px-4 3xl:mx-auto 3xl:max-w-[2000px] sm:px-12">
           {/* Header Section */}
           <div className="flex flex-col gap-6 md:mb-12 md:gap-0">
             <div className="flex items-center gap-2">

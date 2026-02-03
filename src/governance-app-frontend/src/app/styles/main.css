@@ -139,6 +139,7 @@
 }
 
 @layer utilities {
+  /* Responsive text utilities */
   .text-hero-responsive {
     font-size: clamp(2rem, 5vh, 4.5rem);
     line-height: 1.1;
@@ -161,5 +162,38 @@
       font-size: clamp(1.5rem, 3vh, 1.875rem);
       line-height: 1.4;
     }
+  }
+
+  /* Safe area utilities - Add safe area insets to spacing */
+  .safe-top-2 {
+    top: calc(0.5rem + env(safe-area-inset-top));
+  }
+
+  .safe-top-4 {
+    top: calc(1rem + env(safe-area-inset-top));
+  }
+
+  .safe-right-4 {
+    right: calc(1rem + env(safe-area-inset-right));
+  }
+
+  .safe-left-44 {
+    left: calc(11rem + env(safe-area-inset-left));
+  }
+
+  .safe-pt-8 {
+    padding-top: calc(2rem + env(safe-area-inset-top));
+  }
+
+  .safe-pt-12 {
+    padding-top: calc(3rem + env(safe-area-inset-top));
+  }
+
+  .safe-pb-10 {
+    padding-bottom: calc(2.5rem + env(safe-area-inset-bottom));
+  }
+
+  .safe-pb-12 {
+    padding-bottom: calc(3rem + env(safe-area-inset-bottom));
   }
 }
