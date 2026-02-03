@@ -49,11 +49,21 @@ check_dfx_orbit_installed() {
   fi
 }
 
+check_gh_installed() {
+  if ! command -v gh >/dev/null; then
+    {
+      echo "You need GitHub CLI (gh). Install it from:"
+      echo "https://cli.github.com/"
+    } >&2
+    exit 1
+  fi
+}
+
 check_dfx_orbit_station() {
   if ! dfx-orbit station use "$STATION"; then
     {
       echo "You need to have the '$STATION' station set up. Set it up with:"
-      echo "dfx-orbit station add --station-id $ORBIT_STATION_ID --network ic \"governance-team-mainnet\""
+      echo "dfx-orbit station add --station-id \"$ORBIT_STATION_ID\" --network ic \"governance-team-mainnet\""
     } >&2
     exit 1
   fi
@@ -68,7 +78,7 @@ maybe_identity_password() {
 }
 
 check_dfx_orbit_identity() {
-  if ! dfx identity list 2>/dev/null | grep "$DFX_IDENTITY" >/dev/null; then
+  if ! dfx identity list 2>/dev/null | grep -Fx "$DFX_IDENTITY" >/dev/null; then
     {
       echo "You need to have the identity $DFX_IDENTITY set up. Set it up with:"
       echo "dfx identity new --storage-mode password-protected orbit"
@@ -131,6 +141,7 @@ check_dfx_orbit_setup() {
     return
   fi
 
+  check_gh_installed
   check_dfx_orbit_installed
   check_dfx_orbit_station
   check_dfx_orbit_identity
@@ -176,7 +187,6 @@ download_ci_wasm() {
 
   local tmp_dir
   tmp_dir="$(mktemp -d)"
-  trap 'rm -rf $tmp_dir' EXIT
 
   echo "Downloading artifact '$artifact_name'..."
   gh run download "$ci_build_run_id" --dir "$tmp_dir" -n "$artifact_name"
@@ -188,12 +198,11 @@ download_ci_wasm() {
 
   if ! [ "$src_wasm_file" ]; then
     echo "No $WASM_FILENAME found in downloaded artifact" >&2
-    trap 'echo Leaving $tmp_dir for debugging' EXIT
+    rm -rf "$tmp_dir"
     exit 1
   fi
 
   mv "$src_wasm_file" "$dst_wasm_file"
-  trap - EXIT
   rm -rf "$tmp_dir"
 
   echo "Downloaded WASM to: $dst_wasm_file"
@@ -211,6 +220,15 @@ WASM_DIR="$TOP_DIR/release/ci"
 WASM_PATH="$WASM_DIR/$WASM_FILENAME"
 COMMIT="$(git rev-parse "$COMMIT")"
 
+# Cleanup WASM_DIR on exit (success or failure)
+cleanup() {
+  if [[ -d "$WASM_DIR" ]]; then
+    echo "Cleaning up downloaded WASM..."
+    rm -rf "$WASM_DIR"
+  fi
+}
+trap cleanup EXIT
+
 cd "$TOP_DIR"
 
 echo
@@ -223,7 +241,7 @@ SUMMARY="Upgrade governance-app at commit $COMMIT
 Verify the build before approving:
 
 1. git fetch
-2. git checkout $COMMIT
+2. git checkout \"$COMMIT\"
 3. ./scripts/build.sh --keep-wasm
 4. sha256sum governance_app_backend.wasm
 
@@ -234,10 +252,6 @@ git fetch && git checkout \"$COMMIT\" && ./scripts/build.sh --keep-wasm && sha25
 echo
 echo "Creating Orbit request..."
 dfx-orbit --station "$STATION" --identity "$DFX_IDENTITY" request --title "$TITLE" --summary "$SUMMARY" canister install --mode "$INSTALL_MODE" --wasm "$WASM_PATH" "$CANISTER_ID" --asset-canister "$ASSET_CANISTER_ID"
-
-echo
-echo "Cleaning up downloaded WASM..."
-rm -rf "$WASM_DIR"
 
 echo
 echo "✅ Installation was requested. A team member now needs to approve the request in Orbit."
