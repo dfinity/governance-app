@@ -1,5 +1,8 @@
 name: Deploy
 
+# Builds the WASM and uploads it as an artifact.
+# Production deployment is done manually via Orbit (see scripts/release-prod).
+
 on:
   workflow_call:
 
@@ -19,30 +22,3 @@ jobs:
         with:
           name: ${{ github.run_id }}-wasm
           path: ./governance_app_backend.wasm
-
-  upgrade_canister:
-    name: Upgrade Canister
-    runs-on: dind-small
-    container: ghcr.io/dfinity/governance-app/builder-base:0.0.5
-    needs: [build_wasm]
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ github.run_id }}-wasm
-          path: ./
-
-      - name: Import DFX identity
-        env:
-          DFX_IDENTITY_PEM: ${{ secrets.DFX_IDENTITY_KEY }}
-        run: |
-          echo "$DFX_IDENTITY_PEM" > ./id.pem
-          dfx identity import --storage-mode plaintext NewGovAppController_GitHub ./id.pem
-          dfx identity use NewGovAppController_GitHub
-          rm ./id.pem
-
-      - name: Upgrade canister
-        env:
-          CANISTER_ID: ${{ secrets.CANISTER_ID }}
-          DFX_WARNING: "-mainnet_plaintext_identity"
-        run: dfx canister install $CANISTER_ID --mode upgrade --wasm ./governance_app_backend.wasm --network=ic
