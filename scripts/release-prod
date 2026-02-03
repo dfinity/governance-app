@@ -236,4 +236,8 @@ echo "Creating Orbit request..."
 dfx-orbit --station "$STATION" --identity "$DFX_IDENTITY" request --title "$TITLE" --summary "$SUMMARY" canister install --mode "$INSTALL_MODE" --wasm "$WASM_PATH" "$CANISTER_ID" --asset-canister "$ASSET_CANISTER_ID"
 
 echo
-echo "Installation was requested. A team member now needs to approve the request in Orbit."
+echo "Cleaning up downloaded WASM..."
+rm -rf "$WASM_DIR"
+
+echo
+echo "✅ Installation was requested. A team member now needs to approve the request in Orbit."
