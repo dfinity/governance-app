@@ -90,6 +90,7 @@
     "confirming": "Disbursing, please wait...",
     "success": "Maturity disbursement started. ICP will be added to your balance in approximately 1 week.",
     "errors": {
+      "amountTooLow": "Minimum amount is {{min}} maturity",
       "failed": "Failed to disburse maturity. Please try again."
     }
   },

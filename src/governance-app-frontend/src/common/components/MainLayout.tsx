@@ -7,7 +7,7 @@ import { Sidebar } from '@components/navigation/Sidebar';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
   return (
-    <div className="flex min-h-screen w-full bg-background" data-testid="main-layout">
+    <div className="flex h-screen w-full bg-background" data-testid="main-layout">
       <WelcomeModal />
       <Sidebar />
       <div className="flex h-screen w-full flex-col overflow-hidden">

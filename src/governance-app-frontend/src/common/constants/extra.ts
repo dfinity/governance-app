@@ -18,6 +18,7 @@ export const E8Sn = BigInt(E8S);
 export const U64_MAX = 2n ** 64n - 1n;
 
 export const ICP_MIN_STAKE_AMOUNT = 1;
+export const ICP_MIN_DISBURSE_MATURITY_AMOUNT = 1;
 export const ICP_TRANSACTION_FEE = 0.0001;
 export const ICP_TRANSACTION_FEE_E8S = ICP_TRANSACTION_FEE * E8S;
 export const ICP_TRANSACTION_FEE_E8Sn = BigInt(ICP_TRANSACTION_FEE_E8S);
