@@ -1,5 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { Info, Loader2 } from 'lucide-react';
+import { AlertTriangle, Info, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
@@ -10,7 +11,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
-import { E8Sn } from '@constants/extra';
+import { E8Sn, ICP_MIN_DISBURSE_MATURITY_AMOUNT } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
 import { mapCanisterError } from '@utils/errors';
 import { getNeuronFreeMaturityE8s } from '@utils/neuron';
@@ -28,10 +29,20 @@ type Props = {
 export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation();
   const { mutateAsync, isPending } = useDisburseMaturity();
+  const [error, setError] = useState<string | null>(null);
 
   const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
 
   const handleConfirm = async () => {
+    if (unstakedMaturity < ICP_MIN_DISBURSE_MATURITY_AMOUNT) {
+      setError(
+        t(($) => $.neuronDetailModal.disburseMaturity.errors.amountTooLow, {
+          min: ICP_MIN_DISBURSE_MATURITY_AMOUNT,
+        }),
+      );
+      return;
+    }
+
     try {
       await mutateAsync({ neuronId: neuron.neuronId });
       successNotification({
@@ -44,6 +55,12 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
       });
     }
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      setError(null);
+    }
+  }, [isOpen]);
 
   const handleOpenChange = (open: boolean) => {
     if (isPending && !open) return;
@@ -75,6 +92,13 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
               />
             </AlertDescription>
           </Alert>
+
+          {error && (
+            <Alert variant="warning" data-testid="disburse-maturity-amount-error">
+              <AlertTriangle className="h-4 w-4 text-destructive" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
           <div className="flex gap-3">
             {!isPending && (
