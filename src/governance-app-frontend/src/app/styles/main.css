@@ -196,4 +196,11 @@
   .safe-pb-12 {
     padding-bottom: calc(3rem + env(safe-area-inset-bottom));
   }
+
+  /* Disable SVG animations when prefers-reduced-motion is set */
+  @media (prefers-reduced-motion: reduce) {
+    svg animate {
+      display: none;
+    }
+  }
 }
