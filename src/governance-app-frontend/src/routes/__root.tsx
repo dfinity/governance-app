@@ -68,9 +68,18 @@ function UnauthenticatedNotFound() {
   const { t } = useTranslation();
 
   return (
-    <>
-      <BetaBanner isLoggedIn={false} />
-      <div className="flex min-h-dvh w-full flex-col items-center justify-center bg-background px-4 text-foreground">
+    <div className="flex min-h-dvh w-full flex-col bg-background text-foreground">
+      <div className="px-4 py-10 sm:p-12">
+        <div className="relative w-fit">
+          <img
+            src="/governance-logo.svg"
+            alt={t(($) => $.common.alt.icpLogo)}
+            className="h-6 w-fit dark:invert"
+          />
+          <BetaBanner isLoggedIn={false} />
+        </div>
+      </div>
+      <div className="flex flex-1 items-center justify-center px-4">
         <div className="flex max-w-md flex-col items-center text-center">
           <h1 className="text-[10rem] leading-none font-bold tracking-tighter text-muted-foreground/20 sm:text-[12rem]">
             404
@@ -91,7 +100,7 @@ function UnauthenticatedNotFound() {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

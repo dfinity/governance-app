@@ -59,7 +59,6 @@ function LoginPage() {
 
   return (
     <>
-      <BetaBanner isLoggedIn={false} />
       <div className="dark relative min-h-dvh w-full font-sans text-foreground">
         {/* Loading Overlay */}
         {isLoggingIn && (
@@ -110,12 +109,15 @@ function LoginPage() {
         {/* Content */}
         <div className="relative flex min-h-dvh w-full flex-col justify-between px-4 py-10 3xl:mx-auto 3xl:max-w-[2000px] sm:p-12">
           {/* Header Section */}
-          <div className="flex flex-col gap-6 md:mb-12 md:gap-0">
-            <img
-              src="/governance-logo.svg"
-              alt={t(($) => $.common.alt.icpLogo)}
-              className="h-6 w-fit invert"
-            />
+          <div className="relative flex flex-col gap-6 md:mb-12 md:gap-0">
+            <div className="relative w-fit">
+              <img
+                src="/governance-logo.svg"
+                alt={t(($) => $.common.alt.icpLogo)}
+                className="h-6 w-fit invert"
+              />
+              <BetaBanner isLoggedIn={false} />
+            </div>
             <h1 className="text-hero-responsive mt-4 mb-6 max-w-xl font-bold tracking-wide md:mt-12 md:mb-0 md:max-w-3xl">
               {t(($) => $.login.headerTitle)}
             </h1>
