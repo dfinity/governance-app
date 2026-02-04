@@ -36,7 +36,7 @@ export const BetaBanner = ({ isLoggedIn = false }: Props) => {
     baseBadgeClasses,
     'flex gap-1.5 px-2 py-1 text-xs',
     isLoggedIn
-      ? 'fixed top-3 right-2 lg:hidden'
+      ? 'fixed top-[calc(0.75rem+env(safe-area-inset-top))] right-[calc(0.5rem+env(safe-area-inset-right))] lg:hidden'
       : 'absolute top-0 left-[calc(100%+0.5rem)] sm:hidden',
   );
 
