@@ -1,0 +1,257 @@
+#!/usr/bin/env bash
+# BLUEPRINT (OLD) NNS BETA DEPLOYMENT: https://github.com/dfinity/nns-dapp/blob/main/scripts/nns-dapp/release-beta
+set -euo pipefail
+SOURCE_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+
+print_help() {
+  cat <<-EOF
+
+	Creates an Orbit deployment request for the governance-app canister.
+
+	This script:
+	1. Downloads the WASM artifact from a successful CI build
+	2. Creates an Orbit request to upgrade the canister
+	3. A team member needs to approve the request in Orbit
+
+	EOF
+}
+
+# Source the clap.bash file ---------------------------------------------------
+source "$SOURCE_DIR/clap.sh"
+# Define options
+clap.define short=i long=identity desc="The dfx identity to use" variable=DFX_IDENTITY default="orbit"
+clap.define short=s long=station desc="The orbit station to use" variable=STATION default="governance-team-mainnet"
+clap.define long=skip-checks desc="Skip the checks that dfx-orbit is set up correctly" variable=SKIP_CHECKS nargs=0
+clap.define short=c long=commit desc="The commit to download the wasm for" variable=COMMIT default="main"
+clap.define long=install-mode desc="Install mode" variable=INSTALL_MODE default="upgrade"
+clap.define short=l long=limit desc="Limit for gh run list" variable=LIMIT default="200"
+# Source the output file ----------------------------------------------------------
+source "$(clap.build)"
+
+# Configuration
+ORBIT_STATION_ID="fv4dp-biaaa-aaaal-amrua-cai"
+CANISTER_ID="mc7vh-sqaaa-aaaai-q33na-cai"
+ASSET_CANISTER_ID="p6zoc-uyaaa-aaaai-q5zja-cai"
+WORKFLOW_NAME="Pipeline Main"
+WASM_FILENAME="governance_app_backend.wasm"
+
+# -----------------------------------------------------------------------------
+# Pre-flight checks
+# -----------------------------------------------------------------------------
+
+check_dfx_orbit_installed() {
+  if ! command -v dfx-orbit >/dev/null; then
+    {
+      echo "You need dfx-orbit. Install it with:"
+      echo "cargo install -f --git https://github.com/dfinity/orbit.git --bin dfx-orbit"
+    } >&2
+    exit 1
+  fi
+}
+
+check_gh_installed() {
+  if ! command -v gh >/dev/null; then
+    {
+      echo "You need GitHub CLI (gh). Install it from:"
+      echo "https://cli.github.com/"
+    } >&2
+    exit 1
+  fi
+}
+
+check_dfx_orbit_station() {
+  if ! dfx-orbit station use "$STATION"; then
+    {
+      echo "You need to have the '$STATION' station set up. Set it up with:"
+      echo "dfx-orbit station add --station-id \"$ORBIT_STATION_ID\" --network ic \"governance-team-mainnet\""
+    } >&2
+    exit 1
+  fi
+}
+
+IDENTITY_JSON_FILE="$HOME/.config/dfx/identity/$DFX_IDENTITY/identity.json"
+
+maybe_identity_password() {
+  if [[ -e "$IDENTITY_JSON_FILE" ]]; then
+    echo "If asked for a password, enter the password of your dfx identity '$DFX_IDENTITY'."
+  fi
+}
+
+check_dfx_orbit_identity() {
+  if ! dfx identity list 2>/dev/null | grep -Fx "$DFX_IDENTITY" >/dev/null; then
+    {
+      echo "You need to have the identity $DFX_IDENTITY set up. Set it up with:"
+      echo "dfx identity new --storage-mode password-protected orbit"
+      echo
+      echo "NOTE: dfx-orbit does not support Keyring protected identities, which is the default for dfx."
+    } >&2
+    exit 1
+  fi
+
+  if [[ -e "$IDENTITY_JSON_FILE" ]] && [[ "$(jq '.keyring_identity_suffix // null' "$IDENTITY_JSON_FILE")" != "null" ]]; then
+    {
+      echo "dfx-orbit does not support Keyring protected identities."
+      echo "Use a different identity than '$DFX_IDENTITY'."
+    } >&2
+    exit 1
+  fi
+
+  maybe_identity_password
+  MY_PRINCIPAL="$(dfx identity get-principal --identity "$DFX_IDENTITY")"
+
+  maybe_identity_password
+  if ! dfx-orbit --station "$STATION" --identity "$DFX_IDENTITY" me; then
+    {
+      echo
+      echo "Your identity '$DFX_IDENTITY' needs to be registered with the orbit station."
+      echo "Ask someone on the team to add your principal '$MY_PRINCIPAL' to the 'Team member' group."
+    } >&2
+    exit 1
+  fi
+}
+
+has_asset_permission() {
+  principal="$1"
+  permission="$2"
+  dfx canister call "$ASSET_CANISTER_ID" list_permitted "(record { permission = variant { $permission } })" --identity anonymous --network ic | idl2json | jq -r '.[]' | grep -q "$principal"
+}
+
+require_asset_permission() {
+  permission="$1"
+  permission_description="$2"
+  lowercase_permission="$(echo "$permission" | tr '[:upper:]' '[:lower:]')"
+
+  if ! has_asset_permission "$MY_PRINCIPAL" "$permission"; then
+    {
+      echo "You need permission to $permission_description."
+      echo "Request permission with:"
+      echo "dfx-orbit --identity \"$DFX_IDENTITY\" --station \"$STATION\" request --title \"Add $permission permission for $USER\" asset permission $ASSET_CANISTER_ID $lowercase_permission --target \"$MY_PRINCIPAL\""
+    } >&2
+    exit 1
+  fi
+}
+
+check_asset_permissions() {
+  require_asset_permission Commit "commit assets to the asset canister"
+  require_asset_permission Prepare "upload wasm chunks to the asset canister"
+}
+
+check_dfx_orbit_setup() {
+  if [[ "${SKIP_CHECKS:-}" == "true" ]]; then
+    return
+  fi
+
+  check_gh_installed
+  check_dfx_orbit_installed
+  check_dfx_orbit_station
+  check_dfx_orbit_identity
+  check_asset_permissions
+
+  echo "✅ All checks passed. If you want to skip these checks in the future, use the --skip-checks flag."
+}
+
+# -----------------------------------------------------------------------------
+# CI artifact download
+# -----------------------------------------------------------------------------
+
+get_ci_build_run() {
+  local commit="$1"
+  local limit="$2"
+
+  ci_build_run_ids="$(gh run list --workflow "$WORKFLOW_NAME" --limit "$limit" --json databaseId,headSha,conclusion | jq --arg commit "$commit" '.[] | select(.headSha == $commit and .conclusion == "success")' | jq -r '.databaseId')"
+
+  if ! [ "$ci_build_run_ids" ]; then
+    {
+      echo "No successful '$WORKFLOW_NAME' run found for commit $commit."
+      echo "If the commit is too new, the run may not have finished yet."
+      echo "If the commit is too old, increasing --limit (was $limit) may help."
+    } >&2
+    exit 1
+  fi
+
+  echo "$ci_build_run_ids" | tail -1
+}
+
+download_ci_wasm() {
+  local commit="$1"
+  local output_dir="$2"
+  local limit="$3"
+
+  echo "Finding CI build run for commit $commit..."
+  local ci_build_run_id
+  ci_build_run_id="$(get_ci_build_run "$commit" "$limit")"
+  echo "Found CI build run: $ci_build_run_id"
+
+  # The artifact name includes the run ID
+  local artifact_name="${ci_build_run_id}-wasm"
+
+  local tmp_dir
+  tmp_dir="$(mktemp -d)"
+
+  echo "Downloading artifact '$artifact_name'..."
+  gh run download "$ci_build_run_id" --dir "$tmp_dir" -n "$artifact_name"
+
+  mkdir -p "$output_dir"
+  local dst_wasm_file="$output_dir/$WASM_FILENAME"
+  local src_wasm_file
+  src_wasm_file="$(find "$tmp_dir" -name "$WASM_FILENAME" | head -1)"
+
+  if ! [ "$src_wasm_file" ]; then
+    echo "No $WASM_FILENAME found in downloaded artifact" >&2
+    rm -rf "$tmp_dir"
+    exit 1
+  fi
+
+  mv "$src_wasm_file" "$dst_wasm_file"
+  rm -rf "$tmp_dir"
+
+  echo "Downloaded WASM to: $dst_wasm_file"
+  sha256sum "$dst_wasm_file"
+}
+
+# -----------------------------------------------------------------------------
+# Main
+# -----------------------------------------------------------------------------
+
+check_dfx_orbit_setup
+
+TOP_DIR=$(git rev-parse --show-toplevel)
+WASM_DIR="$TOP_DIR/release/ci"
+WASM_PATH="$WASM_DIR/$WASM_FILENAME"
+COMMIT="$(git rev-parse "$COMMIT")"
+
+# Cleanup WASM_DIR on exit (success or failure)
+cleanup() {
+  if [[ -d "$WASM_DIR" ]]; then
+    echo "Cleaning up downloaded WASM..."
+    rm -rf "$WASM_DIR"
+  fi
+}
+trap cleanup EXIT
+
+cd "$TOP_DIR"
+
+echo
+echo "Downloading wasm from CI..."
+download_ci_wasm "$COMMIT" "$WASM_DIR" "$LIMIT"
+
+TITLE="Upgrade governance-app at commit ${COMMIT:0:10}"
+SUMMARY="Upgrade governance-app at commit $COMMIT
+
+Verify the build before approving:
+
+1. git fetch
+2. git checkout \"$COMMIT\"
+3. ./scripts/build.sh --keep-wasm
+4. sha256sum governance_app_backend.wasm
+
+One liner:
+
+git fetch && git checkout \"$COMMIT\" && ./scripts/build.sh --keep-wasm && sha256sum governance_app_backend.wasm"
+
+echo
+echo "Creating Orbit request..."
+dfx-orbit --station "$STATION" --identity "$DFX_IDENTITY" request --title "$TITLE" --summary "$SUMMARY" canister install --mode "$INSTALL_MODE" --wasm "$WASM_PATH" "$CANISTER_ID" --asset-canister "$ASSET_CANISTER_ID"
+
+echo
+echo "✅ Installation was requested. A team member now needs to approve the request in Orbit."
