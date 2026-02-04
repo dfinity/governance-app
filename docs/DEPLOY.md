@@ -69,8 +69,6 @@ Before approving an Orbit request, verify the build:
 - Keep track of controllers, and add/remove them in case they change:
     - Orbit canister -> `fv4dp-biaaa-aaaal-amrua-cai`.
     - NNS root (emergency option) -> `r7inp-6aaaa-aaaaa-aaabq-cai`.
-    - @TODO evaluate if using Orbit for top-ups instead:
-        - CycleOps canister -> `cpbhu-5iaaa-aaaad-aalta-cai`.
     - @TODO remove after testead and go-live:
         - Francesco -> `frlnd-a2ffv-cu3x5-3lvcb-i2lrh-ha3sp-p36py-356y5-b7y77-bxuri-zae`.
         - Yusef -> `pixf5-n6wii-oy2th-nnhvc-afaf4-2yu5l-aac32-pedif-s3o5c-i6qw7-uqe`.
