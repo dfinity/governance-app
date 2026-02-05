@@ -40,36 +40,12 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-        /* Browser launch args for container compatibility */
-        launchOptions: {
-          args: [
-            '--disable-web-security',
-            '--disable-setuid-sandbox',
-            '--no-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-blink-features=AutomationControlled',
-            '--disable-popup-blocking',
-          ],
-        },
-      },
+      use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'mobile',
       use: {
         ...devices['Pixel 7'],
-        /* Browser launch args for container compatibility */
-        launchOptions: {
-          args: [
-            '--disable-web-security',
-            '--disable-setuid-sandbox',
-            '--no-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-blink-features=AutomationControlled',
-            '--disable-popup-blocking',
-          ],
-        },
       },
     },
   ],
