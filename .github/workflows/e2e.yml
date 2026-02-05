@@ -108,7 +108,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.playwright_version.outputs.version }}-chromium
+          key: playwright-${{ runner.os }}-${{ steps.playwright_version.outputs.version }}-all
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
@@ -173,21 +173,6 @@ jobs:
         run: |
           echo "Running login test only (scoped for container debugging)"
           npx playwright test tests/e2e/login.spec.ts --project=chromium --reporter=list,html
-
-      - name: Check test artifacts
-        if: always()
-        working-directory: src/governance-app-frontend
-        run: |
-          echo "=== Test Results ==="
-          ls -la test-results/ 2>/dev/null || echo "No test-results directory"
-          if [ -d "test-results" ]; then
-            echo ""
-            echo "=== Failed Test Artifacts ==="
-            find test-results -name "*.png" -o -name "*.webm" | head -10
-            echo ""
-            echo "=== Screenshot sizes (if any) ==="
-            find test-results -name "test-failed-*.png" -exec ls -lh {} \; 2>/dev/null || echo "No failure screenshots"
-          fi
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
