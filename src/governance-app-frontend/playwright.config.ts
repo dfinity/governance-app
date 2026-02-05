@@ -13,13 +13,13 @@ export default defineConfig({
   testDir: './tests/e2e',
   snapshotPathTemplate: './tests/e2e/snapshots/{testFilePath}-{arg}-{projectName}-{platform}{ext}',
   /* Test timeout - 1.5 minute */
-  timeout: 180000,
+  timeout: 90000,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
-  retries: process.env.CI ? 0 : 0,
+  retries: process.env.CI ? 2 : 0,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ['list'], // prints results to CI logs
@@ -45,12 +45,29 @@ export default defineConfig({
         /* Browser launch args for container compatibility */
         launchOptions: {
           args: [
-            '--disable-web-security', // Allow localhost cross-origin
-            '--disable-setuid-sandbox', // Required for rootless containers
-            '--no-sandbox', // Required for running as root in container
-            '--disable-dev-shm-usage', // Overcome limited resource problems
-            '--disable-blink-features=AutomationControlled', // Avoid detection
-            '--disable-popup-blocking', // Allow Internet Identity popup
+            '--disable-web-security',
+            '--disable-setuid-sandbox',
+            '--no-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-blink-features=AutomationControlled',
+            '--disable-popup-blocking',
+          ],
+        },
+      },
+    },
+    {
+      name: 'mobile',
+      use: {
+        ...devices['Pixel 7'],
+        /* Browser launch args for container compatibility */
+        launchOptions: {
+          args: [
+            '--disable-web-security',
+            '--disable-setuid-sandbox',
+            '--no-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-blink-features=AutomationControlled',
+            '--disable-popup-blocking',
           ],
         },
       },
