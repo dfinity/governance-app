@@ -25,25 +25,23 @@ export const login = async ({ page }: { page: Page }) => {
     console.log('Waiting 5s for React to be fully interactive...');
     await page.waitForTimeout(5000);
 
-    // Set up popup listener BEFORE clicking
-    console.log('Setting up popup listener...');
-    const popupPromise = page.waitForEvent('popup', { timeout: 60000 });
+    // Get the browser context to listen for new pages
+    const context = page.context();
+    
+    // Set up listeners for both popup and new page events
+    console.log('Setting up page/popup listeners...');
+    const newPagePromise = Promise.race([
+      page.waitForEvent('popup', { timeout: 60000 }).then(p => { console.log('Got popup event'); return p; }),
+      context.waitForEvent('page', { timeout: 60000 }).then(p => { console.log('Got page event from context'); return p; }),
+    ]);
 
-    // Try clicking with JavaScript directly
-    console.log('Clicking login button via JavaScript...');
-    await page.evaluate(() => {
-      const btn = document.querySelector('[data-testid="login-btn"]');
-      if (btn) {
-        console.log('Found button, clicking...');
-        (btn as HTMLElement).click();
-      } else {
-        console.log('Button not found!');
-      }
-    });
-
-    console.log('Button clicked, waiting for popup...');
-    const newTab = await popupPromise;
-    console.log('✅ Popup opened successfully!');
+    // Click using both Playwright and JavaScript methods
+    console.log('Clicking login button...');
+    await loginBtn.click();
+    
+    console.log('Button clicked, waiting for new page/popup...');
+    const newTab = await newPagePromise;
+    console.log('✅ New page/popup detected!');
 
     // Ensures all assets loaded.
     await newTab.waitForLoadState('load');
