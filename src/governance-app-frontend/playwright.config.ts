@@ -34,25 +34,26 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-
-    /* Browser launch args for container compatibility */
-    launchOptions: {
-      args: [
-        '--disable-web-security', // Allow localhost cross-origin
-        '--disable-setuid-sandbox', // Required for rootless containers
-        '--no-sandbox', // Required for running as root in container
-        '--disable-dev-shm-usage', // Overcome limited resource problems
-        '--disable-blink-features=AutomationControlled', // Avoid detection
-        '--disable-popup-blocking', // Allow Internet Identity popup
-      ],
-    },
   },
 
   /* Configure projects for major browsers */
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        /* Browser launch args for container compatibility */
+        launchOptions: {
+          args: [
+            '--disable-web-security', // Allow localhost cross-origin
+            '--disable-setuid-sandbox', // Required for rootless containers
+            '--no-sandbox', // Required for running as root in container
+            '--disable-dev-shm-usage', // Overcome limited resource problems
+            '--disable-blink-features=AutomationControlled', // Avoid detection
+            '--disable-popup-blocking', // Allow Internet Identity popup
+          ],
+        },
+      },
     },
   ],
 });

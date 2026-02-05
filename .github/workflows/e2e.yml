@@ -130,11 +130,53 @@ jobs:
           node test-nav.mjs || echo "Debug test failed"
           rm test-nav.mjs
 
+      - name: Test if popups work in Chromium
+        working-directory: src/governance-app-frontend
+        run: |
+          echo "Testing if basic popups work..."
+          cat > test-popup.mjs << 'EOF'
+          import { chromium } from 'playwright';
+          (async () => {
+            const browser = await chromium.launch({
+              headless: true,
+              args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-popup-blocking']
+            });
+            const page = await browser.newPage();
+            await page.goto('data:text/html,<button onclick="window.open(\'about:blank\')">Open Popup</button>');
+            
+            const [popup] = await Promise.all([
+              page.waitForEvent('popup', { timeout: 5000 }),
+              page.click('button')
+            ]);
+            
+            console.log('✅ Popup opened successfully!');
+            console.log('Popup URL:', popup.url());
+            await browser.close();
+          })();
+          EOF
+          node test-popup.mjs || echo "❌ Popup test failed"
+          rm test-popup.mjs
+
       - name: Run login E2E test
         working-directory: src/governance-app-frontend
         run: |
           echo "Running login test only (scoped for container debugging)"
-          npx playwright test tests/e2e/login.spec.ts
+          npx playwright test tests/e2e/login.spec.ts --project=chromium --reporter=list,html
+
+      - name: Check test artifacts
+        if: always()
+        working-directory: src/governance-app-frontend
+        run: |
+          echo "=== Test Results ==="
+          ls -la test-results/ 2>/dev/null || echo "No test-results directory"
+          if [ -d "test-results" ]; then
+            echo ""
+            echo "=== Failed Test Artifacts ==="
+            find test-results -name "*.png" -o -name "*.webm" | head -10
+            echo ""
+            echo "=== Screenshot sizes (if any) ==="
+            find test-results -name "test-failed-*.png" -exec ls -lh {} \; 2>/dev/null || echo "No failure screenshots"
+          fi
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
