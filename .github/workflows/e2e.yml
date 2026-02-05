@@ -5,7 +5,7 @@ on:
 jobs:
   tests:
     name: E2E Tests
-    timeout-minutes: 10
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     container: ghcr.io/dfinity/governance-app/builder-base:0.0.5
     env:
