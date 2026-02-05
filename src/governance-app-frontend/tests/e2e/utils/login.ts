@@ -13,8 +13,8 @@ export const login = async ({ page }: { page: Page }) => {
       page.getByTestId('login-btn').click(),
     ]);
 
-    // Wait for DOM to be ready (more reliable in containers than networkidle)
-    await newTab.waitForLoadState('domcontentloaded');
+    // Wait for popup to fully load (including scripts) - more reliable than networkidle in containers
+    await newTab.waitForLoadState('load', { timeout: 60000 });
     await expect(newTab).toHaveTitle(/Internet Identity/);
 
     // Create new identity.

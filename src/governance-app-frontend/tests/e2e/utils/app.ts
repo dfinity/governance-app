@@ -13,9 +13,10 @@ export const openApp = async ({ page, url = '/' }: { page: Page; url?: string })
     window.isPlaywright = true;
   });
 
-  await page.goto(url, { waitUntil: 'domcontentloaded' });
+  // Use 'load' instead of domcontentloaded - waits for stylesheets/images but not network idle
+  await page.goto(url, { waitUntil: 'load', timeout: 60000 });
 
-  // Wait for the app to be interactive instead of full networkidle (more forgiving in containers)
+  // Wait for React app to hydrate and render
   await expect(page.getByText('Govern how the cloud evolves')).toBeVisible({
     timeout: 30000,
   });
