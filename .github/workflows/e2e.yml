@@ -8,7 +8,7 @@ jobs:
     timeout-minutes: 30
     runs-on: dind-small
     # NOTE: NOT using `container:` directive - running docker manually with --network host
-    # This fixes Playwright connectivity issues in containers
+    # This fixes Playwright connectivity issues found in containers
     env:
       BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
       CONTAINER_IMAGE: ghcr.io/dfinity/governance-app/builder-base:0.0.5
@@ -22,7 +22,7 @@ jobs:
       - name: Pull container image
         run: docker pull $CONTAINER_IMAGE
 
-      - name: Run E2E tests in container with --network host
+      - name: Run E2E tests in Docker container
         run: |
           docker run --rm \
             --network host \
