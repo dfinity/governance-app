@@ -6,19 +6,43 @@ export const login = async ({ page }: { page: Page }) => {
   await test.step('Can log in.', async () => {
     const loginBtn = page.getByTestId('login-btn');
 
+    // Log any console errors
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        console.log(`[Browser Error] ${msg.text()}`);
+      }
+    });
+
     console.log('Waiting for login button to be visible and enabled...');
     await expect(loginBtn).toBeVisible();
     await expect(loginBtn).toBeEnabled();
 
-    // Give React extra time to fully hydrate and attach event handlers
-    console.log('Waiting for React to be fully interactive...');
-    await page.waitForTimeout(3000);
+    // Check button info
+    const btnText = await loginBtn.textContent();
+    console.log('Login button text:', btnText);
 
-    console.log('Attempting to click login button...');
-    const [newTab] = await Promise.all([
-      page.waitForEvent('popup', { timeout: 60000 }),
-      loginBtn.click({ force: true }), // force: true bypasses actionability checks
-    ]);
+    // Give React extra time to fully hydrate and attach event handlers
+    console.log('Waiting 5s for React to be fully interactive...');
+    await page.waitForTimeout(5000);
+
+    // Set up popup listener BEFORE clicking
+    console.log('Setting up popup listener...');
+    const popupPromise = page.waitForEvent('popup', { timeout: 60000 });
+
+    // Try clicking with JavaScript directly
+    console.log('Clicking login button via JavaScript...');
+    await page.evaluate(() => {
+      const btn = document.querySelector('[data-testid="login-btn"]');
+      if (btn) {
+        console.log('Found button, clicking...');
+        (btn as HTMLElement).click();
+      } else {
+        console.log('Button not found!');
+      }
+    });
+
+    console.log('Button clicked, waiting for popup...');
+    const newTab = await popupPromise;
     console.log('✅ Popup opened successfully!');
 
     // Ensures all assets loaded.
