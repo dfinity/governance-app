@@ -74,6 +74,7 @@ jobs:
           echo "=== DNS Resolution ==="
           getent hosts localhost || echo "localhost resolution failed"
           getent hosts uxrrr-q7777-77774-qaaaq-cai.localhost || echo "canister.localhost resolution failed"
+          getent hosts rdmx6-jaaaa-aaaaa-aaadq-cai.localhost || echo "II canister.localhost resolution failed"
           echo ""
           
           echo "=== Port Check ==="
@@ -81,8 +82,18 @@ jobs:
           echo ""
           
           echo "=== Connectivity Tests ==="
-          echo "Testing cURL to $BASE_URL"
-          curl -v $BASE_URL || echo "cURL failed"
+          echo "Testing cURL to Governance App: $BASE_URL"
+          curl -v $BASE_URL || echo "Governance App cURL failed"
+          echo ""
+          
+          echo "=== Internet Identity Connectivity ==="
+          II_URL="http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:8080"
+          echo "Testing cURL to Internet Identity: $II_URL"
+          curl -v $II_URL || echo "Internet Identity cURL failed"
+          echo ""
+          
+          echo "=== List all deployed canisters ==="
+          dfx canister id --all || echo "Failed to list canisters"
           echo ""
           
           echo "=== Playwright Check ==="
