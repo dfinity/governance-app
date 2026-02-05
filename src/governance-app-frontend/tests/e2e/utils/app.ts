@@ -4,34 +4,24 @@ import { stubIcpSwap } from '../stubs/icpSwap';
 import { stubKongSwap } from '../stubs/kongSwap';
 
 export const openApp = async ({ page, url = '/' }: { page: Page; url?: string }) => {
-  // TEMPORARILY DISABLED: Stub external services - testing if these cause container issues
-  // await stubIcpSwap(page);
-  // await stubKongSwap(page);
-
-  // Set e2e flag to disable TanStack Query retries.
+  // Set e2e flag to disable TanStack Query retries BEFORE navigation
   await page.addInitScript(() => {
     window.isPlaywright = true;
   });
 
-  // Navigate and wait for basic page load
-  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  // Stub external services with test data BEFORE navigation
+  await stubIcpSwap(page);
+  await stubKongSwap(page);
 
-  // Check if page actually loaded
-  const title = await page.title();
-  console.log('Page title:', title);
-  
-  // Check page content
-  const bodyText = await page.locator('body').textContent();
-  console.log('Body has content:', bodyText ? bodyText.length : 0, 'chars');
-  console.log('Body preview:', bodyText?.substring(0, 300));
-  
-  // Check if #root has content
-  const rootContent = await page.locator('#root').textContent();
-  console.log('#root has content:', rootContent ? rootContent.length : 0, 'chars');
+  console.log('Navigating to:', url);
+  // Navigate and wait for page load
+  await page.goto(url, { waitUntil: 'load', timeout: 60000 });
 
+  console.log('Waiting for app to render...');
   // Wait directly for the main app content (React will hydrate when ready)
-  // Using a very generous timeout for container environments
   await expect(page.getByText('Govern how the cloud evolves')).toBeVisible({
-    timeout: 90000,
+    timeout: 60000,
   });
+  
+  console.log('✅ App loaded successfully');
 };

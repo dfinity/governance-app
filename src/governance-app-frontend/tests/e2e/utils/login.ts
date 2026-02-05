@@ -6,21 +6,28 @@ export const login = async ({ page }: { page: Page }) => {
   await test.step('Can log in.', async () => {
     const loginBtn = page.getByTestId('login-btn');
 
+    console.log('Waiting for login button...');
     // Wait for login button to be fully interactive
     await expect(loginBtn).toBeVisible();
     await expect(loginBtn).toBeEnabled();
 
-    // Extra wait to ensure React event handlers are attached
-    console.log('Waiting for app to be fully interactive...');
-    await page.waitForTimeout(2000);
+    // Wait for any network activity to settle
+    console.log('Waiting for app to stabilize...');
+    try {
+      await page.waitForLoadState('networkidle', { timeout: 10000 });
+    } catch (e) {
+      console.log('Network not idle after 10s, proceeding anyway', e);
+    }
 
-    console.log('Clicking login button...');
-    const popupPromise = page.waitForEvent('popup', { timeout: 45000 });
-    await loginBtn.click();
-    console.log('Button clicked, waiting for popup...');
+    // Extra buffer to ensure React event handlers are fully attached
+    await page.waitForTimeout(3000);
 
-    const newTab = await popupPromise;
-    console.log('Popup opened!');
+    console.log('Clicking login button and waiting for popup...');
+    const [newTab] = await Promise.all([
+      page.waitForEvent('popup', { timeout: 60000 }),
+      loginBtn.click(),
+    ]);
+    console.log('✅ Popup opened!');
     console.log('Popup URL:', newTab.url());
 
     // Listen for console errors in the popup
@@ -40,7 +47,7 @@ export const login = async ({ page }: { page: Page }) => {
       console.log('Popup page content:', content.substring(0, 500));
       throw e;
     }
-    
+
     await expect(newTab).toHaveTitle(/Internet Identity/);
 
     // Create new identity.
