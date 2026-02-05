@@ -14,7 +14,7 @@ export const login = async ({ page }: { page: Page }) => {
     ]);
 
     // Ensures all assets loaded.
-    await newTab.waitForLoadState('networkidle');
+    await newTab.waitForLoadState('load');
     await expect(newTab).toHaveTitle(/Internet Identity/);
 
     // Create new identity.

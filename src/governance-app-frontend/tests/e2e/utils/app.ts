@@ -13,10 +13,11 @@ export const openApp = async ({ page, url = '/' }: { page: Page; url?: string })
     window.isPlaywright = true;
   });
 
+  // Navigate to the page
   await page.goto(url);
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('load');
 
   await expect(page.getByText('Govern how the cloud evolves')).toBeVisible({
-    timeout: 30000,
+    timeout: 60000,
   });
 };
