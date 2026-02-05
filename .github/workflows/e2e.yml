@@ -5,11 +5,12 @@ on:
 jobs:
   tests:
     name: E2E Tests
-    timeout-minutes: 10
+    timeout-minutes: 15
     runs-on: dind-small
-    container: ghcr.io/dfinity/governance-app/builder-base:0.0.5
+    # NOTE: NOT using `container:` directive - running docker manually with --network host
     env:
       BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
+      CONTAINER_IMAGE: ghcr.io/dfinity/governance-app/builder-base:0.0.5
 
     steps:
       - uses: actions/checkout@v4
@@ -17,162 +18,77 @@ jobs:
           ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
 
-      - name: Install frontend dependencies
-        run: npm ci
+      - name: Pull container image
+        run: docker pull $CONTAINER_IMAGE
 
-      # local replica
-      - name: Generate .env file
-        run: ./scripts/config.sh -n local
-
-      - name: Start local dfx replica
-        run: ./scripts/start-pocket-ic.sh --background --delay 0
-
-      # To speed up the backend build.
-      - name: Cache cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Deploy governance-app
-        shell: bash
+      - name: Run E2E tests in container with --network host
         run: |
-          dfx canister create governance-app-backend
-          dfx deploy governance-app-backend
+          docker run --rm \
+            --network host \
+            -v "${{ github.workspace }}:/app" \
+            -w /app \
+            -e BASE_URL="$BASE_URL" \
+            -e CI=true \
+            $CONTAINER_IMAGE \
+            bash -c '
+              set -e
+              echo "=== Container Environment ==="
+              echo "Hostname: $(hostname)"
+              echo "User: $(whoami)"
+              echo "Node: $(node -v)"
+              echo "DFX: $(dfx --version)"
+              echo ""
 
-          echo "Waiting for server..."
-          max_attempts=30
-          for i in $(seq 1 $max_attempts); do
-            if curl -i $BASE_URL | grep "200 OK" > /dev/null; then
-              echo "Server is up!"
-              break
-            fi
-            echo "Server not ready yet... attempt $i/$max_attempts"
-            sleep 2
-            if [ "$i" -eq "$max_attempts" ]; then
-              echo "Server did not become ready after $max_attempts attempts, exiting."
-              exit 1
-            fi
-          done
+              echo "=== Installing dependencies ==="
+              npm ci
 
-      - name: Debug Network Connectivity
-        run: |
-          echo "=== Container Environment ==="
-          echo "Hostname: $(hostname)"
-          echo "User: $(whoami)"
-          echo "Node: $(node -v)"
-          echo "DFX: $(dfx --version)"
-          echo ""
-          
-          echo "=== /etc/hosts ==="
-          cat /etc/hosts
-          echo ""
-          
-          echo "=== DNS Resolution ==="
-          getent hosts localhost || echo "localhost resolution failed"
-          getent hosts uxrrr-q7777-77774-qaaaq-cai.localhost || echo "canister.localhost resolution failed"
-          getent hosts rdmx6-jaaaa-aaaaa-aaadq-cai.localhost || echo "II canister.localhost resolution failed"
-          echo ""
-          
-          echo "=== Port Check ==="
-          ss -tuln | grep 8080 || netstat -tuln | grep 8080 || echo "Port 8080 not found in socket list"
-          echo ""
-          
-          echo "=== Connectivity Tests ==="
-          echo "Testing cURL to Governance App: $BASE_URL"
-          curl -v $BASE_URL || echo "Governance App cURL failed"
-          echo ""
-          
-          echo "=== Internet Identity Connectivity ==="
-          II_URL="http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:8080"
-          echo "Testing cURL to Internet Identity: $II_URL"
-          curl -v $II_URL || echo "Internet Identity cURL failed"
-          echo ""
-          
-          echo "=== List all deployed canisters ==="
-          dfx canister id --all || echo "Failed to list canisters"
-          echo ""
-          
-          echo "=== Playwright Check ==="
-          npx playwright --version || echo "Playwright not yet installed"
+              echo "=== Generating .env file ==="
+              ./scripts/config.sh -n local
 
-      - name: Get Playwright version
-        id: playwright_version
-        run: |
-          echo "version=$(npm ls @playwright/test --depth=0 --json | jq -r '.dependencies["governance-app-frontend"].dependencies["@playwright/test"].version')" >> $GITHUB_OUTPUT
+              echo "=== Starting local dfx replica ==="
+              ./scripts/start-pocket-ic.sh --background --delay 0
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.playwright_version.outputs.version }}-all
+              echo "=== Creating and deploying canister ==="
+              dfx canister create governance-app-backend
+              dfx deploy governance-app-backend
 
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
+              echo "=== Waiting for server ==="
+              max_attempts=30
+              for i in $(seq 1 $max_attempts); do
+                if curl -s -i $BASE_URL | grep -q "200 OK"; then
+                  echo "Server is up!"
+                  break
+                fi
+                echo "Server not ready yet... attempt $i/$max_attempts"
+                sleep 2
+                if [ "$i" -eq "$max_attempts" ]; then
+                  echo "Server did not become ready after $max_attempts attempts, exiting."
+                  exit 1
+                fi
+              done
 
-      - name: Test Playwright/Chromium in container
-        working-directory: src/governance-app-frontend
-        run: |
-          echo "Testing basic Chromium navigation..."
-          cat > test-nav.mjs << 'EOF'
-          import { chromium } from 'playwright';
-          (async () => {
-            const browser = await chromium.launch({ 
-              headless: true,
-              args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-popup-blocking']
-            });
-            const page = await browser.newPage();
-            console.log('✅ Chromium launched successfully');
-            try {
-              const url = process.env.BASE_URL;
-              console.log('Navigating to:', url);
-              await page.goto(url, { timeout: 10000, waitUntil: 'domcontentloaded' });
-              console.log('✅ Navigation successful!');
-              console.log('Page title:', await page.title());
-            } catch (e) {
-              console.error('❌ Navigation failed:', e.message);
-            }
-            await browser.close();
-          })();
-          EOF
-          node test-nav.mjs || echo "Debug test failed"
-          rm test-nav.mjs
+              echo ""
+              echo "=== Debug: Testing connectivity ==="
+              echo "Testing cURL to Governance App: $BASE_URL"
+              curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" $BASE_URL
+              
+              II_URL="http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:8080"
+              echo "Testing cURL to Internet Identity: $II_URL"
+              curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" $II_URL
 
-      - name: Test if popups work in Chromium
-        working-directory: src/governance-app-frontend
-        run: |
-          echo "Testing if basic popups work..."
-          cat > test-popup.mjs << 'EOF'
-          import { chromium } from 'playwright';
-          (async () => {
-            const browser = await chromium.launch({
-              headless: true,
-              args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-popup-blocking']
-            });
-            const page = await browser.newPage();
-            await page.goto('data:text/html,<button onclick="window.open(\'about:blank\')">Open Popup</button>');
-            
-            const [popup] = await Promise.all([
-              page.waitForEvent('popup', { timeout: 5000 }),
-              page.click('button')
-            ]);
-            
-            console.log('✅ Popup opened successfully!');
-            console.log('Popup URL:', popup.url());
-            await browser.close();
-          })();
-          EOF
-          node test-popup.mjs || echo "❌ Popup test failed"
-          rm test-popup.mjs
+              echo ""
+              echo "=== Installing Playwright browsers ==="
+              npx playwright install --with-deps chromium
 
-      - name: Run login E2E test
-        working-directory: src/governance-app-frontend
-        run: |
-          echo "Running login test only (scoped for container debugging)"
-          npx playwright test tests/e2e/login.spec.ts --project=chromium --reporter=list,html
+              echo ""
+              echo "=== Running E2E tests ==="
+              cd src/governance-app-frontend
+              npx playwright test tests/e2e/login.spec.ts --project=chromium --reporter=list,html
+
+              echo ""
+              echo "=== Stopping dfx ==="
+              dfx stop
+            '
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
@@ -180,8 +96,3 @@ jobs:
           name: playwright-report
           path: src/governance-app-frontend/playwright-report/
           retention-days: 30
-
-      - name: Stop local dfx replica
-        if: always()
-        run: |
-          dfx stop

@@ -4,44 +4,14 @@ import { firstVisibleLocatorIndex } from './locator';
 
 export const login = async ({ page }: { page: Page }) => {
   await test.step('Can log in.', async () => {
-    const loginBtn = page.getByTestId('login-btn');
+    await expect(page.getByTestId('login-btn')).toBeVisible();
+    await expect(page.getByTestId('login-btn')).toBeEnabled();
 
-    // Log any console errors
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        console.log(`[Browser Error] ${msg.text()}`);
-      }
-    });
-
-    console.log('Waiting for login button to be visible and enabled...');
-    await expect(loginBtn).toBeVisible();
-    await expect(loginBtn).toBeEnabled();
-
-    // Check button info
-    const btnText = await loginBtn.textContent();
-    console.log('Login button text:', btnText);
-
-    // Give React extra time to fully hydrate and attach event handlers
-    console.log('Waiting 5s for React to be fully interactive...');
-    await page.waitForTimeout(5000);
-
-    // Get the browser context to listen for new pages
-    const context = page.context();
-    
-    // Set up listeners for both popup and new page events
-    console.log('Setting up page/popup listeners...');
-    const newPagePromise = Promise.race([
-      page.waitForEvent('popup', { timeout: 60000 }).then(p => { console.log('Got popup event'); return p; }),
-      context.waitForEvent('page', { timeout: 60000 }).then(p => { console.log('Got page event from context'); return p; }),
+    const [newTab] = await Promise.all([
+      // Catches the new tab.
+      page.waitForEvent('popup'),
+      page.getByTestId('login-btn').click(),
     ]);
-
-    // Click using both Playwright and JavaScript methods
-    console.log('Clicking login button...');
-    await loginBtn.click();
-    
-    console.log('Button clicked, waiting for new page/popup...');
-    const newTab = await newPagePromise;
-    console.log('✅ New page/popup detected!');
 
     // Ensures all assets loaded.
     await newTab.waitForLoadState('load');
