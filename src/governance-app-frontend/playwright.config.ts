@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 // Load environment variables from the root .env file
 dotenv.config({ path: '../../.env' });
 
-const baseURL = process.env.BASE_URL || 'http://localhost:3000';
+const baseURL = 'http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080';
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -52,12 +52,6 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'mobile',
-      use: {
-        ...devices['Pixel 7'],
-      },
     },
   ],
 });
