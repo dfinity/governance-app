@@ -5,15 +5,15 @@ import { firstVisibleLocatorIndex } from './locator';
 export const login = async ({ page }: { page: Page }) => {
   await test.step('Can log in.', async () => {
     const loginBtn = page.getByTestId('login-btn');
-    
+
     console.log('Waiting for login button to be visible and enabled...');
     await expect(loginBtn).toBeVisible();
     await expect(loginBtn).toBeEnabled();
-    
+
     // Give React extra time to fully hydrate and attach event handlers
     console.log('Waiting for React to be fully interactive...');
     await page.waitForTimeout(3000);
-    
+
     console.log('Attempting to click login button...');
     const [newTab] = await Promise.all([
       page.waitForEvent('popup', { timeout: 60000 }),
