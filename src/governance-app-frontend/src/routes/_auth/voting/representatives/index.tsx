@@ -16,7 +16,6 @@ import { Button } from '@components/button';
 import { Skeleton } from '@components/Skeleton';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
-import useTitle from '@hooks/useTitle';
 import { warningNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 import {
@@ -30,9 +29,18 @@ import {
   AlertDialogTitle,
 } from '@common/components/AlertDialog';
 
+import i18n from '@/i18n/config';
+
 export const Route = createFileRoute('/_auth/voting/representatives/')({
   component: Representatives,
   validateSearch: getShowProposalUrlStatus,
+  head: () => {
+    const title = i18n.t(($) => $.common.head.representatives.title);
+
+    return {
+      meta: [{ title }],
+    };
+  },
   staticData: {
     title: 'common.voting',
   },
@@ -42,7 +50,6 @@ function Representatives() {
   const { t } = useTranslation();
   const search = Route.useSearch();
   const queryClient = useQueryClient();
-  useTitle(t(($) => $.knownNeurons.title));
 
   const { canister } = useNnsGovernance();
 

@@ -15,11 +15,19 @@ import { Button } from '@components/button';
 import { Card } from '@components/Card';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
-import useTitle from '@hooks/useTitle';
 import { getSessionTimeLeftForUi } from '@utils/date';
+
+import i18n from '@/i18n/config';
 
 export const Route = createFileRoute('/_auth/account/')({
   component: Account,
+  head: () => {
+    const title = i18n.t(($) => $.common.head.account.title);
+
+    return {
+      meta: [{ title }],
+    };
+  },
   staticData: {
     title: 'common.accounts',
   },
@@ -29,8 +37,6 @@ function Account() {
   const { identity, clear } = useInternetIdentity();
   const { t } = useTranslation();
   const timeLeft = useSessionTimeLeft();
-
-  useTitle(t(($) => $.common.accounts));
 
   const handleLogout = () => {
     localStorage.setItem(MANUAL_LOGOUT_KEY, 'true');

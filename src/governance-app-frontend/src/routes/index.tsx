@@ -15,6 +15,8 @@ import { Skeleton } from '@components/Skeleton';
 import { useGovernanceProposal } from '@hooks/governance';
 import { formatNumber } from '@utils/numbers';
 
+import i18n from '@/i18n/config';
+
 const FADE_MASK_STYLE: CSSProperties = {
   maskImage: 'radial-gradient(ellipse at center, black 40%, transparent 85%)',
   WebkitMaskImage: 'radial-gradient(ellipse at center, black 40%, transparent 85%)',
@@ -38,6 +40,26 @@ export const Route = createFileRoute('/')({
     }
   },
   component: LoginPage,
+  head: () => {
+    const title = i18n.t(($) => $.common.head.login.title);
+    const description = i18n.t(($) => $.common.head.login.description);
+
+    return {
+      meta: [
+        { title },
+        { name: 'description', content: description },
+        // Open Graph
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:image', content: '/og-image.webp' },
+        // Twitter Card
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
+        { name: 'twitter:image', content: '/og-image.webp' },
+      ],
+    };
+  },
 });
 
 function LoginPage() {

@@ -19,6 +19,8 @@ import type { CertifiedData } from '@typings/queries';
 import { bigIntDiv, stringToBigInt } from '@utils/bigInt';
 import { warningNotification } from '@utils/notification';
 
+import i18n from '@/i18n/config';
+
 type StakesSearchParams = {
   stakeId?: string;
   action?: string;
@@ -32,6 +34,13 @@ export const Route = createFileRoute('/_auth/stakes/')({
     openWizard: search.openWizard === 'true' || search.openWizard === true ? true : undefined,
   }),
   component: StakesComponent,
+  head: () => {
+    const title = i18n.t(($) => $.common.head.stakes.title);
+
+    return {
+      meta: [{ title }],
+    };
+  },
   staticData: {
     title: 'common.stakes',
   },

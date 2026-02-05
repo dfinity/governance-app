@@ -14,6 +14,11 @@ import { requireIdentity } from '@utils/router';
 export const Route = createFileRoute('/_auth')({
   beforeLoad: requireIdentity,
   component: AuthLayout,
+  head: () => {
+    return {
+      meta: [{ name: 'robots', content: 'noindex, nofollow' }],
+    };
+  },
 });
 
 function AuthLayout() {

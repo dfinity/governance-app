@@ -1,6 +1,13 @@
 import { nonNullish } from '@dfinity/utils';
 import { useQueryClient } from '@tanstack/react-query';
-import { createRootRoute, Link, Outlet, useRouter } from '@tanstack/react-router';
+import {
+  createRootRoute,
+  HeadContent,
+  Link,
+  Outlet,
+  Scripts,
+  useRouter,
+} from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ArrowLeft, LogIn } from 'lucide-react';
@@ -15,7 +22,29 @@ import { useSessionCountdownToast } from '@hooks/useSessionCountdownToast';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
 import { infoNotification } from '@utils/notification';
 
+import i18n from '@/i18n/config';
+
 export const Route = createRootRoute({
+  head: () => {
+    const appName = i18n.t(($) => $.common.head.appName);
+    const description = i18n.t(($) => $.common.head.defaultDescription);
+
+    return {
+      meta: [
+        { title: appName },
+        { name: 'description', content: description },
+        // Open Graph
+        { property: 'og:type', content: 'website' },
+        { property: 'og:site_name', content: appName },
+        { property: 'og:title', content: appName },
+        { property: 'og:description', content: description },
+        // Twitter Card
+        { name: 'twitter:card', content: 'summary' },
+        { name: 'twitter:title', content: appName },
+        { name: 'twitter:description', content: description },
+      ],
+    };
+  },
   component: RootComponent,
   notFoundComponent: RootNotFound,
 });
@@ -138,7 +167,9 @@ function RootComponent() {
 
   return (
     <>
+      <HeadContent />
       <Outlet />
+      <Scripts />
       <TanStackRouterDevtools />
     </>
   );

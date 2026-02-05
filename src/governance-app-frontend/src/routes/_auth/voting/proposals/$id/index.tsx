@@ -19,10 +19,11 @@ import { MarkdownRenderer } from '@components/MarkdownRenderer';
 import { MultipleSkeletons } from '@components/MultipleSkeletons';
 import { QueryStates } from '@components/QueryStates';
 import { useGovernanceProposal } from '@hooks/governance/useGovernanceProposal';
-import useTitle from '@hooks/useTitle';
 import { CertifiedData } from '@typings/queries';
 import { stringToBigInt } from '@utils/bigInt';
 import { safeParseUrl } from '@utils/urls';
+
+import i18n from '@/i18n/config';
 
 export const Route = createFileRoute('/_auth/voting/proposals/$id/')({
   params: {
@@ -37,6 +38,15 @@ export const Route = createFileRoute('/_auth/voting/proposals/$id/')({
   },
   pendingComponent: () => <MultipleSkeletons count={3} />,
   component: ProposalDetailsRouteComponent,
+
+  head: ({ params }) => {
+    const proposalId = params.id?.toString() ?? '';
+    const title = i18n.t(($) => $.common.head.proposalDetails.title, { proposalId });
+
+    return {
+      meta: [{ title }],
+    };
+  },
   staticData: {
     title: 'common.voting',
   },
@@ -46,8 +56,6 @@ function ProposalDetailsRouteComponent() {
   const { t } = useTranslation();
   const { id } = Route.useParams();
   const search = Route.useSearch();
-
-  useTitle(t(($) => $.proposal.title, { id: id?.toString() }));
 
   const proposalQuery = useGovernanceProposal({
     proposalId: id!,
