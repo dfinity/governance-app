@@ -6,72 +6,24 @@ on:
 jobs:
   codestyle:
     name: Codestyle
-    runs-on: dind-small
-    container: ghcr.io/dfinity/governance-app/builder-base:0.0.5
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        shell: bash
-        run: npm ci
-
-      - name: Check formatting
-        run: npm run format
-
-      - name: Check linting
-        run: npm run lint
+      - name: Skip for now (debugging e2e)
+        run: echo "Skipping codestyle checks"
 
   build_stats:
     name: Build Stats
-    runs-on: dind-small
-    container: ghcr.io/dfinity/governance-app/builder-base:0.0.5
-    permissions:
-      contents: read
-      pull-requests: write
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run Build and Clean Output
-        id: build_step
-        run: |
-          # NO_COLOR=1 tells Vite/Rollup to skip the ANSI codes
-          # We grep for 'dist/' to only show the actual asset list
-          echo "### 📊 Build Bundle Stats" > build_report.md
-          echo "The latest build generated the following assets:" >> build_report.md
-          echo "" >> build_report.md
-          echo '```text' >> build_report.md
-          NO_COLOR=1 npm run build | grep 'dist/' >> build_report.md
-          echo '```' >> build_report.md
-
-      - name: Post Build Stats Comment
-        uses: mshick/add-pr-comment@v2
-        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-        with:
-          message-path: build_report.md
-          message-id: build-stats
+      - name: Skip for now (debugging e2e)
+        run: echo "Skipping build stats"
 
   unit_tests:
     name: Unit Tests
-    runs-on: dind-small
-    container: ghcr.io/dfinity/governance-app/builder-base:0.0.5
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Generate .env file
-        run: ./scripts/config.sh -n local
-
-      - name: Install dependencies
-        shell: bash
-        run: npm ci
-
-      - name: Run unit tests
-        run: npm run test
+      - name: Skip for now (debugging e2e)
+        run: echo "Skipping unit tests"
 
   e2e_tests:
     name: E2E

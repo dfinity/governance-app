@@ -65,25 +65,27 @@ jobs:
           echo "User: $(whoami)"
           echo "Node: $(node -v)"
           echo "DFX: $(dfx --version)"
+          echo ""
           
-          echo -e "\n=== Network Info ==="
-          ip addr show || ifconfig
-          
-          echo -e "\n=== /etc/hosts ==="
+          echo "=== /etc/hosts ==="
           cat /etc/hosts
+          echo ""
           
-          echo -e "\n=== DNS Resolution ==="
-          getent hosts localhost || true
-          getent hosts uxrrr-q7777-77774-qaaaq-cai.localhost || true
+          echo "=== DNS Resolution ==="
+          getent hosts localhost || echo "localhost resolution failed"
+          getent hosts uxrrr-q7777-77774-qaaaq-cai.localhost || echo "canister.localhost resolution failed"
+          echo ""
           
-          echo -e "\n=== Port Check ==="
-          netstat -tuln | grep 8080 || ss -tuln | grep 8080 || echo "Port 8080 not listening"
+          echo "=== Port Check ==="
+          ss -tuln | grep 8080 || netstat -tuln | grep 8080 || echo "Port 8080 not found in socket list"
+          echo ""
           
-          echo -e "\n=== Connectivity Tests ==="
+          echo "=== Connectivity Tests ==="
           echo "Testing cURL to $BASE_URL"
           curl -v $BASE_URL || echo "cURL failed"
+          echo ""
           
-          echo -e "\n=== Chromium Check ==="
+          echo "=== Playwright Check ==="
           npx playwright --version || echo "Playwright not yet installed"
 
       - name: Get Playwright version
