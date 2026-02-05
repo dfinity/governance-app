@@ -105,31 +105,30 @@ jobs:
       - name: Test Playwright/Chromium in container
         working-directory: src/governance-app-frontend
         run: |
-          echo "Testing if Playwright can launch Chromium and navigate to BASE_URL..."
-          npx playwright open --browser=chromium $BASE_URL || echo "Playwright open failed (this is OK, just checking)"
-          echo ""
-          echo "Testing basic navigation with a simple script..."
-          cat > test-nav.js << 'EOF'
-          const { chromium } = require('playwright');
+          echo "Testing basic Chromium navigation..."
+          cat > test-nav.mjs << 'EOF'
+          import { chromium } from 'playwright';
           (async () => {
             const browser = await chromium.launch({ 
-              args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+              headless: true,
+              args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-popup-blocking']
             });
             const page = await browser.newPage();
-            console.log('Chromium launched successfully');
+            console.log('✅ Chromium launched successfully');
             try {
-              console.log('Navigating to:', process.env.BASE_URL);
-              await page.goto(process.env.BASE_URL, { timeout: 10000, waitUntil: 'domcontentloaded' });
-              console.log('Navigation successful!');
+              const url = process.env.BASE_URL;
+              console.log('Navigating to:', url);
+              await page.goto(url, { timeout: 10000, waitUntil: 'domcontentloaded' });
+              console.log('✅ Navigation successful!');
               console.log('Page title:', await page.title());
             } catch (e) {
-              console.error('Navigation failed:', e.message);
+              console.error('❌ Navigation failed:', e.message);
             }
             await browser.close();
           })();
           EOF
-          node test-nav.js || echo "Debug test failed"
-          rm test-nav.js
+          node test-nav.mjs || echo "Debug test failed"
+          rm test-nav.mjs
 
       - name: Run login E2E test
         working-directory: src/governance-app-frontend

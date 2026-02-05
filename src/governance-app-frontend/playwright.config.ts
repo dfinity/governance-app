@@ -43,6 +43,7 @@ export default defineConfig({
         '--no-sandbox', // Required for running as root in container
         '--disable-dev-shm-usage', // Overcome limited resource problems
         '--disable-blink-features=AutomationControlled', // Avoid detection
+        '--disable-popup-blocking', // Allow Internet Identity popup
       ],
     },
   },
