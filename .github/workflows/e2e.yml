@@ -5,11 +5,9 @@ on:
 jobs:
   tests:
     name: E2E Tests
-    timeout-minutes: 30
-    # @TODO: Switch to dind-small and docker container image.
-    # Time needed to understand why Playwright has connection issues within the container image.
-    # Seems that it can't reach the base URL (a cURL call inside the container works fine).
+    timeout-minutes: 10
     runs-on: ubuntu-latest
+    container: ghcr.io/dfinity/governance-app/builder-base:0.0.5
     env:
       BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
 
@@ -19,30 +17,8 @@ jobs:
           ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: ".nvmrc"
-
-      - name: Install Rust & Cargo
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: wasm32-unknown-unknown
-          override: true
-
       - name: Install frontend dependencies
         run: npm ci
-
-      - name: Install dfx
-        uses: dfinity/setup-dfx@main
-        with:
-          dfx-version: "0.30.2-beta.2"
-
-      - name: Confirm successful installation
-        run: |
-          node -v
-          npm -v
-          dfx --version
 
       # local replica
       - name: Generate .env file
@@ -82,6 +58,34 @@ jobs:
             fi
           done
 
+      - name: Debug Network Connectivity
+        run: |
+          echo "=== Container Environment ==="
+          echo "Hostname: $(hostname)"
+          echo "User: $(whoami)"
+          echo "Node: $(node -v)"
+          echo "DFX: $(dfx --version)"
+          
+          echo -e "\n=== Network Info ==="
+          ip addr show || ifconfig
+          
+          echo -e "\n=== /etc/hosts ==="
+          cat /etc/hosts
+          
+          echo -e "\n=== DNS Resolution ==="
+          getent hosts localhost || true
+          getent hosts uxrrr-q7777-77774-qaaaq-cai.localhost || true
+          
+          echo -e "\n=== Port Check ==="
+          netstat -tuln | grep 8080 || ss -tuln | grep 8080 || echo "Port 8080 not listening"
+          
+          echo -e "\n=== Connectivity Tests ==="
+          echo "Testing cURL to $BASE_URL"
+          curl -v $BASE_URL || echo "cURL failed"
+          
+          echo -e "\n=== Chromium Check ==="
+          npx playwright --version || echo "Playwright not yet installed"
+
       - name: Get Playwright version
         id: playwright_version
         run: |
@@ -96,52 +100,11 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
 
-      - name: E2E tests and update snapshots
+      - name: Run login E2E test
+        working-directory: src/governance-app-frontend
         run: |
-          echo "Updating snapshots"
-          npm run update-snapshots
-
-      - name: Collect changed/new screenshots
-        id: collect_snaps
-        shell: bash
-        run: |
-          set -euo pipefail
-          SNAP_DIR="src/governance-app-frontend/tests/e2e/snapshots"
-
-          # Modified tracked PNGs (vs checked-out ref)
-          mapfile -t MOD < <(git diff --name-only -- "$SNAP_DIR" | grep -E '\.png$' || true)
-          # New (untracked) PNGs
-          mapfile -t NEW < <(git ls-files --others --exclude-standard -- "$SNAP_DIR" | grep -E '\.png$' || true)
-
-          ALL=("${MOD[@]}" "${NEW[@]}")
-          if [ "${#ALL[@]}" -eq 0 ]; then
-            echo "has_changes=false" >> "$GITHUB_OUTPUT"
-            echo "No snapshot changes."
-            exit 0
-          fi
-
-          # newline-separated file list for upload-artifact
-          {
-            echo 'files<<__EOF__'
-            printf '%s\n' "${ALL[@]}" | sort -u
-            echo '__EOF__'
-          } >> "$GITHUB_OUTPUT"
-          echo "has_changes=true" >> "$GITHUB_OUTPUT"
-
-          # Summary update
-          {
-            echo "### Snapshot updates"
-            echo "Run `./scripts/update-snapshots.sh` to update snapshots locally."
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Upload updated snapshots
-        if: ${{ steps.collect_snaps.outputs.has_changes == 'true' && !cancelled() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: updated-snapshots
-          path: ${{ steps.collect_snaps.outputs.files }}
-          if-no-files-found: error
-          retention-days: 1
+          echo "Running login test only (scoped for container debugging)"
+          npx playwright test tests/e2e/login.spec.ts
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
@@ -149,12 +112,6 @@ jobs:
           name: playwright-report
           path: src/governance-app-frontend/playwright-report/
           retention-days: 30
-
-      - name: Snapshots changed. Run ./scripts/update-snapshots.sh to update.
-        if: steps.collect_snaps.outputs.has_changes == 'true'
-        run: |
-          echo "::error:: Snapshots have changed. Please run ./scripts/update-snapshots.sh locally and commit the updated PNG files."
-          exit 1
 
       - name: Stop local dfx replica
         if: always()
