@@ -15,8 +15,6 @@ export const openApp = async ({ page, url = '/' }: { page: Page; url?: string })
 
   await page.goto(url);
   await page.waitForLoadState('networkidle');
-  // Wait for fonts to be fully loaded before taking any screenshots
-  await page.evaluate(() => document.fonts.ready);
 
   await expect(page.getByText('Govern how the cloud evolves')).toBeVisible({
     timeout: 30000,

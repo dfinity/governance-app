@@ -69,6 +69,11 @@ jobs:
               done
 
               echo ""
+              echo "=== Installing fonts with proper weight variants ==="
+              apt-get update && apt-get install -y --no-install-recommends fonts-liberation fontconfig
+              fc-cache -f -v
+
+              echo ""
               echo "=== Installing Playwright browsers ==="
               npx playwright install --with-deps chromium
 
