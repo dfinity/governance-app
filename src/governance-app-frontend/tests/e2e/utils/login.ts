@@ -4,14 +4,23 @@ import { firstVisibleLocatorIndex } from './locator';
 
 export const login = async ({ page }: { page: Page }) => {
   await test.step('Can log in.', async () => {
-    await expect(page.getByTestId('login-btn')).toBeVisible();
-    await expect(page.getByTestId('login-btn')).toBeEnabled();
-
-    const [newTab] = await Promise.all([
-      // Catches the new tab.
-      page.waitForEvent('popup'),
-      page.getByTestId('login-btn').click(),
-    ]);
+    const loginBtn = page.getByTestId('login-btn');
+    
+    // Wait for login button to be fully interactive
+    await expect(loginBtn).toBeVisible();
+    await expect(loginBtn).toBeEnabled();
+    
+    // Extra wait to ensure React event handlers are attached
+    console.log('Waiting for app to be fully interactive...');
+    await page.waitForTimeout(2000);
+    
+    console.log('Clicking login button...');
+    const popupPromise = page.waitForEvent('popup', { timeout: 45000 });
+    await loginBtn.click();
+    console.log('Button clicked, waiting for popup...');
+    
+    const newTab = await popupPromise;
+    console.log('Popup opened!');
 
     // Wait for popup to fully load (including scripts) - more reliable than networkidle in containers
     await newTab.waitForLoadState('load', { timeout: 60000 });
