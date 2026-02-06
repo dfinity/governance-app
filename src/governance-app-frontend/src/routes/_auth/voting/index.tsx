@@ -120,26 +120,22 @@ function Voting() {
         </div>
       ) : isNullish(followedNeuron) ? (
         <>
-          <Alert variant="warning">
-            <AlertTitle className="font-semibold">{t(($) => $.common.important)}</AlertTitle>
-            <AlertDescription>
-              {t(($) => $.voting.noFollowing.setupFollowingReminder)}
-            </AlertDescription>
-          </Alert>
-
           <div className="mt-20 flex flex-col items-center justify-center gap-4 text-center">
             <div className="rounded-full border-2 border-secondary/90 bg-secondary/30 p-6">
               <Users className="size-10 text-muted-foreground" />
             </div>
             <h3 className="text-2xl font-semibold">{t(($) => $.voting.noFollowing.title)}</h3>
             <p className="max-w-sm text-base text-muted-foreground">
-              {t(($) => $.voting.noFollowing.description)}
+              {t(($) => $.voting.noFollowing.subhead)}
+            </p>
+            <p className="max-w-sm text-sm text-muted-foreground">
+              {t(($) => $.voting.noFollowing.body)}
             </p>
             <div className="flex flex-col gap-3 sm:items-center">
               <Button size="xl" className="w-full capitalize sm:w-auto" asChild>
                 <Link to="/voting/representatives" onClick={handleManageFollowing}>
                   <Users />
-                  {t(($) => $.voting.cta)}
+                  {t(($) => $.voting.noFollowing.cta)}
                 </Link>
               </Button>
             </div>
