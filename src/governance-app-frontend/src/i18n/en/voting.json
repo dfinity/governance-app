@@ -1,7 +1,8 @@
 {
-  "title": "Following",
-  "following": "Following",
-  "description": "Following lets trusted Representatives vote on your behalf when you don't vote yourself.",
+  "title": "Voting",
+  "following": "Votes on your behalf",
+  "description": "Your stakes earn rewards by participating in governance. You can vote yourself or delegate voting to a Representative.",
+  "viewRepresentative": "View representative",
   "cta": "Manage following",
   "noFollowing": {
     "title": "Your Stake isn't following yet",
