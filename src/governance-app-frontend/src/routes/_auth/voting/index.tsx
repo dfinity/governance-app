@@ -95,7 +95,7 @@ function Voting() {
           title={t(($) => $.voting.title)}
           description={t(($) => $.voting.description)}
           actions={
-            <Button size="xl" className="w-full capitalize sm:w-auto" asChild>
+            <Button size="xl" className="w-full sm:w-auto" asChild>
               <Link to="/voting/representatives" onClick={handleManageFollowing}>
                 <Users />
                 {t(($) => $.voting.cta)}
@@ -129,7 +129,7 @@ function Voting() {
               {t(($) => $.voting.noFollowing.body)}
             </p>
             <div className="flex flex-col gap-3 pt-2 sm:items-center">
-              <Button size="xl" className="w-full capitalize sm:w-auto" asChild>
+              <Button size="xl" className="w-full sm:w-auto" asChild>
                 <Link to="/voting/representatives" onClick={handleManageFollowing}>
                   <Users />
                   {t(($) => $.voting.noFollowing.cta)}
@@ -143,7 +143,7 @@ function Voting() {
           <div ref={proposalsRef} className="mx-auto flex scroll-mt-8 flex-col items-center gap-3">
             <p className="text-sm text-foreground">{t(($) => $.voting.proposals.cta)}</p>
             <Button variant="outline" size="sm" onClick={toggleViewProposals} className="gap-2">
-              <span className="font-medium capitalize">
+              <span className="font-medium">
                 {t(($) =>
                   showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow,
                 )}
@@ -175,7 +175,7 @@ function Voting() {
           <div ref={proposalsRef} className="mx-auto flex scroll-mt-8 flex-col items-center gap-3">
             <p className="text-sm text-foreground">{t(($) => $.voting.proposals.cta)}</p>
             <Button variant="outline" size="sm" onClick={toggleViewProposals} className="gap-2">
-              <span className="font-medium capitalize">
+              <span className="font-medium">
                 {t(($) =>
                   showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow,
                 )}
