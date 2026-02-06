@@ -125,14 +125,9 @@ function Voting() {
               <Users className="size-10 text-muted-foreground" />
             </div>
             <h3 className="text-2xl font-semibold">{t(($) => $.voting.noFollowing.title)}</h3>
-            <div className="flex flex-col gap-2">
-              <p className="max-w-sm text-base text-muted-foreground">
-                {t(($) => $.voting.noFollowing.subhead)}
-              </p>
-              <p className="max-w-sm text-sm text-muted-foreground">
-                {t(($) => $.voting.noFollowing.body)}
-              </p>
-            </div>
+            <p className="max-w-sm text-base text-muted-foreground">
+              {t(($) => $.voting.noFollowing.body)}
+            </p>
             <div className="flex flex-col gap-3 pt-2 sm:items-center">
               <Button size="xl" className="w-full capitalize sm:w-auto" asChild>
                 <Link to="/voting/representatives" onClick={handleManageFollowing}>
