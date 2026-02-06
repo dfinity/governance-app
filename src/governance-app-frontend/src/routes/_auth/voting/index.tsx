@@ -143,13 +143,20 @@ function Voting() {
                 </Link>
               </Button>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="xl"
                 onClick={toggleViewProposals}
-                className="w-full sm:w-auto"
+                className="w-full gap-2 sm:w-auto"
               >
-                {t(($) =>
-                  showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow,
+                <span className="font-medium capitalize">
+                  {t(($) =>
+                    showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow,
+                  )}
+                </span>
+                {showProposals ? (
+                  <ChevronUp className="size-4" />
+                ) : (
+                  <ChevronDown className="size-4" />
                 )}
               </Button>
             </div>
