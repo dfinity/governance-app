@@ -6,7 +6,7 @@
   "cta": "Manage Representative",
   "noFollowing": {
     "title": "No Representative selected",
-    "body": "Following a representative automates voting on proposals and helps ensure your Stake earns voting rewards.",
+    "body": "Following a Representative automates voting on proposals and helps ensure your Stake earns voting rewards.",
     "cta": "Choose a Representative"
   },
   "proposals": {
