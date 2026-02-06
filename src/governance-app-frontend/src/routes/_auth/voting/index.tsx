@@ -142,24 +142,25 @@ function Voting() {
                   {t(($) => $.voting.cta)}
                 </Link>
               </Button>
-              <Button
-                variant="outline"
-                size="xl"
-                onClick={toggleViewProposals}
-                className="w-full gap-2 sm:w-auto"
-              >
-                <span className="font-medium capitalize">
-                  {t(($) =>
-                    showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow,
-                  )}
-                </span>
-                {showProposals ? (
-                  <ChevronUp className="size-4" />
-                ) : (
-                  <ChevronDown className="size-4" />
-                )}
-              </Button>
             </div>
+          </div>
+
+          <Separator className="mt-8 mb-4 lg:mt-16" />
+
+          <div ref={proposalsRef} className="mx-auto flex scroll-mt-8 flex-col items-center gap-3">
+            <p className="text-sm text-foreground">{t(($) => $.voting.proposals.cta)}</p>
+            <Button variant="outline" size="sm" onClick={toggleViewProposals} className="gap-2">
+              <span className="font-medium capitalize">
+                {t(($) =>
+                  showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow,
+                )}
+              </span>
+              {showProposals ? (
+                <ChevronUp className="size-4" />
+              ) : (
+                <ChevronDown className="size-4" />
+              )}
+            </Button>
           </div>
         </>
       ) : !hasConsistentFollowees ? (
