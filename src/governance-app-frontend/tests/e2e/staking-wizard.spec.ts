@@ -90,7 +90,7 @@ test.describe('Staking Wizard', () => {
 
   test('Completes the staking flow successfully', async ({ page }) => {
     // Enter amount.
-    await page.getByTestId('staking-wizard-amount-input').fill('15');
+    await page.getByTestId('staking-wizard-amount-input').fill('5');
     await page.getByTestId('staking-wizard-next-btn').click();
 
     // Select dissolve delay (use default 2 years).
