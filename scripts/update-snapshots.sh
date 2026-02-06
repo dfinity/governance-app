@@ -1,9 +1,32 @@
 #!/usr/bin/env bash
-# Downloads and updates PNGs from the "updated-snapshots" artifact of the latest GitHub Actions run.
+# Downloads and updates PNGs from the "updated-snapshots" artifact of a GitHub Actions run.
 
 set -euo pipefail
 
 ARTIFACT_NAME="updated-snapshots"
+
+# --- Usage ---
+usage() {
+  echo "Usage: $0 <run_id>"
+  echo ""
+  echo "Downloads snapshot PNGs from the specified GitHub Actions run."
+  echo ""
+  echo "Arguments:"
+  echo "  run_id    The workflow run ID (found in the GitHub Actions URL)"
+  echo "            Example: https://github.com/dfinity/governance-app/actions/runs/21721626860"
+  echo "                     The run_id is: 21721626860"
+  echo ""
+  echo "Example:"
+  echo "  $0 21721626860"
+  exit 1
+}
+
+# --- Check arguments ---
+if [[ $# -ne 1 ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
+  usage
+fi
+
+RUN_ID="$1"
 
 # --- Preconditions ---
 command -v gh >/dev/null 2>&1 || { echo "❌ gh CLI is required: https://cli.github.com/"; exit 1; }
@@ -22,15 +45,6 @@ to_local() {
     || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$ts" '+%Y-%m-%d %H:%M:%S %Z'
 }
 
-# --- Determine latest run id for the current repo ---
-CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-RUN_ID="$(gh run list -L 1 --branch "$CURRENT_BRANCH" --json databaseId --jq '.[0].databaseId')"
-
-if [[ -z "${RUN_ID:-}" ]]; then
-  echo "❌ Could not find any workflow runs for branch '${CURRENT_BRANCH}'."
-  exit 1
-fi
-
 # --- Fetch run metadata ---
 eval "$(
   gh run view "$RUN_ID" \
@@ -43,7 +57,7 @@ eval "$(
 )"
 
 RUN_UPDATED_LOCAL="$(to_local "$RUN_UPDATED")"
-echo "ℹ️  Latest run:"
+echo "ℹ️  Run info:"
 echo "   id:          ${RUN_ID}"
 echo "   branch:      ${RUN_BRANCH}"
 echo "   updated at:  ${RUN_UPDATED_LOCAL}"

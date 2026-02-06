@@ -22,3 +22,23 @@ RUN DFXVM_INIT_YES=true sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)
 
 # Install the correct Rust target for Wasm compilation and rustfmt for cargo fmt.
 RUN rustup target add wasm32-unknown-unknown && rustup component add rustfmt
+
+# Install Inter font for consistent rendering across platforms.
+# Inter closely matches macOS San Francisco (system-ui) font.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    fonts-inter \
+    fontconfig \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configure fontconfig to use Inter as default for system font aliases.
+RUN mkdir -p /etc/fonts/conf.d && \
+    printf '%s\n' \
+      '<?xml version="1.0"?>' \
+      '<!DOCTYPE fontconfig SYSTEM "fonts.dtd">' \
+      '<fontconfig>' \
+      '  <alias><family>system-ui</family><prefer><family>Inter</family></prefer></alias>' \
+      '  <alias><family>-apple-system</family><prefer><family>Inter</family></prefer></alias>' \
+      '  <alias><family>BlinkMacSystemFont</family><prefer><family>Inter</family></prefer></alias>' \
+      '  <alias><family>sans-serif</family><prefer><family>Inter</family></prefer></alias>' \
+      '</fontconfig>' > /etc/fonts/local.conf && \
+    fc-cache -f -v

@@ -6,12 +6,12 @@ jobs:
   tests:
     name: E2E Tests
     timeout-minutes: 30
-    # @TODO: Switch to dind-small and docker container image.
-    # Time needed to understand why Playwright has connection issues within the container image.
-    # Seems that it can't reach the base URL (a cURL call inside the container works fine).
-    runs-on: ubuntu-latest
+    runs-on: dind-small
+    # NOTE: NOT using the GitHub Actions `container:` directive, but instead running docker "manually"
+    # This fixes Playwright connectivity issues found in GitHub Actions default containers
     env:
       BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
+      CONTAINER_IMAGE: ghcr.io/dfinity/governance-app/builder-base:0.0.6
 
     steps:
       - uses: actions/checkout@v4
@@ -19,87 +19,68 @@ jobs:
           ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: ".nvmrc"
+      - name: Pull container image
+        run: docker pull $CONTAINER_IMAGE
 
-      - name: Install Rust & Cargo
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: wasm32-unknown-unknown
-          override: true
-
-      - name: Install frontend dependencies
-        run: npm ci
-
-      - name: Install dfx
-        uses: dfinity/setup-dfx@main
-        with:
-          dfx-version: "0.30.2-beta.2"
-
-      - name: Confirm successful installation
+      - name: Run E2E tests in Docker container
         run: |
-          node -v
-          npm -v
-          dfx --version
+          docker run --rm \
+            --network host \
+            -v "${{ github.workspace }}:/app" \
+            -w /app \
+            -e BASE_URL="$BASE_URL" \
+            -e CI=true \
+            $CONTAINER_IMAGE \
+            bash -c '
+              set -e
+              echo "=== Container Environment ==="
+              echo "Hostname: $(hostname)"
+              echo "User: $(whoami)"
+              echo "Node: $(node -v)"
+              echo "DFX: $(dfx --version)"
+              echo ""
 
-      # local replica
-      - name: Generate .env file
-        run: ./scripts/config.sh -n local
+              echo "=== Installing dependencies ==="
+              npm ci
 
-      - name: Start local dfx replica
-        run: ./scripts/start-pocket-ic.sh --background --delay 0
+              echo "=== Generating .env file ==="
+              ./scripts/config.sh -n local
 
-      # To speed up the backend build.
-      - name: Cache cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+              echo "=== Starting local dfx replica ==="
+              ./scripts/start-pocket-ic.sh --background --delay 0
 
-      - name: Deploy governance-app
-        shell: bash
-        run: |
-          dfx canister create governance-app-backend
-          dfx deploy governance-app-backend
+              echo "=== Creating and deploying canister ==="
+              dfx canister create governance-app-backend
+              dfx deploy governance-app-backend
 
-          echo "Waiting for server..."
-          max_attempts=30
-          for i in $(seq 1 $max_attempts); do
-            if curl -i $BASE_URL | grep "200 OK" > /dev/null; then
-              echo "Server is up!"
-              break
-            fi
-            echo "Server not ready yet... attempt $i/$max_attempts"
-            sleep 2
-            if [ "$i" -eq "$max_attempts" ]; then
-              echo "Server did not become ready after $max_attempts attempts, exiting."
-              exit 1
-            fi
-          done
+              echo "=== Waiting for server ==="
+              max_attempts=30
+              for i in $(seq 1 $max_attempts); do
+                if curl -s -i $BASE_URL | grep -q "200 OK"; then
+                  echo "Server is up!"
+                  break
+                fi
+                echo "Server not ready yet... attempt $i/$max_attempts"
+                sleep 2
+                if [ "$i" -eq "$max_attempts" ]; then
+                  echo "Server did not become ready after $max_attempts attempts, exiting."
+                  exit 1
+                fi
+              done
 
-      - name: Get Playwright version
-        id: playwright_version
-        run: |
-          echo "version=$(npm ls @playwright/test --depth=0 --json | jq -r '.dependencies["governance-app-frontend"].dependencies["@playwright/test"].version')" >> $GITHUB_OUTPUT
+              echo ""
+              echo "=== Installing Playwright browsers ==="
+              npx playwright install --with-deps chromium
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.playwright_version.outputs.version }}-all
+              echo ""
+              echo "=== Running E2E tests (updating snapshots) ==="
+              cd src/governance-app-frontend
+              npx playwright test --update-snapshots --reporter=list,html
 
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: E2E tests and update snapshots
-        run: |
-          echo "Updating snapshots"
-          npm run update-snapshots
+              echo ""
+              echo "=== Stopping dfx ==="
+              dfx stop
+            '
 
       - name: Collect changed/new screenshots
         id: collect_snaps
@@ -131,7 +112,7 @@ jobs:
           # Summary update
           {
             echo "### Snapshot updates"
-            echo "Run `./scripts/update-snapshots.sh` to update snapshots locally."
+            echo "Run \`./scripts/update-snapshots.sh\` to update snapshots locally."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload updated snapshots
@@ -155,8 +136,3 @@ jobs:
         run: |
           echo "::error:: Snapshots have changed. Please run ./scripts/update-snapshots.sh locally and commit the updated PNG files."
           exit 1
-
-      - name: Stop local dfx replica
-        if: always()
-        run: |
-          dfx stop
