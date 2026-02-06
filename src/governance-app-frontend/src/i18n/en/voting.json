@@ -1,13 +1,13 @@
 {
   "title": "Voting",
   "following": "Votes on your behalf",
-  "description": "Your stakes earn rewards by participating in governance. You can vote yourself or delegate voting to a Representative.",
+  "description": "Your Stakes earn rewards by participating in governance. You can vote yourself or delegate voting to a Representative.",
   "viewRepresentative": "View info",
   "cta": "Manage Representative",
   "noFollowing": {
     "title": "No Representative selected",
-    "subhead": "Your stake can vote manually, or you can set up automatic voting.",
-    "body": "Following a Representative automates voting on proposals, helping ensure your stake earns voting rewards.",
+    "subhead": "Your Stake can vote manually, or you can set up automatic voting.",
+    "body": "Following a Representative automates voting on proposals, helping ensure your Stake earns voting rewards.",
     "cta": "Choose a Representative"
   },
   "proposals": {
