@@ -1,7 +1,6 @@
 import { AccountIdentifier, IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AccountTransactionItem } from '@features/account/components/TransactionItem';
@@ -30,36 +29,25 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
 
-  const accountIdHex = useMemo(
-    () =>
-      nonNullish(identity)
-        ? AccountIdentifier.fromPrincipal({ principal: identity.getPrincipal() }).toHex()
-        : null,
-    [identity],
-  );
+  const accountIdHex = nonNullish(identity)
+    ? AccountIdentifier.fromPrincipal({ principal: identity.getPrincipal() }).toHex()
+    : null;
 
   const transactions = useIcpIndexTransactions();
   const { accountIds: neuronAccountIds } = useNeuronAccountsIds();
 
-  const allTransactions = useMemo(
-    () =>
-      transactions.data?.pages?.flatMap((page) =>
-        page.response.transactions.map((tx) => tx.transaction),
-      ) ?? [],
-    [transactions.data?.pages],
-  );
+  const allTransactions =
+    transactions.data?.pages?.flatMap((page) =>
+      page.response.transactions.map((tx) => tx.transaction),
+    ) ?? [];
 
   // NOTE: Trusted addresses are built from the currently fetched pages only.
   // Detection improves as the user scrolls and more pages are loaded, but
   // poisoning attempts that mimic recipients from unfetched older history
   // won't be flagged until those pages are loaded.
-  const trustedAddresses = useMemo(
-    () =>
-      nonNullish(accountIdHex)
-        ? buildTrustedAddresses(accountIdHex, neuronAccountIds, allTransactions)
-        : new Set<string>(),
-    [accountIdHex, neuronAccountIds, allTransactions],
-  );
+  const trustedAddresses = nonNullish(accountIdHex)
+    ? buildTrustedAddresses(accountIdHex, neuronAccountIds, allTransactions)
+    : new Set<string>();
 
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
