@@ -135,7 +135,7 @@ export const AccountTransactionItem = ({
               </div>
               <span
                 className={cn(
-                  'shrink-0 text-base font-semibold',
+                  'text-base font-semibold',
                   type === TransactionType.RECEIVE
                     ? 'text-emerald-800 dark:text-emerald-400'
                     : 'text-red-800 dark:text-red-400',
