@@ -6,10 +6,10 @@ import { Card, CardContent } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
 import { E8Sn } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
+import { secondsToDate, secondsToTime, timestampInNanosToSeconds } from '@utils/date';
 import { formatNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
-import { secondsToDate, secondsToTime, timestampInNanosToSeconds } from '@utils/date';
 import { useNeuronAccountsIds } from '../hooks/useNeuronAccountsIds';
 import { TransactionType } from '../types';
 
