@@ -112,7 +112,10 @@ export const AccountTransactionItem = ({
                 {type === TransactionType.RECEIVE ? '+' : '-'}
 
                 {t(($) => $.common.inIcp, {
-                  value: formatNumber(bigIntDiv(operation.Transfer.amount.e8s, E8Sn)),
+                  value: formatNumber(bigIntDiv(operation.Transfer.amount.e8s, E8Sn), {
+                    minFraction: 2,
+                    maxFraction: 8,
+                  }),
                 })}
               </span>
             </div>
