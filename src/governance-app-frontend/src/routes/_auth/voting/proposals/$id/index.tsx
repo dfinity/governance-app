@@ -1,5 +1,5 @@
-import { ProposalInfo, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { jsonReplacer, secondsToDuration } from '@dfinity/utils';
+import { ProposalInfo, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { ArrowLeft, Clock, Link as LinkIcon, Tag, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -122,7 +122,7 @@ function ProposalDetailsRouteComponent() {
                       <a
                         href={proposalUrl.href}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         className="no-underline"
                       >
                         <Badge
