@@ -53,6 +53,7 @@
   "accounts": "Account",
   "deposit": "Deposit",
   "important": "Important",
+  "address": "Address",
   "clipboard": {
     "copy": "Copy to clipboard",
     "copied": "Your {{label}} was copied to the clipboard.",

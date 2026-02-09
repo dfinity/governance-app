@@ -11,6 +11,7 @@ import { secondsToDate, secondsToTime, timestampInNanosToSeconds } from '@utils/
 import { formatNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
+import { secondsToDate, secondsToTime, timestampInNanosToSeconds } from '@utils/date';
 import { useNeuronAccountsIds } from '../hooks/useNeuronAccountsIds';
 import { TransactionType } from '../types';
 
