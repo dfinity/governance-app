@@ -2,6 +2,7 @@ import type { KnownNeuron } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
 import { ChevronDown, ChevronUp, Circle, CircleDot, LinkIcon, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@components/badge';
 import { Button } from '@components/button';
@@ -20,6 +21,7 @@ type Props = {
 };
 
 export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled, isLoading }: Props) => {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleExpanded = (e: React.MouseEvent) => {
@@ -87,6 +89,7 @@ export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled, isLo
                         <LinkIcon className="h-3.5 w-3.5" />
                         <span className="max-w-[150px] truncate">{hostname}</span>
                       </Badge>
+                      <span className="sr-only">{t(($) => $.common.opensInNewTab)}</span>
                     </a>
                   ))}
                 </div>

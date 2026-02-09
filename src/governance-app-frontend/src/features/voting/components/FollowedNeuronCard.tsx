@@ -71,6 +71,7 @@ export const FollowedNeuronCard = ({ neuron }: Props) => {
           >
             {t(($) => $.common.seeDetails)}
             <ArrowRight className="size-3 transition-transform group-hover:translate-x-1" />
+            <span className="sr-only">{t(($) => $.common.opensInNewTab)}</span>
           </a>
         </div>
       </CardContent>

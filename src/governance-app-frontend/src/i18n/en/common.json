@@ -89,6 +89,7 @@
     "description": "You are about to navigate to {{url}}. Please verify this URL before continuing.",
     "continue": "Continue"
   },
+  "opensInNewTab": "(opens in a new tab)",
   "head": {
     "appName": "Governance",
     "defaultDescription": "Participate in decentralized governance on the Internet Computer",
