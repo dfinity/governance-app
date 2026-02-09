@@ -10,6 +10,7 @@ import { secondsToDate, secondsToTime, timestampInNanosToSeconds } from '@utils/
 import { formatNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
+import { CopyButton } from '@components/CopyButton';
 import { useNeuronAccountsIds } from '../hooks/useNeuronAccountsIds';
 import { TransactionType } from '../types';
 
@@ -57,6 +58,7 @@ export const AccountTransactionItem = ({
 
   const address =
     type === TransactionType.RECEIVE ? operation.Transfer.from : operation.Transfer.to;
+
   const transactionTimestamp = Number(
     timestampInNanosToSeconds(tx.transaction.created_at_time[0]?.timestamp_nanos ?? 0n),
   );
@@ -94,11 +96,20 @@ export const AccountTransactionItem = ({
                   {secondsToDate(transactionTimestamp)} - {secondsToTime(transactionTimestamp)}
                 </span>
 
-                <span className="flex items-start gap-1">
-                  <span className="font-mono text-xs break-all text-muted-foreground">
-                    {address}
+                <div className="flex items-center gap-1 font-mono text-sm break-all text-muted-foreground">
+                  <span className="md:hidden">
+                    {`${address.slice(0, 10)}...${address.slice(-10)}`}
                   </span>
-                </span>
+                  <span className="hidden md:inline">
+                    {`${address.slice(0, 24)}...${address.slice(-24)}`}
+                  </span>
+                  <CopyButton
+                    value={address}
+                    size="sm"
+                    variant="ghost"
+                    label={t(($) => $.account.address)}
+                  />
+                </div>
               </div>
               <span
                 className={cn(
