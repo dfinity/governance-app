@@ -122,7 +122,7 @@ function ProposalDetailsRouteComponent() {
                       <a
                         href={proposalUrl.href}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         className="no-underline"
                       >
                         <Badge
@@ -132,6 +132,7 @@ function ProposalDetailsRouteComponent() {
                           <LinkIcon className="h-3.5 w-3.5" />
                           <span className="max-w-[150px] truncate">{proposalUrl.hostname}</span>
                         </Badge>
+                        <span className="sr-only">{t(($) => $.common.opensInNewTab)}</span>
                       </a>
                     )}
                   </div>

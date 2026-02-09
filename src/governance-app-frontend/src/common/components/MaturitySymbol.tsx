@@ -88,6 +88,7 @@ export function MaturitySymbol({ className = '' }: Props) {
                 className="font-medium text-primary underline hover:text-primary/80"
               >
                 {t(($) => $.maturityModal.modulation.learnMore)} →
+                <span className="sr-only">{t(($) => $.common.opensInNewTab)}</span>
               </a>
             </p>
           </div>

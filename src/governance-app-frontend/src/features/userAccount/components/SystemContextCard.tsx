@@ -28,6 +28,7 @@ export const SystemContextCard = () => {
         >
           {t(($) => $.userAccount.governance.systemContext.links.learnHow)}
           <ExternalLink className="ml-1.5 size-3 opacity-50 transition-transform group-hover:opacity-100" />
+          <span className="sr-only">{t(($) => $.common.opensInNewTab)}</span>
         </a>
         <a
           href={GOVERNANCE_DASHBOARD_URL}
@@ -37,6 +38,7 @@ export const SystemContextCard = () => {
         >
           {t(($) => $.userAccount.governance.systemContext.links.readUpdate)}
           <ExternalLink className="ml-1.5 size-3 opacity-50 transition-transform group-hover:opacity-100" />
+          <span className="sr-only">{t(($) => $.common.opensInNewTab)}</span>
         </a>
       </div>
     </div>

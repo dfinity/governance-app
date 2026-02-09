@@ -233,6 +233,7 @@ function LoginPage() {
                 >
                   <ExternalLink className="size-4" aria-hidden={true} />
                   <span>{t(($) => $.login.legacyNnsDapp)}</span>
+                  <span className="sr-only">{t(($) => $.common.opensInNewTab)}</span>
                 </a>
               </div>
             </div>
