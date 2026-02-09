@@ -1,9 +1,11 @@
 import { AccountIdentifier, IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AccountTransactionItem } from '@features/account/components/TransactionItem';
+import { buildTrustedAddresses } from '@features/account/utils/addressPoisoning';
 
 import { MultipleSkeletons } from '@components/MultipleSkeletons';
 import { QueryStates } from '@components/QueryStates';
@@ -16,6 +18,8 @@ import {
 } from '@components/ResponsiveDialog';
 import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
 import { CertifiedData } from '@typings/queries';
+
+import { useNeuronAccountsIds } from '../hooks/useNeuronAccountsIds';
 
 interface TransactionListDialogProps {
   open: boolean;
@@ -33,6 +37,23 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
     : null;
 
   const transactions = useIcpIndexTransactions();
+  const { accountIds: neuronAccountIds } = useNeuronAccountsIds();
+
+  const allTransactions = useMemo(
+    () =>
+      transactions.data?.pages?.flatMap((page) =>
+        page.response.transactions.map((tx) => tx.transaction),
+      ) ?? [],
+    [transactions.data?.pages],
+  );
+
+  const trustedAddresses = useMemo(
+    () =>
+      nonNullish(accountId)
+        ? buildTrustedAddresses(accountId.toHex(), neuronAccountIds, allTransactions)
+        : new Set<string>(),
+    [accountId, neuronAccountIds, allTransactions],
+  );
 
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
@@ -64,6 +85,7 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
                         accountId={accountId.toHex()}
                         key={tx.id}
                         tx={tx}
+                        trustedAddresses={trustedAddresses}
                       />
                     )),
                   )}
