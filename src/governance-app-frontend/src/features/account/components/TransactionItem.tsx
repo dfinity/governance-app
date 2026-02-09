@@ -4,13 +4,13 @@ import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
+import { CopyButton } from '@components/CopyButton';
 import { E8Sn } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
 import { secondsToDate, secondsToTime, timestampInNanosToSeconds } from '@utils/date';
 import { formatNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
-import { CopyButton } from '@components/CopyButton';
 import { useNeuronAccountsIds } from '../hooks/useNeuronAccountsIds';
 import { TransactionType } from '../types';
 
