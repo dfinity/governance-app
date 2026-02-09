@@ -1,12 +1,13 @@
 {
-  "title": "Following",
-  "following": "Following",
-  "description": "Following lets trusted Representatives vote on your behalf when you don't vote yourself.",
-  "cta": "Manage following",
+  "title": "Voting",
+  "following": "Votes on your behalf",
+  "description": "Your Stakes earn rewards by participating in governance. You can vote yourself or delegate voting to a Representative.",
+  "viewRepresentative": "View info",
+  "cta": "Manage Representative",
   "noFollowing": {
-    "title": "Your Stake isn't following yet",
-    "description": "Choose trusted Representatives to vote automatically, or vote manually on proposals as they appear.",
-    "setupFollowingReminder": "To earn voting rewards, your Stake must vote on proposals, either directly or by following trusted Representatives."
+    "title": "No Representative selected",
+    "body": "Following a Representative automates voting on proposals and helps ensure your Stake earns voting rewards.",
+    "cta": "Choose a Representative"
   },
   "proposals": {
     "cta": "Curious about what's being voted on?",

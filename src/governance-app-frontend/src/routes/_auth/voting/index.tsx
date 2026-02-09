@@ -1,6 +1,6 @@
 import { isNullish } from '@dfinity/utils';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Users } from 'lucide-react';
+import { Eye, EyeOff, Users } from 'lucide-react';
 import { type MouseEvent, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -95,7 +95,7 @@ function Voting() {
           title={t(($) => $.voting.title)}
           description={t(($) => $.voting.description)}
           actions={
-            <Button size="xl" className="w-full capitalize sm:w-auto" asChild>
+            <Button size="xl" className="w-full sm:w-auto" asChild>
               <Link to="/voting/representatives" onClick={handleManageFollowing}>
                 <Users />
                 {t(($) => $.voting.cta)}
@@ -120,39 +120,36 @@ function Voting() {
         </div>
       ) : isNullish(followedNeuron) ? (
         <>
-          <Alert variant="warning">
-            <AlertTitle className="font-semibold">{t(($) => $.common.important)}</AlertTitle>
-            <AlertDescription>
-              {t(($) => $.voting.noFollowing.setupFollowingReminder)}
-            </AlertDescription>
-          </Alert>
-
-          <div className="mt-20 flex flex-col items-center justify-center gap-4 text-center">
+          <div className="mt-20 flex flex-col items-center justify-center gap-6 text-center">
             <div className="rounded-full border-2 border-secondary/90 bg-secondary/30 p-6">
               <Users className="size-10 text-muted-foreground" />
             </div>
             <h3 className="text-2xl font-semibold">{t(($) => $.voting.noFollowing.title)}</h3>
             <p className="max-w-sm text-base text-muted-foreground">
-              {t(($) => $.voting.noFollowing.description)}
+              {t(($) => $.voting.noFollowing.body)}
             </p>
-            <div className="flex flex-col gap-3 sm:items-center">
-              <Button size="xl" className="w-full capitalize sm:w-auto" asChild>
+            <div className="flex flex-col gap-3 pt-2 sm:items-center">
+              <Button size="xl" className="w-full sm:w-auto" asChild>
                 <Link to="/voting/representatives" onClick={handleManageFollowing}>
                   <Users />
-                  {t(($) => $.voting.cta)}
+                  {t(($) => $.voting.noFollowing.cta)}
                 </Link>
               </Button>
-              <Button
-                variant="ghost"
-                size="xl"
-                onClick={toggleViewProposals}
-                className="w-full sm:w-auto"
-              >
+            </div>
+          </div>
+
+          <Separator className="mt-8 mb-4 lg:mt-16" />
+
+          <div ref={proposalsRef} className="mx-auto flex scroll-mt-8 flex-col items-center gap-3">
+            <p className="text-sm text-foreground">{t(($) => $.voting.proposals.cta)}</p>
+            <Button variant="outline" size="sm" onClick={toggleViewProposals} className="gap-2">
+              <span className="font-medium">
                 {t(($) =>
                   showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow,
                 )}
-              </Button>
-            </div>
+              </span>
+              {showProposals ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </Button>
           </div>
         </>
       ) : !hasConsistentFollowees ? (
@@ -171,15 +168,16 @@ function Voting() {
         <>
           <Separator className="mt-8 mb-4 lg:mt-16" />
 
-          <div ref={proposalsRef} className="mx-auto flex scroll-mt-8 items-center gap-1">
-            <button onClick={toggleViewProposals} className="text-sm text-muted-foreground">
-              <span>{t(($) => $.voting.proposals.cta)}</span>{' '}
-              <span className="font-medium text-primary capitalize underline-offset-4 hover:underline">
+          <div ref={proposalsRef} className="mx-auto flex scroll-mt-8 flex-col items-center gap-3">
+            <p className="text-sm text-foreground">{t(($) => $.voting.proposals.cta)}</p>
+            <Button variant="outline" size="sm" onClick={toggleViewProposals} className="gap-2">
+              <span className="font-medium">
                 {t(($) =>
                   showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow,
                 )}
               </span>
-            </button>
+              {showProposals ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </Button>
           </div>
         </>
       )}

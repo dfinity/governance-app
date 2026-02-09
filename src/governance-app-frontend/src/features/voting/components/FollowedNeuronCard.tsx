@@ -1,10 +1,11 @@
 import type { KnownNeuron } from '@icp-sdk/canisters/nns';
-import { ArrowRight } from 'lucide-react';
+import { CheckCircle2, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { isKnownNeuron } from '@features/voting/utils/findFollowedNeuron';
 
 import { Badge } from '@components/badge';
+import { Button } from '@components/button';
 import { Card, CardContent } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
 import { DASHBOARD_URL } from '@constants/extra';
@@ -30,7 +31,12 @@ export const FollowedNeuronCard = ({ neuron }: Props) => {
 
       return (
         <div className="flex min-w-0 flex-col gap-1">
-          <h4 className="truncate text-base font-semibold">{neuron.name}</h4>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <h4 className="truncate text-base font-semibold">{neuron.name}</h4>
+            <span className="rounded-sm border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-center text-xs font-semibold text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+              {t(($) => $.voting.following)}
+            </span>
+          </div>
           {/* @TODO: DO we want to keep this? */}
           {committedTopics.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
@@ -47,9 +53,14 @@ export const FollowedNeuronCard = ({ neuron }: Props) => {
 
     return (
       <div className="flex min-w-0 flex-col gap-1">
-        <h4 className="truncate text-base font-semibold">
-          {t(($) => $.neuron.neuronId, { neuronId: neuron.toString() })}
-        </h4>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <h4 className="truncate text-base font-semibold">
+            {t(($) => $.neuron.neuronId, { neuronId: neuron.toString() })}
+          </h4>
+          <span className="rounded-sm border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-center text-xs font-semibold text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+            {t(($) => $.voting.following)}
+          </span>
+        </div>
       </div>
     );
   };
@@ -57,23 +68,20 @@ export const FollowedNeuronCard = ({ neuron }: Props) => {
   return (
     <Card className="p-0">
       <CardContent className="flex items-center justify-between gap-4 p-4">
-        {knownNeuronsQuery.isLoading ? <Skeleton className="h-6 w-40" /> : renderContent()}
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex shrink-0 items-center justify-center rounded-md bg-muted p-2">
+            <CheckCircle2 className="size-5 text-muted-foreground" />
+          </div>
+          {knownNeuronsQuery.isLoading ? <Skeleton className="h-6 w-40" /> : renderContent()}
+        </div>
 
-        <div className="flex shrink-0 flex-col items-end gap-2">
-          <span className="rounded-sm border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-center text-xs font-semibold tracking-wide text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
-            {t(($) => $.voting.following)}
-          </span>
-          <a
-            href={neuronDetailsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex shrink-0 items-center gap-1 rounded-sm bg-blue-500/[.08] px-2.5 py-1.5 text-xs hover:bg-blue-500/[.20] dark:bg-blue-400/10 hover:dark:bg-blue-400/30"
-          >
-            {t(($) => $.common.seeDetails)}
-            <ArrowRight className="size-3 transition-transform group-hover:translate-x-1" />
+        <Button variant="outline" size="sm" asChild>
+          <a href={neuronDetailsUrl} target="_blank" rel="noopener noreferrer">
+            {t(($) => $.voting.viewRepresentative)}
+            <ExternalLink className="size-3" />
             <span className="sr-only">{t(($) => $.common.opensInNewTab)}</span>
           </a>
-        </div>
+        </Button>
       </CardContent>
     </Card>
   );
