@@ -4,8 +4,10 @@ import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
+import { CopyButton } from '@components/CopyButton';
 import { E8Sn } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
+import { secondsToDate, secondsToTime, timestampInNanosToSeconds } from '@utils/date';
 import { formatNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
@@ -54,6 +56,13 @@ export const AccountTransactionItem = ({
           ? t(($) => $.account.stakedIcp)
           : t(($) => $.account.unknownTransaction);
 
+  const address =
+    type === TransactionType.RECEIVE ? operation.Transfer.from : operation.Transfer.to;
+
+  const transactionTimestamp = Number(
+    timestampInNanosToSeconds(tx.transaction.created_at_time[0]?.timestamp_nanos ?? 0n),
+  );
+
   return (
     <Card key={tx.id} className="p-0">
       <CardContent className="px-6 py-4">
@@ -84,22 +93,23 @@ export const AccountTransactionItem = ({
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
               <div className="flex flex-col gap-1">
                 <span className="text-xs text-muted-foreground">
-                  {new Date(
-                    Number(
-                      (tx.transaction.created_at_time[0]?.timestamp_nanos ?? 0n) / 1_000_000n,
-                    ) || 0,
-                  ).toLocaleString()}
+                  {secondsToDate(transactionTimestamp)} - {secondsToTime(transactionTimestamp)}
                 </span>
 
-                <span className="text-sm text-muted-foreground decoration-dotted">
-                  {(() => {
-                    const address =
-                      type === TransactionType.RECEIVE
-                        ? operation.Transfer.from
-                        : operation.Transfer.to;
-                    return `${address.slice(0, 10)}...${address.slice(-10)}`;
-                  })()}
-                </span>
+                <div className="flex items-center gap-1 font-mono text-sm break-all text-muted-foreground">
+                  <span className="md:hidden">
+                    {`${address.slice(0, 10)}...${address.slice(-10)}`}
+                  </span>
+                  <span className="hidden md:inline">
+                    {`${address.slice(0, 24)}...${address.slice(-24)}`}
+                  </span>
+                  <CopyButton
+                    value={address}
+                    size="sm"
+                    variant="ghost"
+                    label={t(($) => $.account.address)}
+                  />
+                </div>
               </div>
               <span
                 className={cn(
@@ -112,7 +122,10 @@ export const AccountTransactionItem = ({
                 {type === TransactionType.RECEIVE ? '+' : '-'}
 
                 {t(($) => $.common.inIcp, {
-                  value: formatNumber(bigIntDiv(operation.Transfer.amount.e8s, E8Sn)),
+                  value: formatNumber(bigIntDiv(operation.Transfer.amount.e8s, E8Sn), {
+                    minFraction: 2,
+                    maxFraction: 8,
+                  }),
                 })}
               </span>
             </div>

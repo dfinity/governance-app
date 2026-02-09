@@ -12,11 +12,21 @@ type Props = {
   label: string;
   onCopy?: () => void;
   value: string;
+  size?: 'sm' | 'lg';
+  variant?: 'ghost' | 'outline';
 };
 
 const ANIMATION_DURATION = 3000;
 
-export const CopyButton = ({ value, onCopy, className, disabled, label }: Props) => {
+export const CopyButton = ({
+  value,
+  onCopy,
+  className,
+  disabled,
+  label,
+  size = 'lg',
+  variant = 'outline',
+}: Props) => {
   const { t } = useTranslation();
   const [isCopied, setIsCopied] = useState(false);
 
@@ -50,8 +60,8 @@ export const CopyButton = ({ value, onCopy, className, disabled, label }: Props)
 
   return (
     <Button
-      variant="outline"
-      size="icon-lg"
+      variant={variant}
+      size={`icon-${size}`}
       onClick={handleCopy}
       disabled={isCopied || disabled}
       aria-label={
