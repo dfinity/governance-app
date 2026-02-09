@@ -8,6 +8,8 @@
  * history and accidentally sending funds to it.
  */
 
+import { IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
+
 const PREFIX_MATCH_LENGTH = 4;
 const SUFFIX_MATCH_LENGTH = 2;
 const SMALL_AMOUNT_THRESHOLD_E8S = 100_000n;
@@ -55,11 +57,13 @@ export const isSuspiciousAddress = (
 export const buildTrustedAddresses = (
   userAccountId: string,
   neuronAccountIds: Set<string>,
-  transactions: Array<{ operation: { Transfer?: { from: string; to: string } } }>,
+  transactions: Array<IcpIndexDid.Transaction>,
 ): Set<string> => {
   const trusted = new Set<string>([userAccountId, ...neuronAccountIds]);
 
   for (const tx of transactions) {
+    if (!('Transfer' in tx.operation)) continue;
+
     if (tx.operation.Transfer && tx.operation.Transfer.from === userAccountId) {
       trusted.add(tx.operation.Transfer.to);
     }
