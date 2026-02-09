@@ -10,9 +10,9 @@ export function NeuronStateBadge({ isDissolved, isDissolving }: Props) {
   const { t } = useTranslation();
 
   const getIcon = () => {
-    if (isDissolved) return <CheckCircle className="size-3" />;
-    if (isDissolving) return <Timer className="size-3" />;
-    return <Lock className="size-3" />;
+    if (isDissolved) return <CheckCircle className="size-3" aria-hidden="true" />;
+    if (isDissolving) return <Timer className="size-3" aria-hidden="true" />;
+    return <Lock className="size-3" aria-hidden="true" />;
   };
 
   const getText = () => {
@@ -29,9 +29,11 @@ export function NeuronStateBadge({ isDissolved, isDissolving }: Props) {
     <div
       className={`flex items-center gap-1 rounded-sm border px-2 py-0.5 ${colorClasses}`}
       data-testid="neuron-state-badge"
+      role="status"
+      aria-label={getText()}
     >
       {getIcon()}
-      <span className="text-[11px] font-medium">{getText()}</span>
+      <span className="hidden text-[11px] font-medium md:inline">{getText()}</span>
     </div>
   );
 }
