@@ -1,6 +1,6 @@
 import { isNullish } from '@dfinity/utils';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ChevronDown, ChevronUp, Users } from 'lucide-react';
+import { Eye, EyeOff, Users } from 'lucide-react';
 import { type MouseEvent, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -148,11 +148,7 @@ function Voting() {
                   showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow,
                 )}
               </span>
-              {showProposals ? (
-                <ChevronUp className="size-4" />
-              ) : (
-                <ChevronDown className="size-4" />
-              )}
+              {showProposals ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
             </Button>
           </div>
         </>
@@ -180,11 +176,7 @@ function Voting() {
                   showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow,
                 )}
               </span>
-              {showProposals ? (
-                <ChevronUp className="size-4" />
-              ) : (
-                <ChevronDown className="size-4" />
-              )}
+              {showProposals ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
             </Button>
           </div>
         </>
