@@ -30,11 +30,13 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
 
-  const accountId = nonNullish(identity)
-    ? AccountIdentifier.fromPrincipal({
-        principal: identity.getPrincipal(),
-      })
-    : null;
+  const accountIdHex = useMemo(
+    () =>
+      nonNullish(identity)
+        ? AccountIdentifier.fromPrincipal({ principal: identity.getPrincipal() }).toHex()
+        : null,
+    [identity],
+  );
 
   const transactions = useIcpIndexTransactions();
   const { accountIds: neuronAccountIds } = useNeuronAccountsIds();
@@ -47,12 +49,16 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
     [transactions.data?.pages],
   );
 
+  // NOTE: Trusted addresses are built from the currently fetched pages only.
+  // Detection improves as the user scrolls and more pages are loaded, but
+  // poisoning attempts that mimic recipients from unfetched older history
+  // won't be flagged until those pages are loaded.
   const trustedAddresses = useMemo(
     () =>
-      nonNullish(accountId)
-        ? buildTrustedAddresses(accountId.toHex(), neuronAccountIds, allTransactions)
+      nonNullish(accountIdHex)
+        ? buildTrustedAddresses(accountIdHex, neuronAccountIds, allTransactions)
         : new Set<string>(),
-    [accountId, neuronAccountIds, allTransactions],
+    [accountIdHex, neuronAccountIds, allTransactions],
   );
 
   return (
@@ -65,7 +71,7 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
-        {isNullish(accountId) ? (
+        {isNullish(accountIdHex) ? (
           <div className="flex flex-col gap-2">
             <MultipleSkeletons count={3} />
           </div>
@@ -82,7 +88,7 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
                     page.response.transactions.map((tx) => (
                       <AccountTransactionItem
                         certified={page.certified}
-                        accountId={accountId.toHex()}
+                        accountId={accountIdHex}
                         key={tx.id}
                         tx={tx}
                         trustedAddresses={trustedAddresses}

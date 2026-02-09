@@ -53,6 +53,10 @@ export const isSuspiciousAddress = (
  * - The user's own account identifier.
  * - Neuron sub-account identifiers (controlled by the user).
  * - Destination addresses from outgoing (SEND) transactions.
+ *
+ * **Limitation:** Only transactions provided in `transactions` are considered.
+ * When used with paginated data, recipients from pages not yet fetched won't
+ * be included. Detection improves as more pages are loaded.
  */
 export const buildTrustedAddresses = (
   userAccountId: string,
