@@ -36,7 +36,7 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
 
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
-      <ResponsiveDialogContent className="max-h-[80vh] overflow-y-auto">
+      <ResponsiveDialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-3xl">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>{t(($) => $.common.transactions)}</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
