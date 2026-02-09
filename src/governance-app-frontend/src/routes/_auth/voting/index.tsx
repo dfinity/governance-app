@@ -156,7 +156,9 @@ function Voting() {
         <>
           {/* @TODO: Improve how we inform users that they have a mix of following */}
           <Alert variant="warning">
-            <AlertTitle className="font-semibold">{t(($) => $.common.caution)}</AlertTitle>
+            <AlertTitle className="font-semibold">
+              {t(($) => $.voting.warnings.followingMismatchTitle)}
+            </AlertTitle>
             <AlertDescription>{t(($) => $.voting.warnings.followingMismatch)}</AlertDescription>
           </Alert>
         </>
