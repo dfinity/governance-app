@@ -37,6 +37,9 @@ export default defineConfig({
             if (id.includes('markdown') || id.includes('remark') || id.includes('micromark'))
               return 'vendor-md';
 
+            if (id.includes('rechart') || id.includes('d3') || id.includes('lodash'))
+              return 'vendor-rechart';
+
             // Everything else (Lucide, Radix, Motion)
             return 'vendor-libs';
           }
