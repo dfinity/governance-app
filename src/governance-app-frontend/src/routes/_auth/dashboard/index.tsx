@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { AccountCard } from '@features/account/components/AccountCard';
 import { TotalAssetsCard } from '@features/dashboard/components/TotalAssetsCard';
 import { StakedCard } from '@features/stakes/components/StakedCard';
+
 import { useIcpIndexTransactionsPolling } from '@hooks/icpIndex/useIcpIndexTransactionsPolling';
 
 import i18n from '@/i18n/config';

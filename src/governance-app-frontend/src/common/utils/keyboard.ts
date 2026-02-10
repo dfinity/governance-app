@@ -7,8 +7,7 @@
  * - The event target is an input field, textarea, select, or contenteditable element
  */
 export const shouldIgnoreKeyboardShortcut = (event: KeyboardEvent): boolean => {
-  if (event.repeat || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey)
-    return true;
+  if (event.repeat || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return true;
 
   const target = event.target as HTMLElement;
   return (

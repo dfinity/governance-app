@@ -1,6 +1,5 @@
-import { useCallback, useEffect } from 'react';
-
 import { useInternetIdentity } from 'ic-use-internet-identity';
+import { useCallback, useEffect } from 'react';
 
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { shouldIgnoreKeyboardShortcut } from '@utils/keyboard';
