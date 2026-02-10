@@ -81,7 +81,7 @@ export const TotalAssetsCard = () => {
         <div className="relative mx-auto w-full">
           <ChartContainer
             config={chartConfig}
-            className="aspect-square w-full max-w-48 [&_.recharts-surface]:overflow-visible"
+            className="mx-auto aspect-square w-full max-w-48 [&_.recharts-surface]:overflow-visible"
           >
             <RadialBarChart
               data={chartData}
