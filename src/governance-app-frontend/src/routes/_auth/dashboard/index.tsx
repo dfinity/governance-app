@@ -26,12 +26,13 @@ function Dashboard() {
     <div className="flex flex-col gap-8">
       <SmartTitle />
 
-      <div className="flex flex-col gap-6 md:flex-row">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4 [&>*]:h-full">
         <TotalAssetsCard />
         <AccountCard />
-        <StakedCard />
+        <div className="md:col-span-2">
+          <StakedCard />
+        </div>
       </div>
-      <div className="flex flex-col gap-6 md:flex-row"></div>
     </div>
   );
 }

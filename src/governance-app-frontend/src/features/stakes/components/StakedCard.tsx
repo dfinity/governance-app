@@ -56,7 +56,7 @@ export function StakedCard() {
   const stakingRewardsReady = isStakingRewardDataReady(stakingRewards);
 
   return (
-    <Card className="min-w-64" data-testid="staked-card">
+    <Card className="h-full min-w-64" data-testid="staked-card">
       <CardHeader className="flex flex-col gap-[7px]">
         <div className="flex w-full items-start justify-between space-y-0">
           <div className="flex items-center gap-2">
