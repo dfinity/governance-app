@@ -60,7 +60,7 @@ export const TotalAssetsCard = () => {
 
   return (
     <Card className="min-w-64 pb-5">
-      <CardHeader className="flex flex-col items-center gap-3">
+      <CardHeader className="flex flex-col items-center gap-4">
         <p className="text-sm tracking-wide text-muted-foreground uppercase">
           {t(($) => $.home.totalAssets)}
         </p>

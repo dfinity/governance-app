@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { AccountCardLegacy } from '@features/account/components/AccountCard';
+import { AccountCard } from '@features/account/components/AccountCard';
 import { SmartTitle } from '@features/dashboard/components/SmartTitle';
 import { TotalAssetsCard } from '@features/dashboard/components/TotalAssetsCard';
 import { StakedCardLegacy } from '@features/stakes/components/StakedCard';
@@ -28,9 +28,9 @@ function Dashboard() {
 
       <div className="flex flex-col gap-6 md:flex-row">
         <TotalAssetsCard />
+        <AccountCard />
       </div>
       <div className="flex flex-col gap-6 md:flex-row">
-        <AccountCardLegacy />
         <StakedCardLegacy />
       </div>
     </div>
