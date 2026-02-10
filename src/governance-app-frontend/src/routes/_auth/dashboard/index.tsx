@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
 
 import { AccountCardLegacy } from '@features/account/components/AccountCard';
+import { SmartTitle } from '@features/dashboard/components/SmartTitle';
 import { TotalAssetsCard } from '@features/dashboard/components/TotalAssetsCard';
-import { TotalAssetsCardLegacy } from '@features/dashboard/components/TotalAssetsCardLegacy';
 import { StakedCardLegacy } from '@features/stakes/components/StakedCard';
 
 import i18n from '@/i18n/config';
@@ -24,9 +24,9 @@ export const Route = createFileRoute('/_auth/dashboard/')({
 function Dashboard() {
   return (
     <div className="flex flex-col gap-6">
-      <TotalAssetsCardLegacy />
+      <SmartTitle />
 
-      <div className="flex">
+      <div className="flex flex-col gap-6 md:flex-row">
         <TotalAssetsCard />
       </div>
       <div className="flex flex-col gap-6 md:flex-row">
