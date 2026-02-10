@@ -29,7 +29,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function TotalAssetsCard() {
+export const TotalAssetsCard = () => {
   const { t } = useTranslation();
 
   const { tickerPrices: tickersQuery } = useTickerPrices();
@@ -116,4 +116,4 @@ export function TotalAssetsCard() {
       </CardContent>
     </Card>
   );
-}
+};
