@@ -15,6 +15,9 @@ export const useLogoutShortcut = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Ignore key repeats and modifier combinations (e.g. Ctrl+U, Cmd+U)
+      if (event.repeat || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
+
       // Ignore if the user is typing in an input field
       const target = event.target as HTMLElement;
       if (
