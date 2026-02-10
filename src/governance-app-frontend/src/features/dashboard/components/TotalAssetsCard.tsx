@@ -52,9 +52,7 @@ export const TotalAssetsCard = () => {
   const isLoading = balanceQuery.isLoading || neuronsQuery.isLoading;
   const stakingRewardsReady = isStakingRewardDataReady(stakingRewards);
 
-  const stakingRatioPercent = stakingRewardsReady
-    ? Math.round(stakingRewards.stakingRatio * 100)
-    : 0;
+  const stakingRatioPercent = stakingRewardsReady ? stakingRewards.stakingRatio * 100 : 0;
 
   const chartData = [
     { name: 'staking', value: stakingRatioPercent, fill: 'var(--color-stakingRatio)' },

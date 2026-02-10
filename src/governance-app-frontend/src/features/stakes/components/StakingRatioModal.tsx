@@ -49,8 +49,9 @@ export function StakingRatioModal() {
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger
-        className="cursor-pointer rounded-sm p-0.5 transition-all duration-300 hover:scale-110 focus:outline-none"
+        className="cursor-pointer rounded-sm p-0.5 transition-all duration-300 hover:scale-110 focus-visible:ring-2 focus-visible:ring-muted-foreground focus-visible:ring-offset-1 focus-visible:outline-none"
         disabled={isLoading}
+        aria-label={t(($) => $.stakingRatioModal.ariaLabel)}
       >
         {isLoading ? (
           <span className="text-muted-foreground">
