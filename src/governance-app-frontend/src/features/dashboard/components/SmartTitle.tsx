@@ -43,6 +43,14 @@ export function SmartTitle() {
   const { state, isLoading } = useAccountState();
   const stakingRewards = useStakingRewards();
 
+  if (isLoading)
+    return (
+      <div className="flex flex-col gap-2">
+        <Skeleton className="h-8 w-72" />
+        <Skeleton className="h-8 w-64" />
+      </div>
+    );
+
   const title =
     state === 'no-assets'
       ? t(($) => $.home.smartTitle.noAssetsTitle)
@@ -79,14 +87,6 @@ export function SmartTitle() {
         </Link>
       </Button>
     ) : null;
-
-  if (isLoading)
-    return (
-      <div className="flex flex-col gap-2">
-        <Skeleton className="h-8 w-72" />
-        <Skeleton className="h-8 w-64" />
-      </div>
-    );
 
   return (
     <div className="flex flex-col">

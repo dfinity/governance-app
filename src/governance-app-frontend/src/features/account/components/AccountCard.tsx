@@ -1,5 +1,5 @@
-import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
+import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { List } from 'lucide-react';
 import { useState } from 'react';
@@ -11,7 +11,7 @@ import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { E8Sn } from '@constants/extra';
+import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
@@ -48,8 +48,14 @@ export function AccountCard() {
             <p className="text-sm tracking-wide text-muted-foreground uppercase">
               {t(($) => $.account.available)}
             </p>
-            <Button variant="outline" size="icon" onClick={() => setIsDialogOpen(true)}>
-              <List />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setIsDialogOpen(true)}
+              aria-label={t(($) => $.account.ariaLabel)}
+              title={t(($) => $.account.ariaLabel)}
+            >
+              <List aria-hidden="true" />
             </Button>
           </div>
 
@@ -74,6 +80,11 @@ export function AccountCard() {
 
         <CardContent className="flex flex-1 flex-col justify-between gap-6">
           <div className="mt-auto flex flex-col gap-3">
+            {IS_TESTNET && (
+              <Button variant="ghost" data-testid="get-testnet-icp-trigger-btn">
+                Get testnet ICP
+              </Button>
+            )}
             <DepositICPButton accountId={accountId} />
             <SendICPButton balance={balanceICP} />
           </div>
