@@ -11,6 +11,8 @@ import { useIcpIndex } from './useIcpIndex';
 
 type UseIcpIndexTransactionsOptions = {
   refetchInterval?: number;
+  /** Override refetchInterval for the update (certified) query only. */
+  updateRefetchInterval?: number | false;
 };
 
 export const useIcpIndexTransactions = (options?: UseIcpIndexTransactionsOptions) => {
@@ -54,5 +56,10 @@ export const useIcpIndexTransactions = (options?: UseIcpIndexTransactionsOptions
       enabled: ready && authenticated,
       refetchInterval: options?.refetchInterval,
     },
+    ...(options?.updateRefetchInterval !== undefined && {
+      updateOptions: {
+        refetchInterval: options.updateRefetchInterval,
+      },
+    }),
   });
 };

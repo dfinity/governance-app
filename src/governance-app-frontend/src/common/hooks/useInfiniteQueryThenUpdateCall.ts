@@ -20,16 +20,20 @@ type QueryOptions<TData, TPageParam> = UseInfiniteQueryOptions<
   TPageParam
 >;
 
+type OptionsOmit<TData, TPageParam> = Omit<
+  QueryOptions<TData, TPageParam>,
+  'queryKey' | 'queryFn' | 'initialPageParam' | 'getNextPageParam'
+>;
+
 type Props<TData, TPageParam> = {
   queryKey: QueryKey;
   queryFn: (context: QueryFunctionContext<QueryKey, TPageParam>) => Promise<TData>;
   updateFn: (context: QueryFunctionContext<QueryKey, TPageParam>) => Promise<TData>;
   initialPageParam: TPageParam;
   getNextPageParam: QueryOptions<TData, TPageParam>['getNextPageParam'];
-  options?: Omit<
-    QueryOptions<TData, TPageParam>,
-    'queryKey' | 'queryFn' | 'initialPageParam' | 'getNextPageParam'
-  >;
+  options?: OptionsOmit<TData, TPageParam>;
+  /** Override options for the update (certified) query only. Merged on top of `options`. */
+  updateOptions?: Partial<OptionsOmit<TData, TPageParam>>;
 };
 
 export const useInfiniteQueryThenUpdateCall = <TData, TPageParam>({
@@ -39,6 +43,7 @@ export const useInfiniteQueryThenUpdateCall = <TData, TPageParam>({
   initialPageParam,
   getNextPageParam,
   options,
+  updateOptions,
 }: Props<TData, TPageParam>) => {
   const queryCall = async (
     context: QueryFunctionContext<QueryKey, TPageParam>,
@@ -77,6 +82,7 @@ export const useInfiniteQueryThenUpdateCall = <TData, TPageParam>({
     initialPageParam,
     getNextPageParam,
     ...options,
+    ...updateOptions,
   });
 
   const { fetchNextPage: fetchNextPageUpdate, error: errorUpdate, data: dataUpdate } = updateQuery;

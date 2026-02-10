@@ -5,7 +5,6 @@ import { analytics } from '@features/analytics/service';
 
 import { BetaBanner } from '@components/BetaBanner';
 import { MainLayout } from '@components/MainLayout';
-import { useIcpIndexTransactionsPolling } from '@hooks/icpIndex/useIcpIndexTransactionsPolling';
 import { useScrollResetOnNavigation } from '@hooks/useScrollResetOnNavigation';
 import { useSessionCountdownToast } from '@hooks/useSessionCountdownToast';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
@@ -24,7 +23,6 @@ export const Route = createFileRoute('/_auth')({
 function AuthLayout() {
   useThemeShortcut();
   useSessionCountdownToast();
-  useIcpIndexTransactionsPolling();
   useScrollResetOnNavigation();
 
   useEffect(() => {
