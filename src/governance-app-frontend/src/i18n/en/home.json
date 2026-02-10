@@ -3,10 +3,22 @@
   "unstakedMaturity": "Liquid maturity",
   "participateTitle": "Participate in the Largest Global DAO",
   "participateSubtitle": "Stake, vote, earn up to {{value}} per year.",
-  "participateSubtitleStatic": "Stake, vote, and earn earn rewards.",
-  "totalValue": "Total Value",
+  "participateSubtitleStatic": "Stake, vote, and earn rewards.",
+  "totalAssets": "Total assets",
+  "totalValue": "Total value",
   "icpUsd": "ICP/USD",
   "forecast": {
     "oneYear": "1y maturity"
+  },
+  "smartTitle": {
+    "noAssetsTitle": "Participate in ICP Governance",
+    "noAssetsSubtitle": "Stake, vote, earn up to {{value}} per year",
+    "noAssetsSubtitleStatic": "Stake, vote, and earn rewards",
+    "noAssetsCta": "Deposit or buy ICP",
+    "liquidOnlyTitle": "Your ICP are not participating in Governance",
+    "liquidOnlySubtitle": "Stake ICP to start voting and earn rewards",
+    "liquidOnlyCta": "Start Staking",
+    "stakedTitle": "You are participating in ICP Governance",
+    "stakedSubtitle": "You earn rewards"
   }
 }

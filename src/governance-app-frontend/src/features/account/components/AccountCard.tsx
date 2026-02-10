@@ -23,7 +23,7 @@ import { GetTokens } from '@/dev/GetTokens';
 import { BuyIcpsButton } from './BuyIcpsButton';
 import { DepositICPButton } from './DepositICPButton';
 
-export function AccountCard() {
+export function AccountCardLegacy() {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
