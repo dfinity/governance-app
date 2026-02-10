@@ -33,7 +33,7 @@ export const DepositICPButton = ({ accountId }: Props) => {
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger asChild>
         <Button size="xl" className="w-full">
-          <Plus />
+          <Plus aria-hidden="true" />
           {t(($) => $.account.addIcp)}
         </Button>
       </ResponsiveDialogTrigger>
