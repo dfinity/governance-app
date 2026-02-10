@@ -1,6 +1,7 @@
-import { cn } from '@utils/shadcn';
 import { CheckCircle, Lock, Timer } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+
+import { cn } from '@utils/shadcn';
 
 type Props = {
   isDissolved: boolean;
