@@ -4,15 +4,17 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
+import { AmountInput } from '@components/AmountInput';
 import { Button } from '@components/button';
-import { Input } from '@components/Input';
 import { Label } from '@components/Label';
+import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
+import { useTickerPrices } from '@hooks/tickers';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
-import { formatPercentage, roundToE8sPrecision } from '@utils/numbers';
+import { formatNumber, formatPercentage, roundToE8sPrecision } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 interface Props {
@@ -25,6 +27,9 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
   const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const { tickerPrices: tickersQuery } = useTickerPrices();
+  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
 
   const { data: balanceValue } = useIcpLedgerAccountBalance();
   const balance = nonNullish(balanceValue?.response) ? bigIntDiv(balanceValue.response, E8Sn) : 0;
@@ -42,9 +47,8 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
     setError(null);
   };
 
-  const handleMax = () => {
-    onAmountChange(maxStake.toString());
-    // Give focus back to input after clicking the Max button
+  const handleMaxSelect = (value: string) => {
+    onAmountChange(value);
     inputRef?.current?.focus();
     setError(null);
   };
@@ -70,44 +74,29 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
     handleNext();
   };
 
+  const numericAmount = Number(amount);
+  const approxUsd =
+    icpPrice && numericAmount > 0
+      ? t(($) => $.account.approxUsd, { value: formatNumber(numericAmount * icpPrice.usd) })
+      : undefined;
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="space-y-1">
         <Label htmlFor="stake-amount">{t(($) => $.stakeWizardModal.steps.amount.label)}</Label>
-        <div className="relative">
-          <Input
-            className={`h-14 [appearance:textfield] border-2 pr-24 !text-lg font-semibold focus-visible:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
-            onChange={(e) => handleAmountChange(e.target.value)}
-            placeholder="0.00"
-            id="stake-amount"
-            ref={inputRef}
-            value={amount}
-            type="number"
-            inputMode="decimal"
-            step="any"
-            data-testid="staking-wizard-amount-input"
-          />
-          <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-1">
-            <Button
-              type="button"
-              size="sm"
-              onClick={handleMax}
-              className="h-7 px-2 text-xs uppercase"
-              aria-label={t(($) => $.stakeWizardModal.steps.amount.maxButtonAriaLabel)}
-            >
-              {t(($) => $.common.max)}
-            </Button>
-            <span className="text-sm font-semibold text-muted-foreground">
-              {t(($) => $.common.icp)}
-            </span>
-          </div>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          {t(($) => $.stakeWizardModal.steps.amount.available, {
+        <AmountInput
+          id="stake-amount"
+          ref={inputRef}
+          value={amount}
+          onChange={handleAmountChange}
+          maxAmount={maxStake}
+          onMaxSelect={handleMaxSelect}
+          approxUsdLabel={approxUsd}
+          availableLabel={t(($) => $.stakeWizardModal.steps.amount.available, {
             amount: maxStake.toString(),
-            fee: ICP_TRANSACTION_FEE,
           })}
-        </p>
+          data-testid="staking-wizard-amount-input"
+        />
         {error && (
           <Alert variant="warning" data-testid="staking-wizard-amount-error">
             <AlertTriangle className="h-4 w-4 text-destructive" />

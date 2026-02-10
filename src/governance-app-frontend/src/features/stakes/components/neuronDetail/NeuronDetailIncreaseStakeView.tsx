@@ -5,16 +5,17 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
+import { AmountInput } from '@components/AmountInput';
 import { Button } from '@components/button';
-import { Input } from '@components/Input';
 import { Label } from '@components/Label';
+import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
+import { useTickerPrices } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
 import { mapCanisterError } from '@utils/errors';
-import { getNeuronStakeAfterFeesE8s } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
-import { roundToE8sPrecision } from '@utils/numbers';
+import { formatNumber, roundToE8sPrecision } from '@utils/numbers';
 
 import { useIncreaseStake } from '../../hooks/useIncreaseStake';
 
@@ -30,11 +31,12 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
   const [validationError, setValidationError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const { tickerPrices: tickersQuery } = useTickerPrices();
+  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
+
   const { data: balanceValue } = useIcpLedgerAccountBalance();
   const balance = nonNullish(balanceValue?.response) ? bigIntDiv(balanceValue.response, E8Sn) : 0;
   const availableBalance = Math.max(0, roundToE8sPrecision(balance - ICP_TRANSACTION_FEE));
-
-  const currentStake = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
 
   const accountIdentifier = neuron.fullNeuron?.accountIdentifier;
 
@@ -45,8 +47,8 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
     setValidationError(null);
   };
 
-  const handleMax = () => {
-    setAmount(availableBalance.toString());
+  const handleMaxSelect = (value: string) => {
+    setAmount(value);
     inputRef?.current?.focus();
     setValidationError(null);
   };
@@ -97,6 +99,12 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
     }
   };
 
+  const numericAmount = Number(amount);
+  const approxUsd =
+    icpPrice && numericAmount > 0
+      ? t(($) => $.account.approxUsd, { value: formatNumber(numericAmount * icpPrice.usd) })
+      : undefined;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isPending) {
@@ -110,43 +118,21 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
         <Label htmlFor="increase-amount">
           {t(($) => $.neuronDetailModal.increaseStake.amountLabel)}
         </Label>
-        <div className="relative">
-          <Input
-            className="h-14 [appearance:textfield] border-2 pr-24 !text-lg font-semibold focus-visible:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-            onChange={(e) => handleAmountChange(e.target.value)}
-            placeholder="0.00"
-            id="increase-amount"
-            ref={inputRef}
-            value={amount}
-            type="number"
-            inputMode="decimal"
-            step="any"
-            disabled={isPending}
-            data-testid="increase-stake-amount-input"
-          />
-          <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-1">
-            <Button
-              type="button"
-              size="sm"
-              onClick={handleMax}
-              disabled={isPending}
-              className="h-7 px-2 text-xs uppercase"
-              aria-label={t(($) => $.neuronDetailModal.increaseStake.maxButtonAriaLabel)}
-            >
-              {t(($) => $.common.max)}
-            </Button>
-            <span className="text-sm font-semibold text-muted-foreground">
-              {t(($) => $.common.icp)}
-            </span>
-          </div>
-        </div>
-        <p className="text-sm text-muted-foreground" data-testid="increase-stake-current-stake">
-          {t(($) => $.neuronDetailModal.increaseStake.currentAndAvailable, {
-            current: currentStake.toString(),
+        <AmountInput
+          id="increase-amount"
+          ref={inputRef}
+          value={amount}
+          onChange={handleAmountChange}
+          maxAmount={availableBalance}
+          onMaxSelect={handleMaxSelect}
+          disabled={isPending}
+          approxUsdLabel={approxUsd}
+          availableLabel={t(($) => $.neuronDetailModal.increaseStake.currentAndAvailable, {
             available: availableBalance.toString(),
-            fee: ICP_TRANSACTION_FEE,
           })}
-        </p>
+          availableLabelTestId="increase-stake-current-stake"
+          data-testid="increase-stake-amount-input"
+        />
       </div>
 
       {validationError && (
