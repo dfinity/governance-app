@@ -1,4 +1,4 @@
-import { isNullish } from '@dfinity/utils';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Eye, EyeOff, Users } from 'lucide-react';
 import { type MouseEvent, useEffect, useRef } from 'react';
@@ -154,9 +154,10 @@ function Voting() {
         </>
       ) : !hasConsistentFollowees ? (
         <>
-          {/* @TODO: Improve how we inform users that they have a mix of following */}
           <Alert variant="warning">
-            <AlertTitle className="font-semibold">{t(($) => $.common.caution)}</AlertTitle>
+            <AlertTitle className="font-semibold">
+              {t(($) => $.voting.warnings.followingMismatchTitle)}
+            </AlertTitle>
             <AlertDescription>{t(($) => $.voting.warnings.followingMismatch)}</AlertDescription>
           </Alert>
         </>
@@ -164,7 +165,7 @@ function Voting() {
         <FollowedNeuronCard neuron={followedNeuron} />
       )}
 
-      {!isNullish(followedNeuron) && (
+      {nonNullish(followedNeuron) && (
         <>
           <Separator className="mt-8 mb-4 lg:mt-16" />
 

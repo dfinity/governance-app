@@ -16,7 +16,8 @@
   },
   "warnings": {
     "stakeRequired": "You need at least one Stake to follow a Representative. Please stake ICP first.",
-    "followingMismatch": "Stakes have different following configurations"
+    "followingMismatchTitle": "Voting setup",
+    "followingMismatch": "Your Stakes follow multiple Representatives across different topics, so a single Representative card can’t be shown yet."
   },
   "errors": {
     "loadFollowing": "Unable to load following data. Please try refreshing the page."
