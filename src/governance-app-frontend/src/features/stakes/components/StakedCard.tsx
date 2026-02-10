@@ -151,9 +151,8 @@ export function StakedCard() {
             className="flex-1"
             asChild
             disabled={balanceQuery.isLoading}
-            onClick={handleStakeMoreClick}
           >
-            <Link to="/stakes" search={{ openWizard: true }}>
+            <Link to="/stakes" search={{ openWizard: true }} onClick={handleStakeMoreClick}>
               <TrendingUp aria-hidden="true" />
               {t(($) => $.common.stakeIcp)}
             </Link>
