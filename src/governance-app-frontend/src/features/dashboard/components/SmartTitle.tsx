@@ -1,7 +1,7 @@
 import { nonNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
 import { TrendingUp } from 'lucide-react';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { Skeleton } from '@components/Skeleton';
@@ -50,39 +50,29 @@ export function SmartTitle() {
         ? t(($) => $.home.smartTitle.liquidOnlyTitle)
         : t(($) => $.home.smartTitle.stakedTitle);
 
-  const maxApy = isStakingRewardDataReady(stakingRewards)
-    ? formatPercentage(
-        stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_MONTHS].autoStake.locked,
-      )
-    : null;
-
   const subtitle =
-    state === 'no-assets' ? (
-      isStakingRewardDataError(stakingRewards) ? (
-        t(($) => $.home.smartTitle.noAssetsSubtitleStatic)
-      ) : (
-        <Trans
-          i18nKey={($) => $.home.smartTitle.noAssetsSubtitle}
-          components={{
-            apyValue: maxApy ? (
-              <span>{maxApy}</span>
-            ) : (
-              <Skeleton className="inline-block h-5 w-12 align-middle" />
-            ),
-          }}
-        />
-      )
-    ) : state === 'liquid-only' ? (
-      t(($) => $.home.smartTitle.liquidOnlySubtitle)
-    ) : (
-      t(($) => $.home.smartTitle.stakedSubtitle)
-    );
+    state === 'no-assets'
+      ? isStakingRewardDataError(stakingRewards)
+        ? t(($) => $.home.smartTitle.noAssetsSubtitleStatic)
+        : t(($) => $.home.smartTitle.noAssetsSubtitle, {
+            value: isStakingRewardDataReady(stakingRewards)
+              ? formatPercentage(
+                  stakingRewards?.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_MONTHS].autoStake
+                    .locked,
+                )
+              : `--.--%`,
+          })
+      : state === 'liquid-only'
+        ? t(($) => $.home.smartTitle.liquidOnlySubtitle)
+        : t(($) => $.home.smartTitle.stakedSubtitle);
 
   const cta =
     state === 'no-assets' ? (
-      <Button disabled>{t(($) => $.home.smartTitle.noAssetsCta)}</Button>
+      <Button size="lg" disabled>
+        {t(($) => $.home.smartTitle.noAssetsCta)}
+      </Button>
     ) : state === 'liquid-only' ? (
-      <Button asChild>
+      <Button asChild size="lg">
         <Link to="/stakes" search={{ openWizard: true }}>
           <TrendingUp />
           {t(($) => $.home.smartTitle.liquidOnlyCta)}
@@ -102,7 +92,7 @@ export function SmartTitle() {
     <div className="flex flex-col">
       <h2 className="text-3xl font-medium text-foreground">{title}</h2>
       <div className="text-2xl text-muted-foreground">{subtitle}</div>
-      {cta && <div className="mt-4">{cta}</div>}
+      {cta && <div className="mt-5">{cta}</div>}
     </div>
   );
 }
