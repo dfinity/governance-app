@@ -87,6 +87,7 @@ export function SmartTitle() {
         <Skeleton className="h-8 w-64" />
       </div>
     );
+  console.log(subtitle);
 
   return (
     <div className="flex flex-col">
