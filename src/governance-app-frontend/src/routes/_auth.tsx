@@ -8,6 +8,7 @@ import { MainLayout } from '@components/MainLayout';
 import { useIcpIndexTransactionsPolling } from '@hooks/icpIndex/useIcpIndexTransactionsPolling';
 import { useScrollResetOnNavigation } from '@hooks/useScrollResetOnNavigation';
 import { useSessionCountdownToast } from '@hooks/useSessionCountdownToast';
+import { useLogoutShortcut } from '@hooks/useLogoutShortcut';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
 import { requireIdentity } from '@utils/router';
 
@@ -23,6 +24,7 @@ export const Route = createFileRoute('/_auth')({
 
 function AuthLayout() {
   useThemeShortcut();
+  useLogoutShortcut();
   useSessionCountdownToast();
   useIcpIndexTransactionsPolling();
   useScrollResetOnNavigation();
