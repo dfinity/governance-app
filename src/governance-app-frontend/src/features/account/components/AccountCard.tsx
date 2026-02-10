@@ -1,7 +1,7 @@
-import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
+import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { List } from 'lucide-react';
+import { List, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -11,7 +11,7 @@ import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { E8Sn, IS_TESTNET } from '@constants/extra';
+import { E8Sn } from '@constants/extra';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
@@ -22,7 +22,7 @@ import { GetTokens } from '@/dev/GetTokens';
 import { DepositICPButton } from './DepositICPButton';
 import { SendICPButton } from './SendICPButton';
 
-export function AccountCardLegacy() {
+export function AccountCard() {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
