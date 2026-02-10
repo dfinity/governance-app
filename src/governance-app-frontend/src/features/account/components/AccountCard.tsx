@@ -1,5 +1,5 @@
-import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
+import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { List } from 'lucide-react';
 import { useState } from 'react';
@@ -11,7 +11,7 @@ import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { E8Sn } from '@constants/extra';
+import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
