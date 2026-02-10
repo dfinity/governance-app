@@ -1,5 +1,5 @@
-import { isNullish, nonNullish } from '@dfinity/utils';
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { List } from 'lucide-react';
 import { useState } from 'react';
@@ -18,6 +18,7 @@ import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber } from '@utils/numbers';
 
 import { GetTokens } from '@/dev/GetTokens';
+
 import { DepositICPButton } from './DepositICPButton';
 import { SendICPButton } from './SendICPButton';
 
