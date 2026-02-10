@@ -2,24 +2,14 @@ import { useEffect } from 'react';
 
 import { Theme } from '@contexts/themeContext';
 import { useTheme } from '@hooks/useTheme';
+import { shouldIgnoreKeyboardShortcut } from '@utils/keyboard';
 
 export const useThemeShortcut = () => {
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Ignore key repeats and modifier combinations (e.g. Ctrl+D, Cmd+D)
-      if (event.repeat || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
-
-      // Ignore if the user is typing in an input field
-      const target = event.target as HTMLElement;
-      if (
-        target.isContentEditable ||
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.tagName === 'SELECT'
-      )
-        return;
+      if (shouldIgnoreKeyboardShortcut(event)) return;
 
       if (event.key === 'd') setTheme(theme === Theme.Dark ? Theme.Light : Theme.Dark);
     };
