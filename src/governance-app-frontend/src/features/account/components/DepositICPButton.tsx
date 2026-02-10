@@ -1,5 +1,5 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
-import { Send } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -32,9 +32,9 @@ export const DepositICPButton = ({ accountId }: Props) => {
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger asChild>
-        <Button variant="outline" size="xl" className="w-full">
-          <Send />
-          {t(($) => $.common.withdraw)}
+        <Button size="xl" className="w-full">
+          <Plus />
+          {t(($) => $.account.addIcp)}
         </Button>
       </ResponsiveDialogTrigger>
 

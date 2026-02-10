@@ -1,7 +1,7 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { List, Plus } from 'lucide-react';
+import { List } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -18,6 +18,7 @@ import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber } from '@utils/numbers';
 
 import { DepositICPButton } from './DepositICPButton';
+import { SendICPButton } from './SendICPButton';
 
 export function AccountCard() {
   const { t } = useTranslation();
@@ -73,11 +74,8 @@ export function AccountCard() {
 
         <CardContent className="flex flex-1 flex-col justify-between gap-6">
           <div className="mt-auto flex flex-col gap-3">
-            <Button size="xl" disabled className="w-full">
-              <Plus />
-              {t(($) => $.account.addIcp)}
-            </Button>
             <DepositICPButton accountId={accountId} />
+            <SendICPButton balance={balanceICP} />
           </div>
         </CardContent>
       </Card>
