@@ -101,7 +101,7 @@ export const TotalAssetsCard = () => {
                 </span>
               ) : (
                 <div className="flex items-center justify-center">
-                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-8 w-20" />
                 </div>
               )}
               <StakingRatioModal />

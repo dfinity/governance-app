@@ -55,10 +55,10 @@ export function StakingRatioModal() {
       >
         {isLoading ? (
           <span className="text-muted-foreground">
-            <Spinner className="size-6" />
+            <Spinner className="size-5" />
           </span>
         ) : (
-          <AlertCircle className="size-6 text-muted-foreground" />
+          <AlertCircle className="size-5 text-muted-foreground" />
         )}
       </ResponsiveDialogTrigger>
       <ResponsiveDialogContent className="flex max-h-[90vh] flex-col">

@@ -35,7 +35,7 @@ export function MaturitySymbol({ className = '' }: Props) {
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger
         className={cn(
-          'cursor-help rounded-sm p-0.5 transition-all duration-300 hover:scale-110 focus:outline-none',
+          'cursor-help rounded-sm p-0.5 transition-all duration-300 hover:scale-110 focus-visible:ring-2 focus-visible:ring-muted-foreground focus-visible:ring-offset-1 focus-visible:outline-none',
           className,
         )}
         onClick={(e) => {

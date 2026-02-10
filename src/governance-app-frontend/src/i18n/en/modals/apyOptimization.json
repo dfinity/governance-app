@@ -21,5 +21,6 @@
     "notAutoStaking": "Not auto-staking"
   },
   "maximize": "Maximize",
-  "optimizeAll": "Optimize all Stakes"
+  "optimizeAll": "Optimize all Stakes",
+  "ariaLabel": "Open APY optimization modal"
 }
