@@ -1,7 +1,7 @@
 import { nonNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
 import { TrendingUp } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { Skeleton } from '@components/Skeleton';
@@ -50,6 +50,12 @@ export function SmartTitle() {
         ? t(($) => $.home.smartTitle.liquidOnlyTitle)
         : t(($) => $.home.smartTitle.stakedTitle);
 
+  const maxApy = isStakingRewardDataReady(stakingRewards)
+    ? formatPercentage(
+        stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_MONTHS].autoStake.locked,
+      )
+    : null;
+
   const subtitle =
     state === 'no-assets'
       ? isStakingRewardDataError(stakingRewards)
@@ -87,7 +93,6 @@ export function SmartTitle() {
         <Skeleton className="h-8 w-64" />
       </div>
     );
-  console.log(subtitle);
 
   return (
     <div className="flex flex-col">
