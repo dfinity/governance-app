@@ -23,7 +23,7 @@ export const Route = createFileRoute('/_auth/dashboard/')({
 
 function Dashboard() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       <SmartTitle />
 
       <div className="flex flex-col gap-6 md:flex-row">
