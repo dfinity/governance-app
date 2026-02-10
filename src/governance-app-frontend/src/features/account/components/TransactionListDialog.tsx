@@ -4,6 +4,7 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
 import { AccountTransactionItem } from '@features/account/components/TransactionItem';
+import { buildTrustedAddresses } from '@features/account/utils/addressPoisoning';
 
 import { MultipleSkeletons } from '@components/MultipleSkeletons';
 import { QueryStates } from '@components/QueryStates';
@@ -17,6 +18,8 @@ import {
 import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
 import { CertifiedData } from '@typings/queries';
 
+import { useNeuronAccountsIds } from '../hooks/useNeuronAccountsIds';
+
 interface TransactionListDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -26,13 +29,25 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
 
-  const accountId = nonNullish(identity)
-    ? AccountIdentifier.fromPrincipal({
-        principal: identity.getPrincipal(),
-      })
+  const accountIdHex = nonNullish(identity)
+    ? AccountIdentifier.fromPrincipal({ principal: identity.getPrincipal() }).toHex()
     : null;
 
   const transactions = useIcpIndexTransactions();
+  const { accountIds: neuronAccountIds } = useNeuronAccountsIds();
+
+  const allTransactions =
+    transactions.data?.pages?.flatMap((page) =>
+      page.response.transactions.map((tx) => tx.transaction),
+    ) ?? [];
+
+  // NOTE: Trusted addresses are built from the currently fetched pages only.
+  // Detection improves as the user scrolls and more pages are loaded, but
+  // poisoning attempts that mimic recipients from unfetched older history
+  // won't be flagged until those pages are loaded.
+  const trustedAddresses = nonNullish(accountIdHex)
+    ? buildTrustedAddresses(accountIdHex, neuronAccountIds, allTransactions)
+    : new Set<string>();
 
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
@@ -44,7 +59,7 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
-        {isNullish(accountId) ? (
+        {isNullish(accountIdHex) ? (
           <div className="flex flex-col gap-2">
             <MultipleSkeletons count={3} />
           </div>
@@ -61,9 +76,10 @@ export function TransactionListDialog({ open, onOpenChange }: TransactionListDia
                     page.response.transactions.map((tx) => (
                       <AccountTransactionItem
                         certified={page.certified}
-                        accountId={accountId.toHex()}
+                        accountId={accountIdHex}
                         key={tx.id}
                         tx={tx}
+                        trustedAddresses={trustedAddresses}
                       />
                     )),
                   )}

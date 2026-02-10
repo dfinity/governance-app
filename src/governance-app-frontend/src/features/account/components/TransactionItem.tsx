@@ -2,6 +2,7 @@ import { IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { ArrowDownToLine, ArrowUp, CircleQuestionMark, Lock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { Alert, AlertDescription } from '@components/Alert';
 import { Card, CardContent } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
 import { CopyButton } from '@components/CopyButton';
@@ -13,6 +14,7 @@ import { cn } from '@utils/shadcn';
 
 import { useNeuronAccountsIds } from '../hooks/useNeuronAccountsIds';
 import { TransactionType } from '../types';
+import { isSuspiciousAddress } from '../utils/addressPoisoning';
 
 // @TODO: Add support for Mint
 const getTransactionType = (
@@ -34,10 +36,12 @@ export const AccountTransactionItem = ({
   tx,
   accountId,
   certified,
+  trustedAddresses,
 }: {
   tx: IcpIndexDid.TransactionWithId;
   accountId: string;
   certified: boolean;
+  trustedAddresses: Set<string>;
 }) => {
   const { t } = useTranslation();
   const userNeuronsAccountIds = useNeuronAccountsIds();
@@ -62,6 +66,10 @@ export const AccountTransactionItem = ({
   const transactionTimestamp = Number(
     timestampInNanosToSeconds(tx.transaction.created_at_time[0]?.timestamp_nanos ?? 0n),
   );
+
+  const suspicious =
+    type === TransactionType.RECEIVE &&
+    isSuspiciousAddress(address, operation.Transfer.amount.e8s, trustedAddresses);
 
   return (
     <Card key={tx.id} className="p-0">
@@ -90,26 +98,40 @@ export const AccountTransactionItem = ({
               <h4 className="text-sm font-semibold">{title}</h4>
               <CertifiedBadge certified={certified} />
             </div>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-col gap-1">
                 <span className="text-xs text-muted-foreground">
                   {secondsToDate(transactionTimestamp)} - {secondsToTime(transactionTimestamp)}
                 </span>
 
-                <div className="flex items-center gap-1 font-mono text-sm break-all text-muted-foreground">
+                <div
+                  className={cn(
+                    'flex items-center gap-1 font-mono text-sm break-all text-muted-foreground',
+                    suspicious && 'text-amber-800 dark:text-amber-200',
+                  )}
+                >
                   <span className="md:hidden">
                     {`${address.slice(0, 10)}...${address.slice(-10)}`}
                   </span>
                   <span className="hidden md:inline">
                     {`${address.slice(0, 24)}...${address.slice(-24)}`}
                   </span>
-                  <CopyButton
-                    value={address}
-                    size="sm"
-                    variant="ghost"
-                    label={t(($) => $.account.address)}
-                  />
+                  {!suspicious && (
+                    <CopyButton
+                      value={address}
+                      size="sm"
+                      variant="ghost"
+                      label={t(($) => $.account.address)}
+                    />
+                  )}
                 </div>
+                {suspicious && (
+                  <Alert variant="warning" className="px-3 py-2">
+                    <AlertDescription className="text-xs">
+                      {t(($) => $.account.suspiciousAddressWarning)}
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
               <span
                 className={cn(
