@@ -61,7 +61,7 @@ export function TotalAssetsCard() {
   ];
 
   return (
-    <Card className="min-w-64">
+    <Card className="min-w-64 pb-5">
       <CardHeader className="flex flex-col items-center gap-3">
         <p className="text-sm tracking-wide text-muted-foreground uppercase">
           {t(($) => $.home.totalAssets)}
@@ -81,7 +81,7 @@ export function TotalAssetsCard() {
         <div className="relative mx-auto w-full">
           <ChartContainer
             config={chartConfig}
-            className="aspect-square w-full [&_.recharts-surface]:overflow-visible"
+            className="aspect-square w-full max-w-48 [&_.recharts-surface]:overflow-visible"
           >
             <RadialBarChart
               data={chartData}
