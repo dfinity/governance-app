@@ -1,5 +1,5 @@
-import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
+import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { List } from 'lucide-react';
 import { useState } from 'react';
@@ -22,7 +22,7 @@ import { GetTokens } from '@/dev/GetTokens';
 import { DepositICPButton } from './DepositICPButton';
 import { SendICPButton } from './SendICPButton';
 
-export function AccountCard() {
+export function AccountCardLegacy() {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
