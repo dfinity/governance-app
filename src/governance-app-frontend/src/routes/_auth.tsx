@@ -6,9 +6,9 @@ import { analytics } from '@features/analytics/service';
 import { BetaBanner } from '@components/BetaBanner';
 import { MainLayout } from '@components/MainLayout';
 import { useIcpIndexTransactionsPolling } from '@hooks/icpIndex/useIcpIndexTransactionsPolling';
+import { useLogoutShortcut } from '@hooks/useLogoutShortcut';
 import { useScrollResetOnNavigation } from '@hooks/useScrollResetOnNavigation';
 import { useSessionCountdownToast } from '@hooks/useSessionCountdownToast';
-import { useLogoutShortcut } from '@hooks/useLogoutShortcut';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
 import { requireIdentity } from '@utils/router';
 
