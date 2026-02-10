@@ -33,7 +33,7 @@ export function StakedCard() {
     isStakingRewardDataReady(stakingRewards) ? stakingRewards.apy.cur : 0,
   );
 
-  const handleStakeMoreClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+  const handleStakeMoreClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     const balanceICP = bigIntDiv(balanceQuery.data?.response || 0n, E8Sn);
 
     if (balanceICP <= 0) {
@@ -71,18 +71,19 @@ export function StakedCard() {
           </div>
 
           <div className="flex items-center gap-1">
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              {t(($) => $.home.yourApy)}
+            </p>
+
             {stakingRewardsReady && apyColor.ready ? (
               <>
-                <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                  {t(($) => $.home.yourApy)}
-                </p>
                 <span className="text-lg font-bold" style={{ color: apyColor.textColor }}>
                   {formatPercentage(stakingRewards.apy.cur)}
                 </span>
                 {stakingRewards.apy.cur < stakingRewards.apy.max && <ApyOptimizationModal />}
               </>
             ) : (
-              <Skeleton className="h-8 w-20" />
+              <Skeleton className="h-7 w-16" />
             )}
           </div>
         </div>
@@ -149,10 +150,11 @@ export function StakedCard() {
             variant="outline"
             className="flex-1"
             asChild
+            disabled={balanceQuery.isLoading}
             onClick={handleStakeMoreClick}
           >
             <Link to="/stakes" search={{ openWizard: true }}>
-              <TrendingUp />
+              <TrendingUp aria-hidden="true" />
               {t(($) => $.common.stakeIcp)}
             </Link>
           </Button>

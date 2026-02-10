@@ -81,18 +81,18 @@ export function ApyOptimizationModal() {
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger
-        className="cursor-pointer rounded-sm transition-all duration-300 hover:scale-110 focus-visible:ring-2 focus-visible:ring-muted-foreground focus-visible:ring-offset-1 focus-visible:outline-none"
+        className="cursor-pointer rounded-sm p-0.5 transition-all duration-300 hover:scale-110 focus-visible:ring-2 focus-visible:ring-muted-foreground focus-visible:ring-offset-1 focus-visible:outline-none"
         disabled={isLoading}
         aria-label={t(($) => $.apyOptimizationModal.ariaLabel)}
       >
         {isLoading ? (
           <span className="text-muted-foreground">
-            <Spinner className="size-6" />
+            <Spinner className="size-5" />
           </span>
         ) : (
           <MessageCircleQuestionMarkIcon
             style={{ color: apyColor.ready ? apyColor.textColor : undefined }}
-            className="size-6"
+            className="size-5"
           />
         )}
       </ResponsiveDialogTrigger>
