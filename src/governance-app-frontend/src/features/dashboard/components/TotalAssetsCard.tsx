@@ -5,7 +5,7 @@ import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts';
 import { StakingRatioModal } from '@features/stakes/components/StakingRatioModal';
 
 import { Card, CardContent, CardHeader } from '@components/Card';
-import { ChartContainer, type ChartConfig } from '@components/Chart';
+import { type ChartConfig, ChartContainer } from '@components/Chart';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
