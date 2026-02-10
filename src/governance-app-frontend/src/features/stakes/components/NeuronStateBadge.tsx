@@ -29,7 +29,6 @@ export function NeuronStateBadge({ isDissolved, isDissolving }: Props) {
     <div
       className={`flex items-center gap-1 rounded-sm border px-2 py-0.5 ${colorClasses}`}
       data-testid="neuron-state-badge"
-      role="status"
       aria-label={getText()}
     >
       {getIcon()}
