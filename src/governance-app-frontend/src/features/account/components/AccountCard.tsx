@@ -1,7 +1,7 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { List, Plus } from 'lucide-react';
+import { List } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
