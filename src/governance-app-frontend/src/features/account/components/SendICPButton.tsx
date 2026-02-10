@@ -106,7 +106,7 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
           variant="outline"
           disabled={!canTransfer}
           size="xl"
-          className={cn('flex-1', isPending && 'opacity-50')}
+          className={cn('w-full', isPending && 'opacity-50')}
         >
           <Send />
           {t(($) => (isPending ? $.common.sending : $.common.withdraw))}

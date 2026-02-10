@@ -5,11 +5,10 @@ import { List } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { SendICPButton } from '@features/account/components/SendICPButton';
 import { TransactionListDialog } from '@features/account/components/TransactionListDialog';
 
 import { Button } from '@components/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
+import { Card, CardContent, CardHeader } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
@@ -20,10 +19,10 @@ import { formatNumber } from '@utils/numbers';
 
 import { GetTokens } from '@/dev/GetTokens';
 
-import { BuyIcpsButton } from './BuyIcpsButton';
 import { DepositICPButton } from './DepositICPButton';
+import { SendICPButton } from './SendICPButton';
 
-export function AccountCardLegacy() {
+export function AccountCard() {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -45,57 +44,47 @@ export function AccountCardLegacy() {
 
   return (
     <>
-      <Card
-        className="flex-1 gap-3 transition-all duration-300"
-        data-testid="available-balance-card"
-      >
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-sm font-medium tracking-wide text-muted-foreground uppercase">
-            {t(($) => $.account.available)}
-          </CardTitle>
+      <Card className="min-w-64" data-testid="available-balance-card">
+        <CardHeader className="flex flex-col gap-0">
+          <div className="flex w-full flex-row items-start justify-between space-y-0">
+            <p className="text-sm tracking-wide text-muted-foreground uppercase">
+              {t(($) => $.account.available)}
+            </p>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setIsDialogOpen(true)}
+              aria-label={t(($) => $.account.ariaLabel)}
+              title={t(($) => $.account.ariaLabel)}
+            >
+              <List aria-hidden="true" />
+            </Button>
+          </div>
+
+          <div className="flex flex-col gap-0.5">
+            {balanceQuery.isLoading ? (
+              <Skeleton className="h-8 w-32" />
+            ) : (
+              <p className="text-2xl font-bold">
+                {t(($) => $.common.inIcp, { value: formatNumber(balanceICP) })}
+              </p>
+            )}
+
+            {balanceQuery.isLoading || tickersQuery.isLoading ? (
+              <Skeleton className="h-4 w-20" />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {t(($) => $.account.approxUsd, { value: usdValue })}
+              </p>
+            )}
+          </div>
         </CardHeader>
 
-        <CardContent className="flex-1">
-          <div className="flex h-full flex-col justify-between gap-4">
-            <div className="flex flex-col gap-0.5">
-              {balanceQuery.isLoading ? (
-                <Skeleton className="h-8 w-32" />
-              ) : (
-                <p className="text-2xl font-bold">
-                  {t(($) => $.common.inIcp, { value: formatNumber(balanceICP) })}
-                </p>
-              )}
-
-              {balanceQuery.isLoading || tickersQuery.isLoading ? (
-                <Skeleton className="h-4 w-20" />
-              ) : (
-                <p className="text-xs text-muted-foreground">
-                  {t(($) => $.account.approxUsd, { value: usdValue })}
-                </p>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-3">
-              {IS_TESTNET ? (
-                <GetTokens accountId={accountId} />
-              ) : (
-                <BuyIcpsButton accountId={accountId} />
-              )}
-              <div className="flex gap-3">
-                <DepositICPButton accountId={accountId} />
-                <SendICPButton balance={balanceICP} />
-              </div>
-
-              <Button
-                variant="outline"
-                className="w-full"
-                size="xl"
-                onClick={() => setIsDialogOpen(true)}
-              >
-                <List />
-                {t(($) => $.common.transactions)}
-              </Button>
-            </div>
+        <CardContent className="flex flex-1 flex-col justify-between gap-6">
+          <div className="mt-auto flex flex-col gap-3">
+            {IS_TESTNET && <GetTokens accountId={accountId} />}
+            <DepositICPButton accountId={accountId} />
+            <SendICPButton balance={balanceICP} />
           </div>
         </CardContent>
       </Card>
