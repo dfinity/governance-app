@@ -1,5 +1,5 @@
-import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
+import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { List } from 'lucide-react';
 import { useState } from 'react';
@@ -17,6 +17,7 @@ import { useTickerPrices } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber } from '@utils/numbers';
 
+import { GetTokens } from '@/dev/GetTokens';
 import { DepositICPButton } from './DepositICPButton';
 import { SendICPButton } from './SendICPButton';
 
@@ -80,11 +81,7 @@ export function AccountCard() {
 
         <CardContent className="flex flex-1 flex-col justify-between gap-6">
           <div className="mt-auto flex flex-col gap-3">
-            {IS_TESTNET && (
-              <Button variant="ghost" data-testid="get-testnet-icp-trigger-btn">
-                Get testnet ICP
-              </Button>
-            )}
+            {IS_TESTNET && <GetTokens accountId={accountId} />}
             <DepositICPButton accountId={accountId} />
             <SendICPButton balance={balanceICP} />
           </div>
