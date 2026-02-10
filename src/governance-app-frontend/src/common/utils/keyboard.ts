@@ -9,7 +9,9 @@
 export const shouldIgnoreKeyboardShortcut = (event: KeyboardEvent): boolean => {
   if (event.repeat || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return true;
 
-  const target = event.target as HTMLElement;
+  const { target } = event;
+  if (!(target instanceof HTMLElement)) return true;
+
   return (
     target.isContentEditable ||
     target.tagName === 'INPUT' ||
