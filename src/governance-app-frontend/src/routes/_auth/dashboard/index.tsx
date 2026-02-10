@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { AccountCard } from '@features/account/components/AccountCard';
 import { SmartTitle } from '@features/dashboard/components/SmartTitle';
 import { TotalAssetsCard } from '@features/dashboard/components/TotalAssetsCard';
-import { StakedCardLegacy } from '@features/stakes/components/StakedCard';
+import { StakedCard } from '@features/stakes/components/StakedCard';
 
 import i18n from '@/i18n/config';
 
@@ -29,10 +29,9 @@ function Dashboard() {
       <div className="flex flex-col gap-6 md:flex-row">
         <TotalAssetsCard />
         <AccountCard />
+        <StakedCard />
       </div>
-      <div className="flex flex-col gap-6 md:flex-row">
-        <StakedCardLegacy />
-      </div>
+      <div className="flex flex-col gap-6 md:flex-row"></div>
     </div>
   );
 }

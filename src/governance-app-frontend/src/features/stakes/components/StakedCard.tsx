@@ -3,10 +3,10 @@ import { Coins, TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { ApyOptimizationModal } from '@features/stakes/components/ApyOptimizationModal';
-import { StakingRatioModal } from '@features/stakes/components/StakingRatioModal';
 
+import { Badge } from '@components/badge';
 import { Button } from '@components/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
+import { Card, CardContent, CardHeader } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
@@ -22,7 +22,7 @@ import { warningNotification } from '@utils/notification';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady, MaturityEstimatePeriod } from '@utils/staking-rewards';
 
-export function StakedCardLegacy() {
+export function StakedCard() {
   const { t } = useTranslation();
 
   const neuronsQuery = useGovernanceNeurons();
@@ -44,125 +44,122 @@ export function StakedCardLegacy() {
     }
   };
 
-  const { totalStakedAfterFees: totalStaked, totalUnstakedMaturity } = getNeuronsAggregatedData(
-    neuronsQuery.data?.response,
-  );
+  const neurons = neuronsQuery.data?.response ?? [];
+  const neuronCount = neurons.length;
+
+  const { totalStakedAfterFees: totalStaked, totalUnstakedMaturity } =
+    getNeuronsAggregatedData(neurons);
 
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const usdValue = icpPrice ? formatNumber(totalStaked * icpPrice.usd) : '-';
 
+  const stakingRewardsReady = isStakingRewardDataReady(stakingRewards);
+
   return (
-    <Card className="flex-1 gap-3 transition-all duration-300">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-sm font-medium tracking-wide text-muted-foreground uppercase">
-          {t(($) => $.common.staked)}
-        </CardTitle>
+    <Card className="min-w-64" data-testid="staked-card">
+      <CardHeader className="flex flex-col gap-[7px]">
+        <div className="flex w-full items-start justify-between space-y-0">
+          <div className="flex items-center gap-2">
+            <p className="text-sm tracking-wide text-muted-foreground uppercase">
+              {t(($) => $.common.staked)}
+            </p>
+            {neuronsQuery.isLoading ? (
+              <Skeleton className="h-5 w-5 rounded-full" />
+            ) : (
+              <Badge variant="outline">{neuronCount}</Badge>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1">
+            {stakingRewardsReady && apyColor.ready ? (
+              <>
+                <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                  {t(($) => $.home.yourApy)}
+                </p>
+                <span className="text-lg font-bold" style={{ color: apyColor.textColor }}>
+                  {formatPercentage(stakingRewards.apy.cur)}
+                </span>
+                {stakingRewards.apy.cur < stakingRewards.apy.max && <ApyOptimizationModal />}
+              </>
+            ) : (
+              <Skeleton className="h-8 w-20" />
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-0.5">
+          {neuronsQuery.isLoading ? (
+            <Skeleton className="h-8 w-32" />
+          ) : (
+            <p className="text-2xl font-bold">
+              {t(($) => $.common.inIcp, { value: formatNumber(totalStaked) })}
+            </p>
+          )}
+
+          {neuronsQuery.isLoading || tickersQuery.isLoading ? (
+            <Skeleton className="h-4 w-20" />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {t(($) => $.account.approxUsd, { value: usdValue })}
+            </p>
+          )}
+        </div>
       </CardHeader>
 
-      <CardContent className="flex-1">
-        <div className="flex h-full flex-col justify-between gap-4">
-          <div className="flex flex-col gap-0.5">
-            {neuronsQuery.isLoading ? (
-              <Skeleton className="h-8 w-32" />
-            ) : (
-              <p className="text-2xl font-bold">
-                {t(($) => $.common.inIcp, { value: formatNumber(totalStaked) })}
-              </p>
-            )}
-
-            {balanceQuery.isLoading || neuronsQuery.isLoading || tickersQuery.isLoading ? (
-              <Skeleton className="h-4 w-20" />
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                {t(($) => $.account.approxUsd, { value: usdValue })}
-              </p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 text-right [&>*]:transition-all [&>*]:duration-300">
-            <div className="flex flex-col gap-1 rounded-md bg-muted p-3 hover:bg-gray-200 dark:hover:bg-zinc-700">
-              <p className="text-xs font-medium text-muted-foreground uppercase">
-                {t(($) => $.home.stakingRatio)}
-              </p>
-              <div className="flex items-center justify-end gap-2">
-                {isStakingRewardDataReady(stakingRewards) ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl font-bold">
-                      {formatPercentage(stakingRewards.stakingRatio)}
-                    </span>
-                    {/* Take rounding into account */}
-                    {formatPercentage(stakingRewards.stakingRatio) !== '100.00%' && (
-                      <StakingRatioModal />
-                    )}
-                  </div>
-                ) : (
-                  <Skeleton className="h-7 w-28" />
-                )}
-              </div>
-            </div>
-            <div className="flex flex-col gap-1 rounded-md bg-muted p-3 hover:bg-gray-200 dark:hover:bg-zinc-700">
-              <p className="text-xs font-medium text-muted-foreground uppercase">
-                {t(($) => $.common.apy)}
-              </p>
-              <div className="flex items-center justify-end gap-2">
-                {isStakingRewardDataReady(stakingRewards) && apyColor.ready ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl font-bold" style={{ color: apyColor.textColor }}>
-                      {formatPercentage(stakingRewards.apy.cur)}
-                    </span>
-                    {stakingRewards.apy.cur < stakingRewards.apy.max && <ApyOptimizationModal />}
-                  </div>
-                ) : (
-                  <Skeleton className="h-7 w-28" />
-                )}
-              </div>
-            </div>
-            <div className="flex flex-col gap-1 rounded-md bg-muted p-3 hover:bg-gray-200 dark:hover:bg-zinc-700">
-              <p className="text-xs font-medium text-muted-foreground uppercase">
-                {t(($) => $.home.unstakedMaturity)}
-              </p>
-              <div className="flex items-center justify-end gap-2">
-                {neuronsQuery.isLoading ? (
-                  <Skeleton className="h-7 w-13" />
-                ) : (
-                  <span className="text-xl font-bold">{formatNumber(totalUnstakedMaturity)}</span>
-                )}
-                <MaturitySymbol />
-              </div>
-            </div>
-            <div className="flex flex-col gap-1 rounded-md bg-muted p-3 hover:bg-gray-200 dark:hover:bg-zinc-700">
-              <p className="text-xs font-medium text-muted-foreground uppercase">
-                {t(($) => $.home.forecast.oneYear)}
-              </p>
-              <div className="flex items-center justify-end gap-2">
-                {isStakingRewardDataReady(stakingRewards) ? (
-                  <span className="text-lg font-bold">
-                    {t(($) => $.common.positiveNumber, {
-                      value: formatNumber(
-                        stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) || 0,
-                      ),
-                    })}
-                  </span>
-                ) : (
-                  <Skeleton className="h-7 w-13" />
-                )}
-                <MaturitySymbol />
-              </div>
+      <CardContent className="flex flex-1 flex-col justify-between gap-3">
+        <div className="mt-auto grid grid-cols-2 gap-2 text-right">
+          <div className="flex flex-col gap-1 rounded-lg bg-muted p-3">
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              {t(($) => $.home.maturity)}
+            </p>
+            <div className="flex items-center justify-end gap-1.5">
+              {neuronsQuery.isLoading ? (
+                <Skeleton className="h-7 w-13" />
+              ) : (
+                <span className="text-xl font-bold">{formatNumber(totalUnstakedMaturity)}</span>
+              )}
+              <MaturitySymbol />
             </div>
           </div>
 
-          <div className="flex gap-3">
-            <Button size="xl" className="flex-1 capitalize" asChild onClick={handleStakeMoreClick}>
-              <Link to="/stakes" search={{ openWizard: true }}>
-                <TrendingUp />
-                {t(($) => $.common.stakeMore)}
-              </Link>
-            </Button>
-
-            <Button size="xl" variant="outline" className="flex-1" disabled>
-              <Coins /> {t(($) => $.common.withdraw)}
-            </Button>
+          <div className="flex flex-col gap-1 rounded-lg bg-muted p-3">
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              {t(($) => $.home.forecast.oneYear)}
+            </p>
+            <div className="flex items-center justify-end gap-1.5">
+              {stakingRewardsReady ? (
+                <span className="text-xl font-bold text-lime-600 dark:text-lime-400">
+                  {t(($) => $.common.positiveNumber, {
+                    value: formatNumber(
+                      stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) || 0,
+                    ),
+                  })}
+                </span>
+              ) : (
+                <Skeleton className="h-7 w-13" />
+              )}
+              <MaturitySymbol />
+            </div>
           </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            size="xl"
+            variant="outline"
+            className="flex-1"
+            asChild
+            onClick={handleStakeMoreClick}
+          >
+            <Link to="/stakes" search={{ openWizard: true }}>
+              <TrendingUp />
+              {t(($) => $.common.stakeIcp)}
+            </Link>
+          </Button>
+
+          <Button size="xl" variant="outline" className="flex-1" disabled>
+            <Coins /> {t(($) => $.common.withdraw)}
+          </Button>
         </div>
       </CardContent>
     </Card>
