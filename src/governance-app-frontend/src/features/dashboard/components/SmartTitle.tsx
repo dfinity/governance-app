@@ -1,7 +1,7 @@
 import { nonNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
 import { TrendingUp } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { Skeleton } from '@components/Skeleton';
@@ -50,20 +50,33 @@ export function SmartTitle() {
         ? t(($) => $.home.smartTitle.liquidOnlyTitle)
         : t(($) => $.home.smartTitle.stakedTitle);
 
+  const maxApy = isStakingRewardDataReady(stakingRewards)
+    ? formatPercentage(
+        stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_MONTHS].autoStake.locked,
+      )
+    : null;
+
   const subtitle =
-    state === 'no-assets'
-      ? isStakingRewardDataReady(stakingRewards)
-        ? t(($) => $.home.smartTitle.noAssetsSubtitle, {
-            value: formatPercentage(
-              stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_MONTHS].autoStake.locked,
+    state === 'no-assets' ? (
+      isStakingRewardDataError(stakingRewards) ? (
+        t(($) => $.home.smartTitle.noAssetsSubtitleStatic)
+      ) : (
+        <Trans
+          i18nKey={($) => $.home.smartTitle.noAssetsSubtitle}
+          components={{
+            apyValue: maxApy ? (
+              <span>{maxApy}</span>
+            ) : (
+              <Skeleton className="inline-block h-5 w-12 align-middle" />
             ),
-          })
-        : isStakingRewardDataError(stakingRewards)
-          ? t(($) => $.home.smartTitle.noAssetsSubtitleStatic)
-          : null
-      : state === 'liquid-only'
-        ? t(($) => $.home.smartTitle.liquidOnlySubtitle)
-        : t(($) => $.home.smartTitle.stakedSubtitle);
+          }}
+        />
+      )
+    ) : state === 'liquid-only' ? (
+      t(($) => $.home.smartTitle.liquidOnlySubtitle)
+    ) : (
+      t(($) => $.home.smartTitle.stakedSubtitle)
+    );
 
   const cta =
     state === 'no-assets' ? (
@@ -79,21 +92,16 @@ export function SmartTitle() {
 
   if (isLoading)
     return (
-      <div className="flex flex-col items-center gap-2 text-center">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-8 w-64" />
+      <div className="flex flex-col gap-2">
+        <Skeleton className="h-8 w-72" />
+        <Skeleton className="h-7 w-64" />
       </div>
     );
-  console.log(subtitle);
 
   return (
     <div className="flex flex-col">
       <h2 className="text-3xl font-medium text-foreground">{title}</h2>
-      {nonNullish(subtitle) ? (
-        <p className="text-3xl text-muted-foreground">{subtitle}</p>
-      ) : (
-        <Skeleton className="h-8 w-64" />
-      )}
+      <div className="text-2xl text-muted-foreground">{subtitle}</div>
       {cta && <div className="mt-4">{cta}</div>}
     </div>
   );

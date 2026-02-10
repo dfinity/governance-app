@@ -12,7 +12,7 @@
   },
   "smartTitle": {
     "noAssetsTitle": "Participate in ICP Governance",
-    "noAssetsSubtitle": "Stake, vote, earn up to {{value}} per year.",
+    "noAssetsSubtitle": "Stake, vote, earn up to <apyValue /> per year.",
     "noAssetsSubtitleStatic": "Stake, vote, and earn rewards.",
     "noAssetsCta": "Deposit or buy ICP",
     "liquidOnlyTitle": "Your ICP are not participating in Governance",
