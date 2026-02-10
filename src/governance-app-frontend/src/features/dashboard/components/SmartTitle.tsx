@@ -84,14 +84,14 @@ export function SmartTitle() {
     return (
       <div className="flex flex-col gap-2">
         <Skeleton className="h-8 w-72" />
-        <Skeleton className="h-7 w-64" />
+        <Skeleton className="h-8 w-64" />
       </div>
     );
 
   return (
     <div className="flex flex-col">
       <h2 className="text-3xl font-medium text-foreground">{title}</h2>
-      <div className="text-2xl text-muted-foreground">{subtitle}</div>
+      <div className="text-3xl text-muted-foreground">{subtitle}</div>
       {cta && <div className="mt-5">{cta}</div>}
     </div>
   );
