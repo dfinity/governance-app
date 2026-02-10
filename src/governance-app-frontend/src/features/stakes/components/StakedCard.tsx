@@ -22,7 +22,7 @@ import { warningNotification } from '@utils/notification';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady, MaturityEstimatePeriod } from '@utils/staking-rewards';
 
-export function StakedCard() {
+export function StakedCardLegacy() {
   const { t } = useTranslation();
 
   const neuronsQuery = useGovernanceNeurons();
