@@ -1,7 +1,7 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { Link } from '@tanstack/react-router';
 import { TFunction } from 'i18next';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, MessageCircleQuestionMarkIcon } from 'lucide-react';
 import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
@@ -17,6 +17,7 @@ import {
 import { Spinner } from '@components/Spinner';
 import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { useGovernanceNeurons } from '@hooks/governance';
+import { useApyColor } from '@hooks/useApyColor';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import {
   getNeuronId,
@@ -68,6 +69,9 @@ export function ApyOptimizationModal() {
         stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_MONTHS].autoStake.locked,
       )
     : '...';
+  const apyColor = useApyColor(
+    isStakingRewardDataReady(stakingRewards) ? stakingRewards.apy.cur : 0,
+  );
 
   const isLoading = neuronsQuery.isLoading || stakingRewards.loading;
 
@@ -77,22 +81,35 @@ export function ApyOptimizationModal() {
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger
-        className="cursor-pointer rounded-sm border border-orange-300 bg-orange-100 p-0.5 transition-all duration-300 hover:scale-110 focus:outline-none dark:border-orange-700 dark:bg-orange-900/30"
+        className="cursor-pointer rounded-sm p-0.5 transition-all duration-300 hover:scale-110 focus-visible:ring-2 focus-visible:ring-muted-foreground focus-visible:ring-offset-1 focus-visible:outline-none"
         disabled={isLoading}
+        aria-label={t(($) => $.apyOptimizationModal.ariaLabel)}
       >
         {isLoading ? (
-          <span className="text-orange-500 dark:text-orange-400">
+          <span className="text-muted-foreground">
             <Spinner className="size-5" />
           </span>
         ) : (
-          <AlertCircle className="size-5 text-orange-500 dark:text-orange-400" />
+          <MessageCircleQuestionMarkIcon
+            style={{ color: apyColor.ready ? apyColor.textColor : undefined }}
+            className="size-5"
+          />
         )}
       </ResponsiveDialogTrigger>
       <ResponsiveDialogContent className="flex max-h-[90vh] flex-col">
         <ResponsiveDialogHeader className="shrink-0">
           <div className="flex items-center gap-3">
-            <div className="rounded-md border border-orange-300 bg-orange-100 p-2 dark:border-orange-700 dark:bg-orange-900/30">
-              <AlertCircle className="size-6 text-orange-500 dark:text-orange-400" />
+            <div
+              className="rounded-md border p-2"
+              style={{
+                backgroundColor: apyColor.ready ? apyColor.bgColor : undefined,
+                borderColor: apyColor.ready ? apyColor.borderColor : undefined,
+              }}
+            >
+              <MessageCircleQuestionMarkIcon
+                className="size-6"
+                style={{ color: apyColor.ready ? apyColor.textColor : undefined }}
+              />
             </div>
             <ResponsiveDialogTitle>{t(($) => $.apyOptimizationModal.title)}</ResponsiveDialogTitle>
           </div>
