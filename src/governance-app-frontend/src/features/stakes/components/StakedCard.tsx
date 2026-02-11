@@ -129,7 +129,7 @@ export function StakedCard() {
             </p>
             <div className="flex items-center justify-end gap-1.5">
               {stakingRewardsReady ? (
-                <span className="text-xl font-bold text-lime-600 dark:text-lime-400">
+                <span className="text-xl font-bold">
                   {t(($) => $.common.positiveNumber, {
                     value: formatNumber(
                       stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) || 0,
