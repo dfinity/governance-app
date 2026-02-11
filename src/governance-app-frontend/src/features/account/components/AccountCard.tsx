@@ -83,7 +83,7 @@ export function AccountCard() {
         <CardContent className="flex flex-1 flex-col justify-between gap-6">
           <div className="mt-auto flex flex-col gap-3">
             {IS_TESTNET && <GetTokens accountId={accountId} />}
-            <DepositICPButton accountId={accountId} />
+            <DepositICPButton />
             <SendICPButton balance={balanceICP} />
           </div>
         </CardContent>

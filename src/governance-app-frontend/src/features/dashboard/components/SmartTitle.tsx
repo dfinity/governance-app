@@ -76,8 +76,10 @@ export function SmartTitle() {
 
   const cta =
     state === 'no-assets' ? (
-      <Button size="lg" disabled>
-        {t(($) => $.home.smartTitle.noAssetsCta)}
+      <Button asChild size="lg">
+        <Link to="/dashboard" search={{ depositModal: true }}>
+          {t(($) => $.home.smartTitle.noAssetsCta)}
+        </Link>
       </Button>
     ) : state === 'liquid-only' ? (
       <Button asChild size="lg">
