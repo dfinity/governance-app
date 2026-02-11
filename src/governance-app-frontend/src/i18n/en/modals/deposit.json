@@ -1,6 +1,14 @@
 {
-  "title": "Deposit ICP",
+  "title": "Add ICP to your account",
   "yourAccountId": "Your account id",
   "qrCodeLabel": "QR code of your account id",
-  "warning": "Note: Only send ICP to this address. Sending other tokens may result in permanent loss."
+  "warning": "Only send ICP tokens to this address. Other tokens will be lost forever.",
+  "buyIcpHint": "You can also buy ICP with a credit card via a third-party provider.",
+  "buyIcp": {
+    "title": "Buy ICP",
+    "description": "ICP is the native utility token of the Internet Computer Protocol. You can lock ICP into neurons to participate in the governance of the Internet Computer.",
+    "disclaimer": "Clicking the button below will take you to a third-party website to complete your ICP transaction at your own risk.",
+    "receivingAddress": "Receiving ICP Address",
+    "proceed": "Buy ICP with Banxa"
+  }
 }

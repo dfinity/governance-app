@@ -24,5 +24,6 @@
   "recommendation": "Stake your available {{available}} ICP with an 8-year delay to maximize your rewards.",
   "recommendationMaturityOnly": "Stake your maturity and enable auto-stake maturity on your neurons.",
   "button": "Stake now",
-  "buttonMaturityOnly": "Manage Stakes"
+  "buttonMaturityOnly": "Manage Stakes",
+  "ariaLabel": "Open staking recommendation modal"
 }

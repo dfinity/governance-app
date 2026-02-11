@@ -1,12 +1,15 @@
 import { nonNullish } from '@dfinity/utils';
 import { useTranslation } from 'react-i18next';
+import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts';
 
-import { Card, CardContent } from '@components/Card';
+import { StakingRatioModal } from '@features/stakes/components/StakingRatioModal';
+
+import { Card, CardContent, CardHeader } from '@components/Card';
+import { type ChartConfig, ChartContainer } from '@components/Chart';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
-import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers';
@@ -14,9 +17,17 @@ import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronsAggregatedData } from '@utils/neuron';
 import { formatNumber, formatPercentage } from '@utils/numbers';
-import { isStakingRewardDataError, isStakingRewardDataReady } from '@utils/staking-rewards';
+import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
-import { useWaveAnimation } from '../hooks/useWaveAnimation';
+const chartConfig = {
+  stakingRatio: {
+    label: 'Staking Ratio',
+    theme: {
+      light: '#0057FF',
+      dark: '#4D8AFF',
+    },
+  },
+} satisfies ChartConfig;
 
 export const TotalAssetsCard = () => {
   const { t } = useTranslation();
@@ -26,7 +37,6 @@ export const TotalAssetsCard = () => {
   const balanceQuery = useIcpLedgerAccountBalance();
   const stakingRewards = useStakingRewards();
 
-  // Calculate Total Assets
   const liquidBalance = nonNullish(balanceQuery.data?.response)
     ? bigIntDiv(balanceQuery.data.response, E8Sn)
     : 0;
@@ -36,89 +46,69 @@ export const TotalAssetsCard = () => {
 
   const totalAssets = liquidBalance + stakedBalance + maturityBalance;
 
-  // Prices
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const icpPriceUsd = icpPrice ? formatNumber(icpPrice.usd) : undefined;
   const totalAssetsUsd = icpPrice ? formatNumber(totalAssets * icpPrice.usd) : undefined;
 
-  const { canvasRef, containerRef } = useWaveAnimation();
+  const isLoading = balanceQuery.isLoading || neuronsQuery.isLoading;
+  const stakingRewardsReady = isStakingRewardDataReady(stakingRewards);
+
+  const stakingRatioPercent = stakingRewardsReady ? stakingRewards.stakingRatio * 100 : 0;
+
+  const chartData = [
+    { name: 'staking', value: stakingRatioPercent, fill: 'var(--color-stakingRatio)' },
+  ];
 
   return (
-    <Card
-      className="relative overflow-hidden border-none bg-white shadow-sm dark:bg-zinc-900"
-      ref={containerRef}
-    >
-      <canvas
-        ref={canvasRef}
-        className="pointer-events-none absolute inset-0 z-0 blur-md"
-        role="presentation"
-        aria-hidden="true"
-      />
+    <Card className="min-w-64 pb-5">
+      <CardHeader className="flex flex-col items-center gap-4">
+        <p className="text-sm tracking-wide text-muted-foreground uppercase">
+          {t(($) => $.home.totalAssets)}
+        </p>
 
-      <CardContent className="relative z-10 flex h-full flex-col justify-between px-8 py-2">
-        <div className="mt-4 space-y-2 text-center">
-          <h2 className="text-4xl font-semibold tracking-tight text-foreground">
-            {t(($) => $.home.participateTitle)}
-          </h2>
-          {isStakingRewardDataReady(stakingRewards) ? (
-            <p className="text-lg font-light">
-              {t(($) => $.home.participateSubtitle, {
-                value: formatPercentage(
-                  stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_MONTHS].autoStake
-                    .locked,
-                ),
-              })}
-            </p>
-          ) : isStakingRewardDataError(stakingRewards) ? (
-            <p className="text-lg font-light">{t(($) => $.home.participateSubtitleStatic)}</p>
+        <div>
+          {isLoading || tickersQuery.isLoading ? (
+            <Skeleton className="h-8 w-40" />
           ) : (
-            <>
-              <Skeleton className="mr-auto ml-auto h-5 w-60" />
-              <Skeleton className="mr-auto ml-auto h-6 w-30 sm:hidden" />
-            </>
+            <p className="text-2xl font-semibold text-foreground">${totalAssetsUsd ?? '—'}</p>
           )}
         </div>
+      </CardHeader>
 
-        <Separator className="my-6 mr-auto ml-auto w-2/3! bg-blend-difference" />
+      <CardContent className="flex flex-col items-center gap-4">
+        <Separator />
+        <div className="relative mx-auto w-full">
+          <ChartContainer
+            config={chartConfig}
+            className="mx-auto aspect-square w-full max-w-48 [&_.recharts-surface]:overflow-visible"
+          >
+            <RadialBarChart
+              data={chartData}
+              startAngle={90}
+              endAngle={-270}
+              innerRadius="90%"
+              outerRadius="110%"
+            >
+              <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
+              <RadialBar dataKey="value" background cornerRadius={10} />
+            </RadialBarChart>
+          </ChartContainer>
 
-        <div className="mt-12 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
-          <div className="min-h-[100px] space-y-1">
-            <p className="text-sm font-semibold tracking-wide uppercase">
-              {t(($) => $.home.totalValue)}
-            </p>
-            <div className="flex items-baseline gap-2">
-              {balanceQuery.isLoading || neuronsQuery.isLoading ? (
-                <Skeleton className="h-13 w-44" />
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+            <div className="pointer-events-auto flex items-center gap-1">
+              {stakingRewardsReady ? (
+                <span className="text-2xl font-semibold tracking-wide text-foreground">
+                  {formatPercentage(stakingRewards.stakingRatio)}
+                </span>
               ) : (
-                <p className="text-5xl font-bold text-foreground">
-                  {t(($) => $.common.inIcp, { value: formatNumber(totalAssets) })}
-                </p>
+                <div className="flex items-center justify-center">
+                  <Skeleton className="h-8 w-20" />
+                </div>
               )}
+              <StakingRatioModal />
             </div>
-            <div className="flex items-baseline gap-2">
-              {balanceQuery.isLoading || neuronsQuery.isLoading || tickersQuery.isLoading ? (
-                <Skeleton className="h-6 w-24" />
-              ) : (
-                <p className="text-lg font-semibold">
-                  {t(($) => $.account.approxUsd, { value: totalAssetsUsd })}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid w-full sm:w-48">
-            <div className="flex flex-col rounded-xl border border-border/50 bg-white/50 px-4 py-[10px] text-right shadow-sm backdrop-blur-sm xs:col-span-2 dark:bg-zinc-800/50">
-              <p className="mb-1 text-[10px] font-bold text-muted-foreground uppercase">
-                {t(($) => $.home.icpUsd)}
-              </p>
-              <div className="flex justify-end">
-                {icpPriceUsd ? (
-                  <span className="text-lg font-semibold">${icpPriceUsd}</span>
-                ) : (
-                  <Skeleton className="h-7 w-14" />
-                )}
-              </div>
-            </div>
+            <span className="text-sm text-muted-foreground capitalize">
+              {t(($) => $.home.stakingRatio)}
+            </span>
           </div>
         </div>
       </CardContent>

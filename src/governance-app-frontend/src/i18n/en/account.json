@@ -17,5 +17,7 @@
   "unknownTransaction": "Unknown transaction",
   "transactionListDescription": "A list of all the transactions made by this account.",
   "address": "address",
-  "suspiciousAddressWarning": "This sender's address appears suspicious. To protect your assets, do not copy or send assets to this address."
+  "suspiciousAddressWarning": "This sender's address appears suspicious. To protect your assets, do not copy or send assets to this address.",
+  "addIcp": "Add ICP",
+  "ariaLabel": "Open transactions list"
 }

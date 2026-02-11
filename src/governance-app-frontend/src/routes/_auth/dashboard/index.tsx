@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 
 import { AccountCard } from '@features/account/components/AccountCard';
+import { SmartTitle } from '@features/dashboard/components/SmartTitle';
 import { TotalAssetsCard } from '@features/dashboard/components/TotalAssetsCard';
 import { StakedCard } from '@features/stakes/components/StakedCard';
 
@@ -22,11 +23,15 @@ export const Route = createFileRoute('/_auth/dashboard/')({
 
 function Dashboard() {
   return (
-    <div className="flex flex-col gap-6">
-      <TotalAssetsCard />
-      <div className="flex flex-col gap-6 md:flex-row">
+    <div className="flex flex-col gap-8">
+      <SmartTitle />
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4 [&>*]:h-full">
+        <TotalAssetsCard />
         <AccountCard />
-        <StakedCard />
+        <div className="md:col-span-2">
+          <StakedCard />
+        </div>
       </div>
     </div>
   );
