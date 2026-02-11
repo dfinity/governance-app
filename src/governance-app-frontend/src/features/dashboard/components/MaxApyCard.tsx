@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
+import { Card, CardContent } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
 import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { useStakingRewards } from '@hooks/useStakingRewards';
@@ -19,15 +20,17 @@ export const MaxApyCard = () => {
   const isLoading = !isStakingRewardDataReady(stakingRewards) && !('error' in stakingRewards);
 
   return (
-    <div className="rounded-xl border border-border/50 bg-white px-5 py-4 shadow-sm dark:bg-zinc-800/50">
-      <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-        {t(($) => $.home.maxApy)}
-      </p>
-      {isLoading ? (
-        <Skeleton className="h-8 w-24" />
-      ) : (
-        <p className="text-2xl font-semibold text-foreground">{maxApy ?? '—'}</p>
-      )}
-    </div>
+    <Card className="gap-3 py-4">
+      <CardContent>
+        <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+          {t(($) => $.home.maxApy)}
+        </p>
+        {isLoading ? (
+          <Skeleton className="h-8 w-24" />
+        ) : (
+          <p className="text-2xl font-semibold text-foreground">{maxApy ?? '—'}</p>
+        )}
+      </CardContent>
+    </Card>
   );
 };

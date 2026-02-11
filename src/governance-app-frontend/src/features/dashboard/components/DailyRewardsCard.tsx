@@ -1,6 +1,7 @@
 import { nonNullish } from '@dfinity/utils';
 import { useTranslation } from 'react-i18next';
 
+import { Card, CardContent } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
 import { E8Sn } from '@constants/extra';
 import { useGovernanceLatestRewardEvent } from '@hooks/governance';
@@ -17,19 +18,21 @@ export const DailyRewardsCard = () => {
     : undefined;
 
   return (
-    <div className="rounded-xl border border-border/50 bg-white px-5 py-4 shadow-sm dark:bg-zinc-800/50">
-      <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-        {t(($) => $.home.dailyRewards)}
-      </p>
-      {isLoading ? (
-        <Skeleton className="h-8 w-28" />
-      ) : (
-        <p className="text-2xl font-semibold text-foreground">
-          {nonNullish(distributedIcp)
-            ? formatNumber(distributedIcp, { minFraction: 0, maxFraction: 0 })
-            : '—'}
+    <Card className="gap-3 py-4">
+      <CardContent>
+        <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+          {t(($) => $.home.dailyRewards)}
         </p>
-      )}
-    </div>
+        {isLoading ? (
+          <Skeleton className="h-8 w-28" />
+        ) : (
+          <p className="text-2xl font-semibold text-foreground">
+            {nonNullish(distributedIcp)
+              ? formatNumber(distributedIcp, { minFraction: 0, maxFraction: 0 })
+              : '—'}
+          </p>
+        )}
+      </CardContent>
+    </Card>
   );
 };
