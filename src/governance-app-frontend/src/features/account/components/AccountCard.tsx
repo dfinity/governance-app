@@ -1,7 +1,8 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
+import { Link } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { List } from 'lucide-react';
+import { List, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -19,7 +20,6 @@ import { formatNumber } from '@utils/numbers';
 
 import { GetTokens } from '@/dev/GetTokens';
 
-import { DepositICPButton } from './DepositICPButton';
 import { SendICPButton } from './SendICPButton';
 
 export function AccountCard() {
@@ -83,7 +83,12 @@ export function AccountCard() {
         <CardContent className="flex flex-1 flex-col justify-between gap-6">
           <div className="mt-auto flex flex-col gap-3">
             {IS_TESTNET && <GetTokens accountId={accountId} />}
-            <DepositICPButton />
+            <Button asChild size="xl" className="w-full">
+              <Link to="/dashboard" search={{ depositModal: true }}>
+                <Plus aria-hidden="true" />
+                {t(($) => $.account.addIcp)}
+              </Link>
+            </Button>
             <SendICPButton balance={balanceICP} />
           </div>
         </CardContent>

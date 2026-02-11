@@ -1,13 +1,11 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { nonNullish } from '@dfinity/utils';
-import { useInternetIdentity } from 'ic-use-internet-identity';
-import { AlertCircle, Plus } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { useState } from 'react';
+import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
-import { Button } from '@components/button';
 import { CopyButton } from '@components/CopyButton';
 import {
   ResponsiveDialog,
@@ -25,12 +23,12 @@ const QR_CODE_LOGO_ASPECT_RATIO = 464 / 272;
 const QR_CODE_LOGO_HEIGHT = 35;
 const QR_CODE_LOGO_WIDTH = QR_CODE_LOGO_HEIGHT * QR_CODE_LOGO_ASPECT_RATIO;
 
-type ModalProps = {
+type DepositICPModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-export const DepositICPModal = ({ open, onOpenChange }: ModalProps) => {
+export const DepositICPModal = ({ open, onOpenChange }: DepositICPModalProps) => {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
 
@@ -98,20 +96,5 @@ export const DepositICPModal = ({ open, onOpenChange }: ModalProps) => {
         </div>
       </ResponsiveDialogContent>
     </ResponsiveDialog>
-  );
-};
-
-export const DepositICPButton = () => {
-  const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
-
-  return (
-    <>
-      <Button size="xl" className="w-full" onClick={() => setOpen(true)}>
-        <Plus aria-hidden="true" />
-        {t(($) => $.account.addIcp)}
-      </Button>
-      <DepositICPModal open={open} onOpenChange={setOpen} />
-    </>
   );
 };
