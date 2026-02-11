@@ -70,18 +70,18 @@ export function StakedCard() {
             )}
           </div>
 
-          <div className="flex items-center gap-1">
-            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+          <div className="flex items-start gap-1">
+            <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
               {t(($) => $.home.yourApy)}
-            </p>
+            </span>
 
             {stakingRewardsReady && apyColor.ready ? (
-              <>
+              <span className="-mt-1.5 flex items-center">
                 <span className="text-lg font-bold" style={{ color: apyColor.textColor }}>
                   {formatPercentage(stakingRewards.apy.cur)}
                 </span>
                 {stakingRewards.apy.cur < stakingRewards.apy.max && <ApyOptimizationModal />}
-              </>
+              </span>
             ) : (
               <Skeleton className="h-7 w-16" />
             )}
@@ -107,8 +107,8 @@ export function StakedCard() {
         </div>
       </CardHeader>
 
-      <CardContent className="flex flex-1 flex-col justify-between gap-3">
-        <div className="mt-auto grid grid-cols-2 gap-2 text-right">
+      <CardContent className="flex flex-1 flex-col justify-between gap-4">
+        <div className="mt-auto grid grid-cols-2 gap-4 text-right">
           <div className="flex flex-col gap-1 rounded-lg bg-muted p-3">
             <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
               {t(($) => $.home.maturity)}
@@ -144,7 +144,7 @@ export function StakedCard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <Button
             size="xl"
             variant="outline"
