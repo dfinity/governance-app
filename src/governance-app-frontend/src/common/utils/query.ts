@@ -11,6 +11,7 @@ const ICP_LEDGER = {
 const NNS_GOVERNANCE = {
   ECONOMICS: 'nnsGovernanceEconomics',
   KNOWN_NEURONS: 'nnsGovernanceKnownNeurons',
+  LATEST_REWARD_EVENT: 'nnsGovernanceLatestRewardEvent',
   METRICS: 'nnsGovernanceMetrics',
   NEURONS: 'nnsGovernanceNeurons',
   PROPOSAL: 'nnsGovernanceProposal',
