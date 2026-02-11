@@ -17,7 +17,7 @@ import {
 } from '@components/ResponsiveDialog';
 import { Separator } from '@components/Separator';
 
-import { BuyIcpButton } from './BuyIcpsButton';
+import { BuyIcpButton } from './BuyIcpButton';
 
 type Props = {
   accountId: AccountIdentifier;
