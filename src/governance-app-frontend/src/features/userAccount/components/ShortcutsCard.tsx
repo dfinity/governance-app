@@ -4,10 +4,10 @@ import { Kbd } from '@components/Kbd';
 import { Switch } from '@components/Switch';
 import { useShortcutSettings } from '@hooks/useShortcutSettings';
 
-interface Shortcut {
+type Shortcut = {
   labelKey: 'toggleTheme' | 'logout';
   key: string;
-}
+};
 
 const SHORTCUTS: Shortcut[] = [
   { labelKey: 'toggleTheme', key: 'd' },
