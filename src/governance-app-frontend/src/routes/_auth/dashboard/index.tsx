@@ -40,10 +40,7 @@ function Dashboard() {
   const { depositModal } = Route.useSearch();
 
   const handleDepositModalOpenChange = (isOpen: boolean) => {
-    navigate({
-      search: isOpen ? { depositModal: true } : {},
-      replace: true,
-    });
+    if (!isOpen) navigate({ search: {}, replace: true });
   };
 
   return (
