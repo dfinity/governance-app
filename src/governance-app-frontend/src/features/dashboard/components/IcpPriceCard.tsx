@@ -12,7 +12,7 @@ export const IcpPriceCard = () => {
 
   return (
     <div className="rounded-xl border border-border/50 bg-white px-5 py-4 shadow-sm dark:bg-zinc-800/50">
-      <p className="mb-2 text-xs font-bold tracking-wide text-muted-foreground uppercase">
+      <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
         ICP Price
       </p>
       {tickersQuery.isLoading ? (
@@ -22,11 +22,11 @@ export const IcpPriceCard = () => {
         </>
       ) : (
         <>
-          <p className="text-2xl font-bold text-foreground">
+          <p className="text-2xl font-semibold text-foreground">
             {icpPriceUsd ? `$${icpPriceUsd}` : '—'}
           </p>
           {/* TODO: Integrate 24h price change data source */}
-          <p className="mt-1 text-sm text-muted-foreground">— (24h)</p>
+          <p className="mt-1 text-sm font-normal text-muted-foreground">— (24h)</p>
         </>
       )}
     </div>

@@ -39,7 +39,7 @@ export const TotalStakedCard = () => {
 
   return (
     <div className="rounded-xl border border-border/50 bg-white px-5 py-4 shadow-sm dark:bg-zinc-800/50">
-      <p className="mb-2 text-xs font-bold tracking-wide text-muted-foreground uppercase">
+      <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
         Total Staked
       </p>
       {isLoading ? (
@@ -49,11 +49,11 @@ export const TotalStakedCard = () => {
         </>
       ) : (
         <>
-          <p className="text-2xl font-bold text-foreground">
+          <p className="text-2xl font-semibold text-foreground">
             {totalStakedUsd ? `$${totalStakedUsd}` : '—'}
           </p>
           {stakedPercentage && (
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-sm font-normal text-muted-foreground">
               {stakedPercentage}% of Total Supply
             </p>
           )}
