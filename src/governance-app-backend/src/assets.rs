@@ -35,7 +35,7 @@ const II_ALTERNATIVE_ORIGINS_FILE_NAME: &str = "ii-alternative-origins";
 const CSP_DIRECTIVES: &[&str] = &[
     "default-src 'self' *.devenv.dfinity.network",
     "script-src 'self'",
-    "connect-src 'self' http://localhost:* https://icp0.io https://*.icp0.io https://ic0.app https://*.raw.ic0.app https://icp-api.io https://api.kongswap.io https://plausible.io/api/event",
+    "connect-src 'self' https://icp0.io https://*.icp0.io https://ic0.app https://*.raw.ic0.app https://icp-api.io https://api.kongswap.io https://plausible.io/api/event",
     "img-src 'self' https://*.icp0.io data: blob:",
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
@@ -51,9 +51,9 @@ fn get_csp_header_value() -> String {
     CSP_DIRECTIVES
         .iter()
         .map(|directive| {
-            // Strip localhost access for non-local builds
-            if option_env!("DFX_NETWORK") != Some("local") {
-                directive.replace(" http://localhost:*", "")
+            // Allow E2E tests to reach the local replica
+            if cfg!(feature = "testnet") && directive.starts_with("connect-src") {
+                format!("{} http://localhost:*", directive)
             } else {
                 directive.to_string()
             }
