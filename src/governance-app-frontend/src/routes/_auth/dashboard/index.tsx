@@ -30,7 +30,11 @@ function Dashboard() {
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="isolate relative flex flex-col gap-8">
+      {/* Decorative gradient orbs — top-right corner */}
+      <div className="pointer-events-none absolute -top-[200px] -right-[180px] -z-10 h-[493px] w-[492px] rounded-full bg-[#3B82F6] opacity-30 blur-[200px]" aria-hidden="true" />
+      <div className="pointer-events-none absolute -top-[140px] -right-[420px] -z-10 h-[493px] w-[492px] rounded-full bg-[#EA580C] opacity-30 blur-[200px]" aria-hidden="true" />
+
       <SmartTitle />
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4 xl:gap-3">
