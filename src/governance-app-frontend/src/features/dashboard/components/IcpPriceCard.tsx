@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { useTickerPrices } from '@hooks/tickers';
 import { formatNumber } from '@utils/numbers';
@@ -5,6 +7,7 @@ import { formatNumber } from '@utils/numbers';
 import { Skeleton } from '@components/Skeleton';
 
 export const IcpPriceCard = () => {
+  const { t } = useTranslation();
   const { tickerPrices: tickersQuery } = useTickerPrices();
 
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
@@ -13,7 +16,7 @@ export const IcpPriceCard = () => {
   return (
     <div className="rounded-xl border border-border/50 bg-white px-5 py-4 shadow-sm dark:bg-zinc-800/50">
       <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-        ICP Price
+        {t(($) => $.home.icpPrice)}
       </p>
       {tickersQuery.isLoading ? (
         <>
@@ -26,7 +29,9 @@ export const IcpPriceCard = () => {
             {icpPriceUsd ? `$${icpPriceUsd}` : '—'}
           </p>
           {/* TODO: Integrate 24h price change data source */}
-          <p className="mt-1 text-sm font-normal text-muted-foreground">— (24h)</p>
+          <p className="mt-1 text-sm font-normal text-muted-foreground">
+            {t(($) => $.home.priceChange24h, { value: '—' })}
+          </p>
         </>
       )}
     </div>

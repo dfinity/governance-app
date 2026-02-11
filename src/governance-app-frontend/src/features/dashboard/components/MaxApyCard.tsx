@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { formatPercentage } from '@utils/numbers';
@@ -6,6 +8,7 @@ import { isStakingRewardDataReady } from '@utils/staking-rewards';
 import { Skeleton } from '@components/Skeleton';
 
 export const MaxApyCard = () => {
+  const { t } = useTranslation();
   const stakingRewards = useStakingRewards();
 
   const maxApy = isStakingRewardDataReady(stakingRewards)
@@ -19,7 +22,7 @@ export const MaxApyCard = () => {
   return (
     <div className="rounded-xl border border-border/50 bg-white px-5 py-4 shadow-sm dark:bg-zinc-800/50">
       <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-        Max APY
+        {t(($) => $.home.maxApy)}
       </p>
       {isLoading ? (
         <Skeleton className="h-8 w-24" />

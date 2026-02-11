@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
 import { useGovernanceMetrics } from '@hooks/governance';
@@ -8,6 +10,7 @@ import { formatNumber } from '@utils/numbers';
 import { Skeleton } from '@components/Skeleton';
 
 export const TotalStakedCard = () => {
+  const { t } = useTranslation();
   const metricsQuery = useGovernanceMetrics();
   const { tickerPrices: tickersQuery } = useTickerPrices();
 
@@ -40,7 +43,7 @@ export const TotalStakedCard = () => {
   return (
     <div className="rounded-xl border border-border/50 bg-white px-5 py-4 shadow-sm dark:bg-zinc-800/50">
       <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-        Total Staked
+        {t(($) => $.home.totalStaked)}
       </p>
       {isLoading ? (
         <>
@@ -54,7 +57,7 @@ export const TotalStakedCard = () => {
           </p>
           {stakedPercentage && (
             <p className="mt-1 text-sm font-normal text-muted-foreground">
-              {stakedPercentage}% of Total Supply
+              {t(($) => $.home.ofTotalSupply, { value: stakedPercentage })}
             </p>
           )}
         </>
