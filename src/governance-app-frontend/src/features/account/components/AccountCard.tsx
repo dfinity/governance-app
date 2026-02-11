@@ -1,5 +1,5 @@
-import { isNullish, nonNullish } from '@dfinity/utils';
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { List, Plus } from 'lucide-react';
