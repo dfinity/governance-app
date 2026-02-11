@@ -1,11 +1,13 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { nonNullish } from '@dfinity/utils';
+
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
 import { cn } from '@utils/shadcn';
 
-interface AmountInputProps {
+type AmountInputProps = {
   id: string;
   value: string;
   onChange: (value: string) => void;
@@ -21,7 +23,7 @@ interface AmountInputProps {
   availableLabel?: string;
   availableLabelTestId?: string;
   'data-testid'?: string;
-}
+};
 
 export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
   (
@@ -42,7 +44,7 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
   ) => {
     const { t } = useTranslation();
 
-    const showMax = maxAmount !== undefined && onMaxSelect;
+    const showMax = nonNullish(maxAmount) && onMaxSelect;
     const showBottomRow = approxUsdLabel || availableLabel || showMax;
 
     return (
@@ -92,7 +94,7 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
                   size="sm"
                   onClick={() => onMaxSelect(Math.max(0, maxAmount).toString())}
                   disabled={disabled}
-                  className="h-auto px-1.5 py-0.5 text-xs font-semibold text-primary uppercase"
+                  className="h-auto px-1.5 py-0.5 text-xs font-semibold uppercase text-primary"
                 >
                   {t(($) => $.common.max)}
                 </Button>
