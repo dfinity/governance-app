@@ -1,10 +1,10 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
-import { Plus } from 'lucide-react';
+import { AlertCircle, Plus } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
+import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { CopyButton } from '@components/CopyButton';
 import {
@@ -15,6 +15,9 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from '@components/ResponsiveDialog';
+import { Separator } from '@components/Separator';
+
+import { BuyIcpButton } from './BuyIcpButton';
 
 type Props = {
   accountId: AccountIdentifier;
@@ -46,7 +49,14 @@ export const DepositICPButton = ({ accountId }: Props) => {
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
+        <Separator />
+
         <div className="mt-4 flex flex-col gap-4 pb-4 lg:pb-0">
+          <Alert variant="warning" className="mx-auto max-w-[520px]">
+            <AlertCircle className="size-4" aria-hidden="true" />
+            <AlertDescription>{t(($) => $.depositModal.warning)}</AlertDescription>
+          </Alert>
+
           <div className="flex justify-center p-4">
             <div className="rounded-lg border p-4">
               <QRCodeSVG
@@ -77,10 +87,11 @@ export const DepositICPButton = ({ accountId }: Props) => {
             </div>
           </div>
 
-          <Alert variant="warning">
-            <AlertTitle>{t(($) => $.common.warning)}</AlertTitle>
-            <AlertDescription>{t(($) => $.depositModal.warning)}</AlertDescription>
-          </Alert>
+          <Separator />
+
+          <p className="text-sm text-muted-foreground">{t(($) => $.depositModal.buyIcpHint)}</p>
+
+          <BuyIcpButton accountId={accountId} />
         </div>
       </ResponsiveDialogContent>
     </ResponsiveDialog>
