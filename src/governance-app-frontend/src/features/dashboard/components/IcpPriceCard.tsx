@@ -28,9 +28,9 @@ export const IcpPriceCard = () => {
             {icpPriceUsd ? `$${icpPriceUsd}` : '—'}
           </p>
           {/* TODO: Integrate 24h price change data source */}
-          <p className="mt-1 text-sm font-normal text-muted-foreground">
+          {/*<p className="mt-1 text-sm font-normal text-muted-foreground">
             {t(($) => $.home.priceChange24h, { value: '—' })}
-          </p>
+          </p>*/}
         </>
       )}
     </div>
