@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
 import { AccountCard } from '@features/account/components/AccountCard';
-import { DepositICPModal } from '@features/account/components/DepositICPButton';
+import { DepositICPModal } from '@features/account/components/DepositICPModal';
 import { DailyRewardsCard } from '@features/dashboard/components/DailyRewardsCard';
 import { IcpPriceCard } from '@features/dashboard/components/IcpPriceCard';
 import { MaxApyCard } from '@features/dashboard/components/MaxApyCard';
