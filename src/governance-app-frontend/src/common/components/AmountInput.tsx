@@ -16,7 +16,6 @@ type AmountInputProps = {
   /** Called when the Max button is clicked with the max value as a string. */
   onMaxSelect?: (value: string) => void;
   disabled?: boolean;
-  placeholder?: string;
   /** Approximate USD value label, e.g. "~ $12.34" */
   approxUsdLabel?: string;
   /** Available balance label shown on the right, e.g. "Available: 12.345 ICP" */
@@ -34,7 +33,6 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
       maxAmount,
       onMaxSelect,
       disabled,
-      placeholder = '0.00',
       approxUsdLabel,
       availableLabel,
       availableLabelTestId,
@@ -56,7 +54,7 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
               '[&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
             )}
             onChange={(e) => onChange(e.target.value)}
-            placeholder={placeholder}
+            placeholder="0.00"
             id={id}
             ref={ref}
             value={value}
