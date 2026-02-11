@@ -52,8 +52,8 @@ export const DepositICPButton = ({ accountId }: Props) => {
         <Separator />
 
         <div className="mt-4 flex flex-col gap-4 pb-4 lg:pb-0">
-          <Alert variant="warning" className="mx-auto max-w-[540px]">
-            <AlertCircle className="hidden size-4 md:inline" aria-hidden="true" />
+          <Alert variant="warning" className="mx-auto max-w-[520px]">
+            <AlertCircle className="size-4" aria-hidden="true" />
             <AlertDescription>{t(($) => $.depositModal.warning)}</AlertDescription>
           </Alert>
 
