@@ -120,14 +120,12 @@ function StakesComponent() {
       >
         {(neurons) => (
           <>
-            {hasNeurons && (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <CapitalCard />
-                <EngagementCard />
-                <EarningsCard />
-                <SystemHealthCard />
-              </div>
-            )}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <CapitalCard />
+              <EngagementCard />
+              <EarningsCard />
+              <SystemHealthCard />
+            </div>
             <NeuronsList
               onSelectedNeuronChange={handleSelectedNeuronChange}
               selectedNeuronId={selectedNeuronId}

@@ -27,9 +27,6 @@
     "systemHealth": {
       "label": "Automatic voting",
       "representativeSelected": "Enabled",
-      "noRepresentative": "No Representative selected",
-      "inconsistent": "Setup needed",
-      "modalLabel": "Representative voting status",
       "setupVoting": "Setup voting"
     }
   },

@@ -26,7 +26,7 @@ export function EarningsCard() {
   const stakingRewardsError = isStakingRewardDataError(stakingRewards);
   const forecastValue = stakingRewardsReady
     ? (stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0)
-    : 0;
+    : null;
 
   return (
     <Card className="gap-3 py-4" data-testid="stakes-summary-earnings-card">
@@ -47,20 +47,20 @@ export function EarningsCard() {
               </span>
               <MaturitySymbol />
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {stakingRewardsReady ? (
-                <>
+            <div className="mt-1 text-sm text-muted-foreground">
+              {stakingRewardsReady && forecastValue !== null ? (
+                <p>
                   {t(($) => $.neuron.summary.earningsForecast)}:{' '}
                   {t(($) => $.common.positiveNumber, {
                     value: formatNumber(forecastValue),
                   })}
-                </>
+                </p>
               ) : stakingRewardsError ? (
-                '—'
+                <p>—</p>
               ) : (
-                '—'
+                <Skeleton className="h-4 w-24" />
               )}
-            </p>
+            </div>
           </>
         )}
       </CardContent>

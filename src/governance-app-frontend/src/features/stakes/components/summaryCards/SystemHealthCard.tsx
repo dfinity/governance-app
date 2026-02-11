@@ -24,7 +24,6 @@ export function SystemHealthCard() {
   });
 
   const hasRepresentative = followedNeurons.length === 1 && followedNeurons[0] !== undefined;
-  const isInconsistent = followedNeurons.length > 1 || followedNeurons.includes(undefined);
 
   const isLoading = neuronsQuery.isLoading || knownNeuronsQuery.isLoading;
   const isError = neuronsQuery.isError || knownNeuronsQuery.isError;
@@ -42,13 +41,13 @@ export function SystemHealthCard() {
         ) : (
           <div className="flex flex-col gap-2">
             <div className="flex items-center">
-              {hasRepresentative && !isInconsistent ? (
+              {hasRepresentative ? (
                 <CheckCircle2 className="size-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
               ) : (
                 <AlertTriangle className="size-5 shrink-0 text-amber-600 dark:text-amber-400" />
               )}
             </div>
-            {hasRepresentative && !isInconsistent ? (
+            {hasRepresentative ? (
               <p className="text-[15px] font-semibold text-foreground">
                 {t(($) => $.neuron.summary.systemHealth.representativeSelected)}
               </p>
