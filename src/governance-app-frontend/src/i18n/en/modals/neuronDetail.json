@@ -11,7 +11,7 @@
   "increaseStake": {
     "title": "Increase Stake",
     "amountLabel": "Amount to add",
-    "currentAndAvailable": "Available: {{available}} ICP",
+    "currentAndAvailable": "Current: {{current}} ICP • Available: {{available}} ICP",
     "info": "Adding ICP to your Stake increases your voting power and potential rewards. The added amount will be locked for the same dissolve delay period.",
     "confirm": "Confirm increase",
     "confirming": "Increasing Stake, please wait...",

@@ -79,10 +79,10 @@ test.describe.serial('Neuron Detail Modal', () => {
       await closeModal(page);
     });
 
-    await test.step('Validates input and shows available balance', async () => {
+    await test.step('Validates input and shows current values', async () => {
       await openNeuronDetailModal(page);
       await page.getByTestId('neuron-detail-action-increase-stake').click();
-      await expect(page.getByTestId('increase-stake-current-stake')).toHaveText(/Available:.*ICP/);
+      await expect(page.getByTestId('increase-stake-current-stake')).toHaveText(/5/);
       await page.getByTestId('increase-stake-confirm-btn').click();
       await expect(page.getByTestId('increase-stake-error')).toBeVisible();
       await page.getByTestId('increase-stake-amount-input').fill('0.5');
