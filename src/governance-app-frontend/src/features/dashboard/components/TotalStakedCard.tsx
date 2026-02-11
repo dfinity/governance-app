@@ -1,11 +1,10 @@
 import { nonNullish } from '@dfinity/utils';
 import { useTranslation } from 'react-i18next';
 
-import { useTvlValue } from '@features/login/hooks/useTvlValue';
-
 import { Skeleton } from '@components/Skeleton';
 import { E8Sn } from '@constants/extra';
 import { useGovernanceMetrics } from '@hooks/governance';
+import { useTvlValue } from '@hooks/useTvlValue';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber } from '@utils/numbers';
 
@@ -16,12 +15,12 @@ export const TotalStakedCard = () => {
 
   const metrics = metricsData?.response;
 
-  const totalLockedIcp = metrics?.totalLockedE8s
+  const totalLockedIcp = nonNullish(metrics?.totalLockedE8s)
     ? bigIntDiv(metrics.totalLockedE8s, E8Sn)
     : undefined;
 
   const stakedPercentage =
-    nonNullish(totalLockedIcp) && metrics?.totalSupplyIcp
+    nonNullish(totalLockedIcp) && nonNullish(metrics?.totalSupplyIcp)
       ? (totalLockedIcp / Number(metrics.totalSupplyIcp)) * 100
       : undefined;
 
