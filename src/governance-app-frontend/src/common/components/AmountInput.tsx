@@ -1,7 +1,6 @@
+import { nonNullish } from '@dfinity/utils';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-
-import { nonNullish } from '@dfinity/utils';
 
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
@@ -92,7 +91,7 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
                   size="sm"
                   onClick={() => onMaxSelect(Math.max(0, maxAmount).toString())}
                   disabled={disabled}
-                  className="h-auto px-1.5 py-0.5 text-xs font-semibold uppercase text-primary"
+                  className="h-auto px-1.5 py-0.5 text-xs font-semibold text-primary uppercase"
                 >
                   {t(($) => $.common.max)}
                 </Button>
@@ -104,5 +103,3 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
     );
   },
 );
-
-AmountInput.displayName = 'AmountInput';
