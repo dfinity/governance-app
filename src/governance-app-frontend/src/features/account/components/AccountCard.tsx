@@ -1,5 +1,5 @@
-import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
+import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { Link } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { List, Plus } from 'lucide-react';
@@ -84,7 +84,7 @@ export function AccountCard() {
           <div className="mt-auto flex flex-col gap-3">
             {IS_TESTNET && <GetTokens accountId={accountId} />}
             <Button asChild size="xl" className="w-full">
-              <Link to="/dashboard" search={{ depositModal: true }}>
+              <Link to="/dashboard" search={{ depositModal: true }} replace>
                 <Plus aria-hidden="true" />
                 {t(($) => $.account.addIcp)}
               </Link>

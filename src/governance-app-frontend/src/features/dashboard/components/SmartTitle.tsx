@@ -77,7 +77,7 @@ export function SmartTitle() {
   const cta =
     state === 'no-assets' ? (
       <Button asChild size="lg">
-        <Link to="/dashboard" search={{ depositModal: true }}>
+        <Link to="/dashboard" search={{ depositModal: true }} replace>
           {t(($) => $.home.smartTitle.noAssetsCta)}
         </Link>
       </Button>
