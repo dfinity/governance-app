@@ -27,7 +27,7 @@ export const IcpPriceCard = () => {
           <p className="text-2xl font-semibold text-foreground">
             {icpPriceUsd ? `$${icpPriceUsd}` : '—'}
           </p>
-          {/* TODO: Integrate 24h price change data source */}
+          {/* @TODO: Integrate 24h price change data source */}
           {/*<p className="mt-1 text-sm font-normal text-muted-foreground">
             {t(($) => $.home.priceChange24h, { value: '—' })}
           </p>*/}

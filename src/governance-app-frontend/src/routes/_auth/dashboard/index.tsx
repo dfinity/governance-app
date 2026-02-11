@@ -45,7 +45,7 @@ function Dashboard() {
         <h2 className="text-2xl font-medium tracking-wide capitalize">
           {t(($) => $.home.governanceOverview)}
         </h2>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
           <TotalStakedCard />
           <DailyRewardsCard />
           <IcpPriceCard />
