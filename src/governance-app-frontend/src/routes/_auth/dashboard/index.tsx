@@ -5,12 +5,12 @@ import { AccountCard } from '@features/account/components/AccountCard';
 import { DailyRewardsCard } from '@features/dashboard/components/DailyRewardsCard';
 import { IcpPriceCard } from '@features/dashboard/components/IcpPriceCard';
 import { MaxApyCard } from '@features/dashboard/components/MaxApyCard';
+import { SmartTitle } from '@features/dashboard/components/SmartTitle';
 import { TotalAssetsCard } from '@features/dashboard/components/TotalAssetsCard';
 import { TotalStakedCard } from '@features/dashboard/components/TotalStakedCard';
 import { StakedCard } from '@features/stakes/components/StakedCard';
 
 import i18n from '@/i18n/config';
-import { SmartTitle } from '@features/dashboard/components/SmartTitle';
 
 export const Route = createFileRoute('/_auth/dashboard/')({
   component: Dashboard,

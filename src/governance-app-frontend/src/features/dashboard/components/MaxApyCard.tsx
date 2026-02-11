@@ -1,11 +1,10 @@
 import { useTranslation } from 'react-i18next';
 
+import { Skeleton } from '@components/Skeleton';
 import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
-
-import { Skeleton } from '@components/Skeleton';
 
 export const MaxApyCard = () => {
   const { t } = useTranslation();

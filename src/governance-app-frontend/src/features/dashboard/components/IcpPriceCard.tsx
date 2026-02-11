@@ -1,10 +1,9 @@
 import { useTranslation } from 'react-i18next';
 
+import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { useTickerPrices } from '@hooks/tickers';
 import { formatNumber } from '@utils/numbers';
-
-import { Skeleton } from '@components/Skeleton';
 
 export const IcpPriceCard = () => {
   const { t } = useTranslation();
