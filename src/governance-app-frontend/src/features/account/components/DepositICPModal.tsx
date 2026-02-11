@@ -1,11 +1,11 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
-import { AlertCircle, Plus } from 'lucide-react';
+import { nonNullish } from '@dfinity/utils';
+import { useInternetIdentity } from 'ic-use-internet-identity';
+import { AlertCircle } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
-import { Button } from '@components/button';
 import { CopyButton } from '@components/CopyButton';
 import {
   ResponsiveDialog,
@@ -13,34 +13,35 @@ import {
   ResponsiveDialogDescription,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
-  ResponsiveDialogTrigger,
 } from '@components/ResponsiveDialog';
 import { Separator } from '@components/Separator';
 
 import { BuyIcpButton } from './BuyIcpButton';
-
-type Props = {
-  accountId: AccountIdentifier;
-};
 
 // Aspect ratio (width / height) of the ICP logo based on the source SVG asset.
 const QR_CODE_LOGO_ASPECT_RATIO = 464 / 272;
 const QR_CODE_LOGO_HEIGHT = 35;
 const QR_CODE_LOGO_WIDTH = QR_CODE_LOGO_HEIGHT * QR_CODE_LOGO_ASPECT_RATIO;
 
-export const DepositICPButton = ({ accountId }: Props) => {
+type DepositICPModalProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+};
+
+export const DepositICPModal = ({ open, onOpenChange }: DepositICPModalProps) => {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
+  const { identity } = useInternetIdentity();
+
+  const accountId = nonNullish(identity)
+    ? AccountIdentifier.fromPrincipal({
+        principal: identity.getPrincipal(),
+      })
+    : null;
+
+  if (!accountId) return null;
 
   return (
-    <ResponsiveDialog open={open} onOpenChange={setOpen}>
-      <ResponsiveDialogTrigger asChild>
-        <Button size="xl" className="w-full">
-          <Plus aria-hidden="true" />
-          {t(($) => $.account.addIcp)}
-        </Button>
-      </ResponsiveDialogTrigger>
-
+    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
       <ResponsiveDialogContent>
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>{t(($) => $.depositModal.title)}</ResponsiveDialogTitle>

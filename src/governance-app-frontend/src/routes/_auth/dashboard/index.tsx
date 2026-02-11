@@ -1,7 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
 import { AccountCard } from '@features/account/components/AccountCard';
+import { DepositICPModal } from '@features/account/components/DepositICPModal';
 import { DailyRewardsCard } from '@features/dashboard/components/DailyRewardsCard';
 import { IcpPriceCard } from '@features/dashboard/components/IcpPriceCard';
 import { MaxApyCard } from '@features/dashboard/components/MaxApyCard';
@@ -12,7 +13,14 @@ import { StakedCard } from '@features/stakes/components/StakedCard';
 
 import i18n from '@/i18n/config';
 
+type DashboardSearchParams = {
+  depositModal?: boolean;
+};
+
 export const Route = createFileRoute('/_auth/dashboard/')({
+  validateSearch: (search: Record<string, unknown>): DashboardSearchParams => ({
+    depositModal: search.depositModal === 'true' || search.depositModal === true ? true : undefined,
+  }),
   component: Dashboard,
   head: () => {
     const title = i18n.t(($) => $.common.head.dashboard.title);
@@ -28,6 +36,12 @@ export const Route = createFileRoute('/_auth/dashboard/')({
 
 function Dashboard() {
   const { t } = useTranslation();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const { depositModal } = Route.useSearch();
+
+  const handleDepositModalOpenChange = (isOpen: boolean) => {
+    if (!isOpen) navigate({ search: {}, replace: true });
+  };
 
   return (
     <div className="relative isolate flex flex-col gap-8">
@@ -62,6 +76,8 @@ function Dashboard() {
           <MaxApyCard />
         </div>
       </div>
+
+      <DepositICPModal open={!!depositModal} onOpenChange={handleDepositModalOpenChange} />
     </div>
   );
 }
