@@ -69,25 +69,27 @@ export const BuyIcpButton = ({ accountId }: Props) => {
             <AlertDialogTitle>{t(($) => $.depositModal.buyIcp.title)}</AlertDialogTitle>
           </AlertDialogHeader>
 
-          <AlertDialogDescription className="flex flex-col gap-4">
-            <p className="text-left">{t(($) => $.depositModal.buyIcp.description)}</p>
+          <AlertDialogDescription asChild>
+            <div className="flex flex-col gap-4">
+              <p className="text-left">{t(($) => $.depositModal.buyIcp.description)}</p>
 
-            <Alert variant="warning">
-              <AlertDescription>{t(($) => $.depositModal.buyIcp.disclaimer)}</AlertDescription>
-            </Alert>
+              <Alert variant="warning">
+                <AlertDescription>{t(($) => $.depositModal.buyIcp.disclaimer)}</AlertDescription>
+              </Alert>
 
-            <div className="flex flex-col gap-2">
-              <span className="text-base font-medium text-primary">
-                {t(($) => $.depositModal.buyIcp.receivingAddress)}
-              </span>
-              <div className="flex items-center justify-between gap-4 overflow-hidden rounded-md border bg-muted px-3 py-2">
-                <span className="flex-1 text-sm break-all text-muted-foreground">
-                  {accountId.toHex()}
+              <div className="flex flex-col gap-2">
+                <span className="text-base font-medium text-primary">
+                  {t(($) => $.depositModal.buyIcp.receivingAddress)}
                 </span>
-                <CopyButton
-                  value={accountId.toHex()}
-                  label={t(($) => $.account.accountIdentifier)}
-                />
+                <div className="flex items-center justify-between gap-4 overflow-hidden rounded-md border bg-muted px-3 py-2">
+                  <span className="flex-1 text-sm break-all text-muted-foreground">
+                    {accountId.toHex()}
+                  </span>
+                  <CopyButton
+                    value={accountId.toHex()}
+                    label={t(($) => $.account.accountIdentifier)}
+                  />
+                </div>
               </div>
             </div>
           </AlertDialogDescription>
