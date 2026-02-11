@@ -95,6 +95,7 @@ export const BuyIcpButton = ({ accountId }: Props) => {
           </AlertDialogDescription>
 
           <AlertDialogFooter>
+            <AlertDialogCancel>{t(($) => $.common.close)}</AlertDialogCancel>
             <AlertDialogAction asChild>
               <a href={buyUrl} target="_blank" rel="noopener noreferrer">
                 <CreditCard aria-hidden="true" />
