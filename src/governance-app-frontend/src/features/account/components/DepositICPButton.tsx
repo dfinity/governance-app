@@ -17,7 +17,7 @@ import {
 } from '@components/ResponsiveDialog';
 import { Separator } from '@components/Separator';
 
-import { BuyIcpsButton } from './BuyIcpsButton';
+import { BuyIcpButton } from './BuyIcpsButton';
 
 type Props = {
   accountId: AccountIdentifier;
@@ -93,7 +93,7 @@ export const DepositICPButton = ({ accountId }: Props) => {
 
           <p className="text-sm text-muted-foreground">{t(($) => $.depositModal.buyIcpHint)}</p>
 
-          <BuyIcpsButton accountId={accountId} />
+          <BuyIcpButton accountId={accountId} />
         </div>
       </ResponsiveDialogContent>
     </ResponsiveDialog>

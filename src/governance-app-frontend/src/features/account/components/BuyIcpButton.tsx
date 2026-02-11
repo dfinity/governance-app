@@ -44,7 +44,7 @@ type Props = {
   accountId: AccountIdentifier;
 };
 
-export const BuyIcpsButton = ({ accountId }: Props) => {
+export const BuyIcpButton = ({ accountId }: Props) => {
   const { t } = useTranslation();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
