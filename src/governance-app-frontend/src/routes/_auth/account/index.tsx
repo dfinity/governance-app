@@ -88,22 +88,15 @@ function Account() {
         <div className="space-y-2">
           <h2 className="text-2xl font-semibold">{t(($) => $.userAccount.appearance)}</h2>
         </div>
-        <Card className="p-6 shadow-sm">
-          <ThemeCard />
-        </Card>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <div className="space-y-2">
-          <h2 className="text-2xl font-semibold">
-            {t(($) => $.userAccount.shortcuts.title)}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            {t(($) => $.userAccount.shortcuts.description)}
-          </p>
-        </div>
-        <Card className="p-6 shadow-sm">
-          <ShortcutsCard />
+        <Card className="overflow-hidden p-0 shadow-sm">
+          <div className="flex flex-col divide-y">
+            <div className="px-6 py-5">
+              <ThemeCard />
+            </div>
+            <div className="px-6 py-5">
+              <ShortcutsCard />
+            </div>
+          </div>
         </Card>
       </section>
 
