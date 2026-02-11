@@ -46,6 +46,18 @@
       }
     }
   },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "description": "Enable or disable keyboard shortcuts for quick actions.",
+    "toggle": "Enable shortcuts",
+    "items": {
+      "toggleTheme": "Toggle theme",
+      "logout": "Logout"
+    },
+    "aria": {
+      "toggle": "Toggle keyboard shortcuts"
+    }
+  },
   "session": {
     "title": "Session",
     "timeLeft": "Session expires in {{minutes}}m {{seconds}}s"

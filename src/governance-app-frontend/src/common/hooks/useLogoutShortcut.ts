@@ -2,10 +2,12 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useCallback, useEffect } from 'react';
 
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
+import { useShortcutSettings } from '@hooks/useShortcutSettings';
 import { shouldIgnoreKeyboardShortcut } from '@utils/keyboard';
 
 export const useLogoutShortcut = () => {
   const { identity, clear } = useInternetIdentity();
+  const { enabled } = useShortcutSettings();
 
   const handleLogout = useCallback(() => {
     if (!identity) return;
@@ -16,6 +18,7 @@ export const useLogoutShortcut = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (!enabled) return;
       if (shouldIgnoreKeyboardShortcut(event)) return;
 
       if (event.key === 'u') handleLogout();
@@ -23,5 +26,5 @@ export const useLogoutShortcut = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleLogout]);
+  }, [handleLogout, enabled]);
 };

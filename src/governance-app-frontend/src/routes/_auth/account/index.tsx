@@ -9,6 +9,7 @@ import { GovernanceAccessCard } from '@features/userAccount/components/Governanc
 import { ManageIICard } from '@features/userAccount/components/ManageIICard';
 import { PrincipalCard } from '@features/userAccount/components/PrincipalCard';
 import { SystemContextCard } from '@features/userAccount/components/SystemContextCard';
+import { ShortcutsCard } from '@features/userAccount/components/ShortcutsCard';
 import { ThemeCard } from '@features/userAccount/components/ThemeCard';
 
 import { Button } from '@components/button';
@@ -89,6 +90,20 @@ function Account() {
         </div>
         <Card className="p-6 shadow-sm">
           <ThemeCard />
+        </Card>
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <div className="space-y-2">
+          <h2 className="text-2xl font-semibold">
+            {t(($) => $.userAccount.shortcuts.title)}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {t(($) => $.userAccount.shortcuts.description)}
+          </p>
+        </div>
+        <Card className="p-6 shadow-sm">
+          <ShortcutsCard />
         </Card>
       </section>
 
