@@ -47,11 +47,13 @@ function Dashboard() {
     <div className="relative isolate flex flex-col gap-8">
       {/* Decorative gradient orbs — top-right corner */}
       <div
-        className="pointer-events-none absolute -top-[200px] -right-[180px] -z-10 h-[493px] w-[492px] rounded-full bg-[#3B82F6] opacity-30 blur-[200px]"
+        className="pointer-events-none absolute -top-[400px] -right-[380px] -z-10 h-[893px] w-[892px]"
+        style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.3) 0%, transparent 70%)' }}
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute -top-[140px] -right-[420px] -z-10 h-[493px] w-[492px] rounded-full bg-[#EA580C] opacity-30 blur-[200px]"
+        className="pointer-events-none absolute -top-[340px] -right-[620px] -z-10 h-[893px] w-[892px]"
+        style={{ background: 'radial-gradient(circle, rgba(234,88,12,0.3) 0%, transparent 70%)' }}
         aria-hidden="true"
       />
 
