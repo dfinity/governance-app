@@ -1,4 +1,4 @@
-import { nonNullish } from '@dfinity/utils';
+import { isNullish } from '@dfinity/utils';
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { AnonymousIdentity } from '@icp-sdk/core/agent';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -58,16 +58,16 @@ export const useIcpIndexTransactionsPolling = () => {
   });
 
   useEffect(() => {
-    if (!nonNullish(latestTxId)) return;
+    if (isNullish(latestTxId)) return;
 
     const previous = lastTransactionIdRef.current;
     lastTransactionIdRef.current = latestTxId;
 
-    // Skip the first read — we only care about changes.
-    if (!nonNullish(previous)) return;
+    // Skip the first read —> we only care about changes.
+    if (isNullish(previous)) return;
 
     if (latestTxId !== previous) {
-      // New transaction detected — invalidate certified balance and transactions.
+      // New transaction detected —> invalidate certified balance and transactions.
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE],
       });
