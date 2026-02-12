@@ -6,13 +6,13 @@ import { type CSSProperties, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGovernanceLogo';
-import { useTvlValue } from '@features/login/hooks/useTvlValue';
 
 import { BetaBanner } from '@components/BetaBanner';
 import { Button } from '@components/button';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { useGovernanceProposal } from '@hooks/governance';
+import { useTvlValue } from '@hooks/useTvlValue';
 import { formatNumber } from '@utils/numbers';
 
 import i18n from '@/i18n/config';

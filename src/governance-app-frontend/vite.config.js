@@ -10,6 +10,10 @@ import environment from 'vite-plugin-environment';
 dotenv.config({ path: '../../.env', quiet: true });
 
 export default defineConfig({
+  server: {
+    port: 3000,
+    strictPort: false,
+  },
   build: {
     emptyOutDir: true,
     rollupOptions: {

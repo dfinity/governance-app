@@ -1,4 +1,4 @@
-import { nonNullish } from '@dfinity/utils';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { LogOut } from 'lucide-react';
@@ -8,6 +8,7 @@ import { AccountIdCard } from '@features/userAccount/components/AccountIdCard';
 import { GovernanceAccessCard } from '@features/userAccount/components/GovernanceAccessCard';
 import { ManageIICard } from '@features/userAccount/components/ManageIICard';
 import { PrincipalCard } from '@features/userAccount/components/PrincipalCard';
+import { ShortcutsCard } from '@features/userAccount/components/ShortcutsCard';
 import { SystemContextCard } from '@features/userAccount/components/SystemContextCard';
 import { ThemeCard } from '@features/userAccount/components/ThemeCard';
 
@@ -42,6 +43,8 @@ function Account() {
     localStorage.setItem(MANUAL_LOGOUT_KEY, 'true');
     clear();
   };
+
+  if (isNullish(identity)) return null;
 
   return (
     <div className="flex flex-col gap-12 pb-20">
@@ -85,8 +88,15 @@ function Account() {
         <div className="space-y-2">
           <h2 className="text-2xl font-semibold">{t(($) => $.userAccount.appearance)}</h2>
         </div>
-        <Card className="p-6 shadow-sm">
-          <ThemeCard />
+        <Card className="overflow-hidden p-0 shadow-sm">
+          <div className="flex flex-col divide-y">
+            <div className="px-6 py-5">
+              <ThemeCard />
+            </div>
+            <div className="px-6 py-5">
+              <ShortcutsCard />
+            </div>
+          </div>
         </Card>
       </section>
 
@@ -99,18 +109,16 @@ function Account() {
             </p>
           )}
         </div>
-        {identity && (
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={handleLogout}
-            className="w-full self-start border-destructive/50 text-destructive hover:bg-destructive/5 hover:text-destructive sm:w-auto dark:border-destructive/60 dark:text-destructive-foreground dark:hover:bg-destructive/10"
-            data-testid="logout-btn"
-          >
-            <LogOut className="mr-2 size-5" />
-            {t(($) => $.common.logout)}
-          </Button>
-        )}
+        <Button
+          variant="outline"
+          size="lg"
+          onClick={handleLogout}
+          className="w-full self-start border-destructive/50 text-destructive hover:bg-destructive/5 hover:text-destructive sm:w-auto dark:border-destructive/60 dark:text-destructive-foreground dark:hover:bg-destructive/10"
+          data-testid="logout-btn"
+        >
+          <LogOut className="mr-2 size-5" />
+          {t(($) => $.common.logout)}
+        </Button>
       </section>
     </div>
   );

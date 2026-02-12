@@ -35,7 +35,7 @@ const II_ALTERNATIVE_ORIGINS_FILE_NAME: &str = "ii-alternative-origins";
 const CSP_DIRECTIVES: &[&str] = &[
     "default-src 'self' *.devenv.dfinity.network",
     "script-src 'self'",
-    "connect-src 'self' http://localhost:* https://icp0.io https://*.icp0.io https://ic0.app https://*.raw.ic0.app https://icp-api.io https://api.kongswap.io https://plausible.io/api/event",
+    "connect-src 'self' https://icp0.io https://*.icp0.io https://ic0.app https://*.raw.ic0.app https://icp-api.io https://api.kongswap.io https://plausible.io/api/event",
     "img-src 'self' https://*.icp0.io data: blob:",
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
@@ -48,7 +48,18 @@ const CSP_DIRECTIVES: &[&str] = &[
 ];
 
 fn get_csp_header_value() -> String {
-    CSP_DIRECTIVES.join("; ")
+    CSP_DIRECTIVES
+        .iter()
+        .map(|directive| {
+            // Allow E2E tests to reach the local replica
+            if cfg!(feature = "testnet") && directive.starts_with("connect-src") {
+                format!("{} http://localhost:*", directive)
+            } else {
+                directive.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("; ")
 }
 
 // =================================================================================================
@@ -137,8 +148,7 @@ fn get_asset_headers(additional_headers: Vec<HeaderField>) -> Vec<HeaderField> {
         ("strict-transport-security".to_string(), "max-age=31536000; includeSubDomains".to_string()),
         ("x-frame-options".to_string(), "DENY".to_string()),
         ("x-content-type-options".to_string(), "nosniff".to_string()),
-        // TODO: Change to "content-security-policy" to enforce once validated in test/staging
-        ("content-security-policy-report-only".to_string(), get_csp_header_value()),
+        ("content-security-policy".to_string(), get_csp_header_value()),
         ("referrer-policy".to_string(), "same-origin".to_string()),
         ("permissions-policy".to_string(), "accelerometer=(), ambient-light-sensor=(), autoplay=(self), battery=(), camera=(self), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=(), clipboard-read=(), clipboard-write=(self), gamepad=(), speaker-selection=(), conversion-measurement=(), focus-without-user-activation=(), hid=(), idle-detection=(), interest-cohort=(), serial=(), sync-script=(), trust-token-redemption=(), window-placement=(), vertical-scroll=()".to_string()),
         ("x-xss-protection".to_string(), "1; mode=block".to_string()),

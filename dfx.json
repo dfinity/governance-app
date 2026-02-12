@@ -9,7 +9,7 @@
       "build": [
         "./scripts/config.sh -n local",
         "npm run build",
-        "cargo build --target wasm32-unknown-unknown --release -p governance-app-backend --locked"
+        "cargo build --target wasm32-unknown-unknown --release -p governance-app-backend --locked --features testnet"
       ],
       "metadata": [
         {
