@@ -2,10 +2,10 @@ import { nonNullish } from '@dfinity/utils';
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { AnonymousIdentity } from '@icp-sdk/core/agent';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 
 import { QUERY_KEYS, stringifyKeys } from '@utils/query';
 
@@ -75,14 +75,16 @@ export const useIcpIndexTransactionsPolling = () => {
         queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS],
       });
 
-      // Notify the user. Fixed ID prevents stacking if multiple
-      // transactions arrive in quick succession.
-      toast.info(t(($) => $.account.newTransaction), {
-        id: NEW_TRANSACTION_TOAST_ID,
-        description: t(($) => $.account.newTransactionDescription),
-        duration: 5000,
-        closeButton: true,
-      });
+      // Fixed ID prevents stacking if multiple transactions arrive in quick succession.
+      toast.info(
+        t(($) => $.account.newTransaction),
+        {
+          id: NEW_TRANSACTION_TOAST_ID,
+          description: t(($) => $.account.newTransactionDescription),
+          duration: 4000,
+          closeButton: true,
+        },
+      );
     }
   }, [latestTxId, queryClient, t]);
 };

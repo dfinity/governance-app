@@ -20,5 +20,5 @@
   "addIcp": "Add ICP",
   "ariaLabel": "Open transactions list",
   "newTransaction": "New transaction detected",
-  "newTransactionDescription": "Your balance and transaction history have been updated."
+  "newTransactionDescription": "Refreshing your balance and transaction history."
 }
