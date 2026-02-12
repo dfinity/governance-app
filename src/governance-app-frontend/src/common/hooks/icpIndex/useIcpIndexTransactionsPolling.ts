@@ -7,7 +7,7 @@ import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { QUERY_KEYS, stringifyKeys } from '@utils/query';
+import { QUERY_KEYS } from '@utils/query';
 
 import { useIcpIndex } from './useIcpIndex';
 
@@ -42,7 +42,7 @@ export const useIcpIndexTransactionsPolling = () => {
   const lastTransactionIdRef = useRef<bigint | undefined>(undefined);
 
   const { data: latestTxId } = useQuery({
-    queryKey: [...stringifyKeys(['transactionsPolling', accountIdentifier])],
+    queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS_POLLING, accountIdentifier.toHex()],
     queryFn: async () => {
       const response = await canister!.getTransactions({
         maxResults: BigInt(1),
