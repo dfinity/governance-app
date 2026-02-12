@@ -28,7 +28,7 @@ const Sonner = ({ ...props }: ToasterProps) => {
     <Toaster
       theme={isNullish(identity) ? NON_AUTH_THEME : theme}
       className="toaster group"
-      mobileOffset="calc(1rem + env(safe-area-inset-top))"
+      mobileOffset="calc(0.5rem + env(safe-area-inset-top))"
       icons={{
         success: <CircleCheckBig className="size-4 text-emerald-700 dark:text-emerald-400" />,
         info: <InfoIcon className="size-4" />,
