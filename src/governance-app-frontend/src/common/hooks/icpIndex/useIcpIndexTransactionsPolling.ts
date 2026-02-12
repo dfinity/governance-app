@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 
 import { E8Sn } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
+import { shortenId } from '@utils/id';
 import { formatNumber } from '@utils/numbers';
 import { QUERY_KEYS } from '@utils/query';
 
@@ -92,7 +93,7 @@ export const useIcpIndexTransactionsPolling = () => {
 
         if (amount && isReceivedTransfer(operation, accountId)) {
           const sender = operation.Transfer.from;
-          const truncatedSender = `${sender.slice(0, 6)}...${sender.slice(-6)}`;
+          const truncatedSender = shortenId(sender, 6);
 
           toast.info(
             t(($) => $.account.newTransaction),

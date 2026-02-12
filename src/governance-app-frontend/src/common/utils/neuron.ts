@@ -4,15 +4,14 @@ import { nonNullish } from '@dfinity/utils';
 import { E8Sn, SECONDS_IN_EIGHT_YEARS } from '@constants/extra';
 import { bigIntDiv, bigIntMax } from '@utils/bigInt';
 import { nowInSeconds } from '@utils/date';
+import { shortenId } from '@utils/id';
 
 export const getNeuronId = (neuron: NeuronInfo): string => {
   return String(neuron.neuronId);
 };
 
 export const shortenNeuronId = (neuronId: bigint): string => {
-  const idString = neuronId.toString();
-  if (idString.length <= 10) return idString;
-  return `${idString.slice(0, 5)}...${idString.slice(-5)}`;
+  return shortenId(neuronId.toString(), 5);
 };
 
 export const getNeuronIsDissolved = (neuron: NeuronInfo): boolean => {

@@ -9,6 +9,7 @@ import { CopyButton } from '@components/CopyButton';
 import { E8Sn } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
 import { secondsToDate, secondsToTime, timestampInNanosToSeconds } from '@utils/date';
+import { shortenId } from '@utils/id';
 import { formatNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
@@ -110,12 +111,8 @@ export const AccountTransactionItem = ({
                     suspicious && 'text-amber-800 dark:text-amber-200',
                   )}
                 >
-                  <span className="md:hidden">
-                    {`${address.slice(0, 10)}...${address.slice(-10)}`}
-                  </span>
-                  <span className="hidden md:inline">
-                    {`${address.slice(0, 24)}...${address.slice(-24)}`}
-                  </span>
+                  <span className="md:hidden">{shortenId(address, 10)}</span>
+                  <span className="hidden md:inline">{shortenId(address, 24)}</span>
                   {!suspicious && (
                     <CopyButton
                       value={address}
