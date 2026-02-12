@@ -1,9 +1,11 @@
 import { AccountIdentifier, isIcpAccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { useMutation } from '@tanstack/react-query';
-import { Send } from 'lucide-react';
-import React, { FormEvent, useState } from 'react';
+import { AlertTriangle, Send } from 'lucide-react';
+import React, { FormEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Alert, AlertDescription } from '@components/Alert';
+import { AmountInput } from '@components/AmountInput';
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
 import { Label } from '@components/Label';
@@ -16,13 +18,15 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from '@components/ResponsiveDialog';
+import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, ICP_TRANSACTION_FEE, ICP_TRANSACTION_PROPAGATION_DELAY_MS } from '@constants/extra';
 import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
+import { useTickerPrices } from '@hooks/tickers';
 import { delay } from '@utils/async';
 import { bigIntMul } from '@utils/bigInt';
 import { mapCanisterError } from '@utils/errors';
 import { errorNotification, successNotification } from '@utils/notification';
-import { roundToE8sPrecision } from '@utils/numbers';
+import { formatNumber, roundToE8sPrecision } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
 type Props = { balance: number };
@@ -36,12 +40,16 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
     authenticated: ledgerAuthenticated,
   } = useIcpLedger();
 
+  const { tickerPrices: tickersQuery } = useTickerPrices();
+  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
+
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState('');
   const [amountError, setAmountError] = useState('');
   const [toAccount, setToAccount] = useState('');
   const [toAccountError, setToAccountError] = useState('');
   const [isPending, setIsPending] = useState(false);
+  const amountInputRef = useRef<HTMLInputElement>(null);
 
   const transferMutation = useMutation({
     mutationFn: () =>
@@ -71,33 +79,54 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
     },
   });
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    transferMutation.mutate();
-  };
-
   const canTransfer =
     balance > ICP_TRANSACTION_FEE && ledgerReady && ledgerAuthenticated && !isPending;
   const max = roundToE8sPrecision(balance - ICP_TRANSACTION_FEE);
 
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setToAccountError('');
+    setAmountError('');
+
+    if (!isIcpAccountIdentifier(toAccount)) {
+      setToAccountError(t(($) => $.account.accountError));
+      return;
+    }
+
+    const numericAmount = Number(amount);
+    if (numericAmount <= 0) {
+      setAmountError(t(($) => $.account.amountTooLow));
+      return;
+    }
+    if (numericAmount > max) {
+      setAmountError(t(($) => $.account.insufficientBalance, { max }));
+      return;
+    }
+
+    transferMutation.mutate();
+  };
+
   const handleAccountChange = (value: string) => {
     setToAccount(value);
     setToAccountError('');
-    if (!value) return;
-    if (!isIcpAccountIdentifier(value)) {
-      setToAccountError(t(($) => $.account.accountError));
-    }
   };
 
   const handleAmountChange = (value: string) => {
     setAmount(value);
     setAmountError('');
-    if (!value) return;
-    const numericValue = Number(value);
-    if (numericValue <= 0 || numericValue > max) {
-      setAmountError(t(($) => $.account.amountError));
-    }
   };
+
+  const handleMaxSelect = (value: string) => {
+    setAmount(value);
+    setAmountError('');
+    amountInputRef?.current?.focus();
+  };
+
+  const numericAmount = Number(amount);
+  const approxUsd =
+    icpPrice && numericAmount > 0
+      ? t(($) => $.account.approxUsd, { value: formatNumber(numericAmount * icpPrice.usd) })
+      : undefined;
 
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
@@ -122,7 +151,7 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
 
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 pt-4 pb-12">
             <div className="grid gap-2">
               <Label htmlFor="destination-account">{t(($) => $.account.destinationAccount)}</Label>
               <Input
@@ -131,33 +160,41 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
                 disabled={isPending}
                 value={toAccount}
                 className={toAccountError ? 'border-destructive' : ''}
+                aria-invalid={!!toAccountError}
                 required
               />
-              {toAccountError && <p className="text-sm text-destructive">{toAccountError}</p>}
+              {toAccountError && (
+                <Alert variant="warning">
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                  <AlertDescription>{toAccountError}</AlertDescription>
+                </Alert>
+              )}
             </div>
 
             <div className="grid gap-2">
               <Label htmlFor="amount">{t(($) => $.common.amount)}</Label>
-              <Input
+              <AmountInput
                 id="amount"
-                type="number"
-                inputMode="decimal"
-                onChange={(e) => handleAmountChange(e.target.value)}
-                disabled={isPending}
+                ref={amountInputRef}
                 value={amount}
-                className={amountError ? 'border-destructive' : ''}
+                onChange={handleAmountChange}
+                maxAmount={max}
+                onMaxSelect={handleMaxSelect}
+                disabled={isPending}
                 required
+                error={!!amountError}
+                approxUsdLabel={approxUsd}
+                availableLabel={t(($) => $.account.availableBalance, {
+                  amount: max,
+                })}
               />
-              {amountError && <p className="text-sm text-destructive">{amountError}</p>}
+              {amountError && (
+                <Alert variant="warning">
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                  <AlertDescription>{amountError}</AlertDescription>
+                </Alert>
+              )}
             </div>
-
-            <p className="text-xs text-muted-foreground">
-              {t(($) => $.account.transactionHint, {
-                min: ICP_TRANSACTION_FEE,
-                max: max,
-                fee: ICP_TRANSACTION_FEE,
-              })}
-            </p>
           </div>
 
           <ResponsiveDialogFooter className="flex justify-end gap-2">
@@ -170,7 +207,7 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
               {t(($) => $.common.close)}
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Sending...' : t(($) => $.common.confirm)}
+              {isPending ? t(($) => $.common.sending) : t(($) => $.common.confirm)}
             </Button>
           </ResponsiveDialogFooter>
         </form>

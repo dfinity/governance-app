@@ -4,8 +4,7 @@
     "amount": {
       "title": "Stake ICP",
       "label": "Amount to stake",
-      "available": "Available: {{amount}} ICP ({{fee}} ICP fee applies)",
-      "maxButtonAriaLabel": "Set amount to maximum available balance"
+      "available": "Available: {{amount}} ICP"
     },
     "dissolveDelay": {
       "title": "Set dissolve delay",
