@@ -6,7 +6,6 @@
     "goToLogin": "Go to login",
     "goBack": "Go back"
   },
-  "proposalsList": "Proposals list",
   "loading": "Loading",
   "loadingError": "Error loading data.",
   "refreshFailed": "Failed to automatically refresh the data. Please try reloading the page.",
@@ -34,13 +33,11 @@
     "second_plural": "seconds"
   },
   "warning": "Warning",
-  "caution": "Caution",
   "autoExpirationLogout": "Session expired, you have been logged out. Please log in again.",
   "restricted": "Restricted",
   "restrictedPage": "You need to be logged in to access this page.",
   "sending": "Sending ...",
   "withdraw": "Withdraw",
-  "stakeMore": "Stake more",
   "stakeIcp": "Stake ICP",
   "confirm": "Confirm",
   "cancel": "Cancel",
@@ -59,7 +56,6 @@
     "copied": "Your {{label}} was copied to the clipboard.",
     "error": "An error occurred while copying to clipboard."
   },
-  "seeDetails": "See details",
   "alt": {
     "icpLogo": "Internet Computer (ICP) Logo"
   },

@@ -2,7 +2,6 @@
   "available": "Available",
   "accountIdentifier": "account id",
   "transferSuccess": "You have successfully sent {{amount}} ICP to account {{toAccount}}.",
-  "transferError": "An error occurred while sending {{amount}} ICP to account {{toAccount}}. Please try again later.",
   "destinationAccount": "Destination account",
   "transferTitle": "Send ICP to another account",
   "availableBalance": "Available: {{amount}} ICP",
