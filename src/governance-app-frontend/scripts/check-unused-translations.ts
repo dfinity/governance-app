@@ -194,7 +194,6 @@ function main() {
     console.error('');
   }
 
-  console.error('Remove unused translations.');
   process.exit(1);
 }
 
