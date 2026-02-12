@@ -167,6 +167,7 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
                 maxAmount={max}
                 onMaxSelect={handleMaxSelect}
                 disabled={isPending}
+                required
                 approxUsdLabel={approxUsd}
                 availableLabel={t(($) => $.account.availableBalance, {
                   amount: max,

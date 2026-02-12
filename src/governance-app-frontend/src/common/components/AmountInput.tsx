@@ -15,6 +15,7 @@ type AmountInputProps = {
   /** Called when the Max button is clicked with the max value as a string. */
   onMaxSelect?: (value: string) => void;
   disabled?: boolean;
+  required?: boolean;
   /** Approximate USD value label, e.g. "~ $12.34" */
   approxUsdLabel?: string;
   /** Available balance label shown on the right, e.g. "Available: 12.345 ICP" */
@@ -32,6 +33,7 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
       maxAmount,
       onMaxSelect,
       disabled,
+      required,
       approxUsdLabel,
       availableLabel,
       availableLabelTestId,
@@ -41,8 +43,10 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
   ) => {
     const { t } = useTranslation();
 
-    const showMax = nonNullish(maxAmount) && onMaxSelect;
-    const showBottomRow = approxUsdLabel || availableLabel || showMax;
+    const showMax = nonNullish(maxAmount) && nonNullish(onMaxSelect);
+    const showBottomRow = Boolean(
+      nonNullish(approxUsdLabel) || nonNullish(availableLabel) || showMax,
+    );
 
     return (
       <div className="space-y-2">
@@ -61,6 +65,7 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
             inputMode="decimal"
             step="any"
             disabled={disabled}
+            required={required}
             data-testid={testId}
           />
           <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-1.5">
