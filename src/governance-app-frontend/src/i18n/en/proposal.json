@@ -1,7 +1,6 @@
 {
   "proposalId": "Proposal #{{id}}",
   "backToProposals": "Back to Proposals",
-  "title": "Proposal {{id}} details",
   "action": "Action",
   "timeLeft": "{{timeLeft}} left",
   "votingStatus": "Voting status",
