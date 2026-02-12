@@ -97,7 +97,10 @@ export const TotalAssetsCard = () => {
             <div className="pointer-events-auto flex items-center gap-1">
               {stakingRewardsReady ? (
                 <span className="text-2xl font-semibold tracking-wide text-foreground">
-                  {formatPercentage(stakingRewards.stakingRatio)}
+                  {formatPercentage(stakingRewards.stakingRatio, {
+                    minFraction: 0,
+                    maxFraction: 0,
+                  })}
                 </span>
               ) : (
                 <div className="flex items-center justify-center">
