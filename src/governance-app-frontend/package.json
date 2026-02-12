@@ -45,6 +45,7 @@
     "lucide-react": "0.544.0",
     "motion": "12.23.25",
     "qrcode.react": "4.2.0",
+    "radix-ui": "1.4.3",
     "react": "19.1.1",
     "react-aria-components": "1.12.2",
     "react-dom": "19.1.1",
