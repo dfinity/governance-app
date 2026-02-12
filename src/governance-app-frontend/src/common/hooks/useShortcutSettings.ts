@@ -25,8 +25,6 @@ const subscribe = (listener: () => void) => {
   };
 };
 
-// Primitive return value (boolean) — stable across calls with same stored value,
-// so useSyncExternalStore won't trigger infinite re-renders.
 const getSnapshot = (): boolean => getStoredValue();
 
 /**
