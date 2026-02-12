@@ -128,6 +128,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
           maxAmount={availableBalance}
           onMaxSelect={handleMaxSelect}
           disabled={isPending}
+          error={!!validationError}
           approxUsdLabel={approxUsd}
           availableLabel={t(($) => $.neuronDetailModal.increaseStake.currentAndAvailable, {
             current: currentStake.toString(),

@@ -16,6 +16,8 @@ type AmountInputProps = {
   onMaxSelect?: (value: string) => void;
   disabled?: boolean;
   required?: boolean;
+  /** When true, shows invalid state (e.g. red border). */
+  error?: boolean;
   /** Approximate USD value label, e.g. "~ $12.34" */
   approxUsdLabel?: string;
   /** Available balance label shown on the right, e.g. "Available: 12.345 ICP" */
@@ -34,6 +36,7 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
       onMaxSelect,
       disabled,
       required,
+      error,
       approxUsdLabel,
       availableLabel,
       availableLabelTestId,
@@ -55,7 +58,9 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
             className={cn(
               'h-14 [appearance:textfield] border-2 pr-28 !text-lg font-semibold focus-visible:ring-0',
               '[&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
+              error && 'border-destructive text-destructive',
             )}
+            aria-invalid={error}
             onChange={(e) => onChange(e.target.value)}
             placeholder="0.00"
             id={id}

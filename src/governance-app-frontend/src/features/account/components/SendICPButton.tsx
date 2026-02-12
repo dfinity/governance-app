@@ -1,9 +1,10 @@
 import { AccountIdentifier, isIcpAccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { useMutation } from '@tanstack/react-query';
-import { Send } from 'lucide-react';
+import { AlertTriangle, Send } from 'lucide-react';
 import React, { FormEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Alert, AlertDescription } from '@components/Alert';
 import { AmountInput } from '@components/AmountInput';
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
@@ -78,34 +79,41 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
     },
   });
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    transferMutation.mutate();
-  };
-
   const canTransfer =
     balance > ICP_TRANSACTION_FEE && ledgerReady && ledgerAuthenticated && !isPending;
   const max = roundToE8sPrecision(balance - ICP_TRANSACTION_FEE);
 
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setToAccountError('');
+    setAmountError('');
+
+    if (!isIcpAccountIdentifier(toAccount)) {
+      setToAccountError(t(($) => $.account.accountError));
+      return;
+    }
+
+    const numericAmount = Number(amount);
+    if (numericAmount <= 0) {
+      setAmountError(t(($) => $.account.amountTooLow));
+      return;
+    }
+    if (numericAmount > max) {
+      setAmountError(t(($) => $.account.insufficientBalance, { max }));
+      return;
+    }
+
+    transferMutation.mutate();
+  };
+
   const handleAccountChange = (value: string) => {
     setToAccount(value);
     setToAccountError('');
-    if (!value) return;
-    if (!isIcpAccountIdentifier(value)) {
-      setToAccountError(t(($) => $.account.accountError));
-    }
   };
 
   const handleAmountChange = (value: string) => {
     setAmount(value);
     setAmountError('');
-    if (!value) return;
-    const numericValue = Number(value);
-    if (numericValue <= 0) {
-      setAmountError(t(($) => $.account.amountTooLow));
-    } else if (numericValue > max) {
-      setAmountError(t(($) => $.account.insufficientBalance, { max }));
-    }
   };
 
   const handleMaxSelect = (value: string) => {
@@ -152,9 +160,15 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
                 disabled={isPending}
                 value={toAccount}
                 className={toAccountError ? 'border-destructive' : ''}
+                aria-invalid={!!toAccountError}
                 required
               />
-              {toAccountError && <p className="text-sm text-destructive">{toAccountError}</p>}
+              {toAccountError && (
+                <Alert variant="warning">
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                  <AlertDescription>{toAccountError}</AlertDescription>
+                </Alert>
+              )}
             </div>
 
             <div className="grid gap-2">
@@ -168,12 +182,18 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
                 onMaxSelect={handleMaxSelect}
                 disabled={isPending}
                 required
+                error={!!amountError}
                 approxUsdLabel={approxUsd}
                 availableLabel={t(($) => $.account.availableBalance, {
                   amount: max,
                 })}
               />
-              {amountError && <p className="text-sm text-destructive">{amountError}</p>}
+              {amountError && (
+                <Alert variant="warning">
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                  <AlertDescription>{amountError}</AlertDescription>
+                </Alert>
+              )}
             </div>
           </div>
 

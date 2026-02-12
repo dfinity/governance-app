@@ -91,6 +91,7 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
           onChange={handleAmountChange}
           maxAmount={maxStake}
           onMaxSelect={handleMaxSelect}
+          error={!!error}
           approxUsdLabel={approxUsd}
           availableLabel={t(($) => $.stakeWizardModal.steps.amount.available, {
             amount: maxStake.toString(),
