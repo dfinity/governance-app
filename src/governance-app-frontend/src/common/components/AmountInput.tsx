@@ -94,7 +94,7 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
                   {availableLabel}
                 </p>
               )}
-              {showMax && (
+              {nonNullish(maxAmount) && nonNullish(onMaxSelect) && (
                 <Button
                   type="button"
                   variant="ghost"
