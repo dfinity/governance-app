@@ -18,5 +18,7 @@
   "address": "address",
   "suspiciousAddressWarning": "This sender's address appears suspicious. To protect your assets, do not copy or send assets to this address.",
   "addIcp": "Add ICP",
-  "ariaLabel": "Open transactions list"
+  "ariaLabel": "Open transactions list",
+  "newTransaction": "New transaction detected",
+  "newTransactionDescription": "Your balance and transaction history have been updated."
 }
