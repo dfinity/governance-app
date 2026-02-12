@@ -8,7 +8,6 @@ import { toast } from 'sonner';
 
 import { E8Sn } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
-import { ephemeralNotification } from '@utils/notification';
 import { formatNumber } from '@utils/numbers';
 import { QUERY_KEYS } from '@utils/query';
 
@@ -102,7 +101,8 @@ export const useIcpIndexTransactionsPolling = () => {
                 value: amount,
                 sender: truncatedSender,
               }),
-              ...ephemeralNotification,
+              duration: 4000,
+              closeButton: true,
             },
           );
         }
