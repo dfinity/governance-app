@@ -21,17 +21,16 @@ export const requireIdentity = async ({ location }: { location: ParsedLocation }
   if (!identity) {
     console.log('[🔐 Protected Route]: identity not found, redirecting to login page.');
 
-    // Don't show warning if user intentionally logged out
     const isManualLogout = localStorage.getItem(MANUAL_LOGOUT_KEY) === 'true';
-    if (!isManualLogout) {
-      warningNotification({
-        title: i18n.t(($) => $.common.restricted),
-        description: i18n.t(($) => $.common.restrictedPage),
-      });
 
-      // If the user logs out, we don't want to save their last location
-      throw redirect({ to: '/' });
-    }
+    // If the user logs out, we don't want to save their last location
+    // and don't show warning if user intentionally logged out
+    if (isManualLogout) throw redirect({ to: '/' });
+
+    warningNotification({
+      title: i18n.t(($) => $.common.restricted),
+      description: i18n.t(($) => $.common.restrictedPage),
+    });
 
     throw redirect({ to: '/', search: { redirect: location.pathname } });
   }
