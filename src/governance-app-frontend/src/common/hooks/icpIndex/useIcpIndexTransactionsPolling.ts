@@ -1,6 +1,5 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { AnonymousIdentity } from '@icp-sdk/core/agent';
-import { isNullish } from '@dfinity/utils';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useRef } from 'react';
@@ -19,15 +18,7 @@ const NEW_TRANSACTION_TOAST_ID = 'new-transaction-detected';
  * (non-certified) calls to the ICP Index canister and invalidates the
  * certified balance and transaction queries when a change is detected.
  *
- * Why transactions instead of balance:
- * - The ICP Index canister lives on an application subnet, not the NNS subnet.
- * - The ICP Ledger (balance) lives on the NNS subnet, which is critical
- *   shared infrastructure that shouldn't bear polling load.
- * - Polling the Index keeps the NNS subnet free of unnecessary query traffic.
- *
  * Only a single cheap query call is made per interval (maxResults: 1).
- * Certified/update calls are triggered on-demand only when a new
- * transaction is actually detected.
  */
 export const useIcpIndexTransactionsPolling = () => {
   const { t } = useTranslation();
@@ -39,9 +30,10 @@ export const useIcpIndexTransactionsPolling = () => {
     principal: identity?.getPrincipal() || new AnonymousIdentity().getPrincipal(),
   });
 
-  const lastTransactionIdRef = useRef<bigint | undefined>(undefined);
+  // undefined = not yet polled, null = polled but no transactions, bigint = latest tx id.
+  const lastTransactionIdRef = useRef<bigint | null | undefined>(undefined);
 
-  const { data: latestTxId } = useQuery({
+  const { data: latestTxId, isSuccess } = useQuery({
     queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS_POLLING, accountIdentifier.toHex()],
     queryFn: async () => {
       const response = await canister!.getTransactions({
@@ -58,16 +50,17 @@ export const useIcpIndexTransactionsPolling = () => {
   });
 
   useEffect(() => {
-    if (isNullish(latestTxId)) return;
+    if (!isSuccess) return;
 
     const previous = lastTransactionIdRef.current;
-    lastTransactionIdRef.current = latestTxId;
+    const current = latestTxId ?? null;
+    lastTransactionIdRef.current = current;
 
-    // Skip the first read —> we only care about changes.
-    if (isNullish(previous)) return;
+    // First successful poll —> store without triggering notifications.
+    if (previous === undefined) return;
 
-    if (latestTxId !== previous) {
-      // New transaction detected —> invalidate certified balance and transactions.
+    if (current !== previous) {
+      // New transaction detected — invalidate certified balance and transactions.
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE],
       });
@@ -86,5 +79,5 @@ export const useIcpIndexTransactionsPolling = () => {
         },
       );
     }
-  }, [latestTxId, queryClient, t]);
+  }, [latestTxId, isSuccess, queryClient, t]);
 };
