@@ -181,11 +181,7 @@ export function NeuronDetailSummaryView({
           label={t(($) => $.neuronDetailModal.actions.increaseDelay)}
           onClick={() => onNavigate(NeuronDetailView.IncreaseDelay)}
           disabled={isHotkey}
-          disabledReason={
-            isHotkey
-              ? t(($) => $.neuronDetailModal.disabled.hotkeyOnly)
-              : t(($) => $.neuronDetailModal.disabled.maxDelay)
-          }
+          disabledReason={isHotkey ? t(($) => $.neuronDetailModal.disabled.hotkeyOnly) : undefined}
         />
 
         <ActionButton
