@@ -8,6 +8,7 @@ import { Button } from '@components/button';
 import { Card, CardAction, CardContent, CardHeader } from '@components/Card';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
+import { cn } from '@utils/shadcn';
 
 import { currentSummary } from '../constants/executiveSummaryData';
 import type {
@@ -17,10 +18,6 @@ import type {
   TopChange,
   TopChangeIcon,
 } from '../types/executiveSummary';
-
-/* -------------------------------------------------------------------------- */
-/*  Config maps                                                               */
-/* -------------------------------------------------------------------------- */
 
 const outcomeColorMap: Record<OutcomeStatus, string> = {
   approved: 'bg-emerald-800 dark:bg-emerald-400',
@@ -49,10 +46,6 @@ const voteOutcomeConfig: Record<
     iconClassName: 'text-red-500 dark:text-red-400',
   },
 };
-
-/* -------------------------------------------------------------------------- */
-/*  Sub-components                                                            */
-/* -------------------------------------------------------------------------- */
 
 function OutcomePill({
   status,
@@ -104,7 +97,7 @@ function CommunityVoteItem({ vote }: { vote: CommunityVoteHighlight }) {
       <div
         className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full ${bgClassName}`}
       >
-        <Icon className={`size-3 ${iconClassName}`} strokeWidth={3} />
+        <Icon className={cn('size-3', iconClassName)} />
       </div>
       <div className="flex flex-col">
         <p className="text-sm font-medium text-foreground">{vote.title}</p>
@@ -113,10 +106,6 @@ function CommunityVoteItem({ vote }: { vote: CommunityVoteHighlight }) {
     </div>
   );
 }
-
-/* -------------------------------------------------------------------------- */
-/*  Main component                                                            */
-/* -------------------------------------------------------------------------- */
 
 export const ExecutiveSummaryCard = () => {
   const { t } = useTranslation();
@@ -131,7 +120,6 @@ export const ExecutiveSummaryCard = () => {
 
   return (
     <Card>
-      {/* Header — always visible */}
       <CardHeader>
         <div className="flex flex-col gap-2">
           <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
@@ -154,7 +142,6 @@ export const ExecutiveSummaryCard = () => {
         </CardAction>
       </CardHeader>
 
-      {/* Outcome pills — full width */}
       <div className="flex flex-wrap items-center gap-2 px-6">
         {isLoading
           ? Array.from({ length: 3 }, (_, i) => (
