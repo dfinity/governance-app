@@ -44,6 +44,7 @@ function DrawerContent({
   className,
   children,
   onClick,
+  style,
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Content>) {
   return (
@@ -60,10 +61,15 @@ function DrawerContent({
           'data-[vaul-drawer-direction=left]:inset-y-0 data-[vaul-drawer-direction=left]:left-0 data-[vaul-drawer-direction=left]:w-3/4 data-[vaul-drawer-direction=left]:border-r data-[vaul-drawer-direction=left]:sm:max-w-sm',
           // Custom styles
           'px-4',
-          // @TODO: There is a bug when the Vaul has a lot of content.
           'after:h-0!',
           className,
         )}
+        // Override vaul's `touch-action: none` CSS rule (from style.css) which
+        // prevents ALL native touch scrolling inside the drawer. Inline styles
+        // beat external CSS specificity, restoring vertical panning for inner
+        // scroll containers while vaul's pointer-event drag still works for
+        // non-scrollable areas (handle, non-overflowing content).
+        style={{ ...style, touchAction: 'pan-y' }}
         onClick={(e) => {
           e.stopPropagation();
           onClick?.(e);
