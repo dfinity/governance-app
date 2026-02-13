@@ -1,5 +1,5 @@
-import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
+import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { Clock, Key, Lock, PlusCircle, Settings, Unlock, Wrench } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -86,7 +86,6 @@ export function NeuronDetailSummaryView({
       <div className="flex flex-col rounded-lg border bg-muted/30">
         <InfoRow label={t(($) => $.neuron.stakeId)} dataTestId="neuron-detail-stake-id">
           <div className="flex items-center gap-2">
-            <span className="font-semibold">{shortenNeuronId(neuron.neuronId)}</span>
             {isHotkey && (
               <div
                 className="flex items-center gap-1 rounded-sm border border-blue-200 bg-blue-100 px-2 py-0.5 text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
@@ -96,6 +95,7 @@ export function NeuronDetailSummaryView({
                 <span className="text-[11px] font-medium">{t(($) => $.neuron.hotkey)}</span>
               </div>
             )}
+            <span className="font-semibold">{shortenNeuronId(neuron.neuronId)}</span>
             <CopyButton
               value={neuron.neuronId.toString()}
               label={t(($) => $.neuron.stakeId)}
@@ -110,8 +110,8 @@ export function NeuronDetailSummaryView({
 
         <InfoRow label={t(($) => $.neuron.dissolveDelay)} dataTestId="neuron-detail-dissolve-delay">
           <div className="flex items-center gap-2">
-            <span className="font-semibold">{durationText}</span>
             <NeuronStateBadge isDissolved={isDissolved} isDissolving={isDissolving} />
+            <span className="font-semibold">{durationText}</span>
           </div>
         </InfoRow>
 

@@ -1,5 +1,5 @@
-import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
+import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { AlertTriangle, CircleAlert, Coins, Key, PackagePlus } from 'lucide-react';
 import { useState } from 'react';
@@ -90,7 +90,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
               {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
             </p>
             {tickersQuery.isLoading ? (
-              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-5 w-20" />
             ) : (
               usdValue && (
                 <p className="text-sm text-muted-foreground">
@@ -131,7 +131,6 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
             <div className="flex items-center justify-between border-b border-border/50 py-3">
               <p className="text-[13px] text-muted-foreground">{t(($) => $.neuron.stakeId)}</p>
               <div className="flex items-center gap-2">
-                <p className="text-[15px] font-semibold">{shortenNeuronId(neuron.neuronId)}</p>
                 {isHotkey && (
                   <div
                     className="flex items-center gap-1 rounded-sm border border-blue-200 bg-blue-100 px-2 py-0.5 text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
@@ -141,6 +140,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
                     <span className="text-[11px] font-medium">{t(($) => $.neuron.hotkey)}</span>
                   </div>
                 )}
+                <p className="text-[15px] font-semibold">{shortenNeuronId(neuron.neuronId)}</p>
               </div>
             </div>
 
@@ -154,13 +154,13 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
                 {t(($) => $.neuron.dissolveDelay)}
               </p>
               <div className="flex items-center gap-2">
+                <NeuronStateBadge isDissolved={isDissolved} isDissolving={isDissolving} />
                 <p
                   className="text-[15px] font-semibold capitalize"
                   data-testid="neuron-card-dissolve-delay"
                 >
                   {durationText}
                 </p>
-                <NeuronStateBadge isDissolved={isDissolved} isDissolving={isDissolving} />
               </div>
             </div>
 
@@ -213,7 +213,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
         </CardContent>
 
         {/* Disburse buttons */}
-        {(isDissolved || hasUnstakedMaturity) && !isHotkey && (
+        {!isHotkey && (isDissolved || hasUnstakedMaturity) && (
           <CardFooter className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:gap-4">
             {isDissolved && (
               <Button
