@@ -12,6 +12,17 @@
   "forecast": {
     "oneYear": "1y forecast"
   },
+  "executiveSummary": {
+    "title": "Monthly governance overview",
+    "goToVoting": "Go to Voting",
+    "topChanges": "Top changes",
+    "communityVotes": "Highlights from community votes",
+    "outcomes": {
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "failed": "Failed"
+    }
+  },
   "smartTitle": {
     "noAssetsTitle": "Participate in ICP Governance",
     "noAssetsSubtitle": "Stake, vote, earn up to {{value}} per year",
