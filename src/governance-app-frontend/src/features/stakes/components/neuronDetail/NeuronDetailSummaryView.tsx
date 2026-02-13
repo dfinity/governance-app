@@ -1,5 +1,5 @@
-import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
+import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import { Clock, Key, Lock, PlusCircle, Settings, Unlock, Wrench } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -10,6 +10,8 @@ import { Skeleton } from '@components/Skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, ICP_MIN_STAKE_AMOUNT, IS_TESTNET, SECONDS_IN_MONTH } from '@constants/extra';
+import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
+import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
 import { useApyColor } from '@hooks/useApyColor';
 import { bigIntDiv } from '@utils/bigInt';
@@ -24,8 +26,6 @@ import {
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
-import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
-import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { NeuronStateBadge } from '../NeuronStateBadge';
 import { NeuronDetailView } from './types';
 
