@@ -85,8 +85,8 @@ export const TotalAssetsCard = () => {
               data={chartData}
               startAngle={90}
               endAngle={-270}
-              innerRadius="90%"
-              outerRadius="110%"
+              innerRadius="80%"
+              outerRadius="100%"
             >
               <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
               <RadialBar dataKey="value" background cornerRadius={10} />
@@ -97,7 +97,10 @@ export const TotalAssetsCard = () => {
             <div className="pointer-events-auto flex items-center gap-1">
               {stakingRewardsReady ? (
                 <span className="text-2xl font-semibold tracking-wide text-foreground">
-                  {formatPercentage(stakingRewards.stakingRatio)}
+                  {formatPercentage(stakingRewards.stakingRatio, {
+                    minFraction: 0,
+                    maxFraction: 0,
+                  })}
                 </span>
               ) : (
                 <div className="flex items-center justify-center">

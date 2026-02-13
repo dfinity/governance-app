@@ -57,7 +57,7 @@ export function StakedCard() {
 
   return (
     <Card className="h-full min-w-64" data-testid="staked-card">
-      <CardHeader className="flex flex-col gap-[7px]">
+      <CardHeader className="flex flex-col gap-[14px]">
         <div className="flex w-full items-start justify-between space-y-0">
           <div className="flex items-center gap-2">
             <p className="text-sm tracking-wide text-muted-foreground uppercase">
