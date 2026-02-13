@@ -147,7 +147,9 @@ export const ExecutiveSummaryCard = () => {
         </div>
         <CardAction>
           <Button variant="outline" size="sm" asChild>
-            <Link to="/voting">{t(($) => $.home.executiveSummary.goToVoting)}</Link>
+            <Link to="/voting" preload="intent">
+              {t(($) => $.home.executiveSummary.goToVoting)}
+            </Link>
           </Button>
         </CardAction>
       </CardHeader>
