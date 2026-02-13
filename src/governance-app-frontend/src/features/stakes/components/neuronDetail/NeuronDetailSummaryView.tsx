@@ -7,6 +7,7 @@ import { Button } from '@components/button';
 import { CopyButton } from '@components/CopyButton';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { Skeleton } from '@components/Skeleton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
@@ -21,6 +22,7 @@ import {
 } from '@utils/neuron';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 
+import { cn } from '@utils/shadcn';
 import { NeuronStateBadge } from '../NeuronStateBadge';
 import { NeuronDetailView } from './types';
 
@@ -260,13 +262,16 @@ function ActionButton({
   disabledReason,
   className,
 }: ActionButtonProps) {
-  return (
+  const button = (
     <Button
       variant="outline"
-      className={`group flex h-auto flex-col items-center justify-center gap-2 overflow-hidden py-5 ring-0 ring-offset-0 transition-colors duration-200 outline-none hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0 ${className ?? ''}`}
+      className={cn(
+        `group flex h-auto w-full flex-col items-center justify-center gap-2 overflow-hidden py-5 ring-0 ring-offset-0 transition-colors duration-200 outline-none hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0`,
+        className,
+      )}
       onClick={onClick}
       disabled={disabled}
-      title={disabled ? disabledReason : undefined}
+      aria-label={disabled && disabledReason ? `${label}, ${disabledReason}` : undefined}
       data-testid={`neuron-detail-action-${label.toLowerCase().replace(/\s+/g, '-')}`}
     >
       <span className="transition-opacity duration-100 ease-out group-hover:opacity-0 group-focus-visible:opacity-0 group-disabled:group-hover:opacity-100 group-disabled:group-focus-visible:opacity-100">
@@ -279,4 +284,19 @@ function ActionButton({
       </span>
     </Button>
   );
+
+  if (disabled && disabledReason) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className={className ?? ''} tabIndex={0}>
+            {button}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>{disabledReason}</TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return button;
 }
