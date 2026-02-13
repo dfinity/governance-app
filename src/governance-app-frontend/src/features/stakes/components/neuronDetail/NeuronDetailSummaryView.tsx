@@ -262,16 +262,18 @@ function ActionButton({
   disabledReason,
   className,
 }: ActionButtonProps) {
+  const isDisabledWithReason = disabled && nonNullish(disabledReason);
+
   const button = (
     <Button
       variant="outline"
       className={cn(
-        `group flex h-auto w-full flex-col items-center justify-center gap-2 overflow-hidden py-5 ring-0 ring-offset-0 transition-colors duration-200 outline-none hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0`,
+        'group flex h-auto w-full flex-col items-center justify-center gap-2 overflow-hidden py-5 ring-0 ring-offset-0 transition-colors duration-200 outline-none hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0',
         className,
       )}
       onClick={onClick}
       disabled={disabled}
-      aria-label={disabled && disabledReason ? `${label}, ${disabledReason}` : undefined}
+      {...(isDisabledWithReason ? { 'aria-hidden': true, tabIndex: -1 } : {})}
       data-testid={`neuron-detail-action-${label.toLowerCase().replace(/\s+/g, '-')}`}
     >
       <span className="transition-opacity duration-100 ease-out group-hover:opacity-0 group-focus-visible:opacity-0 group-disabled:group-hover:opacity-100 group-disabled:group-focus-visible:opacity-100">
@@ -285,11 +287,20 @@ function ActionButton({
     </Button>
   );
 
-  if (disabled && disabledReason) {
+  if (isDisabledWithReason) {
     return (
       <Tooltip>
         <TooltipTrigger asChild>
-          <span className={className ?? ''} tabIndex={0}>
+          <span
+            role="button"
+            aria-disabled="true"
+            aria-label={`${label}, ${disabledReason}`}
+            tabIndex={0}
+            className={cn(
+              'rounded-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+              className,
+            )}
+          >
             {button}
           </span>
         </TooltipTrigger>

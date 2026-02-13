@@ -21,6 +21,7 @@ import { useAddHotkey } from '@features/stakes/hooks/useAddHotkey';
 import { errorMessage } from '@utils/error';
 import { mapCanisterError } from '@utils/errors';
 import { errorNotification, successNotification } from '@utils/notification';
+import { getPrincipalFromString } from '@utils/principal';
 
 type Props = {
   neuron: NeuronInfo;
@@ -55,8 +56,8 @@ export const AddHotkeyModal = ({ neuron }: Props) => {
     event.preventDefault();
 
     const trimmed = principalId.trim();
-    if (!trimmed) {
-      setValidationError(t(($) => $.devActionsModal.addHotkey.errors.emptyPrincipal));
+    if (!trimmed || !getPrincipalFromString(trimmed)) {
+      setValidationError(t(($) => $.devActionsModal.addHotkey.errors.invalidPrincipal));
       return;
     }
 

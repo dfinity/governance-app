@@ -31,13 +31,13 @@
   },
   "addHotkey": {
     "title": "Add hotkey",
-    "description": "Add a principal as a hotkey to this Stake. Hotkeys can vote, set followees, and refresh voting power, but cannot dissolve, disburse, or modify the Stake.",
+    "description": "Add a principal as a hotkey to this Stake. Hotkeys can vote, set followees, refresh voting power, increase stake, and manage Neurons’ Fund participation, but cannot dissolve or disburse the Stake.",
     "principalLabel": "Principal ID",
     "confirm": "Confirm",
     "confirming": "Adding hotkey...",
     "success": "Hotkey added successfully.",
     "errors": {
-      "emptyPrincipal": "Please enter a principal ID.",
+      "invalidPrincipal": "Please enter a valid principal ID.",
       "failed": "Failed to add hotkey. Please try again."
     }
   },
