@@ -1,5 +1,9 @@
 import { nowInBigIntNanoSeconds } from '@dfinity/utils';
-import { AccountIdentifier, isIcpAccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
+import {
+  AccountIdentifier,
+  isIcpAccountIdentifier,
+  TxTooOldError,
+} from '@icp-sdk/canisters/ledger/icp';
 import { useMutation } from '@tanstack/react-query';
 import { AlertTriangle, Send } from 'lucide-react';
 import React, { FormEvent, useRef, useState } from 'react';
@@ -83,6 +87,11 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
       createdAtRef.current = null;
     },
     onError: (error) => {
+      // If the ledger rejects with TooOld, the stored createdAt has expired beyond
+      // the dedup window. Reset it so the next attempt generates a fresh timestamp.
+      if (error instanceof TxTooOldError) {
+        createdAtRef.current = null;
+      }
       errorNotification({
         description: mapCanisterError(error),
       });
