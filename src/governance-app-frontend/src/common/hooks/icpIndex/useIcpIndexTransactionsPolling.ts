@@ -46,12 +46,13 @@ export const useIcpIndexTransactionsPolling = () => {
   const accountIdentifier = AccountIdentifier.fromPrincipal({
     principal: identity?.getPrincipal() || new AnonymousIdentity().getPrincipal(),
   });
+  const accountId = accountIdentifier.toHex();
 
   // undefined = not yet polled, null = polled but no transactions, bigint = latest tx id.
   const lastTransactionIdRef = useRef<bigint | null | undefined>(undefined);
 
   const { data: latestTransaction, isSuccess } = useQuery({
-    queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS_POLLING, accountIdentifier],
+    queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS_POLLING, accountId],
     queryFn: async () => {
       const response = await canister!.getTransactions({
         maxResults: BigInt(1),
@@ -88,7 +89,6 @@ export const useIcpIndexTransactionsPolling = () => {
 
       if (latestTransaction) {
         const { operation } = latestTransaction.transaction;
-        const accountId = accountIdentifier.toHex();
         const amount = formatTransferAmount(operation);
 
         if (amount && isReceivedTransfer(operation, accountId)) {
@@ -109,5 +109,12 @@ export const useIcpIndexTransactionsPolling = () => {
         }
       }
     }
-  }, [latestTransaction, isSuccess, queryClient, t, accountIdentifier]);
+  }, [latestTransaction, isSuccess, queryClient, t, accountId]);
+
+  useEffect(() => {
+    // When the account identifier changes (e.g., user switches identity),
+    // reset the last seen transaction id so the first poll for the new
+    // account is treated as an initial baseline, not a change.
+    lastTransactionIdRef.current = undefined;
+  }, [accountId]);
 };
