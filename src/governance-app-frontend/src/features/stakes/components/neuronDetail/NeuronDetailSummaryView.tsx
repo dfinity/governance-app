@@ -171,12 +171,7 @@ export function NeuronDetailSummaryView({
           icon={<PlusCircle className="size-8" />}
           label={t(($) => $.neuronDetailModal.actions.increaseStake)}
           onClick={() => onNavigate(NeuronDetailView.IncreaseStake)}
-          disabled={isHotkey}
-          disabledReason={
-            isHotkey
-              ? t(($) => $.neuronDetailModal.disabled.hotkeyOnly)
-              : t(($) => $.neuronDetailModal.disabled.noBalance)
-          }
+          disabledReason={t(($) => $.neuronDetailModal.disabled.noBalance)}
         />
 
         <ActionButton

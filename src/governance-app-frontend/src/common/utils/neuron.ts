@@ -194,8 +194,11 @@ export const getNeuronHasNoFollowing = (neuron: NeuronInfo): boolean => {
 
 /**
  * Returns true if the current user is a hotkey of the neuron (and not the controller).
- * Hotkeys have limited permissions: they can only vote, set followees,
- * refresh voting power, and manage Neurons' Fund participation.
+ * Hotkeys have limited permissions: they can vote, set followees,
+ * refresh voting power, increase stake, and manage Neurons' Fund participation.
+ * Everything else (dissolving, disbursing, maturity management, splitting,
+ * merging, changing dissolve delay, toggling auto-stake, managing hotkeys,
+ * and changing visibility) is controller-only.
  */
 export const isUserHotkey = ({
   neuron,
