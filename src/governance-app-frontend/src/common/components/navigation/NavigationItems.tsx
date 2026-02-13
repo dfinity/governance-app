@@ -1,8 +1,8 @@
 import { LayoutDashboard, Network, User, Vote } from 'lucide-react';
 
-import { FileRoutesByFullPath } from '@/routeTree.gen';
+import { FileRoutesByTo } from '@/routeTree.gen';
 
-type AuthRoutePaths = Exclude<keyof FileRoutesByFullPath, '/'>;
+type AuthRoutePaths = Exclude<keyof FileRoutesByTo, '/'>;
 
 export interface NavigationItem {
   label: string;
