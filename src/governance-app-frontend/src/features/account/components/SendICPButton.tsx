@@ -71,8 +71,6 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
       setIsPending(true);
     },
     onSuccess: async () => {
-      // Reset createdAt only after the transfer succeeds
-      createdAtRef.current = null;
       // Wait 2 seconds to allow the backend to process the transaction.
       await delay(ICP_TRANSACTION_PROPAGATION_DELAY_MS);
       setToAccount('');
@@ -82,6 +80,7 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
       });
       setIsPending(false);
       setOpen(false);
+      createdAtRef.current = null;
     },
     onError: (error) => {
       errorNotification({
