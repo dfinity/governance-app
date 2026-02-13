@@ -1,4 +1,5 @@
 import { AccountIdentifier, isIcpAccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
+import { nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useMutation } from '@tanstack/react-query';
 import { AlertTriangle, Send } from 'lucide-react';
 import React, { FormEvent, useRef, useState } from 'react';
@@ -51,16 +52,27 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
   const [isPending, setIsPending] = useState(false);
   const amountInputRef = useRef<HTMLInputElement>(null);
 
+  // Keep the createdAt value for retry purposes (used for deduplication at the ledger level)
+  const createdAtRef = useRef<bigint | null>(null);
+
   const transferMutation = useMutation({
-    mutationFn: () =>
-      ledgerCanister!.transfer({
+    mutationFn: () => {
+      // Use stored createdAt for retry deduplication, or generate a new one
+      const createdAt = createdAtRef.current ?? nowInBigIntNanoSeconds();
+      createdAtRef.current = createdAt;
+
+      return ledgerCanister!.transfer({
         to: AccountIdentifier.fromHex(toAccount),
         amount: bigIntMul(E8Sn, Number(amount)),
-      }),
+        createdAt,
+      });
+    },
     onMutate: () => {
       setIsPending(true);
     },
     onSuccess: async () => {
+      // Reset createdAt only after the transfer succeeds
+      createdAtRef.current = null;
       // Wait 2 seconds to allow the backend to process the transaction.
       await delay(ICP_TRANSACTION_PROPAGATION_DELAY_MS);
       setToAccount('');
