@@ -1,6 +1,7 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { useTranslation } from 'react-i18next';
 
+import { AddHotkeyModal } from '@/dev/AddHotkeyModal';
 import { IncreaseMaturityModal } from '@/dev/IncreaseMaturityModal';
 import { CreateDummyProposalsButton } from '@/dev/makeDummyProposals';
 import { UnlockNeuronModal } from '@/dev/UnlockNeuronModal';
@@ -20,6 +21,7 @@ export function NeuronDetailDevActionsView({ neuron }: Props) {
         <IncreaseMaturityModal neuron={neuron} />
         <UnlockNeuronModal neuron={neuron} />
         <CreateDummyProposalsButton neuron={neuron} />
+        <AddHotkeyModal neuron={neuron} />
       </div>
     </div>
   );

@@ -29,6 +29,18 @@
       "partial": "Only {{success}} of {{total}} proposals were created."
     }
   },
+  "addHotkey": {
+    "title": "Add hotkey",
+    "description": "Add a principal as a hotkey to this Stake. Hotkeys can vote, set followees, and refresh voting power, but cannot dissolve, disburse, or modify the Stake.",
+    "principalLabel": "Principal ID",
+    "confirm": "Confirm",
+    "confirming": "Adding hotkey...",
+    "success": "Hotkey added successfully.",
+    "errors": {
+      "emptyPrincipal": "Please enter a principal ID.",
+      "failed": "Failed to add hotkey. Please try again."
+    }
+  },
   "common": {
     "close": "Close"
   }
