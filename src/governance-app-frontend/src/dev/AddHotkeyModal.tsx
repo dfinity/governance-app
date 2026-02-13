@@ -3,6 +3,8 @@ import { AlertTriangle, Loader2 } from 'lucide-react';
 import { FormEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useAddHotkey } from '@features/stakes/hooks/useAddHotkey';
+
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
@@ -17,7 +19,6 @@ import {
   ResponsiveDialogTrigger,
 } from '@components/ResponsiveDialog';
 import { IS_TESTNET } from '@constants/extra';
-import { useAddHotkey } from '@features/stakes/hooks/useAddHotkey';
 import { errorMessage } from '@utils/error';
 import { mapCanisterError } from '@utils/errors';
 import { errorNotification, successNotification } from '@utils/notification';

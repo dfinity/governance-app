@@ -1,5 +1,5 @@
-import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
+import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import { Clock, Key, Lock, PlusCircle, Settings, Unlock, Wrench } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -21,8 +21,8 @@ import {
   shortenNeuronId,
 } from '@utils/neuron';
 import { formatNumber, formatPercentage } from '@utils/numbers';
-
 import { cn } from '@utils/shadcn';
+
 import { NeuronStateBadge } from '../NeuronStateBadge';
 import { NeuronDetailView } from './types';
 

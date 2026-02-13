@@ -8,7 +8,8 @@ import { Principal } from '@icp-sdk/core/principal';
 export const getPrincipalFromString = (address: string): Principal | undefined => {
   try {
     return Principal.fromText(address);
-  } catch (_) {
+  } catch (e) {
+    console.log(e);
     return undefined;
   }
 };

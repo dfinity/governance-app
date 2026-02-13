@@ -1,5 +1,5 @@
-import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
+import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { AlertTriangle, CircleAlert, Coins, Key, PackagePlus } from 'lucide-react';
 import { useState } from 'react';
