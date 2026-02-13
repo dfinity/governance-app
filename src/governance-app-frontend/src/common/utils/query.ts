@@ -20,6 +20,7 @@ const NNS_GOVERNANCE = {
 
 const ICP_INDEX = {
   TRANSACTIONS: 'icpIndexTransactions',
+  TRANSACTIONS_POLLING: 'icpIndexTransactionsPolling',
 };
 
 const EXTERNAL_SERVICES = {
