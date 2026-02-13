@@ -1,9 +1,9 @@
-import { nowInBigIntNanoSeconds } from '@dfinity/utils';
 import {
   AccountIdentifier,
   isIcpAccountIdentifier,
   TxTooOldError,
 } from '@icp-sdk/canisters/ledger/icp';
+import { nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useMutation } from '@tanstack/react-query';
 import { AlertTriangle, Send } from 'lucide-react';
 import React, { FormEvent, useRef, useState } from 'react';
