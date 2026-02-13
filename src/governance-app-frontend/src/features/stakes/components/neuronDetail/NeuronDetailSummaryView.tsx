@@ -1,6 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
-import { Clock, Lock, PlusCircle, Settings, Unlock, Wrench } from 'lucide-react';
+import { Clock, Key, Lock, PlusCircle, Settings, Unlock, Wrench } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
@@ -31,6 +31,7 @@ type Props = {
   isDissolved: boolean;
   isDissolving: boolean;
   isAutoStake: boolean;
+  isHotkey: boolean;
   onNavigate: (view: NeuronDetailView) => void;
 };
 
@@ -41,6 +42,7 @@ export function NeuronDetailSummaryView({
   isDissolved,
   isDissolving,
   isAutoStake,
+  isHotkey,
   onNavigate,
 }: Props) {
   const { t } = useTranslation();
@@ -85,6 +87,15 @@ export function NeuronDetailSummaryView({
         <InfoRow label={t(($) => $.neuron.stakeId)} dataTestId="neuron-detail-stake-id">
           <div className="flex items-center gap-2">
             <span className="font-semibold">{shortenNeuronId(neuron.neuronId)}</span>
+            {isHotkey && (
+              <div
+                className="flex items-center gap-1 rounded-sm border border-blue-200 bg-blue-100 px-2 py-0.5 text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+                data-testid="neuron-hotkey-badge"
+              >
+                <Key className="size-3" aria-hidden="true" />
+                <span className="text-[11px] font-medium">{t(($) => $.neuron.hotkey)}</span>
+              </div>
+            )}
             <CopyButton
               value={neuron.neuronId.toString()}
               label={t(($) => $.neuron.stakeId)}
@@ -160,20 +171,32 @@ export function NeuronDetailSummaryView({
           icon={<PlusCircle className="size-8" />}
           label={t(($) => $.neuronDetailModal.actions.increaseStake)}
           onClick={() => onNavigate(NeuronDetailView.IncreaseStake)}
-          disabledReason={t(($) => $.neuronDetailModal.disabled.noBalance)}
+          disabled={isHotkey}
+          disabledReason={
+            isHotkey
+              ? t(($) => $.neuronDetailModal.disabled.hotkeyOnly)
+              : t(($) => $.neuronDetailModal.disabled.noBalance)
+          }
         />
 
         <ActionButton
           icon={<Clock className="size-8" />}
           label={t(($) => $.neuronDetailModal.actions.increaseDelay)}
           onClick={() => onNavigate(NeuronDetailView.IncreaseDelay)}
-          disabledReason={t(($) => $.neuronDetailModal.disabled.maxDelay)}
+          disabled={isHotkey}
+          disabledReason={
+            isHotkey
+              ? t(($) => $.neuronDetailModal.disabled.hotkeyOnly)
+              : t(($) => $.neuronDetailModal.disabled.maxDelay)
+          }
         />
 
         <ActionButton
           icon={<Settings className="size-8" />}
           label={t(($) => $.neuronDetailModal.actions.maturityMode)}
           onClick={() => onNavigate(NeuronDetailView.MaturityMode)}
+          disabled={isHotkey}
+          disabledReason={isHotkey ? t(($) => $.neuronDetailModal.disabled.hotkeyOnly) : undefined}
         />
 
         <ActionButton
@@ -184,6 +207,8 @@ export function NeuronDetailSummaryView({
               : t(($) => $.neuronDetailModal.actions.startDissolving)
           }
           onClick={() => onNavigate(NeuronDetailView.Dissolve)}
+          disabled={isHotkey}
+          disabledReason={isHotkey ? t(($) => $.neuronDetailModal.disabled.hotkeyOnly) : undefined}
         />
 
         {IS_TESTNET && (
@@ -191,6 +216,10 @@ export function NeuronDetailSummaryView({
             icon={<Wrench className="size-8" />}
             label={t(($) => $.neuronDetailModal.actions.devActions)}
             onClick={() => onNavigate(NeuronDetailView.DevActions)}
+            disabled={isHotkey}
+            disabledReason={
+              isHotkey ? t(($) => $.neuronDetailModal.disabled.hotkeyOnly) : undefined
+            }
             className="col-span-2"
           />
         )}

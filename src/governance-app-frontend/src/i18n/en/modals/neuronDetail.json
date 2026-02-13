@@ -106,7 +106,8 @@
   },
   "disabled": {
     "noBalance": "No ICP available to stake",
-    "maxDelay": "Already at maximum delay"
+    "maxDelay": "Already at maximum delay",
+    "hotkeyOnly": "This action is only available for the stake controller"
   },
   "devActions": {
     "title": "Dev actions"

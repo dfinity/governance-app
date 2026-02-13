@@ -193,6 +193,25 @@ export const getNeuronHasNoFollowing = (neuron: NeuronInfo): boolean => {
 };
 
 /**
+ * Returns true if the current user is a hotkey of the neuron (and not the controller).
+ * Hotkeys have limited permissions: they can only vote, set followees,
+ * refresh voting power, and manage Neurons' Fund participation.
+ */
+export const isUserHotkey = ({
+  neuron,
+  principalId,
+}: {
+  neuron: NeuronInfo;
+  principalId?: string | null;
+}): boolean => {
+  if (!principalId || !neuron.fullNeuron) return false;
+  return (
+    neuron.fullNeuron.hotKeys.some((hotkey) => hotkey === principalId) &&
+    neuron.fullNeuron.controller !== principalId
+  );
+};
+
+/**
  * Aggregates staking data from multiple neurons.
  * @param neurons - Array of neurons to aggregate data from
  * @returns Object containing totalStakedAfterFees and totalUnstakedMaturity
