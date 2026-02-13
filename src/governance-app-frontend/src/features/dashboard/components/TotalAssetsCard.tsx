@@ -85,8 +85,8 @@ export const TotalAssetsCard = () => {
               data={chartData}
               startAngle={90}
               endAngle={-270}
-              innerRadius="90%"
-              outerRadius="110%"
+              innerRadius="80%"
+              outerRadius="100%"
             >
               <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
               <RadialBar dataKey="value" background cornerRadius={10} />
