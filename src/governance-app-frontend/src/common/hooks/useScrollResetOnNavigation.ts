@@ -1,20 +1,28 @@
-import { useLocation } from '@tanstack/react-router';
-import { useEffect, useRef } from 'react';
+import { useRouterState } from '@tanstack/react-router';
+import { useLayoutEffect, useRef } from 'react';
 
 /**
  * Resets the scroll position of the main element when the page changes.
  * Query params and hash/fragment changes are ignored, since we are in the same page.
  * Replaces the scrollRestoration prop from TanStack Router, because it didn't work consistently:
  * sometimes didn't reset the scroll position on page change.
+ *
+ * Uses `resolvedLocation` instead of `location` so the scroll only resets after
+ * navigation fully resolves (loaders + component ready), preventing the old page
+ * from visibly scrolling to top before the new content appears.
+ *
+ * Uses useLayoutEffect so the scroll resets synchronously before the browser paints.
  */
 export const useScrollResetOnNavigation = () => {
-  const { pathname } = useLocation();
-  const previousPathname = useRef(pathname);
+  const resolvedPathname = useRouterState({
+    select: (s) => s.resolvedLocation?.pathname,
+  });
+  const previousPathname = useRef(resolvedPathname);
 
-  useEffect(() => {
-    if (previousPathname.current !== pathname) {
-      document.querySelector('main')?.scrollTo({ top: 0, left: 0 });
-      previousPathname.current = pathname;
+  useLayoutEffect(() => {
+    if (previousPathname.current !== resolvedPathname) {
+      document.querySelector('main')?.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      previousPathname.current = resolvedPathname;
     }
-  }, [pathname]);
+  }, [resolvedPathname]);
 };
