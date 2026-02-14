@@ -21,7 +21,7 @@ export const useScrollResetOnNavigation = () => {
 
   useLayoutEffect(() => {
     if (previousPathname.current !== resolvedPathname) {
-      document.querySelector('main')?.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.querySelector('main')?.scrollTo({ top: 0, left: 0 });
       previousPathname.current = resolvedPathname;
     }
   }, [resolvedPathname]);
