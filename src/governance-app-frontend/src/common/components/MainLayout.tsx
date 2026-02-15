@@ -14,7 +14,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
   // bypasses CSS viewport units entirely — it queries the actual viewport at
   // call time — and the resize listener keeps it in sync.
   useEffect(() => {
-    let rafId: number;
+    let rafId = 0;
     const updateHeight = () => {
       cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
