@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useRef } from 'react';
 
 import { WelcomeModal } from '@features/onboarding/WelcomeModal';
 
@@ -6,8 +6,31 @@ import { BottomNav } from '@components/navigation/BottomNav';
 import { Sidebar } from '@components/navigation/Sidebar';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
+  const layoutRef = useRef<HTMLDivElement>(null);
+
+  // iOS standalone PWA: CSS viewport units (dvh) and fixed positioning can
+  // report incorrect dimensions during the PWA launch animation, causing the
+  // layout to be mis-sized until the user interacts. Using window.innerHeight
+  // bypasses CSS viewport units entirely — it queries the actual viewport at
+  // call time — and the resize listener keeps it in sync.
+  useEffect(() => {
+    let rafId = 0;
+    const updateHeight = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        layoutRef.current?.style.setProperty('height', `${window.innerHeight}px`);
+      });
+    };
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', updateHeight);
+    };
+  }, []);
+
   return (
-    <div className="fixed inset-0 flex w-full bg-background" data-testid="main-layout">
+    <div ref={layoutRef} className="flex h-dvh w-full bg-background" data-testid="main-layout">
       <WelcomeModal />
       <Sidebar />
       <div className="flex h-full w-full flex-col overflow-hidden">
