@@ -7,6 +7,7 @@ import { Button } from '@components/button';
 import { CopyButton } from '@components/CopyButton';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { Skeleton } from '@components/Skeleton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
@@ -88,13 +89,18 @@ export function NeuronDetailSummaryView({
         <InfoRow label={t(($) => $.neuron.stakeId)} dataTestId="neuron-detail-stake-id">
           <div className="flex items-center gap-2">
             {isHotkey && (
-              <div
-                className="flex items-center gap-1 rounded-sm border border-blue-200 bg-blue-100 px-2 py-0.5 text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
-                data-testid="neuron-hotkey-badge"
-              >
-                <Key className="size-3" aria-hidden="true" />
-                <span className="text-[11px] font-medium">{t(($) => $.neuron.hotkey)}</span>
-              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    className="flex cursor-help items-center gap-1 rounded-sm border border-blue-200 bg-blue-100 px-2 py-0.5 text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+                    data-testid="neuron-hotkey-badge"
+                  >
+                    <Key className="size-3" aria-hidden="true" />
+                    <span className="text-[11px] font-medium">{t(($) => $.neuron.hotkey)}</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>{t(($) => $.neuron.hotkeyTooltip)}</TooltipContent>
+              </Tooltip>
             )}
             <span className="font-semibold">{shortenNeuronId(neuron.neuronId)}</span>
             <CopyButton
