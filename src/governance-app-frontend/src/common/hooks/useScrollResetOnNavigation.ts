@@ -1,4 +1,3 @@
-import { isNullish } from '@dfinity/utils';
 import { useRouterState } from '@tanstack/react-router';
 import { useLayoutEffect, useRef } from 'react';
 
@@ -21,13 +20,6 @@ export const useScrollResetOnNavigation = () => {
   const previousPathname = useRef(resolvedPathname);
 
   useLayoutEffect(() => {
-    // Skip the initial resolution (undefined → first path) to avoid
-    // an unintended scroll reset when the page first loads.
-    if (isNullish(previousPathname.current)) {
-      previousPathname.current = resolvedPathname;
-      return;
-    }
-
     if (previousPathname.current !== resolvedPathname) {
       document.querySelector('main')?.scrollTo({ top: 0, left: 0 });
       previousPathname.current = resolvedPathname;
