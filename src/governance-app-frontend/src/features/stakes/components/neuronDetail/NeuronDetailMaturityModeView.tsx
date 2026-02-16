@@ -1,5 +1,5 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { Info, Loader2 } from 'lucide-react';
+import { Info, Key, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
@@ -15,11 +15,12 @@ import { useToggleMaturityMode } from '../../hooks/useToggleMaturityMode';
 
 type Props = {
   neuron: NeuronInfo;
+  isHotkey: boolean;
   onSuccess: () => void;
   onProcessingChange: (isProcessing: boolean) => void;
 };
 
-export function NeuronDetailMaturityModeView({ neuron, onSuccess, onProcessingChange }: Props) {
+export function NeuronDetailMaturityModeView({ neuron, isHotkey, onSuccess, onProcessingChange }: Props) {
   const { t } = useTranslation();
 
   const currentMode: SegmentedToggleValue = getNeuronIsAutoStakingMaturity(neuron)
@@ -68,6 +69,15 @@ export function NeuronDetailMaturityModeView({ neuron, onSuccess, onProcessingCh
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {isHotkey && (
+        <Alert className="border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900/50 dark:bg-blue-900/20 dark:text-blue-200 [&>svg]:text-blue-600 dark:[&>svg]:text-blue-400">
+          <Key className="h-4 w-4" />
+          <AlertDescription className="text-blue-700 dark:text-blue-300">
+            {t(($) => $.neuronDetailModal.hotkeyNotice)}
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Alert className="border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900/50 dark:bg-blue-900/20 dark:text-blue-200 [&>svg]:text-blue-600 dark:[&>svg]:text-blue-400">
         <Info className="h-4 w-4" />
         <AlertDescription className="text-blue-700 dark:text-blue-300">
@@ -89,7 +99,7 @@ export function NeuronDetailMaturityModeView({ neuron, onSuccess, onProcessingCh
 
       <SegmentedToggle
         value={selectedMode}
-        onValueChange={(v) => !isPending && setSelectedMode(v)}
+        onValueChange={(v) => !isPending && !isHotkey && setSelectedMode(v)}
         leftLabel={t(($) => $.neuronDetailModal.maturityMode.autoStake)}
         rightLabel={t(($) => $.neuronDetailModal.maturityMode.keepLiquid)}
         highlightedValue="left"
@@ -107,7 +117,7 @@ export function NeuronDetailMaturityModeView({ neuron, onSuccess, onProcessingCh
         type="submit"
         size="xl"
         className="w-full"
-        disabled={isPending || !hasChanges}
+        disabled={isPending || !hasChanges || isHotkey}
         data-testid="maturity-mode-confirm-btn"
       >
         {isPending ? (

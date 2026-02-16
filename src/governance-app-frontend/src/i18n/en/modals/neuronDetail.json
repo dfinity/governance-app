@@ -106,9 +106,9 @@
   },
   "disabled": {
     "noBalance": "No ICP available to stake",
-    "maxDelay": "Already at maximum delay",
-    "hotkeyOnly": "This action is only available for the stake controller"
+    "maxDelay": "Already at maximum delay"
   },
+  "hotkeyNotice": "As a hotkey, you can view this setting but only the stake controller can make changes.",
   "devActions": {
     "title": "Dev actions"
   },

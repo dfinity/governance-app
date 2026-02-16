@@ -165,6 +165,7 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
             {displayView === NeuronDetailView.IncreaseDelay && (
               <NeuronDetailIncreaseDelayView
                 neuron={displayNeuron}
+                isHotkey={isHotkey}
                 onSuccess={goBack}
                 onProcessingChange={setIsProcessing}
               />
@@ -173,6 +174,7 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
             {displayView === NeuronDetailView.MaturityMode && (
               <NeuronDetailMaturityModeView
                 neuron={displayNeuron}
+                isHotkey={isHotkey}
                 onSuccess={goBack}
                 onProcessingChange={setIsProcessing}
               />
@@ -183,13 +185,14 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
                 neuron={displayNeuron}
                 isDissolved={isDissolved}
                 isDissolving={isDissolving}
+                isHotkey={isHotkey}
                 onSuccess={goBack}
                 onProcessingChange={setIsProcessing}
               />
             )}
 
             {IS_TESTNET && displayView === NeuronDetailView.DevActions && (
-              <NeuronDetailDevActionsView neuron={displayNeuron} />
+              <NeuronDetailDevActionsView neuron={displayNeuron} isHotkey={isHotkey} />
             )}
           </div>
         </ResponsiveDialogContent>

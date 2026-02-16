@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { MaxRewardsBadge } from '@components/MaxRewardsBadge';
+import { Key } from 'lucide-react';
 import { SECONDS_IN_MONTH } from '@constants/extra';
 import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { mapCanisterError } from '@utils/errors';
@@ -18,11 +19,12 @@ import { StakingWizardDissolveDelayPreset } from '../stakingWizard/types';
 
 type Props = {
   neuron: NeuronInfo;
+  isHotkey: boolean;
   onSuccess: () => void;
   onProcessingChange: (isProcessing: boolean) => void;
 };
 
-export function NeuronDetailIncreaseDelayView({ neuron, onSuccess, onProcessingChange }: Props) {
+export function NeuronDetailIncreaseDelayView({ neuron, isHotkey, onSuccess, onProcessingChange }: Props) {
   const { t } = useTranslation();
   const [selectedMonths, setSelectedMonths] = useState<number | null>(null);
 
@@ -77,6 +79,15 @@ export function NeuronDetailIncreaseDelayView({ neuron, onSuccess, onProcessingC
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {isHotkey && (
+        <Alert className="border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900/50 dark:bg-blue-900/20 dark:text-blue-200 [&>svg]:text-blue-600 dark:[&>svg]:text-blue-400">
+          <Key className="h-4 w-4" />
+          <AlertDescription className="text-blue-700 dark:text-blue-300">
+            {t(($) => $.neuronDetailModal.hotkeyNotice)}
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Alert variant="warning">
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>{t(($) => $.neuronDetailModal.increaseDelay.warning)}</AlertDescription>
@@ -92,8 +103,8 @@ export function NeuronDetailIncreaseDelayView({ neuron, onSuccess, onProcessingC
               <button
                 type="button"
                 key={option.value}
-                onClick={() => !isDisabled && setSelectedMonths(option.value)}
-                disabled={isDisabled || isPending}
+                onClick={() => !isDisabled && !isHotkey && setSelectedMonths(option.value)}
+                disabled={isDisabled || isPending || isHotkey}
                 className={`rounded-lg border-2 px-4 py-4 text-center font-medium transition-colors outline-none focus-visible:bg-muted/70 active:bg-muted ${
                   isSelected
                     ? 'border-primary bg-primary/5'
@@ -118,8 +129,8 @@ export function NeuronDetailIncreaseDelayView({ neuron, onSuccess, onProcessingC
           return (
             <button
               type="button"
-              onClick={() => !isDisabled && setSelectedMonths(maxRewardsOption.value)}
-              disabled={isDisabled || isPending}
+              onClick={() => !isDisabled && !isHotkey && setSelectedMonths(maxRewardsOption.value)}
+              disabled={isDisabled || isPending || isHotkey}
               className={`w-full rounded-lg border-2 px-4 py-4 text-center transition-colors outline-none ${
                 isSelected
                   ? 'border-green-600 bg-gradient-to-br from-green-600/12 to-green-600/4'
@@ -153,7 +164,7 @@ export function NeuronDetailIncreaseDelayView({ neuron, onSuccess, onProcessingC
         type="submit"
         size="xl"
         className="w-full"
-        disabled={isPending || !selectedMonths}
+        disabled={isPending || !selectedMonths || isHotkey}
         data-testid="increase-delay-confirm-btn"
       >
         {isPending ? (

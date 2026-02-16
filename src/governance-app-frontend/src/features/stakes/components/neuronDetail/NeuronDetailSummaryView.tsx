@@ -1,5 +1,5 @@
-import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
+import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { Clock, Key, Lock, PlusCircle, Settings, Unlock, Wrench } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -7,7 +7,6 @@ import { Button } from '@components/button';
 import { CopyButton } from '@components/CopyButton';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { Skeleton } from '@components/Skeleton';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, ICP_MIN_STAKE_AMOUNT, IS_TESTNET, SECONDS_IN_MONTH } from '@constants/extra';
 import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
@@ -184,30 +183,18 @@ export function NeuronDetailSummaryView({
           icon={<PlusCircle className="size-8" />}
           label={t(($) => $.neuronDetailModal.actions.increaseStake)}
           onClick={() => onNavigate(NeuronDetailView.IncreaseStake)}
-          disabled={!hasBalance}
-          disabledReason={t(($) => $.neuronDetailModal.disabled.noBalance)}
         />
 
         <ActionButton
           icon={<Clock className="size-8" />}
           label={t(($) => $.neuronDetailModal.actions.increaseDelay)}
           onClick={() => onNavigate(NeuronDetailView.IncreaseDelay)}
-          disabled={isHotkey || isMaxDelay}
-          disabledReason={
-            isHotkey
-              ? t(($) => $.neuronDetailModal.disabled.hotkeyOnly)
-              : isMaxDelay
-                ? t(($) => $.neuronDetailModal.disabled.maxDelay)
-                : undefined
-          }
         />
 
         <ActionButton
           icon={<Settings className="size-8" />}
           label={t(($) => $.neuronDetailModal.actions.maturityMode)}
           onClick={() => onNavigate(NeuronDetailView.MaturityMode)}
-          disabled={isHotkey}
-          disabledReason={isHotkey ? t(($) => $.neuronDetailModal.disabled.hotkeyOnly) : undefined}
         />
 
         <ActionButton
@@ -218,8 +205,6 @@ export function NeuronDetailSummaryView({
               : t(($) => $.neuronDetailModal.actions.startDissolving)
           }
           onClick={() => onNavigate(NeuronDetailView.Dissolve)}
-          disabled={isHotkey}
-          disabledReason={isHotkey ? t(($) => $.neuronDetailModal.disabled.hotkeyOnly) : undefined}
         />
 
         {IS_TESTNET && (
@@ -227,10 +212,6 @@ export function NeuronDetailSummaryView({
             icon={<Wrench className="size-8" />}
             label={t(($) => $.neuronDetailModal.actions.devActions)}
             onClick={() => onNavigate(NeuronDetailView.DevActions)}
-            disabled={isHotkey}
-            disabledReason={
-              isHotkey ? t(($) => $.neuronDetailModal.disabled.hotkeyOnly) : undefined
-            }
             className="col-span-2"
           />
         )}
@@ -263,31 +244,18 @@ type ActionButtonProps = {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
-  disabled?: boolean;
-  disabledReason?: string;
   className?: string;
 };
 
-function ActionButton({
-  icon,
-  label,
-  onClick,
-  disabled = false,
-  disabledReason,
-  className,
-}: ActionButtonProps) {
-  const isDisabledWithReason = disabled && nonNullish(disabledReason);
-
-  const button = (
+function ActionButton({ icon, label, onClick, className }: ActionButtonProps) {
+  return (
     <Button
       variant="outline"
       className={cn(
-        'group flex h-auto w-full flex-col items-center justify-center gap-2 overflow-hidden py-5 ring-0 ring-offset-0 transition-colors duration-200 outline-none hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0',
+        'group flex h-auto flex-col items-center justify-center gap-2 overflow-hidden py-5 ring-0 ring-offset-0 transition-colors duration-200 outline-none hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0',
         className,
       )}
       onClick={onClick}
-      disabled={disabled}
-      {...(isDisabledWithReason ? { 'aria-hidden': true, tabIndex: -1 } : {})}
       data-testid={`neuron-detail-action-${label.toLowerCase().replace(/\s+/g, '-')}`}
     >
       <span className="transition-opacity duration-100 ease-out group-hover:opacity-0 group-focus-visible:opacity-0 group-disabled:group-hover:opacity-100 group-disabled:group-focus-visible:opacity-100">
@@ -300,28 +268,4 @@ function ActionButton({
       </span>
     </Button>
   );
-
-  if (isDisabledWithReason) {
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span
-            role="button"
-            aria-disabled="true"
-            aria-label={`${label}, ${disabledReason}`}
-            tabIndex={0}
-            className={cn(
-              'rounded-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
-              className,
-            )}
-          >
-            {button}
-          </span>
-        </TooltipTrigger>
-        <TooltipContent>{disabledReason}</TooltipContent>
-      </Tooltip>
-    );
-  }
-
-  return button;
 }
