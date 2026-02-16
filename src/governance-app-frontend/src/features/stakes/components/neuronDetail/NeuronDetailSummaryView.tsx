@@ -1,12 +1,13 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
-import { Clock, Lock, PlusCircle, Settings, Unlock, Wrench } from 'lucide-react';
+import { Clock, Key, Lock, PlusCircle, Settings, Unlock, Wrench } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { CopyButton } from '@components/CopyButton';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { Skeleton } from '@components/Skeleton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
@@ -20,6 +21,7 @@ import {
   shortenNeuronId,
 } from '@utils/neuron';
 import { formatNumber, formatPercentage } from '@utils/numbers';
+import { cn } from '@utils/shadcn';
 
 import { NeuronStateBadge } from '../NeuronStateBadge';
 import { NeuronDetailView } from './types';
@@ -31,6 +33,7 @@ type Props = {
   isDissolved: boolean;
   isDissolving: boolean;
   isAutoStake: boolean;
+  isHotkey: boolean;
   onNavigate: (view: NeuronDetailView) => void;
 };
 
@@ -41,6 +44,7 @@ export function NeuronDetailSummaryView({
   isDissolved,
   isDissolving,
   isAutoStake,
+  isHotkey,
   onNavigate,
 }: Props) {
   const { t } = useTranslation();
@@ -84,6 +88,20 @@ export function NeuronDetailSummaryView({
       <div className="flex flex-col rounded-lg border bg-muted/30">
         <InfoRow label={t(($) => $.neuron.stakeId)} dataTestId="neuron-detail-stake-id">
           <div className="flex items-center gap-2">
+            {isHotkey && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    className="flex cursor-help items-center gap-1 rounded-sm border border-blue-200 bg-blue-100 px-2 py-0.5 text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+                    data-testid="neuron-hotkey-badge"
+                  >
+                    <Key className="size-3" aria-hidden="true" />
+                    <span className="text-[11px] font-medium">{t(($) => $.neuron.hotkey)}</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>{t(($) => $.neuron.hotkeyTooltip)}</TooltipContent>
+              </Tooltip>
+            )}
             <span className="font-semibold">{shortenNeuronId(neuron.neuronId)}</span>
             <CopyButton
               value={neuron.neuronId.toString()}
@@ -99,8 +117,8 @@ export function NeuronDetailSummaryView({
 
         <InfoRow label={t(($) => $.neuron.dissolveDelay)} dataTestId="neuron-detail-dissolve-delay">
           <div className="flex items-center gap-2">
-            <span className="font-semibold">{durationText}</span>
             <NeuronStateBadge isDissolved={isDissolved} isDissolving={isDissolving} />
+            <span className="font-semibold">{durationText}</span>
           </div>
         </InfoRow>
 
@@ -160,14 +178,12 @@ export function NeuronDetailSummaryView({
           icon={<PlusCircle className="size-8" />}
           label={t(($) => $.neuronDetailModal.actions.increaseStake)}
           onClick={() => onNavigate(NeuronDetailView.IncreaseStake)}
-          disabledReason={t(($) => $.neuronDetailModal.disabled.noBalance)}
         />
 
         <ActionButton
           icon={<Clock className="size-8" />}
           label={t(($) => $.neuronDetailModal.actions.increaseDelay)}
           onClick={() => onNavigate(NeuronDetailView.IncreaseDelay)}
-          disabledReason={t(($) => $.neuronDetailModal.disabled.maxDelay)}
         />
 
         <ActionButton
@@ -223,26 +239,18 @@ type ActionButtonProps = {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
-  disabled?: boolean;
-  disabledReason?: string;
   className?: string;
 };
 
-function ActionButton({
-  icon,
-  label,
-  onClick,
-  disabled,
-  disabledReason,
-  className,
-}: ActionButtonProps) {
+function ActionButton({ icon, label, onClick, className }: ActionButtonProps) {
   return (
     <Button
       variant="outline"
-      className={`group flex h-auto flex-col items-center justify-center gap-2 overflow-hidden py-5 ring-0 ring-offset-0 transition-colors duration-200 outline-none hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0 ${className ?? ''}`}
+      className={cn(
+        'group flex h-auto flex-col items-center justify-center gap-2 overflow-hidden py-5 ring-0 ring-offset-0 transition-colors duration-200 outline-none hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0',
+        className,
+      )}
       onClick={onClick}
-      disabled={disabled}
-      title={disabled ? disabledReason : undefined}
       data-testid={`neuron-detail-action-${label.toLowerCase().replace(/\s+/g, '-')}`}
     >
       <span className="transition-opacity duration-100 ease-out group-hover:opacity-0 group-focus-visible:opacity-0 group-disabled:group-hover:opacity-100 group-disabled:group-focus-visible:opacity-100">

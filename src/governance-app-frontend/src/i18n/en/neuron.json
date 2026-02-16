@@ -13,6 +13,8 @@
   "locked": "Locked",
   "dissolving": "Dissolving",
   "dissolved": "Dissolved",
+  "hotkey": "Hotkey",
+  "hotkeyTooltip": "This stake is controlled by a different principal, but your account has been added as a hotkey. You can view the stake and vote, but other operations are limited to the controller.",
   "noFollowingWarning": "Not following anyone yet. Set up following in the Voting page.",
   "disburseIcp": "Disburse ICPs",
   "disburseMaturity": "Disburse maturity",

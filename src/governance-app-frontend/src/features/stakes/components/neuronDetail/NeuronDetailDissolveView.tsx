@@ -1,5 +1,5 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { AlertTriangle, Info, Loader2 } from 'lucide-react';
+import { AlertTriangle, Info, Key, Loader2 } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
@@ -13,6 +13,7 @@ type Props = {
   neuron: NeuronInfo;
   isDissolved: boolean;
   isDissolving: boolean;
+  isHotkey: boolean;
   onSuccess: () => void;
   onProcessingChange: (isProcessing: boolean) => void;
 };
@@ -21,6 +22,7 @@ export function NeuronDetailDissolveView({
   neuron,
   isDissolved,
   isDissolving,
+  isHotkey,
   onSuccess,
   onProcessingChange,
 }: Props) {
@@ -87,6 +89,15 @@ export function NeuronDetailDissolveView({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {isHotkey && (
+        <Alert className="border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900/50 dark:bg-blue-900/20 dark:text-blue-200 [&>svg]:text-blue-600 dark:[&>svg]:text-blue-400">
+          <Key className="h-4 w-4" />
+          <AlertDescription className="text-blue-700 dark:text-blue-300">
+            {t(($) => $.neuronDetailModal.hotkeyNotice)}
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Warning Box */}
       <Alert variant="warning">
         <AlertTriangle className="h-4 w-4" />
@@ -107,7 +118,7 @@ export function NeuronDetailDissolveView({
         type="submit"
         size="xl"
         className="w-full"
-        disabled={isPending}
+        disabled={isPending || isHotkey}
         variant={isDissolving ? 'default' : 'destructive'}
         data-testid="dissolve-confirm-btn"
       >
