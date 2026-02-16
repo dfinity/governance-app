@@ -104,10 +104,6 @@
       "failed": "Failed to stake maturity. Please try again."
     }
   },
-  "disabled": {
-    "noBalance": "No ICP available to stake",
-    "maxDelay": "Already at maximum delay"
-  },
   "hotkeyNotice": "As a hotkey, you can view this setting but only the stake controller can make changes.",
   "devActions": {
     "title": "Dev actions"
