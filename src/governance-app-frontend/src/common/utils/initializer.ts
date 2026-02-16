@@ -31,6 +31,7 @@ export const queryClientConfig = new QueryClient({
 
 export const routerConfig = createRouter({
   routeTree,
+  defaultPreload: 'intent',
   defaultPendingMs: 100,
   defaultPendingMinMs: 300,
 });

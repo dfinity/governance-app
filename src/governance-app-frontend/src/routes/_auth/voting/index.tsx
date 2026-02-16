@@ -211,7 +211,6 @@ function Voting() {
                       params={{ id: proposal.id! }}
                       search={{ showProposals }}
                       className="w-full"
-                      preload="intent"
                     >
                       <ProposalListItem proposal={proposal} certified={page?.certified} />
                     </Link>
