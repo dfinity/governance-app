@@ -193,6 +193,7 @@ html.route-dashboard {
 }
 
 /* Keeps the orbs in the right place on larger screens, where the content wrapper is centered. */
+/* (sidebar(288) + max-width(1180)) / 2 = 734px */
 @media (min-width: 1536px) {
   html.route-dashboard {
     --main-wrapper-right-edge: calc(50% + 734px);
