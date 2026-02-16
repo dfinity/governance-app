@@ -1,4 +1,5 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
+import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +18,7 @@ import {
   getNeuronIsAutoStakingMaturity,
   getNeuronIsDissolved,
   getNeuronIsDissolving,
+  isUserHotkey,
 } from '@utils/neuron';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
@@ -38,6 +40,7 @@ type Props = {
 
 export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewChange }: Props) {
   const { t } = useTranslation();
+  const { identity } = useInternetIdentity();
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Keep neuron and view in refs to persist during close animation
@@ -85,6 +88,10 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
   const isDissolved = getNeuronIsDissolved(displayNeuron);
   const isDissolving = getNeuronIsDissolving(displayNeuron);
   const isAutoStake = getNeuronIsAutoStakingMaturity(displayNeuron);
+  const isHotkey = isUserHotkey({
+    neuron: displayNeuron,
+    principalId: identity?.getPrincipal().toText(),
+  });
 
   const getTitle = (): string => {
     switch (displayView) {
@@ -142,6 +149,7 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
                 isDissolved={isDissolved}
                 isDissolving={isDissolving}
                 isAutoStake={isAutoStake}
+                isHotkey={isHotkey}
                 onNavigate={onViewChange}
               />
             )}
@@ -157,6 +165,7 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
             {displayView === NeuronDetailView.IncreaseDelay && (
               <NeuronDetailIncreaseDelayView
                 neuron={displayNeuron}
+                isHotkey={isHotkey}
                 onSuccess={goBack}
                 onProcessingChange={setIsProcessing}
               />
@@ -165,6 +174,7 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
             {displayView === NeuronDetailView.MaturityMode && (
               <NeuronDetailMaturityModeView
                 neuron={displayNeuron}
+                isHotkey={isHotkey}
                 onSuccess={goBack}
                 onProcessingChange={setIsProcessing}
               />
@@ -175,13 +185,14 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
                 neuron={displayNeuron}
                 isDissolved={isDissolved}
                 isDissolving={isDissolving}
+                isHotkey={isHotkey}
                 onSuccess={goBack}
                 onProcessingChange={setIsProcessing}
               />
             )}
 
             {IS_TESTNET && displayView === NeuronDetailView.DevActions && (
-              <NeuronDetailDevActionsView neuron={displayNeuron} />
+              <NeuronDetailDevActionsView neuron={displayNeuron} isHotkey={isHotkey} />
             )}
           </div>
         </ResponsiveDialogContent>
