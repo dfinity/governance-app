@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AccountCard } from '@features/account/components/AccountCard';
@@ -44,20 +45,13 @@ function Dashboard() {
     if (!isOpen) navigate({ search: {}, replace: true });
   };
 
-  return (
-    <div className="relative isolate flex flex-col gap-8">
-      {/* Decorative gradient orbs — top-right corner */}
-      <div
-        className="pointer-events-none absolute -top-[400px] -right-[380px] -z-10 h-[893px] w-[892px]"
-        style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.3) 0%, transparent 70%)' }}
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute -top-[340px] -right-[620px] -z-10 h-[893px] w-[892px]"
-        style={{ background: 'radial-gradient(circle, rgba(234,88,12,0.3) 0%, transparent 70%)' }}
-        aria-hidden="true"
-      />
+  useEffect(() => {
+    document.documentElement.classList.add('route-dashboard');
+    return () => document.documentElement.classList.remove('route-dashboard');
+  }, []);
 
+  return (
+    <div className="flex flex-col gap-8">
       <SmartTitle />
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4 xl:gap-3">
