@@ -3,6 +3,7 @@ import { Key } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
+
 import { AddHotkeyModal } from '@/dev/AddHotkeyModal';
 import { IncreaseMaturityModal } from '@/dev/IncreaseMaturityModal';
 import { CreateDummyProposalsButton } from '@/dev/makeDummyProposals';

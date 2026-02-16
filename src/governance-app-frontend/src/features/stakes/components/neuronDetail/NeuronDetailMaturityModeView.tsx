@@ -20,7 +20,12 @@ type Props = {
   onProcessingChange: (isProcessing: boolean) => void;
 };
 
-export function NeuronDetailMaturityModeView({ neuron, isHotkey, onSuccess, onProcessingChange }: Props) {
+export function NeuronDetailMaturityModeView({
+  neuron,
+  isHotkey,
+  onSuccess,
+  onProcessingChange,
+}: Props) {
   const { t } = useTranslation();
 
   const currentMode: SegmentedToggleValue = getNeuronIsAutoStakingMaturity(neuron)

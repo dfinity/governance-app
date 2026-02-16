@@ -1,12 +1,11 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { AlertTriangle, Loader2 } from 'lucide-react';
+import { AlertTriangle, Key, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { MaxRewardsBadge } from '@components/MaxRewardsBadge';
-import { Key } from 'lucide-react';
 import { SECONDS_IN_MONTH } from '@constants/extra';
 import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { mapCanisterError } from '@utils/errors';
@@ -24,7 +23,12 @@ type Props = {
   onProcessingChange: (isProcessing: boolean) => void;
 };
 
-export function NeuronDetailIncreaseDelayView({ neuron, isHotkey, onSuccess, onProcessingChange }: Props) {
+export function NeuronDetailIncreaseDelayView({
+  neuron,
+  isHotkey,
+  onSuccess,
+  onProcessingChange,
+}: Props) {
   const { t } = useTranslation();
   const [selectedMonths, setSelectedMonths] = useState<number | null>(null);
 

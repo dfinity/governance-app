@@ -1,5 +1,5 @@
-import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
+import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import { Clock, Key, Lock, PlusCircle, Settings, Unlock, Wrench } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -8,15 +8,12 @@ import { CopyButton } from '@components/CopyButton';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { E8Sn, ICP_MIN_STAKE_AMOUNT, IS_TESTNET, SECONDS_IN_MONTH } from '@constants/extra';
-import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
-import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
+import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
 import { useApyColor } from '@hooks/useApyColor';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatTimestampToLocalDate } from '@utils/date';
 import {
-  getNeuronDissolveDelaySeconds,
   getNeuronFreeMaturityE8s,
   getNeuronStakeAfterFeesE8s,
   getNeuronStakedMaturityE8s,
@@ -52,7 +49,6 @@ export function NeuronDetailSummaryView({
   const { t } = useTranslation();
   const apyColor = useApyColor(apy?.cur ?? 0);
   const { tickerPrices: tickersQuery } = useTickerPrices();
-  const { data: balanceValue } = useIcpLedgerAccountBalance();
 
   const stakedAmount = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
   const stakedMaturity = bigIntDiv(getNeuronStakedMaturityE8s(neuron), E8Sn);
@@ -66,13 +62,6 @@ export function NeuronDetailSummaryView({
     seconds: dissolveDelaySeconds || 0n,
     i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
   });
-
-  const balance = nonNullish(balanceValue?.response) ? bigIntDiv(balanceValue.response, E8Sn) : 0;
-  const hasBalance = balance > ICP_MIN_STAKE_AMOUNT;
-
-  const currentDelaySeconds = Number(getNeuronDissolveDelaySeconds(neuron));
-  const currentDelayMonths = Math.round(currentDelaySeconds / SECONDS_IN_MONTH);
-  const isMaxDelay = currentDelayMonths >= ICP_MAX_DISSOLVE_DELAY_MONTHS;
 
   const creationDate = formatTimestampToLocalDate(neuron.fullNeuron?.createdTimestampSeconds);
 
