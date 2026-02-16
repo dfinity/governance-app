@@ -107,7 +107,7 @@ export const TotalAssetsCard = () => {
                   <Skeleton className="h-8 w-20" />
                 </div>
               )}
-              <StakingRatioModal />
+              {(liquidBalance !== 0 || maturityBalance !== 0) && <StakingRatioModal />}
             </div>
             <span className="text-sm text-muted-foreground capitalize">
               {t(($) => $.home.stakingRatio)}
