@@ -13,7 +13,7 @@ export const BottomNav = () => {
           <Link
             key={item.href}
             to={item.href}
-            className="flex h-12 w-full flex-col items-center justify-end gap-1 text-muted-foreground transition-colors hover:text-accent-foreground"
+            className="flex h-13 w-full flex-col items-center justify-end gap-1 text-muted-foreground transition-colors hover:text-accent-foreground"
             activeProps={{
               className: 'text-primary font-semibold',
             }}
