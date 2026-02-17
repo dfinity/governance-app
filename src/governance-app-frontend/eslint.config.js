@@ -30,10 +30,6 @@ const tsConfiguration = tseslint.config(
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': ['error', { allowConstantExport: true }],
 
-      'react-hooks/refs': 'error',
-      'react-hooks/preserve-manual-memoization': 'error',
-      'react-hooks/set-state-in-effect': 'error',
-
       'prettier/prettier': 'error',
       'eol-last': 'error',
       'import/newline-after-import': 'error',
