@@ -15,7 +15,6 @@ const storeValue = (enabled: boolean): void => {
   notifyListeners();
 };
 
-// External store for cross-component and cross-tab reactivity
 let listeners: Array<() => void> = [];
 
 function notifyListeners() {
@@ -25,9 +24,6 @@ function notifyListeners() {
 const subscribe = (listener: () => void) => {
   listeners = [...listeners, listener];
 
-  // Cross-tab sync: when another tab changes localStorage, the "storage" event
-  // fires in this tab (not in the tab that made the change). Notify all
-  // subscribers so they re-read the value and re-render.
   const onStorage = (e: StorageEvent) => {
     if (e.key === SHORTCUTS_SETTINGS_KEY) notifyListeners();
   };
