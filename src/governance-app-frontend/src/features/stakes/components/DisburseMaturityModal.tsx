@@ -58,6 +58,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError(null);
     }
   }, [isOpen]);

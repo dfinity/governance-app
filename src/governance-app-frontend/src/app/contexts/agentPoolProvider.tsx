@@ -53,6 +53,7 @@ export const AgentPoolProvider = ({ children }: { children: ReactNode }) => {
   const { identity } = useInternetIdentity();
   useEffect(() => {
     if (identity) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAgentPool((prev) => ({
         ...prev,
         authenticated: {

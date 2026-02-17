@@ -32,6 +32,7 @@ export const useSessionTimeLeft = (): SessionTimeLeft | null => {
 
   useEffect(() => {
     if (!hasGetDelegation(identity)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTimeLeft(null);
       return;
     }
