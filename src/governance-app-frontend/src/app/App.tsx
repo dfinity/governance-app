@@ -13,13 +13,14 @@ import { Sonner } from '@components/Sonner';
 import { IDENTITY_PROVIDER, II_DERIVATION_ORIGIN } from '@constants/extra';
 import { AgentPoolProvider } from '@contexts/agentPoolProvider';
 import { StakingRewardsProvider } from '@contexts/stakingRewardsProvider';
-import { ThemeProvider } from '@contexts/themeProvider';
 import { usePreventAttributeChange } from '@hooks/usePreventAttributeChange';
+import { useTheme } from '@hooks/useTheme';
 import { queryClientConfig, routerConfig } from '@utils/initializer';
 
 export const App = () => {
   const notificationsContainer = document.getElementById('notifications');
 
+  useTheme();
   usePreventAttributeChange({ selector: '#notifications', attribute: 'inert' });
 
   return (
@@ -33,15 +34,13 @@ export const App = () => {
         <QueryClientProvider client={queryClientConfig}>
           <AgentPoolProvider>
             <StakingRewardsProvider>
-              <ThemeProvider>
-                <RouterProvider router={routerConfig} />
-                <ReactQueryDevtools initialIsOpen={false} />
-                {notificationsContainer &&
-                  createPortal(
-                    <Sonner position="top-center" visibleToasts={9} />,
-                    notificationsContainer,
-                  )}
-              </ThemeProvider>
+              <RouterProvider router={routerConfig} />
+              <ReactQueryDevtools initialIsOpen={false} />
+              {notificationsContainer &&
+                createPortal(
+                  <Sonner position="top-center" visibleToasts={9} />,
+                  notificationsContainer,
+                )}
             </StakingRewardsProvider>
           </AgentPoolProvider>
         </QueryClientProvider>
