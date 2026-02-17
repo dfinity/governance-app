@@ -14,5 +14,5 @@ jobs:
   deploy:
     name: Deployment
     needs: [check]
-    uses: ./.github/workflows/deploy.yaml
+    uses: ./.github/workflows/build.yaml
     secrets: inherit
