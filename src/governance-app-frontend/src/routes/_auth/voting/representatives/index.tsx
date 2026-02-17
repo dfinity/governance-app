@@ -71,6 +71,7 @@ function Representatives() {
   const [openConfirmationDialogWithNeuron, setOpenConfirmationDialogWithNeuron] =
     useState<KnownNeuron | null>(null);
 
+  // @TODO: Replace the toast message with a warning similar to the /voting page.
   useEffect(() => {
     if (followedNeurons.length > 1) {
       warningNotification({
@@ -190,7 +191,6 @@ function Representatives() {
     setOpenConfirmationDialogWithNeuron(null);
   };
 
-  const knownNeurons = knownNeuronsQuery.data?.response;
   const sortedKnownNeurons = knownNeurons?.filter(isActiveKnownNeuron).toSorted(sortKnownNeurons);
 
   return (
