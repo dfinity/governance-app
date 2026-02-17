@@ -12,7 +12,7 @@ jobs:
     secrets: inherit
 
   deploy:
-    name: Build & Upload WASM
+    name: Building & Uploading
     needs: [check]
     uses: ./.github/workflows/build.yaml
     secrets: inherit
