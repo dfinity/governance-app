@@ -12,7 +12,7 @@ jobs:
     secrets: inherit
 
   deploy:
-    name: Deployment
+    name: Building & Uploading
     needs: [check]
-    uses: ./.github/workflows/deploy.yaml
+    uses: ./.github/workflows/build.yaml
     secrets: inherit
