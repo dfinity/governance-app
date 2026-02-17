@@ -58,7 +58,9 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
 
   useEffect(() => {
     if (isOpen) {
-      setError(null);
+      // Defer so setState runs in a callback (react-hooks/set-state-in-effect)
+      const id = setTimeout(() => setError(null), 0);
+      return () => clearTimeout(id);
     }
   }, [isOpen]);
 

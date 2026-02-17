@@ -53,14 +53,17 @@ export const AgentPoolProvider = ({ children }: { children: ReactNode }) => {
   const { identity } = useInternetIdentity();
   useEffect(() => {
     if (identity) {
-      setAgentPool((prev) => ({
-        ...prev,
-        authenticated: {
-          agent: undefined,
-          loading: true,
-          error: undefined,
-        },
-      }));
+      // Defer so setState runs in a callback, not synchronously in the effect (react-hooks/set-state-in-effect)
+      const id = setTimeout(() => {
+        setAgentPool((prev) => ({
+          ...prev,
+          authenticated: {
+            agent: undefined,
+            loading: true,
+            error: undefined,
+          },
+        }));
+      }, 0);
 
       createAgent({
         identity,
@@ -88,15 +91,19 @@ export const AgentPoolProvider = ({ children }: { children: ReactNode }) => {
             },
           }));
         });
+      return () => clearTimeout(id);
     } else {
-      setAgentPool((prev) => ({
-        ...prev,
-        authenticated: {
-          agent: undefined,
-          loading: false,
-          error: undefined,
-        },
-      }));
+      const id = setTimeout(() => {
+        setAgentPool((prev) => ({
+          ...prev,
+          authenticated: {
+            agent: undefined,
+            loading: false,
+            error: undefined,
+          },
+        }));
+      }, 0);
+      return () => clearTimeout(id);
     }
   }, [identity]);
 

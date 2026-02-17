@@ -56,33 +56,28 @@ function Representatives() {
   const neuronsQuery = useGovernanceNeurons();
   const knownNeuronsQuery = useGovernanceKnownNeurons();
 
-  const [selectedNeuronId, setSelectedNeuronId] = useState<string | null>(null);
+  const userNeurons = neuronsQuery.data?.response;
+  const knownNeurons = knownNeuronsQuery.data?.response;
+  const followedNeurons =
+    userNeurons && knownNeurons ? getUsersFollowedNeurons({ userNeurons, knownNeurons }) : [];
+  const derivedSelectedId =
+    followedNeurons.length === 1 && isKnownNeuron(followedNeurons[0])
+      ? followedNeurons[0].id.toString()
+      : null;
+
+  const [userOverrideId, setUserOverrideId] = useState<string | null | undefined>(undefined);
+  const selectedNeuronId = userOverrideId ?? derivedSelectedId;
+
   const [openConfirmationDialogWithNeuron, setOpenConfirmationDialogWithNeuron] =
     useState<KnownNeuron | null>(null);
 
   useEffect(() => {
-    const userNeurons = neuronsQuery.data?.response;
-    const knownNeurons = knownNeuronsQuery.data?.response;
-
-    if (!userNeurons || !knownNeurons) return;
-
-    const followedNeurons = getUsersFollowedNeurons({
-      userNeurons,
-      knownNeurons,
-    });
-
     if (followedNeurons.length > 1) {
       warningNotification({
         description: t(($) => $.voting.warnings.followingMismatch),
       });
-      return;
     }
-
-    const target = followedNeurons[0];
-    if (isKnownNeuron(target)) {
-      setSelectedNeuronId(target.id.toString());
-    }
-  }, [neuronsQuery.data, knownNeuronsQuery.data, t]);
+  }, [neuronsQuery.data, knownNeuronsQuery.data, followedNeurons.length, t]);
 
   const updateFollowingMutation = useMutation<
     void[],
@@ -122,7 +117,7 @@ function Representatives() {
       const previousSelectedId = selectedNeuronId;
 
       // Optimistic update
-      setSelectedNeuronId(variables.knownNeuron.id.toString());
+      setUserOverrideId(variables.knownNeuron.id.toString());
 
       return { previousSelectedId };
     },
@@ -141,7 +136,7 @@ function Representatives() {
       console.error('Failed to update neuron:', error);
 
       // Roll back optimistic update
-      setSelectedNeuronId(context?.previousSelectedId ?? null);
+      setUserOverrideId(context?.previousSelectedId ?? null);
 
       toast.error(
         t(($) => $.knownNeurons.api.error, {

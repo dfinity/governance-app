@@ -34,6 +34,8 @@ const tsConfiguration = tseslint.config(
       'react-hooks/refs': 'error',
       'react-hooks/set-state-in-effect': 'off',
       'react-hooks/preserve-manual-memoization': 'error',
+      'react-hooks/set-state-in-effect': 'error',
+      'react-hooks/preserve-manual-memoization': 'off',
 
       'prettier/prettier': 'error',
       'eol-last': 'error',

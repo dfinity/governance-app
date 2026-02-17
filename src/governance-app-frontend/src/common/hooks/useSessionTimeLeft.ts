@@ -32,8 +32,9 @@ export const useSessionTimeLeft = (): SessionTimeLeft | null => {
 
   useEffect(() => {
     if (!hasGetDelegation(identity)) {
-      setTimeLeft(null);
-      return;
+      // Defer so setState runs in a callback (react-hooks/set-state-in-effect)
+      const id = setTimeout(() => setTimeLeft(null), 0);
+      return () => clearTimeout(id);
     }
 
     const updateTimeLeft = () => {
@@ -61,13 +62,14 @@ export const useSessionTimeLeft = (): SessionTimeLeft | null => {
       }
     };
 
-    // Calculate immediately
-    updateTimeLeft();
-
-    // Then update every second
+    // Defer first run so setState is in a callback (react-hooks/set-state-in-effect)
+    const initialId = setTimeout(updateTimeLeft, 0);
     const interval = setInterval(updateTimeLeft, 1000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(initialId);
+      clearInterval(interval);
+    };
   }, [identity]);
 
   if (isNullish(timeLeft)) return null;

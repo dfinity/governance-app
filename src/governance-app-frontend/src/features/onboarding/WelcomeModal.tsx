@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
@@ -14,12 +14,9 @@ import {
 
 export function WelcomeModal() {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    const hasSeenModal = localStorage.getItem(WELCOME_MODAL_STORAGE_KEY);
-    if (!hasSeenModal) setIsOpen(true);
-  }, []);
+  const [isOpen, setIsOpen] = useState(
+    () => typeof window !== 'undefined' && !localStorage.getItem(WELCOME_MODAL_STORAGE_KEY),
+  );
 
   const handleClose = () => {
     setIsOpen(false);
