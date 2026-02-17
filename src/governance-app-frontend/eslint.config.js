@@ -33,7 +33,7 @@ const tsConfiguration = tseslint.config(
       // @TODO: Fix and re-enable as 'error' — new rules from eslint-plugin-react-hooks v7
       'react-hooks/refs': 'error',
       'react-hooks/set-state-in-effect': 'off',
-      'react-hooks/preserve-manual-memoization': 'off',
+      'react-hooks/preserve-manual-memoization': 'error',
 
       'prettier/prettier': 'error',
       'eol-last': 'error',

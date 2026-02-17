@@ -12,7 +12,7 @@ export const useNeuronAccountsIds = () => {
     return new Set(
       data.response.map((neuron) => neuron.fullNeuron?.accountIdentifier).filter(nonNullish),
     );
-  }, [data?.response]);
+  }, [data]);
 
   return {
     accountIds,
