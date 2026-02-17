@@ -3,7 +3,7 @@ import { isNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
@@ -12,6 +12,7 @@ import { KnownNeuronCard } from '@features/voting/components/KnownNeuronCard';
 import { getUsersFollowedNeurons, isKnownNeuron } from '@features/voting/utils/findFollowedNeuron';
 import { isActiveKnownNeuron, sortKnownNeurons } from '@features/voting/utils/knownNeurons';
 
+import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
 import { Skeleton } from '@components/Skeleton';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
@@ -70,15 +71,6 @@ function Representatives() {
 
   const [openConfirmationDialogWithNeuron, setOpenConfirmationDialogWithNeuron] =
     useState<KnownNeuron | null>(null);
-
-  // @TODO: Replace the toast message with a warning similar to the /voting page.
-  useEffect(() => {
-    if (followedNeurons.length > 1) {
-      warningNotification({
-        description: t(($) => $.voting.warnings.followingMismatch),
-      });
-    }
-  }, [neuronsQuery.data, knownNeuronsQuery.data, followedNeurons.length, t]);
 
   const updateFollowingMutation = useMutation<
     void[],
@@ -208,6 +200,15 @@ function Representatives() {
           <h2 className="text-2xl font-semibold">{t(($) => $.knownNeurons.title)}</h2>
           <p className="text-sm text-muted-foreground">{t(($) => $.knownNeurons.description)}</p>
         </div>
+
+        {followedNeurons.length > 1 && (
+          <Alert variant="warning">
+            <AlertTitle className="font-semibold">
+              {t(($) => $.voting.warnings.followingMismatchTitle)}
+            </AlertTitle>
+            <AlertDescription>{t(($) => $.voting.warnings.followingMismatch)}</AlertDescription>
+          </Alert>
+        )}
 
         <div className="flex flex-col gap-4">
           {knownNeuronsQuery.isLoading ? (
