@@ -62,12 +62,12 @@ const AuthVotingProposalsIdIndexRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/account': typeof AuthAccountIndexRoute
-  '/dashboard': typeof AuthDashboardIndexRoute
-  '/stakes': typeof AuthStakesIndexRoute
-  '/voting': typeof AuthVotingIndexRoute
-  '/voting/representatives': typeof AuthVotingRepresentativesIndexRoute
-  '/voting/proposals/$id': typeof AuthVotingProposalsIdIndexRoute
+  '/account/': typeof AuthAccountIndexRoute
+  '/dashboard/': typeof AuthDashboardIndexRoute
+  '/stakes/': typeof AuthStakesIndexRoute
+  '/voting/': typeof AuthVotingIndexRoute
+  '/voting/representatives/': typeof AuthVotingRepresentativesIndexRoute
+  '/voting/proposals/$id/': typeof AuthVotingProposalsIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -93,12 +93,12 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/account'
-    | '/dashboard'
-    | '/stakes'
-    | '/voting'
-    | '/voting/representatives'
-    | '/voting/proposals/$id'
+    | '/account/'
+    | '/dashboard/'
+    | '/stakes/'
+    | '/voting/'
+    | '/voting/representatives/'
+    | '/voting/proposals/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -130,7 +130,7 @@ declare module '@tanstack/react-router' {
     '/_auth': {
       id: '/_auth'
       path: ''
-      fullPath: ''
+      fullPath: '/'
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -144,42 +144,42 @@ declare module '@tanstack/react-router' {
     '/_auth/voting/': {
       id: '/_auth/voting/'
       path: '/voting'
-      fullPath: '/voting'
+      fullPath: '/voting/'
       preLoaderRoute: typeof AuthVotingIndexRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/stakes/': {
       id: '/_auth/stakes/'
       path: '/stakes'
-      fullPath: '/stakes'
+      fullPath: '/stakes/'
       preLoaderRoute: typeof AuthStakesIndexRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/dashboard/': {
       id: '/_auth/dashboard/'
       path: '/dashboard'
-      fullPath: '/dashboard'
+      fullPath: '/dashboard/'
       preLoaderRoute: typeof AuthDashboardIndexRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/account/': {
       id: '/_auth/account/'
       path: '/account'
-      fullPath: '/account'
+      fullPath: '/account/'
       preLoaderRoute: typeof AuthAccountIndexRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/voting/representatives/': {
       id: '/_auth/voting/representatives/'
       path: '/voting/representatives'
-      fullPath: '/voting/representatives'
+      fullPath: '/voting/representatives/'
       preLoaderRoute: typeof AuthVotingRepresentativesIndexRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/voting/proposals/$id/': {
       id: '/_auth/voting/proposals/$id/'
       path: '/voting/proposals/$id'
-      fullPath: '/voting/proposals/$id'
+      fullPath: '/voting/proposals/$id/'
       preLoaderRoute: typeof AuthVotingProposalsIdIndexRouteImport
       parentRoute: typeof AuthRoute
     }

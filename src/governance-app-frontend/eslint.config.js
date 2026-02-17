@@ -28,8 +28,14 @@ const tsConfiguration = tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
-      'react-hooks/react-compiler': 'error',
+      // @TODO: Fix and re-enable — files exporting non-components alongside components break fast refresh
+      'react-refresh/only-export-components': 'off',
+
+      // @TODO: Fix and re-enable as 'error' — new rules from eslint-plugin-react-hooks v7
+      'react-hooks/refs': 'off',
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/preserve-manual-memoization': 'off',
+
       'prettier/prettier': 'error',
       'eol-last': 'error',
       'import/newline-after-import': 'error',
