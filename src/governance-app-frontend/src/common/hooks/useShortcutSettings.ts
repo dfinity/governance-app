@@ -12,16 +12,30 @@ const getStoredValue = (): boolean => {
 
 const storeValue = (enabled: boolean): void => {
   localStorage.setItem(SHORTCUTS_SETTINGS_KEY, String(enabled));
-  listeners.forEach((listener) => listener());
+  notifyListeners();
 };
 
-// External store for cross-component reactivity
+// External store for cross-component and cross-tab reactivity
 let listeners: Array<() => void> = [];
+
+function notifyListeners() {
+  listeners.forEach((listener) => listener());
+}
 
 const subscribe = (listener: () => void) => {
   listeners = [...listeners, listener];
+
+  // Cross-tab sync: when another tab changes localStorage, the "storage" event
+  // fires in this tab (not in the tab that made the change). Notify all
+  // subscribers so they re-read the value and re-render.
+  const onStorage = (e: StorageEvent) => {
+    if (e.key === SHORTCUTS_SETTINGS_KEY) notifyListeners();
+  };
+  window.addEventListener('storage', onStorage);
+
   return () => {
     listeners = listeners.filter((l) => l !== listener);
+    window.removeEventListener('storage', onStorage);
   };
 };
 
