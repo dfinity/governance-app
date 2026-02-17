@@ -13,12 +13,12 @@ export const BottomNav = () => {
           <Link
             key={item.href}
             to={item.href}
-            className="flex h-12 w-full flex-col items-center justify-center gap-1 text-muted-foreground transition-colors hover:text-accent-foreground"
+            className="flex h-12 w-full flex-col items-center justify-end gap-1 text-muted-foreground transition-colors hover:text-accent-foreground"
             activeProps={{
               className: 'text-primary font-semibold',
             }}
           >
-            <item.icon className="h-5 w-5" />
+            <item.icon className="size-5" />
             <span className="text-[11px] font-medium">{t(item.label as never)}</span>
           </Link>
         ))}
