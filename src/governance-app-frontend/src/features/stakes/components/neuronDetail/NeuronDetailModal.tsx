@@ -38,6 +38,7 @@ type Props = {
   onViewChange: (view: NeuronDetailView) => void;
 };
 
+/* eslint-disable react-hooks/refs -- refs keep last neuron/view during close animation to avoid re-renders */
 export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewChange }: Props) {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
@@ -200,3 +201,4 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
     </>
   );
 }
+/* eslint-enable react-hooks/refs */
