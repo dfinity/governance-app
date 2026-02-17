@@ -6,6 +6,7 @@ import { AgentPoolProvider } from '@contexts/agentPoolProvider';
 import { ThemeProvider } from '@contexts/themeProvider';
 import { queryClientConfig } from '@utils/initializer';
 
+// eslint-disable-next-line react-refresh/only-export-components -- Test utility, not part of dev server HMR
 const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
   return (
     <QueryClientProvider client={queryClientConfig}>
