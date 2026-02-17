@@ -28,8 +28,7 @@ const tsConfiguration = tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      // @TODO: Fix and re-enable — files exporting non-components alongside components break fast refresh
-      'react-refresh/only-export-components': 'off',
+      'react-refresh/only-export-components': ['error', { allowConstantExport: true }],
 
       // @TODO: Fix and re-enable as 'error' — new rules from eslint-plugin-react-hooks v7
       'react-hooks/refs': 'off',
@@ -73,6 +72,14 @@ const tsConfiguration = tseslint.config(
           ],
         },
       ],
+    },
+  },
+  // TanStack Router route files export `Route` (a config object, not a component) and define
+  // components locally — this is the framework convention. HMR is handled by TanStack Router itself.
+  {
+    files: ['src/routes/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
     },
   },
 );
