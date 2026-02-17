@@ -30,7 +30,6 @@ const tsConfiguration = tseslint.config(
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': ['error', { allowConstantExport: true }],
 
-      // @TODO: Fix and re-enable as 'error' — new rules from eslint-plugin-react-hooks v7
       'react-hooks/refs': 'error',
       'react-hooks/set-state-in-effect': 'off',
       'react-hooks/preserve-manual-memoization': 'error',
