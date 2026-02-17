@@ -176,13 +176,13 @@ html.route-dashboard {
     height: 100%;
     background:
       radial-gradient(
-        circle 631px at calc(var(--main-wrapper-right-edge) - 66px) 47px,
-        rgba(59, 130, 246, 0.3) 0%,
-        transparent 70%
+        circle 800px at calc(var(--main-wrapper-right-edge) + 150px) 140px,
+        rgba(234, 88, 12, 0.45) -25%,
+        transparent 60%
       ),
       radial-gradient(
-        circle 631px at calc(var(--main-wrapper-right-edge) + 174px) 107px,
-        rgba(234, 88, 12, 0.3) 0%,
+        circle 650px at calc(var(--main-wrapper-right-edge) - 100px) 80px,
+        rgba(59, 130, 246, 0.3) 0%,
         transparent 70%
       );
   }
@@ -193,10 +193,9 @@ html.route-dashboard {
 }
 
 /* Keeps the orbs in the right place on larger screens, where the content wrapper is centered. */
-/* (sidebar(288) + max-width(1180)) / 2 = 734px */
 @media (min-width: 1536px) {
   html.route-dashboard {
-    --main-wrapper-right-edge: calc(50% + 734px);
+    --main-wrapper-right-edge: calc(50% + 746px);
   }
 }
 
