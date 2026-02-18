@@ -68,7 +68,10 @@ export function ResponsiveDialogContent({
   }
 
   return (
-    <DrawerContent className={cn(className, 'overflow-y-hidden')} {...props}>
+    <DrawerContent
+      className={cn(className, 'overflow-y-hidden pt-[env(safe-area-inset-top)]')}
+      {...props}
+    >
       <div className="mx-auto flex min-h-0 w-full flex-1 flex-col overflow-y-auto overscroll-y-contain">
         {children}
       </div>
