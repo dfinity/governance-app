@@ -63,7 +63,7 @@ CANISTER_ID_NNS_GOVERNANCE=rrkah-fqaaa-aaaaa-aaaaq-cai
 CANISTER_ID_CKUSD_LEDGER=xevnm-gaaaa-aaaar-qafnq-cai
 EXTRA_ICP_SWAP_URL='https://uvevg-iyaaa-aaaak-ac27q-cai.raw.ic0.app'
 EXTRA_KONG_SWAP_URL='https://api.kongswap.io/api'
-EXTRA_PLAUSIBLE_DOMAIN_URL='beta.nns.internetcomputer.org'
+EXTRA_PLAUSIBLE_DOMAIN_URL='governance.internetcomputer.org'
 EOF
 
   case "$network" in
