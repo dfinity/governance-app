@@ -132,11 +132,6 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  #root {
-    min-height: 100dvh;
-    min-height: -webkit-fill-available;
-  }
-
   button:not(:disabled),
   [role='button']:not(:disabled) {
     cursor: pointer;
