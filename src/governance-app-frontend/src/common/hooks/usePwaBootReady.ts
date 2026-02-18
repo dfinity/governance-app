@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 const PWA_BOOT_DELAY_MS = 500;
 
-function isPwa(): boolean {
+export function isPwa(): boolean {
   return (
     typeof window !== 'undefined' &&
     (window.matchMedia('(display-mode: standalone)').matches ||
@@ -18,6 +18,7 @@ function isPwa(): boolean {
  */
 export function usePwaBootReady(): { isPwa: boolean; isReady: boolean } {
   const [isReady, setReady] = useState(() => !isPwa());
+  const pwa = isPwa();
 
   useEffect(() => {
     if (!isPwa()) return;
@@ -26,5 +27,5 @@ export function usePwaBootReady(): { isPwa: boolean; isReady: boolean } {
     return () => window.clearTimeout(t);
   }, []);
 
-  return { isPwa: isPwa(), isReady };
+  return { isPwa: pwa, isReady };
 }
