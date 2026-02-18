@@ -51,8 +51,8 @@ export const useTheme = () => {
 
     if (theme === Theme.System) {
       const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light';
+        ? Theme.Dark
+        : Theme.Light;
       root.classList.add(systemTheme);
       return;
     }
