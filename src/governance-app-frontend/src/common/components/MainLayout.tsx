@@ -30,7 +30,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <div ref={layoutRef} className="flex h-dvh w-full bg-background" data-testid="main-layout">
+    <div ref={layoutRef} className="relative z-10 flex h-dvh w-full" data-testid="main-layout">
       <WelcomeModal />
       <Sidebar />
       <div className="flex h-full w-full flex-col overflow-hidden">
