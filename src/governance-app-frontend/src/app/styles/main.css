@@ -126,20 +126,8 @@
     @apply border-border outline-ring/50;
   }
 
-  /*
-   * Let the document use the full viewport including the curved/safe area on iOS.
-   * viewport-fit=cover in the meta tag allows this; these heights help the layout
-   * and fixed-position elements (e.g. bottom nav) extend to the physical bottom.
-   */
-  html {
-    min-height: 100dvh;
-    min-height: -webkit-fill-available;
-  }
-
   body {
     @apply bg-background text-foreground;
-    min-height: 100dvh;
-    min-height: -webkit-fill-available;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
