@@ -2,7 +2,7 @@ import { Monitor, Moon, Sun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { ToggleGroup, ToggleGroupItem } from '@components/ToggleGroup';
-import { Theme } from '@contexts/themeContext';
+import { Theme } from '@constants/theme';
 import { useTheme } from '@hooks/useTheme';
 
 export const ThemeCard = () => {

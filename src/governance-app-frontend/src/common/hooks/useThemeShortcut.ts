@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { Theme } from '@contexts/themeContext';
+import { Theme } from '@constants/theme';
 import { useShortcutSettings } from '@hooks/useShortcutSettings';
 import { useTheme } from '@hooks/useTheme';
 import { shouldIgnoreKeyboardShortcut } from '@utils/keyboard';

@@ -1,4 +1,4 @@
-import { useCallback, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
 
 import { SHORTCUTS_SETTINGS_KEY } from '@constants/extra';
 
@@ -12,16 +12,27 @@ const getStoredValue = (): boolean => {
 
 const storeValue = (enabled: boolean): void => {
   localStorage.setItem(SHORTCUTS_SETTINGS_KEY, String(enabled));
-  listeners.forEach((listener) => listener());
+  notifyListeners();
 };
 
-// External store for cross-component reactivity
 let listeners: Array<() => void> = [];
 
+function notifyListeners() {
+  listeners.forEach((l) => l());
+}
+
+const onStorage = (e: StorageEvent) => {
+  if (e.key === SHORTCUTS_SETTINGS_KEY) notifyListeners();
+};
+
 const subscribe = (listener: () => void) => {
+  const isFirst = listeners.length === 0;
   listeners = [...listeners, listener];
+  if (isFirst) window.addEventListener('storage', onStorage);
+
   return () => {
     listeners = listeners.filter((l) => l !== listener);
+    if (listeners.length === 0) window.removeEventListener('storage', onStorage);
   };
 };
 
@@ -35,9 +46,5 @@ const getSnapshot = (): boolean => getStoredValue();
 export const useShortcutSettings = () => {
   const enabled = useSyncExternalStore(subscribe, getSnapshot);
 
-  const setEnabled = useCallback((value: boolean) => {
-    storeValue(value);
-  }, []);
-
-  return { enabled, setEnabled };
+  return { enabled, setEnabled: storeValue };
 };
