@@ -3,12 +3,11 @@ import { useEffect, useSyncExternalStore } from 'react';
 import { Theme } from '@constants/theme';
 
 const STORAGE_KEY = 'vite-ui-theme';
-const VALID_THEMES: Theme[] = [Theme.Dark, Theme.Light, Theme.System];
 
 const getStoredTheme = (): Theme => {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw && VALID_THEMES.includes(raw as Theme)) return raw as Theme;
+    const theme = localStorage.getItem(STORAGE_KEY);
+    if (Object.values(Theme).includes(theme as Theme)) return theme as Theme;
   } catch {
     // ignore
   }
@@ -48,7 +47,7 @@ export const useTheme = () => {
 
   useEffect(() => {
     const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
+    root.classList.remove(Theme.Light, Theme.Dark);
 
     if (theme === Theme.System) {
       const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches

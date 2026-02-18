@@ -1,4 +1,4 @@
-import { useCallback, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
 
 import { SHORTCUTS_SETTINGS_KEY } from '@constants/extra';
 
@@ -46,9 +46,5 @@ const getSnapshot = (): boolean => getStoredValue();
 export const useShortcutSettings = () => {
   const enabled = useSyncExternalStore(subscribe, getSnapshot);
 
-  const setEnabled = useCallback((value: boolean) => {
-    storeValue(value);
-  }, []);
-
-  return { enabled, setEnabled };
+  return { enabled, setEnabled: storeValue };
 };
