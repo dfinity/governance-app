@@ -17,7 +17,9 @@ import { useTranslation } from 'react-i18next';
 import { BetaBanner } from '@components/BetaBanner';
 import { Button } from '@components/button';
 import { MainLayout } from '@components/MainLayout';
+import { PwaBootLoader } from '@components/PwaBootLoader';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
+import { usePwaBootReady } from '@hooks/usePwaBootReady';
 import { useSessionCountdownToast } from '@hooks/useSessionCountdownToast';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
 import { infoNotification } from '@utils/notification';
@@ -138,6 +140,7 @@ function RootComponent() {
   const { invalidate } = useRouter();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+  const { isPwa, isReady: isPwaBootReady } = usePwaBootReady();
 
   const hadIdentity = useRef(!!identity);
 
@@ -164,6 +167,8 @@ function RootComponent() {
       hadIdentity.current = !!identity;
     });
   }, [identity, invalidate, queryClient, t]);
+
+  if (isPwa && !isPwaBootReady) return <PwaBootLoader />;
 
   return (
     <>
