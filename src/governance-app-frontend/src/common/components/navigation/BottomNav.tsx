@@ -8,7 +8,7 @@ export const BottomNav = () => {
 
   return (
     <nav className="z-50 shrink-0 shadow-[0_-3px_12px_rgba(0,0,0,0.08),0_-1px_3px_rgba(0,0,0,0.04)] backdrop-blur-lg lg:hidden">
-      <div className="flex h-13 w-full items-end border-t border-t-amber-500 bg-amber-500/30">
+      <div className="flex h-13 w-full items-end">
         {navigationItems.map((item) => (
           <Link
             key={item.href}
