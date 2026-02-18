@@ -18,7 +18,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
         <main
           className={cn(
             'relative flex-1 overflow-x-clip overflow-y-auto overscroll-y-contain bg-main-content px-4 pt-[calc(2rem+env(safe-area-inset-top))] pb-2 lg:px-8 lg:pt-8 lg:pb-8',
-            pwa && 'pb-[calc(3.25rem+env(safe-area-inset-bottom))] lg:pb-8',
+            pwa && 'pb-[calc(2.75rem+env(safe-area-inset-bottom))] lg:pb-8',
           )}
         >
           <div className="mx-auto w-full max-w-295">{children}</div>
