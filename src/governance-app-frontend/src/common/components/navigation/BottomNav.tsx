@@ -17,12 +17,12 @@ export const BottomNav = () => {
           : 'z-50 shrink-0 border-t border-t-amber-500 bg-amber-500/30 pb-[env(safe-area-inset-bottom)] shadow-[0_-3px_12px_rgba(0,0,0,0.08),0_-1px_3px_rgba(0,0,0,0.04)] backdrop-blur-lg lg:hidden'
       }
     >
-      <div className="flex w-full">
+      <div className="flex h-11 w-full items-end">
         {navigationItems.map((item) => (
           <Link
             key={item.href}
             to={item.href}
-            className="flex h-11 w-full flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors hover:text-accent-foreground"
+            className="flex w-full flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors hover:text-accent-foreground"
             activeProps={{
               className: 'text-primary font-semibold',
             }}
