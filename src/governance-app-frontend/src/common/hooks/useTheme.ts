@@ -15,24 +15,29 @@ const getStoredTheme = (): Theme => {
   return Theme.System;
 };
 
-const storeTheme = (theme: Theme): void => {
-  localStorage.setItem(STORAGE_KEY, theme);
-  listeners.forEach((l) => l());
-};
-
 let listeners: Array<() => void> = [];
 
-const subscribe = (listener: () => void) => {
-  listeners = [...listeners, listener];
+function notifyListeners() {
+  listeners.forEach((l) => l());
+}
 
-  const onStorage = (e: StorageEvent) => {
-    if (e.key === STORAGE_KEY) listeners.forEach((l) => l());
-  };
-  window.addEventListener('storage', onStorage);
+const storeTheme = (theme: Theme): void => {
+  localStorage.setItem(STORAGE_KEY, theme);
+  notifyListeners();
+};
+
+const onStorage = (e: StorageEvent) => {
+  if (e.key === STORAGE_KEY) notifyListeners();
+};
+
+const subscribe = (listener: () => void) => {
+  const isFirst = listeners.length === 0;
+  listeners = [...listeners, listener];
+  if (isFirst) window.addEventListener('storage', onStorage);
 
   return () => {
     listeners = listeners.filter((l) => l !== listener);
-    window.removeEventListener('storage', onStorage);
+    if (listeners.length === 0) window.removeEventListener('storage', onStorage);
   };
 };
 

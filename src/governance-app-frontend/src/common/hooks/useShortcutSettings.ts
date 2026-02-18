@@ -18,20 +18,21 @@ const storeValue = (enabled: boolean): void => {
 let listeners: Array<() => void> = [];
 
 function notifyListeners() {
-  listeners.forEach((listener) => listener());
+  listeners.forEach((l) => l());
 }
 
-const subscribe = (listener: () => void) => {
-  listeners = [...listeners, listener];
+const onStorage = (e: StorageEvent) => {
+  if (e.key === SHORTCUTS_SETTINGS_KEY) notifyListeners();
+};
 
-  const onStorage = (e: StorageEvent) => {
-    if (e.key === SHORTCUTS_SETTINGS_KEY) notifyListeners();
-  };
-  window.addEventListener('storage', onStorage);
+const subscribe = (listener: () => void) => {
+  const isFirst = listeners.length === 0;
+  listeners = [...listeners, listener];
+  if (isFirst) window.addEventListener('storage', onStorage);
 
   return () => {
     listeners = listeners.filter((l) => l !== listener);
-    window.removeEventListener('storage', onStorage);
+    if (listeners.length === 0) window.removeEventListener('storage', onStorage);
   };
 };
 
