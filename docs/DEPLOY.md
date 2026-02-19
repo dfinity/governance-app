@@ -69,9 +69,6 @@ Before approving an Orbit request, verify the build:
 - Keep track of controllers, and add/remove them in case they change:
     - Orbit canister -> `fv4dp-biaaa-aaaal-amrua-cai`.
     - NNS root (emergency option) -> `r7inp-6aaaa-aaaaa-aaabq-cai`.
-    - @TODO remove after testing and go-live:
-        - Francesco -> `frlnd-a2ffv-cu3x5-3lvcb-i2lrh-ha3sp-p36py-356y5-b7y77-bxuri-zae`.
-        - Yusef -> `zrbts-eqdul-7pw76-uuj2l-wa273-2iecl-fu344-7ornh-tmwzl-73dtc-uae`.
 - List all controllers: `dfx canister info mc7vh-sqaaa-aaaai-q33na-cai --network=ic`.
 - Add a controller: via Orbit. 
 - Remove a controller: via Orbit. 
