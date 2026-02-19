@@ -1,10 +1,10 @@
 import type { MaturityDisbursement, Neuron, NeuronInfo } from '@icp-sdk/canisters/nns';
 import { NeuronState } from '@icp-sdk/canisters/nns';
+import { isNullish } from '@dfinity/utils';
 import { describe, expect, it } from 'vitest';
 
 import { ICP_TRANSACTION_FEE_E8Sn } from '@constants/extra';
 
-import { isNullish } from '@dfinity/utils';
 import {
   getNeuronMaturityDisbursementsInProgressE8s,
   hasValueAboveTransactionFee,
