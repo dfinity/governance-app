@@ -7,19 +7,19 @@ import { QUERY_KEYS } from '@utils/query';
 
 import { useNnsGovernance } from './useGovernance';
 
-export const useGovernanceProposals = (
-  options: ListProposalsRequest = {
-    beforeProposal: undefined,
-    limit: PAGINATION_LIMIT_PROPOSALS,
-    excludeTopic: [],
-    includeRewardStatus: [],
-    includeStatus: [],
-    includeAllManageNeuronProposals: false,
-    // This flag solves the issue when the proposal payload being too large.
-    // (e.g. IC0504: Error from Canister rrkah-fqaaa-aaaaa-aaaaq-cai: Canister violated contract: ic0.msg_reply_data_append: application payload size (3661753) cannot be larger than 3145728.)
-    omitLargeFields: true,
-  },
-) => {
+const DEFAULT_OPTIONS: ListProposalsRequest = {
+  beforeProposal: undefined,
+  limit: PAGINATION_LIMIT_PROPOSALS,
+  excludeTopic: [],
+  includeRewardStatus: [],
+  includeStatus: [],
+  includeAllManageNeuronProposals: false,
+  // (e.g. IC0504: Canister payload size cannot be larger than 3145728.)
+  omitLargeFields: true,
+};
+
+export const useGovernanceProposals = (overrides?: Partial<ListProposalsRequest>) => {
+  const options: ListProposalsRequest = { ...DEFAULT_OPTIONS, ...overrides };
   const { identity } = useInternetIdentity();
   const { ready, canister } = useNnsGovernance();
 
@@ -39,7 +39,7 @@ export const useGovernanceProposals = (
       }),
     initialPageParam: undefined,
     getNextPageParam: (lastPage) =>
-      lastPage.response.proposals.length === PAGINATION_LIMIT_PROPOSALS
+      lastPage.response.proposals.length === options.limit
         ? lastPage.response.proposals.at(-1)?.id
         : undefined,
     options: {
