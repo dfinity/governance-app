@@ -21,7 +21,7 @@
 - Stake and manage ICPs
 - Browse and vote on Governance proposals
 - Delegate voting to Representatives
-- Track your account and analytics
+- Track your account and rewards
 
 ## Links
 
