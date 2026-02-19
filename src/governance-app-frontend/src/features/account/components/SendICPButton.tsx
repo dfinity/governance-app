@@ -1,4 +1,9 @@
-import { AccountIdentifier, isIcpAccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
+import {
+  AccountIdentifier,
+  isIcpAccountIdentifier,
+  TransferError,
+} from '@icp-sdk/canisters/ledger/icp';
+import { nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useMutation } from '@tanstack/react-query';
 import { AlertTriangle, Send } from 'lucide-react';
 import React, { FormEvent, useRef, useState } from 'react';
@@ -24,7 +29,7 @@ import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
 import { useTickerPrices } from '@hooks/tickers';
 import { delay } from '@utils/async';
 import { bigIntMul } from '@utils/bigInt';
-import { mapCanisterError } from '@utils/errors';
+import { isCertifiedRejectError, mapCanisterError } from '@utils/errors';
 import { errorNotification, successNotification } from '@utils/notification';
 import { formatNumber, roundToE8sPrecision } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
@@ -51,12 +56,21 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
   const [isPending, setIsPending] = useState(false);
   const amountInputRef = useRef<HTMLInputElement>(null);
 
+  // Keep the createdAt value for retry purposes (used for deduplication at the ledger level)
+  const createdAtRef = useRef<bigint | null>(null);
+
   const transferMutation = useMutation({
-    mutationFn: () =>
-      ledgerCanister!.transfer({
+    mutationFn: () => {
+      // Use stored createdAt for retry deduplication, or generate a new one
+      const createdAt = createdAtRef.current ?? nowInBigIntNanoSeconds();
+      createdAtRef.current = createdAt;
+
+      return ledgerCanister!.transfer({
         to: AccountIdentifier.fromHex(toAccount),
         amount: bigIntMul(E8Sn, Number(amount)),
-      }),
+        createdAt,
+      });
+    },
     onMutate: () => {
       setIsPending(true);
     },
@@ -70,8 +84,12 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
       });
       setIsPending(false);
       setOpen(false);
+      createdAtRef.current = null;
     },
     onError: (error) => {
+      if (isCertifiedRejectError(error) || error instanceof TransferError) {
+        createdAtRef.current = null;
+      }
       errorNotification({
         description: mapCanisterError(error),
       });
