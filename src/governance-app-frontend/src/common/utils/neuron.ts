@@ -58,7 +58,8 @@ export const getNeuronMaturityDisbursementsInProgressE8s = (neuron: NeuronInfo):
 
 export const hasValueAboveTransactionFee = (neuron: NeuronInfo): boolean =>
   nonNullish(neuron.fullNeuron)
-    ? getNeuronStakeAfterFeesE8s(neuron) + getNeuronTotalMaturityE8s(neuron) > ICP_TRANSACTION_FEE_E8Sn
+    ? getNeuronStakeAfterFeesE8s(neuron) + getNeuronTotalMaturityE8s(neuron) >
+      ICP_TRANSACTION_FEE_E8Sn
     : false;
 
 /**
