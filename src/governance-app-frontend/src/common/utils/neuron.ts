@@ -1,7 +1,7 @@
 import { type NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
 
-import { E8Sn, SECONDS_IN_EIGHT_YEARS } from '@constants/extra';
+import { E8Sn, ICP_TRANSACTION_FEE_E8Sn, SECONDS_IN_EIGHT_YEARS } from '@constants/extra';
 import { bigIntDiv, bigIntMax } from '@utils/bigInt';
 import { nowInSeconds } from '@utils/date';
 import { shortenId } from '@utils/id';
@@ -49,6 +49,26 @@ export const getNeuronTotalStakeAfterFeesE8s = (neuron: NeuronInfo): bigint => {
 export const getNeuronTotalValueAfterFeesE8s = (neuron: NeuronInfo): bigint => {
   return getNeuronTotalStakeAfterFeesE8s(neuron) + getNeuronFreeMaturityE8s(neuron);
 };
+
+export const getNeuronMaturityDisbursementsInProgressE8s = (neuron: NeuronInfo): bigint =>
+  neuron.fullNeuron?.maturityDisbursementsInProgress?.reduce(
+    (acc, disbursement) => acc + (disbursement.amountE8s ?? 0n),
+    0n,
+  ) ?? 0n;
+
+export const hasValueAboveTransactionFee = (neuron: NeuronInfo): boolean =>
+  nonNullish(neuron.fullNeuron)
+    ? getNeuronStakeAfterFeesE8s(neuron) + getNeuronTotalMaturityE8s(neuron) >
+      ICP_TRANSACTION_FEE_E8Sn
+    : false;
+
+/**
+ * A neuron is considered "non-empty" if its stake + maturity exceeds the
+ * transaction fee, or if a maturity disbursement is in progress.
+ * Ref: https://github.com/dfinity/nns-dapp/blob/0ed30e6c92b8d813bbd6723f531dc56ab3de3f8e/frontend/src/lib/derived/neurons.derived.ts#L18
+ */
+export const isNonEmptyNeuron = (neuron: NeuronInfo): boolean =>
+  hasValueAboveTransactionFee(neuron) || getNeuronMaturityDisbursementsInProgressE8s(neuron) > 0n;
 
 export const getNeuronIsAutoStakingMaturity = (neuron: NeuronInfo): boolean => {
   return hasAutoStakeMaturityOn(neuron);
