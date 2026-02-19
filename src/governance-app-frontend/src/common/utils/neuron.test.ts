@@ -70,7 +70,9 @@ const mockNeuron = (
     ageSeconds: 0n,
     visibility: undefined,
     fullNeuron:
-      isNullish(fullNeuron) && 'fullNeuron' in overrides ? undefined : mockFullNeuron(fullNeuron),
+      'fullNeuron' in overrides && isNullish(fullNeuron)
+        ? undefined
+        : mockFullNeuron(fullNeuron ?? {}),
     ...rest,
   };
 };
