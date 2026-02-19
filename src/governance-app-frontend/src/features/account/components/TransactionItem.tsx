@@ -112,7 +112,7 @@ export const AccountTransactionItem = ({
                   )}
                 >
                   <span className="md:hidden">{shortenId(address, 10)}</span>
-                  <span className="hidden md:inline">{shortenId(address, 24)}</span>
+                  <span className="hidden md:inline">{shortenId(address, 18)}</span>
                   {!suspicious && (
                     <CopyButton
                       value={address}
