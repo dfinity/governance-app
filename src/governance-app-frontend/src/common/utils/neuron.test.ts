@@ -157,6 +157,16 @@ describe('hasValueAboveTransactionFee', () => {
     });
     expect(hasValueAboveTransactionFee(neuron)).toBe(true);
   });
+
+  it('returns false when stake exceeds fee but neuron fees bring it below', () => {
+    const neuron = mockNeuron({
+      fullNeuron: {
+        cachedNeuronStake: ICP_TRANSACTION_FEE_E8Sn + 1n,
+        neuronFees: ICP_TRANSACTION_FEE_E8Sn,
+      },
+    });
+    expect(hasValueAboveTransactionFee(neuron)).toBe(false);
+  });
 });
 
 describe('isNonEmptyNeuron', () => {
