@@ -1,8 +1,5 @@
-import {
-  AccountIdentifier,
-  isIcpAccountIdentifier,
-  TxTooOldError,
-} from '@icp-sdk/canisters/ledger/icp';
+import { AccountIdentifier, isIcpAccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
+import { AgentError } from '@icp-sdk/core/agent';
 import { nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useMutation } from '@tanstack/react-query';
 import { AlertTriangle, Send } from 'lucide-react';
@@ -87,9 +84,12 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
       createdAtRef.current = null;
     },
     onError: (error) => {
-      // If the ledger rejects with TooOld, the stored createdAt has expired beyond
-      // the dedup window. Reset it so the next attempt generates a fresh timestamp.
-      if (error instanceof TxTooOldError) {
+      // Only reset createdAt when we know the transfer did not execute (certified
+      // response). Ledger errors are decoded from canister reject; AgentError with
+      // isCertified means we got a certified reject. Non-certified/transport errors
+      // leave outcome unknown — keep ref so retry reuses same timestamp for dedup.
+      const isCertifiedErrorAgent = error instanceof AgentError && error.isCertified;
+      if (isCertifiedErrorAgent) {
         createdAtRef.current = null;
       }
       errorNotification({
