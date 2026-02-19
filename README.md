@@ -28,9 +28,7 @@
 Some useful links:
 
 - [DEVELOP.md](/docs/DEVELOP.md) provides guidance for local development setup.
-- [DEPLOY.md](/docs/DEPLOY.md) contains deployment instructions.
 - [FE.md](/docs/FE.md) covers frontend architecture and documentation.
-- [REPRODUCIBILITY.md](/docs/REPRODUCIBILITY.md) contains information about build reproducibility.
 
 ## Getting Help
 
