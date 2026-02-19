@@ -2,6 +2,7 @@ import { NeuronId } from '@icp-sdk/canisters/nns';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 
 import { useQueryThenUpdateCall } from '@hooks/useQueryThenUpdateCall';
+import { isNonEmptyNeuron } from '@utils/neuron';
 import { QUERY_KEYS } from '@utils/query';
 
 import { useNnsGovernance } from './useGovernance';
@@ -13,6 +14,11 @@ type RequestParams = {
   includePublicNeurons?: boolean;
   neuronSubaccounts?: { subaccount: Uint8Array }[];
 };
+
+const sortByCreatedDesc = (
+  a: { createdTimestampSeconds: bigint },
+  b: { createdTimestampSeconds: bigint },
+) => Number(b.createdTimestampSeconds - a.createdTimestampSeconds);
 
 export const useGovernanceNeurons = (params?: RequestParams) => {
   const { identity } = useInternetIdentity();
@@ -34,15 +40,11 @@ export const useGovernanceNeurons = (params?: RequestParams) => {
     queryFn: () =>
       canister!
         .listNeurons(request)
-        .then((data) =>
-          data.toSorted((a, b) => Number(b.createdTimestampSeconds - a.createdTimestampSeconds)),
-        ),
+        .then((data) => data.filter(isNonEmptyNeuron).toSorted(sortByCreatedDesc)),
     updateFn: () =>
       canister!
         .listNeurons({ ...request, certified: true })
-        .then((data) =>
-          data.toSorted((a, b) => Number(b.createdTimestampSeconds - a.createdTimestampSeconds)),
-        ),
+        .then((data) => data.filter(isNonEmptyNeuron).toSorted(sortByCreatedDesc)),
     options: {
       enabled: ready && authenticated,
     },
