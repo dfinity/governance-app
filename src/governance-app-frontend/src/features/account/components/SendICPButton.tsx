@@ -1,5 +1,8 @@
-import { AccountIdentifier, isIcpAccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
-import { AgentError } from '@icp-sdk/core/agent';
+import {
+  AccountIdentifier,
+  isIcpAccountIdentifier,
+  TransferError,
+} from '@icp-sdk/canisters/ledger/icp';
 import { nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useMutation } from '@tanstack/react-query';
 import { AlertTriangle, Send } from 'lucide-react';
@@ -26,7 +29,7 @@ import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
 import { useTickerPrices } from '@hooks/tickers';
 import { delay } from '@utils/async';
 import { bigIntMul } from '@utils/bigInt';
-import { mapCanisterError } from '@utils/errors';
+import { isCertifiedRejectError, mapCanisterError } from '@utils/errors';
 import { errorNotification, successNotification } from '@utils/notification';
 import { formatNumber, roundToE8sPrecision } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
@@ -84,12 +87,7 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
       createdAtRef.current = null;
     },
     onError: (error) => {
-      // Only reset createdAt when we know the transfer did not execute (certified
-      // response). Ledger errors are decoded from canister reject; AgentError with
-      // isCertified means we got a certified reject. Non-certified/transport errors
-      // leave outcome unknown — keep ref so retry reuses same timestamp for dedup.
-      const isCertifiedErrorAgent = error instanceof AgentError && error.isCertified;
-      if (isCertifiedErrorAgent) {
+      if (isCertifiedRejectError(error) || error instanceof TransferError) {
         createdAtRef.current = null;
       }
       errorNotification({
