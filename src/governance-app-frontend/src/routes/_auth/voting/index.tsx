@@ -1,5 +1,5 @@
-import { ProposalStatus } from '@icp-sdk/canisters/nns';
 import { isNullish, nonNullish } from '@dfinity/utils';
+import { ProposalStatus } from '@icp-sdk/canisters/nns';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Eye, EyeOff, Users } from 'lucide-react';
 import { type MouseEvent, useEffect, useRef, useState } from 'react';
@@ -53,7 +53,6 @@ function Voting() {
   const [proposalFilter, setProposalFilter] = useState<'open' | 'all'>('open');
   const openProposals = useGovernanceProposals({
     includeStatus: [ProposalStatus.Open],
-    limit: 100,
   });
   const allProposals = useGovernanceProposals();
   const activeQuery = proposalFilter === 'open' ? openProposals : allProposals;
