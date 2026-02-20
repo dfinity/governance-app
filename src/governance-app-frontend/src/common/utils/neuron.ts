@@ -1,5 +1,5 @@
-import { nonNullish } from '@dfinity/utils';
 import { type NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
+import { nonNullish } from '@dfinity/utils';
 
 import { E8Sn, ICP_TRANSACTION_FEE_E8Sn, SECONDS_IN_EIGHT_YEARS } from '@constants/extra';
 import { bigIntDiv, bigIntMax } from '@utils/bigInt';
