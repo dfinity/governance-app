@@ -3,8 +3,6 @@ use ic_http_certification::{HttpRequest, HttpResponse};
 
 mod assets;
 
-const GIT_COMMIT: Option<&str> = option_env!("GIT_COMMIT");
-
 #[init]
 fn init() {
     // Initialize and certify the assets on deployment
@@ -21,9 +19,4 @@ fn post_upgrade() {
 fn http_request(req: HttpRequest<'static>) -> HttpResponse<'static> {
     // Delegate HTTP requests to the assets module
     assets::http_request_handler(&req)
-}
-
-#[query]
-fn get_build_info() -> String {
-    GIT_COMMIT.unwrap_or("unknown").to_string()
 }

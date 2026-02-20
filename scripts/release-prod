@@ -244,8 +244,8 @@ CHANGELOG=""
 
 echo
 echo "Querying deployed canister for current build info..."
-if RAW_BUILD_INFO="$(dfx canister call "$CANISTER_ID" get_build_info --network ic --identity anonymous 2>/dev/null)"; then
-  DEPLOYED_COMMIT="$(echo "$RAW_BUILD_INFO" | tr -d '()"' | xargs)"
+if DEPLOYED_COMMIT="$(dfx canister metadata "$CANISTER_ID" git_commit_id --network ic 2>/dev/null)"; then
+  DEPLOYED_COMMIT="$(echo "$DEPLOYED_COMMIT" | xargs)"
 fi
 
 if [[ -n "$DEPLOYED_COMMIT" ]] && [[ "$DEPLOYED_COMMIT" != "unknown" ]] && git cat-file -e "$DEPLOYED_COMMIT" 2>/dev/null; then

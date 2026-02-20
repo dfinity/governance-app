@@ -1,11 +1,12 @@
 # Use the base image previously created and published.
 FROM ghcr.io/dfinity/governance-app/builder-base:0.0.7
 
+RUN cargo install ic-wasm
+
 WORKDIR /app
 COPY . .
 
 ARG GIT_COMMIT=unknown
-ENV GIT_COMMIT=$GIT_COMMIT
 
 # Copy env variables, set DFX_NETWORK and DFX_HOST for mainnet
 RUN ./scripts/config.sh -n ic
@@ -15,3 +16,7 @@ RUN npm ci
 RUN dfx generate
 RUN npm run build
 RUN cargo build --target wasm32-unknown-unknown --release -p governance-app-backend --locked
+
+RUN ic-wasm target/wasm32-unknown-unknown/release/governance_app_backend.wasm \
+    -o target/wasm32-unknown-unknown/release/governance_app_backend.wasm \
+    metadata git_commit_id -d "$GIT_COMMIT" -v public

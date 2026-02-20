@@ -20,6 +20,4 @@ service : {
     // HTTP
     http_request : (request : HttpRequest) -> (HttpResponse) query;
     // End HTTP
-
-    get_build_info : () -> (text) query;
 }
