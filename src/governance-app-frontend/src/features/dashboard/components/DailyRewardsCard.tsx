@@ -1,4 +1,4 @@
-import { nonNullish } from '@dfinity/utils';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -21,7 +21,7 @@ export const DailyRewardsCard = () => {
   const metrics = metricsData?.response;
 
   const dailyReward = useMemo(() => {
-    if (!nonNullish(metrics?.totalSupplyIcp)) return undefined;
+    if (isNullish(metrics?.totalSupplyIcp)) return undefined;
 
     return getPoolReward({
       genesisTimestampSeconds: NNS_GENESIS_TIMESTAMP_SECONDS,
