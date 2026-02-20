@@ -1,5 +1,5 @@
-import { isNullish, nonNullish } from '@dfinity/utils';
 import { ProposalStatus } from '@icp-sdk/canisters/nns';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Eye, EyeOff, Users } from 'lucide-react';
 import { type MouseEvent, useEffect, useRef, useState } from 'react';
