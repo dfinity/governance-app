@@ -235,9 +235,45 @@ echo
 echo "Downloading wasm from CI..."
 download_ci_wasm "$COMMIT" "$WASM_DIR" "$LIMIT"
 
-TITLE="Upgrade governance-app at commit ${COMMIT:0:10}"
-SUMMARY="Upgrade governance-app at commit $COMMIT
+# -----------------------------------------------------------------------------
+# Changelog: query the deployed canister for its build commit
+# -----------------------------------------------------------------------------
 
+DEPLOYED_COMMIT=""
+CHANGELOG=""
+
+echo
+echo "Querying deployed canister for current build info..."
+if RAW_BUILD_INFO="$(dfx canister call "$CANISTER_ID" get_build_info --network ic --identity anonymous 2>/dev/null)"; then
+  DEPLOYED_COMMIT="$(echo "$RAW_BUILD_INFO" | tr -d '()"' | xargs)"
+fi
+
+if [[ -n "$DEPLOYED_COMMIT" ]] && [[ "$DEPLOYED_COMMIT" != "unknown" ]] && git cat-file -e "$DEPLOYED_COMMIT" 2>/dev/null; then
+  CHANGELOG="$(git log --format='- %h %s' "$DEPLOYED_COMMIT".."$COMMIT")"
+  echo "Found deployed commit: ${DEPLOYED_COMMIT:0:10}"
+  echo "Commits since last deploy:"
+  echo "$CHANGELOG"
+else
+  echo "⚠️  Could not determine deployed commit (got: '${DEPLOYED_COMMIT:-empty}'). Skipping changelog."
+fi
+
+# -----------------------------------------------------------------------------
+# Build Orbit request
+# -----------------------------------------------------------------------------
+
+TITLE="Upgrade governance-app at commit ${COMMIT:0:10}"
+
+CHANGELOG_SECTION=""
+if [[ -n "$CHANGELOG" ]]; then
+  CHANGELOG_SECTION="
+Changes since last deploy (${DEPLOYED_COMMIT:0:10}):
+
+$CHANGELOG
+"
+fi
+
+SUMMARY="Upgrade governance-app at commit $COMMIT
+${CHANGELOG_SECTION}
 Verify the build before approving:
 
 1. git fetch

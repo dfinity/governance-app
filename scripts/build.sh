@@ -30,8 +30,10 @@ source "$(clap.build)"
 
 # --- Main build process ---
 
-echo "Building Docker image..."
-docker buildx build --platform linux/amd64 -t "$DOCKER_IMAGE_NAME" . -f docker/Dockerfile.build
+GIT_COMMIT="$(git rev-parse HEAD)"
+
+echo "Building Docker image for commit ${GIT_COMMIT:0:10}..."
+docker buildx build --platform linux/amd64 --build-arg GIT_COMMIT="$GIT_COMMIT" -t "$DOCKER_IMAGE_NAME" . -f docker/Dockerfile.build
 
 echo "Extracting WASM file from container..."
 CONTAINER_ID=$(docker create "$DOCKER_IMAGE_NAME")

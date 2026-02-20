@@ -4,6 +4,9 @@ FROM ghcr.io/dfinity/governance-app/builder-base:0.0.7
 WORKDIR /app
 COPY . .
 
+ARG GIT_COMMIT=unknown
+ENV GIT_COMMIT=$GIT_COMMIT
+
 # Copy env variables, set DFX_NETWORK and DFX_HOST for mainnet
 RUN ./scripts/config.sh -n ic
 
