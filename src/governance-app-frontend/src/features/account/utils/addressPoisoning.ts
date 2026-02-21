@@ -30,7 +30,7 @@ const isAddressSimilar = (address: string, trustedAddress: string): boolean => {
  * A transaction is flagged when **both** conditions hold:
  * 1. The transferred amount is very small (≤ 0.001 ICP).
  * 2. The sender address is visually similar (but not identical) to any address
- *    the user is known to control or have previously sent funds to.
+ *    the user is known to control or have previously transacted with.
  */
 export const isSuspiciousAddress = (
   address: string,
@@ -52,7 +52,10 @@ export const isSuspiciousAddress = (
  * Trusted means any address the user owns or has intentionally interacted with:
  * - The user's own account identifier.
  * - Neuron sub-account identifiers (controlled by the user).
- * - Destination addresses from outgoing (SEND) transactions.
+ * - Destination addresses from outgoing (SEND) transactions (any amount).
+ * - Source addresses from incoming (RECEIVE) transactions whose amount exceeds
+ *   the poisoning threshold (small incoming transfers are excluded to avoid
+ *   poisoning addresses polluting the trusted set).
  *
  * **Limitation:** Only transactions provided in `transactions` are considered.
  * When used with paginated data, recipients from pages not yet fetched won't
@@ -68,8 +71,12 @@ export const buildTrustedAddresses = (
   for (const tx of transactions) {
     if (!('Transfer' in tx.operation)) continue;
 
-    if (tx.operation.Transfer && tx.operation.Transfer.from === userAccountId) {
-      trusted.add(tx.operation.Transfer.to);
+    const { from, to, amount } = tx.operation.Transfer;
+
+    if (from === userAccountId) {
+      trusted.add(to);
+    } else if (to === userAccountId && amount.e8s > SMALL_AMOUNT_THRESHOLD_E8S) {
+      trusted.add(from);
     }
   }
 

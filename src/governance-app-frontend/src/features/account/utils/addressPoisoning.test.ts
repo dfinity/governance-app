@@ -45,14 +45,19 @@ describe('isSuspiciousAddress', () => {
 });
 
 // Helper to build a minimal mock transaction matching IcpIndexDid.Transaction.
-const mockTransfer = (from: string, to: string) =>
+const mockTransfer = (from: string, to: string, amountE8s = 0n) =>
   ({
-    operation: { Transfer: { from, to, amount: { e8s: 0n }, fee: { e8s: 0n } } },
+    operation: { Transfer: { from, to, amount: { e8s: amountE8s }, fee: { e8s: 0n } } },
     memo: 0n,
     created_at_time: [],
     icrc1_memo: [],
     timestamp: [],
   }) as Parameters<typeof buildTrustedAddresses>[2][number];
+
+// Amount above the poisoning threshold (0.001 ICP = 100_000 e8s).
+const LEGITIMATE_AMOUNT = 1_000_000n;
+// Amount at/below the poisoning threshold.
+const TINY_AMOUNT = 10_000n;
 
 describe('buildTrustedAddresses', () => {
   const USER_ACCOUNT = 'aaaa0000000000000000000000000000000000000000000000000000000000aa';
@@ -76,8 +81,14 @@ describe('buildTrustedAddresses', () => {
     expect(result.has(SENT_TO_ACCOUNT)).toBe(true);
   });
 
-  it('does not include addresses that only sent to the user', () => {
-    const txs = [mockTransfer(RECEIVED_FROM_ACCOUNT, USER_ACCOUNT)];
+  it('includes addresses that sent a significant amount to the user', () => {
+    const txs = [mockTransfer(RECEIVED_FROM_ACCOUNT, USER_ACCOUNT, LEGITIMATE_AMOUNT)];
+    const result = buildTrustedAddresses(USER_ACCOUNT, new Set(), txs);
+    expect(result.has(RECEIVED_FROM_ACCOUNT)).toBe(true);
+  });
+
+  it('does not include addresses that sent only a tiny amount to the user', () => {
+    const txs = [mockTransfer(RECEIVED_FROM_ACCOUNT, USER_ACCOUNT, TINY_AMOUNT)];
     const result = buildTrustedAddresses(USER_ACCOUNT, new Set(), txs);
     expect(result.has(RECEIVED_FROM_ACCOUNT)).toBe(false);
   });
