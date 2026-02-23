@@ -76,6 +76,17 @@ jobs:
       - name: Run unit tests
         run: npm run test
 
+  backend_tests:
+    name: Backend Tests
+    runs-on: dind-small
+    container: ghcr.io/dfinity/governance-app/builder-base:0.0.6
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run backend tests
+        run: cargo test -p governance-app-backend
+
   e2e_tests:
     name: E2E
     uses: ./.github/workflows/e2e.yml
