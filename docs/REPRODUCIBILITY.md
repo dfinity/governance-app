@@ -17,7 +17,7 @@ Skip to the last step if the tooling didn't change.
     - `docker login ghcr.io --username GITHUB_USERNAME`
     - As password create a new Personal Access Token via GitHub.
         - Authorize it via Okta SSO.
-    - Ask someone on the team to add you [here](https://github.com/orgs/dfinity/packages/container/governance-app%2Fbuilder-base/settings)
+    - Ask someone on the team to add you [here](https://github.com/orgs/dfinity/packages/container/governance-app%2Fbuilder-base/settings).
 - Tag the image.
     - `docker tag builder-base:X.X.X ghcr.io/dfinity/governance-app/builder-base:X.X.X`.
 - Push it.
