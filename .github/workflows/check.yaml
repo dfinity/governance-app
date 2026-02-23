@@ -79,7 +79,7 @@ jobs:
   backend_tests:
     name: Backend Tests
     runs-on: dind-small
-    container: ghcr.io/dfinity/governance-app/builder-base:0.0.6
+    container: ghcr.io/dfinity/governance-app/builder-base:0.0.7
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
