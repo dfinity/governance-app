@@ -47,9 +47,11 @@ function ValueRenderer({ value }: { value: SelfDescribingValue }) {
 }
 
 function MapRenderer({ entries }: { entries: Array<[string, SelfDescribingValue]> }) {
+  const sorted = entries.toSorted(([a], [b]) => a.localeCompare(b));
+
   return (
     <dl className="flex flex-col gap-3">
-      {entries.map(([key, val]) => {
+      {sorted.map(([key, val]) => {
         const isNested = 'Map' in val || 'Array' in val;
 
         return (
