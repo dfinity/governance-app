@@ -249,10 +249,19 @@ if DEPLOYED_COMMIT="$(dfx canister metadata "$CANISTER_ID" git_commit_id --netwo
 fi
 
 if [[ -n "$DEPLOYED_COMMIT" ]] && [[ "$DEPLOYED_COMMIT" != "unknown" ]] && git cat-file -e "$DEPLOYED_COMMIT" 2>/dev/null; then
-  CHANGELOG="$(git log --format='- %h %s' "$DEPLOYED_COMMIT".."$COMMIT")"
   echo "Found deployed commit: ${DEPLOYED_COMMIT:0:10}"
-  echo "Commits since last deploy:"
-  echo "$CHANGELOG"
+
+  if [[ "$DEPLOYED_COMMIT" == "$COMMIT" ]]; then
+    echo "Target commit is the same as deployed commit."
+    CHANGELOG="(No changes — redeploying same version)"
+  elif ! git merge-base --is-ancestor "$DEPLOYED_COMMIT" "$COMMIT" 2>/dev/null; then
+    echo "⚠️  Deployed commit is not an ancestor of target commit. Changelog may be unreliable."
+    CHANGELOG="(Deployed commit ${DEPLOYED_COMMIT:0:10} is not an ancestor of ${COMMIT:0:10} — changelog skipped)"
+  else
+    CHANGELOG="$(git log --format='- %h %s' "$DEPLOYED_COMMIT".."$COMMIT")"
+    echo "Commits since last deploy:"
+    echo "$CHANGELOG"
+  fi
 else
   echo "⚠️  Could not determine deployed commit (got: '${DEPLOYED_COMMIT:-empty}'). Skipping changelog."
 fi
