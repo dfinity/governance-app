@@ -25,6 +25,9 @@ RUN DFXVM_INIT_YES=true sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)
 RUN rustup target add wasm32-unknown-unknown && rustup component add rustfmt
 
 # Install ic-wasm for injecting metadata into Wasm canisters.
+# Used in Dockerfile.build to embed git_commit_id metadata into the canister wasm.
+# TARGETARCH is set automatically by Docker during multi-platform builds (--platform linux/amd64,linux/arm64).
+# Docker builds the image once per platform, so this maps each Docker arch name to the ic-wasm release arch name.
 ARG TARGETARCH
 RUN IC_WASM_VERSION=0.9.11 && \
     case "$TARGETARCH" in \
