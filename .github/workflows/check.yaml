@@ -7,7 +7,7 @@ jobs:
   codestyle:
     name: Codestyle
     runs-on: dind-small
-    container: ghcr.io/dfinity/governance-app/builder-base:0.0.6
+    container: ghcr.io/dfinity/governance-app/builder-base:0.0.7
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
   build_stats:
     name: Build Stats
     runs-on: dind-small
-    container: ghcr.io/dfinity/governance-app/builder-base:0.0.6
+    container: ghcr.io/dfinity/governance-app/builder-base:0.0.7
     permissions:
       contents: read
       pull-requests: write
@@ -61,7 +61,7 @@ jobs:
   unit_tests:
     name: Unit Tests
     runs-on: dind-small
-    container: ghcr.io/dfinity/governance-app/builder-base:0.0.6
+    container: ghcr.io/dfinity/governance-app/builder-base:0.0.7
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
