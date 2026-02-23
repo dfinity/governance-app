@@ -4,11 +4,12 @@ FROM rust:1.87.0-slim-bookworm
 # Set up environment variables for non-interactive installs.
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install curl, git, and jq (needed for CI scripts).
+# Install curl, git, jq, and xz-utils (needed for CI scripts and ic-wasm install).
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
     jq \
+    xz-utils \
     && rm -rf /var/lib/apt/lists/*
 
 # Install a specific version of Node.js from NodeSource.
@@ -22,6 +23,21 @@ RUN DFXVM_INIT_YES=true sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)
 
 # Install the correct Rust target for Wasm compilation and rustfmt for cargo fmt.
 RUN rustup target add wasm32-unknown-unknown && rustup component add rustfmt
+
+# Install ic-wasm for injecting metadata into Wasm canisters.
+# Used in Dockerfile.build to embed git_commit_id metadata into the canister wasm.
+# TARGETARCH is set automatically by Docker during multi-platform builds (--platform linux/amd64,linux/arm64).
+# Docker builds the image once per platform, so this maps each Docker arch name to the ic-wasm release arch name.
+ARG TARGETARCH
+RUN IC_WASM_VERSION=0.9.11 && \
+    case "$TARGETARCH" in \
+      arm64) ARCH="aarch64" ;; \
+      amd64) ARCH="x86_64" ;; \
+      *) echo "Unsupported architecture: $TARGETARCH" >&2; exit 1 ;; \
+    esac && \
+    curl -fsSL "https://github.com/dfinity/ic-wasm/releases/download/${IC_WASM_VERSION}/ic-wasm-${ARCH}-unknown-linux-gnu.tar.xz" \
+    | tar -xJ --strip-components=1 -C /usr/local/bin && \
+    ic-wasm --version
 
 # Install Inter font for consistent rendering across platforms.
 # Inter closely matches macOS San Francisco (system-ui) font.
