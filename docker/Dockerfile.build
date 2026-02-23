@@ -1,8 +1,6 @@
 # Use the base image previously created and published.
 FROM ghcr.io/dfinity/governance-app/builder-base:0.0.7
 
-RUN cargo install ic-wasm
-
 WORKDIR /app
 COPY . .
 
