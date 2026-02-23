@@ -5,6 +5,7 @@ import { ArrowLeft, Clock, Link as LinkIcon, Tag, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalDetailsVoting } from '@features/proposals/components/ProposalDetailsVoting';
+import { SelfDescribingActionView } from '@features/proposals/components/SelfDescribingActionView';
 import {
   getProposalStatusColor,
   getProposalTimeLeftInSeconds,
@@ -147,14 +148,18 @@ function ProposalDetailsRouteComponent() {
                   <CardTitle>{t(($) => $.proposal.action)}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <pre className="overflow-x-auto rounded-lg bg-muted p-4 text-xs break-all whitespace-pre-wrap">
-                    {proposal.proposal?.action &&
-                      JSON.stringify(
-                        Object.values(proposal.proposal?.action ?? {})[0],
-                        jsonReplacer,
-                        2,
-                      )}
-                  </pre>
+                  {proposal.proposal?.selfDescribingAction ? (
+                    <SelfDescribingActionView action={proposal.proposal.selfDescribingAction} />
+                  ) : (
+                    <pre className="overflow-x-auto rounded-lg bg-muted p-4 text-xs break-all whitespace-pre-wrap">
+                      {proposal.proposal?.action &&
+                        JSON.stringify(
+                          Object.values(proposal.proposal?.action ?? {})[0],
+                          jsonReplacer,
+                          2,
+                        )}
+                    </pre>
+                  )}
                 </CardContent>
               </Card>
             </>
