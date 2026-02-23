@@ -235,9 +235,54 @@ echo
 echo "Downloading wasm from CI..."
 download_ci_wasm "$COMMIT" "$WASM_DIR" "$LIMIT"
 
-TITLE="Upgrade governance-app at commit ${COMMIT:0:10}"
-SUMMARY="Upgrade governance-app at commit $COMMIT
+# -----------------------------------------------------------------------------
+# Changelog: query the deployed canister for its build commit
+# -----------------------------------------------------------------------------
 
+DEPLOYED_COMMIT=""
+CHANGELOG=""
+
+echo
+echo "Querying deployed canister for current build info..."
+if DEPLOYED_COMMIT="$(dfx canister metadata "$CANISTER_ID" git_commit_id --network ic 2>/dev/null)"; then
+  DEPLOYED_COMMIT="$(echo "$DEPLOYED_COMMIT" | xargs)"
+fi
+
+if [[ -n "$DEPLOYED_COMMIT" ]] && [[ "$DEPLOYED_COMMIT" != "unknown" ]] && git cat-file -e "$DEPLOYED_COMMIT" 2>/dev/null; then
+  echo "Found deployed commit: ${DEPLOYED_COMMIT:0:10}"
+
+  if [[ "$DEPLOYED_COMMIT" == "$COMMIT" ]]; then
+    echo "Target commit is the same as deployed commit."
+    CHANGELOG="(No changes — redeploying same version)"
+  elif ! git merge-base --is-ancestor "$DEPLOYED_COMMIT" "$COMMIT" 2>/dev/null; then
+    echo "⚠️  Deployed commit is not an ancestor of target commit. Changelog may be unreliable."
+    CHANGELOG="(Deployed commit ${DEPLOYED_COMMIT:0:10} is not an ancestor of ${COMMIT:0:10} — changelog skipped)"
+  else
+    CHANGELOG="$(git log --format='- %h %s' "$DEPLOYED_COMMIT".."$COMMIT")"
+    echo "Commits since last deploy:"
+    echo "$CHANGELOG"
+  fi
+else
+  echo "⚠️  Could not determine deployed commit (got: '${DEPLOYED_COMMIT:-empty}'). Skipping changelog."
+fi
+
+# -----------------------------------------------------------------------------
+# Build Orbit request
+# -----------------------------------------------------------------------------
+
+TITLE="Upgrade governance-app at commit ${COMMIT:0:10}"
+
+CHANGELOG_SECTION=""
+if [[ -n "$CHANGELOG" ]]; then
+  CHANGELOG_SECTION="
+Changes since last deploy (${DEPLOYED_COMMIT:0:10}):
+
+$CHANGELOG
+"
+fi
+
+SUMMARY="Upgrade governance-app at commit $COMMIT
+${CHANGELOG_SECTION}
 Verify the build before approving:
 
 1. git fetch
