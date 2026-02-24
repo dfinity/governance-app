@@ -46,7 +46,8 @@ pub enum GetAddressBookResponse {
     Ok(AddressBook),
 }
 
-// --- Validation (same pipeline as nns-dapp) ---
+// Validation pipeline matching nns-dapp:
+// https://github.com/dfinity/nns-dapp/blob/main/rs/backend/src/accounts_store.rs
 
 fn normalize_name(name: &str) -> String {
     let trimmed = name.trim();
