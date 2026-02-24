@@ -22,7 +22,7 @@ export function SystemHealthCard() {
     knownNeurons,
   });
 
-  const hasRepresentative = followedNeurons.length === 1 && followedNeurons[0] !== undefined;
+  const hasRepresentative = followedNeurons.length === 1 && followedNeurons[0] !== undefined;  
 
   const isLoading = neuronsQuery.isLoading || knownNeuronsQuery.isLoading;
   const isError = neuronsQuery.isError || knownNeuronsQuery.isError;
@@ -56,13 +56,15 @@ export function SystemHealthCard() {
                 </>
               )}
             </div>
-            <Link
-              to="/voting"
-              className="mt-1 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {t(($) => $.neuron.summary.systemHealth.setupVoting)}
-              <ChevronRight className="size-3.5" />
-            </Link>
+            {!hasRepresentative && (
+              <Link
+                to="/voting"
+                className="mt-1 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {t(($) => $.neuron.summary.systemHealth.setupVoting)}
+                <ChevronRight className="size-3.5" />
+              </Link>
+            )}
           </>
         )}
       </CardContent>

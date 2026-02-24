@@ -28,7 +28,7 @@
       "label": "Automatic voting",
       "representativeSelected": "Enabled",
       "notSetUp": "Not set up",
-      "setupVoting": "Setup voting"
+      "setupVoting": "Select representative"
     }
   },
   "empty": {
