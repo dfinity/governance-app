@@ -22,7 +22,7 @@ export function SystemHealthCard() {
     knownNeurons,
   });
 
-  const hasRepresentative = followedNeurons.length === 1 && followedNeurons[0] !== undefined;  
+  const hasRepresentative = followedNeurons.length === 1 && followedNeurons[0] !== undefined;
 
   const isLoading = neuronsQuery.isLoading || knownNeuronsQuery.isLoading;
   const isError = neuronsQuery.isError || knownNeuronsQuery.isError;
