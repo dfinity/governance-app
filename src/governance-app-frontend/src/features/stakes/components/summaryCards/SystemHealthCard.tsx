@@ -1,10 +1,9 @@
 import { Link } from '@tanstack/react-router';
-import { AlertTriangle, CheckCircle2, Users } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { getUsersFollowedNeurons } from '@features/voting/utils/findFollowedNeuron';
 
-import { Button } from '@components/button';
 import { Card, CardContent } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
 import { useGovernanceNeurons } from '@hooks/governance';
@@ -39,27 +38,32 @@ export function SystemHealthCard() {
         ) : isError ? (
           <p className="text-2xl font-semibold text-foreground">—</p>
         ) : (
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center">
+          <>
+            <div className="flex items-center gap-2">
               {hasRepresentative ? (
-                <CheckCircle2 className="size-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <>
+                  <CheckCircle2 className="size-6 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  <span className="text-2xl font-semibold text-foreground">
+                    {t(($) => $.neuron.summary.systemHealth.representativeSelected)}
+                  </span>
+                </>
               ) : (
-                <AlertTriangle className="size-5 shrink-0 text-amber-600 dark:text-amber-400" />
+                <>
+                  <AlertTriangle className="size-6 shrink-0 text-amber-600 dark:text-amber-400" />
+                  <span className="text-2xl font-semibold text-foreground">
+                    {t(($) => $.neuron.summary.systemHealth.notSetUp)}
+                  </span>
+                </>
               )}
             </div>
-            {hasRepresentative ? (
-              <p className="text-[15px] font-semibold text-foreground">
-                {t(($) => $.neuron.summary.systemHealth.representativeSelected)}
-              </p>
-            ) : (
-              <Button size="sm" variant="outline" className="w-fit" asChild>
-                <Link to="/voting">
-                  <Users className="size-4" />
-                  {t(($) => $.neuron.summary.systemHealth.setupVoting)}
-                </Link>
-              </Button>
-            )}
-          </div>
+            <Link
+              to="/voting"
+              className="mt-1 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {t(($) => $.neuron.summary.systemHealth.setupVoting)}
+              <ChevronRight className="size-3.5" />
+            </Link>
+          </>
         )}
       </CardContent>
     </Card>
