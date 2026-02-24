@@ -420,7 +420,7 @@ const getDate = (addDays: number = 0, forceInitialDate?: Date): Date => {
   return date;
 };
 
-const getPoolReward = (params: {
+export const getPoolReward = (params: {
   genesisTimestampSeconds: number;
   totalSupply: number;
   initialRewardRate: number;
