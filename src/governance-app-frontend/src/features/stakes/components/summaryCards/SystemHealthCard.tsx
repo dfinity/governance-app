@@ -36,21 +36,21 @@ export function SystemHealthCard() {
         {isLoading ? (
           <Skeleton className="h-8 w-28" />
         ) : isError ? (
-          <p className="text-2xl font-semibold text-foreground">—</p>
+          <p className="text-lg font-semibold text-foreground md:text-2xl">—</p>
         ) : (
           <>
             <div className="flex items-center gap-2">
               {hasRepresentative ? (
                 <>
                   <CheckCircle2 className="size-6 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                  <span className="text-2xl font-semibold text-foreground">
+                  <span className="text-lg font-semibold text-foreground md:text-2xl">
                     {t(($) => $.neuron.summary.systemHealth.representativeSelected)}
                   </span>
                 </>
               ) : (
                 <>
                   <AlertTriangle className="size-6 shrink-0 text-amber-600 dark:text-amber-400" />
-                  <span className="text-2xl font-semibold text-foreground">
+                  <span className="text-lg font-semibold text-foreground md:text-2xl">
                     {t(($) => $.neuron.summary.systemHealth.notSetUp)}
                   </span>
                 </>

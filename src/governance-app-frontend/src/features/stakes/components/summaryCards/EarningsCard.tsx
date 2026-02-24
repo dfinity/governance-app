@@ -42,7 +42,7 @@ export function EarningsCard() {
         ) : (
           <>
             <div className="flex items-center gap-1.5">
-              <span className="text-2xl font-semibold text-foreground">
+              <span className="text-lg font-semibold text-foreground md:text-2xl">
                 {formatNumber(totalUnstakedMaturity)}
               </span>
               <MaturitySymbol />

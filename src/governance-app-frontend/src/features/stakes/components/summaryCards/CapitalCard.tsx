@@ -33,7 +33,7 @@ export function CapitalCard() {
           </>
         ) : (
           <>
-            <p className="text-2xl font-semibold text-foreground">
+            <p className="text-lg font-semibold text-foreground md:text-2xl">
               {usdValue !== null
                 ? `≈ $${formatNumber(usdValue, { minFraction: 2, maxFraction: 2 })}`
                 : '—'}

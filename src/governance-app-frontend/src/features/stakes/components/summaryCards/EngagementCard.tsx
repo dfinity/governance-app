@@ -11,7 +11,7 @@ export function EngagementCard() {
         <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {t(($) => $.neuron.summary.engagement)}
         </p>
-        <p className="text-2xl font-semibold text-foreground">—</p>
+        <p className="text-lg font-semibold text-foreground md:text-2xl">—</p>
       </CardContent>
     </Card>
   );
