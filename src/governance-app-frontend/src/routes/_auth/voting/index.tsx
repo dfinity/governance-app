@@ -1,14 +1,14 @@
+import { ProposalStatus } from '@icp-sdk/canisters/nns';
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Eye, EyeOff, Users } from 'lucide-react';
-import { type MouseEvent, useEffect, useRef } from 'react';
+import { type MouseEvent, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
 import { getShowProposalUrlStatus } from '@features/proposals/utils';
 import { FollowedNeuronCard } from '@features/voting/components/FollowedNeuronCard';
 import { getUsersFollowedNeurons } from '@features/voting/utils/findFollowedNeuron';
-import { sortProposals } from '@features/voting/utils/proposals';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
@@ -19,11 +19,17 @@ import { PageHeader } from '@components/PageHeader';
 import { QueryStates } from '@components/QueryStates';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
+import { ToggleGroup, ToggleGroupItem } from '@components/ToggleGroup';
 import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import { warningNotification } from '@utils/notification';
 
 import i18n from '@/i18n/config';
+
+enum ProposalFilter {
+  Open = 'open',
+  All = 'all',
+}
 
 export const Route = createFileRoute('/_auth/voting/')({
   validateSearch: getShowProposalUrlStatus,
@@ -49,7 +55,12 @@ function Voting() {
   const showProposals = search.showProposals;
   const proposalsRef = useRef<HTMLDivElement>(null);
 
-  const proposals = useGovernanceProposals();
+  const [proposalFilter, setProposalFilter] = useState(ProposalFilter.Open);
+  const openProposals = useGovernanceProposals({
+    includeStatus: [ProposalStatus.Open],
+  });
+  const allProposals = useGovernanceProposals();
+  const activeQuery = proposalFilter === ProposalFilter.Open ? openProposals : allProposals;
 
   const neuronsQuery = useGovernanceNeurons();
   const knownNeuronsQuery = useGovernanceKnownNeurons();
@@ -184,49 +195,79 @@ function Voting() {
       )}
 
       {showProposals && (
-        <QueryStates
-          infiniteQuery={proposals}
-          isEmpty={(data) => !data?.pages?.[0].response.proposals.length}
-          loadingComponent={
-            <div className="flex flex-col gap-4">
-              <Card>
-                <MultipleSkeletons count={3} />
-              </Card>
-              <Card>
-                <MultipleSkeletons count={3} />
-              </Card>
-              <Card>
-                <MultipleSkeletons count={3} />
-              </Card>
-            </div>
-          }
-        >
-          {(data) => (
-            <div className="flex flex-col gap-4">
-              {data?.pages?.map((page) =>
-                page?.response.proposals.toSorted(sortProposals).map((proposal) => (
-                  <div key={proposal.id?.toString()} className="w-full">
-                    <Link
-                      to="/voting/proposals/$id"
-                      params={{ id: proposal.id! }}
-                      search={{ showProposals }}
-                      className="w-full"
-                    >
-                      <ProposalListItem proposal={proposal} certified={page?.certified} />
-                    </Link>
-                  </div>
-                )),
-              )}
+        <div className="flex flex-col gap-4">
+          <ToggleGroup
+            type="single"
+            value={proposalFilter}
+            onValueChange={(v) => v && setProposalFilter(v as ProposalFilter)}
+            variant="outline"
+            size="lg"
+          >
+            <ToggleGroupItem
+              value={ProposalFilter.Open}
+              className="px-5 data-[state=on]:font-semibold"
+            >
+              {t(($) => $.voting.proposals.filterOpen)}
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value={ProposalFilter.All}
+              className="px-5 data-[state=on]:font-semibold"
+            >
+              {t(($) => $.voting.proposals.filterAll)}
+            </ToggleGroupItem>
+          </ToggleGroup>
 
-              {proposals.hasNextPage && (
-                <InViewSentinel retrigger={data} callback={proposals.fetchNextPage}>
-                  {/* @TODO: Update skeleton loader to match list item */}
+          <QueryStates
+            infiniteQuery={activeQuery}
+            isEmpty={(data) => !data?.pages?.[0].response.proposals.length}
+            emptyComponent={
+              proposalFilter === ProposalFilter.Open ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">
+                  {t(($) => $.voting.proposals.noOpenProposals)}
+                </p>
+              ) : undefined
+            }
+            loadingComponent={
+              <div className="flex flex-col gap-4">
+                <Card>
                   <MultipleSkeletons count={3} />
-                </InViewSentinel>
-              )}
-            </div>
-          )}
-        </QueryStates>
+                </Card>
+                <Card>
+                  <MultipleSkeletons count={3} />
+                </Card>
+                <Card>
+                  <MultipleSkeletons count={3} />
+                </Card>
+              </div>
+            }
+          >
+            {(data) => (
+              <>
+                {data?.pages?.map((page) =>
+                  page?.response.proposals.map((proposal) => (
+                    <div key={proposal.id?.toString()} className="w-full">
+                      <Link
+                        to="/voting/proposals/$id"
+                        params={{ id: proposal.id! }}
+                        search={{ showProposals }}
+                        className="w-full"
+                      >
+                        <ProposalListItem proposal={proposal} certified={page?.certified} />
+                      </Link>
+                    </div>
+                  )),
+                )}
+
+                {activeQuery.hasNextPage && (
+                  <InViewSentinel retrigger={data} callback={activeQuery.fetchNextPage}>
+                    {/* @TODO: Update skeleton loader to match list item */}
+                    <MultipleSkeletons count={3} />
+                  </InViewSentinel>
+                )}
+              </>
+            )}
+          </QueryStates>
+        </div>
       )}
     </div>
   );
