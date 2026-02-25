@@ -161,6 +161,17 @@ fn rejects_name_too_short_after_trimming() {
 }
 
 #[test]
+fn stores_names_normalized() {
+    let caller = test_principal();
+    let book = make_address_book(vec![("  Alice   Bob  ", icp(TEST_ICP_ADDRESS))]);
+    assert_eq!(set_address_book(caller, book), SetAddressBookResponse::Ok);
+
+    let stored = get_address_book(caller);
+    let expected = make_address_book(vec![("Alice Bob", icp(TEST_ICP_ADDRESS))]);
+    assert_eq!(stored, GetAddressBookResponse::Ok(expected));
+}
+
+#[test]
 fn rejects_name_too_long() {
     let caller = test_principal();
     let long_name = "A".repeat(65);

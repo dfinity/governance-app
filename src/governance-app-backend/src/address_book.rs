@@ -78,8 +78,7 @@ fn validate_unique_names(address_book: &AddressBook) -> Result<(), SetAddressBoo
 
 fn validate_names_length(address_book: &AddressBook) -> Result<(), SetAddressBookResponse> {
     for named_address in &address_book.named_addresses {
-        let normalized_name = normalize_name(&named_address.name);
-        let name_len = normalized_name.len();
+        let name_len = named_address.name.len();
 
         if name_len < (MIN_NAMED_ADDRESS_NAME_LENGTH as usize) {
             return Err(SetAddressBookResponse::AddressNameTooShort {
@@ -133,16 +132,31 @@ pub fn get_address_book(caller: Principal) -> GetAddressBookResponse {
     GetAddressBookResponse::Ok(user_data.address_book)
 }
 
+fn normalize_address_book(address_book: AddressBook) -> AddressBook {
+    AddressBook {
+        named_addresses: address_book
+            .named_addresses
+            .into_iter()
+            .map(|entry| NamedAddress {
+                name: normalize_name(&entry.name),
+                address: entry.address,
+            })
+            .collect(),
+    }
+}
+
 pub fn set_address_book(
     caller: Principal,
     new_address_book: AddressBook,
 ) -> SetAddressBookResponse {
-    if let Err(error_response) = validate_address_book(&new_address_book) {
+    let normalized = normalize_address_book(new_address_book);
+
+    if let Err(error_response) = validate_address_book(&normalized) {
         return error_response;
     }
 
     let mut user_data = user_data::get_user_data(&caller);
-    user_data.address_book = new_address_book;
+    user_data.address_book = normalized;
     user_data::set_user_data(caller, user_data);
     SetAddressBookResponse::Ok
 }
