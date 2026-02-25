@@ -203,10 +203,16 @@ function Voting() {
             variant="outline"
             size="lg"
           >
-            <ToggleGroupItem value={ProposalFilter.Open} className="px-5 data-[state=on]:font-semibold">
+            <ToggleGroupItem
+              value={ProposalFilter.Open}
+              className="px-5 data-[state=on]:font-semibold"
+            >
               {t(($) => $.voting.proposals.filterOpen)}
             </ToggleGroupItem>
-            <ToggleGroupItem value={ProposalFilter.All} className="px-5 data-[state=on]:font-semibold">
+            <ToggleGroupItem
+              value={ProposalFilter.All}
+              className="px-5 data-[state=on]:font-semibold"
+            >
               {t(($) => $.voting.proposals.filterAll)}
             </ToggleGroupItem>
           </ToggleGroup>
