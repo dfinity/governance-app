@@ -1,5 +1,5 @@
 # Base image, to fix the tooling for better reproducibility.
-FROM rust:1.87.0-slim-bookworm
+FROM rust:1.91.1-slim-bookworm
 
 # Set up environment variables for non-interactive installs.
 ENV DEBIAN_FRONTEND=noninteractive

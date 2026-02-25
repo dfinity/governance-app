@@ -7,7 +7,7 @@ jobs:
   codestyle:
     name: Codestyle
     runs-on: dind-small
-    container: ghcr.io/dfinity/governance-app/builder-base:0.0.7
+    container: ghcr.io/dfinity/governance-app/builder-base:0.0.8
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
   build_stats:
     name: Build Stats
     runs-on: dind-small
-    container: ghcr.io/dfinity/governance-app/builder-base:0.0.7
+    container: ghcr.io/dfinity/governance-app/builder-base:0.0.8
     permissions:
       contents: read
       pull-requests: write
@@ -61,7 +61,7 @@ jobs:
   unit_tests:
     name: Unit Tests
     runs-on: dind-small
-    container: ghcr.io/dfinity/governance-app/builder-base:0.0.7
+    container: ghcr.io/dfinity/governance-app/builder-base:0.0.8
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -75,6 +75,20 @@ jobs:
 
       - name: Run unit tests
         run: npm run test
+
+  backend_tests:
+    name: Backend Tests
+    runs-on: dind-small
+    container: ghcr.io/dfinity/governance-app/builder-base:0.0.8
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create frontend dist placeholder
+        run: mkdir -p src/governance-app-frontend/dist
+
+      - name: Run backend tests
+        run: cargo test -p governance-app-backend
 
   e2e_tests:
     name: E2E

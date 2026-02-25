@@ -17,3 +17,8 @@ ic-cdk = "0.18"
 ic-http-certification = "3.0"
 ic-asset-certification = "3.0.3"
 include_dir = "0.7"
+ic-stable-structures = "0.7.2"
+ic-ledger-types = "0.15.0"
+icrc-ledger-types = "0.1.12"
+serde = { version = "1.0.219", features = ["derive"] }
+regex = "1.11"
