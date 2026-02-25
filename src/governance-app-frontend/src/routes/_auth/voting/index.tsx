@@ -26,6 +26,11 @@ import { warningNotification } from '@utils/notification';
 
 import i18n from '@/i18n/config';
 
+enum ProposalFilter {
+  Open = 'open',
+  All = 'all',
+}
+
 export const Route = createFileRoute('/_auth/voting/')({
   validateSearch: getShowProposalUrlStatus,
   component: Voting,
@@ -50,12 +55,12 @@ function Voting() {
   const showProposals = search.showProposals;
   const proposalsRef = useRef<HTMLDivElement>(null);
 
-  const [proposalFilter, setProposalFilter] = useState<'open' | 'all'>('open');
+  const [proposalFilter, setProposalFilter] = useState(ProposalFilter.Open);
   const openProposals = useGovernanceProposals({
     includeStatus: [ProposalStatus.Open],
   });
   const allProposals = useGovernanceProposals();
-  const activeQuery = proposalFilter === 'open' ? openProposals : allProposals;
+  const activeQuery = proposalFilter === ProposalFilter.Open ? openProposals : allProposals;
 
   const neuronsQuery = useGovernanceNeurons();
   const knownNeuronsQuery = useGovernanceKnownNeurons();
@@ -194,14 +199,14 @@ function Voting() {
           <ToggleGroup
             type="single"
             value={proposalFilter}
-            onValueChange={(v) => v && setProposalFilter(v as 'open' | 'all')}
+            onValueChange={(v) => v && setProposalFilter(v as ProposalFilter)}
             variant="outline"
             size="lg"
           >
-            <ToggleGroupItem value="open" className="px-5 data-[state=on]:font-semibold">
+            <ToggleGroupItem value={ProposalFilter.Open} className="px-5 data-[state=on]:font-semibold">
               {t(($) => $.voting.proposals.filterOpen)}
             </ToggleGroupItem>
-            <ToggleGroupItem value="all" className="px-5 data-[state=on]:font-semibold">
+            <ToggleGroupItem value={ProposalFilter.All} className="px-5 data-[state=on]:font-semibold">
               {t(($) => $.voting.proposals.filterAll)}
             </ToggleGroupItem>
           </ToggleGroup>
@@ -210,7 +215,7 @@ function Voting() {
             infiniteQuery={activeQuery}
             isEmpty={(data) => !data?.pages?.[0].response.proposals.length}
             emptyComponent={
-              proposalFilter === 'open' ? (
+              proposalFilter === ProposalFilter.Open ? (
                 <p className="py-8 text-center text-sm text-muted-foreground">
                   {t(($) => $.voting.proposals.noOpenProposals)}
                 </p>
