@@ -10,7 +10,7 @@ use std::cell::RefCell;
 
 use crate::address_book::AddressBook;
 
-const USER_DATA_MEMORY_ID: MemoryId = MemoryId::new(1);
+const USER_DATA_MEMORY_ID: MemoryId = MemoryId::new(0);
 
 type Memory = VirtualMemory<DefaultMemoryImpl>;
 

@@ -7,9 +7,9 @@ use std::str::FromStr;
 
 use crate::user_data;
 
-const MAX_NAMED_ADDRESSES: i32 = 20;
-const MIN_NAMED_ADDRESS_NAME_LENGTH: i32 = 3;
-const MAX_NAMED_ADDRESS_NAME_LENGTH: i32 = 64;
+const MAX_NAMED_ADDRESSES: usize = 20;
+const MIN_NAMED_ADDRESS_NAME_LENGTH: usize = 3;
+const MAX_NAMED_ADDRESS_NAME_LENGTH: usize = 64;
 
 // --- Types ---
 
@@ -56,9 +56,9 @@ fn normalize_name(name: &str) -> String {
 }
 
 fn validate_count(address_book: &AddressBook) -> Result<(), SetAddressBookResponse> {
-    if address_book.named_addresses.len() > (MAX_NAMED_ADDRESSES as usize) {
+    if address_book.named_addresses.len() > MAX_NAMED_ADDRESSES {
         return Err(SetAddressBookResponse::TooManyNamedAddresses {
-            limit: MAX_NAMED_ADDRESSES,
+            limit: MAX_NAMED_ADDRESSES as i32,
         });
     }
     Ok(())
@@ -80,15 +80,15 @@ fn validate_names_length(address_book: &AddressBook) -> Result<(), SetAddressBoo
     for named_address in &address_book.named_addresses {
         let name_len = named_address.name.len();
 
-        if name_len < (MIN_NAMED_ADDRESS_NAME_LENGTH as usize) {
+        if name_len < MIN_NAMED_ADDRESS_NAME_LENGTH {
             return Err(SetAddressBookResponse::AddressNameTooShort {
-                min_length: MIN_NAMED_ADDRESS_NAME_LENGTH,
+                min_length: MIN_NAMED_ADDRESS_NAME_LENGTH as i32,
             });
         }
 
-        if name_len > (MAX_NAMED_ADDRESS_NAME_LENGTH as usize) {
+        if name_len > MAX_NAMED_ADDRESS_NAME_LENGTH {
             return Err(SetAddressBookResponse::AddressNameTooLong {
-                max_length: MAX_NAMED_ADDRESS_NAME_LENGTH,
+                max_length: MAX_NAMED_ADDRESS_NAME_LENGTH as i32,
             });
         }
     }
