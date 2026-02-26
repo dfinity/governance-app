@@ -20,9 +20,9 @@
   "disburseMaturity": "Disburse maturity",
   "stakeMaturity": "Stake maturity",
   "summary": {
-    "capital": "Staked value",
+    "capital": "Total Staked",
     "engagement": "Participation rate (30D)",
-    "earnings": "Earned rewards",
+    "earnings": "Maturity",
     "earningsForecast": "1y forecast",
     "systemHealth": {
       "label": "Automatic voting",

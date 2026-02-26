@@ -122,8 +122,8 @@ function StakesComponent() {
           <>
             <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
               <CapitalCard />
-              <EngagementCard />
               <EarningsCard />
+              <EngagementCard />
               <SystemHealthCard />
             </div>
             <NeuronsList

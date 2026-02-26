@@ -34,12 +34,12 @@ export function CapitalCard() {
         ) : (
           <>
             <p className="text-lg font-semibold text-foreground md:text-2xl">
+              {t(($) => $.common.inIcp, { value: formatNumber(totalStaked) })}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
               {usdValue !== null
                 ? `≈ $${formatNumber(usdValue, { minFraction: 2, maxFraction: 2 })}`
                 : '—'}
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {t(($) => $.common.inIcp, { value: formatNumber(totalStaked) })}
             </p>
           </>
         )}
