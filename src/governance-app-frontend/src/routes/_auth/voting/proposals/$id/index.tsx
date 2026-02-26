@@ -1,5 +1,5 @@
+import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import { ProposalInfo, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
-import { jsonReplacer, secondsToDuration } from '@dfinity/utils';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { ArrowLeft, Clock, Link as LinkIcon, Tag, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -143,25 +143,16 @@ function ProposalDetailsRouteComponent() {
 
               <ProposalDetailsVoting proposal={proposal} />
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t(($) => $.proposal.action)}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {proposal.proposal?.selfDescribingAction ? (
+              {nonNullish(proposal.proposal?.selfDescribingAction) && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t(($) => $.proposal.action)}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     <SelfDescribingActionView action={proposal.proposal.selfDescribingAction} />
-                  ) : (
-                    <pre className="overflow-x-auto rounded-lg bg-muted p-4 text-xs break-all whitespace-pre-wrap">
-                      {proposal.proposal?.action &&
-                        JSON.stringify(
-                          Object.values(proposal.proposal?.action ?? {})[0],
-                          jsonReplacer,
-                          2,
-                        )}
-                    </pre>
-                  )}
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
             </>
           );
         }}
