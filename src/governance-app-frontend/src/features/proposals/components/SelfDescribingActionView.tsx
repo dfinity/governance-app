@@ -3,11 +3,11 @@ import { useTranslation } from 'react-i18next';
 
 type SelfDescribingValue = NnsGovernanceDid.SelfDescribingValue;
 
-type SelfDescribingActionViewProps = {
+type Props = {
   action: SelfDescribingProposalAction;
 };
 
-export const SelfDescribingActionView: React.FC<SelfDescribingActionViewProps> = ({ action }) => {
+export const SelfDescribingActionView: React.FC<Props> = ({ action }) => {
   if (!action.value) return null;
 
   return (
@@ -23,7 +23,7 @@ function ValueRenderer({ value }: { value: SelfDescribingValue }) {
   if ('Map' in value) return <MapRenderer entries={value.Map} />;
   if ('Array' in value) return <ArrayRenderer items={value.Array} />;
   if ('Text' in value) {
-    if (value.Text === '') return <EmptyValue />;
+    if (value.Text === '') return <span className="text-muted-foreground">—</span>;
     return <span className="break-all">{value.Text}</span>;
   }
   if ('Nat' in value) return <span className="font-mono">{value.Nat.toLocaleString()}</span>;
@@ -53,7 +53,7 @@ function MapRenderer({ entries }: { entries: Array<[string, SelfDescribingValue]
         return (
           <div key={key} className="flex flex-col gap-1">
             <dt className="text-xs font-medium text-muted-foreground capitalize">
-              {humanizeKey(key)}
+              {key.replace(/_/g, ' ')}
             </dt>
             <dd className={isNested ? 'pl-3' : 'text-sm'}>
               <ValueRenderer value={val} />
@@ -101,11 +101,11 @@ function BlobRenderer({ data }: { data: Uint8Array }) {
       </span>
     );
 
-  const MAX_DISPLAY_BYTES = 32;
-  const hex = Array.from(data.slice(0, MAX_DISPLAY_BYTES))
+  const maxDisplayBytes = 32;
+  const hex = Array.from(data.slice(0, maxDisplayBytes))
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
-  const truncated = data.length > MAX_DISPLAY_BYTES;
+  const truncated = data.length > maxDisplayBytes;
 
   return (
     <span className="font-mono text-xs break-all">
@@ -117,12 +117,4 @@ function BlobRenderer({ data }: { data: Uint8Array }) {
       )}
     </span>
   );
-}
-
-function EmptyValue() {
-  return <span className="text-muted-foreground">—</span>;
-}
-
-function humanizeKey(key: string): string {
-  return key.replace(/_/g, ' ');
 }
