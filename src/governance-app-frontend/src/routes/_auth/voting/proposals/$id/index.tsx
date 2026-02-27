@@ -1,5 +1,5 @@
-import { ProposalInfo, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
+import { ProposalInfo, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { ArrowLeft, Clock, Link as LinkIcon, Tag, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -99,8 +99,6 @@ function ProposalDetailsRouteComponent() {
                   <CardTitle className="mt-2 min-w-0 text-2xl leading-tight font-bold break-words">
                     {proposal.proposal?.title}
                   </CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-4">
                   <div className="flex flex-wrap gap-2 text-sm">
                     <Badge className={statusColor}>{ProposalStatus[proposal.status]}</Badge>
                     {timeLeft.length > 0 && (
@@ -137,6 +135,8 @@ function ProposalDetailsRouteComponent() {
                       </a>
                     )}
                   </div>
+                </CardHeader>
+                <CardContent>
                   <MarkdownRenderer content={proposal.proposal?.summary || ''} />
                 </CardContent>
               </Card>
@@ -147,8 +147,16 @@ function ProposalDetailsRouteComponent() {
                 <Card>
                   <CardHeader>
                     <CardTitle>{t(($) => $.proposal.action)}</CardTitle>
+                    <Badge variant="info-subtle" className="w-fit text-xs font-medium">
+                      {proposal.proposal.selfDescribingAction.typeName}
+                    </Badge>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="flex flex-col gap-2">
+                    {proposal.proposal.selfDescribingAction.typeDescription && (
+                      <p className="text-sm leading-relaxed text-muted-foreground">
+                        {proposal.proposal.selfDescribingAction.typeDescription}
+                      </p>
+                    )}
                     <SelfDescribingActionView action={proposal.proposal.selfDescribingAction} />
                   </CardContent>
                 </Card>

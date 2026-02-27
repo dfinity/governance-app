@@ -1,6 +1,5 @@
 import type { NnsGovernanceDid, SelfDescribingProposalAction } from '@icp-sdk/canisters/nns';
-
-import { Badge } from '@components/badge';
+import { useTranslation } from 'react-i18next';
 
 type SelfDescribingValue = NnsGovernanceDid.SelfDescribingValue;
 
@@ -9,31 +8,18 @@ type SelfDescribingActionViewProps = {
 };
 
 export const SelfDescribingActionView: React.FC<SelfDescribingActionViewProps> = ({ action }) => {
-  return (
-    <div className="flex flex-col gap-4">
-      {action.typeName && (
-        <div className="flex flex-col gap-1.5">
-          <Badge variant="info-subtle" className="w-fit text-xs font-medium">
-            {action.typeName}
-          </Badge>
-          {action.typeDescription && (
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              {action.typeDescription}
-            </p>
-          )}
-        </div>
-      )}
+  if (!action.value) return null;
 
-      {action.value && (
-        <div className="rounded-lg border bg-muted/30 p-4">
-          <ValueRenderer value={action.value} />
-        </div>
-      )}
+  return (
+    <div className="rounded-lg border bg-muted/30 p-4">
+      <ValueRenderer value={action.value} />
     </div>
   );
 };
 
 function ValueRenderer({ value }: { value: SelfDescribingValue }) {
+  const { t } = useTranslation();
+
   if ('Map' in value) return <MapRenderer entries={value.Map} />;
   if ('Array' in value) return <ArrayRenderer items={value.Array} />;
   if ('Text' in value) return <span className="break-all">{value.Text}</span>;
@@ -41,7 +27,13 @@ function ValueRenderer({ value }: { value: SelfDescribingValue }) {
   if ('Int' in value) return <span className="font-mono">{value.Int.toLocaleString()}</span>;
   if ('Bool' in value) return <span className="font-mono">{String(value.Bool)}</span>;
   if ('Blob' in value) return <BlobRenderer data={value.Blob} />;
-  if ('Null' in value) return <span className="text-muted-foreground italic">null</span>;
+  if ('Null' in value) {
+    return (
+      <span className="text-muted-foreground italic">
+        {t(($) => $.proposal.selfDescribingAction.null)}
+      </span>
+    );
+  }
 
   return null;
 }
@@ -56,7 +48,9 @@ function MapRenderer({ entries }: { entries: Array<[string, SelfDescribingValue]
 
         return (
           <div key={key} className="flex flex-col gap-1">
-            <dt className="text-xs font-medium text-muted-foreground">{humanizeKey(key)}</dt>
+            <dt className="text-xs font-medium text-muted-foreground capitalize">
+              {humanizeKey(key)}
+            </dt>
             <dd className={isNested ? 'pl-3' : 'text-sm'}>
               <ValueRenderer value={val} />
             </dd>
@@ -68,48 +62,34 @@ function MapRenderer({ entries }: { entries: Array<[string, SelfDescribingValue]
 }
 
 function ArrayRenderer({ items }: { items: SelfDescribingValue[] }) {
-  if (items.length === 0) return <span className="text-muted-foreground italic">empty</span>;
+  const { t } = useTranslation();
 
-  const primitives = items.filter((item) => !('Map' in item) && !('Array' in item));
-  const arrays = items.filter((item) => 'Array' in item);
-  const maps = items.filter((item) => 'Map' in item);
+  if (items.length === 0) {
+    return (
+      <span className="text-muted-foreground italic">
+        {t(($) => $.proposal.selfDescribingAction.empty)}
+      </span>
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-3">
-      {primitives.length > 0 && (
-        <ul className="flex list-disc flex-col gap-1 pl-5 text-sm">
-          {primitives.map((item, i) => (
-            <li key={i}>
-              <ValueRenderer value={item} />
-            </li>
-          ))}
-        </ul>
-      )}
+    <ul className="flex flex-col gap-2 text-sm">
+      {items.map((item, i) => {
+        const isNested = 'Map' in item || 'Array' in item;
 
-      {arrays.length > 0 && (
-        <ol className="flex flex-col gap-2">
-          {arrays.map((item, i) => (
-            <li key={i} className="border-l-2 border-border pl-3">
-              <ValueRenderer value={item} />
-            </li>
-          ))}
-        </ol>
-      )}
-
-      {maps.length > 0 && (
-        <div className="flex flex-col gap-3">
-          {maps.map((item, i) => (
-            <div key={i} className="border-l-2 border-border pl-3">
-              <ValueRenderer value={item} />
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+        return (
+          <li key={i} className={isNested ? 'pl-3' : 'ml-5 list-inside list-disc'}>
+            <ValueRenderer value={item} />
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
 function BlobRenderer({ data }: { data: Uint8Array }) {
+  const { t } = useTranslation();
+
   const MAX_DISPLAY_BYTES = 32;
   const hex = Array.from(data.slice(0, MAX_DISPLAY_BYTES))
     .map((b) => b.toString(16).padStart(2, '0'))
@@ -119,11 +99,15 @@ function BlobRenderer({ data }: { data: Uint8Array }) {
   return (
     <span className="font-mono text-xs break-all">
       {hex}
-      {truncated && <span className="text-muted-foreground">… ({data.length} bytes)</span>}
+      {truncated && (
+        <span className="text-muted-foreground">
+          {t(($) => $.proposal.selfDescribingAction.blobTruncated, { size: data.length })}
+        </span>
+      )}
     </span>
   );
 }
 
 function humanizeKey(key: string): string {
-  return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  return key.replace(/_/g, ' ');
 }
