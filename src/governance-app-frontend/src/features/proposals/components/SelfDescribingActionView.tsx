@@ -22,11 +22,15 @@ function ValueRenderer({ value }: { value: SelfDescribingValue }) {
 
   if ('Map' in value) return <MapRenderer entries={value.Map} />;
   if ('Array' in value) return <ArrayRenderer items={value.Array} />;
-  if ('Text' in value) return <span className="break-all">{value.Text}</span>;
+  if ('Text' in value) {
+    if (value.Text === '') return <EmptyValue />;
+    return <span className="break-all">{value.Text}</span>;
+  }
   if ('Nat' in value) return <span className="font-mono">{value.Nat.toLocaleString()}</span>;
   if ('Int' in value) return <span className="font-mono">{value.Int.toLocaleString()}</span>;
   if ('Bool' in value) return <span className="font-mono">{String(value.Bool)}</span>;
   if ('Blob' in value) return <BlobRenderer data={value.Blob} />;
+
   if ('Null' in value) {
     return (
       <span className="text-muted-foreground italic">
@@ -90,6 +94,13 @@ function ArrayRenderer({ items }: { items: SelfDescribingValue[] }) {
 function BlobRenderer({ data }: { data: Uint8Array }) {
   const { t } = useTranslation();
 
+  if (data.length === 0)
+    return (
+      <span className="font-mono text-xs text-muted-foreground">
+        {t(($) => $.proposal.selfDescribingAction.blobEmpty)}
+      </span>
+    );
+
   const MAX_DISPLAY_BYTES = 32;
   const hex = Array.from(data.slice(0, MAX_DISPLAY_BYTES))
     .map((b) => b.toString(16).padStart(2, '0'))
@@ -106,6 +117,10 @@ function BlobRenderer({ data }: { data: Uint8Array }) {
       )}
     </span>
   );
+}
+
+function EmptyValue() {
+  return <span className="text-muted-foreground">—</span>;
 }
 
 function humanizeKey(key: string): string {

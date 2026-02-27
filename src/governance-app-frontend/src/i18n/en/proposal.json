@@ -26,6 +26,7 @@
   "selfDescribingAction": {
     "empty": "empty",
     "null": "null",
-    "blobTruncated": "… ({{size}} bytes)"
+    "blobTruncated": "… ({{size}} bytes)",
+    "blobEmpty": "0 bytes"
   }
 }
