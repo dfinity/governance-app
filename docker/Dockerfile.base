@@ -1,3 +1,6 @@
+# Stage: grab a pinned Node.js binary from the official image.
+FROM node:25.7.0-bookworm-slim AS node
+
 # Base image, to fix the tooling for better reproducibility.
 FROM rust:1.91.1-slim-bookworm
 
@@ -12,9 +15,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xz-utils \
     && rm -rf /var/lib/apt/lists/*
 
-# Install a specific version of Node.js from NodeSource.
-RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
-RUN apt-get install -y nodejs
+# Copy pinned Node.js binary and npm from the official image (no remote scripts, exact version).
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+COPY --from=node /usr/local/include/node /usr/local/include/node
+COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm
 
 # Install DFX (Internet Computer SDK) and symlink to /usr/local/bin for CI access.
 ENV DFX_VERSION=0.30.2
