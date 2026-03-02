@@ -1,7 +1,8 @@
-import type { ListProposalsRequest, ListProposalsResponse } from '@icp-sdk/canisters/nns';
-import { ProposalStatus } from '@icp-sdk/canisters/nns';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useMemo } from 'react';
+
+import type { ListProposalsRequest, ListProposalsResponse } from '@icp-sdk/canisters/nns';
+import { ProposalRewardStatus, ProposalStatus } from '@icp-sdk/canisters/nns';
+import { useInternetIdentity } from 'ic-use-internet-identity';
 
 import { calculateEngagement } from '@features/stakes/utils/calculateEngagement';
 
@@ -16,9 +17,10 @@ const SETTLED_PROPOSALS_REQUEST: ListProposalsRequest = {
   beforeProposal: undefined,
   includeStatus: [ProposalStatus.Executed, ProposalStatus.Rejected],
   excludeTopic: [],
-  includeRewardStatus: [],
+  includeRewardStatus: [ProposalRewardStatus.Settled],
   includeAllManageNeuronProposals: false,
   omitLargeFields: true,
+  returnSelfDescribingAction: true,
 };
 
 export const useNeuronEngagement = () => {
@@ -28,12 +30,7 @@ export const useNeuronEngagement = () => {
   const principal = identity?.getPrincipal().toText();
 
   const proposalsQuery = useQueryThenUpdateCall<ListProposalsResponse>({
-    queryKey: [
-      QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS,
-      'engagement',
-      SETTLED_PROPOSALS_REQUEST,
-      principal,
-    ],
+    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.ENGAGEMENT, SETTLED_PROPOSALS_REQUEST, principal],
     queryFn: () =>
       canister!.listProposals({ request: SETTLED_PROPOSALS_REQUEST, certified: false }),
     updateFn: () =>
