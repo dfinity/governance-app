@@ -22,5 +22,11 @@
   "yes": "Yes",
   "no": "No",
   "mixed": "Mixed",
-  "ariaLabelVote": "Vote {{vote}} on proposal {{proposalId}}"
+  "ariaLabelVote": "Vote {{vote}} on proposal {{proposalId}}",
+  "selfDescribingAction": {
+    "empty": "empty",
+    "null": "null",
+    "blobTruncated": "… ({{size}} bytes)",
+    "blobEmpty": "0 bytes"
+  }
 }

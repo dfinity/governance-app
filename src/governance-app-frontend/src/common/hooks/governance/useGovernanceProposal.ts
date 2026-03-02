@@ -24,6 +24,7 @@ export const useGovernanceProposal = (props?: { proposalId: bigint }) => {
     includeStatus: [],
     includeAllManageNeuronProposals: false,
     omitLargeFields: true,
+    returnSelfDescribingAction: true,
   };
 
   const principal = identity?.getPrincipal().toText();

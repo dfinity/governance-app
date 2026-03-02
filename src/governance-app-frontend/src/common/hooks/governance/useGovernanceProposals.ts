@@ -16,6 +16,7 @@ const DEFAULT_OPTIONS: ListProposalsRequest = {
   includeAllManageNeuronProposals: false,
   // (e.g. IC0504: Canister payload size cannot be larger than 3145728.)
   omitLargeFields: true,
+  returnSelfDescribingAction: true,
 };
 
 export const useGovernanceProposals = (overrides?: Partial<ListProposalsRequest>) => {
