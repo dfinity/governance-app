@@ -22,8 +22,5 @@
   "type": "module",
   "workspaces": [
     "src/governance-app-frontend"
-  ],
-  "devDependencies": {
-    "lockfile-lint": "5.0.0"
-  }
+  ]
 }
