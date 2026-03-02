@@ -81,6 +81,7 @@ import type { MonthlyGovernanceSummary } from '../types/executiveSummary';
  * ▲▲▲ END PROMPT ▲▲▲
  */
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const JANUARY_2026: MonthlyGovernanceSummary = {
   month: 'January',
   year: 2026,
