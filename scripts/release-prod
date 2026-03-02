@@ -236,11 +236,11 @@ echo "Downloading wasm from CI..."
 download_ci_wasm "$COMMIT" "$WASM_DIR" "$LIMIT"
 
 # -----------------------------------------------------------------------------
-# Diff URL: query the deployed canister for its build commit
+# Changelog: query the deployed canister for its build commit
 # -----------------------------------------------------------------------------
 
 DEPLOYED_COMMIT=""
-DIFF_URL=""
+CHANGELOG_URL=""
 REPO_URL="https://github.com/dfinity/governance-app"
 
 echo
@@ -255,8 +255,8 @@ if [[ -n "$DEPLOYED_COMMIT" ]] && [[ "$DEPLOYED_COMMIT" != "unknown" ]]; then
   if [[ "$DEPLOYED_COMMIT" == "$COMMIT" ]]; then
     echo "Target commit is the same as deployed commit."
   else
-    DIFF_URL="${REPO_URL}/compare/${DEPLOYED_COMMIT}...${COMMIT}"
-    echo "Diff: $DIFF_URL"
+    CHANGELOG_URL="${REPO_URL}/compare/${DEPLOYED_COMMIT}...${COMMIT}"
+    echo "Changelog url is $CHANGELOG_URL"
   fi
 else
   echo "⚠️  Could not determine deployed commit (got: '${DEPLOYED_COMMIT:-empty}'). Skipping diff."
@@ -269,9 +269,9 @@ fi
 TITLE="Upgrade governance-app at commit ${COMMIT:0:10}"
 
 DIFF_SECTION=""
-if [[ -n "$DIFF_URL" ]]; then
+if [[ -n "$CHANGELOG_URL" ]]; then
   DIFF_SECTION="
-Changes from ${DEPLOYED_COMMIT:0:10} to ${COMMIT:0:10}: $DIFF_URL
+List of changes from ${DEPLOYED_COMMIT:0:10} to ${COMMIT:0:10}: $CHANGELOG_URL
 "
 fi
 
