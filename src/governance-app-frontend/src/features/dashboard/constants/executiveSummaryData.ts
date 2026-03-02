@@ -186,11 +186,6 @@ const FEBRUARY_2026: MonthlyGovernanceSummary = {
     },
     { title: 'onicai SNS creation', outcome: 'passed', label: 'Launch Approved' },
     {
-      title: 'The IC API Must remain closed source',
-      outcome: 'rejected',
-      label: 'Rejected',
-    },
-    {
       title: 'Performance Based Voting Rewards',
       outcome: 'rejected',
       label: 'Rejected',
