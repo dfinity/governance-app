@@ -130,5 +130,73 @@ const JANUARY_2026: MonthlyGovernanceSummary = {
   ],
 };
 
+const FEBRUARY_2026: MonthlyGovernanceSummary = {
+  month: 'February',
+  year: 2026,
+
+  outcomes: [
+    { status: 'approved', count: 403 },
+    { status: 'rejected', count: 5 },
+    { status: 'failed', count: 3 },
+  ],
+
+  topChanges: [
+    {
+      icon: 'network',
+      title: 'Network operations & infrastructure',
+      description: '344 rollouts completed, new TEE subnet and subnet recovery',
+      highlights: [
+        { value: 344, label: 'rollouts completed' },
+        { value: 6, label: 'nodes replaced' },
+        { value: 1, label: 'new subnet created' },
+      ],
+    },
+    {
+      icon: 'protocol',
+      title: 'Core protocol & app upgrades',
+      description: 'Multiple canister upgrades and 8 new replica versions',
+      highlights: [
+        { value: 5, label: 'GuestOS versions' },
+        { value: 3, label: 'HostOS versions' },
+        { value: 17, label: 'app upgrades' },
+      ],
+    },
+    {
+      icon: 'community',
+      title: 'Community governance (motions & SNS)',
+      description: 'Mission70 memory repricing passed; onicai SNS launched',
+      highlights: [
+        { value: 2, label: 'Motions passed' },
+        { value: 4, label: 'Rejected' },
+        { value: 1, label: 'SNS launched' },
+      ],
+    },
+  ],
+
+  communityHighlights: [
+    {
+      title: 'Mission70: Repricing Replicated Subnet Memory',
+      outcome: 'passed',
+      label: 'Passed',
+    },
+    {
+      title: 'II 1.0 Backward Compatibility removal',
+      outcome: 'passed',
+      label: 'Passed',
+    },
+    { title: 'onicai SNS creation', outcome: 'passed', label: 'Launch Approved' },
+    {
+      title: 'The IC API Must remain closed source',
+      outcome: 'rejected',
+      label: 'Rejected',
+    },
+    {
+      title: 'Performance Based Voting Rewards',
+      outcome: 'rejected',
+      label: 'Rejected',
+    },
+  ],
+};
+
 /** The currently displayed summary — update this reference each month */
-export const currentSummary: MonthlyGovernanceSummary = JANUARY_2026;
+export const currentSummary: MonthlyGovernanceSummary = FEBRUARY_2026;
