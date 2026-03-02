@@ -270,13 +270,13 @@ TITLE="Upgrade governance-app at commit ${COMMIT:0:10}"
 
 CHANGELOG_SECTION=""
 if [[ -n "$CHANGELOG_URL" ]]; then
-  CHANGELOG_SECTION="
-List of changes from ${DEPLOYED_COMMIT:0:10} to ${COMMIT:0:10}: $CHANGELOG_URL
-"
+  CHANGELOG_SECTION="List of changes from ${DEPLOYED_COMMIT:0:10} to ${COMMIT:0:10}: $CHANGELOG_URL"
 fi
 
 SUMMARY="Upgrade governance-app at commit $COMMIT
+
 ${CHANGELOG_SECTION}
+
 Verify the build before approving:
 
 1. git fetch
