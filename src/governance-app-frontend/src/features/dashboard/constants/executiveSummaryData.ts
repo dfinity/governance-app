@@ -165,7 +165,7 @@ const FEBRUARY_2026: MonthlyGovernanceSummary = {
     {
       icon: 'community',
       title: 'Community governance (motions & SNS)',
-      description: 'Mission70 memory repricing passed; onicai SNS launched',
+      description: 'Mission70 memory repricing passed, onicai SNS launched',
       highlights: [
         { value: 2, label: 'Motions passed' },
         { value: 4, label: 'Rejected' },
