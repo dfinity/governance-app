@@ -9,6 +9,7 @@
     "build": "npm run build --workspaces --if-present",
     "format": "npm run format --workspaces --if-present && cargo fmt --check",
     "lint": "npm run lint --workspaces --if-present",
+    "lint:lockfile": "lockfile-lint",
     "check:i18n": "npm run check:i18n --workspaces --if-present",
     "start": "npm start --workspaces --if-present",
     "start:ic": "./scripts/start-pocket-ic.sh",
