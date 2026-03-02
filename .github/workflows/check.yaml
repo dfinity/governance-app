@@ -16,6 +16,9 @@ jobs:
         shell: bash
         run: npm ci
 
+      - name: Lint lockfile
+        run: npx lockfile-lint
+
       - name: Check formatting
         run: npm run format
 
