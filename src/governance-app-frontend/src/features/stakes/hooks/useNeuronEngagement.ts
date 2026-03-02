@@ -1,4 +1,4 @@
-import type { ListProposalsResponse } from '@icp-sdk/canisters/nns';
+import type { ListProposalsRequest, ListProposalsResponse } from '@icp-sdk/canisters/nns';
 import { ProposalStatus } from '@icp-sdk/canisters/nns';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useMemo } from 'react';
@@ -11,7 +11,7 @@ import { QUERY_KEYS } from '@utils/query';
 
 const SETTLED_PROPOSALS_LIMIT = 50;
 
-const SETTLED_PROPOSALS_REQUEST = {
+const SETTLED_PROPOSALS_REQUEST: ListProposalsRequest = {
   limit: SETTLED_PROPOSALS_LIMIT,
   beforeProposal: undefined,
   includeStatus: [ProposalStatus.Executed, ProposalStatus.Rejected],
@@ -19,7 +19,7 @@ const SETTLED_PROPOSALS_REQUEST = {
   includeRewardStatus: [],
   includeAllManageNeuronProposals: false,
   omitLargeFields: true,
-} as const;
+};
 
 export const useNeuronEngagement = () => {
   const neuronsQuery = useGovernanceNeurons();
