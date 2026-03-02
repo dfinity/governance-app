@@ -1,8 +1,7 @@
-import { useMemo } from 'react';
-
 import type { ListProposalsRequest, ListProposalsResponse } from '@icp-sdk/canisters/nns';
 import { ProposalRewardStatus, ProposalStatus } from '@icp-sdk/canisters/nns';
 import { useInternetIdentity } from 'ic-use-internet-identity';
+import { useMemo } from 'react';
 
 import { calculateEngagement } from '@features/stakes/utils/calculateEngagement';
 
