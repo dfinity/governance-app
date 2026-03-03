@@ -54,7 +54,7 @@ function Voting() {
   const showProposals = search.showProposals;
   const proposalsRef = useRef<HTMLDivElement>(null);
 
-  const proposalFilter = search.proposalFilter;
+  const proposalFilter = search.proposalFilter ?? ProposalFilter.Open;
   const openProposals = useGovernanceProposals({
     includeStatus: [ProposalStatus.Open],
   });
