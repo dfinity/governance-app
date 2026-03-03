@@ -40,6 +40,25 @@ fn icrc1(addr: &str) -> AddressType {
     AddressType::Icrc1(addr.to_string())
 }
 
+// --- Anonymous principal ---
+
+#[test]
+fn get_rejects_anonymous() {
+    assert_eq!(
+        get_address_book(Principal::anonymous()),
+        GetAddressBookResponse::AnonymousNotAllowed
+    );
+}
+
+#[test]
+fn set_rejects_anonymous() {
+    let book = make_address_book(vec![("Alice", icp(TEST_ICP_ADDRESS))]);
+    assert_eq!(
+        set_address_book(Principal::anonymous(), book),
+        SetAddressBookResponse::AnonymousNotAllowed
+    );
+}
+
 // --- Get empty ---
 
 #[test]

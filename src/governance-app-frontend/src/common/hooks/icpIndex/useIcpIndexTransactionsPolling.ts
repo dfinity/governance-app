@@ -60,7 +60,7 @@ export const useIcpIndexTransactionsPolling = () => {
         accountIdentifier,
         certified: false,
       });
-      return response.transactions[0];
+      return response.transactions[0] ?? null;
     },
     enabled: ready && authenticated,
     refetchInterval: POLLING_INTERVAL_MS,

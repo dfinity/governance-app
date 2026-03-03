@@ -15,6 +15,7 @@ import { AgentPoolProvider } from '@contexts/agentPoolProvider';
 import { StakingRewardsProvider } from '@contexts/stakingRewardsProvider';
 import { usePreventAttributeChange } from '@hooks/usePreventAttributeChange';
 import { useTheme } from '@hooks/useTheme';
+import { isE2E } from '@utils/e2e';
 import { queryClientConfig, routerConfig } from '@utils/initializer';
 
 export const App = () => {
@@ -35,7 +36,7 @@ export const App = () => {
           <AgentPoolProvider>
             <StakingRewardsProvider>
               <RouterProvider router={routerConfig} />
-              <ReactQueryDevtools initialIsOpen={false} />
+              {!isE2E && <ReactQueryDevtools initialIsOpen={false} />}
               {notificationsContainer &&
                 createPortal(
                   <Sonner position="top-center" visibleToasts={9} />,

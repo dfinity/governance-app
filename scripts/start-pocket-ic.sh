@@ -38,17 +38,32 @@ echo "  - SNS Aggregator: http://3r4gx-wqaaa-aaaaq-aaaia-cai.localhost:8080"
 echo "  - Internet Identity: http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:8080"
 echo ""
 
-# Construct dfx start arguments
-DFX_ARGS="--system-canisters --artificial-delay $DELAY"
-
-if [ "${BACKGROUND:-false}" = "true" ]; then
-    DFX_ARGS="$DFX_ARGS --background"
-fi
+# Construct dfx start arguments (always start in background first to deploy canisters)
+DFX_LOGFILE="$ROOT_DIR/.dfx/replica.log"
+mkdir -p "$(dirname "$DFX_LOGFILE")"
+DFX_START_ARGS="--system-canisters --artificial-delay $DELAY --background --log tee --logfile $DFX_LOGFILE"
 
 if [ "${CLEAN:-false}" = "true" ]; then
-    DFX_ARGS="$DFX_ARGS --clean"
+    DFX_START_ARGS="$DFX_START_ARGS --clean"
 fi
 
-# Start dfx
-echo "Starting dfx with arguments: $DFX_ARGS"
-dfx start $DFX_ARGS
+echo "Starting dfx with arguments: $DFX_START_ARGS"
+dfx start $DFX_START_ARGS
+
+# Generate TypeScript declarations from the .did file
+dfx generate governance-app-backend
+
+# Deploy the governance-app-backend canister with the same ID as production (skip if already created)
+if ! dfx canister id governance-app-backend 2>/dev/null; then
+    dfx canister create governance-app-backend --specified-id mc7vh-sqaaa-aaaai-q33na-cai
+    dfx deploy governance-app-backend
+fi
+
+# If foreground mode, attach to replica logs (Ctrl+C stops the replica)
+if [ "${BACKGROUND:-false}" != "true" ]; then
+    trap "echo ''; echo 'Stopping replica...'; dfx stop; exit 0" INT TERM
+    echo ""
+    echo "Attached to replica logs. Press Ctrl+C to stop."
+    tail -f "$DFX_LOGFILE" &
+    wait
+fi

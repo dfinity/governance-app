@@ -10,7 +10,7 @@ jobs:
     # NOTE: NOT using the GitHub Actions `container:` directive, but instead running docker "manually"
     # This fixes Playwright connectivity issues found in GitHub Actions default containers
     env:
-      BASE_URL: http://uxrrr-q7777-77774-qaaaq-cai.localhost:8080
+      BASE_URL: http://mc7vh-sqaaa-aaaai-q33na-cai.localhost:8080
       CONTAINER_IMAGE: ghcr.io/dfinity/governance-app/builder-base:0.0.8
 
     steps:
@@ -48,10 +48,6 @@ jobs:
 
               echo "=== Starting local dfx replica ==="
               ./scripts/start-pocket-ic.sh --background --delay 0
-
-              echo "=== Creating and deploying canister ==="
-              dfx canister create governance-app-backend
-              dfx deploy governance-app-backend
 
               echo "=== Waiting for server ==="
               max_attempts=30

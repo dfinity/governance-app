@@ -42,7 +42,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run Build and Clean Output
+      - name: Generate canister declarations
+        run: dfx generate governance-app-backend
+
+      - name: Run build and clean output
         id: build_step
         run: |
           # NO_COLOR=1 tells Vite/Rollup to skip the ANSI codes
@@ -54,7 +57,7 @@ jobs:
           NO_COLOR=1 npm run build | grep 'dist/' >> build_report.md
           echo '```' >> build_report.md
 
-      - name: Post Build Stats Comment
+      - name: Post build stats comment
         uses: mshick/add-pr-comment@v2
         if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
         with:
