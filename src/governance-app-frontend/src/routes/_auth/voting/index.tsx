@@ -1,5 +1,5 @@
-import { ProposalStatus } from '@icp-sdk/canisters/nns';
 import { isNullish, nonNullish } from '@dfinity/utils';
+import { ProposalStatus } from '@icp-sdk/canisters/nns';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Eye, EyeOff, Users } from 'lucide-react';
 import { type MouseEvent, useEffect, useRef, useState } from 'react';
@@ -98,6 +98,15 @@ function Voting() {
       }, 250);
     }
   }, [showProposals]);
+
+  const isFirstFilterChange = useRef(true);
+  useEffect(() => {
+    if (isFirstFilterChange.current) {
+      isFirstFilterChange.current = false;
+      return;
+    }
+    proposalsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [proposalFilter]);
 
   return (
     <div className="flex flex-col gap-6 lg:gap-8">
@@ -199,7 +208,10 @@ function Voting() {
           <ToggleGroup
             type="single"
             value={proposalFilter}
-            onValueChange={(v) => v && setProposalFilter(v as ProposalFilter)}
+            onValueChange={(v) => {
+              if (!v) return;
+              setProposalFilter(v as ProposalFilter);
+            }}
             variant="outline"
             size="lg"
           >
