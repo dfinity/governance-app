@@ -48,25 +48,35 @@ describe('validateProposalsSearch', () => {
   });
 
   describe('proposalFilter', () => {
-    it('returns ProposalFilter.All when proposalFilter is "all"', () => {
-      expect(validateProposalsSearch({ proposalFilter: 'all' })).toMatchObject({
-        proposalFilter: ProposalFilter.All,
-      });
+    it('returns the value when proposalFilter is "open"', () => {
+      expect(validateProposalsSearch({ proposalFilter: 'open' }).proposalFilter).toBe(
+        ProposalFilter.Open,
+      );
     });
 
-    it('returns undefined when proposalFilter is "open" (default, omitted from URL)', () => {
-      expect(validateProposalsSearch({ proposalFilter: 'open' }).proposalFilter).toBeUndefined();
+    it('returns the value when proposalFilter is "all"', () => {
+      expect(validateProposalsSearch({ proposalFilter: 'all' }).proposalFilter).toBe(
+        ProposalFilter.All,
+      );
     });
 
-    it('returns undefined when proposalFilter is missing', () => {
-      expect(validateProposalsSearch({}).proposalFilter).toBeUndefined();
+    it('defaults to Open when proposalFilter is missing', () => {
+      expect(validateProposalsSearch({}).proposalFilter).toBe(ProposalFilter.Open);
     });
 
-    it('returns undefined for invalid proposalFilter values', () => {
-      expect(validateProposalsSearch({ proposalFilter: 'invalid' }).proposalFilter).toBeUndefined();
-      expect(validateProposalsSearch({ proposalFilter: 123 }).proposalFilter).toBeUndefined();
-      expect(validateProposalsSearch({ proposalFilter: true }).proposalFilter).toBeUndefined();
-      expect(validateProposalsSearch({ proposalFilter: null }).proposalFilter).toBeUndefined();
+    it('defaults to Open for invalid proposalFilter values', () => {
+      expect(validateProposalsSearch({ proposalFilter: 'invalid' }).proposalFilter).toBe(
+        ProposalFilter.Open,
+      );
+      expect(validateProposalsSearch({ proposalFilter: 123 }).proposalFilter).toBe(
+        ProposalFilter.Open,
+      );
+      expect(validateProposalsSearch({ proposalFilter: true }).proposalFilter).toBe(
+        ProposalFilter.Open,
+      );
+      expect(validateProposalsSearch({ proposalFilter: null }).proposalFilter).toBe(
+        ProposalFilter.Open,
+      );
     });
   });
 
@@ -78,10 +88,10 @@ describe('validateProposalsSearch', () => {
       });
     });
 
-    it('returns all undefined for empty input', () => {
+    it('returns defaults for empty input', () => {
       expect(validateProposalsSearch({})).toEqual({
         showProposals: undefined,
-        proposalFilter: undefined,
+        proposalFilter: ProposalFilter.Open,
       });
     });
   });

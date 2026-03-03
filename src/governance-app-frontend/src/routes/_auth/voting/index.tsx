@@ -54,7 +54,7 @@ function Voting() {
   const showProposals = search.showProposals;
   const proposalsRef = useRef<HTMLDivElement>(null);
 
-  const proposalFilter = search.proposalFilter ?? ProposalFilter.Open;
+  const proposalFilter = search.proposalFilter;
   const openProposals = useGovernanceProposals({
     includeStatus: [ProposalStatus.Open],
   });
@@ -204,7 +204,7 @@ function Voting() {
               navigate({
                 search: (prev) => ({
                   ...prev,
-                  proposalFilter: v === ProposalFilter.Open ? undefined : v,
+                  proposalFilter: v,
                 }),
                 replace: true,
               });
@@ -260,8 +260,7 @@ function Voting() {
                         params={{ id: proposal.id! }}
                         search={{
                           showProposals,
-                          proposalFilter:
-                            proposalFilter === ProposalFilter.Open ? undefined : proposalFilter,
+                          proposalFilter,
                         }}
                         className="w-full"
                       >

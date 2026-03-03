@@ -28,12 +28,9 @@ export const isProposalFilter = (value: unknown): value is ProposalFilter =>
 export const validateProposalsSearch = ({
   showProposals,
   proposalFilter,
-}: Record<string, unknown>): { showProposals?: boolean; proposalFilter?: ProposalFilter } => {
+}: Record<string, unknown>): { showProposals?: boolean; proposalFilter: ProposalFilter } => {
   return {
     showProposals: showProposals === true || showProposals === 'true' ? true : undefined,
-    proposalFilter:
-      isProposalFilter(proposalFilter) && proposalFilter !== ProposalFilter.Open
-        ? proposalFilter
-        : undefined,
+    proposalFilter: isProposalFilter(proposalFilter) ? proposalFilter : ProposalFilter.Open,
   };
 };
