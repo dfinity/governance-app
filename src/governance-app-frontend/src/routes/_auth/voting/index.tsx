@@ -6,7 +6,7 @@ import { type MouseEvent, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
-import { getShowProposalUrlStatus, ProposalFilter } from '@features/proposals/utils';
+import { isProposalFilter, ProposalFilter, validateProposalsSearch } from '@features/proposals/utils';
 import { FollowedNeuronCard } from '@features/voting/components/FollowedNeuronCard';
 import { getUsersFollowedNeurons } from '@features/voting/utils/findFollowedNeuron';
 
@@ -27,7 +27,7 @@ import { warningNotification } from '@utils/notification';
 import i18n from '@/i18n/config';
 
 export const Route = createFileRoute('/_auth/voting/')({
-  validateSearch: getShowProposalUrlStatus,
+  validateSearch: validateProposalsSearch,
   component: Voting,
   pendingComponent: () => <MultipleSkeletons count={3} />,
   head: () => {
@@ -87,18 +87,13 @@ function Voting() {
     });
 
   useEffect(() => {
-    if (showProposals && proposalsRef.current) {
-      setTimeout(() => {
-        proposalsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 250);
-    }
-  }, [showProposals]);
+    if (!showProposals) return;
 
-  useEffect(() => {
-    if (showProposals) {
+    const id = setTimeout(() => {
       proposalsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [proposalFilter, showProposals]);
+    }, 250);
+    return () => clearTimeout(id);
+  }, [showProposals, proposalFilter]);
 
   return (
     <div className="flex flex-col gap-6 lg:gap-8">
@@ -201,11 +196,11 @@ function Voting() {
             type="single"
             value={proposalFilter}
             onValueChange={(v) => {
-              if (!v) return;
+              if (!isProposalFilter(v)) return;
               navigate({
                 search: (prev) => ({
                   ...prev,
-                  proposalFilter: v === ProposalFilter.Open ? undefined : (v as ProposalFilter),
+                  proposalFilter: v === ProposalFilter.Open ? undefined : v,
                 }),
                 replace: true,
               });

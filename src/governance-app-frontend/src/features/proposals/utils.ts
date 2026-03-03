@@ -20,13 +20,20 @@ export enum ProposalFilter {
   All = 'all',
 }
 
-// Validate and parse showProposals and proposalFilter from URL search params
-export const getShowProposalUrlStatus = ({
+const PROPOSAL_FILTER_VALUES = new Set<string>(Object.values(ProposalFilter));
+
+export const isProposalFilter = (value: unknown): value is ProposalFilter =>
+  typeof value === 'string' && PROPOSAL_FILTER_VALUES.has(value);
+
+export const validateProposalsSearch = ({
   showProposals,
   proposalFilter,
 }: Record<string, unknown>): { showProposals?: boolean; proposalFilter?: ProposalFilter } => {
   return {
     showProposals: showProposals === true || showProposals === 'true' ? true : undefined,
-    proposalFilter: proposalFilter === ProposalFilter.All ? ProposalFilter.All : undefined,
+    proposalFilter:
+      isProposalFilter(proposalFilter) && proposalFilter !== ProposalFilter.Open
+        ? proposalFilter
+        : undefined,
   };
 };
