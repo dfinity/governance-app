@@ -2,11 +2,11 @@ import { isNullish, nonNullish } from '@dfinity/utils';
 import { ProposalStatus } from '@icp-sdk/canisters/nns';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Eye, EyeOff, Users } from 'lucide-react';
-import { type MouseEvent, useEffect, useRef, useState } from 'react';
+import { type MouseEvent, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
-import { getShowProposalUrlStatus } from '@features/proposals/utils';
+import { getShowProposalUrlStatus, ProposalFilter } from '@features/proposals/utils';
 import { FollowedNeuronCard } from '@features/voting/components/FollowedNeuronCard';
 import { getUsersFollowedNeurons } from '@features/voting/utils/findFollowedNeuron';
 
@@ -25,11 +25,6 @@ import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownN
 import { warningNotification } from '@utils/notification';
 
 import i18n from '@/i18n/config';
-
-enum ProposalFilter {
-  Open = 'open',
-  All = 'all',
-}
 
 export const Route = createFileRoute('/_auth/voting/')({
   validateSearch: getShowProposalUrlStatus,
@@ -55,7 +50,7 @@ function Voting() {
   const showProposals = search.showProposals;
   const proposalsRef = useRef<HTMLDivElement>(null);
 
-  const [proposalFilter, setProposalFilter] = useState(ProposalFilter.Open);
+  const proposalFilter = search.proposalFilter ?? ProposalFilter.Open;
   const openProposals = useGovernanceProposals({
     includeStatus: [ProposalStatus.Open],
   });
@@ -99,14 +94,11 @@ function Voting() {
     }
   }, [showProposals]);
 
-  const isFirstFilterChange = useRef(true);
   useEffect(() => {
-    if (isFirstFilterChange.current) {
-      isFirstFilterChange.current = false;
-      return;
+    if (showProposals) {
+      proposalsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-    proposalsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [proposalFilter]);
+  }, [proposalFilter, showProposals]);
 
   return (
     <div className="flex flex-col gap-6 lg:gap-8">
@@ -210,7 +202,13 @@ function Voting() {
             value={proposalFilter}
             onValueChange={(v) => {
               if (!v) return;
-              setProposalFilter(v as ProposalFilter);
+              navigate({
+                search: (prev) => ({
+                  ...prev,
+                  proposalFilter: v === ProposalFilter.Open ? undefined : (v as ProposalFilter),
+                }),
+                replace: true,
+              });
             }}
             variant="outline"
             size="lg"
@@ -261,7 +259,11 @@ function Voting() {
                       <Link
                         to="/voting/proposals/$id"
                         params={{ id: proposal.id! }}
-                        search={{ showProposals }}
+                        search={{
+                          showProposals,
+                          proposalFilter:
+                            proposalFilter === ProposalFilter.Open ? undefined : proposalFilter,
+                        }}
                         className="w-full"
                       >
                         <ProposalListItem proposal={proposal} certified={page?.certified} />

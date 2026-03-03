@@ -66,7 +66,10 @@ function ProposalDetailsRouteComponent() {
     <div className="flex flex-col gap-6">
       <div>
         <Button variant="link" asChild className="p-0! font-normal">
-          <Link to="/voting" search={{ showProposals: search.showProposals }}>
+          <Link
+            to="/voting"
+            search={{ showProposals: search.showProposals, proposalFilter: search.proposalFilter }}
+          >
             <ArrowLeft className="size-5" />
             {t(($) => $.proposal.backToProposals)}
           </Link>

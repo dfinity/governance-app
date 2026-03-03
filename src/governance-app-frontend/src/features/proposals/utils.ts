@@ -15,11 +15,18 @@ export const getProposalStatusColor = (proposal: ProposalInfo): string => {
       : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
 };
 
-// Validate and parse showProposals from URL search params
+export enum ProposalFilter {
+  Open = 'open',
+  All = 'all',
+}
+
+// Validate and parse showProposals and proposalFilter from URL search params
 export const getShowProposalUrlStatus = ({
   showProposals,
-}: Record<string, unknown>): { showProposals?: boolean } => {
+  proposalFilter,
+}: Record<string, unknown>): { showProposals?: boolean; proposalFilter?: ProposalFilter } => {
   return {
     showProposals: showProposals === true || showProposals === 'true' ? true : undefined,
+    proposalFilter: proposalFilter === ProposalFilter.All ? ProposalFilter.All : undefined,
   };
 };
