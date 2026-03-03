@@ -1,12 +1,16 @@
-import { isNullish, nonNullish } from '@dfinity/utils';
 import { ProposalStatus } from '@icp-sdk/canisters/nns';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Eye, EyeOff, Users } from 'lucide-react';
 import { type MouseEvent, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
-import { isProposalFilter, ProposalFilter, validateProposalsSearch } from '@features/proposals/utils';
+import {
+  isProposalFilter,
+  ProposalFilter,
+  validateProposalsSearch,
+} from '@features/proposals/utils';
 import { FollowedNeuronCard } from '@features/voting/components/FollowedNeuronCard';
 import { getUsersFollowedNeurons } from '@features/voting/utils/findFollowedNeuron';
 
