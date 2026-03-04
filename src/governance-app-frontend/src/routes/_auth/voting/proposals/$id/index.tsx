@@ -9,7 +9,7 @@ import { SelfDescribingActionView } from '@features/proposals/components/SelfDes
 import {
   getProposalStatusColor,
   getProposalTimeLeftInSeconds,
-  getShowProposalUrlStatus,
+  validateProposalsSearch,
 } from '@features/proposals/utils';
 
 import { Badge } from '@components/badge';
@@ -33,7 +33,7 @@ export const Route = createFileRoute('/_auth/voting/proposals/$id/')({
     }),
     stringify: ({ id }) => ({ id: id?.toString() ?? '' }),
   },
-  validateSearch: getShowProposalUrlStatus,
+  validateSearch: validateProposalsSearch,
   beforeLoad: async ({ params }) => {
     if (!params.id) throw redirect({ to: '/voting', replace: true });
   },
@@ -66,7 +66,10 @@ function ProposalDetailsRouteComponent() {
     <div className="flex flex-col gap-6">
       <div>
         <Button variant="link" asChild className="p-0! font-normal">
-          <Link to="/voting" search={{ showProposals: search.showProposals }}>
+          <Link
+            to="/voting"
+            search={{ showProposals: search.showProposals, proposalFilter: search.proposalFilter }}
+          >
             <ArrowLeft className="size-5" />
             {t(($) => $.proposal.backToProposals)}
           </Link>

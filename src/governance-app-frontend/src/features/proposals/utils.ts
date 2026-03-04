@@ -15,11 +15,22 @@ export const getProposalStatusColor = (proposal: ProposalInfo): string => {
       : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
 };
 
-// Validate and parse showProposals from URL search params
-export const getShowProposalUrlStatus = ({
+export enum ProposalFilter {
+  Open = 'open',
+  All = 'all',
+}
+
+const PROPOSAL_FILTER_VALUES = new Set<string>(Object.values(ProposalFilter));
+
+export const isProposalFilter = (value: unknown): value is ProposalFilter =>
+  typeof value === 'string' && PROPOSAL_FILTER_VALUES.has(value);
+
+export const validateProposalsSearch = ({
   showProposals,
-}: Record<string, unknown>): { showProposals?: boolean } => {
+  proposalFilter,
+}: Record<string, unknown>): { showProposals?: boolean; proposalFilter?: ProposalFilter } => {
   return {
     showProposals: showProposals === true || showProposals === 'true' ? true : undefined,
+    proposalFilter: isProposalFilter(proposalFilter) ? proposalFilter : ProposalFilter.Open,
   };
 };

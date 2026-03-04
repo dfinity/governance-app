@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { getShowProposalUrlStatus } from '@features/proposals/utils';
+import { validateProposalsSearch } from '@features/proposals/utils';
 import { KnownNeuronCard } from '@features/voting/components/KnownNeuronCard';
 import { getUsersFollowedNeurons, isKnownNeuron } from '@features/voting/utils/findFollowedNeuron';
 import { isActiveKnownNeuron, sortKnownNeurons } from '@features/voting/utils/knownNeurons';
@@ -34,7 +34,7 @@ import i18n from '@/i18n/config';
 
 export const Route = createFileRoute('/_auth/voting/representatives/')({
   component: Representatives,
-  validateSearch: getShowProposalUrlStatus,
+  validateSearch: validateProposalsSearch,
   head: () => {
     const title = i18n.t(($) => $.common.head.representatives.title);
 
@@ -190,7 +190,13 @@ function Representatives() {
       <div className="flex flex-col gap-6">
         <div>
           <Button variant="link" asChild className="p-0! font-normal">
-            <Link to="/voting" search={{ showProposals: search.showProposals }}>
+            <Link
+              to="/voting"
+              search={{
+                showProposals: search.showProposals,
+                proposalFilter: search.proposalFilter,
+              }}
+            >
               <ArrowLeft className="size-5" />
               {t(($) => $.proposal.backToProposals)}
             </Link>

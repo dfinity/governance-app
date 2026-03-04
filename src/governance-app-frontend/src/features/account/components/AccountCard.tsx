@@ -44,7 +44,7 @@ export function AccountCard() {
 
   return (
     <>
-      <Card className="min-w-64" data-testid="available-balance-card">
+      <Card data-testid="available-balance-card">
         <CardHeader className="flex flex-col gap-0">
           <div className="flex w-full flex-row items-start justify-between space-y-0">
             <p className="text-sm tracking-wide text-muted-foreground uppercase">
