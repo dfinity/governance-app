@@ -4,6 +4,8 @@ import { useNeuronEngagement } from '@features/stakes/hooks/useNeuronEngagement'
 
 import { Card, CardContent } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
+import { ProposalFilter } from '@features/proposals/utils';
+import { Link } from '@tanstack/react-router';
 import { formatNumber } from '@utils/numbers';
 
 export function EngagementCard() {
@@ -28,6 +30,9 @@ export function EngagementCard() {
           </>
         ) : (
           <>
+            <Link to="/voting" search={{ showProposals: true, proposalFilter: ProposalFilter.All }}>
+              Temp Link with example
+            </Link>
             <p className="text-lg font-semibold text-foreground md:text-2xl">
               {formattedRate !== null ? `${formattedRate}%` : '—'}
             </p>
