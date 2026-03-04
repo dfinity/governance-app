@@ -48,6 +48,19 @@ type GetAddressBookResponse = variant {
 };
 // End Address Book
 
+// Exchange Rate
+type CachedRate = record {
+    rate_e8s : nat64;
+    timestamp_seconds : nat64;
+    updated_at_seconds : nat64;
+};
+
+type IcpExchangeRateResponse = record {
+    current : opt CachedRate;
+    twenty_four_hours_ago : opt CachedRate;
+};
+// End Exchange Rate
+
 service : {
     // HTTP
     http_request : (request : HttpRequest) -> (HttpResponse) query;
@@ -57,4 +70,8 @@ service : {
     get_address_book : () -> (GetAddressBookResponse) query;
     set_address_book : (AddressBook) -> (SetAddressBookResponse);
     // End Address Book
+
+    // Exchange Rate
+    get_icp_exchange_rate : () -> (IcpExchangeRateResponse) query;
+    // End Exchange Rate
 }
