@@ -75,10 +75,7 @@ export const AddAddressModal: React.FC<Props> = ({
     }
 
     const isDuplicate = existingAddresses.some((entry) => {
-      if (
-        isEditMode &&
-        entry.name.trim().toLowerCase() === namedAddress.name.trim().toLowerCase()
-      ) {
+      if (isEditMode && entry.name === namedAddress.name) {
         return false;
       }
       return entry.name.trim().toLowerCase() === normalized.toLowerCase();
@@ -99,6 +96,8 @@ export const AddAddressModal: React.FC<Props> = ({
 
   const handleSubmit = (event: React.SyntheticEvent) => {
     event.preventDefault();
+    setNicknameError('');
+    setAddressError('');
 
     const normalizedNickname = normalizeNickname(nickname);
     setNickname(normalizedNickname);
@@ -109,14 +108,12 @@ export const AddAddressModal: React.FC<Props> = ({
     const nickErr = validateNickname();
     if (nickErr) {
       setNicknameError(nickErr);
-      setAddressError('');
       return;
     }
 
     const addrErr = validateAddress(trimmedAddress);
     if (addrErr) {
       setAddressError(addrErr);
-      setNicknameError('');
       return;
     }
 

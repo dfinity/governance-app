@@ -19,6 +19,12 @@ source "$(clap.build)"
 # Change to root directory
 cd "$ROOT_DIR"
 
+# Generate .env (ensures CANISTER_ID_SELF is available)
+"$DIR/config.sh" -n local
+
+# Source .env to get canister IDs
+source "$ROOT_DIR/.env"
+
 # Ensure PocketIC binary is available
 ./scripts/download-pocket-ic.sh
 
@@ -55,7 +61,7 @@ dfx generate governance-app-backend
 
 # Deploy the governance-app-backend canister with the same ID as production (skip if already created)
 if ! dfx canister id governance-app-backend 2>/dev/null; then
-    dfx canister create governance-app-backend --specified-id mc7vh-sqaaa-aaaai-q33na-cai
+    dfx canister create governance-app-backend --specified-id "$CANISTER_ID_SELF"
     dfx deploy governance-app-backend
 fi
 

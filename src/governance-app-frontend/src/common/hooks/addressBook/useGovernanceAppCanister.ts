@@ -12,14 +12,14 @@ import { errorMessage } from '@utils/error';
 
 const certifiedIdlFactory = toCertifiedIdlFactory(idlFactory);
 
-type GovernanceAppBackend = {
+type GovernanceAppCanister = {
   service: ActorSubclass<_SERVICE>;
   certifiedService: ActorSubclass<_SERVICE>;
 };
 
-export const useGovernanceAppBackend = (): CanisterStatus<GovernanceAppBackend> => {
+export const useGovernanceAppCanister = (): CanisterStatus<GovernanceAppCanister> => {
   if (!CANISTER_ID_SELF) {
-    throw errorMessage('useGovernanceAppBackend', 'the canister Id is not defined');
+    throw errorMessage('useGovernanceAppCanister', 'the canister Id is not defined');
   }
 
   const { anonymous, authenticated } = useAgentPool().agentPool;

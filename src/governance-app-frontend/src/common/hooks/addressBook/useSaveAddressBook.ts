@@ -7,13 +7,13 @@ import type { NamedAddress } from '@declarations/governance-app-backend/governan
 import { mapSetAddressBookError } from '@utils/errors/addressBook';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
-import { useGovernanceAppBackend } from './useGovernanceAppBackend';
+import { useGovernanceAppCanister } from './useGovernanceAppCanister';
 
 export function useSaveAddressBook() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { identity } = useInternetIdentity();
-  const { canister } = useGovernanceAppBackend();
+  const { canister } = useGovernanceAppCanister();
 
   return useMutation({
     mutationFn: async (namedAddresses: NamedAddress[]) => {

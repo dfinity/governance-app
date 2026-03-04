@@ -10,7 +10,7 @@ import { useQueryThenUpdateCall } from '@hooks/useQueryThenUpdateCall';
 import { errorMessage } from '@utils/error';
 import { QUERY_KEYS } from '@utils/query';
 
-import { useGovernanceAppBackend } from './useGovernanceAppBackend';
+import { useGovernanceAppCanister } from './useGovernanceAppCanister';
 
 const unwrapResponse = async (actor: ActorSubclass<_SERVICE>): Promise<AddressBook> => {
   const response = await actor.get_address_book();
@@ -28,7 +28,7 @@ const unwrapResponse = async (actor: ActorSubclass<_SERVICE>): Promise<AddressBo
 export const useAddressBook = () => {
   const { identity } = useInternetIdentity();
   const principal = identity?.getPrincipal().toText();
-  const { ready, authenticated, canister } = useGovernanceAppBackend();
+  const { ready, authenticated, canister } = useGovernanceAppCanister();
 
   return useQueryThenUpdateCall<AddressBook>({
     queryKey: [QUERY_KEYS.GOVERNANCE_APP_BACKEND.ADDRESS_BOOK, principal],
