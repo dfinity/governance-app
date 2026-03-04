@@ -1,11 +1,11 @@
+import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
+import { ProposalFilter } from '@features/proposals/utils';
 import { useNeuronEngagement } from '@features/stakes/hooks/useNeuronEngagement';
 
 import { Card, CardContent } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
-import { ProposalFilter } from '@features/proposals/utils';
-import { Link } from '@tanstack/react-router';
 import { formatNumber } from '@utils/numbers';
 
 export function EngagementCard() {
