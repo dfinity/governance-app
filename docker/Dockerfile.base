@@ -1,5 +1,5 @@
 # Stage: grab a pinned Node.js binary from the official image.
-FROM node:25.7.0-bookworm-slim AS node
+FROM node:25.8.0-bookworm-slim AS node
 
 # Base image, to fix the tooling for better reproducibility.
 FROM rust:1.91.1-slim-bookworm
