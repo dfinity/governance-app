@@ -2,11 +2,15 @@ import { ProposalStatus } from '@icp-sdk/canisters/nns';
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Eye, EyeOff, Users } from 'lucide-react';
-import { type MouseEvent, useEffect, useRef, useState } from 'react';
+import { type MouseEvent, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
-import { getShowProposalUrlStatus } from '@features/proposals/utils';
+import {
+  isProposalFilter,
+  ProposalFilter,
+  validateProposalsSearch,
+} from '@features/proposals/utils';
 import { FollowedNeuronCard } from '@features/voting/components/FollowedNeuronCard';
 import { getUsersFollowedNeurons } from '@features/voting/utils/findFollowedNeuron';
 
@@ -26,13 +30,8 @@ import { warningNotification } from '@utils/notification';
 
 import i18n from '@/i18n/config';
 
-enum ProposalFilter {
-  Open = 'open',
-  All = 'all',
-}
-
 export const Route = createFileRoute('/_auth/voting/')({
-  validateSearch: getShowProposalUrlStatus,
+  validateSearch: validateProposalsSearch,
   component: Voting,
   pendingComponent: () => <MultipleSkeletons count={3} />,
   head: () => {
@@ -55,7 +54,7 @@ function Voting() {
   const showProposals = search.showProposals;
   const proposalsRef = useRef<HTMLDivElement>(null);
 
-  const [proposalFilter, setProposalFilter] = useState(ProposalFilter.Open);
+  const proposalFilter = search.proposalFilter ?? ProposalFilter.Open;
   const openProposals = useGovernanceProposals({
     includeStatus: [ProposalStatus.Open],
   });
@@ -92,12 +91,13 @@ function Voting() {
     });
 
   useEffect(() => {
-    if (showProposals && proposalsRef.current) {
-      setTimeout(() => {
-        proposalsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 250);
-    }
-  }, [showProposals]);
+    if (!showProposals) return;
+
+    const id = setTimeout(() => {
+      proposalsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 250);
+    return () => clearTimeout(id);
+  }, [showProposals, proposalFilter]);
 
   return (
     <div className="flex flex-col gap-6 lg:gap-8">
@@ -199,7 +199,16 @@ function Voting() {
           <ToggleGroup
             type="single"
             value={proposalFilter}
-            onValueChange={(v) => v && setProposalFilter(v as ProposalFilter)}
+            onValueChange={(v) => {
+              if (!isProposalFilter(v)) return;
+              navigate({
+                search: (prev) => ({
+                  ...prev,
+                  proposalFilter: v,
+                }),
+                replace: true,
+              });
+            }}
             variant="outline"
             size="lg"
           >
@@ -249,7 +258,10 @@ function Voting() {
                       <Link
                         to="/voting/proposals/$id"
                         params={{ id: proposal.id! }}
-                        search={{ showProposals }}
+                        search={{
+                          showProposals,
+                          proposalFilter,
+                        }}
                         className="w-full"
                       >
                         <ProposalListItem proposal={proposal} certified={page?.certified} />
