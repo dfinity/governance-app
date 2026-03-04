@@ -16,7 +16,7 @@ const SETTLED_PROPOSALS_REQUEST: ListProposalsRequest = {
   beforeProposal: undefined,
   includeStatus: [ProposalStatus.Executed, ProposalStatus.Rejected],
   excludeTopic: [],
-  includeRewardStatus: [ProposalRewardStatus.Settled],
+  includeRewardStatus: [ProposalRewardStatus.AcceptVotes],
   includeAllManageNeuronProposals: false,
   omitLargeFields: true,
   returnSelfDescribingAction: true,
