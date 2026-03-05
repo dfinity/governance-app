@@ -3,6 +3,8 @@ import { createRouter } from '@tanstack/react-router';
 
 import { routeTree } from '@/routeTree.gen';
 
+import { isE2E } from './e2e';
+
 declare module '@tanstack/react-router' {
   interface StaticDataRouteOption {
     title?: string;
@@ -12,9 +14,6 @@ declare module '@tanstack/react-router' {
     router: typeof routerConfig;
   }
 }
-
-// Disable retries in E2E tests to speed up failure scenarios.
-const isE2E = typeof window !== 'undefined' && window.isPlaywright;
 
 export const queryClientConfig = new QueryClient({
   defaultOptions: {

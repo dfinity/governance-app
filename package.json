@@ -5,7 +5,6 @@
   },
   "name": "the-governance-app",
   "scripts": {
-    "prebuild": "npm run prebuild --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
     "format": "npm run format --workspaces --if-present && cargo fmt --check",
     "lint": "npm run lint --workspaces --if-present",

@@ -33,6 +33,7 @@ type AddressBook = record {
 
 type SetAddressBookResponse = variant {
     Ok;
+    AnonymousNotAllowed;
     TooManyNamedAddresses : record { limit : int32 };
     InvalidIcpAddress : record { error : text };
     AddressNameTooShort : record { min_length : int32 };
@@ -43,6 +44,7 @@ type SetAddressBookResponse = variant {
 
 type GetAddressBookResponse = variant {
     Ok : AddressBook;
+    AnonymousNotAllowed;
 };
 // End Address Book
 

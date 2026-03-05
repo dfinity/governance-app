@@ -20,6 +20,7 @@ import { MainLayout } from '@components/MainLayout';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { useSessionCountdownToast } from '@hooks/useSessionCountdownToast';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
+import { isE2E } from '@utils/e2e';
 import { infoNotification } from '@utils/notification';
 
 import i18n from '@/i18n/config';
@@ -170,7 +171,7 @@ function RootComponent() {
       <HeadContent />
       <Outlet />
       <Scripts />
-      <TanStackRouterDevtools />
+      {!isE2E && <TanStackRouterDevtools />}
     </>
   );
 }

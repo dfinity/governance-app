@@ -1,0 +1,49 @@
+{
+  "title": "Address book",
+  "description": "Manage your saved wallet addresses.",
+  "entryCount": "{{count}} / {{max}}",
+  "open": "Open",
+  "emptyTitle": "Save addresses for quick & secure access",
+  "emptyDescription": "Effortlessly manage your withdrawals by saving wallet addresses in one place. Add custom labels to stay organized and speed up your transactions.",
+  "addAddress": "Add new address",
+  "editAddress": "Edit address",
+  "saveAddress": "Save address",
+  "updatingAddressBook": "Updating address book...",
+  "nickname": "Nickname",
+  "nicknamePlaceholder": "3-64 characters (e.g. John's wallet)",
+  "address": "Address",
+  "addressPlaceholder": "ICP or ICRC1 address",
+  "addressTypeIcp": "ICP",
+  "addressTypeIcrc1": "ICRC1",
+  "removeTitle": "Remove {{label}}",
+  "removeDescription": "This contact will be removed from your address book.",
+  "removeAddress": "Remove address",
+  "confirmRemove": "Remove",
+  "validation": {
+    "nicknameTooShort": "Nickname must be at least 3 characters.",
+    "nicknameTooLong": "Nickname must be at most 64 characters.",
+    "nicknameAlreadyUsed": "This nickname is already in use.",
+    "invalidAddress": "Please enter a valid ICP or ICRC1 address."
+  },
+  "toast": {
+    "addSuccess": "Address saved successfully.",
+    "editSuccess": "Address updated successfully.",
+    "removeSuccess": "Address removed successfully.",
+    "anonymousNotAllowed": "Please sign in to manage the address book.",
+    "saveError": "There was an unexpected issue while updating the address book.",
+    "tooMany": "You can't add more than {{limit}} addresses.",
+    "invalidIcp": "Invalid ICP address: {{error}}.",
+    "invalidIcrc1": "Invalid ICRC1 address: {{error}}.",
+    "nameTooShort": "Address name is too short. Minimum length is {{minLength}} characters.",
+    "nameTooLong": "Address name is too long. Maximum length is {{maxLength}} characters.",
+    "duplicateName": "An address with the name \"{{name}}\" already exists."
+  },
+  "maxReached": "You have reached the maximum of 20 saved addresses.",
+  "sendFlow": {
+    "toggleLabel": "Use address book",
+    "tooltipLoading": "Loading address book...",
+    "tooltipEmpty": "The address book is empty",
+    "manualWarning": "Be careful when entering an address manually, similar addresses may be confused. Consider using the address book instead.",
+    "selectPlaceholder": "Select an address"
+  }
+}
