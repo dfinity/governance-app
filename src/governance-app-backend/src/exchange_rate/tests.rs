@@ -38,22 +38,32 @@ fn make_exchange_rate(rate: u64, decimals: u32, timestamp: u64) -> ExchangeRate 
 
 #[test]
 fn test_convert_to_e8s_more_decimals() {
-    assert_eq!(convert_to_e8s(1_234_567_890, 10), 12_345_678);
+    assert_eq!(convert_to_e8s(1_234_567_890, 10), Some(12_345_678));
 }
 
 #[test]
 fn test_convert_to_e8s_exact_8_decimals() {
-    assert_eq!(convert_to_e8s(1_000_000_000, 8), 1_000_000_000);
+    assert_eq!(convert_to_e8s(1_000_000_000, 8), Some(1_000_000_000));
 }
 
 #[test]
 fn test_convert_to_e8s_fewer_decimals() {
-    assert_eq!(convert_to_e8s(123, 2), 123_000_000);
+    assert_eq!(convert_to_e8s(123, 2), Some(123_000_000));
 }
 
 #[test]
 fn test_convert_to_e8s_zero_decimals() {
-    assert_eq!(convert_to_e8s(10, 0), 10_00_000_000);
+    assert_eq!(convert_to_e8s(10, 0), Some(10_00_000_000));
+}
+
+#[test]
+fn test_convert_to_e8s_overflow_returns_none() {
+    assert_eq!(convert_to_e8s(u64::MAX, 0), None);
+}
+
+#[test]
+fn test_convert_to_e8s_huge_decimals_returns_none() {
+    assert_eq!(convert_to_e8s(1, 128), None);
 }
 
 #[test]
@@ -67,10 +77,9 @@ fn test_cache_starts_empty() {
 async fn test_update_exchange_rate_success() {
     set_time_nanos(100_000 * NANOS_PER_SEC);
 
-    let current_ts = 100_000 - XRC_MARGIN_SECS;
-    let past_ts = 100_000 - TWENTY_FOUR_HOURS_SECS - XRC_MARGIN_SECS;
+    let past_ts = 100_000 - TWENTY_FOUR_HOURS_SECS;
 
-    let current_rate = make_exchange_rate(12_345_000_000, 10, current_ts);
+    let current_rate = make_exchange_rate(12_345_000_000, 10, 99_990);
     let past_rate = make_exchange_rate(11_000_000_000, 10, past_ts);
 
     testing::add_exchange_rate_response(Ok(Ok(current_rate)));
@@ -83,7 +92,7 @@ async fn test_update_exchange_rate_success() {
         rates.current,
         Some(CachedRate {
             rate_e8s: 123_450_000,
-            timestamp_seconds: current_ts,
+            timestamp_seconds: 99_990,
             updated_at_seconds: 100_000,
         })
     );
@@ -98,7 +107,7 @@ async fn test_update_exchange_rate_success() {
 
     let requests = testing::drain_requests();
     assert_eq!(requests.len(), 2);
-    assert_eq!(requests[0].timestamp, Some(current_ts));
+    assert_eq!(requests[0].timestamp, None);
     assert_eq!(requests[1].timestamp, Some(past_ts));
 }
 
@@ -106,10 +115,9 @@ async fn test_update_exchange_rate_success() {
 async fn test_update_exchange_rate_error_preserves_cache() {
     set_time_nanos(200_000 * NANOS_PER_SEC);
 
-    let current_ts = 200_000 - XRC_MARGIN_SECS;
-    let past_ts = 200_000 - TWENTY_FOUR_HOURS_SECS - XRC_MARGIN_SECS;
+    let past_ts = 200_000 - TWENTY_FOUR_HOURS_SECS;
 
-    let current_rate = make_exchange_rate(12_345_000_000, 10, current_ts);
+    let current_rate = make_exchange_rate(12_345_000_000, 10, 199_990);
     let past_rate = make_exchange_rate(11_000_000_000, 10, past_ts);
     testing::add_exchange_rate_response(Ok(Ok(current_rate)));
     testing::add_exchange_rate_response(Ok(Ok(past_rate)));

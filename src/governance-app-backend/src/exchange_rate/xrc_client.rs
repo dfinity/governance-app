@@ -15,6 +15,8 @@ mod prod {
     pub async fn get_exchange_rate(
         request: GetExchangeRateRequest,
     ) -> Result<GetExchangeRateResult, String> {
+        // Exchange Rate Canister (XRC) — a system canister.
+        // Same as ic_nns_constants::EXCHANGE_RATE_CANISTER_ID.
         let xrc_canister_id = Principal::from_text("uf6dk-hyaaa-aaaaq-qaaaq-cai").unwrap();
         let response = Call::unbounded_wait(xrc_canister_id, "get_exchange_rate")
             .with_arg(request)

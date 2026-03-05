@@ -9,7 +9,6 @@ use cache::{CachedRate, IcpExchangeRateResponse};
 use xrc_client::{Asset, AssetClass, GetExchangeRateRequest};
 
 const UPDATE_INTERVAL_NANOS: u64 = 300 * NANOS_PER_SEC; // 5 minutes
-const XRC_MARGIN_SECS: u64 = 300;
 const TWENTY_FOUR_HOURS_SECS: u64 = 86_400;
 const NANOS_PER_SEC: u64 = 1_000_000_000;
 
@@ -20,8 +19,10 @@ pub fn init_exchange_rate_timer() {
 
 /// Global timer entry point. Called by the `canister_global_timer` export in lib.rs.
 pub fn on_timer() {
-    ic_cdk::futures::spawn(update_exchange_rate());
-    reschedule_after_interval();
+    ic_cdk::futures::spawn(async {
+        update_exchange_rate().await;
+        reschedule_after_interval();
+    });
 }
 
 fn reschedule_now() {
@@ -57,13 +58,11 @@ fn usd_asset() -> Asset {
 
 async fn update_exchange_rate() {
     let now_secs = time::time_nanos() / NANOS_PER_SEC;
-    let current_timestamp = now_secs.saturating_sub(XRC_MARGIN_SECS);
-    let past_timestamp = now_secs
-        .saturating_sub(TWENTY_FOUR_HOURS_SECS)
-        .saturating_sub(XRC_MARGIN_SECS);
+    let past_timestamp = now_secs.saturating_sub(TWENTY_FOUR_HOURS_SECS);
 
-    fetch_and_cache_rate(current_timestamp, RateKind::Current).await;
-    fetch_and_cache_rate(past_timestamp, RateKind::TwentyFourHoursAgo).await;
+    // No timestamp = latest available rate from XRC.
+    fetch_and_cache_rate(None, RateKind::Current).await;
+    fetch_and_cache_rate(Some(past_timestamp), RateKind::TwentyFourHoursAgo).await;
 }
 
 enum RateKind {
@@ -71,11 +70,11 @@ enum RateKind {
     TwentyFourHoursAgo,
 }
 
-async fn fetch_and_cache_rate(timestamp_seconds: u64, kind: RateKind) {
+async fn fetch_and_cache_rate(timestamp: Option<u64>, kind: RateKind) {
     let request = GetExchangeRateRequest {
         base_asset: icp_asset(),
         quote_asset: usd_asset(),
-        timestamp: Some(timestamp_seconds),
+        timestamp,
     };
 
     let label = match kind {
@@ -86,7 +85,17 @@ async fn fetch_and_cache_rate(timestamp_seconds: u64, kind: RateKind) {
     let result = xrc_client::get_exchange_rate(request).await;
     match result {
         Ok(Ok(exchange_rate)) => {
-            let rate_e8s = convert_to_e8s(exchange_rate.rate, exchange_rate.metadata.decimals);
+            let Some(rate_e8s) =
+                convert_to_e8s(exchange_rate.rate, exchange_rate.metadata.decimals)
+            else {
+                ic_cdk::println!(
+                    "Keeping {} ICP/USD rate unchanged: conversion overflow (rate={}, decimals={})",
+                    label,
+                    exchange_rate.rate,
+                    exchange_rate.metadata.decimals,
+                );
+                return;
+            };
             let now_secs = time::time_nanos() / NANOS_PER_SEC;
             let cached = CachedRate {
                 rate_e8s,
@@ -116,10 +125,22 @@ async fn fetch_and_cache_rate(timestamp_seconds: u64, kind: RateKind) {
     }
 }
 
-fn convert_to_e8s(amount: u64, decimals: u32) -> u64 {
+/// Converts a number such that it can be interpreted as a fixed-point number
+/// with 8 decimal places.
+///
+/// For example, if `amount` is 123 and `decimals` is 2, the input is
+/// interpreted as 1.23, by moving the decimal point 2 positions to the left.
+/// In the output, we want to represent this with 8 decimals instead of 2, so
+/// from 1.23 we move the decimal point 8 positions to the right to get
+/// `123_000_000`.
+///
+/// Based on https://github.com/dfinity/ic/blob/6760029ea4e9be8170984b023391cb72ff3b6398/rs/rosetta-api/tvl/src/lib.rs#L166-L174
+fn convert_to_e8s(amount: u64, decimals: u32) -> Option<u64> {
     if decimals >= 8 {
-        amount / 10u64.pow(decimals - 8)
+        let divisor = 10u64.checked_pow(decimals - 8)?;
+        Some(amount / divisor)
     } else {
-        amount * 10u64.pow(8 - decimals)
+        let multiplier = 10u64.checked_pow(8 - decimals)?;
+        amount.checked_mul(multiplier)
     }
 }
