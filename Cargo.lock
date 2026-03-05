@@ -275,6 +275,7 @@ dependencies = [
  "candid",
  "ic-asset-certification",
  "ic-cdk",
+ "ic-cdk-timers",
  "ic-http-certification",
  "ic-ledger-types",
  "ic-stable-structures 0.7.2",
@@ -372,6 +373,17 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.104",
+]
+
+[[package]]
+name = "ic-cdk-timers"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6852b9c1d4a82ff50fc7318599298aee8bfb082bd7e9fe7e5c1420692b2170f7"
+dependencies = [
+ "ic-cdk-executor",
+ "ic0",
+ "slotmap",
 ]
 
 [[package]]

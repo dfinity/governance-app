@@ -5,32 +5,19 @@ pub mod xrc_client;
 #[cfg(test)]
 mod tests;
 
+use std::time::Duration;
+
 use cache::{CachedRate, IcpExchangeRateResponse};
 use xrc_client::{Asset, AssetClass, GetExchangeRateRequest};
 
-const UPDATE_INTERVAL_NANOS: u64 = 300 * NANOS_PER_SEC; // 5 minutes
+const UPDATE_INTERVAL: Duration = Duration::from_secs(300); // 5 minutes
 const TWENTY_FOUR_HOURS_SECS: u64 = 86_400;
 const NANOS_PER_SEC: u64 = 1_000_000_000;
 
-/// Called from `init` and `post_upgrade` to schedule the first timer tick immediately.
+/// Called from `init` and `post_upgrade` to kick off periodic exchange-rate fetching.
 pub fn init_exchange_rate_timer() {
-    reschedule_now();
-}
-
-/// Global timer entry point. Called by the `canister_global_timer` export in lib.rs.
-pub fn on_timer() {
-    ic_cdk::futures::spawn(async {
-        update_exchange_rate().await;
-        reschedule_after_interval();
-    });
-}
-
-fn reschedule_now() {
-    ic_cdk::api::global_timer_set(ic_cdk::api::time());
-}
-
-fn reschedule_after_interval() {
-    ic_cdk::api::global_timer_set(ic_cdk::api::time() + UPDATE_INTERVAL_NANOS);
+    ic_cdk_timers::set_timer(Duration::ZERO, update_exchange_rate());
+    ic_cdk_timers::set_timer_interval(UPDATE_INTERVAL, || update_exchange_rate());
 }
 
 pub fn get_icp_exchange_rate() -> IcpExchangeRateResponse {

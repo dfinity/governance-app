@@ -48,11 +48,3 @@ fn get_icp_exchange_rate() -> IcpExchangeRateResponse {
 fn set_mock_exchange_rate(current_rate_e8s: u64, rate_24h_ago_e8s: u64) {
     exchange_rate::set_mock_exchange_rate(current_rate_e8s, rate_24h_ago_e8s);
 }
-
-// TODO: Upgrade ic-cdk to 0.19+ and replace this raw global timer with ic-cdk-timers.
-// The raw API only supports a single timer. If we need multiple independent timers,
-// ic-cdk-timers multiplexes many logical timers onto the one physical global timer.
-#[export_name = "canister_global_timer"]
-fn global_timer() {
-    exchange_rate::on_timer();
-}

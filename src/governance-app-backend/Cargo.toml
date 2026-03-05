@@ -14,6 +14,7 @@ crate-type = ["cdylib"]
 [dependencies]
 candid = "0.10"
 ic-cdk = "0.19"
+ic-cdk-timers = "1.0"
 ic-http-certification = "3.0"
 ic-asset-certification = "3.0.3"
 ic-xrc-types = "1.2"
