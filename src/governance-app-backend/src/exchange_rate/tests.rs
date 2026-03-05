@@ -1,7 +1,7 @@
-use super::*;
 use super::cache::{get_cached_rates, CachedRate};
 use super::time::testing::set_time_nanos;
 use super::xrc_client::testing;
+use super::*;
 use ic_xrc_types::{Asset, AssetClass, ExchangeRate, ExchangeRateMetadata};
 
 fn icp() -> Asset {
@@ -120,7 +120,10 @@ async fn test_update_exchange_rate_error_preserves_cache() {
     update_exchange_rate().await;
 
     let rates = get_cached_rates();
-    assert!(rates.current.is_some(), "current rate should be preserved after error");
+    assert!(
+        rates.current.is_some(),
+        "current rate should be preserved after error"
+    );
     assert_eq!(rates.current.unwrap().rate_e8s, 123_450_000);
     assert!(
         rates.twenty_four_hours_ago.is_some(),
