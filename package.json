@@ -1,6 +1,6 @@
 {
   "engines": {
-    "node": "^24",
+    "node": "^25",
     "npm": "^11"
   },
   "name": "the-governance-app",
@@ -21,5 +21,16 @@
   "type": "module",
   "workspaces": [
     "src/governance-app-frontend"
-  ]
+  ],
+  "overrides": {
+    "@tanstack/eslint-plugin-query": {
+      "eslint": "$eslint"
+    },
+    "eslint-plugin-import": {
+      "eslint": "$eslint"
+    },
+    "eslint-plugin-react-hooks": {
+      "eslint": "$eslint"
+    }
+  }
 }

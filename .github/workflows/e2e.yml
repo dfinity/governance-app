@@ -11,7 +11,7 @@ jobs:
     # This fixes Playwright connectivity issues found in GitHub Actions default containers
     env:
       BASE_URL: http://mc7vh-sqaaa-aaaai-q33na-cai.localhost:8080
-      CONTAINER_IMAGE: ghcr.io/dfinity/governance-app/builder-base:0.0.8
+      CONTAINER_IMAGE: ghcr.io/dfinity/governance-app/builder-base:0.0.9
 
     steps:
       - uses: actions/checkout@v4
