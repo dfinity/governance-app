@@ -79,7 +79,6 @@ function KnownNeuronsPage() {
     { previousSelectedId: string | null }
   >({
     mutationFn: ({ neurons, knownNeuron }) => {
-      // This check is to satisfy TS
       if (!canister) throw new Error(t(($) => $.common.unknownError));
 
       // Setting the following for topics `Unspecified`, `Governance` and `SNS and Community Fund` to cover all topics
