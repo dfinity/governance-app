@@ -77,14 +77,6 @@ function KnownNeuronsPage() {
   const selectedNeuronId = userOverrideId ?? derivedSelectedId;
 
   const [dialogState, setDialogState] = useState<DialogState>({ phase: 'closed' });
-  const isDialogOpen = dialogState.phase !== 'closed';
-  const isBlocking = dialogState.phase === 'processing';
-
-  useEffect(() => {
-    if (dialogState.phase !== 'success') return;
-    const timer = setTimeout(() => setDialogState({ phase: 'closed' }), SUCCESS_AUTO_CLOSE_MS);
-    return () => clearTimeout(timer);
-  }, [dialogState]);
 
   const fireFollowMutation = (knownNeuron: KnownNeuron) => {
     if (!neuronsQuery.data?.certified || !canister) return;
@@ -148,11 +140,6 @@ function KnownNeuronsPage() {
     retry: 3,
   });
 
-  const handleRetry = () => {
-    if (dialogState.phase !== 'error') return;
-    fireFollowMutation(dialogState.neuron);
-  };
-
   const handleSelect = (knownNeuron: KnownNeuron) => {
     if (!neuronsQuery.data?.certified || !canister) return;
     const neurons = neuronsQuery.data.response;
@@ -179,13 +166,6 @@ function KnownNeuronsPage() {
 
     fireFollowMutation(knownNeuron);
   };
-
-  const handleConfirm = () => {
-    if (dialogState.phase !== 'confirm') return;
-    fireFollowMutation(dialogState.neuron);
-  };
-
-  const closeDialog = () => setDialogState({ phase: 'closed' });
 
   const sortedKnownNeurons = knownNeurons?.filter(isActiveKnownNeuron).toSorted(sortKnownNeurons);
 
@@ -261,142 +241,167 @@ function KnownNeuronsPage() {
         </div>
       </div>
 
-      <ResponsiveDialog
-        open={isDialogOpen}
-        onOpenChange={(open) => !open && !isBlocking && closeDialog()}
-        dismissible={!isBlocking}
-      >
-        <ResponsiveDialogContent showCloseButton={!isBlocking} className="md:h-[200px] md:max-w-md">
-          <AnimatePresence mode="wait" initial={false}>
-            {dialogState.phase === 'confirm' && (
-              <motion.div
-                key="confirm"
-                className="flex h-full flex-col justify-between"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-              >
-                <ResponsiveDialogHeader>
-                  <ResponsiveDialogTitle>
-                    {t(($) => $.knownNeurons.confirmation.title)}
-                  </ResponsiveDialogTitle>
-                  <ResponsiveDialogDescription>
-                    {t(($) => $.knownNeurons.confirmation.description)}
-                  </ResponsiveDialogDescription>
-                </ResponsiveDialogHeader>
-                <ResponsiveDialogFooter className="flex justify-end gap-2">
-                  <Button variant="ghost" onClick={closeDialog}>
-                    {t(($) => $.common.cancel)}
-                  </Button>
-                  <Button onClick={handleConfirm}>{t(($) => $.common.confirm)}</Button>
-                </ResponsiveDialogFooter>
-              </motion.div>
-            )}
+      <FollowNeuronDialog
+        state={dialogState}
+        onConfirm={() => 'neuron' in dialogState && fireFollowMutation(dialogState.neuron)}
+        onRetry={() => 'neuron' in dialogState && fireFollowMutation(dialogState.neuron)}
+        onClose={() => setDialogState({ phase: 'closed' })}
+      />
+    </>
+  );
+}
 
-            {dialogState.phase === 'processing' && (
-              <motion.div
-                key="processing"
-                className="flex h-full flex-col items-center justify-center gap-5 text-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-              >
-                <motion.div
-                  className="flex size-16 items-center justify-center rounded-full bg-primary/10"
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                >
-                  <Loader className="size-8 animate-spin text-primary" />
-                </motion.div>
-                <motion.p
-                  className="text-sm font-medium text-muted-foreground"
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2, duration: 0.3 }}
-                >
-                  {t(($) => $.knownNeurons.api.processing, {
-                    name: dialogState.neuron.name,
-                  })}
-                </motion.p>
-              </motion.div>
-            )}
+function FollowNeuronDialog({
+  state,
+  onConfirm,
+  onRetry,
+  onClose,
+}: {
+  state: DialogState;
+  onConfirm: () => void;
+  onRetry: () => void;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const isOpen = state.phase !== 'closed';
+  const isBlocking = state.phase === 'processing';
 
-            {dialogState.phase === 'success' && (
+  useEffect(() => {
+    if (state.phase !== 'success') return;
+    const timer = setTimeout(onClose, SUCCESS_AUTO_CLOSE_MS);
+    return () => clearTimeout(timer);
+  }, [state.phase, onClose]);
+
+  return (
+    <ResponsiveDialog
+      open={isOpen}
+      onOpenChange={(open) => !open && !isBlocking && onClose()}
+      dismissible={!isBlocking}
+    >
+      <ResponsiveDialogContent showCloseButton={!isBlocking} className="md:h-[200px] md:max-w-md">
+        <AnimatePresence mode="wait" initial={false}>
+          {state.phase === 'confirm' && (
+            <motion.div
+              key="confirm"
+              className="flex h-full flex-col justify-between"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              <ResponsiveDialogHeader>
+                <ResponsiveDialogTitle>
+                  {t(($) => $.knownNeurons.confirmation.title)}
+                </ResponsiveDialogTitle>
+                <ResponsiveDialogDescription>
+                  {t(($) => $.knownNeurons.confirmation.description)}
+                </ResponsiveDialogDescription>
+              </ResponsiveDialogHeader>
+              <ResponsiveDialogFooter className="flex justify-end gap-2">
+                <Button variant="ghost" onClick={onClose}>
+                  {t(($) => $.common.cancel)}
+                </Button>
+                <Button onClick={onConfirm}>{t(($) => $.common.confirm)}</Button>
+              </ResponsiveDialogFooter>
+            </motion.div>
+          )}
+
+          {state.phase === 'processing' && (
+            <motion.div
+              key="processing"
+              className="flex h-full flex-col items-center justify-center gap-5 text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
               <motion.div
-                key="success"
-                className="flex h-full flex-col items-center justify-center gap-5 text-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
+                className="flex size-16 items-center justify-center rounded-full bg-primary/10"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 15 }}
               >
+                <Loader className="size-8 animate-spin text-primary" />
+              </motion.div>
+              <motion.p
+                className="text-sm font-medium text-muted-foreground"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.3 }}
+              >
+                {t(($) => $.knownNeurons.api.processing, { name: state.neuron.name })}
+              </motion.p>
+            </motion.div>
+          )}
+
+          {state.phase === 'success' && (
+            <motion.div
+              key="success"
+              className="flex h-full flex-col items-center justify-center gap-5 text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <motion.div
+                className="flex size-16 items-center justify-center rounded-full bg-green-600/10"
+                initial={{ scale: 0.6, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+              >
+                <AnimatedCheckmark />
+              </motion.div>
+              <motion.p
+                className="max-w-xs text-sm font-medium text-muted-foreground"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35, duration: 0.3 }}
+              >
+                {t(($) => $.knownNeurons.api.success, { name: state.neuronName })}
+              </motion.p>
+            </motion.div>
+          )}
+
+          {state.phase === 'error' && (
+            <motion.div
+              key="error"
+              className="flex h-full flex-col items-center justify-between text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="flex flex-1 flex-col items-center justify-center gap-4">
                 <motion.div
-                  className="flex size-16 items-center justify-center rounded-full bg-green-600/10"
-                  initial={{ scale: 0.6, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                  className="flex size-14 items-center justify-center rounded-full bg-destructive/10"
+                  initial={{ scale: 0.8, rotate: 0 }}
+                  animate={{ scale: 1, rotate: [0, -5, 5, -5, 5, 0] }}
+                  transition={{ duration: 0.5, ease: 'easeOut' }}
                 >
-                  <AnimatedCheckmark />
+                  <AlertTriangle className="size-8 text-destructive" />
                 </motion.div>
                 <motion.p
                   className="max-w-xs text-sm font-medium text-muted-foreground"
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.35, duration: 0.3 }}
+                  transition={{ delay: 0.3, duration: 0.3 }}
                 >
-                  {t(($) => $.knownNeurons.api.success, {
-                    name: dialogState.neuronName,
-                  })}
+                  {t(($) => $.knownNeurons.api.error, { name: state.neuron.name })}
                 </motion.p>
-              </motion.div>
-            )}
-
-            {dialogState.phase === 'error' && (
-              <motion.div
-                key="error"
-                className="flex h-full flex-col items-center justify-between text-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="flex flex-1 flex-col items-center justify-center gap-4">
-                  <motion.div
-                    className="flex size-14 items-center justify-center rounded-full bg-destructive/10"
-                    initial={{ scale: 0.8, rotate: 0 }}
-                    animate={{ scale: 1, rotate: [0, -5, 5, -5, 5, 0] }}
-                    transition={{ duration: 0.5, ease: 'easeOut' }}
-                  >
-                    <AlertTriangle className="size-8 text-destructive" />
-                  </motion.div>
-                  <motion.p
-                    className="max-w-xs text-sm font-medium text-muted-foreground"
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3, duration: 0.3 }}
-                  >
-                    {t(($) => $.knownNeurons.api.error, {
-                      name: dialogState.neuron.name,
-                    })}
-                  </motion.p>
-                </div>
-                <div className="flex w-full gap-2 pt-2">
-                  <Button variant="outline" className="flex-1" onClick={closeDialog}>
-                    {t(($) => $.common.close)}
-                  </Button>
-                  <Button className="flex-1" onClick={handleRetry}>
-                    {t(($) => $.knownNeurons.api.retry)}
-                  </Button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
-    </>
+              </div>
+              <div className="flex w-full gap-2 pt-2">
+                <Button variant="outline" className="flex-1" onClick={onClose}>
+                  {t(($) => $.common.close)}
+                </Button>
+                <Button className="flex-1" onClick={onRetry}>
+                  {t(($) => $.knownNeurons.api.retry)}
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }
 
