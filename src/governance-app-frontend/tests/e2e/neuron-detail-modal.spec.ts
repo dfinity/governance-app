@@ -25,7 +25,7 @@ test.describe.serial('Neuron Detail Modal', () => {
     await openApp({ page });
     await login({ page });
     await getIcps(page, '10');
-    await page.getByRole('link', { name: 'Stakes' }).click();
+    await page.getByRole('link', { name: 'Neurons' }).click();
 
     await page.getByTestId('empty-neurons-state-open-staking-wizard-btn').click();
     await page.getByTestId('staking-wizard-amount-input').fill('5');
@@ -50,16 +50,16 @@ test.describe.serial('Neuron Detail Modal', () => {
       await closeModal(page);
     });
 
-    await test.step('URL contains stakeId when modal is open and reopens on refresh', async () => {
+    await test.step('URL contains neuronId when modal is open and reopens on refresh', async () => {
       await openNeuronDetailModal(page);
       const url = page.url();
-      expect(url).toContain('stakeId=');
+      expect(url).toContain('neuronId=');
       await page.reload();
       await expect(page.getByTestId('neuron-detail-modal')).toBeVisible();
       await expect(page.getByTestId('neuron-detail-staked-amount')).toHaveText(/5\.00.*ICP/i);
       await closeModal(page);
       const urlAfterClose = page.url();
-      expect(urlAfterClose).not.toContain('stakeId=');
+      expect(urlAfterClose).not.toContain('neuronId=');
     });
   });
 
