@@ -1,5 +1,6 @@
-import { LayoutDashboard, Network, User, Vote } from 'lucide-react';
+import { LayoutDashboard, User, Vote } from 'lucide-react';
 
+import { NeuronIcon } from '@components/icons/NeuronIcon';
 import { FileRoutesByTo } from '@/routeTree.gen';
 
 type AuthRoutePaths = Exclude<keyof FileRoutesByTo, '/'>;
@@ -19,7 +20,7 @@ export const navigationItems: NavigationItem[] = [
   {
     label: 'common.stakes',
     href: '/neurons',
-    icon: Network,
+    icon: NeuronIcon,
   },
   {
     label: 'common.voting',
