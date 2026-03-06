@@ -37,7 +37,7 @@ type DialogState =
   | { phase: 'confirm'; neuron: KnownNeuron }
   | { phase: 'processing'; neuron: KnownNeuron }
   | { phase: 'success'; neuronName: string }
-  | { phase: 'error'; neuronName: string };
+  | { phase: 'error'; neuron: KnownNeuron };
 
 export const Route = createFileRoute('/_auth/voting/known-neurons/')({
   component: KnownNeuronsPage,
@@ -147,10 +147,15 @@ function KnownNeuronsPage() {
     onError: (error, variables, context) => {
       console.error('Failed to update neuron:', error);
       setUserOverrideId(context?.previousSelectedId ?? null);
-      setDialogState({ phase: 'error', neuronName: variables.knownNeuron.name });
+      setDialogState({ phase: 'error', neuron: variables.knownNeuron });
     },
     retry: 3,
   });
+
+  const handleRetry = () => {
+    if (dialogState.phase !== 'error') return;
+    fireFollowMutation(dialogState.neuron);
+  };
 
   const handleSelect = (knownNeuron: KnownNeuron) => {
     if (!neuronsQuery.data?.certified || !canister) return;
@@ -368,14 +373,14 @@ function KnownNeuronsPage() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
               >
-                <div className="flex flex-1 flex-col items-center justify-center gap-5">
+                <div className="flex flex-1 flex-col items-center justify-center gap-4">
                   <motion.div
-                    className="flex size-16 items-center justify-center rounded-full bg-destructive/10"
+                    className="flex size-14 items-center justify-center rounded-full bg-destructive/10"
                     initial={{ scale: 0.8, rotate: 0 }}
                     animate={{ scale: 1, rotate: [0, -5, 5, -5, 5, 0] }}
                     transition={{ duration: 0.5, ease: 'easeOut' }}
                   >
-                    <AlertTriangle className="size-10 text-destructive" />
+                    <AlertTriangle className="size-8 text-destructive" />
                   </motion.div>
                   <motion.p
                     className="max-w-xs text-sm font-medium text-muted-foreground"
@@ -384,13 +389,18 @@ function KnownNeuronsPage() {
                     transition={{ delay: 0.3, duration: 0.3 }}
                   >
                     {t(($) => $.knownNeurons.api.error, {
-                      name: dialogState.neuronName,
+                      name: dialogState.neuron.name,
                     })}
                   </motion.p>
                 </div>
-                <Button variant="outline" className="w-full" onClick={closeDialog}>
-                  {t(($) => $.common.close)}
-                </Button>
+                <div className="flex w-full gap-2 pt-2">
+                  <Button variant="outline" className="flex-1" onClick={closeDialog}>
+                    {t(($) => $.common.close)}
+                  </Button>
+                  <Button className="flex-1" onClick={handleRetry}>
+                    {t(($) => $.knownNeurons.api.retry)}
+                  </Button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
