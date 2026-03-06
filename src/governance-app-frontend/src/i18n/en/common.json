@@ -10,6 +10,7 @@
   "refreshFailed": "Failed to automatically refresh the data. Please try reloading the page.",
   "unknownError": "An error occurred.",
   "staked": "Locked in Neurons",
+  "stakedShort": "Neurons",
   "icp": "ICP",
   "inIcp": "{{value}} ICP",
   "positiveNumber": "+{{value}}",
