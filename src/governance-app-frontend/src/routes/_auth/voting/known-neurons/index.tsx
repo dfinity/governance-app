@@ -2,10 +2,10 @@ import { KnownNeuron, NeuronId, Topic } from '@icp-sdk/canisters/nns';
 import { isNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ArrowLeft } from 'lucide-react';
-import { useState } from 'react';
+import { AlertTriangle, ArrowLeft, Loader } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 
 import { validateProposalsSearch } from '@features/proposals/utils';
 import { KnownNeuronCard } from '@features/voting/components/KnownNeuronCard';
@@ -14,23 +14,30 @@ import { isActiveKnownNeuron, sortKnownNeurons } from '@features/voting/utils/kn
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from '@components/ResponsiveDialog';
 import { Skeleton } from '@components/Skeleton';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import { warningNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@common/components/AlertDialog';
 
 import i18n from '@/i18n/config';
+
+const SUCCESS_AUTO_CLOSE_MS = 2400;
+
+type DialogState =
+  | { phase: 'closed' }
+  | { phase: 'confirm'; neuron: KnownNeuron }
+  | { phase: 'processing'; neuron: KnownNeuron }
+  | { phase: 'success'; neuronName: string }
+  | { phase: 'error'; neuronName: string };
 
 export const Route = createFileRoute('/_auth/voting/known-neurons/')({
   component: KnownNeuronsPage,
@@ -69,8 +76,28 @@ function KnownNeuronsPage() {
   const [userOverrideId, setUserOverrideId] = useState<string | null | undefined>(undefined);
   const selectedNeuronId = userOverrideId ?? derivedSelectedId;
 
-  const [openConfirmationDialogWithNeuron, setOpenConfirmationDialogWithNeuron] =
-    useState<KnownNeuron | null>(null);
+  const [dialogState, setDialogState] = useState<DialogState>({ phase: 'closed' });
+  const isDialogOpen = dialogState.phase !== 'closed';
+  const isBlocking = dialogState.phase === 'processing';
+
+  useEffect(() => {
+    if (dialogState.phase !== 'success') return;
+    const timer = setTimeout(() => setDialogState({ phase: 'closed' }), SUCCESS_AUTO_CLOSE_MS);
+    return () => clearTimeout(timer);
+  }, [dialogState]);
+
+  const fireFollowMutation = useCallback(
+    (knownNeuron: KnownNeuron) => {
+      if (!neuronsQuery.data?.certified || !canister) return;
+      const neurons = neuronsQuery.data.response;
+
+      setDialogState({ phase: 'processing', neuron: knownNeuron });
+
+      updateFollowingMutation.mutate({ neurons, knownNeuron });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [neuronsQuery.data, canister],
+  );
 
   const updateFollowingMutation = useMutation<
     void[],
@@ -107,9 +134,7 @@ function KnownNeuronsPage() {
     },
     onMutate: (variables) => {
       const previousSelectedId = selectedNeuronId;
-
       setUserOverrideId(variables.knownNeuron.id.toString());
-
       return { previousSelectedId };
     },
     onSuccess: async (_, variables) => {
@@ -117,22 +142,12 @@ function KnownNeuronsPage() {
         queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
       });
 
-      toast.success(
-        t(($) => $.knownNeurons.api.success, {
-          name: variables.knownNeuron.name,
-        }),
-      );
+      setDialogState({ phase: 'success', neuronName: variables.knownNeuron.name });
     },
     onError: (error, variables, context) => {
       console.error('Failed to update neuron:', error);
-
       setUserOverrideId(context?.previousSelectedId ?? null);
-
-      toast.error(
-        t(($) => $.knownNeurons.api.error, {
-          name: variables.knownNeuron.name,
-        }),
-      );
+      setDialogState({ phase: 'error', neuronName: variables.knownNeuron.name });
     },
     retry: 3,
   });
@@ -150,32 +165,26 @@ function KnownNeuronsPage() {
     }
 
     if (allKnownNeurons) {
-      const followedNeurons = getUsersFollowedNeurons({
+      const currentFollowed = getUsersFollowedNeurons({
         userNeurons: neurons,
         knownNeurons: allKnownNeurons,
       });
 
-      if (followedNeurons.length > 0) {
-        setOpenConfirmationDialogWithNeuron(knownNeuron);
+      if (currentFollowed.length > 0) {
+        setDialogState({ phase: 'confirm', neuron: knownNeuron });
         return;
       }
     }
 
-    updateFollowingMutation.mutate({
-      neurons,
-      knownNeuron,
-    });
+    fireFollowMutation(knownNeuron);
   };
 
-  const handleConfirmSelection = () => {
-    if (!neuronsQuery.data?.certified || isNullish(openConfirmationDialogWithNeuron)) return;
-
-    updateFollowingMutation.mutate({
-      neurons: neuronsQuery.data.response,
-      knownNeuron: openConfirmationDialogWithNeuron,
-    });
-    setOpenConfirmationDialogWithNeuron(null);
+  const handleConfirm = () => {
+    if (dialogState.phase !== 'confirm') return;
+    fireFollowMutation(dialogState.neuron);
   };
+
+  const closeDialog = () => setDialogState({ phase: 'closed' });
 
   const sortedKnownNeurons = knownNeurons?.filter(isActiveKnownNeuron).toSorted(sortKnownNeurons);
 
@@ -221,46 +230,193 @@ function KnownNeuronsPage() {
           ) : sortedKnownNeurons?.length === 0 ? (
             <p className="text-muted-foreground">{t(($) => $.knownNeurons.empty)}</p>
           ) : (
-            sortedKnownNeurons?.map((neuron) => (
-              <KnownNeuronCard
+            sortedKnownNeurons?.map((neuron, index) => (
+              <motion.div
                 key={neuron.id.toString()}
-                neuron={neuron}
-                isSelected={selectedNeuronId === neuron.id.toString()}
-                onSelect={handleSelect}
-                isLoading={
-                  updateFollowingMutation.isPending && selectedNeuronId === neuron.id.toString()
-                }
-                isDisabled={
-                  isNullish(canister) ||
-                  updateFollowingMutation.isPending ||
-                  !neuronsQuery.data?.certified
-                }
-              />
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.3,
+                  delay: index * 0.06,
+                  ease: 'easeOut',
+                }}
+              >
+                <KnownNeuronCard
+                  neuron={neuron}
+                  isSelected={selectedNeuronId === neuron.id.toString()}
+                  onSelect={handleSelect}
+                  isLoading={
+                    updateFollowingMutation.isPending &&
+                    selectedNeuronId === neuron.id.toString()
+                  }
+                  isDisabled={
+                    isNullish(canister) ||
+                    updateFollowingMutation.isPending ||
+                    !neuronsQuery.data?.certified
+                  }
+                />
+              </motion.div>
             ))
           )}
         </div>
       </div>
-      <AlertDialog
-        open={!!openConfirmationDialogWithNeuron}
-        onOpenChange={(open: boolean) => !open && setOpenConfirmationDialogWithNeuron(null)}
+
+      <ResponsiveDialog
+        open={isDialogOpen}
+        onOpenChange={(open) => !open && !isBlocking && closeDialog()}
+        dismissible={!isBlocking}
       >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t(($) => $.knownNeurons.confirmation.title)}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t(($) => $.knownNeurons.confirmation.description)}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setOpenConfirmationDialogWithNeuron(null)}>
-              {t(($) => $.common.cancel)}
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmSelection}>
-              {t(($) => $.common.confirm)}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        <ResponsiveDialogContent
+          showCloseButton={!isBlocking}
+          className="md:h-[200px] md:max-w-md"
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            {dialogState.phase === 'confirm' && (
+              <motion.div
+                key="confirm"
+                className="flex h-full flex-col justify-between"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                <ResponsiveDialogHeader>
+                  <ResponsiveDialogTitle>
+                    {t(($) => $.knownNeurons.confirmation.title)}
+                  </ResponsiveDialogTitle>
+                  <ResponsiveDialogDescription>
+                    {t(($) => $.knownNeurons.confirmation.description)}
+                  </ResponsiveDialogDescription>
+                </ResponsiveDialogHeader>
+                <ResponsiveDialogFooter className="flex justify-end gap-2">
+                  <Button variant="ghost" onClick={closeDialog}>
+                    {t(($) => $.common.cancel)}
+                  </Button>
+                  <Button onClick={handleConfirm}>
+                    {t(($) => $.common.confirm)}
+                  </Button>
+                </ResponsiveDialogFooter>
+              </motion.div>
+            )}
+
+            {dialogState.phase === 'processing' && (
+              <motion.div
+                key="processing"
+                className="flex h-full flex-col items-center justify-center gap-5 text-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                <motion.div
+                  className="flex size-16 items-center justify-center rounded-full bg-primary/10"
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                >
+                  <Loader className="size-8 animate-spin text-primary" />
+                </motion.div>
+                <motion.p
+                  className="text-sm font-medium text-muted-foreground"
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.3 }}
+                >
+                  {t(($) => $.knownNeurons.api.processing, {
+                    name: dialogState.neuron.name,
+                  })}
+                </motion.p>
+              </motion.div>
+            )}
+
+            {dialogState.phase === 'success' && (
+              <motion.div
+                key="success"
+                className="flex h-full flex-col items-center justify-center gap-5 text-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <motion.div
+                  className="flex size-16 items-center justify-center rounded-full bg-green-600/10"
+                  initial={{ scale: 0.6, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                >
+                  <AnimatedCheckmark />
+                </motion.div>
+                <motion.p
+                  className="max-w-xs text-sm font-medium text-muted-foreground"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.35, duration: 0.3 }}
+                >
+                  {t(($) => $.knownNeurons.api.success, {
+                    name: dialogState.neuronName,
+                  })}
+                </motion.p>
+              </motion.div>
+            )}
+
+            {dialogState.phase === 'error' && (
+              <motion.div
+                key="error"
+                className="flex h-full flex-col items-center justify-between text-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="flex flex-1 flex-col items-center justify-center gap-5">
+                  <motion.div
+                    className="flex size-16 items-center justify-center rounded-full bg-destructive/10"
+                    initial={{ scale: 0.8, rotate: 0 }}
+                    animate={{ scale: 1, rotate: [0, -5, 5, -5, 5, 0] }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                  >
+                    <AlertTriangle className="size-10 text-destructive" />
+                  </motion.div>
+                  <motion.p
+                    className="max-w-xs text-sm font-medium text-muted-foreground"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.3 }}
+                  >
+                    {t(($) => $.knownNeurons.api.error, {
+                      name: dialogState.neuronName,
+                    })}
+                  </motion.p>
+                </div>
+                <Button variant="outline" className="w-full" onClick={closeDialog}>
+                  {t(($) => $.common.close)}
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
     </>
+  );
+}
+
+function AnimatedCheckmark() {
+  return (
+    <motion.svg
+      className="size-12 text-green-600 dark:text-green-400"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <motion.path
+        d="M5 13l4 4L19 7"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 0.4, delay: 0.2, ease: 'easeOut' }}
+      />
+    </motion.svg>
   );
 }
