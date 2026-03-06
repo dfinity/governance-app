@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router';
+import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalFilter } from '@features/proposals/utils';
@@ -30,17 +31,28 @@ export function EngagementCard() {
           </>
         ) : (
           <>
-            <Link to="/voting" search={{ showProposals: true, proposalFilter: ProposalFilter.All }}>
-              Temp Link with example
+            <div className="flex items-baseline gap-2">
+              <span className="text-lg font-semibold text-foreground md:text-2xl">
+                {formattedRate !== null ? `${formattedRate}%` : '—'}
+              </span>
+              {engagement !== null && (
+                <span className="text-sm text-muted-foreground">
+                  {engagement.participated}/{engagement.total}
+                </span>
+              )}
+            </div>
+            <Link
+              to="/voting"
+              search={{ showProposals: true, proposalFilter: ProposalFilter.All }}
+              className="mt-1 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {t(($) =>
+                engagement?.rate === 1
+                  ? $.neuron.summary.engagementActionComplete
+                  : $.neuron.summary.engagementAction,
+              )}
+              <ChevronRight className="size-3.5" />
             </Link>
-            <p className="text-lg font-semibold text-foreground md:text-2xl">
-              {formattedRate !== null ? `${formattedRate}%` : '—'}
-            </p>
-            {engagement !== null && (
-              <p className="mt-1 text-sm text-muted-foreground">
-                {engagement.participated}/{engagement.total} votes
-              </p>
-            )}
           </>
         )}
       </CardContent>

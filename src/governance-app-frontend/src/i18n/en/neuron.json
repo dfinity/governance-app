@@ -22,6 +22,8 @@
   "summary": {
     "capital": "Total Staked",
     "engagement": "Participation rate (30D)",
+    "engagementAction": "View proposals",
+    "engagementActionComplete": "All caught up",
     "earnings": "Maturity",
     "earningsForecast": "1y forecast",
     "systemHealth": {
