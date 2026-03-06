@@ -240,8 +240,7 @@ function KnownNeuronsPage() {
 
       <FollowNeuronDialog
         state={dialogState}
-        onConfirm={() => 'neuron' in dialogState && fireFollowMutation(dialogState.neuron)}
-        onRetry={() => 'neuron' in dialogState && fireFollowMutation(dialogState.neuron)}
+        onFollow={() => 'neuron' in dialogState && fireFollowMutation(dialogState.neuron)}
         onClose={() => setDialogState({ phase: 'closed' })}
       />
     </>
@@ -253,13 +252,11 @@ const SUCCESS_AUTO_CLOSE_MS = 2400;
 
 function FollowNeuronDialog({
   state,
-  onConfirm,
-  onRetry,
+  onFollow,
   onClose,
 }: {
   state: DialogState;
-  onConfirm: () => void;
-  onRetry: () => void;
+  onFollow: () => void;
   onClose: () => void;
 }) {
   const { t } = useTranslation();
@@ -301,7 +298,7 @@ function FollowNeuronDialog({
                 <Button variant="ghost" onClick={onClose}>
                   {t(($) => $.common.cancel)}
                 </Button>
-                <Button onClick={onConfirm}>{t(($) => $.common.confirm)}</Button>
+                <Button onClick={onFollow}>{t(($) => $.common.confirm)}</Button>
               </ResponsiveDialogFooter>
             </motion.div>
           )}
@@ -393,7 +390,7 @@ function FollowNeuronDialog({
                 <Button variant="outline" className="flex-1" onClick={onClose}>
                   {t(($) => $.common.close)}
                 </Button>
-                <Button className="flex-1" onClick={onRetry}>
+                <Button className="flex-1" onClick={onFollow}>
                   {t(($) => $.knownNeurons.api.retry)}
                 </Button>
               </div>
