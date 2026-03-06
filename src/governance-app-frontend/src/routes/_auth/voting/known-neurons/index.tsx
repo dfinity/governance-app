@@ -251,8 +251,7 @@ function KnownNeuronsPage() {
                   isSelected={selectedNeuronId === neuron.id.toString()}
                   onSelect={handleSelect}
                   isLoading={
-                    updateFollowingMutation.isPending &&
-                    selectedNeuronId === neuron.id.toString()
+                    updateFollowingMutation.isPending && selectedNeuronId === neuron.id.toString()
                   }
                   isDisabled={
                     isNullish(canister) ||
@@ -271,10 +270,7 @@ function KnownNeuronsPage() {
         onOpenChange={(open) => !open && !isBlocking && closeDialog()}
         dismissible={!isBlocking}
       >
-        <ResponsiveDialogContent
-          showCloseButton={!isBlocking}
-          className="md:h-[200px] md:max-w-md"
-        >
+        <ResponsiveDialogContent showCloseButton={!isBlocking} className="md:h-[200px] md:max-w-md">
           <AnimatePresence mode="wait" initial={false}>
             {dialogState.phase === 'confirm' && (
               <motion.div
@@ -297,9 +293,7 @@ function KnownNeuronsPage() {
                   <Button variant="ghost" onClick={closeDialog}>
                     {t(($) => $.common.cancel)}
                   </Button>
-                  <Button onClick={handleConfirm}>
-                    {t(($) => $.common.confirm)}
-                  </Button>
+                  <Button onClick={handleConfirm}>{t(($) => $.common.confirm)}</Button>
                 </ResponsiveDialogFooter>
               </motion.div>
             )}
