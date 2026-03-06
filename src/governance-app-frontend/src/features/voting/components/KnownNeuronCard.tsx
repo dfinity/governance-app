@@ -1,5 +1,5 @@
-import { nonNullish } from '@dfinity/utils';
 import type { KnownNeuron } from '@icp-sdk/canisters/nns';
+import { nonNullish } from '@dfinity/utils';
 import { ChevronDown, ChevronUp, Circle, CircleDot, LinkIcon, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
