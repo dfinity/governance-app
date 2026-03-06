@@ -77,6 +77,6 @@
     "stakeFailed": "Failed to create Neuron",
     "cannotStake": "You need ICP to stake. Please buy or deposit ICP first."
   },
-  "confirmNavigation": "Your stake is being created, leaving this page may cause unexpected results. Are you sure you want to leave?",
+  "confirmNavigation": "Your Neuron is being created, leaving this page may cause unexpected results. Are you sure you want to leave?",
   "confirmNavigationUnsaved": "Your progress will not be saved. Are you sure you want to leave?"
 }

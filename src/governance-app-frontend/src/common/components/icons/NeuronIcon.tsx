@@ -1,7 +1,14 @@
 import type { SVGProps } from 'react';
 
 export const NeuronIcon = (props: SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+  <svg
+    viewBox="0 0 20 20"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+    focusable={false}
+    {...props}
+  >
     <g stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}>
       <circle cx={10} cy={10.121} r={1.875} />
       <circle cx={7.5} cy={4.496} r={1.875} />
