@@ -1,9 +1,9 @@
 {
   "title": "Choose a Representative to Follow",
-  "description": "Select one trusted organization to vote on your behalf for all your neurons.",
+  "description": "Select one trusted organization to vote on your behalf for all your Neurons.",
   "empty": "No Representatives available.",
   "api": {
-    "success": "Now following {{name}} for all your neurons.",
+    "success": "Now following {{name}} for all your Neurons.",
     "error": "Failed to follow {{name}}."
   },
   "confirmation": {

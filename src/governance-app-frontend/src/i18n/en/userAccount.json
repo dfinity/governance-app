@@ -28,7 +28,7 @@
       "statusNotParticipating": "Status: not participating",
       "descNotParticipating": "This account is not currently participating in Internet Computer governance.",
       "links": {
-        "viewStakes": "View neurons",
+        "viewStakes": "View Neurons",
         "viewVotingActivity": "View voting activity",
         "learnHow": "Learn how participation works",
         "learnHowModal": {

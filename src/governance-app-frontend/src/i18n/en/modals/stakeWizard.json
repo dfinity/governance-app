@@ -50,7 +50,7 @@
       },
       "success": {
         "title": "You're now earning rewards!",
-        "amountStaked": "Amount Staked",
+        "amountStaked": "Amount staked",
         "dissolveDelay": "Lock Period",
         "expectedApy": "Expected APY",
         "done": "Done"

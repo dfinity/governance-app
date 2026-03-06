@@ -1,7 +1,7 @@
 {
   "title": "Manage Neuron",
   "actions": {
-    "increaseStake": "Increase Stake",
+    "increaseStake": "Increase stake",
     "increaseDelay": "Increase delay",
     "maturityMode": "New maturity",
     "startDissolving": "Start dissolving",
@@ -9,17 +9,17 @@
     "devActions": "Dev actions"
   },
   "increaseStake": {
-    "title": "Increase Stake",
+    "title": "Increase stake",
     "amountLabel": "Amount to add",
     "currentAndAvailable": "Current: {{current}} ICP • Available: {{available}} ICP",
     "info": "Adding ICP to your Neuron increases your voting power and potential rewards. The added amount will be locked for the same dissolve delay period.",
     "confirm": "Confirm increase",
-    "confirming": "Increasing Stake, please wait...",
+    "confirming": "Increasing stake, please wait...",
     "success": "Successfully added {{amount}} ICP to your Neuron.",
     "errors": {
       "amountTooLow": "Minimum amount is {{min}} ICP.",
       "insufficientBalance": "Insufficient balance.",
-      "failed": "Failed to increase Stake. Please try again."
+      "failed": "Failed to increase stake. Please try again."
     }
   },
   "increaseDelay": {
@@ -104,7 +104,7 @@
       "failed": "Failed to stake maturity. Please try again."
     }
   },
-  "hotkeyNotice": "As a hotkey, you can view this setting but only the neuron controller can make changes.",
+  "hotkeyNotice": "As a hotkey, you can view this setting but only the Neuron controller can make changes.",
   "devActions": {
     "title": "Dev actions"
   },

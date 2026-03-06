@@ -2,7 +2,7 @@
   "stakingRatio": "Staking ratio",
   "totalAssets": "Total assets",
   "governanceOverview": "ICP Governance Overview",
-  "totalStaked": "Total Staked",
+  "totalStaked": "Total staked",
   "ofTotalSupply": "{{value}}% of Total Supply",
   "dailyRewards": "Daily Rewards",
   "icpPrice": "ICP Price",
