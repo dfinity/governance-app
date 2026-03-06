@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { AlertTriangle, ArrowLeft, Loader } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { validateProposalsSearch } from '@features/proposals/utils';
@@ -86,18 +86,14 @@ function KnownNeuronsPage() {
     return () => clearTimeout(timer);
   }, [dialogState]);
 
-  const fireFollowMutation = useCallback(
-    (knownNeuron: KnownNeuron) => {
-      if (!neuronsQuery.data?.certified || !canister) return;
-      const neurons = neuronsQuery.data.response;
+  const fireFollowMutation = (knownNeuron: KnownNeuron) => {
+    if (!neuronsQuery.data?.certified || !canister) return;
+    const neurons = neuronsQuery.data.response;
 
-      setDialogState({ phase: 'processing', neuron: knownNeuron });
+    setDialogState({ phase: 'processing', neuron: knownNeuron });
 
-      updateFollowingMutation.mutate({ neurons, knownNeuron });
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [neuronsQuery.data, canister],
-  );
+    updateFollowingMutation.mutate({ neurons, knownNeuron });
+  };
 
   const updateFollowingMutation = useMutation<
     void[],
