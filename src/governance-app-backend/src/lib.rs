@@ -39,8 +39,8 @@ fn set_address_book(addresses: AddressBook) -> SetAddressBookResponse {
 }
 
 #[query]
-fn get_icp_exchange_rate() -> IcpExchangeRateResponse {
-    exchange_rate::get_icp_exchange_rate()
+fn get_icp_to_usd_exchange_rate() -> IcpExchangeRateResponse {
+    exchange_rate::get_icp_to_usd_exchange_rate()
 }
 
 #[cfg(feature = "testnet")]

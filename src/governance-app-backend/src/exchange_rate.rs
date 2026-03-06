@@ -11,8 +11,7 @@ use cache::{CachedRate, IcpExchangeRateResponse};
 use xrc_client::{Asset, AssetClass, GetExchangeRateRequest};
 
 const UPDATE_INTERVAL: Duration = Duration::from_secs(300); // 5 minutes
-const TWENTY_FOUR_HOURS_SECS: u64 = 86_400;
-const NANOS_PER_SEC: u64 = 1_000_000_000;
+const ONE_DAY_SECS: u64 = 86_400;
 
 /// Called from `init` and `post_upgrade` to kick off periodic exchange-rate fetching.
 pub fn init_exchange_rate_timer() {
@@ -20,7 +19,7 @@ pub fn init_exchange_rate_timer() {
     ic_cdk_timers::set_timer_interval(UPDATE_INTERVAL, || update_exchange_rate());
 }
 
-pub fn get_icp_exchange_rate() -> IcpExchangeRateResponse {
+pub fn get_icp_to_usd_exchange_rate() -> IcpExchangeRateResponse {
     cache::get_cached_rates()
 }
 
@@ -44,8 +43,8 @@ fn usd_asset() -> Asset {
 }
 
 async fn update_exchange_rate() {
-    let now_secs = time::time_nanos() / NANOS_PER_SEC;
-    let past_timestamp = now_secs.saturating_sub(TWENTY_FOUR_HOURS_SECS);
+    let now_secs = time::time_seconds();
+    let past_timestamp = now_secs.saturating_sub(ONE_DAY_SECS);
 
     // No timestamp = latest available rate from XRC.
     fetch_and_cache_rate(None, RateKind::Current).await;
@@ -83,7 +82,7 @@ async fn fetch_and_cache_rate(timestamp: Option<u64>, kind: RateKind) {
                 );
                 return;
             };
-            let now_secs = time::time_nanos() / NANOS_PER_SEC;
+            let now_secs = time::time_seconds();
             let cached = CachedRate {
                 rate_e8s,
                 timestamp_seconds: exchange_rate.timestamp,

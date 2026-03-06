@@ -1,5 +1,5 @@
 use super::cache::{get_cached_rates, CachedRate};
-use super::time::testing::set_time_nanos;
+use super::time::testing::set_time_seconds;
 use super::xrc_client::testing;
 use super::*;
 use ic_xrc_types::{Asset, AssetClass, ExchangeRate, ExchangeRateMetadata};
@@ -53,7 +53,7 @@ fn test_convert_to_e8s_fewer_decimals() {
 
 #[test]
 fn test_convert_to_e8s_zero_decimals() {
-    assert_eq!(convert_to_e8s(10, 0), Some(10_00_000_000));
+    assert_eq!(convert_to_e8s(10, 0), Some(1_000_000_000));
 }
 
 #[test]
@@ -75,9 +75,9 @@ fn test_cache_starts_empty() {
 
 #[tokio::test]
 async fn test_update_exchange_rate_success() {
-    set_time_nanos(100_000 * NANOS_PER_SEC);
+    set_time_seconds(100_000);
 
-    let past_ts = 100_000 - TWENTY_FOUR_HOURS_SECS;
+    let past_ts = 100_000 - ONE_DAY_SECS;
 
     let current_rate = make_exchange_rate(12_345_000_000, 10, 99_990);
     let past_rate = make_exchange_rate(11_000_000_000, 10, past_ts);
@@ -113,9 +113,9 @@ async fn test_update_exchange_rate_success() {
 
 #[tokio::test]
 async fn test_update_exchange_rate_error_preserves_cache() {
-    set_time_nanos(200_000 * NANOS_PER_SEC);
+    set_time_seconds(200_000);
 
-    let past_ts = 200_000 - TWENTY_FOUR_HOURS_SECS;
+    let past_ts = 200_000 - ONE_DAY_SECS;
 
     let current_rate = make_exchange_rate(12_345_000_000, 10, 199_990);
     let past_rate = make_exchange_rate(11_000_000_000, 10, past_ts);

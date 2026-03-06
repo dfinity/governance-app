@@ -21,7 +21,7 @@ mod prod {
     ) -> Result<GetExchangeRateResult, String> {
         let xrc_canister_id = Principal::from_text(XRC_CANISTER_ID)
             .expect("hardcoded XRC canister principal must be valid");
-        let response = Call::unbounded_wait(xrc_canister_id, "get_exchange_rate")
+        let response = Call::bounded_wait(xrc_canister_id, "get_exchange_rate")
             .with_arg(request)
             .await
             .map_err(|e| format!("{e}"))?;

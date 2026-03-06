@@ -72,6 +72,6 @@ service : {
     // End Address Book
 
     // Exchange Rate
-    get_icp_exchange_rate : () -> (IcpExchangeRateResponse) query;
+    get_icp_to_usd_exchange_rate : () -> (IcpExchangeRateResponse) query;
     // End Exchange Rate
 }

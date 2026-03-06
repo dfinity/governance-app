@@ -49,8 +49,8 @@ pub fn set_24h_rate(rate: CachedRate) {
 
 #[cfg(feature = "testnet")]
 pub fn set_mock_rates(current_rate_e8s: u64, rate_24h_ago_e8s: u64) {
-    use super::{NANOS_PER_SEC, TWENTY_FOUR_HOURS_SECS};
-    let now = super::time::time_nanos() / NANOS_PER_SEC;
+    use super::ONE_DAY_SECS;
+    let now = super::time::time_seconds();
     set_current_rate(CachedRate {
         rate_e8s: current_rate_e8s,
         timestamp_seconds: now,
@@ -58,7 +58,7 @@ pub fn set_mock_rates(current_rate_e8s: u64, rate_24h_ago_e8s: u64) {
     });
     set_24h_rate(CachedRate {
         rate_e8s: rate_24h_ago_e8s,
-        timestamp_seconds: now.saturating_sub(TWENTY_FOUR_HOURS_SECS),
+        timestamp_seconds: now.saturating_sub(ONE_DAY_SECS),
         updated_at_seconds: now,
     });
 }
