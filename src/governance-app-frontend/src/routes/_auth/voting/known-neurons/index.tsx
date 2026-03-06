@@ -32,11 +32,11 @@ import {
 
 import i18n from '@/i18n/config';
 
-export const Route = createFileRoute('/_auth/voting/representatives/')({
-  component: Representatives,
+export const Route = createFileRoute('/_auth/voting/known-neurons/')({
+  component: KnownNeuronsPage,
   validateSearch: validateProposalsSearch,
   head: () => {
-    const title = i18n.t(($) => $.common.head.representatives.title);
+    const title = i18n.t(($) => $.common.head.knownNeurons.title);
 
     return {
       meta: [{ title }],
@@ -47,7 +47,7 @@ export const Route = createFileRoute('/_auth/voting/representatives/')({
   },
 });
 
-function Representatives() {
+function KnownNeuronsPage() {
   const { t } = useTranslation();
   const search = Route.useSearch();
   const queryClient = useQueryClient();
@@ -79,11 +79,9 @@ function Representatives() {
     { previousSelectedId: string | null }
   >({
     mutationFn: ({ neurons, knownNeuron }) => {
-      // This check is to satisfy TS
       if (!canister) throw new Error(t(($) => $.common.unknownError));
 
       const knownNeuronId = knownNeuron.id;
-      // Setting the following for topics `Unspecified`, `Governance` and `SNS and Community Fund` to cover all topics
       const promises = neurons.map((n) =>
         canister.setFollowing({
           neuronId: n.neuronId,
@@ -109,7 +107,6 @@ function Representatives() {
     onMutate: (variables) => {
       const previousSelectedId = selectedNeuronId;
 
-      // Optimistic update
       setUserOverrideId(variables.knownNeuron.id.toString());
 
       return { previousSelectedId };
@@ -128,7 +125,6 @@ function Representatives() {
     onError: (error, variables, context) => {
       console.error('Failed to update neuron:', error);
 
-      // Roll back optimistic update
       setUserOverrideId(context?.previousSelectedId ?? null);
 
       toast.error(
@@ -152,14 +148,12 @@ function Representatives() {
       return;
     }
 
-    // Check if user already follows someone
     if (allKnownNeurons) {
       const followedNeurons = getUsersFollowedNeurons({
         userNeurons: neurons,
         knownNeurons: allKnownNeurons,
       });
 
-      // If existing following (consistent or not), prompt for confirmation
       if (followedNeurons.length > 0) {
         setOpenConfirmationDialogWithNeuron(knownNeuron);
         return;
@@ -173,7 +167,6 @@ function Representatives() {
   };
 
   const handleConfirmSelection = () => {
-    // This check is to satisfy TS
     if (!neuronsQuery.data?.certified || isNullish(openConfirmationDialogWithNeuron)) return;
 
     updateFollowingMutation.mutate({
@@ -223,7 +216,6 @@ function Representatives() {
               <Skeleton className="h-8 w-80 rounded" />
             </div>
           ) : knownNeuronsQuery.isError ? (
-            // @TODO: Improve error UI
             <p className="text-destructive">{t(($) => $.common.loadingError)}</p>
           ) : sortedKnownNeurons?.length === 0 ? (
             <p className="text-muted-foreground">{t(($) => $.knownNeurons.empty)}</p>

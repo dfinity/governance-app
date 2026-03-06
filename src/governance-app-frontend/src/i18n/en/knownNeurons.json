@@ -8,6 +8,6 @@
   },
   "confirmation": {
     "title": "Confirm your selection",
-    "description": "You are going to set up all your Neurons to follow the same Representative. This will override existing configurations. Are you sure?"
+    "description": "You are going to set up all your Neurons to follow the same Known Neuron. This will override existing configurations. Are you sure?"
   }
 }

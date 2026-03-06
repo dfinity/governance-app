@@ -20,7 +20,7 @@
 
 - Stake and manage ICPs
 - Browse and vote on Governance proposals
-- Delegate voting to Representatives
+- Delegate voting to Known Neurons
 - Track your account and rewards
 
 ## Links
