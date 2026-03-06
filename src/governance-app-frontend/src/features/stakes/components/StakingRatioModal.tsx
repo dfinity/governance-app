@@ -165,7 +165,7 @@ export function StakingRatioModal() {
           </Alert>
 
           <Button className="w-full" asChild>
-            <Link to="/stakes" search={hasOnlyUnstakedMaturity ? undefined : { openWizard: true }}>
+            <Link to="/neurons" search={hasOnlyUnstakedMaturity ? undefined : { openWizard: true }}>
               {t(($) =>
                 hasOnlyUnstakedMaturity
                   ? $.stakingRatioModal.buttonMaturityOnly

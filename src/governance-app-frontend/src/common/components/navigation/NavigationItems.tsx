@@ -18,7 +18,7 @@ export const navigationItems: NavigationItem[] = [
   },
   {
     label: 'common.stakes',
-    href: '/stakes',
+    href: '/neurons',
     icon: Network,
   },
   {

@@ -9,7 +9,7 @@
     "votingPowerLabel": "Voting power",
     "votingPower": "More stake equals more influence in governance decisions.",
     "flexibilityLabel": "Flexibility",
-    "flexibility": "You can dissolve Stakes anytime (withdrawable after the locking period)."
+    "flexibility": "You can dissolve Neurons anytime (withdrawable after the locking period)."
   },
   "whyStakeMaturity": {
     "title": "Why enable auto-stake maturity?",
@@ -24,6 +24,6 @@
   "recommendation": "Stake your available {{available}} ICP with an 8-year delay to maximize your rewards.",
   "recommendationMaturityOnly": "Stake your maturity and enable auto-stake maturity on your neurons.",
   "button": "Stake now",
-  "buttonMaturityOnly": "Manage Stakes",
+  "buttonMaturityOnly": "Manage Neurons",
   "ariaLabel": "Open staking recommendation modal"
 }

@@ -152,7 +152,7 @@ export function StakedCard() {
             asChild
             disabled={balanceQuery.isLoading}
           >
-            <Link to="/stakes" search={{ openWizard: true }} onClick={handleStakeMoreClick}>
+            <Link to="/neurons" search={{ openWizard: true }} onClick={handleStakeMoreClick}>
               <TrendingUp aria-hidden="true" />
               {t(($) => $.common.stakeIcp)}
             </Link>
