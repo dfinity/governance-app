@@ -72,7 +72,7 @@ export function StakedCard() {
           </div>
 
           <div className="flex items-start gap-1">
-            <span className="hidden text-xs font-medium tracking-wide text-muted-foreground uppercase sm:inline">
+            <span className="sr-only sm:not-sr-only sm:text-xs sm:font-medium sm:tracking-wide sm:text-muted-foreground sm:uppercase">
               {t(($) => $.home.yourApy)}
             </span>
 
