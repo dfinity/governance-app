@@ -30,9 +30,6 @@ import { QUERY_KEYS } from '@utils/query';
 
 import i18n from '@/i18n/config';
 
-// Long enough for the checkmark animation to play and the text to be read.
-const SUCCESS_AUTO_CLOSE_MS = 2400;
-
 type DialogState =
   | { phase: 'closed' }
   | { phase: 'confirm'; neuron: KnownNeuron }
@@ -250,6 +247,9 @@ function KnownNeuronsPage() {
     </>
   );
 }
+
+// Long enough for the checkmark animation to play and the text to be read.
+const SUCCESS_AUTO_CLOSE_MS = 2400;
 
 function FollowNeuronDialog({
   state,
