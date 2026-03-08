@@ -2,7 +2,6 @@ import { LayoutDashboard, User, Vote } from 'lucide-react';
 
 import { NeuronIcon } from '@components/icons/NeuronIcon';
 
-import { NeuronIcon } from '@components/icons/NeuronIcon';
 import { FileRoutesByTo } from '@/routeTree.gen';
 
 type AuthRoutePaths = Exclude<keyof FileRoutesByTo, '/'>;
