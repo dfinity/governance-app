@@ -1,5 +1,5 @@
-import { isNullish } from '@dfinity/utils';
 import { KnownNeuron, NeuronId, Topic } from '@icp-sdk/canisters/nns';
+import { isNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
@@ -12,6 +12,13 @@ import { KnownNeuronCard } from '@features/voting/components/KnownNeuronCard';
 import { getUsersFollowedNeurons, isKnownNeuron } from '@features/voting/utils/findFollowedNeuron';
 import { isActiveKnownNeuron, sortKnownNeurons } from '@features/voting/utils/knownNeurons';
 
+import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
+import { Button } from '@components/button';
+import { Skeleton } from '@components/Skeleton';
+import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
+import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
+import { warningNotification } from '@utils/notification';
+import { QUERY_KEYS } from '@utils/query';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,13 +29,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@common/components/AlertDialog';
-import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
-import { Button } from '@components/button';
-import { Skeleton } from '@components/Skeleton';
-import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
-import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
-import { warningNotification } from '@utils/notification';
-import { QUERY_KEYS } from '@utils/query';
 
 import i18n from '@/i18n/config';
 
