@@ -107,7 +107,7 @@ function Voting() {
           description={t(($) => $.voting.description)}
           actions={
             <Button size="xl" className="w-full sm:w-auto" asChild>
-              <Link to="/voting/representatives" onClick={handleManageFollowing}>
+              <Link to="/voting/known-neurons" onClick={handleManageFollowing}>
                 <Users />
                 {t(($) => $.voting.cta)}
               </Link>
@@ -141,7 +141,7 @@ function Voting() {
             </p>
             <div className="flex flex-col gap-3 pt-2 sm:items-center">
               <Button size="xl" className="w-full sm:w-auto" asChild>
-                <Link to="/voting/representatives" onClick={handleManageFollowing}>
+                <Link to="/voting/known-neurons" onClick={handleManageFollowing}>
                   <Users />
                   {t(($) => $.voting.noFollowing.cta)}
                 </Link>

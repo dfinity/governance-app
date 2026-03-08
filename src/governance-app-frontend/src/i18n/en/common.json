@@ -100,8 +100,8 @@
     "voting": {
       "title": "Voting | Governance"
     },
-    "representatives": {
-      "title": "Choose a Representative | Governance"
+    "knownNeurons": {
+      "title": "Choose a Known Neuron | Governance"
     },
     "proposalDetails": {
       "title": "Proposal #{{proposalId}} | Governance"

@@ -77,7 +77,7 @@ export const FollowedNeuronCard = ({ neuron }: Props) => {
 
         <Button variant="outline" size="sm" asChild>
           <a href={neuronDetailsUrl} target="_blank" rel="noopener noreferrer">
-            {t(($) => $.voting.viewRepresentative)}
+            {t(($) => $.voting.viewKnownNeuron)}
             <ExternalLink className="size-3" />
             <span className="sr-only">{t(($) => $.common.opensInNewTab)}</span>
           </a>
