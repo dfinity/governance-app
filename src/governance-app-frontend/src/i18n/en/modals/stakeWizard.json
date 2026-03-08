@@ -27,7 +27,7 @@
       },
       "state": {
         "label": "Initial State",
-        "description": "Choose the starting state for your Stake.",
+        "description": "Choose the starting state for your Neuron.",
         "locked": "Locked",
         "unlocking": "Unlocking"
       },
@@ -37,7 +37,7 @@
       "title": "Finalizing",
       "successTitle": "Success",
       "processing": {
-        "title": "Creating your Stake.",
+        "title": "Creating your Neuron.",
         "warning": "Please don't close this page. This process may take a few seconds.",
         "steps": {
           "createNeuron": "Reserving amount...",
@@ -50,7 +50,7 @@
       },
       "success": {
         "title": "You're now earning rewards!",
-        "amountStaked": "Amount Staked",
+        "amountStaked": "Amount staked",
         "dissolveDelay": "Lock Period",
         "expectedApy": "Expected APY",
         "done": "Done"
@@ -63,9 +63,9 @@
     }
   },
   "infoBoxes": {
-    "whatIsStaking": "Staking your ICP creates a Stake that earns voting rewards. You can earn up to ~{{maxApy}} APY depending on your lock period and participation.",
+    "whatIsStaking": "Staking your ICP creates a Neuron that earns voting rewards. You can earn up to ~{{maxApy}} APY depending on your lock period and participation.",
     "dissolveDelayWarning": "The lock period can only be increased, never decreased. The countdown only begins when you start unlocking.",
-    "lockedDescription": "<strong>Locked:</strong> Stake stays locked, earning maximum rewards. Start unlocking later when you want to withdraw.",
+    "lockedDescription": "<strong>Locked:</strong> Neuron stays locked, earning maximum rewards. Start unlocking later when you want to withdraw.",
     "unlockingDescription": "<strong>Unlocking:</strong> countdown begins immediately. After the lock period, you can withdraw your ICP."
   },
   "apyPreview": {
@@ -74,9 +74,9 @@
   "errors": {
     "insufficientBalance": "Insufficient balance",
     "amountTooLow": "Minimum stake is {{min}} ICP",
-    "stakeFailed": "Failed to create Stake",
+    "stakeFailed": "Failed to create Neuron",
     "cannotStake": "You need ICP to stake. Please buy or deposit ICP first."
   },
-  "confirmNavigation": "Your stake is being created, leaving this page may cause unexpected results. Are you sure you want to leave?",
+  "confirmNavigation": "Your Neuron is being created, leaving this page may cause unexpected results. Are you sure you want to leave?",
   "confirmNavigationUnsaved": "Your progress will not be saved. Are you sure you want to leave?"
 }

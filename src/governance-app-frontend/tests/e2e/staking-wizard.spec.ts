@@ -17,7 +17,7 @@ test.describe('Staking Wizard', () => {
     await openApp({ page });
     await login({ page });
     await getIcps(page, '10');
-    await page.getByRole('link', { name: 'Stakes' }).click();
+    await page.getByRole('link', { name: 'Neurons' }).click();
     await openStakingWizard(page);
   });
 

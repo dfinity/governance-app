@@ -53,7 +53,7 @@ export const GovernanceAccessCard = () => {
         {isParticipating ? (
           <>
             <Link
-              to="/stakes"
+              to="/neurons"
               className="group inline-flex w-fit items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               {t(($) => $.userAccount.governance.access.links.viewStakes)}

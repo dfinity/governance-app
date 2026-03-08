@@ -1,8 +1,8 @@
 {
-  "title": "Your Stakes",
-  "description": "Manage your ICP Stakes and their configurations",
-  "neuronId": "Stake #{{neuronId}}",
-  "stakeId": "Stake ID",
+  "title": "Your Neurons",
+  "description": "Manage and create voting Neurons",
+  "neuronId": "Neuron #{{neuronId}}",
+  "stakeId": "Neuron ID",
   "created": "Created",
   "dissolveDelay": "Dissolve delay",
   "stakedMaturity": "Staked maturity",
@@ -14,15 +14,15 @@
   "dissolving": "Dissolving",
   "dissolved": "Dissolved",
   "hotkey": "Hotkey",
-  "hotkeyTooltip": "This stake is controlled by a different principal, but your account has been added as a hotkey. You can view the stake and vote, but other operations are limited to the controller.",
+  "hotkeyTooltip": "This Neuron is controlled by a different principal, but your account has been added as a hotkey. You can view the Neuron and vote, but other operations are limited to the controller.",
   "noFollowingWarning": "Not following anyone yet. Set up following in the Voting page.",
   "disburseIcp": "Disburse ICPs",
   "disburseMaturity": "Disburse maturity",
   "stakeMaturity": "Stake maturity",
   "empty": {
     "title": "Start participating in governance",
-    "description": "Create your first stake to turn ICP into voting power. Stakes participate in voting and earn rewards over time.",
-    "cta": "Create your first stake",
+    "description": "Create your first Neuron to turn ICP into voting power. Neurons participate in voting and earn rewards over time.",
+    "cta": "Create your first Neuron",
     "helper": "After staking, you can follow representatives or vote directly on proposals."
   },
   "stakeNeuron": {

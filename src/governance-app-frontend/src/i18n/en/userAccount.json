@@ -28,12 +28,12 @@
       "statusNotParticipating": "Status: not participating",
       "descNotParticipating": "This account is not currently participating in Internet Computer governance.",
       "links": {
-        "viewStakes": "View stakes",
+        "viewStakes": "View Neurons",
         "viewVotingActivity": "View voting activity",
         "learnHow": "Learn how participation works",
         "learnHowModal": {
           "title": "Governance participation",
-          "content": "To participate in governance, you need to stake ICP tokens into Stakes. Stakes allow you to vote on proposals and earn rewards for your participation. The more ICP you stake and the longer you lock it for, the more voting power you have."
+          "content": "To participate in governance, you need to stake ICP tokens into Neurons. Neurons allow you to vote on proposals and earn rewards for your participation. The more ICP you stake and the longer you lock it for, the more voting power you have."
         }
       }
     },

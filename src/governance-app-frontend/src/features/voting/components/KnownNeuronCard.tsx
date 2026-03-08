@@ -59,7 +59,7 @@ export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled, isLo
         </div>
 
         <div className="flex min-w-0 grow-1 flex-col">
-          <div className="flex grow-1 items-center justify-between">
+          <div className="flex grow items-center justify-between">
             <div className="flex flex-col gap-1 py-5">
               <h4 className="leading-none font-semibold">{neuron.name}</h4>
             </div>

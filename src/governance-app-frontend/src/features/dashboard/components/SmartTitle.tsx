@@ -83,7 +83,7 @@ export function SmartTitle() {
       </Button>
     ) : state === 'liquid-only' ? (
       <Button asChild size="lg">
-        <Link to="/stakes" search={{ openWizard: true }}>
+        <Link to="/neurons" search={{ openWizard: true }}>
           <TrendingUp />
           {t(($) => $.home.smartTitle.liquidOnlyCta)}
         </Link>
