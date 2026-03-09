@@ -1,4 +1,5 @@
 {
+  "settingsDescription": "Manage your identity, preferences, and governance participation.",
   "identity": "Identity",
   "identityDescription": "Your principal, wallet address, and Internet Identity.",
   "principalId": "Principal ID",

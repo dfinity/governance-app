@@ -15,6 +15,7 @@ import { ThemeCard } from '@features/userAccount/components/ThemeCard';
 
 import { Button } from '@components/button';
 import { Card } from '@components/Card';
+import { PageHeader } from '@components/PageHeader';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
 import { getSessionTimeLeftForUi } from '@utils/date';
@@ -63,6 +64,11 @@ function Settings() {
 
   return (
     <div className="flex flex-col gap-12 pb-20">
+      <PageHeader
+        title={t(($) => $.common.settings)}
+        description={t(($) => $.userAccount.settingsDescription)}
+      />
+
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
           <h2 className="text-2xl font-semibold">{t(($) => $.userAccount.identity)}</h2>
