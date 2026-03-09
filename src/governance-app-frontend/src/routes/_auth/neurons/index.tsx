@@ -9,10 +9,10 @@ import { EmptyNeuronsState } from '@features/stakes/components/EmptyNeuronsState
 import { NeuronsList } from '@features/stakes/components/NeuronsList';
 import { StakingWizardModal } from '@features/stakes/components/stakingWizard/StakingWizardModal';
 import {
+  AutomaticVotingCard,
   CapitalCard,
   EarningsCard,
   EngagementCard,
-  SystemHealthCard,
 } from '@features/stakes/components/summaryCards';
 
 import { Button } from '@components/button';
@@ -124,7 +124,7 @@ function NeuronsComponent() {
               <CapitalCard />
               <EarningsCard />
               <EngagementCard />
-              <SystemHealthCard />
+              <AutomaticVotingCard />
             </div>
             <NeuronsList
               onSelectedNeuronChange={handleSelectedNeuronChange}

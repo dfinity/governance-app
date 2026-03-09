@@ -27,7 +27,7 @@
     "engagementActionComplete": "All caught up",
     "earnings": "Maturity",
     "earningsForecast": "1y forecast",
-    "systemHealth": {
+    "automaticVoting": {
       "label": "Automatic voting",
       "knownNeuronSelected": "Enabled",
       "notSetUp": "Not set up",
