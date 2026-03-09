@@ -13,6 +13,7 @@ import { getUsersFollowedNeurons, isKnownNeuron } from '@features/voting/utils/f
 import { isActiveKnownNeuron, sortKnownNeurons } from '@features/voting/utils/knownNeurons';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
+import { AnimatedCheckmark } from '@components/AnimatedCheckmark';
 import { Button } from '@components/button';
 import {
   ResponsiveDialog,
@@ -275,7 +276,10 @@ function FollowNeuronDialog({
       onOpenChange={(open) => !open && !isBlocking && onClose()}
       dismissible={!isBlocking}
     >
-      <ResponsiveDialogContent showCloseButton={!isBlocking} className="md:h-[200px] md:max-w-md">
+      <ResponsiveDialogContent
+        showCloseButton={!isBlocking}
+        className="md:min-h-[200px] md:max-w-md"
+      >
         <AnimatePresence mode="wait" initial={false}>
           {state.phase === 'confirm' && (
             <motion.div
@@ -399,26 +403,5 @@ function FollowNeuronDialog({
         </AnimatePresence>
       </ResponsiveDialogContent>
     </ResponsiveDialog>
-  );
-}
-
-function AnimatedCheckmark() {
-  return (
-    <motion.svg
-      className="size-12 text-green-600 dark:text-green-400"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <motion.path
-        d="M5 13l4 4L19 7"
-        initial={{ pathLength: 0 }}
-        animate={{ pathLength: 1 }}
-        transition={{ duration: 0.4, delay: 0.2, ease: 'easeOut' }}
-      />
-    </motion.svg>
   );
 }
