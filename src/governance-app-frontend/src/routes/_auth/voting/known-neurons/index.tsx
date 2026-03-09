@@ -78,6 +78,7 @@ function KnownNeuronsPage() {
   const [dialogState, setDialogState] = useState<DialogState>({ phase: 'closed' });
 
   const fireFollowMutation = (knownNeuron: KnownNeuron) => {
+    if (updateFollowingMutation.isPending) return;
     if (!neuronsQuery.data?.certified || !canister) return;
     const neurons = neuronsQuery.data.response;
 
@@ -139,6 +140,7 @@ function KnownNeuronsPage() {
   });
 
   const handleSelect = (knownNeuron: KnownNeuron) => {
+    if (selectedNeuronId === knownNeuron.id.toString()) return;
     if (!neuronsQuery.data?.certified || !canister) return;
     const neurons = neuronsQuery.data.response;
     const allKnownNeurons = knownNeuronsQuery.data?.response;
@@ -316,6 +318,9 @@ function FollowNeuronDialog({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
             >
+              <ResponsiveDialogTitle className="sr-only">
+                {t(($) => $.knownNeurons.api.processing, { name: state.neuron.name })}
+              </ResponsiveDialogTitle>
               <motion.div
                 className="flex size-16 items-center justify-center rounded-full bg-primary/10"
                 initial={{ scale: 0.8, opacity: 0 }}
@@ -344,6 +349,9 @@ function FollowNeuronDialog({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
+              <ResponsiveDialogTitle className="sr-only">
+                {t(($) => $.knownNeurons.api.success, { name: state.neuronName })}
+              </ResponsiveDialogTitle>
               <motion.div
                 className="flex size-16 items-center justify-center rounded-full bg-green-600/10"
                 initial={{ scale: 0.6, opacity: 0 }}
@@ -372,6 +380,9 @@ function FollowNeuronDialog({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
+              <ResponsiveDialogTitle className="sr-only">
+                {t(($) => $.knownNeurons.api.error, { name: state.neuron.name })}
+              </ResponsiveDialogTitle>
               <div className="flex flex-1 flex-col items-center justify-center gap-4">
                 <motion.div
                   className="flex size-14 items-center justify-center rounded-full bg-destructive/10"
