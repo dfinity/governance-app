@@ -37,7 +37,7 @@ export function CapitalCard() {
               {t(($) => $.common.inIcp, { value: formatNumber(totalStaked) })}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              {usdValue !== null
+              {nonNullish(usdValue)
                 ? `≈ $${formatNumber(usdValue, { minFraction: 2, maxFraction: 2 })}`
                 : '—'}
             </p>
