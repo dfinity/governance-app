@@ -29,9 +29,9 @@
     "earningsForecast": "1y forecast",
     "systemHealth": {
       "label": "Automatic voting",
-      "representativeSelected": "Enabled",
+      "knownNeuronSelected": "Enabled",
       "notSetUp": "Not set up",
-      "setupVoting": "Select representative"
+      "setupVoting": "Select known neuron"
     }
   },
   "empty": {

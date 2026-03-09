@@ -22,7 +22,7 @@ export function SystemHealthCard() {
     knownNeurons,
   });
 
-  const hasRepresentative = followedNeurons.length === 1 && followedNeurons[0] !== undefined;
+  const hasKnownNeuron = followedNeurons.length === 1 && followedNeurons[0] !== undefined;
 
   const isLoading = neuronsQuery.isLoading || knownNeuronsQuery.isLoading;
   const isError = neuronsQuery.isError || knownNeuronsQuery.isError;
@@ -40,11 +40,11 @@ export function SystemHealthCard() {
         ) : (
           <>
             <div className="flex items-center gap-2">
-              {hasRepresentative ? (
+              {hasKnownNeuron ? (
                 <>
                   <CheckCircle2 className="size-6 shrink-0 text-emerald-600 dark:text-emerald-400" />
                   <span className="text-lg font-semibold text-foreground md:text-2xl">
-                    {t(($) => $.neuron.summary.systemHealth.representativeSelected)}
+                    {t(($) => $.neuron.summary.systemHealth.knownNeuronSelected)}
                   </span>
                 </>
               ) : (
@@ -56,7 +56,7 @@ export function SystemHealthCard() {
                 </>
               )}
             </div>
-            {!hasRepresentative && (
+            {!hasKnownNeuron && (
               <Link
                 to="/voting"
                 className="mt-1 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
