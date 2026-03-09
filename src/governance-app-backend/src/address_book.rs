@@ -33,6 +33,7 @@ pub struct AddressBook {
 #[derive(CandidType, Debug, PartialEq)]
 pub enum SetAddressBookResponse {
     Ok,
+    AnonymousNotAllowed,
     TooManyNamedAddresses { limit: i32 },
     InvalidIcpAddress { error: String },
     AddressNameTooShort { min_length: i32 },
@@ -44,6 +45,7 @@ pub enum SetAddressBookResponse {
 #[derive(CandidType, Debug, PartialEq)]
 pub enum GetAddressBookResponse {
     Ok(AddressBook),
+    AnonymousNotAllowed,
 }
 
 // Validation pipeline matching nns-dapp:
@@ -128,6 +130,9 @@ fn validate_address_book(address_book: &AddressBook) -> Result<(), SetAddressBoo
 // --- Public API ---
 
 pub fn get_address_book(caller: Principal) -> GetAddressBookResponse {
+    if caller == Principal::anonymous() {
+        return GetAddressBookResponse::AnonymousNotAllowed;
+    }
     let user_data = user_data::get_user_data(&caller);
     GetAddressBookResponse::Ok(user_data.address_book)
 }
@@ -149,6 +154,10 @@ pub fn set_address_book(
     caller: Principal,
     new_address_book: AddressBook,
 ) -> SetAddressBookResponse {
+    if caller == Principal::anonymous() {
+        return SetAddressBookResponse::AnonymousNotAllowed;
+    }
+
     let normalized = normalize_address_book(new_address_book);
 
     if let Err(error_response) = validate_address_book(&normalized) {

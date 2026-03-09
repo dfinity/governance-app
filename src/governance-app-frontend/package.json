@@ -6,7 +6,6 @@
   "scripts": {
     "setup": "npm i && dfx canister create governance-app-backend && dfx generate governance-app-backend && dfx deploy",
     "start": "vite",
-    "prebuild": "dfx generate",
     "generate:known-neurons": "node scripts/convert-known-neurons.ts && npm run format:fix",
     "build": "tsc && vite build",
     "format": "prettier --check .",

@@ -27,19 +27,19 @@ import { warningNotification } from '@utils/notification';
 
 import i18n from '@/i18n/config';
 
-type StakesSearchParams = {
-  stakeId?: string;
+type NeuronsSearchParams = {
+  neuronId?: string;
   action?: string;
   openWizard?: boolean;
 };
 
-export const Route = createFileRoute('/_auth/stakes/')({
-  validateSearch: (search: Record<string, unknown>): StakesSearchParams => ({
-    stakeId: typeof search.stakeId === 'string' ? search.stakeId : undefined,
+export const Route = createFileRoute('/_auth/neurons/')({
+  validateSearch: (search: Record<string, unknown>): NeuronsSearchParams => ({
+    neuronId: typeof search.neuronId === 'string' ? search.neuronId : undefined,
     action: typeof search.action === 'string' ? search.action : undefined,
     openWizard: search.openWizard === 'true' || search.openWizard === true ? true : undefined,
   }),
-  component: StakesComponent,
+  component: NeuronsComponent,
   head: () => {
     const title = i18n.t(($) => $.common.head.stakes.title);
 
@@ -52,17 +52,17 @@ export const Route = createFileRoute('/_auth/stakes/')({
   },
 });
 
-function StakesComponent() {
+function NeuronsComponent() {
   const neuronsQuery = useGovernanceNeurons();
   const { t } = useTranslation();
   const navigate = useNavigate({ from: Route.fullPath });
-  const { stakeId: neuronParam, action: actionParam, openWizard } = Route.useSearch();
+  const { neuronId: neuronParam, action: actionParam, openWizard } = Route.useSearch();
 
   const selectedNeuronId = neuronParam ? stringToBigInt(neuronParam) : undefined;
 
   const handleSelectedNeuronChange = (neuronId: bigint | undefined, action?: string) => {
     navigate({
-      search: neuronId ? { stakeId: neuronId.toString(), action } : {},
+      search: neuronId ? { neuronId: neuronId.toString(), action } : {},
       resetScroll: false,
       replace: true,
     });

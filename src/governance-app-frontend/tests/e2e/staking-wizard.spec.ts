@@ -17,8 +17,7 @@ test.describe('Staking Wizard', () => {
     await openApp({ page });
     await login({ page });
     await getIcps(page, '10');
-    // TODO: Review when there is more time - single click doesn't trigger on mobile bottom nav.
-    await page.getByRole('link', { name: 'Stakes' }).dblclick();
+    await page.getByRole('link', { name: 'Neurons' }).click();
     await openStakingWizard(page);
   });
 

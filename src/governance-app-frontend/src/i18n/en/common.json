@@ -9,7 +9,8 @@
   "loadingError": "Error loading data.",
   "refreshFailed": "Failed to automatically refresh the data. Please try reloading the page.",
   "unknownError": "An error occurred.",
-  "staked": "Staked",
+  "staked": "Locked in Neurons",
+  "stakedShort": "Neurons",
   "icp": "ICP",
   "inIcp": "{{value}} ICP",
   "positiveNumber": "+{{value}}",
@@ -46,7 +47,7 @@
   "apy": "APY",
   "dashboard": "Dashboard",
   "voting": "Voting",
-  "stakes": "Stakes",
+  "stakes": "Neurons",
   "accounts": "Account",
   "clipboard": {
     "copy": "Copy to clipboard",
@@ -65,7 +66,7 @@
     "modalDescription": "This app is in beta. Actions here affect your real governance setup.",
     "whatYouCanDo": "What you can do:",
     "canDo": {
-      "stake": "Create and manage Stakes",
+      "stake": "Create and manage Neurons",
       "vote": "Setup following, and vote on proposals",
       "viewActivity": "View your staking and voting activity"
     },
@@ -94,13 +95,13 @@
       "title": "Dashboard | Governance"
     },
     "stakes": {
-      "title": "Stakes | Governance"
+      "title": "Neurons | Governance"
     },
     "voting": {
       "title": "Voting | Governance"
     },
-    "representatives": {
-      "title": "Choose a Representative | Governance"
+    "knownNeurons": {
+      "title": "Choose a Known Neuron | Governance"
     },
     "proposalDetails": {
       "title": "Proposal #{{proposalId}} | Governance"

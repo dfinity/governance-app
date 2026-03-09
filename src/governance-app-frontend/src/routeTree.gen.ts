@@ -12,10 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthVotingIndexRouteImport } from './routes/_auth/voting/index'
-import { Route as AuthStakesIndexRouteImport } from './routes/_auth/stakes/index'
+import { Route as AuthNeuronsIndexRouteImport } from './routes/_auth/neurons/index'
 import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
 import { Route as AuthAccountIndexRouteImport } from './routes/_auth/account/index'
-import { Route as AuthVotingRepresentativesIndexRouteImport } from './routes/_auth/voting/representatives/index'
+import { Route as AuthVotingKnownNeuronsIndexRouteImport } from './routes/_auth/voting/known-neurons/index'
 import { Route as AuthVotingProposalsIdIndexRouteImport } from './routes/_auth/voting/proposals/$id/index'
 
 const AuthRoute = AuthRouteImport.update({
@@ -32,9 +32,9 @@ const AuthVotingIndexRoute = AuthVotingIndexRouteImport.update({
   path: '/voting/',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthStakesIndexRoute = AuthStakesIndexRouteImport.update({
-  id: '/stakes/',
-  path: '/stakes/',
+const AuthNeuronsIndexRoute = AuthNeuronsIndexRouteImport.update({
+  id: '/neurons/',
+  path: '/neurons/',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthDashboardIndexRoute = AuthDashboardIndexRouteImport.update({
@@ -47,10 +47,10 @@ const AuthAccountIndexRoute = AuthAccountIndexRouteImport.update({
   path: '/account/',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthVotingRepresentativesIndexRoute =
-  AuthVotingRepresentativesIndexRouteImport.update({
-    id: '/voting/representatives/',
-    path: '/voting/representatives/',
+const AuthVotingKnownNeuronsIndexRoute =
+  AuthVotingKnownNeuronsIndexRouteImport.update({
+    id: '/voting/known-neurons/',
+    path: '/voting/known-neurons/',
     getParentRoute: () => AuthRoute,
   } as any)
 const AuthVotingProposalsIdIndexRoute =
@@ -64,18 +64,18 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account/': typeof AuthAccountIndexRoute
   '/dashboard/': typeof AuthDashboardIndexRoute
-  '/stakes/': typeof AuthStakesIndexRoute
+  '/neurons/': typeof AuthNeuronsIndexRoute
   '/voting/': typeof AuthVotingIndexRoute
-  '/voting/representatives/': typeof AuthVotingRepresentativesIndexRoute
+  '/voting/known-neurons/': typeof AuthVotingKnownNeuronsIndexRoute
   '/voting/proposals/$id/': typeof AuthVotingProposalsIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AuthAccountIndexRoute
   '/dashboard': typeof AuthDashboardIndexRoute
-  '/stakes': typeof AuthStakesIndexRoute
+  '/neurons': typeof AuthNeuronsIndexRoute
   '/voting': typeof AuthVotingIndexRoute
-  '/voting/representatives': typeof AuthVotingRepresentativesIndexRoute
+  '/voting/known-neurons': typeof AuthVotingKnownNeuronsIndexRoute
   '/voting/proposals/$id': typeof AuthVotingProposalsIdIndexRoute
 }
 export interface FileRoutesById {
@@ -84,9 +84,9 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteWithChildren
   '/_auth/account/': typeof AuthAccountIndexRoute
   '/_auth/dashboard/': typeof AuthDashboardIndexRoute
-  '/_auth/stakes/': typeof AuthStakesIndexRoute
+  '/_auth/neurons/': typeof AuthNeuronsIndexRoute
   '/_auth/voting/': typeof AuthVotingIndexRoute
-  '/_auth/voting/representatives/': typeof AuthVotingRepresentativesIndexRoute
+  '/_auth/voting/known-neurons/': typeof AuthVotingKnownNeuronsIndexRoute
   '/_auth/voting/proposals/$id/': typeof AuthVotingProposalsIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -95,18 +95,18 @@ export interface FileRouteTypes {
     | '/'
     | '/account/'
     | '/dashboard/'
-    | '/stakes/'
+    | '/neurons/'
     | '/voting/'
-    | '/voting/representatives/'
+    | '/voting/known-neurons/'
     | '/voting/proposals/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/account'
     | '/dashboard'
-    | '/stakes'
+    | '/neurons'
     | '/voting'
-    | '/voting/representatives'
+    | '/voting/known-neurons'
     | '/voting/proposals/$id'
   id:
     | '__root__'
@@ -114,9 +114,9 @@ export interface FileRouteTypes {
     | '/_auth'
     | '/_auth/account/'
     | '/_auth/dashboard/'
-    | '/_auth/stakes/'
+    | '/_auth/neurons/'
     | '/_auth/voting/'
-    | '/_auth/voting/representatives/'
+    | '/_auth/voting/known-neurons/'
     | '/_auth/voting/proposals/$id/'
   fileRoutesById: FileRoutesById
 }
@@ -148,11 +148,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthVotingIndexRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/stakes/': {
-      id: '/_auth/stakes/'
-      path: '/stakes'
-      fullPath: '/stakes/'
-      preLoaderRoute: typeof AuthStakesIndexRouteImport
+    '/_auth/neurons/': {
+      id: '/_auth/neurons/'
+      path: '/neurons'
+      fullPath: '/neurons/'
+      preLoaderRoute: typeof AuthNeuronsIndexRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/dashboard/': {
@@ -169,11 +169,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthAccountIndexRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/voting/representatives/': {
-      id: '/_auth/voting/representatives/'
-      path: '/voting/representatives'
-      fullPath: '/voting/representatives/'
-      preLoaderRoute: typeof AuthVotingRepresentativesIndexRouteImport
+    '/_auth/voting/known-neurons/': {
+      id: '/_auth/voting/known-neurons/'
+      path: '/voting/known-neurons'
+      fullPath: '/voting/known-neurons/'
+      preLoaderRoute: typeof AuthVotingKnownNeuronsIndexRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/voting/proposals/$id/': {
@@ -189,18 +189,18 @@ declare module '@tanstack/react-router' {
 interface AuthRouteChildren {
   AuthAccountIndexRoute: typeof AuthAccountIndexRoute
   AuthDashboardIndexRoute: typeof AuthDashboardIndexRoute
-  AuthStakesIndexRoute: typeof AuthStakesIndexRoute
+  AuthNeuronsIndexRoute: typeof AuthNeuronsIndexRoute
   AuthVotingIndexRoute: typeof AuthVotingIndexRoute
-  AuthVotingRepresentativesIndexRoute: typeof AuthVotingRepresentativesIndexRoute
+  AuthVotingKnownNeuronsIndexRoute: typeof AuthVotingKnownNeuronsIndexRoute
   AuthVotingProposalsIdIndexRoute: typeof AuthVotingProposalsIdIndexRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthAccountIndexRoute: AuthAccountIndexRoute,
   AuthDashboardIndexRoute: AuthDashboardIndexRoute,
-  AuthStakesIndexRoute: AuthStakesIndexRoute,
+  AuthNeuronsIndexRoute: AuthNeuronsIndexRoute,
   AuthVotingIndexRoute: AuthVotingIndexRoute,
-  AuthVotingRepresentativesIndexRoute: AuthVotingRepresentativesIndexRoute,
+  AuthVotingKnownNeuronsIndexRoute: AuthVotingKnownNeuronsIndexRoute,
   AuthVotingProposalsIdIndexRoute: AuthVotingProposalsIdIndexRoute,
 }
 

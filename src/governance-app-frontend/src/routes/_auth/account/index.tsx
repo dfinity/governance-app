@@ -1,9 +1,10 @@
 import { isNullish, nonNullish } from '@dfinity/utils';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { AddressBookCard } from '@features/addressBook/components/AddressBookCard';
 import { AccountIdCard } from '@features/userAccount/components/AccountIdCard';
 import { GovernanceAccessCard } from '@features/userAccount/components/GovernanceAccessCard';
 import { ManageIICard } from '@features/userAccount/components/ManageIICard';
@@ -20,7 +21,15 @@ import { getSessionTimeLeftForUi } from '@utils/date';
 
 import i18n from '@/i18n/config';
 
+type AccountSearchParams = {
+  openAddressBook?: boolean;
+};
+
 export const Route = createFileRoute('/_auth/account/')({
+  validateSearch: (search: Record<string, unknown>): AccountSearchParams => ({
+    openAddressBook:
+      search.openAddressBook === 'true' || search.openAddressBook === true ? true : undefined,
+  }),
   component: Account,
   head: () => {
     const title = i18n.t(($) => $.common.head.account.title);
@@ -38,6 +47,12 @@ function Account() {
   const { identity, clear } = useInternetIdentity();
   const { t } = useTranslation();
   const timeLeft = useSessionTimeLeft();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const { openAddressBook } = Route.useSearch();
+
+  const handleAddressBookOpenChange = (open: boolean) => {
+    navigate({ search: open ? { openAddressBook: true } : {}, replace: true });
+  };
 
   const handleLogout = () => {
     localStorage.setItem(MANUAL_LOGOUT_KEY, 'true');
@@ -66,6 +81,20 @@ function Account() {
             <div className="px-6 py-5">
               <ManageIICard />
             </div>
+          </div>
+        </Card>
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <div className="space-y-2">
+          <h2 className="text-2xl font-semibold">{t(($) => $.addressBook.title)}</h2>
+        </div>
+        <Card className="overflow-hidden p-0 shadow-sm">
+          <div className="px-6 py-5">
+            <AddressBookCard
+              isOpen={!!openAddressBook}
+              onOpenChange={handleAddressBookOpenChange}
+            />
           </div>
         </Card>
       </section>

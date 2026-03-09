@@ -29,7 +29,17 @@ const EXTERNAL_SERVICES = {
   ICP_SWAP_PRICES: 'icpSwapPrices',
 };
 
-export const QUERY_KEYS = { ICP_LEDGER, NNS_GOVERNANCE, ICP_INDEX, EXTERNAL_SERVICES };
+const GOVERNANCE_APP_BACKEND = {
+  ADDRESS_BOOK: 'governanceAppBackendAddressBook',
+};
+
+export const QUERY_KEYS = {
+  ICP_LEDGER,
+  NNS_GOVERNANCE,
+  ICP_INDEX,
+  EXTERNAL_SERVICES,
+  GOVERNANCE_APP_BACKEND,
+};
 
 export const stringifyKeys = (keys: readonly unknown[]) => {
   return keys.map((k) => {

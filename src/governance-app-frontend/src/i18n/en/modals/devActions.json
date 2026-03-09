@@ -1,8 +1,8 @@
 {
-  "description": "Development tools for testing Stake behaviors. Use these actions to simulate different scenarios.",
+  "description": "Development tools for testing Neuron behaviors. Use these actions to simulate different scenarios.",
   "increaseMaturity": {
     "title": "Increase maturity",
-    "description": "Add maturity to this Stake for testing reward disbursement and auto-staking features.",
+    "description": "Add maturity to this Neuron for testing reward disbursement and auto-staking features.",
     "amountLabel": "Maturity to add",
     "confirm": "Confirm",
     "confirming": "Adding maturity...",
@@ -12,11 +12,11 @@
     }
   },
   "unlockStake": {
-    "title": "Unlock Stake",
-    "description": "Instantly unlock this Stake, bypassing the dissolve delay. The Stake will be ready for disbursement.",
+    "title": "Unlock Neuron",
+    "description": "Instantly unlock this Neuron, bypassing the dissolve delay. The Neuron will be ready for disbursement.",
     "confirm": "Confirm",
     "confirming": "Unlocking...",
-    "success": "Stake unlocked successfully."
+    "success": "Neuron unlocked successfully."
   },
   "createProposals": {
     "title": "Create proposals",
@@ -31,7 +31,7 @@
   },
   "addHotkey": {
     "title": "Add hotkey",
-    "description": "Add a principal as a hotkey to this Stake. Hotkeys can vote, set followees, refresh voting power, increase stake, and manage Neurons’ Fund participation, but cannot dissolve or disburse the Stake.",
+    "description": "Add a principal as a hotkey to this Neuron. Hotkeys can vote, set followees, refresh voting power, increase stake, and manage Neurons’ Fund participation, but cannot dissolve or disburse the Neuron.",
     "principalLabel": "Principal ID",
     "confirm": "Confirm",
     "confirming": "Adding hotkey...",

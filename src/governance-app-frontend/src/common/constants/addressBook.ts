@@ -1,0 +1,3 @@
+export const ADDRESS_BOOK_MAX_ENTRIES = 20;
+export const ADDRESS_BOOK_MIN_NAME_LENGTH = 3;
+export const ADDRESS_BOOK_MAX_NAME_LENGTH = 64;

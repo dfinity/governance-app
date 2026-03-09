@@ -1,7 +1,7 @@
 {
-  "title": "Manage Stake",
+  "title": "Manage Neuron",
   "actions": {
-    "increaseStake": "Increase Stake",
+    "increaseStake": "Increase stake",
     "increaseDelay": "Increase delay",
     "maturityMode": "New maturity",
     "startDissolving": "Start dissolving",
@@ -9,17 +9,17 @@
     "devActions": "Dev actions"
   },
   "increaseStake": {
-    "title": "Increase Stake",
+    "title": "Increase stake",
     "amountLabel": "Amount to add",
     "currentAndAvailable": "Current: {{current}} ICP • Available: {{available}} ICP",
-    "info": "Adding ICP to your Stake increases your voting power and potential rewards. The added amount will be locked for the same dissolve delay period.",
+    "info": "Adding ICP to your Neuron increases your voting power and potential rewards. The added amount will be locked for the same dissolve delay period.",
     "confirm": "Confirm increase",
-    "confirming": "Increasing Stake, please wait...",
-    "success": "Successfully added {{amount}} ICP to your Stake.",
+    "confirming": "Increasing stake, please wait...",
+    "success": "Successfully added {{amount}} ICP to your Neuron.",
     "errors": {
       "amountTooLow": "Minimum amount is {{min}} ICP.",
       "insufficientBalance": "Insufficient balance.",
-      "failed": "Failed to increase Stake. Please try again."
+      "failed": "Failed to increase stake. Please try again."
     }
   },
   "increaseDelay": {
@@ -32,7 +32,7 @@
       "4years": "4 Years",
       "8years": "8 Years"
     },
-    "alreadyMax": "Your Stake is already at maximum dissolve delay.",
+    "alreadyMax": "Your Neuron is already at maximum dissolve delay.",
     "confirm": "Confirm change",
     "confirming": "Updating delay, please wait...",
     "success": "Successfully increased dissolve delay.",
@@ -42,7 +42,7 @@
   },
   "maturityMode": {
     "title": "New maturity",
-    "infoAutoStake": "<strong>Auto-stake:</strong> rewards automatically increase your Stake for compound growth.",
+    "infoAutoStake": "<strong>Auto-stake:</strong> rewards automatically increase your Neuron for compound growth.",
     "infoKeepLiquid": "<strong>Keep Liquid:</strong> don't auto-stake rewards, keep them available for withdrawal.",
     "autoStake": "Auto-stake",
     "keepLiquid": "Keep liquid",
@@ -57,28 +57,28 @@
   "dissolve": {
     "startTitle": "Start dissolving",
     "stopTitle": "Stop dissolving",
-    "warningStart": "<strong>Important:</strong> Starting the dissolve process will begin the countdown. After the delay period ends, you can withdraw your ICP. You can stop dissolving and re-lock the Stake at any time. Note: starting to dissolve will reset any accumulated age bonus.",
-    "warningStop": "<strong>Important:</strong> Stopping the dissolve process will re-lock your Stake and pause the countdown. The dissolve delay can still be increased at any time.",
-    "alreadyDissolved": "This Stake is already dissolved and ready for disbursement. To re-lock it, increase the dissolve delay first.",
+    "warningStart": "<strong>Important:</strong> Starting the dissolve process will begin the countdown. After the delay period ends, you can withdraw your ICP. You can stop dissolving and re-lock the Neuron at any time. Note: starting to dissolve will reset any accumulated age bonus.",
+    "warningStop": "<strong>Important:</strong> Stopping the dissolve process will re-lock your Neuron and pause the countdown. The dissolve delay can still be increased at any time.",
+    "alreadyDissolved": "This Neuron is already dissolved and ready for disbursement. To re-lock it, increase the dissolve delay first.",
     "confirmStart": "Confirm start dissolving",
     "confirmStop": "Confirm stop dissolving",
     "confirmingStart": "Starting dissolve, please wait...",
     "confirmingStop": "Stopping dissolve, please wait...",
-    "successStart": "Dissolving started. Your Stake will be available after the dissolve delay.",
-    "successStop": "Dissolving stopped. Your Stake is now locked.",
+    "successStart": "Dissolving started. Your Neuron will be available after the dissolve delay.",
+    "successStop": "Dissolving stopped. Your Neuron is now locked.",
     "errors": {
       "failed": "Failed to update dissolve state. Please try again."
     }
   },
   "disburseIcp": {
-    "title": "Disburse Stake",
+    "title": "Disburse Neuron",
     "info": "<strong>Disburse {{amount}} ICP.</strong> They will be returned to your available balance, and can be restaked at any time after disbursement.",
     "cancel": "Cancel",
     "confirm": "Disburse",
     "confirming": "Disbursing, please wait...",
-    "success": "Stake has been disbursed. ICP returned to your balance.",
+    "success": "Neuron has been disbursed. ICP returned to your balance.",
     "errors": {
-      "failed": "Failed to disburse Stake. Please try again."
+      "failed": "Failed to disburse Neuron. Please try again."
     }
   },
   "disburseMaturity": {
@@ -104,7 +104,7 @@
       "failed": "Failed to stake maturity. Please try again."
     }
   },
-  "hotkeyNotice": "As a hotkey, you can view this setting but only the stake controller can make changes.",
+  "hotkeyNotice": "As a hotkey, you can view this setting but only the Neuron controller can make changes.",
   "devActions": {
     "title": "Dev actions"
   },

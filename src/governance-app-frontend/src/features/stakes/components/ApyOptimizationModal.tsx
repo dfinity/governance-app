@@ -232,7 +232,7 @@ function NeuronOptimizationItem({ neuron, isOptimized, issues }: NeuronOptimizat
           className="transition-colors hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0"
           asChild
         >
-          <Link to="/stakes" search={{ stakeId: neuron.neuronId.toString() }}>
+          <Link to="/neurons" search={{ neuronId: neuron.neuronId.toString() }}>
             {t(($) => $.apyOptimizationModal.maximize)}
           </Link>
         </Button>

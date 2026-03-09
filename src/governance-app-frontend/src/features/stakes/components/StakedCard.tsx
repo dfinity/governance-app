@@ -59,9 +59,10 @@ export function StakedCard() {
     <Card className="h-full" data-testid="staked-card">
       <CardHeader className="flex flex-col gap-[14px]">
         <div className="flex w-full items-start justify-between space-y-0">
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <p className="text-sm tracking-wide text-muted-foreground uppercase">
-              {t(($) => $.common.staked)}
+              <span className="sm:hidden">{t(($) => $.common.stakedShort)}</span>
+              <span className="hidden sm:inline">{t(($) => $.common.staked)}</span>
             </p>
             {neuronsQuery.isLoading ? (
               <Skeleton className="h-5 w-5 rounded-full" />
@@ -71,7 +72,7 @@ export function StakedCard() {
           </div>
 
           <div className="flex items-start gap-1">
-            <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            <span className="sr-only sm:not-sr-only sm:text-xs sm:font-medium sm:tracking-wide sm:text-muted-foreground sm:uppercase">
               {t(($) => $.home.yourApy)}
             </span>
 
@@ -152,7 +153,7 @@ export function StakedCard() {
             asChild
             disabled={balanceQuery.isLoading}
           >
-            <Link to="/stakes" search={{ openWizard: true }} onClick={handleStakeMoreClick}>
+            <Link to="/neurons" search={{ openWizard: true }} onClick={handleStakeMoreClick}>
               <TrendingUp aria-hidden="true" />
               {t(($) => $.common.stakeIcp)}
             </Link>
