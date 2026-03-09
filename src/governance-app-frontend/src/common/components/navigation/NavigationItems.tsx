@@ -1,4 +1,4 @@
-import { LayoutDashboard, User, Vote } from 'lucide-react';
+import { LayoutDashboard, Settings, Vote } from 'lucide-react';
 
 import { NeuronIcon } from '@components/icons/NeuronIcon';
 
@@ -29,8 +29,8 @@ export const navigationItems: NavigationItem[] = [
     icon: Vote,
   },
   {
-    label: 'common.accounts',
-    href: '/account',
-    icon: User,
+    label: 'common.settings',
+    href: '/settings',
+    icon: Settings,
   },
 ];

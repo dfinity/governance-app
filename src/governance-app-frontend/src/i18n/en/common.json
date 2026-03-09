@@ -48,7 +48,7 @@
   "dashboard": "Dashboard",
   "voting": "Voting",
   "stakes": "Neurons",
-  "accounts": "Account",
+  "settings": "Settings",
   "clipboard": {
     "copy": "Copy to clipboard",
     "copied": "Your {{label}} was copied to the clipboard.",
@@ -106,8 +106,8 @@
     "proposalDetails": {
       "title": "Proposal #{{proposalId}} | Governance"
     },
-    "account": {
-      "title": "Account | Governance"
+    "settings": {
+      "title": "Settings | Governance"
     }
   }
 }

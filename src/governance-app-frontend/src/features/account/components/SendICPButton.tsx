@@ -240,7 +240,7 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
                   </label>
                 ) : !addressBookLoading && !hasAddresses ? (
                   <Link
-                    to="/account"
+                    to="/settings"
                     search={{ openAddressBook: true }}
                     className="flex items-center gap-1.5 transition-opacity hover:opacity-80"
                   >

@@ -21,29 +21,29 @@ import { getSessionTimeLeftForUi } from '@utils/date';
 
 import i18n from '@/i18n/config';
 
-type AccountSearchParams = {
+type SettingsSearchParams = {
   openAddressBook?: boolean;
 };
 
-export const Route = createFileRoute('/_auth/account/')({
-  validateSearch: (search: Record<string, unknown>): AccountSearchParams => ({
+export const Route = createFileRoute('/_auth/settings/')({
+  validateSearch: (search: Record<string, unknown>): SettingsSearchParams => ({
     openAddressBook:
       search.openAddressBook === 'true' || search.openAddressBook === true ? true : undefined,
   }),
-  component: Account,
+  component: Settings,
   head: () => {
-    const title = i18n.t(($) => $.common.head.account.title);
+    const title = i18n.t(($) => $.common.head.settings.title);
 
     return {
       meta: [{ title }],
     };
   },
   staticData: {
-    title: 'common.accounts',
+    title: 'common.settings',
   },
 });
 
-function Account() {
+function Settings() {
   const { identity, clear } = useInternetIdentity();
   const { t } = useTranslation();
   const timeLeft = useSessionTimeLeft();
