@@ -7,23 +7,28 @@ import { useNeuronEngagement } from '@features/stakes/hooks/useNeuronEngagement'
 
 import { Card, CardContent } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { formatNumber } from '@utils/numbers';
 
 export function EngagementCard() {
   const { t } = useTranslation();
   const { engagement, isLoading } = useNeuronEngagement();
 
-  const formattedRate =
-    nonNullish(engagement)
-      ? formatNumber(engagement.rate * 100, { minFraction: 1, maxFraction: 1 })
-      : null;
+  const formattedRate = nonNullish(engagement)
+    ? formatNumber(engagement.rate * 100, { minFraction: 1, maxFraction: 1 })
+    : null;
 
   return (
     <Card className="gap-3 py-4" data-testid="stakes-summary-engagement-card">
       <CardContent>
-        <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-          {t(($) => $.neuron.summary.engagement)}
-        </p>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <p className="mb-2 w-fit cursor-default text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              {t(($) => $.neuron.summary.engagement)}
+            </p>
+          </TooltipTrigger>
+          <TooltipContent>{t(($) => $.neuron.summary.engagementTooltip)}</TooltipContent>
+        </Tooltip>
         {isLoading ? (
           <>
             <Skeleton className="mb-2 h-8 w-32" />

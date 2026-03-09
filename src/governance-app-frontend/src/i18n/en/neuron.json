@@ -21,7 +21,8 @@
   "stakeMaturity": "Stake maturity",
   "summary": {
     "capital": "Total Staked",
-    "engagement": "Participation rate (last 50 proposals)",
+    "engagement": "Participation rate",
+    "engagementTooltip": "Based on the last 50 proposals",
     "engagementAction": "View proposals",
     "engagementActionComplete": "All caught up",
     "earnings": "Maturity",
