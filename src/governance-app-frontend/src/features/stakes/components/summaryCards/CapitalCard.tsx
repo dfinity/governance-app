@@ -1,3 +1,4 @@
+import { nonNullish } from '@dfinity/utils';
 import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent } from '@components/Card';
@@ -38,7 +39,9 @@ export function CapitalCard() {
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
               {nonNullish(usdValue)
-                ? `≈ $${formatNumber(usdValue, { minFraction: 2, maxFraction: 2 })}`
+                ? t(($) => $.account.approxUsd, {
+                    value: formatNumber(usdValue, { minFraction: 2, maxFraction: 2 }),
+                  })
                 : '—'}
             </p>
           </>
