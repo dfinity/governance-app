@@ -65,9 +65,9 @@ function Settings() {
     <div className="flex flex-col gap-12 pb-20">
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
-          <h2 className="text-2xl font-semibold">{t(($) => $.userAccount.account)}</h2>
+          <h2 className="text-2xl font-semibold">{t(($) => $.userAccount.identity)}</h2>
           <p className="text-sm text-muted-foreground">
-            {t(($) => $.userAccount.accountDescription)}
+            {t(($) => $.userAccount.identityDescription)}
           </p>
         </div>
         <Card className="overflow-hidden p-0 shadow-sm">
