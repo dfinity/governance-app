@@ -47,6 +47,7 @@ async fn update_exchange_rate() {
     let past_timestamp = now_secs.saturating_sub(ONE_DAY_SECS);
 
     // No timestamp = latest available rate from XRC.
+    // https://github.com/dfinity/exchange-rate-canister/blob/41393865715eecb620474de34351096ec77a13fa/src/xrc/src/api.rs#L369
     fetch_and_cache_rate(None, RateKind::Current).await;
     fetch_and_cache_rate(Some(past_timestamp), RateKind::TwentyFourHoursAgo).await;
 }

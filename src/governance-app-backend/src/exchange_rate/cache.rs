@@ -5,7 +5,9 @@ use std::cell::RefCell;
 #[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq)]
 pub struct CachedRate {
     pub rate_e8s: u64,
+    /// When the XRC observed this rate.
     pub timestamp_seconds: u64,
+    /// When our canister last wrote this entry to the cache.
     pub updated_at_seconds: u64,
 }
 
