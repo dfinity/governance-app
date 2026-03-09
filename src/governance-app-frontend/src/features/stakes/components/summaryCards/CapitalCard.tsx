@@ -1,21 +1,23 @@
+import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
 import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { useGovernanceNeurons } from '@hooks/governance';
 import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
 import { getNeuronsAggregatedData } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
 
-export function CapitalCard() {
+type CapitalCardProps = {
+  neurons: NeuronInfo[];
+};
+
+export function CapitalCard({ neurons }: CapitalCardProps) {
   const { t } = useTranslation();
 
-  const neuronsQuery = useGovernanceNeurons();
   const { tickerPrices: tickersQuery } = useTickerPrices();
 
-  const neurons = neuronsQuery.data?.response ?? [];
   const { totalStakedAfterFees: totalStaked } = getNeuronsAggregatedData(neurons);
 
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
@@ -27,7 +29,7 @@ export function CapitalCard() {
         <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {t(($) => $.neuron.summary.capital)}
         </p>
-        {neuronsQuery.isLoading || tickersQuery.isLoading ? (
+        {tickersQuery.isLoading ? (
           <>
             <Skeleton className="mb-2 h-8 w-32" />
             <Skeleton className="h-4 w-20" />

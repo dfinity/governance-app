@@ -1,11 +1,15 @@
-import type { ListProposalsRequest, ListProposalsResponse } from '@icp-sdk/canisters/nns';
+import type {
+  ListProposalsRequest,
+  ListProposalsResponse,
+  NeuronInfo,
+} from '@icp-sdk/canisters/nns';
 import { ProposalRewardStatus, ProposalStatus } from '@icp-sdk/canisters/nns';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useMemo } from 'react';
 
 import { calculateEngagement } from '@features/stakes/utils/calculateEngagement';
 
-import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
+import { useNnsGovernance } from '@hooks/governance';
 import { useQueryThenUpdateCall } from '@hooks/useQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/query';
 
@@ -22,8 +26,7 @@ const SETTLED_PROPOSALS_REQUEST: ListProposalsRequest = {
   returnSelfDescribingAction: true,
 };
 
-export const useNeuronEngagement = () => {
-  const neuronsQuery = useGovernanceNeurons();
+export const useNeuronEngagement = (neurons: NeuronInfo[]) => {
   const { ready, canister } = useNnsGovernance();
   const { identity } = useInternetIdentity();
   const principal = identity?.getPrincipal().toText();
@@ -38,13 +41,13 @@ export const useNeuronEngagement = () => {
   });
 
   const engagement = useMemo(
-    () => calculateEngagement(neuronsQuery.data?.response, proposalsQuery.data?.response.proposals),
-    [neuronsQuery.data, proposalsQuery.data],
+    () => calculateEngagement(neurons, proposalsQuery.data?.response.proposals),
+    [neurons, proposalsQuery.data],
   );
 
   return {
     engagement,
-    isLoading: neuronsQuery.isLoading || proposalsQuery.isLoading,
-    isError: neuronsQuery.isError || proposalsQuery.isError,
+    isLoading: proposalsQuery.isLoading,
+    isError: proposalsQuery.isError,
   };
 };

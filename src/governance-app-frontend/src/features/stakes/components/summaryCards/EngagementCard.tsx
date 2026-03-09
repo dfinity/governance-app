@@ -1,3 +1,4 @@
+import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
 import { ChevronRight } from 'lucide-react';
@@ -11,9 +12,13 @@ import { Skeleton } from '@components/Skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { formatNumber } from '@utils/numbers';
 
-export function EngagementCard() {
+type EngagementCardProps = {
+  neurons: NeuronInfo[];
+};
+
+export function EngagementCard({ neurons }: EngagementCardProps) {
   const { t } = useTranslation();
-  const { engagement, isLoading } = useNeuronEngagement();
+  const { engagement, isLoading } = useNeuronEngagement(neurons);
 
   const formattedRate = nonNullish(engagement)
     ? formatNumber(engagement.rate * 100, { minFraction: 1, maxFraction: 1 })

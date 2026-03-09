@@ -1,3 +1,4 @@
+import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { Link } from '@tanstack/react-router';
 import { AlertTriangle, CheckCircle2, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -6,19 +7,20 @@ import { getUsersFollowedNeurons } from '@features/voting/utils/findFollowedNeur
 
 import { Card, CardContent } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
-import { useGovernanceNeurons } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 
-export function AutomaticVotingCard() {
+type AutomaticVotingCardProps = {
+  neurons: NeuronInfo[];
+};
+
+export function AutomaticVotingCard({ neurons }: AutomaticVotingCardProps) {
   const { t } = useTranslation();
 
-  const neuronsQuery = useGovernanceNeurons();
   const knownNeuronsQuery = useGovernanceKnownNeurons();
 
-  const userNeurons = neuronsQuery.data?.response ?? [];
   const knownNeurons = knownNeuronsQuery.data?.response ?? [];
   const followedNeurons = getUsersFollowedNeurons({
-    userNeurons,
+    userNeurons: neurons,
     knownNeurons,
   });
 
@@ -26,8 +28,8 @@ export function AutomaticVotingCard() {
   // Consider adding a third state if users report confusion.
   const hasKnownNeuron = followedNeurons.length === 1 && followedNeurons[0] !== undefined;
 
-  const isLoading = neuronsQuery.isLoading || knownNeuronsQuery.isLoading;
-  const isError = neuronsQuery.isError || knownNeuronsQuery.isError;
+  const isLoading = knownNeuronsQuery.isLoading;
+  const isError = knownNeuronsQuery.isError;
 
   return (
     <Card className="gap-3 py-4" data-testid="stakes-summary-automatic-voting-card">
