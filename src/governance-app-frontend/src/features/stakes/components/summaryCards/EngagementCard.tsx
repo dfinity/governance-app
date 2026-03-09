@@ -14,7 +14,7 @@ export function EngagementCard() {
   const { engagement, isLoading } = useNeuronEngagement();
 
   const formattedRate =
-    engagement !== null
+    nonNullish(engagement)
       ? formatNumber(engagement.rate * 100, { minFraction: 1, maxFraction: 1 })
       : null;
 
