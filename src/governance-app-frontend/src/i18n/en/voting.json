@@ -2,7 +2,7 @@
   "title": "Voting",
   "following": "Votes on your behalf",
   "description": "Your Neurons earn rewards by participating in governance. You can vote yourself or delegate voting to a Known Neuron.",
-  "viewKnownNeuron": "View info",
+  "viewKnownNeuron": "Details",
   "cta": "Manage Known Neuron",
   "noFollowing": {
     "title": "No Known Neuron selected",
