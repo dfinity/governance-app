@@ -1,76 +1,25 @@
-import { IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
+import { useEffect, useState } from 'react';
 
-import { useNeuronAccountsIds } from '@features/account/hooks/useNeuronAccountsIds';
-import { TransactionType } from '@features/account/types';
-import { detectTransactionType } from '@features/transactions/utils/transactionType';
+import { MIN_ASYNC_DELAY } from '@constants/extra';
 
-import { NANOSECONDS_IN_SECOND } from '@constants/extra';
-import { useIcpIndexAccountsTransactions } from '@hooks/icpIndex';
-
-import type { AccountMetadata, AccountTransaction } from '../types';
-import { useMainAccountMetadata } from './useMainAccountMetadata';
-import { useSubaccountsMetadata } from './useSubaccountsMetadata';
-
-const MAX_RECENT_TRANSACTIONS = 10;
-
-function toAccountTransaction(
-  tx: IcpIndexDid.TransactionWithId,
-  accountId: string,
-  accountName: string,
-  neuronAccountIds: Set<string>,
-): AccountTransaction | null {
-  const { operation, created_at_time, timestamp: txTimestamp } = tx.transaction;
-  const type = detectTransactionType(operation, accountId, neuronAccountIds);
-  if (type === TransactionType.UNKNOWN || !('Transfer' in operation)) return null;
-
-  const transfer = operation.Transfer;
-
-  const nanos = created_at_time[0]?.timestamp_nanos ?? txTimestamp[0]?.timestamp_nanos ?? 0n;
-  const timestampSeconds = Number(nanos / BigInt(NANOSECONDS_IN_SECOND));
-
-  return {
-    id: tx.id,
-    type,
-    amountE8s: transfer.amount.e8s,
-    timestamp: timestampSeconds,
-    accountId,
-    accountName,
-  };
-}
+import { MOCK_TRANSACTIONS, type MockTransaction } from '../data/mockTransactions';
 
 /**
- * Fetches the most recent transactions across all user accounts (main + sub-accounts).
- * Transactions are merged, sorted by timestamp descending, and capped.
+ * Returns recent transactions aggregated across all subaccounts.
+ * Currently backed by mock data; swap the implementation when the real API is available.
  */
 export const useRecentTransactions = () => {
-  const mainAccountMetadata = useMainAccountMetadata();
-  const subaccountsMetadata = useSubaccountsMetadata();
-  const { accountIds: neuronAccountIds } = useNeuronAccountsIds();
+  const [isLoading, setIsLoading] = useState(true);
+  const [data, setData] = useState<MockTransaction[] | undefined>(undefined);
 
-  const accountsMetadata: AccountMetadata[] = mainAccountMetadata.data
-    ? [mainAccountMetadata.data, ...subaccountsMetadata.data]
-    : [];
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setData(MOCK_TRANSACTIONS);
+      setIsLoading(false);
+    }, MIN_ASYNC_DELAY);
 
-  const accountIds = accountsMetadata.map((a) => a.accountId);
-  const transactionsQuery = useIcpIndexAccountsTransactions({
-    accountIds,
-    enabled: accountsMetadata.length > 0,
-  });
+    return () => clearTimeout(timer);
+  }, []);
 
-  if (accountsMetadata.length === 0) {
-    return { data: undefined, isLoading: transactionsQuery.isLoading };
-  }
-
-  const results = accountsMetadata.map((meta) =>
-    (transactionsQuery.byAccountId[meta.accountId]?.data?.response?.transactions ?? [])
-      .map((tx) => toAccountTransaction(tx, meta.accountId, meta.name, neuronAccountIds))
-      .filter((tx): tx is AccountTransaction => tx !== null),
-  );
-
-  const data = results
-    .flat()
-    .sort((a, b) => b.timestamp - a.timestamp)
-    .slice(0, MAX_RECENT_TRANSACTIONS);
-
-  return { data, isLoading: transactionsQuery.isLoading };
+  return { data, isLoading };
 };

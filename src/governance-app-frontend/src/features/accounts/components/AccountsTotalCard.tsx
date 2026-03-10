@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent, CardHeader } from '@components/Card';
@@ -6,9 +7,9 @@ import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
 import { useTickerPrices } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
-import { formatNumber, formatPercentage } from '@utils/numbers';
+import { formatNumber } from '@utils/numbers';
 
-import { type Account, type AccountReady, AccountType } from '../types';
+import type { Subaccount } from '../data/mockSubaccounts';
 
 const BASE_COLOR = 'var(--color-staking-ratio)';
 const OPACITY_MAX = 80;
@@ -20,21 +21,8 @@ function getAccountColor(index: number, total: number) {
   return `color-mix(in srgb, ${BASE_COLOR} ${Math.round(opacity)}%, transparent)`;
 }
 
-function buildSegments(readyAccounts: AccountReady[], totalE8s: bigint) {
-  if (totalE8s === 0n) return [];
-  const nonMainAccounts = readyAccounts.filter((a) => a.type !== AccountType.Main);
-  return readyAccounts.map((account) => {
-    const percentage = Number((account.balanceE8s * 10000n) / totalE8s) / 100;
-    const color =
-      account.type === AccountType.Main
-        ? BASE_COLOR
-        : getAccountColor(nonMainAccounts.indexOf(account), nonMainAccounts.length);
-    return { accountId: account.accountId, name: account.name, percentage, color };
-  });
-}
-
 type Props = {
-  accounts: Account[];
+  accounts: Subaccount[];
   isLoading: boolean;
 };
 
@@ -42,13 +30,23 @@ export const AccountsTotalCard = ({ accounts, isLoading }: Props) => {
   const { t } = useTranslation();
   const { tickerPrices: tickersQuery } = useTickerPrices();
 
-  const readyAccounts = accounts.filter((a): a is AccountReady => a.status === 'ready');
-  const totalE8s = readyAccounts.reduce((sum, a) => sum + a.balanceE8s, 0n);
+  const totalE8s = accounts.reduce((sum, a) => sum + a.balanceE8s, 0n);
   const totalICP = bigIntDiv(totalE8s, E8Sn);
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const usdValue = icpPrice ? formatNumber(totalICP * icpPrice.usd) : '-';
 
-  const segments = buildSegments(readyAccounts, totalE8s);
+  const segments = useMemo(() => {
+    if (totalE8s === 0n) return [];
+    const nonMainAccounts = accounts.filter((a) => a.subaccountIndex !== 0);
+    return accounts.map((account) => {
+      const percentage = Number((account.balanceE8s * 10000n) / totalE8s) / 100;
+      const isMain = account.subaccountIndex === 0;
+      const color = isMain
+        ? BASE_COLOR
+        : getAccountColor(nonMainAccounts.indexOf(account), nonMainAccounts.length);
+      return { name: account.name, percentage, color };
+    });
+  }, [accounts, totalE8s]);
 
   return (
     <Card>
@@ -85,7 +83,7 @@ export const AccountsTotalCard = ({ accounts, isLoading }: Props) => {
           >
             {segments.map((seg) => (
               <div
-                key={seg.accountId}
+                key={seg.name}
                 className="transition-all duration-700 ease-out first:rounded-l-full last:rounded-r-full"
                 style={{ width: `${seg.percentage}%`, backgroundColor: seg.color }}
               />
@@ -101,14 +99,14 @@ export const AccountsTotalCard = ({ accounts, isLoading }: Props) => {
         ) : (
           <div className="flex flex-wrap gap-x-4 gap-y-1">
             {segments.map((seg) => (
-              <div key={seg.accountId} className="flex items-center gap-1.5 text-sm">
+              <div key={seg.name} className="flex items-center gap-1.5 text-sm">
                 <span
                   className="size-2.5 shrink-0 rounded-full"
                   style={{ backgroundColor: seg.color }}
                 />
                 <span className="text-muted-foreground">{seg.name}</span>
                 <span className="font-medium">
-                  {formatPercentage(seg.percentage / 100, { minFraction: 1, maxFraction: 1 })}
+                  {t(($) => $.accounts.ofTotal, { value: formatNumber(seg.percentage, { minFraction: 1, maxFraction: 1 }) })}
                 </span>
               </div>
             ))}

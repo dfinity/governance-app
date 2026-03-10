@@ -1,4 +1,4 @@
-import { ArrowDownToLine, ArrowUp, Lock, type LucideIcon } from 'lucide-react';
+import { ArrowDownToLine, ArrowUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@components/badge';
@@ -10,8 +10,8 @@ import { secondsToDate, secondsToTime } from '@utils/date';
 import { formatNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
+import type { MockTransaction } from '../data/mockTransactions';
 import { useRecentTransactions } from '../hooks/useRecentTransactions';
-import { type AccountTransaction, TransactionType } from '../types';
 
 export const RecentTransactions = () => {
   const { t } = useTranslation();
@@ -38,7 +38,7 @@ export const RecentTransactions = () => {
             </div>
           ))
         ) : transactions && transactions.length > 0 ? (
-          transactions.map((tx) => <TransactionRow key={`${tx.accountId}-${tx.id}`} tx={tx} />)
+          transactions.map((tx) => <TransactionRow key={tx.id} tx={tx} />)
         ) : (
           <p className="py-4 text-center text-sm text-muted-foreground">
             {t(($) => $.accounts.noTransactions)}
@@ -49,60 +49,35 @@ export const RecentTransactions = () => {
   );
 };
 
-const txConfig: Record<
-  TransactionType,
-  { icon: LucideIcon; colorClasses: string; amountClasses: string; sign: string }
-> = {
-  [TransactionType.RECEIVE]: {
-    icon: ArrowDownToLine,
-    colorClasses: 'bg-emerald-200/30 text-emerald-800 dark:bg-emerald-100/10 dark:text-emerald-400',
-    amountClasses: 'text-emerald-800 dark:text-emerald-400',
-    sign: '+',
-  },
-  [TransactionType.SEND]: {
-    icon: ArrowUp,
-    colorClasses: 'bg-red-200/30 text-red-800 dark:bg-red-100/10 dark:text-red-400',
-    amountClasses: 'text-red-800 dark:text-red-400',
-    sign: '-',
-  },
-  [TransactionType.STAKE]: {
-    icon: Lock,
-    colorClasses: 'bg-red-200/30 text-red-800 dark:bg-red-100/10 dark:text-red-400',
-    amountClasses: 'text-red-800 dark:text-red-400',
-    sign: '-',
-  },
-  [TransactionType.UNKNOWN]: {
-    icon: ArrowUp,
-    colorClasses: 'bg-muted text-muted-foreground',
-    amountClasses: 'text-muted-foreground',
-    sign: '',
-  },
-};
-
-function TransactionRow({ tx }: { tx: AccountTransaction }) {
+function TransactionRow({ tx }: { tx: MockTransaction }) {
   const { t } = useTranslation();
+  const isReceive = tx.type === 'receive';
   const amountICP = bigIntDiv(tx.amountE8s, E8Sn);
-  const config = txConfig[tx.type];
-  const Icon = config.icon;
-
-  const label =
-    tx.type === TransactionType.RECEIVE
-      ? t(($) => $.account.depositedIcp)
-      : tx.type === TransactionType.STAKE
-        ? t(($) => $.account.stakedIcp)
-        : t(($) => $.account.withdrawnIcp);
 
   return (
     <div className="flex items-center gap-3">
-      <div className={cn('shrink-0 rounded-full p-2.5', config.colorClasses)}>
-        <Icon className="size-4" />
+      <div
+        className={cn(
+          'shrink-0 rounded-full p-2.5',
+          isReceive
+            ? 'bg-emerald-200/30 text-emerald-800 dark:bg-emerald-100/10 dark:text-emerald-400'
+            : 'bg-red-200/30 text-red-800 dark:bg-red-100/10 dark:text-red-400',
+        )}
+      >
+        {isReceive ? (
+          <ArrowDownToLine className="size-4" />
+        ) : (
+          <ArrowUp className="size-4" />
+        )}
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold">{label}</span>
+          <span className="text-sm font-semibold">
+            {isReceive ? t(($) => $.accounts.received) : t(($) => $.accounts.sent)}
+          </span>
           <Badge variant="secondary" className="text-[10px] font-normal">
-            {tx.accountName}
+            {tx.subaccountName}
           </Badge>
         </div>
         <span className="text-xs text-muted-foreground">
@@ -110,8 +85,15 @@ function TransactionRow({ tx }: { tx: AccountTransaction }) {
         </span>
       </div>
 
-      <span className={cn('shrink-0 text-sm font-semibold', config.amountClasses)}>
-        {config.sign}
+      <span
+        className={cn(
+          'shrink-0 text-sm font-semibold',
+          isReceive
+            ? 'text-emerald-800 dark:text-emerald-400'
+            : 'text-red-800 dark:text-red-400',
+        )}
+      >
+        {isReceive ? '+' : '-'}
         {t(($) => $.common.inIcp, {
           value: formatNumber(amountICP, { minFraction: 2, maxFraction: 8 }),
         })}

@@ -2,9 +2,15 @@
   "title": "Accounts",
   "description": "Manage your ICP ledger subaccounts.",
   "totalBalance": "Total balance",
+  "totalAcrossAll": "Total across all accounts",
+  "ofTotal": "{{value}}%",
   "accountCount": "{{count}} account",
   "accountCount_plural": "{{count}} accounts",
   "viewAll": "View all accounts",
+  "recentTransactions": "Recent Transactions",
+  "noTransactions": "No recent transactions.",
+  "received": "Received ICP",
+  "sent": "Sent ICP",
   "empty": {
     "title": "No subaccounts yet",
     "description": "You don't have any subaccounts. Subaccounts let you organize your ICP across separate balances under the same principal."
