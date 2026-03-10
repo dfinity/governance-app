@@ -205,6 +205,20 @@ html.route-dashboard {
   }
 }
 
+/* One-shot glow that draws attention to a newly-added nav item. */
+@keyframes highlight-pulse {
+  0% {
+    background-color: oklch(from var(--primary) l c h / 0.2);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.animate-highlight-pulse {
+  animation: highlight-pulse 1.5s ease-out;
+}
+
 /* Prevents overscroll outside the main wrapper. */
 body {
   overflow: hidden;

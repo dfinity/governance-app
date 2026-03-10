@@ -15,6 +15,7 @@ import { Route as AuthVotingIndexRouteImport } from './routes/_auth/voting/index
 import { Route as AuthSettingsIndexRouteImport } from './routes/_auth/settings/index'
 import { Route as AuthNeuronsIndexRouteImport } from './routes/_auth/neurons/index'
 import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
+import { Route as AuthAccountsIndexRouteImport } from './routes/_auth/accounts/index'
 import { Route as AuthVotingKnownNeuronsIndexRouteImport } from './routes/_auth/voting/known-neurons/index'
 import { Route as AuthVotingProposalsIdIndexRouteImport } from './routes/_auth/voting/proposals/$id/index'
 
@@ -47,6 +48,11 @@ const AuthDashboardIndexRoute = AuthDashboardIndexRouteImport.update({
   path: '/dashboard/',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthAccountsIndexRoute = AuthAccountsIndexRouteImport.update({
+  id: '/accounts/',
+  path: '/accounts/',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthVotingKnownNeuronsIndexRoute =
   AuthVotingKnownNeuronsIndexRouteImport.update({
     id: '/voting/known-neurons/',
@@ -62,6 +68,7 @@ const AuthVotingProposalsIdIndexRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/accounts/': typeof AuthAccountsIndexRoute
   '/dashboard/': typeof AuthDashboardIndexRoute
   '/neurons/': typeof AuthNeuronsIndexRoute
   '/settings/': typeof AuthSettingsIndexRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/accounts': typeof AuthAccountsIndexRoute
   '/dashboard': typeof AuthDashboardIndexRoute
   '/neurons': typeof AuthNeuronsIndexRoute
   '/settings': typeof AuthSettingsIndexRoute
@@ -82,6 +90,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteWithChildren
+  '/_auth/accounts/': typeof AuthAccountsIndexRoute
   '/_auth/dashboard/': typeof AuthDashboardIndexRoute
   '/_auth/neurons/': typeof AuthNeuronsIndexRoute
   '/_auth/settings/': typeof AuthSettingsIndexRoute
@@ -93,6 +102,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/accounts/'
     | '/dashboard/'
     | '/neurons/'
     | '/settings/'
@@ -102,6 +112,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/accounts'
     | '/dashboard'
     | '/neurons'
     | '/settings'
@@ -112,6 +123,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_auth'
+    | '/_auth/accounts/'
     | '/_auth/dashboard/'
     | '/_auth/neurons/'
     | '/_auth/settings/'
@@ -169,6 +181,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthDashboardIndexRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/accounts/': {
+      id: '/_auth/accounts/'
+      path: '/accounts'
+      fullPath: '/accounts/'
+      preLoaderRoute: typeof AuthAccountsIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/voting/known-neurons/': {
       id: '/_auth/voting/known-neurons/'
       path: '/voting/known-neurons'
@@ -187,6 +206,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthRouteChildren {
+  AuthAccountsIndexRoute: typeof AuthAccountsIndexRoute
   AuthDashboardIndexRoute: typeof AuthDashboardIndexRoute
   AuthNeuronsIndexRoute: typeof AuthNeuronsIndexRoute
   AuthSettingsIndexRoute: typeof AuthSettingsIndexRoute
@@ -196,6 +216,7 @@ interface AuthRouteChildren {
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
+  AuthAccountsIndexRoute: AuthAccountsIndexRoute,
   AuthDashboardIndexRoute: AuthDashboardIndexRoute,
   AuthNeuronsIndexRoute: AuthNeuronsIndexRoute,
   AuthSettingsIndexRoute: AuthSettingsIndexRoute,

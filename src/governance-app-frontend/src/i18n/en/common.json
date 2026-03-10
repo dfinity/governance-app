@@ -47,6 +47,7 @@
   "apy": "APY",
   "dashboard": "Dashboard",
   "voting": "Voting",
+  "accounts": "Accounts",
   "stakes": "Neurons",
   "settings": "Settings",
   "clipboard": {
@@ -75,6 +76,9 @@
     },
     "dashboard": {
       "title": "Dashboard | Governance"
+    },
+    "accounts": {
+      "title": "Accounts | Governance"
     },
     "stakes": {
       "title": "Neurons | Governance"

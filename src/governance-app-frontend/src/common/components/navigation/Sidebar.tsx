@@ -1,10 +1,19 @@
 import { Link } from '@tanstack/react-router';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { navigationItems } from './NavigationItems';
+import { useSubaccountsEnabled } from '@hooks/useSubaccountsEnabled';
+import { cn } from '@utils/shadcn';
+
+import { getNavigationItems } from './NavigationItems';
 
 export const Sidebar = () => {
   const { t } = useTranslation();
+  const { enabled: subaccountsEnabled } = useSubaccountsEnabled();
+  const navigationItems = useMemo(
+    () => getNavigationItems({ subaccountsEnabled }),
+    [subaccountsEnabled],
+  );
 
   return (
     <aside className="sticky top-0 z-20 hidden h-full w-72 flex-col border-r bg-card text-sm lg:flex">
@@ -22,7 +31,10 @@ export const Sidebar = () => {
           <Link
             key={item.href}
             to={item.href}
-            className="relative flex items-center gap-3 rounded-lg px-4 py-3 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            className={cn(
+              'relative flex items-center gap-3 rounded-lg px-4 py-3 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
+              item.isDynamic && 'animate-highlight-pulse',
+            )}
             activeProps={{
               className:
                 'before:absolute before:left-0 before:w-[3px] before:h-6 before:bg-black before:rounded-xl bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary',

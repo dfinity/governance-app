@@ -1,0 +1,23 @@
+{
+  "title": "Accounts",
+  "description": "Manage your ICP ledger subaccounts.",
+  "totalBalance": "Total balance",
+  "accountCount": "{{count}} account",
+  "accountCount_plural": "{{count}} accounts",
+  "viewAll": "View all accounts",
+  "empty": {
+    "title": "No subaccounts yet",
+    "description": "You don't have any subaccounts. Subaccounts let you organize your ICP across separate balances under the same principal."
+  },
+  "settings": {
+    "title": "Subaccounts",
+    "description": "Enable subaccounts to organize your ICP across multiple balances under your principal.",
+    "aria": {
+      "toggle": "Toggle subaccounts feature"
+    },
+    "enabled": "Accounts enabled",
+    "enabledDescription": "Your navigation has been updated.",
+    "disabled": "Accounts disabled",
+    "disabledDescription": "The accounts view has been removed."
+  }
+}
