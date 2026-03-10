@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { Wallet } from 'lucide-react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@components/badge';
@@ -12,23 +13,31 @@ import { useTickerPrices } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber } from '@utils/numbers';
 
-import { useAccounts } from '../hooks/useAccounts';
-import type { Account } from '../types';
+import type { Subaccount } from '../data/mockSubaccounts';
+import { useSubaccounts } from '../hooks/useSubaccounts';
 
 const MAX_PREVIEW_ACCOUNTS = 3;
 
 export const AccountsCard = () => {
   const { t } = useTranslation();
-  const { data: accountsState, isLoading } = useAccounts();
+  const { data: accounts, isLoading } = useSubaccounts();
   const { tickerPrices: tickersQuery } = useTickerPrices();
 
-  const accounts = accountsState?.accounts ?? [];
-  const isTotalPartial = accountsState?.isTotalPartial ?? false;
-  const totalICP = bigIntDiv(accountsState?.totalBalanceE8s ?? 0n, E8Sn);
+  const totalE8s = accounts?.reduce((sum, a) => sum + a.balanceE8s, 0n) ?? 0n;
+  const totalICP = bigIntDiv(totalE8s, E8Sn);
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const usdValue = icpPrice ? formatNumber(totalICP * icpPrice.usd) : '-';
-  const count = accounts.length;
-  const topAccounts = accounts.slice(0, MAX_PREVIEW_ACCOUNTS);
+  const count = accounts?.length ?? 0;
+
+  const topAccounts = useMemo(
+    () =>
+      accounts
+        ? [...accounts]
+            .sort((a, b) => (b.balanceE8s > a.balanceE8s ? 1 : b.balanceE8s < a.balanceE8s ? -1 : 0))
+            .slice(0, MAX_PREVIEW_ACCOUNTS)
+        : [],
+    [accounts],
+  );
 
   return (
     <Card data-testid="accounts-card">
@@ -49,7 +58,6 @@ export const AccountsCard = () => {
             <Skeleton className="h-8 w-32" />
           ) : (
             <p className="text-2xl font-bold">
-              {isTotalPartial ? '~ ' : ''}
               {t(($) => $.common.inIcp, { value: formatNumber(totalICP) })}
             </p>
           )}
@@ -91,21 +99,21 @@ export const AccountsCard = () => {
   );
 };
 
-function AccountPreviewList({ accounts }: { accounts: Account[] }) {
+function AccountPreviewList({ accounts }: { accounts: Subaccount[] }) {
   const { t } = useTranslation();
 
   return (
     <div className="flex flex-col divide-y">
       {accounts.map((account) => {
-        const balanceICP =
-          account.status === 'ready' ? bigIntDiv(account.balanceE8s, E8Sn) : undefined;
+        const balanceICP = bigIntDiv(account.balanceE8s, E8Sn);
         return (
-          <div key={account.accountId} className="flex items-center justify-between py-2.5 text-sm">
+          <div
+            key={account.subaccountIndex}
+            className="flex items-center justify-between py-2.5 text-sm"
+          >
             <span className="text-muted-foreground">{account.name}</span>
             <span className="font-medium">
-              {balanceICP !== undefined
-                ? t(($) => $.common.inIcp, { value: formatNumber(balanceICP) })
-                : '-'}
+              {t(($) => $.common.inIcp, { value: formatNumber(balanceICP) })}
             </span>
           </div>
         );

@@ -1,25 +1,18 @@
-import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AccountsList } from '@features/accounts/components/AccountsList';
-import { AccountsTotalCard } from '@features/accounts/components/AccountsTotalCard';
-import { CreateSubAccountDialog } from '@features/accounts/components/CreateSubAccountDialog';
-import { RecentTransactions } from '@features/accounts/components/RecentTransactions';
-import { useAccounts } from '@features/accounts/hooks/useAccounts';
+import { useSubaccounts } from '@features/accounts/hooks/useSubaccounts';
 
 import { PageHeader } from '@components/PageHeader';
 import { Skeleton } from '@components/Skeleton';
-import { readFromStorage as readAdvancedFeaturesFromStorage } from '@hooks/useAdvancedFeatures';
+import { useSubaccountsEnabled } from '@hooks/useSubaccountsEnabled';
 
 import i18n from '@/i18n/config';
 
 export const Route = createFileRoute('/_auth/accounts/')({
   component: AccountsPage,
-  beforeLoad: () => {
-    const features = readAdvancedFeaturesFromStorage();
-
-    if (!features.subaccounts) throw redirect({ to: '/dashboard', replace: true });
-  },
   head: () => {
     const title = i18n.t(($) => $.common.head.accounts.title);
 
@@ -34,34 +27,39 @@ export const Route = createFileRoute('/_auth/accounts/')({
 
 function AccountsPage() {
   const { t } = useTranslation();
-  const { data: accountsState, isLoading } = useAccounts();
-  const accounts = accountsState?.accounts;
+  const navigate = useNavigate();
+  const { enabled } = useSubaccountsEnabled();
+  const { data: accounts, isLoading } = useSubaccounts();
+
+  useEffect(() => {
+    if (!enabled) {
+      navigate({ to: '/dashboard', replace: true });
+    }
+  }, [enabled, navigate]);
+
+  if (!enabled) return null;
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title={t(($) => $.accounts.title)}
         description={t(($) => $.accounts.description)}
-        actions={<CreateSubAccountDialog />}
       />
 
-      <AccountsTotalCard accounts={accounts ?? []} isLoading={isLoading} />
-
       {isLoading ? (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="flex flex-col gap-3 lg:col-span-2">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-40 rounded-xl" />
-            ))}
-          </div>
-          <Skeleton className="h-64 rounded-xl" />
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-40 rounded-xl" />
+          ))}
         </div>
+      ) : accounts && accounts.length > 0 ? (
+        <AccountsList accounts={accounts} />
       ) : (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <AccountsList accounts={accounts ?? []} />
-          </div>
-          <RecentTransactions />
+        <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+          <p className="text-lg font-medium">{t(($) => $.accounts.empty.title)}</p>
+          <p className="text-sm text-muted-foreground">
+            {t(($) => $.accounts.empty.description)}
+          </p>
         </div>
       )}
     </div>
