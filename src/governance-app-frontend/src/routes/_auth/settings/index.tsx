@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import { AddressBookCard } from '@features/addressBook/components/AddressBookCard';
 import { AccountIdCard } from '@features/userAccount/components/AccountIdCard';
+import { AdvancedFeaturesCard } from '@features/userAccount/components/AdvancedFeaturesCard';
 import { GovernanceAccessCard } from '@features/userAccount/components/GovernanceAccessCard';
 import { ManageIICard } from '@features/userAccount/components/ManageIICard';
 import { PrincipalCard } from '@features/userAccount/components/PrincipalCard';
@@ -102,6 +103,17 @@ function Settings() {
               onOpenChange={handleAddressBookOpenChange}
             />
           </div>
+        </Card>
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <div className="space-y-2">
+          <h2 className="text-2xl font-semibold">
+            {t(($) => $.userAccount.advancedFeatures.title)}
+          </h2>
+        </div>
+        <Card className="overflow-hidden p-0 shadow-sm">
+          <AdvancedFeaturesCard />
         </Card>
       </section>
 
