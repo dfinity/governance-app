@@ -37,7 +37,7 @@ test.describe('Address book', () => {
     await test.step('Open app and login.', async () => {
       await openApp({ page });
       await login({ page });
-      await page.getByRole('link', { name: 'Account' }).click();
+      await page.getByRole('link', { name: 'Settings' }).click();
     });
 
     await test.step('Open address book modal and verify empty state.', async () => {
@@ -193,7 +193,7 @@ test.describe('Address book', () => {
     });
 
     await test.step('Add 2 addresses to address book.', async () => {
-      await page.getByRole('link', { name: 'Account' }).click();
+      await page.getByRole('link', { name: 'Settings' }).click();
       await openAddressBookModal(page);
 
       await addAddress(page, 'Wallet A', TEST_ICP_ADDRESS);
