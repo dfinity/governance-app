@@ -31,12 +31,20 @@ import { QUERY_KEYS } from '@utils/query';
 
 import i18n from '@/i18n/config';
 
+enum DialogPhase {
+  Closed = 'closed',
+  Confirm = 'confirm',
+  Processing = 'processing',
+  Success = 'success',
+  Error = 'error',
+}
+
 type DialogState =
-  | { phase: 'closed' }
-  | { phase: 'confirm'; neuron: KnownNeuron }
-  | { phase: 'processing'; neuron: KnownNeuron }
-  | { phase: 'success'; neuronName: string }
-  | { phase: 'error'; neuron: KnownNeuron };
+  | { phase: DialogPhase.Closed }
+  | { phase: DialogPhase.Confirm; neuron: KnownNeuron }
+  | { phase: DialogPhase.Processing; neuron: KnownNeuron }
+  | { phase: DialogPhase.Success; neuronName: string }
+  | { phase: DialogPhase.Error; neuron: KnownNeuron };
 
 export const Route = createFileRoute('/_auth/voting/known-neurons/')({
   component: KnownNeuronsPage,
@@ -75,14 +83,14 @@ function KnownNeuronsPage() {
   const [userOverrideId, setUserOverrideId] = useState<string | null | undefined>(undefined);
   const selectedNeuronId = userOverrideId ?? derivedSelectedId;
 
-  const [dialogState, setDialogState] = useState<DialogState>({ phase: 'closed' });
+  const [dialogState, setDialogState] = useState<DialogState>({ phase: DialogPhase.Closed });
 
   const fireFollowMutation = (knownNeuron: KnownNeuron) => {
     if (updateFollowingMutation.isPending) return;
     if (!neuronsQuery.data?.certified || !canister) return;
     const neurons = neuronsQuery.data.response;
 
-    setDialogState({ phase: 'processing', neuron: knownNeuron });
+    setDialogState({ phase: DialogPhase.Processing, neuron: knownNeuron });
 
     updateFollowingMutation.mutate({ neurons, knownNeuron });
   };
@@ -130,12 +138,12 @@ function KnownNeuronsPage() {
         queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
       });
 
-      setDialogState({ phase: 'success', neuronName: variables.knownNeuron.name });
+      setDialogState({ phase: DialogPhase.Success, neuronName: variables.knownNeuron.name });
     },
     onError: (error, variables, context) => {
       console.error('Failed to update neuron:', error);
       setUserOverrideId(context?.previousSelectedId ?? null);
-      setDialogState({ phase: 'error', neuron: variables.knownNeuron });
+      setDialogState({ phase: DialogPhase.Error, neuron: variables.knownNeuron });
     },
   });
 
@@ -159,7 +167,7 @@ function KnownNeuronsPage() {
       });
 
       if (currentFollowed.length > 0) {
-        setDialogState({ phase: 'confirm', neuron: knownNeuron });
+        setDialogState({ phase: DialogPhase.Confirm, neuron: knownNeuron });
         return;
       }
     }
@@ -244,7 +252,7 @@ function KnownNeuronsPage() {
       <FollowNeuronDialog
         state={dialogState}
         onFollow={() => 'neuron' in dialogState && fireFollowMutation(dialogState.neuron)}
-        onClose={() => setDialogState({ phase: 'closed' })}
+        onClose={() => setDialogState({ phase: DialogPhase.Closed })}
       />
     </>
   );
@@ -263,11 +271,11 @@ function FollowNeuronDialog({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
-  const isOpen = state.phase !== 'closed';
-  const isBlocking = state.phase === 'processing';
+  const isOpen = state.phase !== DialogPhase.Closed;
+  const isBlocking = state.phase === DialogPhase.Processing;
 
   useEffect(() => {
-    if (state.phase !== 'success') return;
+    if (state.phase !== DialogPhase.Success) return;
     const timer = setTimeout(onClose, SUCCESS_AUTO_CLOSE_MS);
     return () => clearTimeout(timer);
   }, [state.phase, onClose]);
@@ -283,7 +291,7 @@ function FollowNeuronDialog({
         className="md:min-h-[200px] md:max-w-md"
       >
         <AnimatePresence mode="wait" initial={false}>
-          {state.phase === 'confirm' && (
+          {state.phase === DialogPhase.Confirm && (
             <motion.div
               key="confirm"
               className="flex h-full flex-col justify-between"
@@ -309,7 +317,7 @@ function FollowNeuronDialog({
             </motion.div>
           )}
 
-          {state.phase === 'processing' && (
+          {state.phase === DialogPhase.Processing && (
             <motion.div
               key="processing"
               className="flex h-full flex-col items-center justify-center gap-5 text-center"
@@ -340,7 +348,7 @@ function FollowNeuronDialog({
             </motion.div>
           )}
 
-          {state.phase === 'success' && (
+          {state.phase === DialogPhase.Success && (
             <motion.div
               key="success"
               className="flex h-full flex-col items-center justify-center gap-5 text-center"
@@ -371,7 +379,7 @@ function FollowNeuronDialog({
             </motion.div>
           )}
 
-          {state.phase === 'error' && (
+          {state.phase === DialogPhase.Error && (
             <motion.div
               key="error"
               className="flex h-full flex-col items-center justify-between text-center"
