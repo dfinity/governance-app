@@ -109,10 +109,11 @@ function KnownNeuronsPage() {
       if (!canister) throw new Error(t(($) => $.common.unknownError));
 
       const knownNeuronId = knownNeuron.id;
+      const topicFollowing = buildKnownNeuronTopicFollowing(knownNeuronId);
       const promises = neurons.map((n) =>
         canister.setFollowing({
           neuronId: n.neuronId,
-          topicFollowing: buildKnownNeuronTopicFollowing(knownNeuronId),
+          topicFollowing,
         }),
       );
 
