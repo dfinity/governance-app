@@ -1,6 +1,7 @@
 {
-  "account": "Your account",
-  "accountDescription": "Manage your account information and identity.",
+  "settingsDescription": "Manage your identity, preferences, and governance participation.",
+  "identity": "Identity",
+  "identityDescription": "Your principal, wallet address, and Internet Identity.",
   "principalId": "Principal ID",
   "accountId": "ICP wallet address",
   "accountIdExchangeBadge": "ICP tokens only",
