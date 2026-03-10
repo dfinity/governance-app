@@ -1,7 +1,7 @@
-import { KnownNeuron } from '@icp-sdk/canisters/nns';
+import { KnownNeuron, Topic } from '@icp-sdk/canisters/nns';
 import { describe, expect, it } from 'vitest';
 
-import { sortKnownNeurons } from './knownNeurons';
+import { buildKnownNeuronTopicFollowing, sortKnownNeurons } from './knownNeurons';
 
 describe('sortKnownNeurons', () => {
   const createMockNeuron = (id: bigint): KnownNeuron => ({
@@ -32,5 +32,55 @@ describe('sortKnownNeurons', () => {
     expect(sorted[1].id).toBe(id2);
     expect(sorted[2].id).toBe(id3);
     expect(sorted[3].id).toBe(unmappedId);
+  });
+});
+
+describe('buildKnownNeuronTopicFollowing', () => {
+  const knownNeuronId = 100n;
+
+  it('sets followees for Unspecified, Governance, and SnsAndCommunityFund', () => {
+    const result = buildKnownNeuronTopicFollowing(knownNeuronId);
+
+    const followedTopics = [Topic.Unspecified, Topic.Governance, Topic.SnsAndCommunityFund];
+
+    for (const topic of followedTopics) {
+      const entry = result.find((r) => r.topic === topic);
+      expect(entry).toBeDefined();
+      expect(entry?.followees).toEqual([knownNeuronId]);
+    }
+  });
+
+  it('clears followees for all other topics', () => {
+    const result = buildKnownNeuronTopicFollowing(knownNeuronId);
+
+    const followedTopics = new Set([
+      Topic.Unspecified,
+      Topic.Governance,
+      Topic.SnsAndCommunityFund,
+    ]);
+
+    const clearedEntries = result.filter((r) => !followedTopics.has(r.topic));
+
+    expect(clearedEntries.length).toBeGreaterThan(0);
+    for (const entry of clearedEntries) {
+      expect(entry.followees).toEqual([]);
+    }
+  });
+
+  it('excludes NeuronManagement', () => {
+    const result = buildKnownNeuronTopicFollowing(knownNeuronId);
+
+    const neuronManagementEntry = result.find((r) => r.topic === Topic.NeuronManagement);
+    expect(neuronManagementEntry).toBeUndefined();
+  });
+
+  it('includes all topics except NeuronManagement', () => {
+    const result = buildKnownNeuronTopicFollowing(knownNeuronId);
+
+    const allTopicsExceptNeuronManagement = Object.values(Topic).filter(
+      (v): v is Topic => typeof v === 'number' && v !== Topic.NeuronManagement,
+    );
+
+    expect(result).toHaveLength(allTopicsExceptNeuronManagement.length);
   });
 });
