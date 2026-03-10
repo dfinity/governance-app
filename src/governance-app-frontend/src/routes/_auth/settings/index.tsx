@@ -15,35 +15,36 @@ import { ThemeCard } from '@features/userAccount/components/ThemeCard';
 
 import { Button } from '@components/button';
 import { Card } from '@components/Card';
+import { PageHeader } from '@components/PageHeader';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
 import { getSessionTimeLeftForUi } from '@utils/date';
 
 import i18n from '@/i18n/config';
 
-type AccountSearchParams = {
+type SettingsSearchParams = {
   openAddressBook?: boolean;
 };
 
-export const Route = createFileRoute('/_auth/account/')({
-  validateSearch: (search: Record<string, unknown>): AccountSearchParams => ({
+export const Route = createFileRoute('/_auth/settings/')({
+  validateSearch: (search: Record<string, unknown>): SettingsSearchParams => ({
     openAddressBook:
       search.openAddressBook === 'true' || search.openAddressBook === true ? true : undefined,
   }),
-  component: Account,
+  component: Settings,
   head: () => {
-    const title = i18n.t(($) => $.common.head.account.title);
+    const title = i18n.t(($) => $.common.head.settings.title);
 
     return {
       meta: [{ title }],
     };
   },
   staticData: {
-    title: 'common.accounts',
+    title: 'common.settings',
   },
 });
 
-function Account() {
+function Settings() {
   const { identity, clear } = useInternetIdentity();
   const { t } = useTranslation();
   const timeLeft = useSessionTimeLeft();
@@ -63,11 +64,16 @@ function Account() {
 
   return (
     <div className="flex flex-col gap-12 pb-20">
+      <PageHeader
+        title={t(($) => $.common.settings)}
+        description={t(($) => $.userAccount.settingsDescription)}
+      />
+
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
-          <h2 className="text-2xl font-semibold">{t(($) => $.userAccount.account)}</h2>
+          <h2 className="text-2xl font-semibold">{t(($) => $.userAccount.identity)}</h2>
           <p className="text-sm text-muted-foreground">
-            {t(($) => $.userAccount.accountDescription)}
+            {t(($) => $.userAccount.identityDescription)}
           </p>
         </div>
         <Card className="overflow-hidden p-0 shadow-sm">

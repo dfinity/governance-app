@@ -48,7 +48,7 @@ export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled, isLo
       onClick={() => !isDisabled && onSelect(neuron)}
     >
       <div className="flex gap-4">
-        <div className="mt-2 flex-shrink-0 py-5 pl-5">
+        <div className="flex shrink-0 items-center self-start py-5 pl-5">
           {isLoading ? (
             <Loader2 className="size-6 animate-spin" />
           ) : isSelected ? (
