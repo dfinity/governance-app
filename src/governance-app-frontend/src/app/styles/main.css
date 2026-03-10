@@ -39,6 +39,7 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
   --main-content: oklch(0.988 0 0); /* rgb(252, 252, 252) - subtle grey for main content */
+  --staking-ratio: #0057FF;
 }
 
 .dark {
@@ -75,6 +76,7 @@
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
   --main-content: var(--background);
+  --staking-ratio: #4D8AFF;
 }
 
 @theme inline {
@@ -115,6 +117,7 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-main-content: var(--main-content);
+  --color-staking-ratio: var(--staking-ratio);
 
   /* Custom */
   --breakpoint-xs: 360px;
