@@ -49,7 +49,7 @@ const mockProposal = (id: bigint, ballots: Ballot[]): ProposalInfo => ({
   executedTimestampSeconds: 0n,
   topic: Topic.Governance,
   status: ProposalStatus.Executed,
-  rewardStatus: ProposalRewardStatus.Settled,
+  rewardStatus: ProposalRewardStatus.AcceptVotes,
   totalPotentialVotingPower: undefined,
 });
 
