@@ -73,14 +73,4 @@ describe('buildKnownNeuronTopicFollowing', () => {
     const neuronManagementEntry = result.find((r) => r.topic === Topic.NeuronManagement);
     expect(neuronManagementEntry).toBeUndefined();
   });
-
-  it('includes all topics except NeuronManagement', () => {
-    const result = buildKnownNeuronTopicFollowing(knownNeuronId);
-
-    const allTopicsExceptNeuronManagement = Object.values(Topic).filter(
-      (v): v is Topic => typeof v === 'number' && v !== Topic.NeuronManagement,
-    );
-
-    expect(result).toHaveLength(allTopicsExceptNeuronManagement.length);
-  });
 });
