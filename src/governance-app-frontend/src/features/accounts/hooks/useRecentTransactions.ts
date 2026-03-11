@@ -4,11 +4,12 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useNeuronAccountsIds } from '@features/account/hooks/useNeuronAccountsIds';
+
 import { NANOSECONDS_IN_SECOND } from '@constants/extra';
 import { useIcpIndex } from '@hooks/icpIndex/useIcpIndex';
 import { useNnsDappAccount } from '@hooks/nnsDapp/useNnsDappAccount';
 import { QUERY_KEYS } from '@utils/query';
-import { useNeuronAccountsIds } from '@features/account/hooks/useNeuronAccountsIds';
 
 import type { AccountTransaction } from '../types';
 
@@ -87,7 +88,10 @@ export const useRecentTransactions = () => {
         }),
       );
 
-      return results.flat().sort((a, b) => b.timestamp - a.timestamp).slice(0, MAX_RECENT_TRANSACTIONS);
+      return results
+        .flat()
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .slice(0, MAX_RECENT_TRANSACTIONS);
     },
     enabled: !!entries && ready && authenticated,
   });

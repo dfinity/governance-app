@@ -74,9 +74,7 @@ function AccountsPage() {
       ) : (
         <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
           <p className="text-lg font-medium">{t(($) => $.accounts.empty.title)}</p>
-          <p className="text-sm text-muted-foreground">
-            {t(($) => $.accounts.empty.description)}
-          </p>
+          <p className="text-sm text-muted-foreground">{t(($) => $.accounts.empty.description)}</p>
         </div>
       )}
     </div>

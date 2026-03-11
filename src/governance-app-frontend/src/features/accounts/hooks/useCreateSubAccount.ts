@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
-import { useNnsDapp } from '@hooks/nnsDapp/useNnsDapp';
 import type { CreateSubAccountResponse } from '@hooks/nnsDapp/nnsDapp.types';
+import { useNnsDapp } from '@hooks/nnsDapp/useNnsDapp';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
 const mapError = (response: CreateSubAccountResponse): string => {

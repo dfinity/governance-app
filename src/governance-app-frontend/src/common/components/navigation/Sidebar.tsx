@@ -46,9 +46,7 @@ export const Sidebar = () => {
               'relative flex items-center gap-3 rounded-lg px-4 py-3 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
               shouldAnimate && item.href === '/accounts' && 'animate-highlight-pulse',
             )}
-            onAnimationEnd={
-              item.href === '/accounts' ? () => setShouldAnimate(false) : undefined
-            }
+            onAnimationEnd={item.href === '/accounts' ? () => setShouldAnimate(false) : undefined}
             activeProps={{
               className:
                 'before:absolute before:left-0 before:w-[3px] before:h-6 before:bg-black before:rounded-xl bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary',

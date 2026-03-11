@@ -12,8 +12,8 @@ import { useTickerPrices } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber } from '@utils/numbers';
 
-import type { Subaccount } from '../types';
 import { useSubaccounts } from '../hooks/useSubaccounts';
+import type { Subaccount } from '../types';
 
 const MAX_PREVIEW_ACCOUNTS = 3;
 
@@ -98,10 +98,7 @@ function AccountPreviewList({ accounts }: { accounts: Subaccount[] }) {
       {accounts.map((account) => {
         const balanceICP = bigIntDiv(account.balanceE8s, E8Sn);
         return (
-          <div
-            key={account.accountId}
-            className="flex items-center justify-between py-2.5 text-sm"
-          >
+          <div key={account.accountId} className="flex items-center justify-between py-2.5 text-sm">
             <span className="text-muted-foreground">{account.name}</span>
             <span className="font-medium">
               {t(($) => $.common.inIcp, { value: formatNumber(balanceICP) })}

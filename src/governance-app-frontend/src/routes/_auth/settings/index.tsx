@@ -6,11 +6,11 @@ import { useTranslation } from 'react-i18next';
 
 import { AddressBookCard } from '@features/addressBook/components/AddressBookCard';
 import { AccountIdCard } from '@features/userAccount/components/AccountIdCard';
+import { AdvancedFeaturesCard } from '@features/userAccount/components/AdvancedFeaturesCard';
 import { GovernanceAccessCard } from '@features/userAccount/components/GovernanceAccessCard';
 import { ManageIICard } from '@features/userAccount/components/ManageIICard';
 import { PrincipalCard } from '@features/userAccount/components/PrincipalCard';
 import { ShortcutsCard } from '@features/userAccount/components/ShortcutsCard';
-import { AdvancedFeaturesCard } from '@features/userAccount/components/AdvancedFeaturesCard';
 import { SystemContextCard } from '@features/userAccount/components/SystemContextCard';
 import { ThemeCard } from '@features/userAccount/components/ThemeCard';
 

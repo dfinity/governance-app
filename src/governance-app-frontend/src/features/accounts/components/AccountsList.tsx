@@ -1,5 +1,4 @@
 import type { Subaccount } from '../types';
-
 import { SubaccountCard } from './SubaccountCard';
 
 type Props = {
