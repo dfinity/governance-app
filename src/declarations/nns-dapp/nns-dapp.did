@@ -1,0 +1,62 @@
+// Subset of the nns-dapp canister interface for subaccount operations.
+// Source: https://github.com/dfinity/nns-dapp/blob/main/rs/backend/nns-dapp.did
+
+type AccountIdentifier = text;
+type SubAccount = vec nat8;
+
+type SubAccountDetails =
+    record {
+        name: text;
+        sub_account: SubAccount;
+        account_identifier: AccountIdentifier;
+    };
+
+type HardwareWalletAccountDetails =
+    record {
+        name: text;
+        "principal": principal;
+        account_identifier: AccountIdentifier;
+    };
+
+type AccountDetails =
+    record {
+        "principal": principal;
+        account_identifier: AccountIdentifier;
+        sub_accounts: vec SubAccountDetails;
+        hardware_wallet_accounts: vec HardwareWalletAccountDetails;
+    };
+
+type GetAccountResponse =
+    variant {
+        Ok: AccountDetails;
+        AccountNotFound;
+    };
+
+type CreateSubAccountResponse =
+    variant {
+        Ok: SubAccountDetails;
+        AccountNotFound;
+        SubAccountLimitExceeded;
+        NameTooLong;
+    };
+
+type RenameSubAccountRequest =
+    record {
+        account_identifier: AccountIdentifier;
+        new_name: text;
+    };
+
+type RenameSubAccountResponse =
+    variant {
+        Ok;
+        AccountNotFound;
+        SubAccountNotFound;
+        NameTooLong;
+    };
+
+service : {
+    get_account: () -> (GetAccountResponse) query;
+    add_account: () -> (AccountIdentifier);
+    create_sub_account: (text) -> (CreateSubAccountResponse);
+    rename_sub_account: (RenameSubAccountRequest) -> (RenameSubAccountResponse);
+}

@@ -38,10 +38,13 @@ export const login = async ({ page }: { page: Page }) => {
     await expect(newTab.isClosed()).toBe(true);
 
     // Close the welcome modal if it appears.
+    // The Continue button may be delayed while advanced feature detection runs.
     const welcomeModal = page.getByTestId('welcome-modal');
     try {
       await welcomeModal.waitFor({ state: 'visible', timeout: 30000 });
-      await page.getByTestId('welcome-modal-cta-btn').click();
+      const ctaBtn = page.getByTestId('welcome-modal-cta-btn');
+      await ctaBtn.waitFor({ state: 'visible', timeout: 30000 });
+      await ctaBtn.click();
       await expect(welcomeModal).not.toBeVisible();
     } catch {
       // Modal didn't appear, continue
