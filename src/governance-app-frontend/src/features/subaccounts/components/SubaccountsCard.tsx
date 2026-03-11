@@ -17,7 +17,7 @@ import type { Subaccount } from '../types';
 
 const MAX_PREVIEW_ACCOUNTS = 3;
 
-export const AccountsCard = () => {
+export const SubaccountsCard = () => {
   const { t } = useTranslation();
   const { data: accounts, isLoading } = useSubaccounts();
   const { tickerPrices: tickersQuery } = useTickerPrices();

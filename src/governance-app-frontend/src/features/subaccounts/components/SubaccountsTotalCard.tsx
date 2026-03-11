@@ -26,7 +26,7 @@ type Props = {
   isLoading: boolean;
 };
 
-export const AccountsTotalCard = ({ accounts, isLoading }: Props) => {
+export const SubaccountsTotalCard = ({ accounts, isLoading }: Props) => {
   const { t } = useTranslation();
   const { tickerPrices: tickersQuery } = useTickerPrices();
 

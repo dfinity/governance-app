@@ -36,7 +36,19 @@ export const AccountTransactionItem = ({
   const operation = tx.transaction.operation;
   if (!('Transfer' in operation)) return null;
 
-  const type = detectTransactionType(operation, accountId, userNeuronsAccountIds.accountIds);
+  const detectedType = detectTransactionType(
+    operation,
+    accountId,
+    userNeuronsAccountIds.accountIds,
+  );
+  const type =
+    detectedType === 'send'
+      ? TransactionType.SEND
+      : detectedType === 'receive'
+        ? TransactionType.RECEIVE
+        : detectedType === 'stake'
+          ? TransactionType.STAKE
+          : TransactionType.UNKNOWN;
 
   const title =
     type === TransactionType.SEND
