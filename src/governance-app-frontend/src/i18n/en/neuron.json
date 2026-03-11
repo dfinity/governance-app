@@ -1,33 +1,56 @@
 {
-  "title": "Your Stakes",
-  "description": "Manage your ICP Stakes and their configurations",
-  "neuronId": "Stake #{{neuronId}}",
-  "stakeId": "Stake ID",
+  "title": "Voting neurons",
+  "description": "Manage and create voting neurons",
+  "neuronId": "Neuron #{{neuronId}}",
+  "stakeId": "Neuron ID",
   "created": "Created",
   "dissolveDelay": "Dissolve delay",
-  "stakedMaturity": "Staked maturity",
-  "unstakedMaturity": "Liquid maturity",
+  "stakedMaturity": "Locked maturity",
+  "unstakedMaturity": "Available maturity",
   "maturityMode": "New maturity",
-  "autoStake": "Auto-stake",
-  "keepLiquid": "Keep liquid",
+  "autoStake": "Auto-lock",
+  "keepLiquid": "Unlocked",
   "locked": "Locked",
   "dissolving": "Dissolving",
   "dissolved": "Dissolved",
   "hotkey": "Hotkey",
-  "hotkeyTooltip": "This stake is controlled by a different principal, but your account has been added as a hotkey. You can view the stake and vote, but other operations are limited to the controller.",
-  "noFollowingWarning": "Not following anyone yet. Set up following in the Voting page.",
+  "hotkeyTooltip": "This neuron is controlled by a different principal, but your account has been added as a hotkey. You can view the neuron and vote, but other operations are limited to the controller.",
+  "following": "Following",
+  "followingNotSet": "Set up following",
+  "followingViewDetails": "View details",
+  "followingDetails": {
+    "title": "Following details",
+    "editLink": "Edit following settings"
+  },
+  "noFollowingWarning": "Not following anyone yet. Set up following in the voting page.",
   "disburseIcp": "Disburse ICPs",
   "disburseMaturity": "Disburse maturity",
-  "stakeMaturity": "Stake maturity",
+  "stakeMaturity": "Lock maturity",
+  "summary": {
+    "capital": "Locked in neurons",
+    "engagement": "Participation rate",
+    "engagementTooltip": "Based on the last 50 proposals",
+    "engagementAction": "View proposals",
+    "engagementActionComplete": "All caught up",
+    "earnings": "Maturity",
+    "earningsForecast": "1y forecast",
+    "automaticVoting": {
+      "label": "Automatic voting",
+      "knownNeuronSelected": "Enabled",
+      "partial": "Partial",
+      "notSetUp": "Not set up",
+      "setupVoting": "Select known neuron"
+    }
+  },
   "empty": {
     "title": "Start participating in governance",
-    "description": "Create your first stake to turn ICP into voting power. Stakes participate in voting and earn rewards over time.",
-    "cta": "Create your first stake",
-    "helper": "After staking, you can follow representatives or vote directly on proposals."
+    "description": "Create your first neuron to turn ICP into voting power. Neurons participate in voting and mint rewards over time.",
+    "cta": "Create your first neuron",
+    "helper": "After creating a neuron, you can follow known neurons or vote directly on proposals."
   },
   "stakeNeuron": {
     "errors": {
-      "zeroBalance": "You need ICP to stake. Please buy or deposit ICP first."
+      "zeroBalance": "You need ICP to lock. Please buy or deposit ICP first."
     }
   }
 }

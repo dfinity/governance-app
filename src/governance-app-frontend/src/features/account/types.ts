@@ -1,6 +1,7 @@
 export enum TransactionType {
-  UNKNOWN,
-  SEND,
-  RECEIVE,
-  STAKE,
+  UNKNOWN = 'unknown',
+  SEND = 'send',
+  RECEIVE = 'receive',
+  STAKE = 'stake',
+  SELF = 'self',
 }

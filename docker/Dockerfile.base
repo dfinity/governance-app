@@ -23,7 +23,7 @@ RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
     && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
 
 # Install DFX (Internet Computer SDK) and symlink to /usr/local/bin for CI access.
-ENV DFX_VERSION=0.30.2
+ENV DFX_VERSION=0.31.0
 RUN DFXVM_INIT_YES=true sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)" \
     && ln -sf /root/.local/share/dfx/versions/${DFX_VERSION}/dfx /usr/local/bin/dfx
 

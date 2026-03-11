@@ -1,6 +1,7 @@
 {
-  "account": "Your account",
-  "accountDescription": "Manage your account information and identity.",
+  "settingsDescription": "Manage your identity, preferences, and governance participation.",
+  "identity": "Identity",
+  "identityDescription": "Your principal, wallet address, and Internet Identity.",
   "principalId": "Principal ID",
   "accountId": "ICP wallet address",
   "accountIdExchangeBadge": "ICP tokens only",
@@ -28,12 +29,12 @@
       "statusNotParticipating": "Status: not participating",
       "descNotParticipating": "This account is not currently participating in Internet Computer governance.",
       "links": {
-        "viewStakes": "View stakes",
+        "viewStakes": "View neurons",
         "viewVotingActivity": "View voting activity",
         "learnHow": "Learn how participation works",
         "learnHowModal": {
           "title": "Governance participation",
-          "content": "To participate in governance, you need to stake ICP tokens into Stakes. Stakes allow you to vote on proposals and earn rewards for your participation. The more ICP you stake and the longer you lock it for, the more voting power you have."
+          "content": "To participate in governance, you need to lock ICP tokens into neurons. Neurons allow you to vote on proposals and mint rewards for your participation. The more ICP you lock and the longer you lock it for, the more voting power you have."
         }
       }
     },
@@ -57,8 +58,36 @@
       "toggle": "Toggle keyboard shortcuts"
     }
   },
+  "advancedFeatures": {
+    "title": "Advanced features",
+    "items": {
+      "subaccounts": {
+        "label": "Multiple accounts",
+        "description": "View and manage multiple accounts linked to your principal.",
+        "aria": {
+          "toggle": "Toggle multiple accounts feature"
+        },
+        "enabled": "Multiple accounts enabled",
+        "enabledDescription": "Multiple accounts are now visible and editable.",
+        "disabled": "Multiple accounts disabled",
+        "disabledDescription": "Multiple accounts related features are now hidden."
+      },
+      "advancedFollowing": {
+        "label": "Advanced following",
+        "description": "Follow different known neurons per topic across all your neurons.",
+        "aria": {
+          "toggle": "Toggle advanced following feature"
+        },
+        "enabled": "Advanced following enabled",
+        "enabledDescription": "Per-topic following configuration is now available.",
+        "disabled": "Advanced following disabled",
+        "disabledDescription": "Per-topic following management is now hidden. Your existing following configuration is preserved."
+      }
+    }
+  },
   "session": {
     "title": "Session",
-    "timeLeft": "Session expires in {{minutes}}m {{seconds}}s"
+    "timeLeft": "Session expires in {{minutes}}m {{seconds}}s",
+    "timeLeftShort": "Session expires in {{minutes}}m"
   }
 }

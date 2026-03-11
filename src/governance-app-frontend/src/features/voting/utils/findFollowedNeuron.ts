@@ -1,5 +1,7 @@
 import { KnownNeuron, NeuronInfo } from '@icp-sdk/canisters/nns';
 
+import { FOLLOWABLE_TOPIC_SET } from './topicFollowing';
+
 type FindFollowedNeuronParams = {
   userNeurons: NeuronInfo[];
   knownNeurons: KnownNeuron[];
@@ -23,7 +25,10 @@ export const getUsersFollowedNeurons = ({
   knownNeurons,
 }: FindFollowedNeuronParams): (KnownNeuron | bigint | undefined)[] => {
   const followeesPerNeuron = userNeurons.map(
-    (n) => n.fullNeuron?.followees?.flatMap((f) => f.followees) ?? [],
+    (n) =>
+      n.fullNeuron?.followees
+        ?.filter((f) => FOLLOWABLE_TOPIC_SET.has(f.topic))
+        .flatMap((f) => f.followees) ?? [],
   );
 
   const allFollowees = followeesPerNeuron.flat();

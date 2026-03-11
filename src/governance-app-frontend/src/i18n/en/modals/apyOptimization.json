@@ -1,26 +1,26 @@
 {
-  "title": "Maximize your APY",
-  "introduction": "Maximize your voting rewards by optimizing your Stakes' parameters. The maximum APY of <strong>{{maxApy}}</strong> is achieved with:",
+  "title": "Maximize your maturity rate",
+  "introduction": "Maximize your voting rewards by optimizing your neurons' parameters. The maximum maturity rate of <strong>{{maxApy}}</strong> is achieved with:",
   "optimalSettings": {
     "title": "Optimal settings",
     "lockedLabel": "Locked state",
     "locked": "Not dissolving (countdown paused for maximum rewards).",
-    "delayLabel": "8-Year dissolve delay",
+    "delayLabel": "8-year dissolve delay",
     "delay": "The longest delay period.",
-    "autoStakeLabel": "Auto-stake Maturity",
-    "autoStake": "Compound growth for even higher long-term returns."
+    "autoStakeLabel": "Auto-lock",
+    "autoStake": "New maturity is added to your neuron's locked balance automatically."
   },
-  "yourNeurons": "Your Stakes",
-  "neuronLabel": "Stake #{{id}}",
+  "yourNeurons": "Your neurons",
+  "neuronLabel": "Neuron #{{id}}",
   "fullyOptimized": "Fully optimized",
-  "allOptimized": "All Stakes are fully optimized!",
-  "noNeurons": "No Stakes yet. Create one to start earning rewards!",
+  "allOptimized": "All neurons are fully optimized!",
+  "noNeurons": "No neurons yet. Create one to start minting rewards!",
   "issues": {
     "notLocked": "Not locked",
     "delayLow": "Delay < 8Y",
-    "notAutoStaking": "Not auto-staking"
+    "notAutoStaking": "Unlocked"
   },
   "maximize": "Maximize",
-  "optimizeAll": "Optimize all Stakes",
-  "ariaLabel": "Open APY optimization modal"
+  "optimizeAll": "Optimize all neurons",
+  "ariaLabel": "Open maturity optimization modal"
 }

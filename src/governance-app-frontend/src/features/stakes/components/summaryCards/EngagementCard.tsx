@@ -1,0 +1,73 @@
+import type { NeuronInfo } from '@icp-sdk/canisters/nns';
+import { nonNullish } from '@dfinity/utils';
+import { Link } from '@tanstack/react-router';
+import { ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+
+import { ProposalFilter } from '@features/proposals/utils';
+import { useNeuronEngagement } from '@features/stakes/hooks/useNeuronEngagement';
+
+import { Card, CardContent } from '@components/Card';
+import { Skeleton } from '@components/Skeleton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
+import { formatNumber } from '@utils/numbers';
+
+type EngagementCardProps = {
+  neurons: NeuronInfo[];
+};
+
+export function EngagementCard({ neurons }: EngagementCardProps) {
+  const { t } = useTranslation();
+  const { engagement, isLoading } = useNeuronEngagement(neurons);
+
+  const formattedRate = nonNullish(engagement)
+    ? formatNumber(engagement.rate * 100, { minFraction: 1, maxFraction: 1 })
+    : null;
+
+  return (
+    <Card className="gap-3 py-4" data-testid="stakes-summary-engagement-card">
+      <CardContent>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <p className="mb-2 w-fit cursor-default text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              {t(($) => $.neuron.summary.engagement)}
+              <span className="sr-only">{t(($) => $.neuron.summary.engagementTooltip)}</span>
+            </p>
+          </TooltipTrigger>
+          <TooltipContent>{t(($) => $.neuron.summary.engagementTooltip)}</TooltipContent>
+        </Tooltip>
+        {isLoading ? (
+          <>
+            <Skeleton className="mb-2 h-8 w-32" />
+            <Skeleton className="h-4 w-20" />
+          </>
+        ) : (
+          <>
+            <div className="flex items-baseline gap-2">
+              <span className="text-lg font-semibold text-foreground md:text-2xl">
+                {formattedRate !== null ? `${formattedRate}%` : '—'}
+              </span>
+              {engagement !== null && (
+                <span className="text-sm text-muted-foreground">
+                  {engagement.participated}/{engagement.total}
+                </span>
+              )}
+            </div>
+            <Link
+              to="/voting"
+              search={{ showProposals: true, proposalFilter: ProposalFilter.All }}
+              className="mt-1 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {t(($) =>
+                engagement?.rate === 1
+                  ? $.neuron.summary.engagementActionComplete
+                  : $.neuron.summary.engagementAction,
+              )}
+              <ChevronRight className="size-3.5" />
+            </Link>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

@@ -2,6 +2,7 @@ import { motion, useSpring, useTransform } from 'motion/react';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Skeleton } from '@components/Skeleton';
 import { ICP_MAX_DISSOLVE_DELAY_MONTHS, ICP_MIN_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { useStakingRewards } from '@hooks/useStakingRewards';
@@ -35,13 +36,13 @@ type InnerProps = {
   maxApy: number;
 };
 
+const apyFormatter = (v: number) => `~${formatPercentage(v / 100)}`;
+
 function AnimatedApyBadgeInner({ value, minApy, maxApy }: InnerProps) {
   const { t } = useTranslation();
 
   const isMax = isMaxApy(value, maxApy);
   const normalizedPosition = Math.max(0, Math.min(1, (value - minApy) / (maxApy - minApy)));
-  const springValue = useSpring(value, { stiffness: 100, damping: 20 });
-  const displayValue = useTransform(springValue, (v) => `~${formatPercentage(v / 100)}`);
 
   const colorSpring = useSpring(normalizedPosition, { stiffness: 80, damping: 15 });
   const textColor = useTransform(colorSpring, (t) => interpolateApyColor(t));
@@ -49,9 +50,8 @@ function AnimatedApyBadgeInner({ value, minApy, maxApy }: InnerProps) {
   const borderColor = useTransform(colorSpring, (t) => interpolateApyColor(t, 0.3));
 
   useEffect(() => {
-    springValue.set(value);
     colorSpring.set(normalizedPosition);
-  }, [springValue, colorSpring, value, normalizedPosition]);
+  }, [colorSpring, normalizedPosition]);
 
   return (
     <motion.div
@@ -62,7 +62,11 @@ function AnimatedApyBadgeInner({ value, minApy, maxApy }: InnerProps) {
         {t(($) => $.stakeWizardModal.apyPreview.label)}:
       </span>
       <span className="inline-flex items-center gap-1 text-sm font-bold">
-        <motion.span style={{ color: textColor, width: '60px' }}>{displayValue}</motion.span>
+        <AnimatedNumber
+          value={value}
+          formatter={apyFormatter}
+          style={{ color: textColor, width: '60px' }}
+        />
         {isMax && (
           <motion.span
             initial={{ scale: 0, opacity: 0 }}

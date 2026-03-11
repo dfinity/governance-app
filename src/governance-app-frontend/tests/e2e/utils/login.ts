@@ -1,7 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
 
-import { firstVisibleLocatorIndex } from './locator';
-
 export const login = async ({ page }: { page: Page }) => {
   await test.step('Can log in.', async () => {
     await expect(page.getByTestId('login-btn')).toBeVisible();
@@ -18,30 +16,27 @@ export const login = async ({ page }: { page: Page }) => {
     await expect(newTab).toHaveTitle(/Internet Identity/);
 
     // Create new identity.
-    await newTab.getByRole('button', { name: 'Create Internet Identity' }).click();
-    const passkeyBtn = newTab.getByRole('button', { name: 'Create Passkey' });
-    const continueBtn = newTab.getByRole('button', { name: 'I saved it, continue' });
-    const visibleIndex = await firstVisibleLocatorIndex([passkeyBtn, continueBtn]);
+    await newTab.getByRole('button', { name: 'Continue with passkey' }).click();
+    await newTab.getByRole('button', { name: 'Create new identity' }).click();
+    await newTab.getByPlaceholder('Identity name').fill('E2E Test');
+    await newTab.getByRole('button', { name: 'Create identity' }).click();
 
-    if (visibleIndex === 1) {
-      await continueBtn.click();
-    } else {
-      await passkeyBtn.click();
-      await newTab.getByRole('button', { name: 'Create Passkey' }).click();
-      await newTab.locator('input#captchaInput').fill('a');
-      await newTab.getByRole('button', { name: 'Next' }).click();
-      await newTab.getByRole('button', { name: 'Continue' }).click();
-    }
+    const continueBtn = newTab.getByRole('button', { name: 'continue' }).first();
+    await continueBtn.waitFor({ state: 'visible', timeout: 30000 });
+    await continueBtn.click();
 
     // Wait until user is redirected back and tab closes.
     await newTab.waitForEvent('close');
-    await expect(newTab.isClosed()).toBe(true);
+    expect(newTab.isClosed()).toBe(true);
 
     // Close the welcome modal if it appears.
+    // The Continue button may be delayed while advanced feature detection runs.
     const welcomeModal = page.getByTestId('welcome-modal');
     try {
       await welcomeModal.waitFor({ state: 'visible', timeout: 30000 });
-      await page.getByTestId('welcome-modal-cta-btn').click();
+      const ctaBtn = page.getByTestId('welcome-modal-cta-btn');
+      await ctaBtn.waitFor({ state: 'visible', timeout: 30000 });
+      await ctaBtn.click();
       await expect(welcomeModal).not.toBeVisible();
     } catch {
       // Modal didn't appear, continue

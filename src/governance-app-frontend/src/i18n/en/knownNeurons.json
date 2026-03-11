@@ -1,13 +1,15 @@
 {
-  "title": "Choose a Representative to Follow",
-  "description": "Select one trusted organization to vote on your behalf for all your stakes.",
-  "empty": "No Representatives available.",
+  "title": "Choose a known neuron to follow",
+  "description": "Select one trusted organization to vote on your behalf for all your neurons.",
+  "empty": "No known neurons available.",
   "api": {
-    "success": "Now following {{name}} for all your stakes.",
-    "error": "Failed to follow {{name}}."
+    "processing": "Updating your neurons to follow {{name}}...",
+    "success": "Now following {{name}} for all your neurons.",
+    "error": "Failed to follow {{name}}.",
+    "retry": "Retry"
   },
   "confirmation": {
     "title": "Confirm your selection",
-    "description": "You are going to set up all your Stakes to follow the same Representative. This will override existing configurations. Are you sure?"
+    "description": "You are going to set up all your neurons to follow the same known neuron. This will override existing configurations. Are you sure?"
   }
 }

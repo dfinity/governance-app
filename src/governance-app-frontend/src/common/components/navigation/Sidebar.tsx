@@ -1,10 +1,28 @@
 import { Link } from '@tanstack/react-router';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { navigationItems } from './NavigationItems';
+import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { cn } from '@utils/shadcn';
+
+import { getNavigationItems } from './NavigationItems';
+import { UserMenu } from './UserMenu';
 
 export const Sidebar = () => {
   const { t } = useTranslation();
+  const { features } = useAdvancedFeatures();
+  const subaccountsEnabled = features.subaccounts;
+  const navigationItems = getNavigationItems({ subaccountsEnabled });
+
+  const [prevEnabled, setPrevEnabled] = useState(subaccountsEnabled);
+  const [shouldAnimate, setShouldAnimate] = useState(false);
+
+  if (subaccountsEnabled !== prevEnabled) {
+    setPrevEnabled(subaccountsEnabled);
+    if (subaccountsEnabled) {
+      setShouldAnimate(true);
+    }
+  }
 
   return (
     <aside className="sticky top-0 z-20 hidden h-full w-72 flex-col border-r bg-card text-sm lg:flex">
@@ -15,14 +33,18 @@ export const Sidebar = () => {
           className="me-4 h-[1.375rem] text-foreground dark:invert"
           aria-hidden="true"
         />
-        <span className="text-base font-semibold">Governance</span>
+        <span className="text-xs leading-tight font-semibold">Network Nervous System</span>
       </div>
       <nav className="flex-1 space-y-1 p-2">
         {navigationItems.map((item) => (
           <Link
             key={item.href}
             to={item.href}
-            className="relative flex items-center gap-3 rounded-lg px-4 py-3 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            className={cn(
+              'relative flex items-center gap-3 rounded-lg px-4 py-3 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
+              shouldAnimate && item.href === '/accounts' && 'animate-highlight-pulse',
+            )}
+            onAnimationEnd={item.href === '/accounts' ? () => setShouldAnimate(false) : undefined}
             activeProps={{
               className:
                 'before:absolute before:left-0 before:w-[3px] before:h-6 before:bg-black before:rounded-xl bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary',
@@ -33,6 +55,9 @@ export const Sidebar = () => {
           </Link>
         ))}
       </nav>
+      <div className="border-t p-3">
+        <UserMenu />
+      </div>
     </aside>
   );
 };

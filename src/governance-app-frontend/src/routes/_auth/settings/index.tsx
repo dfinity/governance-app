@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import { AddressBookCard } from '@features/addressBook/components/AddressBookCard';
 import { AccountIdCard } from '@features/userAccount/components/AccountIdCard';
+import { AdvancedFeaturesCard } from '@features/userAccount/components/AdvancedFeaturesCard';
 import { GovernanceAccessCard } from '@features/userAccount/components/GovernanceAccessCard';
 import { ManageIICard } from '@features/userAccount/components/ManageIICard';
 import { PrincipalCard } from '@features/userAccount/components/PrincipalCard';
@@ -15,59 +16,61 @@ import { ThemeCard } from '@features/userAccount/components/ThemeCard';
 
 import { Button } from '@components/button';
 import { Card } from '@components/Card';
-import { MANUAL_LOGOUT_KEY } from '@constants/extra';
+import { PageHeader } from '@components/PageHeader';
+import { useLogout } from '@hooks/useLogout';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
 import { getSessionTimeLeftForUi } from '@utils/date';
 
 import i18n from '@/i18n/config';
 
-type AccountSearchParams = {
+type SettingsSearchParams = {
   openAddressBook?: boolean;
 };
 
-export const Route = createFileRoute('/_auth/account/')({
-  validateSearch: (search: Record<string, unknown>): AccountSearchParams => ({
+export const Route = createFileRoute('/_auth/settings/')({
+  validateSearch: (search: Record<string, unknown>): SettingsSearchParams => ({
     openAddressBook:
       search.openAddressBook === 'true' || search.openAddressBook === true ? true : undefined,
   }),
-  component: Account,
+  component: Settings,
   head: () => {
-    const title = i18n.t(($) => $.common.head.account.title);
+    const title = i18n.t(($) => $.common.head.settings.title);
 
     return {
       meta: [{ title }],
     };
   },
   staticData: {
-    title: 'common.accounts',
+    title: 'common.settings',
   },
 });
 
-function Account() {
-  const { identity, clear } = useInternetIdentity();
+function Settings() {
+  const { identity } = useInternetIdentity();
   const { t } = useTranslation();
   const timeLeft = useSessionTimeLeft();
   const navigate = useNavigate({ from: Route.fullPath });
   const { openAddressBook } = Route.useSearch();
+  const logout = useLogout();
 
   const handleAddressBookOpenChange = (open: boolean) => {
     navigate({ search: open ? { openAddressBook: true } : {}, replace: true });
-  };
-
-  const handleLogout = () => {
-    localStorage.setItem(MANUAL_LOGOUT_KEY, 'true');
-    clear();
   };
 
   if (isNullish(identity)) return null;
 
   return (
     <div className="flex flex-col gap-12 pb-20">
+      <PageHeader
+        title={t(($) => $.common.settings)}
+        description={t(($) => $.userAccount.settingsDescription)}
+      />
+
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
-          <h2 className="text-2xl font-semibold">{t(($) => $.userAccount.account)}</h2>
+          <h2 className="text-2xl font-semibold">{t(($) => $.userAccount.identity)}</h2>
           <p className="text-sm text-muted-foreground">
-            {t(($) => $.userAccount.accountDescription)}
+            {t(($) => $.userAccount.identityDescription)}
           </p>
         </div>
         <Card className="overflow-hidden p-0 shadow-sm">
@@ -96,6 +99,17 @@ function Account() {
               onOpenChange={handleAddressBookOpenChange}
             />
           </div>
+        </Card>
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <div className="space-y-2">
+          <h2 className="text-2xl font-semibold">
+            {t(($) => $.userAccount.advancedFeatures.title)}
+          </h2>
+        </div>
+        <Card className="overflow-hidden p-0 shadow-sm">
+          <AdvancedFeaturesCard />
         </Card>
       </section>
 
@@ -139,10 +153,10 @@ function Account() {
           )}
         </div>
         <Button
-          variant="outline"
+          variant="outline-destructive"
           size="lg"
-          onClick={handleLogout}
-          className="w-full self-start border-destructive/50 text-destructive hover:bg-destructive/5 hover:text-destructive sm:w-auto dark:border-destructive/60 dark:text-destructive-foreground dark:hover:bg-destructive/10"
+          onClick={logout}
+          className="w-full self-start sm:w-auto"
           data-testid="logout-btn"
         >
           <LogOut className="mr-2 size-5" />

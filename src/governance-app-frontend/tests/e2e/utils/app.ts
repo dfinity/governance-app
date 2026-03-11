@@ -16,7 +16,7 @@ export const openApp = async ({ page, url = '/' }: { page: Page; url?: string })
   await page.goto(url);
   await page.waitForLoadState('networkidle');
 
-  await expect(page.getByText('Govern how the cloud evolves')).toBeVisible({
+  await expect(page.getByText('Benefit by helping the network think')).toBeVisible({
     timeout: 30000,
   });
 };

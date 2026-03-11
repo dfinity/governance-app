@@ -1,9 +1,13 @@
 import { Link } from '@tanstack/react-router';
 import { Coins, TrendingUp } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ApyOptimizationModal } from '@features/stakes/components/ApyOptimizationModal';
+import { DisburseModal } from '@features/stakes/components/DisburseModal';
+import { DisburseActionType, getDisburseAction } from '@features/stakes/utils/getDisburseAction';
 
+import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
@@ -47,8 +51,10 @@ export function StakedCard() {
   const neurons = neuronsQuery.data?.response ?? [];
   const neuronCount = neurons.length;
 
-  const { totalStakedAfterFees: totalStaked, totalUnstakedMaturity } =
-    getNeuronsAggregatedData(neurons);
+  const { totalStakedAfterFees: totalStaked, totalMaturity } = getNeuronsAggregatedData(neurons);
+
+  const disburseAction = getDisburseAction(neurons);
+  const [disburseModalOpen, setDisburseModalOpen] = useState(false);
 
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const usdValue = icpPrice ? formatNumber(totalStaked * icpPrice.usd) : '-';
@@ -56,34 +62,35 @@ export function StakedCard() {
   const stakingRewardsReady = isStakingRewardDataReady(stakingRewards);
 
   return (
-    <Card className="h-full" data-testid="staked-card">
-      <CardHeader className="flex flex-col gap-[14px]">
-        <div className="flex w-full items-start justify-between space-y-0">
-          <div className="flex items-center gap-2">
+    <Card className="h-full pt-4 pb-6" data-testid="staked-card">
+      <CardHeader className="flex flex-col gap-0">
+        <div className="flex min-h-9 w-full items-center justify-between">
+          <div className="flex shrink-0 items-center gap-2">
             <p className="text-sm tracking-wide text-muted-foreground uppercase">
-              {t(($) => $.common.staked)}
+              <span className="sm:hidden">{t(($) => $.common.stakedShort)}</span>
+              <span className="hidden sm:inline">{t(($) => $.common.staked)}</span>
             </p>
             {neuronsQuery.isLoading ? (
-              <Skeleton className="h-5 w-5 rounded-full" />
+              <Skeleton className="size-5 rounded-full" />
             ) : (
               <Badge variant="outline">{neuronCount}</Badge>
             )}
           </div>
 
-          <div className="flex items-start gap-1">
-            <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+          <div className="flex items-center gap-1">
+            <span className="sr-only sm:not-sr-only sm:text-xs sm:font-medium sm:tracking-wide sm:text-muted-foreground">
               {t(($) => $.home.yourApy)}
             </span>
 
             {stakingRewardsReady && apyColor.ready ? (
-              <span className="-mt-1.5 flex items-center">
+              <span className="flex items-center">
                 <span className="text-lg font-bold" style={{ color: apyColor.textColor }}>
                   {formatPercentage(stakingRewards.apy.cur)}
                 </span>
                 {stakingRewards.apy.cur < stakingRewards.apy.max && <ApyOptimizationModal />}
               </span>
             ) : (
-              <Skeleton className="h-7 w-16" />
+              <Skeleton className="h-5 w-16" />
             )}
           </div>
         </div>
@@ -92,7 +99,7 @@ export function StakedCard() {
           {neuronsQuery.isLoading ? (
             <Skeleton className="h-8 w-32" />
           ) : (
-            <p className="text-2xl font-bold">
+            <p className="text-2xl font-semibold">
               {t(($) => $.common.inIcp, { value: formatNumber(totalStaked) })}
             </p>
           )}
@@ -107,7 +114,7 @@ export function StakedCard() {
         </div>
       </CardHeader>
 
-      <CardContent className="flex flex-1 flex-col justify-between gap-4">
+      <CardContent className="flex flex-1 flex-col justify-between gap-6">
         <div className="mt-auto grid grid-cols-2 gap-4 text-right">
           <div className="flex flex-col gap-1 rounded-lg bg-gradient-to-br from-[#2563EB]/8 to-[#F97316]/8 p-3">
             <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
@@ -117,7 +124,7 @@ export function StakedCard() {
               {neuronsQuery.isLoading ? (
                 <Skeleton className="h-7 w-13" />
               ) : (
-                <span className="text-xl font-bold">{formatNumber(totalUnstakedMaturity)}</span>
+                <span className="text-xl font-bold">{formatNumber(totalMaturity)}</span>
               )}
               <MaturitySymbol />
             </div>
@@ -129,13 +136,12 @@ export function StakedCard() {
             </p>
             <div className="flex items-center justify-end gap-1.5">
               {stakingRewardsReady ? (
-                <span className="text-xl font-bold">
-                  {t(($) => $.common.positiveNumber, {
-                    value: formatNumber(
-                      stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) || 0,
-                    ),
-                  })}
-                </span>
+                <AnimatedNumber
+                  value={stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) || 0}
+                  prefix="+"
+                  formatOptions={{ minFraction: 2, maxFraction: 2 }}
+                  className="text-xl font-bold"
+                />
               ) : (
                 <Skeleton className="h-7 w-13" />
               )}
@@ -144,7 +150,7 @@ export function StakedCard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Button
             size="xl"
             variant="outline"
@@ -152,17 +158,56 @@ export function StakedCard() {
             asChild
             disabled={balanceQuery.isLoading}
           >
-            <Link to="/stakes" search={{ openWizard: true }} onClick={handleStakeMoreClick}>
+            <Link to="/neurons" search={{ openWizard: true }} onClick={handleStakeMoreClick}>
               <TrendingUp aria-hidden="true" />
               {t(($) => $.common.stakeIcp)}
             </Link>
           </Button>
 
-          <Button size="xl" variant="outline" className="flex-1" disabled>
-            <Coins /> {t(($) => $.common.withdraw)}
-          </Button>
+          {disburseAction.type === DisburseActionType.Choose ? (
+            <Button
+              size="xl"
+              variant="outline"
+              className="flex-1"
+              disabled={neuronsQuery.isLoading}
+              onClick={() => setDisburseModalOpen(true)}
+            >
+              <Coins aria-hidden="true" />
+              {t(($) => $.common.disburse)}
+            </Button>
+          ) : (
+            <Button
+              size="xl"
+              variant="outline"
+              className="flex-1"
+              asChild={disburseAction.type === DisburseActionType.Navigate}
+              disabled={
+                neuronsQuery.isLoading || disburseAction.type === DisburseActionType.Disabled
+              }
+            >
+              {disburseAction.type === DisburseActionType.Navigate ? (
+                <Link to="/neurons" search={disburseAction.search}>
+                  <Coins aria-hidden="true" />
+                  {t(($) => $.common.disburse)}
+                </Link>
+              ) : (
+                <>
+                  <Coins aria-hidden="true" />
+                  {t(($) => $.common.disburse)}
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </CardContent>
+
+      {disburseAction.type === DisburseActionType.Choose && (
+        <DisburseModal
+          neurons={disburseAction.neurons}
+          isOpen={disburseModalOpen}
+          onOpenChange={setDisburseModalOpen}
+        />
+      )}
     </Card>
   );
 }

@@ -1,0 +1,15 @@
+{
+  "title": "Disburse",
+  "selectNeuron": "Select a neuron to disburse from.",
+  "neuronLabel": "neuron",
+  "maturityLabel": "maturity",
+  "description": "What would you like to disburse?",
+  "disburseIcp": {
+    "title": "Disburse ICP",
+    "description": "Disburse your locked ICP from a dissolved neuron."
+  },
+  "disburseMaturity": {
+    "title": "Disburse maturity",
+    "description": "Convert your available maturity to ICP."
+  }
+}

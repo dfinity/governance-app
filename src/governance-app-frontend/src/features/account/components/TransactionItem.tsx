@@ -1,11 +1,23 @@
 import { IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
-import { ArrowDownToLine, ArrowUp, CircleQuestionMark, Lock } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { nonNullish } from '@dfinity/utils';
+import {
+  ArrowDownToLine,
+  ArrowUp,
+  ArrowUpDown,
+  BookUser,
+  CircleQuestionMark,
+  Lock,
+  WalletMinimal,
+} from 'lucide-react';
+import { Trans, useTranslation } from 'react-i18next';
+
+import { detectTransactionType } from '@features/transactions/utils/transactionType';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Card, CardContent } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
 import { CopyButton } from '@components/CopyButton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { E8Sn } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
 import { secondsToDate, secondsToTime, timestampInNanosToSeconds } from '@utils/date';
@@ -17,32 +29,18 @@ import { useNeuronAccountsIds } from '../hooks/useNeuronAccountsIds';
 import { TransactionType } from '../types';
 import { isSuspiciousAddress } from '../utils/addressPoisoning';
 
-// @TODO: Add support for Mint
-const getTransactionType = (
-  operation: IcpIndexDid.Operation,
-  accountId: string,
-  neuronsAccountIds: Set<string>,
-): TransactionType => {
-  if (!('Transfer' in operation)) return TransactionType.UNKNOWN;
-
-  if (neuronsAccountIds.has(operation.Transfer.to) && operation.Transfer.from === accountId)
-    return TransactionType.STAKE;
-  if (operation.Transfer.from === accountId) return TransactionType.SEND;
-  if (operation.Transfer.to === accountId) return TransactionType.RECEIVE;
-
-  return TransactionType.UNKNOWN;
-};
-
 export const AccountTransactionItem = ({
   tx,
   accountId,
   certified,
   trustedAddresses,
+  addressNameMap,
 }: {
   tx: IcpIndexDid.TransactionWithId;
   accountId: string;
   certified: boolean;
   trustedAddresses: Set<string>;
+  addressNameMap?: Map<string, { name: string; source: 'account' | 'addressBook' }>;
 }) => {
   const { t } = useTranslation();
   const userNeuronsAccountIds = useNeuronAccountsIds();
@@ -50,19 +48,31 @@ export const AccountTransactionItem = ({
   const operation = tx.transaction.operation;
   if (!('Transfer' in operation)) return null;
 
-  const type = getTransactionType(operation, accountId, userNeuronsAccountIds.accountIds);
+  const type = detectTransactionType(operation, accountId, userNeuronsAccountIds.accountIds);
 
   const title =
-    type === TransactionType.SEND
-      ? t(($) => $.account.withdrawnIcp)
+    type === TransactionType.SELF
+      ? t(($) => $.accounts.selfTransfer)
       : type === TransactionType.RECEIVE
-        ? t(($) => $.account.depositedIcp)
+        ? t(($) => $.accounts.received)
         : type === TransactionType.STAKE
-          ? t(($) => $.account.stakedIcp)
-          : t(($) => $.account.unknownTransaction);
+          ? t(($) => $.accounts.staked)
+          : type === TransactionType.SEND
+            ? t(($) => $.accounts.sent)
+            : t(($) => $.account.unknownTransaction);
 
   const address =
     type === TransactionType.RECEIVE ? operation.Transfer.from : operation.Transfer.to;
+
+  const addressEntry = addressNameMap?.get(address);
+  const addressName = addressEntry?.name;
+
+  const addressDirection =
+    type === TransactionType.RECEIVE
+      ? 'fromAddress'
+      : type === TransactionType.STAKE
+        ? 'intoAddress'
+        : 'toAddress';
 
   const transactionTimestamp = Number(
     timestampInNanosToSeconds(tx.transaction.created_at_time[0]?.timestamp_nanos ?? 0n),
@@ -71,6 +81,10 @@ export const AccountTransactionItem = ({
   const suspicious =
     type === TransactionType.RECEIVE &&
     isSuspiciousAddress(address, operation.Transfer.amount.e8s, trustedAddresses);
+
+  const shortAddress = shortenId(address, 10);
+  const fullAddress = shortenId(address, 18);
+  const addressComponents = { address: <span className="font-mono" /> };
 
   return (
     <Card key={tx.id} className="p-0">
@@ -81,10 +95,14 @@ export const AccountTransactionItem = ({
               'rounded-full p-3',
               type === TransactionType.RECEIVE
                 ? 'bg-emerald-200/30 text-emerald-800 dark:bg-emerald-100/10 dark:text-emerald-400'
-                : 'bg-red-200/30 text-red-800 dark:bg-red-100/10 dark:text-red-400',
+                : type === TransactionType.SELF
+                  ? 'bg-muted text-muted-foreground'
+                  : 'bg-red-200/30 text-red-800 dark:bg-red-100/10 dark:text-red-400',
             )}
           >
-            {type === TransactionType.SEND ? (
+            {type === TransactionType.SELF ? (
+              <ArrowUpDown className="size-5" />
+            ) : type === TransactionType.SEND ? (
               <ArrowUp className="size-5" />
             ) : type === TransactionType.RECEIVE ? (
               <ArrowDownToLine className="size-5" />
@@ -100,28 +118,69 @@ export const AccountTransactionItem = ({
               <CertifiedBadge certified={certified} />
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-col gap-1">
+              <div className="flex min-w-0 flex-col gap-1 sm:max-w-[66%]">
                 <span className="text-xs text-muted-foreground">
                   {secondsToDate(transactionTimestamp)} - {secondsToTime(transactionTimestamp)}
                 </span>
 
-                <div
-                  className={cn(
-                    'flex items-center gap-1 font-mono text-sm break-all text-muted-foreground',
-                    suspicious && 'text-amber-800 dark:text-amber-200',
-                  )}
-                >
-                  <span className="md:hidden">{shortenId(address, 10)}</span>
-                  <span className="hidden md:inline">{shortenId(address, 18)}</span>
-                  {!suspicious && (
-                    <CopyButton
-                      value={address}
-                      size="sm"
-                      variant="ghost"
-                      label={t(($) => $.account.address)}
-                    />
-                  )}
-                </div>
+                {nonNullish(addressName) ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground"
+                      >
+                        <span className="truncate">
+                          <Trans
+                            i18nKey={($) => $.account[addressDirection]}
+                            values={{ address: addressName }}
+                            components={{
+                              address: <span className="font-semibold" />,
+                            }}
+                          />
+                        </span>
+                        {addressEntry?.source === 'addressBook' ? (
+                          <BookUser className="size-3.5 shrink-0" aria-hidden />
+                        ) : (
+                          <WalletMinimal className="size-3.5 shrink-0" aria-hidden />
+                        )}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="font-mono text-xs">{address}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <div
+                    className={cn(
+                      'flex min-w-0 items-center gap-1 text-sm text-muted-foreground',
+                      suspicious && 'text-amber-800 dark:text-amber-200',
+                    )}
+                  >
+                    <span className="truncate md:hidden">
+                      <Trans
+                        i18nKey={($) => $.account[addressDirection]}
+                        values={{ address: shortAddress }}
+                        components={addressComponents}
+                      />
+                    </span>
+                    <span className="hidden truncate md:inline">
+                      <Trans
+                        i18nKey={($) => $.account[addressDirection]}
+                        values={{ address: fullAddress }}
+                        components={addressComponents}
+                      />
+                    </span>
+                    {!suspicious && (
+                      <CopyButton
+                        value={address}
+                        size="sm"
+                        variant="ghost"
+                        label={t(($) => $.account.address)}
+                      />
+                    )}
+                  </div>
+                )}
                 {suspicious && (
                   <Alert variant="warning" className="px-3 py-2">
                     <AlertDescription className="text-xs">
@@ -135,10 +194,12 @@ export const AccountTransactionItem = ({
                   'text-base font-semibold',
                   type === TransactionType.RECEIVE
                     ? 'text-emerald-800 dark:text-emerald-400'
-                    : 'text-red-800 dark:text-red-400',
+                    : type === TransactionType.SELF
+                      ? 'text-muted-foreground'
+                      : 'text-red-800 dark:text-red-400',
                 )}
               >
-                {type === TransactionType.RECEIVE ? '+' : '-'}
+                {type === TransactionType.RECEIVE ? '+' : type === TransactionType.SELF ? '' : '-'}
 
                 {t(($) => $.common.inIcp, {
                   value: formatNumber(bigIntDiv(operation.Transfer.amount.e8s, E8Sn), {

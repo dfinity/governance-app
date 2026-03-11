@@ -1,20 +1,25 @@
 import { AccountIdentifier, IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
-import { AnonymousIdentity } from '@icp-sdk/core/agent';
+import { isNullish } from '@dfinity/utils';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
+
+import { isSuspiciousAddress } from '@features/account/utils/addressPoisoning';
+import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
+import { useSubaccountsMetadata } from '@features/accounts/hooks/useSubaccountsMetadata';
 
 import { E8Sn } from '@constants/extra';
+import { useAddressBook } from '@hooks/addressBook/useAddressBook';
+import { addressBookGetAddressString } from '@utils/addressBook';
 import { bigIntDiv } from '@utils/bigInt';
 import { shortenId } from '@utils/id';
+import { infoNotification } from '@utils/notification';
 import { formatNumber } from '@utils/numbers';
-import { QUERY_KEYS } from '@utils/query';
+import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
 import { useIcpIndex } from './useIcpIndex';
 
-const POLLING_INTERVAL_MS = 2000;
+const POLLING_INTERVAL_MS = 3000;
 
 const formatTransferAmount = (operation: IcpIndexDid.Operation): string | undefined => {
   if (!('Transfer' in operation)) return undefined;
@@ -30,39 +35,53 @@ const isReceivedTransfer = (
 ): operation is Extract<IcpIndexDid.Operation, { Transfer: unknown }> =>
   'Transfer' in operation && operation.Transfer.to === accountId;
 
+type AccountPollResult = {
+  accountId: string;
+  latestTransaction: IcpIndexDid.TransactionWithId | null;
+};
+
 /**
- * Lightweight polling hook that detects new transactions using query-only
- * (non-certified) calls to the ICP Index canister and invalidates the
- * certified balance and transaction queries when a change is detected.
+ * Lightweight polling hook that detects new transactions across all user
+ * accounts using query-only (non-certified) calls to the ICP Index canister
+ * and invalidates the certified balance and transaction queries when a
+ * change is detected.
  *
- * Only a single cheap query call is made per interval (maxResults: 1).
+ * TODO: Move this hook to `features/transactions/hooks/`.
  */
 export const useIcpIndexTransactionsPolling = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { identity } = useInternetIdentity();
   const { ready, authenticated, canister } = useIcpIndex();
 
-  const accountIdentifier = AccountIdentifier.fromPrincipal({
-    principal: identity?.getPrincipal() || new AnonymousIdentity().getPrincipal(),
-  });
-  const accountId = accountIdentifier.toHex();
+  const mainAccount = useMainAccountMetadata();
+  const subaccounts = useSubaccountsMetadata();
+  const addressBookQuery = useAddressBook();
+  const accountIds = [
+    ...(mainAccount.data ? [mainAccount.data.accountId] : []),
+    ...subaccounts.data.map((a) => a.accountId),
+  ];
 
+  // accountId -> last seen transaction id per account.
   // undefined = not yet polled, null = polled but no transactions, bigint = latest tx id.
-  const lastTransactionIdRef = useRef<bigint | null | undefined>(undefined);
+  const lastTransactionsIdsRef = useRef<Map<string, bigint | null>>(new Map());
 
-  const { data: latestTransaction, isSuccess } = useQuery({
-    queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS_POLLING, accountId],
-    queryFn: async () => {
-      const response = await canister!.getTransactions({
-        maxResults: BigInt(1),
-        start: undefined,
-        accountIdentifier,
-        certified: false,
-      });
-      return response.transactions[0] ?? null;
+  const { data: results, isSuccess } = useQuery({
+    queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS_POLLING, ...accountIds],
+    queryFn: async (): Promise<AccountPollResult[]> => {
+      return Promise.all(
+        accountIds.map(async (accountId) => {
+          const accountIdentifier = AccountIdentifier.fromHex(accountId);
+          const response = await canister!.getTransactions({
+            maxResults: BigInt(1),
+            start: undefined,
+            accountIdentifier,
+            certified: false,
+          });
+          return { accountId, latestTransaction: response.transactions[0] ?? null };
+        }),
+      );
     },
-    enabled: ready && authenticated,
+    enabled: ready && authenticated && accountIds.length > 0,
     refetchInterval: POLLING_INTERVAL_MS,
     refetchIntervalInBackground: false,
   });
@@ -70,51 +89,67 @@ export const useIcpIndexTransactionsPolling = () => {
   useEffect(() => {
     if (!isSuccess) return;
 
-    const latestId = latestTransaction?.id;
-    const previous = lastTransactionIdRef.current;
-    const current = latestId ?? null;
-    lastTransactionIdRef.current = current;
+    const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
 
-    // First successful poll —> store without triggering notifications.
-    if (previous === undefined) return;
+    // Trusted set only includes the user's own accounts and address book contacts.
+    // Addresses from transaction history (e.g. past recipients) are not included,
+    // so poisoning attempts that mimic those addresses won't be caught here.
+    const trustedAddresses = new Set([
+      ...results.map(({ accountId }) => accountId),
+      ...addressBookEntries.map((entry) => addressBookGetAddressString(entry.address)),
+    ]);
 
-    if (current !== previous) {
+    for (const { accountId, latestTransaction } of results) {
+      const previous = lastTransactionsIdsRef.current.get(accountId);
+      const current = latestTransaction?.id ?? null;
+      lastTransactionsIdsRef.current.set(accountId, current);
+
+      // First time seeing this account — store baseline, don't treat as a change.
+      if (previous === undefined) continue;
+      // No change detected.
+      if (current === previous) continue;
+      // No transaction available (account has no history).
+      if (isNullish(latestTransaction)) continue;
+
       // New transaction detected —> invalidate certified balance and transactions.
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS],
-      });
+      queryClient
+        .invalidateQueries({
+          queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE, accountId],
+        })
+        .catch(failedRefresh);
+      queryClient
+        .invalidateQueries({
+          queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS, accountId],
+        })
+        .catch(failedRefresh);
 
-      if (latestTransaction) {
-        const { operation } = latestTransaction.transaction;
-        const amount = formatTransferAmount(operation);
+      const { operation } = latestTransaction.transaction;
+      const amount = formatTransferAmount(operation);
 
-        if (amount && isReceivedTransfer(operation, accountId)) {
-          const sender = operation.Transfer.from;
-          const truncatedSender = shortenId(sender, 6);
+      if (amount && isReceivedTransfer(operation, accountId)) {
+        const sender = operation.Transfer.from;
 
-          toast.info(
-            t(($) => $.account.newTransaction),
-            {
-              description: t(($) => $.account.newTransactionDescription, {
-                value: amount,
-                sender: truncatedSender,
-              }),
-              duration: 4000,
-              closeButton: true,
-            },
-          );
-        }
+        if (isSuspiciousAddress(sender, operation.Transfer.amount.e8s, trustedAddresses)) continue;
+
+        const contactName = addressBookEntries.find(
+          (entry) => addressBookGetAddressString(entry.address) === sender,
+        )?.name;
+        const senderLabel = contactName ?? shortenId(sender, 6);
+
+        infoNotification({
+          title: t(($) => $.account.newTransaction),
+          description: t(($) => $.account.newTransactionDescription, {
+            value: amount,
+            sender: senderLabel,
+          }),
+        });
       }
     }
-  }, [latestTransaction, isSuccess, queryClient, t, accountId]);
+  }, [results, isSuccess, queryClient, t, addressBookQuery.data]);
 
+  // Reset tracking when the set of polled accounts changes.
   useEffect(() => {
-    // When the account identifier changes (e.g., user switches identity),
-    // reset the last seen transaction id so the first poll for the new
-    // account is treated as an initial baseline, not a change.
-    lastTransactionIdRef.current = undefined;
-  }, [accountId]);
+    lastTransactionsIdsRef.current = new Map();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountIds.join(',')]);
 };

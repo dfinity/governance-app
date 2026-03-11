@@ -1,6 +1,6 @@
 {
-  "name": "Governance",
-  "short_name": "Governance",
+  "name": "Network Nervous System",
+  "short_name": "NNS",
   "description": "Decentralized governance application on the Internet Computer",
   "start_url": "/",
   "display": "standalone",

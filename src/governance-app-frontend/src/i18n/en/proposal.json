@@ -1,6 +1,6 @@
 {
   "proposalId": "Proposal #{{id}}",
-  "backToProposals": "Back to Proposals",
+  "backToProposals": "Back to proposals",
   "action": "Action",
   "timeLeft": "{{timeLeft}} left",
   "votingStatus": "Voting status",

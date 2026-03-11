@@ -3,6 +3,7 @@ import { Browser, expect, Page, test } from '@playwright/test';
 import { openApp } from './utils/app';
 import { getIcps } from './utils/getIcps';
 import { login } from './utils/login';
+import { navigateTo } from './utils/navigate';
 
 const openNeuronDetailModal = async (page: Page) => {
   await page.getByTestId('neuron-card').first().click();
@@ -25,7 +26,7 @@ test.describe.serial('Neuron Detail Modal', () => {
     await openApp({ page });
     await login({ page });
     await getIcps(page, '10');
-    await page.getByRole('link', { name: 'Stakes' }).click();
+    await navigateTo(page, 'neurons');
 
     await page.getByTestId('empty-neurons-state-open-staking-wizard-btn').click();
     await page.getByTestId('staking-wizard-amount-input').fill('5');
@@ -50,30 +51,30 @@ test.describe.serial('Neuron Detail Modal', () => {
       await closeModal(page);
     });
 
-    await test.step('URL contains stakeId when modal is open and reopens on refresh', async () => {
+    await test.step('URL contains neuronId when modal is open and reopens on refresh', async () => {
       await openNeuronDetailModal(page);
       const url = page.url();
-      expect(url).toContain('stakeId=');
+      expect(url).toContain('neuronId=');
       await page.reload();
       await expect(page.getByTestId('neuron-detail-modal')).toBeVisible();
       await expect(page.getByTestId('neuron-detail-staked-amount')).toHaveText(/5\.00.*ICP/i);
       await closeModal(page);
       const urlAfterClose = page.url();
-      expect(urlAfterClose).not.toContain('stakeId=');
+      expect(urlAfterClose).not.toContain('neuronId=');
     });
   });
 
   test('Increase Stake', async () => {
     await test.step('Opens view, navigates, and URL state persists', async () => {
       await openNeuronDetailModal(page);
-      await page.getByTestId('neuron-detail-action-increase-stake').click();
+      await page.getByTestId('neuron-detail-action-top-up-neuron').click();
       const url = page.url();
       expect(url).toContain('action=increaseStake');
       await expect(page.getByTestId('increase-stake-amount-input')).toBeVisible();
       await page.getByTestId('neuron-detail-back-btn').click();
       await expect(page.getByTestId('increase-stake-amount-input')).not.toBeVisible();
-      await expect(page.getByTestId('neuron-detail-action-increase-stake')).toBeVisible();
-      await page.getByTestId('neuron-detail-action-increase-stake').click();
+      await expect(page.getByTestId('neuron-detail-action-top-up-neuron')).toBeVisible();
+      await page.getByTestId('neuron-detail-action-top-up-neuron').click();
       await page.reload();
       await expect(page.getByTestId('increase-stake-amount-input')).toBeVisible();
       await closeModal(page);
@@ -81,11 +82,12 @@ test.describe.serial('Neuron Detail Modal', () => {
 
     await test.step('Validates input and shows current values', async () => {
       await openNeuronDetailModal(page);
-      await page.getByTestId('neuron-detail-action-increase-stake').click();
+      await page.getByTestId('neuron-detail-action-top-up-neuron').click();
       await expect(page.getByTestId('increase-stake-current-stake')).toHaveText(/5/);
+      await page.getByTestId('increase-stake-amount-input').fill('0');
       await page.getByTestId('increase-stake-confirm-btn').click();
       await expect(page.getByTestId('increase-stake-error')).toBeVisible();
-      await page.getByTestId('increase-stake-amount-input').fill('0.5');
+      await page.getByTestId('increase-stake-amount-input').fill('6');
       await page.getByTestId('increase-stake-confirm-btn').click();
       await expect(page.getByTestId('increase-stake-error')).toBeVisible();
       await closeModal(page);
@@ -93,15 +95,15 @@ test.describe.serial('Neuron Detail Modal', () => {
 
     await test.step('Successfully increases stake', async () => {
       await openNeuronDetailModal(page);
-      await page.getByTestId('neuron-detail-action-increase-stake').click();
-      await page.getByTestId('increase-stake-amount-input').fill('1');
+      await page.getByTestId('neuron-detail-action-top-up-neuron').click();
+      await page.getByTestId('increase-stake-amount-input').fill('0.5');
       await page.getByTestId('increase-stake-confirm-btn').click();
       await expect(page.getByTestId('increase-stake-amount-input')).not.toBeVisible({
         timeout: 30000,
       });
       await closeModal(page);
       const neuronCard = page.getByTestId('neuron-card');
-      await expect(neuronCard.getByTestId('neuron-card-staked-amount')).toHaveText(/6\.00.*ICP/i);
+      await expect(neuronCard.getByTestId('neuron-card-staked-amount')).toHaveText(/5\.50.*ICP/i);
     });
   });
 
@@ -157,17 +159,19 @@ test.describe.serial('Neuron Detail Modal', () => {
       await closeModal(page);
     });
 
-    await test.step('Successfully changes mode to auto-stake', async () => {
+    await test.step('Successfully changes mode to auto-lock', async () => {
       await openNeuronDetailModal(page);
       await page.getByTestId('neuron-detail-action-new-maturity').click();
       const toggle = page.getByTestId('segmented-toggle');
-      await toggle.getByRole('radio', { name: /auto-stake/i }).click();
+      await toggle.getByRole('radio', { name: /Auto-lock/i }).click();
       await expect(page.getByTestId('maturity-mode-confirm-btn')).toBeEnabled();
       await page.getByTestId('maturity-mode-confirm-btn').click();
       await expect(page.getByTestId('segmented-toggle')).not.toBeVisible({ timeout: 30000 });
       await closeModal(page);
       const neuronCard = page.getByTestId('neuron-card');
-      await expect(neuronCard.getByTestId('neuron-card-maturity-mode')).toHaveText(/Auto-Stake/i);
+      await expect(neuronCard.getByTestId('neuron-card-maturity-auto-stake')).toHaveText(
+        /Auto-lock/i,
+      );
     });
   });
 

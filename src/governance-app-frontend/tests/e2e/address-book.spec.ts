@@ -3,6 +3,7 @@ import { expect, type Page, test } from '@playwright/test';
 import { openApp } from './utils/app';
 import { getIcps } from './utils/getIcps';
 import { login } from './utils/login';
+import { navigateTo } from './utils/navigate';
 
 const TEST_ICP_ADDRESS = 'd4685b31b51450508aff0331584df7692a84467b680326f5c5f7d30ae711682f';
 const TEST_ICRC1_ADDRESS = 'h4a5i-5vcfo-5rusv-fmb6m-vrkia-mjnkc-jpoow-h5mam-nthnm-ldqlr-bqe';
@@ -19,6 +20,7 @@ const addAddress = async (page: Page, nickname: string, address: string) => {
   await page.getByTestId('add-address-nickname-input').fill(nickname);
   await page.getByTestId('add-address-address-input').fill(address);
   await page.getByTestId('add-address-save-btn').click();
+  await expect(page.getByText('Address saved successfully.')).toBeVisible({ timeout: 30000 });
   await expect(page.getByTestId('add-address-modal')).not.toBeVisible({ timeout: 30000 });
 };
 
@@ -37,7 +39,7 @@ test.describe('Address book', () => {
     await test.step('Open app and login.', async () => {
       await openApp({ page });
       await login({ page });
-      await page.getByRole('link', { name: 'Account' }).click();
+      await navigateTo(page, 'settings');
     });
 
     await test.step('Open address book modal and verify empty state.', async () => {
@@ -47,7 +49,6 @@ test.describe('Address book', () => {
 
     await test.step('Add first address (ICP) - "Alice".', async () => {
       await addAddress(page, 'Alice', TEST_ICP_ADDRESS);
-      await expect(page.getByText('Address saved successfully.').first()).toBeVisible();
 
       await expect(page.getByTestId('address-book-empty')).not.toBeVisible({ timeout: 30000 });
       const names = await getEntryNames(page);
@@ -60,7 +61,6 @@ test.describe('Address book', () => {
 
     await test.step('Add second address (ICRC1) - "Bob".', async () => {
       await addAddress(page, 'Bob', TEST_ICRC1_ADDRESS);
-      await expect(page.getByText('Address saved successfully.').first()).toBeVisible();
 
       await expect(page.getByTestId('address-book-empty')).not.toBeVisible({ timeout: 30000 });
       const names = await getEntryNames(page);
@@ -85,8 +85,8 @@ test.describe('Address book', () => {
       await page.getByTestId('add-address-nickname-input').fill('Marta');
       await page.getByTestId('add-address-save-btn').click();
 
+      await expect(page.getByText('Address updated successfully.')).toBeVisible({ timeout: 30000 });
       await expect(page.getByTestId('add-address-modal')).not.toBeVisible({ timeout: 30000 });
-      await expect(page.getByText('Address updated successfully.').first()).toBeVisible();
 
       const names = await getEntryNames(page);
       const addresses = await getEntryAddresses(page);
@@ -107,8 +107,8 @@ test.describe('Address book', () => {
       await page.getByTestId('add-address-address-input').fill(TEST_ICRC1_ADDRESS);
       await page.getByTestId('add-address-save-btn').click();
 
+      await expect(page.getByText('Address updated successfully.')).toBeVisible({ timeout: 30000 });
       await expect(page.getByTestId('add-address-modal')).not.toBeVisible({ timeout: 30000 });
-      await expect(page.getByText('Address updated successfully.').first()).toBeVisible();
 
       martaEntry = page.getByTestId('address-book-entry').filter({ hasText: 'Marta' });
       const names = await getEntryNames(page);
@@ -128,10 +128,12 @@ test.describe('Address book', () => {
       await expect(page.getByTestId('remove-address-confirmation')).toContainText('Bob');
       await page.getByTestId('remove-address-confirm-btn').click();
 
+      await expect(page.getByText('Address removed successfully.')).toBeVisible({
+        timeout: 30000,
+      });
       await expect(page.getByTestId('remove-address-confirmation')).not.toBeVisible({
         timeout: 30000,
       });
-      await expect(page.getByText('Address removed successfully.').first()).toBeVisible();
 
       const names = await getEntryNames(page);
       const addresses = await getEntryAddresses(page);
@@ -165,10 +167,12 @@ test.describe('Address book', () => {
       await expect(page.getByTestId('remove-address-confirmation')).toBeVisible();
       await page.getByTestId('remove-address-confirm-btn').click();
 
+      await expect(page.getByText('Address removed successfully.')).toBeVisible({
+        timeout: 30000,
+      });
       await expect(page.getByTestId('remove-address-confirmation')).not.toBeVisible({
         timeout: 30000,
       });
-      await expect(page.getByText('Address removed successfully.').first()).toBeVisible();
 
       await expect(page.getByTestId('address-book-empty')).toBeVisible();
       const names = await getEntryNames(page);
@@ -193,14 +197,11 @@ test.describe('Address book', () => {
     });
 
     await test.step('Add 2 addresses to address book.', async () => {
-      await page.getByRole('link', { name: 'Account' }).click();
+      await navigateTo(page, 'settings');
       await openAddressBookModal(page);
 
       await addAddress(page, 'Wallet A', TEST_ICP_ADDRESS);
-      await expect(page.getByText('Address saved successfully.').first()).toBeVisible();
-
       await addAddress(page, 'Wallet B', TEST_ICRC1_ADDRESS);
-      await expect(page.getByText('Address saved successfully.').first()).toBeVisible();
 
       const names = await getEntryNames(page);
       expect(names).toHaveLength(2);
@@ -215,7 +216,7 @@ test.describe('Address book', () => {
     });
 
     await test.step('Open send dialog - verify toggle is on and dropdown visible.', async () => {
-      await page.getByRole('link', { name: 'Dashboard', exact: true }).click();
+      await navigateTo(page, 'dashboard');
       await page.getByTestId('send-icp-btn').click();
       await expect(page.getByTestId('address-book-toggle')).toBeVisible();
       await expect(page.getByTestId('address-book-toggle')).toBeChecked();
@@ -225,10 +226,12 @@ test.describe('Address book', () => {
     await test.step('Select "Wallet B", fill amount, and submit.', async () => {
       await page.getByTestId('address-book-select').selectOption('Wallet B');
       await page.getByTestId('send-icp-amount-input').fill('5');
+      await page.getByTestId('send-icp-next-btn').click();
       await page.getByTestId('send-icp-confirm-btn').click();
 
-      await expect(page.getByText('successfully sent')).toBeVisible({ timeout: 30000 });
-      await expect(page.getByText(TEST_ICRC1_ADDRESS.slice(0, 20))).toBeVisible();
+      await expect(
+        page.getByRole('paragraph').filter({ hasText: 'successfully sent 5 ICP to Wallet B' }),
+      ).toBeVisible({ timeout: 30000 });
     });
   });
 });

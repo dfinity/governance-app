@@ -9,7 +9,8 @@
   "loadingError": "Error loading data.",
   "refreshFailed": "Failed to automatically refresh the data. Please try reloading the page.",
   "unknownError": "An error occurred.",
-  "staked": "Staked",
+  "staked": "Locked in neurons",
+  "stakedShort": "Neurons",
   "icp": "ICP",
   "inIcp": "{{value}} ICP",
   "positiveNumber": "+{{value}}",
@@ -37,17 +38,22 @@
   "restrictedPage": "You need to be logged in to access this page.",
   "sending": "Sending ...",
   "withdraw": "Withdraw",
-  "stakeIcp": "Stake ICP",
+  "disburse": "Disburse",
+  "send": "Send",
+  "receive": "Receive",
+  "stakeIcp": "Create neuron",
   "confirm": "Confirm",
   "cancel": "Cancel",
   "close": "Close",
+  "retry": "Retry",
   "back": "Back",
   "next": "Next",
-  "apy": "APY",
+  "apy": "Maturity",
   "dashboard": "Dashboard",
-  "voting": "Voting",
-  "stakes": "Stakes",
-  "accounts": "Account",
+  "voting": "Vote for proposals",
+  "accounts": "ICP accounts",
+  "stakes": "Voting neurons",
+  "settings": "Settings",
   "clipboard": {
     "copy": "Copy to clipboard",
     "copied": "Your {{label}} was copied to the clipboard.",
@@ -58,24 +64,6 @@
   },
   "max": "Max",
   "leave": "Leave",
-  "betaBanner": {
-    "beta": "Beta",
-    "openInfo": "Open beta information",
-    "modalTitle": "Beta · ICP Staking & Governance",
-    "modalDescription": "This app is in beta. Actions here affect your real governance setup.",
-    "whatYouCanDo": "What you can do:",
-    "canDo": {
-      "stake": "Create and manage Stakes",
-      "vote": "Setup following, and vote on proposals",
-      "viewActivity": "View your staking and voting activity"
-    },
-    "beAware": "Be aware:",
-    "aware": {
-      "affectsConfig": "Actions affect your live governance configuration",
-      "testing": "Some features are still being tested",
-      "reportIssues": "Please report any issues you encounter"
-    }
-  },
   "maxRewards": "Max rewards",
   "externalLink": {
     "title": "Leaving the app",
@@ -84,29 +72,37 @@
   },
   "opensInNewTab": "(opens in a new tab)",
   "head": {
-    "appName": "Governance",
+    "appName": "Network Nervous System",
     "defaultDescription": "Participate in decentralized governance on the Internet Computer",
     "login": {
-      "title": "Governance - ICP Staking & Voting",
-      "description": "Participate in decentralized governance on the Internet Computer. Stake ICP, vote on proposals, and earn rewards."
+      "title": "ICP governance & voting | Network Nervous System",
+      "description": "Participate in decentralized governance on the Internet Computer. Lock ICP, vote on proposals, and mint rewards."
     },
     "dashboard": {
-      "title": "Dashboard | Governance"
+      "title": "Dashboard | Network Nervous System"
+    },
+    "accounts": {
+      "title": "ICP accounts | Network Nervous System"
     },
     "stakes": {
-      "title": "Stakes | Governance"
+      "title": "Voting neurons | Network Nervous System"
     },
     "voting": {
-      "title": "Voting | Governance"
+      "title": "Vote for proposals | Network Nervous System"
     },
-    "representatives": {
-      "title": "Choose a Representative | Governance"
+    "knownNeurons": {
+      "title": "Choose a known neuron | Network Nervous System"
     },
     "proposalDetails": {
-      "title": "Proposal #{{proposalId}} | Governance"
+      "title": "Proposal #{{proposalId}} | Network Nervous System"
     },
-    "account": {
-      "title": "Account | Governance"
+    "settings": {
+      "title": "Settings | Network Nervous System"
     }
+  },
+  "newFeatureCheck": {
+    "detected": "{{feature}} detected! You can enable it in the Settings.",
+    "subaccounts": "Multiple accounts",
+    "advancedFollowing": "Advanced following"
   }
 }

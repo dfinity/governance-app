@@ -23,6 +23,8 @@ export const ICP_TRANSACTION_FEE = 0.0001;
 export const ICP_TRANSACTION_FEE_E8S = ICP_TRANSACTION_FEE * E8S;
 export const ICP_TRANSACTION_FEE_E8Sn = BigInt(ICP_TRANSACTION_FEE_E8S);
 export const ICP_TRANSACTION_PROPAGATION_DELAY_MS = 2_000;
+export const SUCCESS_AUTO_CLOSE_MS = 2_400;
+export const DIALOG_RESET_DELAY_MS = 300;
 
 export const VOTING_RESULTS_PRECISION = 6; // Number of digits after the decimal point.
 
@@ -51,11 +53,13 @@ export const MAX_AGE_BONUS = 0.25; // +25%
 export const MANUAL_LOGOUT_KEY = 'nns-manual-logout';
 export const WELCOME_MODAL_STORAGE_KEY = 'nns-welcome-modal-seen';
 export const SHORTCUTS_SETTINGS_KEY = 'nns-shortcuts-settings';
+export const ADVANCED_FEATURES_STORAGE_KEY = 'nns-advanced-features';
+export const THEME_STORAGE_KEY = 'nns-theme';
 
 // External Links
 export const DASHBOARD_URL = `https://dashboard.internetcomputer.org/neuron`;
 
-const localIdentityProvider = `http://${CANISTER_ID_INTERNET_IDENTITY}.${HOST}`;
-const mainnetIdentityProvider = 'https://id.ai/?feature_flag_guided_upgrade=true';
-export const IDENTITY_PROVIDER = IS_LOCAL ? localIdentityProvider : mainnetIdentityProvider;
+const II_DOMAIN = IS_LOCAL ? `http://${CANISTER_ID_INTERNET_IDENTITY}.${HOST}` : 'https://id.ai';
+export const II_LOGIN_URL = `${II_DOMAIN}/?feature_flag_min_guided_upgrade=true`;
+export const II_MANAGE_URL = `${II_DOMAIN}/manage`;
 export const II_DERIVATION_ORIGIN = IS_LOCAL ? null : 'https://nns.ic0.app';

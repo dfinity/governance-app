@@ -2,7 +2,6 @@ import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { AlertTriangle, CircleAlert, Coins, Key, PackagePlus } from 'lucide-react';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
@@ -32,30 +31,28 @@ import {
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { APY } from '@utils/staking-rewards';
 
-import { DisburseIcpModal } from './DisburseIcpModal';
-import { DisburseMaturityModal } from './DisburseMaturityModal';
+import type { NeuronAction } from './neuronDetail';
+import { NeuronStandaloneAction } from './neuronDetail';
 import { NeuronStateBadge } from './NeuronStateBadge';
-import { StakeMaturityModal } from './StakeMaturityModal';
 
 type Props = {
   neuron: NeuronInfo;
   apy?: NonNullable<ReturnType<APY['neurons']['get']>>;
+  onAction?: (action: NeuronAction) => void;
 };
 
-export const NeuronCard = ({ neuron, apy }: Props) => {
+export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
   const apyColor = useApyColor(apy?.cur ?? 0);
   const { tickerPrices: tickersQuery } = useTickerPrices();
-  const [disburseIcpOpen, setDisburseIcpOpen] = useState(false);
-  const [disburseMaturityOpen, setDisburseMaturityOpen] = useState(false);
-  const [stakeMaturityOpen, setStakeMaturityOpen] = useState(false);
 
   const isDissolved = getNeuronIsDissolved(neuron);
   const isDissolving = getNeuronIsDissolving(neuron);
   const isAutoStake = getNeuronIsAutoStakingMaturity(neuron);
   const hasNoFollowing = getNeuronHasNoFollowing(neuron);
   const hasUnstakedMaturity = getNeuronFreeMaturityE8s(neuron) > 0n;
+  const hasStakeToDisburse = getNeuronStakeAfterFeesE8s(neuron) > 0n;
   const isHotkey = isUserHotkey({
     neuron,
     principalId: identity?.getPrincipal().toText(),
@@ -112,10 +109,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
               tabIndex={0}
               aria-label="Optimize neuron APY"
             >
-              <p className="text-[13px] font-semibold">
-                {formatPercentage(apy.cur)}{' '}
-                <span className="hidden sm:inline">{t(($) => $.common.apy)} </span>
-              </p>
+              <p className="text-[13px] font-semibold">{formatPercentage(apy.cur)}</p>
               {apyColor.isMax ? (
                 <span className="rounded bg-green-600 px-1 py-0.5 text-[10px] font-bold text-white uppercase">
                   {t(($) => $.common.max)}
@@ -156,15 +150,12 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
             </div>
 
             <div className="flex items-center justify-between border-b border-border/50 py-3">
-              <p className="text-[13px] text-muted-foreground capitalize">
+              <p className="text-[13px] text-muted-foreground">
                 {t(($) => $.neuron.dissolveDelay)}
               </p>
               <div className="flex items-center gap-2">
                 <NeuronStateBadge isDissolved={isDissolved} isDissolving={isDissolving} />
-                <p
-                  className="text-[15px] font-semibold capitalize"
-                  data-testid="neuron-card-dissolve-delay"
-                >
+                <p className="text-[15px] font-semibold" data-testid="neuron-card-dissolve-delay">
                   {durationText}
                 </p>
               </div>
@@ -172,7 +163,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
 
             {/* Staked Maturity */}
             <div className="flex items-center justify-between border-b border-border/50 py-3">
-              <p className="text-[13px] text-muted-foreground capitalize">
+              <p className="text-[13px] text-muted-foreground">
                 {t(($) => $.neuron.stakedMaturity)}
               </p>
               <div className="flex items-center gap-1">
@@ -183,7 +174,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
 
             {/* Unstaked Maturity */}
             <div className="flex items-center justify-between border-b border-border/50 py-3">
-              <p className="text-[13px] text-muted-foreground capitalize">
+              <p className="text-[13px] text-muted-foreground">
                 {t(($) => $.neuron.unstakedMaturity)}
               </p>
               <div className="flex items-center gap-1">
@@ -194,12 +185,14 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
 
             {/* Maturity Mode */}
             <div className="flex items-center justify-between py-3">
-              <p className="text-[13px] text-muted-foreground capitalize">
-                {t(($) => $.neuron.maturityMode)}
-              </p>
+              <p className="text-[13px] text-muted-foreground">{t(($) => $.neuron.maturityMode)}</p>
               <p
-                className="text-[15px] font-semibold capitalize"
-                data-testid="neuron-card-maturity-mode"
+                className="text-[15px] font-semibold"
+                data-testid={
+                  isAutoStake
+                    ? 'neuron-card-maturity-auto-stake'
+                    : 'neuron-card-maturity-keep-liquid'
+                }
               >
                 {isAutoStake ? t(($) => $.neuron.autoStake) : t(($) => $.neuron.keepLiquid)}
               </p>
@@ -219,15 +212,15 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
         </CardContent>
 
         {/* Disburse buttons */}
-        {!isHotkey && (isDissolved || hasUnstakedMaturity) && (
+        {!isHotkey && ((isDissolved && hasStakeToDisburse) || hasUnstakedMaturity) && (
           <CardFooter className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:gap-4">
-            {isDissolved && (
+            {isDissolved && hasStakeToDisburse && (
               <Button
                 variant="outline"
                 className="w-full sm:flex-1"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setDisburseIcpOpen(true);
+                  onAction?.(NeuronStandaloneAction.DisburseIcp);
                 }}
                 data-testid="neuron-card-disburse-icp-btn"
               >
@@ -241,7 +234,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
                 className="w-full sm:flex-1"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setDisburseMaturityOpen(true);
+                  onAction?.(NeuronStandaloneAction.DisburseMaturity);
                 }}
                 data-testid="neuron-card-disburse-maturity-btn"
               >
@@ -255,7 +248,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
                 className="w-full sm:flex-1"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setStakeMaturityOpen(true);
+                  onAction?.(NeuronStandaloneAction.StakeMaturity);
                 }}
                 data-testid="neuron-card-stake-maturity-btn"
               >
@@ -266,22 +259,6 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
           </CardFooter>
         )}
       </Card>
-
-      <DisburseIcpModal
-        neuron={neuron}
-        isOpen={disburseIcpOpen}
-        onOpenChange={setDisburseIcpOpen}
-      />
-      <DisburseMaturityModal
-        neuron={neuron}
-        isOpen={disburseMaturityOpen}
-        onOpenChange={setDisburseMaturityOpen}
-      />
-      <StakeMaturityModal
-        neuron={neuron}
-        isOpen={stakeMaturityOpen}
-        onOpenChange={setStakeMaturityOpen}
-      />
     </>
   );
 };

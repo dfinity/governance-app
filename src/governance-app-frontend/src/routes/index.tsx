@@ -2,24 +2,23 @@ import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { ensureInitialized, useInternetIdentity } from 'ic-use-internet-identity';
 import { ExternalLink } from 'lucide-react';
-import { type CSSProperties, useLayoutEffect } from 'react';
+import { type CSSProperties, useLayoutEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGovernanceLogo';
 
-import { BetaBanner } from '@components/BetaBanner';
+import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Button } from '@components/button';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { useGovernanceProposal } from '@hooks/governance';
 import { useTvlValue } from '@hooks/useTvlValue';
-import { formatNumber } from '@utils/numbers';
 
 import i18n from '@/i18n/config';
 
 const FADE_MASK_STYLE: CSSProperties = {
-  maskImage: 'radial-gradient(ellipse at center, black 40%, transparent 85%)',
-  WebkitMaskImage: 'radial-gradient(ellipse at center, black 40%, transparent 85%)',
+  maskImage: 'radial-gradient(ellipse at center, black 30%, transparent 70%)',
+  WebkitMaskImage: 'radial-gradient(ellipse at center, black 30%, transparent 70%)',
 };
 
 type LoginSearch = {
@@ -74,10 +73,12 @@ function LoginPage() {
     };
   }, []);
 
+  const [isVideoReady, setIsVideoReady] = useState(false);
   const { tvl, isLoading: isTvlLoading, isError: isTvlError } = useTvlValue();
   const participants = 57986;
   const proposalsQuery = useGovernanceProposal();
   const totalProposals = proposalsQuery?.data?.response?.id ?? 0n;
+  const allStatsReady = !isTvlLoading && !proposalsQuery?.isLoading;
 
   return (
     <>
@@ -115,7 +116,8 @@ function LoginPage() {
               muted
               playsInline
               preload="auto"
-              className="relative max-h-[720px] w-fit object-cover motion-reduce:hidden 3xl:translate-x-3/4 md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 xl:translate-x-1/2 2xl:translate-x-2/3"
+              onCanPlayThrough={() => setIsVideoReady(true)}
+              className={`relative max-h-[720px] w-fit object-cover transition-opacity duration-1000 ease-in motion-reduce:hidden 3xl:translate-x-3/4 md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 xl:translate-x-1/2 2xl:translate-x-2/3 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}
               aria-hidden={true}
               style={FADE_MASK_STYLE}
             >
@@ -132,35 +134,39 @@ function LoginPage() {
         <div className="relative flex min-h-dvh w-full flex-col justify-between px-4 py-10 3xl:mx-auto 3xl:max-w-[2000px] sm:p-12">
           {/* Header Section */}
           <div className="relative flex flex-col gap-6 md:mb-12 md:gap-0">
-            <div className="relative w-fit">
+            <div className="relative flex w-fit items-center gap-4">
               <img
                 src="/governance-logo.svg"
-                alt={t(($) => $.common.alt.icpLogo)}
+                alt=""
+                aria-hidden={true}
                 className="h-6 w-fit invert"
               />
-              <BetaBanner isLoggedIn={false} />
+              <span className="text-sm leading-tight font-semibold">
+                {t(($) => $.common.head.appName)}
+              </span>
             </div>
-            <h1 className="text-hero-responsive mt-4 mb-6 max-w-xl font-bold tracking-wide md:mt-12 md:mb-0 md:max-w-3xl">
+            <h1 className="animate-fade-up text-hero-responsive mt-4 mb-6 max-w-xl font-bold tracking-wide md:mt-12 md:mb-0 md:max-w-3xl">
               {t(($) => $.login.headerTitle)}
             </h1>
           </div>
 
           <div className="flex flex-1 flex-col gap-6 md:flex-col md:items-stretch md:gap-8">
             {/* Stats Section (Desktop: Bottom / Mobile: Below Title) */}
-            <dl className="order-1 mt-auto flex flex-col gap-8 md:order-2 md:mt-auto md:mb-6 md:h-13 md:flex-row md:gap-16">
+            <dl className="animate-fade-up animate-delay-400 order-1 mt-auto mb-4 flex flex-col gap-8 md:order-2 md:mb-6 md:h-13 md:flex-row md:gap-16">
               <div className="flex flex-col-reverse gap-1">
-                <dt className="text-sm font-light tracking-wider text-muted-foreground capitalize">
+                <dt className="text-sm font-light tracking-wider text-muted-foreground">
                   {t(($) => $.login.totalProposals)}
                 </dt>
                 <dd className="text-2xl leading-none font-bold md:text-3xl">
-                  {proposalsQuery?.isLoading ? (
+                  {!allStatsReady ? (
                     <Skeleton className="h-7 w-30 md:h-8" />
                   ) : proposalsQuery?.isError ? (
                     '-/-'
                   ) : (
-                    // Safe Number casting as the number of proposals is within the range
-                    // totalProposals < Number.MAX_SAFE_INTEGER
-                    formatNumber(Number(totalProposals), { minFraction: 0, maxFraction: 0 })
+                    <AnimatedNumber
+                      value={Number(totalProposals)}
+                      formatOptions={{ minFraction: 0, maxFraction: 0 }}
+                    />
                   )}
                 </dd>
               </div>
@@ -176,10 +182,13 @@ function LoginPage() {
                   {t(($) => $.login.participants)}
                 </dt>
                 <dd className="text-2xl leading-none font-bold md:text-3xl">
-                  {isTvlLoading && proposalsQuery?.isLoading ? (
+                  {!allStatsReady ? (
                     <Skeleton className="h-7 w-26 md:h-8" />
                   ) : (
-                    formatNumber(participants, { maxFraction: 0, minFraction: 0 })
+                    <AnimatedNumber
+                      value={participants}
+                      formatOptions={{ minFraction: 0, maxFraction: 0 }}
+                    />
                   )}
                 </dd>
               </div>
@@ -191,23 +200,27 @@ function LoginPage() {
               />
 
               <div className="flex flex-col-reverse gap-1">
-                <dt className="text-sm font-light tracking-wider text-muted-foreground capitalize">
+                <dt className="text-sm font-light tracking-wider text-muted-foreground">
                   {t(($) => $.login.tvl)}
                 </dt>
                 <dd className="text-2xl leading-none font-bold md:text-3xl">
-                  {isTvlLoading ? (
+                  {!allStatsReady ? (
                     <Skeleton className="h-7 w-52 md:h-8" />
                   ) : isTvlError || isNullish(tvl) ? (
                     '-'
                   ) : (
-                    `$${formatNumber(tvl, { maxFraction: 0, minFraction: 0 })}`
+                    <AnimatedNumber
+                      value={tvl}
+                      prefix="$"
+                      formatOptions={{ minFraction: 0, maxFraction: 0 }}
+                    />
                   )}
                 </dd>
               </div>
             </dl>
 
             {/* Login Card Section  */}
-            <div className="order-2 flex w-full flex-col gap-6 rounded-3xl border border-white/10 bg-white p-5 text-black backdrop-blur-md sm:p-7 md:order-1 md:my-auto md:max-w-lg md:min-w-lg">
+            <div className="animate-fade-up animate-delay-200 order-2 flex w-full flex-col gap-6 rounded-3xl border border-white/10 bg-white p-5 text-black backdrop-blur-md sm:p-7 md:order-1 md:my-auto md:max-w-lg md:min-w-lg">
               <p className="login-card-responsive font-light text-pretty">
                 {t(($) => $.login.accessText)}
               </p>

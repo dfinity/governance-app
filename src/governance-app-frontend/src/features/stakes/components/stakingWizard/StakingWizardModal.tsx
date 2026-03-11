@@ -1,7 +1,11 @@
+import { nonNullish } from '@dfinity/utils';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useAccounts } from '@features/accounts/hooks/useAccounts';
+import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
+import { AccountType } from '@features/accounts/types';
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
 
@@ -23,6 +27,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
+import { DIALOG_RESET_DELAY_MS } from '@constants/extra';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { mapCanisterError } from '@utils/errors';
 import { formatPercentage } from '@utils/numbers';
@@ -58,11 +63,26 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
     STAKING_WIZARD_DEFAULT_FORM_STATE,
   );
 
+  const { data: accountsState } = useAccounts();
+  const mainAccountMetadata = useMainAccountMetadata();
+  const selectedAccount = accountsState?.accounts.find(
+    (a) => a.accountId === formState.selectedAccountId,
+  );
+  const fromSubAccount =
+    selectedAccount?.type === AccountType.Subaccount && nonNullish(selectedAccount.subAccount)
+      ? Array.from(selectedAccount.subAccount)
+      : undefined;
+
+  // Falls back to main account id, derived synchronously from the identity.
+  const selectedAccountId = formState.selectedAccountId ?? mainAccountMetadata.data!.accountId;
+
   const createNeuron = useCreateNeuron({
     amount: formState.amount,
     dissolveDelayMonths: formState.dissolveDelayMonths,
     autoStakeMaturity: formState.maturityMode === StakingWizardMaturityMode.Auto,
     startDissolving: formState.initialState === StakingWizardInitialState.Dissolving,
+    fromSubAccount,
+    selectedAccountId,
   });
 
   const contentRef = useRef<HTMLDivElement>(null);
@@ -89,7 +109,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
         createNeuron.reset();
         setShowCloseConfirmation(false);
         setIsCloseConfirmed(false);
-      }, 300);
+      }, DIALOG_RESET_DELAY_MS);
       return () => clearTimeout(timer);
     }
   }, [isOpen, createNeuron]);
@@ -191,6 +211,10 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
 
   const updateInitialState = (initialState: StakingWizardInitialState) => {
     setFormState((prev) => ({ ...prev, initialState }));
+  };
+
+  const updateSelectedAccountId = (selectedAccountId: string) => {
+    setFormState((prev) => ({ ...prev, selectedAccountId }));
   };
 
   const getStepTitle = (): string => {
@@ -304,6 +328,8 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
               <StakingWizardStepAmount
                 amount={formState.amount}
                 onAmountChange={updateAmount}
+                selectedAccountId={formState.selectedAccountId}
+                onSelectedAccountIdChange={updateSelectedAccountId}
                 onNext={goNext}
               />
             )}

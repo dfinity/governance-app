@@ -1,20 +1,20 @@
 {
-  "stakingRatio": "Staking ratio",
+  "stakingRatio": "ICP locked",
   "totalAssets": "Total assets",
-  "governanceOverview": "ICP Governance Overview",
-  "totalStaked": "Total Staked",
-  "ofTotalSupply": "{{value}}% of Total Supply",
-  "dailyRewards": "Daily Rewards",
-  "icpPrice": "ICP Price",
-  "maxApy": "Max APY",
-  "yourApy": "Your APY",
+  "governanceOverview": "ICP governance overview",
+  "totalStaked": "Total locked",
+  "ofTotalSupply": "{{value}}% of total supply",
+  "dailyRewards": "Daily rewards",
+  "icpPrice": "ICP price",
+  "maxApy": "Current max minting",
+  "yourApy": "Maturity",
   "maturity": "Maturity",
   "forecast": {
     "oneYear": "1y forecast"
   },
   "executiveSummary": {
     "title": "Monthly governance overview",
-    "goToVoting": "Go to Voting",
+    "goToVoting": "Go to voting",
     "topChanges": "Top changes",
     "communityVotes": "Highlights from community votes",
     "outcomes": {
@@ -24,14 +24,14 @@
     }
   },
   "smartTitle": {
-    "noAssetsTitle": "Participate in ICP Governance",
-    "noAssetsSubtitle": "Stake, vote, earn up to {{value}} per year",
-    "noAssetsSubtitleStatic": "Stake, vote, and earn rewards",
+    "noAssetsTitle": "Participate in ICP governance",
+    "noAssetsSubtitle": "Lock, vote, mint up to {{value}} per year",
+    "noAssetsSubtitleStatic": "Lock, vote, and mint rewards",
     "noAssetsCta": "Deposit or buy ICP",
-    "liquidOnlyTitle": "Your ICP are not participating in Governance",
-    "liquidOnlySubtitle": "Stake ICP to start voting and earn rewards",
-    "liquidOnlyCta": "Start Staking",
-    "stakedTitle": "You are participating in ICP Governance",
-    "stakedSubtitle": "You earn rewards"
+    "liquidOnlyTitle": "Your ICP are not participating in governance",
+    "liquidOnlySubtitle": "Lock ICP to start voting and mint rewards",
+    "liquidOnlyCta": "Create neuron",
+    "stakedTitle": "Participating in ICP governance",
+    "stakedSubtitle": "Your ICP is locked and minting rewards"
   }
 }

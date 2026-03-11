@@ -135,7 +135,7 @@ export function ProposalListItem({ proposal, certified }: Props) {
           {hasVoted ? (
             <div
               className={cn(
-                'flex w-full items-center gap-2 rounded-md border p-2 text-sm capitalize',
+                'flex w-full items-center gap-2 rounded-md border p-2 text-sm',
 
                 isVoteMixed
                   ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-400'

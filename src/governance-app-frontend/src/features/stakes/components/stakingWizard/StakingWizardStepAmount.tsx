@@ -3,6 +3,9 @@ import { AlertTriangle, Info } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AccountSelect } from '@features/accounts/components/AccountSelect';
+import { type Account, isAccountReady } from '@features/accounts/types';
+
 import { Alert, AlertDescription } from '@components/Alert';
 import { AmountInput } from '@components/AmountInput';
 import { Button } from '@components/button';
@@ -12,6 +15,7 @@ import { E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE } from '@constants/extr
 import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers';
+import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber, formatPercentage, roundToE8sPrecision } from '@utils/numbers';
@@ -20,10 +24,18 @@ import { isStakingRewardDataReady } from '@utils/staking-rewards';
 interface Props {
   amount: string;
   onAmountChange: (amount: string) => void;
+  selectedAccountId?: string;
+  onSelectedAccountIdChange: (accountId: string) => void;
   onNext: () => void;
 }
 
-export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Props) {
+export function StakingWizardStepAmount({
+  amount,
+  onAmountChange,
+  selectedAccountId,
+  onSelectedAccountIdChange,
+  onNext,
+}: Props) {
   const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -31,8 +43,25 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
   const { tickerPrices: tickersQuery } = useTickerPrices();
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
 
+  const { features } = useAdvancedFeatures();
+  const subaccountsEnabled = features.subaccounts;
+
+  // Default balance from main account ledger (used when subaccounts FF is off)
   const { data: balanceValue } = useIcpLedgerAccountBalance();
-  const balance = nonNullish(balanceValue?.response) ? bigIntDiv(balanceValue.response, E8Sn) : 0;
+  const defaultBalance = nonNullish(balanceValue?.response)
+    ? bigIntDiv(balanceValue.response, E8Sn)
+    : 0;
+
+  // When subaccounts are enabled, AccountSelect reports the selected account
+  const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
+
+  const accountBalance =
+    nonNullish(selectedAccount) && isAccountReady(selectedAccount)
+      ? bigIntDiv(selectedAccount.balanceE8s, E8Sn)
+      : null;
+
+  const balance =
+    subaccountsEnabled && nonNullish(accountBalance) ? accountBalance : defaultBalance;
   const maxStake = Math.max(0, roundToE8sPrecision(balance - ICP_TRANSACTION_FEE));
 
   const stakingRewards = useStakingRewards();
@@ -41,6 +70,12 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
         stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_MONTHS].autoStake.locked,
       )
     : '...';
+
+  const handleAccountChange = (accountId: string) => {
+    onSelectedAccountIdChange(accountId);
+    onAmountChange('');
+    setError(null);
+  };
 
   const handleAmountChange = (value: string) => {
     onAmountChange(value);
@@ -82,6 +117,21 @@ export function StakingWizardStepAmount({ amount, onAmountChange, onNext }: Prop
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {subaccountsEnabled && (
+        <div className="space-y-1">
+          <Label htmlFor="stake-from-account">
+            {t(($) => $.stakeWizardModal.steps.amount.fromAccount)}
+          </Label>
+          <AccountSelect
+            id="stake-from-account"
+            value={selectedAccountId}
+            onChange={handleAccountChange}
+            onAccountChange={setSelectedAccount}
+            data-testid="staking-wizard-account-select"
+          />
+        </div>
+      )}
+
       <div className="space-y-1">
         <Label htmlFor="stake-amount">{t(($) => $.stakeWizardModal.steps.amount.label)}</Label>
         <AmountInput

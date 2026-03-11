@@ -12,10 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthVotingIndexRouteImport } from './routes/_auth/voting/index'
-import { Route as AuthStakesIndexRouteImport } from './routes/_auth/stakes/index'
+import { Route as AuthSettingsIndexRouteImport } from './routes/_auth/settings/index'
+import { Route as AuthNeuronsIndexRouteImport } from './routes/_auth/neurons/index'
 import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
-import { Route as AuthAccountIndexRouteImport } from './routes/_auth/account/index'
-import { Route as AuthVotingRepresentativesIndexRouteImport } from './routes/_auth/voting/representatives/index'
+import { Route as AuthAccountsIndexRouteImport } from './routes/_auth/accounts/index'
 import { Route as AuthVotingProposalsIdIndexRouteImport } from './routes/_auth/voting/proposals/$id/index'
 
 const AuthRoute = AuthRouteImport.update({
@@ -32,9 +32,14 @@ const AuthVotingIndexRoute = AuthVotingIndexRouteImport.update({
   path: '/voting/',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthStakesIndexRoute = AuthStakesIndexRouteImport.update({
-  id: '/stakes/',
-  path: '/stakes/',
+const AuthSettingsIndexRoute = AuthSettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthNeuronsIndexRoute = AuthNeuronsIndexRouteImport.update({
+  id: '/neurons/',
+  path: '/neurons/',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthDashboardIndexRoute = AuthDashboardIndexRouteImport.update({
@@ -42,17 +47,11 @@ const AuthDashboardIndexRoute = AuthDashboardIndexRouteImport.update({
   path: '/dashboard/',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthAccountIndexRoute = AuthAccountIndexRouteImport.update({
-  id: '/account/',
-  path: '/account/',
+const AuthAccountsIndexRoute = AuthAccountsIndexRouteImport.update({
+  id: '/accounts/',
+  path: '/accounts/',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthVotingRepresentativesIndexRoute =
-  AuthVotingRepresentativesIndexRouteImport.update({
-    id: '/voting/representatives/',
-    path: '/voting/representatives/',
-    getParentRoute: () => AuthRoute,
-  } as any)
 const AuthVotingProposalsIdIndexRoute =
   AuthVotingProposalsIdIndexRouteImport.update({
     id: '/voting/proposals/$id/',
@@ -62,61 +61,61 @@ const AuthVotingProposalsIdIndexRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/account/': typeof AuthAccountIndexRoute
+  '/accounts/': typeof AuthAccountsIndexRoute
   '/dashboard/': typeof AuthDashboardIndexRoute
-  '/stakes/': typeof AuthStakesIndexRoute
+  '/neurons/': typeof AuthNeuronsIndexRoute
+  '/settings/': typeof AuthSettingsIndexRoute
   '/voting/': typeof AuthVotingIndexRoute
-  '/voting/representatives/': typeof AuthVotingRepresentativesIndexRoute
   '/voting/proposals/$id/': typeof AuthVotingProposalsIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/account': typeof AuthAccountIndexRoute
+  '/accounts': typeof AuthAccountsIndexRoute
   '/dashboard': typeof AuthDashboardIndexRoute
-  '/stakes': typeof AuthStakesIndexRoute
+  '/neurons': typeof AuthNeuronsIndexRoute
+  '/settings': typeof AuthSettingsIndexRoute
   '/voting': typeof AuthVotingIndexRoute
-  '/voting/representatives': typeof AuthVotingRepresentativesIndexRoute
   '/voting/proposals/$id': typeof AuthVotingProposalsIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteWithChildren
-  '/_auth/account/': typeof AuthAccountIndexRoute
+  '/_auth/accounts/': typeof AuthAccountsIndexRoute
   '/_auth/dashboard/': typeof AuthDashboardIndexRoute
-  '/_auth/stakes/': typeof AuthStakesIndexRoute
+  '/_auth/neurons/': typeof AuthNeuronsIndexRoute
+  '/_auth/settings/': typeof AuthSettingsIndexRoute
   '/_auth/voting/': typeof AuthVotingIndexRoute
-  '/_auth/voting/representatives/': typeof AuthVotingRepresentativesIndexRoute
   '/_auth/voting/proposals/$id/': typeof AuthVotingProposalsIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/account/'
+    | '/accounts/'
     | '/dashboard/'
-    | '/stakes/'
+    | '/neurons/'
+    | '/settings/'
     | '/voting/'
-    | '/voting/representatives/'
     | '/voting/proposals/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/account'
+    | '/accounts'
     | '/dashboard'
-    | '/stakes'
+    | '/neurons'
+    | '/settings'
     | '/voting'
-    | '/voting/representatives'
     | '/voting/proposals/$id'
   id:
     | '__root__'
     | '/'
     | '/_auth'
-    | '/_auth/account/'
+    | '/_auth/accounts/'
     | '/_auth/dashboard/'
-    | '/_auth/stakes/'
+    | '/_auth/neurons/'
+    | '/_auth/settings/'
     | '/_auth/voting/'
-    | '/_auth/voting/representatives/'
     | '/_auth/voting/proposals/$id/'
   fileRoutesById: FileRoutesById
 }
@@ -148,11 +147,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthVotingIndexRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/stakes/': {
-      id: '/_auth/stakes/'
-      path: '/stakes'
-      fullPath: '/stakes/'
-      preLoaderRoute: typeof AuthStakesIndexRouteImport
+    '/_auth/settings/': {
+      id: '/_auth/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof AuthSettingsIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/neurons/': {
+      id: '/_auth/neurons/'
+      path: '/neurons'
+      fullPath: '/neurons/'
+      preLoaderRoute: typeof AuthNeuronsIndexRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/dashboard/': {
@@ -162,18 +168,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthDashboardIndexRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/account/': {
-      id: '/_auth/account/'
-      path: '/account'
-      fullPath: '/account/'
-      preLoaderRoute: typeof AuthAccountIndexRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/voting/representatives/': {
-      id: '/_auth/voting/representatives/'
-      path: '/voting/representatives'
-      fullPath: '/voting/representatives/'
-      preLoaderRoute: typeof AuthVotingRepresentativesIndexRouteImport
+    '/_auth/accounts/': {
+      id: '/_auth/accounts/'
+      path: '/accounts'
+      fullPath: '/accounts/'
+      preLoaderRoute: typeof AuthAccountsIndexRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/voting/proposals/$id/': {
@@ -187,20 +186,20 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthRouteChildren {
-  AuthAccountIndexRoute: typeof AuthAccountIndexRoute
+  AuthAccountsIndexRoute: typeof AuthAccountsIndexRoute
   AuthDashboardIndexRoute: typeof AuthDashboardIndexRoute
-  AuthStakesIndexRoute: typeof AuthStakesIndexRoute
+  AuthNeuronsIndexRoute: typeof AuthNeuronsIndexRoute
+  AuthSettingsIndexRoute: typeof AuthSettingsIndexRoute
   AuthVotingIndexRoute: typeof AuthVotingIndexRoute
-  AuthVotingRepresentativesIndexRoute: typeof AuthVotingRepresentativesIndexRoute
   AuthVotingProposalsIdIndexRoute: typeof AuthVotingProposalsIdIndexRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
-  AuthAccountIndexRoute: AuthAccountIndexRoute,
+  AuthAccountsIndexRoute: AuthAccountsIndexRoute,
   AuthDashboardIndexRoute: AuthDashboardIndexRoute,
-  AuthStakesIndexRoute: AuthStakesIndexRoute,
+  AuthNeuronsIndexRoute: AuthNeuronsIndexRoute,
+  AuthSettingsIndexRoute: AuthSettingsIndexRoute,
   AuthVotingIndexRoute: AuthVotingIndexRoute,
-  AuthVotingRepresentativesIndexRoute: AuthVotingRepresentativesIndexRoute,
   AuthVotingProposalsIdIndexRoute: AuthVotingProposalsIdIndexRoute,
 }
 

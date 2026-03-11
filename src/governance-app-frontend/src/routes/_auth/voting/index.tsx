@@ -1,8 +1,7 @@
 import { ProposalStatus } from '@icp-sdk/canisters/nns';
-import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Eye, EyeOff, Users } from 'lucide-react';
-import { type MouseEvent, useEffect, useRef } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
@@ -11,21 +10,28 @@ import {
   ProposalFilter,
   validateProposalsSearch,
 } from '@features/proposals/utils';
-import { FollowedNeuronCard } from '@features/voting/components/FollowedNeuronCard';
-import { getUsersFollowedNeurons } from '@features/voting/utils/findFollowedNeuron';
+import { AdvancedFollowingModal } from '@features/voting/components/AdvancedFollowingModal';
+import { SimpleFollowingModal } from '@features/voting/components/SimpleFollowingModal';
+import { VotingOverviewAdvanced } from '@features/voting/components/VotingOverviewAdvanced';
+import { VotingOverviewSimple } from '@features/voting/components/VotingOverviewSimple';
+import {
+  getConsistentTopicFollowees,
+  getSingleUniformFollowee,
+} from '@features/voting/utils/topicFollowing';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
 import { Card } from '@components/Card';
 import { InViewSentinel } from '@components/InViewSentinel';
 import { MultipleSkeletons } from '@components/MultipleSkeletons';
-import { PageHeader } from '@components/PageHeader';
 import { QueryStates } from '@components/QueryStates';
 import { Separator } from '@components/Separator';
-import { Skeleton } from '@components/Skeleton';
 import { ToggleGroup, ToggleGroupItem } from '@components/ToggleGroup';
+import { DIALOG_RESET_DELAY_MS } from '@constants/extra';
 import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
+import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { AdvancedFeature } from '@typings/advancedFeatures';
 import { warningNotification } from '@utils/notification';
 
 import i18n from '@/i18n/config';
@@ -61,27 +67,39 @@ function Voting() {
   const allProposals = useGovernanceProposals();
   const activeQuery = proposalFilter === ProposalFilter.Open ? openProposals : allProposals;
 
+  const { features } = useAdvancedFeatures();
+  const isAdvancedFollowing = features[AdvancedFeature.AdvancedFollowing];
+
   const neuronsQuery = useGovernanceNeurons();
   const knownNeuronsQuery = useGovernanceKnownNeurons();
   const isLoadingFollowing = neuronsQuery.isLoading || knownNeuronsQuery.isLoading;
 
   const userNeurons = neuronsQuery.data?.response ?? [];
   const knownNeurons = knownNeuronsQuery.data?.response ?? [];
-  const followedNeurons = getUsersFollowedNeurons({
-    userNeurons,
-    knownNeurons,
-  });
-  // @TODO: Set "noUncheckedIndexedAccess": true in tsconfig to handle possible undefined values more safely.
-  const hasConsistentFollowees = followedNeurons.length === 1;
-  const followedNeuron = followedNeurons[0];
 
-  const handleManageFollowing = (e: MouseEvent<HTMLAnchorElement>) => {
+  const consistentFollowees = getConsistentTopicFollowees(userNeurons);
+  const uniformFolloweeId = consistentFollowees
+    ? getSingleUniformFollowee(consistentFollowees)
+    : undefined;
+  const followedNeuron = uniformFolloweeId
+    ? (knownNeurons.find((kn) => kn.id === uniformFolloweeId) ?? uniformFolloweeId)
+    : undefined;
+
+  const manageFollowing = search.manageFollowing ?? false;
+  const setManageFollowing = (open: boolean) =>
+    navigate({
+      search: (prev) => ({ ...prev, manageFollowing: open ? true : undefined }),
+      replace: true,
+    });
+
+  const handleManageFollowing = () => {
     if (!neuronsQuery.data?.response?.length) {
-      e.preventDefault();
       warningNotification({
         description: t(($) => $.voting.warnings.stakeRequired),
       });
+      return;
     }
+    setManageFollowing(true);
   };
 
   const toggleViewProposals = () =>
@@ -95,27 +113,12 @@ function Voting() {
 
     const id = setTimeout(() => {
       proposalsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 250);
+    }, DIALOG_RESET_DELAY_MS);
     return () => clearTimeout(id);
   }, [showProposals, proposalFilter]);
 
   return (
     <div className="flex flex-col gap-6 lg:gap-8">
-      {!isNullish(followedNeuron) && (
-        <PageHeader
-          title={t(($) => $.voting.title)}
-          description={t(($) => $.voting.description)}
-          actions={
-            <Button size="xl" className="w-full sm:w-auto" asChild>
-              <Link to="/voting/representatives" onClick={handleManageFollowing}>
-                <Users />
-                {t(($) => $.voting.cta)}
-              </Link>
-            </Button>
-          }
-        />
-      )}
-
       {(neuronsQuery.isError || knownNeuronsQuery.isError) && (
         <Alert variant="destructive">
           <AlertTitle>{t(($) => $.common.loadingError)}</AlertTitle>
@@ -123,76 +126,33 @@ function Voting() {
         </Alert>
       )}
 
-      {isLoadingFollowing ? (
-        <div className="flex flex-col gap-3">
-          <Skeleton className="h-16 w-full" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-full" />
-        </div>
-      ) : isNullish(followedNeuron) ? (
-        <>
-          <div className="mt-20 flex flex-col items-center justify-center gap-6 text-center">
-            <div className="rounded-full border-2 border-secondary/90 bg-secondary/30 p-6">
-              <Users className="size-10 text-muted-foreground" />
-            </div>
-            <h3 className="text-2xl font-semibold">{t(($) => $.voting.noFollowing.title)}</h3>
-            <p className="max-w-sm text-base text-muted-foreground">
-              {t(($) => $.voting.noFollowing.body)}
-            </p>
-            <div className="flex flex-col gap-3 pt-2 sm:items-center">
-              <Button size="xl" className="w-full sm:w-auto" asChild>
-                <Link to="/voting/representatives" onClick={handleManageFollowing}>
-                  <Users />
-                  {t(($) => $.voting.noFollowing.cta)}
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-          <Separator className="mt-8 mb-4 lg:mt-16" />
-
-          <div ref={proposalsRef} className="mx-auto flex scroll-mt-8 flex-col items-center gap-3">
-            <p className="text-sm text-foreground">{t(($) => $.voting.proposals.cta)}</p>
-            <Button variant="outline" size="sm" onClick={toggleViewProposals} className="gap-2">
-              <span className="font-medium">
-                {t(($) =>
-                  showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow,
-                )}
-              </span>
-              {showProposals ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-            </Button>
-          </div>
-        </>
-      ) : !hasConsistentFollowees ? (
-        <>
-          <Alert variant="warning">
-            <AlertTitle className="font-semibold">
-              {t(($) => $.voting.warnings.followingMismatchTitle)}
-            </AlertTitle>
-            <AlertDescription>{t(($) => $.voting.warnings.followingMismatch)}</AlertDescription>
-          </Alert>
-        </>
+      {isAdvancedFollowing ? (
+        <VotingOverviewAdvanced
+          userNeurons={userNeurons}
+          knownNeurons={knownNeurons}
+          isLoading={isLoadingFollowing}
+          onManageFollowing={handleManageFollowing}
+        />
       ) : (
-        <FollowedNeuronCard neuron={followedNeuron} />
+        <VotingOverviewSimple
+          followedNeuron={followedNeuron}
+          userNeurons={userNeurons}
+          isLoading={isLoadingFollowing}
+          onManageFollowing={handleManageFollowing}
+        />
       )}
 
-      {nonNullish(followedNeuron) && (
-        <>
-          <Separator className="mt-8 mb-4 lg:mt-16" />
+      <Separator className="mt-8 mb-4 lg:mt-16" />
 
-          <div ref={proposalsRef} className="mx-auto flex scroll-mt-8 flex-col items-center gap-3">
-            <p className="text-sm text-foreground">{t(($) => $.voting.proposals.cta)}</p>
-            <Button variant="outline" size="sm" onClick={toggleViewProposals} className="gap-2">
-              <span className="font-medium">
-                {t(($) =>
-                  showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow,
-                )}
-              </span>
-              {showProposals ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-            </Button>
-          </div>
-        </>
-      )}
+      <div ref={proposalsRef} className="mx-auto flex scroll-mt-8 flex-col items-center gap-3">
+        <p className="text-sm text-foreground">{t(($) => $.voting.proposals.cta)}</p>
+        <Button variant="outline" size="sm" onClick={toggleViewProposals} className="gap-2">
+          <span className="font-medium">
+            {t(($) => (showProposals ? $.voting.proposals.ctaHide : $.voting.proposals.ctaShow))}
+          </span>
+          {showProposals ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+        </Button>
+      </div>
 
       {showProposals && (
         <div className="flex flex-col gap-4">
@@ -230,11 +190,13 @@ function Voting() {
             infiniteQuery={activeQuery}
             isEmpty={(data) => !data?.pages?.[0].response.proposals.length}
             emptyComponent={
-              proposalFilter === ProposalFilter.Open ? (
-                <p className="py-8 text-center text-sm text-muted-foreground">
-                  {t(($) => $.voting.proposals.noOpenProposals)}
-                </p>
-              ) : undefined
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                {t(($) =>
+                  proposalFilter === ProposalFilter.Open
+                    ? $.voting.proposals.noOpenProposals
+                    : $.voting.proposals.noProposals,
+                )}
+              </p>
             }
             loadingComponent={
               <div className="flex flex-col gap-4">
@@ -280,6 +242,12 @@ function Voting() {
             )}
           </QueryStates>
         </div>
+      )}
+
+      {isAdvancedFollowing ? (
+        <AdvancedFollowingModal open={manageFollowing} onOpenChange={setManageFollowing} />
+      ) : (
+        <SimpleFollowingModal open={manageFollowing} onOpenChange={setManageFollowing} />
       )}
     </div>
   );

@@ -10,7 +10,7 @@ import { StrictMode } from 'react';
 import { createPortal } from 'react-dom';
 
 import { Sonner } from '@components/Sonner';
-import { IDENTITY_PROVIDER, II_DERIVATION_ORIGIN } from '@constants/extra';
+import { II_DERIVATION_ORIGIN, II_LOGIN_URL } from '@constants/extra';
 import { AgentPoolProvider } from '@contexts/agentPoolProvider';
 import { StakingRewardsProvider } from '@contexts/stakingRewardsProvider';
 import { usePreventAttributeChange } from '@hooks/usePreventAttributeChange';
@@ -28,7 +28,7 @@ export const App = () => {
     <StrictMode>
       <InternetIdentityProvider
         loginOptions={{
-          identityProvider: IDENTITY_PROVIDER,
+          identityProvider: II_LOGIN_URL,
           ...(nonNullish(II_DERIVATION_ORIGIN) && { derivationOrigin: II_DERIVATION_ORIGIN }),
         }}
       >

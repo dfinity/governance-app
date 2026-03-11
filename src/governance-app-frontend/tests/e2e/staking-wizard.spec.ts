@@ -4,6 +4,7 @@ import { openApp } from './utils/app';
 import { getIcps } from './utils/getIcps';
 import { login } from './utils/login';
 import { mockGovernanceErrorAfter } from './utils/mock-canister';
+import { navigateTo } from './utils/navigate';
 
 const openStakingWizard = async (page: Page) => {
   await test.step('Open staking wizard.', async () => {
@@ -17,7 +18,7 @@ test.describe('Staking Wizard', () => {
     await openApp({ page });
     await login({ page });
     await getIcps(page, '10');
-    await page.getByRole('link', { name: 'Stakes' }).click();
+    await navigateTo(page, 'neurons');
     await openStakingWizard(page);
   });
 
@@ -112,7 +113,9 @@ test.describe('Staking Wizard', () => {
     await expect(neuronCards.getByTestId('neuron-card-staked-amount')).toHaveText(/5\.00.*ICP/i);
     await expect(neuronCards.getByTestId('neuron-card-dissolve-delay')).toHaveText(/2 years/i);
     await expect(neuronCards.getByTestId('neuron-state-badge')).toHaveText(/Locked/i);
-    await expect(neuronCards.getByTestId('neuron-card-maturity-mode')).toHaveText(/Keep Liquid/i);
+    await expect(neuronCards.getByTestId('neuron-card-maturity-keep-liquid')).toHaveText(
+      /Unlocked/i,
+    );
   });
 
   test('Recovers from errors in the staking flow', async ({ page }) => {
@@ -142,6 +145,8 @@ test.describe('Staking Wizard', () => {
     await expect(neuronCards.getByTestId('neuron-card-staked-amount')).toHaveText(/5\.00.*ICP/i);
     await expect(neuronCards.getByTestId('neuron-card-dissolve-delay')).toHaveText(/2 years/i);
     await expect(neuronCards.getByTestId('neuron-state-badge')).toHaveText(/Locked/i);
-    await expect(neuronCards.getByTestId('neuron-card-maturity-mode')).toHaveText(/Keep Liquid/i);
+    await expect(neuronCards.getByTestId('neuron-card-maturity-keep-liquid')).toHaveText(
+      /Unlocked/i,
+    );
   });
 });

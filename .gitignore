@@ -13,6 +13,10 @@
 
 # generated files
 **/declarations/
+!src/declarations/
+src/declarations/*
+# exceptions to the above rule, needed for the nns-dapp subaccount feature
+!src/declarations/nns-dapp/
 
 # rust
 target/

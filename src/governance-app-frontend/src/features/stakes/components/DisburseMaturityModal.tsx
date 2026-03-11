@@ -3,8 +3,12 @@ import { AlertTriangle, Info, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { AccountSelect } from '@features/accounts/components/AccountSelect';
+import { useAccountSelection } from '@features/accounts/hooks/useAccountSelection';
+
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
+import { Label } from '@components/Label';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -21,7 +25,7 @@ import { formatNumber } from '@utils/numbers';
 import { useDisburseMaturity } from '../hooks/useDisburseMaturity';
 
 type Props = {
-  neuron: NeuronInfo;
+  neuron: NeuronInfo | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 };
@@ -29,11 +33,21 @@ type Props = {
 export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation();
   const { mutateAsync, isPending } = useDisburseMaturity();
+  const { selectedAccountId, setSelectedAccountId, resolvedAccountId, subaccountsEnabled } =
+    useAccountSelection();
   const [error, setError] = useState<string | null>(null);
 
-  const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
+  useEffect(() => {
+    if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setError(null);
+    }
+  }, [isOpen]);
+
+  const unstakedMaturity = neuron ? bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn) : 0;
 
   const handleConfirm = async () => {
+    if (!neuron) return;
     if (unstakedMaturity < ICP_MIN_DISBURSE_MATURITY_AMOUNT) {
       setError(
         t(($) => $.neuronDetailModal.disburseMaturity.errors.amountTooLow, {
@@ -44,7 +58,10 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
     }
 
     try {
-      await mutateAsync({ neuronId: neuron.neuronId });
+      await mutateAsync({
+        neuronId: neuron.neuronId,
+        toAccountId: resolvedAccountId,
+      });
       successNotification({
         description: t(($) => $.neuronDetailModal.disburseMaturity.success),
       });
@@ -55,13 +72,6 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
       });
     }
   };
-
-  useEffect(() => {
-    if (isOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setError(null);
-    }
-  }, [isOpen]);
 
   const handleOpenChange = (open: boolean) => {
     if (isPending && !open) return;
@@ -82,6 +92,20 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
         </ResponsiveDialogHeader>
 
         <div className="mt-4 flex flex-col gap-4 px-4 pb-4 md:px-0 md:pb-0">
+          {subaccountsEnabled && (
+            <div className="space-y-1">
+              <Label htmlFor="disburse-maturity-to-account">
+                {t(($) => $.neuronDetailModal.disburseMaturity.toAccount)}
+              </Label>
+              <AccountSelect
+                id="disburse-maturity-to-account"
+                value={selectedAccountId}
+                onChange={setSelectedAccountId}
+                data-testid="disburse-maturity-account-select"
+              />
+            </div>
+          )}
+
           <Alert variant="info">
             <Info className="h-4 w-4" />
             <AlertDescription>

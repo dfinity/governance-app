@@ -6,7 +6,7 @@ import { List, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { TransactionListDialog } from '@features/account/components/TransactionListDialog';
+import { TransactionListDialog } from '@features/transactions/components/TransactionListDialog';
 
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
@@ -44,28 +44,31 @@ export function AccountCard() {
 
   return (
     <>
-      <Card data-testid="available-balance-card">
+      <Card className="pt-4 pb-6" data-testid="available-balance-card">
         <CardHeader className="flex flex-col gap-0">
-          <div className="flex w-full flex-row items-start justify-between space-y-0">
+          <div className="flex min-h-9 w-full items-center justify-between">
             <p className="text-sm tracking-wide text-muted-foreground uppercase">
               {t(($) => $.account.available)}
             </p>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setIsDialogOpen(true)}
-              aria-label={t(($) => $.account.ariaLabel)}
-              title={t(($) => $.account.ariaLabel)}
-            >
-              <List aria-hidden="true" />
-            </Button>
+            <div className="flex items-center gap-1">
+              {IS_TESTNET && <GetTokens accountId={accountId} />}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setIsDialogOpen(true)}
+                aria-label={t(($) => $.account.ariaLabel)}
+                title={t(($) => $.account.ariaLabel)}
+              >
+                <List aria-hidden="true" />
+              </Button>
+            </div>
           </div>
 
           <div className="flex flex-col gap-0.5">
             {balanceQuery.isLoading ? (
               <Skeleton className="h-8 w-32" />
             ) : (
-              <p className="text-2xl font-bold">
+              <p className="text-2xl font-semibold">
                 {t(($) => $.common.inIcp, { value: formatNumber(balanceICP) })}
               </p>
             )}
@@ -82,7 +85,6 @@ export function AccountCard() {
 
         <CardContent className="flex flex-1 flex-col justify-between gap-6">
           <div className="mt-auto flex flex-col gap-3">
-            {IS_TESTNET && <GetTokens accountId={accountId} />}
             <Button asChild size="xl" className="w-full">
               <Link to="/dashboard" search={{ depositModal: true }} replace>
                 <Plus aria-hidden="true" />

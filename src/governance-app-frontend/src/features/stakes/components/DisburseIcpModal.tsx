@@ -2,8 +2,12 @@ import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { Info, Loader2 } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { AccountSelect } from '@features/accounts/components/AccountSelect';
+import { useAccountSelection } from '@features/accounts/hooks/useAccountSelection';
+
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
+import { Label } from '@components/Label';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -20,7 +24,7 @@ import { formatNumber } from '@utils/numbers';
 import { useDisburseNeuron } from '../hooks/useDisburseNeuron';
 
 type Props = {
-  neuron: NeuronInfo;
+  neuron: NeuronInfo | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 };
@@ -28,12 +32,18 @@ type Props = {
 export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation();
   const { mutateAsync, isPending } = useDisburseNeuron();
+  const { selectedAccountId, setSelectedAccountId, resolvedAccountId, subaccountsEnabled } =
+    useAccountSelection();
 
-  const stakedAmount = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
+  const stakedAmount = neuron ? bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn) : 0;
 
   const handleConfirm = async () => {
+    if (!neuron) return;
     try {
-      await mutateAsync({ neuronId: neuron.neuronId });
+      await mutateAsync({
+        neuronId: neuron.neuronId,
+        toAccountId: resolvedAccountId,
+      });
       successNotification({
         description: t(($) => $.neuronDetailModal.disburseIcp.success),
       });
@@ -64,6 +74,20 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
         </ResponsiveDialogHeader>
 
         <div className="mt-4 flex flex-col gap-4 px-4 pb-4 md:px-0 md:pb-0">
+          {subaccountsEnabled && (
+            <div className="space-y-1">
+              <Label htmlFor="disburse-icp-to-account">
+                {t(($) => $.neuronDetailModal.disburseIcp.toAccount)}
+              </Label>
+              <AccountSelect
+                id="disburse-icp-to-account"
+                value={selectedAccountId}
+                onChange={setSelectedAccountId}
+                data-testid="disburse-icp-account-select"
+              />
+            </div>
+          )}
+
           <Alert variant="info">
             <Info className="h-4 w-4" />
             <AlertDescription>

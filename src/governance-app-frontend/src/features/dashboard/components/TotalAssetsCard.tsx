@@ -1,7 +1,7 @@
-import { nonNullish } from '@dfinity/utils';
 import { useTranslation } from 'react-i18next';
 import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts';
 
+import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { StakingRatioModal } from '@features/stakes/components/StakingRatioModal';
 
 import { Card, CardContent, CardHeader } from '@components/Card';
@@ -9,19 +9,16 @@ import { type ChartConfig, ChartContainer } from '@components/Chart';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { E8Sn } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
-import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers';
 import { useStakingRewards } from '@hooks/useStakingRewards';
-import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronsAggregatedData } from '@utils/neuron';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 const chartConfig = {
   stakingRatio: {
-    label: 'Staking Ratio',
+    label: 'Staking ratio',
     theme: {
       light: '#0057FF',
       dark: '#4D8AFF',
@@ -34,22 +31,21 @@ export const TotalAssetsCard = () => {
 
   const { tickerPrices: tickersQuery } = useTickerPrices();
   const neuronsQuery = useGovernanceNeurons();
-  const balanceQuery = useIcpLedgerAccountBalance();
+  const { isLoading: isLoadingAccounts, totalBalanceIcp } = useAccounts();
   const stakingRewards = useStakingRewards();
 
-  const liquidBalance = nonNullish(balanceQuery.data?.response)
-    ? bigIntDiv(balanceQuery.data.response, E8Sn)
-    : 0;
+  const liquidBalance = totalBalanceIcp ?? 0;
 
-  const { totalStakedAfterFees: stakedBalance, totalUnstakedMaturity: maturityBalance } =
-    getNeuronsAggregatedData(neuronsQuery.data?.response);
+  const { totalStakedAfterFees: stakedBalance } = getNeuronsAggregatedData(
+    neuronsQuery.data?.response,
+  );
 
-  const totalAssets = liquidBalance + stakedBalance + maturityBalance;
+  const totalAssets = liquidBalance + stakedBalance;
 
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const totalAssetsUsd = icpPrice ? formatNumber(totalAssets * icpPrice.usd) : undefined;
 
-  const isLoading = balanceQuery.isLoading || neuronsQuery.isLoading;
+  const isLoading = isLoadingAccounts || neuronsQuery.isLoading;
   const stakingRewardsReady = isStakingRewardDataReady(stakingRewards);
 
   const stakingRatioPercent = stakingRewardsReady ? stakingRewards.stakingRatio * 100 : 0;
@@ -59,11 +55,13 @@ export const TotalAssetsCard = () => {
   ];
 
   return (
-    <Card className="pb-5">
-      <CardHeader className="flex flex-col items-center gap-4">
-        <p className="text-sm tracking-wide text-muted-foreground uppercase">
-          {t(($) => $.home.totalAssets)}
-        </p>
+    <Card className="pt-4 pb-6">
+      <CardHeader className="flex flex-col items-center gap-0">
+        <div className="flex min-h-9 items-center">
+          <p className="text-sm tracking-wide text-muted-foreground uppercase">
+            {t(($) => $.home.totalAssets)}
+          </p>
+        </div>
 
         <div>
           {isLoading || tickersQuery.isLoading ? (
@@ -74,7 +72,7 @@ export const TotalAssetsCard = () => {
         </div>
       </CardHeader>
 
-      <CardContent className="flex flex-col items-center gap-4">
+      <CardContent className="flex flex-col items-center gap-6">
         <Separator />
         <div className="relative mx-auto w-full">
           <ChartContainer
@@ -107,11 +105,9 @@ export const TotalAssetsCard = () => {
                   <Skeleton className="h-8 w-20" />
                 </div>
               )}
-              {(liquidBalance !== 0 || maturityBalance !== 0) && <StakingRatioModal />}
+              {liquidBalance !== 0 && <StakingRatioModal />}
             </div>
-            <span className="text-sm text-muted-foreground capitalize">
-              {t(($) => $.home.stakingRatio)}
-            </span>
+            <span className="text-sm text-muted-foreground">{t(($) => $.home.stakingRatio)}</span>
           </div>
         </div>
       </CardContent>

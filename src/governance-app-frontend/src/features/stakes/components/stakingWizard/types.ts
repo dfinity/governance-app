@@ -37,4 +37,5 @@ export interface StakingWizardFormState {
   dissolveDelayMonths: StakingWizardDissolveDelayPreset;
   maturityMode: StakingWizardMaturityMode;
   initialState: StakingWizardInitialState;
+  selectedAccountId?: string;
 }

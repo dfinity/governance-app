@@ -1,4 +1,6 @@
-import { LayoutDashboard, Network, User, Vote } from 'lucide-react';
+import { LayoutDashboard, Settings, Vote, Wallet } from 'lucide-react';
+
+import { NeuronIcon } from '@components/icons/NeuronIcon';
 
 import { FileRoutesByTo } from '@/routeTree.gen';
 
@@ -10,7 +12,7 @@ export interface NavigationItem {
   icon: React.ElementType;
 }
 
-export const navigationItems: NavigationItem[] = [
+const baseItems: NavigationItem[] = [
   {
     label: 'common.dashboard',
     href: '/dashboard',
@@ -18,8 +20,8 @@ export const navigationItems: NavigationItem[] = [
   },
   {
     label: 'common.stakes',
-    href: '/stakes',
-    icon: Network,
+    href: '/neurons',
+    icon: NeuronIcon,
   },
   {
     label: 'common.voting',
@@ -27,8 +29,22 @@ export const navigationItems: NavigationItem[] = [
     icon: Vote,
   },
   {
-    label: 'common.accounts',
-    href: '/account',
-    icon: User,
+    label: 'common.settings',
+    href: '/settings',
+    icon: Settings,
   },
 ];
+
+const accountsItem: NavigationItem = {
+  label: 'common.accounts',
+  href: '/accounts',
+  icon: Wallet,
+};
+
+export const getNavigationItems = (options: { subaccountsEnabled: boolean }): NavigationItem[] => {
+  if (!options.subaccountsEnabled) return baseItems;
+
+  const items = [...baseItems];
+  items.splice(1, 0, accountsItem);
+  return items;
+};

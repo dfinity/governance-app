@@ -39,6 +39,7 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
   --main-content: oklch(0.988 0 0); /* rgb(252, 252, 252) - subtle grey for main content */
+  --staking-ratio: #0057ff;
 }
 
 .dark {
@@ -75,6 +76,7 @@
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
   --main-content: var(--background);
+  --staking-ratio: #4d8aff;
 }
 
 @theme inline {
@@ -115,6 +117,7 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-main-content: var(--main-content);
+  --color-staking-ratio: var(--staking-ratio);
 
   /* Custom */
   --breakpoint-xs: 360px;
@@ -162,6 +165,47 @@
       line-height: 1.4;
     }
   }
+
+  /* Staggered entrance animation for landing page blocks. */
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-up {
+    animation: fade-up 1s cubic-bezier(0.5, 0, 0, 1) both;
+  }
+
+  .animate-delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .animate-delay-400 {
+    animation-delay: 400ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-up {
+      animation: none;
+    }
+  }
+}
+
+@keyframes dashboard-gradient-in {
+  from {
+    opacity: 0;
+    translate: 120px -60px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
 }
 
 /* Dashboard gradient, painted on the canvas (html) so it covers the overscroll area on iOS / macOS rubber-banding. */
@@ -180,6 +224,7 @@ html.route-dashboard {
     width: 100%;
     height: 100%;
     pointer-events: none;
+    animation: dashboard-gradient-in 1s ease-out forwards;
     background:
       radial-gradient(
         circle 800px at calc(var(--main-wrapper-right-edge) + 150px) 140px,
@@ -203,6 +248,20 @@ html.route-dashboard {
   html.route-dashboard {
     --main-wrapper-right-edge: calc(50% + 746px);
   }
+}
+
+/* One-shot glow that draws attention to a newly-added nav item. */
+@keyframes highlight-pulse {
+  0% {
+    background-color: oklch(from var(--primary) l c h / 0.2);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.animate-highlight-pulse {
+  animation: highlight-pulse 1.5s ease-out;
 }
 
 /* Prevents overscroll outside the main wrapper. */
