@@ -8,7 +8,7 @@
   "accountCount": "{{count}} account",
   "accountCount_plural": "{{count}} accounts",
   "viewAll": "View all accounts",
-  "recentTransactions": "Recent Transactions",
+  "recentTransactions": "Recent transactions",
   "noTransactions": "No recent transactions.",
   "empty": {
     "title": "No subaccounts yet",
