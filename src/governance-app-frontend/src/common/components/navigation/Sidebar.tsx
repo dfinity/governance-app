@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
@@ -16,15 +16,15 @@ export const Sidebar = () => {
     [subaccountsEnabled],
   );
 
-  const prevEnabled = useRef(subaccountsEnabled);
+  const [prevEnabled, setPrevEnabled] = useState(subaccountsEnabled);
   const [shouldAnimate, setShouldAnimate] = useState(false);
 
-  useEffect(() => {
-    if (subaccountsEnabled && !prevEnabled.current) {
+  if (subaccountsEnabled !== prevEnabled) {
+    setPrevEnabled(subaccountsEnabled);
+    if (subaccountsEnabled) {
       setShouldAnimate(true);
     }
-    prevEnabled.current = subaccountsEnabled;
-  }, [subaccountsEnabled]);
+  }
 
   return (
     <aside className="sticky top-0 z-20 hidden h-full w-72 flex-col border-r bg-card text-sm lg:flex">

@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
@@ -16,15 +16,15 @@ export const BottomNav = () => {
     [subaccountsEnabled],
   );
 
-  const prevEnabled = useRef(subaccountsEnabled);
+  const [prevEnabled, setPrevEnabled] = useState(subaccountsEnabled);
   const [shouldAnimate, setShouldAnimate] = useState(false);
 
-  useEffect(() => {
-    if (subaccountsEnabled && !prevEnabled.current) {
+  if (subaccountsEnabled !== prevEnabled) {
+    setPrevEnabled(subaccountsEnabled);
+    if (subaccountsEnabled) {
       setShouldAnimate(true);
     }
-    prevEnabled.current = subaccountsEnabled;
-  }, [subaccountsEnabled]);
+  }
 
   return (
     <nav className="z-50 shrink-0 border-t bg-background/80 shadow-[0_-3px_12px_rgba(0,0,0,0.08),0_-1px_3px_rgba(0,0,0,0.04)] backdrop-blur-lg lg:hidden">
