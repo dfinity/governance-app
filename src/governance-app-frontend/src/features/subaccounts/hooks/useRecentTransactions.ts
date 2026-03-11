@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useNeuronAccountsIds } from '@features/account/hooks/useNeuronAccountsIds';
+import { detectTransactionType } from '@features/transactions/utils/transactionType';
 
 import { NANOSECONDS_IN_SECOND } from '@constants/extra';
 import { useIcpIndex } from '@hooks/icpIndex/useIcpIndex';
@@ -23,12 +24,10 @@ function toAccountTransaction(
   neuronAccountIds: Set<string>,
 ): AccountTransaction | null {
   const { operation, created_at_time, timestamp: txTimestamp } = tx.transaction;
-  if (!('Transfer' in operation)) return null;
+  const type = detectTransactionType(operation, accountId, neuronAccountIds);
+  if (type === 'unknown' || !('Transfer' in operation)) return null;
 
   const transfer = operation.Transfer;
-  const isSend = transfer.from === accountId;
-  const type: AccountTransaction['type'] =
-    isSend && neuronAccountIds.has(transfer.to) ? 'stake' : isSend ? 'send' : 'receive';
 
   const nanos = created_at_time[0]?.timestamp_nanos ?? txTimestamp[0]?.timestamp_nanos ?? 0n;
   const timestampSeconds = Number(nanos / BigInt(NANOSECONDS_IN_SECOND));

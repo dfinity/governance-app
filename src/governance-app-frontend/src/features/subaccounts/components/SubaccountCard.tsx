@@ -2,7 +2,7 @@ import { List } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { TransactionListDialog } from '@features/account/components/TransactionListDialog';
+import { TransactionListDialog } from '@features/transactions/components/TransactionListDialog';
 
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';

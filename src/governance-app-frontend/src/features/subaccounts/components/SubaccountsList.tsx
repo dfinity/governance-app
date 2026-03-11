@@ -5,7 +5,7 @@ type Props = {
   accounts: Subaccount[];
 };
 
-export const AccountsList = ({ accounts }: Props) => {
+export const SubaccountsList = ({ accounts }: Props) => {
   return (
     <div className="flex flex-col gap-3">
       {accounts.map((account) => (

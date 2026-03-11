@@ -2,6 +2,8 @@ import { IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { ArrowDownToLine, ArrowUp, CircleQuestionMark, Lock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { detectTransactionType } from '@features/transactions/utils/transactionType';
+
 import { Alert, AlertDescription } from '@components/Alert';
 import { Card, CardContent } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
@@ -16,22 +18,6 @@ import { cn } from '@utils/shadcn';
 import { useNeuronAccountsIds } from '../hooks/useNeuronAccountsIds';
 import { TransactionType } from '../types';
 import { isSuspiciousAddress } from '../utils/addressPoisoning';
-
-// @TODO: Add support for Mint
-const getTransactionType = (
-  operation: IcpIndexDid.Operation,
-  accountId: string,
-  neuronsAccountIds: Set<string>,
-): TransactionType => {
-  if (!('Transfer' in operation)) return TransactionType.UNKNOWN;
-
-  if (neuronsAccountIds.has(operation.Transfer.to) && operation.Transfer.from === accountId)
-    return TransactionType.STAKE;
-  if (operation.Transfer.from === accountId) return TransactionType.SEND;
-  if (operation.Transfer.to === accountId) return TransactionType.RECEIVE;
-
-  return TransactionType.UNKNOWN;
-};
 
 export const AccountTransactionItem = ({
   tx,
@@ -50,7 +36,19 @@ export const AccountTransactionItem = ({
   const operation = tx.transaction.operation;
   if (!('Transfer' in operation)) return null;
 
-  const type = getTransactionType(operation, accountId, userNeuronsAccountIds.accountIds);
+  const detectedType = detectTransactionType(
+    operation,
+    accountId,
+    userNeuronsAccountIds.accountIds,
+  );
+  const type =
+    detectedType === 'send'
+      ? TransactionType.SEND
+      : detectedType === 'receive'
+        ? TransactionType.RECEIVE
+        : detectedType === 'stake'
+          ? TransactionType.STAKE
+          : TransactionType.UNKNOWN;
 
   const title =
     type === TransactionType.SEND

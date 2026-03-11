@@ -4,6 +4,7 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
 import { AccountTransactionItem } from '@features/account/components/TransactionItem';
+import { useNeuronAccountsIds } from '@features/account/hooks/useNeuronAccountsIds';
 import { buildTrustedAddresses } from '@features/account/utils/addressPoisoning';
 
 import { MultipleSkeletons } from '@components/MultipleSkeletons';
@@ -17,8 +18,6 @@ import {
 } from '@components/ResponsiveDialog';
 import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
 import { CertifiedData } from '@typings/queries';
-
-import { useNeuronAccountsIds } from '../hooks/useNeuronAccountsIds';
 
 interface TransactionListDialogProps {
   open: boolean;

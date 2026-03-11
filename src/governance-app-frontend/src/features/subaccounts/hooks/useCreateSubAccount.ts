@@ -1,9 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
+import { CreateSubAccountResponse } from '@declarations/nns-dapp/nns-dapp.did';
+
 import { useNnsDapp } from '@hooks/nnsDapp/useNnsDapp';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
-import { CreateSubAccountResponse } from '@declarations/nns-dapp/nns-dapp.did';
 
 const mapError = (response: CreateSubAccountResponse): string => {
   if ('AccountNotFound' in response) return 'Account not found in NNS dapp';
