@@ -1,4 +1,5 @@
 import { isNullish } from '@dfinity/utils';
+import { useMemo } from 'react';
 
 import { useNnsDappAccount } from '@hooks/nnsDapp/useNnsDappAccount';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
@@ -14,30 +15,35 @@ type DetectionResult = {
  * Orchestrator hook for detecting advanced features. Automatically determines which features need checking by comparing
  * the known advanced feature set against what's already stored in localStorage.
  *
+ * Reuses the cached {@link useNnsDappAccount} query instead of making a
+ * separate canister call, so the result is shared with the rest of the app.
+ *
  * @param enabled - When false, the hook is inert (isDetecting = false).
  */
 export const useDetectAdvancedFeatures = (enabled = true): DetectionResult => {
   const { missingFeatureKeys } = useAdvancedFeatures();
 
+  const nnsDappAccount = useNnsDappAccount();
+
   const hasFeaturesToCheck = enabled && missingFeatureKeys.length > 0;
   const shouldCheckSubaccounts = missingFeatureKeys.includes(AdvancedFeature.Subaccounts);
 
-  const nnsDappAccount = useNnsDappAccount(hasFeaturesToCheck);
+  const detectedFeatures = useMemo<Partial<AdvancedFeaturesSettings>>(() => {
+    if (!hasFeaturesToCheck) return {};
 
-  const isPending = nnsDappAccount.isPending;
-  const accountData = nnsDappAccount.data?.response;
+    const accountData = nnsDappAccount.data?.response;
 
-  const detectedFeatures: Partial<AdvancedFeaturesSettings> = {};
-  if (hasFeaturesToCheck && !isPending) {
+    const detected: Partial<AdvancedFeaturesSettings> = {};
     if (shouldCheckSubaccounts) {
-      detectedFeatures[AdvancedFeature.Subaccounts] = isNullish(accountData)
+      detected[AdvancedFeature.Subaccounts] = isNullish(accountData)
         ? false
-        : accountData?.sub_accounts.length > 0;
+        : accountData.sub_accounts.length > 0;
     }
-  }
+    return detected;
+  }, [hasFeaturesToCheck, shouldCheckSubaccounts, nnsDappAccount.data]);
 
   return {
-    isDetecting: hasFeaturesToCheck && isPending,
+    isDetecting: hasFeaturesToCheck && nnsDappAccount.isLoading,
     detectedFeatures,
     error: nnsDappAccount.error,
   };
