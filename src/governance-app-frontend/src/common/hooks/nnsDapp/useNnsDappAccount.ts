@@ -1,6 +1,7 @@
+import { AccountDetails, GetAccountResponse } from '@declarations/nns-dapp/nns-dapp.did';
+
 import { useQueryThenUpdateCall } from '@hooks/useQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/query';
-import { GetAccountResponse, AccountDetails } from '@declarations/nns-dapp/nns-dapp.did';
 
 import { useNnsDapp } from './useNnsDapp';
 

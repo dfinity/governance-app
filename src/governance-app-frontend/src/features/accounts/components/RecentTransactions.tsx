@@ -10,8 +10,8 @@ import { secondsToDate, secondsToTime } from '@utils/date';
 import { formatNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
-import type { AccountTransaction } from '../types';
 import { useRecentTransactions } from '../hooks/useRecentTransactions';
+import type { AccountTransaction } from '../types';
 
 export const RecentTransactions = () => {
   const { t } = useTranslation();
@@ -87,9 +87,7 @@ function TransactionRow({ tx }: { tx: AccountTransaction }) {
 
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold">
-            {t(config.labelKey)}
-          </span>
+          <span className="text-sm font-semibold">{t(config.labelKey)}</span>
           <Badge variant="secondary" className="text-[10px] font-normal">
             {tx.accountName}
           </Badge>

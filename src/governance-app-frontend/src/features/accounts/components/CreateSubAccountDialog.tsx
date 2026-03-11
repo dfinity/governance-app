@@ -38,9 +38,7 @@ export const CreateSubAccountDialog = () => {
     } catch (err) {
       errorNotification({
         description:
-          err instanceof Error
-            ? err.message
-            : t(($) => $.accounts.createSubAccount.error),
+          err instanceof Error ? err.message : t(($) => $.accounts.createSubAccount.error),
       });
     }
   };

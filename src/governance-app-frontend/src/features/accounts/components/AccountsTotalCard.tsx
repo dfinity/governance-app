@@ -105,7 +105,9 @@ export const AccountsTotalCard = ({ accounts, isLoading }: Props) => {
                 />
                 <span className="text-muted-foreground">{seg.name}</span>
                 <span className="font-medium">
-                  {t(($) => $.accounts.ofTotal, { value: formatNumber(seg.percentage, { minFraction: 1, maxFraction: 1 }) })}
+                  {t(($) => $.accounts.ofTotal, {
+                    value: formatNumber(seg.percentage, { minFraction: 1, maxFraction: 1 }),
+                  })}
                 </span>
               </div>
             ))}

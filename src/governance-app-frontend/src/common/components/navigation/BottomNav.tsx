@@ -37,9 +37,7 @@ export const BottomNav = () => {
               'flex w-full flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors hover:text-accent-foreground',
               shouldAnimate && item.href === '/accounts' && 'animate-highlight-pulse',
             )}
-            onAnimationEnd={
-              item.href === '/accounts' ? () => setShouldAnimate(false) : undefined
-            }
+            onAnimationEnd={item.href === '/accounts' ? () => setShouldAnimate(false) : undefined}
             activeProps={{
               className: 'text-primary font-semibold',
             }}
