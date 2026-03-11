@@ -14,9 +14,6 @@ type DetectionResult = {
  * Orchestrator hook for detecting advanced features. Automatically determines which features need checking by comparing
  * the known advanced feature set against what's already stored in localStorage.
  *
- * Reuses the cached {@link useNnsDappAccount} query instead of making a
- * separate canister call, so the result is shared with the rest of the app.
- *
  * @param enabled - When false, the hook is inert (isDetecting = false).
  */
 export const useDetectAdvancedFeatures = (enabled = true): DetectionResult => {
@@ -30,10 +27,12 @@ export const useDetectAdvancedFeatures = (enabled = true): DetectionResult => {
   const accountData = nnsDappAccount.data?.response;
 
   const detectedFeatures: Partial<AdvancedFeaturesSettings> = {};
-  if (hasFeaturesToCheck && shouldCheckSubaccounts) {
-    detectedFeatures[AdvancedFeature.Subaccounts] = isNullish(accountData)
-      ? false
-      : accountData.sub_accounts.length > 0;
+  if (hasFeaturesToCheck) {
+    if (shouldCheckSubaccounts) {
+      detectedFeatures[AdvancedFeature.Subaccounts] = isNullish(accountData)
+        ? false
+        : accountData?.sub_accounts.length > 0;
+    }
   }
 
   return {
