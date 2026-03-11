@@ -14,7 +14,7 @@ import { TotalAssetsCard } from '@features/dashboard/components/TotalAssetsCard'
 import { TotalStakedCard } from '@features/dashboard/components/TotalStakedCard';
 import { StakedCard } from '@features/stakes/components/StakedCard';
 
-import { useSubaccountsEnabled } from '@hooks/useSubaccountsEnabled';
+import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 
 import i18n from '@/i18n/config';
 
@@ -43,7 +43,8 @@ function Dashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate({ from: Route.fullPath });
   const { depositModal } = Route.useSearch();
-  const { enabled: subaccountsEnabled } = useSubaccountsEnabled();
+  const { features } = useAdvancedFeatures();
+  const subaccountsEnabled = features.subaccounts;
 
   const handleDepositModalOpenChange = (isOpen: boolean) => {
     if (!isOpen) navigate({ search: {}, replace: true });

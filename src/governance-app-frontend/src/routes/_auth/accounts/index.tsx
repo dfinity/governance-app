@@ -9,7 +9,7 @@ import { useSubaccounts } from '@features/accounts/hooks/useSubaccounts';
 
 import { PageHeader } from '@components/PageHeader';
 import { Skeleton } from '@components/Skeleton';
-import { useSubaccountsEnabled } from '@hooks/useSubaccountsEnabled';
+import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 
 import i18n from '@/i18n/config';
 
@@ -30,7 +30,8 @@ export const Route = createFileRoute('/_auth/accounts/')({
 function AccountsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { enabled } = useSubaccountsEnabled();
+  const { features } = useAdvancedFeatures();
+  const enabled = features.subaccounts;
   const { data: accounts, isLoading } = useSubaccounts();
 
   useEffect(() => {

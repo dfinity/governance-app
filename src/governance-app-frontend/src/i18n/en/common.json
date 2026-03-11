@@ -68,6 +68,10 @@
     "continue": "Continue"
   },
   "opensInNewTab": "(opens in a new tab)",
+  "newFeatureCheck": {
+    "detected": "{{feature}} detected! You can enable it in the Settings.",
+    "subaccounts": "Subaccounts"
+  },
   "head": {
     "appName": "Network Nervous System",
     "defaultDescription": "Participate in decentralized governance on the Internet Computer",
@@ -96,9 +100,5 @@
     "settings": {
       "title": "Settings | Network Nervous System"
     }
-  },
-  "newFeatureCheck": {
-    "detected": "{{feature}} detected! You can enable it in the Settings.",
-    "subaccounts": "Accounts"
   }
 }
