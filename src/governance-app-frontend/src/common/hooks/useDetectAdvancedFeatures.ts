@@ -1,5 +1,4 @@
 import { isNullish } from '@dfinity/utils';
-import { useMemo } from 'react';
 
 import { useNnsDappAccount } from '@hooks/nnsDapp/useNnsDappAccount';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
@@ -28,7 +27,7 @@ export const useDetectAdvancedFeatures = (enabled = true): DetectionResult => {
   const hasFeaturesToCheck = enabled && missingFeatureKeys.length > 0;
   const shouldCheckSubaccounts = missingFeatureKeys.includes(AdvancedFeature.Subaccounts);
 
-  const detectedFeatures = useMemo<Partial<AdvancedFeaturesSettings>>(() => {
+  const detectedFeatures: Partial<AdvancedFeaturesSettings> = (() => {
     if (!hasFeaturesToCheck) return {};
 
     const accountData = nnsDappAccount.data?.response;
@@ -40,7 +39,7 @@ export const useDetectAdvancedFeatures = (enabled = true): DetectionResult => {
         : accountData.sub_accounts.length > 0;
     }
     return detected;
-  }, [hasFeaturesToCheck, shouldCheckSubaccounts, nnsDappAccount.data]);
+  })();
 
   return {
     isDetecting: hasFeaturesToCheck && nnsDappAccount.isLoading,

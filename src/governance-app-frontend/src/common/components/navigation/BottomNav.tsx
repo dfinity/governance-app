@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
@@ -11,10 +11,7 @@ export const BottomNav = () => {
   const { t } = useTranslation();
   const { features } = useAdvancedFeatures();
   const subaccountsEnabled = features.subaccounts;
-  const navigationItems = useMemo(
-    () => getNavigationItems({ subaccountsEnabled }),
-    [subaccountsEnabled],
-  );
+  const navigationItems = getNavigationItems({ subaccountsEnabled });
 
   const [prevEnabled, setPrevEnabled] = useState(subaccountsEnabled);
   const [shouldAnimate, setShouldAnimate] = useState(false);
