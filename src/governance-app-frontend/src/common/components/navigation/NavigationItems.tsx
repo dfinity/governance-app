@@ -10,7 +10,6 @@ export interface NavigationItem {
   label: string;
   href: AuthRoutePaths;
   icon: React.ElementType;
-  isDynamic?: boolean;
 }
 
 const baseItems: NavigationItem[] = [
@@ -40,7 +39,6 @@ const accountsItem: NavigationItem = {
   label: 'common.accounts',
   href: '/accounts',
   icon: Wallet,
-  isDynamic: true,
 };
 
 export const getNavigationItems = (options: {

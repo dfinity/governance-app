@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useSubaccountsEnabled } from '@hooks/useSubaccountsEnabled';
@@ -15,6 +15,16 @@ export const BottomNav = () => {
     [subaccountsEnabled],
   );
 
+  const prevEnabled = useRef(subaccountsEnabled);
+  const [shouldAnimate, setShouldAnimate] = useState(false);
+
+  useEffect(() => {
+    if (subaccountsEnabled && !prevEnabled.current) {
+      setShouldAnimate(true);
+    }
+    prevEnabled.current = subaccountsEnabled;
+  }, [subaccountsEnabled]);
+
   return (
     <nav className="z-50 shrink-0 border-t bg-background/80 shadow-[0_-3px_12px_rgba(0,0,0,0.08),0_-1px_3px_rgba(0,0,0,0.04)] backdrop-blur-lg lg:hidden">
       <div className="flex h-13 w-full items-end">
@@ -24,8 +34,11 @@ export const BottomNav = () => {
             to={item.href}
             className={cn(
               'flex w-full flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors hover:text-accent-foreground',
-              item.isDynamic && 'animate-highlight-pulse',
+              shouldAnimate && item.href === '/accounts' && 'animate-highlight-pulse',
             )}
+            onAnimationEnd={
+              item.href === '/accounts' ? () => setShouldAnimate(false) : undefined
+            }
             activeProps={{
               className: 'text-primary font-semibold',
             }}
