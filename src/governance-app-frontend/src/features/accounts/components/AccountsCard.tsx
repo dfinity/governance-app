@@ -23,6 +23,7 @@ export const AccountsCard = () => {
   const { tickerPrices: tickersQuery } = useTickerPrices();
 
   const accounts = accountsState?.accounts ?? [];
+  const isTotalPartial = accountsState?.isTotalPartial ?? false;
   const totalICP = bigIntDiv(accountsState?.totalBalanceE8s ?? 0n, E8Sn);
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const usdValue = icpPrice ? formatNumber(totalICP * icpPrice.usd) : '-';
@@ -48,6 +49,7 @@ export const AccountsCard = () => {
             <Skeleton className="h-8 w-32" />
           ) : (
             <p className="text-2xl font-bold">
+              {isTotalPartial ? '~ ' : ''}
               {t(($) => $.common.inIcp, { value: formatNumber(totalICP) })}
             </p>
           )}
