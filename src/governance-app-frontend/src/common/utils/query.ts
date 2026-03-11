@@ -34,7 +34,7 @@ const NNS_DAPP = {
 };
 
 const ACCOUNTS = {
-  SUBACCOUNT_BALANCES: 'accountsSubaccountBalances',
+  BALANCES: 'accountsBalances',
   RECENT_TRANSACTIONS: 'accountsRecentTransactions',
 };
 

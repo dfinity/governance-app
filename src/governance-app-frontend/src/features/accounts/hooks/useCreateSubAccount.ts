@@ -34,7 +34,7 @@ export function useCreateSubAccount() {
           .invalidateQueries({ queryKey: [QUERY_KEYS.NNS_DAPP.ACCOUNT] })
           .catch(failedRefresh),
         queryClient
-          .invalidateQueries({ queryKey: [QUERY_KEYS.ACCOUNTS.SUBACCOUNT_BALANCES] })
+          .invalidateQueries({ queryKey: [QUERY_KEYS.ACCOUNTS.BALANCES] })
           .catch(failedRefresh),
         queryClient
           .invalidateQueries({ queryKey: [QUERY_KEYS.ACCOUNTS.RECENT_TRANSACTIONS] })

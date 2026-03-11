@@ -2,11 +2,11 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { CreateSubAccountDialog } from '@features/subaccounts/components/CreateSubAccountDialog';
-import { RecentTransactions } from '@features/subaccounts/components/RecentTransactions';
-import { SubaccountsList } from '@features/subaccounts/components/SubaccountsList';
-import { SubaccountsTotalCard } from '@features/subaccounts/components/SubaccountsTotalCard';
-import { useSubaccounts } from '@features/subaccounts/hooks/useSubaccounts';
+import { AccountsList } from '@features/accounts/components/AccountsList';
+import { AccountsTotalCard } from '@features/accounts/components/AccountsTotalCard';
+import { CreateSubAccountDialog } from '@features/accounts/components/CreateSubAccountDialog';
+import { RecentTransactions } from '@features/accounts/components/RecentTransactions';
+import { useAccounts } from '@features/accounts/hooks/useAccounts';
 
 import { PageHeader } from '@components/PageHeader';
 import { Skeleton } from '@components/Skeleton';
@@ -33,7 +33,8 @@ function AccountsPage() {
   const navigate = useNavigate();
   const { features } = useAdvancedFeatures();
   const enabled = features.subaccounts;
-  const { data: accounts, isLoading } = useSubaccounts();
+  const { data: accountsState, isLoading } = useAccounts();
+  const accounts = accountsState?.accounts;
 
   useEffect(() => {
     if (!enabled) {
@@ -53,12 +54,12 @@ function AccountsPage() {
         actions={<CreateSubAccountDialog />}
       />
 
-      <SubaccountsTotalCard accounts={accounts ?? []} isLoading={isLoading} />
+      <AccountsTotalCard accounts={accounts ?? []} isLoading={isLoading} />
 
       {hasAccounts ? (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <SubaccountsList accounts={accounts} />
+            <AccountsList accounts={accounts} />
           </div>
           <RecentTransactions />
         </div>

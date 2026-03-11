@@ -9,7 +9,7 @@ import { useTickerPrices } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber } from '@utils/numbers';
 
-import type { Subaccount } from '../types';
+import type { AccountWithBalance } from '../types';
 
 const BASE_COLOR = 'var(--color-staking-ratio)';
 const OPACITY_MAX = 80;
@@ -22,11 +22,11 @@ function getAccountColor(index: number, total: number) {
 }
 
 type Props = {
-  accounts: Subaccount[];
+  accounts: AccountWithBalance[];
   isLoading: boolean;
 };
 
-export const SubaccountsTotalCard = ({ accounts, isLoading }: Props) => {
+export const AccountsTotalCard = ({ accounts, isLoading }: Props) => {
   const { t } = useTranslation();
   const { tickerPrices: tickersQuery } = useTickerPrices();
 

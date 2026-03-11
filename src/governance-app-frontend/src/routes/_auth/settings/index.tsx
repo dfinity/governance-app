@@ -94,17 +94,6 @@ function Settings() {
 
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
-          <h2 className="text-2xl font-semibold">
-            {t(($) => $.userAccount.advancedFeatures.title)}
-          </h2>
-        </div>
-        <Card className="overflow-hidden p-0 shadow-sm">
-          <AdvancedFeaturesCard />
-        </Card>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <div className="space-y-2">
           <h2 className="text-2xl font-semibold">{t(($) => $.addressBook.title)}</h2>
         </div>
         <Card className="overflow-hidden p-0 shadow-sm">
@@ -114,6 +103,17 @@ function Settings() {
               onOpenChange={handleAddressBookOpenChange}
             />
           </div>
+        </Card>
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <div className="space-y-2">
+          <h2 className="text-2xl font-semibold">
+            {t(($) => $.userAccount.advancedFeatures.title)}
+          </h2>
+        </div>
+        <Card className="overflow-hidden p-0 shadow-sm">
+          <AdvancedFeaturesCard />
         </Card>
       </section>
 

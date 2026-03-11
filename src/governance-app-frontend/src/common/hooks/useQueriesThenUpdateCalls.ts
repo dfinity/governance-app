@@ -58,8 +58,7 @@ export const useQueriesThenUpdateCalls = <TItem, TData>({
     const queryCall = queryCalls[index];
     const updateCall = updateCalls[index];
     const mergedData = updateCall.data ?? queryCall.data;
-    const bothSettled = !queryCall.isLoading && !updateCall.isLoading;
-    const isError = !mergedData && bothSettled && (!!queryCall.error || !!updateCall.error);
+    const isError = !mergedData && (!!queryCall.error || !!updateCall.error);
 
     byItemKey[key] = {
       data: mergedData,
