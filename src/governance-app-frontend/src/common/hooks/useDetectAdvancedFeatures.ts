@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { isNullish } from '@dfinity/utils';
+import { useMemo } from 'react';
 
-import type { GetAccountResponse } from '@declarations/nns-dapp/nns-dapp.did';
-
-import { useNnsDapp } from '@hooks/nnsDapp/useNnsDapp';
+import { useNnsDappAccount } from '@hooks/nnsDapp/useNnsDappAccount';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { AdvancedFeature, type AdvancedFeaturesSettings } from '@typings/advancedFeatures';
 
@@ -12,53 +11,41 @@ type DetectionResult = {
   error: unknown;
 };
 
-function detectSubaccounts(res: GetAccountResponse): boolean {
-  return 'Ok' in res && res.Ok.sub_accounts.length > 0;
-}
-
 /**
  * Orchestrator hook for detecting advanced features.
  * Automatically determines which features need checking by comparing
  * the known advanced feature set against what's already stored in localStorage.
  *
- * @param enabled - When false, the hook is inert (no canister calls, isDetecting = false).
+ * Reuses the cached {@link useNnsDappAccount} query instead of making a
+ * separate canister call, so the result is shared with the rest of the app.
+ *
+ * @param enabled - When false, the hook is inert (isDetecting = false).
  */
 export const useDetectAdvancedFeatures = (enabled = true): DetectionResult => {
-  const { ready, authenticated, canister } = useNnsDapp();
   const { missingFeatureKeys } = useAdvancedFeatures();
-  const hasRun = useRef(false);
 
-  const shouldCheckSubaccounts = missingFeatureKeys.includes(AdvancedFeature.Subaccounts);
+  const nnsDappAccount = useNnsDappAccount();
+
   const hasFeaturesToCheck = enabled && missingFeatureKeys.length > 0;
+  const shouldCheckSubaccounts = missingFeatureKeys.includes(AdvancedFeature.Subaccounts);
 
-  const [result, setResult] = useState<DetectionResult>({
-    isDetecting: hasFeaturesToCheck,
-    detectedFeatures: {},
-    error: undefined,
-  });
+  const detectedFeatures = useMemo<Partial<AdvancedFeaturesSettings>>(() => {
+    if (!hasFeaturesToCheck) return {};
 
-  useEffect(() => {
-    if (!hasFeaturesToCheck || !ready || !authenticated || hasRun.current) return;
-    hasRun.current = true;
+    const accountData = nnsDappAccount.data?.response;
 
-    const detect = async () => {
-      try {
-        const detected: Partial<AdvancedFeaturesSettings> = {};
+    const detected: Partial<AdvancedFeaturesSettings> = {};
+    if (shouldCheckSubaccounts) {
+      detected[AdvancedFeature.Subaccounts] = isNullish(accountData)
+        ? false
+        : accountData.sub_accounts.length > 0;
+    }
+    return detected;
+  }, [hasFeaturesToCheck, shouldCheckSubaccounts, nnsDappAccount.data]);
 
-        if (shouldCheckSubaccounts) {
-          detected[AdvancedFeature.Subaccounts] = detectSubaccounts(
-            await canister!.service.get_account(),
-          );
-        }
-
-        setResult({ isDetecting: false, detectedFeatures: detected, error: undefined });
-      } catch (error) {
-        setResult({ isDetecting: false, detectedFeatures: {}, error });
-      }
-    };
-
-    detect();
-  }, [ready, authenticated, canister, hasFeaturesToCheck, shouldCheckSubaccounts]);
-
-  return result;
+  return {
+    isDetecting: hasFeaturesToCheck && nnsDappAccount.isLoading,
+    detectedFeatures,
+    error: nnsDappAccount.error,
+  };
 };
