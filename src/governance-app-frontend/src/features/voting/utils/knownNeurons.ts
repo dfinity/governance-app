@@ -24,7 +24,8 @@ const FOLLOWED_TOPICS = new Set([Topic.Unspecified, Topic.Governance, Topic.SnsA
 
 /**
  * Builds the topic following configuration for a known neuron selection.
- * Sets the known neuron as followee for Unspecified, Governance, and SnsAndCommunityFund,
+ * Sets the known neuron as followee for Unspecified (catch-all for all topics
+ * besides Governance and SnsAndCommunityFund), Governance, and SnsAndCommunityFund,
  * clears followees for all other topics, and excludes NeuronManagement
  * as it is managed separately and should not be overridden.
  */
