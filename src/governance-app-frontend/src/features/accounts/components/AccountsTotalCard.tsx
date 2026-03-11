@@ -46,7 +46,7 @@ export const AccountsTotalCard = ({ accounts, isLoading }: Props) => {
       const color = account.type === 'main'
         ? BASE_COLOR
         : getAccountColor(nonMainAccounts.indexOf(account), nonMainAccounts.length);
-      return { name: account.name, percentage, color };
+      return { accountId: account.accountId, name: account.name, percentage, color };
     });
   }, [readyAccounts, totalE8s]);
 
@@ -85,7 +85,7 @@ export const AccountsTotalCard = ({ accounts, isLoading }: Props) => {
           >
             {segments.map((seg) => (
               <div
-                key={seg.name}
+                key={seg.accountId}
                 className="transition-all duration-700 ease-out first:rounded-l-full last:rounded-r-full"
                 style={{ width: `${seg.percentage}%`, backgroundColor: seg.color }}
               />
@@ -101,7 +101,7 @@ export const AccountsTotalCard = ({ accounts, isLoading }: Props) => {
         ) : (
           <div className="flex flex-wrap gap-x-4 gap-y-1">
             {segments.map((seg) => (
-              <div key={seg.name} className="flex items-center gap-1.5 text-sm">
+              <div key={seg.accountId} className="flex items-center gap-1.5 text-sm">
                 <span
                   className="size-2.5 shrink-0 rounded-full"
                   style={{ backgroundColor: seg.color }}

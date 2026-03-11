@@ -6,17 +6,17 @@ import { CreateSubAccountResponse } from '@declarations/nns-dapp/nns-dapp.did';
 import { useNnsDapp } from '@hooks/nnsDapp/useNnsDapp';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
-const mapError = (response: CreateSubAccountResponse): string => {
-  if ('AccountNotFound' in response) return 'Account not found in NNS dapp';
-  if ('SubAccountLimitExceeded' in response) return 'Sub-account limit exceeded';
-  if ('NameTooLong' in response) return 'Name is too long';
-  return 'Unknown error';
-};
-
 export function useCreateSubAccount() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { canister } = useNnsDapp();
+
+  const mapError = (response: CreateSubAccountResponse): string => {
+    if ('AccountNotFound' in response) return t(($) => $.accounts.createSubAccount.errorAccountNotFound);
+    if ('SubAccountLimitExceeded' in response) return t(($) => $.accounts.createSubAccount.errorLimitExceeded);
+    if ('NameTooLong' in response) return t(($) => $.accounts.createSubAccount.errorNameTooLong);
+    return t(($) => $.accounts.createSubAccount.error);
+  };
 
   return useMutation({
     mutationFn: async (name: string) => {

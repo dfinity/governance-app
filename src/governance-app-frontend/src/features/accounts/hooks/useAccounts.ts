@@ -68,6 +68,6 @@ export const useAccounts = () => {
 
   return {
     data,
-    isLoading: !mainAccountMeta.data || subaccountsMetadata.isLoading || balancesQuery.isLoading,
+    isLoading: !mainAccountMeta.data || subaccountsMetadata.isLoading,
   };
 };

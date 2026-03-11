@@ -21,5 +21,5 @@ export const useMainAccountMeta = () => {
     };
   }, [identity, t]);
 
-  return { data };
+  return { data, isLoading: false };
 };
