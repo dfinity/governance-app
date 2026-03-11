@@ -14,13 +14,13 @@ import { bigIntDiv } from '@utils/bigInt';
 import { shortenId } from '@utils/id';
 import { formatNumber } from '@utils/numbers';
 
-import type { Subaccount } from '../types';
+import type { AccountWithBalance } from '../types';
 
 type Props = {
-  account: Subaccount;
+  account: AccountWithBalance;
 };
 
-export const SubaccountCard = ({ account }: Props) => {
+export const AccountsListItem = ({ account }: Props) => {
   const { t } = useTranslation();
   const { tickerPrices: tickersQuery } = useTickerPrices();
   const [isDialogOpen, setIsDialogOpen] = useState(false);

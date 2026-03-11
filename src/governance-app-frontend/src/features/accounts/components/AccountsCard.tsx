@@ -12,23 +12,22 @@ import { useTickerPrices } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber } from '@utils/numbers';
 
-import { useSubaccounts } from '../hooks/useSubaccounts';
-import type { Subaccount } from '../types';
+import { useAccounts } from '../hooks/useAccounts';
+import type { AccountWithBalance } from '../types';
 
 const MAX_PREVIEW_ACCOUNTS = 3;
 
-export const SubaccountsCard = () => {
+export const AccountsCard = () => {
   const { t } = useTranslation();
-  const { data: accounts, isLoading } = useSubaccounts();
+  const { data: accountsState, isLoading } = useAccounts();
   const { tickerPrices: tickersQuery } = useTickerPrices();
 
-  const totalE8s = accounts?.reduce((sum, a) => sum + a.balanceE8s, 0n) ?? 0n;
-  const totalICP = bigIntDiv(totalE8s, E8Sn);
+  const accounts = accountsState?.accounts ?? [];
+  const totalICP = bigIntDiv(accountsState?.totalBalanceE8s ?? 0n, E8Sn);
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const usdValue = icpPrice ? formatNumber(totalICP * icpPrice.usd) : '-';
-  const count = accounts?.length ?? 0;
-
-  const topAccounts = accounts?.slice(0, MAX_PREVIEW_ACCOUNTS) ?? [];
+  const count = accounts.length;
+  const topAccounts = accounts.slice(0, MAX_PREVIEW_ACCOUNTS);
 
   return (
     <Card data-testid="accounts-card">
@@ -90,7 +89,7 @@ export const SubaccountsCard = () => {
   );
 };
 
-function AccountPreviewList({ accounts }: { accounts: Subaccount[] }) {
+function AccountPreviewList({ accounts }: { accounts: AccountWithBalance[] }) {
   const { t } = useTranslation();
 
   return (

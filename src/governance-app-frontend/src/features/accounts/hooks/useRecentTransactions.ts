@@ -1,5 +1,4 @@
 import { AccountIdentifier, IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
-import { useQuery } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -8,9 +7,8 @@ import { useNeuronAccountsIds } from '@features/account/hooks/useNeuronAccountsI
 import { detectTransactionType } from '@features/transactions/utils/transactionType';
 
 import { NANOSECONDS_IN_SECOND } from '@constants/extra';
-import { useIcpIndex } from '@hooks/icpIndex/useIcpIndex';
+import { useIcpIndexAccountsTransactions } from '@hooks/icpIndex';
 import { useNnsDappAccount } from '@hooks/nnsDapp/useNnsDappAccount';
-import { QUERY_KEYS } from '@utils/query';
 
 import type { AccountTransaction } from '../types';
 
@@ -37,6 +35,7 @@ function toAccountTransaction(
     type,
     amountE8s: transfer.amount.e8s,
     timestamp: timestampSeconds,
+    accountId,
     accountName,
   };
 }
@@ -49,7 +48,6 @@ export const useRecentTransactions = () => {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
   const nnsDappAccount = useNnsDappAccount();
-  const { ready, authenticated, canister } = useIcpIndex();
   const { accountIds: neuronAccountIds } = useNeuronAccountsIds();
 
   const accountDetails = nnsDappAccount.data?.response;
@@ -70,30 +68,26 @@ export const useRecentTransactions = () => {
   }, [identity, accountDetails, t]);
 
   const accountIds = entries?.map((a) => a.accountId);
-
-  const query = useQuery({
-    queryKey: [QUERY_KEYS.ACCOUNTS.RECENT_TRANSACTIONS, accountIds],
-    queryFn: async () => {
-      const results = await Promise.all(
-        entries!.map(async (entry) => {
-          const response = await canister!.getTransactions({
-            maxResults: TRANSACTIONS_PER_ACCOUNT,
-            accountIdentifier: entry.accountId,
-            certified: false,
-          });
-          return response.transactions
-            .map((tx) => toAccountTransaction(tx, entry.accountId, entry.name, neuronAccountIds))
-            .filter((tx): tx is AccountTransaction => tx !== null);
-        }),
-      );
-
-      return results
-        .flat()
-        .sort((a, b) => b.timestamp - a.timestamp)
-        .slice(0, MAX_RECENT_TRANSACTIONS);
-    },
-    enabled: !!entries && ready && authenticated,
+  const transactionsQuery = useIcpIndexAccountsTransactions({
+    accountIds: accountIds ?? [],
+    maxResults: TRANSACTIONS_PER_ACCOUNT,
+    enabled: !!entries,
   });
 
-  return { data: query.data, isLoading: query.isLoading };
+  const data = useMemo(() => {
+    if (!entries) return undefined;
+
+    const results = entries.map((entry) =>
+      (transactionsQuery.byAccountId[entry.accountId]?.data?.transactions ?? [])
+        .map((tx) => toAccountTransaction(tx, entry.accountId, entry.name, neuronAccountIds))
+        .filter((tx): tx is AccountTransaction => tx !== null),
+    );
+
+    return results
+      .flat()
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, MAX_RECENT_TRANSACTIONS);
+  }, [entries, neuronAccountIds, transactionsQuery.byAccountId]);
+
+  return { data, isLoading: transactionsQuery.isLoading };
 };
