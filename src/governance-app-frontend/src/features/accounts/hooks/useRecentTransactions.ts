@@ -1,16 +1,15 @@
-import { AccountIdentifier, IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
-import { useInternetIdentity } from 'ic-use-internet-identity';
+import { IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { useNeuronAccountsIds } from '@features/account/hooks/useNeuronAccountsIds';
 import { detectTransactionType } from '@features/transactions/utils/transactionType';
 
 import { NANOSECONDS_IN_SECOND } from '@constants/extra';
 import { useIcpIndexAccountsTransactions } from '@hooks/icpIndex';
-import { useNnsDappAccount } from '@hooks/nnsDapp/useNnsDappAccount';
 
-import type { AccountTransaction } from '../types';
+import type { AccountMeta, AccountTransaction } from '../types';
+import { useMainAccountMeta } from './useMainAccountMeta';
+import { useSubaccountsMetadata } from './useSubaccountsMetadata';
 
 const MAX_RECENT_TRANSACTIONS = 10;
 const TRANSACTIONS_PER_ACCOUNT = 5n;
@@ -45,41 +44,28 @@ function toAccountTransaction(
  * Transactions are merged, sorted by timestamp descending, and capped.
  */
 export const useRecentTransactions = () => {
-  const { t } = useTranslation();
-  const { identity } = useInternetIdentity();
-  const nnsDappAccount = useNnsDappAccount();
+  const mainAccountMeta = useMainAccountMeta();
+  const subaccountsMetadata = useSubaccountsMetadata();
   const { accountIds: neuronAccountIds } = useNeuronAccountsIds();
 
-  const accountDetails = nnsDappAccount.data?.response;
+  const accountMetas = useMemo<AccountMeta[]>(() => {
+    if (!mainAccountMeta.data) return [];
+    return [mainAccountMeta.data, ...subaccountsMetadata.data];
+  }, [mainAccountMeta.data, subaccountsMetadata.data]);
 
-  const entries = useMemo(() => {
-    if (!identity) return undefined;
-
-    const mainAccountId = AccountIdentifier.fromPrincipal({
-      principal: identity.getPrincipal(),
-    }).toHex();
-
-    const main = { name: t(($) => $.accounts.mainAccount), accountId: mainAccountId };
-    const subs = (accountDetails?.sub_accounts ?? []).map((sa) => ({
-      name: sa.name,
-      accountId: sa.account_identifier,
-    }));
-    return [main, ...subs];
-  }, [identity, accountDetails, t]);
-
-  const accountIds = entries?.map((a) => a.accountId);
+  const accountIds = accountMetas.map((a) => a.accountId);
   const transactionsQuery = useIcpIndexAccountsTransactions({
-    accountIds: accountIds ?? [],
+    accountIds,
     maxResults: TRANSACTIONS_PER_ACCOUNT,
-    enabled: !!entries,
+    enabled: accountMetas.length > 0,
   });
 
   const data = useMemo(() => {
-    if (!entries) return undefined;
+    if (accountMetas.length === 0) return undefined;
 
-    const results = entries.map((entry) =>
-      (transactionsQuery.byAccountId[entry.accountId]?.data?.transactions ?? [])
-        .map((tx) => toAccountTransaction(tx, entry.accountId, entry.name, neuronAccountIds))
+    const results = accountMetas.map((meta) =>
+      (transactionsQuery.byAccountId[meta.accountId]?.data?.transactions ?? [])
+        .map((tx) => toAccountTransaction(tx, meta.accountId, meta.name, neuronAccountIds))
         .filter((tx): tx is AccountTransaction => tx !== null),
     );
 
@@ -87,7 +73,7 @@ export const useRecentTransactions = () => {
       .flat()
       .sort((a, b) => b.timestamp - a.timestamp)
       .slice(0, MAX_RECENT_TRANSACTIONS);
-  }, [entries, neuronAccountIds, transactionsQuery.byAccountId]);
+  }, [accountMetas, neuronAccountIds, transactionsQuery.byAccountId]);
 
   return { data, isLoading: transactionsQuery.isLoading };
 };

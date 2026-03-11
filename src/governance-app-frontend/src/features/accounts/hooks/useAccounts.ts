@@ -2,15 +2,19 @@ import { useMemo } from 'react';
 
 import { useIcpLedgerAccountsBalances } from '@hooks/icpLedger';
 
-import type { AccountMeta, AccountsState, AccountWithBalance } from '../types';
+import type { Account, AccountMeta, AccountsState } from '../types';
 import { useMainAccountMeta } from './useMainAccountMeta';
 import { useSubaccountsMetadata } from './useSubaccountsMetadata';
 
-const sortAccounts = (accounts: AccountWithBalance[]): AccountWithBalance[] => {
-  const main = accounts.filter((a) => a.isMain);
+const sortAccounts = (accounts: Account[]): Account[] => {
+  const main = accounts.filter((a) => a.type === 'main');
   const rest = accounts
-    .filter((a) => !a.isMain)
-    .sort((a, b) => (b.balanceE8s > a.balanceE8s ? 1 : b.balanceE8s < a.balanceE8s ? -1 : 0));
+    .filter((a) => a.type !== 'main')
+    .sort((a, b) => {
+      const aBalance = a.status === 'ready' ? a.balanceE8s : 0n;
+      const bBalance = b.status === 'ready' ? b.balanceE8s : 0n;
+      return bBalance > aBalance ? 1 : bBalance < aBalance ? -1 : 0;
+    });
   return [...main, ...rest];
 };
 
@@ -34,19 +38,31 @@ export const useAccounts = () => {
     if (!mainAccountMeta.data) return undefined;
 
     const accounts = sortAccounts(
-      accountMetas.flatMap((account) => {
-        const accountBalance = balancesQuery.byAccountId[account.accountId]?.data;
-        if (accountBalance === undefined) return [];
-        return [{ ...account, balanceE8s: accountBalance }];
+      accountMetas.map((meta): Account => {
+        const balanceState = balancesQuery.byAccountId[meta.accountId];
+
+        if (balanceState?.isError) {
+          return { ...meta, status: 'error', error: balanceState.error };
+        }
+
+        if (balanceState?.data !== undefined) {
+          return { ...meta, status: 'ready', balanceE8s: balanceState.data };
+        }
+
+        return { ...meta, status: 'loading' };
       }),
+    );
+
+    const readyAccounts = accounts.filter(
+      (a): a is Extract<Account, { status: 'ready' }> => a.status === 'ready',
     );
 
     return {
       accounts,
-      totalBalanceE8s: accounts.reduce((sum, account) => sum + account.balanceE8s, 0n),
-      hasSubaccounts: accounts.some((account) => !account.isMain),
+      totalBalanceE8s: readyAccounts.reduce((sum, a) => sum + a.balanceE8s, 0n),
+      isTotalPartial: readyAccounts.length < accounts.length,
+      hasSubaccounts: accounts.some((a) => a.type !== 'main'),
       mainAccountId: mainAccountMeta.data.accountId,
-      balancesByAccountId: balancesQuery.byAccountId,
     };
   }, [accountMetas, balancesQuery.byAccountId, mainAccountMeta.data]);
 
