@@ -196,129 +196,131 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
         </Button>
       </ResponsiveDialogTrigger>
 
-      <ResponsiveDialogContent>
-        <form onSubmit={handleSubmit}>
-          <ResponsiveDialogHeader>
+      <ResponsiveDialogContent className="flex max-h-[90vh] flex-col">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <ResponsiveDialogHeader className="shrink-0">
             <ResponsiveDialogTitle>{t(($) => $.account.transferTitle)}</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="sr-only">
               Transfer ICP tokens to another account.
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
 
-          <div className="grid gap-4 pt-4 pb-12">
-            <div className="grid gap-2">
-              <div className="flex items-center justify-between">
-                <Label
-                  htmlFor={useAddressBookToggle ? 'address-book-select' : 'destination-account'}
-                >
-                  {t(($) => $.account.destinationAccount)}
-                </Label>
-                {addressBookLoading ? (
-                  <div className="flex items-center gap-1.5">
-                    <BookUser className="size-3.5 animate-pulse text-muted-foreground" />
-                    <span className="animate-pulse text-xs text-muted-foreground">
-                      {t(($) => $.addressBook.sendFlow.tooltipLoading)}
-                    </span>
-                  </div>
-                ) : showToggle ? (
-                  <label className="flex cursor-pointer items-center gap-1.5">
-                    <BookUser className="size-3.5 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">
-                      {t(($) => $.addressBook.sendFlow.toggleLabel)}
-                    </span>
-                    <Switch
-                      checked={useAddressBookToggle}
-                      onCheckedChange={(checked) => {
-                        setUseAddressBookToggle(checked);
-                        setToAccount('');
-                        setSelectedName('');
-                        setToAccountError('');
-                      }}
-                      size="sm"
-                      data-testid="address-book-toggle"
-                    />
-                  </label>
-                ) : !addressBookLoading && !hasAddresses ? (
-                  <Link
-                    to="/settings"
-                    search={{ openAddressBook: true }}
-                    className="flex items-center gap-1.5 transition-opacity hover:opacity-80"
+          <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4 md:px-0">
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                <div className="flex items-center justify-between">
+                  <Label
+                    htmlFor={useAddressBookToggle ? 'address-book-select' : 'destination-account'}
                   >
-                    <BookUser className="size-3.5 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground underline">
-                      {t(($) => $.addressBook.sendFlow.tooltipEmpty)}
-                    </span>
-                  </Link>
-                ) : null}
+                    {t(($) => $.account.destinationAccount)}
+                  </Label>
+                  {addressBookLoading ? (
+                    <div className="flex items-center gap-1.5">
+                      <BookUser className="size-3.5 animate-pulse text-muted-foreground" />
+                      <span className="animate-pulse text-xs text-muted-foreground">
+                        {t(($) => $.addressBook.sendFlow.tooltipLoading)}
+                      </span>
+                    </div>
+                  ) : showToggle ? (
+                    <label className="flex cursor-pointer items-center gap-1.5">
+                      <BookUser className="size-3.5 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">
+                        {t(($) => $.addressBook.sendFlow.toggleLabel)}
+                      </span>
+                      <Switch
+                        checked={useAddressBookToggle}
+                        onCheckedChange={(checked) => {
+                          setUseAddressBookToggle(checked);
+                          setToAccount('');
+                          setSelectedName('');
+                          setToAccountError('');
+                        }}
+                        size="sm"
+                        data-testid="address-book-toggle"
+                      />
+                    </label>
+                  ) : !addressBookLoading && !hasAddresses ? (
+                    <Link
+                      to="/settings"
+                      search={{ openAddressBook: true }}
+                      className="flex items-center gap-1.5 transition-opacity hover:opacity-80"
+                    >
+                      <BookUser className="size-3.5 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground underline">
+                        {t(($) => $.addressBook.sendFlow.tooltipEmpty)}
+                      </span>
+                    </Link>
+                  ) : null}
+                </div>
+
+                {useAddressBookToggle ? (
+                  <AddressBookSelect
+                    addresses={addressBookEntries}
+                    selectedName={selectedName}
+                    onSelect={(name, address) => {
+                      setSelectedName(name);
+                      handleAccountChange(address);
+                    }}
+                    disabled={isPending}
+                  />
+                ) : (
+                  <>
+                    <Input
+                      id="destination-account"
+                      onChange={(e) => handleAccountChange(e.target.value)}
+                      disabled={isPending}
+                      value={toAccount}
+                      className={`font-mono ${toAccountError ? 'border-destructive' : ''}`}
+                      aria-invalid={!!toAccountError}
+                      autoComplete="off"
+                      data-1p-ignore
+                      data-lpignore="true"
+                      required
+                    />
+                    {!useAddressBookToggle && toAccount !== '' && (
+                      <p className="text-xs text-muted-foreground">
+                        {t(($) => $.addressBook.sendFlow.manualWarning)}
+                      </p>
+                    )}
+                  </>
+                )}
+                {toAccountError && (
+                  <Alert variant="warning">
+                    <AlertTriangle className="h-4 w-4 text-destructive" />
+                    <AlertDescription>{toAccountError}</AlertDescription>
+                  </Alert>
+                )}
               </div>
 
-              {useAddressBookToggle ? (
-                <AddressBookSelect
-                  addresses={addressBookEntries}
-                  selectedName={selectedName}
-                  onSelect={(name, address) => {
-                    setSelectedName(name);
-                    handleAccountChange(address);
-                  }}
+              <div className="grid gap-2">
+                <Label htmlFor="amount">{t(($) => $.common.amount)}</Label>
+                <AmountInput
+                  id="amount"
+                  data-testid="send-icp-amount-input"
+                  ref={amountInputRef}
+                  value={amount}
+                  onChange={handleAmountChange}
+                  maxAmount={max}
+                  onMaxSelect={handleMaxSelect}
                   disabled={isPending}
+                  required
+                  error={!!amountError}
+                  approxUsdLabel={approxUsd}
+                  availableLabel={t(($) => $.account.availableBalance, {
+                    amount: max,
+                  })}
                 />
-              ) : (
-                <>
-                  <Input
-                    id="destination-account"
-                    onChange={(e) => handleAccountChange(e.target.value)}
-                    disabled={isPending}
-                    value={toAccount}
-                    className={`font-mono ${toAccountError ? 'border-destructive' : ''}`}
-                    aria-invalid={!!toAccountError}
-                    autoComplete="off"
-                    data-1p-ignore
-                    data-lpignore="true"
-                    required
-                  />
-                  {!useAddressBookToggle && toAccount !== '' && (
-                    <p className="text-xs text-muted-foreground">
-                      {t(($) => $.addressBook.sendFlow.manualWarning)}
-                    </p>
-                  )}
-                </>
-              )}
-              {toAccountError && (
-                <Alert variant="warning">
-                  <AlertTriangle className="h-4 w-4 text-destructive" />
-                  <AlertDescription>{toAccountError}</AlertDescription>
-                </Alert>
-              )}
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="amount">{t(($) => $.common.amount)}</Label>
-              <AmountInput
-                id="amount"
-                data-testid="send-icp-amount-input"
-                ref={amountInputRef}
-                value={amount}
-                onChange={handleAmountChange}
-                maxAmount={max}
-                onMaxSelect={handleMaxSelect}
-                disabled={isPending}
-                required
-                error={!!amountError}
-                approxUsdLabel={approxUsd}
-                availableLabel={t(($) => $.account.availableBalance, {
-                  amount: max,
-                })}
-              />
-              {amountError && (
-                <Alert variant="warning">
-                  <AlertTriangle className="h-4 w-4 text-destructive" />
-                  <AlertDescription>{amountError}</AlertDescription>
-                </Alert>
-              )}
+                {amountError && (
+                  <Alert variant="warning">
+                    <AlertTriangle className="h-4 w-4 text-destructive" />
+                    <AlertDescription>{amountError}</AlertDescription>
+                  </Alert>
+                )}
+              </div>
             </div>
           </div>
 
-          <ResponsiveDialogFooter className="flex justify-end gap-2">
+          <ResponsiveDialogFooter className="flex shrink-0 justify-end gap-2">
             <Button
               type="button"
               variant="ghost"

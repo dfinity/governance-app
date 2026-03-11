@@ -230,11 +230,13 @@ function Voting() {
             infiniteQuery={activeQuery}
             isEmpty={(data) => !data?.pages?.[0].response.proposals.length}
             emptyComponent={
-              proposalFilter === ProposalFilter.Open ? (
-                <p className="py-8 text-center text-sm text-muted-foreground">
-                  {t(($) => $.voting.proposals.noOpenProposals)}
-                </p>
-              ) : undefined
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                {t(($) =>
+                  proposalFilter === ProposalFilter.Open
+                    ? $.voting.proposals.noOpenProposals
+                    : $.voting.proposals.noProposals,
+                )}
+              </p>
             }
             loadingComponent={
               <div className="flex flex-col gap-4">

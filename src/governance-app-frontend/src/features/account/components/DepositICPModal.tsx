@@ -18,8 +18,8 @@ import { Separator } from '@components/Separator';
 
 import { BuyIcpButton } from './BuyIcpButton';
 
-// Aspect ratio (width / height) of the ICP logo based on the source SVG asset.
-const QR_CODE_LOGO_ASPECT_RATIO = 464 / 272;
+// Aspect ratio (width / height) of the ICP logo based on the source SVG viewBox (46 x 22).
+const QR_CODE_LOGO_ASPECT_RATIO = 46 / 22;
 const QR_CODE_LOGO_HEIGHT = 35;
 const QR_CODE_LOGO_WIDTH = QR_CODE_LOGO_HEIGHT * QR_CODE_LOGO_ASPECT_RATIO;
 
@@ -42,17 +42,17 @@ export const DepositICPModal = ({ open, onOpenChange }: DepositICPModalProps) =>
 
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
-      <ResponsiveDialogContent>
-        <ResponsiveDialogHeader>
+      <ResponsiveDialogContent className="flex max-h-[90vh] flex-col">
+        <ResponsiveDialogHeader className="shrink-0">
           <ResponsiveDialogTitle>{t(($) => $.depositModal.title)}</ResponsiveDialogTitle>
           <ResponsiveDialogDescription className="sr-only">
             {t(($) => $.depositModal.title)}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
-        <Separator />
+        <Separator className="shrink-0" />
 
-        <div className="mt-4 flex flex-col gap-4 pb-4 lg:pb-0">
+        <div className="mt-4 flex flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4 md:px-0 md:pb-0">
           <Alert variant="warning" className="mx-auto max-w-[520px]">
             <AlertCircle className="size-4" aria-hidden="true" />
             <AlertDescription>{t(($) => $.depositModal.warning)}</AlertDescription>

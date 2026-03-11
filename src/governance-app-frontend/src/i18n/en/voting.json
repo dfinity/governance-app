@@ -15,7 +15,8 @@
     "ctaHide": "Hide proposals",
     "filterOpen": "Open",
     "filterAll": "All",
-    "noOpenProposals": "No open proposals right now."
+    "noOpenProposals": "No open proposals right now.",
+    "noProposals": "No proposals available."
   },
   "warnings": {
     "stakeRequired": "You need at least one Neuron to follow a Known Neuron. Please stake ICP first.",
