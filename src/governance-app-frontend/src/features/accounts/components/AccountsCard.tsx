@@ -13,7 +13,7 @@ import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber } from '@utils/numbers';
 
 import { useAccounts } from '../hooks/useAccounts';
-import type { AccountWithBalance } from '../types';
+import type { Account } from '../types';
 
 const MAX_PREVIEW_ACCOUNTS = 3;
 
@@ -89,18 +89,21 @@ export const AccountsCard = () => {
   );
 };
 
-function AccountPreviewList({ accounts }: { accounts: AccountWithBalance[] }) {
+function AccountPreviewList({ accounts }: { accounts: Account[] }) {
   const { t } = useTranslation();
 
   return (
     <div className="flex flex-col divide-y">
       {accounts.map((account) => {
-        const balanceICP = bigIntDiv(account.balanceE8s, E8Sn);
+        const balanceICP =
+          account.status === 'ready' ? bigIntDiv(account.balanceE8s, E8Sn) : undefined;
         return (
           <div key={account.accountId} className="flex items-center justify-between py-2.5 text-sm">
             <span className="text-muted-foreground">{account.name}</span>
             <span className="font-medium">
-              {t(($) => $.common.inIcp, { value: formatNumber(balanceICP) })}
+              {balanceICP !== undefined
+                ? t(($) => $.common.inIcp, { value: formatNumber(balanceICP) })
+                : '-'}
             </span>
           </div>
         );

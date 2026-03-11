@@ -1,36 +1,33 @@
+export type AccountType = 'main' | 'subaccount';
+
 export interface AccountMeta {
   name: string;
   accountId: string;
-  isMain: boolean;
+  type: AccountType;
 }
 
-export interface MainAccountMeta extends AccountMeta {
-  isMain: true;
-}
-
-export interface SubaccountMeta extends AccountMeta {
-  isMain: false;
-}
-
-export interface AccountWithBalance extends AccountMeta {
+export type AccountReady = AccountMeta & {
+  status: 'ready';
   balanceE8s: bigint;
-}
+};
 
-export interface AccountBalanceState {
-  data?: bigint;
-  certified?: boolean;
-  isLoading: boolean;
-  isFetching: boolean;
-  isError: boolean;
-  error?: unknown;
-}
+export type AccountLoading = AccountMeta & {
+  status: 'loading';
+};
+
+export type AccountError = AccountMeta & {
+  status: 'error';
+  error: unknown;
+};
+
+export type Account = AccountReady | AccountLoading | AccountError;
 
 export interface AccountsState {
-  accounts: AccountWithBalance[];
+  accounts: Account[];
   totalBalanceE8s: bigint;
+  isTotalPartial: boolean;
   hasSubaccounts: boolean;
   mainAccountId?: string;
-  balancesByAccountId: Record<string, AccountBalanceState>;
 }
 
 export interface AccountTransaction {

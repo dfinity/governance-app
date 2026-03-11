@@ -1,8 +1,8 @@
-import type { AccountWithBalance } from '../types';
+import type { Account } from '../types';
 import { AccountsListItem } from './AccountsListItem';
 
 type Props = {
-  accounts: AccountWithBalance[];
+  accounts: Account[];
 };
 
 export const AccountsList = ({ accounts }: Props) => {

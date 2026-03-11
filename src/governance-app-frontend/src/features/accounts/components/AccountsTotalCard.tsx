@@ -9,7 +9,7 @@ import { useTickerPrices } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber } from '@utils/numbers';
 
-import type { AccountWithBalance } from '../types';
+import type { Account, AccountReady } from '../types';
 
 const BASE_COLOR = 'var(--color-staking-ratio)';
 const OPACITY_MAX = 80;
@@ -22,7 +22,7 @@ function getAccountColor(index: number, total: number) {
 }
 
 type Props = {
-  accounts: AccountWithBalance[];
+  accounts: Account[];
   isLoading: boolean;
 };
 
@@ -30,22 +30,25 @@ export const AccountsTotalCard = ({ accounts, isLoading }: Props) => {
   const { t } = useTranslation();
   const { tickerPrices: tickersQuery } = useTickerPrices();
 
-  const totalE8s = accounts.reduce((sum, a) => sum + a.balanceE8s, 0n);
+  const readyAccounts = accounts.filter(
+    (a): a is AccountReady => a.status === 'ready',
+  );
+  const totalE8s = readyAccounts.reduce((sum, a) => sum + a.balanceE8s, 0n);
   const totalICP = bigIntDiv(totalE8s, E8Sn);
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const usdValue = icpPrice ? formatNumber(totalICP * icpPrice.usd) : '-';
 
   const segments = useMemo(() => {
     if (totalE8s === 0n) return [];
-    const nonMainAccounts = accounts.filter((a) => !a.isMain);
-    return accounts.map((account) => {
+    const nonMainAccounts = readyAccounts.filter((a) => a.type !== 'main');
+    return readyAccounts.map((account) => {
       const percentage = Number((account.balanceE8s * 10000n) / totalE8s) / 100;
-      const color = account.isMain
+      const color = account.type === 'main'
         ? BASE_COLOR
         : getAccountColor(nonMainAccounts.indexOf(account), nonMainAccounts.length);
       return { name: account.name, percentage, color };
     });
-  }, [accounts, totalE8s]);
+  }, [readyAccounts, totalE8s]);
 
   return (
     <Card>

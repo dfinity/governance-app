@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import { useNnsDappAccount } from '@hooks/nnsDapp/useNnsDappAccount';
 
-import type { SubaccountMeta } from '../types';
+import type { AccountMeta } from '../types';
 
 /**
  * Fetches sub-account metadata from NNS dapp.
@@ -12,12 +12,12 @@ export const useSubaccountsMetadata = () => {
   const subAccounts = nnsDappAccount.data?.response?.sub_accounts;
 
   return {
-    data: useMemo<SubaccountMeta[]>(() => {
+    data: useMemo<AccountMeta[]>(() => {
       const subs = subAccounts ?? [];
       return subs.map((sa) => ({
         name: sa.name,
         accountId: sa.account_identifier,
-        isMain: false,
+        type: 'subaccount' as const,
       }));
     }, [subAccounts]),
     isLoading: nnsDappAccount.isLoading,
