@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
-import type { CreateSubAccountResponse } from '@hooks/nnsDapp/nnsDapp.types';
 import { useNnsDapp } from '@hooks/nnsDapp/useNnsDapp';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
+import { CreateSubAccountResponse } from '@declarations/nns-dapp/nns-dapp.did';
 
 const mapError = (response: CreateSubAccountResponse): string => {
   if ('AccountNotFound' in response) return 'Account not found in NNS dapp';
@@ -19,19 +19,14 @@ export function useCreateSubAccount() {
 
   return useMutation({
     mutationFn: async (name: string) => {
-      if (!canister) {
-        throw new Error(t(($) => $.accounts.createSubAccount.error));
-      }
+      if (!canister) throw new Error(t(($) => $.accounts.createSubAccount.error));
 
       // Ensure the principal is registered in the NNS dapp canister.
       // add_account is idempotent — returns the existing identifier if already registered.
       await canister.certifiedService.add_account();
-
       const response = await canister.certifiedService.create_sub_account(name);
 
-      if (!('Ok' in response)) {
-        throw new Error(mapError(response));
-      }
+      if (!('Ok' in response)) throw new Error(mapError(response));
 
       await Promise.all([
         queryClient
