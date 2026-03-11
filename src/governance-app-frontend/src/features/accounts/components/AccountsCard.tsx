@@ -1,6 +1,5 @@
 import { Link } from '@tanstack/react-router';
 import { Wallet } from 'lucide-react';
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@components/badge';
@@ -29,15 +28,7 @@ export const AccountsCard = () => {
   const usdValue = icpPrice ? formatNumber(totalICP * icpPrice.usd) : '-';
   const count = accounts?.length ?? 0;
 
-  const topAccounts = useMemo(
-    () =>
-      accounts
-        ? [...accounts]
-            .sort((a, b) => (b.balanceE8s > a.balanceE8s ? 1 : b.balanceE8s < a.balanceE8s ? -1 : 0))
-            .slice(0, MAX_PREVIEW_ACCOUNTS)
-        : [],
-    [accounts],
-  );
+  const topAccounts = accounts?.slice(0, MAX_PREVIEW_ACCOUNTS) ?? [];
 
   return (
     <Card data-testid="accounts-card">
