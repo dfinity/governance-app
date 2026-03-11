@@ -39,7 +39,7 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
   --main-content: oklch(0.988 0 0); /* rgb(252, 252, 252) - subtle grey for main content */
-  --staking-ratio: #0057FF;
+  --staking-ratio: #0057ff;
 }
 
 .dark {
@@ -76,7 +76,7 @@
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
   --main-content: var(--background);
-  --staking-ratio: #4D8AFF;
+  --staking-ratio: #4d8aff;
 }
 
 @theme inline {

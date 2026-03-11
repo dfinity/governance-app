@@ -55,21 +55,18 @@ const txConfig = {
     colorClasses: 'bg-emerald-200/30 text-emerald-800 dark:bg-emerald-100/10 dark:text-emerald-400',
     amountClasses: 'text-emerald-800 dark:text-emerald-400',
     sign: '+',
-    labelKey: ($: any) => $.account.depositedIcp,
   },
   send: {
     icon: ArrowUp,
     colorClasses: 'bg-red-200/30 text-red-800 dark:bg-red-100/10 dark:text-red-400',
     amountClasses: 'text-red-800 dark:text-red-400',
     sign: '-',
-    labelKey: ($: any) => $.account.withdrawnIcp,
   },
   stake: {
     icon: Lock,
     colorClasses: 'bg-red-200/30 text-red-800 dark:bg-red-100/10 dark:text-red-400',
     amountClasses: 'text-red-800 dark:text-red-400',
     sign: '-',
-    labelKey: ($: any) => $.account.stakedIcp,
   },
 } as const;
 
@@ -79,6 +76,13 @@ function TransactionRow({ tx }: { tx: AccountTransaction }) {
   const config = txConfig[tx.type];
   const Icon = config.icon;
 
+  const label =
+    tx.type === 'receive'
+      ? t(($) => $.account.depositedIcp)
+      : tx.type === 'stake'
+        ? t(($) => $.account.stakedIcp)
+        : t(($) => $.account.withdrawnIcp);
+
   return (
     <div className="flex items-center gap-3">
       <div className={cn('shrink-0 rounded-full p-2.5', config.colorClasses)}>
@@ -87,7 +91,7 @@ function TransactionRow({ tx }: { tx: AccountTransaction }) {
 
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold">{t(config.labelKey)}</span>
+          <span className="text-sm font-semibold">{label}</span>
           <Badge variant="secondary" className="text-[10px] font-normal">
             {tx.accountName}
           </Badge>
