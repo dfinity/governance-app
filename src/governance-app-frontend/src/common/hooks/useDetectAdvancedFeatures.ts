@@ -27,19 +27,14 @@ export const useDetectAdvancedFeatures = (enabled = true): DetectionResult => {
   const hasFeaturesToCheck = enabled && missingFeatureKeys.length > 0;
   const shouldCheckSubaccounts = missingFeatureKeys.includes(AdvancedFeature.Subaccounts);
 
-  const detectedFeatures: Partial<AdvancedFeaturesSettings> = (() => {
-    if (!hasFeaturesToCheck) return {};
+  const accountData = nnsDappAccount.data?.response;
 
-    const accountData = nnsDappAccount.data?.response;
-
-    const detected: Partial<AdvancedFeaturesSettings> = {};
-    if (shouldCheckSubaccounts) {
-      detected[AdvancedFeature.Subaccounts] = isNullish(accountData)
-        ? false
-        : accountData.sub_accounts.length > 0;
-    }
-    return detected;
-  })();
+  const detectedFeatures: Partial<AdvancedFeaturesSettings> = {};
+  if (hasFeaturesToCheck && shouldCheckSubaccounts) {
+    detectedFeatures[AdvancedFeature.Subaccounts] = isNullish(accountData)
+      ? false
+      : accountData.sub_accounts.length > 0;
+  }
 
   return {
     isDetecting: hasFeaturesToCheck && nnsDappAccount.isLoading,
