@@ -19,7 +19,7 @@ function detectSubaccounts(res: GetAccountResponse): boolean {
 /**
  * Orchestrator hook for detecting advanced features.
  * Automatically determines which features need checking by comparing
- * the feature registry against what's already stored in localStorage.
+ * the known advanced feature set against what's already stored in localStorage.
  *
  * @param enabled - When false, the hook is inert (no canister calls, isDetecting = false).
  */

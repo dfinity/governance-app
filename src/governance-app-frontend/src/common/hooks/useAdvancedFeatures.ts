@@ -1,3 +1,4 @@
+import { isNullish } from '@dfinity/utils';
 import { useSyncExternalStore } from 'react';
 
 import { ADVANCED_FEATURES_STORAGE_KEY } from '@constants/extra';
@@ -9,7 +10,7 @@ import {
 const readFromStorage = (): AdvancedFeaturesSettings => {
   try {
     const savedKeys = localStorage.getItem(ADVANCED_FEATURES_STORAGE_KEY);
-    if (!savedKeys) return { ...ADVANCED_FEATURES_DEFAULTS };
+    if (isNullish(savedKeys)) return { ...ADVANCED_FEATURES_DEFAULTS };
     return { ...ADVANCED_FEATURES_DEFAULTS, ...JSON.parse(savedKeys) };
   } catch {
     return { ...ADVANCED_FEATURES_DEFAULTS };
@@ -23,7 +24,7 @@ const computeMissingKeys = (): Array<keyof AdvancedFeaturesSettings> => {
 
   try {
     const savedKeys = localStorage.getItem(ADVANCED_FEATURES_STORAGE_KEY);
-    if (!savedKeys) return defaultKeys;
+    if (isNullish(savedKeys)) return defaultKeys;
     const stored = JSON.parse(savedKeys) as Partial<AdvancedFeaturesSettings>;
     return defaultKeys.filter((key) => !(key in stored));
   } catch {
