@@ -29,6 +29,15 @@ const EXTERNAL_SERVICES = {
   ICP_SWAP_PRICES: 'icpSwapPrices',
 };
 
+const NNS_DAPP = {
+  ACCOUNT: 'nnsDappAccount',
+};
+
+const ACCOUNTS = {
+  SUBACCOUNT_BALANCES: 'accountsSubaccountBalances',
+  RECENT_TRANSACTIONS: 'accountsRecentTransactions',
+};
+
 const GOVERNANCE_APP_BACKEND = {
   ADDRESS_BOOK: 'governanceAppBackendAddressBook',
 };
@@ -36,7 +45,9 @@ const GOVERNANCE_APP_BACKEND = {
 export const QUERY_KEYS = {
   ICP_LEDGER,
   NNS_GOVERNANCE,
+  NNS_DAPP,
   ICP_INDEX,
+  ACCOUNTS,
   EXTERNAL_SERVICES,
   GOVERNANCE_APP_BACKEND,
 };

@@ -51,7 +51,6 @@ export const MAX_AGE_BONUS = 0.25; // +25%
 export const MANUAL_LOGOUT_KEY = 'nns-manual-logout';
 export const WELCOME_MODAL_STORAGE_KEY = 'nns-welcome-modal-seen';
 export const SHORTCUTS_SETTINGS_KEY = 'nns-shortcuts-settings';
-export const SUBACCOUNTS_SETTINGS_KEY = 'nns-subaccounts-settings';
 export const ADVANCED_FEATURES_STORAGE_KEY = 'nns-advanced-features';
 
 // External Links

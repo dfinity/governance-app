@@ -9,15 +9,20 @@ import { QUERY_KEYS } from '@utils/query';
 
 import { useIcpIndex } from './useIcpIndex';
 
-export const useIcpIndexTransactions = () => {
+/**
+ * Fetches paginated transactions from the ICP Index canister.
+ * When called without arguments, uses the main account.
+ * Pass an accountId hex string to fetch transactions for a specific sub-account.
+ */
+export const useIcpIndexTransactions = (accountId?: string) => {
   const { identity } = useInternetIdentity();
   const { ready, authenticated, canister } = useIcpIndex();
 
-  // If no identity is present, we use an anonymous identity to avoid errors.
-  // The query will be disabled anyway if not authenticated.
-  const accountIdentifier = AccountIdentifier.fromPrincipal({
-    principal: identity?.getPrincipal() || new AnonymousIdentity().getPrincipal(),
-  });
+  const accountIdentifier =
+    accountId ??
+    AccountIdentifier.fromPrincipal({
+      principal: identity?.getPrincipal() || new AnonymousIdentity().getPrincipal(),
+    }).toHex();
 
   return useInfiniteQueryThenUpdateCall<
     IcpIndexDid.GetAccountIdentifierTransactionsResponse,

@@ -23,17 +23,20 @@ import { useNeuronAccountsIds } from '../hooks/useNeuronAccountsIds';
 interface TransactionListDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  accountId?: string;
 }
 
-export function TransactionListDialog({ open, onOpenChange }: TransactionListDialogProps) {
+export function TransactionListDialog({ open, onOpenChange, accountId }: TransactionListDialogProps) {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
 
-  const accountIdHex = nonNullish(identity)
-    ? AccountIdentifier.fromPrincipal({ principal: identity.getPrincipal() }).toHex()
-    : null;
+  const accountIdHex =
+    accountId ??
+    (nonNullish(identity)
+      ? AccountIdentifier.fromPrincipal({ principal: identity.getPrincipal() }).toHex()
+      : null);
 
-  const transactions = useIcpIndexTransactions();
+  const transactions = useIcpIndexTransactions(accountId);
   const { accountIds: neuronAccountIds } = useNeuronAccountsIds();
 
   const allTransactions =

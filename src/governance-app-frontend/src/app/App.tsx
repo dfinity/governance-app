@@ -29,7 +29,7 @@ export const App = () => {
       <InternetIdentityProvider
         loginOptions={{
           identityProvider: IDENTITY_PROVIDER,
-          ...(nonNullish(II_DERIVATION_ORIGIN) && { derivationOrigin: II_DERIVATION_ORIGIN }),
+          //          ...(nonNullish(II_DERIVATION_ORIGIN) && { derivationOrigin: II_DERIVATION_ORIGIN }),
         }}
       >
         <QueryClientProvider client={queryClientConfig}>
