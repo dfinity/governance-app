@@ -12,7 +12,7 @@ import { useTickerPrices } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber } from '@utils/numbers';
 
-import type { Subaccount } from '../data/mockSubaccounts';
+import type { Subaccount } from '../types';
 import { useSubaccounts } from '../hooks/useSubaccounts';
 
 const MAX_PREVIEW_ACCOUNTS = 3;
@@ -99,7 +99,7 @@ function AccountPreviewList({ accounts }: { accounts: Subaccount[] }) {
         const balanceICP = bigIntDiv(account.balanceE8s, E8Sn);
         return (
           <div
-            key={account.subaccountIndex}
+            key={account.accountId}
             className="flex items-center justify-between py-2.5 text-sm"
           >
             <span className="text-muted-foreground">{account.name}</span>

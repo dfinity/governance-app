@@ -18,8 +18,6 @@ export const useIcpIndexTransactions = (accountId?: string) => {
   const { identity } = useInternetIdentity();
   const { ready, authenticated, canister } = useIcpIndex();
 
-  // If no identity is present, we use an anonymous identity to avoid errors.
-  // The query will be disabled anyway if not authenticated.
   const accountIdentifier =
     accountId ??
     AccountIdentifier.fromPrincipal({

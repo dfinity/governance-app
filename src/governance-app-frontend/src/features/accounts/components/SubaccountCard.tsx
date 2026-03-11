@@ -14,7 +14,7 @@ import { bigIntDiv } from '@utils/bigInt';
 import { shortenId } from '@utils/id';
 import { formatNumber } from '@utils/numbers';
 
-import type { Subaccount } from '../data/mockSubaccounts';
+import type { Subaccount } from '../types';
 
 type Props = {
   account: Subaccount;
@@ -42,7 +42,7 @@ export const SubaccountCard = ({ account }: Props) => {
                 </p>
                 <CopyButton
                   value={account.accountId}
-                  label={account.name}
+                  label={`${account.name} account id`}
                   size="sm"
                   variant="ghost"
                   className="size-6"
@@ -71,7 +71,7 @@ export const SubaccountCard = ({ account }: Props) => {
           </div>
         </CardContent>
       </Card>
-      <TransactionListDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
+      <TransactionListDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} accountId={account.accountId} />
     </>
   );
 };

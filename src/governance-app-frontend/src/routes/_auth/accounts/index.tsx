@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { AccountsList } from '@features/accounts/components/AccountsList';
 import { AccountsTotalCard } from '@features/accounts/components/AccountsTotalCard';
+import { CreateSubAccountDialog } from '@features/accounts/components/CreateSubAccountDialog';
 import { RecentTransactions } from '@features/accounts/components/RecentTransactions';
 import { useSubaccounts } from '@features/accounts/hooks/useSubaccounts';
 
@@ -49,6 +50,7 @@ function AccountsPage() {
       <PageHeader
         title={t(($) => $.accounts.title)}
         description={t(($) => $.accounts.description)}
+        actions={<CreateSubAccountDialog />}
       />
 
       <AccountsTotalCard accounts={accounts ?? []} isLoading={isLoading} />

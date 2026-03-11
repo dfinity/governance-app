@@ -25,11 +25,7 @@ interface TransactionListDialogProps {
   accountId?: string;
 }
 
-export function TransactionListDialog({
-  open,
-  onOpenChange,
-  accountId,
-}: TransactionListDialogProps) {
+export function TransactionListDialog({ open, onOpenChange, accountId }: TransactionListDialogProps) {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
 

@@ -1,4 +1,4 @@
-import { ArrowDownToLine, ArrowUp } from 'lucide-react';
+import { ArrowDownToLine, ArrowUp, Lock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@components/badge';
@@ -10,7 +10,7 @@ import { secondsToDate, secondsToTime } from '@utils/date';
 import { formatNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
-import type { MockTransaction } from '../data/mockTransactions';
+import type { AccountTransaction } from '../types';
 import { useRecentTransactions } from '../hooks/useRecentTransactions';
 
 export const RecentTransactions = () => {
@@ -38,7 +38,7 @@ export const RecentTransactions = () => {
             </div>
           ))
         ) : transactions && transactions.length > 0 ? (
-          transactions.map((tx) => <TransactionRow key={tx.id} tx={tx} />)
+          transactions.map((tx) => <TransactionRow key={tx.id.toString()} tx={tx} />)
         ) : (
           <p className="py-4 text-center text-sm text-muted-foreground">
             {t(($) => $.accounts.noTransactions)}
@@ -49,35 +49,49 @@ export const RecentTransactions = () => {
   );
 };
 
-function TransactionRow({ tx }: { tx: MockTransaction }) {
+const txConfig = {
+  receive: {
+    icon: ArrowDownToLine,
+    colorClasses: 'bg-emerald-200/30 text-emerald-800 dark:bg-emerald-100/10 dark:text-emerald-400',
+    amountClasses: 'text-emerald-800 dark:text-emerald-400',
+    sign: '+',
+    labelKey: ($: any) => $.account.depositedIcp,
+  },
+  send: {
+    icon: ArrowUp,
+    colorClasses: 'bg-red-200/30 text-red-800 dark:bg-red-100/10 dark:text-red-400',
+    amountClasses: 'text-red-800 dark:text-red-400',
+    sign: '-',
+    labelKey: ($: any) => $.account.withdrawnIcp,
+  },
+  stake: {
+    icon: Lock,
+    colorClasses: 'bg-red-200/30 text-red-800 dark:bg-red-100/10 dark:text-red-400',
+    amountClasses: 'text-red-800 dark:text-red-400',
+    sign: '-',
+    labelKey: ($: any) => $.account.stakedIcp,
+  },
+} as const;
+
+function TransactionRow({ tx }: { tx: AccountTransaction }) {
   const { t } = useTranslation();
-  const isReceive = tx.type === 'receive';
   const amountICP = bigIntDiv(tx.amountE8s, E8Sn);
+  const config = txConfig[tx.type];
+  const Icon = config.icon;
 
   return (
     <div className="flex items-center gap-3">
-      <div
-        className={cn(
-          'shrink-0 rounded-full p-2.5',
-          isReceive
-            ? 'bg-emerald-200/30 text-emerald-800 dark:bg-emerald-100/10 dark:text-emerald-400'
-            : 'bg-red-200/30 text-red-800 dark:bg-red-100/10 dark:text-red-400',
-        )}
-      >
-        {isReceive ? (
-          <ArrowDownToLine className="size-4" />
-        ) : (
-          <ArrowUp className="size-4" />
-        )}
+      <div className={cn('shrink-0 rounded-full p-2.5', config.colorClasses)}>
+        <Icon className="size-4" />
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold">
-            {isReceive ? t(($) => $.accounts.received) : t(($) => $.accounts.sent)}
+            {t(config.labelKey)}
           </span>
           <Badge variant="secondary" className="text-[10px] font-normal">
-            {tx.subaccountName}
+            {tx.accountName}
           </Badge>
         </div>
         <span className="text-xs text-muted-foreground">
@@ -85,15 +99,8 @@ function TransactionRow({ tx }: { tx: MockTransaction }) {
         </span>
       </div>
 
-      <span
-        className={cn(
-          'shrink-0 text-sm font-semibold',
-          isReceive
-            ? 'text-emerald-800 dark:text-emerald-400'
-            : 'text-red-800 dark:text-red-400',
-        )}
-      >
-        {isReceive ? '+' : '-'}
+      <span className={cn('shrink-0 text-sm font-semibold', config.amountClasses)}>
+        {config.sign}
         {t(($) => $.common.inIcp, {
           value: formatNumber(amountICP, { minFraction: 2, maxFraction: 8 }),
         })}
