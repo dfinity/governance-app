@@ -1,4 +1,4 @@
-import { KnownNeuron, NeuronId, Topic } from '@icp-sdk/canisters/nns';
+import { KnownNeuron, NeuronId } from '@icp-sdk/canisters/nns';
 import { isNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
@@ -10,7 +10,11 @@ import { useTranslation } from 'react-i18next';
 import { validateProposalsSearch } from '@features/proposals/utils';
 import { KnownNeuronCard } from '@features/voting/components/KnownNeuronCard';
 import { getUsersFollowedNeurons, isKnownNeuron } from '@features/voting/utils/findFollowedNeuron';
-import { isActiveKnownNeuron, sortKnownNeurons } from '@features/voting/utils/knownNeurons';
+import {
+  buildKnownNeuronTopicFollowing,
+  isActiveKnownNeuron,
+  sortKnownNeurons,
+} from '@features/voting/utils/knownNeurons';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { AnimatedCheckmark } from '@components/AnimatedCheckmark';
@@ -104,25 +108,12 @@ function KnownNeuronsPage() {
     mutationFn: ({ neurons, knownNeuron }) => {
       if (!canister) throw new Error(t(($) => $.common.unknownError));
 
-      // Setting the following for topics `Unspecified`, `Governance` and `SNS and Community Fund` to cover all topics
       const knownNeuronId = knownNeuron.id;
+      const topicFollowing = buildKnownNeuronTopicFollowing(knownNeuronId);
       const promises = neurons.map((n) =>
         canister.setFollowing({
           neuronId: n.neuronId,
-          topicFollowing: [
-            {
-              topic: Topic.Unspecified,
-              followees: [knownNeuronId],
-            },
-            {
-              topic: Topic.Governance,
-              followees: [knownNeuronId],
-            },
-            {
-              topic: Topic.SnsAndCommunityFund,
-              followees: [knownNeuronId],
-            },
-          ],
+          topicFollowing,
         }),
       );
 

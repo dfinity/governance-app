@@ -1,4 +1,4 @@
-import { KnownNeuron } from '@icp-sdk/canisters/nns';
+import { FolloweesForTopic, KnownNeuron, NeuronId, Topic } from '@icp-sdk/canisters/nns';
 
 import { DFINITY_NEURON_ID } from '@common/constants/neuron';
 
@@ -19,6 +19,24 @@ const PENALIZED_NEURON_IDS = [
 ];
 
 export const isActiveKnownNeuron = (a: KnownNeuron) => !PENALIZED_NEURON_IDS.includes(a.id);
+
+const FOLLOWED_TOPICS = new Set([Topic.Unspecified, Topic.Governance, Topic.SnsAndCommunityFund]);
+
+/**
+ * Builds the topic following configuration for a known neuron selection.
+ * Sets the known neuron as followee for Unspecified (catch-all for all topics
+ * besides Governance and SnsAndCommunityFund), Governance, and SnsAndCommunityFund,
+ * clears followees for all other topics, and excludes NeuronManagement
+ * as it is managed separately and should not be overridden.
+ */
+export const buildKnownNeuronTopicFollowing = (knownNeuronId: NeuronId): FolloweesForTopic[] => {
+  return Object.values(Topic)
+    .filter((v): v is Topic => typeof v === 'number' && v !== Topic.NeuronManagement)
+    .map((topic) => ({
+      topic,
+      followees: FOLLOWED_TOPICS.has(topic) ? [knownNeuronId] : [],
+    }));
+};
 
 export const sortKnownNeurons = (a: KnownNeuron, b: KnownNeuron) => {
   const aSortData = KNOWN_NEURONS_SORTING_MAP[String(a.id)];
