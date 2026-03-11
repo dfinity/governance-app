@@ -70,8 +70,5 @@
   "session": {
     "title": "Session",
     "timeLeft": "Session expires in {{minutes}}m {{seconds}}s"
-  },
-  "advancedMode": {
-    "title": "Advanced mode"
   }
 }

@@ -67,6 +67,10 @@
     "continue": "Continue"
   },
   "opensInNewTab": "(opens in a new tab)",
+  "newFeatureCheck": {
+    "detected": "{{feature}} detected! You can enable it in the Settings.",
+    "subaccounts": "Subaccounts"
+  },
   "head": {
     "appName": "Governance",
     "defaultDescription": "Participate in decentralized governance on the Internet Computer",
@@ -95,9 +99,5 @@
     "settings": {
       "title": "Settings | Governance"
     }
-  },
-  "newFeatureCheck": {
-    "detected": "{{feature}} detected! You can enable it in the Settings.",
-    "subaccounts": "Subaccounts"
   }
 }

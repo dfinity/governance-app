@@ -51,13 +51,13 @@ export const MAX_AGE_BONUS = 0.25; // +25%
 export const MANUAL_LOGOUT_KEY = 'nns-manual-logout';
 export const WELCOME_MODAL_STORAGE_KEY = 'nns-welcome-modal-seen';
 export const SHORTCUTS_SETTINGS_KEY = 'nns-shortcuts-settings';
-export const ADVANCED_FEATURES_STORAGE_KEY = 'nns-advanced-features';
 export const SUBACCOUNTS_SETTINGS_KEY = 'nns-subaccounts-settings';
+export const ADVANCED_FEATURES_STORAGE_KEY = 'nns-advanced-features';
 
 // External Links
 export const DASHBOARD_URL = `https://dashboard.internetcomputer.org/neuron`;
 
 const localIdentityProvider = `http://${CANISTER_ID_INTERNET_IDENTITY}.${HOST}`;
-const mainnetIdentityProvider = 'https://id.ai/authorize?feature_flag_min_guided_upgrade=true';
+const mainnetIdentityProvider = 'https://id.ai/?feature_flag_guided_upgrade=true';
 export const IDENTITY_PROVIDER = IS_LOCAL ? localIdentityProvider : mainnetIdentityProvider;
 export const II_DERIVATION_ORIGIN = IS_LOCAL ? null : 'https://nns.ic0.app';
