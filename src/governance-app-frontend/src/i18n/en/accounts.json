@@ -14,10 +14,9 @@
   },
   "createSubAccount": {
     "button": "New Account",
-    "title": "Create Sub-Account",
-    "description": "Create a new sub-account to organize your ICP. The name helps you identify the account.",
+    "title": "New Account",
+    "description": "Create a new account controlled by your Internet Identity.",
     "nameLabel": "Account name",
-    "namePlaceholder": "e.g. Savings, Trading",
     "confirm": "Create",
     "creating": "Creating \"{{name}}\"…",
     "success": "\"{{name}}\" created successfully.",
