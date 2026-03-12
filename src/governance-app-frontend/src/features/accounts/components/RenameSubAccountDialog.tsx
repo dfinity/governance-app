@@ -85,7 +85,7 @@ export const RenameSubAccountDialog = ({ accountId, currentName }: Props) => {
     if (phase !== Phase.Success) return;
     const timer = setTimeout(handleClose, SUCCESS_AUTO_CLOSE_MS);
     return () => clearTimeout(timer);
-  }, [phase]);
+  }, [phase, handleClose]);
 
   return (
     <ResponsiveDialog open={open} onOpenChange={handleOpenChange} dismissible={!isBlocking}>

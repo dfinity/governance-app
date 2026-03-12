@@ -4,8 +4,6 @@ import { useTranslation } from 'react-i18next';
 
 import { TransactionListDialog } from '@features/transactions/components/TransactionListDialog';
 
-import { RenameSubAccountDialog } from './RenameSubAccountDialog';
-
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { CopyButton } from '@components/CopyButton';
@@ -18,6 +16,7 @@ import { shortenId } from '@utils/id';
 import { formatNumber } from '@utils/numbers';
 
 import type { Account } from '../types';
+import { RenameSubAccountDialog } from './RenameSubAccountDialog';
 
 type Props = {
   account: Account;
