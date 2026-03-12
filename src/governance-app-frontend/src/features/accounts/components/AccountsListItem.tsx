@@ -91,11 +91,7 @@ function AccountBalance({
   }
 
   if (account.status === 'error') {
-    return (
-      <p className="text-sm text-destructive">
-        {t(($) => $.accounts.balanceError)}
-      </p>
-    );
+    return <p className="text-sm text-destructive">{t(($) => $.accounts.balanceError)}</p>;
   }
 
   const balanceICP = bigIntDiv(account.balanceE8s, E8Sn);
