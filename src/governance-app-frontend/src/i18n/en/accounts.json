@@ -25,14 +25,5 @@
     "errorAccountNotFound": "Account not found in NNS dapp.",
     "errorLimitExceeded": "Sub-account limit exceeded.",
     "errorNameTooLong": "Name is too long."
-  },
-  "settings": {
-    "aria": {
-      "toggle": "Toggle subaccounts feature"
-    },
-    "enabled": "Accounts enabled",
-    "enabledDescription": "Your navigation has been updated.",
-    "disabled": "Accounts disabled",
-    "disabledDescription": "The accounts view has been removed."
   }
 }

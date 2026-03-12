@@ -10,7 +10,7 @@ const unwrap = (response: GetAccountResponse): AccountDetails | null => {
   return null;
 };
 
-export const useNnsDappAccount = () => {
+export const useNnsDappAccount = (enabled = true) => {
   const { ready, authenticated, canister } = useNnsDapp();
 
   return useQueryThenUpdateCall<AccountDetails | null>({
@@ -18,7 +18,7 @@ export const useNnsDappAccount = () => {
     queryFn: async () => unwrap(await canister!.service.get_account()),
     updateFn: async () => unwrap(await canister!.certifiedService.get_account()),
     options: {
-      enabled: ready && authenticated,
+      enabled: enabled && ready && authenticated,
     },
   });
 };
