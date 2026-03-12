@@ -19,7 +19,7 @@ export const useIcpIndexAccountsTransactions = ({
   const calls = useQueriesThenUpdateCalls({
     items: accountIds,
     getItemKey: (accountId) => accountId,
-    getQueryKey: (accountId) => [QUERY_KEYS.ACCOUNTS.RECENT_TRANSACTIONS, accountId, maxResults],
+    getQueryKey: (accountId) => [QUERY_KEYS.ICP_INDEX.TRANSACTIONS, accountId, maxResults],
     queryFn: (accountId) =>
       canister!.getTransactions({
         maxResults,

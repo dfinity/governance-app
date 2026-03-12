@@ -36,10 +36,10 @@ export function useCreateSubAccount() {
           .invalidateQueries({ queryKey: [QUERY_KEYS.NNS_DAPP.ACCOUNT] })
           .catch(failedRefresh),
         queryClient
-          .invalidateQueries({ queryKey: [QUERY_KEYS.ACCOUNTS.BALANCES] })
+          .invalidateQueries({ queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE] })
           .catch(failedRefresh),
         queryClient
-          .invalidateQueries({ queryKey: [QUERY_KEYS.ACCOUNTS.RECENT_TRANSACTIONS] })
+          .invalidateQueries({ queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS] })
           .catch(failedRefresh),
       ]);
 
