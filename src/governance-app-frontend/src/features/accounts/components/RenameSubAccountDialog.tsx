@@ -123,11 +123,11 @@ export const RenameSubAccountDialog = ({ accountId, currentName }: Props) => {
               </ResponsiveDialogHeader>
 
               <div className="space-y-2 py-4">
-                <Label htmlFor="subaccount-rename">
+                <Label htmlFor={`subaccount-rename-${accountId}`}>
                   {t(($) => $.accounts.renameSubAccount.nameLabel)}
                 </Label>
                 <Input
-                  id="subaccount-rename"
+                  id={`subaccount-rename-${accountId}`}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder={t(($) => $.accounts.renameSubAccount.namePlaceholder)}
