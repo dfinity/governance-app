@@ -33,11 +33,6 @@ const NNS_DAPP = {
   ACCOUNT: 'nnsDappAccount',
 };
 
-const ACCOUNTS = {
-  BALANCES: 'accountsBalances',
-  RECENT_TRANSACTIONS: 'accountsRecentTransactions',
-};
-
 const GOVERNANCE_APP_BACKEND = {
   ADDRESS_BOOK: 'governanceAppBackendAddressBook',
 };
@@ -47,7 +42,6 @@ export const QUERY_KEYS = {
   NNS_GOVERNANCE,
   NNS_DAPP,
   ICP_INDEX,
-  ACCOUNTS,
   EXTERNAL_SERVICES,
   GOVERNANCE_APP_BACKEND,
 };
