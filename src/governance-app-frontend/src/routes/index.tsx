@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next';
 
 import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGovernanceLogo';
 
-import { BetaBanner } from '@components/BetaBanner';
 import { Button } from '@components/button';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
@@ -138,7 +137,6 @@ function LoginPage() {
                 alt={t(($) => $.common.alt.icpLogo)}
                 className="h-6 w-fit invert"
               />
-              <BetaBanner isLoggedIn={false} />
             </div>
             <h1 className="text-hero-responsive mt-4 mb-6 max-w-xl font-bold tracking-wide md:mt-12 md:mb-0 md:max-w-3xl">
               {t(($) => $.login.headerTitle)}

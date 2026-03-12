@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 
 import { analytics } from '@features/analytics/service';
 
-import { BetaBanner } from '@components/BetaBanner';
 import { MainLayout } from '@components/MainLayout';
 import { useIcpIndexTransactionsPolling } from '@hooks/icpIndex/useIcpIndexTransactionsPolling';
 import { useLogoutShortcut } from '@hooks/useLogoutShortcut';
@@ -37,7 +36,6 @@ function AuthLayout() {
 
   return (
     <MainLayout>
-      <BetaBanner isLoggedIn={true} />
       <Outlet />
     </MainLayout>
   );
