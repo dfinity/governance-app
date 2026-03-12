@@ -30,9 +30,7 @@ export const AccountsTotalCard = ({ accounts, isLoading }: Props) => {
   const { t } = useTranslation();
   const { tickerPrices: tickersQuery } = useTickerPrices();
 
-  const readyAccounts = accounts.filter(
-    (a): a is AccountReady => a.status === 'ready',
-  );
+  const readyAccounts = accounts.filter((a): a is AccountReady => a.status === 'ready');
   const totalE8s = readyAccounts.reduce((sum, a) => sum + a.balanceE8s, 0n);
   const totalICP = bigIntDiv(totalE8s, E8Sn);
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
@@ -43,9 +41,10 @@ export const AccountsTotalCard = ({ accounts, isLoading }: Props) => {
     const nonMainAccounts = readyAccounts.filter((a) => a.type !== 'main');
     return readyAccounts.map((account) => {
       const percentage = Number((account.balanceE8s * 10000n) / totalE8s) / 100;
-      const color = account.type === 'main'
-        ? BASE_COLOR
-        : getAccountColor(nonMainAccounts.indexOf(account), nonMainAccounts.length);
+      const color =
+        account.type === 'main'
+          ? BASE_COLOR
+          : getAccountColor(nonMainAccounts.indexOf(account), nonMainAccounts.length);
       return { accountId: account.accountId, name: account.name, percentage, color };
     });
   }, [readyAccounts, totalE8s]);

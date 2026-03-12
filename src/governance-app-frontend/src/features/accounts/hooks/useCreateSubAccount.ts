@@ -12,8 +12,10 @@ export function useCreateSubAccount() {
   const { canister } = useNnsDapp();
 
   const mapError = (response: CreateSubAccountResponse): string => {
-    if ('AccountNotFound' in response) return t(($) => $.accounts.createSubAccount.errorAccountNotFound);
-    if ('SubAccountLimitExceeded' in response) return t(($) => $.accounts.createSubAccount.errorLimitExceeded);
+    if ('AccountNotFound' in response)
+      return t(($) => $.accounts.createSubAccount.errorAccountNotFound);
+    if ('SubAccountLimitExceeded' in response)
+      return t(($) => $.accounts.createSubAccount.errorLimitExceeded);
     if ('NameTooLong' in response) return t(($) => $.accounts.createSubAccount.errorNameTooLong);
     return t(($) => $.accounts.createSubAccount.error);
   };
