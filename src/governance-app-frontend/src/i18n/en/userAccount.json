@@ -63,7 +63,14 @@
     "items": {
       "subaccounts": {
         "label": "Subaccounts",
-        "description": "View and manage subaccounts linked to your principal."
+        "description": "View and manage subaccounts linked to your principal.",
+        "aria": {
+          "toggle": "Toggle subaccounts feature"
+        },
+        "enabled": "Accounts enabled",
+        "enabledDescription": "Your navigation has been updated.",
+        "disabled": "Accounts disabled",
+        "disabledDescription": "The accounts view has been removed."
       }
     }
   },

@@ -2,6 +2,7 @@ import { IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 
 export type DetectedTransactionType = 'send' | 'receive' | 'stake' | 'unknown';
 
+// @TODO: Add unit tests (send/receive/stake/unknown cases)
 export const detectTransactionType = (
   operation: IcpIndexDid.Operation,
   accountId: string,

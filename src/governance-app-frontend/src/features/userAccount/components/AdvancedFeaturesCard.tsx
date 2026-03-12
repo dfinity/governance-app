@@ -5,15 +5,13 @@ import { Switch } from '@components/Switch';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { defaultNotification, successNotification } from '@utils/notification';
-
 type FeatureDefinition = {
   key: AdvancedFeature;
   icon: LucideIcon;
-  ariaLabel: string;
 };
 
 const FEATURES: FeatureDefinition[] = [
-  { key: AdvancedFeature.Subaccounts, icon: Layers, ariaLabel: 'accounts.settings.aria.toggle' },
+  { key: AdvancedFeature.Subaccounts, icon: Layers },
 ];
 
 export const AdvancedFeaturesCard = () => {
@@ -42,14 +40,14 @@ export const AdvancedFeaturesCard = () => {
               const notify = value ? successNotification : defaultNotification;
               notify({
                 title: value
-                  ? t(($) => $.accounts.settings.enabled)
-                  : t(($) => $.accounts.settings.disabled),
+                  ? t(($) => $.userAccount.advancedFeatures.items[key].enabled)
+                  : t(($) => $.userAccount.advancedFeatures.items[key].disabled),
                 description: value
-                  ? t(($) => $.accounts.settings.enabledDescription)
-                  : t(($) => $.accounts.settings.disabledDescription),
+                  ? t(($) => $.userAccount.advancedFeatures.items[key].enabledDescription)
+                  : t(($) => $.userAccount.advancedFeatures.items[key].disabledDescription),
               });
             }}
-            aria-label={t(($) => $.accounts.settings.aria.toggle)}
+            aria-label={t(($) => $.userAccount.advancedFeatures.items[key].aria.toggle)}
             className="shrink-0"
           />
         </div>

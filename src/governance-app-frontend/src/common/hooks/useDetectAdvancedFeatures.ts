@@ -19,10 +19,10 @@ type DetectionResult = {
 export const useDetectAdvancedFeatures = (enabled = true): DetectionResult => {
   const { missingFeatureKeys } = useAdvancedFeatures();
 
-  const nnsDappAccount = useNnsDappAccount();
-
   const hasFeaturesToCheck = enabled && missingFeatureKeys.length > 0;
   const shouldCheckSubaccounts = missingFeatureKeys.includes(AdvancedFeature.Subaccounts);
+
+  const nnsDappAccount = useNnsDappAccount(hasFeaturesToCheck);
 
   const isPending = nnsDappAccount.isPending;
   const accountData = nnsDappAccount.data?.response;
