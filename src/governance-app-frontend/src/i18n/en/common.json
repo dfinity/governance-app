@@ -59,24 +59,6 @@
   },
   "max": "Max",
   "leave": "Leave",
-  "betaBanner": {
-    "beta": "Beta",
-    "openInfo": "Open beta information",
-    "modalTitle": "Beta · ICP Staking & Governance",
-    "modalDescription": "This app is in beta. Actions here affect your real governance setup.",
-    "whatYouCanDo": "What you can do:",
-    "canDo": {
-      "stake": "Create and manage Neurons",
-      "vote": "Setup following, and vote on proposals",
-      "viewActivity": "View your staking and voting activity"
-    },
-    "beAware": "Be aware:",
-    "aware": {
-      "affectsConfig": "Actions affect your live governance configuration",
-      "testing": "Some features are still being tested",
-      "reportIssues": "Please report any issues you encounter"
-    }
-  },
   "maxRewards": "Max rewards",
   "externalLink": {
     "title": "Leaving the app",
