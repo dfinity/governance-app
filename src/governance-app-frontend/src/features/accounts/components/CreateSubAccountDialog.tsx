@@ -88,7 +88,7 @@ export const CreateSubAccountDialog = () => {
       </Button>
 
       <ResponsiveDialogContent
-        showCloseButton={!isBlocking}
+        showCloseButton={phase === Phase.Form}
         className="sm:min-h-[240px] sm:max-w-md"
       >
         <AnimatePresence mode="wait" initial={false}>
@@ -96,6 +96,7 @@ export const CreateSubAccountDialog = () => {
             <motion.form
               key="form"
               onSubmit={handleSubmit}
+              className="flex h-full flex-col"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -118,13 +119,12 @@ export const CreateSubAccountDialog = () => {
                   id="subaccount-name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder={t(($) => $.accounts.createSubAccount.namePlaceholder)}
                   autoFocus
                   autoComplete="off"
                 />
               </div>
 
-              <ResponsiveDialogFooter className="flex justify-end gap-2">
+              <ResponsiveDialogFooter className="mt-auto flex justify-end gap-2">
                 <Button type="button" variant="ghost" onClick={handleClose}>
                   {t(($) => $.common.cancel)}
                 </Button>
