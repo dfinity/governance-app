@@ -5,14 +5,13 @@ import { Switch } from '@components/Switch';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { defaultNotification, successNotification } from '@utils/notification';
+
 type FeatureDefinition = {
   key: AdvancedFeature;
   icon: LucideIcon;
 };
 
-const FEATURES: FeatureDefinition[] = [
-  { key: AdvancedFeature.Subaccounts, icon: Layers },
-];
+const FEATURES: FeatureDefinition[] = [{ key: AdvancedFeature.Subaccounts, icon: Layers }];
 
 export const AdvancedFeaturesCard = () => {
   const { t } = useTranslation();
