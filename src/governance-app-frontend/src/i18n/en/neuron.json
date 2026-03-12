@@ -6,7 +6,7 @@
   "created": "Created",
   "dissolveDelay": "Dissolve delay",
   "stakedMaturity": "Staked maturity",
-  "unstakedMaturity": "Liquid maturity",
+  "unstakedMaturity": "Available maturity",
   "maturityMode": "New maturity",
   "autoStake": "Auto-stake",
   "keepLiquid": "Keep available",
