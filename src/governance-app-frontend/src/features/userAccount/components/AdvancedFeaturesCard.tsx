@@ -4,13 +4,17 @@ import { useTranslation } from 'react-i18next';
 import { Switch } from '@components/Switch';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { AdvancedFeature } from '@typings/advancedFeatures';
+import { defaultNotification, successNotification } from '@utils/notification';
 
 type FeatureDefinition = {
   key: AdvancedFeature;
   icon: LucideIcon;
+  ariaLabel: string;
 };
 
-const FEATURES: FeatureDefinition[] = [{ key: AdvancedFeature.Subaccounts, icon: Layers }];
+const FEATURES: FeatureDefinition[] = [
+  { key: AdvancedFeature.Subaccounts, icon: Layers, ariaLabel: 'accounts.settings.aria.toggle' },
+];
 
 export const AdvancedFeaturesCard = () => {
   const { t } = useTranslation();
@@ -33,8 +37,19 @@ export const AdvancedFeaturesCard = () => {
           </div>
           <Switch
             checked={features[key]}
-            onCheckedChange={(value) => setFeature(key, value)}
-            aria-label={t(($) => $.userAccount.advancedFeatures.items[key].label)}
+            onCheckedChange={(value) => {
+              setFeature(key, value);
+              const notify = value ? successNotification : defaultNotification;
+              notify({
+                title: value
+                  ? t(($) => $.accounts.settings.enabled)
+                  : t(($) => $.accounts.settings.disabled),
+                description: value
+                  ? t(($) => $.accounts.settings.enabledDescription)
+                  : t(($) => $.accounts.settings.disabledDescription),
+              });
+            }}
+            aria-label={t(($) => $.accounts.settings.aria.toggle)}
             className="shrink-0"
           />
         </div>
