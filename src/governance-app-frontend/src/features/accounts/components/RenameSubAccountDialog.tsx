@@ -63,7 +63,6 @@ export const RenameSubAccountDialog = ({ accountId, currentName }: Props) => {
   const handleRetry = () => setPhase(Phase.Form);
 
   const handleClose = () => {
-    setName(currentName);
     setPhase(Phase.Form);
     setErrorMessage('');
     setOpen(false);
