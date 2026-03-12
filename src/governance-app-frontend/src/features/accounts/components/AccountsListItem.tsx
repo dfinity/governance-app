@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 
 import { TransactionListDialog } from '@features/transactions/components/TransactionListDialog';
 
+import { RenameSubAccountDialog } from './RenameSubAccountDialog';
+
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { CopyButton } from '@components/CopyButton';
@@ -32,9 +34,17 @@ export const AccountsListItem = ({ account }: Props) => {
         <CardHeader className="flex flex-col gap-0">
           <div className="flex w-full items-start justify-between">
             <div className="flex flex-col gap-0.5">
-              <p className="text-sm tracking-wide text-muted-foreground uppercase">
-                {account.name}
-              </p>
+              <div className="flex items-center gap-1">
+                <p className="text-sm tracking-wide text-muted-foreground uppercase">
+                  {account.name}
+                </p>
+                {account.type === 'subaccount' && (
+                  <RenameSubAccountDialog
+                    accountId={account.accountId}
+                    currentName={account.name}
+                  />
+                )}
+              </div>
               <div className="flex items-center gap-1.5">
                 <p className="font-mono text-xs text-muted-foreground">
                   {shortenId(account.accountId, 8)}

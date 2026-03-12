@@ -19,5 +19,19 @@
     "errorAccountNotFound": "Account not found in NNS dapp.",
     "errorLimitExceeded": "Account limit exceeded.",
     "errorNameTooLong": "Name is too long."
+  },
+  "renameSubAccount": {
+    "ariaLabel": "Rename account",
+    "title": "Rename Sub-Account",
+    "description": "Choose a new name for this sub-account.",
+    "nameLabel": "New name",
+    "namePlaceholder": "e.g. Savings, Trading",
+    "confirm": "Rename",
+    "renaming": "Renaming to \"{{name}}\"…",
+    "success": "Renamed to \"{{name}}\" successfully.",
+    "error": "Failed to rename sub-account.",
+    "errorAccountNotFound": "Account not found in NNS dapp.",
+    "errorSubAccountNotFound": "Sub-account not found.",
+    "errorNameTooLong": "Name is too long."
   }
 }
