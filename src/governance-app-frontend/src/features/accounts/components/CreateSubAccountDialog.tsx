@@ -25,7 +25,7 @@ enum Phase {
   Error = 'error',
 }
 
-const SUCCESS_AUTO_CLOSE_MS = 2400;
+const SUCCESS_AUTO_CLOSE_MS = 1500;
 
 export const CreateSubAccountDialog = () => {
   const { t } = useTranslation();
@@ -60,6 +60,9 @@ export const CreateSubAccountDialog = () => {
   };
 
   const handleClose = () => {
+    setName('');
+    setPhase(Phase.Form);
+    setErrorMessage('');
     setOpen(false);
   };
 
@@ -144,7 +147,7 @@ export const CreateSubAccountDialog = () => {
               transition={{ duration: 0.15 }}
             >
               <ResponsiveDialogTitle className="sr-only">
-                {t(($) => $.accounts.createSubAccount.creating)}
+                {t(($) => $.accounts.createSubAccount.creating, { name: name.trim() })}
               </ResponsiveDialogTitle>
               <motion.div
                 className="flex size-16 items-center justify-center rounded-full bg-primary/10"
@@ -160,7 +163,7 @@ export const CreateSubAccountDialog = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.3 }}
               >
-                {t(($) => $.accounts.createSubAccount.creating)}
+                {t(($) => $.accounts.createSubAccount.creating, { name: name.trim() })}
               </motion.p>
             </motion.div>
           )}

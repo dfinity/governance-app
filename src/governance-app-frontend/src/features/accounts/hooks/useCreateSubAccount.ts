@@ -31,17 +31,9 @@ export function useCreateSubAccount() {
 
       if (!('Ok' in response)) throw new Error(mapError(response));
 
-      await Promise.all([
-        queryClient
-          .invalidateQueries({ queryKey: [QUERY_KEYS.NNS_DAPP.ACCOUNT] })
-          .catch(failedRefresh),
-        queryClient
-          .invalidateQueries({ queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE] })
-          .catch(failedRefresh),
-        queryClient
-          .invalidateQueries({ queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS] })
-          .catch(failedRefresh),
-      ]);
+      await queryClient
+        .invalidateQueries({ queryKey: [QUERY_KEYS.NNS_DAPP.ACCOUNT] })
+        .catch(failedRefresh);
 
       return response.Ok;
     },

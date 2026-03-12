@@ -19,7 +19,7 @@
     "nameLabel": "Account name",
     "namePlaceholder": "e.g. Savings, Trading",
     "confirm": "Create",
-    "creating": "Creating…",
+    "creating": "Creating \"{{name}}\"…",
     "success": "\"{{name}}\" created successfully.",
     "error": "Failed to create sub-account.",
     "errorAccountNotFound": "Account not found in NNS dapp.",
@@ -27,8 +27,6 @@
     "errorNameTooLong": "Name is too long."
   },
   "settings": {
-    "title": "Subaccounts",
-    "description": "Enable subaccounts to organize your ICP across multiple balances under your principal.",
     "aria": {
       "toggle": "Toggle subaccounts feature"
     },
