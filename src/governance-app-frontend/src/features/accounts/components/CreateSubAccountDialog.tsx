@@ -55,9 +55,7 @@ export const CreateSubAccountDialog = () => {
     }
   };
 
-  const handleRetry = () => {
-    setPhase(Phase.Form);
-  };
+  const handleRetry = () => setPhase(Phase.Form);
 
   const handleClose = () => {
     setName('');
@@ -84,7 +82,7 @@ export const CreateSubAccountDialog = () => {
 
   return (
     <ResponsiveDialog open={open} onOpenChange={handleOpenChange} dismissible={!isBlocking}>
-      <Button onClick={() => setOpen(true)}>
+      <Button variant="secondary" onClick={() => setOpen(true)}>
         <Plus aria-hidden="true" />
         {t(($) => $.accounts.createSubAccount.button)}
       </Button>
