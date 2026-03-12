@@ -9,7 +9,7 @@
   "unstakedMaturity": "Liquid maturity",
   "maturityMode": "New maturity",
   "autoStake": "Auto-stake",
-  "keepLiquid": "Keep liquid",
+  "keepLiquid": "Keep available",
   "locked": "Locked",
   "dissolving": "Dissolving",
   "dissolved": "Dissolved",
