@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@components/button';
 
 import { useRenameSubAccount } from '../hooks/useRenameSubAccount';
-import { DialogMode, SubAccountNameDialog } from './SubAccountNameDialog';
+import { DialogMode } from '../types';
+import { SubAccountNameDialog } from './SubAccountNameDialog';
 
 type Props = {
   accountId: string;

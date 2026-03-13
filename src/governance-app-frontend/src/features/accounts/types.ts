@@ -2,6 +2,11 @@ import { TransactionType } from '@features/account/types';
 
 export { TransactionType };
 
+export enum DialogMode {
+  Create = 'create',
+  Rename = 'rename',
+}
+
 export enum AccountType {
   Main = 'main',
   Subaccount = 'subaccount',

@@ -16,6 +16,8 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 
+import { DialogMode } from '../types';
+
 enum Phase {
   Form = 'form',
   Processing = 'processing',
@@ -23,14 +25,9 @@ enum Phase {
   Error = 'error',
 }
 
-export enum DialogMode {
-  Create = 'create',
-  Rename = 'rename',
-}
-
 const SUCCESS_AUTO_CLOSE_MS = 1500;
-export const MIN_NAME_LENGTH = 3;
-export const MAX_NAME_LENGTH = 24;
+const MIN_NAME_LENGTH = 3;
+const MAX_NAME_LENGTH = 24;
 
 type SubAccountNameDialogConfig = {
   mode: DialogMode;

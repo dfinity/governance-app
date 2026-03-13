@@ -5,7 +5,8 @@ import { Button } from '@components/button';
 import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
 
 import { useCreateSubAccount } from '../hooks/useCreateSubAccount';
-import { DialogMode, SubAccountNameDialog } from './SubAccountNameDialog';
+import { DialogMode } from '../types';
+import { SubAccountNameDialog } from './SubAccountNameDialog';
 
 export const CreateSubAccountDialog = () => {
   const { t } = useTranslation();
