@@ -14,7 +14,7 @@ jobs:
       CONTAINER_IMAGE: ghcr.io/dfinity/governance-app/builder-base:0.0.9
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
