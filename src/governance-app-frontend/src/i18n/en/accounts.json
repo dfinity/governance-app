@@ -28,7 +28,7 @@
     "title": "Rename Account",
     "description": "Choose a new name for this account.",
     "nameLabel": "New name",
-    "namePlaceholder": "e.g. Savings, Trading",
+    "namePlaceholder": "e.g. Staking, Governance",
     "confirm": "Rename",
     "renaming": "Renaming to \"{{name}}\"…",
     "success": "Renamed to \"{{name}}\" successfully.",
