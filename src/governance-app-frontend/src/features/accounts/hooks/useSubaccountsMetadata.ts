@@ -1,6 +1,6 @@
 import { useNnsDappAccount } from '@hooks/nnsDapp/useNnsDappAccount';
 
-import { AccountType, type AccountMetadata } from '../types';
+import { type AccountMetadata, AccountType } from '../types';
 
 /**
  * Fetches sub-account metadata from NNS dapp.

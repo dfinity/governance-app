@@ -1,7 +1,7 @@
 import { IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 
-import { TransactionType } from '@features/account/types';
 import { useNeuronAccountsIds } from '@features/account/hooks/useNeuronAccountsIds';
+import { TransactionType } from '@features/account/types';
 import { detectTransactionType } from '@features/transactions/utils/transactionType';
 
 import { NANOSECONDS_IN_SECOND } from '@constants/extra';

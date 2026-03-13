@@ -8,7 +8,7 @@ import { useTickerPrices } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber } from '@utils/numbers';
 
-import { AccountType, type Account, type AccountReady } from '../types';
+import { type Account, type AccountReady, AccountType } from '../types';
 
 const BASE_COLOR = 'var(--color-staking-ratio)';
 const OPACITY_MAX = 80;

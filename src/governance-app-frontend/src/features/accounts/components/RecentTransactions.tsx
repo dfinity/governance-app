@@ -1,6 +1,8 @@
 import { ArrowDownToLine, ArrowUp, Lock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { TransactionType } from '@features/account/types';
+
 import { Badge } from '@components/badge';
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
@@ -9,8 +11,6 @@ import { bigIntDiv } from '@utils/bigInt';
 import { secondsToDate, secondsToTime } from '@utils/date';
 import { formatNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
-
-import { TransactionType } from '@features/account/types';
 
 import { useRecentTransactions } from '../hooks/useRecentTransactions';
 import type { AccountTransaction } from '../types';
