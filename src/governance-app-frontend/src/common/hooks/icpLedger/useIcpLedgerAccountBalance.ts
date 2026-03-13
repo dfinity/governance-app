@@ -32,7 +32,7 @@ export const useIcpLedgerAccountBalance = (accountId?: string) => {
         certified: true,
       }),
     options: {
-      enabled: ready && authenticated && !!accountIdentifier,
+      enabled: ready && authenticated,
     },
   });
 };
