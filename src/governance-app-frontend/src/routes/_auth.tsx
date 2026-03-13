@@ -3,10 +3,10 @@ import { useEffect } from 'react';
 
 import { analytics } from '@features/analytics/service';
 
-import { BetaBanner } from '@components/BetaBanner';
 import { MainLayout } from '@components/MainLayout';
 import { useIcpIndexTransactionsPolling } from '@hooks/icpIndex/useIcpIndexTransactionsPolling';
 import { useLogoutShortcut } from '@hooks/useLogoutShortcut';
+import { useNewFeatureCheck } from '@hooks/useNewFeatureCheck';
 import { useScrollResetOnNavigation } from '@hooks/useScrollResetOnNavigation';
 import { useSessionCountdownToast } from '@hooks/useSessionCountdownToast';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
@@ -28,6 +28,7 @@ function AuthLayout() {
   useSessionCountdownToast();
   useIcpIndexTransactionsPolling();
   useScrollResetOnNavigation();
+  useNewFeatureCheck();
 
   useEffect(() => {
     analytics.init();
@@ -35,7 +36,6 @@ function AuthLayout() {
 
   return (
     <MainLayout>
-      <BetaBanner isLoggedIn={true} />
       <Outlet />
     </MainLayout>
   );

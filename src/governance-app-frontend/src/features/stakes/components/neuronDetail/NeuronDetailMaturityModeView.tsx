@@ -94,7 +94,7 @@ export function NeuronDetailMaturityModeView({
             />
             <br />
             <Trans
-              i18nKey={($) => $.neuronDetailModal.maturityMode.infoKeepLiquid}
+              i18nKey={($) => $.neuronDetailModal.maturityMode.infoKeepAvailable}
               t={t}
               components={{ strong: <strong /> }}
             />

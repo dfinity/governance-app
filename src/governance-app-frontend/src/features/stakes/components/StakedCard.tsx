@@ -145,7 +145,7 @@ export function StakedCard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Button
             size="xl"
             variant="outline"

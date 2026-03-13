@@ -23,7 +23,7 @@
         "label": "Manage rewards",
         "description": "Choose how to handle your staking rewards.",
         "autoStake": "Auto-stake",
-        "keepLiquid": "Keep liquid"
+        "keepLiquid": "Keep available"
       },
       "state": {
         "label": "Initial State",

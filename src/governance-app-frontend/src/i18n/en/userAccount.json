@@ -58,6 +58,15 @@
       "toggle": "Toggle keyboard shortcuts"
     }
   },
+  "advancedFeatures": {
+    "title": "Advanced features",
+    "items": {
+      "subaccounts": {
+        "label": "Subaccounts",
+        "description": "View and manage subaccounts linked to your principal."
+      }
+    }
+  },
   "session": {
     "title": "Session",
     "timeLeft": "Session expires in {{minutes}}m {{seconds}}s"

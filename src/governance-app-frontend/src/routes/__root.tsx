@@ -14,7 +14,6 @@ import { ArrowLeft, LogIn } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { BetaBanner } from '@components/BetaBanner';
 import { Button } from '@components/button';
 import { MainLayout } from '@components/MainLayout';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
@@ -67,7 +66,6 @@ function AuthenticatedNotFound() {
 
   return (
     <MainLayout>
-      <BetaBanner isLoggedIn={true} />
       <div className="flex flex-1 flex-col items-center justify-center py-16">
         <div className="flex max-w-md flex-col items-center text-center">
           <h1 className="text-8xl leading-none font-bold tracking-tighter text-muted-foreground/20 sm:text-9xl">
@@ -106,7 +104,6 @@ function UnauthenticatedNotFound() {
             alt={t(($) => $.common.alt.icpLogo)}
             className="h-6 w-fit dark:invert"
           />
-          <BetaBanner isLoggedIn={false} />
         </div>
       </div>
       <div className="flex flex-1 items-center justify-center px-4">
