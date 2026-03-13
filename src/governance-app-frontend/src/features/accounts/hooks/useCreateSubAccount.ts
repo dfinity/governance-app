@@ -1,24 +1,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
-import { CreateSubAccountResponse } from '@declarations/nns-dapp/nns-dapp.did';
-
 import { useNnsDapp } from '@hooks/nnsDapp/useNnsDapp';
+import { mapCreateSubAccountError } from '@utils/errors/nnsDapp';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
 export function useCreateSubAccount() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { canister } = useNnsDapp();
-
-  const mapError = (response: CreateSubAccountResponse): string => {
-    if ('AccountNotFound' in response)
-      return t(($) => $.accounts.createSubAccount.errorAccountNotFound);
-    if ('SubAccountLimitExceeded' in response)
-      return t(($) => $.accounts.createSubAccount.errorLimitExceeded);
-    if ('NameTooLong' in response) return t(($) => $.accounts.createSubAccount.errorNameTooLong);
-    return t(($) => $.accounts.createSubAccount.error);
-  };
 
   return useMutation({
     mutationFn: async (name: string) => {
@@ -29,7 +19,7 @@ export function useCreateSubAccount() {
       await canister.certifiedService.add_account();
       const response = await canister.certifiedService.create_sub_account(name);
 
-      if (!('Ok' in response)) throw new Error(mapError(response));
+      if (!('Ok' in response)) throw new Error(mapCreateSubAccountError(response));
 
       await queryClient
         .invalidateQueries({ queryKey: [QUERY_KEYS.NNS_DAPP.ACCOUNT] })
