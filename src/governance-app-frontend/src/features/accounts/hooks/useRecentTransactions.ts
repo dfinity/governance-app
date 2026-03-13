@@ -43,12 +43,12 @@ function toAccountTransaction(
  * Transactions are merged, sorted by timestamp descending, and capped.
  */
 export const useRecentTransactions = () => {
-  const mainAccountMetadatadata = useMainAccountMetadata();
+  const mainAccountMetadata = useMainAccountMetadata();
   const subaccountsMetadata = useSubaccountsMetadata();
   const { accountIds: neuronAccountIds } = useNeuronAccountsIds();
 
-  const accountsMetadata: AccountMetadata[] = mainAccountMetadatadata.data
-    ? [mainAccountMetadatadata.data, ...subaccountsMetadata.data]
+  const accountsMetadata: AccountMetadata[] = mainAccountMetadata.data
+    ? [mainAccountMetadata.data, ...subaccountsMetadata.data]
     : [];
 
   const accountIds = accountsMetadata.map((a) => a.accountId);
