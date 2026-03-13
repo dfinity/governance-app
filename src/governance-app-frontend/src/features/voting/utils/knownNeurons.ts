@@ -27,15 +27,20 @@ const FOLLOWED_TOPICS = new Set([Topic.Unspecified, Topic.Governance, Topic.SnsA
  * Sets the known neuron as followee for Unspecified (catch-all for all topics
  * besides Governance and SnsAndCommunityFund), Governance, and SnsAndCommunityFund,
  * clears followees for all other topics, and excludes NeuronManagement
- * as it is managed separately and should not be overridden.
+ * (managed separately) and SnsDecentralizationSale (deprecated).
  */
 export const buildKnownNeuronTopicFollowing = (knownNeuronId: NeuronId): FolloweesForTopic[] => {
   return Object.values(Topic)
-    .filter((v): v is Topic => typeof v === 'number' && v !== Topic.NeuronManagement)
-    .map((topic) => ({
-      topic,
-      followees: FOLLOWED_TOPICS.has(topic) ? [knownNeuronId] : [],
-    }));
+    .filter(
+      (v): v is Topic =>
+        typeof v === 'number' &&
+        v !== Topic.NeuronManagement &&
+        v !== Topic.SnsDecentralizationSale,
+    )
+    .map((topic) => {
+      const followees = FOLLOWED_TOPICS.has(topic) ? [knownNeuronId] : [];
+      return { topic, followees };
+    });
 };
 
 export const sortKnownNeurons = (a: KnownNeuron, b: KnownNeuron) => {
