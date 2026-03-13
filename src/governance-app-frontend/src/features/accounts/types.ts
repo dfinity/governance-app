@@ -1,4 +1,4 @@
-import { TransactionType } from '@features/account/types';
+export { TransactionType } from '@features/account/types';
 
 export enum AccountType {
   Main = 'main',

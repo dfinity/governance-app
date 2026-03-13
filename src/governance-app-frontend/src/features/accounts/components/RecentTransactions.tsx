@@ -1,7 +1,5 @@
-import { ArrowDownToLine, ArrowUp, Lock } from 'lucide-react';
+import { ArrowDownToLine, ArrowUp, Lock, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-
-import { TransactionType } from '@features/account/types';
 
 import { Badge } from '@components/badge';
 import { Card, CardContent, CardHeader } from '@components/Card';
@@ -13,7 +11,7 @@ import { formatNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
 import { useRecentTransactions } from '../hooks/useRecentTransactions';
-import type { AccountTransaction } from '../types';
+import { type AccountTransaction, TransactionType } from '../types';
 
 export const RecentTransactions = () => {
   const { t } = useTranslation();
@@ -53,7 +51,7 @@ export const RecentTransactions = () => {
 
 const txConfig: Record<
   TransactionType,
-  { icon: typeof ArrowUp; colorClasses: string; amountClasses: string; sign: string }
+  { icon: LucideIcon; colorClasses: string; amountClasses: string; sign: string }
 > = {
   [TransactionType.RECEIVE]: {
     icon: ArrowDownToLine,
