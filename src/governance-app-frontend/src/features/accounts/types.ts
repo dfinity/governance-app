@@ -1,4 +1,9 @@
-export type AccountType = 'main' | 'subaccount';
+import { TransactionType } from '@features/account/types';
+
+export enum AccountType {
+  Main = 'main',
+  Subaccount = 'subaccount',
+}
 
 export interface AccountMeta {
   name: string;
@@ -32,7 +37,7 @@ export interface AccountsState {
 
 export interface AccountTransaction {
   id: bigint;
-  type: 'send' | 'receive' | 'stake';
+  type: TransactionType;
   amountE8s: bigint;
   timestamp: number;
   accountId: string;

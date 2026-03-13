@@ -1,22 +1,25 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { useInternetIdentity } from 'ic-use-internet-identity';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { type AccountMetadata, AccountType } from '../types';
+import { AccountType, type AccountMeta } from '../types';
 
 export const useMainAccountMetadata = () => {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
 
-  const data: AccountMetadata | undefined = identity
-    ? {
-        name: t(($) => $.accounts.mainAccount),
-        accountId: AccountIdentifier.fromPrincipal({
-          principal: identity.getPrincipal(),
-        }).toHex(),
-        type: AccountType.Main,
-      }
-    : undefined;
+  const data: AccountMeta | undefined = useMemo(() => {
+    if (!identity) return undefined;
+
+    return {
+      name: t(($) => $.accounts.mainAccount),
+      accountId: AccountIdentifier.fromPrincipal({
+        principal: identity.getPrincipal(),
+      }).toHex(),
+      type: AccountType.Main,
+    };
+  }, [identity, t]);
 
   return { data, isLoading: false };
 };

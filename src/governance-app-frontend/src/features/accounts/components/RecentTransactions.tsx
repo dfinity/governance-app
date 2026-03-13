@@ -10,6 +10,8 @@ import { secondsToDate, secondsToTime } from '@utils/date';
 import { formatNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
+import { TransactionType } from '@features/account/types';
+
 import { useRecentTransactions } from '../hooks/useRecentTransactions';
 import type { AccountTransaction } from '../types';
 
@@ -77,9 +79,9 @@ function TransactionRow({ tx }: { tx: AccountTransaction }) {
   const Icon = config.icon;
 
   const label =
-    tx.type === 'receive'
+    tx.type === TransactionType.RECEIVE
       ? t(($) => $.account.depositedIcp)
-      : tx.type === 'stake'
+      : tx.type === TransactionType.STAKE
         ? t(($) => $.account.stakedIcp)
         : t(($) => $.account.withdrawnIcp);
 
