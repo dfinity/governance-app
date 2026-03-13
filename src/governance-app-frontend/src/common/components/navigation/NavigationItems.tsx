@@ -1,4 +1,4 @@
-import { LayoutDashboard, Settings, Vote } from 'lucide-react';
+import { LayoutDashboard, Settings, Vote, Wallet } from 'lucide-react';
 
 import { NeuronIcon } from '@components/icons/NeuronIcon';
 
@@ -12,7 +12,7 @@ export interface NavigationItem {
   icon: React.ElementType;
 }
 
-export const navigationItems: NavigationItem[] = [
+const baseItems: NavigationItem[] = [
   {
     label: 'common.dashboard',
     href: '/dashboard',
@@ -34,3 +34,17 @@ export const navigationItems: NavigationItem[] = [
     icon: Settings,
   },
 ];
+
+const accountsItem: NavigationItem = {
+  label: 'common.accounts',
+  href: '/accounts',
+  icon: Wallet,
+};
+
+export const getNavigationItems = (options: { subaccountsEnabled: boolean }): NavigationItem[] => {
+  if (!options.subaccountsEnabled) return baseItems;
+
+  const items = [...baseItems];
+  items.splice(1, 0, accountsItem);
+  return items;
+};
