@@ -28,33 +28,8 @@ export const useIcpLedgerAccountsBalances = ({ accountIds, enabled = true }: Pro
     enabled: enabled && ready && authenticated,
   });
 
-  const byAccountId = accountIds.reduce<
-    Record<
-      string,
-      {
-        data?: bigint;
-        certified?: boolean;
-        isLoading: boolean;
-        isFetching: boolean;
-        isError: boolean;
-        error?: unknown;
-      }
-    >
-  >((acc, accountId) => {
-    const state = calls.byItemKey[accountId];
-    acc[accountId] = {
-      data: state.data?.response,
-      certified: state.certified,
-      isLoading: state.isLoading,
-      isFetching: state.isFetching,
-      isError: state.isError,
-      error: state.error,
-    };
-    return acc;
-  }, {});
-
   return {
-    byAccountId,
+    byAccountId: calls.byItemKey,
     queryCalls: calls.queryCalls,
     updateCalls: calls.updateCalls,
     isLoading: calls.isLoadingAny,
