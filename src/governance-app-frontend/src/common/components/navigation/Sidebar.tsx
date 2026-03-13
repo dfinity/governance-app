@@ -15,7 +15,7 @@ export const Sidebar = () => {
           className="me-4 h-[1.375rem] text-foreground dark:invert"
           aria-hidden="true"
         />
-        <span className="text-base font-semibold">Governance</span>
+        <span className="text-xs leading-tight font-semibold">Network Nervous System</span>
       </div>
       <nav className="flex-1 space-y-1 p-2">
         {navigationItems.map((item) => (
