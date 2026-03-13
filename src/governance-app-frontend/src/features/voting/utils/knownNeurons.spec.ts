@@ -73,4 +73,11 @@ describe('buildKnownNeuronTopicFollowing', () => {
     const neuronManagementEntry = result.find((r) => r.topic === Topic.NeuronManagement);
     expect(neuronManagementEntry).toBeUndefined();
   });
+
+  it('excludes deprecated SnsDecentralizationSale', () => {
+    const result = buildKnownNeuronTopicFollowing(knownNeuronId);
+
+    const entry = result.find((r) => r.topic === Topic.SnsDecentralizationSale);
+    expect(entry).toBeUndefined();
+  });
 });
