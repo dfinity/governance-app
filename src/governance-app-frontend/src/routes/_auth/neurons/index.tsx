@@ -8,6 +8,12 @@ import { analytics } from '@features/analytics/service';
 import { EmptyNeuronsState } from '@features/stakes/components/EmptyNeuronsState';
 import { NeuronsList } from '@features/stakes/components/NeuronsList';
 import { StakingWizardModal } from '@features/stakes/components/stakingWizard/StakingWizardModal';
+import {
+  AutomaticVotingCard,
+  CapitalCard,
+  EarningsCard,
+  EngagementCard,
+} from '@features/stakes/components/summaryCards';
 
 import { Button } from '@components/button';
 import { PageHeader } from '@components/PageHeader';
@@ -113,12 +119,20 @@ function NeuronsComponent() {
         emptyComponent={<EmptyNeuronsState openStakingWizard={handleOpenStakingWizard} />}
       >
         {(neurons) => (
-          <NeuronsList
-            onSelectedNeuronChange={handleSelectedNeuronChange}
-            selectedNeuronId={selectedNeuronId}
-            selectedAction={actionParam}
-            neurons={neurons.response}
-          />
+          <>
+            <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+              <CapitalCard neurons={neurons.response} />
+              <EarningsCard neurons={neurons.response} />
+              <EngagementCard neurons={neurons.response} />
+              <AutomaticVotingCard neurons={neurons.response} />
+            </div>
+            <NeuronsList
+              onSelectedNeuronChange={handleSelectedNeuronChange}
+              selectedNeuronId={selectedNeuronId}
+              selectedAction={actionParam}
+              neurons={neurons.response}
+            />
+          </>
         )}
       </QueryStates>
 

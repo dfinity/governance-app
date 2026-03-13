@@ -19,6 +19,21 @@
   "disburseIcp": "Disburse ICPs",
   "disburseMaturity": "Disburse maturity",
   "stakeMaturity": "Stake maturity",
+  "summary": {
+    "capital": "Total Staked",
+    "engagement": "Participation rate",
+    "engagementTooltip": "Based on the last 50 proposals",
+    "engagementAction": "View proposals",
+    "engagementActionComplete": "All caught up",
+    "earnings": "Maturity",
+    "earningsForecast": "1y forecast",
+    "automaticVoting": {
+      "label": "Automatic voting",
+      "knownNeuronSelected": "Enabled",
+      "notSetUp": "Not set up",
+      "setupVoting": "Select known neuron"
+    }
+  },
   "empty": {
     "title": "Start participating in governance",
     "description": "Create your first Neuron to turn ICP into voting power. Neurons participate in voting and earn rewards over time.",
