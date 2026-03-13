@@ -1,6 +1,6 @@
 import { useIcpLedgerAccountsBalances } from '@hooks/icpLedger';
 
-import { AccountType, type Account, type AccountMetadata, type AccountsState } from '../types';
+import { type Account, type AccountMetadata, type AccountsState, AccountType } from '../types';
 import { useMainAccountMetadata } from './useMainAccountMetadata';
 import { useSubaccountsMetadata } from './useSubaccountsMetadata';
 

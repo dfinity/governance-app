@@ -5,9 +5,9 @@ import { useTranslation } from 'react-i18next';
 
 import { AnimatedCheckmark } from '@components/AnimatedCheckmark';
 import { Button } from '@components/button';
-import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
 import { Input } from '@components/Input';
 import { Label } from '@components/Label';
+import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -270,11 +270,7 @@ export const CreateSubAccountDialog = () => {
           {phase === Phase.Processing && <ProcessingPhase name={trimmedName} />}
           {phase === Phase.Success && <SuccessPhase name={trimmedName} />}
           {phase === Phase.Error && (
-            <ErrorPhase
-              errorMessage={errorMessage}
-              onClose={handleClose}
-              onRetry={handleRetry}
-            />
+            <ErrorPhase errorMessage={errorMessage} onClose={handleClose} onRetry={handleRetry} />
           )}
         </AnimatePresence>
       </ResponsiveDialogContent>

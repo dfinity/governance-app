@@ -2,7 +2,7 @@ import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
-import { AccountType, type AccountMetadata } from '../types';
+import { type AccountMetadata, AccountType } from '../types';
 
 export const useMainAccountMetadata = () => {
   const { t } = useTranslation();
