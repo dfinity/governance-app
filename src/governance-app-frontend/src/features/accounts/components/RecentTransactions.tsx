@@ -51,26 +51,35 @@ export const RecentTransactions = () => {
   );
 };
 
-const txConfig = {
-  receive: {
+const txConfig: Record<
+  TransactionType,
+  { icon: typeof ArrowUp; colorClasses: string; amountClasses: string; sign: string }
+> = {
+  [TransactionType.RECEIVE]: {
     icon: ArrowDownToLine,
     colorClasses: 'bg-emerald-200/30 text-emerald-800 dark:bg-emerald-100/10 dark:text-emerald-400',
     amountClasses: 'text-emerald-800 dark:text-emerald-400',
     sign: '+',
   },
-  send: {
+  [TransactionType.SEND]: {
     icon: ArrowUp,
     colorClasses: 'bg-red-200/30 text-red-800 dark:bg-red-100/10 dark:text-red-400',
     amountClasses: 'text-red-800 dark:text-red-400',
     sign: '-',
   },
-  stake: {
+  [TransactionType.STAKE]: {
     icon: Lock,
     colorClasses: 'bg-red-200/30 text-red-800 dark:bg-red-100/10 dark:text-red-400',
     amountClasses: 'text-red-800 dark:text-red-400',
     sign: '-',
   },
-} as const;
+  [TransactionType.UNKNOWN]: {
+    icon: ArrowUp,
+    colorClasses: 'bg-muted text-muted-foreground',
+    amountClasses: 'text-muted-foreground',
+    sign: '',
+  },
+};
 
 function TransactionRow({ tx }: { tx: AccountTransaction }) {
   const { t } = useTranslation();
