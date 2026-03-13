@@ -5,7 +5,7 @@ import { Button } from '@components/button';
 import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
 
 import { useCreateSubAccount } from '../hooks/useCreateSubAccount';
-import { SubAccountNameDialog } from './SubAccountNameDialog';
+import { DialogMode, SubAccountNameDialog } from './SubAccountNameDialog';
 
 export const CreateSubAccountDialog = () => {
   const { t } = useTranslation();
@@ -13,13 +13,7 @@ export const CreateSubAccountDialog = () => {
 
   return (
     <SubAccountNameDialog
-      title={t(($) => $.accounts.createSubAccount.title)}
-      description={t(($) => $.accounts.createSubAccount.description)}
-      nameLabel={t(($) => $.accounts.createSubAccount.nameLabel)}
-      confirmLabel={t(($) => $.accounts.createSubAccount.confirm)}
-      processingMessage={(name) => t(($) => $.accounts.createSubAccount.creating, { name })}
-      successMessage={(name) => t(($) => $.accounts.createSubAccount.success, { name })}
-      errorFallback={t(($) => $.accounts.createSubAccount.error)}
+      mode={DialogMode.Create}
       inputId="subaccount-name"
       initialName=""
       onSubmit={(name) => createSubAccount.mutateAsync(name).then(() => undefined)}

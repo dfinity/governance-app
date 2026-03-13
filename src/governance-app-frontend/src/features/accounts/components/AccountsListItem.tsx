@@ -15,7 +15,7 @@ import { bigIntDiv } from '@utils/bigInt';
 import { shortenId } from '@utils/id';
 import { formatNumber } from '@utils/numbers';
 
-import type { Account } from '../types';
+import { AccountType, type Account } from '../types';
 import { RenameSubAccountDialog } from './RenameSubAccountDialog';
 
 type Props = {
@@ -37,7 +37,7 @@ export const AccountsListItem = ({ account }: Props) => {
                 <p className="text-sm tracking-wide text-muted-foreground uppercase">
                   {account.name}
                 </p>
-                {account.type === 'subaccount' && (
+                {account.type === AccountType.Subaccount && (
                   <RenameSubAccountDialog
                     accountId={account.accountId}
                     currentName={account.name}
