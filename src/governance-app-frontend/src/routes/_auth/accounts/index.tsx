@@ -1,5 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
 import { AccountsList } from '@features/accounts/components/AccountsList';
@@ -10,12 +9,19 @@ import { useAccounts } from '@features/accounts/hooks/useAccounts';
 
 import { PageHeader } from '@components/PageHeader';
 import { Skeleton } from '@components/Skeleton';
-import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { readFromStorage } from '@hooks/useAdvancedFeatures';
 
 import i18n from '@/i18n/config';
 
 export const Route = createFileRoute('/_auth/accounts/')({
   component: AccountsPage,
+  beforeLoad: () => {
+    const features = readFromStorage();
+
+    if (!features.subaccounts) {
+      throw redirect({ to: '/dashboard', replace: true });
+    }
+  },
   head: () => {
     const title = i18n.t(($) => $.common.head.accounts.title);
 
@@ -30,19 +36,8 @@ export const Route = createFileRoute('/_auth/accounts/')({
 
 function AccountsPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const { features } = useAdvancedFeatures();
-  const enabled = features.subaccounts;
   const { data: accountsState, isLoading } = useAccounts();
   const accounts = accountsState?.accounts;
-
-  useEffect(() => {
-    if (!enabled) {
-      navigate({ to: '/dashboard', replace: true });
-    }
-  }, [enabled, navigate]);
-
-  if (!enabled) return null;
 
   const hasAccounts = !isLoading && accounts && accounts.length > 0;
 
