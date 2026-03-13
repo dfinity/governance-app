@@ -67,29 +67,29 @@
   },
   "opensInNewTab": "(opens in a new tab)",
   "head": {
-    "appName": "Governance",
+    "appName": "Network Nervous System",
     "defaultDescription": "Participate in decentralized governance on the Internet Computer",
     "login": {
-      "title": "Governance - ICP Staking & Voting",
+      "title": "ICP Staking & Voting | Network Nervous System",
       "description": "Participate in decentralized governance on the Internet Computer. Stake ICP, vote on proposals, and earn rewards."
     },
     "dashboard": {
-      "title": "Dashboard | Governance"
+      "title": "Dashboard | Network Nervous System"
     },
     "stakes": {
-      "title": "Neurons | Governance"
+      "title": "Neurons | Network Nervous System"
     },
     "voting": {
-      "title": "Voting | Governance"
+      "title": "Voting | Network Nervous System"
     },
     "knownNeurons": {
-      "title": "Choose a Known Neuron | Governance"
+      "title": "Choose a Known Neuron | Network Nervous System"
     },
     "proposalDetails": {
-      "title": "Proposal #{{proposalId}} | Governance"
+      "title": "Proposal #{{proposalId}} | Network Nervous System"
     },
     "settings": {
-      "title": "Settings | Governance"
+      "title": "Settings | Network Nervous System"
     }
   },
   "newFeatureCheck": {
