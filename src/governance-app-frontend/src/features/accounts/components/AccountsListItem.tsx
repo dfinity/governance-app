@@ -15,7 +15,7 @@ import { bigIntDiv } from '@utils/bigInt';
 import { shortenId } from '@utils/id';
 import { formatNumber } from '@utils/numbers';
 
-import { AccountType, type Account } from '../types';
+import { type Account, AccountType } from '../types';
 import { RenameSubAccountDialog } from './RenameSubAccountDialog';
 
 type Props = {
