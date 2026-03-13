@@ -57,6 +57,6 @@ export const ADVANCED_FEATURES_STORAGE_KEY = 'nns-advanced-features';
 export const DASHBOARD_URL = `https://dashboard.internetcomputer.org/neuron`;
 
 const localIdentityProvider = `http://${CANISTER_ID_INTERNET_IDENTITY}.${HOST}`;
-const mainnetIdentityProvider = 'https://id.ai/authorize?feature_flag_min_guided_upgrade=true';
+const mainnetIdentityProvider = 'https://id.ai/?feature_flag_min_guided_upgrade=true';
 export const IDENTITY_PROVIDER = IS_LOCAL ? localIdentityProvider : mainnetIdentityProvider;
 export const II_DERIVATION_ORIGIN = IS_LOCAL ? null : 'https://nns.ic0.app';
