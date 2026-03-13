@@ -99,6 +99,6 @@
   },
   "newFeatureCheck": {
     "detected": "{{feature}} detected! You can enable it in the Settings.",
-    "subaccounts": "Subaccounts"
+    "subaccounts": "Accounts"
   }
 }

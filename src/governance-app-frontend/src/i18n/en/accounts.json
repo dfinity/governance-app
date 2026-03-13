@@ -1,6 +1,6 @@
 {
   "title": "Accounts",
-  "description": "Manage your ICP ledger subaccounts.",
+  "description": "Manage your ICP ledger accounts.",
   "mainAccount": "Main",
   "totalAcrossAll": "Total across all accounts",
   "ofTotal": "{{value}}%",
@@ -8,10 +8,6 @@
   "recentTransactions": "Recent transactions",
   "noTransactions": "No recent transactions.",
   "balanceError": "Unable to load balance.",
-  "empty": {
-    "title": "No subaccounts yet",
-    "description": "You don't have any subaccounts. Subaccounts let you organize your ICP across separate balances under the same principal."
-  },
   "createSubAccount": {
     "button": "New Account",
     "title": "New Account",
@@ -20,9 +16,9 @@
     "confirm": "Create",
     "creating": "Creating \"{{name}}\"…",
     "success": "\"{{name}}\" created successfully.",
-    "error": "Failed to create sub-account.",
+    "error": "Failed to create account.",
     "errorAccountNotFound": "Account not found in NNS dapp.",
-    "errorLimitExceeded": "Sub-account limit exceeded.",
+    "errorLimitExceeded": "Account limit exceeded.",
     "errorNameTooLong": "Name is too long."
   }
 }
