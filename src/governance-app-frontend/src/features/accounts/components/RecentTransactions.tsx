@@ -38,7 +38,7 @@ export const RecentTransactions = () => {
             </div>
           ))
         ) : transactions && transactions.length > 0 ? (
-          transactions.map((tx) => <TransactionRow key={tx.id.toString()} tx={tx} />)
+          transactions.map((tx) => <TransactionRow key={`${tx.accountId}-${tx.id}`} tx={tx} />)
         ) : (
           <p className="py-4 text-center text-sm text-muted-foreground">
             {t(($) => $.accounts.noTransactions)}
