@@ -1,7 +1,23 @@
-import { useQueriesThenUpdateCalls } from '@hooks/useQueriesThenUpdateCalls';
+import { IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
+
+import {
+  useQueriesThenUpdateCalls,
+  type QueriesThenUpdateItemState,
+} from '@hooks/useQueriesThenUpdateCalls';
 import { QUERY_KEYS } from '@utils/query';
 
 import { useIcpIndex } from './useIcpIndex';
+
+type TransactionsResponse = IcpIndexDid.GetAccountIdentifierTransactionsResponse;
+
+type AccountTransactionsState = {
+  data?: TransactionsResponse;
+  certified?: boolean;
+  isLoading: boolean;
+  isFetching: boolean;
+  isError: boolean;
+  error?: unknown;
+};
 
 type Props = {
   accountIds: string[];
@@ -35,30 +51,21 @@ export const useIcpIndexAccountsTransactions = ({
     enabled: enabled && ready && authenticated,
   });
 
-  const byAccountId = accountIds.reduce<
-    Record<
-      string,
-      {
-        data?: Awaited<ReturnType<NonNullable<typeof canister>['getTransactions']>>;
-        certified?: boolean;
-        isLoading: boolean;
-        isFetching: boolean;
-        isError: boolean;
-        error?: unknown;
-      }
-    >
-  >((acc, accountId) => {
-    const state = calls.byItemKey[accountId];
-    acc[accountId] = {
-      data: state.data?.response,
-      certified: state.certified,
-      isLoading: state.isLoading,
-      isFetching: state.isFetching,
-      isError: state.isError,
-      error: state.error,
-    };
-    return acc;
-  }, {});
+  const byAccountId = accountIds.reduce<Record<string, AccountTransactionsState>>(
+    (acc, accountId) => {
+      const state: QueriesThenUpdateItemState<TransactionsResponse> = calls.byItemKey[accountId];
+      acc[accountId] = {
+        data: state.data?.response,
+        certified: state.certified,
+        isLoading: state.isLoading,
+        isFetching: state.isFetching,
+        isError: state.isError,
+        error: state.error,
+      };
+      return acc;
+    },
+    {},
+  );
 
   return {
     byAccountId,
