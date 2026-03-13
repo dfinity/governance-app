@@ -22,12 +22,8 @@ export const RenameSubAccountDialog = ({ accountId, currentName }: Props) => {
       nameLabel={t(($) => $.accounts.renameSubAccount.nameLabel)}
       placeholder={t(($) => $.accounts.renameSubAccount.namePlaceholder)}
       confirmLabel={t(($) => $.accounts.renameSubAccount.confirm)}
-      processingMessage={(name) =>
-        t(($) => $.accounts.renameSubAccount.renaming, { name })
-      }
-      successMessage={(name) =>
-        t(($) => $.accounts.renameSubAccount.success, { name })
-      }
+      processingMessage={(name) => t(($) => $.accounts.renameSubAccount.renaming, { name })}
+      successMessage={(name) => t(($) => $.accounts.renameSubAccount.success, { name })}
       errorFallback={t(($) => $.accounts.renameSubAccount.error)}
       inputId={`subaccount-rename-${accountId}`}
       initialName={currentName}

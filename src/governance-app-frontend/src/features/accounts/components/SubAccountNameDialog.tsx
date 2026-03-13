@@ -200,7 +200,6 @@ export const SubAccountNameDialog = ({
   const handleRetry = () => setPhase(Phase.Form);
 
   const handleClose = () => {
-    setName(initialName);
     setPhase(Phase.Form);
     setErrorMessage('');
     setOpen(false);
@@ -268,9 +267,7 @@ export const SubAccountNameDialog = ({
                 </Button>
                 <Button
                   type="submit"
-                  disabled={
-                    trimmedName.length < MIN_NAME_LENGTH || isSubmitDisabled?.(trimmedName)
-                  }
+                  disabled={trimmedName.length < MIN_NAME_LENGTH || isSubmitDisabled?.(trimmedName)}
                 >
                   {confirmLabel}
                 </Button>
@@ -278,7 +275,9 @@ export const SubAccountNameDialog = ({
             </motion.form>
           )}
 
-          {phase === Phase.Processing && <ProcessingPhase message={processingMessage(trimmedName)} />}
+          {phase === Phase.Processing && (
+            <ProcessingPhase message={processingMessage(trimmedName)} />
+          )}
           {phase === Phase.Success && <SuccessPhase message={successMessage(trimmedName)} />}
           {phase === Phase.Error && (
             <ErrorPhase errorMessage={errorMessage} onClose={handleClose} onRetry={handleRetry} />

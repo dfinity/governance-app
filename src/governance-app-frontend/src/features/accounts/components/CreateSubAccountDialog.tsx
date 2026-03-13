@@ -17,12 +17,8 @@ export const CreateSubAccountDialog = () => {
       description={t(($) => $.accounts.createSubAccount.description)}
       nameLabel={t(($) => $.accounts.createSubAccount.nameLabel)}
       confirmLabel={t(($) => $.accounts.createSubAccount.confirm)}
-      processingMessage={(name) =>
-        t(($) => $.accounts.createSubAccount.creating, { name })
-      }
-      successMessage={(name) =>
-        t(($) => $.accounts.createSubAccount.success, { name })
-      }
+      processingMessage={(name) => t(($) => $.accounts.createSubAccount.creating, { name })}
+      successMessage={(name) => t(($) => $.accounts.createSubAccount.success, { name })}
       errorFallback={t(($) => $.accounts.createSubAccount.error)}
       inputId="subaccount-name"
       initialName=""
