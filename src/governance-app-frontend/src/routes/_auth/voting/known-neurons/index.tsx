@@ -132,7 +132,7 @@ function KnownNeuronsPage() {
       setDialogState({ phase: DialogPhase.Success, neuronName: variables.knownNeuron.name });
     },
     onError: (error, variables, context) => {
-      console.error('Failed to update neuron:', error);
+      console.error('Failed to update neuron:', error, (error as { detail?: unknown }).detail);
       setUserOverrideId(context?.previousSelectedId ?? null);
       setDialogState({ phase: DialogPhase.Error, neuron: variables.knownNeuron });
     },
