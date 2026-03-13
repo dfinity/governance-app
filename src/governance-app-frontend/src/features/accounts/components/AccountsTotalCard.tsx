@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent, CardHeader } from '@components/Card';
@@ -21,6 +20,19 @@ function getAccountColor(index: number, total: number) {
   return `color-mix(in srgb, ${BASE_COLOR} ${Math.round(opacity)}%, transparent)`;
 }
 
+function buildSegments(readyAccounts: AccountReady[], totalE8s: bigint) {
+  if (totalE8s === 0n) return [];
+  const nonMainAccounts = readyAccounts.filter((a) => a.type !== AccountType.Main);
+  return readyAccounts.map((account) => {
+    const percentage = Number((account.balanceE8s * 10000n) / totalE8s) / 100;
+    const color =
+      account.type === AccountType.Main
+        ? BASE_COLOR
+        : getAccountColor(nonMainAccounts.indexOf(account), nonMainAccounts.length);
+    return { accountId: account.accountId, name: account.name, percentage, color };
+  });
+}
+
 type Props = {
   accounts: Account[];
   isLoading: boolean;
@@ -36,18 +48,7 @@ export const AccountsTotalCard = ({ accounts, isLoading }: Props) => {
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const usdValue = icpPrice ? formatNumber(totalICP * icpPrice.usd) : '-';
 
-  const segments = useMemo(() => {
-    if (totalE8s === 0n) return [];
-    const nonMainAccounts = readyAccounts.filter((a) => a.type !== AccountType.Main);
-    return readyAccounts.map((account) => {
-      const percentage = Number((account.balanceE8s * 10000n) / totalE8s) / 100;
-      const color =
-        account.type === AccountType.Main
-          ? BASE_COLOR
-          : getAccountColor(nonMainAccounts.indexOf(account), nonMainAccounts.length);
-      return { accountId: account.accountId, name: account.name, percentage, color };
-    });
-  }, [readyAccounts, totalE8s]);
+  const segments = buildSegments(readyAccounts, totalE8s);
 
   return (
     <Card>
