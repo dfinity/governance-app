@@ -6,7 +6,7 @@ import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
 import { useTickerPrices } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
-import { formatNumber } from '@utils/numbers';
+import { formatNumber, formatPercentage } from '@utils/numbers';
 
 import { type Account, type AccountReady, AccountType } from '../types';
 
@@ -108,9 +108,7 @@ export const AccountsTotalCard = ({ accounts, isLoading }: Props) => {
                 />
                 <span className="text-muted-foreground">{seg.name}</span>
                 <span className="font-medium">
-                  {t(($) => $.accounts.ofTotal, {
-                    value: formatNumber(seg.percentage, { minFraction: 1, maxFraction: 1 }),
-                  })}
+                  {formatPercentage(seg.percentage / 100, { minFraction: 1, maxFraction: 1 })}
                 </span>
               </div>
             ))}
