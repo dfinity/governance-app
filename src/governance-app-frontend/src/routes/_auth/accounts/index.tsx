@@ -9,14 +9,14 @@ import { useAccounts } from '@features/accounts/hooks/useAccounts';
 
 import { PageHeader } from '@components/PageHeader';
 import { Skeleton } from '@components/Skeleton';
-import { readFromStorage } from '@hooks/useAdvancedFeatures';
+import { readFromStorage as readAdvancedFeaturesFromStorage } from '@hooks/useAdvancedFeatures';
 
 import i18n from '@/i18n/config';
 
 export const Route = createFileRoute('/_auth/accounts/')({
   component: AccountsPage,
   beforeLoad: () => {
-    const features = readFromStorage();
+    const features = readAdvancedFeaturesFromStorage();
 
     if (!features.subaccounts) {
       throw redirect({ to: '/dashboard', replace: true });
