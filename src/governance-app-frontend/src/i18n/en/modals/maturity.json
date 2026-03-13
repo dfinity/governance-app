@@ -17,7 +17,7 @@
     "title": "Managing Maturity",
     "autoStakeLabel": "Auto-stake",
     "autoStake": "Automatically uses Maturity to increase your stake (compound growth).",
-    "keepLiquidLabel": "Keep-liquid",
+    "keepLiquidLabel": "Keep available",
     "keepLiquid": "Maturity stays available for you to disburse whenever you want.",
     "disburseLabel": "Disburse",
     "disburse": "Convert Maturity to ICP and add it to your available balance."
