@@ -1,9 +1,8 @@
-import { AlertTriangle, Loader, Pencil } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { FormEvent, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { AnimatedCheckmark } from '@components/AnimatedCheckmark';
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
 import { Label } from '@components/Label';
@@ -17,6 +16,7 @@ import {
 } from '@components/ResponsiveDialog';
 
 import { useRenameSubAccount } from '../hooks/useRenameSubAccount';
+import { ErrorPhase, ProcessingPhase, SuccessPhase } from './DialogPhases';
 
 enum Phase {
   Form = 'form',
@@ -26,6 +26,8 @@ enum Phase {
 }
 
 const SUCCESS_AUTO_CLOSE_MS = 1500;
+const MIN_NAME_LENGTH = 1;
+const MAX_NAME_LENGTH = 24;
 
 type Props = {
   accountId: string;
@@ -41,16 +43,16 @@ export const RenameSubAccountDialog = ({ accountId, currentName }: Props) => {
   const renameSubAccount = useRenameSubAccount();
 
   const isBlocking = phase === Phase.Processing;
+  const trimmedName = name.trim();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const trimmed = name.trim();
-    if (!trimmed || trimmed === currentName) return;
+    if (!trimmedName || trimmedName === currentName) return;
 
     setPhase(Phase.Processing);
 
     try {
-      await renameSubAccount.mutateAsync({ accountId, newName: trimmed });
+      await renameSubAccount.mutateAsync({ accountId, newName: trimmedName });
       setPhase(Phase.Success);
     } catch (err) {
       setErrorMessage(
@@ -131,6 +133,8 @@ export const RenameSubAccountDialog = ({ accountId, currentName }: Props) => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder={t(($) => $.accounts.renameSubAccount.namePlaceholder)}
+                  minLength={MIN_NAME_LENGTH}
+                  maxLength={MAX_NAME_LENGTH}
                   autoFocus
                   autoComplete="off"
                 />
@@ -140,7 +144,10 @@ export const RenameSubAccountDialog = ({ accountId, currentName }: Props) => {
                 <Button type="button" variant="ghost" onClick={handleClose}>
                   {t(($) => $.common.cancel)}
                 </Button>
-                <Button type="submit" disabled={!name.trim() || name.trim() === currentName}>
+                <Button
+                  type="submit"
+                  disabled={trimmedName.length < MIN_NAME_LENGTH || trimmedName === currentName}
+                >
                   {t(($) => $.accounts.renameSubAccount.confirm)}
                 </Button>
               </ResponsiveDialogFooter>
@@ -148,106 +155,17 @@ export const RenameSubAccountDialog = ({ accountId, currentName }: Props) => {
           )}
 
           {phase === Phase.Processing && (
-            <motion.div
-              key="processing"
-              className="flex h-full flex-col items-center justify-center gap-5 py-8 text-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <ResponsiveDialogTitle className="sr-only">
-                {t(($) => $.accounts.renameSubAccount.renaming, { name: name.trim() })}
-              </ResponsiveDialogTitle>
-              <motion.div
-                className="flex size-16 items-center justify-center rounded-full bg-primary/10"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-              >
-                <Loader className="size-8 animate-spin text-primary" />
-              </motion.div>
-              <motion.p
-                className="text-sm font-medium text-muted-foreground"
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.3 }}
-              >
-                {t(($) => $.accounts.renameSubAccount.renaming, { name: name.trim() })}
-              </motion.p>
-            </motion.div>
+            <ProcessingPhase
+              message={t(($) => $.accounts.renameSubAccount.renaming, { name: trimmedName })}
+            />
           )}
-
           {phase === Phase.Success && (
-            <motion.div
-              key="success"
-              className="flex h-full flex-col items-center justify-center gap-5 py-8 text-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <ResponsiveDialogTitle className="sr-only">
-                {t(($) => $.accounts.renameSubAccount.success, { name: name.trim() })}
-              </ResponsiveDialogTitle>
-              <motion.div
-                className="flex size-16 items-center justify-center rounded-full bg-green-600/10"
-                initial={{ scale: 0.6, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-              >
-                <AnimatedCheckmark />
-              </motion.div>
-              <motion.p
-                className="max-w-xs text-sm font-medium text-muted-foreground"
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.35, duration: 0.3 }}
-              >
-                {t(($) => $.accounts.renameSubAccount.success, { name: name.trim() })}
-              </motion.p>
-            </motion.div>
+            <SuccessPhase
+              message={t(($) => $.accounts.renameSubAccount.success, { name: trimmedName })}
+            />
           )}
-
           {phase === Phase.Error && (
-            <motion.div
-              key="error"
-              className="flex h-full flex-col items-center justify-between py-8 text-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <ResponsiveDialogTitle className="sr-only">
-                {t(($) => $.accounts.renameSubAccount.error)}
-              </ResponsiveDialogTitle>
-              <div className="flex flex-1 flex-col items-center justify-center gap-4">
-                <motion.div
-                  className="flex size-14 items-center justify-center rounded-full bg-destructive/10"
-                  initial={{ scale: 0.8, rotate: 0 }}
-                  animate={{ scale: 1, rotate: [0, -5, 5, -5, 5, 0] }}
-                  transition={{ duration: 0.5, ease: 'easeOut' }}
-                >
-                  <AlertTriangle className="size-8 text-destructive" />
-                </motion.div>
-                <motion.p
-                  className="max-w-xs text-sm font-medium text-muted-foreground"
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3, duration: 0.3 }}
-                >
-                  {errorMessage}
-                </motion.p>
-              </div>
-              <div className="flex w-full gap-2 pt-4">
-                <Button variant="outline" className="flex-1" onClick={handleClose}>
-                  {t(($) => $.common.close)}
-                </Button>
-                <Button className="flex-1" onClick={handleRetry}>
-                  {t(($) => $.common.retry)}
-                </Button>
-              </div>
-            </motion.div>
+            <ErrorPhase errorMessage={errorMessage} onClose={handleClose} onRetry={handleRetry} />
           )}
         </AnimatePresence>
       </ResponsiveDialogContent>

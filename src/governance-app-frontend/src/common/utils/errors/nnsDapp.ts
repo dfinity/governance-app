@@ -1,19 +1,21 @@
-import type { CreateSubAccountResponse } from '@declarations/nns-dapp/nns-dapp.did';
+import type {
+  CreateSubAccountResponse,
+  RenameSubAccountResponse,
+} from '@declarations/nns-dapp/nns-dapp.did';
 
 import i18n from '@/i18n/config';
 
-export const mapCreateSubAccountError = (response: CreateSubAccountResponse): string => {
+type SubAccountErrorResponse =
+  | Exclude<CreateSubAccountResponse, { Ok: unknown }>
+  | Exclude<RenameSubAccountResponse, { Ok: unknown }>;
+
+export const mapSubAccountError = (response: SubAccountErrorResponse, fallback: string): string => {
   const t = i18n.t;
 
-  if ('AccountNotFound' in response) {
-    return t(($) => $.accounts.createSubAccount.errorAccountNotFound);
-  }
-  if ('SubAccountLimitExceeded' in response) {
-    return t(($) => $.accounts.createSubAccount.errorLimitExceeded);
-  }
-  if ('NameTooLong' in response) {
-    return t(($) => $.accounts.createSubAccount.errorNameTooLong);
-  }
+  if ('AccountNotFound' in response) return t(($) => $.accounts.errors.accountNotFound);
+  if ('NameTooLong' in response) return t(($) => $.accounts.errors.nameTooLong);
+  if ('SubAccountLimitExceeded' in response) return t(($) => $.accounts.errors.limitExceeded);
+  if ('SubAccountNotFound' in response) return t(($) => $.accounts.errors.subAccountNotFound);
 
-  return t(($) => $.accounts.createSubAccount.error);
+  return fallback;
 };

@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
 import { useNnsDapp } from '@hooks/nnsDapp/useNnsDapp';
-import { mapCreateSubAccountError } from '@utils/errors/nnsDapp';
+import { mapSubAccountError } from '@utils/errors/nnsDapp';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
 export function useCreateSubAccount() {
@@ -19,7 +19,13 @@ export function useCreateSubAccount() {
       await canister.certifiedService.add_account();
       const response = await canister.certifiedService.create_sub_account(name);
 
-      if (!('Ok' in response)) throw new Error(mapCreateSubAccountError(response));
+      if (!('Ok' in response))
+        throw new Error(
+          mapSubAccountError(
+            response,
+            t(($) => $.accounts.createSubAccount.error),
+          ),
+        );
 
       await queryClient
         .invalidateQueries({ queryKey: [QUERY_KEYS.NNS_DAPP.ACCOUNT] })
