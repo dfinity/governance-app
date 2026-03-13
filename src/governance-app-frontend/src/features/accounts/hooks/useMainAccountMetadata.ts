@@ -3,13 +3,13 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { AccountType, type AccountMeta } from '../types';
+import { AccountType, type AccountMetadata } from '../types';
 
 export const useMainAccountMetadata = () => {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
 
-  const data: AccountMeta | undefined = useMemo(() => {
+  const data: AccountMetadata | undefined = useMemo(() => {
     if (!identity) return undefined;
 
     return {

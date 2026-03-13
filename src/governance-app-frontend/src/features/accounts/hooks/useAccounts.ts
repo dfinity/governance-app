@@ -1,8 +1,6 @@
-import { useMemo } from 'react';
-
 import { useIcpLedgerAccountsBalances } from '@hooks/icpLedger';
 
-import { AccountType, type Account, type AccountMeta, type AccountsState } from '../types';
+import { AccountType, type Account, type AccountMetadata, type AccountsState } from '../types';
 import { useMainAccountMetadata } from './useMainAccountMetadata';
 import { useSubaccountsMetadata } from './useSubaccountsMetadata';
 
@@ -22,49 +20,51 @@ export const useAccounts = () => {
   const mainAccountMetadata = useMainAccountMetadata();
   const subaccountsMetadata = useSubaccountsMetadata();
 
-  const accountMetas = useMemo<AccountMeta[]>(() => {
-    if (!mainAccountMetadata.data) return [];
-    return [mainAccountMetadata.data, ...subaccountsMetadata.data];
-  }, [mainAccountMetadata.data, subaccountsMetadata.data]);
+  const accountsMetadata: AccountMetadata[] = mainAccountMetadata.data
+    ? [mainAccountMetadata.data, ...subaccountsMetadata.data]
+    : [];
 
-  const accountIds = accountMetas.map((a) => a.accountId);
+  const accountIds = accountsMetadata.map((a) => a.accountId);
 
   const balancesQuery = useIcpLedgerAccountsBalances({
     accountIds,
-    enabled: accountMetas.length > 0,
+    enabled: accountsMetadata.length > 0,
   });
 
-  const data = useMemo<AccountsState | undefined>(() => {
-    if (!mainAccountMetadata.data) return undefined;
-
-    const accounts = sortAccounts(
-      accountMetas.map((meta): Account => {
-        const balanceState = balancesQuery.byAccountId[meta.accountId];
-
-        if (balanceState?.isError) {
-          return { ...meta, status: 'error', error: balanceState.error };
-        }
-
-        if (balanceState?.data?.response !== undefined) {
-          return { ...meta, status: 'ready', balanceE8s: balanceState.data.response };
-        }
-
-        return { ...meta, status: 'loading' };
-      }),
-    );
-
-    const readyAccounts = accounts.filter(
-      (a): a is Extract<Account, { status: 'ready' }> => a.status === 'ready',
-    );
-
+  if (!mainAccountMetadata.data) {
     return {
-      accounts,
-      totalBalanceE8s: readyAccounts.reduce((sum, a) => sum + a.balanceE8s, 0n),
-      isTotalPartial: readyAccounts.length < accounts.length,
-      hasSubaccounts: accounts.some((a) => a.type !== AccountType.Main),
-      mainAccountId: mainAccountMetadata.data.accountId,
+      data: undefined,
+      isLoading: !mainAccountMetadata.data || subaccountsMetadata.isLoading,
     };
-  }, [accountMetas, balancesQuery.byAccountId, mainAccountMetadata.data]);
+  }
+
+  const accounts = sortAccounts(
+    accountsMetadata.map((meta): Account => {
+      const balanceState = balancesQuery.byAccountId[meta.accountId];
+
+      if (balanceState?.isError) {
+        return { ...meta, status: 'error', error: balanceState.error };
+      }
+
+      if (balanceState?.data?.response !== undefined) {
+        return { ...meta, status: 'ready', balanceE8s: balanceState.data.response };
+      }
+
+      return { ...meta, status: 'loading' };
+    }),
+  );
+
+  const readyAccounts = accounts.filter(
+    (a): a is Extract<Account, { status: 'ready' }> => a.status === 'ready',
+  );
+
+  const data: AccountsState = {
+    accounts,
+    totalBalanceE8s: readyAccounts.reduce((sum, a) => sum + a.balanceE8s, 0n),
+    isTotalPartial: readyAccounts.length < accounts.length,
+    hasSubaccounts: accounts.some((a) => a.type !== AccountType.Main),
+    mainAccountId: mainAccountMetadata.data.accountId,
+  };
 
   return {
     data,
