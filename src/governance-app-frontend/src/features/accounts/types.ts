@@ -5,22 +5,22 @@ export enum AccountType {
   Subaccount = 'subaccount',
 }
 
-export interface AccountMeta {
+export interface AccountMetadata {
   name: string;
   accountId: string;
   type: AccountType;
 }
 
-export type AccountReady = AccountMeta & {
+export type AccountReady = AccountMetadata & {
   status: 'ready';
   balanceE8s: bigint;
 };
 
-export type AccountLoading = AccountMeta & {
+export type AccountLoading = AccountMetadata & {
   status: 'loading';
 };
 
-export type AccountError = AccountMeta & {
+export type AccountError = AccountMetadata & {
   status: 'error';
   error: unknown;
 };
