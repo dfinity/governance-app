@@ -43,7 +43,7 @@
   "maturityMode": {
     "title": "New maturity",
     "infoAutoStake": "<strong>Auto-stake:</strong> rewards automatically increase your Neuron for compound growth.",
-    "infoKeepAvailable": "<strong>Keep-available:</strong> don't auto-stake rewards, keep them available for withdrawal.",
+    "infoKeepAvailable": "<strong>Keep available:</strong> don't auto-stake rewards, keep them available for withdrawal.",
     "autoStake": "Auto-stake",
     "keepLiquid": "Keep available",
     "confirm": "Update new maturity",
