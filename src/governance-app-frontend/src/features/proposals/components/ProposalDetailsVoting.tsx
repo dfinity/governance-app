@@ -107,17 +107,13 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
             <span className="font-semibold">{formatPercentage(totalProportion)}</span>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">
-              {t(($) => $.proposal.yesVotes)}
-            </span>
+            <span className="text-xs text-muted-foreground">{t(($) => $.proposal.yesVotes)}</span>
             <span className="font-semibold text-emerald-800 dark:text-emerald-400">
               {formatNumber(yes, { minFraction: 0, maxFraction: 0 })}
             </span>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">
-              {t(($) => $.proposal.noVotes)}
-            </span>
+            <span className="text-xs text-muted-foreground">{t(($) => $.proposal.noVotes)}</span>
             <span className="font-semibold text-red-800 dark:text-red-400">
               {formatNumber(no, { minFraction: 0, maxFraction: 0 })}
             </span>
