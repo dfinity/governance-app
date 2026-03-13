@@ -3,7 +3,6 @@
   "description": "Manage your ICP ledger accounts.",
   "mainAccount": "Main",
   "totalAcrossAll": "Total across all accounts",
-  "ofTotal": "{{value}}%",
   "viewAll": "View all accounts",
   "recentTransactions": "Recent transactions",
   "noTransactions": "No recent transactions.",

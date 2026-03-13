@@ -18,9 +18,7 @@ export const Route = createFileRoute('/_auth/accounts/')({
   beforeLoad: () => {
     const features = readAdvancedFeaturesFromStorage();
 
-    if (!features.subaccounts) {
-      throw redirect({ to: '/dashboard', replace: true });
-    }
+    if (!features.subaccounts) throw redirect({ to: '/dashboard', replace: true });
   },
   head: () => {
     const title = i18n.t(($) => $.common.head.accounts.title);
