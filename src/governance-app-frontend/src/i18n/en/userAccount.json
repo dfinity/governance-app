@@ -62,15 +62,15 @@
     "title": "Advanced features",
     "items": {
       "subaccounts": {
-        "label": "Subaccounts",
-        "description": "View and manage subaccounts linked to your principal.",
+        "label": "Accounts",
+        "description": "View and manage accounts linked to your principal.",
         "aria": {
-          "toggle": "Toggle subaccounts feature"
+          "toggle": "Toggle accounts feature"
         },
         "enabled": "Accounts enabled",
-        "enabledDescription": "Your navigation has been updated.",
+        "enabledDescription": "Accounts are now visible and editable.",
         "disabled": "Accounts disabled",
-        "disabledDescription": "The accounts view has been removed."
+        "disabledDescription": "Accounts related features are now hidden."
       }
     }
   },

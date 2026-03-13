@@ -39,8 +39,6 @@ function AccountsPage() {
   const { data: accountsState, isLoading } = useAccounts();
   const accounts = accountsState?.accounts;
 
-  const hasAccounts = !isLoading && accounts && accounts.length > 0;
-
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
@@ -51,14 +49,7 @@ function AccountsPage() {
 
       <AccountsTotalCard accounts={accounts ?? []} isLoading={isLoading} />
 
-      {hasAccounts ? (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <AccountsList accounts={accounts} />
-          </div>
-          <RecentTransactions />
-        </div>
-      ) : isLoading ? (
+      {isLoading ? (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="flex flex-col gap-3 lg:col-span-2">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -68,9 +59,11 @@ function AccountsPage() {
           <Skeleton className="h-64 rounded-xl" />
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-          <p className="text-lg font-medium">{t(($) => $.accounts.empty.title)}</p>
-          <p className="text-sm text-muted-foreground">{t(($) => $.accounts.empty.description)}</p>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <AccountsList accounts={accounts ?? []} />
+          </div>
+          <RecentTransactions />
         </div>
       )}
     </div>
