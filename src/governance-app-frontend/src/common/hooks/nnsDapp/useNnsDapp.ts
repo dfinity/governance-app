@@ -18,16 +18,12 @@ type NnsDappCanister = {
 };
 
 export const useNnsDapp = (): CanisterStatus<NnsDappCanister> => {
-  if (!CANISTER_ID_NNS_DAPP) {
-    throw errorMessage('useNnsDapp', 'the canister Id is not defined');
-  }
+  if (!CANISTER_ID_NNS_DAPP) throw errorMessage('useNnsDapp', 'the canister Id is not defined');
 
   const { anonymous, authenticated } = useAgentPool().agentPool;
   const agent = authenticated.agent || anonymous.agent;
 
-  if (!agent) {
-    return { ready: false, authenticated: false, canister: undefined };
-  }
+  if (!agent) return { ready: false, authenticated: false, canister: undefined };
 
   const canisterId = Principal.fromText(CANISTER_ID_NNS_DAPP);
   const service = Actor.createActor<_SERVICE>(idlFactory, { agent, canisterId });

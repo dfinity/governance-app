@@ -7,15 +7,17 @@ import { QUERY_KEYS } from '@utils/query';
 
 import { useIcpLedger } from './useIcpLedger';
 
-export const useIcpLedgerAccountBalance = () => {
+export const useIcpLedgerAccountBalance = (accountId?: string) => {
   const { identity } = useInternetIdentity();
   const { ready, authenticated, canister } = useIcpLedger();
 
-  // If no identity is present, we use an anonymous identity to avoid errors.
-  // The query will be disabled anyway if not authenticated.
-  const accountIdentifier = AccountIdentifier.fromPrincipal({
-    principal: identity?.getPrincipal() || new AnonymousIdentity().getPrincipal(),
-  });
+  const accountIdentifier =
+    accountId ??
+    // If no identity is present, we use an anonymous identity to avoid errors.
+    // The query will be disabled anyway if not authenticated.
+    AccountIdentifier.fromPrincipal({
+      principal: identity?.getPrincipal() || new AnonymousIdentity().getPrincipal(),
+    }).toHex();
 
   return useQueryThenUpdateCall({
     queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE, accountIdentifier],

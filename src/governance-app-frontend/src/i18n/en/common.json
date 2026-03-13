@@ -42,11 +42,13 @@
   "confirm": "Confirm",
   "cancel": "Cancel",
   "close": "Close",
+  "retry": "Retry",
   "back": "Back",
   "next": "Next",
   "apy": "APY",
   "dashboard": "Dashboard",
   "voting": "Voting",
+  "accounts": "Accounts",
   "stakes": "Neurons",
   "settings": "Settings",
   "clipboard": {
@@ -76,6 +78,9 @@
     "dashboard": {
       "title": "Dashboard | Network Nervous System"
     },
+    "accounts": {
+      "title": "Accounts | Governance"
+    },
     "stakes": {
       "title": "Neurons | Network Nervous System"
     },
@@ -94,6 +99,6 @@
   },
   "newFeatureCheck": {
     "detected": "{{feature}} detected! You can enable it in the Settings.",
-    "subaccounts": "Subaccounts"
+    "subaccounts": "Accounts"
   }
 }

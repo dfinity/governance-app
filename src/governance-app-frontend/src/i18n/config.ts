@@ -2,6 +2,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 import account from './en/account.json';
+import accounts from './en/accounts.json';
 import addressBook from './en/addressBook.json';
 import common from './en/common.json';
 import errors from './en/errors.json';
@@ -39,6 +40,7 @@ export const resources = {
       voting,
       neuron,
       account,
+      accounts,
       addressBook,
       userAccount,
       welcomeModal,
