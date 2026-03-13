@@ -1,0 +1,23 @@
+{
+  "title": "Accounts",
+  "description": "Manage your ICP ledger accounts.",
+  "mainAccount": "Main",
+  "totalAcrossAll": "Total across all accounts",
+  "viewAll": "View all accounts",
+  "recentTransactions": "Recent transactions",
+  "noTransactions": "No recent transactions.",
+  "balanceError": "Unable to load balance.",
+  "createSubAccount": {
+    "button": "New Account",
+    "title": "New Account",
+    "description": "Create a new account controlled by your Internet Identity.",
+    "nameLabel": "Account name",
+    "confirm": "Create",
+    "creating": "Creating \"{{name}}\"…",
+    "success": "\"{{name}}\" created successfully.",
+    "error": "Failed to create account.",
+    "errorAccountNotFound": "Account not found in NNS dapp.",
+    "errorLimitExceeded": "Account limit exceeded.",
+    "errorNameTooLong": "Name is too long."
+  }
+}

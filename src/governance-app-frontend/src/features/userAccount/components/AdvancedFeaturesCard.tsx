@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Switch } from '@components/Switch';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { AdvancedFeature } from '@typings/advancedFeatures';
+import { defaultNotification, successNotification } from '@utils/notification';
 
 type FeatureDefinition = {
   key: AdvancedFeature;
@@ -33,8 +34,19 @@ export const AdvancedFeaturesCard = () => {
           </div>
           <Switch
             checked={features[key]}
-            onCheckedChange={(value) => setFeature(key, value)}
-            aria-label={t(($) => $.userAccount.advancedFeatures.items[key].label)}
+            onCheckedChange={(value) => {
+              setFeature(key, value);
+              const notify = value ? successNotification : defaultNotification;
+              notify({
+                title: value
+                  ? t(($) => $.userAccount.advancedFeatures.items[key].enabled)
+                  : t(($) => $.userAccount.advancedFeatures.items[key].disabled),
+                description: value
+                  ? t(($) => $.userAccount.advancedFeatures.items[key].enabledDescription)
+                  : t(($) => $.userAccount.advancedFeatures.items[key].disabledDescription),
+              });
+            }}
+            aria-label={t(($) => $.userAccount.advancedFeatures.items[key].aria.toggle)}
             className="shrink-0"
           />
         </div>
