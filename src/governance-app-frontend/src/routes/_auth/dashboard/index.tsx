@@ -63,7 +63,7 @@ function Dashboard() {
       </div>
 
       <div className="mt-4 flex flex-col gap-3">
-        <h2 className="text-2xl font-medium tracking-wide capitalize">
+        <h2 className="text-2xl font-medium tracking-wide">
           {t(($) => $.home.governanceOverview)}
         </h2>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">

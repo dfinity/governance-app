@@ -77,7 +77,7 @@ export const DepositICPModal = ({ open, onOpenChange }: DepositICPModalProps) =>
           </div>
 
           <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium capitalize">
+            <span className="text-sm font-medium">
               {t(($) => $.depositModal.yourAccountId)}
             </span>
             <div className="flex items-center justify-between gap-4 overflow-hidden rounded-md border bg-muted px-3 py-2">

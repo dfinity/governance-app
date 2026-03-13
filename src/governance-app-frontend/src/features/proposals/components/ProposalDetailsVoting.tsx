@@ -56,7 +56,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="capitalize">{t(($) => $.proposal.votingStatus)}</CardTitle>
+        <CardTitle>{t(($) => $.proposal.votingStatus)}</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
         <div className="flex flex-col gap-1">
@@ -90,7 +90,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
 
         <div className="grid grid-cols-1 gap-2 xs:grid-cols-2">
           <div className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground capitalize">
+            <span className="text-xs text-muted-foreground">
               {t(($) => $.proposal.totalVotingPower)}
             </span>
             <span className="font-semibold">
@@ -101,13 +101,13 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
             </span>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground capitalize">
+            <span className="text-xs text-muted-foreground">
               {t(($) => $.proposal.participation)}
             </span>
             <span className="font-semibold">{formatPercentage(totalProportion)}</span>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground capitalize">
+            <span className="text-xs text-muted-foreground">
               {t(($) => $.proposal.yesVotes)}
             </span>
             <span className="font-semibold text-emerald-800 dark:text-emerald-400">
@@ -115,7 +115,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
             </span>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground capitalize">
+            <span className="text-xs text-muted-foreground">
               {t(($) => $.proposal.noVotes)}
             </span>
             <span className="font-semibold text-red-800 dark:text-red-400">
@@ -130,7 +130,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
           {hasVoted ? (
             <div
               className={cn(
-                'flex w-full items-center gap-2 rounded-md border p-2 text-sm capitalize',
+                'flex w-full items-center gap-2 rounded-md border p-2 text-sm',
                 isVoteMixed
                   ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
                   : voteValue === Vote.Yes

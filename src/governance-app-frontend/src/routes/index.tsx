@@ -147,7 +147,7 @@ function LoginPage() {
             {/* Stats Section (Desktop: Bottom / Mobile: Below Title) */}
             <dl className="order-1 mt-auto flex flex-col gap-8 md:order-2 md:mt-auto md:mb-6 md:h-13 md:flex-row md:gap-16">
               <div className="flex flex-col-reverse gap-1">
-                <dt className="text-sm font-light tracking-wider text-muted-foreground capitalize">
+                <dt className="text-sm font-light tracking-wider text-muted-foreground">
                   {t(($) => $.login.totalProposals)}
                 </dt>
                 <dd className="text-2xl leading-none font-bold md:text-3xl">
@@ -189,7 +189,7 @@ function LoginPage() {
               />
 
               <div className="flex flex-col-reverse gap-1">
-                <dt className="text-sm font-light tracking-wider text-muted-foreground capitalize">
+                <dt className="text-sm font-light tracking-wider text-muted-foreground">
                   {t(($) => $.login.tvl)}
                 </dt>
                 <dd className="text-2xl leading-none font-bold md:text-3xl">

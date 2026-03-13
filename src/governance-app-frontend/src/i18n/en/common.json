@@ -70,7 +70,7 @@
     "appName": "Governance",
     "defaultDescription": "Participate in decentralized governance on the Internet Computer",
     "login": {
-      "title": "Governance - ICP Staking & Voting",
+      "title": "Governance - ICP staking & voting",
       "description": "Participate in decentralized governance on the Internet Computer. Stake ICP, vote on proposals, and earn rewards."
     },
     "dashboard": {

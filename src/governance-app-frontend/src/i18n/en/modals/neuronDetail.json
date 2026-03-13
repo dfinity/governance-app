@@ -26,11 +26,11 @@
     "title": "Dissolve delay",
     "warning": "The dissolve delay can only be increased, never decreased.",
     "presets": {
-      "6months": "6 Months",
-      "1year": "1 Year",
-      "2years": "2 Years",
-      "4years": "4 Years",
-      "8years": "8 Years"
+      "6months": "6 months",
+      "1year": "1 year",
+      "2years": "2 years",
+      "4years": "4 years",
+      "8years": "8 years"
     },
     "alreadyMax": "Your Neuron is already at maximum dissolve delay.",
     "confirm": "Confirm change",
