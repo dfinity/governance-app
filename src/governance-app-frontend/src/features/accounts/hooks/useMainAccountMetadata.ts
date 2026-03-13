@@ -3,9 +3,9 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { AccountMeta } from '../types';
+import { AccountType, type AccountMeta } from '../types';
 
-export const useMainAccountMeta = () => {
+export const useMainAccountMetadata = () => {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
 
@@ -17,7 +17,7 @@ export const useMainAccountMeta = () => {
       accountId: AccountIdentifier.fromPrincipal({
         principal: identity.getPrincipal(),
       }).toHex(),
-      type: 'main',
+      type: AccountType.Main,
     };
   }, [identity, t]);
 

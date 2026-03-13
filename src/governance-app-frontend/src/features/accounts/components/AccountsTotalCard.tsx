@@ -9,7 +9,7 @@ import { useTickerPrices } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber } from '@utils/numbers';
 
-import type { Account, AccountReady } from '../types';
+import { AccountType, type Account, type AccountReady } from '../types';
 
 const BASE_COLOR = 'var(--color-staking-ratio)';
 const OPACITY_MAX = 80;
@@ -38,11 +38,11 @@ export const AccountsTotalCard = ({ accounts, isLoading }: Props) => {
 
   const segments = useMemo(() => {
     if (totalE8s === 0n) return [];
-    const nonMainAccounts = readyAccounts.filter((a) => a.type !== 'main');
+    const nonMainAccounts = readyAccounts.filter((a) => a.type !== AccountType.Main);
     return readyAccounts.map((account) => {
       const percentage = Number((account.balanceE8s * 10000n) / totalE8s) / 100;
       const color =
-        account.type === 'main'
+        account.type === AccountType.Main
           ? BASE_COLOR
           : getAccountColor(nonMainAccounts.indexOf(account), nonMainAccounts.length);
       return { accountId: account.accountId, name: account.name, percentage, color };

@@ -2,14 +2,14 @@ import { useMemo } from 'react';
 
 import { useIcpLedgerAccountsBalances } from '@hooks/icpLedger';
 
-import type { Account, AccountMeta, AccountsState } from '../types';
-import { useMainAccountMeta } from './useMainAccountMeta';
+import { AccountType, type Account, type AccountMeta, type AccountsState } from '../types';
+import { useMainAccountMetadata } from './useMainAccountMetadata';
 import { useSubaccountsMetadata } from './useSubaccountsMetadata';
 
 const sortAccounts = (accounts: Account[]): Account[] => {
-  const main = accounts.filter((a) => a.type === 'main');
+  const main = accounts.filter((a) => a.type === AccountType.Main);
   const rest = accounts
-    .filter((a) => a.type !== 'main')
+    .filter((a) => a.type !== AccountType.Main)
     .sort((a, b) => {
       const aBalance = a.status === 'ready' ? a.balanceE8s : 0n;
       const bBalance = b.status === 'ready' ? b.balanceE8s : 0n;
@@ -19,13 +19,13 @@ const sortAccounts = (accounts: Account[]): Account[] => {
 };
 
 export const useAccounts = () => {
-  const mainAccountMeta = useMainAccountMeta();
+  const mainAccountMetadata = useMainAccountMetadata();
   const subaccountsMetadata = useSubaccountsMetadata();
 
   const accountMetas = useMemo<AccountMeta[]>(() => {
-    if (!mainAccountMeta.data) return [];
-    return [mainAccountMeta.data, ...subaccountsMetadata.data];
-  }, [mainAccountMeta.data, subaccountsMetadata.data]);
+    if (!mainAccountMetadata.data) return [];
+    return [mainAccountMetadata.data, ...subaccountsMetadata.data];
+  }, [mainAccountMetadata.data, subaccountsMetadata.data]);
 
   const accountIds = accountMetas.map((a) => a.accountId);
 
@@ -35,7 +35,7 @@ export const useAccounts = () => {
   });
 
   const data = useMemo<AccountsState | undefined>(() => {
-    if (!mainAccountMeta.data) return undefined;
+    if (!mainAccountMetadata.data) return undefined;
 
     const accounts = sortAccounts(
       accountMetas.map((meta): Account => {
@@ -45,8 +45,8 @@ export const useAccounts = () => {
           return { ...meta, status: 'error', error: balanceState.error };
         }
 
-        if (balanceState?.data !== undefined) {
-          return { ...meta, status: 'ready', balanceE8s: balanceState.data };
+        if (balanceState?.data?.response !== undefined) {
+          return { ...meta, status: 'ready', balanceE8s: balanceState.data.response };
         }
 
         return { ...meta, status: 'loading' };
@@ -61,13 +61,13 @@ export const useAccounts = () => {
       accounts,
       totalBalanceE8s: readyAccounts.reduce((sum, a) => sum + a.balanceE8s, 0n),
       isTotalPartial: readyAccounts.length < accounts.length,
-      hasSubaccounts: accounts.some((a) => a.type !== 'main'),
-      mainAccountId: mainAccountMeta.data.accountId,
+      hasSubaccounts: accounts.some((a) => a.type !== AccountType.Main),
+      mainAccountId: mainAccountMetadata.data.accountId,
     };
-  }, [accountMetas, balancesQuery.byAccountId, mainAccountMeta.data]);
+  }, [accountMetas, balancesQuery.byAccountId, mainAccountMetadata.data]);
 
   return {
     data,
-    isLoading: !mainAccountMeta.data || subaccountsMetadata.isLoading,
+    isLoading: !mainAccountMetadata.data || subaccountsMetadata.isLoading,
   };
 };
