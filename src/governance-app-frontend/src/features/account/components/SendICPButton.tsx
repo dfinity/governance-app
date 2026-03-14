@@ -3,7 +3,7 @@ import { decodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
 import { nowInBigIntNanoSeconds, toNullable } from '@dfinity/utils';
 import { useMutation } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { AlertTriangle, BookUser, Send } from 'lucide-react';
+import { AlertTriangle, BookUser, type LucideIcon, Send } from 'lucide-react';
 import React, { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -37,9 +37,9 @@ import { errorNotification, successNotification } from '@utils/notification';
 import { formatNumber, roundToE8sPrecision } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
-type Props = { balance: number; fromSubAccount?: Uint8Array | number[]; className?: string; size?: 'default' | 'sm' | 'lg' | 'xl' | 'icon' };
+type Props = { balance: number; fromSubAccount?: Uint8Array | number[]; className?: string; label?: string; icon?: LucideIcon };
 
-export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, className: triggerClassName, size: triggerSize = 'xl' }) => {
+export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, className: triggerClassName, label, icon: Icon }) => {
   const { t } = useTranslation();
 
   const {
@@ -191,12 +191,12 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, classN
         <Button
           variant="outline"
           disabled={!canTransfer}
-          size={triggerSize}
+          size="xl"
           className={cn('w-full', isPending && 'opacity-50', triggerClassName)}
           data-testid="send-icp-btn"
         >
-          <Send />
-          {t(($) => (isPending ? $.common.sending : $.common.withdraw))}
+          {Icon ? <Icon aria-hidden="true" /> : <Send aria-hidden="true" />}
+          {isPending ? t(($) => $.common.sending) : (label ?? t(($) => $.common.withdraw))}
         </Button>
       </ResponsiveDialogTrigger>
 

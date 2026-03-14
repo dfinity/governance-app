@@ -1,4 +1,4 @@
-import { List, Plus } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, List } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -119,11 +119,17 @@ function AccountBalance({
         </p>
       </div>
       <div className="flex gap-3">
-        <Button variant="outline" className="flex-1" onClick={() => setIsDepositOpen(true)}>
-          <Plus aria-hidden="true" />
-          {t(($) => $.account.addIcp)}
+        <SendICPButton
+          balance={balanceICP}
+          fromSubAccount={account.subAccount}
+          label={t(($) => $.common.send)}
+          icon={ArrowUpRight}
+          className="flex-1"
+        />
+        <Button variant="outline" size="xl" className="flex-1" onClick={() => setIsDepositOpen(true)}>
+          <ArrowDownLeft aria-hidden="true" />
+          {t(($) => $.common.receive)}
         </Button>
-        <SendICPButton balance={balanceICP} fromSubAccount={account.subAccount} size="default" className="flex-1" />
         <DepositICPModal
           open={isDepositOpen}
           onOpenChange={setIsDepositOpen}
