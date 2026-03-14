@@ -6,6 +6,11 @@
   "viewAll": "View all accounts",
   "recentTransactions": "Recent transactions",
   "noTransactions": "No recent transactions.",
+  "noTransactionsYet": "No transactions yet",
+  "lastReceived": "Received",
+  "lastSent": "Sent",
+  "lastStaked": "Staked",
+  "latest": "Latest:",
   "balanceError": "Unable to load balance.",
   "errors": {
     "accountNotFound": "Account not found in NNS dapp.",

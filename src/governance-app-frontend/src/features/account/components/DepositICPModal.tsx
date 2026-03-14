@@ -29,7 +29,11 @@ type DepositICPModalProps = {
   accountId?: string;
 };
 
-export const DepositICPModal = ({ open, onOpenChange, accountId: accountIdOverride }: DepositICPModalProps) => {
+export const DepositICPModal = ({
+  open,
+  onOpenChange,
+  accountId: accountIdOverride,
+}: DepositICPModalProps) => {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
 

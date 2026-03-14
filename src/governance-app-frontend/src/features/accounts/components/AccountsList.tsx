@@ -7,7 +7,7 @@ type Props = {
 
 export const AccountsList = ({ accounts }: Props) => {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       {accounts.map((account) => (
         <AccountsListItem key={account.accountId} account={account} />
       ))}

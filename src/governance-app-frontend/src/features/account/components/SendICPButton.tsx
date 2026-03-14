@@ -37,9 +37,21 @@ import { errorNotification, successNotification } from '@utils/notification';
 import { formatNumber, roundToE8sPrecision } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
-type Props = { balance: number; fromSubAccount?: Uint8Array | number[]; className?: string; label?: string; icon?: LucideIcon };
+type Props = {
+  balance: number;
+  fromSubAccount?: Uint8Array | number[];
+  className?: string;
+  label?: string;
+  icon?: LucideIcon;
+};
 
-export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, className: triggerClassName, label, icon: Icon }) => {
+export const SendICPButton: React.FC<Props> = ({
+  balance,
+  fromSubAccount,
+  className: triggerClassName,
+  label,
+  icon: Icon,
+}) => {
   const { t } = useTranslation();
 
   const {

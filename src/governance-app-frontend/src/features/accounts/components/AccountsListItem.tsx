@@ -9,15 +9,21 @@ import { TransactionListDialog } from '@features/transactions/components/Transac
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { CopyButton } from '@components/CopyButton';
+import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
+import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useTickerPrices } from '@hooks/tickers';
+import { addressBookGetAddressString } from '@utils/addressBook';
 import { bigIntDiv } from '@utils/bigInt';
+import { secondsToDate } from '@utils/date';
 import { shortenId } from '@utils/id';
 import { formatNumber } from '@utils/numbers';
 
-import { type Account, AccountType } from '../types';
+import { useAccounts } from '../hooks/useAccounts';
+import { useRecentTransactions } from '../hooks/useRecentTransactions';
+import { type Account, AccountType, TransactionType } from '../types';
 import { RenameSubAccountDialog } from './RenameSubAccountDialog';
 
 type Props = {
@@ -126,7 +132,12 @@ function AccountBalance({
           icon={ArrowUpRight}
           className="flex-1"
         />
-        <Button variant="outline" size="xl" className="flex-1" onClick={() => setIsDepositOpen(true)}>
+        <Button
+          variant="outline"
+          size="xl"
+          className="flex-1"
+          onClick={() => setIsDepositOpen(true)}
+        >
           <ArrowDownLeft aria-hidden="true" />
           {t(($) => $.common.receive)}
         </Button>
@@ -136,6 +147,58 @@ function AccountBalance({
           accountId={account.accountId}
         />
       </div>
+      <Separator className="my-1" />
+      <LastTransaction accountId={account.accountId} />
+    </div>
+  );
+}
+
+function LastTransaction({ accountId }: { accountId: string }) {
+  const { t } = useTranslation();
+  const { data: transactions } = useRecentTransactions();
+  const addressBookQuery = useAddressBook();
+  const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
+  const { data: accountsState } = useAccounts();
+  const userAccounts = accountsState?.accounts ?? [];
+
+  const lastTx = transactions?.find((tx) => tx.accountId === accountId);
+
+  if (!lastTx) {
+    return (
+      <p className="text-sm text-muted-foreground">{t(($) => $.accounts.noTransactionsYet)}</p>
+    );
+  }
+
+  const amountICP = bigIntDiv(lastTx.amountE8s, E8Sn);
+  const amount = t(($) => $.common.inIcp, { value: formatNumber(amountICP) });
+
+  const isReceive = lastTx.type === TransactionType.RECEIVE;
+  const isStake = lastTx.type === TransactionType.STAKE;
+  const amountColorClass = isReceive
+    ? 'text-emerald-800 dark:text-emerald-400'
+    : 'text-red-800 dark:text-red-400';
+
+  const verb = isReceive
+    ? t(($) => $.accounts.lastReceived)
+    : isStake
+      ? t(($) => $.accounts.lastStaked)
+      : t(($) => $.accounts.lastSent);
+
+  const userAccount = userAccounts.find((a) => a.accountId === lastTx.counterparty);
+  const addressBookName = addressBookEntries.find(
+    (entry) => addressBookGetAddressString(entry.address) === lastTx.counterparty,
+  )?.name;
+  const address = userAccount?.name ?? addressBookName ?? shortenId(lastTx.counterparty, 8);
+
+  return (
+    <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
+      <p className="truncate">
+        {t(($) => $.accounts.latest)} {verb}{' '}
+        <span className={`font-semibold ${amountColorClass}`}>{amount}</span>
+        {!isStake && (isReceive ? ' from ' : ' to ')}
+        {!isStake && <span className="font-semibold">{address}</span>}
+      </p>
+      <span className="shrink-0 text-muted-foreground">{secondsToDate(lastTx.timestamp)}</span>
     </div>
   );
 }
