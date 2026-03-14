@@ -1,7 +1,7 @@
 import { AccountIdentifier, TransferError } from '@icp-sdk/canisters/ledger/icp';
 import { decodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
 import { nowInBigIntNanoSeconds, toNullable } from '@dfinity/utils';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { AlertTriangle, ArrowUpRight, BookUser, Send } from 'lucide-react';
 import React, { useEffect, useEffectEvent, useRef, useState } from 'react';
@@ -35,6 +35,7 @@ import { bigIntMul } from '@utils/bigInt';
 import { isCertifiedRejectError, mapCanisterError } from '@utils/errors';
 import { errorNotification, successNotification } from '@utils/notification';
 import { formatNumber, roundToE8sPrecision } from '@utils/numbers';
+import { QUERY_KEYS, failedRefresh } from '@utils/query';
 import { cn } from '@utils/shadcn';
 
 type Props = {
@@ -54,6 +55,7 @@ export const SendICPButton: React.FC<Props> = ({
   variant = 'simple',
 }) => {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
 
   const {
     ready: ledgerReady,
@@ -126,6 +128,18 @@ export const SendICPButton: React.FC<Props> = ({
     onSuccess: async () => {
       // Wait 2 seconds to allow the backend to process the transaction.
       await delay(ICP_TRANSACTION_PROPAGATION_DELAY_MS);
+
+      // Invalidate all account balances and transactions (not just the sender)
+      // because inter-account transfers between the user's own accounts are common.
+      await Promise.all([
+        queryClient
+          .invalidateQueries({ queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE] })
+          .catch(failedRefresh),
+        queryClient
+          .invalidateQueries({ queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS] })
+          .catch(failedRefresh),
+      ]);
+
       setToAccount('');
       setSelectedName('');
       setAmount('');
