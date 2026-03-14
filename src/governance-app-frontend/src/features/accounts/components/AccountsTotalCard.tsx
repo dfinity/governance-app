@@ -43,6 +43,8 @@ export const AccountsTotalCard = ({ accounts, isLoading }: Props) => {
   const { tickerPrices: tickersQuery } = useTickerPrices();
 
   const readyAccounts = accounts.filter((a): a is AccountReady => a.status === 'ready');
+  const areBalancesStillLoading =
+    isLoading || accounts.length === 0 || accounts.some((a) => a.status === 'loading');
   const totalE8s = readyAccounts.reduce((sum, a) => sum + a.balanceE8s, 0n);
   const totalICP = bigIntDiv(totalE8s, E8Sn);
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
@@ -57,14 +59,14 @@ export const AccountsTotalCard = ({ accounts, isLoading }: Props) => {
           {t(($) => $.accounts.totalAcrossAll)}
         </p>
         <div className="flex flex-col gap-0.5">
-          {isLoading ? (
+          {areBalancesStillLoading ? (
             <Skeleton className="h-8 w-32" />
           ) : (
             <p className="text-2xl font-bold">
               {t(($) => $.common.inIcp, { value: formatNumber(totalICP) })}
             </p>
           )}
-          {isLoading || tickersQuery.isLoading ? (
+          {areBalancesStillLoading || tickersQuery.isLoading ? (
             <Skeleton className="h-4 w-20" />
           ) : (
             <p className="text-sm text-muted-foreground">
@@ -75,7 +77,7 @@ export const AccountsTotalCard = ({ accounts, isLoading }: Props) => {
       </CardHeader>
 
       <CardContent className="flex flex-col gap-3">
-        {isLoading ? (
+        {areBalancesStillLoading ? (
           <Skeleton className="h-3 w-full rounded-full" />
         ) : (
           <div
@@ -93,7 +95,7 @@ export const AccountsTotalCard = ({ accounts, isLoading }: Props) => {
           </div>
         )}
 
-        {isLoading ? (
+        {areBalancesStillLoading ? (
           <div className="flex gap-4">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-4 w-24" />
