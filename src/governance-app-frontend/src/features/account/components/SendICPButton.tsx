@@ -37,9 +37,9 @@ import { errorNotification, successNotification } from '@utils/notification';
 import { formatNumber, roundToE8sPrecision } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
-type Props = { balance: number };
+type Props = { balance: number; fromSubAccount?: Uint8Array | number[]; className?: string; size?: 'default' | 'sm' | 'lg' | 'xl' | 'icon' };
 
-export const SendICPButton: React.FC<Props> = ({ balance }) => {
+export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, className: triggerClassName, size: triggerSize = 'xl' }) => {
   const { t } = useTranslation();
 
   const {
@@ -88,10 +88,13 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
       createdAtRef.current = createdAt;
       const transferAmount = bigIntMul(E8Sn, Number(amount));
 
+      const subAccountArr = fromSubAccount ? Array.from(fromSubAccount) : undefined;
+
       if (isValidIcpAddress(toAccount)) {
         return ledgerCanister!.transfer({
           to: AccountIdentifier.fromHex(toAccount),
           amount: transferAmount,
+          fromSubAccount: subAccountArr,
           createdAt,
         });
       }
@@ -99,6 +102,7 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
       const { owner, subaccount } = decodeIcrcAccount(toAccount);
       return ledgerCanister!.icrc1Transfer({
         to: { owner, subaccount: toNullable(subaccount) },
+        fromSubAccount: subAccountArr ? Uint8Array.from(subAccountArr) : undefined,
         amount: transferAmount,
         createdAt,
       });
@@ -187,8 +191,8 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
         <Button
           variant="outline"
           disabled={!canTransfer}
-          size="xl"
-          className={cn('w-full', isPending && 'opacity-50')}
+          size={triggerSize}
+          className={cn('w-full', isPending && 'opacity-50', triggerClassName)}
           data-testid="send-icp-btn"
         >
           <Send />

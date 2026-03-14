@@ -1,7 +1,9 @@
-import { List } from 'lucide-react';
+import { List, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { DepositICPModal } from '@features/account/components/DepositICPModal';
+import { SendICPButton } from '@features/account/components/SendICPButton';
 import { TransactionListDialog } from '@features/transactions/components/TransactionListDialog';
 
 import { Button } from '@components/button';
@@ -87,6 +89,7 @@ function AccountBalance({
   tickersQuery: ReturnType<typeof useTickerPrices>['tickerPrices'];
 }) {
   const { t } = useTranslation();
+  const [isDepositOpen, setIsDepositOpen] = useState(false);
 
   if (account.status === 'loading') {
     return (
@@ -106,13 +109,27 @@ function AccountBalance({
   const usdValue = icpPrice ? formatNumber(balanceICP * icpPrice.usd) : '-';
 
   return (
-    <div className="flex flex-col gap-0.5">
-      <p className="text-2xl font-bold">
-        {t(($) => $.common.inIcp, { value: formatNumber(balanceICP) })}
-      </p>
-      <p className="text-sm text-muted-foreground">
-        {t(($) => $.account.approxUsd, { value: usdValue })}
-      </p>
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-0.5">
+        <p className="text-2xl font-bold">
+          {t(($) => $.common.inIcp, { value: formatNumber(balanceICP) })}
+        </p>
+        <p className="text-sm text-muted-foreground">
+          {t(($) => $.account.approxUsd, { value: usdValue })}
+        </p>
+      </div>
+      <div className="flex gap-3">
+        <Button variant="outline" className="flex-1" onClick={() => setIsDepositOpen(true)}>
+          <Plus aria-hidden="true" />
+          {t(($) => $.account.addIcp)}
+        </Button>
+        <SendICPButton balance={balanceICP} fromSubAccount={account.subAccount} size="default" className="flex-1" />
+        <DepositICPModal
+          open={isDepositOpen}
+          onOpenChange={setIsDepositOpen}
+          accountId={account.accountId}
+        />
+      </div>
     </div>
   );
 }

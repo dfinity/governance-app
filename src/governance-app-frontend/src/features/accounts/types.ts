@@ -16,6 +16,7 @@ export interface AccountMetadata {
   name: string;
   accountId: string;
   type: AccountType;
+  subAccount?: Uint8Array | number[];
 }
 
 export type AccountReady = AccountMetadata & {
