@@ -28,8 +28,6 @@ function toAccountTransaction(
   const nanos = created_at_time[0]?.timestamp_nanos ?? txTimestamp[0]?.timestamp_nanos ?? 0n;
   const timestampSeconds = Number(nanos / BigInt(NANOSECONDS_IN_SECOND));
 
-  const counterparty = type === TransactionType.RECEIVE ? transfer.from : transfer.to;
-
   return {
     id: tx.id,
     type,
@@ -37,7 +35,6 @@ function toAccountTransaction(
     timestamp: timestampSeconds,
     accountId,
     accountName,
-    counterparty,
   };
 }
 
@@ -64,19 +61,14 @@ export const useRecentTransactions = () => {
     return { data: undefined, isLoading: transactionsQuery.isLoading };
   }
 
-  const byAccountId = new Map<string, AccountTransaction[]>();
-
-  for (const meta of accountsMetadata) {
-    const txs = (transactionsQuery.byAccountId[meta.accountId]?.data?.response?.transactions ?? [])
-      .map((tx) => toAccountTransaction(tx, meta.accountId, meta.name, neuronAccountIds))
-      .filter((tx): tx is AccountTransaction => tx !== null);
-    byAccountId.set(meta.accountId, txs);
-  }
-
-  const data = [...byAccountId.values()]
-    .flat()
+  const data = accountsMetadata
+    .flatMap((meta) =>
+      (transactionsQuery.byAccountId[meta.accountId]?.data?.response?.transactions ?? [])
+        .map((tx) => toAccountTransaction(tx, meta.accountId, meta.name, neuronAccountIds))
+        .filter((tx): tx is AccountTransaction => tx !== null),
+    )
     .sort((a, b) => b.timestamp - a.timestamp)
     .slice(0, MAX_RECENT_TRANSACTIONS);
 
-  return { data, byAccountId, isLoading: transactionsQuery.isLoading };
+  return { data, isLoading: transactionsQuery.isLoading };
 };

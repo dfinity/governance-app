@@ -4,7 +4,10 @@ import { Trans, useTranslation } from 'react-i18next';
 
 import { DepositICPModal } from '@features/account/components/DepositICPModal';
 import { SendICPButton } from '@features/account/components/SendICPButton';
+import { useNeuronAccountsIds } from '@features/account/hooks/useNeuronAccountsIds';
+import { TransactionType } from '@features/account/types';
 import { TransactionListDialog } from '@features/transactions/components/TransactionListDialog';
+import { detectTransactionType } from '@features/transactions/utils/transactionType';
 
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
@@ -12,8 +15,9 @@ import { CopyButton } from '@components/CopyButton';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { E8Sn } from '@constants/extra';
+import { E8Sn, NANOSECONDS_IN_SECOND } from '@constants/extra';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
+import { useIcpIndexAccountsTransactions } from '@hooks/icpIndex';
 import { useTickerPrices } from '@hooks/tickers';
 import { addressBookGetAddressString } from '@utils/addressBook';
 import { bigIntDiv } from '@utils/bigInt';
@@ -22,8 +26,7 @@ import { shortenId } from '@utils/id';
 import { formatNumber } from '@utils/numbers';
 
 import { useAccounts } from '../hooks/useAccounts';
-import { useRecentTransactions } from '../hooks/useRecentTransactions';
-import { type Account, AccountType, TransactionType } from '../types';
+import { type Account, AccountType } from '../types';
 import { RenameSubAccountDialog } from './RenameSubAccountDialog';
 
 type Props = {
@@ -153,46 +156,58 @@ function AccountBalance({
 
 function LastTransaction({ accountId }: { accountId: string }) {
   const { t } = useTranslation();
-  const { byAccountId, isLoading: isTxLoading } = useRecentTransactions();
+  const { accountIds: neuronAccountIds } = useNeuronAccountsIds();
+  const txQuery = useIcpIndexAccountsTransactions({
+    accountIds: [accountId],
+    maxResults: 1n,
+  });
   const addressBookQuery = useAddressBook();
   const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
   const { data: accountsState, isLoading: isAccountsLoading } = useAccounts();
   const userAccounts = accountsState?.accounts ?? [];
 
-  if (isTxLoading || addressBookQuery.isLoading || isAccountsLoading) {
+  if (txQuery.isLoading || addressBookQuery.isLoading || isAccountsLoading) {
     return <Skeleton className="h-5 w-full" />;
   }
 
-  const lastTx = byAccountId.get(accountId)?.[0];
-
-  if (!lastTx) {
+  const rawTx = txQuery.byAccountId[accountId]?.data?.response?.transactions[0];
+  if (!rawTx) {
     return (
       <p className="text-sm text-muted-foreground">{t(($) => $.accounts.noTransactionsYet)}</p>
     );
   }
 
-  const amountICP = bigIntDiv(lastTx.amountE8s, E8Sn);
+  const { operation, created_at_time, timestamp: txTimestamp } = rawTx.transaction;
+  if (!('Transfer' in operation)) return null;
+
+  const transfer = operation.Transfer;
+  const type = detectTransactionType(operation, accountId, neuronAccountIds);
+  const nanos = created_at_time[0]?.timestamp_nanos ?? txTimestamp[0]?.timestamp_nanos ?? 0n;
+  const timestamp = Number(nanos / BigInt(NANOSECONDS_IN_SECOND));
+
+  const counterparty = type === TransactionType.RECEIVE ? transfer.from : transfer.to;
+  const amountICP = bigIntDiv(transfer.amount.e8s, E8Sn);
   const amount = t(($) => $.common.inIcp, { value: formatNumber(amountICP) });
 
-  const isReceive = lastTx.type === TransactionType.RECEIVE;
-  const isStake = lastTx.type === TransactionType.STAKE;
+  const isReceive = type === TransactionType.RECEIVE;
+  const isStake = type === TransactionType.STAKE;
   const amountColorClass = isReceive
     ? 'text-emerald-800 dark:text-emerald-400'
     : isStake
       ? ''
       : 'text-red-800 dark:text-red-400';
 
-  const userAccount = userAccounts.find((a) => a.accountId === lastTx.counterparty);
+  const userAccount = userAccounts.find((a) => a.accountId === counterparty);
   const addressBookName = addressBookEntries.find(
-    (entry) => addressBookGetAddressString(entry.address) === lastTx.counterparty,
+    (entry) => addressBookGetAddressString(entry.address) === counterparty,
   )?.name;
-  const address = userAccount?.name ?? addressBookName ?? shortenId(lastTx.counterparty, 8);
+  const address = userAccount?.name ?? addressBookName ?? shortenId(counterparty, 8);
 
   const i18nKey = isReceive
-    ? 'accounts.latestReceived'
+    ? (($: any) => $.accounts.latestReceived)
     : isStake
-      ? 'accounts.latestStaked'
-      : 'accounts.latestSent';
+      ? (($: any) => $.accounts.latestStaked)
+      : (($: any) => $.accounts.latestSent);
 
   return (
     <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
@@ -206,7 +221,7 @@ function LastTransaction({ accountId }: { accountId: string }) {
           }}
         />
       </p>
-      <span className="shrink-0 text-muted-foreground">{secondsToDate(lastTx.timestamp)}</span>
+      <span className="shrink-0 text-muted-foreground">{secondsToDate(timestamp)}</span>
     </div>
   );
 }
