@@ -22,9 +22,7 @@ export const RenameSubAccountDialog = ({ accountId, currentName }: Props) => {
       inputId={`subaccount-rename-${accountId}`}
       initialName={currentName}
       isSubmitDisabled={(trimmedName) => trimmedName === currentName}
-      onSubmit={(name) =>
-        renameSubAccount.mutateAsync({ accountId, newName: name }).then(() => undefined)
-      }
+      onSubmit={(name) => renameSubAccount.mutateAsync({ accountId, newName: name })}
       trigger={(open) => (
         <Button
           variant="ghost"

@@ -34,7 +34,7 @@ type SubAccountNameDialogConfig = {
   inputId: string;
   initialName: string;
   isSubmitDisabled?: (trimmedName: string) => boolean;
-  onSubmit: (trimmedName: string) => Promise<void>;
+  onSubmit: (trimmedName: string) => Promise<unknown>;
   trigger: (open: () => void) => ReactNode;
   blockingContent?: (name: string) => ReactNode;
 };

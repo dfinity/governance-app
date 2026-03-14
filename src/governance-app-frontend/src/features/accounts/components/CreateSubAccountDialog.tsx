@@ -17,7 +17,7 @@ export const CreateSubAccountDialog = () => {
       mode={DialogMode.Create}
       inputId="subaccount-name"
       initialName=""
-      onSubmit={(name) => createSubAccount.mutateAsync(name).then(() => undefined)}
+      onSubmit={createSubAccount.mutateAsync}
       trigger={(open) => (
         <Button variant="secondary" onClick={open}>
           <Plus aria-hidden="true" />
