@@ -50,5 +50,4 @@ export interface AccountTransaction {
   timestamp: number;
   accountId: string;
   accountName: string;
-  counterparty: string;
 }
