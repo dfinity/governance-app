@@ -1,4 +1,4 @@
-import { ArrowDownLeft, ArrowUpRight, List } from 'lucide-react';
+import { ArrowDownLeft, List } from 'lucide-react';
 import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
@@ -128,9 +128,7 @@ function AccountBalance({
         <SendICPButton
           balance={balanceICP}
           fromSubAccount={account.subAccount}
-          label={t(($) => $.common.send)}
-          icon={ArrowUpRight}
-          className="flex-1"
+          variant="advanced"
         />
         <Button
           variant="outline"

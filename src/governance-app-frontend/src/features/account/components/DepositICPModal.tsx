@@ -37,13 +37,13 @@ export const DepositICPModal = ({
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
 
-  const derivedAccountId = nonNullish(identity)
+  const mainAccountId = nonNullish(identity)
     ? AccountIdentifier.fromPrincipal({ principal: identity.getPrincipal() })
     : null;
 
   const accountId = accountIdOverride
     ? AccountIdentifier.fromHex(accountIdOverride)
-    : derivedAccountId;
+    : mainAccountId;
 
   if (!accountId) return null;
 
