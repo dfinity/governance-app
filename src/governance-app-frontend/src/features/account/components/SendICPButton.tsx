@@ -3,7 +3,7 @@ import { decodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
 import { nowInBigIntNanoSeconds, toNullable } from '@dfinity/utils';
 import { useMutation } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { AlertTriangle, BookUser, type LucideIcon, Send } from 'lucide-react';
+import { AlertTriangle, ArrowUpRight, BookUser, Send } from 'lucide-react';
 import React, { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -40,17 +40,18 @@ import { cn } from '@utils/shadcn';
 type Props = {
   balance: number;
   fromSubAccount?: Uint8Array | number[];
-  className?: string;
-  label?: string;
-  icon?: LucideIcon;
+  variant?: 'simple' | 'advanced';
 };
+
+const variantConfig = {
+  simple: { icon: Send, className: '' },
+  advanced: { icon: ArrowUpRight, className: 'flex-1' },
+} as const;
 
 export const SendICPButton: React.FC<Props> = ({
   balance,
   fromSubAccount,
-  className: triggerClassName,
-  label,
-  icon: Icon,
+  variant = 'simple',
 }) => {
   const { t } = useTranslation();
 
@@ -204,11 +205,13 @@ export const SendICPButton: React.FC<Props> = ({
           variant="outline"
           disabled={!canTransfer}
           size="xl"
-          className={cn('w-full', isPending && 'opacity-50', triggerClassName)}
+          className={cn('w-full', isPending && 'opacity-50', variantConfig[variant].className)}
           data-testid="send-icp-btn"
         >
-          {Icon ? <Icon aria-hidden="true" /> : <Send aria-hidden="true" />}
-          {isPending ? t(($) => $.common.sending) : (label ?? t(($) => $.common.withdraw))}
+          {React.createElement(variantConfig[variant].icon, { 'aria-hidden': true })}
+          {isPending
+            ? t(($) => $.common.sending)
+            : t(($) => (variant === 'advanced' ? $.common.send : $.common.withdraw))}
         </Button>
       </ResponsiveDialogTrigger>
 
