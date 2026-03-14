@@ -178,7 +178,9 @@ function LastTransaction({ accountId }: { accountId: string }) {
   const isStake = lastTx.type === TransactionType.STAKE;
   const amountColorClass = isReceive
     ? 'text-emerald-800 dark:text-emerald-400'
-    : 'text-red-800 dark:text-red-400';
+    : isStake
+      ? ''
+      : 'text-red-800 dark:text-red-400';
 
   const userAccount = userAccounts.find((a) => a.accountId === lastTx.counterparty);
   const addressBookName = addressBookEntries.find(
