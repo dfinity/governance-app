@@ -155,13 +155,13 @@ function AccountBalance({
 
 function LastTransaction({ accountId }: { accountId: string }) {
   const { t } = useTranslation();
-  const { data: transactions } = useRecentTransactions();
+  const { byAccountId } = useRecentTransactions();
   const addressBookQuery = useAddressBook();
   const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
   const { data: accountsState } = useAccounts();
   const userAccounts = accountsState?.accounts ?? [];
 
-  const lastTx = transactions?.find((tx) => tx.accountId === accountId);
+  const lastTx = byAccountId.get(accountId)?.[0];
 
   if (!lastTx) {
     return (
@@ -195,7 +195,7 @@ function LastTransaction({ accountId }: { accountId: string }) {
       <p className="truncate">
         {t(($) => $.accounts.latest)} {verb}{' '}
         <span className={`font-semibold ${amountColorClass}`}>{amount}</span>
-        {!isStake && (isReceive ? ' from ' : ' to ')}
+        {!isStake && ` ${isReceive ? t(($) => $.accounts.lastFrom) : t(($) => $.accounts.lastTo)} `}
         {!isStake && <span className="font-semibold">{address}</span>}
       </p>
       <span className="shrink-0 text-muted-foreground">{secondsToDate(lastTx.timestamp)}</span>

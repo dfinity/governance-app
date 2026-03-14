@@ -64,16 +64,19 @@ export const useRecentTransactions = () => {
     return { data: undefined, isLoading: transactionsQuery.isLoading };
   }
 
-  const results = accountsMetadata.map((meta) =>
-    (transactionsQuery.byAccountId[meta.accountId]?.data?.response?.transactions ?? [])
-      .map((tx) => toAccountTransaction(tx, meta.accountId, meta.name, neuronAccountIds))
-      .filter((tx): tx is AccountTransaction => tx !== null),
-  );
+  const byAccountId = new Map<string, AccountTransaction[]>();
 
-  const data = results
+  for (const meta of accountsMetadata) {
+    const txs = (transactionsQuery.byAccountId[meta.accountId]?.data?.response?.transactions ?? [])
+      .map((tx) => toAccountTransaction(tx, meta.accountId, meta.name, neuronAccountIds))
+      .filter((tx): tx is AccountTransaction => tx !== null);
+    byAccountId.set(meta.accountId, txs);
+  }
+
+  const data = [...byAccountId.values()]
     .flat()
     .sort((a, b) => b.timestamp - a.timestamp)
     .slice(0, MAX_RECENT_TRANSACTIONS);
 
-  return { data, isLoading: transactionsQuery.isLoading };
+  return { data, byAccountId, isLoading: transactionsQuery.isLoading };
 };
