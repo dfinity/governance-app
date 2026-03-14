@@ -28,6 +28,8 @@ function toAccountTransaction(
   const nanos = created_at_time[0]?.timestamp_nanos ?? txTimestamp[0]?.timestamp_nanos ?? 0n;
   const timestampSeconds = Number(nanos / BigInt(NANOSECONDS_IN_SECOND));
 
+  const counterparty = type === TransactionType.RECEIVE ? transfer.from : transfer.to;
+
   return {
     id: tx.id,
     type,
@@ -35,6 +37,7 @@ function toAccountTransaction(
     timestamp: timestampSeconds,
     accountId,
     accountName,
+    counterparty,
   };
 }
 
