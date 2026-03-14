@@ -15,7 +15,8 @@ import { bigIntDiv } from '@utils/bigInt';
 import { shortenId } from '@utils/id';
 import { formatNumber } from '@utils/numbers';
 
-import type { Account } from '../types';
+import { type Account, AccountType } from '../types';
+import { RenameSubAccountDialog } from './RenameSubAccountDialog';
 
 type Props = {
   account: Account;
@@ -32,9 +33,15 @@ export const AccountsListItem = ({ account }: Props) => {
         <CardHeader className="flex flex-col gap-0">
           <div className="flex w-full items-start justify-between">
             <div className="flex flex-col gap-0.5">
-              <p className="text-sm tracking-wide text-muted-foreground uppercase">
-                {account.name}
-              </p>
+              <div className="flex items-center gap-1">
+                <p className="text-sm tracking-wide text-muted-foreground">{account.name}</p>
+                {account.type === AccountType.Subaccount && (
+                  <RenameSubAccountDialog
+                    accountId={account.accountId}
+                    currentName={account.name}
+                  />
+                )}
+              </div>
               <div className="flex items-center gap-1.5">
                 <p className="font-mono text-xs text-muted-foreground">
                   {shortenId(account.accountId, 8)}

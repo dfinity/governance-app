@@ -5,33 +5,31 @@ import { useNnsDapp } from '@hooks/nnsDapp/useNnsDapp';
 import { mapSubAccountError } from '@utils/errors/nnsDapp';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
-export function useCreateSubAccount() {
+export function useRenameSubAccount() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { canister } = useNnsDapp();
 
   return useMutation({
-    mutationFn: async (name: string) => {
-      if (!canister) throw new Error(t(($) => $.accounts.createSubAccount.error));
+    mutationFn: async ({ accountId, newName }: { accountId: string; newName: string }) => {
+      if (!canister) throw new Error(t(($) => $.accounts.renameSubAccount.error));
 
-      // Ensure the principal is registered in the NNS dapp canister.
-      // add_account is idempotent — returns the existing identifier if already registered.
-      await canister.certifiedService.add_account();
-      const response = await canister.certifiedService.create_sub_account(name);
+      const response = await canister.certifiedService.rename_sub_account({
+        account_identifier: accountId,
+        new_name: newName,
+      });
 
       if (!('Ok' in response))
         throw new Error(
           mapSubAccountError(
             response,
-            t(($) => $.accounts.createSubAccount.error),
+            t(($) => $.accounts.renameSubAccount.error),
           ),
         );
 
       await queryClient
         .invalidateQueries({ queryKey: [QUERY_KEYS.NNS_DAPP.ACCOUNT] })
         .catch(failedRefresh);
-
-      return response.Ok;
     },
   });
 }

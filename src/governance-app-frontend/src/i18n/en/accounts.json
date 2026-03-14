@@ -7,6 +7,12 @@
   "recentTransactions": "Recent transactions",
   "noTransactions": "No recent transactions.",
   "balanceError": "Unable to load balance.",
+  "errors": {
+    "accountNotFound": "Account not found in NNS dapp.",
+    "nameTooLong": "Name is too long.",
+    "limitExceeded": "Account limit exceeded.",
+    "subAccountNotFound": "Account not found."
+  },
   "createSubAccount": {
     "button": "New Account",
     "title": "New Account",
@@ -15,9 +21,17 @@
     "confirm": "Create",
     "creating": "Creating \"{{name}}\"…",
     "success": "\"{{name}}\" created successfully.",
-    "error": "Failed to create account.",
-    "errorAccountNotFound": "Account not found in NNS dapp.",
-    "errorLimitExceeded": "Account limit exceeded.",
-    "errorNameTooLong": "Name is too long."
+    "error": "Failed to create account."
+  },
+  "renameSubAccount": {
+    "ariaLabel": "Rename account",
+    "title": "Rename Account",
+    "description": "Choose a new name for this account.",
+    "nameLabel": "New name",
+    "namePlaceholder": "e.g. Staking, Governance",
+    "confirm": "Rename",
+    "renaming": "Renaming to \"{{name}}\"…",
+    "success": "Renamed to \"{{name}}\" successfully.",
+    "error": "Failed to rename account."
   }
 }
