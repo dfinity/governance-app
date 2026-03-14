@@ -10,6 +10,8 @@
   "lastReceived": "Received",
   "lastSent": "Sent",
   "lastStaked": "Staked",
+  "lastFrom": "from",
+  "lastTo": "to",
   "latest": "Latest:",
   "balanceError": "Unable to load balance.",
   "errors": {
