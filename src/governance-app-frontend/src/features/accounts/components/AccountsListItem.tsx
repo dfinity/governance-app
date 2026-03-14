@@ -34,9 +34,7 @@ export const AccountsListItem = ({ account }: Props) => {
           <div className="flex w-full items-start justify-between">
             <div className="flex flex-col gap-0.5">
               <div className="flex items-center gap-1">
-                <p className="text-sm tracking-wide text-muted-foreground">
-                  {account.name}
-                </p>
+                <p className="text-sm tracking-wide text-muted-foreground">{account.name}</p>
                 {account.type === AccountType.Subaccount && (
                   <RenameSubAccountDialog
                     accountId={account.accountId}

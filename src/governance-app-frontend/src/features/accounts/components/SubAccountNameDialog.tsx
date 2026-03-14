@@ -16,7 +16,7 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 
-import { DialogMode } from '../types';
+import { SubAccountDialogMode } from '../types';
 
 enum Phase {
   Form = 'form',
@@ -30,7 +30,7 @@ const MIN_NAME_LENGTH = 3;
 const MAX_NAME_LENGTH = 24;
 
 type SubAccountNameDialogConfig = {
-  mode: DialogMode;
+  mode: SubAccountDialogMode;
   inputId: string;
   initialName: string;
   isSubmitDisabled?: (trimmedName: string) => boolean;
@@ -39,10 +39,10 @@ type SubAccountNameDialogConfig = {
   blockingContent?: (name: string) => ReactNode;
 };
 
-function useDialogTranslations(mode: DialogMode) {
+function useDialogTranslations(mode: SubAccountDialogMode) {
   const { t } = useTranslation();
 
-  if (mode === DialogMode.Create) {
+  if (mode === SubAccountDialogMode.Create) {
     return {
       title: t(($) => $.accounts.createSubAccount.title),
       description: t(($) => $.accounts.createSubAccount.description),

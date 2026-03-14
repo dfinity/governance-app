@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@components/button';
 
 import { useRenameSubAccount } from '../hooks/useRenameSubAccount';
-import { DialogMode } from '../types';
+import { SubAccountDialogMode } from '../types';
 import { SubAccountNameDialog } from './SubAccountNameDialog';
 
 type Props = {
@@ -18,7 +18,7 @@ export const RenameSubAccountDialog = ({ accountId, currentName }: Props) => {
 
   return (
     <SubAccountNameDialog
-      mode={DialogMode.Rename}
+      mode={SubAccountDialogMode.Rename}
       inputId={`subaccount-rename-${accountId}`}
       initialName={currentName}
       isSubmitDisabled={(trimmedName) => trimmedName === currentName}

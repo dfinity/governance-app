@@ -5,7 +5,7 @@ import { Button } from '@components/button';
 import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
 
 import { useCreateSubAccount } from '../hooks/useCreateSubAccount';
-import { DialogMode } from '../types';
+import { SubAccountDialogMode } from '../types';
 import { SubAccountNameDialog } from './SubAccountNameDialog';
 
 export const CreateSubAccountDialog = () => {
@@ -14,7 +14,7 @@ export const CreateSubAccountDialog = () => {
 
   return (
     <SubAccountNameDialog
-      mode={DialogMode.Create}
+      mode={SubAccountDialogMode.Create}
       inputId="subaccount-name"
       initialName=""
       onSubmit={createSubAccount.mutateAsync}
