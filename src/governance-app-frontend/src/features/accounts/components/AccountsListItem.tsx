@@ -1,6 +1,6 @@
 import { ArrowDownLeft, ArrowUpRight, List } from 'lucide-react';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 import { DepositICPModal } from '@features/account/components/DepositICPModal';
 import { SendICPButton } from '@features/account/components/SendICPButton';
@@ -155,11 +155,15 @@ function AccountBalance({
 
 function LastTransaction({ accountId }: { accountId: string }) {
   const { t } = useTranslation();
-  const { byAccountId } = useRecentTransactions();
+  const { byAccountId, isLoading: isTxLoading } = useRecentTransactions();
   const addressBookQuery = useAddressBook();
   const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
-  const { data: accountsState } = useAccounts();
+  const { data: accountsState, isLoading: isAccountsLoading } = useAccounts();
   const userAccounts = accountsState?.accounts ?? [];
+
+  if (isTxLoading || addressBookQuery.isLoading || isAccountsLoading) {
+    return <Skeleton className="h-5 w-full" />;
+  }
 
   const lastTx = byAccountId.get(accountId)?.[0];
 
@@ -178,25 +182,29 @@ function LastTransaction({ accountId }: { accountId: string }) {
     ? 'text-emerald-800 dark:text-emerald-400'
     : 'text-red-800 dark:text-red-400';
 
-  const verb = isReceive
-    ? t(($) => $.accounts.lastReceived)
-    : isStake
-      ? t(($) => $.accounts.lastStaked)
-      : t(($) => $.accounts.lastSent);
-
   const userAccount = userAccounts.find((a) => a.accountId === lastTx.counterparty);
   const addressBookName = addressBookEntries.find(
     (entry) => addressBookGetAddressString(entry.address) === lastTx.counterparty,
   )?.name;
   const address = userAccount?.name ?? addressBookName ?? shortenId(lastTx.counterparty, 8);
 
+  const i18nKey = isReceive
+    ? 'accounts.latestReceived'
+    : isStake
+      ? 'accounts.latestStaked'
+      : 'accounts.latestSent';
+
   return (
     <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
       <p className="truncate">
-        {t(($) => $.accounts.latest)} {verb}{' '}
-        <span className={`font-semibold ${amountColorClass}`}>{amount}</span>
-        {!isStake && ` ${isReceive ? t(($) => $.accounts.lastFrom) : t(($) => $.accounts.lastTo)} `}
-        {!isStake && <span className="font-semibold">{address}</span>}
+        <Trans
+          i18nKey={i18nKey}
+          values={{ amount, address }}
+          components={{
+            amount: <span className={`font-semibold ${amountColorClass}`} />,
+            address: <span className="font-semibold" />,
+          }}
+        />
       </p>
       <span className="shrink-0 text-muted-foreground">{secondsToDate(lastTx.timestamp)}</span>
     </div>

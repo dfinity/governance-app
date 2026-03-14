@@ -13,6 +13,7 @@ export const useSubaccountsMetadata = () => {
     name: sa.name,
     accountId: sa.account_identifier,
     type: AccountType.Subaccount,
+    subAccount: sa.sub_account,
   }));
 
   return { data, isLoading: nnsDappAccount.isLoading };
