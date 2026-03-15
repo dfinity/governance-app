@@ -35,7 +35,7 @@ import { bigIntMul } from '@utils/bigInt';
 import { isCertifiedRejectError, mapCanisterError } from '@utils/errors';
 import { errorNotification, successNotification } from '@utils/notification';
 import { formatNumber, roundToE8sPrecision } from '@utils/numbers';
-import { QUERY_KEYS, failedRefresh } from '@utils/query';
+import { failedRefresh, QUERY_KEYS } from '@utils/query';
 import { cn } from '@utils/shadcn';
 
 type Props = {
@@ -45,15 +45,11 @@ type Props = {
 };
 
 const variantConfig = {
-  simple: { icon: Send, className: '' },
-  advanced: { icon: ArrowUpRight, className: 'flex-1' },
+  simple: { Icon: Send, className: '', label: 'withdraw' },
+  advanced: { Icon: ArrowUpRight, className: 'flex-1', label: 'send' },
 } as const;
 
-export const SendICPButton: React.FC<Props> = ({
-  balance,
-  fromSubAccount,
-  variant = 'simple',
-}) => {
+export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, variant = 'simple' }) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
@@ -212,6 +208,8 @@ export const SendICPButton: React.FC<Props> = ({
       ? t(($) => $.account.approxUsd, { value: formatNumber(numericAmount * icpPrice.usd) })
       : undefined;
 
+  const { Icon, className: variantClassName, label } = variantConfig[variant];
+
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger asChild>
@@ -219,13 +217,11 @@ export const SendICPButton: React.FC<Props> = ({
           variant="outline"
           disabled={!canTransfer}
           size="xl"
-          className={cn('w-full', isPending && 'opacity-50', variantConfig[variant].className)}
+          className={cn('w-full', isPending && 'opacity-50', variantClassName)}
           data-testid="send-icp-btn"
         >
-          {React.createElement(variantConfig[variant].icon, { 'aria-hidden': true })}
-          {isPending
-            ? t(($) => $.common.sending)
-            : t(($) => (variant === 'advanced' ? $.common.send : $.common.withdraw))}
+          <Icon aria-hidden />
+          {isPending ? t(($) => $.common.sending) : t(($) => $.common[label])}
         </Button>
       </ResponsiveDialogTrigger>
 
