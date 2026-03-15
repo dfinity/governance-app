@@ -1,11 +1,22 @@
-import type { Account } from '../types';
+import { Skeleton } from '@components/Skeleton';
+
+import { useAccounts } from '../hooks/useAccounts';
 import { AccountsListItem } from './AccountsListItem';
 
-type Props = {
-  accounts: Account[];
-};
+export const AccountsList = () => {
+  const { data: accountsState, isLoading } = useAccounts();
+  const accounts = accountsState?.accounts ?? [];
 
-export const AccountsList = ({ accounts }: Props) => {
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-40 rounded-xl" />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
       {accounts.map((account) => (
