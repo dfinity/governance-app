@@ -8,8 +8,8 @@ import { useTickerPrices } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 
-import { type AccountReady, AccountType } from '../types';
 import { useAccounts } from '../hooks/useAccounts';
+import { type AccountReady, AccountType } from '../types';
 
 const BASE_COLOR = 'var(--color-staking-ratio)';
 const OPACITY_MAX = 80;
@@ -41,8 +41,7 @@ export const AccountsTotalCard = () => {
   const accounts = accountsState?.accounts ?? [];
 
   const readyAccounts = accounts.filter((a): a is AccountReady => a.status === 'ready');
-  const isLoadingBalances =
-    accounts.length === 0 || accounts.some((a) => a.status === 'loading');
+  const isLoadingBalances = accounts.length === 0 || accounts.some((a) => a.status === 'loading');
   const totalE8s = readyAccounts.reduce((sum, a) => sum + a.balanceE8s, 0n);
   const totalICP = bigIntDiv(totalE8s, E8Sn);
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
