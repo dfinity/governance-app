@@ -156,15 +156,12 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
             </div>
 
             <div className="flex items-center justify-between border-b border-border/50 py-3">
-              <p className="text-[13px] text-muted-foreground capitalize">
+              <p className="text-[13px] text-muted-foreground">
                 {t(($) => $.neuron.dissolveDelay)}
               </p>
               <div className="flex items-center gap-2">
                 <NeuronStateBadge isDissolved={isDissolved} isDissolving={isDissolving} />
-                <p
-                  className="text-[15px] font-semibold capitalize"
-                  data-testid="neuron-card-dissolve-delay"
-                >
+                <p className="text-[15px] font-semibold" data-testid="neuron-card-dissolve-delay">
                   {durationText}
                 </p>
               </div>
@@ -172,7 +169,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
 
             {/* Staked Maturity */}
             <div className="flex items-center justify-between border-b border-border/50 py-3">
-              <p className="text-[13px] text-muted-foreground capitalize">
+              <p className="text-[13px] text-muted-foreground">
                 {t(($) => $.neuron.stakedMaturity)}
               </p>
               <div className="flex items-center gap-1">
@@ -183,7 +180,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
 
             {/* Unstaked Maturity */}
             <div className="flex items-center justify-between border-b border-border/50 py-3">
-              <p className="text-[13px] text-muted-foreground capitalize">
+              <p className="text-[13px] text-muted-foreground">
                 {t(($) => $.neuron.unstakedMaturity)}
               </p>
               <div className="flex items-center gap-1">
@@ -194,13 +191,8 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
 
             {/* Maturity Mode */}
             <div className="flex items-center justify-between py-3">
-              <p className="text-[13px] text-muted-foreground capitalize">
-                {t(($) => $.neuron.maturityMode)}
-              </p>
-              <p
-                className="text-[15px] font-semibold capitalize"
-                data-testid="neuron-card-maturity-mode"
-              >
+              <p className="text-[13px] text-muted-foreground">{t(($) => $.neuron.maturityMode)}</p>
+              <p className="text-[15px] font-semibold" data-testid="neuron-card-maturity-mode">
                 {isAutoStake ? t(($) => $.neuron.autoStake) : t(($) => $.neuron.keepLiquid)}
               </p>
             </div>

@@ -14,7 +14,7 @@
     "learnMore": "Learn more about Maturity modulation"
   },
   "managing": {
-    "title": "Managing Maturity",
+    "title": "Managing maturity",
     "autoStakeLabel": "Auto-stake",
     "autoStake": "Automatically uses Maturity to increase your stake (compound growth).",
     "keepLiquidLabel": "Keep available",

@@ -1,5 +1,5 @@
 {
-  "title": "Choose a Known Neuron to Follow",
+  "title": "Choose a Known Neuron to follow",
   "description": "Select one trusted organization to vote on your behalf for all your Neurons.",
   "empty": "No Known Neurons available.",
   "api": {

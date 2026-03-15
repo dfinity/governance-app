@@ -20,7 +20,7 @@
   "disburseMaturity": "Disburse maturity",
   "stakeMaturity": "Stake maturity",
   "summary": {
-    "capital": "Total Staked",
+    "capital": "Total staked",
     "engagement": "Participation rate",
     "engagementTooltip": "Based on the last 50 proposals",
     "engagementAction": "View proposals",

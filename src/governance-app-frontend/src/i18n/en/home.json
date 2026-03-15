@@ -1,11 +1,11 @@
 {
   "stakingRatio": "Staking ratio",
   "totalAssets": "Total assets",
-  "governanceOverview": "ICP Governance Overview",
+  "governanceOverview": "ICP governance overview",
   "totalStaked": "Total staked",
-  "ofTotalSupply": "{{value}}% of Total Supply",
-  "dailyRewards": "Daily Rewards",
-  "icpPrice": "ICP Price",
+  "ofTotalSupply": "{{value}}% of total supply",
+  "dailyRewards": "Daily rewards",
+  "icpPrice": "ICP price",
   "maxApy": "Max APY",
   "yourApy": "Your APY",
   "maturity": "Maturity",
@@ -14,7 +14,7 @@
   },
   "executiveSummary": {
     "title": "Monthly governance overview",
-    "goToVoting": "Go to Voting",
+    "goToVoting": "Go to voting",
     "topChanges": "Top changes",
     "communityVotes": "Highlights from community votes",
     "outcomes": {
@@ -24,14 +24,14 @@
     }
   },
   "smartTitle": {
-    "noAssetsTitle": "Participate in ICP Governance",
+    "noAssetsTitle": "Participate in ICP governance",
     "noAssetsSubtitle": "Stake, vote, earn up to {{value}} per year",
     "noAssetsSubtitleStatic": "Stake, vote, and earn rewards",
     "noAssetsCta": "Deposit or buy ICP",
-    "liquidOnlyTitle": "Your ICP are not participating in Governance",
+    "liquidOnlyTitle": "Your ICP are not participating in governance",
     "liquidOnlySubtitle": "Stake ICP to start voting and earn rewards",
-    "liquidOnlyCta": "Start Staking",
-    "stakedTitle": "You are participating in ICP Governance",
-    "stakedSubtitle": "You earn rewards"
+    "liquidOnlyCta": "Start staking",
+    "stakedTitle": "Participate in ICP governance",
+    "stakedSubtitle": "Earn rewards"
   }
 }

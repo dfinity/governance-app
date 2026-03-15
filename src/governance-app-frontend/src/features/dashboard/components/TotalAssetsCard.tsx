@@ -21,7 +21,7 @@ import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 const chartConfig = {
   stakingRatio: {
-    label: 'Staking Ratio',
+    label: 'Staking ratio',
     theme: {
       light: '#0057FF',
       dark: '#4D8AFF',
@@ -109,9 +109,7 @@ export const TotalAssetsCard = () => {
               )}
               {(liquidBalance !== 0 || maturityBalance !== 0) && <StakingRatioModal />}
             </div>
-            <span className="text-sm text-muted-foreground capitalize">
-              {t(($) => $.home.stakingRatio)}
-            </span>
+            <span className="text-sm text-muted-foreground">{t(($) => $.home.stakingRatio)}</span>
           </div>
         </div>
       </CardContent>

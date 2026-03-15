@@ -26,7 +26,7 @@
         "keepLiquid": "Keep available"
       },
       "state": {
-        "label": "Initial State",
+        "label": "Initial state",
         "description": "Choose the starting state for your Neuron.",
         "locked": "Locked",
         "unlocking": "Unlocking"
@@ -51,14 +51,14 @@
       "success": {
         "title": "You're now earning rewards!",
         "amountStaked": "Amount staked",
-        "dissolveDelay": "Lock Period",
+        "dissolveDelay": "Lock period",
         "expectedApy": "Expected APY",
         "done": "Done"
       },
       "error": {
         "title": "Something went wrong",
         "failedAt": "Failed at: {{step}}",
-        "retry": "Try Again"
+        "retry": "Try again"
       }
     }
   },
