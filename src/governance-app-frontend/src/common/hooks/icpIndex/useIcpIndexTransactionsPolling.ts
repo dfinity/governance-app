@@ -56,7 +56,8 @@ export const useIcpIndexTransactionsPolling = () => {
     ...subaccounts.data.map((a) => a.accountId),
   ];
 
-  // accountId -> last seen transaction id. undefined = not yet polled for that account.
+  // accountId -> last seen transaction id per account.
+  // undefined = not yet polled, null = polled but no transactions, bigint = latest tx id.
   const lastTxIdsRef = useRef<Map<string, bigint | null>>(new Map());
 
   const { data: results, isSuccess } = useQuery({
@@ -83,8 +84,6 @@ export const useIcpIndexTransactionsPolling = () => {
   useEffect(() => {
     if (!isSuccess || !results) return;
 
-    let hasChange = false;
-
     for (const { accountId, transaction } of results) {
       const current = transaction?.id ?? null;
       const previous = lastTxIdsRef.current.get(accountId);
@@ -94,7 +93,12 @@ export const useIcpIndexTransactionsPolling = () => {
       if (previous === undefined) continue;
       if (current === previous) continue;
 
-      hasChange = true;
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE, accountId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS, accountId],
+      });
 
       if (transaction) {
         const { operation } = transaction.transaction;
@@ -117,15 +121,6 @@ export const useIcpIndexTransactionsPolling = () => {
           );
         }
       }
-    }
-
-    if (hasChange) {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS],
-      });
     }
   }, [results, isSuccess, queryClient, t]);
 
