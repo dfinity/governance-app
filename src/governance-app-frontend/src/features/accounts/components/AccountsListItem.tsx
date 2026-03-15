@@ -203,17 +203,17 @@ function LastTransaction({ accountId }: { accountId: string }) {
   )?.name;
   const address = userAccount?.name ?? addressBookName ?? shortenId(counterparty, 8);
 
-  const i18nKey = isReceive
-    ? (($: any) => $.accounts.latestReceived)
-    : isStake
-      ? (($: any) => $.accounts.latestStaked)
-      : (($: any) => $.accounts.latestSent);
-
   return (
     <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
       <p className="truncate">
         <Trans
-          i18nKey={i18nKey}
+          i18nKey={($) =>
+            isReceive
+              ? $.accounts.latestReceived
+              : isStake
+                ? $.accounts.latestStaked
+                : $.accounts.latestSent
+          }
           values={{ amount, address }}
           components={{
             amount: <span className={`font-semibold ${amountColorClass}`} />,
