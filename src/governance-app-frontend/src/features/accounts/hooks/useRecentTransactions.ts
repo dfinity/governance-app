@@ -61,12 +61,14 @@ export const useRecentTransactions = () => {
     return { data: undefined, isLoading: transactionsQuery.isLoading };
   }
 
-  const data = accountsMetadata
-    .flatMap((meta) =>
-      (transactionsQuery.byAccountId[meta.accountId]?.data?.response?.transactions ?? [])
-        .map((tx) => toAccountTransaction(tx, meta.accountId, meta.name, neuronAccountIds))
-        .filter((tx): tx is AccountTransaction => tx !== null),
-    )
+  const results = accountsMetadata.map((meta) =>
+    (transactionsQuery.byAccountId[meta.accountId]?.data?.response?.transactions ?? [])
+      .map((tx) => toAccountTransaction(tx, meta.accountId, meta.name, neuronAccountIds))
+      .filter((tx): tx is AccountTransaction => tx !== null),
+  );
+
+  const data = results
+    .flat()
     .sort((a, b) => b.timestamp - a.timestamp)
     .slice(0, MAX_RECENT_TRANSACTIONS);
 
