@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { AccountCard } from '@features/account/components/AccountCard';
 import { DepositICPModal } from '@features/account/components/DepositICPModal';
+import { AccountsCard } from '@features/accounts/components/AccountsCard';
 import { DailyRewardsCard } from '@features/dashboard/components/DailyRewardsCard';
 import { ExecutiveSummaryCard } from '@features/dashboard/components/ExecutiveSummaryCard';
 import { IcpPriceCard } from '@features/dashboard/components/IcpPriceCard';
@@ -12,6 +13,8 @@ import { SmartTitle } from '@features/dashboard/components/SmartTitle';
 import { TotalAssetsCard } from '@features/dashboard/components/TotalAssetsCard';
 import { TotalStakedCard } from '@features/dashboard/components/TotalStakedCard';
 import { StakedCard } from '@features/stakes/components/StakedCard';
+
+import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 
 import i18n from '@/i18n/config';
 
@@ -40,6 +43,8 @@ function Dashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate({ from: Route.fullPath });
   const { depositModal } = Route.useSearch();
+  const { features } = useAdvancedFeatures();
+  const subaccountsEnabled = features.subaccounts;
 
   const handleDepositModalOpenChange = (isOpen: boolean) => {
     if (!isOpen) navigate({ search: {}, replace: true });
@@ -56,7 +61,7 @@ function Dashboard() {
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
         <TotalAssetsCard />
-        <AccountCard />
+        {subaccountsEnabled ? <AccountsCard /> : <AccountCard />}
         <div className="md:col-span-2">
           <StakedCard />
         </div>

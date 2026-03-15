@@ -7,7 +7,7 @@ import {
   type AdvancedFeaturesSettings,
 } from '@typings/advancedFeatures';
 
-const readFromStorage = (): AdvancedFeaturesSettings => {
+export const readFromStorage = (): AdvancedFeaturesSettings => {
   try {
     const savedKeys = localStorage.getItem(ADVANCED_FEATURES_STORAGE_KEY);
     if (isNullish(savedKeys)) return { ...ADVANCED_FEATURES_DEFAULTS };

@@ -17,8 +17,8 @@ import { formatNumber } from '@utils/numbers';
 import i18n from '@/i18n/config';
 
 const FADE_MASK_STYLE: CSSProperties = {
-  maskImage: 'radial-gradient(ellipse at center, black 40%, transparent 85%)',
-  WebkitMaskImage: 'radial-gradient(ellipse at center, black 40%, transparent 85%)',
+  maskImage: 'radial-gradient(ellipse at center, black 30%, transparent 70%)',
+  WebkitMaskImage: 'radial-gradient(ellipse at center, black 30%, transparent 70%)',
 };
 
 type LoginSearch = {

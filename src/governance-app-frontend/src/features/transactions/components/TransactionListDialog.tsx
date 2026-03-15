@@ -4,6 +4,7 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
 import { AccountTransactionItem } from '@features/account/components/TransactionItem';
+import { useNeuronAccountsIds } from '@features/account/hooks/useNeuronAccountsIds';
 import { buildTrustedAddresses } from '@features/account/utils/addressPoisoning';
 
 import { MultipleSkeletons } from '@components/MultipleSkeletons';
@@ -18,22 +19,27 @@ import {
 import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
 import { CertifiedData } from '@typings/queries';
 
-import { useNeuronAccountsIds } from '../hooks/useNeuronAccountsIds';
-
 interface TransactionListDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  accountId?: string;
 }
 
-export function TransactionListDialog({ open, onOpenChange }: TransactionListDialogProps) {
+export function TransactionListDialog({
+  open,
+  onOpenChange,
+  accountId,
+}: TransactionListDialogProps) {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
 
-  const accountIdHex = nonNullish(identity)
-    ? AccountIdentifier.fromPrincipal({ principal: identity.getPrincipal() }).toHex()
-    : null;
+  const accountIdHex =
+    accountId ??
+    (nonNullish(identity)
+      ? AccountIdentifier.fromPrincipal({ principal: identity.getPrincipal() }).toHex()
+      : null);
 
-  const transactions = useIcpIndexTransactions();
+  const transactions = useIcpIndexTransactions(accountId);
   const { accountIds: neuronAccountIds } = useNeuronAccountsIds();
 
   const allTransactions =
