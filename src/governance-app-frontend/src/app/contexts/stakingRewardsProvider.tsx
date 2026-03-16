@@ -23,7 +23,7 @@ export const StakingRewardsProvider = ({ children }: { children: ReactNode }) =>
   const governanceMetrics = useGovernanceMetrics().data?.response;
   const accountsQuery = useAccounts();
   const totalBalanceE8s =
-    accountsQuery.data && !accountsQuery.data.isTotalPartial
+    nonNullish(accountsQuery.data) && !accountsQuery.data.isTotalPartial
       ? accountsQuery.data.totalBalanceE8s
       : undefined;
   const economics = useGovernanceEconomics().data?.response;

@@ -1,3 +1,4 @@
+import { nonNullish } from '@dfinity/utils';
 import { useTranslation } from 'react-i18next';
 import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts';
 
@@ -36,11 +37,9 @@ export const TotalAssetsCard = () => {
   const accountsQuery = useAccounts();
   const stakingRewards = useStakingRewards();
 
-  const allBalancesReady = accountsQuery.data && !accountsQuery.data.isTotalPartial;
+  const allBalancesReady = nonNullish(accountsQuery.data) && !accountsQuery.data.isTotalPartial;
 
-  const liquidBalance = allBalancesReady
-    ? bigIntDiv(accountsQuery.data.totalBalanceE8s, E8Sn)
-    : 0;
+  const liquidBalance = allBalancesReady ? bigIntDiv(accountsQuery.data.totalBalanceE8s, E8Sn) : 0;
 
   const { totalStakedAfterFees: stakedBalance, totalUnstakedMaturity: maturityBalance } =
     getNeuronsAggregatedData(neuronsQuery.data?.response);

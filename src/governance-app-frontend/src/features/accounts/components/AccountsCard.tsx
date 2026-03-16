@@ -1,3 +1,4 @@
+import { nonNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
 import { Wallet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -23,7 +24,7 @@ export const AccountsCard = () => {
   const { tickerPrices: tickersQuery } = useTickerPrices();
 
   const accounts = accountsState?.accounts ?? [];
-  const allBalancesReady = accountsState && !accountsState.isTotalPartial;
+  const allBalancesReady = nonNullish(accountsState) && !accountsState.isTotalPartial;
   const totalICP = allBalancesReady ? bigIntDiv(accountsState.totalBalanceE8s, E8Sn) : 0;
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const usdValue = icpPrice ? formatNumber(totalICP * icpPrice.usd) : '-';
