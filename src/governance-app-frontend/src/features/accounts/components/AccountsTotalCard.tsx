@@ -14,12 +14,12 @@ import { type AccountReady, AccountType } from '../types';
 const ACCOUNT_COLORS = [
   'hsl(220, 70%, 55%)', // blue
   'hsl(160, 60%, 45%)', // teal
-  'hsl(30, 75%, 55%)',  // amber
+  'hsl(30, 75%, 55%)', // amber
   'hsl(280, 60%, 58%)', // purple
   'hsl(350, 65%, 55%)', // rose
-  'hsl(85, 55%, 48%)',  // olive green
+  'hsl(85, 55%, 48%)', // olive green
   'hsl(195, 70%, 50%)', // sky
-  'hsl(15, 70%, 55%)',  // coral
+  'hsl(15, 70%, 55%)', // coral
 ];
 
 function getAccountColor(index: number) {
