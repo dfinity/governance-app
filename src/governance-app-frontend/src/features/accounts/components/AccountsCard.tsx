@@ -16,7 +16,7 @@ import { formatNumber } from '@utils/numbers';
 import { useAccounts } from '../hooks/useAccounts';
 import type { Account } from '../types';
 
-const MAX_PREVIEW_ACCOUNTS = 3;
+const MAX_PREVIEW_ACCOUNTS = 2;
 
 export const AccountsCard = () => {
   const { t } = useTranslation();
@@ -76,7 +76,16 @@ export const AccountsCard = () => {
             ))}
           </div>
         ) : (
-          topAccounts.length > 0 && <AccountPreviewList accounts={topAccounts} />
+          topAccounts.length > 0 && (
+            <div className="flex flex-col">
+              <AccountPreviewList accounts={topAccounts} />
+              {count > MAX_PREVIEW_ACCOUNTS && (
+                <p className="py-2.5 text-center text-sm text-muted-foreground">
+                  +{count - MAX_PREVIEW_ACCOUNTS} {t(($) => $.accounts.moreAccounts)}
+                </p>
+              )}
+            </div>
+          )
         )}
 
         <div className="mt-auto">
