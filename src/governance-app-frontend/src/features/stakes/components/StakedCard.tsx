@@ -65,7 +65,7 @@ export function StakedCard() {
               <span className="hidden sm:inline">{t(($) => $.common.staked)}</span>
             </p>
             {neuronsQuery.isLoading ? (
-              <Skeleton className="h-5 w-5 rounded-full" />
+              <Skeleton className="size-5 rounded-full" />
             ) : (
               <Badge variant="outline">{neuronCount}</Badge>
             )}
@@ -84,7 +84,7 @@ export function StakedCard() {
                 {stakingRewards.apy.cur < stakingRewards.apy.max && <ApyOptimizationModal />}
               </span>
             ) : (
-              <Skeleton className="h-7 w-16" />
+              <Skeleton className="h-5 w-16" />
             )}
           </div>
         </div>

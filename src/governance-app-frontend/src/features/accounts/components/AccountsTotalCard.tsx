@@ -3,50 +3,46 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { E8Sn } from '@constants/extra';
 import { useTickerPrices } from '@hooks/tickers';
-import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 
-import { type Account, type AccountReady, AccountType } from '../types';
+import { useAccounts } from '../hooks/useAccounts';
+import { type AccountReady } from '../types';
 
-const BASE_COLOR = 'var(--color-staking-ratio)';
-const OPACITY_MAX = 80;
-const OPACITY_MIN = 15;
+const ACCOUNT_COLORS = [
+  'var(--color-staking-ratio)',
+  'var(--color-chart-1)',
+  'var(--color-chart-2)',
+  'var(--color-chart-3)',
+  'var(--color-chart-4)',
+  'var(--color-chart-5)',
+];
 
-function getAccountColor(index: number, total: number) {
-  if (total <= 1) return `color-mix(in srgb, ${BASE_COLOR} ${OPACITY_MAX}%, transparent)`;
-  const opacity = OPACITY_MAX - (index / (total - 1)) * (OPACITY_MAX - OPACITY_MIN);
-  return `color-mix(in srgb, ${BASE_COLOR} ${Math.round(opacity)}%, transparent)`;
+function getAccountColor(index: number) {
+  if (index < ACCOUNT_COLORS.length) return ACCOUNT_COLORS[index];
+  const hue = (220 + index * 47) % 360;
+  return `hsl(${Math.round(hue)}, 65%, 55%)`;
 }
 
 function buildSegments(readyAccounts: AccountReady[], totalE8s: bigint) {
   if (totalE8s === 0n) return [];
-  const nonMainAccounts = readyAccounts.filter((a) => a.type !== AccountType.Main);
-  return readyAccounts.map((account) => {
+  return readyAccounts.map((account, index) => {
     const percentage = Number((account.balanceE8s * 10000n) / totalE8s) / 100;
-    const color =
-      account.type === AccountType.Main
-        ? BASE_COLOR
-        : getAccountColor(nonMainAccounts.indexOf(account), nonMainAccounts.length);
+    const color = getAccountColor(index);
     return { accountId: account.accountId, name: account.name, percentage, color };
   });
 }
 
-type Props = {
-  accounts: Account[];
-  isLoading: boolean;
-};
-
-export const AccountsTotalCard = ({ accounts, isLoading }: Props) => {
+export const AccountsTotalCard = () => {
   const { t } = useTranslation();
   const { tickerPrices: tickersQuery } = useTickerPrices();
+  const { data: accountsState, isLoading, totalBalanceIcp } = useAccounts();
+  const accounts = accountsState?.accounts ?? [];
 
   const readyAccounts = accounts.filter((a): a is AccountReady => a.status === 'ready');
-  const totalE8s = readyAccounts.reduce((sum, a) => sum + a.balanceE8s, 0n);
-  const totalICP = bigIntDiv(totalE8s, E8Sn);
+  const totalE8s = accountsState?.totalBalanceE8s ?? 0n;
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const usdValue = icpPrice ? formatNumber(totalICP * icpPrice.usd) : '-';
+  const usdValue = icpPrice && totalBalanceIcp ? formatNumber(totalBalanceIcp * icpPrice.usd) : '-';
 
   const segments = buildSegments(readyAccounts, totalE8s);
 
@@ -61,7 +57,7 @@ export const AccountsTotalCard = ({ accounts, isLoading }: Props) => {
             <Skeleton className="h-8 w-32" />
           ) : (
             <p className="text-2xl font-bold">
-              {t(($) => $.common.inIcp, { value: formatNumber(totalICP) })}
+              {t(($) => $.common.inIcp, { value: formatNumber(totalBalanceIcp ?? 0) })}
             </p>
           )}
           {isLoading || tickersQuery.isLoading ? (

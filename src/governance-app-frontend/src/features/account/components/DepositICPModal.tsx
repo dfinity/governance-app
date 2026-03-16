@@ -26,17 +26,24 @@ const QR_CODE_LOGO_WIDTH = QR_CODE_LOGO_HEIGHT * QR_CODE_LOGO_ASPECT_RATIO;
 type DepositICPModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  accountId?: string;
 };
 
-export const DepositICPModal = ({ open, onOpenChange }: DepositICPModalProps) => {
+export const DepositICPModal = ({
+  open,
+  onOpenChange,
+  accountId: accountIdOverride,
+}: DepositICPModalProps) => {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
 
-  const accountId = nonNullish(identity)
-    ? AccountIdentifier.fromPrincipal({
-        principal: identity.getPrincipal(),
-      })
+  const mainAccountId = nonNullish(identity)
+    ? AccountIdentifier.fromPrincipal({ principal: identity.getPrincipal() })
     : null;
+
+  const accountId = accountIdOverride
+    ? AccountIdentifier.fromHex(accountIdOverride)
+    : mainAccountId;
 
   if (!accountId) return null;
 

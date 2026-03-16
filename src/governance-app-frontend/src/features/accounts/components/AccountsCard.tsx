@@ -1,3 +1,4 @@
+import { nonNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
 import { Wallet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -15,19 +16,20 @@ import { formatNumber } from '@utils/numbers';
 import { useAccounts } from '../hooks/useAccounts';
 import type { Account } from '../types';
 
-const MAX_PREVIEW_ACCOUNTS = 3;
+const MAX_PREVIEW_ACCOUNTS = 2;
 
 export const AccountsCard = () => {
   const { t } = useTranslation();
-  const { data: accountsState, isLoading } = useAccounts();
+  const { data: accountsState, isLoading, totalBalanceIcp } = useAccounts();
   const { tickerPrices: tickersQuery } = useTickerPrices();
 
   const accounts = accountsState?.accounts ?? [];
-  const isTotalPartial = accountsState?.isTotalPartial ?? false;
-  const totalICP = bigIntDiv(accountsState?.totalBalanceE8s ?? 0n, E8Sn);
-  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const usdValue = icpPrice ? formatNumber(totalICP * icpPrice.usd) : '-';
   const count = accounts.length;
+  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
+  const usdValue =
+    nonNullish(icpPrice) && nonNullish(totalBalanceIcp)
+      ? formatNumber(totalBalanceIcp * icpPrice.usd)
+      : '-';
   const topAccounts = accounts.slice(0, MAX_PREVIEW_ACCOUNTS);
 
   return (
@@ -49,8 +51,7 @@ export const AccountsCard = () => {
             <Skeleton className="h-8 w-32" />
           ) : (
             <p className="text-2xl font-semibold">
-              {isTotalPartial ? '~ ' : ''}
-              {t(($) => $.common.inIcp, { value: formatNumber(totalICP) })}
+              {t(($) => $.common.inIcp, { value: formatNumber(totalBalanceIcp ?? 0) })}
             </p>
           )}
 
@@ -75,7 +76,16 @@ export const AccountsCard = () => {
             ))}
           </div>
         ) : (
-          topAccounts.length > 0 && <AccountPreviewList accounts={topAccounts} />
+          topAccounts.length > 0 && (
+            <div className="flex flex-col">
+              <AccountPreviewList accounts={topAccounts} />
+              {count > MAX_PREVIEW_ACCOUNTS && (
+                <p className="py-2.5 text-center text-sm text-muted-foreground">
+                  +{count - MAX_PREVIEW_ACCOUNTS} {t(($) => $.accounts.moreAccounts)}
+                </p>
+              )}
+            </div>
+          )
         )}
 
         <div className="mt-auto">
