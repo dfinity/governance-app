@@ -121,13 +121,18 @@ export function StakingWizardStepAmount({
             className="w-full"
             data-testid="staking-wizard-account-select"
           >
-            {accounts
-              .filter((a) => a.status === 'ready')
-              .map((account) => (
-                <NativeSelectOption key={account.accountId} value={account.accountId}>
-                  {account.name} — {formatNumber(bigIntDiv(account.balanceE8s, E8Sn))} ICP
-                </NativeSelectOption>
-              ))}
+            {accounts.map((account) => (
+              <NativeSelectOption
+                key={account.accountId}
+                value={account.accountId}
+                disabled={account.status !== 'ready'}
+              >
+                {account.name}
+                {account.status === 'ready'
+                  ? ` — ${formatNumber(bigIntDiv(account.balanceE8s, E8Sn))} ICP`
+                  : ` — ${t(($) => $.common.loading)}…`}
+              </NativeSelectOption>
+            ))}
           </NativeSelect>
         </div>
       )}
