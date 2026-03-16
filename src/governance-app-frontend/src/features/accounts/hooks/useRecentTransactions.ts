@@ -72,5 +72,7 @@ export const useRecentTransactions = () => {
     .sort((a, b) => b.timestamp - a.timestamp)
     .slice(0, MAX_RECENT_TRANSACTIONS);
 
-  return { data, isLoading: transactionsQuery.isLoading };
+  const isLoading = subaccountsMetadata.isLoading || transactionsQuery.isLoading;
+
+  return { data, isLoading };
 };

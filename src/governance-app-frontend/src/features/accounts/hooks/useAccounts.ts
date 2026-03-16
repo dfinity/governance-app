@@ -68,7 +68,10 @@ export const useAccounts = () => {
     mainAccountId: mainAccountMetadata.data.accountId,
   };
 
-  const isLoading = accounts.length === 0 || accounts.some((a) => a.status === 'loading');
+  const isLoading =
+    subaccountsMetadata.isLoading ||
+    accounts.length === 0 ||
+    accounts.some((a) => a.status === 'loading');
   const totalBalanceIcp = isLoading ? undefined : bigIntDiv(data.totalBalanceE8s, E8Sn);
 
   return {
