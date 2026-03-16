@@ -77,8 +77,10 @@ export const AccountsListItem = ({ account }: Props) => {
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col gap-3">
           <AccountBalance account={account} tickersQuery={tickersQuery} />
+          <Separator className="my-1" />
+          <LastTransaction accountId={account.accountId} />
         </CardContent>
       </Card>
       <TransactionListDialog
@@ -148,8 +150,6 @@ function AccountBalance({
           accountId={account.accountId}
         />
       </div>
-      <Separator className="my-1" />
-      <LastTransaction accountId={account.accountId} />
     </div>
   );
 }
@@ -159,16 +159,13 @@ function LastTransaction({ accountId }: { accountId: string }) {
   const { accountIds: neuronAccountIds } = useNeuronAccountsIds();
   const txQuery = useIcpIndexAccountsTransactions({
     accountIds: [accountId],
-    maxResults: 1n,
   });
   const addressBookQuery = useAddressBook();
   const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
-  const { data: accountsState, isLoading: isAccountsLoading } = useAccounts();
+  const { data: accountsState } = useAccounts();
   const userAccounts = accountsState?.accounts ?? [];
 
-  if (txQuery.isLoading || addressBookQuery.isLoading || isAccountsLoading) {
-    return <Skeleton className="h-5 w-full" />;
-  }
+  if (txQuery.isLoading || addressBookQuery.isLoading) return <Skeleton className="h-5 w-full" />;
 
   const rawTx = txQuery.byAccountId[accountId]?.data?.response?.transactions[0];
   if (!rawTx) {
