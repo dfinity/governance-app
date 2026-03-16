@@ -56,9 +56,9 @@ export function StakedCard() {
   const stakingRewardsReady = isStakingRewardDataReady(stakingRewards);
 
   return (
-    <Card className="h-full" data-testid="staked-card">
-      <CardHeader className="flex flex-col gap-[14px]">
-        <div className="flex w-full items-start justify-between space-y-0">
+    <Card className="h-full pt-4 pb-6" data-testid="staked-card">
+      <CardHeader className="flex flex-col gap-0">
+        <div className="flex min-h-9 w-full items-center justify-between">
           <div className="flex shrink-0 items-center gap-2">
             <p className="text-sm tracking-wide text-muted-foreground uppercase">
               <span className="sm:hidden">{t(($) => $.common.stakedShort)}</span>
@@ -71,13 +71,13 @@ export function StakedCard() {
             )}
           </div>
 
-          <div className="flex items-start gap-1">
+          <div className="flex items-center gap-1">
             <span className="sr-only sm:not-sr-only sm:text-xs sm:font-medium sm:tracking-wide sm:text-muted-foreground sm:uppercase">
               {t(($) => $.home.yourApy)}
             </span>
 
             {stakingRewardsReady && apyColor.ready ? (
-              <span className="-mt-1.5 flex items-center">
+              <span className="flex items-center">
                 <span className="text-lg font-bold" style={{ color: apyColor.textColor }}>
                   {formatPercentage(stakingRewards.apy.cur)}
                 </span>
@@ -93,7 +93,7 @@ export function StakedCard() {
           {neuronsQuery.isLoading ? (
             <Skeleton className="h-8 w-32" />
           ) : (
-            <p className="text-2xl font-bold">
+            <p className="text-2xl font-semibold">
               {t(($) => $.common.inIcp, { value: formatNumber(totalStaked) })}
             </p>
           )}
@@ -108,7 +108,7 @@ export function StakedCard() {
         </div>
       </CardHeader>
 
-      <CardContent className="flex flex-1 flex-col justify-between gap-4">
+      <CardContent className="flex flex-1 flex-col justify-between gap-6">
         <div className="mt-auto grid grid-cols-2 gap-4 text-right">
           <div className="flex flex-col gap-1 rounded-lg bg-gradient-to-br from-[#2563EB]/8 to-[#F97316]/8 p-3">
             <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
