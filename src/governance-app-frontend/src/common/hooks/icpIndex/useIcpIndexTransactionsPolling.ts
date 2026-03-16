@@ -3,14 +3,13 @@ import { isNullish } from '@dfinity/utils';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
-
 import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
 import { useSubaccountsMetadata } from '@features/accounts/hooks/useSubaccountsMetadata';
 
 import { E8Sn } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
 import { shortenId } from '@utils/id';
+import { infoNotification } from '@utils/notification';
 import { formatNumber } from '@utils/numbers';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
@@ -116,17 +115,13 @@ export const useIcpIndexTransactionsPolling = () => {
         const sender = operation.Transfer.from;
         const truncatedSender = shortenId(sender, 6);
 
-        toast.info(
-          t(($) => $.account.newTransaction),
-          {
-            description: t(($) => $.account.newTransactionDescription, {
-              value: amount,
-              sender: truncatedSender,
-            }),
-            duration: 4000,
-            closeButton: true,
-          },
-        );
+        infoNotification({
+          title: t(($) => $.account.newTransaction),
+          description: t(($) => $.account.newTransactionDescription, {
+            value: amount,
+            sender: truncatedSender,
+          }),
+        });
       }
     }
   }, [results, isSuccess, queryClient, t]);

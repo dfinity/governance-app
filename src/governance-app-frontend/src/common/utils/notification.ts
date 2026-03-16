@@ -6,7 +6,7 @@ type NotificationOptions = {
 };
 
 export const ephemeralNotification: ToasterProps = {
-  duration: 2500,
+  duration: 3500,
   closeButton: false,
 };
 
