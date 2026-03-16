@@ -7,9 +7,6 @@ import { useTranslation } from 'react-i18next';
 import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
 import { useSubaccountsMetadata } from '@features/accounts/hooks/useSubaccountsMetadata';
 
-import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
-import { useSubaccountsMetadata } from '@features/accounts/hooks/useSubaccountsMetadata';
-
 import { E8Sn } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
 import { shortenId } from '@utils/id';

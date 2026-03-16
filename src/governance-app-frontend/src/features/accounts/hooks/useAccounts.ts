@@ -1,7 +1,6 @@
+import { E8Sn } from '@constants/extra';
 import { useIcpLedgerAccountsBalances } from '@hooks/icpLedger';
 import { bigIntDiv } from '@utils/bigInt';
-
-import { E8Sn } from '@constants/extra';
 
 import { type Account, type AccountMetadata, type AccountsState, AccountType } from '../types';
 import { useMainAccountMetadata } from './useMainAccountMetadata';

@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
+import { E8Sn } from '@constants/extra';
 import { useTickerPrices } from '@hooks/tickers';
+import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 
 import { useAccounts } from '../hooks/useAccounts';
@@ -44,7 +46,7 @@ export const AccountsTotalCard = () => {
   const totalE8s = readyAccounts.reduce((sum, a) => sum + a.balanceE8s, 0n);
   const totalICP = bigIntDiv(totalE8s, E8Sn);
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const usdValue = icpPrice ? formatNumber(totalBalanceIcp * icpPrice.usd) : '-';
+  const usdValue = icpPrice ? formatNumber(totalICP * icpPrice.usd) : '-';
 
   const segments = buildSegments(readyAccounts, totalE8s);
 
@@ -59,7 +61,7 @@ export const AccountsTotalCard = () => {
             <Skeleton className="h-8 w-32" />
           ) : (
             <p className="text-2xl font-bold">
-              {t(($) => $.common.inIcp, { value: formatNumber(totalBalanceIcp) })}
+              {t(($) => $.common.inIcp, { value: formatNumber(totalICP) })}
             </p>
           )}
           {isLoadingBalances || tickersQuery.isLoading ? (

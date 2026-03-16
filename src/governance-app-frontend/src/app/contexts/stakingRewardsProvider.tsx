@@ -48,7 +48,15 @@ export const StakingRewardsProvider = ({ children }: { children: ReactNode }) =>
     });
 
     return () => cancelCallback(id);
-  }, [totalBalanceIcp, isLoadingBalances, identity, neurons, economics, totalVotingPower, governanceMetrics]);
+  }, [
+    totalBalanceIcp,
+    isLoadingBalances,
+    identity,
+    neurons,
+    economics,
+    totalVotingPower,
+    governanceMetrics,
+  ]);
 
   return <StakingRewardsContext.Provider value={data}>{children}</StakingRewardsContext.Provider>;
 };
