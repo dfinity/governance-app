@@ -38,6 +38,8 @@
   "restrictedPage": "You need to be logged in to access this page.",
   "sending": "Sending ...",
   "withdraw": "Withdraw",
+  "send": "Send",
+  "receive": "Receive",
   "stakeIcp": "Stake ICP",
   "confirm": "Confirm",
   "cancel": "Cancel",

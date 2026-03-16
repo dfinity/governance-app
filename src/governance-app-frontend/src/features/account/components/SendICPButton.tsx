@@ -3,7 +3,7 @@ import { decodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
 import { nowInBigIntNanoSeconds, toNullable } from '@dfinity/utils';
 import { useMutation } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { AlertTriangle, BookUser, Send } from 'lucide-react';
+import { AlertTriangle, ArrowUpRight, BookUser, Send } from 'lucide-react';
 import React, { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -25,21 +25,29 @@ import {
 } from '@components/ResponsiveDialog';
 import { Switch } from '@components/Switch';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { E8Sn, ICP_TRANSACTION_FEE, ICP_TRANSACTION_PROPAGATION_DELAY_MS } from '@constants/extra';
+import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
 import { useTickerPrices } from '@hooks/tickers';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
-import { delay } from '@utils/async';
 import { bigIntMul } from '@utils/bigInt';
 import { isCertifiedRejectError, mapCanisterError } from '@utils/errors';
 import { errorNotification, successNotification } from '@utils/notification';
 import { formatNumber, roundToE8sPrecision } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
-type Props = { balance: number };
+type Props = {
+  balance: number;
+  fromSubAccount?: Uint8Array | number[];
+  variant?: 'simple' | 'advanced';
+};
 
-export const SendICPButton: React.FC<Props> = ({ balance }) => {
+const variantConfig = {
+  simple: { Icon: Send, className: '', label: 'withdraw' },
+  advanced: { Icon: ArrowUpRight, className: 'flex-1', label: 'send' },
+} as const;
+
+export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, variant = 'simple' }) => {
   const { t } = useTranslation();
 
   const {
@@ -88,10 +96,13 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
       createdAtRef.current = createdAt;
       const transferAmount = bigIntMul(E8Sn, Number(amount));
 
+      const subAccountArr = fromSubAccount ? Array.from(fromSubAccount) : undefined;
+
       if (isValidIcpAddress(toAccount)) {
         return ledgerCanister!.transfer({
           to: AccountIdentifier.fromHex(toAccount),
           amount: transferAmount,
+          fromSubAccount: subAccountArr,
           createdAt,
         });
       }
@@ -99,6 +110,7 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
       const { owner, subaccount } = decodeIcrcAccount(toAccount);
       return ledgerCanister!.icrc1Transfer({
         to: { owner, subaccount: toNullable(subaccount) },
+        fromSubAccount: subAccountArr ? Uint8Array.from(subAccountArr) : undefined,
         amount: transferAmount,
         createdAt,
       });
@@ -106,9 +118,7 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
     onMutate: () => {
       setIsPending(true);
     },
-    onSuccess: async () => {
-      // Wait 2 seconds to allow the backend to process the transaction.
-      await delay(ICP_TRANSACTION_PROPAGATION_DELAY_MS);
+    onSuccess: () => {
       setToAccount('');
       setSelectedName('');
       setAmount('');
@@ -181,6 +191,8 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
       ? t(($) => $.account.approxUsd, { value: formatNumber(numericAmount * icpPrice.usd) })
       : undefined;
 
+  const { Icon, className: variantClassName, label } = variantConfig[variant];
+
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogTrigger asChild>
@@ -188,11 +200,11 @@ export const SendICPButton: React.FC<Props> = ({ balance }) => {
           variant="outline"
           disabled={!canTransfer}
           size="xl"
-          className={cn('w-full', isPending && 'opacity-50')}
+          className={cn('w-full', isPending && 'opacity-50', variantClassName)}
           data-testid="send-icp-btn"
         >
-          <Send />
-          {t(($) => (isPending ? $.common.sending : $.common.withdraw))}
+          <Icon aria-hidden />
+          {isPending ? t(($) => $.common.sending) : t(($) => $.common[label])}
         </Button>
       </ResponsiveDialogTrigger>
 

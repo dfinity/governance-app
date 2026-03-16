@@ -5,10 +5,8 @@ import { AccountsList } from '@features/accounts/components/AccountsList';
 import { AccountsTotalCard } from '@features/accounts/components/AccountsTotalCard';
 import { CreateSubAccountDialog } from '@features/accounts/components/CreateSubAccountDialog';
 import { RecentTransactions } from '@features/accounts/components/RecentTransactions';
-import { useAccounts } from '@features/accounts/hooks/useAccounts';
 
 import { PageHeader } from '@components/PageHeader';
-import { Skeleton } from '@components/Skeleton';
 import { readFromStorage as readAdvancedFeaturesFromStorage } from '@hooks/useAdvancedFeatures';
 
 import i18n from '@/i18n/config';
@@ -34,8 +32,6 @@ export const Route = createFileRoute('/_auth/accounts/')({
 
 function AccountsPage() {
   const { t } = useTranslation();
-  const { data: accountsState, isLoading } = useAccounts();
-  const accounts = accountsState?.accounts;
 
   return (
     <div className="flex flex-col gap-6">
@@ -45,25 +41,14 @@ function AccountsPage() {
         actions={<CreateSubAccountDialog />}
       />
 
-      <AccountsTotalCard accounts={accounts ?? []} isLoading={isLoading} />
+      <AccountsTotalCard />
 
-      {isLoading ? (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="flex flex-col gap-3 lg:col-span-2">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-40 rounded-xl" />
-            ))}
-          </div>
-          <Skeleton className="h-64 rounded-xl" />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <AccountsList />
         </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <AccountsList accounts={accounts ?? []} />
-          </div>
-          <RecentTransactions />
-        </div>
-      )}
+        <RecentTransactions />
+      </div>
     </div>
   );
 }
