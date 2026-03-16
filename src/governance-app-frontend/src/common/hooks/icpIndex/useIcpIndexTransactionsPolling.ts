@@ -12,7 +12,7 @@ import { E8Sn } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
 import { shortenId } from '@utils/id';
 import { formatNumber } from '@utils/numbers';
-import { QUERY_KEYS } from '@utils/query';
+import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
 import { useIcpIndex } from './useIcpIndex';
 
@@ -98,12 +98,16 @@ export const useIcpIndexTransactionsPolling = () => {
       if (isNullish(latestTransaction)) continue;
 
       // New transaction detected —> invalidate certified balance and transactions.
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE, accountId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS, accountId],
-      });
+      queryClient
+        .invalidateQueries({
+          queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE, accountId],
+        })
+        .catch(failedRefresh);
+      queryClient
+        .invalidateQueries({
+          queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS, accountId],
+        })
+        .catch(failedRefresh);
 
       const { operation } = latestTransaction.transaction;
       const amount = formatTransferAmount(operation);
