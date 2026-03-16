@@ -31,7 +31,7 @@ export const TotalAssetsCard = () => {
 
   const { tickerPrices: tickersQuery } = useTickerPrices();
   const neuronsQuery = useGovernanceNeurons();
-  const { isLoadingBalances, totalBalanceIcp } = useAccounts();
+  const { isLoading: isLoadingAccounts, totalBalanceIcp } = useAccounts();
   const stakingRewards = useStakingRewards();
 
   const liquidBalance = totalBalanceIcp;
@@ -44,7 +44,7 @@ export const TotalAssetsCard = () => {
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const totalAssetsUsd = icpPrice ? formatNumber(totalAssets * icpPrice.usd) : undefined;
 
-  const isLoading = isLoadingBalances || neuronsQuery.isLoading;
+  const isLoading = isLoadingAccounts || neuronsQuery.isLoading;
   const stakingRewardsReady = isStakingRewardDataReady(stakingRewards);
 
   const stakingRatioPercent = stakingRewardsReady ? stakingRewards.stakingRatio * 100 : 0;

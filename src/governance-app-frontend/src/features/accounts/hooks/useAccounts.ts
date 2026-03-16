@@ -36,8 +36,7 @@ export const useAccounts = () => {
   if (!mainAccountMetadata.data) {
     return {
       data: undefined,
-      isLoading: !mainAccountMetadata.data || subaccountsMetadata.isLoading,
-      isLoadingBalances: true,
+      isLoading: true,
       totalBalanceIcp: 0,
     };
   }
@@ -69,13 +68,12 @@ export const useAccounts = () => {
     mainAccountId: mainAccountMetadata.data.accountId,
   };
 
-  const isLoadingBalances = accounts.length === 0 || accounts.some((a) => a.status === 'loading');
-  const totalBalanceIcp = isLoadingBalances ? 0 : bigIntDiv(data.totalBalanceE8s, E8Sn);
+  const isLoading = accounts.length === 0 || accounts.some((a) => a.status === 'loading');
+  const totalBalanceIcp = isLoading ? 0 : bigIntDiv(data.totalBalanceE8s, E8Sn);
 
   return {
     data,
-    isLoading: !mainAccountMetadata.data || subaccountsMetadata.isLoading,
-    isLoadingBalances,
+    isLoading,
     totalBalanceIcp,
   };
 };

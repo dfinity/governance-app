@@ -19,8 +19,7 @@ const MAX_PREVIEW_ACCOUNTS = 3;
 
 export const AccountsCard = () => {
   const { t } = useTranslation();
-  const { data: accountsState, isLoading, isLoadingBalances, totalBalanceIcp } = useAccounts();
-  const loading = isLoading || isLoadingBalances;
+  const { data: accountsState, isLoading, totalBalanceIcp } = useAccounts();
   const { tickerPrices: tickersQuery } = useTickerPrices();
 
   const accounts = accountsState?.accounts ?? [];
@@ -36,7 +35,7 @@ export const AccountsCard = () => {
           <p className="text-sm tracking-wide text-muted-foreground uppercase">
             {t(($) => $.accounts.title)}
           </p>
-          {loading ? (
+          {isLoading ? (
             <Skeleton className="h-5 w-5 rounded-full" />
           ) : (
             <Badge variant="outline">{count}</Badge>
@@ -44,7 +43,7 @@ export const AccountsCard = () => {
         </div>
 
         <div className="flex flex-col gap-0.5">
-          {loading ? (
+          {isLoading ? (
             <Skeleton className="h-8 w-32" />
           ) : (
             <p className="text-2xl font-bold">
@@ -52,7 +51,7 @@ export const AccountsCard = () => {
             </p>
           )}
 
-          {loading || tickersQuery.isLoading ? (
+          {isLoading || tickersQuery.isLoading ? (
             <Skeleton className="h-4 w-20" />
           ) : (
             <p className="text-sm text-muted-foreground">
@@ -63,7 +62,7 @@ export const AccountsCard = () => {
       </CardHeader>
 
       <CardContent className="flex flex-1 flex-col justify-between gap-6">
-        {loading ? (
+        {isLoading ? (
           <div className="flex flex-col divide-y">
             {Array.from({ length: 2 }).map((_, i) => (
               <div key={i} className="flex items-center justify-between py-2.5">

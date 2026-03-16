@@ -19,7 +19,7 @@ export const StakingRewardsProvider = ({ children }: { children: ReactNode }) =>
   const { identity } = useInternetIdentity();
 
   const governanceMetrics = useGovernanceMetrics().data?.response;
-  const { isLoadingBalances, totalBalanceIcp } = useAccounts();
+  const { isLoading: isLoadingAccounts, totalBalanceIcp } = useAccounts();
   const economics = useGovernanceEconomics().data?.response;
   const neurons = useGovernanceNeurons().data?.response;
   const totalVotingPower = useGovernanceProposal().data?.response?.totalPotentialVotingPower;
@@ -33,7 +33,7 @@ export const StakingRewardsProvider = ({ children }: { children: ReactNode }) =>
 
     const id = scheduleCallback(() => {
       const data = getStakingRewardData({
-        balance: isLoadingBalances ? undefined : totalBalanceIcp,
+        balance: isLoadingAccounts ? undefined : totalBalanceIcp,
         isAuthenticated: !!identity,
         economics,
         neurons,
@@ -50,7 +50,7 @@ export const StakingRewardsProvider = ({ children }: { children: ReactNode }) =>
     return () => cancelCallback(id);
   }, [
     totalBalanceIcp,
-    isLoadingBalances,
+    isLoadingAccounts,
     identity,
     neurons,
     economics,

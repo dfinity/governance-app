@@ -36,14 +36,13 @@ function buildSegments(readyAccounts: AccountReady[], totalE8s: bigint) {
 export const AccountsTotalCard = () => {
   const { t } = useTranslation();
   const { tickerPrices: tickersQuery } = useTickerPrices();
-  const { data: accountsState, isLoading, isLoadingBalances, totalBalanceIcp } = useAccounts();
+  const { data: accountsState, isLoading, totalBalanceIcp } = useAccounts();
   const accounts = accountsState?.accounts ?? [];
 
   const readyAccounts = accounts.filter((a): a is AccountReady => a.status === 'ready');
   const totalE8s = readyAccounts.reduce((sum, a) => sum + a.balanceE8s, 0n);
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const usdValue = icpPrice && totalBalanceIcp ? formatNumber(totalBalanceIcp * icpPrice.usd) : '-';
-  const loading = isLoading || isLoadingBalances;
 
   const segments = buildSegments(readyAccounts, totalE8s);
 
@@ -54,14 +53,14 @@ export const AccountsTotalCard = () => {
           {t(($) => $.accounts.totalAcrossAll)}
         </p>
         <div className="flex flex-col gap-0.5">
-          {loading ? (
+          {isLoading ? (
             <Skeleton className="h-8 w-32" />
           ) : (
             <p className="text-2xl font-bold">
               {t(($) => $.common.inIcp, { value: formatNumber(totalBalanceIcp) })}
             </p>
           )}
-          {loading || tickersQuery.isLoading ? (
+          {isLoading || tickersQuery.isLoading ? (
             <Skeleton className="h-4 w-20" />
           ) : (
             <p className="text-sm text-muted-foreground">
@@ -72,7 +71,7 @@ export const AccountsTotalCard = () => {
       </CardHeader>
 
       <CardContent className="flex flex-col gap-3">
-        {isLoadingBalances ? (
+        {isLoading ? (
           <Skeleton className="h-3 w-full rounded-full" />
         ) : (
           <div
@@ -90,7 +89,7 @@ export const AccountsTotalCard = () => {
           </div>
         )}
 
-        {isLoadingBalances ? (
+        {isLoading ? (
           <div className="flex gap-4">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-4 w-24" />
