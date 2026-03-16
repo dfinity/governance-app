@@ -9,8 +9,6 @@ import { useSubaccountsMetadata } from '@features/accounts/hooks/useSubaccountsM
 
 import { isSuspiciousAddress } from '@features/account/utils/addressPoisoning';
 
-import type { AddressBook } from '@declarations/governance-app-backend/governance-app-backend.did';
-
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { E8Sn } from '@constants/extra';
 import { addressBookGetAddressString } from '@utils/addressBook';
@@ -37,14 +35,6 @@ const isReceivedTransfer = (
   accountId: string,
 ): operation is Extract<IcpIndexDid.Operation, { Transfer: unknown }> =>
   'Transfer' in operation && operation.Transfer.to === accountId;
-
-const resolveContactName = (
-  sender: string,
-  addressBook: AddressBook | undefined,
-): string | undefined =>
-  addressBook?.named_addresses.find(
-    (entry) => addressBookGetAddressString(entry.address) === sender,
-  )?.name;
 
 type AccountPollResult = {
   accountId: string;
@@ -142,7 +132,10 @@ export const useIcpIndexTransactionsPolling = () => {
 
         if (isSuspiciousAddress(sender, operation.Transfer.amount.e8s, trustedAddresses)) continue;
 
-        const senderLabel = resolveContactName(sender, addressBook.data) ?? shortenId(sender, 6);
+        const contactName = addressBook.data?.named_addresses.find(
+          (entry) => addressBookGetAddressString(entry.address) === sender,
+        )?.name;
+        const senderLabel = contactName ?? shortenId(sender, 6);
 
         infoNotification({
           title: t(($) => $.account.newTransaction),
