@@ -1,5 +1,5 @@
-import { motion, type MotionValue, useSpring, useTransform } from 'motion/react';
-import { useEffect } from 'react';
+import { motion, useSpring, useTransform } from 'motion/react';
+import { useEffect, useRef } from 'react';
 
 import { formatNumber } from '@utils/numbers';
 
@@ -13,20 +13,7 @@ type AnimatedNumberProps = {
   className?: string;
 } & Omit<React.ComponentProps<'span'>, 'children'>;
 
-const DEFAULT_SPRING_CONFIG = { stiffness: 100, damping: 20 };
-
-function useAnimatedValue(
-  value: number,
-  springConfig: { stiffness: number; damping: number },
-): MotionValue<number> {
-  const spring = useSpring(0, springConfig);
-
-  useEffect(() => {
-    spring.set(value);
-  }, [spring, value]);
-
-  return spring;
-}
+const DEFAULT_SPRING_CONFIG = { stiffness: 80, damping: 35 };
 
 function AnimatedNumber({
   value,
@@ -38,9 +25,17 @@ function AnimatedNumber({
   className,
   ...props
 }: AnimatedNumberProps) {
-  const spring = useAnimatedValue(value, springConfig);
+  const previousValue = useRef(0);
+  const progress = useSpring(0, springConfig);
 
-  const display = useTransform(spring, (current) => {
+  useEffect(() => {
+    previousValue.current = progress.get() * previousValue.current || 0;
+    progress.jump(0);
+    progress.set(1);
+  }, [progress, value]);
+
+  const display = useTransform(progress, (t) => {
+    const current = previousValue.current + (value - previousValue.current) * t;
     const formatted = formatter ? formatter(current) : formatNumber(current, formatOptions);
     return `${prefix}${formatted}${suffix}`;
   });

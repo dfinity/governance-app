@@ -7,12 +7,12 @@ import { useTranslation } from 'react-i18next';
 
 import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGovernanceLogo';
 
+import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Button } from '@components/button';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { useGovernanceProposal } from '@hooks/governance';
 import { useTvlValue } from '@hooks/useTvlValue';
-import { formatNumber } from '@utils/numbers';
 
 import i18n from '@/i18n/config';
 
@@ -160,9 +160,10 @@ function LoginPage() {
                   ) : proposalsQuery?.isError ? (
                     '-/-'
                   ) : (
-                    // Safe Number casting as the number of proposals is within the range
-                    // totalProposals < Number.MAX_SAFE_INTEGER
-                    formatNumber(Number(totalProposals), { minFraction: 0, maxFraction: 0 })
+                    <AnimatedNumber
+                      value={Number(totalProposals)}
+                      formatOptions={{ minFraction: 0, maxFraction: 0 }}
+                    />
                   )}
                 </dd>
               </div>
@@ -181,7 +182,10 @@ function LoginPage() {
                   {isTvlLoading && proposalsQuery?.isLoading ? (
                     <Skeleton className="h-7 w-26 md:h-8" />
                   ) : (
-                    formatNumber(participants, { maxFraction: 0, minFraction: 0 })
+                    <AnimatedNumber
+                      value={participants}
+                      formatOptions={{ minFraction: 0, maxFraction: 0 }}
+                    />
                   )}
                 </dd>
               </div>
@@ -202,7 +206,11 @@ function LoginPage() {
                   ) : isTvlError || isNullish(tvl) ? (
                     '-'
                   ) : (
-                    `$${formatNumber(tvl, { maxFraction: 0, minFraction: 0 })}`
+                    <AnimatedNumber
+                      value={tvl}
+                      prefix="$"
+                      formatOptions={{ minFraction: 0, maxFraction: 0 }}
+                    />
                   )}
                 </dd>
               </div>
