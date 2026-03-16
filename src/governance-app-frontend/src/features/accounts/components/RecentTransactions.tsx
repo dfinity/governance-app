@@ -87,10 +87,10 @@ function TransactionRow({ tx }: { tx: AccountTransaction }) {
 
   const label =
     tx.type === TransactionType.RECEIVE
-      ? t(($) => $.account.depositedIcp)
+      ? t(($) => $.accounts.received)
       : tx.type === TransactionType.STAKE
-        ? t(($) => $.account.stakedIcp)
-        : t(($) => $.account.withdrawnIcp);
+        ? t(($) => $.accounts.staked)
+        : t(($) => $.accounts.sent);
 
   return (
     <div className="flex items-center gap-3">
