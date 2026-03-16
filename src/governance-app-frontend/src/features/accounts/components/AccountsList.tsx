@@ -4,14 +4,12 @@ import { useAccounts } from '../hooks/useAccounts';
 import { AccountsListItem } from './AccountsListItem';
 
 export const AccountsList = () => {
-  const { data: accountsState, isLoading } = useAccounts();
+  const { data: accountsState } = useAccounts();
   const accounts = accountsState?.accounts ?? [];
 
-  if (isLoading) {
+  if (!accountsState) {
     return (
       <div className="flex flex-col gap-4">
-        <Skeleton className="h-40 rounded-xl" />
-        <Skeleton className="h-40 rounded-xl" />
         <Skeleton className="h-40 rounded-xl" />
         <Skeleton className="h-40 rounded-xl" />
       </div>

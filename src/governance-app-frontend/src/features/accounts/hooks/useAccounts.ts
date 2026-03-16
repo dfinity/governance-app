@@ -1,4 +1,6 @@
+import { E8Sn } from '@constants/extra';
 import { useIcpLedgerAccountsBalances } from '@hooks/icpLedger';
+import { bigIntDiv } from '@utils/bigInt';
 
 import { type Account, type AccountMetadata, type AccountsState, AccountType } from '../types';
 import { useMainAccountMetadata } from './useMainAccountMetadata';
@@ -34,7 +36,8 @@ export const useAccounts = () => {
   if (!mainAccountMetadata.data) {
     return {
       data: undefined,
-      isLoading: !mainAccountMetadata.data || subaccountsMetadata.isLoading,
+      isLoading: true,
+      totalBalanceIcp: undefined,
     };
   }
 
@@ -61,13 +64,19 @@ export const useAccounts = () => {
   const data: AccountsState = {
     accounts,
     totalBalanceE8s: readyAccounts.reduce((sum, a) => sum + a.balanceE8s, 0n),
-    isTotalPartial: readyAccounts.length < accounts.length,
     hasSubaccounts: accounts.some((a) => a.type !== AccountType.Main),
     mainAccountId: mainAccountMetadata.data.accountId,
   };
 
+  const isLoading =
+    subaccountsMetadata.isLoading ||
+    accounts.length === 0 ||
+    accounts.some((a) => a.status === 'loading');
+  const totalBalanceIcp = isLoading ? undefined : bigIntDiv(data.totalBalanceE8s, E8Sn);
+
   return {
     data,
-    isLoading: !mainAccountMetadata.data || subaccountsMetadata.isLoading,
+    isLoading,
+    totalBalanceIcp,
   };
 };
