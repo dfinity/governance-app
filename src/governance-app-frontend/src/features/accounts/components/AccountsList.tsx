@@ -4,7 +4,7 @@ import { useAccounts } from '../hooks/useAccounts';
 import { AccountsListItem } from './AccountsListItem';
 
 export const AccountsList = () => {
-  const { data: accountsState, isLoading } = useAccounts();
+  const { data: accountsState } = useAccounts();
   const accounts = accountsState?.accounts ?? [];
 
   if (!accountsState) {
