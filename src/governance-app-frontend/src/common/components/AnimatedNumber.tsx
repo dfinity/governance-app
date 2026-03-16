@@ -1,5 +1,5 @@
 import { motion, useSpring, useTransform } from 'motion/react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
 import { formatNumber } from '@utils/numbers';
 
@@ -40,10 +40,20 @@ function AnimatedNumber({
     return `${prefix}${formatted}${suffix}`;
   });
 
+  const finalDisplay = useMemo(() => {
+    const formatted = formatter ? formatter(value) : formatNumber(value, formatOptions);
+    return `${prefix}${formatted}${suffix}`;
+  }, [value, prefix, suffix, formatter, formatOptions]);
+
   return (
-    <motion.span className={className} {...props}>
-      {display}
-    </motion.span>
+    <span className="relative inline-flex">
+      <span className="invisible" aria-hidden="true">
+        {finalDisplay}
+      </span>
+      <motion.span className={`absolute inset-0 ${className ?? ''}`} {...props}>
+        {display}
+      </motion.span>
+    </span>
   );
 }
 

@@ -149,7 +149,7 @@ function LoginPage() {
 
           <div className="flex flex-1 flex-col gap-6 md:flex-col md:items-stretch md:gap-8">
             {/* Stats Section (Desktop: Bottom / Mobile: Below Title) */}
-            <dl className="order-1 mt-auto flex flex-col gap-8 md:order-2 md:mt-auto md:mb-6 md:h-13 md:flex-row md:gap-16">
+            <dl className="order-1 mt-auto mb-4 flex flex-col gap-8 md:order-2 md:mb-6 md:h-13 md:flex-row md:gap-16">
               <div className="flex flex-col-reverse gap-1">
                 <dt className="text-sm font-light tracking-wider text-muted-foreground">
                   {t(($) => $.login.totalProposals)}
