@@ -21,6 +21,7 @@ type Props = {
   autoStakeMaturity: boolean;
   startDissolving: boolean;
   fromSubAccount?: number[];
+  selectedAccountId: string;
 };
 
 /**
@@ -154,10 +155,11 @@ export function useCreateNeuron(params: Props) {
         setCurrentStep(step);
       }
 
+      const balanceQueryKey = [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE, params.selectedAccountId];
+
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE] }),
+        queryClient.invalidateQueries({ queryKey: balanceQueryKey }),
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] }),
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS] }),
       ]).catch(failedRefresh);
     },
   });

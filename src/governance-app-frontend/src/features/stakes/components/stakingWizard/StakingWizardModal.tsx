@@ -71,12 +71,17 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
       ? Array.from(selectedAccount.subAccount)
       : undefined;
 
+  // Falls back to main account since staking defaults to it when no subaccount is selected.
+  // Empty string is only possible while accounts are loading, before the user can submit.
+  const selectedAccountId = formState.selectedAccountId ?? accountsState?.mainAccountId ?? '';
+
   const createNeuron = useCreateNeuron({
     amount: formState.amount,
     dissolveDelayMonths: formState.dissolveDelayMonths,
     autoStakeMaturity: formState.maturityMode === StakingWizardMaturityMode.Auto,
     startDissolving: formState.initialState === StakingWizardInitialState.Dissolving,
     fromSubAccount,
+    selectedAccountId,
   });
 
   const contentRef = useRef<HTMLDivElement>(null);
