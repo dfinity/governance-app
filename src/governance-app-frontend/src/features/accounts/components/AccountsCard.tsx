@@ -31,9 +31,9 @@ export const AccountsCard = () => {
   const topAccounts = accounts.slice(0, MAX_PREVIEW_ACCOUNTS);
 
   return (
-    <Card data-testid="accounts-card">
+    <Card className="pt-4 pb-6" data-testid="accounts-card">
       <CardHeader className="flex flex-col gap-0">
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex min-h-9 shrink-0 items-center gap-2">
           <p className="text-sm tracking-wide text-muted-foreground uppercase">
             {t(($) => $.accounts.title)}
           </p>
@@ -48,7 +48,7 @@ export const AccountsCard = () => {
           {isLoading ? (
             <Skeleton className="h-8 w-32" />
           ) : (
-            <p className="text-2xl font-bold">
+            <p className="text-2xl font-semibold">
               {isTotalPartial ? '~ ' : ''}
               {t(($) => $.common.inIcp, { value: formatNumber(totalICP) })}
             </p>
