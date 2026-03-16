@@ -3,6 +3,7 @@ import { isNullish } from '@dfinity/utils';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+
 import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
 import { useSubaccountsMetadata } from '@features/accounts/hooks/useSubaccountsMetadata';
 
