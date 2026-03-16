@@ -1,13 +1,12 @@
+import { nonNullish } from '@dfinity/utils';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { nonNullish } from '@dfinity/utils';
-
-import { AnalyticsEvent } from '@features/analytics/events';
-import { analytics } from '@features/analytics/service';
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { AccountType } from '@features/accounts/types';
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
 
 import {
   AlertDialog,
