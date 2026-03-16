@@ -4,13 +4,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { isSuspiciousAddress } from '@features/account/utils/addressPoisoning';
 import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
 import { useSubaccountsMetadata } from '@features/accounts/hooks/useSubaccountsMetadata';
 
-import { isSuspiciousAddress } from '@features/account/utils/addressPoisoning';
-
-import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { E8Sn } from '@constants/extra';
+import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { addressBookGetAddressString } from '@utils/addressBook';
 import { bigIntDiv } from '@utils/bigInt';
 import { shortenId } from '@utils/id';
@@ -87,18 +86,18 @@ export const useIcpIndexTransactionsPolling = () => {
     refetchIntervalInBackground: false,
   });
 
-  // Trusted set only includes the user's own accounts and address book contacts.
-  // Addresses from transaction history (e.g. past recipients) are not included,
-  // so poisoning attempts that mimic those addresses won't be caught here.
-  const trustedAddresses = new Set([
-    ...accountIds,
-    ...(addressBook.data?.named_addresses.map((entry) =>
-      addressBookGetAddressString(entry.address),
-    ) ?? []),
-  ]);
-
   useEffect(() => {
     if (!isSuccess) return;
+
+    // Trusted set only includes the user's own accounts and address book contacts.
+    // Addresses from transaction history (e.g. past recipients) are not included,
+    // so poisoning attempts that mimic those addresses won't be caught here.
+    const trustedAddresses = new Set([
+      ...accountIds,
+      ...(addressBook.data?.named_addresses.map((entry) =>
+        addressBookGetAddressString(entry.address),
+      ) ?? []),
+    ]);
 
     for (const { accountId, latestTransaction } of results) {
       const previous = lastTransactionsIdsRef.current.get(accountId);
@@ -146,7 +145,7 @@ export const useIcpIndexTransactionsPolling = () => {
         });
       }
     }
-  }, [results, isSuccess, queryClient, t, trustedAddresses, addressBook.data]);
+  }, [results, isSuccess, queryClient, t, accountIds, addressBook.data]);
 
   // Reset tracking when the set of polled accounts changes.
   useEffect(() => {
