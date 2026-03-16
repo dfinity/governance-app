@@ -20,6 +20,7 @@ type Props = {
   dissolveDelayMonths: number;
   autoStakeMaturity: boolean;
   startDissolving: boolean;
+  fromSubAccount?: number[];
 };
 
 /**
@@ -69,6 +70,7 @@ export function useCreateNeuron(params: Props) {
         neuronId = await governanceCanister.stakeNeuron({
           stake,
           principal,
+          fromSubAccount: params.fromSubAccount,
           ledgerCanister,
           createdAt,
           fee: ICP_TRANSACTION_FEE_E8Sn,

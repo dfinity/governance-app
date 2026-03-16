@@ -2,8 +2,12 @@ import { ArrowLeft } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { nonNullish } from '@dfinity/utils';
+
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
+import { useAccounts } from '@features/accounts/hooks/useAccounts';
+import { AccountType } from '@features/accounts/types';
 
 import {
   AlertDialog,
@@ -58,11 +62,21 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
     STAKING_WIZARD_DEFAULT_FORM_STATE,
   );
 
+  const { data: accountsState } = useAccounts();
+  const selectedAccount = accountsState?.accounts.find(
+    (a) => a.accountId === formState.selectedAccountId,
+  );
+  const fromSubAccount =
+    selectedAccount?.type === AccountType.Subaccount && nonNullish(selectedAccount.subAccount)
+      ? Array.from(selectedAccount.subAccount)
+      : undefined;
+
   const createNeuron = useCreateNeuron({
     amount: formState.amount,
     dissolveDelayMonths: formState.dissolveDelayMonths,
     autoStakeMaturity: formState.maturityMode === StakingWizardMaturityMode.Auto,
     startDissolving: formState.initialState === StakingWizardInitialState.Dissolving,
+    fromSubAccount,
   });
 
   const contentRef = useRef<HTMLDivElement>(null);
@@ -193,6 +207,10 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
     setFormState((prev) => ({ ...prev, initialState }));
   };
 
+  const updateSelectedAccountId = (selectedAccountId: string | undefined) => {
+    setFormState((prev) => ({ ...prev, selectedAccountId }));
+  };
+
   const getStepTitle = (): string => {
     switch (step) {
       case StakingWizardStep.Amount:
@@ -304,6 +322,8 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
               <StakingWizardStepAmount
                 amount={formState.amount}
                 onAmountChange={updateAmount}
+                selectedAccountId={formState.selectedAccountId}
+                onSelectedAccountIdChange={updateSelectedAccountId}
                 onNext={goNext}
               />
             )}

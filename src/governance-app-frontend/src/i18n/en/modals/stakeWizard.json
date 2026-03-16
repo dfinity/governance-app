@@ -4,6 +4,7 @@
     "amount": {
       "title": "Stake ICP",
       "label": "Amount to stake",
+      "fromAccount": "From account",
       "available": "Available: {{amount}} ICP"
     },
     "dissolveDelay": {
