@@ -7,7 +7,13 @@ import { useTranslation } from 'react-i18next';
 import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
 import { useSubaccountsMetadata } from '@features/accounts/hooks/useSubaccountsMetadata';
 
+import { isSuspiciousAddress } from '@features/account/utils/addressPoisoning';
+
+import type { AddressBook } from '@declarations/governance-app-backend/governance-app-backend.did';
+
+import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { E8Sn } from '@constants/extra';
+import { addressBookGetAddressString } from '@utils/addressBook';
 import { bigIntDiv } from '@utils/bigInt';
 import { shortenId } from '@utils/id';
 import { infoNotification } from '@utils/notification';
@@ -32,6 +38,14 @@ const isReceivedTransfer = (
 ): operation is Extract<IcpIndexDid.Operation, { Transfer: unknown }> =>
   'Transfer' in operation && operation.Transfer.to === accountId;
 
+const resolveContactName = (
+  sender: string,
+  addressBook: AddressBook | undefined,
+): string | undefined =>
+  addressBook?.named_addresses.find(
+    (entry) => addressBookGetAddressString(entry.address) === sender,
+  )?.name;
+
 type AccountPollResult = {
   accountId: string;
   latestTransaction: IcpIndexDid.TransactionWithId | null;
@@ -52,6 +66,7 @@ export const useIcpIndexTransactionsPolling = () => {
 
   const mainAccount = useMainAccountMetadata();
   const subaccounts = useSubaccountsMetadata();
+  const addressBook = useAddressBook();
   const accountIds = [
     ...(mainAccount.data ? [mainAccount.data.accountId] : []),
     ...subaccounts.data.map((a) => a.accountId),
@@ -81,6 +96,16 @@ export const useIcpIndexTransactionsPolling = () => {
     refetchInterval: POLLING_INTERVAL_MS,
     refetchIntervalInBackground: false,
   });
+
+  // Trusted set only includes the user's own accounts and address book contacts.
+  // Addresses from transaction history (e.g. past recipients) are not included,
+  // so poisoning attempts that mimic those addresses won't be caught here.
+  const trustedAddresses = new Set([
+    ...accountIds,
+    ...(addressBook.data?.named_addresses.map((entry) =>
+      addressBookGetAddressString(entry.address),
+    ) ?? []),
+  ]);
 
   useEffect(() => {
     if (!isSuccess) return;
@@ -114,18 +139,21 @@ export const useIcpIndexTransactionsPolling = () => {
 
       if (amount && isReceivedTransfer(operation, accountId)) {
         const sender = operation.Transfer.from;
-        const truncatedSender = shortenId(sender, 6);
+
+        if (isSuspiciousAddress(sender, operation.Transfer.amount.e8s, trustedAddresses)) continue;
+
+        const senderLabel = resolveContactName(sender, addressBook.data) ?? shortenId(sender, 6);
 
         infoNotification({
           title: t(($) => $.account.newTransaction),
           description: t(($) => $.account.newTransactionDescription, {
             value: amount,
-            sender: truncatedSender,
+            sender: senderLabel,
           }),
         });
       }
     }
-  }, [results, isSuccess, queryClient, t]);
+  }, [results, isSuccess, queryClient, t, trustedAddresses, addressBook.data]);
 
   // Reset tracking when the set of polled accounts changes.
   useEffect(() => {
