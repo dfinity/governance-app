@@ -75,6 +75,11 @@ export function TransactionListDialog({
               infiniteQuery={transactions}
               isEmpty={(data) => !data.pages?.length || !data.pages[0].response.transactions.length}
               loadingComponent={<MultipleSkeletons count={3} />}
+              emptyComponent={
+                <p className="py-8 text-center text-sm text-muted-foreground">
+                  {t(($) => $.account.noTransactions)}
+                </p>
+              }
             >
               {(data) => (
                 <div className="flex flex-col gap-3">

@@ -20,5 +20,6 @@
   "addIcp": "Add ICP",
   "ariaLabel": "Open transactions list",
   "newTransaction": "New transaction detected",
-  "newTransactionDescription": "You received {{value}} ICP from {{sender}}. Your balance is being updated."
+  "newTransactionDescription": "You received {{value}} ICP from {{sender}}. Your balance is being updated.",
+  "noTransactions": "No transactions found for this account."
 }
