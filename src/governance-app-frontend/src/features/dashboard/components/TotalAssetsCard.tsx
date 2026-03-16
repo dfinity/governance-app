@@ -1,4 +1,3 @@
-import { nonNullish } from '@dfinity/utils';
 import { useTranslation } from 'react-i18next';
 import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts';
 
@@ -34,12 +33,18 @@ export const TotalAssetsCard = () => {
 
   const { tickerPrices: tickersQuery } = useTickerPrices();
   const neuronsQuery = useGovernanceNeurons();
-  const accountsQuery = useAccounts();
+  const { data: accountsData, isLoadingBalances } = useAccounts();
   const stakingRewards = useStakingRewards();
 
-  const allBalancesReady = nonNullish(accountsQuery.data) && !accountsQuery.data.isTotalPartial;
+  const accounts = accountsData?.accounts ?? [];
+  const readyAccounts = accounts.filter((a) => a.status === 'ready');
 
-  const liquidBalance = allBalancesReady ? bigIntDiv(accountsQuery.data.totalBalanceE8s, E8Sn) : 0;
+  const liquidBalance = isLoadingBalances
+    ? 0
+    : bigIntDiv(
+        readyAccounts.reduce((sum, a) => sum + a.balanceE8s, 0n),
+        E8Sn,
+      );
 
   const { totalStakedAfterFees: stakedBalance, totalUnstakedMaturity: maturityBalance } =
     getNeuronsAggregatedData(neuronsQuery.data?.response);
@@ -49,7 +54,7 @@ export const TotalAssetsCard = () => {
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const totalAssetsUsd = icpPrice ? formatNumber(totalAssets * icpPrice.usd) : undefined;
 
-  const isLoading = accountsQuery.isLoading || !allBalancesReady || neuronsQuery.isLoading;
+  const isLoading = isLoadingBalances || neuronsQuery.isLoading;
   const stakingRewardsReady = isStakingRewardDataReady(stakingRewards);
 
   const stakingRatioPercent = stakingRewardsReady ? stakingRewards.stakingRatio * 100 : 0;

@@ -37,11 +37,10 @@ function buildSegments(readyAccounts: AccountReady[], totalE8s: bigint) {
 export const AccountsTotalCard = () => {
   const { t } = useTranslation();
   const { tickerPrices: tickersQuery } = useTickerPrices();
-  const { data: accountsState } = useAccounts();
+  const { data: accountsState, isLoadingBalances } = useAccounts();
   const accounts = accountsState?.accounts ?? [];
 
   const readyAccounts = accounts.filter((a): a is AccountReady => a.status === 'ready');
-  const isLoadingBalances = accounts.length === 0 || accounts.some((a) => a.status === 'loading');
   const totalE8s = readyAccounts.reduce((sum, a) => sum + a.balanceE8s, 0n);
   const totalICP = bigIntDiv(totalE8s, E8Sn);
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);

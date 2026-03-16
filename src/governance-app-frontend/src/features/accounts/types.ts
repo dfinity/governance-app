@@ -38,7 +38,6 @@ export type Account = AccountReady | AccountLoading | AccountError;
 export interface AccountsState {
   accounts: Account[];
   totalBalanceE8s: bigint;
-  isTotalPartial: boolean;
   hasSubaccounts: boolean;
   mainAccountId?: string;
 }

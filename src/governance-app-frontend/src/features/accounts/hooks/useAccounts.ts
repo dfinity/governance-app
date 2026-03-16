@@ -35,6 +35,7 @@ export const useAccounts = () => {
     return {
       data: undefined,
       isLoading: !mainAccountMetadata.data || subaccountsMetadata.isLoading,
+      isLoadingBalances: true,
     };
   }
 
@@ -61,13 +62,15 @@ export const useAccounts = () => {
   const data: AccountsState = {
     accounts,
     totalBalanceE8s: readyAccounts.reduce((sum, a) => sum + a.balanceE8s, 0n),
-    isTotalPartial: readyAccounts.length < accounts.length,
     hasSubaccounts: accounts.some((a) => a.type !== AccountType.Main),
     mainAccountId: mainAccountMetadata.data.accountId,
   };
 
+  const isLoadingBalances = accounts.length === 0 || accounts.some((a) => a.status === 'loading');
+
   return {
     data,
     isLoading: !mainAccountMetadata.data || subaccountsMetadata.isLoading,
+    isLoadingBalances,
   };
 };
