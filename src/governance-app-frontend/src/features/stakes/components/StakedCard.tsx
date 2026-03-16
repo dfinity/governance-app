@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { ApyOptimizationModal } from '@features/stakes/components/ApyOptimizationModal';
 
+import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
@@ -19,7 +20,7 @@ import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronsAggregatedData } from '@utils/neuron';
 import { warningNotification } from '@utils/notification';
-import { formatNumber, formatPercentage } from '@utils/numbers';
+import { formatNumber } from '@utils/numbers';
 import { isStakingRewardDataReady, MaturityEstimatePeriod } from '@utils/staking-rewards';
 
 export function StakedCard() {
@@ -78,9 +79,13 @@ export function StakedCard() {
 
             {stakingRewardsReady && apyColor.ready ? (
               <span className="flex items-center">
-                <span className="text-lg font-bold" style={{ color: apyColor.textColor }}>
-                  {formatPercentage(stakingRewards.apy.cur)}
-                </span>
+                <AnimatedNumber
+                  value={stakingRewards.apy.cur * 100}
+                  suffix="%"
+                  formatOptions={{ minFraction: 2, maxFraction: 2 }}
+                  className="text-lg font-bold"
+                  style={{ color: apyColor.textColor }}
+                />
                 {stakingRewards.apy.cur < stakingRewards.apy.max && <ApyOptimizationModal />}
               </span>
             ) : (
