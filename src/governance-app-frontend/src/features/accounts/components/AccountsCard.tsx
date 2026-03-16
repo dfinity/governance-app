@@ -19,20 +19,13 @@ const MAX_PREVIEW_ACCOUNTS = 3;
 
 export const AccountsCard = () => {
   const { t } = useTranslation();
-  const { data: accountsState, isLoadingBalances } = useAccounts();
+  const { data: accountsState, isLoadingBalances, totalBalanceIcp } = useAccounts();
   const { tickerPrices: tickersQuery } = useTickerPrices();
 
   const accounts = accountsState?.accounts ?? [];
-  const readyAccounts = accounts.filter((a) => a.status === 'ready');
-  const totalICP = isLoadingBalances
-    ? 0
-    : bigIntDiv(
-        readyAccounts.reduce((sum, a) => sum + a.balanceE8s, 0n),
-        E8Sn,
-      );
+  const count = accounts.filter((a) => a.status === 'ready').length;
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const usdValue = icpPrice ? formatNumber(totalICP * icpPrice.usd) : '-';
-  const count = readyAccounts.length;
+  const usdValue = icpPrice ? formatNumber(totalBalanceIcp * icpPrice.usd) : '-';
   const topAccounts = accounts.slice(0, MAX_PREVIEW_ACCOUNTS);
 
   return (
@@ -54,7 +47,7 @@ export const AccountsCard = () => {
             <Skeleton className="h-8 w-32" />
           ) : (
             <p className="text-2xl font-bold">
-              {t(($) => $.common.inIcp, { value: formatNumber(totalICP) })}
+              {t(($) => $.common.inIcp, { value: formatNumber(totalBalanceIcp) })}
             </p>
           )}
 

@@ -9,11 +9,9 @@ import { type ChartConfig, ChartContainer } from '@components/Chart';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { E8Sn } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useTickerPrices } from '@hooks/tickers';
 import { useStakingRewards } from '@hooks/useStakingRewards';
-import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronsAggregatedData } from '@utils/neuron';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
@@ -33,18 +31,10 @@ export const TotalAssetsCard = () => {
 
   const { tickerPrices: tickersQuery } = useTickerPrices();
   const neuronsQuery = useGovernanceNeurons();
-  const { data: accountsData, isLoadingBalances } = useAccounts();
+  const { isLoadingBalances, totalBalanceIcp } = useAccounts();
   const stakingRewards = useStakingRewards();
 
-  const accounts = accountsData?.accounts ?? [];
-  const readyAccounts = accounts.filter((a) => a.status === 'ready');
-
-  const liquidBalance = isLoadingBalances
-    ? 0
-    : bigIntDiv(
-        readyAccounts.reduce((sum, a) => sum + a.balanceE8s, 0n),
-        E8Sn,
-      );
+  const liquidBalance = totalBalanceIcp;
 
   const { totalStakedAfterFees: stakedBalance, totalUnstakedMaturity: maturityBalance } =
     getNeuronsAggregatedData(neuronsQuery.data?.response);

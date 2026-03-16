@@ -1,18 +1,16 @@
 import { GovernanceCachedMetrics } from '@icp-sdk/canisters/nns';
-import { nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode, useEffect, useState } from 'react';
 
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
 
-import { E8Sn, IS_TESTNET } from '@constants/extra';
+import { IS_TESTNET } from '@constants/extra';
 import {
   useGovernanceEconomics,
   useGovernanceMetrics,
   useGovernanceNeurons,
   useGovernanceProposal,
 } from '@hooks/governance';
-import { bigIntDiv } from '@utils/bigInt';
 import { getStakingRewardData, StakingRewardResult } from '@utils/staking-rewards';
 
 import { StakingRewardsContext } from './stakingRewardsContext';
@@ -21,11 +19,7 @@ export const StakingRewardsProvider = ({ children }: { children: ReactNode }) =>
   const { identity } = useInternetIdentity();
 
   const governanceMetrics = useGovernanceMetrics().data?.response;
-  const { data: accountsData, isLoadingBalances } = useAccounts();
-  const accounts = accountsData?.accounts ?? [];
-  const totalBalanceE8s = isLoadingBalances
-    ? undefined
-    : accounts.filter((a) => a.status === 'ready').reduce((sum, a) => sum + a.balanceE8s, 0n);
+  const { isLoadingBalances, totalBalanceIcp } = useAccounts();
   const economics = useGovernanceEconomics().data?.response;
   const neurons = useGovernanceNeurons().data?.response;
   const totalVotingPower = useGovernanceProposal().data?.response?.totalPotentialVotingPower;
@@ -39,7 +33,7 @@ export const StakingRewardsProvider = ({ children }: { children: ReactNode }) =>
 
     const id = scheduleCallback(() => {
       const data = getStakingRewardData({
-        balance: nonNullish(totalBalanceE8s) ? bigIntDiv(totalBalanceE8s, E8Sn) : undefined,
+        balance: isLoadingBalances ? undefined : totalBalanceIcp,
         isAuthenticated: !!identity,
         economics,
         neurons,
@@ -54,7 +48,7 @@ export const StakingRewardsProvider = ({ children }: { children: ReactNode }) =>
     });
 
     return () => cancelCallback(id);
-  }, [totalBalanceE8s, identity, neurons, economics, totalVotingPower, governanceMetrics]);
+  }, [totalBalanceIcp, isLoadingBalances, identity, neurons, economics, totalVotingPower, governanceMetrics]);
 
   return <StakingRewardsContext.Provider value={data}>{children}</StakingRewardsContext.Provider>;
 };

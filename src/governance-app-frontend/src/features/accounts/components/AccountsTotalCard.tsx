@@ -3,9 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { E8Sn } from '@constants/extra';
 import { useTickerPrices } from '@hooks/tickers';
-import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 
 import { useAccounts } from '../hooks/useAccounts';
@@ -37,14 +35,13 @@ function buildSegments(readyAccounts: AccountReady[], totalE8s: bigint) {
 export const AccountsTotalCard = () => {
   const { t } = useTranslation();
   const { tickerPrices: tickersQuery } = useTickerPrices();
-  const { data: accountsState, isLoadingBalances } = useAccounts();
+  const { data: accountsState, isLoadingBalances, totalBalanceIcp } = useAccounts();
   const accounts = accountsState?.accounts ?? [];
 
   const readyAccounts = accounts.filter((a): a is AccountReady => a.status === 'ready');
-  const totalE8s = readyAccounts.reduce((sum, a) => sum + a.balanceE8s, 0n);
-  const totalICP = bigIntDiv(totalE8s, E8Sn);
+  const totalE8s = accountsState?.totalBalanceE8s ?? 0n;
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const usdValue = icpPrice ? formatNumber(totalICP * icpPrice.usd) : '-';
+  const usdValue = icpPrice ? formatNumber(totalBalanceIcp * icpPrice.usd) : '-';
 
   const segments = buildSegments(readyAccounts, totalE8s);
 
@@ -59,7 +56,7 @@ export const AccountsTotalCard = () => {
             <Skeleton className="h-8 w-32" />
           ) : (
             <p className="text-2xl font-bold">
-              {t(($) => $.common.inIcp, { value: formatNumber(totalICP) })}
+              {t(($) => $.common.inIcp, { value: formatNumber(totalBalanceIcp) })}
             </p>
           )}
           {isLoadingBalances || tickersQuery.isLoading ? (
