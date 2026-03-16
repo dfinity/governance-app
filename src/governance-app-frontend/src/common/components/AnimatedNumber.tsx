@@ -2,6 +2,7 @@ import { motion, useSpring, useTransform } from 'motion/react';
 import { useEffect, useMemo, useRef } from 'react';
 
 import { formatNumber } from '@utils/numbers';
+import { cn } from '@utils/shadcn';
 
 type AnimatedNumberProps = {
   value: number;
@@ -26,10 +27,13 @@ function AnimatedNumber({
   ...props
 }: AnimatedNumberProps) {
   const previousValue = useRef(0);
+  const targetValue = useRef(0);
   const progress = useSpring(0, springConfig);
 
   useEffect(() => {
-    previousValue.current = progress.get() * previousValue.current || 0;
+    previousValue.current =
+      previousValue.current + (targetValue.current - previousValue.current) * progress.get();
+    targetValue.current = value;
     progress.jump(0);
     progress.set(1);
   }, [progress, value]);
@@ -50,7 +54,7 @@ function AnimatedNumber({
       <span className="invisible" aria-hidden="true">
         {finalDisplay}
       </span>
-      <motion.span className={`absolute inset-0 ${className ?? ''}`} {...props}>
+      <motion.span className={cn('absolute inset-0', className)} {...props}>
         {display}
       </motion.span>
     </span>
