@@ -7,27 +7,28 @@ import { useTickerPrices } from '@hooks/tickers';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 
 import { useAccounts } from '../hooks/useAccounts';
-import { type AccountReady, AccountType } from '../types';
+import { type AccountReady } from '../types';
 
-const BASE_COLOR = 'var(--color-staking-ratio)';
-const OPACITY_MAX = 80;
-const OPACITY_MIN = 15;
+const ACCOUNT_COLORS = [
+  'var(--color-staking-ratio)',
+  'var(--color-chart-1)',
+  'var(--color-chart-2)',
+  'var(--color-chart-3)',
+  'var(--color-chart-4)',
+  'var(--color-chart-5)',
+];
 
-function getAccountColor(index: number, total: number) {
-  if (total <= 1) return `color-mix(in srgb, ${BASE_COLOR} ${OPACITY_MAX}%, transparent)`;
-  const opacity = OPACITY_MAX - (index / (total - 1)) * (OPACITY_MAX - OPACITY_MIN);
-  return `color-mix(in srgb, ${BASE_COLOR} ${Math.round(opacity)}%, transparent)`;
+function getAccountColor(index: number) {
+  if (index < ACCOUNT_COLORS.length) return ACCOUNT_COLORS[index];
+  const hue = (220 + index * 47) % 360;
+  return `hsl(${Math.round(hue)}, 65%, 55%)`;
 }
 
 function buildSegments(readyAccounts: AccountReady[], totalE8s: bigint) {
   if (totalE8s === 0n) return [];
-  const nonMainAccounts = readyAccounts.filter((a) => a.type !== AccountType.Main);
-  return readyAccounts.map((account) => {
+  return readyAccounts.map((account, index) => {
     const percentage = Number((account.balanceE8s * 10000n) / totalE8s) / 100;
-    const color =
-      account.type === AccountType.Main
-        ? BASE_COLOR
-        : getAccountColor(nonMainAccounts.indexOf(account), nonMainAccounts.length);
+    const color = getAccountColor(index);
     return { accountId: account.accountId, name: account.name, percentage, color };
   });
 }
@@ -35,11 +36,13 @@ function buildSegments(readyAccounts: AccountReady[], totalE8s: bigint) {
 export const AccountsTotalCard = () => {
   const { t } = useTranslation();
   const { tickerPrices: tickersQuery } = useTickerPrices();
-  const { data: accountsState, isLoadingBalances, totalBalanceIcp } = useAccounts();
+  const { data: accountsState } = useAccounts();
   const accounts = accountsState?.accounts ?? [];
 
   const readyAccounts = accounts.filter((a): a is AccountReady => a.status === 'ready');
-  const totalE8s = accountsState?.totalBalanceE8s ?? 0n;
+  const isLoadingBalances = accounts.length === 0 || accounts.some((a) => a.status === 'loading');
+  const totalE8s = readyAccounts.reduce((sum, a) => sum + a.balanceE8s, 0n);
+  const totalICP = bigIntDiv(totalE8s, E8Sn);
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const usdValue = icpPrice ? formatNumber(totalBalanceIcp * icpPrice.usd) : '-';
 
