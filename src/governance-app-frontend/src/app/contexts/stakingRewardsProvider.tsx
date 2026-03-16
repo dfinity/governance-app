@@ -3,6 +3,8 @@ import { nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode, useEffect, useState } from 'react';
 
+import { useAccounts } from '@features/accounts/hooks/useAccounts';
+
 import { E8Sn, IS_TESTNET } from '@constants/extra';
 import {
   useGovernanceEconomics,
@@ -10,7 +12,6 @@ import {
   useGovernanceNeurons,
   useGovernanceProposal,
 } from '@hooks/governance';
-import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { bigIntDiv } from '@utils/bigInt';
 import { getStakingRewardData, StakingRewardResult } from '@utils/staking-rewards';
 
@@ -20,7 +21,11 @@ export const StakingRewardsProvider = ({ children }: { children: ReactNode }) =>
   const { identity } = useInternetIdentity();
 
   const governanceMetrics = useGovernanceMetrics().data?.response;
-  const balance = useIcpLedgerAccountBalance().data?.response;
+  const accountsQuery = useAccounts();
+  const totalBalanceE8s =
+    accountsQuery.data && !accountsQuery.data.isTotalPartial
+      ? accountsQuery.data.totalBalanceE8s
+      : undefined;
   const economics = useGovernanceEconomics().data?.response;
   const neurons = useGovernanceNeurons().data?.response;
   const totalVotingPower = useGovernanceProposal().data?.response?.totalPotentialVotingPower;
@@ -34,7 +39,7 @@ export const StakingRewardsProvider = ({ children }: { children: ReactNode }) =>
 
     const id = scheduleCallback(() => {
       const data = getStakingRewardData({
-        balance: nonNullish(balance) ? bigIntDiv(balance, E8Sn) : undefined,
+        balance: nonNullish(totalBalanceE8s) ? bigIntDiv(totalBalanceE8s, E8Sn) : undefined,
         isAuthenticated: !!identity,
         economics,
         neurons,
@@ -49,7 +54,7 @@ export const StakingRewardsProvider = ({ children }: { children: ReactNode }) =>
     });
 
     return () => cancelCallback(id);
-  }, [balance, identity, neurons, economics, totalVotingPower, governanceMetrics]);
+  }, [totalBalanceE8s, identity, neurons, economics, totalVotingPower, governanceMetrics]);
 
   return <StakingRewardsContext.Provider value={data}>{children}</StakingRewardsContext.Provider>;
 };

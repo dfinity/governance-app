@@ -1,7 +1,7 @@
-import { nonNullish } from '@dfinity/utils';
 import { useTranslation } from 'react-i18next';
 import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts';
 
+import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { StakingRatioModal } from '@features/stakes/components/StakingRatioModal';
 
 import { Card, CardContent, CardHeader } from '@components/Card';
@@ -11,7 +11,6 @@ import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
-import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
@@ -34,11 +33,13 @@ export const TotalAssetsCard = () => {
 
   const { tickerPrices: tickersQuery } = useTickerPrices();
   const neuronsQuery = useGovernanceNeurons();
-  const balanceQuery = useIcpLedgerAccountBalance();
+  const accountsQuery = useAccounts();
   const stakingRewards = useStakingRewards();
 
-  const liquidBalance = nonNullish(balanceQuery.data?.response)
-    ? bigIntDiv(balanceQuery.data.response, E8Sn)
+  const allBalancesReady = accountsQuery.data && !accountsQuery.data.isTotalPartial;
+
+  const liquidBalance = allBalancesReady
+    ? bigIntDiv(accountsQuery.data.totalBalanceE8s, E8Sn)
     : 0;
 
   const { totalStakedAfterFees: stakedBalance, totalUnstakedMaturity: maturityBalance } =
@@ -49,7 +50,7 @@ export const TotalAssetsCard = () => {
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const totalAssetsUsd = icpPrice ? formatNumber(totalAssets * icpPrice.usd) : undefined;
 
-  const isLoading = balanceQuery.isLoading || neuronsQuery.isLoading;
+  const isLoading = accountsQuery.isLoading || !allBalancesReady || neuronsQuery.isLoading;
   const stakingRewardsReady = isStakingRewardDataReady(stakingRewards);
 
   const stakingRatioPercent = stakingRewardsReady ? stakingRewards.stakingRatio * 100 : 0;
