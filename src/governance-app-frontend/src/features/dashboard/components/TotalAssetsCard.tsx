@@ -34,7 +34,7 @@ export const TotalAssetsCard = () => {
   const { isLoading: isLoadingAccounts, totalBalanceIcp } = useAccounts();
   const stakingRewards = useStakingRewards();
 
-  const liquidBalance = totalBalanceIcp;
+  const liquidBalance = totalBalanceIcp ?? 0;
 
   const { totalStakedAfterFees: stakedBalance, totalUnstakedMaturity: maturityBalance } =
     getNeuronsAggregatedData(neuronsQuery.data?.response);

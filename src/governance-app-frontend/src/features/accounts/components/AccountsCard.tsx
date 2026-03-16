@@ -1,3 +1,4 @@
+import { nonNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
 import { Wallet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -23,9 +24,12 @@ export const AccountsCard = () => {
   const { tickerPrices: tickersQuery } = useTickerPrices();
 
   const accounts = accountsState?.accounts ?? [];
-  const count = accounts.filter((a) => a.status === 'ready').length;
+  const count = accounts.length;
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const usdValue = icpPrice ? formatNumber(totalBalanceIcp * icpPrice.usd) : '-';
+  const usdValue =
+    nonNullish(icpPrice) && nonNullish(totalBalanceIcp)
+      ? formatNumber(totalBalanceIcp * icpPrice.usd)
+      : '-';
   const topAccounts = accounts.slice(0, MAX_PREVIEW_ACCOUNTS);
 
   return (
@@ -47,7 +51,7 @@ export const AccountsCard = () => {
             <Skeleton className="h-8 w-32" />
           ) : (
             <p className="text-2xl font-bold">
-              {t(($) => $.common.inIcp, { value: formatNumber(totalBalanceIcp) })}
+              {t(($) => $.common.inIcp, { value: formatNumber(totalBalanceIcp ?? 0) })}
             </p>
           )}
 

@@ -37,7 +37,7 @@ export const useAccounts = () => {
     return {
       data: undefined,
       isLoading: true,
-      totalBalanceIcp: 0,
+      totalBalanceIcp: undefined,
     };
   }
 
@@ -69,7 +69,7 @@ export const useAccounts = () => {
   };
 
   const isLoading = accounts.length === 0 || accounts.some((a) => a.status === 'loading');
-  const totalBalanceIcp = isLoading ? 0 : bigIntDiv(data.totalBalanceE8s, E8Sn);
+  const totalBalanceIcp = isLoading ? undefined : bigIntDiv(data.totalBalanceE8s, E8Sn);
 
   return {
     data,

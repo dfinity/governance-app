@@ -40,7 +40,7 @@ export const AccountsTotalCard = () => {
   const accounts = accountsState?.accounts ?? [];
 
   const readyAccounts = accounts.filter((a): a is AccountReady => a.status === 'ready');
-  const totalE8s = readyAccounts.reduce((sum, a) => sum + a.balanceE8s, 0n);
+  const totalE8s = accountsState?.totalBalanceE8s ?? 0n;
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const usdValue = icpPrice && totalBalanceIcp ? formatNumber(totalBalanceIcp * icpPrice.usd) : '-';
 
@@ -57,7 +57,7 @@ export const AccountsTotalCard = () => {
             <Skeleton className="h-8 w-32" />
           ) : (
             <p className="text-2xl font-bold">
-              {t(($) => $.common.inIcp, { value: formatNumber(totalBalanceIcp) })}
+              {t(($) => $.common.inIcp, { value: formatNumber(totalBalanceIcp ?? 0) })}
             </p>
           )}
           {isLoading || tickersQuery.isLoading ? (
