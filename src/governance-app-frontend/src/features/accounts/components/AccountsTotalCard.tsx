@@ -9,7 +9,7 @@ import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 
 import { useAccounts } from '../hooks/useAccounts';
-import { type AccountReady } from '../types';
+import { type AccountReady, AccountType } from '../types';
 
 const ACCOUNT_COLORS = [
   'hsl(220, 70%, 55%)', // blue

@@ -3,7 +3,9 @@ import { isNullish } from '@dfinity/utils';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
+
+import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
+import { useSubaccountsMetadata } from '@features/accounts/hooks/useSubaccountsMetadata';
 
 import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
 import { useSubaccountsMetadata } from '@features/accounts/hooks/useSubaccountsMetadata';
@@ -11,8 +13,9 @@ import { useSubaccountsMetadata } from '@features/accounts/hooks/useSubaccountsM
 import { E8Sn } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
 import { shortenId } from '@utils/id';
+import { infoNotification } from '@utils/notification';
 import { formatNumber } from '@utils/numbers';
-import { QUERY_KEYS } from '@utils/query';
+import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
 import { useIcpIndex } from './useIcpIndex';
 
@@ -98,12 +101,16 @@ export const useIcpIndexTransactionsPolling = () => {
       if (isNullish(latestTransaction)) continue;
 
       // New transaction detected —> invalidate certified balance and transactions.
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE, accountId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS, accountId],
-      });
+      queryClient
+        .invalidateQueries({
+          queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE, accountId],
+        })
+        .catch(failedRefresh);
+      queryClient
+        .invalidateQueries({
+          queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS, accountId],
+        })
+        .catch(failedRefresh);
 
       const { operation } = latestTransaction.transaction;
       const amount = formatTransferAmount(operation);
@@ -112,17 +119,13 @@ export const useIcpIndexTransactionsPolling = () => {
         const sender = operation.Transfer.from;
         const truncatedSender = shortenId(sender, 6);
 
-        toast.info(
-          t(($) => $.account.newTransaction),
-          {
-            description: t(($) => $.account.newTransactionDescription, {
-              value: amount,
-              sender: truncatedSender,
-            }),
-            duration: 4000,
-            closeButton: true,
-          },
-        );
+        infoNotification({
+          title: t(($) => $.account.newTransaction),
+          description: t(($) => $.account.newTransactionDescription, {
+            value: amount,
+            sender: truncatedSender,
+          }),
+        });
       }
     }
   }, [results, isSuccess, queryClient, t]);
