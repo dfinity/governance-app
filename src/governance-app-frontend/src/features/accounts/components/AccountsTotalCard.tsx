@@ -12,14 +12,12 @@ import { useAccounts } from '../hooks/useAccounts';
 import { type AccountReady } from '../types';
 
 const ACCOUNT_COLORS = [
-  'hsl(220, 70%, 55%)', // blue
-  'hsl(160, 60%, 45%)', // teal
-  'hsl(30, 75%, 55%)', // amber
-  'hsl(280, 60%, 58%)', // purple
-  'hsl(350, 65%, 55%)', // rose
-  'hsl(85, 55%, 48%)', // olive green
-  'hsl(195, 70%, 50%)', // sky
-  'hsl(15, 70%, 55%)', // coral
+  'var(--color-staking-ratio)',
+  'var(--color-chart-1)',
+  'var(--color-chart-2)',
+  'var(--color-chart-3)',
+  'var(--color-chart-4)',
+  'var(--color-chart-5)',
 ];
 
 function getAccountColor(index: number) {
