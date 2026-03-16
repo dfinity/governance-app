@@ -23,7 +23,7 @@ interface Props {
   amount: string;
   onAmountChange: (amount: string) => void;
   selectedAccountId?: string;
-  onSelectedAccountIdChange: (accountId: string | undefined) => void;
+  onSelectedAccountIdChange: (accountId: string) => void;
   onNext: () => void;
 }
 
@@ -64,7 +64,7 @@ export function StakingWizardStepAmount({
     : '...';
 
   const handleAccountChange = (accountId: string) => {
-    onSelectedAccountIdChange(accountId || undefined);
+    onSelectedAccountIdChange(accountId);
     onAmountChange('');
     setError(null);
   };

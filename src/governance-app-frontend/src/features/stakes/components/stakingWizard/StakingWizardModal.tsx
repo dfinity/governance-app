@@ -211,7 +211,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
     setFormState((prev) => ({ ...prev, initialState }));
   };
 
-  const updateSelectedAccountId = (selectedAccountId: string | undefined) => {
+  const updateSelectedAccountId = (selectedAccountId: string) => {
     setFormState((prev) => ({ ...prev, selectedAccountId }));
   };
 
