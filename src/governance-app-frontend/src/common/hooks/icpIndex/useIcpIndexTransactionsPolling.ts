@@ -55,7 +55,7 @@ export const useIcpIndexTransactionsPolling = () => {
 
   const mainAccount = useMainAccountMetadata();
   const subaccounts = useSubaccountsMetadata();
-  const addressBook = useAddressBook();
+  const addressBookQuery = useAddressBook();
   const accountIds = [
     ...(mainAccount.data ? [mainAccount.data.accountId] : []),
     ...subaccounts.data.map((a) => a.accountId),
@@ -89,14 +89,14 @@ export const useIcpIndexTransactionsPolling = () => {
   useEffect(() => {
     if (!isSuccess) return;
 
+    const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
+
     // Trusted set only includes the user's own accounts and address book contacts.
     // Addresses from transaction history (e.g. past recipients) are not included,
     // so poisoning attempts that mimic those addresses won't be caught here.
     const trustedAddresses = new Set([
-      ...accountIds,
-      ...(addressBook.data?.named_addresses.map((entry) =>
-        addressBookGetAddressString(entry.address),
-      ) ?? []),
+      ...results.map(({ accountId }) => accountId),
+      ...addressBookEntries.map((entry) => addressBookGetAddressString(entry.address)),
     ]);
 
     for (const { accountId, latestTransaction } of results) {
@@ -131,7 +131,7 @@ export const useIcpIndexTransactionsPolling = () => {
 
         if (isSuspiciousAddress(sender, operation.Transfer.amount.e8s, trustedAddresses)) continue;
 
-        const contactName = addressBook.data?.named_addresses.find(
+        const contactName = addressBookEntries.find(
           (entry) => addressBookGetAddressString(entry.address) === sender,
         )?.name;
         const senderLabel = contactName ?? shortenId(sender, 6);
@@ -145,7 +145,7 @@ export const useIcpIndexTransactionsPolling = () => {
         });
       }
     }
-  }, [results, isSuccess, queryClient, t, accountIds, addressBook.data]);
+  }, [results, isSuccess, queryClient, t, addressBookQuery.data]);
 
   // Reset tracking when the set of polled accounts changes.
   useEffect(() => {
