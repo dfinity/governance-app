@@ -100,7 +100,7 @@ export const AccountTransactionItem = ({
                 {nonNullish(addressName) ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <button type="button" className="flex items-center gap-1 text-sm text-muted-foreground">
                         <Trans
                           i18nKey={($) =>
                             type === TransactionType.RECEIVE
@@ -114,8 +114,8 @@ export const AccountTransactionItem = ({
                             address: <span className="font-semibold" />,
                           }}
                         />
-                        <BookUser className="size-3.5 shrink-0" />
-                      </p>
+                        <BookUser className="size-3.5 shrink-0" aria-hidden />
+                      </button>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p className="font-mono text-xs">{address}</p>
