@@ -54,11 +54,13 @@ export const TotalAssetsCard = () => {
   ];
 
   return (
-    <Card className="pb-5">
-      <CardHeader className="flex flex-col items-center gap-4">
-        <p className="text-sm tracking-wide text-muted-foreground uppercase">
-          {t(($) => $.home.totalAssets)}
-        </p>
+    <Card className="pt-4 pb-6">
+      <CardHeader className="flex flex-col items-center gap-0">
+        <div className="flex min-h-9 items-center">
+          <p className="text-sm tracking-wide text-muted-foreground uppercase">
+            {t(($) => $.home.totalAssets)}
+          </p>
+        </div>
 
         <div>
           {isLoading || tickersQuery.isLoading ? (
@@ -69,7 +71,7 @@ export const TotalAssetsCard = () => {
         </div>
       </CardHeader>
 
-      <CardContent className="flex flex-col items-center gap-4">
+      <CardContent className="flex flex-col items-center gap-6">
         <Separator />
         <div className="relative mx-auto w-full">
           <ChartContainer
