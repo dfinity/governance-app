@@ -1,8 +1,8 @@
 {
   "available": "Available",
   "accountIdentifier": "account id",
-  "transferSuccess": "You have successfully sent {{amount}} ICP.",
-  "transferProcessing": "Sending {{amount}} ICP ...",
+  "transferSuccess": "You have successfully sent {{amount}} ICP to {{destination}}.",
+  "transferProcessing": "Sending {{amount}} ICP to {{destination}} ...",
   "destinationAccount": "Destination account",
   "transferTitle": "Send ICP to another account",
   "availableBalance": "Available: {{amount}} ICP",

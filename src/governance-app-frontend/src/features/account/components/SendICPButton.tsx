@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import React, { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { AddressBookSelect } from '@features/addressBook/components/AddressBookSelect';
 
 import { Alert, AlertDescription } from '@components/Alert';
@@ -68,6 +69,8 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, varian
 
   const { tickerPrices: tickersQuery } = useTickerPrices();
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
+
+  const { data: accountsState } = useAccounts();
 
   const addressBookQuery = useAddressBook();
   const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
@@ -230,6 +233,14 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, varian
     icpPrice && numericAmount > 0
       ? t(($) => $.account.approxUsd, { value: formatNumber(numericAmount * icpPrice.usd) })
       : undefined;
+
+  const resolveDestinationName = (): string => {
+    if (selectedName) return selectedName;
+    const matchedAccount = accountsState?.accounts.find((a) => a.accountId === toAccount);
+    if (matchedAccount) return matchedAccount.name;
+    return toAccount;
+  };
+  const destination = resolveDestinationName();
 
   const { Icon, className: variantClassName, label } = variantConfig[variant];
 
@@ -399,11 +410,15 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, varian
           )}
 
           {phase === Phase.Processing && (
-            <SendProcessingPhase message={t(($) => $.account.transferProcessing, { amount })} />
+            <SendProcessingPhase
+              message={t(($) => $.account.transferProcessing, { amount, destination })}
+            />
           )}
 
           {phase === Phase.Success && (
-            <SendSuccessPhase message={t(($) => $.account.transferSuccess, { amount })} />
+            <SendSuccessPhase
+              message={t(($) => $.account.transferSuccess, { amount, destination })}
+            />
           )}
 
           {phase === Phase.Error && (
@@ -429,7 +444,7 @@ function AnimatedSendIcon() {
   };
 
   return (
-    <motion.svg className="size-14 text-muted-foreground" viewBox="0 0 24 24">
+    <motion.svg className="size-10 text-muted-foreground" viewBox="0 0 24 24">
       <motion.path
         d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"
         {...strokeProps}
@@ -469,7 +484,7 @@ function SendProcessingPhase({ message }: { message: string }) {
     >
       <ResponsiveDialogTitle className="sr-only">{message}</ResponsiveDialogTitle>
       <motion.div
-        className="flex size-28 items-center justify-center rounded-full bg-primary/10"
+        className="flex size-16 items-center justify-center rounded-full bg-primary/10"
         initial={{ scale: 0, opacity: 0 }}
         animate={{
           scale: 1,
@@ -497,7 +512,7 @@ function SendProcessingPhase({ message }: { message: string }) {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
             >
-              <Loader className="size-10 text-muted-foreground" />
+              <Loader className="size-8 text-muted-foreground" />
             </motion.div>
           )}
         </AnimatePresence>
@@ -534,7 +549,7 @@ function SendSuccessPhase({ message }: { message: string }) {
         <AnimatedCheckmark />
       </motion.div>
       <motion.p
-        className="max-w-xs text-sm font-medium text-muted-foreground"
+        className="text-center text-sm font-medium text-muted-foreground"
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35, duration: 0.3 }}
