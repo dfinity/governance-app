@@ -3,7 +3,7 @@
   "increaseMaturity": {
     "title": "Increase maturity",
     "description": "Add maturity to this neuron for testing reward disbursement and auto-staking features.",
-    "amountLabel": "maturity to add",
+    "amountLabel": "Maturity to add",
     "confirm": "Confirm",
     "confirming": "Adding maturity...",
     "success": "Successfully added {{amount}} maturity.",
