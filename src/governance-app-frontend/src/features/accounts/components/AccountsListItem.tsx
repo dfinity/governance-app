@@ -1,3 +1,4 @@
+import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { ArrowDownLeft, List } from 'lucide-react';
 import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -15,7 +16,7 @@ import { CopyButton } from '@components/CopyButton';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { E8Sn, NANOSECONDS_IN_SECOND } from '@constants/extra';
+import { E8Sn, IS_TESTNET, NANOSECONDS_IN_SECOND } from '@constants/extra';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useIcpIndexAccountsTransactions } from '@hooks/icpIndex';
 import { useTickerPrices } from '@hooks/tickers';
@@ -24,6 +25,8 @@ import { bigIntDiv } from '@utils/bigInt';
 import { secondsToDate } from '@utils/date';
 import { shortenId } from '@utils/id';
 import { formatNumber } from '@utils/numbers';
+
+import { GetTokens } from '@/dev/GetTokens';
 
 import { useAccounts } from '../hooks/useAccounts';
 import { type Account, AccountType } from '../types';
@@ -66,15 +69,18 @@ export const AccountsListItem = ({ account }: Props) => {
                 />
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setIsDialogOpen(true)}
-              aria-label={t(($) => $.account.ariaLabel)}
-              title={t(($) => $.account.ariaLabel)}
-            >
-              <List aria-hidden="true" />
-            </Button>
+            <div className="flex items-center gap-1">
+              {IS_TESTNET && <GetTokens accountId={AccountIdentifier.fromHex(account.accountId)} />}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setIsDialogOpen(true)}
+                aria-label={t(($) => $.account.ariaLabel)}
+                title={t(($) => $.account.ariaLabel)}
+              >
+                <List aria-hidden="true" />
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
