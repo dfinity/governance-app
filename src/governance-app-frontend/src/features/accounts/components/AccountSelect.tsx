@@ -10,7 +10,7 @@ import { formatNumber } from '@utils/numbers';
 import { useAccounts } from '../hooks/useAccounts';
 import { type Account, isAccountReady } from '../types';
 
-type AccountSelectProps = {
+type Props = {
   id: string;
   label: string;
   value?: string;
@@ -26,7 +26,7 @@ export function AccountSelect({
   onChange,
   onAccountChange,
   'data-testid': testId,
-}: AccountSelectProps) {
+}: Props) {
   const { t } = useTranslation();
 
   const { data: accountsState } = useAccounts();
