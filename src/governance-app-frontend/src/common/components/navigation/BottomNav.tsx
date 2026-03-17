@@ -1,6 +1,5 @@
 import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { cn } from '@utils/shadcn';
@@ -8,7 +7,6 @@ import { cn } from '@utils/shadcn';
 import { getNavigationItems } from './NavigationItems';
 
 export const BottomNav = () => {
-  const { t } = useTranslation();
   const { features } = useAdvancedFeatures();
   const subaccountsEnabled = features.subaccounts;
   const navigationItems = getNavigationItems({ subaccountsEnabled });
