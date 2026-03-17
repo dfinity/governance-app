@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
+import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
 import { AccountType } from '@features/accounts/types';
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
@@ -62,6 +63,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
   );
 
   const { data: accountsState } = useAccounts();
+  const mainAccountMetadata = useMainAccountMetadata();
   const selectedAccount = accountsState?.accounts.find(
     (a) => a.accountId === formState.selectedAccountId,
   );
@@ -70,9 +72,8 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
       ? Array.from(selectedAccount.subAccount)
       : undefined;
 
-  // Falls back to main account since staking defaults to it when no subaccount is selected.
-  // Empty string is only possible while accounts are loading, before the user can submit.
-  const selectedAccountId = formState.selectedAccountId ?? accountsState?.mainAccountId ?? '';
+  // Falls back to main account id, derived synchronously from the identity.
+  const selectedAccountId = formState.selectedAccountId ?? mainAccountMetadata.data!.accountId;
 
   const createNeuron = useCreateNeuron({
     amount: formState.amount,
