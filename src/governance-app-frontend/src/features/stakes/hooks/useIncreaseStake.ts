@@ -70,7 +70,6 @@ export function useIncreaseStake() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: balanceQueryKey }),
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] }),
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS] }),
       ]).catch(failedRefresh);
     },
   });
