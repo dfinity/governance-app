@@ -6,7 +6,7 @@
     "accrualLabel": "Accrual",
     "accrual": "Maturity accumulates automatically as your neurons vote on proposals (either manually or via following).",
     "rateLabel": "Rate",
-    "rate": "Higher dissolve delays and auto-staking mint more maturity (up to {{max}}% maturity)."
+    "rate": "Higher dissolve delays and auto-staking mint more maturity (up to {{max}} maturity)."
   },
   "modulation": {
     "title": "Maturity modulation",
