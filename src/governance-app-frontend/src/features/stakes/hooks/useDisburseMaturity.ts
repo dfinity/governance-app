@@ -7,6 +7,8 @@ import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
 type DisburseMaturityParams = {
   neuronId: bigint;
+  toAccountIdentifier?: string;
+  selectedAccountId: string;
 };
 
 /**
@@ -29,6 +31,7 @@ export function useDisburseMaturity() {
       await governanceCanister.disburseMaturity({
         neuronId: params.neuronId,
         percentageToDisburse: 100,
+        toAccountIdentifier: params.toAccountIdentifier,
       });
 
       await queryClient

@@ -1,9 +1,16 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
+import { nonNullish } from '@dfinity/utils';
 import { Info, Loader2 } from 'lucide-react';
+import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
+
+import { AccountSelect } from '@features/accounts/components/AccountSelect';
+import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
+import { type Account, AccountType } from '@features/accounts/types';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
+import { Label } from '@components/Label';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -11,6 +18,7 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { E8Sn } from '@constants/extra';
+import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { bigIntDiv } from '@utils/bigInt';
 import { mapCanisterError } from '@utils/errors';
 import { getNeuronStakeAfterFeesE8s } from '@utils/neuron';
@@ -28,12 +36,36 @@ type Props = {
 export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation();
   const { mutateAsync, isPending } = useDisburseNeuron();
+  const mainAccountMetadata = useMainAccountMetadata();
+  const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>();
+  const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
+
+  const { features } = useAdvancedFeatures();
+  const subaccountsEnabled = features.subaccounts;
+
+  // Falls back to main account id, derived synchronously from the identity.
+  const resolvedAccountId = selectedAccountId ?? mainAccountMetadata.data!.accountId;
 
   const stakedAmount = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
 
+  const handleAccountChange = (accountId: string) => {
+    setSelectedAccountId(accountId);
+  };
+
   const handleConfirm = async () => {
+    // When a subaccount is selected, use its accountId as the destination.
+    // For the main account (or when subaccounts are disabled), use the main account id.
+    const toAccountId =
+      selectedAccount?.type === AccountType.Subaccount && nonNullish(selectedAccount.subAccount)
+        ? selectedAccount.accountId
+        : resolvedAccountId;
+
     try {
-      await mutateAsync({ neuronId: neuron.neuronId });
+      await mutateAsync({
+        neuronId: neuron.neuronId,
+        toAccountId,
+        selectedAccountId: resolvedAccountId,
+      });
       successNotification({
         description: t(($) => $.neuronDetailModal.disburseIcp.success),
       });
@@ -64,6 +96,21 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
         </ResponsiveDialogHeader>
 
         <div className="mt-4 flex flex-col gap-4 px-4 pb-4 md:px-0 md:pb-0">
+          {subaccountsEnabled && (
+            <div className="space-y-1">
+              <Label htmlFor="disburse-icp-to-account">
+                {t(($) => $.neuronDetailModal.disburseIcp.toAccount)}
+              </Label>
+              <AccountSelect
+                id="disburse-icp-to-account"
+                value={selectedAccountId}
+                onChange={handleAccountChange}
+                onAccountChange={setSelectedAccount}
+                data-testid="disburse-icp-account-select"
+              />
+            </div>
+          )}
+
           <Alert variant="info">
             <Info className="h-4 w-4" />
             <AlertDescription>

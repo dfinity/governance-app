@@ -73,6 +73,7 @@
   },
   "disburseIcp": {
     "title": "Disburse Neuron",
+    "toAccount": "To account",
     "info": "<strong>Disburse {{amount}} ICP.</strong> They will be returned to your available balance, and can be restaked at any time after disbursement.",
     "cancel": "Cancel",
     "confirm": "Disburse",
@@ -84,6 +85,7 @@
   },
   "disburseMaturity": {
     "title": "Disburse maturity",
+    "toAccount": "To account",
     "info": "<strong>Disbursement takes 1 week.</strong> {{amount}} maturity will be converted to ICP and added to your balance.",
     "cancel": "Cancel",
     "confirm": "Disburse",

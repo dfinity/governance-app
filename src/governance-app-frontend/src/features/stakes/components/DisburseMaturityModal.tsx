@@ -1,10 +1,16 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
+import { nonNullish } from '@dfinity/utils';
 import { AlertTriangle, Info, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { AccountSelect } from '@features/accounts/components/AccountSelect';
+import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
+import { type Account, AccountType } from '@features/accounts/types';
+
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
+import { Label } from '@components/Label';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -12,6 +18,7 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { E8Sn, ICP_MIN_DISBURSE_MATURITY_AMOUNT } from '@constants/extra';
+import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { bigIntDiv } from '@utils/bigInt';
 import { mapCanisterError } from '@utils/errors';
 import { getNeuronFreeMaturityE8s } from '@utils/neuron';
@@ -29,9 +36,22 @@ type Props = {
 export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation();
   const { mutateAsync, isPending } = useDisburseMaturity();
+  const mainAccountMetadata = useMainAccountMetadata();
+  const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>();
+  const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
   const [error, setError] = useState<string | null>(null);
 
+  const { features } = useAdvancedFeatures();
+  const subaccountsEnabled = features.subaccounts;
+
+  // Falls back to main account id, derived synchronously from the identity.
+  const resolvedAccountId = selectedAccountId ?? mainAccountMetadata.data!.accountId;
+
   const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
+
+  const handleAccountChange = (accountId: string) => {
+    setSelectedAccountId(accountId);
+  };
 
   const handleConfirm = async () => {
     if (unstakedMaturity < ICP_MIN_DISBURSE_MATURITY_AMOUNT) {
@@ -43,8 +63,19 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
       return;
     }
 
+    // When a subaccount is selected, pass its accountId as the destination.
+    // For the main account (or when subaccounts are disabled), omit so it defaults to main.
+    const toAccountIdentifier =
+      selectedAccount?.type === AccountType.Subaccount && nonNullish(selectedAccount.subAccount)
+        ? selectedAccount.accountId
+        : undefined;
+
     try {
-      await mutateAsync({ neuronId: neuron.neuronId });
+      await mutateAsync({
+        neuronId: neuron.neuronId,
+        toAccountIdentifier,
+        selectedAccountId: resolvedAccountId,
+      });
       successNotification({
         description: t(($) => $.neuronDetailModal.disburseMaturity.success),
       });
@@ -82,6 +113,21 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
         </ResponsiveDialogHeader>
 
         <div className="mt-4 flex flex-col gap-4 px-4 pb-4 md:px-0 md:pb-0">
+          {subaccountsEnabled && (
+            <div className="space-y-1">
+              <Label htmlFor="disburse-maturity-to-account">
+                {t(($) => $.neuronDetailModal.disburseMaturity.toAccount)}
+              </Label>
+              <AccountSelect
+                id="disburse-maturity-to-account"
+                value={selectedAccountId}
+                onChange={handleAccountChange}
+                onAccountChange={setSelectedAccount}
+                data-testid="disburse-maturity-account-select"
+              />
+            </div>
+          )}
+
           <Alert variant="info">
             <Info className="h-4 w-4" />
             <AlertDescription>
