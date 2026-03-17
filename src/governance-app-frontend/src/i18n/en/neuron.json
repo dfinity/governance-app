@@ -1,6 +1,6 @@
 {
-  "title": "Your Neurons",
-  "description": "Manage and create voting Neurons",
+  "title": "Your neurons",
+  "description": "Manage and create voting neurons",
   "neuronId": "Neuron #{{neuronId}}",
   "stakeId": "Neuron ID",
   "created": "Created",
@@ -14,13 +14,13 @@
   "dissolving": "Dissolving",
   "dissolved": "Dissolved",
   "hotkey": "Hotkey",
-  "hotkeyTooltip": "This Neuron is controlled by a different principal, but your account has been added as a hotkey. You can view the Neuron and vote, but other operations are limited to the controller.",
-  "noFollowingWarning": "Not following anyone yet. Set up following in the Voting page.",
+  "hotkeyTooltip": "This neuron is controlled by a different principal, but your account has been added as a hotkey. You can view the neuron and vote, but other operations are limited to the controller.",
+  "noFollowingWarning": "Not following anyone yet. Set up following in the voting page.",
   "disburseIcp": "Disburse ICPs",
   "disburseMaturity": "Disburse maturity",
   "stakeMaturity": "Stake maturity",
   "summary": {
-    "capital": "Total staked",
+    "capital": "Locked in neurons",
     "engagement": "Participation rate",
     "engagementTooltip": "Based on the last 50 proposals",
     "engagementAction": "View proposals",
@@ -36,13 +36,13 @@
   },
   "empty": {
     "title": "Start participating in governance",
-    "description": "Create your first Neuron to turn ICP into voting power. Neurons participate in voting and earn rewards over time.",
-    "cta": "Create your first Neuron",
-    "helper": "After staking, you can follow Known Neurons or vote directly on proposals."
+    "description": "Create your first neuron to turn ICP into voting power. Neurons participate in voting and mint rewards over time.",
+    "cta": "Create your first neuron",
+    "helper": "After staking, you can follow known neurons or vote directly on proposals."
   },
   "stakeNeuron": {
     "errors": {
-      "zeroBalance": "You need ICP to stake. Please buy or deposit ICP first."
+      "zeroBalance": "You need ICP to lock. Please buy or deposit ICP first."
     }
   }
 }

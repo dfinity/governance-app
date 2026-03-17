@@ -1,15 +1,15 @@
 {
-  "title": "Choose a Known Neuron to follow",
-  "description": "Select one trusted organization to vote on your behalf for all your Neurons.",
-  "empty": "No Known Neurons available.",
+  "title": "Choose a known neuron to follow",
+  "description": "Select one trusted organization to vote on your behalf for all your neurons.",
+  "empty": "No known neurons available.",
   "api": {
     "processing": "Updating your neurons to follow {{name}}...",
-    "success": "Now following {{name}} for all your Neurons.",
+    "success": "Now following {{name}} for all your neurons.",
     "error": "Failed to follow {{name}}.",
     "retry": "Retry"
   },
   "confirmation": {
     "title": "Confirm your selection",
-    "description": "You are going to set up all your Neurons to follow the same Known Neuron. This will override existing configurations. Are you sure?"
+    "description": "You are going to set up all your neurons to follow the same known neuron. This will override existing configurations. Are you sure?"
   }
 }
