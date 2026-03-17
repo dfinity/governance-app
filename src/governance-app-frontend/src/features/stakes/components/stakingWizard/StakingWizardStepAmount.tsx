@@ -1,17 +1,19 @@
+import { nonNullish } from '@dfinity/utils';
 import { AlertTriangle, Info } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useAccounts } from '@features/accounts/hooks/useAccounts';
+import { AccountSelect } from '@features/accounts/components/AccountSelect';
+import { type Account, isAccountReady } from '@features/accounts/types';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { AmountInput } from '@components/AmountInput';
 import { Button } from '@components/button';
 import { Label } from '@components/Label';
-import { NativeSelect, NativeSelectOption } from '@components/native-select';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
+import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useStakingRewards } from '@hooks/useStakingRewards';
@@ -44,16 +46,21 @@ export function StakingWizardStepAmount({
   const { features } = useAdvancedFeatures();
   const subaccountsEnabled = features.subaccounts;
 
-  const { data: accountsState } = useAccounts();
-  const accounts = accountsState?.accounts ?? [];
-  const showAccountSelector = subaccountsEnabled && (accountsState?.hasSubaccounts ?? false);
+  // Default balance from main account ledger (used when subaccounts FF is off)
+  const { data: balanceValue } = useIcpLedgerAccountBalance();
+  const defaultBalance = nonNullish(balanceValue?.response)
+    ? bigIntDiv(balanceValue.response, E8Sn)
+    : 0;
 
-  const selectedAccount =
-    accounts.find((a) => a.accountId === selectedAccountId) ??
-    accounts.find((a) => a.accountId === accountsState?.mainAccountId);
+  // When subaccounts are enabled, AccountSelect reports the selected account
+  const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
 
-  const balance =
-    selectedAccount?.status === 'ready' ? bigIntDiv(selectedAccount.balanceE8s, E8Sn) : 0;
+  const accountBalance =
+    nonNullish(selectedAccount) && isAccountReady(selectedAccount)
+      ? bigIntDiv(selectedAccount.balanceE8s, E8Sn)
+      : null;
+
+  const balance = subaccountsEnabled && nonNullish(accountBalance) ? accountBalance : defaultBalance;
   const maxStake = Math.max(0, roundToE8sPrecision(balance - ICP_TRANSACTION_FEE));
 
   const stakingRewards = useStakingRewards();
@@ -109,32 +116,15 @@ export function StakingWizardStepAmount({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      {showAccountSelector && (
-        <div className="space-y-1">
-          <Label htmlFor="stake-from-account">
-            {t(($) => $.stakeWizardModal.steps.amount.fromAccount)}
-          </Label>
-          <NativeSelect
-            id="stake-from-account"
-            value={selectedAccount?.accountId ?? ''}
-            onChange={(e) => handleAccountChange(e.target.value)}
-            className="w-full"
-            data-testid="staking-wizard-account-select"
-          >
-            {accounts.map((account) => (
-              <NativeSelectOption
-                key={account.accountId}
-                value={account.accountId}
-                disabled={account.status !== 'ready'}
-              >
-                {account.name}
-                {account.status === 'ready'
-                  ? ` — ${formatNumber(bigIntDiv(account.balanceE8s, E8Sn))} ICP`
-                  : ` — ${t(($) => $.common.loading)}…`}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-        </div>
+      {subaccountsEnabled && (
+        <AccountSelect
+          id="stake-from-account"
+          label={t(($) => $.stakeWizardModal.steps.amount.fromAccount)}
+          value={selectedAccountId}
+          onChange={handleAccountChange}
+          onAccountChange={setSelectedAccount}
+          data-testid="staking-wizard-account-select"
+        />
       )}
 
       <div className="space-y-1">

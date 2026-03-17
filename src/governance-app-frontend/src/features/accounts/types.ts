@@ -35,6 +35,10 @@ export type AccountError = AccountMetadata & {
 
 export type Account = AccountReady | AccountLoading | AccountError;
 
+export function isAccountReady(account: Account): account is AccountReady {
+  return account.status === 'ready';
+}
+
 export interface AccountsState {
   accounts: Account[];
   totalBalanceE8s: bigint;
