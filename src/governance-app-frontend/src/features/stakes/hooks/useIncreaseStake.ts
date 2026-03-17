@@ -15,6 +15,8 @@ type IncreaseStakeParams = {
   neuronId: bigint;
   accountIdentifier: string;
   amount: number;
+  fromSubAccount?: number[];
+  selectedAccountId: string;
 };
 
 /**
@@ -50,6 +52,7 @@ export function useIncreaseStake() {
         to: AccountIdentifier.fromHex(params.accountIdentifier),
         amount: amountE8s,
         fee: ICP_TRANSACTION_FEE_E8Sn,
+        fromSubAccount: params.fromSubAccount,
         createdAt,
       });
 
@@ -62,8 +65,10 @@ export function useIncreaseStake() {
       // Reset createdAt only after the full flow succeeds
       createdAtRef.current = null;
 
+      const balanceQueryKey = [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE, params.selectedAccountId];
+
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE] }),
+        queryClient.invalidateQueries({ queryKey: balanceQueryKey }),
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] }),
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS] }),
       ]).catch(failedRefresh);
