@@ -4,10 +4,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { isSuspiciousAddress } from '@features/account/utils/addressPoisoning';
 import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
 import { useSubaccountsMetadata } from '@features/accounts/hooks/useSubaccountsMetadata';
 
 import { E8Sn } from '@constants/extra';
+import { useAddressBook } from '@hooks/addressBook/useAddressBook';
+import { addressBookGetAddressString } from '@utils/addressBook';
 import { bigIntDiv } from '@utils/bigInt';
 import { shortenId } from '@utils/id';
 import { infoNotification } from '@utils/notification';
@@ -52,6 +55,7 @@ export const useIcpIndexTransactionsPolling = () => {
 
   const mainAccount = useMainAccountMetadata();
   const subaccounts = useSubaccountsMetadata();
+  const addressBookQuery = useAddressBook();
   const accountIds = [
     ...(mainAccount.data ? [mainAccount.data.accountId] : []),
     ...subaccounts.data.map((a) => a.accountId),
@@ -85,6 +89,16 @@ export const useIcpIndexTransactionsPolling = () => {
   useEffect(() => {
     if (!isSuccess) return;
 
+    const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
+
+    // Trusted set only includes the user's own accounts and address book contacts.
+    // Addresses from transaction history (e.g. past recipients) are not included,
+    // so poisoning attempts that mimic those addresses won't be caught here.
+    const trustedAddresses = new Set([
+      ...results.map(({ accountId }) => accountId),
+      ...addressBookEntries.map((entry) => addressBookGetAddressString(entry.address)),
+    ]);
+
     for (const { accountId, latestTransaction } of results) {
       const previous = lastTransactionsIdsRef.current.get(accountId);
       const current = latestTransaction?.id ?? null;
@@ -114,18 +128,24 @@ export const useIcpIndexTransactionsPolling = () => {
 
       if (amount && isReceivedTransfer(operation, accountId)) {
         const sender = operation.Transfer.from;
-        const truncatedSender = shortenId(sender, 6);
+
+        if (isSuspiciousAddress(sender, operation.Transfer.amount.e8s, trustedAddresses)) continue;
+
+        const contactName = addressBookEntries.find(
+          (entry) => addressBookGetAddressString(entry.address) === sender,
+        )?.name;
+        const senderLabel = contactName ?? shortenId(sender, 6);
 
         infoNotification({
           title: t(($) => $.account.newTransaction),
           description: t(($) => $.account.newTransactionDescription, {
             value: amount,
-            sender: truncatedSender,
+            sender: senderLabel,
           }),
         });
       }
     }
-  }, [results, isSuccess, queryClient, t]);
+  }, [results, isSuccess, queryClient, t, addressBookQuery.data]);
 
   // Reset tracking when the set of polled accounts changes.
   useEffect(() => {
