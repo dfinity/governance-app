@@ -5,7 +5,6 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AccountSelect } from '@features/accounts/components/AccountSelect';
-import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { type Account, AccountType, isAccountReady } from '@features/accounts/types';
 
 import { Alert, AlertDescription } from '@components/Alert';
@@ -44,9 +43,6 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
 
   const { features } = useAdvancedFeatures();
   const subaccountsEnabled = features.subaccounts;
-
-  const { data: accountsState } = useAccounts();
-  const resolvedAccountId = selectedAccountId ?? accountsState?.mainAccountId;
 
   // Default balance from main account ledger (used when subaccounts FF is off)
   const { data: balanceValue } = useIcpLedgerAccountBalance();
@@ -120,7 +116,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
         accountIdentifier,
         amount: numericAmount,
         fromSubAccount,
-        selectedAccountId: resolvedAccountId!,
+        selectedAccountId: selectedAccount!.accountId,
       });
 
       successNotification({
