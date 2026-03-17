@@ -7,7 +7,7 @@ import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
 type DisburseMaturityParams = {
   neuronId: bigint;
-  toAccountIdentifier: string;
+  toAccountId: string;
 };
 
 /**
@@ -30,12 +30,12 @@ export function useDisburseMaturity() {
       await governanceCanister.disburseMaturity({
         neuronId: params.neuronId,
         percentageToDisburse: 100,
-        toAccountIdentifier: params.toAccountIdentifier,
+        toAccountIdentifier: params.toAccountId,
       });
 
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE, params.toAccountIdentifier],
+          queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE, params.toAccountId],
         }),
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] }),
       ]).catch(failedRefresh);

@@ -63,7 +63,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
     try {
       await mutateAsync({
         neuronId: neuron.neuronId,
-        toAccountIdentifier: resolvedAccountId,
+        toAccountId: resolvedAccountId,
       });
       successNotification({
         description: t(($) => $.neuronDetailModal.disburseMaturity.success),
