@@ -1,12 +1,10 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { nonNullish } from '@dfinity/utils';
 import { AlertTriangle, Info, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { AccountSelect } from '@features/accounts/components/AccountSelect';
 import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
-import { type Account, AccountType } from '@features/accounts/types';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
@@ -38,7 +36,6 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   const { mutateAsync, isPending } = useDisburseMaturity();
   const mainAccountMetadata = useMainAccountMetadata();
   const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>();
-  const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
   const [error, setError] = useState<string | null>(null);
 
   const { features } = useAdvancedFeatures();
@@ -63,18 +60,10 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
       return;
     }
 
-    // When a subaccount is selected, pass its accountId as the destination.
-    // For the main account (or when subaccounts are disabled), omit so it defaults to main.
-    const toAccountIdentifier =
-      selectedAccount?.type === AccountType.Subaccount && nonNullish(selectedAccount.subAccount)
-        ? selectedAccount.accountId
-        : undefined;
-
     try {
       await mutateAsync({
         neuronId: neuron.neuronId,
-        toAccountIdentifier,
-        selectedAccountId: resolvedAccountId,
+        toAccountIdentifier: resolvedAccountId,
       });
       successNotification({
         description: t(($) => $.neuronDetailModal.disburseMaturity.success),
@@ -122,7 +111,6 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
                 id="disburse-maturity-to-account"
                 value={selectedAccountId}
                 onChange={handleAccountChange}
-                onAccountChange={setSelectedAccount}
                 data-testid="disburse-maturity-account-select"
               />
             </div>

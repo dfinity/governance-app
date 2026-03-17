@@ -1,12 +1,10 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { nonNullish } from '@dfinity/utils';
 import { Info, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { AccountSelect } from '@features/accounts/components/AccountSelect';
 import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
-import { type Account, AccountType } from '@features/accounts/types';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
@@ -38,7 +36,6 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
   const { mutateAsync, isPending } = useDisburseNeuron();
   const mainAccountMetadata = useMainAccountMetadata();
   const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>();
-  const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
 
   const { features } = useAdvancedFeatures();
   const subaccountsEnabled = features.subaccounts;
@@ -53,18 +50,10 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
   };
 
   const handleConfirm = async () => {
-    // When a subaccount is selected, use its accountId as the destination.
-    // For the main account (or when subaccounts are disabled), use the main account id.
-    const toAccountId =
-      selectedAccount?.type === AccountType.Subaccount && nonNullish(selectedAccount.subAccount)
-        ? selectedAccount.accountId
-        : resolvedAccountId;
-
     try {
       await mutateAsync({
         neuronId: neuron.neuronId,
-        toAccountId,
-        selectedAccountId: resolvedAccountId,
+        toAccountId: resolvedAccountId,
       });
       successNotification({
         description: t(($) => $.neuronDetailModal.disburseIcp.success),
@@ -105,7 +94,6 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
                 id="disburse-icp-to-account"
                 value={selectedAccountId}
                 onChange={handleAccountChange}
-                onAccountChange={setSelectedAccount}
                 data-testid="disburse-icp-account-select"
               />
             </div>
