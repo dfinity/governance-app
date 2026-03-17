@@ -4,6 +4,10 @@ import { AlertTriangle, Info, Loader2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AccountSelect } from '@features/accounts/components/AccountSelect';
+import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
+import { type Account, AccountType, isAccountReady } from '@features/accounts/types';
+
 import { Alert, AlertDescription } from '@components/Alert';
 import { AmountInput } from '@components/AmountInput';
 import { Button } from '@components/button';
@@ -12,6 +16,7 @@ import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers';
+import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { bigIntDiv } from '@utils/bigInt';
 import { mapCanisterError } from '@utils/errors';
 import { getNeuronStakeAfterFeesE8s } from '@utils/neuron';
@@ -29,20 +34,46 @@ type Props = {
 export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingChange }: Props) {
   const { t } = useTranslation();
   const [amount, setAmount] = useState('');
+  const mainAccountMetadata = useMainAccountMetadata();
+  const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>();
+  const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
+
+  // Falls back to main account id, derived synchronously from the identity.
+  const resolvedAccountId = selectedAccountId ?? mainAccountMetadata.data!.accountId;
   const [validationError, setValidationError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { tickerPrices: tickersQuery } = useTickerPrices();
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
 
+  const { features } = useAdvancedFeatures();
+  const subaccountsEnabled = features.subaccounts;
+
+  // Default balance from main account ledger (used when subaccounts FF is off)
   const { data: balanceValue } = useIcpLedgerAccountBalance();
-  const balance = nonNullish(balanceValue?.response) ? bigIntDiv(balanceValue.response, E8Sn) : 0;
+  const defaultBalance = nonNullish(balanceValue?.response)
+    ? bigIntDiv(balanceValue.response, E8Sn)
+    : 0;
+
+  const accountBalance =
+    nonNullish(selectedAccount) && isAccountReady(selectedAccount)
+      ? bigIntDiv(selectedAccount.balanceE8s, E8Sn)
+      : null;
+
+  const balance =
+    subaccountsEnabled && nonNullish(accountBalance) ? accountBalance : defaultBalance;
   const availableBalance = Math.max(0, roundToE8sPrecision(balance - ICP_TRANSACTION_FEE));
   const currentStake = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
 
   const accountIdentifier = neuron.fullNeuron?.accountIdentifier;
 
   const { mutateAsync, isPending } = useIncreaseStake();
+
+  const handleAccountChange = (accountId: string) => {
+    setSelectedAccountId(accountId);
+    setAmount('');
+    setValidationError(null);
+  };
 
   const handleAmountChange = (value: string) => {
     setAmount(value);
@@ -79,11 +110,18 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
 
     onProcessingChange(true);
 
+    const fromSubAccount =
+      selectedAccount?.type === AccountType.Subaccount && nonNullish(selectedAccount.subAccount)
+        ? Array.from(selectedAccount.subAccount)
+        : undefined;
+
     try {
       await mutateAsync({
         neuronId: neuron.neuronId,
         accountIdentifier,
         amount: numericAmount,
+        fromSubAccount,
+        selectedAccountId: resolvedAccountId,
       });
 
       successNotification({
@@ -116,6 +154,21 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {subaccountsEnabled && (
+        <div className="space-y-1">
+          <Label htmlFor="increase-stake-from-account">
+            {t(($) => $.neuronDetailModal.increaseStake.fromAccount)}
+          </Label>
+          <AccountSelect
+            id="increase-stake-from-account"
+            value={selectedAccountId}
+            onChange={handleAccountChange}
+            onAccountChange={setSelectedAccount}
+            data-testid="increase-stake-account-select"
+          />
+        </div>
+      )}
+
       <div className="space-y-1">
         <Label htmlFor="increase-amount">
           {t(($) => $.neuronDetailModal.increaseStake.amountLabel)}

@@ -10,6 +10,7 @@
   },
   "increaseStake": {
     "title": "Increase stake",
+    "fromAccount": "From account",
     "amountLabel": "Amount to add",
     "currentAndAvailable": "Current: {{current}} ICP • Available: {{available}} ICP",
     "info": "Adding ICP to your Neuron increases your voting power and potential rewards. The added amount will be locked for the same dissolve delay period.",

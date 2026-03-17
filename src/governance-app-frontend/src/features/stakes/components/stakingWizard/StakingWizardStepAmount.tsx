@@ -118,14 +118,18 @@ export function StakingWizardStepAmount({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {subaccountsEnabled && (
-        <AccountSelect
-          id="stake-from-account"
-          label={t(($) => $.stakeWizardModal.steps.amount.fromAccount)}
-          value={selectedAccountId}
-          onChange={handleAccountChange}
-          onAccountChange={setSelectedAccount}
-          data-testid="staking-wizard-account-select"
-        />
+        <div className="space-y-1">
+          <Label htmlFor="stake-from-account">
+            {t(($) => $.stakeWizardModal.steps.amount.fromAccount)}
+          </Label>
+          <AccountSelect
+            id="stake-from-account"
+            value={selectedAccountId}
+            onChange={handleAccountChange}
+            onAccountChange={setSelectedAccount}
+            data-testid="staking-wizard-account-select"
+          />
+        </div>
       )}
 
       <div className="space-y-1">
