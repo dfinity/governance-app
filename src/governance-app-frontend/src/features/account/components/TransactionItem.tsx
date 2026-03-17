@@ -56,6 +56,13 @@ export const AccountTransactionItem = ({
 
   const addressName = addressNameMap?.get(address);
 
+  const addressDirection =
+    type === TransactionType.RECEIVE
+      ? 'fromAddress'
+      : type === TransactionType.STAKE
+        ? 'intoAddress'
+        : 'toAddress';
+
   const transactionTimestamp = Number(
     timestampInNanosToSeconds(tx.transaction.created_at_time[0]?.timestamp_nanos ?? 0n),
   );
@@ -105,13 +112,7 @@ export const AccountTransactionItem = ({
                         className="flex items-center gap-1 text-sm text-muted-foreground"
                       >
                         <Trans
-                          i18nKey={($) =>
-                            type === TransactionType.RECEIVE
-                              ? $.account.fromAddress
-                              : type === TransactionType.STAKE
-                                ? $.account.intoAddress
-                                : $.account.toAddress
-                          }
+                          i18nKey={($) => $.account[addressDirection]}
                           values={{ address: addressName }}
                           components={{
                             address: <span className="font-semibold" />,
@@ -133,13 +134,7 @@ export const AccountTransactionItem = ({
                   >
                     <span className="md:hidden">
                       <Trans
-                        i18nKey={($) =>
-                          type === TransactionType.RECEIVE
-                            ? $.account.fromAddress
-                            : type === TransactionType.STAKE
-                              ? $.account.intoAddress
-                              : $.account.toAddress
-                        }
+                        i18nKey={($) => $.account[addressDirection]}
                         values={{ address: shortenId(address, 10) }}
                         components={{
                           address: <span className="font-mono" />,
@@ -148,13 +143,7 @@ export const AccountTransactionItem = ({
                     </span>
                     <span className="hidden md:inline">
                       <Trans
-                        i18nKey={($) =>
-                          type === TransactionType.RECEIVE
-                            ? $.account.fromAddress
-                            : type === TransactionType.STAKE
-                              ? $.account.intoAddress
-                              : $.account.toAddress
-                        }
+                        i18nKey={($) => $.account[addressDirection]}
                         values={{ address: shortenId(address, 18) }}
                         components={{
                           address: <span className="font-mono" />,
