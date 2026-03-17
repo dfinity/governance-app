@@ -49,9 +49,9 @@
   "next": "Next",
   "apy": "APY",
   "dashboard": "Dashboard",
-  "voting": "Voting",
+  "voting": "Vote for proposals",
   "accounts": "Accounts",
-  "stakes": "Neurons",
+  "stakes": "Voting neurons",
   "settings": "Settings",
   "clipboard": {
     "copy": "Copy to clipboard",
