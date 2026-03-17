@@ -28,7 +28,6 @@ export function AccountSelect({
 
   const { data: accountsState } = useAccounts();
   const accounts = accountsState?.accounts ?? [];
-  const hasSubaccounts = accountsState?.hasSubaccounts ?? false;
 
   const selectedAccount =
     accounts.find((a) => a.accountId === value) ??
@@ -37,8 +36,6 @@ export function AccountSelect({
   useEffect(() => {
     onAccountChange(selectedAccount);
   }, [selectedAccount, onAccountChange]);
-
-  if (!hasSubaccounts) return null;
 
   return (
     <NativeSelect
