@@ -5,6 +5,7 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AccountSelect } from '@features/accounts/components/AccountSelect';
+import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
 import { type Account, AccountType, isAccountReady } from '@features/accounts/types';
 
 import { Alert, AlertDescription } from '@components/Alert';
@@ -33,8 +34,12 @@ type Props = {
 export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingChange }: Props) {
   const { t } = useTranslation();
   const [amount, setAmount] = useState('');
+  const mainAccountMetadata = useMainAccountMetadata();
   const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>();
   const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
+
+  // Falls back to main account id, derived synchronously from the identity.
+  const resolvedAccountId = selectedAccountId ?? mainAccountMetadata.data!.accountId;
   const [validationError, setValidationError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -116,7 +121,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
         accountIdentifier,
         amount: numericAmount,
         fromSubAccount,
-        selectedAccountId: selectedAccount!.accountId,
+        selectedAccountId: resolvedAccountId,
       });
 
       successNotification({

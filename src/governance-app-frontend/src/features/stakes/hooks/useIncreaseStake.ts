@@ -65,10 +65,10 @@ export function useIncreaseStake() {
       // Reset createdAt only after the full flow succeeds
       createdAtRef.current = null;
 
-      const balanceQueryKey = [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE, params.selectedAccountId];
-
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: balanceQueryKey }),
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE, params.selectedAccountId],
+        }),
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] }),
       ]).catch(failedRefresh);
     },
