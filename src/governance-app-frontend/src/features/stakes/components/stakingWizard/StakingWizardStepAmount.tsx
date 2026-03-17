@@ -60,7 +60,8 @@ export function StakingWizardStepAmount({
       ? bigIntDiv(selectedAccount.balanceE8s, E8Sn)
       : null;
 
-  const balance = subaccountsEnabled && nonNullish(accountBalance) ? accountBalance : defaultBalance;
+  const balance =
+    subaccountsEnabled && nonNullish(accountBalance) ? accountBalance : defaultBalance;
   const maxStake = Math.max(0, roundToE8sPrecision(balance - ICP_TRANSACTION_FEE));
 
   const stakingRewards = useStakingRewards();
