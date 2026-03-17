@@ -62,12 +62,15 @@ export function TransactionListDialog({
   const addressBookQuery = useAddressBook();
   const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
 
-  const addressNameMap = new Map<string, string>();
+  const addressNameMap = new Map<string, { name: string; source: 'account' | 'addressBook' }>();
   for (const account of accountsData?.accounts ?? []) {
-    addressNameMap.set(account.accountId, account.name);
+    addressNameMap.set(account.accountId, { name: account.name, source: 'account' });
   }
   for (const entry of addressBookEntries) {
-    addressNameMap.set(addressBookGetAddressString(entry.address), entry.name);
+    addressNameMap.set(addressBookGetAddressString(entry.address), {
+      name: entry.name,
+      source: 'addressBook',
+    });
   }
 
   return (

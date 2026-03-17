@@ -1,6 +1,13 @@
 import { IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { nonNullish } from '@dfinity/utils';
-import { ArrowDownToLine, ArrowUp, BookUser, CircleQuestionMark, Lock } from 'lucide-react';
+import {
+  ArrowDownToLine,
+  ArrowUp,
+  BookUser,
+  CircleQuestionMark,
+  Lock,
+  WalletMinimal,
+} from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { detectTransactionType } from '@features/transactions/utils/transactionType';
@@ -32,7 +39,7 @@ export const AccountTransactionItem = ({
   accountId: string;
   certified: boolean;
   trustedAddresses: Set<string>;
-  addressNameMap?: Map<string, string>;
+  addressNameMap?: Map<string, { name: string; source: 'account' | 'addressBook' }>;
 }) => {
   const { t } = useTranslation();
   const userNeuronsAccountIds = useNeuronAccountsIds();
@@ -54,7 +61,8 @@ export const AccountTransactionItem = ({
   const address =
     type === TransactionType.RECEIVE ? operation.Transfer.from : operation.Transfer.to;
 
-  const addressName = addressNameMap?.get(address);
+  const addressEntry = addressNameMap?.get(address);
+  const addressName = addressEntry?.name;
 
   const addressDirection =
     type === TransactionType.RECEIVE
@@ -118,7 +126,11 @@ export const AccountTransactionItem = ({
                             address: <span className="font-semibold" />,
                           }}
                         />
-                        <BookUser className="size-3.5 shrink-0" aria-hidden />
+                        {addressEntry?.source === 'addressBook' ? (
+                          <BookUser className="size-3.5 shrink-0" aria-hidden />
+                        ) : (
+                          <WalletMinimal className="size-3.5 shrink-0" aria-hidden />
+                        )}
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>
