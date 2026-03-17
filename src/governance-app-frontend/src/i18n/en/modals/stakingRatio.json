@@ -1,5 +1,5 @@
 {
-  "title": "Maximize your staking",
+  "title": "Lock more, mint more",
   "introduction": "You have <strong>{{available}} ICP available</strong> that isn't minting rewards. Staking 100% of your ICP maximizes your governance rewards.",
   "introductionMaturityOnly": "You have <strong>{{available}} unstaked maturity</strong> that isn't compounding. Stake your maturity and enable auto-stake on your neurons to maximize your rewards.",
   "whyStake": {
