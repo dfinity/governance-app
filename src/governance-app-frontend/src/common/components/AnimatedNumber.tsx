@@ -1,4 +1,4 @@
-import { motion, useSpring, useTransform } from 'motion/react';
+import { animate, motion, useMotionValue, useTransform } from 'motion/react';
 import { useEffect, useMemo, useRef } from 'react';
 
 import { formatNumber } from '@utils/numbers';
@@ -10,11 +10,11 @@ type AnimatedNumberProps = {
   suffix?: string;
   formatter?: (value: number) => string;
   formatOptions?: { minFraction: number; maxFraction: number };
-  springConfig?: { stiffness: number; damping: number };
+  duration?: number;
   className?: string;
 } & Omit<React.ComponentProps<'span'>, 'children'>;
 
-const DEFAULT_SPRING_CONFIG = { stiffness: 80, damping: 35 };
+const DEFAULT_DURATION = 1.2;
 
 function AnimatedNumber({
   value,
@@ -22,21 +22,21 @@ function AnimatedNumber({
   suffix = '',
   formatter,
   formatOptions = { minFraction: 0, maxFraction: 0 },
-  springConfig = DEFAULT_SPRING_CONFIG,
+  duration = DEFAULT_DURATION,
   className,
   ...props
 }: AnimatedNumberProps) {
   const previousValue = useRef(0);
   const targetValue = useRef(0);
-  const progress = useSpring(0, springConfig);
+  const progress = useMotionValue(0);
 
   useEffect(() => {
     previousValue.current =
       previousValue.current + (targetValue.current - previousValue.current) * progress.get();
     targetValue.current = value;
     progress.jump(0);
-    progress.set(1);
-  }, [progress, value]);
+    animate(progress, 1, { duration, ease: [0.16, 1, 0.3, 1] });
+  }, [progress, value, duration]);
 
   const display = useTransform(progress, (t) => {
     const current = previousValue.current + (value - previousValue.current) * t;
