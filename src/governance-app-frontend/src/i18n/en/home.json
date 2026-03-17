@@ -6,8 +6,8 @@
   "ofTotalSupply": "{{value}}% of total supply",
   "dailyRewards": "Daily rewards",
   "icpPrice": "ICP price",
-  "maxApy": "Max APY",
-  "yourApy": "Your APY",
+  "maxApy": "Current max minting",
+  "yourApy": "Maturity",
   "maturity": "Maturity",
   "forecast": {
     "oneYear": "1y forecast"
@@ -25,13 +25,13 @@
   },
   "smartTitle": {
     "noAssetsTitle": "Participate in ICP governance",
-    "noAssetsSubtitle": "Stake, vote, earn up to {{value}} per year",
-    "noAssetsSubtitleStatic": "Stake, vote, and earn rewards",
+    "noAssetsSubtitle": "Lock, vote, mint up to {{value}} per year",
+    "noAssetsSubtitleStatic": "Lock, vote, and mint rewards",
     "noAssetsCta": "Deposit or buy ICP",
     "liquidOnlyTitle": "Your ICP are not participating in governance",
-    "liquidOnlySubtitle": "Stake ICP to start voting and earn rewards",
+    "liquidOnlySubtitle": "Lock ICP to start voting and mint rewards",
     "liquidOnlyCta": "Start staking",
-    "stakedTitle": "Participate in ICP governance",
-    "stakedSubtitle": "Earn rewards"
+    "stakedTitle": "Participating in ICP Governance",
+    "stakedSubtitle": "Your ICP are locked and minting rewards"
   }
 }

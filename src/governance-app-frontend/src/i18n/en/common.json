@@ -47,7 +47,7 @@
   "retry": "Retry",
   "back": "Back",
   "next": "Next",
-  "apy": "APY",
+  "apy": "Maturity",
   "dashboard": "Dashboard",
   "voting": "Voting",
   "accounts": "Accounts",
@@ -74,8 +74,8 @@
     "appName": "Network Nervous System",
     "defaultDescription": "Participate in decentralized governance on the Internet Computer",
     "login": {
-      "title": "ICP staking & voting | Network Nervous System",
-      "description": "Participate in decentralized governance on the Internet Computer. Stake ICP, vote on proposals, and earn rewards."
+      "title": "ICP governance & voting | Network Nervous System",
+      "description": "Participate in decentralized governance on the Internet Computer. Lock ICP, vote on proposals, and mint rewards."
     },
     "dashboard": {
       "title": "Dashboard | Network Nervous System"
