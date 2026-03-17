@@ -42,24 +42,24 @@ export function AccountSelect({
 
   return (
     <NativeSelect
-        id={id}
-        value={selectedAccount?.accountId ?? ''}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full"
-        data-testid={testId}
-      >
-        {accounts.map((account) => (
-          <NativeSelectOption
-            key={account.accountId}
-            value={account.accountId}
-            disabled={!isAccountReady(account)}
-          >
-            {account.name}
-            {isAccountReady(account)
-              ? ` — ${formatNumber(bigIntDiv(account.balanceE8s, E8Sn))} ICP`
-              : ` — ${t(($) => $.common.loading)}…`}
-          </NativeSelectOption>
-        ))}
+      id={id}
+      value={selectedAccount?.accountId ?? ''}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full"
+      data-testid={testId}
+    >
+      {accounts.map((account) => (
+        <NativeSelectOption
+          key={account.accountId}
+          value={account.accountId}
+          disabled={!isAccountReady(account)}
+        >
+          {account.name}
+          {isAccountReady(account)
+            ? ` — ${formatNumber(bigIntDiv(account.balanceE8s, E8Sn))} ICP`
+            : ` — ${t(($) => $.common.loading)}…`}
+        </NativeSelectOption>
+      ))}
     </NativeSelect>
   );
 }
