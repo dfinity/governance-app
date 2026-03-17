@@ -8,7 +8,6 @@ import { failedRefresh, QUERY_KEYS } from '@utils/query';
 type DisburseNeuronParams = {
   neuronId: bigint;
   toAccountId: string;
-  selectedAccountId: string;
 };
 
 /**
@@ -34,7 +33,7 @@ export function useDisburseNeuron() {
 
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE, params.selectedAccountId],
+          queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE, params.toAccountId],
         }),
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] }),
       ]).catch(failedRefresh);
