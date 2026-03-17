@@ -1,4 +1,4 @@
-import { animate, motion, useMotionValue, useTransform } from 'motion/react';
+import { animate, type HTMLMotionProps, motion, useMotionValue, useTransform } from 'motion/react';
 import { useEffect, useMemo, useRef } from 'react';
 
 import { formatNumber } from '@utils/numbers';
@@ -12,7 +12,7 @@ type AnimatedNumberProps = {
   formatOptions?: { minFraction: number; maxFraction: number };
   duration?: number;
   className?: string;
-} & Omit<React.ComponentProps<'span'>, 'children'>;
+} & Omit<HTMLMotionProps<'span'>, 'children'>;
 
 const DEFAULT_DURATION = 1.2;
 
@@ -50,12 +50,12 @@ function AnimatedNumber({
   }, [value, prefix, suffix, formatter, formatOptions]);
 
   return (
-    <span className={cn('relative inline-flex', className)} {...props}>
+    <motion.span className={cn('relative inline-flex', className)} {...props}>
       <span className="invisible" aria-hidden="true">
         {finalDisplay}
       </span>
       <motion.span className="absolute inset-0">{display}</motion.span>
-    </span>
+    </motion.span>
   );
 }
 
