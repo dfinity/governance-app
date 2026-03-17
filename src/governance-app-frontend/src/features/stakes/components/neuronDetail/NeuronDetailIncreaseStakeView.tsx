@@ -155,14 +155,18 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {subaccountsEnabled && (
-        <AccountSelect
-          id="increase-stake-from-account"
-          label={t(($) => $.neuronDetailModal.increaseStake.fromAccount)}
-          value={selectedAccountId}
-          onChange={handleAccountChange}
-          onAccountChange={setSelectedAccount}
-          data-testid="increase-stake-account-select"
-        />
+        <div className="space-y-1">
+          <Label htmlFor="increase-stake-from-account">
+            {t(($) => $.neuronDetailModal.increaseStake.fromAccount)}
+          </Label>
+          <AccountSelect
+            id="increase-stake-from-account"
+            value={selectedAccountId}
+            onChange={handleAccountChange}
+            onAccountChange={setSelectedAccount}
+            data-testid="increase-stake-account-select"
+          />
+        </div>
       )}
 
       <div className="space-y-1">

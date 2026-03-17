@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Label } from '@components/Label';
 import { NativeSelect, NativeSelectOption } from '@components/native-select';
 import { E8Sn } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
@@ -12,7 +11,6 @@ import { type Account, isAccountReady } from '../types';
 
 type Props = {
   id: string;
-  label: string;
   value?: string;
   onChange: (accountId: string) => void;
   onAccountChange: (account: Account | undefined) => void;
@@ -21,7 +19,6 @@ type Props = {
 
 export function AccountSelect({
   id,
-  label,
   value,
   onChange,
   onAccountChange,
@@ -44,9 +41,7 @@ export function AccountSelect({
   if (!hasSubaccounts) return null;
 
   return (
-    <div className="space-y-1">
-      <Label htmlFor={id}>{label}</Label>
-      <NativeSelect
+    <NativeSelect
         id={id}
         value={selectedAccount?.accountId ?? ''}
         onChange={(e) => onChange(e.target.value)}
@@ -65,7 +60,6 @@ export function AccountSelect({
               : ` — ${t(($) => $.common.loading)}…`}
           </NativeSelectOption>
         ))}
-      </NativeSelect>
-    </div>
+    </NativeSelect>
   );
 }
