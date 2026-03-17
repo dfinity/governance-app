@@ -50,13 +50,11 @@ function AnimatedNumber({
   }, [value, prefix, suffix, formatter, formatOptions]);
 
   return (
-    <span className="relative inline-flex">
+    <span className={cn('relative inline-flex', className)} {...props}>
       <span className="invisible" aria-hidden="true">
         {finalDisplay}
       </span>
-      <motion.span className={cn('absolute inset-0', className)} {...props}>
-        {display}
-      </motion.span>
+      <motion.span className="absolute inset-0">{display}</motion.span>
     </span>
   );
 }

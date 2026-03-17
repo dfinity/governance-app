@@ -20,7 +20,7 @@ import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronsAggregatedData } from '@utils/neuron';
 import { warningNotification } from '@utils/notification';
-import { formatNumber } from '@utils/numbers';
+import { formatNumber, formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady, MaturityEstimatePeriod } from '@utils/staking-rewards';
 
 export function StakedCard() {
@@ -79,13 +79,9 @@ export function StakedCard() {
 
             {stakingRewardsReady && apyColor.ready ? (
               <span className="flex items-center">
-                <AnimatedNumber
-                  value={stakingRewards.apy.cur * 100}
-                  suffix="%"
-                  formatOptions={{ minFraction: 2, maxFraction: 2 }}
-                  className="text-lg font-bold"
-                  style={{ color: apyColor.textColor }}
-                />
+                <span className="text-lg font-bold" style={{ color: apyColor.textColor }}>
+                  {formatPercentage(stakingRewards.apy.cur)}
+                </span>
                 {stakingRewards.apy.cur < stakingRewards.apy.max && <ApyOptimizationModal />}
               </span>
             ) : (
@@ -135,13 +131,12 @@ export function StakedCard() {
             </p>
             <div className="flex items-center justify-end gap-1.5">
               {stakingRewardsReady ? (
-                <span className="text-xl font-bold">
-                  {t(($) => $.common.positiveNumber, {
-                    value: formatNumber(
-                      stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) || 0,
-                    ),
-                  })}
-                </span>
+                <AnimatedNumber
+                  value={stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) || 0}
+                  prefix="+"
+                  formatOptions={{ minFraction: 2, maxFraction: 2 }}
+                  className="text-xl font-bold"
+                />
               ) : (
                 <Skeleton className="h-7 w-13" />
               )}
