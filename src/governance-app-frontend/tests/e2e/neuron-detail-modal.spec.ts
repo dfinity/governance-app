@@ -25,7 +25,7 @@ test.describe.serial('Neuron Detail Modal', () => {
     await openApp({ page });
     await login({ page });
     await getIcps(page, '10');
-    await page.getByRole('link', { name: 'Neurons' }).click();
+    await page.getByRole('link', { name: 'Voting neurons' }).click();
 
     await page.getByTestId('empty-neurons-state-open-staking-wizard-btn').click();
     await page.getByTestId('staking-wizard-amount-input').fill('5');
