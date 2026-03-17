@@ -30,7 +30,7 @@
     "noAssetsCta": "Deposit or buy ICP",
     "liquidOnlyTitle": "Your ICP are not participating in governance",
     "liquidOnlySubtitle": "Lock ICP to start voting and mint rewards",
-    "liquidOnlyCta": "Start staking",
+    "liquidOnlyCta": "Create neuron",
     "stakedTitle": "Participating in ICP governance",
     "stakedSubtitle": "Your ICP are locked and minting rewards"
   }
