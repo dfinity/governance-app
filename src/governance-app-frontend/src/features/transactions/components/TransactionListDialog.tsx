@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { AccountTransactionItem } from '@features/account/components/TransactionItem';
 import { useNeuronAccountsIds } from '@features/account/hooks/useNeuronAccountsIds';
 import { buildTrustedAddresses } from '@features/account/utils/addressPoisoning';
+import { useAccounts } from '@features/accounts/hooks/useAccounts';
 
 import { MultipleSkeletons } from '@components/MultipleSkeletons';
 import { QueryStates } from '@components/QueryStates';
@@ -16,8 +17,10 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
+import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
 import { CertifiedData } from '@typings/queries';
+import { addressBookGetAddressString } from '@utils/addressBook';
 
 interface TransactionListDialogProps {
   open: boolean;
@@ -55,6 +58,21 @@ export function TransactionListDialog({
     ? buildTrustedAddresses(accountIdHex, neuronAccountIds, allTransactions)
     : new Set<string>();
 
+  const { data: accountsData } = useAccounts();
+  const addressBookQuery = useAddressBook();
+  const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
+
+  const addressNameMap = new Map<string, { name: string; source: 'account' | 'addressBook' }>();
+  for (const account of accountsData?.accounts ?? []) {
+    addressNameMap.set(account.accountId, { name: account.name, source: 'account' });
+  }
+  for (const entry of addressBookEntries) {
+    addressNameMap.set(addressBookGetAddressString(entry.address), {
+      name: entry.name,
+      source: 'addressBook',
+    });
+  }
+
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
       <ResponsiveDialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-3xl">
@@ -91,6 +109,7 @@ export function TransactionListDialog({
                         key={tx.id}
                         tx={tx}
                         trustedAddresses={trustedAddresses}
+                        addressNameMap={addressNameMap}
                       />
                     )),
                   )}
