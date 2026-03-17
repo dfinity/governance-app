@@ -1,12 +1,12 @@
 {
   "title": "What is Maturity?",
-  "introduction": "Maturity is the staking reward you earn for participating in governance. It accumulates over time based on your Neuron's voting activity and settings.",
+  "introduction": "Maturity is the reward you mint for participating in governance. It accumulates over time based on your neuron's voting activity and settings.",
   "howItWorks": {
     "title": "How it works",
     "accrualLabel": "Accrual",
-    "accrual": "Maturity accumulates automatically as your Neurons vote on proposals (either manually or via following).",
+    "accrual": "Maturity accumulates automatically as your neurons vote on proposals (either manually or via following).",
     "rateLabel": "Rate",
-    "rate": "Higher dissolve delays and auto-staking earn more maturity (up to {{max}}% APY)."
+    "rate": "Higher dissolve delays and auto-staking mint more maturity (up to {{max}}% maturity)."
   },
   "modulation": {
     "title": "Maturity modulation",

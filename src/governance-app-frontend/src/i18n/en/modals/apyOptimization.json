@@ -1,6 +1,6 @@
 {
-  "title": "Maximize your APY",
-  "introduction": "Maximize your voting rewards by optimizing your Neurons' parameters. The maximum APY of <strong>{{maxApy}}</strong> is achieved with:",
+  "title": "Maximize your maturity",
+  "introduction": "Maximize your voting rewards by optimizing your neurons' parameters. The maximum maturity rate of <strong>{{maxApy}}</strong> is achieved with:",
   "optimalSettings": {
     "title": "Optimal settings",
     "lockedLabel": "Locked state",
@@ -10,17 +10,17 @@
     "autoStakeLabel": "Auto-stake Maturity",
     "autoStake": "Compound growth for even higher long-term returns."
   },
-  "yourNeurons": "Your Neurons",
+  "yourNeurons": "Your neurons",
   "neuronLabel": "Neuron #{{id}}",
   "fullyOptimized": "Fully optimized",
-  "allOptimized": "All Neurons are fully optimized!",
-  "noNeurons": "No Neurons yet. Create one to start earning rewards!",
+  "allOptimized": "All neurons are fully optimized!",
+  "noNeurons": "No neurons yet. Create one to start minting rewards!",
   "issues": {
     "notLocked": "Not locked",
     "delayLow": "Delay < 8Y",
     "notAutoStaking": "Not auto-staking"
   },
   "maximize": "Maximize",
-  "optimizeAll": "Optimize all Neurons",
-  "ariaLabel": "Open APY optimization modal"
+  "optimizeAll": "Optimize all neurons",
+  "ariaLabel": "Open maturity optimization modal"
 }

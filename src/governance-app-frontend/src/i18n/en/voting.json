@@ -1,13 +1,13 @@
 {
   "title": "Voting",
   "following": "Votes on your behalf",
-  "description": "Your Neurons earn rewards by participating in governance. You can vote yourself or delegate voting to a Known Neuron.",
+  "description": "Your neurons mint rewards by participating in governance. You can vote yourself or delegate voting to a known neuron.",
   "viewKnownNeuron": "Details",
-  "cta": "Manage Known Neuron",
+  "cta": "Manage known neuron",
   "noFollowing": {
-    "title": "No Known Neuron selected",
-    "body": "Following a Known Neuron automates voting on proposals and helps ensure your Neuron earns voting rewards.",
-    "cta": "Choose a Known Neuron"
+    "title": "No known neuron selected",
+    "body": "Following a known neuron automates voting on proposals and helps ensure your neuron mints voting rewards.",
+    "cta": "Choose a known neuron"
   },
   "proposals": {
     "cta": "Curious about what's being voted on?",
@@ -19,9 +19,9 @@
     "noProposals": "No proposals available."
   },
   "warnings": {
-    "stakeRequired": "You need at least one Neuron to follow a Known Neuron. Please stake ICP first.",
+    "stakeRequired": "You need at least one neuron to follow a known neuron. Please lock ICP first.",
     "followingMismatchTitle": "Voting setup",
-    "followingMismatch": "Your Neurons follow multiple Known Neurons across different topics, so a single Known Neuron card can't be shown yet."
+    "followingMismatch": "Your neurons follow multiple known neurons across different topics, so a single known neuron card can't be shown yet."
   },
   "errors": {
     "loadFollowing": "Unable to load following data. Please try refreshing the page."
