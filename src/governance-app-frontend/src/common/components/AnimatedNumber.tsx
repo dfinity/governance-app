@@ -1,7 +1,6 @@
 import { animate, type HTMLMotionProps, motion, useMotionValue, useTransform } from 'motion/react';
 import { useEffect, useMemo, useRef } from 'react';
 
-import { formatNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
 type AnimatedNumberProps = {
@@ -15,13 +14,14 @@ type AnimatedNumberProps = {
 } & Omit<HTMLMotionProps<'span'>, 'children'>;
 
 const DEFAULT_DURATION = 1.2;
+const DEFAULT_FORMAT_OPTIONS = { minFraction: 0, maxFraction: 0 };
 
 function AnimatedNumber({
   value,
   prefix = '',
   suffix = '',
   formatter,
-  formatOptions = { minFraction: 0, maxFraction: 0 },
+  formatOptions = DEFAULT_FORMAT_OPTIONS,
   duration = DEFAULT_DURATION,
   className,
   ...props
@@ -29,6 +29,18 @@ function AnimatedNumber({
   const previousValue = useRef(0);
   const targetValue = useRef(0);
   const progress = useMotionValue(0);
+
+  const numberFormat = useMemo(
+    () =>
+      new Intl.NumberFormat('fr-FR', {
+        minimumFractionDigits: formatOptions.minFraction,
+        maximumFractionDigits: formatOptions.maxFraction,
+      }),
+    [formatOptions.minFraction, formatOptions.maxFraction],
+  );
+
+  const formatValue = (v: number) =>
+    formatter ? formatter(v) : numberFormat.format(v).replace(/\s/g, '\u2019').replace(',', '.');
 
   useEffect(() => {
     previousValue.current =
@@ -40,14 +52,13 @@ function AnimatedNumber({
 
   const display = useTransform(progress, (t) => {
     const current = previousValue.current + (value - previousValue.current) * t;
-    const formatted = formatter ? formatter(current) : formatNumber(current, formatOptions);
-    return `${prefix}${formatted}${suffix}`;
+    return `${prefix}${formatValue(current)}${suffix}`;
   });
 
   const finalDisplay = useMemo(() => {
-    const formatted = formatter ? formatter(value) : formatNumber(value, formatOptions);
-    return `${prefix}${formatted}${suffix}`;
-  }, [value, prefix, suffix, formatter, formatOptions]);
+    return `${prefix}${formatValue(value)}${suffix}`;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, prefix, suffix, formatter, numberFormat]);
 
   return (
     <motion.span className={cn('relative inline-flex', className)} {...props}>
