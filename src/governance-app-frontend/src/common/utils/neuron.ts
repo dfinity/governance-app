@@ -237,7 +237,7 @@ export const isUserHotkey = ({
 /**
  * Aggregates staking data from multiple neurons.
  * @param neurons - Array of neurons to aggregate data from
- * @returns Object containing totalStakedAfterFees and totalUnstakedMaturity
+ * @returns Object containing totalStakedAfterFees and totalMaturity
  */
 export const getNeuronsAggregatedData = (
   neurons: NeuronInfo[] = [],
