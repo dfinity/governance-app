@@ -62,11 +62,7 @@ const variantConfig = {
   advanced: { Icon: ArrowUpRight, className: 'flex-1', label: 'send' },
 } as const;
 
-export const SendICPButton: React.FC<Props> = ({
-  balance,
-  fromAccountId,
-  variant = 'simple',
-}) => {
+export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant = 'simple' }) => {
   const { t } = useTranslation();
 
   const {

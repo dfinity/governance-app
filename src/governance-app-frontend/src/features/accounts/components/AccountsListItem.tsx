@@ -136,11 +136,7 @@ function AccountBalance({
         </p>
       </div>
       <div className="flex gap-3">
-        <SendICPButton
-          balance={balanceICP}
-          fromAccountId={account.accountId}
-          variant="advanced"
-        />
+        <SendICPButton balance={balanceICP} fromAccountId={account.accountId} variant="advanced" />
         <Button
           variant="outline"
           size="xl"
