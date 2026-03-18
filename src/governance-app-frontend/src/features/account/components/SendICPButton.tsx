@@ -12,6 +12,7 @@ import type { NamedAddress } from '@declarations/governance-app-backend/governan
 
 import { AccountSelect } from '@features/accounts/components/AccountSelect';
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
+import { useAccountSelection } from '@features/accounts/hooks/useAccountSelection';
 import { type Account, isAccountReady } from '@features/accounts/types';
 import { AddressBookSelect } from '@features/addressBook/components/AddressBookSelect';
 
@@ -79,6 +80,9 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   const { tickerPrices: tickersQuery } = useTickerPrices();
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
 
+  const { selectedAccountId, setSelectedAccountId, subaccountsEnabled } =
+    useAccountSelection(fromAccountId);
+
   const { data: accountsState } = useAccounts();
 
   const addressBookQuery = useAddressBook();
@@ -95,7 +99,6 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   const [phase, setPhase] = useState<Phase>(Phase.Form);
   const [errorMessage, setErrorMessage] = useState('');
   const [useAddressBookToggle, setUseAddressBookToggle] = useState(false);
-  const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>(fromAccountId);
   const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
   const amountInputRef = useRef<HTMLInputElement>(null);
 
@@ -115,10 +118,10 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   const createdAtRef = useRef<bigint | null>(null);
 
   const effectiveBalance =
-    nonNullish(selectedAccount) && isAccountReady(selectedAccount)
+    subaccountsEnabled && nonNullish(selectedAccount) && isAccountReady(selectedAccount)
       ? bigIntDiv(selectedAccount.balanceE8s, E8Sn)
       : balance;
-  const effectiveSubAccount = selectedAccount?.subAccount;
+  const effectiveSubAccount = subaccountsEnabled ? selectedAccount?.subAccount : undefined;
 
   const transferMutation = useMutation({
     mutationFn: () => {
@@ -296,6 +299,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
         <AnimatePresence mode="wait" initial={false}>
           {phase === Phase.Form && (
             <SendFormPhase
+              subaccountsEnabled={subaccountsEnabled}
               selectedAccountId={selectedAccountId}
               onSelectedAccountIdChange={setSelectedAccountId}
               onSelectedAccountChange={setSelectedAccount}
@@ -369,6 +373,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
 };
 
 type SendFormPhaseProps = {
+  subaccountsEnabled: boolean;
   selectedAccountId?: string;
   onSelectedAccountIdChange: (id: string) => void;
   onSelectedAccountChange: (account: Account | undefined) => void;
@@ -395,6 +400,7 @@ type SendFormPhaseProps = {
 };
 
 function SendFormPhase({
+  subaccountsEnabled,
   selectedAccountId,
   onSelectedAccountIdChange,
   onSelectedAccountChange,
@@ -441,18 +447,20 @@ function SendFormPhase({
 
       <div className="-mx-1 flex-1 overflow-y-auto px-5 pt-6 pb-4 md:px-1">
         <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="send-from-account">
-              {t(($) => $.stakeWizardModal.steps.amount.fromAccount)}
-            </Label>
-            <AccountSelect
-              id="send-from-account"
-              value={selectedAccountId}
-              onChange={onSelectedAccountIdChange}
-              onAccountChange={onSelectedAccountChange}
-              data-testid="send-from-account-select"
-            />
-          </div>
+          {subaccountsEnabled && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="send-from-account">
+                {t(($) => $.stakeWizardModal.steps.amount.fromAccount)}
+              </Label>
+              <AccountSelect
+                id="send-from-account"
+                value={selectedAccountId}
+                onChange={onSelectedAccountIdChange}
+                onAccountChange={onSelectedAccountChange}
+                data-testid="send-from-account-select"
+              />
+            </div>
+          )}
 
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">

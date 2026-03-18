@@ -4,9 +4,9 @@ import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 
 import { useMainAccountMetadata } from './useMainAccountMetadata';
 
-export function useAccountDestination() {
+export function useAccountSelection(initialAccountId?: string) {
   const mainAccountMetadata = useMainAccountMetadata();
-  const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>();
+  const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>(initialAccountId);
 
   const { features } = useAdvancedFeatures();
   const subaccountsEnabled = features.subaccounts;
