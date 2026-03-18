@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { AccountSelect } from '@features/accounts/components/AccountSelect';
-import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
+import { useAccountDestination } from '@features/accounts/hooks/useAccountDestination';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
@@ -16,7 +16,6 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { E8Sn, ICP_MIN_DISBURSE_MATURITY_AMOUNT } from '@constants/extra';
-import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { bigIntDiv } from '@utils/bigInt';
 import { mapCanisterError } from '@utils/errors';
 import { getNeuronFreeMaturityE8s } from '@utils/neuron';
@@ -34,21 +33,11 @@ type Props = {
 export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation();
   const { mutateAsync, isPending } = useDisburseMaturity();
-  const mainAccountMetadata = useMainAccountMetadata();
-  const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>();
+  const { selectedAccountId, setSelectedAccountId, resolvedAccountId, subaccountsEnabled } =
+    useAccountDestination();
   const [error, setError] = useState<string | null>(null);
 
-  const { features } = useAdvancedFeatures();
-  const subaccountsEnabled = features.subaccounts;
-
-  // Falls back to main account id, derived synchronously from the identity.
-  const resolvedAccountId = selectedAccountId ?? mainAccountMetadata.data!.accountId;
-
   const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
-
-  const handleAccountChange = (accountId: string) => {
-    setSelectedAccountId(accountId);
-  };
 
   const handleConfirm = async () => {
     if (unstakedMaturity < ICP_MIN_DISBURSE_MATURITY_AMOUNT) {
@@ -110,7 +99,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
               <AccountSelect
                 id="disburse-maturity-to-account"
                 value={selectedAccountId}
-                onChange={handleAccountChange}
+                onChange={setSelectedAccountId}
                 data-testid="disburse-maturity-account-select"
               />
             </div>
