@@ -4,7 +4,7 @@
   "transferSuccess": "You have successfully sent {{amount}} ICP to {{destination}}.",
   "transferProcessing": "Sending {{amount}} ICP to {{destination}} ...",
   "destinationAccount": "Destination account",
-  "transferTitle": "Send ICP to another account",
+  "transferTitle": "Send ICP",
   "availableBalance": "Available: {{amount}} ICP",
   "accountError": "Please enter a valid ICP or ICRC1 address.",
   "insufficientBalance": "Insufficient balance. You can send up to {{max}} ICP.",
@@ -22,5 +22,13 @@
   "ariaLabel": "Open transactions list",
   "newTransaction": "New transaction detected",
   "newTransactionDescription": "You received {{value}} ICP from {{sender}}. Your balance is being updated.",
-  "noTransactions": "No transactions found for this account."
+  "noTransactions": "No transactions found for this account.",
+  "confirmTransferTitle": "Review transaction",
+  "confirmFrom": "From",
+  "confirmTo": "To",
+  "confirmAmount": "Amount",
+  "confirmFee": "Fee",
+  "confirmTransactionFee": "Transaction fee",
+  "unknownAddress": "Unknown",
+  "destinationWarning": "This address is not in your address book. Please verify it is correct."
 }

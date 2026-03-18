@@ -35,6 +35,7 @@ import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
 import { useTickerPrices } from '@hooks/tickers';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
+import { addressBookGetAddressString } from '@utils/addressBook';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { isCertifiedRejectError, mapCanisterError } from '@utils/errors';
 import { formatNumber, roundToE8sPrecision } from '@utils/numbers';
@@ -49,6 +50,7 @@ type Props = {
 
 enum Phase {
   Form = 'form',
+  Confirmation = 'confirmation',
   Processing = 'processing',
   Success = 'success',
   Error = 'error',
@@ -189,7 +191,7 @@ export const SendICPButton: React.FC<Props> = ({
       return;
     }
 
-    transferMutation.mutate();
+    setPhase(Phase.Confirmation);
   };
 
   const handleAccountChange = (value: string) => {
@@ -232,7 +234,7 @@ export const SendICPButton: React.FC<Props> = ({
   };
 
   const handleRetry = () => {
-    setPhase(Phase.Form);
+    setPhase(Phase.Confirmation);
   };
 
   const autoCloseOnSuccess = useEffectEvent(() => {
@@ -249,11 +251,21 @@ export const SendICPButton: React.FC<Props> = ({
   const showToggle = !addressBookLoading && hasAddresses;
 
   const numericAmount = Number(amount);
-  const hasAmount = numericAmount > 0;
   const approxUsd =
-    icpPrice && hasAmount
+    icpPrice && numericAmount > 0
       ? t(($) => $.account.approxUsd, { value: formatNumber(numericAmount * icpPrice.usd) })
       : undefined;
+
+  const isDestinationKnown =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    addressBookEntries.some(
+      (entry: any) => addressBookGetAddressString(entry.address) === toAccount,
+    ) ||
+    (accountsState?.accounts.some((a) => a.accountId === toAccount) ?? false);
+
+  const fromAccountName = nonNullish(selectedAccount)
+    ? selectedAccount.name
+    : t(($) => $.accounts.mainAccount);
 
   const resolveDestinationName = (): string => {
     if (selectedName) return selectedName;
@@ -282,7 +294,7 @@ export const SendICPButton: React.FC<Props> = ({
 
       <ResponsiveDialogContent
         className="flex max-h-[90vh] min-h-[400px] flex-col"
-        showCloseButton={phase === Phase.Form}
+        showCloseButton={phase === Phase.Form || phase === Phase.Confirmation}
       >
         <AnimatePresence mode="wait" initial={false}>
           {phase === Phase.Form && (
@@ -372,33 +384,18 @@ export const SendICPButton: React.FC<Props> = ({
                         disabled={isProcessing}
                       />
                     ) : (
-                      <>
-                        <Input
-                          id="destination-account"
-                          onChange={(e) => handleAccountChange(e.target.value)}
-                          disabled={isProcessing}
-                          value={toAccount}
-                          className={`font-mono ${toAccountError ? 'border-destructive' : ''}`}
-                          aria-invalid={!!toAccountError}
-                          autoComplete="off"
-                          data-1p-ignore
-                          data-lpignore="true"
-                          required
-                        />
-                        <AnimatePresence>
-                          {toAccount !== '' && (
-                            <motion.p
-                              className="text-xs text-muted-foreground"
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              exit={{ opacity: 0 }}
-                              transition={{ duration: 0.15 }}
-                            >
-                              {t(($) => $.addressBook.sendFlow.manualWarning)}
-                            </motion.p>
-                          )}
-                        </AnimatePresence>
-                      </>
+                      <Input
+                        id="destination-account"
+                        onChange={(e) => handleAccountChange(e.target.value)}
+                        disabled={isProcessing}
+                        value={toAccount}
+                        className={`font-mono ${toAccountError ? 'border-destructive' : ''}`}
+                        aria-invalid={!!toAccountError}
+                        autoComplete="off"
+                        data-1p-ignore
+                        data-lpignore="true"
+                        required
+                      />
                     )}
                     {toAccountError && (
                       <Alert variant="warning">
@@ -422,7 +419,6 @@ export const SendICPButton: React.FC<Props> = ({
                       required
                       error={!!amountError}
                       approxUsdLabel={approxUsd}
-                      showFee={hasAmount}
                       availableLabel={t(($) => $.account.availableBalance, {
                         amount: max,
                       })}
@@ -453,10 +449,24 @@ export const SendICPButton: React.FC<Props> = ({
                   disabled={isProcessing}
                   data-testid="send-icp-confirm-btn"
                 >
-                  {t(($) => $.common.confirm)}
+                  {t(($) => $.common.next)}
                 </Button>
               </ResponsiveDialogFooter>
             </motion.form>
+          )}
+
+          {phase === Phase.Confirmation && (
+            <SendConfirmationPhase
+              fromAccountName={fromAccountName}
+              toAccount={toAccount}
+              destinationName={isDestinationKnown ? destination : t(($) => $.account.unknownAddress)}
+              isDestinationKnown={isDestinationKnown}
+              amount={amount}
+              approxUsd={approxUsd}
+              onBack={() => setPhase(Phase.Form)}
+              onConfirm={() => transferMutation.mutate()}
+              isProcessing={isProcessing}
+            />
           )}
 
           {phase === Phase.Processing && (
@@ -483,6 +493,117 @@ export const SendICPButton: React.FC<Props> = ({
     </ResponsiveDialog>
   );
 };
+
+type SendConfirmationPhaseProps = {
+  fromAccountName: string;
+  toAccount: string;
+  destinationName: string;
+  isDestinationKnown: boolean;
+  amount: string;
+  approxUsd?: string;
+  onBack: () => void;
+  onConfirm: () => void;
+  isProcessing: boolean;
+};
+
+function SendConfirmationPhase({
+  fromAccountName,
+  toAccount,
+  destinationName,
+  isDestinationKnown,
+  amount,
+  approxUsd,
+  onBack,
+  onConfirm,
+  isProcessing,
+}: SendConfirmationPhaseProps) {
+  const { t } = useTranslation();
+
+  return (
+    <motion.div
+      key="confirmation"
+      className="flex min-h-0 flex-1 flex-col"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.15 }}
+    >
+      <ResponsiveDialogHeader className="shrink-0">
+        <ResponsiveDialogTitle>{t(($) => $.account.confirmTransferTitle)}</ResponsiveDialogTitle>
+        <ResponsiveDialogDescription className="sr-only">
+          {t(($) => $.account.confirmTransferTitle)}
+        </ResponsiveDialogDescription>
+      </ResponsiveDialogHeader>
+
+      <div className="-mx-1 flex-1 overflow-y-auto px-5 pt-6 pb-4 md:px-1">
+        <div className="flex flex-col gap-5">
+          {/* Amount highlight */}
+          <div className="flex flex-col items-center gap-1 py-2">
+            <div className="flex items-center gap-2">
+              <img src="/icp-token.svg" alt="" aria-hidden={true} className="size-9" />
+              <p className="text-3xl font-bold">{amount} ICP</p>
+            </div>
+            {nonNullish(approxUsd) && <p className="text-base text-muted-foreground">{approxUsd}</p>}
+          </div>
+
+          {/* Transfer details */}
+          <div className="rounded-lg border p-4">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">
+                  {t(($) => $.account.confirmFrom)}
+                </span>
+                <span className="text-sm font-medium">{fromAccountName}</span>
+              </div>
+
+              <div className="border-t pt-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    {t(($) => $.account.confirmTo)}
+                  </span>
+                  <span className="text-sm font-medium">{destinationName}</span>
+                </div>
+                <p className="mt-1 break-all text-right font-mono text-sm text-muted-foreground">
+                  {toAccount}
+                </p>
+                {!isDestinationKnown && (
+                  <Alert variant="warning" className="mt-2">
+                    <AlertTriangle className="size-4" />
+                    <AlertDescription>{t(($) => $.account.destinationWarning)}</AlertDescription>
+                  </Alert>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between border-t pt-3">
+                <span className="text-sm text-muted-foreground">
+                  {t(($) => $.account.confirmTransactionFee)}
+                </span>
+                <span className="text-sm font-medium">
+                  {ICP_TRANSACTION_FEE} ICP ({'< $0.01'})
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ResponsiveDialogFooter className="flex shrink-0 justify-end gap-2">
+        <Button type="button" variant="ghost" size="lg" onClick={onBack} disabled={isProcessing}>
+          {t(($) => $.common.back)}
+        </Button>
+        <Button
+          type="button"
+          size="lg"
+          onClick={onConfirm}
+          disabled={isProcessing}
+          data-testid="send-icp-confirm-btn"
+        >
+          {t(($) => $.common.confirm)}
+        </Button>
+      </ResponsiveDialogFooter>
+    </motion.div>
+  );
+}
 
 function AnimatedSendIcon() {
   const strokeProps = {
