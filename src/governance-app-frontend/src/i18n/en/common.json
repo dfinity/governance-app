@@ -9,7 +9,7 @@
   "loadingError": "Error loading data.",
   "refreshFailed": "Failed to automatically refresh the data. Please try reloading the page.",
   "unknownError": "An error occurred.",
-  "staked": "Locked in Neurons",
+  "staked": "Locked in neurons",
   "stakedShort": "Neurons",
   "icp": "ICP",
   "inIcp": "{{value}} ICP",
@@ -40,14 +40,14 @@
   "withdraw": "Withdraw",
   "send": "Send",
   "receive": "Receive",
-  "stakeIcp": "Stake ICP",
+  "stakeIcp": "Create neuron",
   "confirm": "Confirm",
   "cancel": "Cancel",
   "close": "Close",
   "retry": "Retry",
   "back": "Back",
   "next": "Next",
-  "apy": "APY",
+  "apy": "Maturity",
   "dashboard": "Dashboard",
   "voting": "Vote for proposals",
   "accounts": "ICP accounts",
@@ -74,8 +74,8 @@
     "appName": "Network Nervous System",
     "defaultDescription": "Participate in decentralized governance on the Internet Computer",
     "login": {
-      "title": "ICP staking & voting | Network Nervous System",
-      "description": "Participate in decentralized governance on the Internet Computer. Stake ICP, vote on proposals, and earn rewards."
+      "title": "ICP governance & voting | Network Nervous System",
+      "description": "Participate in decentralized governance on the Internet Computer. Lock ICP, vote on proposals, and mint rewards."
     },
     "dashboard": {
       "title": "Dashboard | Network Nervous System"
@@ -90,7 +90,7 @@
       "title": "Vote for proposals | Network Nervous System"
     },
     "knownNeurons": {
-      "title": "Choose a Known Neuron | Network Nervous System"
+      "title": "Choose a known neuron | Network Nervous System"
     },
     "proposalDetails": {
       "title": "Proposal #{{proposalId}} | Network Nervous System"
