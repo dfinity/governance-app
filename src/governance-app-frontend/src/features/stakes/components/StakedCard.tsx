@@ -47,8 +47,7 @@ export function StakedCard() {
   const neurons = neuronsQuery.data?.response ?? [];
   const neuronCount = neurons.length;
 
-  const { totalStakedAfterFees: totalStaked, totalUnstakedMaturity } =
-    getNeuronsAggregatedData(neurons);
+  const { totalStakedAfterFees: totalStaked, totalMaturity } = getNeuronsAggregatedData(neurons);
 
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const usdValue = icpPrice ? formatNumber(totalStaked * icpPrice.usd) : '-';
@@ -118,7 +117,7 @@ export function StakedCard() {
               {neuronsQuery.isLoading ? (
                 <Skeleton className="h-7 w-13" />
               ) : (
-                <span className="text-xl font-bold">{formatNumber(totalUnstakedMaturity)}</span>
+                <span className="text-xl font-bold">{formatNumber(totalMaturity)}</span>
               )}
               <MaturitySymbol />
             </div>

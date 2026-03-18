@@ -22,7 +22,7 @@ export function EarningsCard({ neurons }: EarningsCardProps) {
 
   const stakingRewards = useStakingRewards();
 
-  const { totalUnstakedMaturity } = getNeuronsAggregatedData(neurons);
+  const { totalMaturity } = getNeuronsAggregatedData(neurons);
 
   const stakingRewardsReady = isStakingRewardDataReady(stakingRewards);
   const stakingRewardsError = isStakingRewardDataError(stakingRewards);
@@ -38,7 +38,7 @@ export function EarningsCard({ neurons }: EarningsCardProps) {
         </p>
         <div className="flex items-center gap-1.5">
           <span className="text-lg font-semibold text-foreground md:text-2xl">
-            {formatNumber(totalUnstakedMaturity)}
+            {formatNumber(totalMaturity)}
           </span>
           <MaturitySymbol />
         </div>
