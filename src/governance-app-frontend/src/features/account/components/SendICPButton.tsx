@@ -56,7 +56,7 @@ enum Phase {
   Error = 'error',
 }
 
-const SUCCESS_AUTO_CLOSE_MS = 1500;
+const SUCCESS_AUTO_CLOSE_MS = 2500;
 
 const variantConfig = {
   simple: { Icon: Send, className: '', label: 'withdraw' },
@@ -248,8 +248,6 @@ export const SendICPButton: React.FC<Props> = ({
     return () => clearTimeout(timer);
   }, [phase]);
 
-  const showToggle = !addressBookLoading && hasAddresses;
-
   const numericAmount = Number(amount);
   const approxUsd =
     icpPrice && numericAmount > 0
@@ -298,165 +296,39 @@ export const SendICPButton: React.FC<Props> = ({
       >
         <AnimatePresence mode="wait" initial={false}>
           {phase === Phase.Form && (
-            <motion.form
-              key="form"
+            <SendFormPhase
+              selectedAccountId={selectedAccountId}
+              onSelectedAccountIdChange={setSelectedAccountId}
+              onSelectedAccountChange={setSelectedAccount}
+              toAccount={toAccount}
+              toAccountError={toAccountError}
+              selectedName={selectedName}
+              useAddressBookToggle={useAddressBookToggle}
+              onAddressBookToggleChange={(checked) => {
+                setUseAddressBookToggle(checked);
+                setToAccount('');
+                setSelectedName('');
+                setToAccountError('');
+              }}
+              addressBookEntries={addressBookEntries}
+              addressBookLoading={addressBookLoading}
+              hasAddresses={hasAddresses}
+              onDestinationSelect={(name, address) => {
+                setSelectedName(name);
+                handleAccountChange(address);
+              }}
+              onDestinationChange={handleAccountChange}
+              amount={amount}
+              amountError={amountError}
+              onAmountChange={handleAmountChange}
+              max={max}
+              onMaxSelect={handleMaxSelect}
+              amountInputRef={amountInputRef}
+              approxUsd={approxUsd}
+              isProcessing={isProcessing}
               onSubmit={handleSubmit}
-              className="flex min-h-0 flex-1 flex-col"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <ResponsiveDialogHeader className="shrink-0">
-                <ResponsiveDialogTitle>{t(($) => $.account.transferTitle)}</ResponsiveDialogTitle>
-                <ResponsiveDialogDescription className="sr-only">
-                  Transfer ICP tokens to another account.
-                </ResponsiveDialogDescription>
-              </ResponsiveDialogHeader>
-
-              <div className="-mx-1 flex-1 overflow-y-auto px-5 pt-6 pb-4 md:px-1">
-                <div className="flex flex-col gap-6">
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="send-from-account">
-                      {t(($) => $.stakeWizardModal.steps.amount.fromAccount)}
-                    </Label>
-                    <AccountSelect
-                      id="send-from-account"
-                      value={selectedAccountId}
-                      onChange={setSelectedAccountId}
-                      onAccountChange={setSelectedAccount}
-                      data-testid="send-from-account-select"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <Label
-                        htmlFor={
-                          useAddressBookToggle ? 'address-book-select' : 'destination-account'
-                        }
-                      >
-                        {t(($) => $.account.destinationAccount)}
-                      </Label>
-                      {addressBookLoading ? (
-                        <div className="flex items-center gap-1.5">
-                          <BookUser className="size-3.5 animate-pulse text-muted-foreground" />
-                          <span className="animate-pulse text-xs text-muted-foreground">
-                            {t(($) => $.addressBook.sendFlow.tooltipLoading)}
-                          </span>
-                        </div>
-                      ) : showToggle ? (
-                        <label className="flex cursor-pointer items-center gap-1.5">
-                          <BookUser className="size-3.5 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">
-                            {t(($) => $.addressBook.sendFlow.toggleLabel)}
-                          </span>
-                          <Switch
-                            checked={useAddressBookToggle}
-                            onCheckedChange={(checked) => {
-                              setUseAddressBookToggle(checked);
-                              setToAccount('');
-                              setSelectedName('');
-                              setToAccountError('');
-                            }}
-                            size="sm"
-                            data-testid="address-book-toggle"
-                          />
-                        </label>
-                      ) : !addressBookLoading && !hasAddresses ? (
-                        <Link
-                          to="/settings"
-                          search={{ openAddressBook: true }}
-                          className="flex items-center gap-1.5 transition-opacity hover:opacity-80"
-                        >
-                          <BookUser className="size-3.5 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground underline">
-                            {t(($) => $.addressBook.sendFlow.tooltipEmpty)}
-                          </span>
-                        </Link>
-                      ) : null}
-                    </div>
-
-                    {useAddressBookToggle ? (
-                      <AddressBookSelect
-                        addresses={addressBookEntries}
-                        selectedName={selectedName}
-                        onSelect={(name, address) => {
-                          setSelectedName(name);
-                          handleAccountChange(address);
-                        }}
-                        disabled={isProcessing}
-                      />
-                    ) : (
-                      <Input
-                        id="destination-account"
-                        onChange={(e) => handleAccountChange(e.target.value)}
-                        disabled={isProcessing}
-                        value={toAccount}
-                        className={`font-mono ${toAccountError ? 'border-destructive' : ''}`}
-                        aria-invalid={!!toAccountError}
-                        autoComplete="off"
-                        data-1p-ignore
-                        data-lpignore="true"
-                        required
-                      />
-                    )}
-                    {toAccountError && (
-                      <Alert variant="warning">
-                        <AlertTriangle className="h-4 w-4 text-destructive" />
-                        <AlertDescription>{toAccountError}</AlertDescription>
-                      </Alert>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="amount">{t(($) => $.common.amount)}</Label>
-                    <AmountInput
-                      id="amount"
-                      data-testid="send-icp-amount-input"
-                      ref={amountInputRef}
-                      value={amount}
-                      onChange={handleAmountChange}
-                      maxAmount={max}
-                      onMaxSelect={handleMaxSelect}
-                      disabled={isProcessing}
-                      required
-                      error={!!amountError}
-                      approxUsdLabel={approxUsd}
-                      availableLabel={t(($) => $.account.availableBalance, {
-                        amount: max,
-                      })}
-                    />
-                    {amountError && (
-                      <Alert variant="warning">
-                        <AlertTriangle className="h-4 w-4 text-destructive" />
-                        <AlertDescription>{amountError}</AlertDescription>
-                      </Alert>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <ResponsiveDialogFooter className="flex shrink-0 justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="lg"
-                  onClick={handleClose}
-                  disabled={isProcessing}
-                >
-                  {t(($) => $.common.close)}
-                </Button>
-                <Button
-                  type="submit"
-                  size="lg"
-                  disabled={isProcessing}
-                  data-testid="send-icp-confirm-btn"
-                >
-                  {t(($) => $.common.next)}
-                </Button>
-              </ResponsiveDialogFooter>
-            </motion.form>
+              onClose={handleClose}
+            />
           )}
 
           {phase === Phase.Confirmation && (
@@ -499,6 +371,198 @@ export const SendICPButton: React.FC<Props> = ({
     </ResponsiveDialog>
   );
 };
+
+type SendFormPhaseProps = {
+  selectedAccountId?: string;
+  onSelectedAccountIdChange: (id: string) => void;
+  onSelectedAccountChange: (account: Account | undefined) => void;
+  toAccount: string;
+  toAccountError: string;
+  selectedName: string;
+  useAddressBookToggle: boolean;
+  onAddressBookToggleChange: (checked: boolean) => void;
+  addressBookEntries: any[];
+  addressBookLoading: boolean;
+  hasAddresses: boolean;
+  onDestinationSelect: (name: string, address: string) => void;
+  onDestinationChange: (value: string) => void;
+  amount: string;
+  amountError: string;
+  onAmountChange: (value: string) => void;
+  max: number;
+  onMaxSelect: (value: string) => void;
+  amountInputRef: React.RefObject<HTMLInputElement | null>;
+  approxUsd?: string;
+  isProcessing: boolean;
+  onSubmit: (event: React.SyntheticEvent) => void;
+  onClose: () => void;
+};
+
+function SendFormPhase({
+  selectedAccountId,
+  onSelectedAccountIdChange,
+  onSelectedAccountChange,
+  toAccount,
+  toAccountError,
+  selectedName,
+  useAddressBookToggle,
+  onAddressBookToggleChange,
+  addressBookEntries,
+  addressBookLoading,
+  hasAddresses,
+  onDestinationSelect,
+  onDestinationChange,
+  amount,
+  amountError,
+  onAmountChange,
+  max,
+  onMaxSelect,
+  amountInputRef,
+  approxUsd,
+  isProcessing,
+  onSubmit,
+  onClose,
+}: SendFormPhaseProps) {
+  const { t } = useTranslation();
+  const showToggle = !addressBookLoading && hasAddresses;
+
+  return (
+    <motion.form
+      key="form"
+      onSubmit={onSubmit}
+      className="flex min-h-0 flex-1 flex-col"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.15 }}
+    >
+      <ResponsiveDialogHeader className="shrink-0">
+        <ResponsiveDialogTitle>{t(($) => $.account.transferTitle)}</ResponsiveDialogTitle>
+        <ResponsiveDialogDescription className="sr-only">
+          Transfer ICP tokens to another account.
+        </ResponsiveDialogDescription>
+      </ResponsiveDialogHeader>
+
+      <div className="-mx-1 flex-1 overflow-y-auto px-5 pt-6 pb-4 md:px-1">
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="send-from-account">
+              {t(($) => $.stakeWizardModal.steps.amount.fromAccount)}
+            </Label>
+            <AccountSelect
+              id="send-from-account"
+              value={selectedAccountId}
+              onChange={onSelectedAccountIdChange}
+              onAccountChange={onSelectedAccountChange}
+              data-testid="send-from-account-select"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor={useAddressBookToggle ? 'address-book-select' : 'destination-account'}>
+                {t(($) => $.account.destinationAccount)}
+              </Label>
+              {addressBookLoading ? (
+                <div className="flex items-center gap-1.5">
+                  <BookUser className="size-3.5 animate-pulse text-muted-foreground" />
+                  <span className="animate-pulse text-xs text-muted-foreground">
+                    {t(($) => $.addressBook.sendFlow.tooltipLoading)}
+                  </span>
+                </div>
+              ) : showToggle ? (
+                <label className="flex cursor-pointer items-center gap-1.5">
+                  <BookUser className="size-3.5 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">
+                    {t(($) => $.addressBook.sendFlow.toggleLabel)}
+                  </span>
+                  <Switch
+                    checked={useAddressBookToggle}
+                    onCheckedChange={onAddressBookToggleChange}
+                    size="sm"
+                    data-testid="address-book-toggle"
+                  />
+                </label>
+              ) : !addressBookLoading && !hasAddresses ? (
+                <Link
+                  to="/settings"
+                  search={{ openAddressBook: true }}
+                  className="flex items-center gap-1.5 transition-opacity hover:opacity-80"
+                >
+                  <BookUser className="size-3.5 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground underline">
+                    {t(($) => $.addressBook.sendFlow.tooltipEmpty)}
+                  </span>
+                </Link>
+              ) : null}
+            </div>
+
+            {useAddressBookToggle ? (
+              <AddressBookSelect
+                addresses={addressBookEntries}
+                selectedName={selectedName}
+                onSelect={(name, address) => onDestinationSelect(name, address)}
+                disabled={isProcessing}
+              />
+            ) : (
+              <Input
+                id="destination-account"
+                onChange={(e) => onDestinationChange(e.target.value)}
+                disabled={isProcessing}
+                value={toAccount}
+                className={`font-mono ${toAccountError ? 'border-destructive' : ''}`}
+                aria-invalid={!!toAccountError}
+                autoComplete="off"
+                data-1p-ignore
+                data-lpignore="true"
+                required
+              />
+            )}
+            {toAccountError && (
+              <Alert variant="warning">
+                <AlertTriangle className="size-4 text-destructive" />
+                <AlertDescription>{toAccountError}</AlertDescription>
+              </Alert>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="amount">{t(($) => $.common.amount)}</Label>
+            <AmountInput
+              id="amount"
+              data-testid="send-icp-amount-input"
+              ref={amountInputRef}
+              value={amount}
+              onChange={onAmountChange}
+              maxAmount={max}
+              onMaxSelect={onMaxSelect}
+              disabled={isProcessing}
+              required
+              error={!!amountError}
+              approxUsdLabel={approxUsd}
+              availableLabel={t(($) => $.account.availableBalance, { amount: max })}
+            />
+            {amountError && (
+              <Alert variant="warning">
+                <AlertTriangle className="size-4 text-destructive" />
+                <AlertDescription>{amountError}</AlertDescription>
+              </Alert>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <ResponsiveDialogFooter className="flex shrink-0 justify-end gap-2">
+        <Button type="button" variant="ghost" size="lg" onClick={onClose} disabled={isProcessing}>
+          {t(($) => $.common.close)}
+        </Button>
+        <Button type="submit" size="lg" disabled={isProcessing} data-testid="send-icp-confirm-btn">
+          {t(($) => $.common.next)}
+        </Button>
+      </ResponsiveDialogFooter>
+    </motion.form>
+  );
+}
 
 type SendConfirmationPhaseProps = {
   fromAccountName: string;
