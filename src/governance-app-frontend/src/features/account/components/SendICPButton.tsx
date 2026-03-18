@@ -12,6 +12,7 @@ import { AccountSelect } from '@features/accounts/components/AccountSelect';
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { type Account, isAccountReady } from '@features/accounts/types';
 import { AddressBookSelect } from '@features/addressBook/components/AddressBookSelect';
+import type { NamedAddress } from '@declarations/governance-app-backend/governance-app-backend.did';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { AmountInput } from '@components/AmountInput';
@@ -247,9 +248,8 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
       : undefined;
 
   const isDestinationKnown =
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     addressBookEntries.some(
-      (entry: any) => addressBookGetAddressString(entry.address) === toAccount,
+      (entry) => addressBookGetAddressString(entry.address) === toAccount,
     ) ||
     (accountsState?.accounts.some((a) => a.accountId === toAccount) ?? false);
 
@@ -369,7 +369,7 @@ type SendFormPhaseProps = {
   selectedName: string;
   useAddressBookToggle: boolean;
   onAddressBookToggleChange: (checked: boolean) => void;
-  addressBookEntries: any[];
+  addressBookEntries: NamedAddress[];
   addressBookLoading: boolean;
   hasAddresses: boolean;
   onDestinationSelect: (name: string, address: string) => void;
