@@ -516,10 +516,10 @@ function AnimatedSendIcon() {
 const DRAW_DURATION = 1;
 
 function SendProcessingPhase({ message }: { message: string }) {
-  const [phase, setPhase] = useState<'draw' | 'spin'>('draw');
+  const [showSpinner, setShowSpinner] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setPhase('spin'), DRAW_DURATION * 1000);
+    const timer = setTimeout(() => setShowSpinner(true), DRAW_DURATION * 1000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -536,22 +536,11 @@ function SendProcessingPhase({ message }: { message: string }) {
       <motion.div
         className="flex size-16 items-center justify-center rounded-full bg-primary/10"
         initial={{ scale: 0, opacity: 0 }}
-        animate={{
-          scale: 1,
-          opacity: 1,
-          rotate: phase === 'spin' ? 360 : 0,
-        }}
-        transition={
-          phase === 'spin'
-            ? {
-                rotate: { duration: 1.5, repeat: Infinity, ease: 'linear' },
-                scale: { type: 'spring', stiffness: 200, damping: 15 },
-              }
-            : { type: 'spring', stiffness: 200, damping: 15, duration: 0.5 }
-        }
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
       >
         <AnimatePresence mode="wait">
-          {phase === 'draw' ? (
+          {!showSpinner ? (
             <motion.div key="send" exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.2 }}>
               <AnimatedSendIcon />
             </motion.div>
@@ -562,7 +551,7 @@ function SendProcessingPhase({ message }: { message: string }) {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
             >
-              <Loader className="size-8 text-muted-foreground" />
+              <Loader className="size-8 animate-spin text-muted-foreground" />
             </motion.div>
           )}
         </AnimatePresence>
