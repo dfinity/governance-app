@@ -31,7 +31,7 @@
   },
   "addHotkey": {
     "title": "Add hotkey",
-    "description": "Add a principal as a hotkey to this neuron. Hotkeys can vote, set followees, refresh voting power, increase stake, and manage Neurons' Fund participation, but cannot dissolve or disburse the neuron.",
+    "description": "Add a principal as a hotkey to this neuron. Hotkeys can vote, set followees, refresh voting power, top up, and manage Neurons' Fund participation, but cannot dissolve or disburse the neuron.",
     "principalLabel": "Principal ID",
     "confirm": "Confirm",
     "confirming": "Adding hotkey...",
