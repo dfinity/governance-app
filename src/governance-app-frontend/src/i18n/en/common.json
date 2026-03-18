@@ -81,13 +81,13 @@
       "title": "Dashboard | Network Nervous System"
     },
     "accounts": {
-      "title": "Accounts | Network Nervous System"
+      "title": "ICP accounts | Network Nervous System"
     },
     "stakes": {
-      "title": "Neurons | Network Nervous System"
+      "title": "Voting neurons | Network Nervous System"
     },
     "voting": {
-      "title": "Voting | Network Nervous System"
+      "title": "Vote for proposals | Network Nervous System"
     },
     "knownNeurons": {
       "title": "Choose a Known Neuron | Network Nervous System"
