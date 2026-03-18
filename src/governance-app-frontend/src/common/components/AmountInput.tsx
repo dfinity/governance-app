@@ -1,9 +1,11 @@
 import { nonNullish } from '@dfinity/utils';
+import { AnimatePresence, motion } from 'motion/react';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
+import { ICP_TRANSACTION_FEE } from '@constants/extra';
 import { cn } from '@utils/shadcn';
 
 type AmountInputProps = {
@@ -23,6 +25,8 @@ type AmountInputProps = {
   /** Available balance label shown on the right, e.g. "Available: 12.345 ICP" */
   availableLabel?: string;
   availableLabelTestId?: string;
+  /** When true, shows the ICP transaction fee below the amount info. */
+  showFee?: boolean;
   'data-testid'?: string;
 };
 
@@ -40,6 +44,7 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
       approxUsdLabel,
       availableLabel,
       availableLabelTestId,
+      showFee,
       'data-testid': testId,
     },
     ref,
@@ -48,7 +53,7 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
 
     const showMax = nonNullish(maxAmount) && nonNullish(onMaxSelect);
     const showBottomRow = Boolean(
-      nonNullish(approxUsdLabel) || nonNullish(availableLabel) || showMax,
+      nonNullish(approxUsdLabel) || nonNullish(availableLabel) || showFee || showMax,
     );
 
     return (
@@ -82,31 +87,51 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
         </div>
 
         {showBottomRow && (
-          <div className="flex items-center justify-between">
-            {approxUsdLabel ? (
-              <p className="text-sm text-muted-foreground">{approxUsdLabel}</p>
-            ) : (
-              <span />
-            )}
-            <div className="flex items-center gap-1">
-              {availableLabel && (
-                <p className="text-sm text-muted-foreground" data-testid={availableLabelTestId}>
-                  {availableLabel}
-                </p>
-              )}
-              {nonNullish(maxAmount) && nonNullish(onMaxSelect) && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onMaxSelect(Math.max(0, maxAmount).toString())}
-                  disabled={disabled}
-                  className="h-auto px-1.5 py-0.5 text-xs font-semibold text-primary uppercase"
-                >
-                  {t(($) => $.common.max)}
-                </Button>
-              )}
+          <div className="space-y-0.5">
+            <div className="flex items-center justify-between">
+              <AnimatePresence mode="wait">
+                {approxUsdLabel ? (
+                  <motion.p
+                    key={approxUsdLabel}
+                    className="text-sm text-muted-foreground"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    {approxUsdLabel}
+                  </motion.p>
+                ) : (
+                  <span />
+                )}
+              </AnimatePresence>
+              <div className="flex items-center gap-1">
+                {availableLabel && (
+                  <p className="text-sm text-muted-foreground" data-testid={availableLabelTestId}>
+                    {availableLabel}
+                  </p>
+                )}
+                {nonNullish(maxAmount) && nonNullish(onMaxSelect) && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onMaxSelect(Math.max(0, maxAmount).toString())}
+                    disabled={disabled}
+                    className="h-auto px-1.5 py-0.5 text-xs font-semibold text-primary uppercase"
+                  >
+                    {t(($) => $.common.max)}
+                  </Button>
+                )}
+              </div>
             </div>
+            <motion.p
+              className="text-xs text-muted-foreground"
+              animate={{ opacity: showFee ? 1 : 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              {t(($) => $.common.fee, { fee: ICP_TRANSACTION_FEE })}
+            </motion.p>
           </div>
         )}
       </div>

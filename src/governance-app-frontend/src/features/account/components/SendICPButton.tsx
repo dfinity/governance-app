@@ -249,8 +249,9 @@ export const SendICPButton: React.FC<Props> = ({
   const showToggle = !addressBookLoading && hasAddresses;
 
   const numericAmount = Number(amount);
+  const hasAmount = numericAmount > 0;
   const approxUsd =
-    icpPrice && numericAmount > 0
+    icpPrice && hasAmount
       ? t(($) => $.account.approxUsd, { value: formatNumber(numericAmount * icpPrice.usd) })
       : undefined;
 
@@ -280,7 +281,7 @@ export const SendICPButton: React.FC<Props> = ({
       </ResponsiveDialogTrigger>
 
       <ResponsiveDialogContent
-        className="flex max-h-[90vh] flex-col"
+        className="flex max-h-[90vh] min-h-[400px] flex-col"
         showCloseButton={phase === Phase.Form}
       >
         <AnimatePresence mode="wait" initial={false}>
@@ -301,8 +302,8 @@ export const SendICPButton: React.FC<Props> = ({
                 </ResponsiveDialogDescription>
               </ResponsiveDialogHeader>
 
-              <div className="-mx-1 flex-1 overflow-y-auto px-5 pt-4 pb-4 md:px-1">
-                <div className="grid gap-4">
+              <div className="-mx-1 flex-1 overflow-y-auto px-5 pt-6 pb-4 md:px-1">
+                <div className="flex flex-col gap-6">
                   <AccountSelect
                     id="send-from-account"
                     label={t(($) => $.stakeWizardModal.steps.amount.fromAccount)}
@@ -312,7 +313,7 @@ export const SendICPButton: React.FC<Props> = ({
                     data-testid="send-from-account-select"
                   />
 
-                  <div className="grid gap-2">
+                  <div className="flex flex-col gap-2">
                     <div className="flex items-center justify-between">
                       <Label
                         htmlFor={
@@ -384,11 +385,19 @@ export const SendICPButton: React.FC<Props> = ({
                           data-lpignore="true"
                           required
                         />
-                        {!useAddressBookToggle && toAccount !== '' && (
-                          <p className="text-xs text-muted-foreground">
-                            {t(($) => $.addressBook.sendFlow.manualWarning)}
-                          </p>
-                        )}
+                        <AnimatePresence>
+                          {toAccount !== '' && (
+                            <motion.p
+                              className="text-xs text-muted-foreground"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.15 }}
+                            >
+                              {t(($) => $.addressBook.sendFlow.manualWarning)}
+                            </motion.p>
+                          )}
+                        </AnimatePresence>
                       </>
                     )}
                     {toAccountError && (
@@ -399,7 +408,7 @@ export const SendICPButton: React.FC<Props> = ({
                     )}
                   </div>
 
-                  <div className="grid gap-2">
+                  <div className="flex flex-col gap-2">
                     <Label htmlFor="amount">{t(($) => $.common.amount)}</Label>
                     <AmountInput
                       id="amount"
@@ -413,6 +422,7 @@ export const SendICPButton: React.FC<Props> = ({
                       required
                       error={!!amountError}
                       approxUsdLabel={approxUsd}
+                      showFee={hasAmount}
                       availableLabel={t(($) => $.account.availableBalance, {
                         amount: max,
                       })}
@@ -428,10 +438,21 @@ export const SendICPButton: React.FC<Props> = ({
               </div>
 
               <ResponsiveDialogFooter className="flex shrink-0 justify-end gap-2">
-                <Button type="button" variant="ghost" onClick={handleClose} disabled={isProcessing}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="lg"
+                  onClick={handleClose}
+                  disabled={isProcessing}
+                >
                   {t(($) => $.common.close)}
                 </Button>
-                <Button type="submit" disabled={isProcessing} data-testid="send-icp-confirm-btn">
+                <Button
+                  type="submit"
+                  size="lg"
+                  disabled={isProcessing}
+                  data-testid="send-icp-confirm-btn"
+                >
                   {t(($) => $.common.confirm)}
                 </Button>
               </ResponsiveDialogFooter>
@@ -505,7 +526,7 @@ function SendProcessingPhase({ message }: { message: string }) {
   return (
     <motion.div
       key="processing"
-      className="flex h-full flex-col items-center justify-center gap-5 py-8 text-center"
+      className="flex flex-1 flex-col items-center justify-center gap-5 py-8 text-center"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -562,7 +583,7 @@ function SendSuccessPhase({ message }: { message: string }) {
   return (
     <motion.div
       key="success"
-      className="flex h-full flex-col items-center justify-center gap-5 py-8 text-center"
+      className="flex flex-1 flex-col items-center justify-center gap-5 py-8 text-center"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -603,7 +624,7 @@ function SendErrorPhase({
   return (
     <motion.div
       key="error"
-      className="flex h-full flex-col items-center justify-between py-8 text-center"
+      className="flex flex-1 flex-col items-center justify-between py-8 text-center"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -628,7 +649,7 @@ function SendErrorPhase({
           {errorMessage}
         </motion.p>
       </div>
-      <div className="flex w-full gap-2 pt-4">
+      <div className="flex w-full gap-3 pt-4">
         <Button variant="outline" className="flex-1" onClick={onClose}>
           {t(($) => $.common.close)}
         </Button>
