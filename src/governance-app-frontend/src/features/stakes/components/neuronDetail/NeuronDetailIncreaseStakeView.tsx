@@ -5,7 +5,7 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AccountSelect } from '@features/accounts/components/AccountSelect';
-import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
+import { useAccountDestination } from '@features/accounts/hooks/useAccountDestination';
 import { type Account, AccountType, isAccountReady } from '@features/accounts/types';
 
 import { Alert, AlertDescription } from '@components/Alert';
@@ -16,7 +16,6 @@ import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers';
-import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { bigIntDiv } from '@utils/bigInt';
 import { mapCanisterError } from '@utils/errors';
 import { getNeuronStakeAfterFeesE8s } from '@utils/neuron';
@@ -34,20 +33,14 @@ type Props = {
 export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingChange }: Props) {
   const { t } = useTranslation();
   const [amount, setAmount] = useState('');
-  const mainAccountMetadata = useMainAccountMetadata();
-  const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>();
+  const { selectedAccountId, setSelectedAccountId, resolvedAccountId, subaccountsEnabled } =
+    useAccountDestination();
   const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
-
-  // Falls back to main account id, derived synchronously from the identity.
-  const resolvedAccountId = selectedAccountId ?? mainAccountMetadata.data!.accountId;
   const [validationError, setValidationError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { tickerPrices: tickersQuery } = useTickerPrices();
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-
-  const { features } = useAdvancedFeatures();
-  const subaccountsEnabled = features.subaccounts;
 
   // Default balance from main account ledger (used when subaccounts FF is off)
   const { data: balanceValue } = useIcpLedgerAccountBalance();

@@ -13,7 +13,7 @@ type Props = {
   id: string;
   value?: string;
   onChange: (accountId: string) => void;
-  onAccountChange: (account: Account | undefined) => void;
+  onAccountChange?: (account: Account | undefined) => void;
   'data-testid'?: string;
 };
 
@@ -34,7 +34,7 @@ export function AccountSelect({
     accounts.find((a) => a.accountId === accountsState?.mainAccountId);
 
   useEffect(() => {
-    onAccountChange(selectedAccount);
+    onAccountChange?.(selectedAccount);
   }, [selectedAccount, onAccountChange]);
 
   return (
