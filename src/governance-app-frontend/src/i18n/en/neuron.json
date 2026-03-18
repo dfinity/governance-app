@@ -1,5 +1,5 @@
 {
-  "title": "Your neurons",
+  "title": "Voting neurons",
   "description": "Manage and create voting neurons",
   "neuronId": "Neuron #{{neuronId}}",
   "stakeId": "Neuron ID",
