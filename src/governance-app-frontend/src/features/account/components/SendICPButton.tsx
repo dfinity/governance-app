@@ -316,14 +316,18 @@ export const SendICPButton: React.FC<Props> = ({
 
               <div className="-mx-1 flex-1 overflow-y-auto px-5 pt-6 pb-4 md:px-1">
                 <div className="flex flex-col gap-6">
-                  <AccountSelect
-                    id="send-from-account"
-                    label={t(($) => $.stakeWizardModal.steps.amount.fromAccount)}
-                    value={selectedAccountId}
-                    onChange={setSelectedAccountId}
-                    onAccountChange={setSelectedAccount}
-                    data-testid="send-from-account-select"
-                  />
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="send-from-account">
+                      {t(($) => $.stakeWizardModal.steps.amount.fromAccount)}
+                    </Label>
+                    <AccountSelect
+                      id="send-from-account"
+                      value={selectedAccountId}
+                      onChange={setSelectedAccountId}
+                      onAccountChange={setSelectedAccount}
+                      data-testid="send-from-account-select"
+                    />
+                  </div>
 
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center justify-between">
@@ -459,7 +463,9 @@ export const SendICPButton: React.FC<Props> = ({
             <SendConfirmationPhase
               fromAccountName={fromAccountName}
               toAccount={toAccount}
-              destinationName={isDestinationKnown ? destination : t(($) => $.account.unknownAddress)}
+              destinationName={
+                isDestinationKnown ? destination : t(($) => $.account.unknownAddress)
+              }
               isDestinationKnown={isDestinationKnown}
               amount={amount}
               approxUsd={approxUsd}
@@ -543,7 +549,9 @@ function SendConfirmationPhase({
               <img src="/icp-token.svg" alt="" aria-hidden={true} className="size-9" />
               <p className="text-3xl font-bold">{amount} ICP</p>
             </div>
-            {nonNullish(approxUsd) && <p className="text-base text-muted-foreground">{approxUsd}</p>}
+            {nonNullish(approxUsd) && (
+              <p className="text-base text-muted-foreground">{approxUsd}</p>
+            )}
           </div>
 
           {/* Transfer details */}
@@ -563,7 +571,7 @@ function SendConfirmationPhase({
                   </span>
                   <span className="text-sm font-medium">{destinationName}</span>
                 </div>
-                <p className="mt-1 break-all text-right font-mono text-sm text-muted-foreground">
+                <p className="mt-1 text-right font-mono text-sm break-all text-muted-foreground">
                   {toAccount}
                 </p>
                 {!isDestinationKnown && (
