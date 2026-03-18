@@ -8,11 +8,12 @@ import { AnimatePresence, motion } from 'motion/react';
 import React, { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import type { NamedAddress } from '@declarations/governance-app-backend/governance-app-backend.did';
+
 import { AccountSelect } from '@features/accounts/components/AccountSelect';
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { type Account, isAccountReady } from '@features/accounts/types';
 import { AddressBookSelect } from '@features/addressBook/components/AddressBookSelect';
-import type { NamedAddress } from '@declarations/governance-app-backend/governance-app-backend.did';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { AmountInput } from '@components/AmountInput';
@@ -248,9 +249,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
       : undefined;
 
   const isDestinationKnown =
-    addressBookEntries.some(
-      (entry) => addressBookGetAddressString(entry.address) === toAccount,
-    ) ||
+    addressBookEntries.some((entry) => addressBookGetAddressString(entry.address) === toAccount) ||
     (accountsState?.accounts.some((a) => a.accountId === toAccount) ?? false);
 
   const fromAccountName = nonNullish(selectedAccount)
