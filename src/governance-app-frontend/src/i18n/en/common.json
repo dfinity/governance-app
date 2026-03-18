@@ -62,7 +62,6 @@
     "icpLogo": "Internet Computer (ICP) Logo"
   },
   "max": "Max",
-  "fee": "Fee: {{fee}} ICP (< $0.01)",
   "leave": "Leave",
   "maxRewards": "Max rewards",
   "externalLink": {

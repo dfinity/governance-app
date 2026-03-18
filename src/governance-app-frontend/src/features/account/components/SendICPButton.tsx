@@ -59,6 +59,9 @@ enum Phase {
 
 const SUCCESS_AUTO_CLOSE_MS = 2500;
 
+const formatTransactionFeeUsd = (usdValue: number): string =>
+  usdValue < 0.01 ? '< $0.01' : `≈ $${formatNumber(usdValue)}`;
+
 const variantConfig = {
   simple: { Icon: Send, className: '', label: 'withdraw' },
   advanced: { Icon: ArrowUpRight, className: 'flex-1', label: 'send' },
@@ -111,6 +114,12 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   // Keep the createdAt value for retry purposes (used for deduplication at the ledger level)
   const createdAtRef = useRef<bigint | null>(null);
 
+  const effectiveBalance =
+    nonNullish(selectedAccount) && isAccountReady(selectedAccount)
+      ? bigIntDiv(selectedAccount.balanceE8s, E8Sn)
+      : balance;
+  const effectiveSubAccount = selectedAccount?.subAccount;
+
   const transferMutation = useMutation({
     mutationFn: () => {
       // Use stored createdAt for retry deduplication, or generate a new one
@@ -154,12 +163,6 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   });
 
   const isProcessing = phase === Phase.Processing;
-
-  const effectiveBalance =
-    nonNullish(selectedAccount) && isAccountReady(selectedAccount)
-      ? bigIntDiv(selectedAccount.balanceE8s, E8Sn)
-      : balance;
-  const effectiveSubAccount = selectedAccount?.subAccount;
 
   const canTransfer =
     effectiveBalance > ICP_TRANSACTION_FEE && ledgerReady && ledgerAuthenticated && !isProcessing;
@@ -208,9 +211,13 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
     setOpen(false);
   };
 
+  const closingRef = useRef(false);
+
   const handleOpenChange = (value: boolean) => {
     if (isProcessing) return;
     if (!value) {
+      if (closingRef.current) return;
+      closingRef.current = true;
       // Delay reset to allow close animation to complete
       setTimeout(() => {
         setPhase(Phase.Form);
@@ -222,6 +229,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
         setErrorMessage('');
         setSelectedAccountId(fromAccountId);
         setSelectedAccount(undefined);
+        closingRef.current = false;
       }, 300);
     }
     setOpen(value);
@@ -334,6 +342,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
               approxUsd={approxUsd}
               onBack={() => setPhase(Phase.Form)}
               onConfirm={() => transferMutation.mutate()}
+              icpPriceUsd={icpPrice?.usd}
               isProcessing={isProcessing}
             />
           )}
@@ -488,7 +497,7 @@ function SendFormPhase({
               <AddressBookSelect
                 addresses={addressBookEntries}
                 selectedName={selectedName}
-                onSelect={(name, address) => onDestinationSelect(name, address)}
+                onSelect={onDestinationSelect}
                 disabled={isProcessing}
               />
             ) : (
@@ -543,7 +552,7 @@ function SendFormPhase({
         <Button type="button" variant="ghost" size="lg" onClick={onClose} disabled={isProcessing}>
           {t(($) => $.common.close)}
         </Button>
-        <Button type="submit" size="lg" disabled={isProcessing} data-testid="send-icp-confirm-btn">
+        <Button type="submit" size="lg" disabled={isProcessing} data-testid="send-icp-next-btn">
           {t(($) => $.common.next)}
         </Button>
       </ResponsiveDialogFooter>
@@ -558,6 +567,7 @@ type SendConfirmationPhaseProps = {
   isDestinationKnown: boolean;
   amount: string;
   approxUsd?: string;
+  icpPriceUsd?: number;
   onBack: () => void;
   onConfirm: () => void;
   isProcessing: boolean;
@@ -570,6 +580,7 @@ function SendConfirmationPhase({
   isDestinationKnown,
   amount,
   approxUsd,
+  icpPriceUsd,
   onBack,
   onConfirm,
   isProcessing,
@@ -638,7 +649,9 @@ function SendConfirmationPhase({
                   {t(($) => $.account.confirmTransactionFee)}
                 </span>
                 <span className="text-sm font-medium">
-                  {ICP_TRANSACTION_FEE} ICP ({'< $0.01'})
+                  {ICP_TRANSACTION_FEE} ICP
+                  {nonNullish(icpPriceUsd) &&
+                    ` (${formatTransactionFeeUsd(ICP_TRANSACTION_FEE * icpPriceUsd)})`}
                 </span>
               </div>
             </div>

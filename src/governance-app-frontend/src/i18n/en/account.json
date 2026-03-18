@@ -26,8 +26,6 @@
   "confirmTransferTitle": "Review transaction",
   "confirmFrom": "From",
   "confirmTo": "To",
-  "confirmAmount": "Amount",
-  "confirmFee": "Fee",
   "confirmTransactionFee": "Transaction fee",
   "unknownAddress": "Unknown",
   "destinationWarning": "This address is not in your address book. Please verify it is correct."
