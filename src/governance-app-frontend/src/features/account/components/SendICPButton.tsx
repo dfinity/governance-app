@@ -301,7 +301,7 @@ export const SendICPButton: React.FC<Props> = ({
                 </ResponsiveDialogDescription>
               </ResponsiveDialogHeader>
 
-              <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4 md:px-0">
+              <div className="-mx-1 flex-1 overflow-y-auto px-5 pt-4 pb-4 md:px-1">
                 <div className="grid gap-4">
                   <AccountSelect
                     id="send-from-account"
@@ -377,7 +377,7 @@ export const SendICPButton: React.FC<Props> = ({
                           onChange={(e) => handleAccountChange(e.target.value)}
                           disabled={isProcessing}
                           value={toAccount}
-                          className={`border-2 font-mono ${toAccountError ? 'border-destructive' : ''}`}
+                          className={`font-mono ${toAccountError ? 'border-destructive' : ''}`}
                           aria-invalid={!!toAccountError}
                           autoComplete="off"
                           data-1p-ignore
