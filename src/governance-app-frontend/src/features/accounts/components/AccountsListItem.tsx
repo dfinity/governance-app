@@ -139,7 +139,6 @@ function AccountBalance({
         <SendICPButton
           balance={balanceICP}
           fromAccountId={account.accountId}
-          fromSubAccount={account.subAccount}
           variant="advanced"
         />
         <Button

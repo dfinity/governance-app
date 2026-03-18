@@ -44,7 +44,6 @@ import { cn } from '@utils/shadcn';
 type Props = {
   balance: number;
   fromAccountId?: string;
-  fromSubAccount?: Uint8Array | number[];
   variant?: 'simple' | 'advanced';
 };
 
@@ -66,7 +65,6 @@ const variantConfig = {
 export const SendICPButton: React.FC<Props> = ({
   balance,
   fromAccountId,
-  fromSubAccount,
   variant = 'simple',
 }) => {
   const { t } = useTranslation();
@@ -163,9 +161,7 @@ export const SendICPButton: React.FC<Props> = ({
     nonNullish(selectedAccount) && isAccountReady(selectedAccount)
       ? bigIntDiv(selectedAccount.balanceE8s, E8Sn)
       : balance;
-  const effectiveSubAccount = nonNullish(selectedAccount)
-    ? selectedAccount.subAccount
-    : fromSubAccount;
+  const effectiveSubAccount = selectedAccount?.subAccount;
 
   const canTransfer =
     effectiveBalance > ICP_TRANSACTION_FEE && ledgerReady && ledgerAuthenticated && !isProcessing;
