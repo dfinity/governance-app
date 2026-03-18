@@ -138,6 +138,7 @@ function AccountBalance({
       <div className="flex gap-3">
         <SendICPButton
           balance={balanceICP}
+          fromAccountId={account.accountId}
           fromSubAccount={account.subAccount}
           variant="advanced"
         />

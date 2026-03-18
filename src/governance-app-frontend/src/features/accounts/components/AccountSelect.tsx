@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useEffectEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { NativeSelect, NativeSelectOption } from '@components/native-select';
@@ -33,9 +33,13 @@ export function AccountSelect({
     accounts.find((a) => a.accountId === value) ??
     accounts.find((a) => a.accountId === accountsState?.mainAccountId);
 
+  const notifyAccountChange = useEffectEvent(() => {
+    onAccountChange(selectedAccount);
+  });
+
   useEffect(() => {
-    onAccountChange?.(selectedAccount);
-  }, [selectedAccount, onAccountChange]);
+    notifyAccountChange();
+  }, [selectedAccount?.accountId]);
 
   return (
     <NativeSelect

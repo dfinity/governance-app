@@ -1,6 +1,6 @@
 import { AccountIdentifier, TransferError } from '@icp-sdk/canisters/ledger/icp';
 import { decodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
-import { nowInBigIntNanoSeconds, toNullable } from '@dfinity/utils';
+import { nonNullish, nowInBigIntNanoSeconds, toNullable } from '@dfinity/utils';
 import { useMutation } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { AlertTriangle, ArrowUpRight, BookUser, Loader, Send } from 'lucide-react';
@@ -8,7 +8,9 @@ import { AnimatePresence, motion } from 'motion/react';
 import React, { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AccountSelect } from '@features/accounts/components/AccountSelect';
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
+import { type Account, isAccountReady } from '@features/accounts/types';
 import { AddressBookSelect } from '@features/addressBook/components/AddressBookSelect';
 
 import { Alert, AlertDescription } from '@components/Alert';
@@ -33,13 +35,14 @@ import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
 import { useTickerPrices } from '@hooks/tickers';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
-import { bigIntMul } from '@utils/bigInt';
+import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { isCertifiedRejectError, mapCanisterError } from '@utils/errors';
 import { formatNumber, roundToE8sPrecision } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
 type Props = {
   balance: number;
+  fromAccountId?: string;
   fromSubAccount?: Uint8Array | number[];
   variant?: 'simple' | 'advanced';
 };
@@ -58,7 +61,12 @@ const variantConfig = {
   advanced: { Icon: ArrowUpRight, className: 'flex-1', label: 'send' },
 } as const;
 
-export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, variant = 'simple' }) => {
+export const SendICPButton: React.FC<Props> = ({
+  balance,
+  fromAccountId,
+  fromSubAccount,
+  variant = 'simple',
+}) => {
   const { t } = useTranslation();
 
   const {
@@ -86,6 +94,8 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, varian
   const [phase, setPhase] = useState<Phase>(Phase.Form);
   const [errorMessage, setErrorMessage] = useState('');
   const [useAddressBookToggle, setUseAddressBookToggle] = useState(false);
+  const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>(fromAccountId);
+  const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
   const amountInputRef = useRef<HTMLInputElement>(null);
 
   const autoToggleAddressBook = useEffectEvent(() => {
@@ -110,7 +120,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, varian
       createdAtRef.current = createdAt;
       const transferAmount = bigIntMul(E8Sn, Number(amount));
 
-      const subAccountArr = fromSubAccount ? Array.from(fromSubAccount) : undefined;
+      const subAccountArr = effectiveSubAccount ? Array.from(effectiveSubAccount) : undefined;
 
       if (isValidIcpAddress(toAccount)) {
         return ledgerCanister!.transfer({
@@ -147,9 +157,17 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, varian
 
   const isProcessing = phase === Phase.Processing;
 
+  const effectiveBalance =
+    nonNullish(selectedAccount) && isAccountReady(selectedAccount)
+      ? bigIntDiv(selectedAccount.balanceE8s, E8Sn)
+      : balance;
+  const effectiveSubAccount = nonNullish(selectedAccount)
+    ? selectedAccount.subAccount
+    : fromSubAccount;
+
   const canTransfer =
-    balance > ICP_TRANSACTION_FEE && ledgerReady && ledgerAuthenticated && !isProcessing;
-  const max = roundToE8sPrecision(balance - ICP_TRANSACTION_FEE);
+    effectiveBalance > ICP_TRANSACTION_FEE && ledgerReady && ledgerAuthenticated && !isProcessing;
+  const max = roundToE8sPrecision(effectiveBalance - ICP_TRANSACTION_FEE);
 
   const handleSubmit = async (event: React.SyntheticEvent) => {
     event.preventDefault();
@@ -206,6 +224,8 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, varian
         setAmountError('');
         setToAccountError('');
         setErrorMessage('');
+        setSelectedAccountId(fromAccountId);
+        setSelectedAccount(undefined);
       }, 300);
     }
     setOpen(value);
@@ -283,6 +303,15 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, varian
 
               <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4 md:px-0">
                 <div className="grid gap-4">
+                  <AccountSelect
+                    id="send-from-account"
+                    label={t(($) => $.stakeWizardModal.steps.amount.fromAccount)}
+                    value={selectedAccountId}
+                    onChange={setSelectedAccountId}
+                    onAccountChange={setSelectedAccount}
+                    data-testid="send-from-account-select"
+                  />
+
                   <div className="grid gap-2">
                     <div className="flex items-center justify-between">
                       <Label
@@ -348,7 +377,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, varian
                           onChange={(e) => handleAccountChange(e.target.value)}
                           disabled={isProcessing}
                           value={toAccount}
-                          className={`font-mono ${toAccountError ? 'border-destructive' : ''}`}
+                          className={`border-2 font-mono ${toAccountError ? 'border-destructive' : ''}`}
                           aria-invalid={!!toAccountError}
                           autoComplete="off"
                           data-1p-ignore
