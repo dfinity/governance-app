@@ -347,15 +347,11 @@ export const SendICPButton: React.FC<Props> = ({
             />
           )}
 
-          {phase === Phase.Processing && (
-            <SendProcessingPhase
-              message={t(($) => $.account.transferProcessing, { amount, destination })}
-            />
-          )}
-
-          {phase === Phase.Success && (
-            <SendSuccessPhase
-              message={t(($) => $.account.transferSuccess, { amount, destination })}
+          {(phase === Phase.Processing || phase === Phase.Success) && (
+            <SendTransferPhase
+              isSuccess={phase === Phase.Success}
+              processingMessage={t(($) => $.account.transferProcessing, { amount, destination })}
+              successMessage={t(($) => $.account.transferSuccess, { amount, destination })}
             />
           )}
 
@@ -687,7 +683,7 @@ function AnimatedSendIcon() {
   };
 
   return (
-    <motion.svg className="size-10 text-muted-foreground" viewBox="0 0 24 24">
+    <motion.svg className="size-12 text-muted-foreground" viewBox="0 0 24 24">
       <motion.path
         d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"
         {...strokeProps}
@@ -708,7 +704,15 @@ function AnimatedSendIcon() {
 
 const DRAW_DURATION = 1;
 
-function SendProcessingPhase({ message }: { message: string }) {
+function SendTransferPhase({
+  isSuccess,
+  processingMessage,
+  successMessage,
+}: {
+  isSuccess: boolean;
+  processingMessage: string;
+  successMessage: string;
+}) {
   const [showSpinner, setShowSpinner] = useState(false);
 
   useEffect(() => {
@@ -716,55 +720,12 @@ function SendProcessingPhase({ message }: { message: string }) {
     return () => clearTimeout(timer);
   }, []);
 
-  return (
-    <motion.div
-      key="processing"
-      className="flex flex-1 flex-col items-center justify-center gap-5 py-8 text-center"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.15 }}
-    >
-      <ResponsiveDialogTitle className="sr-only">{message}</ResponsiveDialogTitle>
-      <motion.div
-        className="flex size-16 items-center justify-center rounded-full bg-primary/10"
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-      >
-        <AnimatePresence mode="wait">
-          {!showSpinner ? (
-            <motion.div key="send" exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.2 }}>
-              <AnimatedSendIcon />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="spinner"
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Loader className="size-8 animate-spin text-muted-foreground" />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-      <motion.p
-        className="text-sm font-medium text-muted-foreground"
-        initial={{ opacity: 0, y: 4 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.3 }}
-      >
-        {message}
-      </motion.p>
-    </motion.div>
-  );
-}
+  const message = isSuccess ? successMessage : processingMessage;
+  const iconState = isSuccess ? 'success' : showSpinner ? 'spinner' : 'send';
 
-function SendSuccessPhase({ message }: { message: string }) {
   return (
     <motion.div
-      key="success"
+      key="transfer"
       className="flex flex-1 flex-col items-center justify-center gap-5 py-8 text-center"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -773,21 +734,55 @@ function SendSuccessPhase({ message }: { message: string }) {
     >
       <ResponsiveDialogTitle className="sr-only">{message}</ResponsiveDialogTitle>
       <motion.div
-        className="flex size-16 items-center justify-center rounded-full bg-green-600/10"
-        initial={{ scale: 0.6, opacity: 0 }}
+        className={cn(
+          'flex size-20 items-center justify-center rounded-full transition-colors duration-300',
+          isSuccess ? 'bg-green-600/10' : 'bg-primary/10',
+        )}
+        initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 200, damping: 15 }}
       >
-        <AnimatedCheckmark />
+        <AnimatePresence mode="wait">
+          {iconState === 'send' && (
+            <motion.div key="send" exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.2 }}>
+              <AnimatedSendIcon />
+            </motion.div>
+          )}
+          {iconState === 'spinner' && (
+            <motion.div
+              key="spinner"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Loader className="size-10 animate-spin text-muted-foreground" />
+            </motion.div>
+          )}
+          {iconState === 'success' && (
+            <motion.div
+              key="checkmark"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <AnimatedCheckmark />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
-      <motion.p
-        className="text-center text-sm font-medium text-muted-foreground"
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35, duration: 0.3 }}
-      >
-        {message}
-      </motion.p>
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={message}
+          className="text-sm font-medium text-muted-foreground"
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.2 }}
+        >
+          {message}
+        </motion.p>
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -815,12 +810,12 @@ function SendErrorPhase({
       <ResponsiveDialogTitle className="sr-only">{errorMessage}</ResponsiveDialogTitle>
       <div className="flex flex-1 flex-col items-center justify-center gap-4">
         <motion.div
-          className="flex size-14 items-center justify-center rounded-full bg-destructive/10"
+          className="flex size-20 items-center justify-center rounded-full bg-destructive/10"
           initial={{ scale: 0.8, rotate: 0 }}
           animate={{ scale: 1, rotate: [0, -5, 5, -5, 5, 0] }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
         >
-          <AlertTriangle className="size-8 text-destructive" />
+          <AlertTriangle className="size-10 text-destructive" />
         </motion.div>
         <motion.p
           className="max-w-xs text-sm font-medium text-muted-foreground"
