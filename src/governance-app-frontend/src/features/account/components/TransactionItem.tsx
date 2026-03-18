@@ -107,7 +107,7 @@ export const AccountTransactionItem = ({
               <CertifiedBadge certified={certified} />
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-col gap-1">
+              <div className="flex min-w-0 flex-col gap-1">
                 <span className="text-xs text-muted-foreground">
                   {secondsToDate(transactionTimestamp)} - {secondsToTime(transactionTimestamp)}
                 </span>
@@ -117,15 +117,17 @@ export const AccountTransactionItem = ({
                     <TooltipTrigger asChild>
                       <button
                         type="button"
-                        className="flex items-center gap-1 text-sm text-muted-foreground"
+                        className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground"
                       >
-                        <Trans
-                          i18nKey={($) => $.account[addressDirection]}
-                          values={{ address: addressName }}
-                          components={{
-                            address: <span className="font-semibold" />,
-                          }}
-                        />
+                        <span className="truncate">
+                          <Trans
+                            i18nKey={($) => $.account[addressDirection]}
+                            values={{ address: addressName }}
+                            components={{
+                              address: <span className="font-semibold" />,
+                            }}
+                          />
+                        </span>
                         {addressEntry?.source === 'addressBook' ? (
                           <BookUser className="size-3.5 shrink-0" aria-hidden />
                         ) : (
