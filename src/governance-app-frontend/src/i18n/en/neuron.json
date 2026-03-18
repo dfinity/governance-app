@@ -38,7 +38,7 @@
     "title": "Start participating in governance",
     "description": "Create your first neuron to turn ICP into voting power. Neurons participate in voting and mint rewards over time.",
     "cta": "Create your first neuron",
-    "helper": "After staking, you can follow known neurons or vote directly on proposals."
+    "helper": "After creating a neuron, you can follow known neurons or vote directly on proposals."
   },
   "stakeNeuron": {
     "errors": {
