@@ -34,7 +34,7 @@ export function AccountSelect({
     accounts.find((a) => a.accountId === accountsState?.mainAccountId);
 
   const notifyAccountChange = useEffectEvent(() => {
-    onAccountChange(selectedAccount);
+    onAccountChange?.(selectedAccount);
   });
 
   useEffect(() => {
