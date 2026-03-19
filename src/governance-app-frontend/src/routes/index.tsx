@@ -142,14 +142,14 @@ function LoginPage() {
                 {t(($) => $.common.head.appName)}
               </span>
             </div>
-            <h1 className="animate-fade-up text-hero-responsive mt-4 mb-6 max-w-xl font-bold tracking-wide motion-reduce:animate-none md:mt-12 md:mb-0 md:max-w-3xl">
+            <h1 className="animate-fade-up text-hero-responsive mt-4 mb-6 max-w-xl font-bold tracking-wide md:mt-12 md:mb-0 md:max-w-3xl">
               {t(($) => $.login.headerTitle)}
             </h1>
           </div>
 
           <div className="flex flex-1 flex-col gap-6 md:flex-col md:items-stretch md:gap-8">
             {/* Stats Section (Desktop: Bottom / Mobile: Below Title) */}
-            <dl className="animate-fade-up animate-delay-400 order-1 mt-auto flex flex-col gap-8 motion-reduce:animate-none md:order-2 md:mt-auto md:mb-6 md:h-13 md:flex-row md:gap-16">
+            <dl className="animate-fade-up animate-delay-400 order-1 mt-auto flex flex-col gap-8 md:order-2 md:mt-auto md:mb-6 md:h-13 md:flex-row md:gap-16">
               <div className="flex flex-col-reverse gap-1">
                 <dt className="text-sm font-light tracking-wider text-muted-foreground">
                   {t(($) => $.login.totalProposals)}
@@ -209,7 +209,7 @@ function LoginPage() {
             </dl>
 
             {/* Login Card Section  */}
-            <div className="animate-fade-up animate-delay-200 order-2 flex w-full flex-col gap-6 rounded-3xl border border-white/10 bg-white p-5 text-black backdrop-blur-md motion-reduce:animate-none sm:p-7 md:order-1 md:my-auto md:max-w-lg md:min-w-lg">
+            <div className="animate-fade-up animate-delay-200 order-2 flex w-full flex-col gap-6 rounded-3xl border border-white/10 bg-white p-5 text-black backdrop-blur-md sm:p-7 md:order-1 md:my-auto md:max-w-lg md:min-w-lg">
               <p className="login-card-responsive font-light text-pretty">
                 {t(($) => $.login.accessText)}
               </p>
