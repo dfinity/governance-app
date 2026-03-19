@@ -36,10 +36,11 @@ export const TotalAssetsCard = () => {
 
   const liquidBalance = totalBalanceIcp ?? 0;
 
-  const { totalStakedAfterFees: stakedBalance, totalUnstakedMaturity: maturityBalance } =
-    getNeuronsAggregatedData(neuronsQuery.data?.response);
+  const { totalStakedAfterFees: stakedBalance } = getNeuronsAggregatedData(
+    neuronsQuery.data?.response,
+  );
 
-  const totalAssets = liquidBalance + stakedBalance + maturityBalance;
+  const totalAssets = liquidBalance + stakedBalance;
 
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const totalAssetsUsd = icpPrice ? formatNumber(totalAssets * icpPrice.usd) : undefined;
@@ -104,7 +105,7 @@ export const TotalAssetsCard = () => {
                   <Skeleton className="h-8 w-20" />
                 </div>
               )}
-              {(liquidBalance !== 0 || maturityBalance !== 0) && <StakingRatioModal />}
+              {liquidBalance !== 0 && <StakingRatioModal />}
             </div>
             <span className="text-sm text-muted-foreground">{t(($) => $.home.stakingRatio)}</span>
           </div>

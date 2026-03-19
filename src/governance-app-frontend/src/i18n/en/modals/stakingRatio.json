@@ -1,7 +1,6 @@
 {
   "title": "Lock more, mint more",
   "introduction": "You have <strong>{{available}} ICP available</strong> that isn't minting rewards. Lock 100% of your ICP in neurons to maximize your governance rewards.",
-  "introductionMaturityOnly": "You have <strong>{{available}} unstaked maturity</strong> that isn't compounding. Stake your maturity and enable auto-stake on your neurons to maximize your rewards.",
   "whyStake": {
     "title": "Why lock everything?",
     "rewardsLabel": "Rewards",
@@ -11,19 +10,8 @@
     "flexibilityLabel": "Flexibility",
     "flexibility": "You can dissolve neurons anytime (withdrawable after the locking period)."
   },
-  "whyStakeMaturity": {
-    "title": "Why enable auto-stake maturity?",
-    "rewardsLabel": "Rewards",
-    "rewards": "Unstaked maturity mints 0%, while staked maturity compounds and mints up to {{maxApy}} maturity.",
-    "votingPowerLabel": "Voting power",
-    "votingPower": "Staked maturity increases your neuron's voting power.",
-    "compoundingLabel": "Compounding",
-    "compounding": "Auto-staked maturity compounds automatically, boosting long-term rewards."
-  },
   "recommendationLabel": "Recommended",
   "recommendation": "Lock your available {{available}} ICP with an 8-year delay to maximize your rewards.",
-  "recommendationMaturityOnly": "Stake your maturity and enable auto-stake maturity on your neurons.",
   "button": "Lock now",
-  "buttonMaturityOnly": "Manage neurons",
   "ariaLabel": "Open rewards optimization modal"
 }
