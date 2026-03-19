@@ -27,7 +27,7 @@
   "confirmFrom": "From",
   "confirmTo": "To",
   "confirmTransactionFee": "Transaction fee",
-  "unknownAddress": "Unknown",
+  "unknownAddress": "External address",
   "destinationWarning": "This address is not in your address book. Please verify it is correct.",
   "transferDescription": "Transfer ICP tokens to another account."
 }
