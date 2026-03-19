@@ -83,8 +83,6 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   const { selectedAccountId, setSelectedAccountId, subaccountsEnabled } =
     useAccountSelection(fromAccountId);
 
-  const { data: accountsState } = useAccounts();
-
   const addressBookQuery = useAddressBook();
   const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
   const addressBookLoading = addressBookQuery.isLoading;
@@ -259,21 +257,11 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
       ? t(($) => $.account.approxUsd, { value: formatNumber(numericAmount * icpPrice.usd) })
       : undefined;
 
-  const isDestinationKnown =
-    addressBookEntries.some((entry) => addressBookGetAddressString(entry.address) === toAccount) ||
-    (accountsState?.accounts.some((a) => a.accountId === toAccount) ?? false);
-
   const fromAccountName = nonNullish(selectedAccount)
     ? selectedAccount.name
     : t(($) => $.accounts.mainAccount);
 
-  const resolveDestinationName = (): string => {
-    if (selectedName) return selectedName;
-    const matchedAccount = accountsState?.accounts.find((a) => a.accountId === toAccount);
-    if (matchedAccount) return matchedAccount.name;
-    return toAccount;
-  };
-  const destination = resolveDestinationName();
+  const destination = selectedName || toAccount;
 
   const { Icon, className: variantClassName, label } = variantConfig[variant];
 
@@ -338,10 +326,8 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
             <SendConfirmationPhase
               fromAccountName={fromAccountName}
               toAccount={toAccount}
-              destinationName={
-                isDestinationKnown ? destination : t(($) => $.account.unknownAddress)
-              }
-              isDestinationKnown={isDestinationKnown}
+              selectedName={selectedName}
+              addressBookEntries={addressBookEntries}
               amount={amount}
               approxUsd={approxUsd}
               onBack={() => setPhase(Phase.Form)}
@@ -441,7 +427,7 @@ function SendFormPhase({
       <ResponsiveDialogHeader className="shrink-0">
         <ResponsiveDialogTitle>{t(($) => $.account.transferTitle)}</ResponsiveDialogTitle>
         <ResponsiveDialogDescription className="sr-only">
-          Transfer ICP tokens to another account.
+          {t(($) => $.account.transferDescription)}
         </ResponsiveDialogDescription>
       </ResponsiveDialogHeader>
 
@@ -571,8 +557,8 @@ function SendFormPhase({
 type SendConfirmationPhaseProps = {
   fromAccountName: string;
   toAccount: string;
-  destinationName: string;
-  isDestinationKnown: boolean;
+  selectedName: string;
+  addressBookEntries: NamedAddress[];
   amount: string;
   approxUsd?: string;
   icpPriceUsd?: number;
@@ -584,8 +570,8 @@ type SendConfirmationPhaseProps = {
 function SendConfirmationPhase({
   fromAccountName,
   toAccount,
-  destinationName,
-  isDestinationKnown,
+  selectedName,
+  addressBookEntries,
   amount,
   approxUsd,
   icpPriceUsd,
@@ -594,6 +580,17 @@ function SendConfirmationPhase({
   isProcessing,
 }: SendConfirmationPhaseProps) {
   const { t } = useTranslation();
+  const { data: accountsState } = useAccounts();
+
+  const isDestinationKnown =
+    addressBookEntries.some((entry) => addressBookGetAddressString(entry.address) === toAccount) ||
+    (accountsState?.accounts.some((a) => a.accountId === toAccount) ?? false);
+
+  const destinationName = isDestinationKnown
+    ? selectedName ||
+      accountsState?.accounts.find((a) => a.accountId === toAccount)?.name ||
+      toAccount
+    : t(($) => $.account.unknownAddress);
 
   return (
     <motion.div

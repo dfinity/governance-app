@@ -22,7 +22,7 @@ export const useDetectAdvancedFeatures = (enabled = true): DetectionResult => {
   const hasFeaturesToCheck = enabled && missingFeatureKeys.length > 0;
   const shouldCheckSubaccounts = missingFeatureKeys.includes(AdvancedFeature.Subaccounts);
 
-  const nnsDappAccount = useNnsDappAccount(hasFeaturesToCheck);
+  const nnsDappAccount = useNnsDappAccount(shouldCheckSubaccounts);
 
   const isPending = nnsDappAccount.isPending;
   const accountData = nnsDappAccount.data?.response;
