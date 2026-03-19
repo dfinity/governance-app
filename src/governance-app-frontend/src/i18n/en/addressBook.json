@@ -9,6 +9,7 @@
   "editAddress": "Edit address",
   "saveAddress": "Save address",
   "updatingAddressBook": "Updating address book...",
+  "confirmNavigation": "Your address book is being updated. Leaving this page may cause unexpected results. Are you sure you want to leave?",
   "addSuccess": "Address saved successfully.",
   "editSuccess": "Address updated successfully.",
   "saveError": "Something went wrong while saving. Please try again.",

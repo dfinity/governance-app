@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
 import { Label } from '@components/Label';
+import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -20,16 +21,23 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
-import { ADDRESS_BOOK_MAX_NAME_LENGTH, ADDRESS_BOOK_MIN_NAME_LENGTH } from '@constants/addressBook';
+import {
+  ADDRESS_BOOK_MAX_NAME_LENGTH,
+  ADDRESS_BOOK_MIN_NAME_LENGTH,
+  ADDRESS_BOOK_SUCCESS_AUTO_CLOSE_MS,
+} from '@constants/addressBook';
 import { useSaveAddressBook } from '@hooks/addressBook/useSaveAddressBook';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
 import { addressBookGetAddressString } from '@utils/addressBook';
 
 import { AddressBookSuccess, AddressBookUpdating } from './AddressBookSaving';
 
-const SUCCESS_AUTO_CLOSE_MS = 2400;
-
-type Phase = 'form' | 'processing' | 'success' | 'error';
+enum Phase {
+  Form = 'form',
+  Processing = 'processing',
+  Success = 'success',
+  Error = 'error',
+}
 
 type Props = {
   isOpen: boolean;
@@ -185,11 +193,12 @@ const SuccessPhase: React.FC<SuccessPhaseProps> = ({ isEditMode }) => {
 };
 
 type ErrorPhaseProps = {
+  errorMessage: string | undefined;
   onClose: () => void;
   onBack: () => void;
 };
 
-const ErrorPhase: React.FC<ErrorPhaseProps> = ({ onClose, onBack }) => {
+const ErrorPhase: React.FC<ErrorPhaseProps> = ({ errorMessage, onClose, onBack }) => {
   const { t } = useTranslation();
 
   return (
@@ -216,7 +225,7 @@ const ErrorPhase: React.FC<ErrorPhaseProps> = ({ onClose, onBack }) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.3 }}
           >
-            {t(($) => $.addressBook.saveError)}
+            {errorMessage ?? t(($) => $.addressBook.saveError)}
           </motion.span>
         </ResponsiveDialogTitle>
       </div>
@@ -244,7 +253,8 @@ export const AddAddressModal: React.FC<Props> = ({
   const [address, setAddress] = useState(addressBookGetAddressString(namedAddress?.address));
   const [nicknameError, setNicknameError] = useState('');
   const [addressError, setAddressError] = useState('');
-  const [phase, setPhase] = useState<Phase>('form');
+  const [phase, setPhase] = useState(Phase.Form);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const isEditMode = namedAddress !== undefined;
 
   useEffect(() => {
@@ -254,18 +264,19 @@ export const AddAddressModal: React.FC<Props> = ({
       setAddress(addressBookGetAddressString(namedAddress?.address));
       setNicknameError('');
       setAddressError('');
-      setPhase('form');
+      setPhase(Phase.Form);
+      setErrorMessage(undefined);
     }
   }, [isOpen, namedAddress]);
 
   useEffect(() => {
-    if (phase !== 'success') return;
-    const timer = setTimeout(onClose, SUCCESS_AUTO_CLOSE_MS);
+    if (phase !== Phase.Success) return;
+    const timer = setTimeout(onClose, ADDRESS_BOOK_SUCCESS_AUTO_CLOSE_MS);
     return () => clearTimeout(timer);
   }, [phase, onClose]);
 
   const saveAddressBook = useSaveAddressBook();
-  const isBlocking = phase === 'processing';
+  const isBlocking = phase === Phase.Processing;
 
   const normalizeNickname = (value: string) => value.trim().replace(/\s+/g, ' ');
 
@@ -300,13 +311,14 @@ export const AddAddressModal: React.FC<Props> = ({
   };
 
   const doSave = (updatedAddresses: NamedAddress[]) => {
-    setPhase('processing');
+    setPhase(Phase.Processing);
     saveAddressBook.mutate(updatedAddresses, {
       onSuccess: () => {
-        setPhase('success');
+        setPhase(Phase.Success);
       },
-      onError: () => {
-        setPhase('error');
+      onError: (error) => {
+        setErrorMessage(error.message);
+        setPhase(Phase.Error);
       },
     });
   };
@@ -358,38 +370,50 @@ export const AddAddressModal: React.FC<Props> = ({
   };
 
   return (
-    <ResponsiveDialog
-      open={isOpen}
-      onOpenChange={(open) => !open && !isBlocking && onClose()}
-      dismissible={!isBlocking}
-    >
-      <ResponsiveDialogContent
-        showCloseButton={!isBlocking && phase !== 'success'}
-        data-testid="add-address-modal"
-        className="md:min-h-[200px] md:max-w-lg"
+    <>
+      <NavigationBlockerDialog
+        isBlocked={isBlocking}
+        description={t(($) => $.addressBook.confirmNavigation)}
+      />
+      <ResponsiveDialog
+        open={isOpen}
+        onOpenChange={(open) => !open && !isBlocking && onClose()}
+        dismissible={!isBlocking}
       >
-        <AnimatePresence mode="wait" initial={false}>
-          {phase === 'form' && (
-            <FormPhase
-              isEditMode={isEditMode}
-              nickname={nickname}
-              setNickname={setNickname}
-              nicknameError={nicknameError}
-              setNicknameError={setNicknameError}
-              normalizeNickname={normalizeNickname}
-              address={address}
-              setAddress={setAddress}
-              addressError={addressError}
-              setAddressError={setAddressError}
-              onSubmit={handleSubmit}
-              onClose={onClose}
-            />
-          )}
-          {phase === 'processing' && <ProcessingPhase />}
-          {phase === 'success' && <SuccessPhase isEditMode={isEditMode} />}
-          {phase === 'error' && <ErrorPhase onClose={onClose} onBack={() => setPhase('form')} />}
-        </AnimatePresence>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+        <ResponsiveDialogContent
+          showCloseButton={!isBlocking && phase !== Phase.Success}
+          data-testid="add-address-modal"
+          className="md:min-h-[200px] md:max-w-lg"
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            {phase === Phase.Form && (
+              <FormPhase
+                isEditMode={isEditMode}
+                nickname={nickname}
+                setNickname={setNickname}
+                nicknameError={nicknameError}
+                setNicknameError={setNicknameError}
+                normalizeNickname={normalizeNickname}
+                address={address}
+                setAddress={setAddress}
+                addressError={addressError}
+                setAddressError={setAddressError}
+                onSubmit={handleSubmit}
+                onClose={onClose}
+              />
+            )}
+            {phase === Phase.Processing && <ProcessingPhase />}
+            {phase === Phase.Success && <SuccessPhase isEditMode={isEditMode} />}
+            {phase === Phase.Error && (
+              <ErrorPhase
+                errorMessage={errorMessage}
+                onClose={onClose}
+                onBack={() => setPhase(Phase.Form)}
+              />
+            )}
+          </AnimatePresence>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+    </>
   );
 };
