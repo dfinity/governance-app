@@ -30,8 +30,8 @@ import { nowInSeconds } from '@utils/date';
 import {
   cloneNeurons,
   getNeuronBonusRatio,
-  getNeuronFreeMaturityE8s,
   getNeuronId,
+  getNeuronStakeAfterFeesE8s,
   getNeuronTotalMaturityE8s,
   getNeuronTotalStakeAfterFeesE8s,
   getNeuronTotalValueAfterFeesE8s,
@@ -177,22 +177,11 @@ const getRewardBalance = ({ neurons }: StakingRewardCalcParams): number => {
 };
 
 const getStakingPower = ({ neurons, balance }: StakingRewardCalcParams) => {
-  const getStaking = (neuron: NeuronInfo) => {
-    const staked = getNeuronTotalStakeAfterFeesE8s(neuron);
-    const unstaked = getNeuronFreeMaturityE8s(neuron);
-
-    return {
-      staked: bigIntDiv(staked, BigInt(E8S), 20),
-      total: bigIntDiv(staked + unstaked, BigInt(E8S), 20),
-    };
-  };
-
-  let totalValue = balance;
   let totalStaked = 0;
   neurons.forEach((neuron) => {
     try {
-      totalStaked += getStaking(neuron).staked;
-      totalValue += getStaking(neuron).total;
+      const staked = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), BigInt(E8S), 20);
+      totalStaked += staked;
     } catch (e) {
       let message = `Staking rewards: unexpected error calculating NNS staking power, ignoring neuron ${neuron.neuronId}.`;
       if (e instanceof ApyMissingDataError) {
@@ -202,6 +191,7 @@ const getStakingPower = ({ neurons, balance }: StakingRewardCalcParams) => {
     }
   });
 
+  const totalValue = totalStaked + balance;
   return totalValue ? totalStaked / totalValue : 0;
 };
 
