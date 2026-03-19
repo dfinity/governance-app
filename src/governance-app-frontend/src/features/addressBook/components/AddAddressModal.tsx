@@ -282,9 +282,7 @@ export const AddAddressModal: React.FC<Props> = ({
               transition={{ duration: 0.2 }}
             >
               <ResponsiveDialogTitle className="sr-only">
-                {t(($) =>
-                  isEditMode ? $.addressBook.editSuccess : $.addressBook.addSuccess,
-                )}
+                {t(($) => (isEditMode ? $.addressBook.editSuccess : $.addressBook.addSuccess))}
               </ResponsiveDialogTitle>
               <motion.div
                 className="flex size-16 items-center justify-center rounded-full bg-green-600/10"
@@ -300,9 +298,7 @@ export const AddAddressModal: React.FC<Props> = ({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.35, duration: 0.3 }}
               >
-                {t(($) =>
-                  isEditMode ? $.addressBook.editSuccess : $.addressBook.addSuccess,
-                )}
+                {t(($) => (isEditMode ? $.addressBook.editSuccess : $.addressBook.addSuccess))}
               </motion.p>
             </motion.div>
           )}
