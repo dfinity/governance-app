@@ -29,8 +29,6 @@
     "invalidAddress": "Please enter a valid ICP or ICRC1 address."
   },
   "toast": {
-    "addSuccess": "Address saved successfully.",
-    "editSuccess": "Address updated successfully.",
     "removeSuccess": "Address removed successfully.",
     "anonymousNotAllowed": "Please sign in to manage the address book.",
     "saveError": "There was an unexpected issue while updating the address book.",
