@@ -9,7 +9,6 @@ import type {
 } from '@declarations/governance-app-backend/governance-app-backend.did';
 
 import { Alert, AlertDescription } from '@components/Alert';
-import { AnimatedCheckmark } from '@components/AnimatedCheckmark';
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
 import { Label } from '@components/Label';
@@ -26,7 +25,7 @@ import { useSaveAddressBook } from '@hooks/addressBook/useSaveAddressBook';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
 import { addressBookGetAddressString } from '@utils/addressBook';
 
-import { AddressBookUpdating } from './AddressBookSaving';
+import { AddressBookSuccess, AddressBookUpdating } from './AddressBookSaving';
 
 const SUCCESS_AUTO_CLOSE_MS = 2400;
 
@@ -179,32 +178,9 @@ const SuccessPhase: React.FC<SuccessPhaseProps> = ({ isEditMode }) => {
   const { t } = useTranslation();
 
   return (
-    <motion.div
-      key="success"
-      className="flex h-full flex-col items-center justify-center gap-5 py-8 text-center"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
-    >
-      <motion.div
-        className="flex size-16 items-center justify-center rounded-full bg-green-600/10"
-        initial={{ scale: 0.6, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-      >
-        <AnimatedCheckmark />
-      </motion.div>
-      <ResponsiveDialogTitle className="text-sm font-medium text-muted-foreground">
-        <motion.span
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35, duration: 0.3 }}
-        >
-          {t(($) => (isEditMode ? $.addressBook.editSuccess : $.addressBook.addSuccess))}
-        </motion.span>
-      </ResponsiveDialogTitle>
-    </motion.div>
+    <AddressBookSuccess
+      message={t(($) => (isEditMode ? $.addressBook.editSuccess : $.addressBook.addSuccess))}
+    />
   );
 };
 
