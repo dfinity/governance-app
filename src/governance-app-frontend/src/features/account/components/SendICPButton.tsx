@@ -107,9 +107,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   });
 
   useEffect(() => {
-    if (!addressBookLoading) {
-      autoToggleAddressBook();
-    }
+    if (!addressBookLoading) autoToggleAddressBook();
   }, [addressBookLoading]);
 
   // Keep the createdAt value for retry purposes (used for deduplication at the ledger level)
@@ -208,10 +206,6 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
     amountInputRef?.current?.focus();
   };
 
-  const handleClose = () => {
-    setOpen(false);
-  };
-
   const closingRef = useRef(false);
 
   const handleOpenChange = (value: boolean) => {
@@ -236,10 +230,8 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
     setOpen(value);
   };
 
-  const handleRetry = () => {
-    setPhase(Phase.Confirmation);
-  };
-
+  const handleClose = () => handleOpenChange(false);
+  const handleRetry = () => setPhase(Phase.Confirmation);
   const autoCloseOnSuccess = useEffectEvent(() => {
     handleOpenChange(false);
   });
