@@ -3,8 +3,12 @@ import { AlertTriangle, Info, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { AccountSelect } from '@features/accounts/components/AccountSelect';
+import { useAccountDestination } from '@features/accounts/hooks/useAccountDestination';
+
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
+import { Label } from '@components/Label';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -29,6 +33,8 @@ type Props = {
 export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation();
   const { mutateAsync, isPending } = useDisburseMaturity();
+  const { selectedAccountId, setSelectedAccountId, resolvedAccountId, subaccountsEnabled } =
+    useAccountDestination();
   const [error, setError] = useState<string | null>(null);
 
   const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
@@ -44,7 +50,10 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
     }
 
     try {
-      await mutateAsync({ neuronId: neuron.neuronId });
+      await mutateAsync({
+        neuronId: neuron.neuronId,
+        toAccountId: resolvedAccountId,
+      });
       successNotification({
         description: t(($) => $.neuronDetailModal.disburseMaturity.success),
       });
@@ -82,6 +91,20 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
         </ResponsiveDialogHeader>
 
         <div className="mt-4 flex flex-col gap-4 px-4 pb-4 md:px-0 md:pb-0">
+          {subaccountsEnabled && (
+            <div className="space-y-1">
+              <Label htmlFor="disburse-maturity-to-account">
+                {t(($) => $.neuronDetailModal.disburseMaturity.toAccount)}
+              </Label>
+              <AccountSelect
+                id="disburse-maturity-to-account"
+                value={selectedAccountId}
+                onChange={setSelectedAccountId}
+                data-testid="disburse-maturity-account-select"
+              />
+            </div>
+          )}
+
           <Alert variant="info">
             <Info className="h-4 w-4" />
             <AlertDescription>

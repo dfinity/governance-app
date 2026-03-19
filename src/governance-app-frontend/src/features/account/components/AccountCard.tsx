@@ -50,15 +50,18 @@ export function AccountCard() {
             <p className="text-sm tracking-wide text-muted-foreground uppercase">
               {t(($) => $.account.available)}
             </p>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setIsDialogOpen(true)}
-              aria-label={t(($) => $.account.ariaLabel)}
-              title={t(($) => $.account.ariaLabel)}
-            >
-              <List aria-hidden="true" />
-            </Button>
+            <div className="flex items-center gap-1">
+              {IS_TESTNET && <GetTokens accountId={accountId} />}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setIsDialogOpen(true)}
+                aria-label={t(($) => $.account.ariaLabel)}
+                title={t(($) => $.account.ariaLabel)}
+              >
+                <List aria-hidden="true" />
+              </Button>
+            </div>
           </div>
 
           <div className="flex flex-col gap-0.5">
@@ -82,7 +85,6 @@ export function AccountCard() {
 
         <CardContent className="flex flex-1 flex-col justify-between gap-6">
           <div className="mt-auto flex flex-col gap-3">
-            {IS_TESTNET && <GetTokens accountId={accountId} />}
             <Button asChild size="xl" className="w-full">
               <Link to="/dashboard" search={{ depositModal: true }} replace>
                 <Plus aria-hidden="true" />

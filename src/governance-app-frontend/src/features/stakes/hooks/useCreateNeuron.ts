@@ -20,6 +20,8 @@ type Props = {
   dissolveDelayMonths: number;
   autoStakeMaturity: boolean;
   startDissolving: boolean;
+  fromSubAccount?: number[];
+  selectedAccountId: string;
 };
 
 /**
@@ -69,6 +71,7 @@ export function useCreateNeuron(params: Props) {
         neuronId = await governanceCanister.stakeNeuron({
           stake,
           principal,
+          fromSubAccount: params.fromSubAccount,
           ledgerCanister,
           createdAt,
           fee: ICP_TRANSACTION_FEE_E8Sn,
@@ -152,10 +155,11 @@ export function useCreateNeuron(params: Props) {
         setCurrentStep(step);
       }
 
+      const balanceQueryKey = [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE, params.selectedAccountId];
+
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE] }),
+        queryClient.invalidateQueries({ queryKey: balanceQueryKey }),
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] }),
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ICP_INDEX.TRANSACTIONS] }),
       ]).catch(failedRefresh);
     },
   });
