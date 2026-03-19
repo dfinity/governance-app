@@ -66,14 +66,14 @@ test.describe.serial('Neuron Detail Modal', () => {
   test('Increase Stake', async () => {
     await test.step('Opens view, navigates, and URL state persists', async () => {
       await openNeuronDetailModal(page);
-      await page.getByTestId('neuron-detail-action-increase-stake').click();
+      await page.getByTestId('neuron-detail-action-top-up-neuron').click();
       const url = page.url();
       expect(url).toContain('action=increaseStake');
       await expect(page.getByTestId('increase-stake-amount-input')).toBeVisible();
       await page.getByTestId('neuron-detail-back-btn').click();
       await expect(page.getByTestId('increase-stake-amount-input')).not.toBeVisible();
-      await expect(page.getByTestId('neuron-detail-action-increase-stake')).toBeVisible();
-      await page.getByTestId('neuron-detail-action-increase-stake').click();
+      await expect(page.getByTestId('neuron-detail-action-top-up-neuron')).toBeVisible();
+      await page.getByTestId('neuron-detail-action-top-up-neuron').click();
       await page.reload();
       await expect(page.getByTestId('increase-stake-amount-input')).toBeVisible();
       await closeModal(page);
@@ -81,7 +81,7 @@ test.describe.serial('Neuron Detail Modal', () => {
 
     await test.step('Validates input and shows current values', async () => {
       await openNeuronDetailModal(page);
-      await page.getByTestId('neuron-detail-action-increase-stake').click();
+      await page.getByTestId('neuron-detail-action-top-up-neuron').click();
       await expect(page.getByTestId('increase-stake-current-stake')).toHaveText(/5/);
       await page.getByTestId('increase-stake-confirm-btn').click();
       await expect(page.getByTestId('increase-stake-error')).toBeVisible();
@@ -93,7 +93,7 @@ test.describe.serial('Neuron Detail Modal', () => {
 
     await test.step('Successfully increases stake', async () => {
       await openNeuronDetailModal(page);
-      await page.getByTestId('neuron-detail-action-increase-stake').click();
+      await page.getByTestId('neuron-detail-action-top-up-neuron').click();
       await page.getByTestId('increase-stake-amount-input').fill('1');
       await page.getByTestId('increase-stake-confirm-btn').click();
       await expect(page.getByTestId('increase-stake-amount-input')).not.toBeVisible({
