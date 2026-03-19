@@ -187,9 +187,6 @@ const SuccessPhase: React.FC<SuccessPhaseProps> = ({ isEditMode }) => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
     >
-      <ResponsiveDialogTitle className="sr-only">
-        {t(($) => (isEditMode ? $.addressBook.editSuccess : $.addressBook.addSuccess))}
-      </ResponsiveDialogTitle>
       <motion.div
         className="flex size-16 items-center justify-center rounded-full bg-green-600/10"
         initial={{ scale: 0.6, opacity: 0 }}
@@ -198,14 +195,15 @@ const SuccessPhase: React.FC<SuccessPhaseProps> = ({ isEditMode }) => {
       >
         <AnimatedCheckmark />
       </motion.div>
-      <motion.p
-        className="text-sm font-medium text-muted-foreground"
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35, duration: 0.3 }}
-      >
-        {t(($) => (isEditMode ? $.addressBook.editSuccess : $.addressBook.addSuccess))}
-      </motion.p>
+      <ResponsiveDialogTitle className="text-sm font-medium text-muted-foreground">
+        <motion.span
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35, duration: 0.3 }}
+        >
+          {t(($) => (isEditMode ? $.addressBook.editSuccess : $.addressBook.addSuccess))}
+        </motion.span>
+      </ResponsiveDialogTitle>
     </motion.div>
   );
 };
@@ -227,9 +225,6 @@ const ErrorPhase: React.FC<ErrorPhaseProps> = ({ onClose, onBack }) => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
     >
-      <ResponsiveDialogTitle className="sr-only">
-        {t(($) => $.addressBook.saveError)}
-      </ResponsiveDialogTitle>
       <div className="flex flex-1 flex-col items-center justify-center gap-4">
         <motion.div
           className="flex size-14 items-center justify-center rounded-full bg-destructive/10"
@@ -239,14 +234,15 @@ const ErrorPhase: React.FC<ErrorPhaseProps> = ({ onClose, onBack }) => {
         >
           <AlertTriangle className="size-8 text-destructive" />
         </motion.div>
-        <motion.p
-          className="max-w-xs text-sm font-medium text-muted-foreground"
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.3 }}
-        >
-          {t(($) => $.addressBook.saveError)}
-        </motion.p>
+        <ResponsiveDialogTitle className="max-w-xs text-sm font-medium text-muted-foreground">
+          <motion.span
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.3 }}
+          >
+            {t(($) => $.addressBook.saveError)}
+          </motion.span>
+        </ResponsiveDialogTitle>
       </div>
       <div className="flex w-full gap-2 pt-4">
         <Button variant="outline" className="flex-1" onClick={onClose}>
