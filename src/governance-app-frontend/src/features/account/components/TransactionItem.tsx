@@ -149,7 +149,7 @@ export const AccountTransactionItem = ({
                     <span className="truncate md:hidden">
                       <Trans
                         i18nKey={($) => $.account[addressDirection]}
-                        values={{ address: shortenId(address, 6) }}
+                        values={{ address: shortenId(address, 10) }}
                         components={{
                           address: <span className="font-mono" />,
                         }}
@@ -158,7 +158,7 @@ export const AccountTransactionItem = ({
                     <span className="hidden truncate md:inline">
                       <Trans
                         i18nKey={($) => $.account[addressDirection]}
-                        values={{ address: shortenId(address, 12) }}
+                        values={{ address: shortenId(address, 18) }}
                         components={{
                           address: <span className="font-mono" />,
                         }}
