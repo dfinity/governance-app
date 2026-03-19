@@ -19,6 +19,7 @@ const addAddress = async (page: Page, nickname: string, address: string) => {
   await page.getByTestId('add-address-nickname-input').fill(nickname);
   await page.getByTestId('add-address-address-input').fill(address);
   await page.getByTestId('add-address-save-btn').click();
+  await expect(page.getByText('Address saved successfully.')).toBeVisible({ timeout: 30000 });
   await expect(page.getByTestId('add-address-modal')).not.toBeVisible({ timeout: 30000 });
 };
 
@@ -47,7 +48,6 @@ test.describe('Address book', () => {
 
     await test.step('Add first address (ICP) - "Alice".', async () => {
       await addAddress(page, 'Alice', TEST_ICP_ADDRESS);
-      await expect(page.getByText('Address saved successfully.').first()).toBeVisible();
 
       await expect(page.getByTestId('address-book-empty')).not.toBeVisible({ timeout: 30000 });
       const names = await getEntryNames(page);
@@ -60,7 +60,6 @@ test.describe('Address book', () => {
 
     await test.step('Add second address (ICRC1) - "Bob".', async () => {
       await addAddress(page, 'Bob', TEST_ICRC1_ADDRESS);
-      await expect(page.getByText('Address saved successfully.').first()).toBeVisible();
 
       await expect(page.getByTestId('address-book-empty')).not.toBeVisible({ timeout: 30000 });
       const names = await getEntryNames(page);
@@ -85,8 +84,8 @@ test.describe('Address book', () => {
       await page.getByTestId('add-address-nickname-input').fill('Marta');
       await page.getByTestId('add-address-save-btn').click();
 
+      await expect(page.getByText('Address updated successfully.')).toBeVisible({ timeout: 30000 });
       await expect(page.getByTestId('add-address-modal')).not.toBeVisible({ timeout: 30000 });
-      await expect(page.getByText('Address updated successfully.').first()).toBeVisible();
 
       const names = await getEntryNames(page);
       const addresses = await getEntryAddresses(page);
@@ -107,8 +106,8 @@ test.describe('Address book', () => {
       await page.getByTestId('add-address-address-input').fill(TEST_ICRC1_ADDRESS);
       await page.getByTestId('add-address-save-btn').click();
 
+      await expect(page.getByText('Address updated successfully.')).toBeVisible({ timeout: 30000 });
       await expect(page.getByTestId('add-address-modal')).not.toBeVisible({ timeout: 30000 });
-      await expect(page.getByText('Address updated successfully.').first()).toBeVisible();
 
       martaEntry = page.getByTestId('address-book-entry').filter({ hasText: 'Marta' });
       const names = await getEntryNames(page);
@@ -197,10 +196,7 @@ test.describe('Address book', () => {
       await openAddressBookModal(page);
 
       await addAddress(page, 'Wallet A', TEST_ICP_ADDRESS);
-      await expect(page.getByText('Address saved successfully.').first()).toBeVisible();
-
       await addAddress(page, 'Wallet B', TEST_ICRC1_ADDRESS);
-      await expect(page.getByText('Address saved successfully.').first()).toBeVisible();
 
       const names = await getEntryNames(page);
       expect(names).toHaveLength(2);
