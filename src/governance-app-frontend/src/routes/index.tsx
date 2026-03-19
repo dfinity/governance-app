@@ -2,7 +2,7 @@ import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { ensureInitialized, useInternetIdentity } from 'ic-use-internet-identity';
 import { ExternalLink } from 'lucide-react';
-import { type CSSProperties, useLayoutEffect } from 'react';
+import { type CSSProperties, useLayoutEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGovernanceLogo';
@@ -73,6 +73,7 @@ function LoginPage() {
     };
   }, []);
 
+  const [isVideoReady, setIsVideoReady] = useState(false);
   const { tvl, isLoading: isTvlLoading, isError: isTvlError } = useTvlValue();
   const participants = 57986;
   const proposalsQuery = useGovernanceProposal();
@@ -114,7 +115,8 @@ function LoginPage() {
               muted
               playsInline
               preload="auto"
-              className="relative max-h-[720px] w-fit object-cover motion-reduce:hidden 3xl:translate-x-3/4 md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 xl:translate-x-1/2 2xl:translate-x-2/3"
+              onCanPlayThrough={() => setIsVideoReady(true)}
+              className={`relative max-h-[720px] w-fit object-cover transition-opacity duration-1000 ease-in motion-reduce:hidden 3xl:translate-x-3/4 md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 xl:translate-x-1/2 2xl:translate-x-2/3 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}
               aria-hidden={true}
               style={FADE_MASK_STYLE}
             >
