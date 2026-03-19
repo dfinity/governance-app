@@ -616,7 +616,7 @@ function SendConfirmationPhase({
           {/* Amount highlight */}
           <div className="flex flex-col items-center gap-1 py-2">
             <div className="flex items-center gap-2">
-              <img src="/icp-token.svg" alt="" aria-hidden={true} className="size-9" />
+              <img src="/icp-token.svg" alt="" aria-hidden className="size-9" />
               <p className="text-3xl font-bold">{amount} ICP</p>
             </div>
             {nonNullish(approxUsd) && (
@@ -695,7 +695,7 @@ function AnimatedSendIcon() {
   };
 
   return (
-    <motion.svg className="size-12 text-muted-foreground" viewBox="0 0 24 24">
+    <motion.svg className="size-12 text-muted-foreground" viewBox="0 0 24 24" aria-hidden>
       <motion.path
         d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"
         {...strokeProps}
