@@ -127,7 +127,7 @@ test.describe('Address book', () => {
       await expect(page.getByTestId('remove-address-confirmation')).toContainText('Bob');
       await page.getByTestId('remove-address-confirm-btn').click();
 
-      await expect(page.getByText('Address removed successfully.').first()).toBeVisible({
+      await expect(page.getByText('Address removed successfully.')).toBeVisible({
         timeout: 30000,
       });
       await expect(page.getByTestId('remove-address-confirmation')).not.toBeVisible({
@@ -166,7 +166,7 @@ test.describe('Address book', () => {
       await expect(page.getByTestId('remove-address-confirmation')).toBeVisible();
       await page.getByTestId('remove-address-confirm-btn').click();
 
-      await expect(page.getByText('Address removed successfully.').first()).toBeVisible({
+      await expect(page.getByText('Address removed successfully.')).toBeVisible({
         timeout: 30000,
       });
       await expect(page.getByTestId('remove-address-confirmation')).not.toBeVisible({
