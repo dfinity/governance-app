@@ -105,6 +105,20 @@ describe('staking-rewards', () => {
       expect(checkNumber(0.5, data.stakingRatio)).toBe(true);
     }
 
+    params.neurons[0].fullNeuron!.maturityE8sEquivalent = BigInt(300 * E8S);
+    data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
+    expect(isStakingRewardDataReady(data)).toBe(true);
+    if (isStakingRewardDataReady(data)) {
+      expect(checkNumber(0.5, data.stakingRatio)).toBe(true);
+    }
+
+    params.neurons[0].fullNeuron!.stakedMaturityE8sEquivalent = BigInt(200 * E8S);
+    data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
+    expect(isStakingRewardDataReady(data)).toBe(true);
+    if (isStakingRewardDataReady(data)) {
+      expect(checkNumber(0.5, data.stakingRatio)).toBe(true);
+    }
+
     params.neurons[0].fullNeuron!.cachedNeuronStake = BigInt(0);
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);

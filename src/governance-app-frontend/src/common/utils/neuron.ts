@@ -237,20 +237,20 @@ export const isUserHotkey = ({
 /**
  * Aggregates staking data from multiple neurons.
  * @param neurons - Array of neurons to aggregate data from
- * @returns Object containing totalStakedAfterFees and totalUnstakedMaturity
+ * @returns Object containing totalStakedAfterFees and totalMaturity
  */
 export const getNeuronsAggregatedData = (
   neurons: NeuronInfo[] = [],
-): { totalStakedAfterFees: number; totalUnstakedMaturity: number } => {
+): { totalStakedAfterFees: number; totalMaturity: number } => {
   return neurons.reduce(
     (acc, neuron) => {
-      const stake = bigIntDiv(getNeuronTotalStakeAfterFeesE8s(neuron), E8Sn);
-      const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
+      const stake = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
+      const maturity = bigIntDiv(getNeuronTotalMaturityE8s(neuron), E8Sn);
       return {
         totalStakedAfterFees: acc.totalStakedAfterFees + stake,
-        totalUnstakedMaturity: acc.totalUnstakedMaturity + unstakedMaturity,
+        totalMaturity: acc.totalMaturity + maturity,
       };
     },
-    { totalStakedAfterFees: 0, totalUnstakedMaturity: 0 },
+    { totalStakedAfterFees: 0, totalMaturity: 0 },
   );
 };
