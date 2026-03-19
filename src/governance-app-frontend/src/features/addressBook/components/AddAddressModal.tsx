@@ -39,6 +39,227 @@ type Props = {
   existingAddresses: NamedAddress[];
 };
 
+type FormPhaseProps = {
+  isEditMode: boolean;
+  nickname: string;
+  setNickname: (value: string) => void;
+  nicknameError: string;
+  setNicknameError: (value: string) => void;
+  normalizeNickname: (value: string) => string;
+  address: string;
+  setAddress: (value: string) => void;
+  addressError: string;
+  setAddressError: (value: string) => void;
+  onSubmit: (event: React.SyntheticEvent) => void;
+  onClose: () => void;
+};
+
+const FormPhase: React.FC<FormPhaseProps> = ({
+  isEditMode,
+  nickname,
+  setNickname,
+  nicknameError,
+  setNicknameError,
+  normalizeNickname,
+  address,
+  setAddress,
+  addressError,
+  setAddressError,
+  onSubmit,
+  onClose,
+}) => {
+  const { t } = useTranslation();
+
+  return (
+    <motion.form
+      key="form"
+      onSubmit={onSubmit}
+      autoComplete="off"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.15 }}
+    >
+      <ResponsiveDialogHeader>
+        <ResponsiveDialogTitle>
+          {t(($) => (isEditMode ? $.addressBook.editAddress : $.addressBook.addAddress))}
+        </ResponsiveDialogTitle>
+        <ResponsiveDialogDescription className="sr-only">
+          {t(($) => $.addressBook.description)}
+        </ResponsiveDialogDescription>
+      </ResponsiveDialogHeader>
+
+      <div className="grid gap-4 pt-4 pb-12">
+        <div className="grid gap-2">
+          <Label htmlFor="nickname">{t(($) => $.addressBook.nickname)}</Label>
+          <Input
+            id="nickname"
+            value={nickname}
+            onChange={(e) => {
+              setNickname(e.target.value);
+              setNicknameError('');
+            }}
+            onBlur={() => setNickname(normalizeNickname(nickname))}
+            placeholder={t(($) => $.addressBook.nicknamePlaceholder)}
+            className={nicknameError ? 'border-destructive' : ''}
+            aria-invalid={!!nicknameError}
+            autoComplete="off"
+            data-testid="add-address-nickname-input"
+          />
+          {nicknameError && (
+            <Alert variant="warning">
+              <AlertTriangle className="size-4 text-destructive" />
+              <AlertDescription>{nicknameError}</AlertDescription>
+            </Alert>
+          )}
+        </div>
+
+        <div className="grid gap-2">
+          <Label htmlFor="address">{t(($) => $.addressBook.address)}</Label>
+          <Input
+            id="address"
+            value={address}
+            onChange={(e) => {
+              setAddress(e.target.value);
+              setAddressError('');
+            }}
+            placeholder={t(($) => $.addressBook.addressPlaceholder)}
+            className={`font-mono ${addressError ? 'border-destructive' : ''}`}
+            aria-invalid={!!addressError}
+            autoComplete="off"
+            data-1p-ignore
+            data-lpignore="true"
+            data-testid="add-address-address-input"
+          />
+          {addressError && (
+            <Alert variant="warning">
+              <AlertTriangle className="size-4 text-destructive" />
+              <AlertDescription>{addressError}</AlertDescription>
+            </Alert>
+          )}
+        </div>
+      </div>
+
+      <ResponsiveDialogFooter className="flex justify-end gap-2">
+        <Button type="button" variant="ghost" onClick={onClose}>
+          {t(($) => $.common.close)}
+        </Button>
+        <Button type="submit" data-testid="add-address-save-btn">
+          {t(($) => $.addressBook.saveAddress)}
+        </Button>
+      </ResponsiveDialogFooter>
+    </motion.form>
+  );
+};
+
+const ProcessingPhase: React.FC = () => {
+  const { t } = useTranslation();
+
+  return (
+    <motion.div
+      key="processing"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.15 }}
+    >
+      <ResponsiveDialogTitle className="sr-only">
+        {t(($) => $.addressBook.updatingAddressBook)}
+      </ResponsiveDialogTitle>
+      <AddressBookUpdating />
+    </motion.div>
+  );
+};
+
+type SuccessPhaseProps = {
+  isEditMode: boolean;
+};
+
+const SuccessPhase: React.FC<SuccessPhaseProps> = ({ isEditMode }) => {
+  const { t } = useTranslation();
+
+  return (
+    <motion.div
+      key="success"
+      className="flex h-full flex-col items-center justify-center gap-5 py-8 text-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      <ResponsiveDialogTitle className="sr-only">
+        {t(($) => (isEditMode ? $.addressBook.editSuccess : $.addressBook.addSuccess))}
+      </ResponsiveDialogTitle>
+      <motion.div
+        className="flex size-16 items-center justify-center rounded-full bg-green-600/10"
+        initial={{ scale: 0.6, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+      >
+        <AnimatedCheckmark />
+      </motion.div>
+      <motion.p
+        className="text-sm font-medium text-muted-foreground"
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35, duration: 0.3 }}
+      >
+        {t(($) => (isEditMode ? $.addressBook.editSuccess : $.addressBook.addSuccess))}
+      </motion.p>
+    </motion.div>
+  );
+};
+
+type ErrorPhaseProps = {
+  onClose: () => void;
+  onBack: () => void;
+};
+
+const ErrorPhase: React.FC<ErrorPhaseProps> = ({ onClose, onBack }) => {
+  const { t } = useTranslation();
+
+  return (
+    <motion.div
+      key="error"
+      className="flex h-full flex-col items-center justify-between py-8 text-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      <ResponsiveDialogTitle className="sr-only">
+        {t(($) => $.addressBook.saveError)}
+      </ResponsiveDialogTitle>
+      <div className="flex flex-1 flex-col items-center justify-center gap-4">
+        <motion.div
+          className="flex size-14 items-center justify-center rounded-full bg-destructive/10"
+          initial={{ scale: 0.8, rotate: 0 }}
+          animate={{ scale: 1, rotate: [0, -5, 5, -5, 5, 0] }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+        >
+          <AlertTriangle className="size-8 text-destructive" />
+        </motion.div>
+        <motion.p
+          className="max-w-xs text-sm font-medium text-muted-foreground"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.3 }}
+        >
+          {t(($) => $.addressBook.saveError)}
+        </motion.p>
+      </div>
+      <div className="flex w-full gap-2 pt-4">
+        <Button variant="outline" className="flex-1" onClick={onClose}>
+          {t(($) => $.common.close)}
+        </Button>
+        <Button className="flex-1" onClick={onBack}>
+          {t(($) => $.common.back)}
+        </Button>
+      </div>
+    </motion.div>
+  );
+};
+
 export const AddAddressModal: React.FC<Props> = ({
   isOpen,
   onClose,
@@ -177,172 +398,24 @@ export const AddAddressModal: React.FC<Props> = ({
       >
         <AnimatePresence mode="wait" initial={false}>
           {phase === 'form' && (
-            <motion.form
-              key="form"
+            <FormPhase
+              isEditMode={isEditMode}
+              nickname={nickname}
+              setNickname={setNickname}
+              nicknameError={nicknameError}
+              setNicknameError={setNicknameError}
+              normalizeNickname={normalizeNickname}
+              address={address}
+              setAddress={setAddress}
+              addressError={addressError}
+              setAddressError={setAddressError}
               onSubmit={handleSubmit}
-              autoComplete="off"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <ResponsiveDialogHeader>
-                <ResponsiveDialogTitle>
-                  {t(($) => (isEditMode ? $.addressBook.editAddress : $.addressBook.addAddress))}
-                </ResponsiveDialogTitle>
-                <ResponsiveDialogDescription className="sr-only">
-                  {t(($) => $.addressBook.description)}
-                </ResponsiveDialogDescription>
-              </ResponsiveDialogHeader>
-
-              <div className="grid gap-4 pt-4 pb-12">
-                <div className="grid gap-2">
-                  <Label htmlFor="nickname">{t(($) => $.addressBook.nickname)}</Label>
-                  <Input
-                    id="nickname"
-                    value={nickname}
-                    onChange={(e) => {
-                      setNickname(e.target.value);
-                      setNicknameError('');
-                    }}
-                    onBlur={() => setNickname(normalizeNickname(nickname))}
-                    placeholder={t(($) => $.addressBook.nicknamePlaceholder)}
-                    className={nicknameError ? 'border-destructive' : ''}
-                    aria-invalid={!!nicknameError}
-                    autoComplete="off"
-                    data-testid="add-address-nickname-input"
-                  />
-                  {nicknameError && (
-                    <Alert variant="warning">
-                      <AlertTriangle className="size-4 text-destructive" />
-                      <AlertDescription>{nicknameError}</AlertDescription>
-                    </Alert>
-                  )}
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="address">{t(($) => $.addressBook.address)}</Label>
-                  <Input
-                    id="address"
-                    value={address}
-                    onChange={(e) => {
-                      setAddress(e.target.value);
-                      setAddressError('');
-                    }}
-                    placeholder={t(($) => $.addressBook.addressPlaceholder)}
-                    className={`font-mono ${addressError ? 'border-destructive' : ''}`}
-                    aria-invalid={!!addressError}
-                    autoComplete="off"
-                    data-1p-ignore
-                    data-lpignore="true"
-                    data-testid="add-address-address-input"
-                  />
-                  {addressError && (
-                    <Alert variant="warning">
-                      <AlertTriangle className="size-4 text-destructive" />
-                      <AlertDescription>{addressError}</AlertDescription>
-                    </Alert>
-                  )}
-                </div>
-              </div>
-
-              <ResponsiveDialogFooter className="flex justify-end gap-2">
-                <Button type="button" variant="ghost" onClick={onClose}>
-                  {t(($) => $.common.close)}
-                </Button>
-                <Button type="submit" data-testid="add-address-save-btn">
-                  {t(($) => $.addressBook.saveAddress)}
-                </Button>
-              </ResponsiveDialogFooter>
-            </motion.form>
+              onClose={onClose}
+            />
           )}
-
-          {phase === 'processing' && (
-            <motion.div
-              key="processing"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <ResponsiveDialogTitle className="sr-only">
-                {t(($) => $.addressBook.updatingAddressBook)}
-              </ResponsiveDialogTitle>
-              <AddressBookUpdating />
-            </motion.div>
-          )}
-
-          {phase === 'success' && (
-            <motion.div
-              key="success"
-              className="flex h-full flex-col items-center justify-center gap-5 py-8 text-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <ResponsiveDialogTitle className="sr-only">
-                {t(($) => (isEditMode ? $.addressBook.editSuccess : $.addressBook.addSuccess))}
-              </ResponsiveDialogTitle>
-              <motion.div
-                className="flex size-16 items-center justify-center rounded-full bg-green-600/10"
-                initial={{ scale: 0.6, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-              >
-                <AnimatedCheckmark />
-              </motion.div>
-              <motion.p
-                className="text-sm font-medium text-muted-foreground"
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.35, duration: 0.3 }}
-              >
-                {t(($) => (isEditMode ? $.addressBook.editSuccess : $.addressBook.addSuccess))}
-              </motion.p>
-            </motion.div>
-          )}
-
-          {phase === 'error' && (
-            <motion.div
-              key="error"
-              className="flex h-full flex-col items-center justify-between py-8 text-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <ResponsiveDialogTitle className="sr-only">
-                {t(($) => $.addressBook.saveError)}
-              </ResponsiveDialogTitle>
-              <div className="flex flex-1 flex-col items-center justify-center gap-4">
-                <motion.div
-                  className="flex size-14 items-center justify-center rounded-full bg-destructive/10"
-                  initial={{ scale: 0.8, rotate: 0 }}
-                  animate={{ scale: 1, rotate: [0, -5, 5, -5, 5, 0] }}
-                  transition={{ duration: 0.5, ease: 'easeOut' }}
-                >
-                  <AlertTriangle className="size-8 text-destructive" />
-                </motion.div>
-                <motion.p
-                  className="max-w-xs text-sm font-medium text-muted-foreground"
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3, duration: 0.3 }}
-                >
-                  {t(($) => $.addressBook.saveError)}
-                </motion.p>
-              </div>
-              <div className="flex w-full gap-2 pt-4">
-                <Button variant="outline" className="flex-1" onClick={onClose}>
-                  {t(($) => $.common.close)}
-                </Button>
-                <Button className="flex-1" onClick={() => setPhase('form')}>
-                  {t(($) => $.common.back)}
-                </Button>
-              </div>
-            </motion.div>
-          )}
+          {phase === 'processing' && <ProcessingPhase />}
+          {phase === 'success' && <SuccessPhase isEditMode={isEditMode} />}
+          {phase === 'error' && <ErrorPhase onClose={onClose} onBack={() => setPhase('form')} />}
         </AnimatePresence>
       </ResponsiveDialogContent>
     </ResponsiveDialog>
