@@ -136,7 +136,7 @@ export const RemoveAddressConfirmation: React.FC<Props> = ({
               </motion.div>
             )}
             {phase === Phase.Success && (
-              <AddressBookSuccess message={t(($) => $.addressBook.toast.removeSuccess)} />
+              <AddressBookSuccess message={t(($) => $.addressBook.removeSuccess)} />
             )}
           </AnimatePresence>
         </ResponsiveDialogContent>
