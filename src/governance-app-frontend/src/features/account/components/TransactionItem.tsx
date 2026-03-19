@@ -107,7 +107,7 @@ export const AccountTransactionItem = ({
               <CertifiedBadge certified={certified} />
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex min-w-0 flex-col gap-1">
+              <div className="flex min-w-0 flex-col gap-1 sm:max-w-[66%]">
                 <span className="text-xs text-muted-foreground">
                   {secondsToDate(transactionTimestamp)} - {secondsToTime(transactionTimestamp)}
                 </span>
@@ -142,23 +142,23 @@ export const AccountTransactionItem = ({
                 ) : (
                   <div
                     className={cn(
-                      'flex items-center gap-1 text-sm break-all text-muted-foreground',
+                      'flex min-w-0 items-center gap-1 text-sm text-muted-foreground',
                       suspicious && 'text-amber-800 dark:text-amber-200',
                     )}
                   >
-                    <span className="md:hidden">
+                    <span className="truncate md:hidden">
                       <Trans
                         i18nKey={($) => $.account[addressDirection]}
-                        values={{ address: shortenId(address, 10) }}
+                        values={{ address: shortenId(address, 6) }}
                         components={{
                           address: <span className="font-mono" />,
                         }}
                       />
                     </span>
-                    <span className="hidden md:inline">
+                    <span className="hidden truncate md:inline">
                       <Trans
                         i18nKey={($) => $.account[addressDirection]}
-                        values={{ address: shortenId(address, 18) }}
+                        values={{ address: shortenId(address, 12) }}
                         components={{
                           address: <span className="font-mono" />,
                         }}
