@@ -1,9 +1,9 @@
 import { animate, type HTMLMotionProps, motion, useMotionValue, useTransform } from 'motion/react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { cn } from '@utils/shadcn';
 
-type AnimatedNumberProps = {
+type Props = {
   value: number;
   prefix?: string;
   suffix?: string;
@@ -25,7 +25,7 @@ function AnimatedNumber({
   duration = DEFAULT_DURATION,
   className,
   ...props
-}: AnimatedNumberProps) {
+}: Props) {
   const previousValue = useRef(0);
   const targetValue = useRef(0);
   const progress = useMotionValue(0);
@@ -39,8 +39,11 @@ function AnimatedNumber({
     [formatOptions.minFraction, formatOptions.maxFraction],
   );
 
-  const formatValue = (v: number) =>
-    formatter ? formatter(v) : numberFormat.format(v).replace(/\s/g, '\u2019').replace(',', '.');
+  const formatValue = useCallback(
+    (v: number) =>
+      formatter ? formatter(v) : numberFormat.format(v).replace(/\s/g, '\u2019').replace(',', '.'),
+    [formatter, numberFormat],
+  );
 
   useEffect(() => {
     previousValue.current =
@@ -57,11 +60,11 @@ function AnimatedNumber({
 
   const finalDisplay = useMemo(() => {
     return `${prefix}${formatValue(value)}${suffix}`;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, prefix, suffix, formatter, numberFormat]);
+  }, [value, prefix, suffix, formatValue]);
 
   return (
     <motion.span className={cn('relative inline-flex', className)} {...props}>
+      {/* Invisible placeholder reserves the final width to prevent layout shifts */}
       <span className="invisible" aria-hidden="true">
         {finalDisplay}
       </span>
