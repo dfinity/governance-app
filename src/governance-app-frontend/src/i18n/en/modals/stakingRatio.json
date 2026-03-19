@@ -25,5 +25,5 @@
   "recommendationMaturityOnly": "Stake your maturity and enable auto-stake maturity on your neurons.",
   "button": "Lock now",
   "buttonMaturityOnly": "Manage neurons",
-  "ariaLabel": "Open staking recommendation modal"
+  "ariaLabel": "Open rewards optimization modal"
 }
