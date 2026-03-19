@@ -127,10 +127,12 @@ test.describe('Address book', () => {
       await expect(page.getByTestId('remove-address-confirmation')).toContainText('Bob');
       await page.getByTestId('remove-address-confirm-btn').click();
 
+      await expect(page.getByText('Address removed successfully.').first()).toBeVisible({
+        timeout: 30000,
+      });
       await expect(page.getByTestId('remove-address-confirmation')).not.toBeVisible({
         timeout: 30000,
       });
-      await expect(page.getByText('Address removed successfully.').first()).toBeVisible();
 
       const names = await getEntryNames(page);
       const addresses = await getEntryAddresses(page);
@@ -164,10 +166,12 @@ test.describe('Address book', () => {
       await expect(page.getByTestId('remove-address-confirmation')).toBeVisible();
       await page.getByTestId('remove-address-confirm-btn').click();
 
+      await expect(page.getByText('Address removed successfully.').first()).toBeVisible({
+        timeout: 30000,
+      });
       await expect(page.getByTestId('remove-address-confirmation')).not.toBeVisible({
         timeout: 30000,
       });
-      await expect(page.getByText('Address removed successfully.').first()).toBeVisible();
 
       await expect(page.getByTestId('address-book-empty')).toBeVisible();
       const names = await getEntryNames(page);
