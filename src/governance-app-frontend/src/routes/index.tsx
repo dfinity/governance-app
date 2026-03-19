@@ -78,6 +78,7 @@ function LoginPage() {
   const participants = 57986;
   const proposalsQuery = useGovernanceProposal();
   const totalProposals = proposalsQuery?.data?.response?.id ?? 0n;
+  const allStatsReady = !isTvlLoading && !proposalsQuery?.isLoading;
 
   return (
     <>
@@ -157,7 +158,7 @@ function LoginPage() {
                   {t(($) => $.login.totalProposals)}
                 </dt>
                 <dd className="text-2xl leading-none font-bold md:text-3xl">
-                  {proposalsQuery?.isLoading ? (
+                  {!allStatsReady ? (
                     <Skeleton className="h-7 w-30 md:h-8" />
                   ) : proposalsQuery?.isError ? (
                     '-/-'
@@ -181,7 +182,7 @@ function LoginPage() {
                   {t(($) => $.login.participants)}
                 </dt>
                 <dd className="text-2xl leading-none font-bold md:text-3xl">
-                  {isTvlLoading && proposalsQuery?.isLoading ? (
+                  {!allStatsReady ? (
                     <Skeleton className="h-7 w-26 md:h-8" />
                   ) : (
                     <AnimatedNumber
@@ -203,7 +204,7 @@ function LoginPage() {
                   {t(($) => $.login.tvl)}
                 </dt>
                 <dd className="text-2xl leading-none font-bold md:text-3xl">
-                  {isTvlLoading ? (
+                  {!allStatsReady ? (
                     <Skeleton className="h-7 w-52 md:h-8" />
                   ) : isTvlError || isNullish(tvl) ? (
                     '-'
