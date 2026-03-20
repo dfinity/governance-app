@@ -37,7 +37,9 @@ export const UserMenu = () => {
           <p className="truncate text-sm font-medium">{truncatePrincipal(principal)}</p>
         )}
         {nonNullish(timeLeft) && (
-          <p className="text-xs text-muted-foreground">{timeLeft.minutes}m</p>
+          <p className="text-xs text-muted-foreground">
+            {t(($) => $.userAccount.session.timeLeftShort, { minutes: timeLeft.minutes })}
+          </p>
         )}
       </div>
       <DropdownMenu>

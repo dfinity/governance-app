@@ -76,6 +76,7 @@
     }
   },
   "session": {
-    "timeLeft": "Session expires in {{minutes}}m {{seconds}}s"
+    "timeLeft": "Session expires in {{minutes}}m {{seconds}}s",
+    "timeLeftShort": "Session expires in {{minutes}}m"
   }
 }
