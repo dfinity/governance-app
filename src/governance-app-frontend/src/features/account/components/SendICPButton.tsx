@@ -225,6 +225,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
         setErrorMessage('');
         setSelectedAccountId(fromAccountId);
         setSelectedAccount(undefined);
+        createdAtRef.current = null;
         closingRef.current = false;
       }, 300);
     }
