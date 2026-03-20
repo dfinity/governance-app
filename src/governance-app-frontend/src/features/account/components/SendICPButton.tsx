@@ -17,12 +17,12 @@ import { type Account, isAccountReady } from '@features/accounts/types';
 import { AddressBookSelect } from '@features/addressBook/components/AddressBookSelect';
 
 import { Alert, AlertDescription } from '@components/Alert';
-import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
 import { AmountInput } from '@components/AmountInput';
 import { AnimatedCheckmark } from '@components/AnimatedCheckmark';
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
 import { Label } from '@components/Label';
+import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -261,99 +261,99 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
 
   return (
     <>
-    <NavigationBlockerDialog
-      isBlocked={isProcessing}
-      description={t(($) => $.account.confirmNavigation)}
-    />
-    <ResponsiveDialog open={open} onOpenChange={handleOpenChange}>
-      <ResponsiveDialogTrigger asChild>
-        <Button
-          variant="outline"
-          disabled={!canTransfer}
-          size="xl"
-          className={cn('w-full', isProcessing && 'opacity-50', variantClassName)}
-          data-testid="send-icp-btn"
+      <NavigationBlockerDialog
+        isBlocked={isProcessing}
+        description={t(($) => $.account.confirmNavigation)}
+      />
+      <ResponsiveDialog open={open} onOpenChange={handleOpenChange}>
+        <ResponsiveDialogTrigger asChild>
+          <Button
+            variant="outline"
+            disabled={!canTransfer}
+            size="xl"
+            className={cn('w-full', isProcessing && 'opacity-50', variantClassName)}
+            data-testid="send-icp-btn"
+          >
+            <Icon aria-hidden />
+            {isProcessing ? t(($) => $.common.sending) : t(($) => $.common[label])}
+          </Button>
+        </ResponsiveDialogTrigger>
+
+        <ResponsiveDialogContent
+          className="flex max-h-[90vh] min-h-[400px] flex-col"
+          showCloseButton={phase === Phase.Form || phase === Phase.Confirmation}
         >
-          <Icon aria-hidden />
-          {isProcessing ? t(($) => $.common.sending) : t(($) => $.common[label])}
-        </Button>
-      </ResponsiveDialogTrigger>
+          <AnimatePresence mode="wait" initial={false}>
+            {phase === Phase.Form && (
+              <SendFormPhase
+                subaccountsEnabled={subaccountsEnabled}
+                selectedAccountId={selectedAccountId}
+                onSelectedAccountIdChange={setSelectedAccountId}
+                onSelectedAccountChange={setSelectedAccount}
+                toAccount={toAccount}
+                toAccountError={toAccountError}
+                selectedName={selectedName}
+                useAddressBookToggle={useAddressBookToggle}
+                onAddressBookToggleChange={(checked) => {
+                  setUseAddressBookToggle(checked);
+                  setToAccount('');
+                  setSelectedName('');
+                  setToAccountError('');
+                }}
+                addressBookEntries={addressBookEntries}
+                addressBookLoading={addressBookLoading}
+                hasAddresses={hasAddresses}
+                onDestinationSelect={(name, address) => {
+                  setSelectedName(name);
+                  handleAccountChange(address);
+                }}
+                onDestinationChange={handleAccountChange}
+                amount={amount}
+                amountError={amountError}
+                onAmountChange={handleAmountChange}
+                max={max}
+                onMaxSelect={handleMaxSelect}
+                amountInputRef={amountInputRef}
+                approxUsd={approxUsd}
+                isProcessing={isProcessing}
+                onSubmit={handleSubmit}
+                onClose={handleClose}
+              />
+            )}
 
-      <ResponsiveDialogContent
-        className="flex max-h-[90vh] min-h-[400px] flex-col"
-        showCloseButton={phase === Phase.Form || phase === Phase.Confirmation}
-      >
-        <AnimatePresence mode="wait" initial={false}>
-          {phase === Phase.Form && (
-            <SendFormPhase
-              subaccountsEnabled={subaccountsEnabled}
-              selectedAccountId={selectedAccountId}
-              onSelectedAccountIdChange={setSelectedAccountId}
-              onSelectedAccountChange={setSelectedAccount}
-              toAccount={toAccount}
-              toAccountError={toAccountError}
-              selectedName={selectedName}
-              useAddressBookToggle={useAddressBookToggle}
-              onAddressBookToggleChange={(checked) => {
-                setUseAddressBookToggle(checked);
-                setToAccount('');
-                setSelectedName('');
-                setToAccountError('');
-              }}
-              addressBookEntries={addressBookEntries}
-              addressBookLoading={addressBookLoading}
-              hasAddresses={hasAddresses}
-              onDestinationSelect={(name, address) => {
-                setSelectedName(name);
-                handleAccountChange(address);
-              }}
-              onDestinationChange={handleAccountChange}
-              amount={amount}
-              amountError={amountError}
-              onAmountChange={handleAmountChange}
-              max={max}
-              onMaxSelect={handleMaxSelect}
-              amountInputRef={amountInputRef}
-              approxUsd={approxUsd}
-              isProcessing={isProcessing}
-              onSubmit={handleSubmit}
-              onClose={handleClose}
-            />
-          )}
+            {phase === Phase.Confirmation && (
+              <SendConfirmationPhase
+                fromAccountName={fromAccountName}
+                toAccount={toAccount}
+                selectedName={selectedName}
+                addressBookEntries={addressBookEntries}
+                amount={amount}
+                approxUsd={approxUsd}
+                onBack={() => setPhase(Phase.Form)}
+                onConfirm={() => transferMutation.mutate()}
+                icpPriceUsd={icpPrice?.usd}
+                isProcessing={isProcessing}
+              />
+            )}
 
-          {phase === Phase.Confirmation && (
-            <SendConfirmationPhase
-              fromAccountName={fromAccountName}
-              toAccount={toAccount}
-              selectedName={selectedName}
-              addressBookEntries={addressBookEntries}
-              amount={amount}
-              approxUsd={approxUsd}
-              onBack={() => setPhase(Phase.Form)}
-              onConfirm={() => transferMutation.mutate()}
-              icpPriceUsd={icpPrice?.usd}
-              isProcessing={isProcessing}
-            />
-          )}
+            {(phase === Phase.Processing || phase === Phase.Success) && (
+              <SendTransferPhase
+                isSuccess={phase === Phase.Success}
+                processingMessage={t(($) => $.account.transferProcessing, { amount, destination })}
+                successMessage={t(($) => $.account.transferSuccess, { amount, destination })}
+              />
+            )}
 
-          {(phase === Phase.Processing || phase === Phase.Success) && (
-            <SendTransferPhase
-              isSuccess={phase === Phase.Success}
-              processingMessage={t(($) => $.account.transferProcessing, { amount, destination })}
-              successMessage={t(($) => $.account.transferSuccess, { amount, destination })}
-            />
-          )}
-
-          {phase === Phase.Error && (
-            <SendErrorPhase
-              errorMessage={errorMessage}
-              onClose={handleClose}
-              onRetry={handleRetry}
-            />
-          )}
-        </AnimatePresence>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+            {phase === Phase.Error && (
+              <SendErrorPhase
+                errorMessage={errorMessage}
+                onClose={handleClose}
+                onRetry={handleRetry}
+              />
+            )}
+          </AnimatePresence>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
     </>
   );
 };
@@ -736,7 +736,11 @@ function SendTransferPhase({
   }, []);
 
   const message = isSuccess ? successMessage : processingMessage;
-  const iconState = isSuccess ? IconState.Success : showSpinner ? IconState.Spinner : IconState.Send;
+  const iconState = isSuccess
+    ? IconState.Success
+    : showSpinner
+      ? IconState.Spinner
+      : IconState.Send;
 
   return (
     <motion.div
