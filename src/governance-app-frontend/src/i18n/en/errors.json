@@ -1,6 +1,6 @@
 {
   "nnsGovernanceErrors": {
-    "CouldNotClaimNeuronError": "Could not find the Neuron to claim.",
+    "CouldNotClaimNeuronError": "Could not find the neuron to claim.",
     "InsufficientAmountError": "The amount is not enough.",
     "UnrecognizedTypeError": "The type is not recognized.",
     "GovernanceError": "An error occurred in the governance canister.",
