@@ -29,5 +29,6 @@
   "confirmTransactionFee": "Transaction fee",
   "unknownAddress": "External address",
   "destinationWarning": "This address is not in your address book. Please verify it is correct.",
-  "transferDescription": "Transfer ICP tokens to another account."
+  "transferDescription": "Transfer ICP tokens to another account.",
+  "confirmNavigation": "A transfer is in progress. Leaving this page may cause unexpected results. Are you sure you want to leave?"
 }

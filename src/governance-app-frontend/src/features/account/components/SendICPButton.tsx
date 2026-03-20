@@ -17,6 +17,7 @@ import { type Account, isAccountReady } from '@features/accounts/types';
 import { AddressBookSelect } from '@features/addressBook/components/AddressBookSelect';
 
 import { Alert, AlertDescription } from '@components/Alert';
+import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
 import { AmountInput } from '@components/AmountInput';
 import { AnimatedCheckmark } from '@components/AnimatedCheckmark';
 import { Button } from '@components/button';
@@ -58,7 +59,7 @@ enum Phase {
   Error = 'error',
 }
 
-const SUCCESS_AUTO_CLOSE_MS = 2500;
+const SUCCESS_AUTO_CLOSE_MS = 2400;
 
 const formatTransactionFeeUsd = (usdValue: number): string =>
   usdValue < 0.01 ? '< $0.01' : `≈ $${formatNumber(usdValue)}`;
@@ -258,6 +259,11 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   const { Icon, className: variantClassName, label } = variantConfig[variant];
 
   return (
+    <>
+    <NavigationBlockerDialog
+      isBlocked={isProcessing}
+      description={t(($) => $.account.confirmNavigation)}
+    />
     <ResponsiveDialog open={open} onOpenChange={handleOpenChange}>
       <ResponsiveDialogTrigger asChild>
         <Button
@@ -347,6 +353,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
         </AnimatePresence>
       </ResponsiveDialogContent>
     </ResponsiveDialog>
+    </>
   );
 };
 
@@ -492,7 +499,7 @@ function SendFormPhase({
                 onChange={(e) => onDestinationChange(e.target.value)}
                 disabled={isProcessing}
                 value={toAccount}
-                className={`font-mono ${toAccountError ? 'border-destructive' : ''}`}
+                className={cn('font-mono', toAccountError && 'border-destructive')}
                 aria-invalid={!!toAccountError}
                 autoComplete="off"
                 data-1p-ignore
@@ -703,7 +710,13 @@ function AnimatedSendIcon() {
   );
 }
 
-const DRAW_DURATION = 1;
+const DRAW_DURATION_MS = 1000;
+
+enum IconState {
+  Send = 'send',
+  Spinner = 'spinner',
+  Success = 'success',
+}
 
 function SendTransferPhase({
   isSuccess,
@@ -717,12 +730,12 @@ function SendTransferPhase({
   const [showSpinner, setShowSpinner] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowSpinner(true), DRAW_DURATION * 1000);
+    const timer = setTimeout(() => setShowSpinner(true), DRAW_DURATION_MS);
     return () => clearTimeout(timer);
   }, []);
 
   const message = isSuccess ? successMessage : processingMessage;
-  const iconState = isSuccess ? 'success' : showSpinner ? 'spinner' : 'send';
+  const iconState = isSuccess ? IconState.Success : showSpinner ? IconState.Spinner : IconState.Send;
 
   return (
     <motion.div
@@ -744,12 +757,12 @@ function SendTransferPhase({
         transition={{ type: 'spring', stiffness: 200, damping: 15 }}
       >
         <AnimatePresence mode="wait">
-          {iconState === 'send' && (
+          {iconState === IconState.Send && (
             <motion.div key="send" exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.2 }}>
               <AnimatedSendIcon />
             </motion.div>
           )}
-          {iconState === 'spinner' && (
+          {iconState === IconState.Spinner && (
             <motion.div
               key="spinner"
               initial={{ opacity: 0, scale: 0.5 }}
@@ -760,7 +773,7 @@ function SendTransferPhase({
               <Loader className="size-10 animate-spin text-muted-foreground" />
             </motion.div>
           )}
-          {iconState === 'success' && (
+          {iconState === IconState.Success && (
             <motion.div
               key="checkmark"
               initial={{ opacity: 0, scale: 0.5 }}
