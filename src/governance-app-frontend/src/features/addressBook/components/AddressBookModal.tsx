@@ -62,7 +62,10 @@ export const AddressBookModal: React.FC<Props> = ({ isOpen, onOpenChange }) => {
 
   return (
     <ResponsiveDialog open={isOpen} onOpenChange={onOpenChange}>
-      <ResponsiveDialogContent className="flex max-h-[90vh] flex-col" data-testid="address-book-modal">
+      <ResponsiveDialogContent
+        className="flex max-h-[90vh] flex-col"
+        data-testid="address-book-modal"
+      >
         <ResponsiveDialogHeader className="shrink-0">
           <div className="flex items-center justify-between">
             <ResponsiveDialogTitle>{t(($) => $.addressBook.title)}</ResponsiveDialogTitle>
@@ -126,10 +129,7 @@ export const AddressBookModal: React.FC<Props> = ({ isOpen, onOpenChange }) => {
                       addButton(false)
                     )}
                   </div>
-                  <div
-                    className="flex flex-col gap-2"
-                    data-testid="address-book-list"
-                  >
+                  <div className="flex flex-col gap-2" data-testid="address-book-list">
                     {namedAddresses.map((entry) => (
                       <AddressBookEntry
                         key={entry.name}
