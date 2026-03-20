@@ -98,9 +98,10 @@ export const RemoveAddressConfirmation: React.FC<Props> = ({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
+                className="min-w-0"
               >
-                <ResponsiveDialogHeader className="max-w-full overflow-hidden">
-                  <ResponsiveDialogTitle className="max-w-full overflow-hidden text-nowrap text-ellipsis">
+                <ResponsiveDialogHeader className="min-w-0 overflow-hidden">
+                  <ResponsiveDialogTitle className="truncate">
                     {t(($) => $.addressBook.removeTitle, { label: namedAddress?.name ?? '' })}
                   </ResponsiveDialogTitle>
                   <ResponsiveDialogDescription>

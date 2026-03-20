@@ -62,8 +62,8 @@ export const AddressBookModal: React.FC<Props> = ({ isOpen, onOpenChange }) => {
 
   return (
     <ResponsiveDialog open={isOpen} onOpenChange={onOpenChange}>
-      <ResponsiveDialogContent data-testid="address-book-modal">
-        <ResponsiveDialogHeader>
+      <ResponsiveDialogContent className="flex max-h-[90vh] flex-col" data-testid="address-book-modal">
+        <ResponsiveDialogHeader className="shrink-0">
           <div className="flex items-center justify-between">
             <ResponsiveDialogTitle>{t(($) => $.addressBook.title)}</ResponsiveDialogTitle>
             <ResponsiveDialogDescription className="sr-only">
@@ -72,7 +72,7 @@ export const AddressBookModal: React.FC<Props> = ({ isOpen, onOpenChange }) => {
           </div>
         </ResponsiveDialogHeader>
 
-        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden pb-4 md:max-h-[60vh] md:pb-0">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4 md:px-0 md:pb-0">
           <QueryStates<CertifiedData<AddressBook>>
             query={addressBookQuery}
             isEmpty={(data) => data.response.named_addresses.length === 0}
@@ -110,7 +110,7 @@ export const AddressBookModal: React.FC<Props> = ({ isOpen, onOpenChange }) => {
 
               return (
                 <>
-                  <div className="flex items-center justify-between">
+                  <div className="flex shrink-0 items-center justify-between">
                     <p className="text-sm text-muted-foreground">
                       {t(($) => $.addressBook.entryCount, {
                         count: namedAddresses.length,
@@ -127,7 +127,7 @@ export const AddressBookModal: React.FC<Props> = ({ isOpen, onOpenChange }) => {
                     )}
                   </div>
                   <div
-                    className="flex flex-col gap-2 overflow-y-auto"
+                    className="flex flex-col gap-2"
                     data-testid="address-book-list"
                   >
                     {namedAddresses.map((entry) => (
