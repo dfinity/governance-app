@@ -142,10 +142,10 @@ function Settings() {
 
       <section className="flex flex-col gap-4">
         <Button
-          variant="outline"
+          variant="outline-destructive"
           size="lg"
           onClick={logout}
-          className="w-full self-start border-destructive/50 text-destructive hover:bg-destructive/5 hover:text-destructive sm:w-auto dark:border-destructive/60 dark:text-destructive-foreground dark:hover:bg-destructive/10"
+          className="w-full self-start sm:w-auto"
           data-testid="logout-btn"
         >
           <LogOut className="mr-2 size-5" />
