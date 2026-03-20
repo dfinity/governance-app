@@ -112,10 +112,7 @@ export const NeuronCard = ({ neuron, apy }: Props) => {
               tabIndex={0}
               aria-label="Optimize neuron APY"
             >
-              <p className="text-[13px] font-semibold">
-                {formatPercentage(apy.cur)}{' '}
-                <span className="hidden sm:inline">{t(($) => $.common.apy)} </span>
-              </p>
+              <p className="text-[13px] font-semibold">{formatPercentage(apy.cur)}</p>
               {apyColor.isMax ? (
                 <span className="rounded bg-green-600 px-1 py-0.5 text-[10px] font-bold text-white uppercase">
                   {t(($) => $.common.max)}
