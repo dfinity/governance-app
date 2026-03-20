@@ -3,7 +3,7 @@ import { Info, Loader2 } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { AccountSelect } from '@features/accounts/components/AccountSelect';
-import { useAccountDestination } from '@features/accounts/hooks/useAccountDestination';
+import { useAccountSelection } from '@features/accounts/hooks/useAccountSelection';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
@@ -33,7 +33,7 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation();
   const { mutateAsync, isPending } = useDisburseNeuron();
   const { selectedAccountId, setSelectedAccountId, resolvedAccountId, subaccountsEnabled } =
-    useAccountDestination();
+    useAccountSelection();
 
   const stakedAmount = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
 

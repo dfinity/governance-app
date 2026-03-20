@@ -1,19 +1,28 @@
 import { AccountIdentifier, TransferError } from '@icp-sdk/canisters/ledger/icp';
 import { decodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
-import { nowInBigIntNanoSeconds, toNullable } from '@dfinity/utils';
+import { nonNullish, nowInBigIntNanoSeconds, toNullable } from '@dfinity/utils';
 import { useMutation } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { AlertTriangle, ArrowUpRight, BookUser, Send } from 'lucide-react';
+import { AlertTriangle, ArrowUpRight, BookUser, Loader, Send } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import React, { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import type { NamedAddress } from '@declarations/governance-app-backend/governance-app-backend.did';
+
+import { AccountSelect } from '@features/accounts/components/AccountSelect';
+import { useAccounts } from '@features/accounts/hooks/useAccounts';
+import { useAccountSelection } from '@features/accounts/hooks/useAccountSelection';
+import { type Account, isAccountReady } from '@features/accounts/types';
 import { AddressBookSelect } from '@features/addressBook/components/AddressBookSelect';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { AmountInput } from '@components/AmountInput';
+import { AnimatedCheckmark } from '@components/AnimatedCheckmark';
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
 import { Label } from '@components/Label';
+import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -25,29 +34,37 @@ import {
 } from '@components/ResponsiveDialog';
 import { Switch } from '@components/Switch';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
+import { E8Sn, ICP_TRANSACTION_FEE, SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
 import { useTickerPrices } from '@hooks/tickers';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
-import { bigIntMul } from '@utils/bigInt';
+import { addressBookGetAddressString } from '@utils/addressBook';
+import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { isCertifiedRejectError, mapCanisterError } from '@utils/errors';
-import { errorNotification, successNotification } from '@utils/notification';
 import { formatNumber, roundToE8sPrecision } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
 type Props = {
   balance: number;
-  fromSubAccount?: Uint8Array | number[];
+  fromAccountId?: string;
   variant?: 'simple' | 'advanced';
 };
+
+enum Phase {
+  Form = 'form',
+  Confirmation = 'confirmation',
+  Processing = 'processing',
+  Success = 'success',
+  Error = 'error',
+}
 
 const variantConfig = {
   simple: { Icon: Send, className: '', label: 'withdraw' },
   advanced: { Icon: ArrowUpRight, className: 'flex-1', label: 'send' },
 } as const;
 
-export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, variant = 'simple' }) => {
+export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant = 'simple' }) => {
   const { t } = useTranslation();
 
   const {
@@ -58,6 +75,9 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, varian
 
   const { tickerPrices: tickersQuery } = useTickerPrices();
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
+
+  const { selectedAccountId, setSelectedAccountId, subaccountsEnabled } =
+    useAccountSelection(fromAccountId);
 
   const addressBookQuery = useAddressBook();
   const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
@@ -70,8 +90,10 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, varian
   const [toAccount, setToAccount] = useState('');
   const [toAccountError, setToAccountError] = useState('');
   const [selectedName, setSelectedName] = useState('');
-  const [isPending, setIsPending] = useState(false);
+  const [phase, setPhase] = useState<Phase>(Phase.Form);
+  const [errorMessage, setErrorMessage] = useState('');
   const [useAddressBookToggle, setUseAddressBookToggle] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
   const amountInputRef = useRef<HTMLInputElement>(null);
 
   const autoToggleAddressBook = useEffectEvent(() => {
@@ -81,13 +103,17 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, varian
   });
 
   useEffect(() => {
-    if (!addressBookLoading) {
-      autoToggleAddressBook();
-    }
+    if (!addressBookLoading) autoToggleAddressBook();
   }, [addressBookLoading]);
 
   // Keep the createdAt value for retry purposes (used for deduplication at the ledger level)
   const createdAtRef = useRef<bigint | null>(null);
+
+  const effectiveBalance =
+    subaccountsEnabled && nonNullish(selectedAccount) && isAccountReady(selectedAccount)
+      ? bigIntDiv(selectedAccount.balanceE8s, E8Sn)
+      : balance;
+  const effectiveSubAccount = subaccountsEnabled ? selectedAccount?.subAccount : undefined;
 
   const transferMutation = useMutation({
     mutationFn: () => {
@@ -96,7 +122,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, varian
       createdAtRef.current = createdAt;
       const transferAmount = bigIntMul(E8Sn, Number(amount));
 
-      const subAccountArr = fromSubAccount ? Array.from(fromSubAccount) : undefined;
+      const subAccountArr = effectiveSubAccount ? Array.from(effectiveSubAccount) : undefined;
 
       if (isValidIcpAddress(toAccount)) {
         return ledgerCanister!.transfer({
@@ -116,33 +142,26 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, varian
       });
     },
     onMutate: () => {
-      setIsPending(true);
+      setPhase(Phase.Processing);
     },
     onSuccess: () => {
-      setToAccount('');
-      setSelectedName('');
-      setAmount('');
-      successNotification({
-        description: t(($) => $.account.transferSuccess, { amount, toAccount }),
-      });
-      setIsPending(false);
-      setOpen(false);
+      setPhase(Phase.Success);
       createdAtRef.current = null;
     },
     onError: (error) => {
       if (isCertifiedRejectError(error) || error instanceof TransferError) {
         createdAtRef.current = null;
       }
-      errorNotification({
-        description: mapCanisterError(error),
-      });
-      setIsPending(false);
+      setErrorMessage(mapCanisterError(error));
+      setPhase(Phase.Error);
     },
   });
 
+  const isProcessing = phase === Phase.Processing;
+
   const canTransfer =
-    balance > ICP_TRANSACTION_FEE && ledgerReady && ledgerAuthenticated && !isPending;
-  const max = roundToE8sPrecision(balance - ICP_TRANSACTION_FEE);
+    effectiveBalance > ICP_TRANSACTION_FEE && ledgerReady && ledgerAuthenticated && !isProcessing;
+  const max = roundToE8sPrecision(effectiveBalance - ICP_TRANSACTION_FEE);
 
   const handleSubmit = async (event: React.SyntheticEvent) => {
     event.preventDefault();
@@ -164,7 +183,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, varian
       return;
     }
 
-    transferMutation.mutate();
+    setPhase(Phase.Confirmation);
   };
 
   const handleAccountChange = (value: string) => {
@@ -183,7 +202,43 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, varian
     amountInputRef?.current?.focus();
   };
 
-  const showToggle = !addressBookLoading && hasAddresses;
+  const closingRef = useRef(false);
+
+  const handleOpenChange = (value: boolean) => {
+    if (isProcessing) return;
+    if (!value) {
+      if (closingRef.current) return;
+      closingRef.current = true;
+      // Delay reset to allow close animation to complete
+      setTimeout(() => {
+        setPhase(Phase.Form);
+        setToAccount('');
+        setSelectedName('');
+        setAmount('');
+        setAmountError('');
+        setToAccountError('');
+        setErrorMessage('');
+        setSelectedAccountId(fromAccountId);
+        setSelectedAccount(undefined);
+        createdAtRef.current = null;
+        closingRef.current = false;
+      }, 300);
+    }
+    setOpen(value);
+  };
+
+  const handleClose = () => handleOpenChange(false);
+  const handleRetry = () => setPhase(Phase.Confirmation);
+  const autoCloseOnSuccess = useEffectEvent(() => {
+    handleOpenChange(false);
+  });
+
+  // Auto-close on success
+  useEffect(() => {
+    if (phase !== Phase.Success) return;
+    const timer = setTimeout(autoCloseOnSuccess, SUCCESS_AUTO_CLOSE_MS);
+    return () => clearTimeout(timer);
+  }, [phase]);
 
   const numericAmount = Number(amount);
   const approxUsd =
@@ -191,162 +246,611 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromSubAccount, varian
       ? t(($) => $.account.approxUsd, { value: formatNumber(numericAmount * icpPrice.usd) })
       : undefined;
 
+  const fromAccountName = nonNullish(selectedAccount)
+    ? selectedAccount.name
+    : t(($) => $.accounts.mainAccount);
+
+  const destination = selectedName || toAccount;
+
   const { Icon, className: variantClassName, label } = variantConfig[variant];
 
   return (
-    <ResponsiveDialog open={open} onOpenChange={setOpen}>
-      <ResponsiveDialogTrigger asChild>
-        <Button
-          variant="outline"
-          disabled={!canTransfer}
-          size="xl"
-          className={cn('w-full', isPending && 'opacity-50', variantClassName)}
-          data-testid="send-icp-btn"
+    <>
+      <NavigationBlockerDialog
+        isBlocked={isProcessing}
+        description={t(($) => $.account.confirmNavigation)}
+      />
+      <ResponsiveDialog open={open} onOpenChange={handleOpenChange}>
+        <ResponsiveDialogTrigger asChild>
+          <Button
+            variant="outline"
+            disabled={!canTransfer}
+            size="xl"
+            className={cn('w-full', isProcessing && 'opacity-50', variantClassName)}
+            data-testid="send-icp-btn"
+          >
+            <Icon aria-hidden />
+            {isProcessing ? t(($) => $.common.sending) : t(($) => $.common[label])}
+          </Button>
+        </ResponsiveDialogTrigger>
+
+        <ResponsiveDialogContent
+          className="flex max-h-[90vh] min-h-[400px] flex-col"
+          showCloseButton={phase === Phase.Form || phase === Phase.Confirmation}
         >
-          <Icon aria-hidden />
-          {isPending ? t(($) => $.common.sending) : t(($) => $.common[label])}
-        </Button>
-      </ResponsiveDialogTrigger>
+          <AnimatePresence mode="wait" initial={false}>
+            {phase === Phase.Form && (
+              <SendFormPhase
+                subaccountsEnabled={subaccountsEnabled}
+                selectedAccountId={selectedAccountId}
+                onSelectedAccountIdChange={setSelectedAccountId}
+                onSelectedAccountChange={setSelectedAccount}
+                toAccount={toAccount}
+                toAccountError={toAccountError}
+                selectedName={selectedName}
+                useAddressBookToggle={useAddressBookToggle}
+                onAddressBookToggleChange={(checked) => {
+                  setUseAddressBookToggle(checked);
+                  setToAccount('');
+                  setSelectedName('');
+                  setToAccountError('');
+                }}
+                addressBookEntries={addressBookEntries}
+                addressBookLoading={addressBookLoading}
+                hasAddresses={hasAddresses}
+                onDestinationSelect={(name, address) => {
+                  setSelectedName(name);
+                  handleAccountChange(address);
+                }}
+                onDestinationChange={handleAccountChange}
+                amount={amount}
+                amountError={amountError}
+                onAmountChange={handleAmountChange}
+                max={max}
+                onMaxSelect={handleMaxSelect}
+                amountInputRef={amountInputRef}
+                approxUsd={approxUsd}
+                isProcessing={isProcessing}
+                onSubmit={handleSubmit}
+                onClose={handleClose}
+              />
+            )}
 
-      <ResponsiveDialogContent className="flex max-h-[90vh] flex-col">
-        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-          <ResponsiveDialogHeader className="shrink-0">
-            <ResponsiveDialogTitle>{t(($) => $.account.transferTitle)}</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription className="sr-only">
-              Transfer ICP tokens to another account.
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
+            {phase === Phase.Confirmation && (
+              <SendConfirmationPhase
+                fromAccountName={fromAccountName}
+                toAccount={toAccount}
+                selectedName={selectedName}
+                addressBookEntries={addressBookEntries}
+                amount={amount}
+                approxUsd={approxUsd}
+                onBack={() => setPhase(Phase.Form)}
+                onConfirm={() => transferMutation.mutate()}
+                icpPriceUsd={icpPrice?.usd}
+                isProcessing={isProcessing}
+              />
+            )}
 
-          <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4 md:px-0">
-            <div className="grid gap-4">
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <Label
-                    htmlFor={useAddressBookToggle ? 'address-book-select' : 'destination-account'}
-                  >
-                    {t(($) => $.account.destinationAccount)}
-                  </Label>
-                  {addressBookLoading ? (
-                    <div className="flex items-center gap-1.5">
-                      <BookUser className="size-3.5 animate-pulse text-muted-foreground" />
-                      <span className="animate-pulse text-xs text-muted-foreground">
-                        {t(($) => $.addressBook.sendFlow.tooltipLoading)}
-                      </span>
-                    </div>
-                  ) : showToggle ? (
-                    <label className="flex cursor-pointer items-center gap-1.5">
-                      <BookUser className="size-3.5 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">
-                        {t(($) => $.addressBook.sendFlow.toggleLabel)}
-                      </span>
-                      <Switch
-                        checked={useAddressBookToggle}
-                        onCheckedChange={(checked) => {
-                          setUseAddressBookToggle(checked);
-                          setToAccount('');
-                          setSelectedName('');
-                          setToAccountError('');
-                        }}
-                        size="sm"
-                        data-testid="address-book-toggle"
-                      />
-                    </label>
-                  ) : !addressBookLoading && !hasAddresses ? (
-                    <Link
-                      to="/settings"
-                      search={{ openAddressBook: true }}
-                      className="flex items-center gap-1.5 transition-opacity hover:opacity-80"
-                    >
-                      <BookUser className="size-3.5 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground underline">
-                        {t(($) => $.addressBook.sendFlow.tooltipEmpty)}
-                      </span>
-                    </Link>
-                  ) : null}
+            {(phase === Phase.Processing || phase === Phase.Success) && (
+              <SendTransferPhase
+                isSuccess={phase === Phase.Success}
+                processingMessage={t(($) => $.account.transferProcessing, { amount, destination })}
+                successMessage={t(($) => $.account.transferSuccess, { amount, destination })}
+              />
+            )}
+
+            {phase === Phase.Error && (
+              <SendErrorPhase
+                errorMessage={errorMessage}
+                onClose={handleClose}
+                onRetry={handleRetry}
+              />
+            )}
+          </AnimatePresence>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+    </>
+  );
+};
+
+type SendFormPhaseProps = {
+  subaccountsEnabled: boolean;
+  selectedAccountId?: string;
+  onSelectedAccountIdChange: (id: string) => void;
+  onSelectedAccountChange: (account: Account | undefined) => void;
+  toAccount: string;
+  toAccountError: string;
+  selectedName: string;
+  useAddressBookToggle: boolean;
+  onAddressBookToggleChange: (checked: boolean) => void;
+  addressBookEntries: NamedAddress[];
+  addressBookLoading: boolean;
+  hasAddresses: boolean;
+  onDestinationSelect: (name: string, address: string) => void;
+  onDestinationChange: (value: string) => void;
+  amount: string;
+  amountError: string;
+  onAmountChange: (value: string) => void;
+  max: number;
+  onMaxSelect: (value: string) => void;
+  amountInputRef: React.RefObject<HTMLInputElement | null>;
+  approxUsd?: string;
+  isProcessing: boolean;
+  onSubmit: (event: React.SyntheticEvent) => void;
+  onClose: () => void;
+};
+
+function SendFormPhase({
+  subaccountsEnabled,
+  selectedAccountId,
+  onSelectedAccountIdChange,
+  onSelectedAccountChange,
+  toAccount,
+  toAccountError,
+  selectedName,
+  useAddressBookToggle,
+  onAddressBookToggleChange,
+  addressBookEntries,
+  addressBookLoading,
+  hasAddresses,
+  onDestinationSelect,
+  onDestinationChange,
+  amount,
+  amountError,
+  onAmountChange,
+  max,
+  onMaxSelect,
+  amountInputRef,
+  approxUsd,
+  isProcessing,
+  onSubmit,
+  onClose,
+}: SendFormPhaseProps) {
+  const { t } = useTranslation();
+  const showToggle = !addressBookLoading && hasAddresses;
+
+  return (
+    <motion.form
+      key="form"
+      onSubmit={onSubmit}
+      className="flex min-h-0 flex-1 flex-col"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.15 }}
+    >
+      <ResponsiveDialogHeader className="shrink-0">
+        <ResponsiveDialogTitle>{t(($) => $.account.transferTitle)}</ResponsiveDialogTitle>
+        <ResponsiveDialogDescription className="sr-only">
+          {t(($) => $.account.transferDescription)}
+        </ResponsiveDialogDescription>
+      </ResponsiveDialogHeader>
+
+      <div className="-mx-1 flex-1 overflow-y-auto px-5 pt-6 pb-4 md:px-1">
+        <div className="flex flex-col gap-6">
+          {subaccountsEnabled && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="send-from-account">
+                {t(($) => $.stakeWizardModal.steps.amount.fromAccount)}
+              </Label>
+              <AccountSelect
+                id="send-from-account"
+                value={selectedAccountId}
+                onChange={onSelectedAccountIdChange}
+                onAccountChange={onSelectedAccountChange}
+                data-testid="send-from-account-select"
+              />
+            </div>
+          )}
+
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor={useAddressBookToggle ? 'address-book-select' : 'destination-account'}>
+                {t(($) => $.account.destinationAccount)}
+              </Label>
+              {addressBookLoading ? (
+                <div className="flex items-center gap-1.5">
+                  <BookUser className="size-3.5 animate-pulse text-muted-foreground" />
+                  <span className="animate-pulse text-xs text-muted-foreground">
+                    {t(($) => $.addressBook.sendFlow.tooltipLoading)}
+                  </span>
                 </div>
-
-                {useAddressBookToggle ? (
-                  <AddressBookSelect
-                    addresses={addressBookEntries}
-                    selectedName={selectedName}
-                    onSelect={(name, address) => {
-                      setSelectedName(name);
-                      handleAccountChange(address);
-                    }}
-                    disabled={isPending}
+              ) : showToggle ? (
+                <label className="flex cursor-pointer items-center gap-1.5">
+                  <BookUser className="size-3.5 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">
+                    {t(($) => $.addressBook.sendFlow.toggleLabel)}
+                  </span>
+                  <Switch
+                    checked={useAddressBookToggle}
+                    onCheckedChange={onAddressBookToggleChange}
+                    size="sm"
+                    data-testid="address-book-toggle"
                   />
-                ) : (
-                  <>
-                    <Input
-                      id="destination-account"
-                      onChange={(e) => handleAccountChange(e.target.value)}
-                      disabled={isPending}
-                      value={toAccount}
-                      className={`font-mono ${toAccountError ? 'border-destructive' : ''}`}
-                      aria-invalid={!!toAccountError}
-                      autoComplete="off"
-                      data-1p-ignore
-                      data-lpignore="true"
-                      required
-                    />
-                    {!useAddressBookToggle && toAccount !== '' && (
-                      <p className="text-xs text-muted-foreground">
-                        {t(($) => $.addressBook.sendFlow.manualWarning)}
-                      </p>
-                    )}
-                  </>
-                )}
-                {toAccountError && (
-                  <Alert variant="warning">
-                    <AlertTriangle className="h-4 w-4 text-destructive" />
-                    <AlertDescription>{toAccountError}</AlertDescription>
+                </label>
+              ) : !addressBookLoading && !hasAddresses ? (
+                <Link
+                  to="/settings"
+                  search={{ openAddressBook: true }}
+                  className="flex items-center gap-1.5 transition-opacity hover:opacity-80"
+                >
+                  <BookUser className="size-3.5 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground underline">
+                    {t(($) => $.addressBook.sendFlow.tooltipEmpty)}
+                  </span>
+                </Link>
+              ) : null}
+            </div>
+
+            {useAddressBookToggle ? (
+              <AddressBookSelect
+                addresses={addressBookEntries}
+                selectedName={selectedName}
+                onSelect={onDestinationSelect}
+                disabled={isProcessing}
+              />
+            ) : (
+              <Input
+                id="destination-account"
+                onChange={(e) => onDestinationChange(e.target.value)}
+                disabled={isProcessing}
+                value={toAccount}
+                className={cn('font-mono', toAccountError && 'border-destructive')}
+                aria-invalid={!!toAccountError}
+                autoComplete="off"
+                data-1p-ignore
+                data-lpignore="true"
+                required
+              />
+            )}
+            {toAccountError && (
+              <Alert variant="warning">
+                <AlertTriangle className="size-4 text-destructive" />
+                <AlertDescription>{toAccountError}</AlertDescription>
+              </Alert>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="amount">{t(($) => $.common.amount)}</Label>
+            <AmountInput
+              id="amount"
+              data-testid="send-icp-amount-input"
+              ref={amountInputRef}
+              value={amount}
+              onChange={onAmountChange}
+              maxAmount={max}
+              onMaxSelect={onMaxSelect}
+              disabled={isProcessing}
+              required
+              error={!!amountError}
+              approxUsdLabel={approxUsd}
+              availableLabel={t(($) => $.account.availableBalance, { amount: max })}
+            />
+            {amountError && (
+              <Alert variant="warning">
+                <AlertTriangle className="size-4 text-destructive" />
+                <AlertDescription>{amountError}</AlertDescription>
+              </Alert>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <ResponsiveDialogFooter className="flex shrink-0 justify-end gap-2">
+        <Button type="button" variant="ghost" size="lg" onClick={onClose} disabled={isProcessing}>
+          {t(($) => $.common.close)}
+        </Button>
+        <Button type="submit" size="lg" disabled={isProcessing} data-testid="send-icp-next-btn">
+          {t(($) => $.common.next)}
+        </Button>
+      </ResponsiveDialogFooter>
+    </motion.form>
+  );
+}
+
+type SendConfirmationPhaseProps = {
+  fromAccountName: string;
+  toAccount: string;
+  selectedName: string;
+  addressBookEntries: NamedAddress[];
+  amount: string;
+  approxUsd?: string;
+  icpPriceUsd?: number;
+  onBack: () => void;
+  onConfirm: () => void;
+  isProcessing: boolean;
+};
+
+function SendConfirmationPhase({
+  fromAccountName,
+  toAccount,
+  selectedName,
+  addressBookEntries,
+  amount,
+  approxUsd,
+  icpPriceUsd,
+  onBack,
+  onConfirm,
+  isProcessing,
+}: SendConfirmationPhaseProps) {
+  const { t } = useTranslation();
+  const { data: accountsState } = useAccounts();
+
+  const formatTransactionFeeUsd = (usdValue: number): string =>
+    usdValue < 0.01 ? '< $0.01' : `≈ $${formatNumber(usdValue)}`;
+
+  const isDestinationKnown =
+    addressBookEntries.some((entry) => addressBookGetAddressString(entry.address) === toAccount) ||
+    (accountsState?.accounts.some((a) => a.accountId === toAccount) ?? false);
+
+  const destinationName = isDestinationKnown
+    ? selectedName ||
+      accountsState?.accounts.find((a) => a.accountId === toAccount)?.name ||
+      toAccount
+    : t(($) => $.account.unknownAddress);
+
+  return (
+    <motion.div
+      key="confirmation"
+      className="flex min-h-0 flex-1 flex-col"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.15 }}
+    >
+      <ResponsiveDialogHeader className="shrink-0">
+        <ResponsiveDialogTitle>{t(($) => $.account.confirmTransferTitle)}</ResponsiveDialogTitle>
+        <ResponsiveDialogDescription className="sr-only">
+          {t(($) => $.account.confirmTransferTitle)}
+        </ResponsiveDialogDescription>
+      </ResponsiveDialogHeader>
+
+      <div className="-mx-1 flex-1 overflow-y-auto px-5 pt-6 pb-4 md:px-1">
+        <div className="flex flex-col gap-5">
+          {/* Amount highlight */}
+          <div className="flex flex-col items-center gap-1 py-2">
+            <div className="flex items-center gap-2">
+              <img src="/icp-token.svg" alt="" aria-hidden className="size-9" />
+              <p className="text-3xl font-bold">{amount} ICP</p>
+            </div>
+            {nonNullish(approxUsd) && (
+              <p className="text-base text-muted-foreground">{approxUsd}</p>
+            )}
+          </div>
+
+          {/* Transfer details */}
+          <div className="rounded-lg border p-4">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">
+                  {t(($) => $.account.confirmFrom)}
+                </span>
+                <span className="text-sm font-medium">{fromAccountName}</span>
+              </div>
+
+              <div className="border-t pt-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    {t(($) => $.account.confirmTo)}
+                  </span>
+                  <span className="text-sm font-medium">{destinationName}</span>
+                </div>
+                <p className="mt-1 text-right font-mono text-sm break-all text-muted-foreground">
+                  {toAccount}
+                </p>
+                {!isDestinationKnown && (
+                  <Alert variant="warning" className="mt-2">
+                    <AlertTriangle className="size-4" />
+                    <AlertDescription>{t(($) => $.account.destinationWarning)}</AlertDescription>
                   </Alert>
                 )}
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="amount">{t(($) => $.common.amount)}</Label>
-                <AmountInput
-                  id="amount"
-                  data-testid="send-icp-amount-input"
-                  ref={amountInputRef}
-                  value={amount}
-                  onChange={handleAmountChange}
-                  maxAmount={max}
-                  onMaxSelect={handleMaxSelect}
-                  disabled={isPending}
-                  required
-                  error={!!amountError}
-                  approxUsdLabel={approxUsd}
-                  availableLabel={t(($) => $.account.availableBalance, {
-                    amount: max,
-                  })}
-                />
-                {amountError && (
-                  <Alert variant="warning">
-                    <AlertTriangle className="h-4 w-4 text-destructive" />
-                    <AlertDescription>{amountError}</AlertDescription>
-                  </Alert>
-                )}
+              <div className="flex items-center justify-between border-t pt-3">
+                <span className="text-sm text-muted-foreground">
+                  {t(($) => $.account.confirmTransactionFee)}
+                </span>
+                <span className="text-sm font-medium">
+                  {ICP_TRANSACTION_FEE} ICP
+                  {nonNullish(icpPriceUsd) &&
+                    ` (${formatTransactionFeeUsd(ICP_TRANSACTION_FEE * icpPriceUsd)})`}
+                </span>
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          <ResponsiveDialogFooter className="flex shrink-0 justify-end gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setOpen(false)}
-              disabled={isPending}
-            >
-              {t(($) => $.common.close)}
-            </Button>
-            <Button type="submit" disabled={isPending} data-testid="send-icp-confirm-btn">
-              {isPending ? t(($) => $.common.sending) : t(($) => $.common.confirm)}
-            </Button>
-          </ResponsiveDialogFooter>
-        </form>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+      <ResponsiveDialogFooter className="flex shrink-0 justify-end gap-2">
+        <Button type="button" variant="ghost" size="lg" onClick={onBack} disabled={isProcessing}>
+          {t(($) => $.common.back)}
+        </Button>
+        <Button
+          type="button"
+          size="lg"
+          onClick={onConfirm}
+          disabled={isProcessing}
+          data-testid="send-icp-confirm-btn"
+        >
+          {t(($) => $.common.confirm)}
+        </Button>
+      </ResponsiveDialogFooter>
+    </motion.div>
   );
-};
+}
+
+function AnimatedSendIcon() {
+  const strokeProps = {
+    stroke: 'currentColor',
+    strokeWidth: 1.5,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    fill: 'none',
+  };
+
+  return (
+    <motion.svg className="size-12 text-muted-foreground" viewBox="0 0 24 24" aria-hidden>
+      <motion.path
+        d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"
+        {...strokeProps}
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+      />
+      <motion.path
+        d="m21.854 2.147-10.94 10.939"
+        {...strokeProps}
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={{ pathLength: 1, opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.4, ease: 'easeOut' }}
+      />
+    </motion.svg>
+  );
+}
+
+const DRAW_DURATION_MS = 1000;
+
+enum IconState {
+  Send = 'send',
+  Spinner = 'spinner',
+  Success = 'success',
+}
+
+function SendTransferPhase({
+  isSuccess,
+  processingMessage,
+  successMessage,
+}: {
+  isSuccess: boolean;
+  processingMessage: string;
+  successMessage: string;
+}) {
+  const [showSpinner, setShowSpinner] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSpinner(true), DRAW_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const message = isSuccess ? successMessage : processingMessage;
+  const iconState = isSuccess
+    ? IconState.Success
+    : showSpinner
+      ? IconState.Spinner
+      : IconState.Send;
+
+  return (
+    <motion.div
+      key="transfer"
+      className="flex flex-1 flex-col items-center justify-center gap-5 py-8 text-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      <ResponsiveDialogTitle className="sr-only">{message}</ResponsiveDialogTitle>
+      <motion.div
+        className={cn(
+          'flex size-20 items-center justify-center rounded-full transition-colors duration-300',
+          isSuccess ? 'bg-green-600/10' : 'bg-primary/10',
+        )}
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+      >
+        <AnimatePresence mode="wait">
+          {iconState === IconState.Send && (
+            <motion.div key="send" exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.2 }}>
+              <AnimatedSendIcon />
+            </motion.div>
+          )}
+          {iconState === IconState.Spinner && (
+            <motion.div
+              key="spinner"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Loader className="size-10 animate-spin text-muted-foreground" />
+            </motion.div>
+          )}
+          {iconState === IconState.Success && (
+            <motion.div
+              key="checkmark"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <AnimatedCheckmark />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={message}
+          className="text-sm font-medium text-muted-foreground"
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.2 }}
+        >
+          {message}
+        </motion.p>
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+function SendErrorPhase({
+  errorMessage,
+  onClose,
+  onRetry,
+}: {
+  errorMessage: string;
+  onClose: () => void;
+  onRetry: () => void;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <motion.div
+      key="error"
+      className="flex flex-1 flex-col items-center justify-between py-8 text-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      <ResponsiveDialogTitle className="sr-only">{errorMessage}</ResponsiveDialogTitle>
+      <div className="flex flex-1 flex-col items-center justify-center gap-4">
+        <motion.div
+          className="flex size-20 items-center justify-center rounded-full bg-destructive/10"
+          initial={{ scale: 0.8, rotate: 0 }}
+          animate={{ scale: 1, rotate: [0, -5, 5, -5, 5, 0] }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+        >
+          <AlertTriangle className="size-10 text-destructive" />
+        </motion.div>
+        <motion.p
+          className="max-w-xs text-sm font-medium text-muted-foreground"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.3 }}
+        >
+          {errorMessage}
+        </motion.p>
+      </div>
+      <div className="flex w-full gap-3 pt-4">
+        <Button variant="outline" className="flex-1" onClick={onClose}>
+          {t(($) => $.common.close)}
+        </Button>
+        <Button className="flex-1" onClick={onRetry}>
+          {t(($) => $.common.retry)}
+        </Button>
+      </div>
+    </motion.div>
+  );
+}

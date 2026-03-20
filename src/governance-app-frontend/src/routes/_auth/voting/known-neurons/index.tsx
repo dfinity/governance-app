@@ -28,6 +28,7 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { Skeleton } from '@components/Skeleton';
+import { SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import { warningNotification } from '@utils/notification';
@@ -248,9 +249,6 @@ function KnownNeuronsPage() {
     </>
   );
 }
-
-// Long enough for the checkmark animation to play and the text to be read.
-const SUCCESS_AUTO_CLOSE_MS = 2400;
 
 function FollowNeuronDialog({
   state,

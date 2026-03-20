@@ -1,9 +1,10 @@
 {
   "available": "Available",
   "accountIdentifier": "account id",
-  "transferSuccess": "You have successfully sent {{amount}} ICP to account {{toAccount}}.",
+  "transferSuccess": "You have successfully sent {{amount}} ICP to {{destination}}.",
+  "transferProcessing": "Sending {{amount}} ICP to {{destination}} ...",
   "destinationAccount": "Destination account",
-  "transferTitle": "Send ICP to another account",
+  "transferTitle": "Send ICP",
   "availableBalance": "Available: {{amount}} ICP",
   "accountError": "Please enter a valid ICP or ICRC1 address.",
   "insufficientBalance": "Insufficient balance. You can send up to {{max}} ICP.",
@@ -21,5 +22,13 @@
   "ariaLabel": "Open transactions list",
   "newTransaction": "New transaction detected",
   "newTransactionDescription": "You received {{value}} ICP from {{sender}}. Your balance is being updated.",
-  "noTransactions": "No transactions found for this account."
+  "noTransactions": "No transactions found for this account.",
+  "confirmTransferTitle": "Review transaction",
+  "confirmFrom": "From",
+  "confirmTo": "To",
+  "confirmTransactionFee": "Transaction fee",
+  "unknownAddress": "External address",
+  "destinationWarning": "This address is not in your address book. Please verify it is correct.",
+  "transferDescription": "Transfer ICP tokens to another account.",
+  "confirmNavigation": "A transfer is in progress. Leaving this page may cause unexpected results. Are you sure you want to leave?"
 }

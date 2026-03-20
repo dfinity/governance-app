@@ -225,10 +225,12 @@ test.describe('Address book', () => {
     await test.step('Select "Wallet B", fill amount, and submit.', async () => {
       await page.getByTestId('address-book-select').selectOption('Wallet B');
       await page.getByTestId('send-icp-amount-input').fill('5');
+      await page.getByTestId('send-icp-next-btn').click();
       await page.getByTestId('send-icp-confirm-btn').click();
 
-      await expect(page.getByText('successfully sent')).toBeVisible({ timeout: 30000 });
-      await expect(page.getByText(TEST_ICRC1_ADDRESS.slice(0, 20))).toBeVisible();
+      await expect(
+        page.getByRole('paragraph').filter({ hasText: 'successfully sent 5 ICP to Wallet B' }),
+      ).toBeVisible({ timeout: 30000 });
     });
   });
 });

@@ -21,11 +21,8 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
-import {
-  ADDRESS_BOOK_MAX_NAME_LENGTH,
-  ADDRESS_BOOK_MIN_NAME_LENGTH,
-  ADDRESS_BOOK_SUCCESS_AUTO_CLOSE_MS,
-} from '@constants/addressBook';
+import { ADDRESS_BOOK_MAX_NAME_LENGTH, ADDRESS_BOOK_MIN_NAME_LENGTH } from '@constants/addressBook';
+import { SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
 import { useSaveAddressBook } from '@hooks/addressBook/useSaveAddressBook';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
 import { addressBookGetAddressString } from '@utils/addressBook';
@@ -246,7 +243,7 @@ export const AddAddressModal: React.FC<Props> = ({
 
   useEffect(() => {
     if (phase !== Phase.Success) return;
-    const timer = setTimeout(onClose, ADDRESS_BOOK_SUCCESS_AUTO_CLOSE_MS);
+    const timer = setTimeout(onClose, SUCCESS_AUTO_CLOSE_MS);
     return () => clearTimeout(timer);
   }, [phase, onClose]);
 
