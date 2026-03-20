@@ -65,7 +65,7 @@ function Settings() {
 
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
-          <h2 className="text-2xl font-semibold">{t(($) => $.userAccount.identity)}</h2>
+          <h2 className="text-lg font-semibold">{t(($) => $.userAccount.identity)}</h2>
           <p className="text-sm text-muted-foreground">
             {t(($) => $.userAccount.identityDescription)}
           </p>
@@ -87,7 +87,7 @@ function Settings() {
 
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
-          <h2 className="text-2xl font-semibold">{t(($) => $.addressBook.title)}</h2>
+          <h2 className="text-lg font-semibold">{t(($) => $.addressBook.title)}</h2>
         </div>
         <Card className="overflow-hidden p-0 shadow-sm">
           <div className="px-6 py-5">
@@ -101,7 +101,7 @@ function Settings() {
 
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
-          <h2 className="text-2xl font-semibold">
+          <h2 className="text-lg font-semibold">
             {t(($) => $.userAccount.advancedFeatures.title)}
           </h2>
         </div>
@@ -112,7 +112,7 @@ function Settings() {
 
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
-          <h2 className="text-2xl font-semibold">{t(($) => $.userAccount.governance.title)}</h2>
+          <h2 className="text-lg font-semibold">{t(($) => $.userAccount.governance.title)}</h2>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Card className="p-6 shadow-sm">
@@ -126,7 +126,7 @@ function Settings() {
 
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
-          <h2 className="text-2xl font-semibold">{t(($) => $.userAccount.appearance)}</h2>
+          <h2 className="text-lg font-semibold">{t(($) => $.userAccount.appearance)}</h2>
         </div>
         <Card className="overflow-hidden p-0 shadow-sm">
           <div className="flex flex-col divide-y">
