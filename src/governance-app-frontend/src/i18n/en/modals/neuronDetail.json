@@ -1,7 +1,7 @@
 {
   "title": "Manage neuron",
   "actions": {
-    "increaseStake": "Top-up neuron",
+    "increaseStake": "Top up neuron",
     "increaseDelay": "Increase delay",
     "maturityMode": "New maturity",
     "startDissolving": "Start dissolving",
@@ -9,12 +9,12 @@
     "devActions": "Dev actions"
   },
   "increaseStake": {
-    "title": "Top-up neuron",
+    "title": "Top up neuron",
     "fromAccount": "From account",
     "amountLabel": "Amount to add",
     "currentAndAvailable": "Current: {{current}} ICP • Available: {{available}} ICP",
     "info": "Adding ICP to your neuron increases your voting power and potential rewards. The added amount will be locked for the same dissolve delay period.",
-    "confirm": "Confirm top-up",
+    "confirm": "Confirm",
     "confirming": "Topping up neuron, please wait...",
     "success": "Successfully added {{amount}} ICP to your neuron.",
     "errors": {
