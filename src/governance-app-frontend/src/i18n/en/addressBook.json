@@ -9,6 +9,11 @@
   "editAddress": "Edit address",
   "saveAddress": "Save address",
   "updatingAddressBook": "Updating address book...",
+  "confirmNavigation": "Your address book is being updated. Leaving this page may cause unexpected results. Are you sure you want to leave?",
+  "addSuccess": "Address saved successfully.",
+  "editSuccess": "Address updated successfully.",
+  "removeSuccess": "Address removed successfully.",
+  "saveError": "Something went wrong while saving. Please try again.",
   "nickname": "Nickname",
   "nicknamePlaceholder": "3-64 characters (e.g. John's wallet)",
   "address": "Address",
@@ -26,9 +31,6 @@
     "invalidAddress": "Please enter a valid ICP or ICRC1 address."
   },
   "toast": {
-    "addSuccess": "Address saved successfully.",
-    "editSuccess": "Address updated successfully.",
-    "removeSuccess": "Address removed successfully.",
     "anonymousNotAllowed": "Please sign in to manage the address book.",
     "saveError": "There was an unexpected issue while updating the address book.",
     "tooMany": "You can't add more than {{limit}} addresses.",
