@@ -157,17 +157,17 @@ test.describe.serial('Neuron Detail Modal', () => {
       await closeModal(page);
     });
 
-    await test.step('Successfully changes mode to auto-lock on', async () => {
+    await test.step('Successfully changes mode to auto-lock', async () => {
       await openNeuronDetailModal(page);
       await page.getByTestId('neuron-detail-action-new-maturity').click();
       const toggle = page.getByTestId('segmented-toggle');
-      await toggle.getByRole('radio', { name: /auto-lock on/i }).click();
+      await toggle.getByRole('radio', { name: /Auto-lock/i }).click();
       await expect(page.getByTestId('maturity-mode-confirm-btn')).toBeEnabled();
       await page.getByTestId('maturity-mode-confirm-btn').click();
       await expect(page.getByTestId('segmented-toggle')).not.toBeVisible({ timeout: 30000 });
       await closeModal(page);
       const neuronCard = page.getByTestId('neuron-card');
-      await expect(neuronCard.getByTestId('neuron-card-maturity-mode')).toHaveText(/Auto-lock on/i);
+      await expect(neuronCard.getByTestId('neuron-card-maturity-mode')).toHaveText(/Auto-lock/i);
     });
   });
 

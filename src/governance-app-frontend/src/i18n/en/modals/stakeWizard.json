@@ -23,8 +23,8 @@
       "maturity": {
         "label": "Manage rewards",
         "description": "Choose how to handle your minting rewards.",
-        "autoStake": "Auto-lock on",
-        "keepLiquid": "Auto-lock off"
+        "autoStake": "Auto-lock",
+        "keepLiquid": "Unlocked"
       },
       "state": {
         "label": "Initial state",

@@ -6,7 +6,7 @@
     "accrualLabel": "Accrual",
     "accrual": "Maturity accumulates automatically as your neurons vote on proposals (either manually or via following).",
     "rateLabel": "Rate",
-    "rate": "Higher dissolve delays mint more maturity (up to {{max}} maturity), especially with auto-lock on."
+    "rate": "Higher dissolve delays mint more maturity (up to {{max}} maturity), especially with auto-lock."
   },
   "modulation": {
     "title": "Maturity modulation",
@@ -15,9 +15,9 @@
   },
   "managing": {
     "title": "Managing maturity",
-    "autoStakeLabel": "Auto-lock on",
+    "autoStakeLabel": "Auto-lock",
     "autoStake": "New maturity is added to your neuron's locked balance automatically.",
-    "keepLiquidLabel": "Auto-lock off",
+    "keepLiquidLabel": "Unlocked",
     "keepLiquid": "New maturity stays available for you to disburse whenever you want.",
     "disburseLabel": "Disburse",
     "disburse": "Convert maturity to ICP and add it to your available balance."

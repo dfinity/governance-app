@@ -2,7 +2,7 @@
   "description": "Development tools for testing neuron behaviors. Use these actions to simulate different scenarios.",
   "increaseMaturity": {
     "title": "Increase maturity",
-    "description": "Add maturity to this neuron for testing reward disbursement and auto-lock on/off flows.",
+    "description": "Add maturity to this neuron for testing reward disbursement and auto-lock vs unlocked new maturity flows.",
     "amountLabel": "Maturity to add",
     "confirm": "Confirm",
     "confirming": "Adding maturity...",
