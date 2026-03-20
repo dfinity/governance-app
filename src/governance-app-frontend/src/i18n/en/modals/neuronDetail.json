@@ -97,14 +97,14 @@
     }
   },
   "stakeMaturity": {
-    "title": "Stake maturity",
-    "info": "<strong>{{amount}} maturity will be staked.</strong> This increases your voting power and compounds your rewards.",
+    "title": "Lock maturity",
+    "info": "<strong>{{amount}} maturity will be locked.</strong> This increases your voting power and compounds your rewards.",
     "cancel": "Cancel",
-    "confirm": "Stake",
-    "confirming": "Staking maturity, please wait...",
-    "success": "Maturity has been staked successfully.",
+    "confirm": "Lock",
+    "confirming": "Locking maturity, please wait...",
+    "success": "Maturity has been locked successfully.",
     "errors": {
-      "failed": "Failed to stake maturity. Please try again."
+      "failed": "Failed to lock maturity. Please try again."
     }
   },
   "hotkeyNotice": "As a hotkey, you can view this setting but only the neuron controller can make changes.",

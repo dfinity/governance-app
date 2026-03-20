@@ -5,7 +5,7 @@
   "stakeId": "Neuron ID",
   "created": "Created",
   "dissolveDelay": "Dissolve delay",
-  "stakedMaturity": "Staked maturity",
+  "stakedMaturity": "Locked maturity",
   "unstakedMaturity": "Available maturity",
   "maturityMode": "New maturity",
   "autoStake": "Auto-lock",
@@ -18,7 +18,7 @@
   "noFollowingWarning": "Not following anyone yet. Set up following in the voting page.",
   "disburseIcp": "Disburse ICPs",
   "disburseMaturity": "Disburse maturity",
-  "stakeMaturity": "Stake maturity",
+  "stakeMaturity": "Lock maturity",
   "summary": {
     "capital": "Locked in neurons",
     "engagement": "Participation rate",
