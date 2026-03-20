@@ -1,4 +1,6 @@
+import { isNullish } from '@dfinity/utils';
 import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect } from 'react';
 
 import { analytics } from '@features/analytics/service';
@@ -23,6 +25,8 @@ export const Route = createFileRoute('/_auth')({
 });
 
 function AuthLayout() {
+  const { identity } = useInternetIdentity();
+
   useThemeShortcut();
   useLogoutShortcut();
   useSessionCountdownToast();
@@ -33,6 +37,11 @@ function AuthLayout() {
   useEffect(() => {
     analytics.init();
   }, []);
+
+  // Guard against the brief re-render window between identity clearing (synchronous)
+  // and route invalidation (async). Without this, child components could crash
+  // accessing identity-derived data (e.g. accountId) before the router redirects.
+  if (isNullish(identity)) return null;
 
   return (
     <MainLayout>
