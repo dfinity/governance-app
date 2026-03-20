@@ -578,6 +578,9 @@ function SendConfirmationPhase({
   const { t } = useTranslation();
   const { data: accountsState } = useAccounts();
 
+  const formatTransactionFeeUsd = (usdValue: number): string =>
+    usdValue < 0.01 ? '< $0.01' : `≈ $${formatNumber(usdValue)}`;
+
   const isDestinationKnown =
     addressBookEntries.some((entry) => addressBookGetAddressString(entry.address) === toAccount) ||
     (accountsState?.accounts.some((a) => a.accountId === toAccount) ?? false);
@@ -652,7 +655,7 @@ function SendConfirmationPhase({
                 <span className="text-sm font-medium">
                   {ICP_TRANSACTION_FEE} ICP
                   {nonNullish(icpPriceUsd) &&
-                    ` (${ICP_TRANSACTION_FEE * icpPriceUsd < 0.01 ? '< $0.01' : `≈ $${formatNumber(ICP_TRANSACTION_FEE * icpPriceUsd)}`})`}
+                    ` (${formatTransactionFeeUsd(ICP_TRANSACTION_FEE * icpPriceUsd)})`}
                 </span>
               </div>
             </div>
