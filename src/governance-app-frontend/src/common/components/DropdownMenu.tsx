@@ -81,9 +81,7 @@ function DropdownMenuItem({
   variant,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Item> &
-  VariantProps<typeof dropdownMenuItemVariants> & {
-    inset?: boolean;
-  }) {
+  VariantProps<typeof dropdownMenuItemVariants>) {
   return (
     <DropdownMenuPrimitive.Item
       data-slot="dropdown-menu-item"

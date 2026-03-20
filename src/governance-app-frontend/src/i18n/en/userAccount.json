@@ -14,7 +14,8 @@
     "toggleLight": "Toggle light",
     "toggleDark": "Toggle dark",
     "toggleSystem": "Toggle system",
-    "iiLink": "Manage your Internet Identity (opens in new tab)"
+    "iiLink": "Manage your Internet Identity (opens in new tab)",
+    "userMenu": "User menu"
   },
   "appearance": "Appearance",
   "theme": "Theme",
