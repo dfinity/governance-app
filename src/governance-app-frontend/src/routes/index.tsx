@@ -7,12 +7,12 @@ import { useTranslation } from 'react-i18next';
 
 import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGovernanceLogo';
 
+import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Button } from '@components/button';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { useGovernanceProposal } from '@hooks/governance';
 import { useTvlValue } from '@hooks/useTvlValue';
-import { formatNumber } from '@utils/numbers';
 
 import i18n from '@/i18n/config';
 
@@ -78,6 +78,7 @@ function LoginPage() {
   const participants = 57986;
   const proposalsQuery = useGovernanceProposal();
   const totalProposals = proposalsQuery?.data?.response?.id ?? 0n;
+  const allStatsReady = !isTvlLoading && !proposalsQuery?.isLoading;
 
   return (
     <>
@@ -151,20 +152,21 @@ function LoginPage() {
 
           <div className="flex flex-1 flex-col gap-6 md:flex-col md:items-stretch md:gap-8">
             {/* Stats Section (Desktop: Bottom / Mobile: Below Title) */}
-            <dl className="animate-fade-up animate-delay-400 order-1 mt-auto flex flex-col gap-8 md:order-2 md:mt-auto md:mb-6 md:h-13 md:flex-row md:gap-16">
+            <dl className="animate-fade-up animate-delay-400 order-1 mt-auto mb-4 flex flex-col gap-8 md:order-2 md:mb-6 md:h-13 md:flex-row md:gap-16">
               <div className="flex flex-col-reverse gap-1">
                 <dt className="text-sm font-light tracking-wider text-muted-foreground">
                   {t(($) => $.login.totalProposals)}
                 </dt>
                 <dd className="text-2xl leading-none font-bold md:text-3xl">
-                  {proposalsQuery?.isLoading ? (
+                  {!allStatsReady ? (
                     <Skeleton className="h-7 w-30 md:h-8" />
                   ) : proposalsQuery?.isError ? (
                     '-/-'
                   ) : (
-                    // Safe Number casting as the number of proposals is within the range
-                    // totalProposals < Number.MAX_SAFE_INTEGER
-                    formatNumber(Number(totalProposals), { minFraction: 0, maxFraction: 0 })
+                    <AnimatedNumber
+                      value={Number(totalProposals)}
+                      formatOptions={{ minFraction: 0, maxFraction: 0 }}
+                    />
                   )}
                 </dd>
               </div>
@@ -180,10 +182,13 @@ function LoginPage() {
                   {t(($) => $.login.participants)}
                 </dt>
                 <dd className="text-2xl leading-none font-bold md:text-3xl">
-                  {isTvlLoading && proposalsQuery?.isLoading ? (
+                  {!allStatsReady ? (
                     <Skeleton className="h-7 w-26 md:h-8" />
                   ) : (
-                    formatNumber(participants, { maxFraction: 0, minFraction: 0 })
+                    <AnimatedNumber
+                      value={participants}
+                      formatOptions={{ minFraction: 0, maxFraction: 0 }}
+                    />
                   )}
                 </dd>
               </div>
@@ -199,12 +204,16 @@ function LoginPage() {
                   {t(($) => $.login.tvl)}
                 </dt>
                 <dd className="text-2xl leading-none font-bold md:text-3xl">
-                  {isTvlLoading ? (
+                  {!allStatsReady ? (
                     <Skeleton className="h-7 w-52 md:h-8" />
                   ) : isTvlError || isNullish(tvl) ? (
                     '-'
                   ) : (
-                    `$${formatNumber(tvl, { maxFraction: 0, minFraction: 0 })}`
+                    <AnimatedNumber
+                      value={tvl}
+                      prefix="$"
+                      formatOptions={{ minFraction: 0, maxFraction: 0 }}
+                    />
                   )}
                 </dd>
               </div>
