@@ -1,4 +1,4 @@
-import { isNullish, nonNullish } from '@dfinity/utils';
+import { isNullish } from '@dfinity/utils';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { LogOut } from 'lucide-react';
@@ -17,9 +17,7 @@ import { ThemeCard } from '@features/userAccount/components/ThemeCard';
 import { Button } from '@components/button';
 import { Card } from '@components/Card';
 import { PageHeader } from '@components/PageHeader';
-import { MANUAL_LOGOUT_KEY } from '@constants/extra';
-import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
-import { getSessionTimeLeftForUi } from '@utils/date';
+import { useLogout } from '@hooks/useLogout';
 
 import i18n from '@/i18n/config';
 
@@ -46,19 +44,14 @@ export const Route = createFileRoute('/_auth/settings/')({
 });
 
 function Settings() {
-  const { identity, clear } = useInternetIdentity();
+  const { identity } = useInternetIdentity();
   const { t } = useTranslation();
-  const timeLeft = useSessionTimeLeft();
   const navigate = useNavigate({ from: Route.fullPath });
   const { openAddressBook } = Route.useSearch();
+  const logout = useLogout();
 
   const handleAddressBookOpenChange = (open: boolean) => {
     navigate({ search: open ? { openAddressBook: true } : {}, replace: true });
-  };
-
-  const handleLogout = () => {
-    localStorage.setItem(MANUAL_LOGOUT_KEY, 'true');
-    clear();
   };
 
   if (isNullish(identity)) return null;
@@ -148,18 +141,10 @@ function Settings() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <div className="space-y-2">
-          <h2 className="text-2xl font-semibold">{t(($) => $.userAccount.session.title)}</h2>
-          {nonNullish(timeLeft) && (
-            <p className="text-sm text-muted-foreground">
-              {t(($) => $.userAccount.session.timeLeft, getSessionTimeLeftForUi(timeLeft))}
-            </p>
-          )}
-        </div>
         <Button
           variant="outline"
           size="lg"
-          onClick={handleLogout}
+          onClick={logout}
           className="w-full self-start border-destructive/50 text-destructive hover:bg-destructive/5 hover:text-destructive sm:w-auto dark:border-destructive/60 dark:text-destructive-foreground dark:hover:bg-destructive/10"
           data-testid="logout-btn"
         >
