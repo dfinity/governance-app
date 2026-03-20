@@ -79,6 +79,10 @@ export const AccountTransactionItem = ({
     type === TransactionType.RECEIVE &&
     isSuspiciousAddress(address, operation.Transfer.amount.e8s, trustedAddresses);
 
+  const shortAddress = shortenId(address, 10);
+  const fullAddress = shortenId(address, 18);
+  const addressComponents = { address: <span className="font-mono" /> };
+
   return (
     <Card key={tx.id} className="p-0">
       <CardContent className="px-6 py-4">
@@ -149,19 +153,15 @@ export const AccountTransactionItem = ({
                     <span className="truncate md:hidden">
                       <Trans
                         i18nKey={($) => $.account[addressDirection]}
-                        values={{ address: shortenId(address, 10) }}
-                        components={{
-                          address: <span className="font-mono" />,
-                        }}
+                        values={{ address: shortAddress }}
+                        components={addressComponents}
                       />
                     </span>
                     <span className="hidden truncate md:inline">
                       <Trans
                         i18nKey={($) => $.account[addressDirection]}
-                        values={{ address: shortenId(address, 18) }}
-                        components={{
-                          address: <span className="font-mono" />,
-                        }}
+                        values={{ address: fullAddress }}
+                        components={addressComponents}
                       />
                     </span>
                     {!suspicious && (
