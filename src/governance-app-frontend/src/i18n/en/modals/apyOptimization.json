@@ -7,8 +7,8 @@
     "locked": "Not dissolving (countdown paused for maximum rewards).",
     "delayLabel": "8-year dissolve delay",
     "delay": "The longest delay period.",
-    "autoStakeLabel": "Auto-stake maturity",
-    "autoStake": "Compound growth for even higher long-term returns."
+    "autoStakeLabel": "Auto-lock on",
+    "autoStake": "New maturity is added to your neuron's locked balance automatically."
   },
   "yourNeurons": "Your neurons",
   "neuronLabel": "Neuron #{{id}}",
@@ -18,7 +18,7 @@
   "issues": {
     "notLocked": "Not locked",
     "delayLow": "Delay < 8Y",
-    "notAutoStaking": "Not auto-staking"
+    "notAutoStaking": "Auto-lock off"
   },
   "maximize": "Maximize",
   "optimizeAll": "Optimize all neurons",
