@@ -34,7 +34,7 @@ import {
 } from '@components/ResponsiveDialog';
 import { Switch } from '@components/Switch';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
+import { E8Sn, ICP_TRANSACTION_FEE, SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
 import { useTickerPrices } from '@hooks/tickers';
@@ -59,10 +59,6 @@ enum Phase {
   Error = 'error',
 }
 
-const SUCCESS_AUTO_CLOSE_MS = 2400;
-
-const formatTransactionFeeUsd = (usdValue: number): string =>
-  usdValue < 0.01 ? '< $0.01' : `≈ $${formatNumber(usdValue)}`;
 
 const variantConfig = {
   simple: { Icon: Send, className: '', label: 'withdraw' },
@@ -656,7 +652,7 @@ function SendConfirmationPhase({
                 <span className="text-sm font-medium">
                   {ICP_TRANSACTION_FEE} ICP
                   {nonNullish(icpPriceUsd) &&
-                    ` (${formatTransactionFeeUsd(ICP_TRANSACTION_FEE * icpPriceUsd)})`}
+                    ` (${ICP_TRANSACTION_FEE * icpPriceUsd < 0.01 ? '< $0.01' : `≈ $${formatNumber(ICP_TRANSACTION_FEE * icpPriceUsd)}`})`}
                 </span>
               </div>
             </div>
