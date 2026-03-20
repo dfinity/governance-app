@@ -3,6 +3,9 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnimatedCheckmark } from '@components/AnimatedCheckmark';
+import { ResponsiveDialogTitle } from '@components/ResponsiveDialog';
+
 const DRAW_DURATION = 1;
 
 function AnimatedBookIcon() {
@@ -73,6 +76,37 @@ function AnimatedBookIcon() {
     </motion.svg>
   );
 }
+
+export const AddressBookSuccess: React.FC<{ message: string }> = ({ message }) => {
+  return (
+    <motion.div
+      key="success"
+      className="flex h-full flex-col items-center justify-center gap-5 py-8 text-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      <motion.div
+        className="flex size-16 items-center justify-center rounded-full bg-green-600/10"
+        initial={{ scale: 0.6, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+      >
+        <AnimatedCheckmark />
+      </motion.div>
+      <ResponsiveDialogTitle className="text-sm font-medium text-muted-foreground">
+        <motion.span
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35, duration: 0.3 }}
+        >
+          {message}
+        </motion.span>
+      </ResponsiveDialogTitle>
+    </motion.div>
+  );
+};
 
 export const AddressBookUpdating = () => {
   const { t } = useTranslation();
