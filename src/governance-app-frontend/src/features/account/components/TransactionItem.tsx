@@ -79,6 +79,10 @@ export const AccountTransactionItem = ({
     type === TransactionType.RECEIVE &&
     isSuspiciousAddress(address, operation.Transfer.amount.e8s, trustedAddresses);
 
+  const shortAddress = shortenId(address, 10);
+  const fullAddress = shortenId(address, 18);
+  const addressComponents = { address: <span className="font-mono" /> };
+
   return (
     <Card key={tx.id} className="p-0">
       <CardContent className="px-6 py-4">
@@ -107,7 +111,7 @@ export const AccountTransactionItem = ({
               <CertifiedBadge certified={certified} />
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-col gap-1">
+              <div className="flex min-w-0 flex-col gap-1 sm:max-w-[66%]">
                 <span className="text-xs text-muted-foreground">
                   {secondsToDate(transactionTimestamp)} - {secondsToTime(transactionTimestamp)}
                 </span>
@@ -117,15 +121,17 @@ export const AccountTransactionItem = ({
                     <TooltipTrigger asChild>
                       <button
                         type="button"
-                        className="flex items-center gap-1 text-sm text-muted-foreground"
+                        className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground"
                       >
-                        <Trans
-                          i18nKey={($) => $.account[addressDirection]}
-                          values={{ address: addressName }}
-                          components={{
-                            address: <span className="font-semibold" />,
-                          }}
-                        />
+                        <span className="truncate">
+                          <Trans
+                            i18nKey={($) => $.account[addressDirection]}
+                            values={{ address: addressName }}
+                            components={{
+                              address: <span className="font-semibold" />,
+                            }}
+                          />
+                        </span>
                         {addressEntry?.source === 'addressBook' ? (
                           <BookUser className="size-3.5 shrink-0" aria-hidden />
                         ) : (
@@ -140,26 +146,22 @@ export const AccountTransactionItem = ({
                 ) : (
                   <div
                     className={cn(
-                      'flex items-center gap-1 text-sm break-all text-muted-foreground',
+                      'flex min-w-0 items-center gap-1 text-sm text-muted-foreground',
                       suspicious && 'text-amber-800 dark:text-amber-200',
                     )}
                   >
-                    <span className="md:hidden">
+                    <span className="truncate md:hidden">
                       <Trans
                         i18nKey={($) => $.account[addressDirection]}
-                        values={{ address: shortenId(address, 10) }}
-                        components={{
-                          address: <span className="font-mono" />,
-                        }}
+                        values={{ address: shortAddress }}
+                        components={addressComponents}
                       />
                     </span>
-                    <span className="hidden md:inline">
+                    <span className="hidden truncate md:inline">
                       <Trans
                         i18nKey={($) => $.account[addressDirection]}
-                        values={{ address: shortenId(address, 18) }}
-                        components={{
-                          address: <span className="font-mono" />,
-                        }}
+                        values={{ address: fullAddress }}
+                        components={addressComponents}
                       />
                     </span>
                     {!suspicious && (

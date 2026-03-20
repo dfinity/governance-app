@@ -10,10 +10,10 @@
   "noTransactionsYet": "No transactions yet",
   "latestSent": "Latest: sent <amount>{{amount}}</amount> to <address>{{address}}</address>",
   "latestReceived": "Latest: received <amount>{{amount}}</amount> from <address>{{address}}</address>",
-  "latestStaked": "Latest: staked <amount>{{amount}}</amount>",
+  "latestStaked": "Latest: locked <amount>{{amount}}</amount>",
   "sent": "Sent",
   "received": "Received",
-  "staked": "Staked",
+  "staked": "Locked",
   "balanceError": "Unable to load balance.",
   "errors": {
     "accountNotFound": "Account not found in NNS dapp.",

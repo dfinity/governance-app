@@ -6,7 +6,7 @@
   "buyIcpHint": "You can also buy ICP with a credit card via a third-party provider.",
   "buyIcp": {
     "title": "Buy ICP",
-    "description": "ICP is the native utility token of the Internet Computer Protocol. You can lock ICP into Neurons to participate in the governance of the Internet Computer.",
+    "description": "ICP is the native utility token of the Internet Computer Protocol. You can lock ICP into neurons to participate in the governance of the Internet Computer.",
     "disclaimer": "Clicking the button below will take you to a third-party website to complete your ICP transaction at your own risk.",
     "receivingAddress": "Receiving ICP address",
     "proceed": "Buy ICP with Banxa"
