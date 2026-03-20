@@ -28,9 +28,9 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { Skeleton } from '@components/Skeleton';
+import { SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
-import { SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
 import { warningNotification } from '@utils/notification';
 import { QUERY_KEYS } from '@utils/query';
 
@@ -249,7 +249,6 @@ function KnownNeuronsPage() {
     </>
   );
 }
-
 
 function FollowNeuronDialog({
   state,

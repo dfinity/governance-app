@@ -59,7 +59,6 @@ enum Phase {
   Error = 'error',
 }
 
-
 const variantConfig = {
   simple: { Icon: Send, className: '', label: 'withdraw' },
   advanced: { Icon: ArrowUpRight, className: 'flex-1', label: 'send' },

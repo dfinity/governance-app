@@ -15,7 +15,6 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
-
 import { SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
 
 import { SubAccountDialogMode } from '../types';
