@@ -89,8 +89,9 @@ const verifyAllNeuronsFollowing = async (
       }
 
       await page.keyboard.press('Escape');
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(1000);
       await page.keyboard.press('Escape');
+      await page.waitForTimeout(1000);
     }
 
     await expect(page.getByTestId('neuron-detail-modal')).not.toBeVisible();
