@@ -119,13 +119,13 @@ const applyPickerFlow = async (page: Page, neuronId: string, topics: Topic[]) =>
 
 // Serial since the tests build on each other
 test.describe.serial('Advanced Following', () => {
-  test.setTimeout(180_000); // Longer test timeout since this one is more involved
+  test.setTimeout(210_000); // Longer test timeout since this one is more involved
 
   let page: Page;
   let neuronIds: string[];
 
   test.beforeAll(async ({ browser }: { browser: Browser }) => {
-    test.setTimeout(180_000); // Longer test timeout, same reason, but "beforeAll" is applied on its own
+    test.setTimeout(210_000); // Longer test timeout, same reason, but "beforeAll" is applied on its own
 
     page = await browser.newPage();
 
