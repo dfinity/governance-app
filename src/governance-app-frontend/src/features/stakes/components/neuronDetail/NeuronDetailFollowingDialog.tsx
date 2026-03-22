@@ -31,14 +31,12 @@ export function NeuronDetailFollowingDialog({ open, onOpenChange, neuron, knownN
           <ResponsiveDialogTitle>{t(($) => $.neuron.followingDetails.title)}</ResponsiveDialogTitle>
         </ResponsiveDialogHeader>
 
-        <div className="flex-1 overflow-y-auto">
-          <div className="rounded-lg border">
-            <TopicFollowingAccordion
-              followeesMap={followeesMap}
-              knownNeurons={knownNeurons}
-              mode="readonly"
-            />
-          </div>
+        <div className="flex-1 overflow-y-auto rounded-lg border">
+          <TopicFollowingAccordion
+            followeesMap={followeesMap}
+            knownNeurons={knownNeurons}
+            mode="readonly"
+          />
         </div>
 
         <div className="pt-3 pb-4 md:pb-0">
