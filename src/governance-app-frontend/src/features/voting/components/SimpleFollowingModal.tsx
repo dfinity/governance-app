@@ -279,7 +279,6 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
   );
 }
 
-
 function ConfirmFlow({
   state,
   onFollow,

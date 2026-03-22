@@ -68,7 +68,6 @@ type Props = {
   isOverride?: boolean;
 };
 
-
 export function FolloweePicker({
   open,
   onOpenChange,

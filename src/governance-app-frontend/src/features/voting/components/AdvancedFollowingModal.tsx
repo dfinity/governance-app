@@ -184,7 +184,6 @@ enum RemovePhase {
   Error = 'error',
 }
 
-
 function RemoveFolloweeDialog({
   open,
   onOpenChange,
@@ -355,7 +354,6 @@ function RemoveFolloweeDialog({
     </>
   );
 }
-
 
 function ClearAllFollowingDialog({
   open,

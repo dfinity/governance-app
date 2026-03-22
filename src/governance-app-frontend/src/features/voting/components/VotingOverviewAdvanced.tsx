@@ -153,4 +153,3 @@ function StatusHeader({ configuredCount }: { configuredCount: number }) {
     </div>
   );
 }
-
