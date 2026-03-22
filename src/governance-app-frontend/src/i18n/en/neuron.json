@@ -15,6 +15,13 @@
   "dissolved": "Dissolved",
   "hotkey": "Hotkey",
   "hotkeyTooltip": "This neuron is controlled by a different principal, but your account has been added as a hotkey. You can view the neuron and vote, but other operations are limited to the controller.",
+  "following": "Following",
+  "followingNotSet": "Set up following",
+  "followingViewDetails": "View details",
+  "followingDetails": {
+    "title": "Following details",
+    "editLink": "Edit following settings"
+  },
   "noFollowingWarning": "Not following anyone yet. Set up following in the voting page.",
   "disburseIcp": "Disburse ICPs",
   "disburseMaturity": "Disburse maturity",
@@ -30,6 +37,7 @@
     "automaticVoting": {
       "label": "Automatic voting",
       "knownNeuronSelected": "Enabled",
+      "partial": "Partial",
       "notSetUp": "Not set up",
       "setupVoting": "Select known neuron"
     }

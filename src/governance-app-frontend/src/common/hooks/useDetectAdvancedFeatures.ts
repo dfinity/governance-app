@@ -1,5 +1,8 @@
 import { isNullish } from '@dfinity/utils';
 
+import { hasComplexFollowing } from '@features/voting/utils/topicFollowing';
+
+import { useGovernanceNeurons } from '@hooks/governance';
 import { useNnsDappAccount } from '@hooks/nnsDapp/useNnsDappAccount';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { AdvancedFeature, type AdvancedFeaturesSettings } from '@typings/advancedFeatures';
@@ -21,24 +24,37 @@ export const useDetectAdvancedFeatures = (enabled = true): DetectionResult => {
 
   const hasFeaturesToCheck = enabled && missingFeatureKeys.length > 0;
   const shouldCheckSubaccounts = missingFeatureKeys.includes(AdvancedFeature.Subaccounts);
+  const shouldCheckAdvancedFollowing = missingFeatureKeys.includes(
+    AdvancedFeature.AdvancedFollowing,
+  );
 
-  const nnsDappAccount = useNnsDappAccount(enabled && shouldCheckSubaccounts);
+  const nnsDappAccount = useNnsDappAccount(hasFeaturesToCheck && shouldCheckSubaccounts);
+  const neuronsQuery = useGovernanceNeurons({
+    enabled: hasFeaturesToCheck && shouldCheckAdvancedFollowing,
+  });
 
-  const isPending = nnsDappAccount.isPending;
-  const accountData = nnsDappAccount.data?.response;
+  const isPending =
+    (shouldCheckSubaccounts && nnsDappAccount.isPending) ||
+    (shouldCheckAdvancedFollowing && neuronsQuery.isLoading);
 
   const detectedFeatures: Partial<AdvancedFeaturesSettings> = {};
   if (hasFeaturesToCheck && !isPending) {
     if (shouldCheckSubaccounts) {
+      const accountData = nnsDappAccount.data?.response;
       detectedFeatures[AdvancedFeature.Subaccounts] = isNullish(accountData)
         ? false
         : accountData?.sub_accounts.length > 0;
+    }
+
+    if (shouldCheckAdvancedFollowing) {
+      const neurons = neuronsQuery.data?.response ?? [];
+      detectedFeatures[AdvancedFeature.AdvancedFollowing] = hasComplexFollowing(neurons);
     }
   }
 
   return {
     isDetecting: hasFeaturesToCheck && isPending,
     detectedFeatures,
-    error: nnsDappAccount.error,
+    error: nnsDappAccount.error ?? neuronsQuery.error,
   };
 };

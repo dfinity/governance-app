@@ -28,16 +28,21 @@ export function WelcomeModal() {
   const { isDetecting, detectedFeatures, error } = useDetectAdvancedFeatures();
   const { setFeature } = useAdvancedFeatures();
 
-  const subaccountsDetected = detectedFeatures[AdvancedFeature.Subaccounts] === true;
   const hasError = nonNullish(error);
 
-  const enabledFeatures: Array<{ label: string }> = [];
-  if (subaccountsDetected) {
-    enabledFeatures.push({ label: t(($) => $.welcomeModal.subaccountsDetected) });
-  }
+  const featureLabels: Record<string, string> = {
+    [AdvancedFeature.Subaccounts]: t(($) => $.welcomeModal.subaccountsDetected),
+    [AdvancedFeature.AdvancedFollowing]: t(($) => $.welcomeModal.advancedFollowingDetected),
+  };
+
+  const enabledFeatures: Array<{ label: string }> = Object.entries(detectedFeatures)
+    .filter(([, detected]) => detected === true)
+    .map(([key]) => ({ label: featureLabels[key] ?? key }));
 
   const handleClose = () => {
-    setFeature(AdvancedFeature.Subaccounts, subaccountsDetected);
+    for (const [key, detected] of Object.entries(detectedFeatures)) {
+      setFeature(key as keyof typeof detectedFeatures, detected ?? false);
+    }
     setIsOpen(false);
     localStorage.setItem(WELCOME_MODAL_STORAGE_KEY, 'true');
     successNotification({
@@ -195,7 +200,7 @@ function DetectionResult({
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3, delay: 0.4 + detectedFeatures.length * 0.1 }}
           >
-            {t(($) => $.welcomeModal.subaccountsDetectedHint)}
+            {t(($) => $.welcomeModal.detectedHint)}
           </motion.p>
         </motion.div>
       )}

@@ -3,6 +3,7 @@ import { expect, type Page, test } from '@playwright/test';
 import { openApp } from './utils/app';
 import { getIcps } from './utils/getIcps';
 import { login } from './utils/login';
+import { navigateTo } from './utils/navigate';
 
 const TEST_ICP_ADDRESS = 'd4685b31b51450508aff0331584df7692a84467b680326f5c5f7d30ae711682f';
 const TEST_ICRC1_ADDRESS = 'h4a5i-5vcfo-5rusv-fmb6m-vrkia-mjnkc-jpoow-h5mam-nthnm-ldqlr-bqe';
@@ -38,7 +39,7 @@ test.describe('Address book', () => {
     await test.step('Open app and login.', async () => {
       await openApp({ page });
       await login({ page });
-      await page.getByRole('link', { name: 'Settings' }).click();
+      await navigateTo(page, 'settings');
     });
 
     await test.step('Open address book modal and verify empty state.', async () => {
@@ -196,7 +197,7 @@ test.describe('Address book', () => {
     });
 
     await test.step('Add 2 addresses to address book.', async () => {
-      await page.getByRole('link', { name: 'Settings' }).click();
+      await navigateTo(page, 'settings');
       await openAddressBookModal(page);
 
       await addAddress(page, 'Wallet A', TEST_ICP_ADDRESS);
@@ -215,7 +216,7 @@ test.describe('Address book', () => {
     });
 
     await test.step('Open send dialog - verify toggle is on and dropdown visible.', async () => {
-      await page.getByRole('link', { name: 'Dashboard', exact: true }).click();
+      await navigateTo(page, 'dashboard');
       await page.getByTestId('send-icp-btn').click();
       await expect(page.getByTestId('address-book-toggle')).toBeVisible();
       await expect(page.getByTestId('address-book-toggle')).toBeChecked();

@@ -3,6 +3,7 @@ import { Browser, expect, Page, test } from '@playwright/test';
 import { openApp } from './utils/app';
 import { getIcps } from './utils/getIcps';
 import { login } from './utils/login';
+import { navigateTo } from './utils/navigate';
 
 const openNeuronDetailModal = async (page: Page) => {
   await page.getByTestId('neuron-card').first().click();
@@ -25,7 +26,7 @@ test.describe.serial('Neuron Detail Modal', () => {
     await openApp({ page });
     await login({ page });
     await getIcps(page, '10');
-    await page.getByRole('link', { name: 'Voting neurons' }).click();
+    await navigateTo(page, 'neurons');
 
     await page.getByTestId('empty-neurons-state-open-staking-wizard-btn').click();
     await page.getByTestId('staking-wizard-amount-input').fill('5');

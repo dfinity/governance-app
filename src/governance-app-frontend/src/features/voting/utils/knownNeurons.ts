@@ -1,8 +1,15 @@
-import { FolloweesForTopic, KnownNeuron, NeuronId, Topic } from '@icp-sdk/canisters/nns';
+import {
+  type FolloweesForTopic,
+  type KnownNeuron,
+  type NeuronId,
+  Topic,
+} from '@icp-sdk/canisters/nns';
 
 import { DFINITY_NEURON_ID } from '@common/constants/neuron';
 
 import { KNOWN_NEURONS_SORTING_MAP } from '../data/knownNeuronsSorting';
+import { CATCH_ALL_TOPICS } from '../data/topics';
+import { buildAdvancedTopicFollowing } from './topicFollowing';
 
 // Neurons that have not participated yet and should be removed
 const PENALIZED_NEURON_IDS = [
@@ -20,27 +27,17 @@ const PENALIZED_NEURON_IDS = [
 
 export const isActiveKnownNeuron = (a: KnownNeuron) => !PENALIZED_NEURON_IDS.includes(a.id);
 
-const FOLLOWED_TOPICS = new Set([Topic.Unspecified, Topic.Governance, Topic.SnsAndCommunityFund]);
-
 /**
- * Builds the topic following configuration for a known neuron selection.
- * Sets the known neuron as followee for Unspecified (catch-all for all topics
- * besides Governance and SnsAndCommunityFund), Governance, and SnsAndCommunityFund,
- * clears followees for all other topics, and excludes NeuronManagement
- * (managed separately) and SnsDecentralizationSale (deprecated).
+ * Builds the topic following configuration for a known neuron selection (simple mode).
+ * Sets the known neuron as followee for all catch-all topics (Unspecified, Governance,
+ * SnsAndCommunityFund), clears followees for all other topics.
  */
 export const buildKnownNeuronTopicFollowing = (knownNeuronId: NeuronId): FolloweesForTopic[] => {
-  return Object.values(Topic)
-    .filter(
-      (v): v is Topic =>
-        typeof v === 'number' &&
-        v !== Topic.NeuronManagement &&
-        v !== Topic.SnsDecentralizationSale,
-    )
-    .map((topic) => {
-      const followees = FOLLOWED_TOPICS.has(topic) ? [knownNeuronId] : [];
-      return { topic, followees };
-    });
+  const topicFollowees = new Map<Topic, bigint[]>();
+  for (const { topic } of CATCH_ALL_TOPICS) {
+    topicFollowees.set(topic, [knownNeuronId]);
+  }
+  return buildAdvancedTopicFollowing(topicFollowees);
 };
 
 export const sortKnownNeurons = (a: KnownNeuron, b: KnownNeuron) => {

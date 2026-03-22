@@ -4,6 +4,7 @@ import { openApp } from './utils/app';
 import { getIcps } from './utils/getIcps';
 import { login } from './utils/login';
 import { mockGovernanceErrorAfter } from './utils/mock-canister';
+import { navigateTo } from './utils/navigate';
 
 const openStakingWizard = async (page: Page) => {
   await test.step('Open staking wizard.', async () => {
@@ -17,7 +18,7 @@ test.describe('Staking Wizard', () => {
     await openApp({ page });
     await login({ page });
     await getIcps(page, '10');
-    await page.getByRole('link', { name: 'Voting neurons' }).click();
+    await navigateTo(page, 'neurons');
     await openStakingWizard(page);
   });
 
