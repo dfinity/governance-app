@@ -90,7 +90,7 @@
       "overrideDescription": "Your neurons currently have different following configurations. This will replace all existing following with the new setup for every neuron."
     },
     "processing": "Updating following configuration...",
-    "success": "Following updated for {{count}} topics.",
+    "success": "Following updated successfully.",
     "error": "Failed to update following.",
     "retry": "Retry"
   },
