@@ -1,7 +1,7 @@
 import { nonNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { CircleUser, Copy, EllipsisVertical, LogOut } from 'lucide-react';
+import { Copy, EllipsisVertical, LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -31,7 +31,6 @@ export const UserMenu = () => {
 
   return (
     <div className="flex items-center gap-2 px-3 py-2.5">
-      <CircleUser className="size-5 shrink-0 text-muted-foreground" />
       <div className="min-w-0 flex-1">
         {nonNullish(principal) && (
           <p className="truncate text-sm font-medium">{truncatePrincipal(principal)}</p>
