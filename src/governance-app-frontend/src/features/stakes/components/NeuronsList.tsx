@@ -100,6 +100,31 @@ export const NeuronsList = ({
         isOpen={isStandaloneModalOpen && standaloneAction === NeuronStandaloneAction.StakeMaturity}
         onOpenChange={handleModalClose}
       />
+
+      {selectedNeuron && (
+        <>
+          <DisburseIcpModal
+            neuron={selectedNeuron}
+            isOpen={isStandaloneModalOpen && standaloneAction === NeuronStandaloneAction.DisburseIcp}
+            onOpenChange={handleModalClose}
+          />
+          <DisburseMaturityModal
+            neuron={selectedNeuron}
+            isOpen={
+              isStandaloneModalOpen &&
+              standaloneAction === NeuronStandaloneAction.DisburseMaturity
+            }
+            onOpenChange={handleModalClose}
+          />
+          <StakeMaturityModal
+            neuron={selectedNeuron}
+            isOpen={
+              isStandaloneModalOpen && standaloneAction === NeuronStandaloneAction.StakeMaturity
+            }
+            onOpenChange={handleModalClose}
+          />
+        </>
+      )}
     </div>
   );
 };
