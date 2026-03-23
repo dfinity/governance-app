@@ -27,6 +27,7 @@ import { MultipleSkeletons } from '@components/MultipleSkeletons';
 import { QueryStates } from '@components/QueryStates';
 import { Separator } from '@components/Separator';
 import { ToggleGroup, ToggleGroupItem } from '@components/ToggleGroup';
+import { DIALOG_RESET_DELAY_MS } from '@constants/extra';
 import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
@@ -112,7 +113,7 @@ function Voting() {
 
     const id = setTimeout(() => {
       proposalsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 300);
+    }, DIALOG_RESET_DELAY_MS);
     return () => clearTimeout(id);
   }, [showProposals, proposalFilter]);
 

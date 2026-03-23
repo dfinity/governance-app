@@ -139,7 +139,7 @@ export const TOTAL_TOPIC_COUNT =
 /**
  * Builds FolloweesForTopic[] for the setFollowing API.
  * Sends ALL topics explicitly (including empty arrays for unconfigured topics),
- * excluding NeuronManagement which is managed separately.
+ * excluding NeuronManagement (managed separately) and SnsDecentralizationSale (deprecated).
  */
 export const buildAdvancedTopicFollowing = (
   topicFollowees: Map<Topic, bigint[]>,

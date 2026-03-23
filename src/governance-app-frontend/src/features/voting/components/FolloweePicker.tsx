@@ -37,7 +37,7 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { Skeleton } from '@components/Skeleton';
-import { SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
+import { DIALOG_RESET_DELAY_MS, SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import { stringToBigInt } from '@utils/bigInt';
@@ -106,7 +106,7 @@ export function FolloweePicker({
         setCustomIdInput('');
         setCustomIdError(null);
         setAppliedTopicCount(0);
-      }, 300);
+      }, DIALOG_RESET_DELAY_MS);
       return () => clearTimeout(timer);
     }
   }, [open]);

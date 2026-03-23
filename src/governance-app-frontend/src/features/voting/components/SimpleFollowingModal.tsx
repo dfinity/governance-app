@@ -24,7 +24,7 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { Skeleton } from '@components/Skeleton';
-import { SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
+import { DIALOG_RESET_DELAY_MS, SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import { errorMessage } from '@utils/error';
@@ -55,6 +55,16 @@ type DialogState =
   | { phase: DialogPhase.Processing; neuron: KnownNeuron }
   | { phase: DialogPhase.Success; neuronName: string }
   | { phase: DialogPhase.Error; neuron: KnownNeuron };
+
+const hasNeuron = (
+  state: DialogState,
+): state is {
+  phase: DialogPhase.Confirm | DialogPhase.Processing | DialogPhase.Error;
+  neuron: KnownNeuron;
+} =>
+  state.phase === DialogPhase.Confirm ||
+  state.phase === DialogPhase.Processing ||
+  state.phase === DialogPhase.Error;
 
 type Props = {
   open: boolean;
@@ -171,7 +181,7 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
         setUserOverrideId(undefined);
         updateFollowingMutation.reset();
         // Timeout to ensure the dialog is fully closed before resetting the state
-      }, 300);
+      }, DIALOG_RESET_DELAY_MS);
       return () => clearTimeout(timer);
     }
   }, [open, updateFollowingMutation]);
@@ -186,7 +196,7 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
       <NavigationBlockerDialog
         isBlocked={isBlocking}
         description={t(($) => $.knownNeurons.api.processing, {
-          name: 'neuron' in dialogState ? dialogState.neuron.name : '',
+          name: hasNeuron(dialogState) ? dialogState.neuron.name : '',
         })}
       />
 
@@ -198,7 +208,7 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
           {isInConfirmFlow ? (
             <ConfirmFlow
               state={dialogState}
-              onFollow={() => 'neuron' in dialogState && handleFollow(dialogState.neuron)}
+              onFollow={() => hasNeuron(dialogState) && handleFollow(dialogState.neuron)}
               onClose={() => setDialogState({ phase: DialogPhase.Closed })}
               onDone={() => {
                 setDialogState({ phase: DialogPhase.Closed });

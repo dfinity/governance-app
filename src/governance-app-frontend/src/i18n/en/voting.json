@@ -21,7 +21,7 @@
   "warnings": {
     "stakeRequired": "You need at least one neuron to follow a known neuron. Please lock ICP first.",
     "followingMismatchTitle": "Voting setup",
-    "followingMismatch": "Your neurons follow different neurons across topics. Enable Advanced Following in Settings to manage per-topic configuration."
+    "followingMismatch": "Your neurons follow different neurons across topics. Enable advanced following in settings to manage per-topic configuration."
   },
   "errors": {
     "loadFollowing": "Unable to load following data. Please try refreshing the page."

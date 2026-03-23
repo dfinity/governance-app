@@ -34,7 +34,12 @@ import {
 } from '@components/ResponsiveDialog';
 import { Switch } from '@components/Switch';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { E8Sn, ICP_TRANSACTION_FEE, SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
+import {
+  DIALOG_RESET_DELAY_MS,
+  E8Sn,
+  ICP_TRANSACTION_FEE,
+  SUCCESS_AUTO_CLOSE_MS,
+} from '@constants/extra';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
 import { useTickerPrices } from '@hooks/tickers';
@@ -222,7 +227,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
         setSelectedAccount(undefined);
         createdAtRef.current = null;
         closingRef.current = false;
-      }, 300);
+      }, DIALOG_RESET_DELAY_MS);
     }
     setOpen(value);
   };
