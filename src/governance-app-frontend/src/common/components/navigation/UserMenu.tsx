@@ -1,16 +1,8 @@
 import { nonNullish } from '@dfinity/utils';
-import { Link } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { Copy, EllipsisVertical, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@components/DropdownMenu';
 import { useLogout } from '@hooks/useLogout';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
 
@@ -41,30 +33,15 @@ export const UserMenu = () => {
           </p>
         )}
       </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            className="flex size-7 items-center justify-center rounded-md transition-colors hover:bg-accent"
-            aria-label={t(($) => $.userAccount.aria.userMenu)}
-            data-testid="user-menu-trigger"
-          >
-            <EllipsisVertical className="size-4" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" side="top" className="w-48">
-          <DropdownMenuItem asChild>
-            <Link to="/settings">
-              <Copy />
-              My addresses
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive" onClick={logout} data-testid="user-menu-logout">
-            <LogOut />
-            {t(($) => $.common.logout)}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <button
+        onClick={logout}
+        className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        aria-label={t(($) => $.common.logout)}
+        title={t(($) => $.common.logout)}
+        data-testid="user-menu-logout"
+      >
+        <LogOut className="size-4" />
+      </button>
     </div>
   );
 };

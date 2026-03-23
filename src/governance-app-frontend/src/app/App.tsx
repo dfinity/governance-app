@@ -3,7 +3,7 @@ import '@/i18n/config';
 
 import { nonNullish } from '@dfinity/utils';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+// import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { RouterProvider } from '@tanstack/react-router';
 import { InternetIdentityProvider } from 'ic-use-internet-identity';
 import { StrictMode } from 'react';
@@ -15,7 +15,7 @@ import { AgentPoolProvider } from '@contexts/agentPoolProvider';
 import { StakingRewardsProvider } from '@contexts/stakingRewardsProvider';
 import { usePreventAttributeChange } from '@hooks/usePreventAttributeChange';
 import { useTheme } from '@hooks/useTheme';
-import { isE2E } from '@utils/e2e';
+// import { isE2E } from '@utils/e2e';
 import { queryClientConfig, routerConfig } from '@utils/initializer';
 
 export const App = () => {
@@ -36,7 +36,7 @@ export const App = () => {
           <AgentPoolProvider>
             <StakingRewardsProvider>
               <RouterProvider router={routerConfig} />
-              {!isE2E && <ReactQueryDevtools initialIsOpen={false} />}
+              {/* {!isE2E && <ReactQueryDevtools initialIsOpen={false} />} */}
               {notificationsContainer &&
                 createPortal(
                   <Sonner position="top-center" visibleToasts={9} />,
