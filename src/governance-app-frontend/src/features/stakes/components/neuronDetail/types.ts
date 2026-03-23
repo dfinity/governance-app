@@ -21,10 +21,11 @@ export enum NeuronStandaloneAction {
 export type NeuronAction = NeuronDetailView | NeuronStandaloneAction;
 
 const NEURON_DETAIL_VIEWS = Object.values(NeuronDetailView) as string[];
-const NEURON_ACTIONS = [...NEURON_DETAIL_VIEWS, ...Object.values(NeuronStandaloneAction)] as string[];
+const NEURON_STANDALONE_ACTIONS = Object.values(NeuronStandaloneAction) as string[];
+const NEURON_ACTIONS = [...NEURON_DETAIL_VIEWS, ...NEURON_STANDALONE_ACTIONS];
 
-export const isValidNeuronAction = (value: string | undefined): value is NeuronAction =>
-  nonNullish(value) && NEURON_ACTIONS.includes(value);
+export const isValidNeuronAction = (view: string | undefined): view is NeuronAction =>
+  nonNullish(view) && NEURON_ACTIONS.includes(view);
 
-export const isValidNeuronDetailView = (value: string | undefined): value is NeuronDetailView =>
-  nonNullish(value) && NEURON_DETAIL_VIEWS.includes(value);
+export const isValidNeuronDetailView = (view: string | undefined): view is NeuronDetailView =>
+  nonNullish(view) && NEURON_DETAIL_VIEWS.includes(view);
