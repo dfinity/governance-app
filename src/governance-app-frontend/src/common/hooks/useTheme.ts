@@ -1,12 +1,11 @@
 import { useEffect, useSyncExternalStore } from 'react';
 
+import { THEME_STORAGE_KEY } from '@constants/extra';
 import { Theme } from '@constants/theme';
-
-const STORAGE_KEY = 'vite-ui-theme';
 
 const getStoredTheme = (): Theme => {
   try {
-    const theme = localStorage.getItem(STORAGE_KEY);
+    const theme = localStorage.getItem(THEME_STORAGE_KEY);
     if (Object.values(Theme).includes(theme as Theme)) return theme as Theme;
   } catch {
     // ignore
@@ -21,12 +20,12 @@ function notifyListeners() {
 }
 
 const storeTheme = (theme: Theme): void => {
-  localStorage.setItem(STORAGE_KEY, theme);
+  localStorage.setItem(THEME_STORAGE_KEY, theme);
   notifyListeners();
 };
 
 const onStorage = (e: StorageEvent) => {
-  if (e.key === STORAGE_KEY) notifyListeners();
+  if (e.key === THEME_STORAGE_KEY) notifyListeners();
 };
 
 const subscribe = (listener: () => void) => {
