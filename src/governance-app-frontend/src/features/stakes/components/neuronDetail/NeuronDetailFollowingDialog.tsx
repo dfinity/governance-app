@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
 import { TopicFollowingAccordion } from '@features/voting/components/TopicFollowingAccordion';
-import { getNeuronTopicFolloweesMap } from '@features/voting/utils/topicFollowing';
+import { getFollowableTopicFolloweesMap } from '@features/voting/utils/topicFollowing';
 
 import { Button } from '@components/button';
 import {
@@ -22,7 +22,7 @@ type Props = {
 
 export function NeuronDetailFollowingDialog({ open, onOpenChange, neuron, knownNeurons }: Props) {
   const { t } = useTranslation();
-  const followeesMap = getNeuronTopicFolloweesMap(neuron);
+  const followeesMap = getFollowableTopicFolloweesMap(neuron);
 
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>

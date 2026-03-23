@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
-  getNeuronTopicFolloweesMap,
+  getFollowableTopicFolloweesMap,
   getSingleUniformFollowee,
   resolveFolloweeNames,
 } from '@features/voting/utils/topicFollowing';
@@ -84,7 +84,7 @@ export function NeuronDetailSummaryView({
   const knownNeuronsQuery = useGovernanceKnownNeurons();
   const knownNeurons = knownNeuronsQuery.data?.response ?? [];
 
-  const followeesMap = getNeuronTopicFolloweesMap(neuron);
+  const followeesMap = getFollowableTopicFolloweesMap(neuron);
   const hasFollowees = Array.from(followeesMap.values()).some((ids) => ids.length > 0);
 
   const uniformFollowee = getSingleUniformFollowee(followeesMap);

@@ -14,12 +14,16 @@ export type EffectiveFollowees = {
   inherited: boolean;
 };
 
+export const FOLLOWABLE_TOPIC_SET = new Set(ALL_FOLLOWABLE_TOPICS);
+
 /**
  * Extracts a per-topic followees map from a single neuron.
+ * Only includes followable topics (excludes NeuronManagement, SnsDecentralizationSale).
  */
-export const getNeuronTopicFolloweesMap = (neuron: NeuronInfo): Map<Topic, bigint[]> => {
+export const getFollowableTopicFolloweesMap = (neuron: NeuronInfo): Map<Topic, bigint[]> => {
   const map = new Map<Topic, bigint[]>();
   for (const entry of neuron.fullNeuron?.followees ?? []) {
+    if (!FOLLOWABLE_TOPIC_SET.has(entry.topic)) continue;
     map.set(entry.topic, entry.followees);
   }
   return map;
@@ -52,10 +56,10 @@ export const getEffectiveFollowees = (
 export const getConsistentTopicFollowees = (neurons: NeuronInfo[]): Map<Topic, bigint[]> | null => {
   if (neurons.length === 0) return new Map();
 
-  const firstMap = getNeuronTopicFolloweesMap(neurons[0]);
+  const firstMap = getFollowableTopicFolloweesMap(neurons[0]);
 
   for (let i = 1; i < neurons.length; i++) {
-    const otherMap = getNeuronTopicFolloweesMap(neurons[i]);
+    const otherMap = getFollowableTopicFolloweesMap(neurons[i]);
 
     for (const topic of ALL_FOLLOWABLE_TOPICS) {
       const firstFollowees = (firstMap.get(topic) ?? []).toSorted();

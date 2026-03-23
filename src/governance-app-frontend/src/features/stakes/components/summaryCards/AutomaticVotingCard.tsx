@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import {
   getConfiguredTopicCount,
-  getNeuronTopicFolloweesMap,
+  getFollowableTopicFolloweesMap,
   TOTAL_TOPIC_COUNT,
 } from '@features/voting/utils/topicFollowing';
 
@@ -26,7 +26,7 @@ const getCoverageState = (neurons: NeuronInfo[]): CoverageState => {
 
   let hasAny = false;
   for (const neuron of neurons) {
-    const map = getNeuronTopicFolloweesMap(neuron);
+    const map = getFollowableTopicFolloweesMap(neuron);
     const count = getConfiguredTopicCount(map);
     if (count < TOTAL_TOPIC_COUNT) {
       if (count > 0) return CoverageState.Partial;
