@@ -53,6 +53,7 @@ export const MANUAL_LOGOUT_KEY = 'nns-manual-logout';
 export const WELCOME_MODAL_STORAGE_KEY = 'nns-welcome-modal-seen';
 export const SHORTCUTS_SETTINGS_KEY = 'nns-shortcuts-settings';
 export const ADVANCED_FEATURES_STORAGE_KEY = 'nns-advanced-features';
+export const THEME_STORAGE_KEY = 'nns-theme';
 
 // External Links
 export const DASHBOARD_URL = `https://dashboard.internetcomputer.org/neuron`;
