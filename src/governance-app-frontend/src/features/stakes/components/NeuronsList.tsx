@@ -7,7 +7,6 @@ import { isStakingRewardDataReady } from '@utils/staking-rewards';
 import { DisburseIcpModal } from './DisburseIcpModal';
 import { DisburseMaturityModal } from './DisburseMaturityModal';
 import { NeuronCard } from './NeuronCard';
-import { StakeMaturityModal } from './StakeMaturityModal';
 import {
   isValidNeuronAction,
   isValidNeuronDetailView,
@@ -15,6 +14,7 @@ import {
   NeuronDetailView,
   NeuronStandaloneAction,
 } from './neuronDetail';
+import { StakeMaturityModal } from './StakeMaturityModal';
 
 type Props = {
   onSelectedNeuronChange: (neuronId: bigint | undefined, action?: string) => void;
@@ -86,14 +86,15 @@ export const NeuronsList = ({
         <>
           <DisburseIcpModal
             neuron={selectedNeuron}
-            isOpen={isStandaloneModalOpen && standaloneAction === NeuronStandaloneAction.DisburseIcp}
+            isOpen={
+              isStandaloneModalOpen && standaloneAction === NeuronStandaloneAction.DisburseIcp
+            }
             onOpenChange={handleModalClose}
           />
           <DisburseMaturityModal
             neuron={selectedNeuron}
             isOpen={
-              isStandaloneModalOpen &&
-              standaloneAction === NeuronStandaloneAction.DisburseMaturity
+              isStandaloneModalOpen && standaloneAction === NeuronStandaloneAction.DisburseMaturity
             }
             onOpenChange={handleModalClose}
           />
