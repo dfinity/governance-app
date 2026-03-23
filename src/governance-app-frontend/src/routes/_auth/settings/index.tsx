@@ -1,4 +1,4 @@
-import { isNullish } from '@dfinity/utils';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { LogOut } from 'lucide-react';
@@ -18,6 +18,8 @@ import { Button } from '@components/button';
 import { Card } from '@components/Card';
 import { PageHeader } from '@components/PageHeader';
 import { useLogout } from '@hooks/useLogout';
+import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
+import { getSessionTimeLeftForUi } from '@utils/date';
 
 import i18n from '@/i18n/config';
 
@@ -46,6 +48,7 @@ export const Route = createFileRoute('/_auth/settings/')({
 function Settings() {
   const { identity } = useInternetIdentity();
   const { t } = useTranslation();
+  const timeLeft = useSessionTimeLeft();
   const navigate = useNavigate({ from: Route.fullPath });
   const { openAddressBook } = Route.useSearch();
   const logout = useLogout();
@@ -65,7 +68,7 @@ function Settings() {
 
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
-          <h2 className="text-lg font-semibold">{t(($) => $.userAccount.identity)}</h2>
+          <h2 className="text-2xl font-semibold">{t(($) => $.userAccount.identity)}</h2>
           <p className="text-sm text-muted-foreground">
             {t(($) => $.userAccount.identityDescription)}
           </p>
@@ -87,7 +90,7 @@ function Settings() {
 
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
-          <h2 className="text-lg font-semibold">{t(($) => $.addressBook.title)}</h2>
+          <h2 className="text-2xl font-semibold">{t(($) => $.addressBook.title)}</h2>
         </div>
         <Card className="overflow-hidden p-0 shadow-sm">
           <div className="px-6 py-5">
@@ -101,7 +104,7 @@ function Settings() {
 
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
-          <h2 className="text-lg font-semibold">
+          <h2 className="text-2xl font-semibold">
             {t(($) => $.userAccount.advancedFeatures.title)}
           </h2>
         </div>
@@ -112,7 +115,7 @@ function Settings() {
 
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
-          <h2 className="text-lg font-semibold">{t(($) => $.userAccount.governance.title)}</h2>
+          <h2 className="text-2xl font-semibold">{t(($) => $.userAccount.governance.title)}</h2>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Card className="p-6 shadow-sm">
@@ -126,7 +129,7 @@ function Settings() {
 
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
-          <h2 className="text-lg font-semibold">{t(($) => $.userAccount.appearance)}</h2>
+          <h2 className="text-2xl font-semibold">{t(($) => $.userAccount.appearance)}</h2>
         </div>
         <Card className="overflow-hidden p-0 shadow-sm">
           <div className="flex flex-col divide-y">
@@ -141,6 +144,14 @@ function Settings() {
       </section>
 
       <section className="flex flex-col gap-4">
+        <div className="space-y-2">
+          <h2 className="text-2xl font-semibold">{t(($) => $.userAccount.session.title)}</h2>
+          {nonNullish(timeLeft) && (
+            <p className="text-sm text-muted-foreground">
+              {t(($) => $.userAccount.session.timeLeft, getSessionTimeLeftForUi(timeLeft))}
+            </p>
+          )}
+        </div>
         <Button
           variant="outline-destructive"
           size="lg"

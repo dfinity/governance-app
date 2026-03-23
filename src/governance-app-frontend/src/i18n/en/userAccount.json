@@ -14,8 +14,7 @@
     "toggleLight": "Toggle light",
     "toggleDark": "Toggle dark",
     "toggleSystem": "Toggle system",
-    "iiLink": "Manage your Internet Identity (opens in new tab)",
-    "userMenu": "User menu"
+    "iiLink": "Manage your Internet Identity (opens in new tab)"
   },
   "appearance": "Appearance",
   "theme": "Theme",
@@ -76,6 +75,7 @@
     }
   },
   "session": {
+    "title": "Session",
     "timeLeft": "Session expires in {{minutes}}m {{seconds}}s",
     "timeLeftShort": "Session expires in {{minutes}}m"
   }

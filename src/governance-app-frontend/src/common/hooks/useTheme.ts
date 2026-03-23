@@ -62,5 +62,5 @@ export const useTheme = () => {
     root.classList.add(resolvedTheme);
   }, [resolvedTheme]);
 
-  return { theme, resolvedTheme, setTheme: storeTheme };
+  return { theme, setTheme: storeTheme };
 };

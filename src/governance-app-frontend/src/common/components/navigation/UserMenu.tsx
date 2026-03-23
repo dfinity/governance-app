@@ -5,13 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useLogout } from '@hooks/useLogout';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
-
-const PRINCIPAL_TRUNCATE_LENGTH = 5;
-
-const truncatePrincipal = (principal: string) => {
-  if (principal.length <= PRINCIPAL_TRUNCATE_LENGTH * 2 + 3) return principal;
-  return `${principal.slice(0, PRINCIPAL_TRUNCATE_LENGTH)}...${principal.slice(-PRINCIPAL_TRUNCATE_LENGTH)}`;
-};
+import { truncatePrincipal } from '@utils/principal';
 
 export const UserMenu = () => {
   const { identity } = useInternetIdentity();
@@ -35,7 +29,7 @@ export const UserMenu = () => {
       </div>
       <button
         onClick={logout}
-        className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-red-500"
+        className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors outline-none hover:bg-destructive/15 hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring"
         aria-label={t(($) => $.common.logout)}
         title={t(($) => $.common.logout)}
         data-testid="user-menu-logout"

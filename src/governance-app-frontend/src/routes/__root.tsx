@@ -8,7 +8,7 @@ import {
   Scripts,
   useRouter,
 } from '@tanstack/react-router';
-// import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
+import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ArrowLeft, LogIn } from 'lucide-react';
 import { useEffect, useRef } from 'react';
@@ -19,7 +19,7 @@ import { MainLayout } from '@components/MainLayout';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { useSessionCountdownToast } from '@hooks/useSessionCountdownToast';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
-// import { isE2E } from '@utils/e2e';
+import { isE2E } from '@utils/e2e';
 import { infoNotification } from '@utils/notification';
 
 import i18n from '@/i18n/config';
@@ -168,7 +168,7 @@ function RootComponent() {
       <HeadContent />
       <Outlet />
       <Scripts />
-      {/* {!isE2E && <TanStackRouterDevtools />} */}
+      {!isE2E && <TanStackRouterDevtools />}
     </>
   );
 }
