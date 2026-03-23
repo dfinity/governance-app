@@ -1,4 +1,5 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
+import { useEffect, useRef } from 'react';
 
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { getNeuronId } from '@utils/neuron';
@@ -32,6 +33,14 @@ export const NeuronsList = ({
   const apyData = useStakingRewards();
 
   const selectedNeuron = neurons.find((n) => n.neuronId === selectedNeuronId) ?? null;
+
+  // Keep last neuron in a ref so standalone modals stay mounted during close animation
+  const lastNeuronRef = useRef<NeuronInfo | null>(null);
+  useEffect(() => {
+    if (selectedNeuron) lastNeuronRef.current = selectedNeuron;
+  }, [selectedNeuron]);
+  const displayNeuron = selectedNeuron ?? lastNeuronRef.current;
+
   const validAction = isValidNeuronAction(selectedAction) ? selectedAction : undefined;
   const standaloneAction = isValidNeuronDetailView(validAction) ? undefined : validAction;
   const detailView = isValidNeuronDetailView(validAction) ? validAction : undefined;
@@ -82,24 +91,24 @@ export const NeuronsList = ({
         isOpen={isDetailModalOpen}
       />
 
-      {selectedNeuron && (
+      {displayNeuron && (
         <>
           <DisburseIcpModal
-            neuron={selectedNeuron}
+            neuron={displayNeuron}
             isOpen={
               isStandaloneModalOpen && standaloneAction === NeuronStandaloneAction.DisburseIcp
             }
             onOpenChange={handleModalClose}
           />
           <DisburseMaturityModal
-            neuron={selectedNeuron}
+            neuron={displayNeuron}
             isOpen={
               isStandaloneModalOpen && standaloneAction === NeuronStandaloneAction.DisburseMaturity
             }
             onOpenChange={handleModalClose}
           />
           <StakeMaturityModal
-            neuron={selectedNeuron}
+            neuron={displayNeuron}
             isOpen={
               isStandaloneModalOpen && standaloneAction === NeuronStandaloneAction.StakeMaturity
             }
