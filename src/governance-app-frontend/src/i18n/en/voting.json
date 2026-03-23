@@ -96,7 +96,7 @@
   },
   "topics": {
     "governance": "Governance",
-    "governanceDesc": "All proposals that administer governance, for example to freeze malicious canisters that are harming the network.",
+    "governanceDesc": "Proposals that represent community polls or other forms of community opinion but don't have any immediate effect in terms of code changes.",
     "snsNeuronsFund": "SNS & Neurons' Fund",
     "snsNeuronsFundDesc": "Proposals related to SNS and Neurons' Fund.",
     "allExcept": "All Other Topics",
