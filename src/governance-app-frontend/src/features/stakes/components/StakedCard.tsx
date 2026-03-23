@@ -1,9 +1,11 @@
 import { Link } from '@tanstack/react-router';
 import { Coins, TrendingUp } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ApyOptimizationModal } from '@features/stakes/components/ApyOptimizationModal';
 import { NeuronStandaloneAction } from '@features/stakes/components/neuronDetail';
+import { DisburseModal } from '@features/stakes/components/DisburseModal';
 
 import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Badge } from '@components/badge';
@@ -59,6 +61,27 @@ export function StakedCard() {
     (n) => getNeuronIsDissolved(n) || getNeuronFreeMaturityE8s(n) > 0n,
   );
   const canWithdraw = withdrawableNeurons.length > 0;
+
+  const [withdrawModalOpen, setDisburseModalOpen] = useState(false);
+
+  // For a single withdrawable neuron, determine which actions are available
+  const singleNeuron = withdrawableNeurons.length === 1 ? withdrawableNeurons[0] : undefined;
+  const singleNeuronIsDissolved = singleNeuron ? getNeuronIsDissolved(singleNeuron) : false;
+  const singleNeuronHasMaturity = singleNeuron
+    ? getNeuronFreeMaturityE8s(singleNeuron) > 0n
+    : false;
+  const singleNeuronNeedsChoice = singleNeuronIsDissolved && singleNeuronHasMaturity;
+
+  // Direct navigation search params for single neuron with only one option
+  const singleNeuronDirectSearch =
+    singleNeuron && !singleNeuronNeedsChoice
+      ? {
+          neuronId: singleNeuron.neuronId.toString(),
+          action: singleNeuronIsDissolved
+            ? NeuronStandaloneAction.DisburseIcp
+            : NeuronStandaloneAction.DisburseMaturity,
+        }
+      : undefined;
 
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const usdValue = icpPrice ? formatNumber(totalStaked * icpPrice.usd) : '-';
@@ -168,39 +191,53 @@ export function StakedCard() {
             </Link>
           </Button>
 
-          <Button
-            size="xl"
-            variant="outline"
-            className="flex-1"
-            asChild={canWithdraw}
-            disabled={neuronsQuery.isLoading || !canWithdraw}
-          >
-            {canWithdraw ? (
-              <Link
-                to="/neurons"
-                search={
-                  withdrawableNeurons.length === 1
-                    ? {
-                        neuronId: withdrawableNeurons[0].neuronId.toString(),
-                        action: getNeuronIsDissolved(withdrawableNeurons[0])
-                          ? NeuronStandaloneAction.DisburseIcp
-                          : NeuronStandaloneAction.DisburseMaturity,
-                      }
-                    : {}
-                }
-              >
-                <Coins aria-hidden="true" />
-                {t(($) => $.common.withdraw)}
-              </Link>
-            ) : (
-              <>
-                <Coins aria-hidden="true" />
-                {t(($) => $.common.withdraw)}
-              </>
-            )}
-          </Button>
+          {singleNeuronNeedsChoice ? (
+            <Button
+              size="xl"
+              variant="outline"
+              className="flex-1"
+              disabled={neuronsQuery.isLoading || !canWithdraw}
+              onClick={() => setDisburseModalOpen(true)}
+            >
+              <Coins aria-hidden="true" />
+              {t(($) => $.common.disburse)}
+            </Button>
+          ) : (
+            <Button
+              size="xl"
+              variant="outline"
+              className="flex-1"
+              asChild={canWithdraw}
+              disabled={neuronsQuery.isLoading || !canWithdraw}
+            >
+              {canWithdraw ? (
+                <Link
+                  to="/neurons"
+                  search={singleNeuronDirectSearch ?? {}}
+                >
+                  <Coins aria-hidden="true" />
+                  {t(($) => $.common.disburse)}
+                </Link>
+              ) : (
+                <>
+                  <Coins aria-hidden="true" />
+                  {t(($) => $.common.disburse)}
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </CardContent>
+
+      {singleNeuron && singleNeuronNeedsChoice && (
+        <DisburseModal
+          neuron={singleNeuron}
+          showDisburseIcp={singleNeuronIsDissolved}
+          showDisburseMaturity={singleNeuronHasMaturity}
+          isOpen={withdrawModalOpen}
+          onOpenChange={setDisburseModalOpen}
+        />
+      )}
     </Card>
   );
 }

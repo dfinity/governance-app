@@ -1,0 +1,12 @@
+{
+  "title": "Disburse",
+  "description": "What would you like to disburse?",
+  "disburseIcp": {
+    "title": "Disburse ICP",
+    "description": "Disburse your staked ICP from a dissolved neuron."
+  },
+  "disburseMaturity": {
+    "title": "Disburse maturity",
+    "description": "Convert your available maturity to ICP."
+  }
+}

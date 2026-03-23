@@ -17,6 +17,7 @@ import neuronDetailModal from './en/modals/neuronDetail.json';
 import stakeWizardModal from './en/modals/stakeWizard.json';
 import stakingRatioModal from './en/modals/stakingRatio.json';
 import welcomeModal from './en/modals/welcome.json';
+import disburseModal from './en/modals/disburse.json';
 import neuron from './en/neuron.json';
 import proposal from './en/proposal.json';
 import userAccount from './en/userAccount.json';
@@ -46,6 +47,7 @@ export const resources = {
       welcomeModal,
       knownNeurons,
       depositModal,
+      disburseModal,
       login,
     },
   },
