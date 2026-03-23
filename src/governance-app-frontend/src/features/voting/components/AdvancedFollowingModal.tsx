@@ -41,6 +41,15 @@ type Props = {
 export function AdvancedFollowingModal({ open, onOpenChange }: Props) {
   const { t } = useTranslation();
 
+  const [clearAllDialogOpen, setClearAllDialogOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
+  const [removeTarget, setRemoveTarget] = useState<{
+    topic: Topic;
+    followeeId: bigint;
+    name: string;
+  } | null>(null);
+
   const neuronsQuery = useGovernanceNeurons();
   const userNeurons = neuronsQuery.data?.response ?? [];
   const knownNeuronsQuery = useGovernanceKnownNeurons();
@@ -51,19 +60,8 @@ export function AdvancedFollowingModal({ open, onOpenChange }: Props) {
 
   const consistentFollowees = getConsistentTopicFollowees(userNeurons);
   const isInconsistent = consistentFollowees === null;
-  const followeesMap = consistentFollowees ?? new Map<Topic, bigint[]>();
-
+  const followeesMap = isInconsistent ? new Map<Topic, bigint[]>() : consistentFollowees;
   const hasAnyFollowees = Array.from(followeesMap.values()).some((ids) => ids.length > 0);
-
-  const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
-  const [removeTarget, setRemoveTarget] = useState<{
-    topic: Topic;
-    followeeId: bigint;
-    name: string;
-  } | null>(null);
-
-  const [clearAllDialogOpen, setClearAllDialogOpen] = useState(false);
-  const [pickerOpen, setPickerOpen] = useState(false);
 
   const handleRemove = (topic: Topic, followeeId: bigint) => {
     const known = knownNeurons.find((kn) => kn.id === followeeId);
@@ -201,13 +199,11 @@ function RemoveFolloweeDialog({
   const queryClient = useQueryClient();
   const { canister } = useNnsGovernance();
   const [phase, setPhase] = useState<RemovePhase>(RemovePhase.Confirm);
-
-  useEffect(() => {
-    if (open) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setPhase(RemovePhase.Confirm);
-    }
-  }, [open]);
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) setPhase(RemovePhase.Confirm);
+  }
 
   const mutation = useMutation<void[], Error>({
     mutationFn: () => {
@@ -368,13 +364,11 @@ function ClearAllFollowingDialog({
   const queryClient = useQueryClient();
   const { canister } = useNnsGovernance();
   const [phase, setPhase] = useState<RemovePhase>(RemovePhase.Confirm);
-
-  useEffect(() => {
-    if (open) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setPhase(RemovePhase.Confirm);
-    }
-  }, [open]);
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) setPhase(RemovePhase.Confirm);
+  }
 
   const mutation = useMutation<void[], Error>({
     mutationFn: () => {
