@@ -45,7 +45,6 @@
     "toggleLabel": "Use address book",
     "tooltipLoading": "Loading address book...",
     "tooltipEmpty": "The address book is empty",
-    "manualWarning": "Be careful when entering an address manually, similar addresses may be confused. Consider using the address book instead.",
     "selectPlaceholder": "Select an address"
   }
 }

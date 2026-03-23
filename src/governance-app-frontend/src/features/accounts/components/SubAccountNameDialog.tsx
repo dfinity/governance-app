@@ -15,6 +15,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
+import { SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
 
 import { SubAccountDialogMode } from '../types';
 
@@ -24,8 +25,6 @@ enum Phase {
   Success = 'success',
   Error = 'error',
 }
-
-const SUCCESS_AUTO_CLOSE_MS = 1500;
 const MIN_NAME_LENGTH = 3;
 const MAX_NAME_LENGTH = 24;
 

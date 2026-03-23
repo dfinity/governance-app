@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { AccountSelect } from '@features/accounts/components/AccountSelect';
-import { useAccountDestination } from '@features/accounts/hooks/useAccountDestination';
+import { useAccountSelection } from '@features/accounts/hooks/useAccountSelection';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
@@ -34,7 +34,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation();
   const { mutateAsync, isPending } = useDisburseMaturity();
   const { selectedAccountId, setSelectedAccountId, resolvedAccountId, subaccountsEnabled } =
-    useAccountDestination();
+    useAccountSelection();
   const [error, setError] = useState<string | null>(null);
 
   const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);

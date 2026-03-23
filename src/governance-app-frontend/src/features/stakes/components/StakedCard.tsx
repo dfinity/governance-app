@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { ApyOptimizationModal } from '@features/stakes/components/ApyOptimizationModal';
 
+import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
@@ -71,7 +72,7 @@ export function StakedCard() {
           </div>
 
           <div className="flex items-center gap-1">
-            <span className="sr-only sm:not-sr-only sm:text-xs sm:font-medium sm:tracking-wide sm:text-muted-foreground sm:uppercase">
+            <span className="sr-only sm:not-sr-only sm:text-xs sm:font-medium sm:tracking-wide sm:text-muted-foreground">
               {t(($) => $.home.yourApy)}
             </span>
 
@@ -129,13 +130,12 @@ export function StakedCard() {
             </p>
             <div className="flex items-center justify-end gap-1.5">
               {stakingRewardsReady ? (
-                <span className="text-xl font-bold">
-                  {t(($) => $.common.positiveNumber, {
-                    value: formatNumber(
-                      stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) || 0,
-                    ),
-                  })}
-                </span>
+                <AnimatedNumber
+                  value={stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) || 0}
+                  prefix="+"
+                  formatOptions={{ minFraction: 2, maxFraction: 2 }}
+                  className="text-xl font-bold"
+                />
               ) : (
                 <Skeleton className="h-7 w-13" />
               )}

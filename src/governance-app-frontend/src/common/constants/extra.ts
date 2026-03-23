@@ -23,6 +23,7 @@ export const ICP_TRANSACTION_FEE = 0.0001;
 export const ICP_TRANSACTION_FEE_E8S = ICP_TRANSACTION_FEE * E8S;
 export const ICP_TRANSACTION_FEE_E8Sn = BigInt(ICP_TRANSACTION_FEE_E8S);
 export const ICP_TRANSACTION_PROPAGATION_DELAY_MS = 2_000;
+export const SUCCESS_AUTO_CLOSE_MS = 2_400;
 
 export const VOTING_RESULTS_PRECISION = 6; // Number of digits after the decimal point.
 

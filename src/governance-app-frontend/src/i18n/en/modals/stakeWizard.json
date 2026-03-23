@@ -1,15 +1,15 @@
 {
-  "title": "Stake ICP",
+  "title": "Create neuron",
   "steps": {
     "amount": {
-      "title": "Stake ICP",
-      "label": "Amount to stake",
+      "title": "Create neuron",
+      "label": "Amount to lock",
       "fromAccount": "From account",
       "available": "Available: {{amount}} ICP"
     },
     "dissolveDelay": {
       "title": "Set dissolve delay",
-      "description": "Longer dissolve delays earn higher rewards.",
+      "description": "Longer dissolve delays mint higher rewards.",
       "presets": {
         "6months": "6 months",
         "1year": "1 year",
@@ -19,16 +19,16 @@
       }
     },
     "configuration": {
-      "title": "Configure stake",
+      "title": "Configure neuron",
       "maturity": {
         "label": "Manage rewards",
-        "description": "Choose how to handle your staking rewards.",
-        "autoStake": "Auto-stake",
-        "keepLiquid": "Keep available"
+        "description": "Choose how to handle your minting rewards.",
+        "autoStake": "Auto-lock",
+        "keepLiquid": "Unlocked"
       },
       "state": {
         "label": "Initial state",
-        "description": "Choose the starting state for your Neuron.",
+        "description": "Choose the starting state for your neuron.",
         "locked": "Locked",
         "unlocking": "Unlocking"
       },
@@ -38,7 +38,7 @@
       "title": "Finalizing",
       "successTitle": "Success",
       "processing": {
-        "title": "Creating your Neuron.",
+        "title": "Creating your neuron.",
         "warning": "Please don't close this page. This process may take a few seconds.",
         "steps": {
           "createNeuron": "Reserving amount...",
@@ -50,10 +50,10 @@
         }
       },
       "success": {
-        "title": "You're now earning rewards!",
-        "amountStaked": "Amount staked",
+        "title": "You're now minting rewards!",
+        "amountStaked": "Amount locked",
         "dissolveDelay": "Lock period",
-        "expectedApy": "Expected APY",
+        "expectedApy": "Expected maturity",
         "done": "Done"
       },
       "error": {
@@ -64,20 +64,20 @@
     }
   },
   "infoBoxes": {
-    "whatIsStaking": "Staking your ICP creates a Neuron that earns voting rewards. You can earn up to ~{{maxApy}} APY depending on your lock period and participation.",
+    "whatIsStaking": "Locking your ICP creates a neuron that mints voting rewards. You can mint up to ~{{maxApy}} maturity depending on your lock period and participation.",
     "dissolveDelayWarning": "The lock period can only be increased, never decreased. The countdown only begins when you start unlocking.",
-    "lockedDescription": "<strong>Locked:</strong> Neuron stays locked, earning maximum rewards. Start unlocking later when you want to withdraw.",
+    "lockedDescription": "<strong>Locked:</strong> neuron stays locked, minting maximum rewards. Start unlocking later when you want to withdraw.",
     "unlockingDescription": "<strong>Unlocking:</strong> countdown begins immediately. After the lock period, you can withdraw your ICP."
   },
   "apyPreview": {
-    "label": "Expected APY"
+    "label": "Expected maturity"
   },
   "errors": {
     "insufficientBalance": "Insufficient balance",
-    "amountTooLow": "Minimum stake is {{min}} ICP",
-    "stakeFailed": "Failed to create Neuron",
-    "cannotStake": "You need ICP to stake. Please buy or deposit ICP first."
+    "amountTooLow": "Minimum amount is {{min}} ICP",
+    "stakeFailed": "Failed to create neuron",
+    "cannotStake": "You need ICP to lock. Please buy or deposit ICP first."
   },
-  "confirmNavigation": "Your Neuron is being created, leaving this page may cause unexpected results. Are you sure you want to leave?",
+  "confirmNavigation": "Your neuron is being created, leaving this page may cause unexpected results. Are you sure you want to leave?",
   "confirmNavigationUnsaved": "Your progress will not be saved. Are you sure you want to leave?"
 }

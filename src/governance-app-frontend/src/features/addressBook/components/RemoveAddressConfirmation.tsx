@@ -14,7 +14,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
-import { ADDRESS_BOOK_SUCCESS_AUTO_CLOSE_MS } from '@constants/addressBook';
+import { SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
 import { useSaveAddressBook } from '@hooks/addressBook/useSaveAddressBook';
 import { errorNotification } from '@utils/notification';
 
@@ -52,7 +52,7 @@ export const RemoveAddressConfirmation: React.FC<Props> = ({
 
   useEffect(() => {
     if (phase !== Phase.Success) return;
-    const timer = setTimeout(onClose, ADDRESS_BOOK_SUCCESS_AUTO_CLOSE_MS);
+    const timer = setTimeout(onClose, SUCCESS_AUTO_CLOSE_MS);
     return () => clearTimeout(timer);
   }, [phase, onClose]);
 
@@ -98,9 +98,10 @@ export const RemoveAddressConfirmation: React.FC<Props> = ({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
+                className="min-w-0"
               >
-                <ResponsiveDialogHeader className="max-w-full overflow-hidden">
-                  <ResponsiveDialogTitle className="max-w-full overflow-hidden text-nowrap text-ellipsis">
+                <ResponsiveDialogHeader className="min-w-0 overflow-hidden">
+                  <ResponsiveDialogTitle className="truncate">
                     {t(($) => $.addressBook.removeTitle, { label: namedAddress?.name ?? '' })}
                   </ResponsiveDialogTitle>
                   <ResponsiveDialogDescription>

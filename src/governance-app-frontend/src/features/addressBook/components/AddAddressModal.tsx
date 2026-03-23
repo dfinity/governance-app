@@ -21,14 +21,12 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
-import {
-  ADDRESS_BOOK_MAX_NAME_LENGTH,
-  ADDRESS_BOOK_MIN_NAME_LENGTH,
-  ADDRESS_BOOK_SUCCESS_AUTO_CLOSE_MS,
-} from '@constants/addressBook';
+import { ADDRESS_BOOK_MAX_NAME_LENGTH, ADDRESS_BOOK_MIN_NAME_LENGTH } from '@constants/addressBook';
+import { SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
 import { useSaveAddressBook } from '@hooks/addressBook/useSaveAddressBook';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
 import { addressBookGetAddressString } from '@utils/addressBook';
+import { cn } from '@utils/shadcn';
 
 import { AddressBookSuccess, AddressBookUpdating } from './AddressBookSaving';
 
@@ -82,12 +80,13 @@ const FormPhase: React.FC<FormPhaseProps> = ({
       key="form"
       onSubmit={onSubmit}
       autoComplete="off"
+      className="flex min-h-0 flex-1 flex-col"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.15 }}
     >
-      <ResponsiveDialogHeader>
+      <ResponsiveDialogHeader className="shrink-0">
         <ResponsiveDialogTitle>
           {t(($) => (isEditMode ? $.addressBook.editAddress : $.addressBook.addAddress))}
         </ResponsiveDialogTitle>
@@ -96,58 +95,63 @@ const FormPhase: React.FC<FormPhaseProps> = ({
         </ResponsiveDialogDescription>
       </ResponsiveDialogHeader>
 
-      <div className="grid gap-4 pt-4 pb-12">
-        <div className="grid gap-2">
-          <Label htmlFor="nickname">{t(($) => $.addressBook.nickname)}</Label>
-          <Input
-            id="nickname"
-            value={nickname}
-            onChange={(e) => {
-              setNickname(e.target.value);
-              setNicknameError('');
-            }}
-            onBlur={() => setNickname(normalizeNickname(nickname))}
-            placeholder={t(($) => $.addressBook.nicknamePlaceholder)}
-            className={nicknameError ? 'border-destructive' : ''}
-            aria-invalid={!!nicknameError}
-            autoComplete="off"
-            data-testid="add-address-nickname-input"
-          />
-          {nicknameError && (
-            <Alert variant="warning">
-              <AlertTriangle className="size-4 text-destructive" />
-              <AlertDescription>{nicknameError}</AlertDescription>
-            </Alert>
-          )}
-        </div>
+      <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4 md:px-0">
+        <div className="grid gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="nickname">{t(($) => $.addressBook.nickname)}</Label>
+            <Input
+              id="nickname"
+              value={nickname}
+              onChange={(e) => {
+                setNickname(e.target.value);
+                setNicknameError('');
+              }}
+              onBlur={() => setNickname(normalizeNickname(nickname))}
+              placeholder={t(($) => $.addressBook.nicknamePlaceholder)}
+              className={cn('border-2 focus-visible:ring-0', nicknameError && 'border-destructive')}
+              aria-invalid={!!nicknameError}
+              autoComplete="off"
+              data-testid="add-address-nickname-input"
+            />
+            {nicknameError && (
+              <Alert variant="warning">
+                <AlertTriangle className="size-4 text-destructive" />
+                <AlertDescription>{nicknameError}</AlertDescription>
+              </Alert>
+            )}
+          </div>
 
-        <div className="grid gap-2">
-          <Label htmlFor="address">{t(($) => $.addressBook.address)}</Label>
-          <Input
-            id="address"
-            value={address}
-            onChange={(e) => {
-              setAddress(e.target.value);
-              setAddressError('');
-            }}
-            placeholder={t(($) => $.addressBook.addressPlaceholder)}
-            className={`font-mono ${addressError ? 'border-destructive' : ''}`}
-            aria-invalid={!!addressError}
-            autoComplete="off"
-            data-1p-ignore
-            data-lpignore="true"
-            data-testid="add-address-address-input"
-          />
-          {addressError && (
-            <Alert variant="warning">
-              <AlertTriangle className="size-4 text-destructive" />
-              <AlertDescription>{addressError}</AlertDescription>
-            </Alert>
-          )}
+          <div className="grid gap-2">
+            <Label htmlFor="address">{t(($) => $.addressBook.address)}</Label>
+            <Input
+              id="address"
+              value={address}
+              onChange={(e) => {
+                setAddress(e.target.value);
+                setAddressError('');
+              }}
+              placeholder={t(($) => $.addressBook.addressPlaceholder)}
+              className={cn(
+                'border-2 font-mono focus-visible:ring-0',
+                addressError && 'border-destructive',
+              )}
+              aria-invalid={!!addressError}
+              autoComplete="off"
+              data-1p-ignore
+              data-lpignore="true"
+              data-testid="add-address-address-input"
+            />
+            {addressError && (
+              <Alert variant="warning">
+                <AlertTriangle className="size-4 text-destructive" />
+                <AlertDescription>{addressError}</AlertDescription>
+              </Alert>
+            )}
+          </div>
         </div>
       </div>
 
-      <ResponsiveDialogFooter className="flex justify-end gap-2">
+      <ResponsiveDialogFooter className="flex shrink-0 justify-end gap-2">
         <Button type="button" variant="ghost" onClick={onClose}>
           {t(($) => $.common.close)}
         </Button>
@@ -156,39 +160,6 @@ const FormPhase: React.FC<FormPhaseProps> = ({
         </Button>
       </ResponsiveDialogFooter>
     </motion.form>
-  );
-};
-
-const ProcessingPhase: React.FC = () => {
-  const { t } = useTranslation();
-
-  return (
-    <motion.div
-      key="processing"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.15 }}
-    >
-      <ResponsiveDialogTitle className="sr-only">
-        {t(($) => $.addressBook.updatingAddressBook)}
-      </ResponsiveDialogTitle>
-      <AddressBookUpdating />
-    </motion.div>
-  );
-};
-
-type SuccessPhaseProps = {
-  isEditMode: boolean;
-};
-
-const SuccessPhase: React.FC<SuccessPhaseProps> = ({ isEditMode }) => {
-  const { t } = useTranslation();
-
-  return (
-    <AddressBookSuccess
-      message={t(($) => (isEditMode ? $.addressBook.editSuccess : $.addressBook.addSuccess))}
-    />
   );
 };
 
@@ -255,11 +226,12 @@ export const AddAddressModal: React.FC<Props> = ({
   const [addressError, setAddressError] = useState('');
   const [phase, setPhase] = useState(Phase.Form);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
-  const isEditMode = namedAddress !== undefined;
+  const [isEditMode, setIsEditMode] = useState(namedAddress !== undefined);
 
   useEffect(() => {
     if (isOpen) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsEditMode(namedAddress !== undefined);
       setNickname(namedAddress?.name ?? '');
       setAddress(addressBookGetAddressString(namedAddress?.address));
       setNicknameError('');
@@ -271,7 +243,7 @@ export const AddAddressModal: React.FC<Props> = ({
 
   useEffect(() => {
     if (phase !== Phase.Success) return;
-    const timer = setTimeout(onClose, ADDRESS_BOOK_SUCCESS_AUTO_CLOSE_MS);
+    const timer = setTimeout(onClose, SUCCESS_AUTO_CLOSE_MS);
     return () => clearTimeout(timer);
   }, [phase, onClose]);
 
@@ -291,7 +263,7 @@ export const AddAddressModal: React.FC<Props> = ({
     }
 
     const isDuplicate = existingAddresses.some((entry) => {
-      if (isEditMode && entry.name === namedAddress.name) {
+      if (isEditMode && entry.name === namedAddress?.name) {
         return false;
       }
       return entry.name.trim().toLowerCase() === normalized.toLowerCase();
@@ -358,7 +330,7 @@ export const AddAddressModal: React.FC<Props> = ({
     let updatedAddresses: NamedAddress[];
     if (isEditMode) {
       updatedAddresses = existingAddresses.map((entry) =>
-        entry.name.trim().toLowerCase() === namedAddress.name.trim().toLowerCase()
+        entry.name.trim().toLowerCase() === namedAddress?.name.trim().toLowerCase()
           ? updatedEntry
           : entry,
       );
@@ -383,7 +355,7 @@ export const AddAddressModal: React.FC<Props> = ({
         <ResponsiveDialogContent
           showCloseButton={!isBlocking && phase !== Phase.Success}
           data-testid="add-address-modal"
-          className="md:min-h-[200px] md:max-w-lg"
+          className="flex max-h-[90vh] flex-col md:min-h-[200px] md:max-w-lg"
         >
           <AnimatePresence mode="wait" initial={false}>
             {phase === Phase.Form && (
@@ -402,8 +374,27 @@ export const AddAddressModal: React.FC<Props> = ({
                 onClose={onClose}
               />
             )}
-            {phase === Phase.Processing && <ProcessingPhase />}
-            {phase === Phase.Success && <SuccessPhase isEditMode={isEditMode} />}
+            {phase === Phase.Processing && (
+              <motion.div
+                key="processing"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                <ResponsiveDialogTitle className="sr-only">
+                  {t(($) => $.addressBook.updatingAddressBook)}
+                </ResponsiveDialogTitle>
+                <AddressBookUpdating />
+              </motion.div>
+            )}
+            {phase === Phase.Success && (
+              <AddressBookSuccess
+                message={t(($) =>
+                  isEditMode ? $.addressBook.editSuccess : $.addressBook.addSuccess,
+                )}
+              />
+            )}
             {phase === Phase.Error && (
               <ErrorPhase
                 errorMessage={errorMessage}

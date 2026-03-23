@@ -2,6 +2,7 @@ import { isNullish, nonNullish } from '@dfinity/utils';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Card, CardContent } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
 import {
@@ -11,7 +12,6 @@ import {
   SECONDS_IN_EIGHT_YEARS,
 } from '@constants/extra';
 import { useGovernanceMetrics } from '@hooks/governance';
-import { formatNumber } from '@utils/numbers';
 import { getPoolReward } from '@utils/staking-rewards';
 
 export const DailyRewardsCard = () => {
@@ -43,9 +43,14 @@ export const DailyRewardsCard = () => {
           <Skeleton className="h-8 w-28" />
         ) : (
           <p className="text-2xl font-semibold text-foreground">
-            {nonNullish(dailyReward)
-              ? formatNumber(dailyReward, { minFraction: 0, maxFraction: 0 })
-              : '—'}
+            {nonNullish(dailyReward) ? (
+              <AnimatedNumber
+                value={dailyReward}
+                formatOptions={{ minFraction: 0, maxFraction: 0 }}
+              />
+            ) : (
+              '—'
+            )}
           </p>
         )}
       </CardContent>

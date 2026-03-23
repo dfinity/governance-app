@@ -1,6 +1,7 @@
 import { nonNullish } from '@dfinity/utils';
 import { useTranslation } from 'react-i18next';
 
+import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Card, CardContent } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
 import { E8Sn } from '@constants/extra';
@@ -41,7 +42,15 @@ export const TotalStakedCard = () => {
         ) : (
           <>
             <p className="text-2xl font-semibold text-foreground">
-              {nonNullish(tvl) ? `$${formatNumber(tvl, { minFraction: 0, maxFraction: 0 })}` : '—'}
+              {nonNullish(tvl) ? (
+                <AnimatedNumber
+                  value={tvl}
+                  prefix="$"
+                  formatOptions={{ minFraction: 0, maxFraction: 0 }}
+                />
+              ) : (
+                '—'
+              )}
             </p>
             {nonNullish(stakedPercentage) && (
               <p className="mt-1 text-sm font-normal text-muted-foreground">

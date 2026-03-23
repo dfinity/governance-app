@@ -5,7 +5,7 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AccountSelect } from '@features/accounts/components/AccountSelect';
-import { useAccountDestination } from '@features/accounts/hooks/useAccountDestination';
+import { useAccountSelection } from '@features/accounts/hooks/useAccountSelection';
 import { type Account, AccountType, isAccountReady } from '@features/accounts/types';
 
 import { Alert, AlertDescription } from '@components/Alert';
@@ -34,7 +34,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
   const { t } = useTranslation();
   const [amount, setAmount] = useState('');
   const { selectedAccountId, setSelectedAccountId, resolvedAccountId, subaccountsEnabled } =
-    useAccountDestination();
+    useAccountSelection();
   const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
   const [validationError, setValidationError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
