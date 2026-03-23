@@ -14,14 +14,14 @@ type RequestParams = {
   neuronSubaccounts?: { subaccount: Uint8Array }[];
 };
 
-type HookParams = RequestParams & { enabled?: boolean };
+type Params = RequestParams & { enabled?: boolean };
 
 const sortByCreatedDesc = (
   a: { createdTimestampSeconds: bigint },
   b: { createdTimestampSeconds: bigint },
 ) => Number(b.createdTimestampSeconds - a.createdTimestampSeconds);
 
-export const useGovernanceNeurons = (params?: HookParams) => {
+export const useGovernanceNeurons = (params?: Params) => {
   const { identity } = useInternetIdentity();
   const { ready, canister, authenticated } = useNnsGovernance();
 

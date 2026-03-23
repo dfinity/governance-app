@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { AnimatedCollapse } from '@components/AnimatedCollapse';
 import { Badge } from '@components/badge';
+import { shortenNeuronId } from '@utils/neuron';
 import { cn } from '@utils/shadcn';
 
 import { CATCH_ALL_TOPICS, INDIVIDUAL_TOPICS } from '../data/topics';
@@ -143,7 +144,7 @@ function TopicRow({
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 overflow-hidden">
           <span
             className={cn(
               'text-xs text-muted-foreground',
@@ -218,7 +219,7 @@ function FolloweeBadges({
     <div className="flex flex-wrap gap-1.5">
       {followees.map((id) => {
         const known = knownNeurons.find((kn) => kn.id === id);
-        const name = known?.name ?? id.toString();
+        const name = known?.name ?? shortenNeuronId(id);
         return (
           <Badge
             key={id.toString()}
