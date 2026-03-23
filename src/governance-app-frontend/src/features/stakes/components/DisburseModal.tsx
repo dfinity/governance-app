@@ -1,6 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { useNavigate } from '@tanstack/react-router';
-import { Banknote, Coins } from 'lucide-react';
+import { Coins } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -74,7 +74,7 @@ export function DisburseModal({
                 className="flex w-full items-center gap-3 rounded-lg border p-4 text-left transition-colors hover:bg-muted"
                 onClick={() => handleSelect(NeuronStandaloneAction.DisburseMaturity)}
               >
-                <Banknote className="size-5 shrink-0" aria-hidden="true" />
+                <Coins className="size-5 shrink-0" aria-hidden="true" />
                 <div className="flex flex-col gap-0.5">
                   <span className="text-sm font-semibold">
                     {t(($) => $.disburseModal.disburseMaturity.title)}
