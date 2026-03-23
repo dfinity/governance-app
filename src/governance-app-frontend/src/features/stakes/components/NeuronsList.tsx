@@ -105,14 +105,15 @@ export const NeuronsList = ({
         <>
           <DisburseIcpModal
             neuron={selectedNeuron}
-            isOpen={isStandaloneModalOpen && standaloneAction === NeuronStandaloneAction.DisburseIcp}
+            isOpen={
+              isStandaloneModalOpen && standaloneAction === NeuronStandaloneAction.DisburseIcp
+            }
             onOpenChange={handleModalClose}
           />
           <DisburseMaturityModal
             neuron={selectedNeuron}
             isOpen={
-              isStandaloneModalOpen &&
-              standaloneAction === NeuronStandaloneAction.DisburseMaturity
+              isStandaloneModalOpen && standaloneAction === NeuronStandaloneAction.DisburseMaturity
             }
             onOpenChange={handleModalClose}
           />
