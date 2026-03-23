@@ -35,7 +35,7 @@ export const UserMenu = () => {
       </div>
       <button
         onClick={logout}
-        className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-red-500"
         aria-label={t(($) => $.common.logout)}
         title={t(($) => $.common.logout)}
         data-testid="user-menu-logout"
