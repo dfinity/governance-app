@@ -19,7 +19,11 @@ import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
 import { useApyColor } from '@hooks/useApyColor';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
-import { getNeuronFreeMaturityE8s, getNeuronIsDissolved, getNeuronsAggregatedData } from '@utils/neuron';
+import {
+  getNeuronFreeMaturityE8s,
+  getNeuronIsDissolved,
+  getNeuronsAggregatedData,
+} from '@utils/neuron';
 import { warningNotification } from '@utils/notification';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady, MaturityEstimatePeriod } from '@utils/staking-rewards';
