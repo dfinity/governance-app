@@ -20,13 +20,11 @@ export enum NeuronStandaloneAction {
 /** All valid values for the `action` URL search param. */
 export type NeuronAction = NeuronDetailView | NeuronStandaloneAction;
 
-const NEURON_ACTIONS = [
-  ...Object.values(NeuronDetailView),
-  ...Object.values(NeuronStandaloneAction),
-] as string[];
+const NEURON_DETAIL_VIEWS = Object.values(NeuronDetailView) as string[];
+const NEURON_ACTIONS = [...NEURON_DETAIL_VIEWS, ...Object.values(NeuronStandaloneAction)] as string[];
 
 export const isValidNeuronAction = (value: string | undefined): value is NeuronAction =>
   nonNullish(value) && NEURON_ACTIONS.includes(value);
 
 export const isValidNeuronDetailView = (value: string | undefined): value is NeuronDetailView =>
-  nonNullish(value) && (Object.values(NeuronDetailView) as string[]).includes(value);
+  nonNullish(value) && NEURON_DETAIL_VIEWS.includes(value);
