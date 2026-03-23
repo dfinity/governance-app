@@ -86,8 +86,8 @@ export const KnownNeuronCard = ({
         </div>
 
         <div className="flex min-w-0 grow-1 flex-col">
-          <div className="flex grow items-center justify-between">
-            <div className="flex flex-col gap-1 py-5">
+          <div className="flex items-center justify-between">
+            <div className="flex min-h-16 flex-col justify-center gap-1 py-5">
               <h4 className={cn('leading-none', mode === 'radio' ? 'font-semibold' : 'text-sm')}>
                 {neuron.name}
               </h4>
@@ -96,7 +96,7 @@ export const KnownNeuronCard = ({
             <Button
               variant="ghost"
               onClick={toggleExpanded}
-              className={cn('h-full min-w-20', mode === 'radio' ? 'rounded-xl' : 'rounded-none')}
+              className={cn('min-w-20', mode === 'radio' ? 'rounded-xl' : 'rounded-none')}
             >
               {isExpanded ? (
                 <ChevronUp className={'size-5'} />

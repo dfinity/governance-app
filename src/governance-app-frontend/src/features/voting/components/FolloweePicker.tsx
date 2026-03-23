@@ -245,7 +245,7 @@ export function FolloweePicker({
       <ResponsiveDialog open={open} onOpenChange={handleOpenChange} dismissible={!isBlocking}>
         <ResponsiveDialogContent
           showCloseButton={!isBlocking}
-          className={cn('flex flex-col', isWizardStep ? 'max-h-[90vh]' : 'md:max-w-md')}
+          className="flex max-h-[90vh] flex-col"
           data-testid="followee-picker-dialog"
         >
           {isWizardStep ? (

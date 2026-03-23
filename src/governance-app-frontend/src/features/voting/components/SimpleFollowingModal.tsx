@@ -193,86 +193,76 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
       <ResponsiveDialog open={open} onOpenChange={handleOpenChange} dismissible={!isBlocking}>
         <ResponsiveDialogContent
           showCloseButton={!isBlocking}
-          className={cn('flex flex-col', isInConfirmFlow ? 'md:max-w-md' : 'max-h-[90vh]')}
+          className="flex max-h-[90vh] flex-col"
         >
-          <AnimatePresence mode="wait" initial={false}>
-            {isInConfirmFlow ? (
-              <ConfirmFlow
-                key="confirm-flow"
-                state={dialogState}
-                onFollow={() => 'neuron' in dialogState && handleFollow(dialogState.neuron)}
-                onClose={() => setDialogState({ phase: DialogPhase.Closed })}
-                onDone={() => {
-                  setDialogState({ phase: DialogPhase.Closed });
-                  onOpenChange(false);
-                }}
-              />
-            ) : (
-              <motion.div
-                key="neuron-list"
-                className="flex flex-1 flex-col gap-4 overflow-hidden"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-              >
-                <ResponsiveDialogHeader>
-                  <ResponsiveDialogTitle>{t(($) => $.knownNeurons.title)}</ResponsiveDialogTitle>
-                  <ResponsiveDialogDescription>
-                    {t(($) => $.knownNeurons.description)}
-                  </ResponsiveDialogDescription>
-                </ResponsiveDialogHeader>
+          {isInConfirmFlow ? (
+            <ConfirmFlow
+              state={dialogState}
+              onFollow={() => 'neuron' in dialogState && handleFollow(dialogState.neuron)}
+              onClose={() => setDialogState({ phase: DialogPhase.Closed })}
+              onDone={() => {
+                setDialogState({ phase: DialogPhase.Closed });
+                onOpenChange(false);
+              }}
+            />
+          ) : (
+            <div className="flex flex-1 flex-col gap-4 overflow-hidden">
+              <ResponsiveDialogHeader>
+                <ResponsiveDialogTitle>{t(($) => $.knownNeurons.title)}</ResponsiveDialogTitle>
+                <ResponsiveDialogDescription>
+                  {t(($) => $.knownNeurons.description)}
+                </ResponsiveDialogDescription>
+              </ResponsiveDialogHeader>
 
-                <div className="flex-1 overflow-y-auto">
-                  <div className="flex flex-col gap-4 px-1 pb-4 md:pb-1">
-                    {isComplex && (
-                      <Alert variant="warning">
-                        <AlertTitle className="font-semibold">
-                          {t(($) => $.voting.warnings.followingMismatchTitle)}
-                        </AlertTitle>
-                        <AlertDescription>
-                          {t(($) => $.voting.warnings.followingMismatch)}
-                        </AlertDescription>
-                      </Alert>
-                    )}
+              <div className="flex-1 overflow-y-auto">
+                <div className="flex flex-col gap-4 px-1 pb-4 md:pb-1">
+                  {isComplex && (
+                    <Alert variant="warning">
+                      <AlertTitle className="font-semibold">
+                        {t(($) => $.voting.warnings.followingMismatchTitle)}
+                      </AlertTitle>
+                      <AlertDescription>
+                        {t(($) => $.voting.warnings.followingMismatch)}
+                      </AlertDescription>
+                    </Alert>
+                  )}
 
-                    {knownNeuronsQuery.isLoading ? (
-                      <div className="flex items-center gap-4 p-4">
-                        <Skeleton className="h-6 w-6 rounded-2xl" />
-                        <Skeleton className="h-8 w-80 rounded" />
+                  {knownNeuronsQuery.isLoading ? (
+                    <div className="flex items-center gap-4 p-4">
+                      <Skeleton className="h-6 w-6 rounded-2xl" />
+                      <Skeleton className="h-8 w-80 rounded" />
+                    </div>
+                  ) : knownNeuronsQuery.isError ? (
+                    <p className="text-destructive">{t(($) => $.common.loadingError)}</p>
+                  ) : sortedKnownNeurons?.length === 0 ? (
+                    <p className="text-muted-foreground">{t(($) => $.knownNeurons.empty)}</p>
+                  ) : (
+                    sortedKnownNeurons?.map((neuron) => (
+                      <div
+                        key={neuron.id.toString()}
+                        className={cn(isWaitingForCertifiedData && 'animate-pulse')}
+                      >
+                        <KnownNeuronCard
+                          neuron={neuron}
+                          isSelected={selectedNeuronId === neuron.id.toString()}
+                          onSelect={handleSelect}
+                          isLoading={
+                            updateFollowingMutation.isPending &&
+                            selectedNeuronId === neuron.id.toString()
+                          }
+                          isDisabled={
+                            isNullish(canister) ||
+                            updateFollowingMutation.isPending ||
+                            isWaitingForCertifiedData
+                          }
+                        />
                       </div>
-                    ) : knownNeuronsQuery.isError ? (
-                      <p className="text-destructive">{t(($) => $.common.loadingError)}</p>
-                    ) : sortedKnownNeurons?.length === 0 ? (
-                      <p className="text-muted-foreground">{t(($) => $.knownNeurons.empty)}</p>
-                    ) : (
-                      sortedKnownNeurons?.map((neuron) => (
-                        <div
-                          key={neuron.id.toString()}
-                          className={cn(isWaitingForCertifiedData && 'animate-pulse')}
-                        >
-                          <KnownNeuronCard
-                            neuron={neuron}
-                            isSelected={selectedNeuronId === neuron.id.toString()}
-                            onSelect={handleSelect}
-                            isLoading={
-                              updateFollowingMutation.isPending &&
-                              selectedNeuronId === neuron.id.toString()
-                            }
-                            isDisabled={
-                              isNullish(canister) ||
-                              updateFollowingMutation.isPending ||
-                              isWaitingForCertifiedData
-                            }
-                          />
-                        </div>
-                      ))
-                    )}
-                  </div>
+                    ))
+                  )}
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </div>
+            </div>
+          )}
         </ResponsiveDialogContent>
       </ResponsiveDialog>
     </>
