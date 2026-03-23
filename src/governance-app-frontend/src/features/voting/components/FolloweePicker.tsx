@@ -46,7 +46,7 @@ import { shortenNeuronId } from '@utils/neuron';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 import { cn } from '@utils/shadcn';
 
-import { CATCH_ALL_TOPICS, INDIVIDUAL_TOPICS } from '../data/topics';
+import { INDIVIDUAL_TOPICS, TOP_LEVEL_TOPICS } from '../data/topics';
 import { isActiveKnownNeuron, sortKnownNeurons } from '../utils/knownNeurons';
 import { buildAdvancedTopicFollowing } from '../utils/topicFollowing';
 import { KnownNeuronCard } from './KnownNeuronCard';
@@ -540,7 +540,7 @@ function StepSelectTopics({
 
       <div className="flex-1 overflow-y-auto rounded-lg border">
         <div className="flex flex-col divide-y">
-          {CATCH_ALL_TOPICS.map((cat) => (
+          {TOP_LEVEL_TOPICS.map((cat) => (
             <TopicCheckbox
               key={cat.topic}
               label={t(cat.labelKey as never)}

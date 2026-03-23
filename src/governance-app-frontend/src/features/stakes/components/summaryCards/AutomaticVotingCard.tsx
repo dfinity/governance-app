@@ -24,19 +24,19 @@ enum CoverageState {
 const getCoverageState = (neurons: NeuronInfo[]): CoverageState => {
   if (neurons.length === 0) return CoverageState.None;
 
-  let hasAny = false;
+  let allFull = true;
+  let allNone = true;
+
   for (const neuron of neurons) {
     const map = getFollowableTopicFolloweesMap(neuron);
     const count = getConfiguredTopicCount(map);
-    if (count < TOTAL_TOPIC_COUNT) {
-      if (count > 0) return CoverageState.Partial;
-    } else {
-      hasAny = true;
-    }
-    if (count === 0 && hasAny) return CoverageState.Partial;
+    if (count < TOTAL_TOPIC_COUNT) allFull = false;
+    if (count > 0) allNone = false;
   }
 
-  return hasAny ? CoverageState.Full : CoverageState.None;
+  if (allNone) return CoverageState.None;
+  if (allFull) return CoverageState.Full;
+  return CoverageState.Partial;
 };
 
 export function AutomaticVotingCard({ neurons }: AutomaticVotingCardProps) {

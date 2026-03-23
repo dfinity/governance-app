@@ -8,7 +8,7 @@ import { Badge } from '@components/badge';
 import { shortenNeuronId } from '@utils/neuron';
 import { cn } from '@utils/shadcn';
 
-import { CATCH_ALL_TOPICS, INDIVIDUAL_TOPICS } from '../data/topics';
+import { INDIVIDUAL_TOPICS, TOP_LEVEL_TOPICS } from '../data/topics';
 import {
   getConfiguredIndividualTopicCount,
   getEffectiveFollowees,
@@ -37,7 +37,7 @@ export function TopicFollowingAccordion({
 }: Props) {
   return (
     <div className="flex flex-col divide-y">
-      {CATCH_ALL_TOPICS.map((topicGroup) => (
+      {TOP_LEVEL_TOPICS.map((topicGroup) => (
         <TopicRow
           key={topicGroup.topic}
           topic={topicGroup.topic}

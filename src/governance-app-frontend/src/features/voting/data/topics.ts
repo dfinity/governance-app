@@ -11,7 +11,7 @@ export type IndividualTopic = {
   labelKey: string;
 };
 
-export const CATCH_ALL_TOPICS: TopicGroup[] = [
+export const TOP_LEVEL_TOPICS: TopicGroup[] = [
   {
     topic: Topic.Governance,
     labelKey: 'voting.topics.governance',
@@ -47,6 +47,6 @@ export const INDIVIDUAL_TOPICS: IndividualTopic[] = [
 ];
 
 export const ALL_FOLLOWABLE_TOPICS = [
-  ...CATCH_ALL_TOPICS.map((t) => t.topic),
+  ...TOP_LEVEL_TOPICS.map((t) => t.topic),
   ...INDIVIDUAL_TOPICS.map((t) => t.topic),
 ];

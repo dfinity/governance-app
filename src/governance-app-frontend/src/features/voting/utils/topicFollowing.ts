@@ -7,7 +7,7 @@ import {
 
 import { shortenNeuronId } from '@utils/neuron';
 
-import { ALL_FOLLOWABLE_TOPICS, CATCH_ALL_TOPICS, INDIVIDUAL_TOPICS } from '../data/topics';
+import { ALL_FOLLOWABLE_TOPICS, INDIVIDUAL_TOPICS, TOP_LEVEL_TOPICS } from '../data/topics';
 
 export type EffectiveFollowees = {
   followees: bigint[];
@@ -40,8 +40,8 @@ export const getEffectiveFollowees = (
   const direct = followeesMap.get(topic) ?? [];
   if (direct.length > 0) return { followees: direct, inherited: false };
 
-  const isCatchAll = CATCH_ALL_TOPICS.some((t) => t.topic === topic);
-  if (!isCatchAll) {
+  const isTopLevel = TOP_LEVEL_TOPICS.some((t) => t.topic === topic);
+  if (!isTopLevel) {
     const catchAllFollowees = followeesMap.get(Topic.Unspecified) ?? [];
     if (catchAllFollowees.length > 0) return { followees: catchAllFollowees, inherited: true };
   }
@@ -133,7 +133,8 @@ export const getConfiguredTopicCount = (followeesMap: Map<Topic, bigint[]>): num
   return governanceConfigured + snsConfigured + individualCount;
 };
 
-export const TOTAL_TOPIC_COUNT = 2 + INDIVIDUAL_TOPICS.length;
+export const TOTAL_TOPIC_COUNT =
+  TOP_LEVEL_TOPICS.filter((t) => t.topic !== Topic.Unspecified).length + INDIVIDUAL_TOPICS.length;
 
 /**
  * Builds FolloweesForTopic[] for the setFollowing API.

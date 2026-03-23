@@ -211,7 +211,7 @@ export function NeuronDetailSummaryView({
               >
                 {t(($) => $.neuron.followingNotSet)}
               </Link>
-            ) : followeeName ? (
+            ) : uniformFollowee ? (
               <span className="max-w-[160px] truncate font-semibold">{followeeName}</span>
             ) : (
               <button

@@ -8,7 +8,7 @@ import {
 import { DFINITY_NEURON_ID } from '@common/constants/neuron';
 
 import { KNOWN_NEURONS_SORTING_MAP } from '../data/knownNeuronsSorting';
-import { CATCH_ALL_TOPICS } from '../data/topics';
+import { TOP_LEVEL_TOPICS } from '../data/topics';
 import { buildAdvancedTopicFollowing } from './topicFollowing';
 
 // Neurons that have not participated yet and should be removed
@@ -34,7 +34,7 @@ export const isActiveKnownNeuron = (a: KnownNeuron) => !PENALIZED_NEURON_IDS.inc
  */
 export const buildKnownNeuronTopicFollowing = (knownNeuronId: NeuronId): FolloweesForTopic[] => {
   const topicFollowees = new Map<Topic, bigint[]>();
-  for (const { topic } of CATCH_ALL_TOPICS) {
+  for (const { topic } of TOP_LEVEL_TOPICS) {
     topicFollowees.set(topic, [knownNeuronId]);
   }
   return buildAdvancedTopicFollowing(topicFollowees);

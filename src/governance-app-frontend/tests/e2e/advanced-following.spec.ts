@@ -1,7 +1,7 @@
 import { Topic } from '@icp-sdk/canisters/nns';
 import { Browser, expect, Page, test } from '@playwright/test';
 
-import { CATCH_ALL_TOPICS } from '../../src/features/voting/data/topics';
+import { TOP_LEVEL_TOPICS } from '../../src/features/voting/data/topics';
 import { openApp } from './utils/app';
 import { getIcps } from './utils/getIcps';
 import { login } from './utils/login';
@@ -9,7 +9,7 @@ import { navigateTo } from './utils/navigate';
 
 const NEURON_STAKE = '1';
 const NEURONS_TO_CREATE = 3;
-const CATCH_ALL_IDS = new Set(CATCH_ALL_TOPICS.map((t) => t.topic));
+const TOP_LEVEL_IDS = new Set(TOP_LEVEL_TOPICS.map((t) => t.topic));
 
 const stakeNeuron = async (page: Page, isFirst: boolean) => {
   if (isFirst) {
@@ -104,7 +104,7 @@ const applyPickerFlow = async (page: Page, neuronId: string, topics: Topic[]) =>
   await addCustomFollowee(page, neuronId);
   await page.getByTestId('picker-next-btn').click();
 
-  const hasIndividual = topics.some((t) => !CATCH_ALL_IDS.has(t));
+  const hasIndividual = topics.some((t) => !TOP_LEVEL_IDS.has(t));
   if (hasIndividual) {
     await page.getByTestId('picker-individual-topics-toggle').click();
   }

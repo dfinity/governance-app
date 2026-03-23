@@ -36,8 +36,8 @@ export function WelcomeModal() {
   };
 
   const enabledFeatures: Array<{ label: string }> = Object.entries(detectedFeatures)
-    .filter(([, detected]) => detected === true)
-    .map(([key]) => ({ label: featureLabels[key] ?? key }));
+    .filter(([key, detected]) => detected === true && key in featureLabels)
+    .map(([key]) => ({ label: featureLabels[key] }));
 
   const handleClose = () => {
     for (const [key, detected] of Object.entries(detectedFeatures)) {
