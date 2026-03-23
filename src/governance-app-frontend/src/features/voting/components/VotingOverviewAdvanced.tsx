@@ -1,5 +1,5 @@
 import { type KnownNeuron, type NeuronInfo } from '@icp-sdk/canisters/nns';
-import { AlertTriangle, CheckCircle2, Users } from 'lucide-react';
+import { AlertTriangle, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
@@ -140,15 +140,8 @@ function StatusHeader({ configuredCount }: { configuredCount: number }) {
             total: TOTAL_TOPIC_COUNT,
           });
 
-  const isFullyCovered = configuredCount === TOTAL_TOPIC_COUNT;
-
   return (
-    <div className="flex items-center gap-2 px-4 py-3">
-      {isFullyCovered ? (
-        <CheckCircle2 className="size-4 shrink-0 text-green-600 dark:text-green-400" />
-      ) : (
-        <AlertTriangle className="size-4 shrink-0 text-amber-500 dark:text-amber-400" />
-      )}
+    <div className="px-4 py-3">
       <span className="text-sm font-medium">{label}</span>
     </div>
   );
