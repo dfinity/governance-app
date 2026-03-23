@@ -34,7 +34,7 @@ export const useDetectAdvancedFeatures = (enabled = true): DetectionResult => {
   });
 
   const isPending =
-    (shouldCheckSubaccounts && nnsDappAccount.isPending) ||
+    (shouldCheckSubaccounts && nnsDappAccount.isLoading) ||
     (shouldCheckAdvancedFollowing && neuronsQuery.isLoading);
 
   const detectedFeatures: Partial<AdvancedFeaturesSettings> = {};
