@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ApyOptimizationModal } from '@features/stakes/components/ApyOptimizationModal';
-import { NeuronStandaloneAction } from '@features/stakes/components/neuronDetail';
 import { DisburseModal } from '@features/stakes/components/DisburseModal';
+import { NeuronStandaloneAction } from '@features/stakes/components/neuronDetail';
 
 import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Badge } from '@components/badge';
@@ -211,10 +211,7 @@ export function StakedCard() {
               disabled={neuronsQuery.isLoading || !canWithdraw}
             >
               {canWithdraw ? (
-                <Link
-                  to="/neurons"
-                  search={singleNeuronDirectSearch ?? {}}
-                >
+                <Link to="/neurons" search={singleNeuronDirectSearch ?? {}}>
                   <Coins aria-hidden="true" />
                   {t(($) => $.common.disburse)}
                 </Link>

@@ -43,15 +43,13 @@ export function DisburseModal({
 
   return (
     <ResponsiveDialog open={isOpen} onOpenChange={onOpenChange}>
-      <ResponsiveDialogContent className="flex max-h-[90vh] flex-col focus:outline-none">
+      <ResponsiveDialogContent className="flex max-h-[90vh] flex-col focus:outline-none sm:max-w-lg">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>{t(($) => $.disburseModal.title)}</ResponsiveDialogTitle>
         </ResponsiveDialogHeader>
 
         <div className="flex flex-col gap-3 px-4 pb-4 md:px-0 md:pb-0">
-          <p className="text-sm text-muted-foreground">
-            {t(($) => $.disburseModal.description)}
-          </p>
+          <p className="text-sm text-muted-foreground">{t(($) => $.disburseModal.description)}</p>
 
           <div className="flex flex-col gap-3">
             {showDisburseIcp && (
