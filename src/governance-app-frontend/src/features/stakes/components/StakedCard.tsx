@@ -3,6 +3,7 @@ import { Coins, TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { ApyOptimizationModal } from '@features/stakes/components/ApyOptimizationModal';
+import { NeuronStandaloneAction } from '@features/stakes/components/neuronDetail';
 
 import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Badge } from '@components/badge';
@@ -18,7 +19,7 @@ import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
 import { useApyColor } from '@hooks/useApyColor';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
-import { getNeuronsAggregatedData } from '@utils/neuron';
+import { getNeuronFreeMaturityE8s, getNeuronIsDissolved, getNeuronsAggregatedData } from '@utils/neuron';
 import { warningNotification } from '@utils/notification';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady, MaturityEstimatePeriod } from '@utils/staking-rewards';
@@ -49,6 +50,11 @@ export function StakedCard() {
   const neuronCount = neurons.length;
 
   const { totalStakedAfterFees: totalStaked, totalMaturity } = getNeuronsAggregatedData(neurons);
+
+  const withdrawableNeurons = neurons.filter(
+    (n) => getNeuronIsDissolved(n) || getNeuronFreeMaturityE8s(n) > 0n,
+  );
+  const canWithdraw = withdrawableNeurons.length > 0;
 
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const usdValue = icpPrice ? formatNumber(totalStaked * icpPrice.usd) : '-';
@@ -158,8 +164,36 @@ export function StakedCard() {
             </Link>
           </Button>
 
-          <Button size="xl" variant="outline" className="flex-1" disabled>
-            <Coins /> {t(($) => $.common.withdraw)}
+          <Button
+            size="xl"
+            variant="outline"
+            className="flex-1"
+            asChild={canWithdraw}
+            disabled={neuronsQuery.isLoading || !canWithdraw}
+          >
+            {canWithdraw ? (
+              <Link
+                to="/neurons"
+                search={
+                  withdrawableNeurons.length === 1
+                    ? {
+                        neuronId: withdrawableNeurons[0].neuronId.toString(),
+                        action: getNeuronIsDissolved(withdrawableNeurons[0])
+                          ? NeuronStandaloneAction.DisburseIcp
+                          : NeuronStandaloneAction.DisburseMaturity,
+                      }
+                    : {}
+                }
+              >
+                <Coins aria-hidden="true" />
+                {t(($) => $.common.withdraw)}
+              </Link>
+            ) : (
+              <>
+                <Coins aria-hidden="true" />
+                {t(($) => $.common.withdraw)}
+              </>
+            )}
           </Button>
         </div>
       </CardContent>
