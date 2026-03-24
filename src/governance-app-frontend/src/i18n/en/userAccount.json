@@ -81,7 +81,7 @@
         "enabled": "Advanced following enabled",
         "enabledDescription": "Per-topic following configuration is now available.",
         "disabled": "Advanced following disabled",
-        "disabledDescription": "Per-topic following is now hidden. A single known neuron is used for all topics."
+        "disabledDescription": "Per-topic following management is now hidden. Your existing following configuration is preserved."
       }
     }
   },
