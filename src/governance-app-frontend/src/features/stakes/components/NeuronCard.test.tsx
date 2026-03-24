@@ -20,37 +20,6 @@ vi.mock('ic-use-internet-identity', () => ({
   }),
 }));
 
-vi.mock('react-i18next', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('react-i18next')>();
-  return {
-    ...actual,
-    useTranslation: () => ({
-      t: (keyOrFn: unknown, opts?: { returnObjects?: boolean }) => {
-        if (typeof keyOrFn === 'function') {
-          const result = (keyOrFn as (t: Record<string, unknown>) => unknown)(
-            new Proxy(
-              {},
-              {
-                get: (_target, prop: string) =>
-                  new Proxy(
-                    {},
-                    {
-                      get: (_t2, prop2: string) => `${prop}.${prop2}`,
-                      [Symbol.toPrimitive]: () => `${prop}`,
-                    },
-                  ),
-              },
-            ),
-          );
-          if (opts?.returnObjects) return {};
-          return result;
-        }
-        return keyOrFn;
-      },
-    }),
-  };
-});
-
 vi.mock('@hooks/tickers/useTickerPrices', () => ({
   useTickerPrices: () => ({
     tickerPrices: { isLoading: false, data: undefined },
@@ -59,12 +28,6 @@ vi.mock('@hooks/tickers/useTickerPrices', () => ({
 
 vi.mock('@hooks/useApyColor', () => ({
   useApyColor: () => ({ ready: false }),
-}));
-
-vi.mock('@components/Tooltip', () => ({
-  Tooltip: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  TooltipTrigger: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  TooltipContent: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
 }));
 
 // ─── Mock Factories ──────────────────────────────────────────────
