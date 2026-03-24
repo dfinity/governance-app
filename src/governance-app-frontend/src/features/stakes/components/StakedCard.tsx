@@ -203,9 +203,7 @@ export function StakedCard() {
 
       {disburseAction.type === DisburseActionType.Choose && (
         <DisburseModal
-          neuron={disburseAction.neuron}
-          showDisburseIcp
-          showDisburseMaturity
+          neurons={disburseAction.neurons}
           isOpen={disburseModalOpen}
           onOpenChange={setDisburseModalOpen}
         />

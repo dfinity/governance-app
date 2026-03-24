@@ -1,5 +1,8 @@
 {
   "title": "Disburse",
+  "selectNeuron": "Select a neuron to disburse from.",
+  "neuronLabel": "neuron",
+  "maturityLabel": "maturity",
   "description": "What would you like to disburse?",
   "disburseIcp": {
     "title": "Disburse ICP",
