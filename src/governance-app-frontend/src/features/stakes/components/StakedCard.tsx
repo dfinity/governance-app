@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { ApyOptimizationModal } from '@features/stakes/components/ApyOptimizationModal';
 import { DisburseModal } from '@features/stakes/components/DisburseModal';
-import { getDisburseAction } from '@features/stakes/utils/getDisburseAction';
+import { DisburseActionType, getDisburseAction } from '@features/stakes/utils/getDisburseAction';
 
 import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Badge } from '@components/badge';
@@ -164,7 +164,7 @@ export function StakedCard() {
             </Link>
           </Button>
 
-          {disburseAction.type === 'choose' ? (
+          {disburseAction.type === DisburseActionType.Choose ? (
             <Button
               size="xl"
               variant="outline"
@@ -180,10 +180,12 @@ export function StakedCard() {
               size="xl"
               variant="outline"
               className="flex-1"
-              asChild={disburseAction.type === 'navigate'}
-              disabled={neuronsQuery.isLoading || disburseAction.type === 'disabled'}
+              asChild={disburseAction.type === DisburseActionType.Navigate}
+              disabled={
+                neuronsQuery.isLoading || disburseAction.type === DisburseActionType.Disabled
+              }
             >
-              {disburseAction.type === 'navigate' ? (
+              {disburseAction.type === DisburseActionType.Navigate ? (
                 <Link to="/neurons" search={disburseAction.search}>
                   <Coins aria-hidden="true" />
                   {t(($) => $.common.disburse)}
@@ -199,7 +201,7 @@ export function StakedCard() {
         </div>
       </CardContent>
 
-      {disburseAction.type === 'choose' && (
+      {disburseAction.type === DisburseActionType.Choose && (
         <DisburseModal
           neuron={disburseAction.neuron}
           showDisburseIcp

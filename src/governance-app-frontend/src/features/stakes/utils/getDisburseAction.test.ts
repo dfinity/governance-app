@@ -3,7 +3,7 @@ import { NeuronState } from '@icp-sdk/canisters/nns';
 import { describe, expect, it } from 'vitest';
 
 import { NeuronStandaloneAction } from '../components/neuronDetail';
-import { getDisburseAction } from './getDisburseAction';
+import { DisburseActionType, getDisburseAction } from './getDisburseAction';
 
 const mockNeuron = (
   neuronId: bigint,
@@ -30,12 +30,12 @@ const mockNeuron = (
 
 describe('getDisburseAction', () => {
   it('returns disabled when no neurons', () => {
-    expect(getDisburseAction([])).toEqual({ type: 'disabled' });
+    expect(getDisburseAction([])).toEqual({ type: DisburseActionType.Disabled });
   });
 
   it('returns disabled when no neurons are withdrawable', () => {
     const neurons = [mockNeuron(1n), mockNeuron(2n)];
-    expect(getDisburseAction(neurons)).toEqual({ type: 'disabled' });
+    expect(getDisburseAction(neurons)).toEqual({ type: DisburseActionType.Disabled });
   });
 
   it('returns navigate without search when multiple neurons are withdrawable', () => {
@@ -43,7 +43,7 @@ describe('getDisburseAction', () => {
       mockNeuron(1n, { state: NeuronState.Dissolved }),
       mockNeuron(2n, { maturityE8sEquivalent: 100n }),
     ];
-    expect(getDisburseAction(neurons)).toEqual({ type: 'navigate', search: {} });
+    expect(getDisburseAction(neurons)).toEqual({ type: DisburseActionType.Navigate, search: {} });
   });
 
   it('returns disburseIcp when single neuron is dissolved without maturity', () => {
@@ -64,7 +64,7 @@ describe('getDisburseAction', () => {
 
   it('returns choose when single neuron is dissolved and has maturity', () => {
     const neuron = mockNeuron(1n, { state: NeuronState.Dissolved, maturityE8sEquivalent: 100n });
-    expect(getDisburseAction([neuron])).toEqual({ type: 'choose', neuron });
+    expect(getDisburseAction([neuron])).toEqual({ type: DisburseActionType.Choose, neuron });
   });
 
   it('ignores non-withdrawable neurons when counting', () => {
