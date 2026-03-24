@@ -12,12 +12,11 @@ export enum DisburseActionType {
 
 export type DisburseAction =
   | { type: DisburseActionType.Disabled }
-  | { type: DisburseActionType.Navigate; search: Record<string, never> }
   | {
       type: DisburseActionType.Navigate;
       search: { neuronId: string; action: NeuronStandaloneAction };
     }
-  | { type: DisburseActionType.Choose; neuron: NeuronInfo };
+  | { type: DisburseActionType.Choose; neurons: NeuronInfo[] };
 
 export function getDisburseAction(neurons: NeuronInfo[]): DisburseAction {
   const withdrawable = neurons.filter(
@@ -25,23 +24,29 @@ export function getDisburseAction(neurons: NeuronInfo[]): DisburseAction {
   );
 
   if (withdrawable.length === 0) return { type: DisburseActionType.Disabled };
-  if (withdrawable.length > 1) return { type: DisburseActionType.Navigate, search: {} };
 
-  const neuron = withdrawable[0];
-  const isDissolved = getNeuronIsDissolved(neuron);
-  const hasMaturity = getNeuronFreeMaturityE8s(neuron) > 0n;
+  if (withdrawable.length === 1) {
+    const neuron = withdrawable[0];
+    const isDissolved = getNeuronIsDissolved(neuron);
+    const hasMaturity = getNeuronFreeMaturityE8s(neuron) > 0n;
 
-  if (isDissolved && hasMaturity) {
-    return { type: DisburseActionType.Choose, neuron };
+    // Single neuron with both options → needs choice
+    if (isDissolved && hasMaturity) {
+      return { type: DisburseActionType.Choose, neurons: withdrawable };
+    }
+
+    // Single neuron with one option → navigate directly
+    return {
+      type: DisburseActionType.Navigate,
+      search: {
+        neuronId: neuron.neuronId.toString(),
+        action: isDissolved
+          ? NeuronStandaloneAction.DisburseIcp
+          : NeuronStandaloneAction.DisburseMaturity,
+      },
+    };
   }
 
-  return {
-    type: DisburseActionType.Navigate,
-    search: {
-      neuronId: neuron.neuronId.toString(),
-      action: isDissolved
-        ? NeuronStandaloneAction.DisburseIcp
-        : NeuronStandaloneAction.DisburseMaturity,
-    },
-  };
+  // Multiple neurons → needs choice
+  return { type: DisburseActionType.Choose, neurons: withdrawable };
 }

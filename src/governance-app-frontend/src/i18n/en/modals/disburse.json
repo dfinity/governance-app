@@ -1,5 +1,6 @@
 {
   "title": "Disburse",
+  "selectNeuron": "Select a neuron to disburse from.",
   "description": "What would you like to disburse?",
   "disburseIcp": {
     "title": "Disburse ICP",

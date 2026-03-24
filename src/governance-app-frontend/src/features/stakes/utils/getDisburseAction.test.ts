@@ -38,14 +38,12 @@ describe('getDisburseAction', () => {
     expect(getDisburseAction(neurons)).toEqual({ type: DisburseActionType.Disabled });
   });
 
-  it('returns navigate without params when multiple neurons are withdrawable', () => {
-    const neurons = [
-      mockNeuron(1n, { state: NeuronState.Dissolved }),
-      mockNeuron(2n, { maturityE8sEquivalent: 100n }),
-    ];
-    expect(getDisburseAction(neurons)).toEqual({
-      type: DisburseActionType.Navigate,
-      search: {},
+  it('returns choose with withdrawable neurons when multiple are withdrawable', () => {
+    const n1 = mockNeuron(1n, { state: NeuronState.Dissolved });
+    const n2 = mockNeuron(2n, { maturityE8sEquivalent: 100n });
+    expect(getDisburseAction([n1, n2])).toEqual({
+      type: DisburseActionType.Choose,
+      neurons: [n1, n2],
     });
   });
 
@@ -69,19 +67,27 @@ describe('getDisburseAction', () => {
     const neuron = mockNeuron(1n, { state: NeuronState.Dissolved, maturityE8sEquivalent: 100n });
     expect(getDisburseAction([neuron])).toEqual({
       type: DisburseActionType.Choose,
-      neuron,
+      neurons: [neuron],
     });
   });
 
-  it('ignores non-withdrawable neurons when counting', () => {
-    const neurons = [
-      mockNeuron(1n), // locked, no maturity
-      mockNeuron(2n), // locked, no maturity
-      mockNeuron(3n, { state: NeuronState.Dissolved }),
-    ];
-    expect(getDisburseAction(neurons)).toEqual({
+  it('only includes withdrawable neurons in choose', () => {
+    const n1 = mockNeuron(1n); // locked, no maturity
+    const n2 = mockNeuron(2n); // locked, no maturity
+    const n3 = mockNeuron(3n, { state: NeuronState.Dissolved });
+    expect(getDisburseAction([n1, n2, n3])).toEqual({
       type: DisburseActionType.Navigate,
       search: { neuronId: '3', action: NeuronStandaloneAction.DisburseIcp },
+    });
+  });
+
+  it('returns choose with only withdrawable neurons when mixed', () => {
+    const n1 = mockNeuron(1n); // locked, no maturity
+    const n2 = mockNeuron(2n, { state: NeuronState.Dissolved });
+    const n3 = mockNeuron(3n, { maturityE8sEquivalent: 100n });
+    expect(getDisburseAction([n1, n2, n3])).toEqual({
+      type: DisburseActionType.Choose,
+      neurons: [n2, n3],
     });
   });
 });

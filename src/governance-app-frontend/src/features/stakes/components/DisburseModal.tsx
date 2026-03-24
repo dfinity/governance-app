@@ -1,6 +1,7 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { useNavigate } from '@tanstack/react-router';
-import { Coins } from 'lucide-react';
+import { ArrowLeft, Coins } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -9,85 +10,141 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
+import { E8Sn } from '@constants/extra';
+import { bigIntDiv } from '@utils/bigInt';
+import {
+  getNeuronFreeMaturityE8s,
+  getNeuronIsDissolved,
+  getNeuronStakeAfterFeesE8s,
+  shortenNeuronId,
+} from '@utils/neuron';
+import { formatNumber } from '@utils/numbers';
 
 import { NeuronStandaloneAction } from './neuronDetail';
 
 type Props = {
-  neuron: NeuronInfo;
-  showDisburseIcp: boolean;
-  showDisburseMaturity: boolean;
+  neurons: NeuronInfo[];
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-export function DisburseModal({
-  neuron,
-  showDisburseIcp,
-  showDisburseMaturity,
-  isOpen,
-  onOpenChange,
-}: Props) {
+export function DisburseModal({ neurons, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [selectedNeuron, setSelectedNeuron] = useState<NeuronInfo | null>(null);
 
-  const handleSelect = (action: NeuronStandaloneAction) => {
+  const skipNeuronStep = neurons.length === 1;
+  const currentNeuron = skipNeuronStep ? neurons[0] : selectedNeuron;
+  const showTypeStep = currentNeuron !== null;
+
+  const isDissolved = currentNeuron ? getNeuronIsDissolved(currentNeuron) : false;
+  const hasMaturity = currentNeuron ? getNeuronFreeMaturityE8s(currentNeuron) > 0n : false;
+
+  const handleSelectType = (action: NeuronStandaloneAction) => {
+    if (!currentNeuron) return;
     onOpenChange(false);
     navigate({
       to: '/neurons',
       search: {
-        neuronId: neuron.neuronId.toString(),
+        neuronId: currentNeuron.neuronId.toString(),
         action,
       },
     });
   };
 
+  const handleBack = () => setSelectedNeuron(null);
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) setSelectedNeuron(null);
+    onOpenChange(open);
+  };
+
   return (
-    <ResponsiveDialog open={isOpen} onOpenChange={onOpenChange}>
+    <ResponsiveDialog open={isOpen} onOpenChange={handleOpenChange}>
       <ResponsiveDialogContent className="flex max-h-[90vh] flex-col focus:outline-none sm:max-w-lg">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>{t(($) => $.disburseModal.title)}</ResponsiveDialogTitle>
+          <div className="relative flex items-center justify-center">
+            {showTypeStep && !skipNeuronStep && (
+              <button
+                onClick={handleBack}
+                className="absolute left-0 rounded-md p-1 hover:bg-muted"
+                aria-label={t(($) => $.common.back)}
+              >
+                <ArrowLeft className="size-5" />
+              </button>
+            )}
+            <ResponsiveDialogTitle>{t(($) => $.disburseModal.title)}</ResponsiveDialogTitle>
+          </div>
         </ResponsiveDialogHeader>
 
         <div className="flex flex-col gap-3 px-4 pb-4 md:px-0 md:pb-0">
-          <p className="text-sm text-muted-foreground">{t(($) => $.disburseModal.description)}</p>
+          {!showTypeStep ? (
+            <>
+              <p className="text-sm text-muted-foreground">
+                {t(($) => $.disburseModal.selectNeuron)}
+              </p>
+              <div className="flex flex-col gap-3">
+                {neurons.map((neuron) => {
+                  const staked = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
+                  return (
+                    <button
+                      key={String(neuron.neuronId)}
+                      className="flex w-full items-center justify-between gap-3 rounded-lg border p-4 text-left transition-colors hover:bg-muted"
+                      onClick={() => setSelectedNeuron(neuron)}
+                    >
+                      <span className="text-sm font-semibold">
+                        {shortenNeuronId(neuron.neuronId)}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        {formatNumber(staked)} {t(($) => $.common.icp)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">
+                {t(($) => $.disburseModal.description)}
+              </p>
+              <div className="flex flex-col gap-3">
+                {isDissolved && (
+                  <button
+                    className="flex w-full items-center gap-3 rounded-lg border p-4 text-left transition-colors hover:bg-muted"
+                    onClick={() => handleSelectType(NeuronStandaloneAction.DisburseIcp)}
+                  >
+                    <Coins className="size-5 shrink-0" aria-hidden="true" />
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-sm font-semibold">
+                        {t(($) => $.disburseModal.disburseIcp.title)}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {t(($) => $.disburseModal.disburseIcp.description)}
+                      </span>
+                    </div>
+                  </button>
+                )}
 
-          <div className="flex flex-col gap-3">
-            {showDisburseIcp && (
-              <button
-                type="button"
-                className="flex w-full items-center gap-3 rounded-lg border p-4 text-left transition-colors hover:bg-muted"
-                onClick={() => handleSelect(NeuronStandaloneAction.DisburseIcp)}
-              >
-                <Coins className="size-5 shrink-0" aria-hidden="true" />
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-semibold">
-                    {t(($) => $.disburseModal.disburseIcp.title)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {t(($) => $.disburseModal.disburseIcp.description)}
-                  </span>
-                </div>
-              </button>
-            )}
-
-            {showDisburseMaturity && (
-              <button
-                type="button"
-                className="flex w-full items-center gap-3 rounded-lg border p-4 text-left transition-colors hover:bg-muted"
-                onClick={() => handleSelect(NeuronStandaloneAction.DisburseMaturity)}
-              >
-                <Coins className="size-5 shrink-0" aria-hidden="true" />
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-semibold">
-                    {t(($) => $.disburseModal.disburseMaturity.title)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {t(($) => $.disburseModal.disburseMaturity.description)}
-                  </span>
-                </div>
-              </button>
-            )}
-          </div>
+                {hasMaturity && (
+                  <button
+                    className="flex w-full items-center gap-3 rounded-lg border p-4 text-left transition-colors hover:bg-muted"
+                    onClick={() => handleSelectType(NeuronStandaloneAction.DisburseMaturity)}
+                  >
+                    <Coins className="size-5 shrink-0" aria-hidden="true" />
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-sm font-semibold">
+                        {t(($) => $.disburseModal.disburseMaturity.title)}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {t(($) => $.disburseModal.disburseMaturity.description)}
+                      </span>
+                    </div>
+                  </button>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </ResponsiveDialogContent>
     </ResponsiveDialog>
