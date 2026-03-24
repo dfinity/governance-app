@@ -201,6 +201,19 @@ describe('NeuronCard', () => {
     expect(onAction).toHaveBeenCalledWith(NeuronStandaloneAction.DisburseIcp);
   });
 
+  it('hides disburse ICP button when stake is fully consumed by fees', () => {
+    render(
+      <NeuronCard
+        neuron={mockNeuron({
+          state: NeuronState.Dissolved,
+          fullNeuron: { cachedNeuronStake: BigInt(1 * E8S), neuronFees: BigInt(1 * E8S) },
+        })}
+      />,
+    );
+
+    expect(queryTestId('neuron-card-disburse-icp-btn')).toBeNull();
+  });
+
   // ─── Disburse Maturity button ────────────────────────────────
 
   it('shows disburse maturity button when neuron has unstaked maturity', () => {
