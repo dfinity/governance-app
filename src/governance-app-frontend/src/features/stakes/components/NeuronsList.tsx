@@ -4,8 +4,17 @@ import { useStakingRewards } from '@hooks/useStakingRewards';
 import { getNeuronId } from '@utils/neuron';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
+import { DisburseIcpModal } from './DisburseIcpModal';
+import { DisburseMaturityModal } from './DisburseMaturityModal';
 import { NeuronCard } from './NeuronCard';
-import { isValidNeuronDetailView, NeuronDetailModal, NeuronDetailView } from './neuronDetail';
+import {
+  isValidNeuronAction,
+  isValidNeuronDetailView,
+  NeuronDetailModal,
+  NeuronDetailView,
+  NeuronStandaloneAction,
+} from './neuronDetail';
+import { StakeMaturityModal } from './StakeMaturityModal';
 
 type Props = {
   onSelectedNeuronChange: (neuronId: bigint | undefined, action?: string) => void;
@@ -23,7 +32,12 @@ export const NeuronsList = ({
   const apyData = useStakingRewards();
 
   const selectedNeuron = neurons.find((n) => n.neuronId === selectedNeuronId) ?? null;
-  const isModalOpen = selectedNeuron !== null;
+
+  const validAction = isValidNeuronAction(selectedAction) ? selectedAction : undefined;
+  const standaloneAction = isValidNeuronDetailView(validAction) ? undefined : validAction;
+  const detailView = isValidNeuronDetailView(validAction) ? validAction : undefined;
+  const isDetailModalOpen = selectedNeuron !== null && !standaloneAction;
+  const isStandaloneModalOpen = selectedNeuron !== null && !!standaloneAction;
 
   const handleCardClick = (neuronId: bigint) => onSelectedNeuronChange(neuronId);
   const handleModalClose = (open: boolean) => !open && onSelectedNeuronChange(undefined);
@@ -51,18 +65,40 @@ export const NeuronsList = ({
                 }
               }}
             >
-              <NeuronCard neuron={neuron} apy={apy} />
+              <NeuronCard
+                neuron={neuron}
+                apy={apy}
+                onAction={(action) => onSelectedNeuronChange(neuron.neuronId, action)}
+              />
             </div>
           );
         })}
       </div>
 
       <NeuronDetailModal
-        view={isValidNeuronDetailView(selectedAction) ? selectedAction : NeuronDetailView.Summary}
+        view={detailView ?? NeuronDetailView.Summary}
         onViewChange={handleActionChange}
         onOpenChange={handleModalClose}
         neuron={selectedNeuron}
-        isOpen={isModalOpen}
+        isOpen={isDetailModalOpen}
+      />
+
+      <DisburseIcpModal
+        neuron={selectedNeuron}
+        isOpen={isStandaloneModalOpen && standaloneAction === NeuronStandaloneAction.DisburseIcp}
+        onOpenChange={handleModalClose}
+      />
+      <DisburseMaturityModal
+        neuron={selectedNeuron}
+        isOpen={
+          isStandaloneModalOpen && standaloneAction === NeuronStandaloneAction.DisburseMaturity
+        }
+        onOpenChange={handleModalClose}
+      />
+      <StakeMaturityModal
+        neuron={selectedNeuron}
+        isOpen={isStandaloneModalOpen && standaloneAction === NeuronStandaloneAction.StakeMaturity}
+        onOpenChange={handleModalClose}
       />
     </div>
   );

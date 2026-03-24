@@ -24,7 +24,7 @@ import { formatNumber } from '@utils/numbers';
 import { useDisburseNeuron } from '../hooks/useDisburseNeuron';
 
 type Props = {
-  neuron: NeuronInfo;
+  neuron: NeuronInfo | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 };
@@ -35,9 +35,10 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
   const { selectedAccountId, setSelectedAccountId, resolvedAccountId, subaccountsEnabled } =
     useAccountSelection();
 
-  const stakedAmount = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
+  const stakedAmount = neuron ? bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn) : 0;
 
   const handleConfirm = async () => {
+    if (!neuron) return;
     try {
       await mutateAsync({
         neuronId: neuron.neuronId,
