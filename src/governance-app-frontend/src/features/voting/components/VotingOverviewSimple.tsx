@@ -39,16 +39,22 @@ export function VotingOverviewSimple({
   if (hasComplexFollowing(userNeurons)) {
     return (
       <>
+        <PageHeader
+          title={t(($) => $.voting.title)}
+          description={t(($) => $.voting.description)}
+          actions={
+            <Button size="xl" className="w-full sm:w-auto" onClick={onManageFollowing}>
+              <Users />
+              {t(($) => $.voting.cta)}
+            </Button>
+          }
+        />
         <Alert variant="warning">
           <AlertTitle className="font-semibold">
             {t(($) => $.voting.warnings.followingMismatchTitle)}
           </AlertTitle>
           <AlertDescription>{t(($) => $.voting.warnings.followingMismatch)}</AlertDescription>
         </Alert>
-        <Button size="xl" className="w-full sm:w-auto" onClick={onManageFollowing}>
-          <Users />
-          {t(($) => $.voting.cta)}
-        </Button>
       </>
     );
   }
