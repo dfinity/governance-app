@@ -38,33 +38,39 @@ describe('getDisburseAction', () => {
     expect(getDisburseAction(neurons)).toEqual({ type: DisburseActionType.Disabled });
   });
 
-  it('returns navigate without search when multiple neurons are withdrawable', () => {
+  it('returns navigate without params when multiple neurons are withdrawable', () => {
     const neurons = [
       mockNeuron(1n, { state: NeuronState.Dissolved }),
       mockNeuron(2n, { maturityE8sEquivalent: 100n }),
     ];
-    expect(getDisburseAction(neurons)).toEqual({ type: DisburseActionType.Navigate, search: {} });
+    expect(getDisburseAction(neurons)).toEqual({
+      type: DisburseActionType.Navigate,
+      search: {},
+    });
   });
 
-  it('returns disburseIcp when single neuron is dissolved without maturity', () => {
+  it('returns navigate with disburseIcp when single neuron is dissolved without maturity', () => {
     const neurons = [mockNeuron(1n, { state: NeuronState.Dissolved })];
     expect(getDisburseAction(neurons)).toEqual({
-      type: 'navigate',
+      type: DisburseActionType.Navigate,
       search: { neuronId: '1', action: NeuronStandaloneAction.DisburseIcp },
     });
   });
 
-  it('returns disburseMaturity when single neuron has maturity but is not dissolved', () => {
+  it('returns navigate with disburseMaturity when single neuron has maturity but is not dissolved', () => {
     const neurons = [mockNeuron(1n, { maturityE8sEquivalent: 100n })];
     expect(getDisburseAction(neurons)).toEqual({
-      type: 'navigate',
+      type: DisburseActionType.Navigate,
       search: { neuronId: '1', action: NeuronStandaloneAction.DisburseMaturity },
     });
   });
 
   it('returns choose when single neuron is dissolved and has maturity', () => {
     const neuron = mockNeuron(1n, { state: NeuronState.Dissolved, maturityE8sEquivalent: 100n });
-    expect(getDisburseAction([neuron])).toEqual({ type: DisburseActionType.Choose, neuron });
+    expect(getDisburseAction([neuron])).toEqual({
+      type: DisburseActionType.Choose,
+      neuron,
+    });
   });
 
   it('ignores non-withdrawable neurons when counting', () => {
@@ -74,7 +80,7 @@ describe('getDisburseAction', () => {
       mockNeuron(3n, { state: NeuronState.Dissolved }),
     ];
     expect(getDisburseAction(neurons)).toEqual({
-      type: 'navigate',
+      type: DisburseActionType.Navigate,
       search: { neuronId: '3', action: NeuronStandaloneAction.DisburseIcp },
     });
   });

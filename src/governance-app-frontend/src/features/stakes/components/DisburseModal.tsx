@@ -54,6 +54,7 @@ export function DisburseModal({
           <div className="flex flex-col gap-3">
             {showDisburseIcp && (
               <button
+                type="button"
                 className="flex w-full items-center gap-3 rounded-lg border p-4 text-left transition-colors hover:bg-muted"
                 onClick={() => handleSelect(NeuronStandaloneAction.DisburseIcp)}
               >
@@ -71,6 +72,7 @@ export function DisburseModal({
 
             {showDisburseMaturity && (
               <button
+                type="button"
                 className="flex w-full items-center gap-3 rounded-lg border p-4 text-left transition-colors hover:bg-muted"
                 onClick={() => handleSelect(NeuronStandaloneAction.DisburseMaturity)}
               >
