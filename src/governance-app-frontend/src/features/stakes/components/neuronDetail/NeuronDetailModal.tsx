@@ -11,7 +11,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
-import { IS_TESTNET } from '@constants/extra';
+import { DIALOG_RESET_DELAY_MS, IS_TESTNET } from '@constants/extra';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import {
   getNeuronId,
@@ -58,7 +58,7 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
       const timer = setTimeout(() => {
         neuronRef.current = null;
         viewRef.current = NeuronDetailView.Summary;
-      }, 300);
+      }, DIALOG_RESET_DELAY_MS);
       return () => clearTimeout(timer);
     }
   }, [neuron, view, isOpen]);

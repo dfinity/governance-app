@@ -1,4 +1,4 @@
-import { Layers, type LucideIcon } from 'lucide-react';
+import { Layers, type LucideIcon, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Switch } from '@components/Switch';
@@ -11,7 +11,10 @@ type FeatureDefinition = {
   icon: LucideIcon;
 };
 
-const FEATURES: FeatureDefinition[] = [{ key: AdvancedFeature.Subaccounts, icon: Layers }];
+const FEATURES: FeatureDefinition[] = [
+  { key: AdvancedFeature.Subaccounts, icon: Layers },
+  { key: AdvancedFeature.AdvancedFollowing, icon: Users },
+];
 
 export const AdvancedFeaturesCard = () => {
   const { t } = useTranslation();
@@ -48,6 +51,7 @@ export const AdvancedFeaturesCard = () => {
             }}
             aria-label={t(($) => $.userAccount.advancedFeatures.items[key].aria.toggle)}
             className="shrink-0"
+            data-testid={`advanced-feature-toggle-${key}`}
           />
         </div>
       ))}

@@ -1,6 +1,8 @@
 import { type NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
 
+import { FOLLOWABLE_TOPIC_SET } from '@features/voting/utils/topicFollowing';
+
 import { E8Sn, ICP_TRANSACTION_FEE_E8Sn, SECONDS_IN_EIGHT_YEARS } from '@constants/extra';
 import { bigIntDiv, bigIntMax } from '@utils/bigInt';
 import { nowInSeconds } from '@utils/date';
@@ -209,7 +211,9 @@ export const getNeuronHasNoFollowing = (neuron: NeuronInfo): boolean => {
 
   if (followees.length === 0) return true;
 
-  return followees.every((topicFollowees) => topicFollowees.followees.length === 0);
+  return followees
+    .filter((f) => FOLLOWABLE_TOPIC_SET.has(f.topic))
+    .every((topicFollowees) => topicFollowees.followees.length === 0);
 };
 
 /**

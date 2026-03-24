@@ -1,7 +1,15 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
+import { Link } from '@tanstack/react-router';
 import { Clock, Key, Lock, PlusCircle, Settings, Unlock, Wrench } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import {
+  getFollowableTopicFolloweesMap,
+  getSingleUniformFollowee,
+  resolveFolloweeNames,
+} from '@features/voting/utils/topicFollowing';
 
 import { Button } from '@components/button';
 import { CopyButton } from '@components/CopyButton';
@@ -10,8 +18,11 @@ import { Skeleton } from '@components/Skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
+import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
+import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useApyColor } from '@hooks/useApyColor';
+import { AdvancedFeature } from '@typings/advancedFeatures';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatTimestampToLocalDate } from '@utils/date';
 import {
@@ -24,6 +35,7 @@ import { formatNumber, formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
 import { NeuronStateBadge } from '../NeuronStateBadge';
+import { NeuronDetailFollowingDialog } from './NeuronDetailFollowingDialog';
 import { NeuronDetailView } from './types';
 
 type Props = {
@@ -65,6 +77,22 @@ export function NeuronDetailSummaryView({
   });
 
   const creationDate = formatTimestampToLocalDate(neuron.fullNeuron?.createdTimestampSeconds);
+
+  const { features } = useAdvancedFeatures();
+  const isAdvancedFollowing = features[AdvancedFeature.AdvancedFollowing];
+
+  const knownNeuronsQuery = useGovernanceKnownNeurons();
+  const knownNeurons = knownNeuronsQuery.data?.response ?? [];
+
+  const followeesMap = getFollowableTopicFolloweesMap(neuron);
+  const hasFollowees = Array.from(followeesMap.values()).some((ids) => ids.length > 0);
+
+  const uniformFollowee = getSingleUniformFollowee(followeesMap);
+  const followeeName = uniformFollowee
+    ? resolveFolloweeNames([uniformFollowee], knownNeurons)[0]
+    : undefined;
+
+  const [followingDialogOpen, setFollowingDialogOpen] = useState(false);
 
   return (
     <div className="flex flex-col gap-4">
@@ -163,14 +191,48 @@ export function NeuronDetailSummaryView({
 
         <InfoRow
           label={t(($) => $.neuron.maturityMode)}
-          isLast
+          isLast={!isAdvancedFollowing}
           dataTestId="neuron-detail-maturity-mode"
         >
           <span className="font-semibold">
             {isAutoStake ? t(($) => $.neuron.autoStake) : t(($) => $.neuron.keepLiquid)}
           </span>
         </InfoRow>
+
+        {isAdvancedFollowing && (
+          <InfoRow label={t(($) => $.neuron.following)} isLast dataTestId="neuron-detail-following">
+            {knownNeuronsQuery.isLoading ? (
+              <Skeleton className="h-5 w-24" />
+            ) : !hasFollowees ? (
+              <Link
+                to="/voting"
+                search={{ manageFollowing: true }}
+                className="font-semibold text-primary hover:underline"
+              >
+                {t(($) => $.neuron.followingNotSet)}
+              </Link>
+            ) : uniformFollowee ? (
+              <span className="max-w-[160px] truncate font-semibold">{followeeName}</span>
+            ) : (
+              <button
+                className="font-semibold text-primary hover:underline"
+                onClick={() => setFollowingDialogOpen(true)}
+              >
+                {t(($) => $.neuron.followingViewDetails)}
+              </button>
+            )}
+          </InfoRow>
+        )}
       </div>
+
+      {isAdvancedFollowing && (
+        <NeuronDetailFollowingDialog
+          open={followingDialogOpen}
+          onOpenChange={setFollowingDialogOpen}
+          neuron={neuron}
+          knownNeurons={knownNeurons}
+        />
+      )}
 
       {/* Quick Actions Grid */}
       <div className="grid grid-cols-2 gap-4">

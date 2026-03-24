@@ -1,11 +1,13 @@
-import { Topic } from '@icp-sdk/canisters/nns';
-import { nonNullish, nowInBigIntNanoSeconds } from '@dfinity/utils';
+import { nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { getUsersFollowedNeurons, isKnownNeuron } from '@features/voting/utils/findFollowedNeuron';
+import {
+  buildAdvancedTopicFollowing,
+  getConsistentTopicFollowees,
+} from '@features/voting/utils/topicFollowing';
 
 import { E8Sn, ICP_TRANSACTION_FEE_E8Sn, SECONDS_IN_MONTH } from '@constants/extra';
 import { useNnsGovernance } from '@hooks/governance';
@@ -118,7 +120,7 @@ export function useCreateNeuron(params: Props) {
         setCurrentStep(step);
       }
 
-      // Step 5: Set following automatically (if all existing neurons follow the same single neuron)
+      // Step 5: Set following automatically
       if (step === StakingWizardCreateNeuronStep.SetFollowing) {
         const userNeurons = await governanceCanister.listNeurons({
           includeEmptyNeurons: true,
@@ -129,25 +131,10 @@ export function useCreateNeuron(params: Props) {
         const otherNeurons = userNeurons.filter((n) => n.neuronId !== neuronId);
 
         if (otherNeurons.length > 0) {
-          // Check if all existing neurons follow the same single neuron
-          const followedNeurons = getUsersFollowedNeurons({
-            userNeurons: otherNeurons,
-            knownNeurons: [],
-          });
-
-          if (followedNeurons.length === 1 && nonNullish(followedNeurons[0])) {
-            const followeeId = isKnownNeuron(followedNeurons[0])
-              ? followedNeurons[0].id
-              : followedNeurons[0];
-
-            await governanceCanister.setFollowing({
-              neuronId,
-              topicFollowing: [
-                { topic: Topic.Unspecified, followees: [followeeId] },
-                { topic: Topic.Governance, followees: [followeeId] },
-                { topic: Topic.SnsAndCommunityFund, followees: [followeeId] },
-              ],
-            });
+          const consistentFollowees = getConsistentTopicFollowees(otherNeurons);
+          if (consistentFollowees) {
+            const topicFollowing = buildAdvancedTopicFollowing(consistentFollowees);
+            await governanceCanister.setFollowing({ neuronId, topicFollowing });
           }
         }
 

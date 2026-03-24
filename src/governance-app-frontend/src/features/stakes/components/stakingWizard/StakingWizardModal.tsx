@@ -27,6 +27,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
+import { DIALOG_RESET_DELAY_MS } from '@constants/extra';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { mapCanisterError } from '@utils/errors';
 import { formatPercentage } from '@utils/numbers';
@@ -108,7 +109,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
         createNeuron.reset();
         setShowCloseConfirmation(false);
         setIsCloseConfirmed(false);
-      }, 300);
+      }, DIALOG_RESET_DELAY_MS);
       return () => clearTimeout(timer);
     }
   }, [isOpen, createNeuron]);

@@ -71,6 +71,17 @@
         "enabledDescription": "Accounts are now visible and editable.",
         "disabled": "Accounts disabled",
         "disabledDescription": "Accounts related features are now hidden."
+      },
+      "advancedFollowing": {
+        "label": "Advanced following",
+        "description": "Follow different known neurons per topic across all your neurons.",
+        "aria": {
+          "toggle": "Toggle advanced following feature"
+        },
+        "enabled": "Advanced following enabled",
+        "enabledDescription": "Per-topic following configuration is now available.",
+        "disabled": "Advanced following disabled",
+        "disabledDescription": "Per-topic following management is now hidden. Your existing following configuration is preserved."
       }
     }
   },

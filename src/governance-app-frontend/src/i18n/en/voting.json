@@ -21,9 +21,99 @@
   "warnings": {
     "stakeRequired": "You need at least one neuron to follow a known neuron. Please lock ICP first.",
     "followingMismatchTitle": "Voting setup",
-    "followingMismatch": "Your neurons follow multiple known neurons across different topics, so a single known neuron card can't be shown yet."
+    "followingMismatch": "Your neurons follow different neurons across topics. Enable advanced following in settings to manage per-topic configuration."
   },
   "errors": {
     "loadFollowing": "Unable to load following data. Please try refreshing the page."
+  },
+  "overview": {
+    "title": "Following",
+    "description": "Your neurons follow known neurons by topic. Manage which neurons vote on your behalf for each category.",
+    "cta": "Manage following",
+    "allCovered": "All {{total}} topics covered with following",
+    "someCovered": "{{count}} of {{total}} topics covered",
+    "noneCovered": "No topics configured with following",
+    "individualCoverage": "{{count}}/{{total}} covered",
+    "noFollowing": "Not configured",
+    "inconsistent": {
+      "title": "Inconsistent following",
+      "subtitle": "Your neurons have different following configurations. Use Manage following to apply a unified setup.",
+      "body": "Each neuron currently follows different neurons across topics. You can override this by setting up a new configuration."
+    },
+    "noNeurons": {
+      "title": "Set up following",
+      "body": "Follow known neurons by topic to automate voting and mint rewards for your neurons.",
+      "cta": "Manage following"
+    }
+  },
+  "manageFollowing": {
+    "title": "Manage following",
+    "description": "Configure which neurons vote on your behalf for each topic. Changes apply to all your neurons.",
+    "setFollowees": "Set followees",
+    "noFollowees": "No followees set",
+    "noCatchAll": "No catch-all set",
+    "remove": "Remove",
+    "inherited": "inherited",
+    "removingFollowee": "Updating following configuration...",
+    "removeConfirm": "Remove {{name}} from this topic's following? This will apply to all your neurons.",
+    "removeSuccess": "Following updated successfully.",
+    "mixed": "Mixed",
+    "followeesCount": "{{count}} set",
+    "removeError": "Failed to update following.",
+    "retryRemove": "Retry",
+    "certifying": "Certifying data...",
+    "clearAllFollowing": "Clear all following",
+    "clearAllConfirm": "This will remove all followees from every topic for all your neurons. You can set up new following afterwards.",
+    "clearAllAction": "Clear all",
+    "clearAllProcessing": "Clearing all following...",
+    "clearAllSuccess": "All following has been cleared."
+  },
+  "picker": {
+    "selectNeurons": "Select neurons",
+    "selectNeuronsDesc": "Choose one or more neurons to follow. You can also add custom neuron IDs.",
+    "searchPlaceholder": "Search neurons...",
+    "addCustomPlaceholder": "Enter neuron ID",
+    "invalidNeuronId": "Invalid neuron ID",
+    "duplicateNeuronId": "Already selected",
+    "noResults": "No neurons match your search.",
+    "next": "Next: {{count}} neurons selected",
+    "selectTopics": "Select topics",
+    "selectTopicsDesc": "Choose which topics to apply the selected neurons to.",
+    "individualTopicsHint": "Individual topics inherit from \"All Other Topics\" if not explicitly set.",
+    "individualTopics": "Individual topics",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
+    "applyToTopics": "Apply to {{count}} topics",
+    "confirm": {
+      "title": "Confirm changes",
+      "description": "This will update following for all your neurons. Selected neurons will be added to the chosen topics.",
+      "overrideDescription": "Your neurons currently have different following configurations. This will replace all existing following with the new setup for every neuron."
+    },
+    "processing": "Updating following configuration...",
+    "success": "Following updated successfully.",
+    "error": "Failed to update following.",
+    "retry": "Retry"
+  },
+  "topics": {
+    "governance": "Governance",
+    "governanceDesc": "Proposals that represent community polls or other forms of community opinion but don't have any immediate effect in terms of code changes.",
+    "snsNeuronsFund": "SNS & Neurons' Fund",
+    "snsNeuronsFundDesc": "Proposals related to SNS and Neurons' Fund.",
+    "allExcept": "All Other Topics",
+    "allExceptDesc": "Follow neurons on all proposal topics except Governance and SNS & Neurons' Fund.",
+    "apiBoundaryNode": "API Boundary Node Management",
+    "applicationCanister": "Application Canister Management",
+    "exchangeRate": "Exchange Rate",
+    "icOsDeployment": "IC OS Version Deployment",
+    "icOsElection": "IC OS Version Election",
+    "kyc": "KYC",
+    "networkEconomics": "Network Economics",
+    "nodeAdmin": "Node Admin",
+    "nodeProviderRewards": "Node Provider Rewards",
+    "participantManagement": "Participant Management",
+    "protocolCanister": "Protocol Canister Management",
+    "snsManagement": "Service Nervous System Management",
+    "subnetManagement": "Subnet Management",
+    "subnetRental": "Subnet Rental"
   }
 }

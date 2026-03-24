@@ -16,7 +16,6 @@ import { Route as AuthSettingsIndexRouteImport } from './routes/_auth/settings/i
 import { Route as AuthNeuronsIndexRouteImport } from './routes/_auth/neurons/index'
 import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
 import { Route as AuthAccountsIndexRouteImport } from './routes/_auth/accounts/index'
-import { Route as AuthVotingKnownNeuronsIndexRouteImport } from './routes/_auth/voting/known-neurons/index'
 import { Route as AuthVotingProposalsIdIndexRouteImport } from './routes/_auth/voting/proposals/$id/index'
 
 const AuthRoute = AuthRouteImport.update({
@@ -53,12 +52,6 @@ const AuthAccountsIndexRoute = AuthAccountsIndexRouteImport.update({
   path: '/accounts/',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthVotingKnownNeuronsIndexRoute =
-  AuthVotingKnownNeuronsIndexRouteImport.update({
-    id: '/voting/known-neurons/',
-    path: '/voting/known-neurons/',
-    getParentRoute: () => AuthRoute,
-  } as any)
 const AuthVotingProposalsIdIndexRoute =
   AuthVotingProposalsIdIndexRouteImport.update({
     id: '/voting/proposals/$id/',
@@ -73,7 +66,6 @@ export interface FileRoutesByFullPath {
   '/neurons/': typeof AuthNeuronsIndexRoute
   '/settings/': typeof AuthSettingsIndexRoute
   '/voting/': typeof AuthVotingIndexRoute
-  '/voting/known-neurons/': typeof AuthVotingKnownNeuronsIndexRoute
   '/voting/proposals/$id/': typeof AuthVotingProposalsIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -83,7 +75,6 @@ export interface FileRoutesByTo {
   '/neurons': typeof AuthNeuronsIndexRoute
   '/settings': typeof AuthSettingsIndexRoute
   '/voting': typeof AuthVotingIndexRoute
-  '/voting/known-neurons': typeof AuthVotingKnownNeuronsIndexRoute
   '/voting/proposals/$id': typeof AuthVotingProposalsIdIndexRoute
 }
 export interface FileRoutesById {
@@ -95,7 +86,6 @@ export interface FileRoutesById {
   '/_auth/neurons/': typeof AuthNeuronsIndexRoute
   '/_auth/settings/': typeof AuthSettingsIndexRoute
   '/_auth/voting/': typeof AuthVotingIndexRoute
-  '/_auth/voting/known-neurons/': typeof AuthVotingKnownNeuronsIndexRoute
   '/_auth/voting/proposals/$id/': typeof AuthVotingProposalsIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -107,7 +97,6 @@ export interface FileRouteTypes {
     | '/neurons/'
     | '/settings/'
     | '/voting/'
-    | '/voting/known-neurons/'
     | '/voting/proposals/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -117,7 +106,6 @@ export interface FileRouteTypes {
     | '/neurons'
     | '/settings'
     | '/voting'
-    | '/voting/known-neurons'
     | '/voting/proposals/$id'
   id:
     | '__root__'
@@ -128,7 +116,6 @@ export interface FileRouteTypes {
     | '/_auth/neurons/'
     | '/_auth/settings/'
     | '/_auth/voting/'
-    | '/_auth/voting/known-neurons/'
     | '/_auth/voting/proposals/$id/'
   fileRoutesById: FileRoutesById
 }
@@ -188,13 +175,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthAccountsIndexRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/voting/known-neurons/': {
-      id: '/_auth/voting/known-neurons/'
-      path: '/voting/known-neurons'
-      fullPath: '/voting/known-neurons/'
-      preLoaderRoute: typeof AuthVotingKnownNeuronsIndexRouteImport
-      parentRoute: typeof AuthRoute
-    }
     '/_auth/voting/proposals/$id/': {
       id: '/_auth/voting/proposals/$id/'
       path: '/voting/proposals/$id'
@@ -211,7 +191,6 @@ interface AuthRouteChildren {
   AuthNeuronsIndexRoute: typeof AuthNeuronsIndexRoute
   AuthSettingsIndexRoute: typeof AuthSettingsIndexRoute
   AuthVotingIndexRoute: typeof AuthVotingIndexRoute
-  AuthVotingKnownNeuronsIndexRoute: typeof AuthVotingKnownNeuronsIndexRoute
   AuthVotingProposalsIdIndexRoute: typeof AuthVotingProposalsIdIndexRoute
 }
 
@@ -221,7 +200,6 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthNeuronsIndexRoute: AuthNeuronsIndexRoute,
   AuthSettingsIndexRoute: AuthSettingsIndexRoute,
   AuthVotingIndexRoute: AuthVotingIndexRoute,
-  AuthVotingKnownNeuronsIndexRoute: AuthVotingKnownNeuronsIndexRoute,
   AuthVotingProposalsIdIndexRoute: AuthVotingProposalsIdIndexRoute,
 }
 

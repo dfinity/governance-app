@@ -1,9 +1,19 @@
 import type { KnownNeuron } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
-import { ChevronDown, ChevronUp, Circle, CircleDot, LinkIcon, Loader2 } from 'lucide-react';
+import {
+  CheckSquare2,
+  ChevronDown,
+  ChevronUp,
+  Circle,
+  CircleDot,
+  LinkIcon,
+  Loader2,
+  Square,
+} from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnimatedCollapse } from '@components/AnimatedCollapse';
 import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card } from '@components/Card';
@@ -16,11 +26,19 @@ type Props = {
   isDisabled: boolean;
   isLoading?: boolean;
   isSelected: boolean;
+  mode?: 'radio' | 'checkbox';
   neuron: KnownNeuron;
   onSelect: (neuron: KnownNeuron) => void;
 };
 
-export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled, isLoading }: Props) => {
+export const KnownNeuronCard = ({
+  neuron,
+  isSelected,
+  onSelect,
+  isDisabled,
+  isLoading,
+  mode = 'radio',
+}: Props) => {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -39,9 +57,12 @@ export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled, isLo
   return (
     <Card
       className={cn(
-        'h-auto cursor-pointer border-2 p-0 transition-all',
-        isSelected && 'border-muted-foreground',
-        isDisabled ? 'cursor-not-allowed opacity-50' : 'hover:border-muted-foreground',
+        'h-auto cursor-pointer p-0 shadow-none transition-all',
+        mode === 'radio' && 'border-2',
+        mode === 'checkbox' && 'rounded-none border-0',
+        isSelected && mode === 'radio' && 'border-muted-foreground',
+        isSelected && mode === 'checkbox' && 'bg-muted/30',
+        isDisabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-muted/50',
       )}
       aria-disabled={isDisabled}
       role="button"
@@ -51,6 +72,12 @@ export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled, isLo
         <div className="flex shrink-0 items-center self-start py-5 pl-5">
           {isLoading ? (
             <Loader2 className="size-6 animate-spin" />
+          ) : mode === 'checkbox' ? (
+            isSelected ? (
+              <CheckSquare2 className="size-6 text-primary" />
+            ) : (
+              <Square className="size-6 text-muted-foreground" />
+            )
           ) : isSelected ? (
             <CircleDot className="size-6 stroke-[3px]" />
           ) : (
@@ -59,18 +86,28 @@ export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled, isLo
         </div>
 
         <div className="flex min-w-0 grow-1 flex-col">
-          <div className="flex grow items-center justify-between">
-            <div className="flex flex-col gap-1 py-5">
-              <h4 className="leading-none font-semibold">{neuron.name}</h4>
+          <div className="flex items-center justify-between">
+            <div className="flex min-h-16 flex-col justify-center gap-1 py-5">
+              <h4 className={cn('leading-none', mode === 'radio' ? 'font-semibold' : 'text-sm')}>
+                {neuron.name}
+              </h4>
             </div>
 
-            <Button variant="ghost" onClick={toggleExpanded} className="h-full min-w-20 rounded-xl">
-              {isExpanded ? <ChevronUp className="size-6" /> : <ChevronDown className="size-6" />}
+            <Button
+              variant="ghost"
+              onClick={toggleExpanded}
+              className={cn('min-w-20', mode === 'radio' ? 'rounded-xl' : 'rounded-none')}
+            >
+              {isExpanded ? (
+                <ChevronUp className={'size-5'} />
+              ) : (
+                <ChevronDown className={'size-5'} />
+              )}
             </Button>
           </div>
 
-          {isExpanded && (
-            <div className="animate-in pr-4 pb-4 text-sm text-pretty text-muted-foreground fade-in slide-in-from-top-1 lg:pr-12">
+          <AnimatedCollapse open={isExpanded}>
+            <div className="pr-4 pb-4 text-sm text-pretty text-muted-foreground lg:pr-12">
               <div className="flex flex-col gap-3">
                 <div className="flex flex-wrap items-center gap-2">
                   {links.map(({ href, hostname }) => (
@@ -94,7 +131,6 @@ export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled, isLo
                   ))}
                 </div>
 
-                {/*Commited Topics*/}
                 {committedTopics.length > 0 && (
                   <div className="flex flex-wrap items-center gap-2 text-sm">
                     {committedTopics.map((topic) => (
@@ -113,7 +149,7 @@ export const KnownNeuronCard = ({ neuron, isSelected, onSelect, isDisabled, isLo
                 )}
               </div>
             </div>
-          )}
+          </AnimatedCollapse>
         </div>
       </div>
     </Card>
