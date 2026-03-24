@@ -7,8 +7,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { E8S } from '@constants/extra';
 
-import { NeuronStandaloneAction } from './neuronDetail';
 import { NeuronCard } from './NeuronCard';
+import { NeuronStandaloneAction } from './neuronDetail';
 
 // ─── Module mocks ────────────────────────────────────────────────
 
@@ -119,7 +119,9 @@ const mockNeuron = (
     ageSeconds: 0n,
     visibility: undefined,
     fullNeuron:
-      'fullNeuron' in overrides && isNullish(fullNeuron) ? undefined : mockFullNeuron(fullNeuron ?? {}),
+      'fullNeuron' in overrides && isNullish(fullNeuron)
+        ? undefined
+        : mockFullNeuron(fullNeuron ?? {}),
     ...rest,
   };
 };
@@ -249,9 +251,7 @@ describe('NeuronCard', () => {
   });
 
   it('hides disburse maturity button when neuron has no unstaked maturity', () => {
-    render(
-      <NeuronCard neuron={mockNeuron({ fullNeuron: { maturityE8sEquivalent: 0n } })} />,
-    );
+    render(<NeuronCard neuron={mockNeuron({ fullNeuron: { maturityE8sEquivalent: 0n } })} />);
 
     expect(queryTestId('neuron-card-disburse-maturity-btn')).toBeNull();
   });
