@@ -38,6 +38,7 @@
   "restrictedPage": "You need to be logged in to access this page.",
   "sending": "Sending ...",
   "withdraw": "Withdraw",
+  "disburse": "Disburse",
   "send": "Send",
   "receive": "Receive",
   "stakeIcp": "Create neuron",

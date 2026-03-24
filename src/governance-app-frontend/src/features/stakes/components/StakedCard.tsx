@@ -1,8 +1,11 @@
 import { Link } from '@tanstack/react-router';
 import { Coins, TrendingUp } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ApyOptimizationModal } from '@features/stakes/components/ApyOptimizationModal';
+import { DisburseModal } from '@features/stakes/components/DisburseModal';
+import { DisburseActionType, getDisburseAction } from '@features/stakes/utils/getDisburseAction';
 
 import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Badge } from '@components/badge';
@@ -49,6 +52,9 @@ export function StakedCard() {
   const neuronCount = neurons.length;
 
   const { totalStakedAfterFees: totalStaked, totalMaturity } = getNeuronsAggregatedData(neurons);
+
+  const disburseAction = getDisburseAction(neurons);
+  const [disburseModalOpen, setDisburseModalOpen] = useState(false);
 
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const usdValue = icpPrice ? formatNumber(totalStaked * icpPrice.usd) : '-';
@@ -158,11 +164,52 @@ export function StakedCard() {
             </Link>
           </Button>
 
-          <Button size="xl" variant="outline" className="flex-1" disabled>
-            <Coins /> {t(($) => $.common.withdraw)}
-          </Button>
+          {disburseAction.type === DisburseActionType.Choose ? (
+            <Button
+              size="xl"
+              variant="outline"
+              className="flex-1"
+              disabled={neuronsQuery.isLoading}
+              onClick={() => setDisburseModalOpen(true)}
+            >
+              <Coins aria-hidden="true" />
+              {t(($) => $.common.disburse)}
+            </Button>
+          ) : (
+            <Button
+              size="xl"
+              variant="outline"
+              className="flex-1"
+              asChild={disburseAction.type === DisburseActionType.Navigate}
+              disabled={
+                neuronsQuery.isLoading || disburseAction.type === DisburseActionType.Disabled
+              }
+            >
+              {disburseAction.type === DisburseActionType.Navigate ? (
+                <Link to="/neurons" search={disburseAction.search}>
+                  <Coins aria-hidden="true" />
+                  {t(($) => $.common.disburse)}
+                </Link>
+              ) : (
+                <>
+                  <Coins aria-hidden="true" />
+                  {t(($) => $.common.disburse)}
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </CardContent>
+
+      {disburseAction.type === DisburseActionType.Choose && (
+        <DisburseModal
+          neuron={disburseAction.neuron}
+          showDisburseIcp
+          showDisburseMaturity
+          isOpen={disburseModalOpen}
+          onOpenChange={setDisburseModalOpen}
+        />
+      )}
     </Card>
   );
 }
