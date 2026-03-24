@@ -12,10 +12,3 @@ export const getPrincipalFromString = (address: string): Principal | undefined =
     return undefined;
   }
 };
-
-const PRINCIPAL_TRUNCATE_LENGTH = 5;
-
-export const truncatePrincipal = (principal: string) => {
-  if (principal.length <= PRINCIPAL_TRUNCATE_LENGTH * 2 + 3) return principal;
-  return `${principal.slice(0, PRINCIPAL_TRUNCATE_LENGTH)}...${principal.slice(-PRINCIPAL_TRUNCATE_LENGTH)}`;
-};

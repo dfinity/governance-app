@@ -3,9 +3,10 @@ import { useInternetIdentity } from 'ic-use-internet-identity';
 import { LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { useLogout } from '@hooks/useLogout';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
-import { truncatePrincipal } from '@utils/principal';
+import { shortenId } from '@utils/id';
 
 export const UserMenu = () => {
   const { identity } = useInternetIdentity();
@@ -19,7 +20,7 @@ export const UserMenu = () => {
     <div className="flex items-center gap-2 px-3 py-2.5">
       <div className="min-w-0 flex-1">
         {nonNullish(principal) && (
-          <p className="truncate text-sm font-medium">{truncatePrincipal(principal)}</p>
+          <p className="truncate text-sm font-medium">{shortenId(principal, 5)}</p>
         )}
         {nonNullish(timeLeft) && (
           <p className="text-xs text-muted-foreground">
@@ -27,16 +28,20 @@ export const UserMenu = () => {
           </p>
         )}
       </div>
-      <button
-        type="button"
-        onClick={logout}
-        className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors outline-none hover:bg-destructive/15 hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-destructive-foreground"
-        aria-label={t(($) => $.common.logout)}
-        title={t(($) => $.common.logout)}
-        data-testid="user-menu-logout"
-      >
-        <LogOut className="size-4" />
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            onClick={logout}
+            className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors outline-none hover:bg-destructive/15 hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-destructive-foreground"
+            aria-label={t(($) => $.common.logout)}
+            data-testid="user-menu-logout"
+          >
+            <LogOut className="size-4" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="top">{t(($) => $.common.logout)}</TooltipContent>
+      </Tooltip>
     </div>
   );
 };
