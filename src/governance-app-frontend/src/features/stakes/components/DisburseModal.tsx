@@ -4,6 +4,7 @@ import { ArrowLeft, Coins } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Badge } from '@components/badge';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -112,16 +113,16 @@ export function DisburseModal({ neurons, isOpen, onOpenChange }: Props) {
                         <span className="text-sm font-semibold">
                           {t(($) => $.disburseModal.neuronLabel)} {shortenNeuronId(neuron.neuronId)}
                         </span>
-                        <div className="flex gap-3 text-xs text-muted-foreground">
+                        <div className="flex gap-2">
                           {dissolved && (
-                            <span>
+                            <Badge variant="outline">
                               {formatNumber(staked)} {t(($) => $.common.icp)}
-                            </span>
+                            </Badge>
                           )}
                           {maturity > 0 && (
-                            <span>
+                            <Badge variant="outline">
                               {formatNumber(maturity)} {t(($) => $.disburseModal.maturityLabel)}
-                            </span>
+                            </Badge>
                           )}
                         </div>
                       </div>
