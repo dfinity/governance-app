@@ -20,7 +20,7 @@ import { formatNumber } from '@utils/numbers';
 import { useStakeMaturity } from '../hooks/useStakeMaturity';
 
 type Props = {
-  neuron: NeuronInfo;
+  neuron: NeuronInfo | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 };
@@ -29,9 +29,10 @@ export function StakeMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation();
   const { mutateAsync, isPending } = useStakeMaturity();
 
-  const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
+  const unstakedMaturity = neuron ? bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn) : 0;
 
   const handleConfirm = async () => {
+    if (!neuron) return;
     try {
       await mutateAsync({ neuronId: neuron.neuronId });
       successNotification({

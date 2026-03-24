@@ -1,5 +1,4 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { useEffect, useRef } from 'react';
 
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { getNeuronId } from '@utils/neuron';
@@ -33,13 +32,6 @@ export const NeuronsList = ({
   const apyData = useStakingRewards();
 
   const selectedNeuron = neurons.find((n) => n.neuronId === selectedNeuronId) ?? null;
-
-  // Keep last neuron in a ref so standalone modals stay mounted during close animation
-  const lastNeuronRef = useRef<NeuronInfo | null>(null);
-  useEffect(() => {
-    if (selectedNeuron) lastNeuronRef.current = selectedNeuron;
-  }, [selectedNeuron]);
-  const displayNeuron = selectedNeuron ?? lastNeuronRef.current;
 
   const validAction = isValidNeuronAction(selectedAction) ? selectedAction : undefined;
   const standaloneAction = isValidNeuronDetailView(validAction) ? undefined : validAction;
@@ -91,31 +83,23 @@ export const NeuronsList = ({
         isOpen={isDetailModalOpen}
       />
 
-      {displayNeuron && (
-        <>
-          <DisburseIcpModal
-            neuron={displayNeuron}
-            isOpen={
-              isStandaloneModalOpen && standaloneAction === NeuronStandaloneAction.DisburseIcp
-            }
-            onOpenChange={handleModalClose}
-          />
-          <DisburseMaturityModal
-            neuron={displayNeuron}
-            isOpen={
-              isStandaloneModalOpen && standaloneAction === NeuronStandaloneAction.DisburseMaturity
-            }
-            onOpenChange={handleModalClose}
-          />
-          <StakeMaturityModal
-            neuron={displayNeuron}
-            isOpen={
-              isStandaloneModalOpen && standaloneAction === NeuronStandaloneAction.StakeMaturity
-            }
-            onOpenChange={handleModalClose}
-          />
-        </>
-      )}
+      <DisburseIcpModal
+        neuron={selectedNeuron}
+        isOpen={isStandaloneModalOpen && standaloneAction === NeuronStandaloneAction.DisburseIcp}
+        onOpenChange={handleModalClose}
+      />
+      <DisburseMaturityModal
+        neuron={selectedNeuron}
+        isOpen={
+          isStandaloneModalOpen && standaloneAction === NeuronStandaloneAction.DisburseMaturity
+        }
+        onOpenChange={handleModalClose}
+      />
+      <StakeMaturityModal
+        neuron={selectedNeuron}
+        isOpen={isStandaloneModalOpen && standaloneAction === NeuronStandaloneAction.StakeMaturity}
+        onOpenChange={handleModalClose}
+      />
     </div>
   );
 };

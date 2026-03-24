@@ -25,7 +25,7 @@ import { formatNumber } from '@utils/numbers';
 import { useDisburseMaturity } from '../hooks/useDisburseMaturity';
 
 type Props = {
-  neuron: NeuronInfo;
+  neuron: NeuronInfo | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 };
@@ -37,9 +37,17 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
     useAccountSelection();
   const [error, setError] = useState<string | null>(null);
 
-  const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
+  useEffect(() => {
+    if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setError(null);
+    }
+  }, [isOpen]);
+
+  const unstakedMaturity = neuron ? bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn) : 0;
 
   const handleConfirm = async () => {
+    if (!neuron) return;
     if (unstakedMaturity < ICP_MIN_DISBURSE_MATURITY_AMOUNT) {
       setError(
         t(($) => $.neuronDetailModal.disburseMaturity.errors.amountTooLow, {
@@ -64,13 +72,6 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
       });
     }
   };
-
-  useEffect(() => {
-    if (isOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setError(null);
-    }
-  }, [isOpen]);
 
   const handleOpenChange = (open: boolean) => {
     if (isPending && !open) return;
