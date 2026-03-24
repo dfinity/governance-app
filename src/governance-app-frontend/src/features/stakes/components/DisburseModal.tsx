@@ -111,7 +111,10 @@ export function DisburseModal({ neurons, isOpen, onOpenChange }: Props) {
                       <Coins className="size-5 shrink-0" aria-hidden="true" />
                       <div className="flex flex-1 flex-col gap-0.5">
                         <span className="text-sm font-semibold">
-                          <span className="capitalize">{t(($) => $.disburseModal.neuronLabel)}</span> {shortenNeuronId(neuron.neuronId)}
+                          <span className="capitalize">
+                            {t(($) => $.disburseModal.neuronLabel)}
+                          </span>{' '}
+                          {shortenNeuronId(neuron.neuronId)}
                         </span>
                         <div className="flex gap-2">
                           {dissolved && (
