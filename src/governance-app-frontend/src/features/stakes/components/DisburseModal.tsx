@@ -40,16 +40,29 @@ export function DisburseModal({ neurons, isOpen, onOpenChange }: Props) {
   const isDissolved = currentNeuron ? getNeuronIsDissolved(currentNeuron) : false;
   const hasMaturity = currentNeuron ? getNeuronFreeMaturityE8s(currentNeuron) > 0n : false;
 
-  const handleSelectType = (action: NeuronStandaloneAction) => {
-    if (!currentNeuron) return;
+  const navigateToAction = (neuron: NeuronInfo, action: NeuronStandaloneAction) => {
     onOpenChange(false);
     navigate({
       to: '/neurons',
       search: {
-        neuronId: currentNeuron.neuronId.toString(),
+        neuronId: neuron.neuronId.toString(),
         action,
       },
     });
+  };
+
+  const handleSelectNeuron = (neuron: NeuronInfo) => {
+    const dissolved = getNeuronIsDissolved(neuron);
+    const maturity = getNeuronFreeMaturityE8s(neuron) > 0n;
+
+    // Single option → skip type step and navigate directly
+    if (dissolved && !maturity) {
+      navigateToAction(neuron, NeuronStandaloneAction.DisburseIcp);
+    } else if (!dissolved && maturity) {
+      navigateToAction(neuron, NeuronStandaloneAction.DisburseMaturity);
+    } else {
+      setSelectedNeuron(neuron);
+    }
   };
 
   const handleBack = () => setSelectedNeuron(null);
@@ -86,18 +99,32 @@ export function DisburseModal({ neurons, isOpen, onOpenChange }: Props) {
               <div className="flex flex-col gap-3">
                 {neurons.map((neuron) => {
                   const staked = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
+                  const maturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
+                  const dissolved = getNeuronIsDissolved(neuron);
                   return (
                     <button
                       key={String(neuron.neuronId)}
-                      className="flex w-full items-center justify-between gap-3 rounded-lg border p-4 text-left transition-colors hover:bg-muted"
-                      onClick={() => setSelectedNeuron(neuron)}
+                      className="flex w-full items-center gap-3 rounded-lg border p-4 text-left transition-colors hover:bg-muted"
+                      onClick={() => handleSelectNeuron(neuron)}
                     >
-                      <span className="text-sm font-semibold">
-                        {shortenNeuronId(neuron.neuronId)}
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        {formatNumber(staked)} {t(($) => $.common.icp)}
-                      </span>
+                      <Coins className="size-5 shrink-0" aria-hidden="true" />
+                      <div className="flex flex-1 flex-col gap-0.5">
+                        <span className="text-sm font-semibold">
+                          {shortenNeuronId(neuron.neuronId)}
+                        </span>
+                        <div className="flex gap-3 text-xs text-muted-foreground">
+                          {dissolved && (
+                            <span>
+                              {formatNumber(staked)} {t(($) => $.common.icp)}
+                            </span>
+                          )}
+                          {maturity > 0 && (
+                            <span>
+                              {formatNumber(maturity)} {t(($) => $.disburseModal.maturityLabel)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </button>
                   );
                 })}
@@ -112,7 +139,10 @@ export function DisburseModal({ neurons, isOpen, onOpenChange }: Props) {
                 {isDissolved && (
                   <button
                     className="flex w-full items-center gap-3 rounded-lg border p-4 text-left transition-colors hover:bg-muted"
-                    onClick={() => handleSelectType(NeuronStandaloneAction.DisburseIcp)}
+                    onClick={() =>
+                      currentNeuron &&
+                      navigateToAction(currentNeuron, NeuronStandaloneAction.DisburseIcp)
+                    }
                   >
                     <Coins className="size-5 shrink-0" aria-hidden="true" />
                     <div className="flex flex-col gap-0.5">
@@ -129,7 +159,10 @@ export function DisburseModal({ neurons, isOpen, onOpenChange }: Props) {
                 {hasMaturity && (
                   <button
                     className="flex w-full items-center gap-3 rounded-lg border p-4 text-left transition-colors hover:bg-muted"
-                    onClick={() => handleSelectType(NeuronStandaloneAction.DisburseMaturity)}
+                    onClick={() =>
+                      currentNeuron &&
+                      navigateToAction(currentNeuron, NeuronStandaloneAction.DisburseMaturity)
+                    }
                   >
                     <Coins className="size-5 shrink-0" aria-hidden="true" />
                     <div className="flex flex-col gap-0.5">
