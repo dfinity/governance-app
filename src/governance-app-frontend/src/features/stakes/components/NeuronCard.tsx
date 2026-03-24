@@ -189,7 +189,9 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
               <p
                 className="text-[15px] font-semibold"
                 data-testid={
-                  isAutoStake ? 'neuron-card-maturity-auto-stake' : 'neuron-card-maturity-keep-liquid'
+                  isAutoStake
+                    ? 'neuron-card-maturity-auto-stake'
+                    : 'neuron-card-maturity-keep-liquid'
                 }
               >
                 {isAutoStake ? t(($) => $.neuron.autoStake) : t(($) => $.neuron.keepLiquid)}
