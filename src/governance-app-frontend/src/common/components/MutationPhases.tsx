@@ -12,7 +12,7 @@ export function PhaseContainer({
 }: React.ComponentProps<typeof motion.div>) {
   return (
     <motion.div
-      className={cn('flex min-h-[200px] flex-col pb-4 text-center md:pb-0', className)}
+      className={cn('flex min-h-[200px] flex-1 flex-col pb-4 text-center md:pb-0', className)}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}

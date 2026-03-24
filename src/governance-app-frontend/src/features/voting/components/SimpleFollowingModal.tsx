@@ -303,7 +303,7 @@ function ConfirmFlow({
       {state.phase === DialogPhase.Confirm && (
         <motion.div
           key="confirm"
-          className="flex min-h-[200px] flex-col justify-between"
+          className="flex flex-1 flex-col justify-between"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
