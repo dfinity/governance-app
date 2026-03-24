@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { ApyOptimizationModal } from '@features/stakes/components/ApyOptimizationModal';
 import { DisburseModal } from '@features/stakes/components/DisburseModal';
-import { NeuronStandaloneAction } from '@features/stakes/components/neuronDetail';
+import { getDisburseAction } from '@features/stakes/utils/getDisburseAction';
 
 import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Badge } from '@components/badge';
@@ -21,11 +21,7 @@ import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
 import { useApyColor } from '@hooks/useApyColor';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
-import {
-  getNeuronFreeMaturityE8s,
-  getNeuronIsDissolved,
-  getNeuronsAggregatedData,
-} from '@utils/neuron';
+import { getNeuronsAggregatedData } from '@utils/neuron';
 import { warningNotification } from '@utils/notification';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady, MaturityEstimatePeriod } from '@utils/staking-rewards';
@@ -57,31 +53,8 @@ export function StakedCard() {
 
   const { totalStakedAfterFees: totalStaked, totalMaturity } = getNeuronsAggregatedData(neurons);
 
-  const withdrawableNeurons = neurons.filter(
-    (n) => getNeuronIsDissolved(n) || getNeuronFreeMaturityE8s(n) > 0n,
-  );
-  const canWithdraw = withdrawableNeurons.length > 0;
-
-  const [withdrawModalOpen, setDisburseModalOpen] = useState(false);
-
-  // For a single withdrawable neuron, determine which actions are available
-  const singleNeuron = withdrawableNeurons.length === 1 ? withdrawableNeurons[0] : undefined;
-  const singleNeuronIsDissolved = singleNeuron ? getNeuronIsDissolved(singleNeuron) : false;
-  const singleNeuronHasMaturity = singleNeuron
-    ? getNeuronFreeMaturityE8s(singleNeuron) > 0n
-    : false;
-  const singleNeuronNeedsChoice = singleNeuronIsDissolved && singleNeuronHasMaturity;
-
-  // Direct navigation search params for single neuron with only one option
-  const singleNeuronDirectSearch =
-    singleNeuron && !singleNeuronNeedsChoice
-      ? {
-          neuronId: singleNeuron.neuronId.toString(),
-          action: singleNeuronIsDissolved
-            ? NeuronStandaloneAction.DisburseIcp
-            : NeuronStandaloneAction.DisburseMaturity,
-        }
-      : undefined;
+  const disburseAction = getDisburseAction(neurons);
+  const [disburseModalOpen, setDisburseModalOpen] = useState(false);
 
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const usdValue = icpPrice ? formatNumber(totalStaked * icpPrice.usd) : '-';
@@ -191,12 +164,12 @@ export function StakedCard() {
             </Link>
           </Button>
 
-          {singleNeuronNeedsChoice ? (
+          {disburseAction.type === 'choose' ? (
             <Button
               size="xl"
               variant="outline"
               className="flex-1"
-              disabled={neuronsQuery.isLoading || !canWithdraw}
+              disabled={neuronsQuery.isLoading}
               onClick={() => setDisburseModalOpen(true)}
             >
               <Coins aria-hidden="true" />
@@ -207,11 +180,11 @@ export function StakedCard() {
               size="xl"
               variant="outline"
               className="flex-1"
-              asChild={canWithdraw}
-              disabled={neuronsQuery.isLoading || !canWithdraw}
+              asChild={disburseAction.type === 'navigate'}
+              disabled={neuronsQuery.isLoading || disburseAction.type === 'disabled'}
             >
-              {canWithdraw ? (
-                <Link to="/neurons" search={singleNeuronDirectSearch ?? {}}>
+              {disburseAction.type === 'navigate' ? (
+                <Link to="/neurons" search={disburseAction.search}>
                   <Coins aria-hidden="true" />
                   {t(($) => $.common.disburse)}
                 </Link>
@@ -226,12 +199,12 @@ export function StakedCard() {
         </div>
       </CardContent>
 
-      {singleNeuron && singleNeuronNeedsChoice && (
+      {disburseAction.type === 'choose' && (
         <DisburseModal
-          neuron={singleNeuron}
-          showDisburseIcp={singleNeuronIsDissolved}
-          showDisburseMaturity={singleNeuronHasMaturity}
-          isOpen={withdrawModalOpen}
+          neuron={disburseAction.neuron}
+          showDisburseIcp
+          showDisburseMaturity
+          isOpen={disburseModalOpen}
           onOpenChange={setDisburseModalOpen}
         />
       )}
