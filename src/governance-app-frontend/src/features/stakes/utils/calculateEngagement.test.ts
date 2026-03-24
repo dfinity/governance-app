@@ -6,8 +6,7 @@ import { mockNeuron as baseMockNeuron } from '@fixtures/neuron';
 
 import { calculateEngagement } from './calculateEngagement';
 
-const mockNeuron = (neuronId: bigint) =>
-  baseMockNeuron({ neuronId, fullNeuron: undefined });
+const mockNeuron = (neuronId: bigint) => baseMockNeuron({ neuronId, fullNeuron: undefined });
 
 const mockBallot = (neuronId: bigint, vote: Vote): Ballot => ({
   neuronId,

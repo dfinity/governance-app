@@ -42,7 +42,7 @@ const NEURON_DEFAULTS: Parameters<typeof baseMockNeuron>[0] = {
     cachedNeuronStake: BigInt(10 * E8S),
     createdTimestampSeconds: 1_700_000_000n,
     dissolveState: { DissolveDelaySeconds: 15_778_800n },
-    followees: [{ topic: 4, followees: [{ id: 99n }] }],
+    followees: [{ topic: 4, followees: [99n] }],
   },
 };
 
@@ -85,7 +85,7 @@ describe('NeuronCard', () => {
       render(
         <NeuronCard
           neuron={mockNeuron({
-            fullNeuron: { followees: [{ topic: 4, followees: [{ id: 99n }] }] },
+            fullNeuron: { followees: [{ topic: 4, followees: [99n] }] },
           })}
         />,
       );
