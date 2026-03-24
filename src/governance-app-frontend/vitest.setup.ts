@@ -18,38 +18,6 @@ Object.defineProperty(globalThis, 'matchMedia', {
   })),
 });
 
-// Mock react-i18next — returns translation keys so tests can assert on them.
-vi.mock('react-i18next', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('react-i18next')>();
-  return {
-    ...actual,
-    useTranslation: () => ({
-      t: (keyOrFn: unknown, opts?: { returnObjects?: boolean }) => {
-        if (typeof keyOrFn === 'function') {
-          const result = (keyOrFn as (t: Record<string, unknown>) => unknown)(
-            new Proxy(
-              {},
-              {
-                get: (_target, prop: string) =>
-                  new Proxy(
-                    {},
-                    {
-                      get: (_t2, prop2: string) => `${prop}.${prop2}`,
-                      [Symbol.toPrimitive]: () => `${prop}`,
-                    },
-                  ),
-              },
-            ),
-          );
-          if (opts?.returnObjects) return {};
-          return result;
-        }
-        return keyOrFn;
-      },
-    }),
-  };
-});
-
 // Mock Tooltip — render children directly without Radix portal overhead.
 vi.mock('@components/Tooltip', () => ({
   Tooltip: ({ children }: { children: React.ReactNode }) =>

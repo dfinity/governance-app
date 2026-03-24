@@ -186,7 +186,12 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
             {/* Maturity Mode */}
             <div className="flex items-center justify-between py-3">
               <p className="text-[13px] text-muted-foreground">{t(($) => $.neuron.maturityMode)}</p>
-              <p className="text-[15px] font-semibold" data-testid="neuron-card-maturity-mode">
+              <p
+                className="text-[15px] font-semibold"
+                data-testid={
+                  isAutoStake ? 'neuron-card-maturity-auto-stake' : 'neuron-card-maturity-keep-liquid'
+                }
+              >
                 {isAutoStake ? t(($) => $.neuron.autoStake) : t(($) => $.neuron.keepLiquid)}
               </p>
             </div>

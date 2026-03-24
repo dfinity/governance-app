@@ -64,13 +64,15 @@ describe('NeuronCard', () => {
     it('shows "keep liquid" when auto-stake maturity is off', () => {
       render(<NeuronCard neuron={mockNeuron({ fullNeuron: { autoStakeMaturity: false } })} />);
 
-      expect(getTestId('neuron-card-maturity-mode').textContent).toContain('neuron.keepLiquid');
+      expect(queryTestId('neuron-card-maturity-keep-liquid')).toBeTruthy();
+      expect(queryTestId('neuron-card-maturity-auto-stake')).toBeFalsy();
     });
 
     it('shows "auto stake" when auto-stake maturity is on', () => {
       render(<NeuronCard neuron={mockNeuron({ fullNeuron: { autoStakeMaturity: true } })} />);
 
-      expect(getTestId('neuron-card-maturity-mode').textContent).toContain('neuron.autoStake');
+      expect(queryTestId('neuron-card-maturity-auto-stake')).toBeTruthy();
+      expect(queryTestId('neuron-card-maturity-keep-liquid')).toBeFalsy();
     });
   });
 
@@ -78,7 +80,7 @@ describe('NeuronCard', () => {
     it('shows warning when neuron has no followees', () => {
       render(<NeuronCard neuron={mockNeuron({ fullNeuron: { followees: [] } })} />);
 
-      expect(queryTestId('neuron-card-no-following-warning')).not.toBeNull();
+      expect(queryTestId('neuron-card-no-following-warning')).toBeTruthy();
     });
 
     it('hides warning when neuron has followees', () => {
@@ -90,7 +92,7 @@ describe('NeuronCard', () => {
         />,
       );
 
-      expect(queryTestId('neuron-card-no-following-warning')).toBeNull();
+      expect(queryTestId('neuron-card-no-following-warning')).toBeFalsy();
     });
   });
 
@@ -104,13 +106,13 @@ describe('NeuronCard', () => {
         />,
       );
 
-      expect(queryTestId('neuron-hotkey-badge')).not.toBeNull();
+      expect(queryTestId('neuron-hotkey-badge')).toBeTruthy();
     });
 
     it('hides badge when user is the controller', () => {
       render(<NeuronCard neuron={mockNeuron()} />);
 
-      expect(queryTestId('neuron-hotkey-badge')).toBeNull();
+      expect(queryTestId('neuron-hotkey-badge')).toBeFalsy();
     });
   });
 
@@ -125,7 +127,7 @@ describe('NeuronCard', () => {
         />,
       );
 
-      expect(queryTestId('neuron-card-disburse-icp-btn')).not.toBeNull();
+      expect(queryTestId('neuron-card-disburse-icp-btn')).toBeTruthy();
     });
 
     it('hides when dissolved but has no stake', () => {
@@ -138,13 +140,13 @@ describe('NeuronCard', () => {
         />,
       );
 
-      expect(queryTestId('neuron-card-disburse-icp-btn')).toBeNull();
+      expect(queryTestId('neuron-card-disburse-icp-btn')).toBeFalsy();
     });
 
     it('hides when neuron is not dissolved', () => {
       render(<NeuronCard neuron={mockNeuron({ state: NeuronState.Locked })} />);
 
-      expect(queryTestId('neuron-card-disburse-icp-btn')).toBeNull();
+      expect(queryTestId('neuron-card-disburse-icp-btn')).toBeFalsy();
     });
 
     it('hides when stake is fully consumed by fees', () => {
@@ -157,7 +159,7 @@ describe('NeuronCard', () => {
         />,
       );
 
-      expect(queryTestId('neuron-card-disburse-icp-btn')).toBeNull();
+      expect(queryTestId('neuron-card-disburse-icp-btn')).toBeFalsy();
     });
 
     it('calls onAction with DisburseIcp when clicked', async () => {
@@ -185,13 +187,13 @@ describe('NeuronCard', () => {
         />,
       );
 
-      expect(queryTestId('neuron-card-disburse-maturity-btn')).not.toBeNull();
+      expect(queryTestId('neuron-card-disburse-maturity-btn')).toBeTruthy();
     });
 
     it('hides when neuron has no unstaked maturity', () => {
       render(<NeuronCard neuron={mockNeuron({ fullNeuron: { maturityE8sEquivalent: 0n } })} />);
 
-      expect(queryTestId('neuron-card-disburse-maturity-btn')).toBeNull();
+      expect(queryTestId('neuron-card-disburse-maturity-btn')).toBeFalsy();
     });
 
     it('calls onAction with DisburseMaturity when clicked', async () => {
@@ -219,7 +221,7 @@ describe('NeuronCard', () => {
         />,
       );
 
-      expect(queryTestId('neuron-card-stake-maturity-btn')).not.toBeNull();
+      expect(queryTestId('neuron-card-stake-maturity-btn')).toBeTruthy();
     });
 
     it('hides when neuron is dissolved', () => {
@@ -235,7 +237,7 @@ describe('NeuronCard', () => {
         />,
       );
 
-      expect(queryTestId('neuron-card-stake-maturity-btn')).toBeNull();
+      expect(queryTestId('neuron-card-stake-maturity-btn')).toBeFalsy();
     });
 
     it('calls onAction with StakeMaturity when clicked', async () => {
@@ -271,9 +273,9 @@ describe('NeuronCard', () => {
         />,
       );
 
-      expect(queryTestId('neuron-card-disburse-icp-btn')).toBeNull();
-      expect(queryTestId('neuron-card-disburse-maturity-btn')).toBeNull();
-      expect(queryTestId('neuron-card-stake-maturity-btn')).toBeNull();
+      expect(queryTestId('neuron-card-disburse-icp-btn')).toBeFalsy();
+      expect(queryTestId('neuron-card-disburse-maturity-btn')).toBeFalsy();
+      expect(queryTestId('neuron-card-stake-maturity-btn')).toBeFalsy();
     });
   });
 
@@ -288,9 +290,9 @@ describe('NeuronCard', () => {
         />,
       );
 
-      expect(queryTestId('neuron-card-disburse-icp-btn')).toBeNull();
-      expect(queryTestId('neuron-card-disburse-maturity-btn')).toBeNull();
-      expect(queryTestId('neuron-card-stake-maturity-btn')).toBeNull();
+      expect(queryTestId('neuron-card-disburse-icp-btn')).toBeFalsy();
+      expect(queryTestId('neuron-card-disburse-maturity-btn')).toBeFalsy();
+      expect(queryTestId('neuron-card-stake-maturity-btn')).toBeFalsy();
     });
   });
 });
