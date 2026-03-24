@@ -52,6 +52,7 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
   const isAutoStake = getNeuronIsAutoStakingMaturity(neuron);
   const hasNoFollowing = getNeuronHasNoFollowing(neuron);
   const hasUnstakedMaturity = getNeuronFreeMaturityE8s(neuron) > 0n;
+  const hasStakeToDisburse = getNeuronStakeAfterFeesE8s(neuron) > 0n;
   const isHotkey = isUserHotkey({
     neuron,
     principalId: identity?.getPrincipal().toText(),
@@ -204,9 +205,9 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
         </CardContent>
 
         {/* Disburse buttons */}
-        {!isHotkey && (isDissolved || hasUnstakedMaturity) && (
+        {!isHotkey && ((isDissolved && hasStakeToDisburse) || hasUnstakedMaturity) && (
           <CardFooter className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:gap-4">
-            {isDissolved && (
+            {isDissolved && hasStakeToDisburse && (
               <Button
                 variant="outline"
                 className="w-full sm:flex-1"
