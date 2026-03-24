@@ -1,21 +1,23 @@
-import type { Neuron, NeuronInfo } from '@icp-sdk/canisters/nns';
+import type { Neuron } from '@icp-sdk/canisters/nns';
 import { NeuronState } from '@icp-sdk/canisters/nns';
-import { isNullish } from '@dfinity/utils';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { E8S } from '@constants/extra';
+import { mockNeuron as baseMockNeuron } from '@fixtures/neuron';
 
 import { NeuronCard } from './NeuronCard';
 import { NeuronStandaloneAction } from './neuronDetail';
 
 // ─── Module mocks ────────────────────────────────────────────────
 
+const CONTROLLER = 'controller-principal';
+
 vi.mock('ic-use-internet-identity', () => ({
   useInternetIdentity: () => ({
     identity: {
-      getPrincipal: () => ({ toText: () => 'controller-principal' }),
+      getPrincipal: () => ({ toText: () => CONTROLLER }),
     },
   }),
 }));
@@ -30,66 +32,29 @@ vi.mock('@hooks/useApyColor', () => ({
   useApyColor: () => ({ ready: false }),
 }));
 
-// ─── Mock Factories ──────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────
 
-const mockFullNeuron = (overrides: Partial<Neuron> = {}): Neuron => ({
-  id: 1n,
-  neuronType: undefined,
-  stakedMaturityE8sEquivalent: 0n,
-  controller: 'controller-principal',
-  recentBallots: [],
-  kycVerified: false,
-  notForProfit: false,
-  cachedNeuronStake: BigInt(10 * E8S),
+const NEURON_DEFAULTS: Parameters<typeof baseMockNeuron>[0] = {
+  dissolveDelaySeconds: 15_778_800n,
   createdTimestampSeconds: 1_700_000_000n,
-  autoStakeMaturity: undefined,
-  maturityE8sEquivalent: 0n,
-  agingSinceTimestampSeconds: 0n,
-  spawnAtTimesSeconds: undefined,
-  neuronFees: 0n,
-  hotKeys: [],
-  accountIdentifier: '',
-  joinedCommunityFundTimestampSeconds: undefined,
-  maturityDisbursementsInProgress: undefined,
-  dissolveState: { DissolveDelaySeconds: 15_778_800n },
-  followees: [{ topic: 4, followees: [{ id: 99n }] }],
-  visibility: undefined,
-  votingPowerRefreshedTimestampSeconds: undefined,
-  potentialVotingPower: undefined,
-  decidingVotingPower: undefined,
-  ...overrides,
-});
-
-const mockNeuron = (
-  overrides: Partial<Omit<NeuronInfo, 'fullNeuron'>> & {
-    fullNeuron?: Partial<Neuron> | undefined;
-  } = {},
-): NeuronInfo => {
-  const { fullNeuron, ...rest } = overrides;
-  return {
-    neuronId: 12345678901234n,
-    state: NeuronState.Locked,
-    dissolveDelaySeconds: 15_778_800n,
+  fullNeuron: {
+    controller: CONTROLLER,
+    cachedNeuronStake: BigInt(10 * E8S),
     createdTimestampSeconds: 1_700_000_000n,
-    recentBallots: [],
-    neuronType: undefined,
-    joinedCommunityFundTimestampSeconds: undefined,
-    retrievedAtTimestampSeconds: 0n,
-    votingPower: 0n,
-    votingPowerRefreshedTimestampSeconds: undefined,
-    decidingVotingPower: undefined,
-    potentialVotingPower: undefined,
-    ageSeconds: 0n,
-    visibility: undefined,
-    fullNeuron:
-      'fullNeuron' in overrides && isNullish(fullNeuron)
-        ? undefined
-        : mockFullNeuron(fullNeuron ?? {}),
-    ...rest,
-  };
+    dissolveState: { DissolveDelaySeconds: 15_778_800n },
+    followees: [{ topic: 4, followees: [{ id: 99n }] }],
+  },
 };
 
-// ─── Helpers ─────────────────────────────────────────────────────
+const mockNeuron = (overrides: Parameters<typeof baseMockNeuron>[0] = {}) => {
+  const { fullNeuron: defaultFull, ...defaultTop } = NEURON_DEFAULTS;
+  const { fullNeuron: overrideFull, ...overrideTop } = overrides;
+  return baseMockNeuron({
+    ...defaultTop,
+    ...overrideTop,
+    fullNeuron: { ...defaultFull, ...overrideFull } as Partial<Neuron>,
+  });
+};
 
 const queryTestId = (id: string) => screen.queryByTestId(id);
 const getTestId = (id: string) => screen.getByTestId(id);

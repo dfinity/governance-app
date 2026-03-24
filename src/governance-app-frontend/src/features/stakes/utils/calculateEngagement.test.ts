@@ -1,32 +1,13 @@
-import type { Ballot, NeuronInfo, ProposalInfo } from '@icp-sdk/canisters/nns';
-import {
-  NeuronState,
-  ProposalRewardStatus,
-  ProposalStatus,
-  Topic,
-  Vote,
-} from '@icp-sdk/canisters/nns';
+import type { Ballot, ProposalInfo } from '@icp-sdk/canisters/nns';
+import { ProposalRewardStatus, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
 import { describe, expect, it } from 'vitest';
+
+import { mockNeuron as baseMockNeuron } from '@fixtures/neuron';
 
 import { calculateEngagement } from './calculateEngagement';
 
-const mockNeuron = (neuronId: bigint): NeuronInfo => ({
-  neuronId,
-  dissolveDelaySeconds: 0n,
-  recentBallots: [],
-  neuronType: undefined,
-  createdTimestampSeconds: 0n,
-  state: NeuronState.Locked,
-  joinedCommunityFundTimestampSeconds: undefined,
-  retrievedAtTimestampSeconds: 0n,
-  votingPower: 0n,
-  votingPowerRefreshedTimestampSeconds: undefined,
-  decidingVotingPower: undefined,
-  potentialVotingPower: undefined,
-  ageSeconds: 0n,
-  fullNeuron: undefined,
-  visibility: undefined,
-});
+const mockNeuron = (neuronId: bigint) =>
+  baseMockNeuron({ neuronId, fullNeuron: undefined });
 
 const mockBallot = (neuronId: bigint, vote: Vote): Ballot => ({
   neuronId,
