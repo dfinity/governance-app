@@ -3,6 +3,7 @@ import { useEffect, useSyncExternalStore } from 'react';
 import { THEME_STORAGE_KEY } from '@constants/extra';
 import { Theme } from '@constants/theme';
 
+const DARK_MQ = '(prefers-color-scheme: dark)';
 const getStoredTheme = (): Theme => {
   try {
     const theme = localStorage.getItem(THEME_STORAGE_KEY);
@@ -41,23 +42,25 @@ const subscribe = (listener: () => void) => {
 
 const getSnapshot = (): Theme => getStoredTheme();
 
+const subscribeSystemTheme = (cb: () => void) => {
+  const mql = window.matchMedia(DARK_MQ);
+  mql.addEventListener('change', cb);
+  return () => mql.removeEventListener('change', cb);
+};
+
+const getSystemThemeSnapshot = () => window.matchMedia(DARK_MQ).matches;
+
 export const useTheme = () => {
   const theme = useSyncExternalStore(subscribe, getSnapshot);
+  const isSystemDark = useSyncExternalStore(subscribeSystemTheme, getSystemThemeSnapshot);
+
+  const resolvedTheme = theme === Theme.System ? (isSystemDark ? Theme.Dark : Theme.Light) : theme;
 
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove(Theme.Light, Theme.Dark);
-
-    if (theme === Theme.System) {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? Theme.Dark
-        : Theme.Light;
-      root.classList.add(systemTheme);
-      return;
-    }
-
-    root.classList.add(theme);
-  }, [theme]);
+    root.classList.add(resolvedTheme);
+  }, [resolvedTheme]);
 
   return { theme, setTheme: storeTheme };
 };

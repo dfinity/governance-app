@@ -6,6 +6,7 @@ import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { cn } from '@utils/shadcn';
 
 import { getNavigationItems } from './NavigationItems';
+import { UserMenu } from './UserMenu';
 
 export const Sidebar = () => {
   const { t } = useTranslation();
@@ -54,6 +55,9 @@ export const Sidebar = () => {
           </Link>
         ))}
       </nav>
+      <div className="border-t p-3">
+        <UserMenu />
+      </div>
     </aside>
   );
 };

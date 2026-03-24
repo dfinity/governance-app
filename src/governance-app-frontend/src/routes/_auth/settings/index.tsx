@@ -17,7 +17,7 @@ import { ThemeCard } from '@features/userAccount/components/ThemeCard';
 import { Button } from '@components/button';
 import { Card } from '@components/Card';
 import { PageHeader } from '@components/PageHeader';
-import { MANUAL_LOGOUT_KEY } from '@constants/extra';
+import { useLogout } from '@hooks/useLogout';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
 import { getSessionTimeLeftForUi } from '@utils/date';
 
@@ -46,19 +46,15 @@ export const Route = createFileRoute('/_auth/settings/')({
 });
 
 function Settings() {
-  const { identity, clear } = useInternetIdentity();
+  const { identity } = useInternetIdentity();
   const { t } = useTranslation();
   const timeLeft = useSessionTimeLeft();
   const navigate = useNavigate({ from: Route.fullPath });
   const { openAddressBook } = Route.useSearch();
+  const logout = useLogout();
 
   const handleAddressBookOpenChange = (open: boolean) => {
     navigate({ search: open ? { openAddressBook: true } : {}, replace: true });
-  };
-
-  const handleLogout = () => {
-    localStorage.setItem(MANUAL_LOGOUT_KEY, 'true');
-    clear();
   };
 
   if (isNullish(identity)) return null;
@@ -157,10 +153,10 @@ function Settings() {
           )}
         </div>
         <Button
-          variant="outline"
+          variant="outline-destructive"
           size="lg"
-          onClick={handleLogout}
-          className="w-full self-start border-destructive/50 text-destructive hover:bg-destructive/5 hover:text-destructive sm:w-auto dark:border-destructive/60 dark:text-destructive-foreground dark:hover:bg-destructive/10"
+          onClick={logout}
+          className="w-full self-start sm:w-auto"
           data-testid="logout-btn"
         >
           <LogOut className="mr-2 size-5" />
