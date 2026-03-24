@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import React from 'react';
 import { vi } from 'vitest';
 
 // Load environment variables from the root .env file
@@ -16,3 +17,13 @@ Object.defineProperty(globalThis, 'matchMedia', {
     dispatchEvent: vi.fn(),
   })),
 });
+
+// Mock Tooltip — render children directly without Radix portal overhead.
+vi.mock('@components/Tooltip', () => ({
+  Tooltip: ({ children }: { children: React.ReactNode }) =>
+    React.createElement(React.Fragment, null, children),
+  TooltipTrigger: ({ children }: { children: React.ReactNode }) =>
+    React.createElement(React.Fragment, null, children),
+  TooltipContent: ({ children }: { children: React.ReactNode }) =>
+    React.createElement('span', null, children),
+}));

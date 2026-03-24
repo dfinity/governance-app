@@ -52,6 +52,7 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
   const isAutoStake = getNeuronIsAutoStakingMaturity(neuron);
   const hasNoFollowing = getNeuronHasNoFollowing(neuron);
   const hasUnstakedMaturity = getNeuronFreeMaturityE8s(neuron) > 0n;
+  const hasStakeToDisburse = getNeuronStakeAfterFeesE8s(neuron) > 0n;
   const isHotkey = isUserHotkey({
     neuron,
     principalId: identity?.getPrincipal().toText(),
@@ -185,7 +186,14 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
             {/* Maturity Mode */}
             <div className="flex items-center justify-between py-3">
               <p className="text-[13px] text-muted-foreground">{t(($) => $.neuron.maturityMode)}</p>
-              <p className="text-[15px] font-semibold" data-testid="neuron-card-maturity-mode">
+              <p
+                className="text-[15px] font-semibold"
+                data-testid={
+                  isAutoStake
+                    ? 'neuron-card-maturity-auto-stake'
+                    : 'neuron-card-maturity-keep-liquid'
+                }
+              >
                 {isAutoStake ? t(($) => $.neuron.autoStake) : t(($) => $.neuron.keepLiquid)}
               </p>
             </div>
@@ -204,9 +212,9 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
         </CardContent>
 
         {/* Disburse buttons */}
-        {!isHotkey && (isDissolved || hasUnstakedMaturity) && (
+        {!isHotkey && ((isDissolved && hasStakeToDisburse) || hasUnstakedMaturity) && (
           <CardFooter className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:gap-4">
-            {isDissolved && (
+            {isDissolved && hasStakeToDisburse && (
               <Button
                 variant="outline"
                 className="w-full sm:flex-1"
