@@ -62,8 +62,8 @@
     "title": "Advanced features",
     "items": {
       "subaccounts": {
-        "label": "Accounts",
-        "description": "View and manage accounts linked to your principal.",
+        "label": "Multiple accounts",
+        "description": "View and manage multiple accounts linked to your principal.",
         "aria": {
           "toggle": "Toggle accounts feature"
         },
