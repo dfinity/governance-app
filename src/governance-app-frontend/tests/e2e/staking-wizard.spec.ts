@@ -113,7 +113,9 @@ test.describe('Staking Wizard', () => {
     await expect(neuronCards.getByTestId('neuron-card-staked-amount')).toHaveText(/5\.00.*ICP/i);
     await expect(neuronCards.getByTestId('neuron-card-dissolve-delay')).toHaveText(/2 years/i);
     await expect(neuronCards.getByTestId('neuron-state-badge')).toHaveText(/Locked/i);
-    await expect(neuronCards.getByTestId('neuron-card-maturity-keep-liquid')).toHaveText(/Unlocked/i);
+    await expect(neuronCards.getByTestId('neuron-card-maturity-keep-liquid')).toHaveText(
+      /Unlocked/i,
+    );
   });
 
   test('Recovers from errors in the staking flow', async ({ page }) => {
@@ -143,6 +145,8 @@ test.describe('Staking Wizard', () => {
     await expect(neuronCards.getByTestId('neuron-card-staked-amount')).toHaveText(/5\.00.*ICP/i);
     await expect(neuronCards.getByTestId('neuron-card-dissolve-delay')).toHaveText(/2 years/i);
     await expect(neuronCards.getByTestId('neuron-state-badge')).toHaveText(/Locked/i);
-    await expect(neuronCards.getByTestId('neuron-card-maturity-keep-liquid')).toHaveText(/Unlocked/i);
+    await expect(neuronCards.getByTestId('neuron-card-maturity-keep-liquid')).toHaveText(
+      /Unlocked/i,
+    );
   });
 });

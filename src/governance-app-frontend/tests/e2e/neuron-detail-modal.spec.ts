@@ -168,7 +168,9 @@ test.describe.serial('Neuron Detail Modal', () => {
       await expect(page.getByTestId('segmented-toggle')).not.toBeVisible({ timeout: 30000 });
       await closeModal(page);
       const neuronCard = page.getByTestId('neuron-card');
-      await expect(neuronCard.getByTestId('neuron-card-maturity-auto-stake')).toHaveText(/Auto-lock/i);
+      await expect(neuronCard.getByTestId('neuron-card-maturity-auto-stake')).toHaveText(
+        /Auto-lock/i,
+      );
     });
   });
 
