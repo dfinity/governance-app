@@ -42,7 +42,7 @@ export function DisburseModal({ neurons, isOpen, onOpenChange }: Props) {
   const hasMaturity = currentNeuron ? getNeuronFreeMaturityE8s(currentNeuron) > 0n : false;
 
   const navigateToAction = (neuron: NeuronInfo, action: NeuronStandaloneAction) => {
-    onOpenChange(false);
+    handleOpenChange(false);
     navigate({
       to: '/neurons',
       search: {

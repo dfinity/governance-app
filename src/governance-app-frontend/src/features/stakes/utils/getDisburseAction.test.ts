@@ -71,7 +71,7 @@ describe('getDisburseAction', () => {
     });
   });
 
-  it('only includes withdrawable neurons in choose', () => {
+  it('navigates directly when only one neuron is withdrawable among many', () => {
     const n1 = mockNeuron(1n); // locked, no maturity
     const n2 = mockNeuron(2n); // locked, no maturity
     const n3 = mockNeuron(3n, { state: NeuronState.Dissolved });
