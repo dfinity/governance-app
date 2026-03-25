@@ -82,7 +82,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
   const handleConfirm = async () => {
     const numericAmount = Number(amount);
 
-    if (numericAmount <= 0) {
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
       setValidationError(t(($) => $.neuronDetailModal.increaseStake.errors.amountTooLow));
       return;
     }
