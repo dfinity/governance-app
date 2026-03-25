@@ -9,7 +9,6 @@
 <br/>
 
 [![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/dfinity/governance-app/build.yaml?logo=github&label=Build%20and%20test)](https://github.com/dfinity/governance-app/actions/workflows/build.yaml)
-<a href="https://github.com/dfinity/governance-app/releases"><img src="https://img.shields.io/github/downloads/dfinity/governance-app/total?label=downloads&logo=github" alt="GitHub all releases"></a>
 [![Chat on Discord](https://img.shields.io/badge/chat-Discord-lightgrey?logo=Discord&style=flat-square)](https://discord.internetcomputer.org)
 
 </div>
