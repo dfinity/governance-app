@@ -84,9 +84,10 @@ test.describe.serial('Neuron Detail Modal', () => {
       await openNeuronDetailModal(page);
       await page.getByTestId('neuron-detail-action-top-up-neuron').click();
       await expect(page.getByTestId('increase-stake-current-stake')).toHaveText(/5/);
+      await page.getByTestId('increase-stake-amount-input').fill('0');
       await page.getByTestId('increase-stake-confirm-btn').click();
       await expect(page.getByTestId('increase-stake-error')).toBeVisible();
-      await page.getByTestId('increase-stake-amount-input').fill('0.5');
+      await page.getByTestId('increase-stake-amount-input').fill('6');
       await page.getByTestId('increase-stake-confirm-btn').click();
       await expect(page.getByTestId('increase-stake-error')).toBeVisible();
       await closeModal(page);
@@ -95,14 +96,14 @@ test.describe.serial('Neuron Detail Modal', () => {
     await test.step('Successfully increases stake', async () => {
       await openNeuronDetailModal(page);
       await page.getByTestId('neuron-detail-action-top-up-neuron').click();
-      await page.getByTestId('increase-stake-amount-input').fill('1');
+      await page.getByTestId('increase-stake-amount-input').fill('0.5');
       await page.getByTestId('increase-stake-confirm-btn').click();
       await expect(page.getByTestId('increase-stake-amount-input')).not.toBeVisible({
         timeout: 30000,
       });
       await closeModal(page);
       const neuronCard = page.getByTestId('neuron-card');
-      await expect(neuronCard.getByTestId('neuron-card-staked-amount')).toHaveText(/6\.00.*ICP/i);
+      await expect(neuronCard.getByTestId('neuron-card-staked-amount')).toHaveText(/5\.50.*ICP/i);
     });
   });
 
