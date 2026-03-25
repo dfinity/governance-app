@@ -102,7 +102,7 @@
   },
   "newFeatureCheck": {
     "detected": "{{feature}} detected! You can enable it in the Settings.",
-    "subaccounts": "Accounts",
+    "subaccounts": "Multiple accounts",
     "advancedFollowing": "Advanced following"
   }
 }

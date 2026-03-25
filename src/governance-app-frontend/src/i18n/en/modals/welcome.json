@@ -5,7 +5,7 @@
   "toast": "Welcome! Start by locking ICP and creating a neuron to participate in governance.",
   "detecting": "Setting up the application for you...",
   "detectingNavBlock": "Please wait while we finish setting up the application.",
-  "subaccountsDetected": "Accounts detected, this feature has been enabled for you.",
+  "subaccountsDetected": "Multiple accounts detected, this feature has been enabled for you.",
   "advancedFollowingDetected": "Advanced Following detected, this feature has been enabled for you.",
   "detectedHint": "You can always change it in the Settings.",
   "detectingError": "Some checks could not be completed. You can enable advanced features manually in Settings."
