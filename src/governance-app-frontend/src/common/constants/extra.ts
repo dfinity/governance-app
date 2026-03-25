@@ -59,7 +59,7 @@ export const THEME_STORAGE_KEY = 'nns-theme';
 // External Links
 export const DASHBOARD_URL = `https://dashboard.internetcomputer.org/neuron`;
 
-const localIdentityProvider = `http://${CANISTER_ID_INTERNET_IDENTITY}.${HOST}`;
-const mainnetIdentityProvider = 'https://id.ai/?feature_flag_min_guided_upgrade=true';
-export const IDENTITY_PROVIDER = IS_LOCAL ? localIdentityProvider : mainnetIdentityProvider;
+const II_DOMAIN = IS_LOCAL ? `http://${CANISTER_ID_INTERNET_IDENTITY}.${HOST}` : 'https://id.ai';
+export const II_LOGIN_URL = `${II_DOMAIN}/?feature_flag_min_guided_upgrade=true`;
+export const II_MANAGE_URL = `${II_DOMAIN}/manage`;
 export const II_DERIVATION_ORIGIN = IS_LOCAL ? null : 'https://nns.ic0.app';
