@@ -1,14 +1,14 @@
 import { ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { IDENTITY_PROVIDER } from '@constants/extra';
+import { II_MANAGE_URL } from '@constants/extra';
 
 export const ManageIICard = () => {
   const { t } = useTranslation();
 
   return (
     <a
-      href={`${IDENTITY_PROVIDER}/login`}
+      href={II_MANAGE_URL}
       target="_blank"
       rel="noopener noreferrer"
       aria-label={t(($) => $.userAccount.aria.iiLink)}
