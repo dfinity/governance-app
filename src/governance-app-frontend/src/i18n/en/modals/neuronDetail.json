@@ -18,7 +18,7 @@
     "confirming": "Topping up neuron, please wait...",
     "success": "Successfully added {{amount}} ICP to your neuron.",
     "errors": {
-      "amountTooLow": "Minimum amount is {{min}} ICP.",
+      "amountTooLow": "Enter an amount greater than zero.",
       "insufficientBalance": "Insufficient balance.",
       "failed": "Failed to top up neuron. Please try again."
     }

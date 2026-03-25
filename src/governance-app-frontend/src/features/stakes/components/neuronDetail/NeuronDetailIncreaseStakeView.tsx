@@ -13,7 +13,7 @@ import { AmountInput } from '@components/AmountInput';
 import { Button } from '@components/button';
 import { Label } from '@components/Label';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE } from '@constants/extra';
+import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
@@ -82,12 +82,8 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
   const handleConfirm = async () => {
     const numericAmount = Number(amount);
 
-    if (numericAmount < ICP_MIN_STAKE_AMOUNT) {
-      setValidationError(
-        t(($) => $.neuronDetailModal.increaseStake.errors.amountTooLow, {
-          min: ICP_MIN_STAKE_AMOUNT,
-        }),
-      );
+    if (numericAmount <= 0) {
+      setValidationError(t(($) => $.neuronDetailModal.increaseStake.errors.amountTooLow));
       return;
     }
 

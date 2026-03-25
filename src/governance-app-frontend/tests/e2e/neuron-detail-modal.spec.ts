@@ -84,9 +84,10 @@ test.describe.serial('Neuron Detail Modal', () => {
       await openNeuronDetailModal(page);
       await page.getByTestId('neuron-detail-action-top-up-neuron').click();
       await expect(page.getByTestId('increase-stake-current-stake')).toHaveText(/5/);
+      await page.getByTestId('increase-stake-amount-input').fill('0');
       await page.getByTestId('increase-stake-confirm-btn').click();
       await expect(page.getByTestId('increase-stake-error')).toBeVisible();
-      await page.getByTestId('increase-stake-amount-input').fill('0.5');
+      await page.getByTestId('increase-stake-amount-input').fill('6');
       await page.getByTestId('increase-stake-confirm-btn').click();
       await expect(page.getByTestId('increase-stake-error')).toBeVisible();
       await closeModal(page);
