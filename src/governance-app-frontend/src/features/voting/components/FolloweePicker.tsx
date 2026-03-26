@@ -16,6 +16,9 @@ import { AnimatePresence } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
+
 import { Alert, AlertDescription } from '@components/Alert';
 import { AnimatedCollapse } from '@components/AnimatedCollapse';
 import { Badge } from '@components/badge';
@@ -205,11 +208,15 @@ export function FolloweePicker({
       await queryClient
         .invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] })
         .catch(failedRefresh);
+      analytics.event(AnalyticsEvent.FollowingPickerApply, {
+        topic_count: selectedTopics.size.toString(),
+      });
       setAppliedTopicCount(selectedTopics.size);
       setStep(WizardStep.Success);
     },
     onError: (error) => {
       errorMessage('FolloweePicker', error.message);
+      analytics.event(AnalyticsEvent.FollowingPickerApplyError);
       setStep(WizardStep.Error);
     },
   });
@@ -272,7 +279,12 @@ export function FolloweePicker({
                   onAddCustom={addCustomNeuron}
                   onRemoveCustom={removeCustomNeuron}
                   onToggle={toggleNeuron}
-                  onNext={() => setStep(WizardStep.SelectTopics)}
+                  onNext={() => {
+                    analytics.event(AnalyticsEvent.FollowingPickerSelectTopics, {
+                      count: selectedCount.toString(),
+                    });
+                    setStep(WizardStep.SelectTopics);
+                  }}
                   selectedCount={selectedCount}
                 />
               </div>

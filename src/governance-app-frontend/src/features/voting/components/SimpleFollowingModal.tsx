@@ -5,6 +5,9 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
+
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
 import {
@@ -139,10 +142,14 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
         })
         .catch(failedRefresh);
 
+      analytics.event(AnalyticsEvent.FollowingSimpleConfirmation, {
+        neuron_name: variables.knownNeuron.name,
+      });
       setDialogState({ phase: DialogPhase.Success, neuronName: variables.knownNeuron.name });
     },
     onError: (error, variables, context) => {
       errorMessage('SimpleFollowingModal', error.message);
+      analytics.event(AnalyticsEvent.FollowingSimpleConfirmationError);
       setUserOverrideId(context?.previousSelectedId ?? null);
       setDialogState({ phase: DialogPhase.Error, neuron: variables.knownNeuron });
     },
