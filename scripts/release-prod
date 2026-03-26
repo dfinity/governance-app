@@ -299,7 +299,7 @@ echo "✅ Installation was requested. A team member now needs to approve the req
 # Create draft GitHub Release
 # -----------------------------------------------------------------------------
 
-BUILD_DATE="$(date +%Y.%m.%d)"
+BUILD_DATE="$(date -u +%Y.%m.%d)"
 SHORT_COMMIT="${COMMIT:0:7}"
 RELEASE_TAG="release-${BUILD_DATE}-${SHORT_COMMIT}"
 RELEASE_TITLE="v${BUILD_DATE} (${SHORT_COMMIT})"
@@ -311,8 +311,8 @@ RELEASE_FLAGS=(
 )
 
 if [[ -n "$DEPLOYED_COMMIT" ]] && [[ "$DEPLOYED_COMMIT" != "unknown" ]] && [[ "$DEPLOYED_COMMIT" != "$COMMIT" ]]; then
-  # Find the tag for the previous release to generate notes from
-  PREVIOUS_TAG="$(git tag --sort=-creatordate | grep '^release-' | head -1 || true)"
+  # Find the release tag associated with the deployed commit
+  PREVIOUS_TAG="$(git describe --tags --match 'release-*' --abbrev=0 "$DEPLOYED_COMMIT" 2>/dev/null || true)"
   if [[ -n "$PREVIOUS_TAG" ]]; then
     RELEASE_FLAGS+=(--generate-notes --notes-start-tag "$PREVIOUS_TAG")
   else
