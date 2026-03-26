@@ -22,6 +22,7 @@ import { AnimatedCheckmark } from '@components/AnimatedCheckmark';
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
 import { Label } from '@components/Label';
+import { AnimatedErrorIcon, FadeInText, PhaseContainer } from '@components/MutationPhases';
 import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
 import {
   ResponsiveDialog,
@@ -821,32 +822,13 @@ function SendErrorPhase({
   const { t } = useTranslation();
 
   return (
-    <motion.div
-      key="error"
-      className="flex flex-1 flex-col items-center justify-between py-8 text-center"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
-    >
+    <PhaseContainer key="error" className="items-center justify-between">
       <ResponsiveDialogTitle className="sr-only">{errorMessage}</ResponsiveDialogTitle>
       <div className="flex flex-1 flex-col items-center justify-center gap-4">
-        <motion.div
-          className="flex size-20 items-center justify-center rounded-full bg-destructive/10"
-          initial={{ scale: 0.8, rotate: 0 }}
-          animate={{ scale: 1, rotate: [0, -5, 5, -5, 5, 0] }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
-        >
-          <AlertTriangle className="size-10 text-destructive" />
-        </motion.div>
-        <motion.p
-          className="max-w-xs text-sm font-medium text-muted-foreground"
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.3 }}
-        >
+        <AnimatedErrorIcon />
+        <FadeInText delay={0.3} className="max-w-xs">
           {errorMessage}
-        </motion.p>
+        </FadeInText>
       </div>
       <div className="flex w-full gap-3 pt-4">
         <Button variant="outline" className="flex-1" onClick={onClose}>
@@ -856,6 +838,6 @@ function SendErrorPhase({
           {t(($) => $.common.retry)}
         </Button>
       </div>
-    </motion.div>
+    </PhaseContainer>
   );
 }

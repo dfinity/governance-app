@@ -158,8 +158,8 @@ export const RemoveAddressConfirmation: React.FC<Props> = ({
                   <Button variant="outline" className="flex-1" onClick={onClose}>
                     {t(($) => $.common.close)}
                   </Button>
-                  <Button className="flex-1" onClick={() => setPhase(Phase.Confirm)}>
-                    {t(($) => $.common.back)}
+                  <Button className="flex-1" onClick={handleConfirm}>
+                    {t(($) => $.common.retry)}
                   </Button>
                 </div>
               </PhaseContainer>
