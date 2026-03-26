@@ -190,9 +190,10 @@ function LastTransaction({ accountId }: { accountId: string }) {
 
   const isReceive = type === TransactionType.RECEIVE;
   const isStake = type === TransactionType.STAKE;
+  const isSelf = type === TransactionType.SELF;
   const amountColorClass = isReceive
     ? 'text-emerald-800 dark:text-emerald-400'
-    : isStake
+    : isStake || isSelf
       ? ''
       : 'text-red-800 dark:text-red-400';
 
@@ -207,11 +208,13 @@ function LastTransaction({ accountId }: { accountId: string }) {
       <p className="truncate">
         <Trans
           i18nKey={($) =>
-            isReceive
-              ? $.accounts.latestReceived
-              : isStake
-                ? $.accounts.latestStaked
-                : $.accounts.latestSent
+            isSelf
+              ? $.accounts.latestSelfTransfer
+              : isReceive
+                ? $.accounts.latestReceived
+                : isStake
+                  ? $.accounts.latestStaked
+                  : $.accounts.latestSent
           }
           values={{ amount, address }}
           components={{

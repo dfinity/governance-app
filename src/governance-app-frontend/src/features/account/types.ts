@@ -3,4 +3,5 @@ export enum TransactionType {
   SEND = 'send',
   RECEIVE = 'receive',
   STAKE = 'stake',
+  SELF = 'self',
 }
