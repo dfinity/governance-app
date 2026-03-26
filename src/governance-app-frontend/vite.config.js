@@ -10,6 +10,10 @@ import environment from 'vite-plugin-environment';
 dotenv.config({ path: '../../.env', quiet: true });
 
 export default defineConfig({
+  define: {
+    __GIT_COMMIT__: JSON.stringify(process.env.GIT_COMMIT ?? 'dev'),
+    __BUILD_DATE__: JSON.stringify(new Date().toISOString().split('T')[0].replace(/-/g, '.')),
+  },
   server: {
     port: 3000,
     strictPort: false,

@@ -12,6 +12,7 @@ RUN ./scripts/config.sh -n ic
 # Run the build chain.
 RUN npm ci
 RUN dfx generate
+ENV GIT_COMMIT=$GIT_COMMIT
 RUN npm run build
 RUN cargo build --target wasm32-unknown-unknown --release -p governance-app-backend --locked
 
