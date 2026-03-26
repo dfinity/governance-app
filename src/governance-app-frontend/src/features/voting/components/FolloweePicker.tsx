@@ -651,7 +651,7 @@ function CustomNeuronRow({
       onClick={onToggle}
       onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && onToggle()}
     >
-      <div className="flex shrink-0 items-center self-start py-5 pl-5">
+      <div className="flex h-14 shrink-0 items-center pl-5">
         {isSelected ? (
           <CheckSquare2 className="size-6 text-primary" />
         ) : (
@@ -659,13 +659,13 @@ function CustomNeuronRow({
         )}
       </div>
       <div className="flex min-w-0 grow flex-col">
-        <div className="flex grow items-center justify-between">
-          <div className="flex flex-col gap-1 py-5 pl-4">
+        <div className="flex h-14 items-center justify-between">
+          <div className="flex min-w-0 flex-1 flex-col gap-1 pl-4">
             <span className="truncate text-sm leading-none">{id.toString()}</span>
           </div>
           <Button
             variant="ghost"
-            className="h-full min-w-20 rounded-none hover:text-destructive"
+            className="h-full min-w-20 shrink-0 rounded-none hover:text-destructive"
             onClick={(e) => {
               e.stopPropagation();
               onRemove();
