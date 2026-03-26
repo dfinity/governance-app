@@ -26,6 +26,7 @@ import { SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
 import { useSaveAddressBook } from '@hooks/addressBook/useSaveAddressBook';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
 import { addressBookGetAddressString } from '@utils/addressBook';
+import { mapCanisterError } from '@utils/errors';
 import { cn } from '@utils/shadcn';
 
 import { AddressBookSuccess, AddressBookUpdating } from './AddressBookSaving';
@@ -289,7 +290,7 @@ export const AddAddressModal: React.FC<Props> = ({
         setPhase(Phase.Success);
       },
       onError: (error) => {
-        setErrorMessage(error.message);
+        setErrorMessage(mapCanisterError(error));
         setPhase(Phase.Error);
       },
     });

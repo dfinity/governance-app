@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import type { NamedAddress } from '@declarations/governance-app-backend/governance-app-backend.did';
 
 import { Button } from '@components/button';
+import { AnimatedErrorIcon, FadeInText, PhaseContainer } from '@components/MutationPhases';
 import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
 import {
   ResponsiveDialog,
@@ -16,7 +17,7 @@ import {
 } from '@components/ResponsiveDialog';
 import { SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
 import { useSaveAddressBook } from '@hooks/addressBook/useSaveAddressBook';
-import { errorNotification } from '@utils/notification';
+import { mapCanisterError } from '@utils/errors';
 
 import { AddressBookSuccess, AddressBookUpdating } from './AddressBookSaving';
 
@@ -24,6 +25,7 @@ enum Phase {
   Confirm = 'confirm',
   Processing = 'processing',
   Success = 'success',
+  Error = 'error',
 }
 
 type Props = {
@@ -42,11 +44,13 @@ export const RemoveAddressConfirmation: React.FC<Props> = ({
   const { t } = useTranslation();
   const saveAddressBook = useSaveAddressBook();
   const [phase, setPhase] = useState(Phase.Confirm);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (isOpen) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setPhase(Phase.Confirm);
+      setErrorMessage(undefined);
     }
   }, [isOpen]);
 
@@ -68,8 +72,8 @@ export const RemoveAddressConfirmation: React.FC<Props> = ({
         setPhase(Phase.Success);
       },
       onError: (error) => {
-        errorNotification({ description: error.message });
-        setPhase(Phase.Confirm);
+        setErrorMessage(mapCanisterError(error));
+        setPhase(Phase.Error);
       },
     });
   };
@@ -138,6 +142,27 @@ export const RemoveAddressConfirmation: React.FC<Props> = ({
             )}
             {phase === Phase.Success && (
               <AddressBookSuccess message={t(($) => $.addressBook.removeSuccess)} />
+            )}
+            {phase === Phase.Error && (
+              <PhaseContainer key="error" className="items-center justify-between">
+                <ResponsiveDialogTitle className="sr-only">
+                  {errorMessage ?? t(($) => $.addressBook.saveError)}
+                </ResponsiveDialogTitle>
+                <div className="flex flex-1 flex-col items-center justify-center gap-4">
+                  <AnimatedErrorIcon />
+                  <FadeInText delay={0.3} className="max-w-xs">
+                    {errorMessage ?? t(($) => $.addressBook.saveError)}
+                  </FadeInText>
+                </div>
+                <div className="flex w-full gap-2 pt-4">
+                  <Button variant="outline" className="flex-1" onClick={onClose}>
+                    {t(($) => $.common.close)}
+                  </Button>
+                  <Button className="flex-1" onClick={() => setPhase(Phase.Confirm)}>
+                    {t(($) => $.common.back)}
+                  </Button>
+                </div>
+              </PhaseContainer>
             )}
           </AnimatePresence>
         </ResponsiveDialogContent>

@@ -16,6 +16,7 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
+import { mapCanisterError } from '@utils/errors';
 
 import { SubAccountDialogMode } from '../types';
 
@@ -104,7 +105,7 @@ export const SubAccountNameDialog = ({
       await onSubmit(trimmedName);
       setPhase(Phase.Success);
     } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : errorFallback);
+      setErrorMessage(err instanceof Error ? mapCanisterError(err) : errorFallback);
       setPhase(Phase.Error);
     }
   };
