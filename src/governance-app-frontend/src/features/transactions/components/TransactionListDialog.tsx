@@ -75,7 +75,10 @@ export function TransactionListDialog({
 
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
-      <ResponsiveDialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-3xl">
+      <ResponsiveDialogContent
+        className="max-h-[80vh] overflow-y-auto sm:max-w-3xl"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>{t(($) => $.common.transactions)}</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>

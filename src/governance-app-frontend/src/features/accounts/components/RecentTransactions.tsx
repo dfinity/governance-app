@@ -1,4 +1,4 @@
-import { ArrowDownToLine, ArrowUp, Lock, type LucideIcon } from 'lucide-react';
+import { ArrowDownToLine, ArrowUp, ArrowUpDown, Lock, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@components/badge';
@@ -71,6 +71,12 @@ const txConfig: Record<
     amountClasses: 'text-red-800 dark:text-red-400',
     sign: '-',
   },
+  [TransactionType.SELF]: {
+    icon: ArrowUpDown,
+    colorClasses: 'bg-muted text-muted-foreground',
+    amountClasses: 'text-muted-foreground',
+    sign: '',
+  },
   [TransactionType.UNKNOWN]: {
     icon: ArrowUp,
     colorClasses: 'bg-muted text-muted-foreground',
@@ -86,11 +92,13 @@ function TransactionRow({ tx }: { tx: AccountTransaction }) {
   const Icon = config.icon;
 
   const label =
-    tx.type === TransactionType.RECEIVE
-      ? t(($) => $.accounts.received)
-      : tx.type === TransactionType.STAKE
-        ? t(($) => $.accounts.staked)
-        : t(($) => $.accounts.sent);
+    tx.type === TransactionType.SELF
+      ? t(($) => $.accounts.selfTransfer)
+      : tx.type === TransactionType.RECEIVE
+        ? t(($) => $.accounts.received)
+        : tx.type === TransactionType.STAKE
+          ? t(($) => $.accounts.staked)
+          : t(($) => $.accounts.sent);
 
   return (
     <div className="flex items-center gap-3">

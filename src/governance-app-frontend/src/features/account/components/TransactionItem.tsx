@@ -3,6 +3,7 @@ import { nonNullish } from '@dfinity/utils';
 import {
   ArrowDownToLine,
   ArrowUp,
+  ArrowUpDown,
   BookUser,
   CircleQuestionMark,
   Lock,
@@ -50,13 +51,15 @@ export const AccountTransactionItem = ({
   const type = detectTransactionType(operation, accountId, userNeuronsAccountIds.accountIds);
 
   const title =
-    type === TransactionType.RECEIVE
-      ? t(($) => $.accounts.received)
-      : type === TransactionType.STAKE
-        ? t(($) => $.accounts.staked)
-        : type === TransactionType.SEND
-          ? t(($) => $.accounts.sent)
-          : t(($) => $.account.unknownTransaction);
+    type === TransactionType.SELF
+      ? t(($) => $.accounts.selfTransfer)
+      : type === TransactionType.RECEIVE
+        ? t(($) => $.accounts.received)
+        : type === TransactionType.STAKE
+          ? t(($) => $.accounts.staked)
+          : type === TransactionType.SEND
+            ? t(($) => $.accounts.sent)
+            : t(($) => $.account.unknownTransaction);
 
   const address =
     type === TransactionType.RECEIVE ? operation.Transfer.from : operation.Transfer.to;
@@ -92,10 +95,14 @@ export const AccountTransactionItem = ({
               'rounded-full p-3',
               type === TransactionType.RECEIVE
                 ? 'bg-emerald-200/30 text-emerald-800 dark:bg-emerald-100/10 dark:text-emerald-400'
-                : 'bg-red-200/30 text-red-800 dark:bg-red-100/10 dark:text-red-400',
+                : type === TransactionType.SELF
+                  ? 'bg-muted text-muted-foreground'
+                  : 'bg-red-200/30 text-red-800 dark:bg-red-100/10 dark:text-red-400',
             )}
           >
-            {type === TransactionType.SEND ? (
+            {type === TransactionType.SELF ? (
+              <ArrowUpDown className="size-5" />
+            ) : type === TransactionType.SEND ? (
               <ArrowUp className="size-5" />
             ) : type === TransactionType.RECEIVE ? (
               <ArrowDownToLine className="size-5" />
@@ -187,10 +194,12 @@ export const AccountTransactionItem = ({
                   'text-base font-semibold',
                   type === TransactionType.RECEIVE
                     ? 'text-emerald-800 dark:text-emerald-400'
-                    : 'text-red-800 dark:text-red-400',
+                    : type === TransactionType.SELF
+                      ? 'text-muted-foreground'
+                      : 'text-red-800 dark:text-red-400',
                 )}
               >
-                {type === TransactionType.RECEIVE ? '+' : '-'}
+                {type === TransactionType.RECEIVE ? '+' : type === TransactionType.SELF ? '' : '-'}
 
                 {t(($) => $.common.inIcp, {
                   value: formatNumber(bigIntDiv(operation.Transfer.amount.e8s, E8Sn), {

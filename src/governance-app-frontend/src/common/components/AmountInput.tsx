@@ -74,7 +74,7 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
             data-testid={testId}
           />
           <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-1.5">
-            <img src="/icp-token.svg" alt="" aria-hidden={true} className="h-6 w-6" />
+            <img src="/icp-token.svg" alt="" aria-hidden={true} className="size-6" />
             <span className="text-sm font-semibold text-muted-foreground">
               {t(($) => $.common.icp)}
             </span>

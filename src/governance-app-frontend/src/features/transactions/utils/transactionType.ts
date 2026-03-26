@@ -15,6 +15,7 @@ export const detectTransactionType = (
 
   if (neuronAccountIds.has(transfer.to) && transfer.from === accountId)
     return TransactionType.STAKE;
+  if (transfer.from === accountId && transfer.to === accountId) return TransactionType.SELF;
   if (transfer.from === accountId) return TransactionType.SEND;
   if (transfer.to === accountId) return TransactionType.RECEIVE;
 
