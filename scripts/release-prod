@@ -312,6 +312,7 @@ RELEASE_FLAGS=(
 
 if [[ -n "$DEPLOYED_COMMIT" ]] && [[ "$DEPLOYED_COMMIT" != "unknown" ]] && [[ "$DEPLOYED_COMMIT" != "$COMMIT" ]]; then
   # Find the release tag associated with the deployed commit
+  git fetch --tags --quiet || true
   PREVIOUS_TAG="$(git describe --tags --match 'release-*' --abbrev=0 "$DEPLOYED_COMMIT" 2>/dev/null || true)"
   if [[ -n "$PREVIOUS_TAG" ]]; then
     RELEASE_FLAGS+=(--generate-notes --notes-start-tag "$PREVIOUS_TAG")
