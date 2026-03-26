@@ -281,7 +281,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
         </ResponsiveDialogTrigger>
 
         <ResponsiveDialogContent
-          className="flex max-h-[90vh] min-h-[400px] flex-col"
+          className="flex max-h-[90vh] flex-col"
           showCloseButton={phase === Phase.Form || phase === Phase.Confirmation}
         >
           <AnimatePresence mode="wait" initial={false}>
@@ -419,7 +419,7 @@ function SendFormPhase({
     <motion.form
       key="form"
       onSubmit={onSubmit}
-      className="flex min-h-0 flex-1 flex-col"
+      className="flex min-h-0 flex-1 flex-col overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -599,7 +599,7 @@ function SendConfirmationPhase({
   return (
     <motion.div
       key="confirmation"
-      className="flex min-h-0 flex-1 flex-col"
+      className="flex min-h-0 flex-1 flex-col overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
