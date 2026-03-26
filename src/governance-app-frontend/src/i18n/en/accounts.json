@@ -15,7 +15,7 @@
   "sent": "Sent",
   "received": "Received",
   "staked": "Locked",
-  "selfTransfer": "Self Transfer",
+  "selfTransfer": "Self transfer",
   "balanceError": "Unable to load balance.",
   "errors": {
     "accountNotFound": "Account not found in NNS dapp.",
