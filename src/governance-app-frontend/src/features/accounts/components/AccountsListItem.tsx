@@ -1,4 +1,5 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
+import { nonNullish } from '@dfinity/utils';
 import { ArrowDownLeft, List } from 'lucide-react';
 import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -9,6 +10,7 @@ import { useNeuronAccountsIds } from '@features/account/hooks/useNeuronAccountsI
 import { TransactionType } from '@features/account/types';
 import { TransactionListDialog } from '@features/transactions/components/TransactionListDialog';
 import { detectTransactionType, getAmountE8s } from '@features/transactions/utils/transactionType';
+import { txConfig } from '@features/transactions/utils/txConfig';
 
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
@@ -156,24 +158,6 @@ function AccountBalance({
   );
 }
 
-const latestTxConfig: Record<TransactionType, { amountClasses: string }> = {
-  [TransactionType.RECEIVE]: { amountClasses: 'text-emerald-800 dark:text-emerald-400' },
-  [TransactionType.MINT]: { amountClasses: 'text-emerald-800 dark:text-emerald-400' },
-  [TransactionType.SEND]: { amountClasses: 'text-red-800 dark:text-red-400' },
-  [TransactionType.STAKE]: { amountClasses: '' },
-  [TransactionType.SELF]: { amountClasses: '' },
-  [TransactionType.UNKNOWN]: { amountClasses: '' },
-};
-
-const latestTransactionI18nKey = {
-  [TransactionType.MINT]: 'latestMinted',
-  [TransactionType.SELF]: 'latestSelfTransfer',
-  [TransactionType.RECEIVE]: 'latestReceived',
-  [TransactionType.STAKE]: 'latestStaked',
-  [TransactionType.SEND]: 'latestSent',
-  [TransactionType.UNKNOWN]: 'latestSent',
-} as const;
-
 function LastTransaction({ accountId }: { accountId: string }) {
   const { t } = useTranslation();
   const { accountIds: neuronAccountIds } = useNeuronAccountsIds();
@@ -198,7 +182,6 @@ function LastTransaction({ accountId }: { accountId: string }) {
   const type = detectTransactionType(operation, accountId, neuronAccountIds);
   if (type === TransactionType.UNKNOWN) return null;
 
-  const isMint = 'Mint' in operation;
   const transfer = 'Transfer' in operation ? operation.Transfer : null;
 
   const amountE8s = getAmountE8s(operation)!;
@@ -208,12 +191,12 @@ function LastTransaction({ accountId }: { accountId: string }) {
   const amountICP = bigIntDiv(amountE8s, E8Sn);
   const amount = t(($) => $.common.inIcp, { value: formatNumber(amountICP) });
 
-  const config = latestTxConfig[type];
-  const counterparty = isMint
-    ? null
-    : type === TransactionType.RECEIVE
+  const { amountClasses, latestLabelKey, addressDirection } = txConfig[type];
+  const counterparty = nonNullish(addressDirection)
+    ? type === TransactionType.RECEIVE
       ? transfer!.from
-      : transfer!.to;
+      : transfer!.to
+    : null;
   const userAccount = counterparty ? userAccounts.find((a) => a.accountId === counterparty) : null;
   const addressBookName = counterparty
     ? addressBookEntries.find(
@@ -227,10 +210,10 @@ function LastTransaction({ accountId }: { accountId: string }) {
     <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
       <p className="truncate">
         <Trans
-          i18nKey={($) => $.accounts[latestTransactionI18nKey[type]]}
+          i18nKey={($) => $.accounts[latestLabelKey]}
           values={{ amount, address }}
           components={{
-            amount: <span className={`font-semibold ${config.amountClasses}`} />,
+            amount: <span className={`font-semibold ${amountClasses}`} />,
             address: <span className="font-semibold" />,
           }}
         />

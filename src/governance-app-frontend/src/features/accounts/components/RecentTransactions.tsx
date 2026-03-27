@@ -1,5 +1,6 @@
-import { ArrowDownToLine, ArrowUp, ArrowUpDown, Coins, Lock, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+
+import { txConfig } from '@features/transactions/utils/txConfig';
 
 import { Badge } from '@components/badge';
 import { Card, CardContent, CardHeader } from '@components/Card';
@@ -11,7 +12,7 @@ import { formatNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
 import { useRecentTransactions } from '../hooks/useRecentTransactions';
-import { type AccountTransaction, TransactionType } from '../types';
+import { type AccountTransaction } from '../types';
 
 export const RecentTransactions = () => {
   const { t } = useTranslation();
@@ -49,79 +50,20 @@ export const RecentTransactions = () => {
   );
 };
 
-const txConfig: Record<
-  TransactionType,
-  { icon: LucideIcon; colorClasses: string; amountClasses: string; sign: string }
-> = {
-  [TransactionType.RECEIVE]: {
-    icon: ArrowDownToLine,
-    colorClasses: 'bg-emerald-200/30 text-emerald-800 dark:bg-emerald-100/10 dark:text-emerald-400',
-    amountClasses: 'text-emerald-800 dark:text-emerald-400',
-    sign: '+',
-  },
-  [TransactionType.SEND]: {
-    icon: ArrowUp,
-    colorClasses: 'bg-red-200/30 text-red-800 dark:bg-red-100/10 dark:text-red-400',
-    amountClasses: 'text-red-800 dark:text-red-400',
-    sign: '-',
-  },
-  [TransactionType.STAKE]: {
-    icon: Lock,
-    colorClasses: 'bg-red-200/30 text-red-800 dark:bg-red-100/10 dark:text-red-400',
-    amountClasses: 'text-red-800 dark:text-red-400',
-    sign: '-',
-  },
-  [TransactionType.SELF]: {
-    icon: ArrowUpDown,
-    colorClasses: 'bg-muted text-muted-foreground',
-    amountClasses: 'text-muted-foreground',
-    sign: '',
-  },
-  [TransactionType.MINT]: {
-    icon: Coins,
-    colorClasses: 'bg-emerald-200/30 text-emerald-800 dark:bg-emerald-100/10 dark:text-emerald-400',
-    amountClasses: 'text-emerald-800 dark:text-emerald-400',
-    sign: '+',
-  },
-  [TransactionType.UNKNOWN]: {
-    icon: ArrowUp,
-    colorClasses: 'bg-muted text-muted-foreground',
-    amountClasses: 'text-muted-foreground',
-    sign: '',
-  },
-};
-
-function getTransactionLabel(t: ReturnType<typeof useTranslation>['t'], type: TransactionType) {
-  switch (type) {
-    case TransactionType.SELF:
-      return t(($) => $.accounts.selfTransfer);
-    case TransactionType.RECEIVE:
-      return t(($) => $.accounts.received);
-    case TransactionType.STAKE:
-      return t(($) => $.accounts.staked);
-    case TransactionType.MINT:
-      return t(($) => $.accounts.minted);
-    default:
-      return t(($) => $.accounts.sent);
-  }
-}
-
 function TransactionRow({ tx }: { tx: AccountTransaction }) {
   const { t } = useTranslation();
   const amountICP = bigIntDiv(tx.amountE8s, E8Sn);
-  const config = txConfig[tx.type];
-  const Icon = config.icon;
-  const label = getTransactionLabel(t, tx.type);
+  const { icon: Icon, iconBgClasses, amountClasses, sign, labelKey } = txConfig[tx.type];
 
   return (
     <div className="flex items-center gap-3">
-      <div className={cn('shrink-0 rounded-full p-2.5', config.colorClasses)}>
+      <div className={cn('shrink-0 rounded-full p-2.5', iconBgClasses)}>
         <Icon className="size-4" />
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold">{label}</span>
+          <span className="text-sm font-semibold">{t(($) => $.accounts[labelKey])}</span>
           <Badge variant="secondary" className="text-[10px] font-normal">
             {tx.accountName}
           </Badge>
@@ -131,8 +73,8 @@ function TransactionRow({ tx }: { tx: AccountTransaction }) {
         </span>
       </div>
 
-      <span className={cn('shrink-0 text-sm font-semibold', config.amountClasses)}>
-        {config.sign}
+      <span className={cn('shrink-0 text-sm font-semibold', amountClasses)}>
+        {sign}
         {t(($) => $.common.inIcp, {
           value: formatNumber(amountICP, { minFraction: 2, maxFraction: 8 }),
         })}
