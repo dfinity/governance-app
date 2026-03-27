@@ -17,6 +17,7 @@ import { ThemeCard } from '@features/userAccount/components/ThemeCard';
 import { Button } from '@components/button';
 import { Card } from '@components/Card';
 import { PageHeader } from '@components/PageHeader';
+import { BUILD_DATE, GIT_COMMIT } from '@constants/extra';
 import { useLogout } from '@hooks/useLogout';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
 import { getSessionTimeLeftForUi } from '@utils/date';
@@ -60,7 +61,7 @@ function Settings() {
   if (isNullish(identity)) return null;
 
   return (
-    <div className="flex flex-col gap-12 pb-20">
+    <div className="flex min-h-full flex-col gap-12">
       <PageHeader
         title={t(($) => $.common.settings)}
         description={t(($) => $.userAccount.settingsDescription)}
@@ -163,6 +164,15 @@ function Settings() {
           {t(($) => $.common.logout)}
         </Button>
       </section>
+
+      <a
+        href="https://github.com/dfinity/governance-app/releases"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-auto text-center text-xs text-muted-foreground hover:underline"
+      >
+        v{BUILD_DATE} ({GIT_COMMIT?.slice(0, 7)})
+      </a>
     </div>
   );
 }

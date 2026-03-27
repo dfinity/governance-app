@@ -1,6 +1,7 @@
 import tailwindcss from '@tailwindcss/vite';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react';
+import { execSync } from 'child_process';
 import dotenv from 'dotenv';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { fileURLToPath, URL } from 'url';
@@ -8,6 +9,19 @@ import { defineConfig } from 'vite';
 import environment from 'vite-plugin-environment';
 
 dotenv.config({ path: '../../.env', quiet: true });
+
+// Derive version info from the git commit timestamp.
+// In production, GIT_COMMIT is injected via Docker. Locally, fall back to HEAD.
+try {
+  process.env.GIT_COMMIT ??= execSync('git rev-parse HEAD', { encoding: 'utf-8' }).trim();
+  process.env.BUILD_DATE ??= execSync(
+    `git show -s --format=%cd --date=format:%Y.%m.%d ${process.env.GIT_COMMIT}`,
+    { encoding: 'utf-8' },
+  ).trim();
+} catch {
+  process.env.GIT_COMMIT ??= 'dev';
+  process.env.BUILD_DATE ??= 'dev';
+}
 
 export default defineConfig({
   server: {
@@ -72,6 +86,7 @@ export default defineConfig({
     environment('all', { prefix: 'CANISTER_' }),
     environment('all', { prefix: 'DFX_' }),
     environment('all', { prefix: 'EXTRA_' }),
+    environment(['GIT_COMMIT', 'BUILD_DATE']),
     tailwindcss(),
   ],
   resolve: {
