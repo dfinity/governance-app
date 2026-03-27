@@ -2,7 +2,6 @@ import { CANISTER_ID_INTERNET_IDENTITY } from './canisterIds';
 
 export const GIT_COMMIT = process.env.GIT_COMMIT;
 export const BUILD_DATE = process.env.BUILD_DATE;
-export const APP_VERSION = `${BUILD_DATE ?? 'dev'} (${GIT_COMMIT?.slice(0, 7) ?? 'dev'})`;
 
 export const IS_LOCAL = process.env.DFX_NETWORK === 'local';
 export const HOST = process.env.DFX_HOST;

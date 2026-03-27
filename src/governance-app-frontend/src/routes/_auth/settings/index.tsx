@@ -17,7 +17,7 @@ import { ThemeCard } from '@features/userAccount/components/ThemeCard';
 import { Button } from '@components/button';
 import { Card } from '@components/Card';
 import { PageHeader } from '@components/PageHeader';
-import { APP_VERSION } from '@constants/extra';
+import { BUILD_DATE, GIT_COMMIT } from '@constants/extra';
 import { useLogout } from '@hooks/useLogout';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
 import { getSessionTimeLeftForUi } from '@utils/date';
@@ -171,7 +171,7 @@ function Settings() {
         rel="noopener noreferrer"
         className="mt-auto text-center text-xs text-muted-foreground hover:underline"
       >
-        v{APP_VERSION}
+        v{BUILD_DATE} ({GIT_COMMIT?.slice(0, 7)})
       </a>
     </div>
   );
