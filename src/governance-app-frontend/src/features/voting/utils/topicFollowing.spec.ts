@@ -104,7 +104,7 @@ describe('getEffectiveFollowees', () => {
     expect(result).toEqual({ followees: [10n], inherited: true });
     result = getEffectiveFollowees(Topic.Kyc, map);
     expect(result).toEqual({ followees: [10n], inherited: true });
-    result = getEffectiveFollowees(Topic.ExchangeRate, map);
+    result = getEffectiveFollowees(Topic.IcOsVersionElection, map);
     expect(result).toEqual({ followees: [10n], inherited: true });
   });
 
