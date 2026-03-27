@@ -116,11 +116,15 @@ export const AccountTransactionItem = ({
   const Icon = config.icon;
   const title = getTransactionTitle(t, type);
 
-  const isMint = 'Mint' in operation;
-  const transfer = 'Transfer' in operation ? operation.Transfer : null;
-  const address = isMint ? null : type === TransactionType.RECEIVE ? transfer!.from : transfer!.to;
+  const address = 'Mint' in operation
+    ? operation.Mint.to
+    : 'Transfer' in operation
+      ? type === TransactionType.RECEIVE
+        ? operation.Transfer.from
+        : operation.Transfer.to
+      : '';
 
-  const addressEntry = address ? addressNameMap?.get(address) : undefined;
+  const addressEntry = addressNameMap?.get(address);
   const addressName = addressEntry?.name;
 
   const addressDirection =
@@ -138,11 +142,10 @@ export const AccountTransactionItem = ({
 
   const suspicious =
     type === TransactionType.RECEIVE &&
-    address !== null &&
     isSuspiciousAddress(address, amountE8s, trustedAddresses);
 
-  const shortAddress = address ? shortenId(address, 10) : '';
-  const fullAddress = address ? shortenId(address, 18) : '';
+  const shortAddress = shortenId(address, 10);
+  const fullAddress = shortenId(address, 18);
   const addressComponents = { address: <span className="font-mono" /> };
 
   return (
