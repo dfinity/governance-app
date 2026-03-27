@@ -17,7 +17,7 @@ import { ThemeCard } from '@features/userAccount/components/ThemeCard';
 import { Button } from '@components/button';
 import { Card } from '@components/Card';
 import { PageHeader } from '@components/PageHeader';
-import { APP_VERSION } from '@constants/version';
+import { APP_VERSION } from '@constants/extra';
 import { useLogout } from '@hooks/useLogout';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
 import { getSessionTimeLeftForUi } from '@utils/date';

@@ -1,6 +1,7 @@
 import tailwindcss from '@tailwindcss/vite';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react';
+import { execSync } from 'child_process';
 import dotenv from 'dotenv';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { fileURLToPath, URL } from 'url';
@@ -9,13 +10,17 @@ import environment from 'vite-plugin-environment';
 
 dotenv.config({ path: '../../.env', quiet: true });
 
+// Derive the build date from the git commit timestamp.
+const gitCommit = process.env.GIT_COMMIT ?? 'HEAD';
+try {
+  process.env.BUILD_DATE ??= execSync(`git show -s --format=%cd --date=format:%Y.%m.%d ${gitCommit}`, {
+    encoding: 'utf-8',
+  }).trim();
+} catch {
+  process.env.BUILD_DATE ??= 'dev';
+}
+
 export default defineConfig({
-  define: {
-    __GIT_COMMIT__: JSON.stringify(process.env.GIT_COMMIT ?? 'dev'),
-    __BUILD_DATE__: JSON.stringify(
-      process.env.BUILD_DATE ?? new Date().toISOString().split('T')[0].replace(/-/g, '.'),
-    ),
-  },
   server: {
     port: 3000,
     strictPort: false,
@@ -78,6 +83,7 @@ export default defineConfig({
     environment('all', { prefix: 'CANISTER_' }),
     environment('all', { prefix: 'DFX_' }),
     environment('all', { prefix: 'EXTRA_' }),
+    environment({ GIT_COMMIT: 'dev', BUILD_DATE: 'dev' }),
     tailwindcss(),
   ],
   resolve: {
