@@ -1,5 +1,6 @@
 import { IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { nonNullish } from '@dfinity/utils';
+import type { LucideIcon } from 'lucide-react';
 import {
   ArrowDownToLine,
   ArrowUp,
@@ -26,8 +27,6 @@ import { shortenId } from '@utils/id';
 import { formatNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
-import type { LucideIcon } from 'lucide-react';
-
 import { useNeuronAccountsIds } from '../hooks/useNeuronAccountsIds';
 import { TransactionType } from '../types';
 import { isSuspiciousAddress } from '../utils/addressPoisoning';
@@ -38,7 +37,8 @@ const txConfig: Record<
 > = {
   [TransactionType.RECEIVE]: {
     icon: ArrowDownToLine,
-    iconBgClasses: 'bg-emerald-200/30 text-emerald-800 dark:bg-emerald-100/10 dark:text-emerald-400',
+    iconBgClasses:
+      'bg-emerald-200/30 text-emerald-800 dark:bg-emerald-100/10 dark:text-emerald-400',
     amountClasses: 'text-emerald-800 dark:text-emerald-400',
     sign: '+',
   },
@@ -62,7 +62,8 @@ const txConfig: Record<
   },
   [TransactionType.MINT]: {
     icon: Coins,
-    iconBgClasses: 'bg-emerald-200/30 text-emerald-800 dark:bg-emerald-100/10 dark:text-emerald-400',
+    iconBgClasses:
+      'bg-emerald-200/30 text-emerald-800 dark:bg-emerald-100/10 dark:text-emerald-400',
     amountClasses: 'text-emerald-800 dark:text-emerald-400',
     sign: '+',
   },
@@ -117,11 +118,7 @@ export const AccountTransactionItem = ({
 
   const isMint = 'Mint' in operation;
   const transfer = 'Transfer' in operation ? operation.Transfer : null;
-  const address = isMint
-    ? null
-    : type === TransactionType.RECEIVE
-      ? transfer!.from
-      : transfer!.to;
+  const address = isMint ? null : type === TransactionType.RECEIVE ? transfer!.from : transfer!.to;
 
   const addressEntry = address ? addressNameMap?.get(address) : undefined;
   const addressName = addressEntry?.name;

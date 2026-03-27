@@ -156,10 +156,7 @@ function AccountBalance({
   );
 }
 
-const latestTxConfig: Record<
-  TransactionType,
-  { amountClasses: string }
-> = {
+const latestTxConfig: Record<TransactionType, { amountClasses: string }> = {
   [TransactionType.RECEIVE]: { amountClasses: 'text-emerald-800 dark:text-emerald-400' },
   [TransactionType.MINT]: { amountClasses: 'text-emerald-800 dark:text-emerald-400' },
   [TransactionType.SEND]: { amountClasses: 'text-red-800 dark:text-red-400' },
@@ -229,7 +226,8 @@ function LastTransaction({ accountId }: { accountId: string }) {
         (entry) => addressBookGetAddressString(entry.address) === counterparty,
       )?.name
     : null;
-  const address = userAccount?.name ?? addressBookName ?? (counterparty ? shortenId(counterparty, 8) : '');
+  const address =
+    userAccount?.name ?? addressBookName ?? (counterparty ? shortenId(counterparty, 8) : '');
 
   return (
     <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
