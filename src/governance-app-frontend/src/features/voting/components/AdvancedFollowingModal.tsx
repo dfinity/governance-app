@@ -226,10 +226,10 @@ function RemoveFolloweeDialog({
       );
     },
     onSuccess: async () => {
+      analytics.event(AnalyticsEvent.FollowingRemoveFollowee);
       await queryClient
         .invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] })
         .catch(failedRefresh);
-      analytics.event(AnalyticsEvent.FollowingRemoveFollowee);
       setPhase(RemovePhase.Success);
     },
     onError: (error) => {
@@ -386,10 +386,10 @@ function ClearAllFollowingDialog({
       );
     },
     onSuccess: async () => {
+      analytics.event(AnalyticsEvent.FollowingClearAll);
       await queryClient
         .invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] })
         .catch(failedRefresh);
-      analytics.event(AnalyticsEvent.FollowingClearAll);
       setPhase(RemovePhase.Success);
     },
     onError: (error) => {

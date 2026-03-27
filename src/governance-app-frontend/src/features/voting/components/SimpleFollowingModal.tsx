@@ -144,15 +144,14 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
       return { previousSelectedId: selectedNeuronId };
     },
     onSuccess: async (_, variables) => {
+      analytics.event(AnalyticsEvent.FollowingSimpleConfirmation, {
+        neuron_name: variables.knownNeuron.name,
+      });
       await queryClient
         .invalidateQueries({
           queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
         })
         .catch(failedRefresh);
-
-      analytics.event(AnalyticsEvent.FollowingSimpleConfirmation, {
-        neuron_name: variables.knownNeuron.name,
-      });
       setDialogState({ phase: DialogPhase.Success, neuronName: variables.knownNeuron.name });
     },
     onError: (error, variables, context) => {

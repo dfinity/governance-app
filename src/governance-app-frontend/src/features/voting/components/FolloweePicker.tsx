@@ -205,12 +205,12 @@ export function FolloweePicker({
       );
     },
     onSuccess: async () => {
-      await queryClient
-        .invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] })
-        .catch(failedRefresh);
       analytics.event(AnalyticsEvent.FollowingPickerApply, {
         topic_count: selectedTopics.size.toString(),
       });
+      await queryClient
+        .invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] })
+        .catch(failedRefresh);
       setAppliedTopicCount(selectedTopics.size);
       setStep(WizardStep.Success);
     },
