@@ -116,15 +116,15 @@ export const AccountTransactionItem = ({
   const Icon = config.icon;
   const title = getTransactionTitle(t, type);
 
-  const address = 'Mint' in operation
-    ? operation.Mint.to
-    : 'Transfer' in operation
-      ? type === TransactionType.RECEIVE
-        ? operation.Transfer.from
-        : operation.Transfer.to
-      : '';
+  // Mints and self-transfers have no meaningful counterparty address to display —
+  // mints have no source, and self-transfers go to/from the same account.
+  const transfer = 'Transfer' in operation ? operation.Transfer : null;
+  const hasCounterparty = type !== TransactionType.MINT && type !== TransactionType.SELF;
+  const address = hasCounterparty
+    ? type === TransactionType.RECEIVE ? transfer!.from : transfer!.to
+    : null;
 
-  const addressEntry = addressNameMap?.get(address);
+  const addressEntry = nonNullish(address) ? addressNameMap?.get(address) : undefined;
   const addressName = addressEntry?.name;
 
   const addressDirection =
@@ -142,10 +142,11 @@ export const AccountTransactionItem = ({
 
   const suspicious =
     type === TransactionType.RECEIVE &&
+    nonNullish(address) &&
     isSuspiciousAddress(address, amountE8s, trustedAddresses);
 
-  const shortAddress = shortenId(address, 10);
-  const fullAddress = shortenId(address, 18);
+  const shortAddress = nonNullish(address) ? shortenId(address, 10) : '';
+  const fullAddress = nonNullish(address) ? shortenId(address, 18) : '';
   const addressComponents = { address: <span className="font-mono" /> };
 
   return (
@@ -166,7 +167,7 @@ export const AccountTransactionItem = ({
                   {secondsToDate(transactionTimestamp)} - {secondsToTime(transactionTimestamp)}
                 </span>
 
-                {nonNullish(addressName) ? (
+                {nonNullish(address) && nonNullish(addressName) ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
@@ -193,7 +194,7 @@ export const AccountTransactionItem = ({
                       <p className="font-mono text-xs">{address}</p>
                     </TooltipContent>
                   </Tooltip>
-                ) : (
+                ) : nonNullish(address) ? (
                   <div
                     className={cn(
                       'flex min-w-0 items-center gap-1 text-sm text-muted-foreground',
@@ -223,7 +224,7 @@ export const AccountTransactionItem = ({
                       />
                     )}
                   </div>
-                )}
+                ) : null}
                 {suspicious && (
                   <Alert variant="warning" className="px-3 py-2">
                     <AlertDescription className="text-xs">
