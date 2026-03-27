@@ -10,13 +10,16 @@ import environment from 'vite-plugin-environment';
 
 dotenv.config({ path: '../../.env', quiet: true });
 
-// Derive the build date from the git commit timestamp.
-const gitCommit = process.env.GIT_COMMIT ?? 'HEAD';
+// Derive version info from the git commit timestamp.
+// In production, GIT_COMMIT is injected via Docker. Locally, fall back to HEAD.
 try {
-  process.env.BUILD_DATE ??= execSync(`git show -s --format=%cd --date=format:%Y.%m.%d ${gitCommit}`, {
-    encoding: 'utf-8',
-  }).trim();
+  process.env.GIT_COMMIT ??= execSync('git rev-parse HEAD', { encoding: 'utf-8' }).trim();
+  process.env.BUILD_DATE ??= execSync(
+    `git show -s --format=%cd --date=format:%Y.%m.%d ${process.env.GIT_COMMIT}`,
+    { encoding: 'utf-8' },
+  ).trim();
 } catch {
+  process.env.GIT_COMMIT ??= 'dev';
   process.env.BUILD_DATE ??= 'dev';
 }
 
@@ -83,7 +86,7 @@ export default defineConfig({
     environment('all', { prefix: 'CANISTER_' }),
     environment('all', { prefix: 'DFX_' }),
     environment('all', { prefix: 'EXTRA_' }),
-    environment({ GIT_COMMIT: 'dev', BUILD_DATE: 'dev' }),
+    environment(['GIT_COMMIT', 'BUILD_DATE']),
     tailwindcss(),
   ],
   resolve: {
