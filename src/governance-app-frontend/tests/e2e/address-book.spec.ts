@@ -20,7 +20,9 @@ const addAddress = async (page: Page, nickname: string, address: string) => {
   await page.getByTestId('add-address-nickname-input').fill(nickname);
   await page.getByTestId('add-address-address-input').fill(address);
   await page.getByTestId('add-address-save-btn').click();
-  await expect(page.getByText('Address saved successfully.')).toBeVisible({ timeout: 30000 });
+  await expect(
+    page.getByRole('paragraph').filter({ hasText: 'Address saved successfully.' }),
+  ).toBeVisible({ timeout: 30000 });
   await expect(page.getByTestId('add-address-modal')).not.toBeVisible({ timeout: 30000 });
 };
 
@@ -85,7 +87,9 @@ test.describe('Address book', () => {
       await page.getByTestId('add-address-nickname-input').fill('Marta');
       await page.getByTestId('add-address-save-btn').click();
 
-      await expect(page.getByText('Address updated successfully.')).toBeVisible({ timeout: 30000 });
+      await expect(
+        page.getByRole('paragraph').filter({ hasText: 'Address updated successfully.' }),
+      ).toBeVisible({ timeout: 30000 });
       await expect(page.getByTestId('add-address-modal')).not.toBeVisible({ timeout: 30000 });
 
       const names = await getEntryNames(page);
@@ -107,7 +111,9 @@ test.describe('Address book', () => {
       await page.getByTestId('add-address-address-input').fill(TEST_ICRC1_ADDRESS);
       await page.getByTestId('add-address-save-btn').click();
 
-      await expect(page.getByText('Address updated successfully.')).toBeVisible({ timeout: 30000 });
+      await expect(
+        page.getByRole('paragraph').filter({ hasText: 'Address updated successfully.' }),
+      ).toBeVisible({ timeout: 30000 });
       await expect(page.getByTestId('add-address-modal')).not.toBeVisible({ timeout: 30000 });
 
       martaEntry = page.getByTestId('address-book-entry').filter({ hasText: 'Marta' });
@@ -128,9 +134,9 @@ test.describe('Address book', () => {
       await expect(page.getByTestId('remove-address-confirmation')).toContainText('Bob');
       await page.getByTestId('remove-address-confirm-btn').click();
 
-      await expect(page.getByText('Address removed successfully.')).toBeVisible({
-        timeout: 30000,
-      });
+      await expect(
+        page.getByRole('paragraph').filter({ hasText: 'Address removed successfully.' }),
+      ).toBeVisible({ timeout: 30000 });
       await expect(page.getByTestId('remove-address-confirmation')).not.toBeVisible({
         timeout: 30000,
       });
@@ -167,9 +173,9 @@ test.describe('Address book', () => {
       await expect(page.getByTestId('remove-address-confirmation')).toBeVisible();
       await page.getByTestId('remove-address-confirm-btn').click();
 
-      await expect(page.getByText('Address removed successfully.')).toBeVisible({
-        timeout: 30000,
-      });
+      await expect(
+        page.getByRole('paragraph').filter({ hasText: 'Address removed successfully.' }),
+      ).toBeVisible({ timeout: 30000 });
       await expect(page.getByTestId('remove-address-confirmation')).not.toBeVisible({
         timeout: 30000,
       });

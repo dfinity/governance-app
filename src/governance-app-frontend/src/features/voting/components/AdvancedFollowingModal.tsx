@@ -5,6 +5,9 @@ import { AnimatePresence } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
+
 import { Button } from '@components/button';
 import {
   AnimatedErrorIcon,
@@ -101,7 +104,10 @@ export function AdvancedFollowingModal({ open, onOpenChange }: Props) {
                   size="xl"
                   className="w-full"
                   disabled={isWaitingForCertifiedData}
-                  onClick={() => setPickerOpen(true)}
+                  onClick={() => {
+                    analytics.event(AnalyticsEvent.FollowingPickerSelectNeurons);
+                    setPickerOpen(true);
+                  }}
                   data-testid="set-followees-btn"
                 >
                   {isWaitingForCertifiedData ? (
@@ -220,6 +226,7 @@ function RemoveFolloweeDialog({
       );
     },
     onSuccess: async () => {
+      analytics.event(AnalyticsEvent.FollowingRemoveFollowee);
       await queryClient
         .invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] })
         .catch(failedRefresh);
@@ -379,6 +386,7 @@ function ClearAllFollowingDialog({
       );
     },
     onSuccess: async () => {
+      analytics.event(AnalyticsEvent.FollowingClearAll);
       await queryClient
         .invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] })
         .catch(failedRefresh);

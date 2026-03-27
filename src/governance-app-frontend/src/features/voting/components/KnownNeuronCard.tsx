@@ -57,11 +57,8 @@ export const KnownNeuronCard = ({
   return (
     <Card
       className={cn(
-        'h-auto cursor-pointer p-0 shadow-none transition-all',
-        mode === 'radio' && 'border-2',
-        mode === 'checkbox' && 'rounded-none border-0',
-        isSelected && mode === 'radio' && 'border-muted-foreground',
-        isSelected && mode === 'checkbox' && 'bg-muted/30',
+        'h-auto cursor-pointer rounded-none border-0 p-0 shadow-none transition-colors',
+        isSelected && 'bg-muted/30',
         isDisabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-muted/50',
       )}
       aria-disabled={isDisabled}
@@ -69,7 +66,7 @@ export const KnownNeuronCard = ({
       onClick={() => !isDisabled && onSelect(neuron)}
     >
       <div className="flex gap-4">
-        <div className="flex shrink-0 items-center self-start py-5 pl-5">
+        <div className="flex h-14 shrink-0 items-center pl-5">
           {isLoading ? (
             <Loader2 className="size-6 animate-spin" />
           ) : mode === 'checkbox' ? (
@@ -79,24 +76,22 @@ export const KnownNeuronCard = ({
               <Square className="size-6 text-muted-foreground" />
             )
           ) : isSelected ? (
-            <CircleDot className="size-6 stroke-[3px]" />
+            <CircleDot className="size-6 stroke-[3px] text-primary" />
           ) : (
             <Circle className="size-6 text-muted-foreground" />
           )}
         </div>
 
-        <div className="flex min-w-0 grow-1 flex-col">
-          <div className="flex items-center justify-between">
-            <div className="flex min-h-16 flex-col justify-center gap-1 py-5">
-              <h4 className={cn('leading-none', mode === 'radio' ? 'font-semibold' : 'text-sm')}>
-                {neuron.name}
-              </h4>
+        <div className="flex min-w-0 grow flex-col">
+          <div className="flex h-14 items-center justify-between">
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <h4 className="truncate text-sm leading-none">{neuron.name}</h4>
             </div>
 
             <Button
               variant="ghost"
               onClick={toggleExpanded}
-              className={cn('min-w-20', mode === 'radio' ? 'rounded-xl' : 'rounded-none')}
+              className="h-full min-w-20 shrink-0 rounded-none"
             >
               {isExpanded ? (
                 <ChevronUp className={'size-5'} />

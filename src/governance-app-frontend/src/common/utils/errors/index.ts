@@ -6,20 +6,23 @@ import { mapLedgerCanisterError } from './ledger';
 
 export { isCertifiedRejectError };
 
+const MAX_FRIENDLY_MESSAGE_LENGTH = 200;
+
 /**
  * Unified error mapper that tries to map an error against all known canister error types.
- * Tries each canister-specific mapper in sequence and returns the first match,
- * or falls back to a generic error message.
+ * Tries each canister-specific mapper in sequence, then preserves short pre-mapped
+ * messages from domain-specific hooks. Falls back to a generic error for long
+ * raw network/canister errors.
  */
 export const mapCanisterError = (error: Error): string => {
   const governanceMessage = mapGovernanceCanisterError(error);
-  if (governanceMessage) {
-    return governanceMessage;
-  }
+  if (governanceMessage) return governanceMessage;
 
   const ledgerMessage = mapLedgerCanisterError(error);
-  if (ledgerMessage) {
-    return ledgerMessage;
+  if (ledgerMessage) return ledgerMessage;
+
+  if (error.message && error.message.length <= MAX_FRIENDLY_MESSAGE_LENGTH) {
+    return error.message;
   }
 
   return t(($) => $.common.unknownError);

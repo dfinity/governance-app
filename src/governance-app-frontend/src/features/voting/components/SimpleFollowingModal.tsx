@@ -2,11 +2,15 @@ import { type KnownNeuron, type NeuronId } from '@icp-sdk/canisters/nns';
 import { isNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'motion/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
+import { Input } from '@components/Input';
 import {
   AnimatedErrorIcon,
   AnimatedSpinner,
@@ -98,6 +102,13 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
   const [userOverrideId, setUserOverrideId] = useState<string | null | undefined>(undefined);
   const selectedNeuronId = userOverrideId ?? derivedSelectedId;
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const filteredNeurons = useMemo(() => {
+    if (!searchQuery.trim()) return sortedKnownNeurons;
+    const query = searchQuery.toLowerCase();
+    return sortedKnownNeurons?.filter((n) => n.name.toLowerCase().includes(query));
+  }, [sortedKnownNeurons, searchQuery]);
+
   const [dialogState, setDialogState] = useState<DialogState>({ phase: DialogPhase.Closed });
   const isBlocking = dialogState.phase === DialogPhase.Processing;
   const isInConfirmFlow = dialogState.phase !== DialogPhase.Closed;
@@ -133,16 +144,19 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
       return { previousSelectedId: selectedNeuronId };
     },
     onSuccess: async (_, variables) => {
+      analytics.event(AnalyticsEvent.FollowingSimpleConfirmation, {
+        neuron_name: variables.knownNeuron.name,
+      });
       await queryClient
         .invalidateQueries({
           queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
         })
         .catch(failedRefresh);
-
       setDialogState({ phase: DialogPhase.Success, neuronName: variables.knownNeuron.name });
     },
     onError: (error, variables, context) => {
       errorMessage('SimpleFollowingModal', error.message);
+      analytics.event(AnalyticsEvent.FollowingSimpleConfirmationError);
       setUserOverrideId(context?.previousSelectedId ?? null);
       setDialogState({ phase: DialogPhase.Error, neuron: variables.knownNeuron });
     },
@@ -179,6 +193,7 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
       const timer = setTimeout(() => {
         setDialogState({ phase: DialogPhase.Closed });
         setUserOverrideId(undefined);
+        setSearchQuery('');
         updateFollowingMutation.reset();
         // Timeout to ensure the dialog is fully closed before resetting the state
       }, DIALOG_RESET_DELAY_MS);
@@ -216,7 +231,7 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
               }}
             />
           ) : (
-            <div className="flex flex-1 flex-col gap-4 overflow-hidden">
+            <div className="flex flex-1 flex-col gap-4 overflow-hidden pb-4 md:pb-0">
               <ResponsiveDialogHeader>
                 <ResponsiveDialogTitle>{t(($) => $.knownNeurons.title)}</ResponsiveDialogTitle>
                 <ResponsiveDialogDescription>
@@ -224,34 +239,53 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
                 </ResponsiveDialogDescription>
               </ResponsiveDialogHeader>
 
-              <div className="flex-1 overflow-y-auto">
-                <div className="flex flex-col gap-4 px-1 pb-4 md:pb-1">
-                  {isComplex && (
-                    <Alert variant="warning">
-                      <AlertTitle className="font-semibold">
-                        {t(($) => $.voting.warnings.followingMismatchTitle)}
-                      </AlertTitle>
-                      <AlertDescription>
-                        {t(($) => $.voting.warnings.followingMismatch)}
-                      </AlertDescription>
-                    </Alert>
-                  )}
+              {isComplex && (
+                <Alert variant="warning">
+                  <AlertTitle className="font-semibold">
+                    {t(($) => $.voting.warnings.followingMismatchTitle)}
+                  </AlertTitle>
+                  <AlertDescription>
+                    {t(($) => $.voting.warnings.followingMismatch)}
+                  </AlertDescription>
+                </Alert>
+              )}
 
+              <Input
+                placeholder={t(($) => $.voting.picker.searchPlaceholder)}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="shrink-0 focus-visible:ring-0"
+              />
+
+              <div
+                className={cn(
+                  'flex-1 overflow-y-auto rounded-lg border',
+                  isWaitingForCertifiedData && 'animate-pulse',
+                )}
+              >
+                <div className="flex flex-col divide-y">
                   {knownNeuronsQuery.isLoading ? (
-                    <div className="flex items-center gap-4 p-4">
-                      <Skeleton className="h-6 w-6 rounded-2xl" />
-                      <Skeleton className="h-8 w-80 rounded" />
+                    <div className="flex flex-col gap-3 p-3">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="flex items-center gap-4 p-4">
+                          <Skeleton className="size-6 rounded" />
+                          <Skeleton className="h-5 w-48" />
+                        </div>
+                      ))}
                     </div>
                   ) : knownNeuronsQuery.isError ? (
-                    <p className="text-destructive">{t(($) => $.common.loadingError)}</p>
-                  ) : sortedKnownNeurons?.length === 0 ? (
-                    <p className="text-muted-foreground">{t(($) => $.knownNeurons.empty)}</p>
+                    <p className="py-4 text-center text-destructive">
+                      {t(($) => $.common.loadingError)}
+                    </p>
+                  ) : filteredNeurons?.length === 0 ? (
+                    <p className="py-4 text-center text-sm text-muted-foreground">
+                      {searchQuery.trim()
+                        ? t(($) => $.voting.picker.noResults)
+                        : t(($) => $.knownNeurons.empty)}
+                    </p>
                   ) : (
-                    sortedKnownNeurons?.map((neuron) => (
-                      <div
-                        key={neuron.id.toString()}
-                        className={cn(isWaitingForCertifiedData && 'animate-pulse')}
-                      >
+                    filteredNeurons?.map((neuron) => (
+                      <div key={neuron.id.toString()}>
                         <KnownNeuronCard
                           neuron={neuron}
                           isSelected={selectedNeuronId === neuron.id.toString()}
@@ -265,6 +299,7 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
                             updateFollowingMutation.isPending ||
                             isWaitingForCertifiedData
                           }
+                          mode="radio"
                         />
                       </div>
                     ))

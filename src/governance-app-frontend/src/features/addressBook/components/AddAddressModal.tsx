@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
 import { Label } from '@components/Label';
+import { AnimatedErrorIcon, FadeInText, PhaseContainer } from '@components/MutationPhases';
 import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
 import {
   ResponsiveDialog,
@@ -26,6 +27,7 @@ import { SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
 import { useSaveAddressBook } from '@hooks/addressBook/useSaveAddressBook';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
 import { addressBookGetAddressString } from '@utils/addressBook';
+import { mapCanisterError } from '@utils/errors';
 import { cn } from '@utils/shadcn';
 
 import { AddressBookSuccess, AddressBookUpdating } from './AddressBookSaving';
@@ -173,42 +175,25 @@ const ErrorPhase: React.FC<ErrorPhaseProps> = ({ errorMessage, onClose, onBack }
   const { t } = useTranslation();
 
   return (
-    <motion.div
-      key="error"
-      className="flex h-full flex-col items-center justify-between py-8 text-center"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
-    >
+    <PhaseContainer key="error" className="items-center justify-between">
+      <ResponsiveDialogTitle className="sr-only">
+        {errorMessage ?? t(($) => $.addressBook.saveError)}
+      </ResponsiveDialogTitle>
       <div className="flex flex-1 flex-col items-center justify-center gap-4">
-        <motion.div
-          className="flex size-14 items-center justify-center rounded-full bg-destructive/10"
-          initial={{ scale: 0.8, rotate: 0 }}
-          animate={{ scale: 1, rotate: [0, -5, 5, -5, 5, 0] }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
-        >
-          <AlertTriangle className="size-8 text-destructive" />
-        </motion.div>
-        <ResponsiveDialogTitle className="max-w-xs text-sm font-medium text-muted-foreground">
-          <motion.span
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.3 }}
-          >
-            {errorMessage ?? t(($) => $.addressBook.saveError)}
-          </motion.span>
-        </ResponsiveDialogTitle>
+        <AnimatedErrorIcon />
+        <FadeInText delay={0.3} className="max-w-xs">
+          {errorMessage ?? t(($) => $.addressBook.saveError)}
+        </FadeInText>
       </div>
       <div className="flex w-full gap-2 pt-4">
         <Button variant="outline" className="flex-1" onClick={onClose}>
           {t(($) => $.common.close)}
         </Button>
         <Button className="flex-1" onClick={onBack}>
-          {t(($) => $.common.back)}
+          {t(($) => $.common.retry)}
         </Button>
       </div>
-    </motion.div>
+    </PhaseContainer>
   );
 };
 
@@ -289,7 +274,7 @@ export const AddAddressModal: React.FC<Props> = ({
         setPhase(Phase.Success);
       },
       onError: (error) => {
-        setErrorMessage(error.message);
+        setErrorMessage(mapCanisterError(error));
         setPhase(Phase.Error);
       },
     });

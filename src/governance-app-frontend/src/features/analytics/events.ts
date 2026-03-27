@@ -14,6 +14,16 @@ export enum AnalyticsEvent {
   StakingSetConfiguration = 'staking_set_configuration',
   StakingConfirmation = 'staking_confirmation',
   StakingConfirmationError = 'staking_confirmation_error',
+
+  // Following flow
+  FollowingSimpleConfirmation = 'following_simple_confirmation',
+  FollowingSimpleConfirmationError = 'following_simple_confirmation_error',
+  FollowingPickerSelectNeurons = 'following_picker_select_neurons',
+  FollowingPickerSelectTopics = 'following_picker_select_topics',
+  FollowingPickerApply = 'following_picker_apply',
+  FollowingPickerApplyError = 'following_picker_apply_error',
+  FollowingRemoveFollowee = 'following_remove_followee',
+  FollowingClearAll = 'following_clear_all',
 }
 // @TODO:
 //  - successful login
@@ -21,4 +31,3 @@ export enum AnalyticsEvent {
 //  - click on dashboard buttons (deposit / withdraw / staking - apy warning icons)
 //  - view proposal link
 //  - manual voting
-//  - change of followee

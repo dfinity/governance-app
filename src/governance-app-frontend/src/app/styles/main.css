@@ -129,8 +129,12 @@
     @apply border-border outline-ring/50;
   }
 
+  html {
+    background-color: var(--main-content);
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-main-content text-foreground;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -211,11 +215,6 @@
 /* Dashboard gradient, painted on the canvas (html) so it covers the overscroll area on iOS / macOS rubber-banding. */
 html.route-dashboard {
   --main-wrapper-right-edge: 100%;
-  background-color: var(--main-content);
-
-  & body {
-    background-color: var(--main-content);
-  }
 
   &::before {
     content: '';
