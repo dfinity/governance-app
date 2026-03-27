@@ -12,9 +12,11 @@
   "latestReceived": "Latest: received <amount>{{amount}}</amount> from <address>{{address}}</address>",
   "latestSelfTransfer": "Latest: self transfer <amount>{{amount}}</amount>",
   "latestStaked": "Latest: locked <amount>{{amount}}</amount>",
+  "latestMinted": "Latest: minted <amount>{{amount}}</amount>",
   "sent": "Sent",
   "received": "Received",
   "staked": "Locked",
+  "minted": "Minted",
   "selfTransfer": "Self transfer",
   "balanceError": "Unable to load balance.",
   "errors": {

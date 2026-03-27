@@ -1,4 +1,4 @@
-import { ArrowDownToLine, ArrowUp, ArrowUpDown, Lock, type LucideIcon } from 'lucide-react';
+import { ArrowDownToLine, ArrowUp, ArrowUpDown, Coins, Lock, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@components/badge';
@@ -77,6 +77,12 @@ const txConfig: Record<
     amountClasses: 'text-muted-foreground',
     sign: '',
   },
+  [TransactionType.MINT]: {
+    icon: Coins,
+    colorClasses: 'bg-emerald-200/30 text-emerald-800 dark:bg-emerald-100/10 dark:text-emerald-400',
+    amountClasses: 'text-emerald-800 dark:text-emerald-400',
+    sign: '+',
+  },
   [TransactionType.UNKNOWN]: {
     icon: ArrowUp,
     colorClasses: 'bg-muted text-muted-foreground',
@@ -98,7 +104,9 @@ function TransactionRow({ tx }: { tx: AccountTransaction }) {
         ? t(($) => $.accounts.received)
         : tx.type === TransactionType.STAKE
           ? t(($) => $.accounts.staked)
-          : t(($) => $.accounts.sent);
+          : tx.type === TransactionType.MINT
+            ? t(($) => $.accounts.minted)
+            : t(($) => $.accounts.sent);
 
   return (
     <div className="flex items-center gap-3">

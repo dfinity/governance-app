@@ -13,6 +13,12 @@ import { useSubaccountsMetadata } from './useSubaccountsMetadata';
 
 const MAX_RECENT_TRANSACTIONS = 10;
 
+function getAmountE8s(operation: IcpIndexDid.Operation): bigint | null {
+  if ('Transfer' in operation) return operation.Transfer.amount.e8s;
+  if ('Mint' in operation) return operation.Mint.amount.e8s;
+  return null;
+}
+
 function toAccountTransaction(
   tx: IcpIndexDid.TransactionWithId,
   accountId: string,
@@ -21,9 +27,10 @@ function toAccountTransaction(
 ): AccountTransaction | null {
   const { operation, created_at_time, timestamp: txTimestamp } = tx.transaction;
   const type = detectTransactionType(operation, accountId, neuronAccountIds);
-  if (type === TransactionType.UNKNOWN || !('Transfer' in operation)) return null;
+  if (type === TransactionType.UNKNOWN) return null;
 
-  const transfer = operation.Transfer;
+  const amountE8s = getAmountE8s(operation);
+  if (amountE8s === null) return null;
 
   const nanos = created_at_time[0]?.timestamp_nanos ?? txTimestamp[0]?.timestamp_nanos ?? 0n;
   const timestampSeconds = Number(nanos / BigInt(NANOSECONDS_IN_SECOND));
@@ -31,7 +38,7 @@ function toAccountTransaction(
   return {
     id: tx.id,
     type,
-    amountE8s: transfer.amount.e8s,
+    amountE8s,
     timestamp: timestampSeconds,
     accountId,
     accountName,

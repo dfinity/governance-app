@@ -8,7 +8,7 @@ export const detectTransactionType = (
   accountId: string,
   neuronAccountIds: Set<string>,
 ): TransactionType => {
-  // @TODO: Add support for Mint
+  if ('Mint' in operation) return TransactionType.MINT;
   if (!('Transfer' in operation)) return TransactionType.UNKNOWN;
 
   const transfer = operation.Transfer;
