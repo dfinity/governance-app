@@ -299,10 +299,9 @@ echo "✅ Installation was requested. A team member now needs to approve the req
 # Create draft GitHub Release
 # -----------------------------------------------------------------------------
 
-# Use the commit date (not "now") so the tag matches the actual build artifact.
 BUILD_DATE="$(git show -s --format=%cd --date=format:%Y.%m.%d "$COMMIT")"
 SHORT_COMMIT="${COMMIT:0:7}"
-RELEASE_TAG="release-${BUILD_DATE}-${SHORT_COMMIT}"
+RELEASE_TAG="release-${SHORT_COMMIT}"
 RELEASE_TITLE="v${BUILD_DATE} (${SHORT_COMMIT})"
 
 RELEASE_FLAGS=(
@@ -312,19 +311,15 @@ RELEASE_FLAGS=(
 )
 
 # Generate release notes scoped to changes since the last release tag.
-# Fallback: if no previous release-* tag exists (e.g. the very first release),
-# use the compare changelog URL instead.
 git fetch --tags --quiet || true
-PREVIOUS_TAG="$(git describe --tags --match 'release-*' --abbrev=0 "$DEPLOYED_COMMIT" 2>/dev/null || true)"
-if [[ -n "$PREVIOUS_TAG" ]]; then
-  RELEASE_FLAGS+=(--generate-notes --notes-start-tag "$PREVIOUS_TAG")
-else
-  RELEASE_FLAGS+=(--notes "Changes: ${CHANGELOG_URL}")
-fi
+PREVIOUS_TAG="$(git describe --tags --match 'release-*' --abbrev=0 "$DEPLOYED_COMMIT")"
+RELEASE_FLAGS+=(--generate-notes --notes-start-tag "$PREVIOUS_TAG")
 
 echo
 echo "Creating draft GitHub Release: $RELEASE_TAG..."
-if gh release create "$RELEASE_TAG" "${RELEASE_FLAGS[@]}"; then
+DID_PATH="$TOP_DIR/src/governance-app-backend/backend.did"
+# Suppress stdout: gh prints an internal "untagged-*" URL for draft releases.
+if gh release create "$RELEASE_TAG" "${RELEASE_FLAGS[@]}" "$WASM_PATH" "$DID_PATH" > /dev/null; then
   echo "📝 Draft release created: ${REPO_URL}/releases/tag/${RELEASE_TAG}"
   echo "   After Orbit approval:  gh release edit \"$RELEASE_TAG\" --draft=false"
   echo "   If proposal rejected:  gh release delete \"$RELEASE_TAG\" --yes --cleanup-tag"
