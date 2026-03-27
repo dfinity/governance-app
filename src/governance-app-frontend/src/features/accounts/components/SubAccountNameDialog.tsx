@@ -148,7 +148,7 @@ export const SubAccountNameDialog = ({
 
       <ResponsiveDialogContent
         showCloseButton={phase === Phase.Form}
-        className="sm:min-h-[240px] sm:max-w-md"
+        className="md:min-h-[240px] md:max-w-md"
       >
         <AnimatePresence mode="wait" initial={false}>
           {phase === Phase.Form && (
