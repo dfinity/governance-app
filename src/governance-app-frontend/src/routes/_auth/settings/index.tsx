@@ -165,7 +165,14 @@ function Settings() {
         </Button>
       </section>
 
-      <p className="mt-auto text-center text-xs text-muted-foreground">v{APP_VERSION}</p>
+      <a
+        href="https://github.com/dfinity/governance-app/releases"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-auto text-center text-xs text-muted-foreground hover:underline"
+      >
+        v{APP_VERSION}
+      </a>
     </div>
   );
 }
