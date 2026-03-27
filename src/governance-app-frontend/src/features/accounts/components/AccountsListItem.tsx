@@ -165,20 +165,14 @@ const latestTxConfig: Record<TransactionType, { amountClasses: string }> = {
   [TransactionType.UNKNOWN]: { amountClasses: '' },
 };
 
-function getLatestTransactionI18nKey(type: TransactionType) {
-  switch (type) {
-    case TransactionType.MINT:
-      return ($: any) => $.accounts.latestMinted;
-    case TransactionType.SELF:
-      return ($: any) => $.accounts.latestSelfTransfer;
-    case TransactionType.RECEIVE:
-      return ($: any) => $.accounts.latestReceived;
-    case TransactionType.STAKE:
-      return ($: any) => $.accounts.latestStaked;
-    default:
-      return ($: any) => $.accounts.latestSent;
-  }
-}
+const latestTransactionI18nKey = {
+  [TransactionType.MINT]: 'latestMinted',
+  [TransactionType.SELF]: 'latestSelfTransfer',
+  [TransactionType.RECEIVE]: 'latestReceived',
+  [TransactionType.STAKE]: 'latestStaked',
+  [TransactionType.SEND]: 'latestSent',
+  [TransactionType.UNKNOWN]: 'latestSent',
+} as const;
 
 function LastTransaction({ accountId }: { accountId: string }) {
   const { t } = useTranslation();
@@ -233,7 +227,7 @@ function LastTransaction({ accountId }: { accountId: string }) {
     <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
       <p className="truncate">
         <Trans
-          i18nKey={getLatestTransactionI18nKey(type)}
+          i18nKey={($) => $.accounts[latestTransactionI18nKey[type]]}
           values={{ amount, address }}
           components={{
             amount: <span className={`font-semibold ${config.amountClasses}`} />,

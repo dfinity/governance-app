@@ -99,7 +99,6 @@ describe('detectTransactionType', () => {
       TransactionType.UNKNOWN,
     );
   });
-
 });
 
 describe('getAmountE8s', () => {
