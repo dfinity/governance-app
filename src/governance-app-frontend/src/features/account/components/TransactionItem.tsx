@@ -26,9 +26,70 @@ import { shortenId } from '@utils/id';
 import { formatNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
+import type { LucideIcon } from 'lucide-react';
+
 import { useNeuronAccountsIds } from '../hooks/useNeuronAccountsIds';
 import { TransactionType } from '../types';
 import { isSuspiciousAddress } from '../utils/addressPoisoning';
+
+const txConfig: Record<
+  TransactionType,
+  { icon: LucideIcon; iconBgClasses: string; amountClasses: string; sign: string }
+> = {
+  [TransactionType.RECEIVE]: {
+    icon: ArrowDownToLine,
+    iconBgClasses: 'bg-emerald-200/30 text-emerald-800 dark:bg-emerald-100/10 dark:text-emerald-400',
+    amountClasses: 'text-emerald-800 dark:text-emerald-400',
+    sign: '+',
+  },
+  [TransactionType.SEND]: {
+    icon: ArrowUp,
+    iconBgClasses: 'bg-red-200/30 text-red-800 dark:bg-red-100/10 dark:text-red-400',
+    amountClasses: 'text-red-800 dark:text-red-400',
+    sign: '-',
+  },
+  [TransactionType.STAKE]: {
+    icon: Lock,
+    iconBgClasses: 'bg-red-200/30 text-red-800 dark:bg-red-100/10 dark:text-red-400',
+    amountClasses: 'text-red-800 dark:text-red-400',
+    sign: '-',
+  },
+  [TransactionType.SELF]: {
+    icon: ArrowUpDown,
+    iconBgClasses: 'bg-muted text-muted-foreground',
+    amountClasses: 'text-muted-foreground',
+    sign: '',
+  },
+  [TransactionType.MINT]: {
+    icon: Coins,
+    iconBgClasses: 'bg-emerald-200/30 text-emerald-800 dark:bg-emerald-100/10 dark:text-emerald-400',
+    amountClasses: 'text-emerald-800 dark:text-emerald-400',
+    sign: '+',
+  },
+  [TransactionType.UNKNOWN]: {
+    icon: CircleQuestionMark,
+    iconBgClasses: 'bg-muted text-muted-foreground',
+    amountClasses: 'text-muted-foreground',
+    sign: '',
+  },
+};
+
+function getTransactionTitle(t: ReturnType<typeof useTranslation>['t'], type: TransactionType) {
+  switch (type) {
+    case TransactionType.SELF:
+      return t(($) => $.accounts.selfTransfer);
+    case TransactionType.RECEIVE:
+      return t(($) => $.accounts.received);
+    case TransactionType.STAKE:
+      return t(($) => $.accounts.staked);
+    case TransactionType.MINT:
+      return t(($) => $.accounts.minted);
+    case TransactionType.SEND:
+      return t(($) => $.accounts.sent);
+    default:
+      return t(($) => $.account.unknownTransaction);
+  }
+}
 
 export const AccountTransactionItem = ({
   tx,
@@ -50,18 +111,9 @@ export const AccountTransactionItem = ({
   const type = detectTransactionType(operation, accountId, userNeuronsAccountIds.accountIds);
   if (type === TransactionType.UNKNOWN) return null;
 
-  const title =
-    type === TransactionType.SELF
-      ? t(($) => $.accounts.selfTransfer)
-      : type === TransactionType.RECEIVE
-        ? t(($) => $.accounts.received)
-        : type === TransactionType.STAKE
-          ? t(($) => $.accounts.staked)
-          : type === TransactionType.MINT
-            ? t(($) => $.accounts.minted)
-            : type === TransactionType.SEND
-              ? t(($) => $.accounts.sent)
-              : t(($) => $.account.unknownTransaction);
+  const config = txConfig[type];
+  const Icon = config.icon;
+  const title = getTransactionTitle(t, type);
 
   const isMint = 'Mint' in operation;
   const transfer = 'Transfer' in operation ? operation.Transfer : null;
@@ -100,29 +152,8 @@ export const AccountTransactionItem = ({
     <Card key={tx.id} className="p-0">
       <CardContent className="px-6 py-4">
         <div className="flex items-center gap-4">
-          <div
-            className={cn(
-              'rounded-full p-3',
-              type === TransactionType.RECEIVE || type === TransactionType.MINT
-                ? 'bg-emerald-200/30 text-emerald-800 dark:bg-emerald-100/10 dark:text-emerald-400'
-                : type === TransactionType.SELF
-                  ? 'bg-muted text-muted-foreground'
-                  : 'bg-red-200/30 text-red-800 dark:bg-red-100/10 dark:text-red-400',
-            )}
-          >
-            {type === TransactionType.SELF ? (
-              <ArrowUpDown className="size-5" />
-            ) : type === TransactionType.SEND ? (
-              <ArrowUp className="size-5" />
-            ) : type === TransactionType.RECEIVE ? (
-              <ArrowDownToLine className="size-5" />
-            ) : type === TransactionType.STAKE ? (
-              <Lock className="size-5" />
-            ) : type === TransactionType.MINT ? (
-              <Coins className="size-5" />
-            ) : (
-              <CircleQuestionMark className="size-5" />
-            )}
+          <div className={cn('rounded-full p-3', config.iconBgClasses)}>
+            <Icon className="size-5" />
           </div>
           <div className="flex w-full min-w-0 shrink flex-col gap-0.5">
             <div className="flex justify-between">
@@ -201,21 +232,8 @@ export const AccountTransactionItem = ({
                   </Alert>
                 )}
               </div>
-              <span
-                className={cn(
-                  'text-base font-semibold',
-                  type === TransactionType.RECEIVE || type === TransactionType.MINT
-                    ? 'text-emerald-800 dark:text-emerald-400'
-                    : type === TransactionType.SELF
-                      ? 'text-muted-foreground'
-                      : 'text-red-800 dark:text-red-400',
-                )}
-              >
-                {type === TransactionType.RECEIVE || type === TransactionType.MINT
-                  ? '+'
-                  : type === TransactionType.SELF
-                    ? ''
-                    : '-'}
+              <span className={cn('text-base font-semibold', config.amountClasses)}>
+                {config.sign}
 
                 {t(($) => $.common.inIcp, {
                   value: formatNumber(bigIntDiv(amountE8s, E8Sn), {

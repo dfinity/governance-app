@@ -91,22 +91,27 @@ const txConfig: Record<
   },
 };
 
+function getTransactionLabel(t: ReturnType<typeof useTranslation>['t'], type: TransactionType) {
+  switch (type) {
+    case TransactionType.SELF:
+      return t(($) => $.accounts.selfTransfer);
+    case TransactionType.RECEIVE:
+      return t(($) => $.accounts.received);
+    case TransactionType.STAKE:
+      return t(($) => $.accounts.staked);
+    case TransactionType.MINT:
+      return t(($) => $.accounts.minted);
+    default:
+      return t(($) => $.accounts.sent);
+  }
+}
+
 function TransactionRow({ tx }: { tx: AccountTransaction }) {
   const { t } = useTranslation();
   const amountICP = bigIntDiv(tx.amountE8s, E8Sn);
   const config = txConfig[tx.type];
   const Icon = config.icon;
-
-  const label =
-    tx.type === TransactionType.SELF
-      ? t(($) => $.accounts.selfTransfer)
-      : tx.type === TransactionType.RECEIVE
-        ? t(($) => $.accounts.received)
-        : tx.type === TransactionType.STAKE
-          ? t(($) => $.accounts.staked)
-          : tx.type === TransactionType.MINT
-            ? t(($) => $.accounts.minted)
-            : t(($) => $.accounts.sent);
+  const label = getTransactionLabel(t, tx.type);
 
   return (
     <div className="flex items-center gap-3">

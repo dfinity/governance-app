@@ -156,6 +156,33 @@ function AccountBalance({
   );
 }
 
+const latestTxConfig: Record<
+  TransactionType,
+  { amountClasses: string }
+> = {
+  [TransactionType.RECEIVE]: { amountClasses: 'text-emerald-800 dark:text-emerald-400' },
+  [TransactionType.MINT]: { amountClasses: 'text-emerald-800 dark:text-emerald-400' },
+  [TransactionType.SEND]: { amountClasses: 'text-red-800 dark:text-red-400' },
+  [TransactionType.STAKE]: { amountClasses: '' },
+  [TransactionType.SELF]: { amountClasses: '' },
+  [TransactionType.UNKNOWN]: { amountClasses: '' },
+};
+
+function getLatestTransactionI18nKey(type: TransactionType) {
+  switch (type) {
+    case TransactionType.MINT:
+      return ($: any) => $.accounts.latestMinted;
+    case TransactionType.SELF:
+      return ($: any) => $.accounts.latestSelfTransfer;
+    case TransactionType.RECEIVE:
+      return ($: any) => $.accounts.latestReceived;
+    case TransactionType.STAKE:
+      return ($: any) => $.accounts.latestStaked;
+    default:
+      return ($: any) => $.accounts.latestSent;
+  }
+}
+
 function LastTransaction({ accountId }: { accountId: string }) {
   const { t } = useTranslation();
   const { accountIds: neuronAccountIds } = useNeuronAccountsIds();
@@ -190,18 +217,12 @@ function LastTransaction({ accountId }: { accountId: string }) {
   const amountICP = bigIntDiv(amountE8s, E8Sn);
   const amount = t(($) => $.common.inIcp, { value: formatNumber(amountICP) });
 
-  const isReceive = type === TransactionType.RECEIVE;
-  const isStake = type === TransactionType.STAKE;
-  const isSelf = type === TransactionType.SELF;
-  const isMintType = type === TransactionType.MINT;
-  const amountColorClass =
-    isReceive || isMintType
-      ? 'text-emerald-800 dark:text-emerald-400'
-      : isStake || isSelf
-        ? ''
-        : 'text-red-800 dark:text-red-400';
-
-  const counterparty = isMint ? null : isReceive ? transfer!.from : transfer!.to;
+  const config = latestTxConfig[type];
+  const counterparty = isMint
+    ? null
+    : type === TransactionType.RECEIVE
+      ? transfer!.from
+      : transfer!.to;
   const userAccount = counterparty ? userAccounts.find((a) => a.accountId === counterparty) : null;
   const addressBookName = counterparty
     ? addressBookEntries.find(
@@ -214,20 +235,10 @@ function LastTransaction({ accountId }: { accountId: string }) {
     <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
       <p className="truncate">
         <Trans
-          i18nKey={($) =>
-            isMintType
-              ? $.accounts.latestMinted
-              : isSelf
-                ? $.accounts.latestSelfTransfer
-                : isReceive
-                  ? $.accounts.latestReceived
-                  : isStake
-                    ? $.accounts.latestStaked
-                    : $.accounts.latestSent
-          }
+          i18nKey={getLatestTransactionI18nKey(type)}
           values={{ amount, address }}
           components={{
-            amount: <span className={`font-semibold ${amountColorClass}`} />,
+            amount: <span className={`font-semibold ${config.amountClasses}`} />,
             address: <span className="font-semibold" />,
           }}
         />
