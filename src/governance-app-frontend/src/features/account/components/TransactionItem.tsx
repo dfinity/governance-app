@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 
-import { detectTransactionType } from '@features/transactions/utils/transactionType';
+import { detectTransactionType, getAmountE8s } from '@features/transactions/utils/transactionType';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Card, CardContent } from '@components/Card';
@@ -134,7 +134,7 @@ export const AccountTransactionItem = ({
     timestampInNanosToSeconds(tx.transaction.created_at_time[0]?.timestamp_nanos ?? 0n),
   );
 
-  const amountE8s = isMint ? operation.Mint.amount.e8s : transfer!.amount.e8s;
+  const amountE8s = getAmountE8s(operation)!;
 
   const suspicious =
     type === TransactionType.RECEIVE &&

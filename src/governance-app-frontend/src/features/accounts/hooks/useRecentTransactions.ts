@@ -2,7 +2,7 @@ import { IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 
 import { useNeuronAccountsIds } from '@features/account/hooks/useNeuronAccountsIds';
 import { TransactionType } from '@features/account/types';
-import { detectTransactionType } from '@features/transactions/utils/transactionType';
+import { detectTransactionType, getAmountE8s } from '@features/transactions/utils/transactionType';
 
 import { NANOSECONDS_IN_SECOND } from '@constants/extra';
 import { useIcpIndexAccountsTransactions } from '@hooks/icpIndex';
@@ -12,12 +12,6 @@ import { useMainAccountMetadata } from './useMainAccountMetadata';
 import { useSubaccountsMetadata } from './useSubaccountsMetadata';
 
 const MAX_RECENT_TRANSACTIONS = 10;
-
-function getAmountE8s(operation: IcpIndexDid.Operation): bigint | null {
-  if ('Transfer' in operation) return operation.Transfer.amount.e8s;
-  if ('Mint' in operation) return operation.Mint.amount.e8s;
-  return null;
-}
 
 function toAccountTransaction(
   tx: IcpIndexDid.TransactionWithId,

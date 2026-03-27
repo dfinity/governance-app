@@ -2,7 +2,12 @@ import { IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 
 import { TransactionType } from '@features/account/types';
 
-// @TODO: Add unit tests (send/receive/stake/unknown cases)
+export const getAmountE8s = (operation: IcpIndexDid.Operation): bigint | null => {
+  if ('Transfer' in operation) return operation.Transfer.amount.e8s;
+  if ('Mint' in operation) return operation.Mint.amount.e8s;
+  return null;
+};
+
 export const detectTransactionType = (
   operation: IcpIndexDid.Operation,
   accountId: string,

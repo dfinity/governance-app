@@ -8,7 +8,7 @@ import { SendICPButton } from '@features/account/components/SendICPButton';
 import { useNeuronAccountsIds } from '@features/account/hooks/useNeuronAccountsIds';
 import { TransactionType } from '@features/account/types';
 import { TransactionListDialog } from '@features/transactions/components/TransactionListDialog';
-import { detectTransactionType } from '@features/transactions/utils/transactionType';
+import { detectTransactionType, getAmountE8s } from '@features/transactions/utils/transactionType';
 
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
@@ -207,7 +207,7 @@ function LastTransaction({ accountId }: { accountId: string }) {
   const isMint = 'Mint' in operation;
   const transfer = 'Transfer' in operation ? operation.Transfer : null;
 
-  const amountE8s = isMint ? operation.Mint.amount.e8s : transfer!.amount.e8s;
+  const amountE8s = getAmountE8s(operation)!;
   const nanos = created_at_time[0]?.timestamp_nanos ?? txTimestamp[0]?.timestamp_nanos ?? 0n;
   const timestamp = Number(nanos / BigInt(NANOSECONDS_IN_SECOND));
 
