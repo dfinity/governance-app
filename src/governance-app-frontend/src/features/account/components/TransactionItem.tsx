@@ -166,7 +166,7 @@ export const AccountTransactionItem = ({
                   {secondsToDate(transactionTimestamp)} - {secondsToTime(transactionTimestamp)}
                 </span>
 
-                {nonNullish(address) && nonNullish(addressName) ? (
+                {nonNullish(addressName) ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
@@ -193,7 +193,7 @@ export const AccountTransactionItem = ({
                       <p className="font-mono text-xs">{address}</p>
                     </TooltipContent>
                   </Tooltip>
-                ) : nonNullish(address) ? (
+                ) : (
                   <div
                     className={cn(
                       'flex min-w-0 items-center gap-1 text-sm text-muted-foreground',
@@ -223,7 +223,7 @@ export const AccountTransactionItem = ({
                       />
                     )}
                   </div>
-                ) : null}
+                )}
                 {suspicious && (
                   <Alert variant="warning" className="px-3 py-2">
                     <AlertDescription className="text-xs">
