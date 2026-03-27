@@ -301,7 +301,7 @@ echo "✅ Installation was requested. A team member now needs to approve the req
 
 BUILD_DATE="$(git show -s --format=%cd --date=format:%Y.%m.%d "$COMMIT")"
 SHORT_COMMIT="${COMMIT:0:7}"
-RELEASE_TAG="release-${SHORT_COMMIT}"
+RELEASE_TAG="release-${BUILD_DATE}-${SHORT_COMMIT}"
 RELEASE_TITLE="v${BUILD_DATE} (${SHORT_COMMIT})"
 
 RELEASE_FLAGS=(
