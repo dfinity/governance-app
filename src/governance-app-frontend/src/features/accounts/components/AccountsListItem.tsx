@@ -1,4 +1,5 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
+import { nonNullish } from '@dfinity/utils';
 import { ArrowDownLeft, List } from 'lucide-react';
 import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -8,7 +9,8 @@ import { SendICPButton } from '@features/account/components/SendICPButton';
 import { useNeuronAccountsIds } from '@features/account/hooks/useNeuronAccountsIds';
 import { TransactionType } from '@features/account/types';
 import { TransactionListDialog } from '@features/transactions/components/TransactionListDialog';
-import { detectTransactionType } from '@features/transactions/utils/transactionType';
+import { detectTransactionType, getAmountE8s } from '@features/transactions/utils/transactionType';
+import { txConfig } from '@features/transactions/utils/txConfig';
 
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
@@ -177,48 +179,41 @@ function LastTransaction({ accountId }: { accountId: string }) {
   }
 
   const { operation, created_at_time, timestamp: txTimestamp } = rawTx.transaction;
-  if (!('Transfer' in operation)) return null;
-
-  const transfer = operation.Transfer;
   const type = detectTransactionType(operation, accountId, neuronAccountIds);
+  if (type === TransactionType.UNKNOWN) return null;
+
+  const transfer = 'Transfer' in operation ? operation.Transfer : null;
+
+  const amountE8s = getAmountE8s(operation)!;
   const nanos = created_at_time[0]?.timestamp_nanos ?? txTimestamp[0]?.timestamp_nanos ?? 0n;
   const timestamp = Number(nanos / BigInt(NANOSECONDS_IN_SECOND));
 
-  const counterparty = type === TransactionType.RECEIVE ? transfer.from : transfer.to;
-  const amountICP = bigIntDiv(transfer.amount.e8s, E8Sn);
+  const amountICP = bigIntDiv(amountE8s, E8Sn);
   const amount = t(($) => $.common.inIcp, { value: formatNumber(amountICP) });
 
-  const isReceive = type === TransactionType.RECEIVE;
-  const isStake = type === TransactionType.STAKE;
-  const isSelf = type === TransactionType.SELF;
-  const amountColorClass = isReceive
-    ? 'text-emerald-800 dark:text-emerald-400'
-    : isStake || isSelf
-      ? ''
-      : 'text-red-800 dark:text-red-400';
-
-  const userAccount = userAccounts.find((a) => a.accountId === counterparty);
-  const addressBookName = addressBookEntries.find(
-    (entry) => addressBookGetAddressString(entry.address) === counterparty,
-  )?.name;
-  const address = userAccount?.name ?? addressBookName ?? shortenId(counterparty, 8);
+  const { amountClasses, latestLabelKey, addressDirection } = txConfig[type];
+  const counterparty = nonNullish(addressDirection)
+    ? type === TransactionType.RECEIVE
+      ? transfer!.from
+      : transfer!.to
+    : null;
+  const userAccount = counterparty ? userAccounts.find((a) => a.accountId === counterparty) : null;
+  const addressBookName = counterparty
+    ? addressBookEntries.find(
+        (entry) => addressBookGetAddressString(entry.address) === counterparty,
+      )?.name
+    : null;
+  const address =
+    userAccount?.name ?? addressBookName ?? (counterparty ? shortenId(counterparty, 8) : '');
 
   return (
     <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
       <p className="truncate">
         <Trans
-          i18nKey={($) =>
-            isSelf
-              ? $.accounts.latestSelfTransfer
-              : isReceive
-                ? $.accounts.latestReceived
-                : isStake
-                  ? $.accounts.latestStaked
-                  : $.accounts.latestSent
-          }
+          i18nKey={($) => $.accounts[latestLabelKey]}
           values={{ amount, address }}
           components={{
-            amount: <span className={`font-semibold ${amountColorClass}`} />,
+            amount: <span className={`font-semibold ${amountClasses}`} />,
             address: <span className="font-semibold" />,
           }}
         />

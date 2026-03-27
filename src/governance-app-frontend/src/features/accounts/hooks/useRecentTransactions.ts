@@ -2,7 +2,7 @@ import { IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 
 import { useNeuronAccountsIds } from '@features/account/hooks/useNeuronAccountsIds';
 import { TransactionType } from '@features/account/types';
-import { detectTransactionType } from '@features/transactions/utils/transactionType';
+import { detectTransactionType, getAmountE8s } from '@features/transactions/utils/transactionType';
 
 import { NANOSECONDS_IN_SECOND } from '@constants/extra';
 import { useIcpIndexAccountsTransactions } from '@hooks/icpIndex';
@@ -21,9 +21,10 @@ function toAccountTransaction(
 ): AccountTransaction | null {
   const { operation, created_at_time, timestamp: txTimestamp } = tx.transaction;
   const type = detectTransactionType(operation, accountId, neuronAccountIds);
-  if (type === TransactionType.UNKNOWN || !('Transfer' in operation)) return null;
+  if (type === TransactionType.UNKNOWN) return null;
 
-  const transfer = operation.Transfer;
+  const amountE8s = getAmountE8s(operation);
+  if (amountE8s === null) return null;
 
   const nanos = created_at_time[0]?.timestamp_nanos ?? txTimestamp[0]?.timestamp_nanos ?? 0n;
   const timestampSeconds = Number(nanos / BigInt(NANOSECONDS_IN_SECOND));
@@ -31,7 +32,7 @@ function toAccountTransaction(
   return {
     id: tx.id,
     type,
-    amountE8s: transfer.amount.e8s,
+    amountE8s,
     timestamp: timestampSeconds,
     accountId,
     accountName,

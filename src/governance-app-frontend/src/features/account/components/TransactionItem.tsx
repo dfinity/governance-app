@@ -1,17 +1,10 @@
 import { IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { nonNullish } from '@dfinity/utils';
-import {
-  ArrowDownToLine,
-  ArrowUp,
-  ArrowUpDown,
-  BookUser,
-  CircleQuestionMark,
-  Lock,
-  WalletMinimal,
-} from 'lucide-react';
+import { BookUser, WalletMinimal } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 
-import { detectTransactionType } from '@features/transactions/utils/transactionType';
+import { detectTransactionType, getAmountE8s } from '@features/transactions/utils/transactionType';
+import { txConfig } from '@features/transactions/utils/txConfig';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Card, CardContent } from '@components/Card';
@@ -46,75 +39,55 @@ export const AccountTransactionItem = ({
   const userNeuronsAccountIds = useNeuronAccountsIds();
 
   const operation = tx.transaction.operation;
-  if (!('Transfer' in operation)) return null;
-
   const type = detectTransactionType(operation, accountId, userNeuronsAccountIds.accountIds);
+  if (type === TransactionType.UNKNOWN) return null;
 
-  const title =
-    type === TransactionType.SELF
-      ? t(($) => $.accounts.selfTransfer)
-      : type === TransactionType.RECEIVE
-        ? t(($) => $.accounts.received)
-        : type === TransactionType.STAKE
-          ? t(($) => $.accounts.staked)
-          : type === TransactionType.SEND
-            ? t(($) => $.accounts.sent)
-            : t(($) => $.account.unknownTransaction);
+  const {
+    icon: Icon,
+    iconBgClasses,
+    amountClasses,
+    sign,
+    labelKey,
+    addressDirection,
+  } = txConfig[type];
 
-  const address =
-    type === TransactionType.RECEIVE ? operation.Transfer.from : operation.Transfer.to;
+  // Mints and self-transfers have no meaningful counterparty address to display —
+  // mints have no source, and self-transfers go to/from the same account.
+  const transfer = 'Transfer' in operation ? operation.Transfer : null;
+  const address = nonNullish(addressDirection)
+    ? type === TransactionType.RECEIVE
+      ? transfer!.from
+      : transfer!.to
+    : null;
 
-  const addressEntry = addressNameMap?.get(address);
+  const addressEntry = nonNullish(address) ? addressNameMap?.get(address) : undefined;
   const addressName = addressEntry?.name;
-
-  const addressDirection =
-    type === TransactionType.RECEIVE
-      ? 'fromAddress'
-      : type === TransactionType.STAKE
-        ? 'intoAddress'
-        : 'toAddress';
 
   const transactionTimestamp = Number(
     timestampInNanosToSeconds(tx.transaction.created_at_time[0]?.timestamp_nanos ?? 0n),
   );
 
+  const amountE8s = getAmountE8s(operation)!;
+
   const suspicious =
     type === TransactionType.RECEIVE &&
-    isSuspiciousAddress(address, operation.Transfer.amount.e8s, trustedAddresses);
+    nonNullish(address) &&
+    isSuspiciousAddress(address, amountE8s, trustedAddresses);
 
-  const shortAddress = shortenId(address, 10);
-  const fullAddress = shortenId(address, 18);
+  const shortAddress = nonNullish(address) ? shortenId(address, 10) : '';
+  const fullAddress = nonNullish(address) ? shortenId(address, 18) : '';
   const addressComponents = { address: <span className="font-mono" /> };
 
   return (
     <Card key={tx.id} className="p-0">
       <CardContent className="px-6 py-4">
         <div className="flex items-center gap-4">
-          <div
-            className={cn(
-              'rounded-full p-3',
-              type === TransactionType.RECEIVE
-                ? 'bg-emerald-200/30 text-emerald-800 dark:bg-emerald-100/10 dark:text-emerald-400'
-                : type === TransactionType.SELF
-                  ? 'bg-muted text-muted-foreground'
-                  : 'bg-red-200/30 text-red-800 dark:bg-red-100/10 dark:text-red-400',
-            )}
-          >
-            {type === TransactionType.SELF ? (
-              <ArrowUpDown className="size-5" />
-            ) : type === TransactionType.SEND ? (
-              <ArrowUp className="size-5" />
-            ) : type === TransactionType.RECEIVE ? (
-              <ArrowDownToLine className="size-5" />
-            ) : type === TransactionType.STAKE ? (
-              <Lock className="size-5" />
-            ) : (
-              <CircleQuestionMark className="size-5" />
-            )}
+          <div className={cn('rounded-full p-3', iconBgClasses)}>
+            <Icon className="size-5" />
           </div>
           <div className="flex w-full min-w-0 shrink flex-col gap-0.5">
             <div className="flex justify-between">
-              <h4 className="text-sm font-semibold">{title}</h4>
+              <h4 className="text-sm font-semibold">{t(($) => $.accounts[labelKey])}</h4>
               <CertifiedBadge certified={certified} />
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -123,7 +96,7 @@ export const AccountTransactionItem = ({
                   {secondsToDate(transactionTimestamp)} - {secondsToTime(transactionTimestamp)}
                 </span>
 
-                {nonNullish(addressName) ? (
+                {nonNullish(address) && nonNullish(addressName) ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
@@ -132,7 +105,7 @@ export const AccountTransactionItem = ({
                       >
                         <span className="truncate">
                           <Trans
-                            i18nKey={($) => $.account[addressDirection]}
+                            i18nKey={($) => $.account[addressDirection!]}
                             values={{ address: addressName }}
                             components={{
                               address: <span className="font-semibold" />,
@@ -150,7 +123,7 @@ export const AccountTransactionItem = ({
                       <p className="font-mono text-xs">{address}</p>
                     </TooltipContent>
                   </Tooltip>
-                ) : (
+                ) : nonNullish(address) ? (
                   <div
                     className={cn(
                       'flex min-w-0 items-center gap-1 text-sm text-muted-foreground',
@@ -159,14 +132,14 @@ export const AccountTransactionItem = ({
                   >
                     <span className="truncate md:hidden">
                       <Trans
-                        i18nKey={($) => $.account[addressDirection]}
+                        i18nKey={($) => $.account[addressDirection!]}
                         values={{ address: shortAddress }}
                         components={addressComponents}
                       />
                     </span>
                     <span className="hidden truncate md:inline">
                       <Trans
-                        i18nKey={($) => $.account[addressDirection]}
+                        i18nKey={($) => $.account[addressDirection!]}
                         values={{ address: fullAddress }}
                         components={addressComponents}
                       />
@@ -180,7 +153,7 @@ export const AccountTransactionItem = ({
                       />
                     )}
                   </div>
-                )}
+                ) : null}
                 {suspicious && (
                   <Alert variant="warning" className="px-3 py-2">
                     <AlertDescription className="text-xs">
@@ -189,20 +162,11 @@ export const AccountTransactionItem = ({
                   </Alert>
                 )}
               </div>
-              <span
-                className={cn(
-                  'text-base font-semibold',
-                  type === TransactionType.RECEIVE
-                    ? 'text-emerald-800 dark:text-emerald-400'
-                    : type === TransactionType.SELF
-                      ? 'text-muted-foreground'
-                      : 'text-red-800 dark:text-red-400',
-                )}
-              >
-                {type === TransactionType.RECEIVE ? '+' : type === TransactionType.SELF ? '' : '-'}
+              <span className={cn('text-base font-semibold', amountClasses)}>
+                {sign}
 
                 {t(($) => $.common.inIcp, {
-                  value: formatNumber(bigIntDiv(operation.Transfer.amount.e8s, E8Sn), {
+                  value: formatNumber(bigIntDiv(amountE8s, E8Sn), {
                     minFraction: 2,
                     maxFraction: 8,
                   }),
