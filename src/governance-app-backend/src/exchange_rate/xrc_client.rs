@@ -16,6 +16,9 @@ mod prod {
     /// Same principal as `ic_nns_constants::EXCHANGE_RATE_CANISTER_ID`.
     const XRC_CANISTER_ID: &str = "uf6dk-hyaaa-aaaaq-qaaaq-cai";
 
+    /// The XRC charges approximately 1B cycles per request.
+    const XRC_CALL_CYCLES: u128 = 1_000_000_000;
+
     pub async fn get_exchange_rate(
         request: GetExchangeRateRequest,
     ) -> Result<GetExchangeRateResult, String> {
@@ -23,6 +26,7 @@ mod prod {
             .expect("hardcoded XRC canister principal must be valid");
         let response = Call::bounded_wait(xrc_canister_id, "get_exchange_rate")
             .with_arg(request)
+            .with_cycles(XRC_CALL_CYCLES)
             .await
             .map_err(|e| format!("{e}"))?;
         response
