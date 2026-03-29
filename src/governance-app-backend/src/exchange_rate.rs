@@ -24,8 +24,8 @@ pub fn get_icp_to_usd_exchange_rate() -> IcpExchangeRateResponse {
 }
 
 #[cfg(feature = "testnet")]
-pub fn set_mock_exchange_rate(current_rate_e8s: u64, rate_24h_ago_e8s: u64) {
-    cache::set_mock_rates(current_rate_e8s, rate_24h_ago_e8s);
+pub fn set_mock_exchange_rate(current_rate_e8s: u64, rate_one_day_ago_e8s: u64) {
+    cache::set_mock_rates(current_rate_e8s, rate_one_day_ago_e8s);
 }
 
 fn icp_asset() -> Asset {
@@ -49,12 +49,12 @@ async fn update_exchange_rate() {
     // No timestamp = latest available rate from XRC.
     // https://github.com/dfinity/exchange-rate-canister/blob/41393865715eecb620474de34351096ec77a13fa/src/xrc/src/api.rs#L369
     fetch_and_cache_rate(None, RateKind::Current).await;
-    fetch_and_cache_rate(Some(past_timestamp), RateKind::TwentyFourHoursAgo).await;
+    fetch_and_cache_rate(Some(past_timestamp), RateKind::OneDayAgo).await;
 }
 
 enum RateKind {
     Current,
-    TwentyFourHoursAgo,
+    OneDayAgo,
 }
 
 async fn fetch_and_cache_rate(timestamp: Option<u64>, kind: RateKind) {
@@ -66,7 +66,7 @@ async fn fetch_and_cache_rate(timestamp: Option<u64>, kind: RateKind) {
 
     let label = match kind {
         RateKind::Current => "current",
-        RateKind::TwentyFourHoursAgo => "24h-ago",
+        RateKind::OneDayAgo => "one-day-ago",
     };
 
     let result = xrc_client::get_exchange_rate(request).await;
@@ -91,7 +91,7 @@ async fn fetch_and_cache_rate(timestamp: Option<u64>, kind: RateKind) {
             };
             match kind {
                 RateKind::Current => cache::set_current_rate(cached),
-                RateKind::TwentyFourHoursAgo => cache::set_24h_rate(cached),
+                RateKind::OneDayAgo => cache::set_one_day_ago_rate(cached),
             }
             ic_cdk::println!("Updated {} ICP/USD rate to {} e8s", label, rate_e8s);
         }

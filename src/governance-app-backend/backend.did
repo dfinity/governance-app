@@ -51,13 +51,15 @@ type GetAddressBookResponse = variant {
 // Exchange Rate
 type CachedRate = record {
     rate_e8s : nat64;
+    // When the exchange rate canister (XRC) observed this rate.
     timestamp_seconds : nat64;
+    // When our canister last wrote this entry to the cache.
     updated_at_seconds : nat64;
 };
 
 type IcpExchangeRateResponse = record {
     current : opt CachedRate;
-    twenty_four_hours_ago : opt CachedRate;
+    one_day_ago : opt CachedRate;
 };
 // End Exchange Rate
 

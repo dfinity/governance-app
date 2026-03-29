@@ -45,6 +45,6 @@ fn get_icp_to_usd_exchange_rate() -> IcpExchangeRateResponse {
 
 #[cfg(feature = "testnet")]
 #[update]
-fn set_mock_exchange_rate(current_rate_e8s: u64, rate_24h_ago_e8s: u64) {
-    exchange_rate::set_mock_exchange_rate(current_rate_e8s, rate_24h_ago_e8s);
+fn set_mock_exchange_rate(current_rate_e8s: u64, rate_one_day_ago_e8s: u64) {
+    exchange_rate::set_mock_exchange_rate(current_rate_e8s, rate_one_day_ago_e8s);
 }

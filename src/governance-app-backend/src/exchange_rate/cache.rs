@@ -14,13 +14,13 @@ pub struct CachedRate {
 #[derive(CandidType, Clone, Debug, Default, Deserialize, PartialEq, Eq)]
 pub struct IcpExchangeRateResponse {
     pub current: Option<CachedRate>,
-    pub twenty_four_hours_ago: Option<CachedRate>,
+    pub one_day_ago: Option<CachedRate>,
 }
 
 #[derive(Default)]
 struct ExchangeRateCache {
     current: Option<CachedRate>,
-    twenty_four_hours_ago: Option<CachedRate>,
+    one_day_ago: Option<CachedRate>,
 }
 
 thread_local! {
@@ -32,7 +32,7 @@ pub fn get_cached_rates() -> IcpExchangeRateResponse {
         let c = cache.borrow();
         IcpExchangeRateResponse {
             current: c.current.clone(),
-            twenty_four_hours_ago: c.twenty_four_hours_ago.clone(),
+            one_day_ago: c.one_day_ago.clone(),
         }
     })
 }
@@ -43,14 +43,14 @@ pub fn set_current_rate(rate: CachedRate) {
     });
 }
 
-pub fn set_24h_rate(rate: CachedRate) {
+pub fn set_one_day_ago_rate(rate: CachedRate) {
     CACHE.with(|cache| {
-        cache.borrow_mut().twenty_four_hours_ago = Some(rate);
+        cache.borrow_mut().one_day_ago = Some(rate);
     });
 }
 
 #[cfg(feature = "testnet")]
-pub fn set_mock_rates(current_rate_e8s: u64, rate_24h_ago_e8s: u64) {
+pub fn set_mock_rates(current_rate_e8s: u64, rate_one_day_ago_e8s: u64) {
     use super::ONE_DAY_SECS;
     let now = super::time::time_seconds();
     set_current_rate(CachedRate {
@@ -58,8 +58,8 @@ pub fn set_mock_rates(current_rate_e8s: u64, rate_24h_ago_e8s: u64) {
         timestamp_seconds: now,
         updated_at_seconds: now,
     });
-    set_24h_rate(CachedRate {
-        rate_e8s: rate_24h_ago_e8s,
+    set_one_day_ago_rate(CachedRate {
+        rate_e8s: rate_one_day_ago_e8s,
         timestamp_seconds: now.saturating_sub(ONE_DAY_SECS),
         updated_at_seconds: now,
     });

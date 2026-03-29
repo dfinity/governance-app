@@ -70,7 +70,7 @@ fn test_convert_to_e8s_huge_decimals_returns_none() {
 fn test_cache_starts_empty() {
     let rates = get_cached_rates();
     assert_eq!(rates.current, None);
-    assert_eq!(rates.twenty_four_hours_ago, None);
+    assert_eq!(rates.one_day_ago, None);
 }
 
 #[tokio::test]
@@ -97,7 +97,7 @@ async fn test_update_exchange_rate_success() {
         })
     );
     assert_eq!(
-        rates.twenty_four_hours_ago,
+        rates.one_day_ago,
         Some(CachedRate {
             rate_e8s: 110_000_000,
             timestamp_seconds: past_ts,
@@ -134,7 +134,7 @@ async fn test_update_exchange_rate_error_preserves_cache() {
     );
     assert_eq!(rates.current.unwrap().rate_e8s, 123_450_000);
     assert!(
-        rates.twenty_four_hours_ago.is_some(),
-        "24h rate should be preserved after error"
+        rates.one_day_ago.is_some(),
+        "one-day-ago rate should be preserved after error"
     );
 }
