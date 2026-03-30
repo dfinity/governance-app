@@ -5,7 +5,7 @@ import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { parseExchangeRateResponse } from './useExchangeRate';
 
 describe('parseExchangeRateResponse', () => {
-  it('Parses a valid exchange rate response.', () => {
+  it('Parses a valid exchange rate response with both current and one_day_ago.', () => {
     const result = parseExchangeRateResponse({
       current: [
         {
@@ -28,6 +28,27 @@ describe('parseExchangeRateResponse', () => {
       _name: 'ICP',
       icp: 1,
       usd: 2.27079136,
+      previousUsd: 2.2298845,
+    });
+  });
+
+  it('Parses a response without one_day_ago.', () => {
+    const result = parseExchangeRateResponse({
+      current: [
+        {
+          rate_e8s: 227_079_136n,
+          timestamp_seconds: 1_774_870_800n,
+          updated_at_seconds: 1_774_870_850n,
+        },
+      ],
+      one_day_ago: [],
+    });
+
+    expect(result.get(CANISTER_ID_ICP_LEDGER!)).toEqual({
+      _name: 'ICP',
+      icp: 1,
+      usd: 2.27079136,
+      previousUsd: undefined,
     });
   });
 

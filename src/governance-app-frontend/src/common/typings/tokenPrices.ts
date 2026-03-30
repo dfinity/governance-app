@@ -7,5 +7,7 @@ export type TokenPrices = Map<
     _name: string;
     icp: number;
     usd: number;
+    // Previous day's USD price. Only available when the backend canister is the exchange rate source.
+    previousUsd?: number;
   }
 >;

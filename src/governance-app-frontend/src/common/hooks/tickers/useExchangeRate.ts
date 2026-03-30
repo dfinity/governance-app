@@ -1,4 +1,4 @@
-import { isNullish } from '@dfinity/utils';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { useQuery } from '@tanstack/react-query';
 
 import type { IcpExchangeRateResponse } from '@declarations/governance-app-backend/governance-app-backend.did';
@@ -47,8 +47,12 @@ export const parseExchangeRateResponse = (response: IcpExchangeRateResponse): To
     throw new Error('Invalid exchange rate');
   }
 
+  const oneDayAgoRate = response.one_day_ago[0];
+  const previousUsd =
+    nonNullish(oneDayAgoRate) ? Number(oneDayAgoRate.rate_e8s) / E8S : undefined;
+
   const result: TokenPrices = new Map();
-  result.set(CANISTER_ID_ICP_LEDGER, { _name: 'ICP', icp: 1, usd: icpPriceUsd });
+  result.set(CANISTER_ID_ICP_LEDGER, { _name: 'ICP', icp: 1, usd: icpPriceUsd, previousUsd });
 
   return result;
 };
