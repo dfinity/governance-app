@@ -88,15 +88,15 @@ describe('detectTransactionType', () => {
     ).toBe(TransactionType.RECEIVE);
   });
 
-  it('returns UNKNOWN for Burn operations', () => {
+  it('returns BURN for Burn operations', () => {
     expect(detectTransactionType(makeBurn(USER_ACCOUNT), USER_ACCOUNT, neuronAccountIds)).toBe(
-      TransactionType.UNKNOWN,
+      TransactionType.BURN,
     );
   });
 
-  it('returns UNKNOWN for Approve operations', () => {
+  it('returns APPROVE for Approve operations', () => {
     expect(detectTransactionType(makeApprove(USER_ACCOUNT), USER_ACCOUNT, neuronAccountIds)).toBe(
-      TransactionType.UNKNOWN,
+      TransactionType.APPROVE,
     );
   });
 });
@@ -110,11 +110,11 @@ describe('getAmountE8s', () => {
     expect(getAmountE8s(makeMint(USER_ACCOUNT))).toBe(50_000_000n);
   });
 
-  it('returns null for Burn operations', () => {
-    expect(getAmountE8s(makeBurn(USER_ACCOUNT))).toBeNull();
+  it('returns amount from Burn operations', () => {
+    expect(getAmountE8s(makeBurn(USER_ACCOUNT))).toBe(50_000_000n);
   });
 
-  it('returns null for Approve operations', () => {
-    expect(getAmountE8s(makeApprove(USER_ACCOUNT))).toBeNull();
+  it('returns allowance from Approve operations', () => {
+    expect(getAmountE8s(makeApprove(USER_ACCOUNT))).toBe(100_000_000n);
   });
 });
