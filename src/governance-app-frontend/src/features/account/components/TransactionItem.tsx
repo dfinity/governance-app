@@ -40,6 +40,7 @@ export const AccountTransactionItem = ({
 
   const operation = tx.transaction.operation;
   const type = detectTransactionType(operation, accountId, userNeuronsAccountIds.accountIds);
+  if (type === TransactionType.UNKNOWN) return null;
 
   const {
     icon: Icon,
