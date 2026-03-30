@@ -171,7 +171,10 @@ function LastTransaction({ accountId }: { accountId: string }) {
 
   if (txQuery.isLoading || addressBookQuery.isLoading) return <Skeleton className="h-5 w-full" />;
 
-  const rawTx = txQuery.byAccountId[accountId]?.data?.response?.transactions[0];
+  const transactions = txQuery.byAccountId[accountId]?.data?.response?.transactions ?? [];
+  const rawTx = transactions.find(
+    (tx) => 'Transfer' in tx.transaction.operation || 'Mint' in tx.transaction.operation,
+  );
   if (!rawTx) {
     return (
       <p className="text-sm text-muted-foreground">{t(($) => $.accounts.noTransactionsYet)}</p>
