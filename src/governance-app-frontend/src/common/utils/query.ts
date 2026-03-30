@@ -25,7 +25,6 @@ const ICP_INDEX = {
 };
 
 const EXTERNAL_SERVICES = {
-  KONG_SWAP_PRICES: 'kongSwapPrices',
   ICP_SWAP_PRICES: 'icpSwapPrices',
 };
 
