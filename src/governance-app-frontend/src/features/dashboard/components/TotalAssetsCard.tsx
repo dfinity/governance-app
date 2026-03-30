@@ -6,8 +6,8 @@ import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { StakingRatioModal } from '@features/stakes/components/StakingRatioModal';
 
 import { Card, CardContent, CardHeader } from '@components/Card';
-import { SensitiveValue } from '@components/SensitiveValue';
 import { type ChartConfig, ChartContainer } from '@components/Chart';
+import { SensitiveValue } from '@components/SensitiveValue';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
