@@ -14,6 +14,7 @@ import {
 import { Button } from '@components/button';
 import { CopyButton } from '@components/CopyButton';
 import { MaturitySymbol } from '@components/MaturitySymbol';
+import { SensitiveValue } from '@components/SensitiveValue';
 import { Skeleton } from '@components/Skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
@@ -99,14 +100,18 @@ export function NeuronDetailSummaryView({
       {/* Staked Amount - Prominent Display */}
       <div className="flex flex-col items-center gap-1 pb-2">
         <p className="text-3xl font-bold md:text-4xl" data-testid="neuron-detail-staked-amount">
-          {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
+          <SensitiveValue>
+            {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
+          </SensitiveValue>
         </p>
         {tickersQuery.isLoading ? (
           <Skeleton className="h-5 w-24" />
         ) : (
           usdValue && (
             <p className="text-sm text-muted-foreground md:text-base">
-              {t(($) => $.account.approxUsd, { value: usdValue })}
+              <SensitiveValue size="sm">
+                {t(($) => $.account.approxUsd, { value: usdValue })}
+              </SensitiveValue>
             </p>
           )
         )}

@@ -10,6 +10,7 @@ import { AdvancedFeaturesCard } from '@features/userAccount/components/AdvancedF
 import { GovernanceAccessCard } from '@features/userAccount/components/GovernanceAccessCard';
 import { ManageIICard } from '@features/userAccount/components/ManageIICard';
 import { PrincipalCard } from '@features/userAccount/components/PrincipalCard';
+import { HideBalancesCard } from '@features/userAccount/components/HideBalancesCard';
 import { ShortcutsCard } from '@features/userAccount/components/ShortcutsCard';
 import { SystemContextCard } from '@features/userAccount/components/SystemContextCard';
 import { ThemeCard } from '@features/userAccount/components/ThemeCard';
@@ -136,6 +137,9 @@ function Settings() {
           <div className="flex flex-col divide-y">
             <div className="px-6 py-5">
               <ThemeCard />
+            </div>
+            <div className="px-6 py-5">
+              <HideBalancesCard />
             </div>
             <div className="px-6 py-5">
               <ShortcutsCard />

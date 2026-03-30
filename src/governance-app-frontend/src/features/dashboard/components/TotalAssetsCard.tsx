@@ -5,6 +5,7 @@ import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { StakingRatioModal } from '@features/stakes/components/StakingRatioModal';
 
 import { Card, CardContent, CardHeader } from '@components/Card';
+import { SensitiveValue } from '@components/SensitiveValue';
 import { type ChartConfig, ChartContainer } from '@components/Chart';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
@@ -67,7 +68,9 @@ export const TotalAssetsCard = () => {
           {isLoading || tickersQuery.isLoading ? (
             <Skeleton className="h-8 w-40" />
           ) : (
-            <p className="text-2xl font-semibold text-foreground">${totalAssetsUsd ?? '—'}</p>
+            <p className="text-2xl font-semibold text-foreground">
+              <SensitiveValue>${totalAssetsUsd ?? '—'}</SensitiveValue>
+            </p>
           )}
         </div>
       </CardHeader>

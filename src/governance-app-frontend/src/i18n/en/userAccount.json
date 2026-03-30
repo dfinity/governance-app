@@ -52,10 +52,18 @@
     "description": "Enable or disable keyboard shortcuts for quick actions.",
     "items": {
       "toggleTheme": "Toggle theme",
-      "logout": "Logout"
+      "logout": "Logout",
+      "hideBalances": "Toggle privacy"
     },
     "aria": {
       "toggle": "Toggle keyboard shortcuts"
+    }
+  },
+  "hideBalances": {
+    "title": "Hide balances",
+    "description": "Hide ICP and USD values across the app for privacy.",
+    "aria": {
+      "toggle": "Toggle balance visibility"
     }
   },
   "advancedFeatures": {

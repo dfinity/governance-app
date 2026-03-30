@@ -5,12 +5,13 @@ import { Switch } from '@components/Switch';
 import { useShortcutSettings } from '@hooks/useShortcutSettings';
 
 type Shortcut = {
-  labelKey: 'toggleTheme' | 'logout';
+  labelKey: 'toggleTheme' | 'logout' | 'hideBalances';
   key: string;
 };
 
 const SHORTCUTS: Shortcut[] = [
   { labelKey: 'toggleTheme', key: 'd' },
+  { labelKey: 'hideBalances', key: 'p' },
   { labelKey: 'logout', key: 'u' },
 ];
 

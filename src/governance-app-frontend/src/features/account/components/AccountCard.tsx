@@ -10,6 +10,7 @@ import { TransactionListDialog } from '@features/transactions/components/Transac
 
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
+import { SensitiveValue } from '@components/SensitiveValue';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
@@ -69,7 +70,9 @@ export function AccountCard() {
               <Skeleton className="h-8 w-32" />
             ) : (
               <p className="text-2xl font-semibold">
-                {t(($) => $.common.inIcp, { value: formatNumber(balanceICP) })}
+                <SensitiveValue>
+                  {t(($) => $.common.inIcp, { value: formatNumber(balanceICP) })}
+                </SensitiveValue>
               </p>
             )}
 
@@ -77,7 +80,9 @@ export function AccountCard() {
               <Skeleton className="h-4 w-20" />
             ) : (
               <p className="text-sm text-muted-foreground">
-                {t(($) => $.account.approxUsd, { value: usdValue })}
+                <SensitiveValue size="sm">
+                  {t(($) => $.account.approxUsd, { value: usdValue })}
+                </SensitiveValue>
               </p>
             )}
           </div>
