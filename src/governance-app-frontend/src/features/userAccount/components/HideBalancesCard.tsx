@@ -10,9 +10,7 @@ export const HideBalancesCard = () => {
   return (
     <div className="flex items-start justify-between gap-4">
       <div className="space-y-1">
-        <p className="leading-none font-medium">
-          {t(($) => $.userAccount.hideBalances.title)}
-        </p>
+        <p className="leading-none font-medium">{t(($) => $.userAccount.hideBalances.title)}</p>
         <p className="text-sm text-muted-foreground">
           {t(($) => $.userAccount.hideBalances.description)}
         </p>

@@ -43,13 +43,15 @@ export function CapitalCard({ neurons }: CapitalCardProps) {
               </SensitiveValue>
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              <SensitiveValue size="sm">
-                {nonNullish(usdValue)
-                  ? t(($) => $.account.approxUsd, {
-                      value: formatNumber(usdValue, { minFraction: 2, maxFraction: 2 }),
-                    })
-                  : '—'}
-              </SensitiveValue>
+              {nonNullish(usdValue) ? (
+                <SensitiveValue size="sm">
+                  {t(($) => $.account.approxUsd, {
+                    value: formatNumber(usdValue, { minFraction: 2, maxFraction: 2 }),
+                  })}
+                </SensitiveValue>
+              ) : (
+                '—'
+              )}
             </p>
           </>
         )}

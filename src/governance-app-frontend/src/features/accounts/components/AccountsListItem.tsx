@@ -15,7 +15,7 @@ import { txConfig } from '@features/transactions/utils/txConfig';
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { CopyButton } from '@components/CopyButton';
-import { SensitiveValue } from '@components/SensitiveValue';
+import { SENSITIVE_PLACEHOLDER, SensitiveValue } from '@components/SensitiveValue';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
@@ -197,7 +197,7 @@ function LastTransaction({ accountId }: { accountId: string }) {
 
   const amountICP = bigIntDiv(amountE8s, E8Sn);
   const amount = hidden
-    ? '•••'
+    ? SENSITIVE_PLACEHOLDER.sm
     : t(($) => $.common.inIcp, { value: formatNumber(amountICP) });
 
   const { amountClasses, latestLabelKey, addressDirection } = txConfig[type];

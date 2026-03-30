@@ -5,7 +5,7 @@ type SensitiveValueProps = {
   size?: 'sm' | 'md';
 };
 
-const DOTS = {
+export const SENSITIVE_PLACEHOLDER = {
   sm: '•••',
   md: '•••••',
 };
@@ -13,7 +13,7 @@ const DOTS = {
 export const SensitiveValue = ({ children, size = 'md' }: SensitiveValueProps) => {
   const { hidden } = useHideBalances();
 
-  if (hidden) return <>{DOTS[size]}</>;
+  if (hidden) return <>{SENSITIVE_PLACEHOLDER[size]}</>;
 
   return <>{children}</>;
 };
