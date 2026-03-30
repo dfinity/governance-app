@@ -1,3 +1,4 @@
+import { nonNullish } from '@dfinity/utils';
 import { useTranslation } from 'react-i18next';
 import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts';
 
@@ -69,7 +70,11 @@ export const TotalAssetsCard = () => {
             <Skeleton className="h-8 w-40" />
           ) : (
             <p className="text-2xl font-semibold text-foreground">
-              <SensitiveValue>${totalAssetsUsd ?? '—'}</SensitiveValue>
+              {nonNullish(totalAssetsUsd) ? (
+                <SensitiveValue>${totalAssetsUsd}</SensitiveValue>
+              ) : (
+                '—'
+              )}
             </p>
           )}
         </div>
