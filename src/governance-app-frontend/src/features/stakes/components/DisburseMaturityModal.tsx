@@ -1,5 +1,5 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { AlertTriangle, Info, Loader2 } from 'lucide-react';
+import { AlertTriangle, Info } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
@@ -9,17 +9,11 @@ import { useAccountSelection } from '@features/accounts/hooks/useAccountSelectio
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { Label } from '@components/Label';
-import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-} from '@components/ResponsiveDialog';
+import { MutationDialog } from '@components/MutationDialog';
+import { ResponsiveDialogHeader, ResponsiveDialogTitle } from '@components/ResponsiveDialog';
 import { E8Sn, ICP_MIN_DISBURSE_MATURITY_AMOUNT } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
-import { mapCanisterError } from '@utils/errors';
 import { getNeuronFreeMaturityE8s } from '@utils/neuron';
-import { errorNotification, successNotification } from '@utils/notification';
 import { formatNumber } from '@utils/numbers';
 
 import { useDisburseMaturity } from '../hooks/useDisburseMaturity';
@@ -32,24 +26,24 @@ type Props = {
 
 export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation();
-  const { mutateAsync, isPending } = useDisburseMaturity();
+  const { mutateAsync } = useDisburseMaturity();
   const { selectedAccountId, setSelectedAccountId, resolvedAccountId, subaccountsEnabled } =
     useAccountSelection();
-  const [error, setError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setError(null);
+      setValidationError(null);
     }
   }, [isOpen]);
 
   const unstakedMaturity = neuron ? bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn) : 0;
 
-  const handleConfirm = async () => {
+  const handleConfirm = (execute: (fn: () => Promise<unknown>) => void) => {
     if (!neuron) return;
     if (unstakedMaturity < ICP_MIN_DISBURSE_MATURITY_AMOUNT) {
-      setError(
+      setValidationError(
         t(($) => $.neuronDetailModal.disburseMaturity.errors.amountTooLow, {
           min: ICP_MIN_DISBURSE_MATURITY_AMOUNT,
         }),
@@ -57,99 +51,76 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
       return;
     }
 
-    try {
-      await mutateAsync({
-        neuronId: neuron.neuronId,
-        toAccountId: resolvedAccountId,
-      });
-      successNotification({
-        description: t(($) => $.neuronDetailModal.disburseMaturity.success),
-      });
-      onOpenChange(false);
-    } catch (err) {
-      errorNotification({
-        description: mapCanisterError(err as Error),
-      });
-    }
-  };
-
-  const handleOpenChange = (open: boolean) => {
-    if (isPending && !open) return;
-    onOpenChange(open);
+    execute(() => mutateAsync({ neuronId: neuron.neuronId, toAccountId: resolvedAccountId }));
   };
 
   return (
-    <ResponsiveDialog open={isOpen} onOpenChange={handleOpenChange} dismissible={!isPending}>
-      <ResponsiveDialogContent
-        className="flex max-h-[90vh] flex-col focus:outline-none sm:max-w-md"
-        showCloseButton={!isPending}
-        data-testid="disburse-maturity-modal"
-      >
-        <ResponsiveDialogHeader className="shrink-0">
-          <ResponsiveDialogTitle>
-            {t(($) => $.neuronDetailModal.disburseMaturity.title)}
-          </ResponsiveDialogTitle>
-        </ResponsiveDialogHeader>
+    <MutationDialog
+      open={isOpen}
+      onOpenChange={onOpenChange}
+      processingMessage={t(($) => $.neuronDetailModal.disburseMaturity.confirming)}
+      successMessage={t(($) => $.neuronDetailModal.disburseMaturity.success)}
+      navBlockerDescription={t(($) => $.neuronDetailModal.confirmNavigation)}
+      data-testid="disburse-maturity-modal"
+    >
+      {({ execute, close }) => (
+        <>
+          <ResponsiveDialogHeader className="shrink-0">
+            <ResponsiveDialogTitle>
+              {t(($) => $.neuronDetailModal.disburseMaturity.title)}
+            </ResponsiveDialogTitle>
+          </ResponsiveDialogHeader>
 
-        <div className="mt-4 flex flex-col gap-4 px-4 pb-4 md:px-0 md:pb-0">
-          {subaccountsEnabled && (
-            <div className="space-y-1">
-              <Label htmlFor="disburse-maturity-to-account">
-                {t(($) => $.neuronDetailModal.disburseMaturity.toAccount)}
-              </Label>
-              <AccountSelect
-                id="disburse-maturity-to-account"
-                value={selectedAccountId}
-                onChange={setSelectedAccountId}
-                data-testid="disburse-maturity-account-select"
-              />
-            </div>
-          )}
+          <div className="mt-4 flex flex-col gap-4 px-4 pb-4 md:px-0 md:pb-0">
+            {subaccountsEnabled && (
+              <div className="space-y-1">
+                <Label htmlFor="disburse-maturity-to-account">
+                  {t(($) => $.neuronDetailModal.disburseMaturity.toAccount)}
+                </Label>
+                <AccountSelect
+                  id="disburse-maturity-to-account"
+                  value={selectedAccountId}
+                  onChange={setSelectedAccountId}
+                  data-testid="disburse-maturity-account-select"
+                />
+              </div>
+            )}
 
-          <Alert variant="info">
-            <Info className="h-4 w-4" />
-            <AlertDescription>
-              <Trans
-                i18nKey={($) => $.neuronDetailModal.disburseMaturity.info}
-                t={t}
-                values={{ amount: formatNumber(unstakedMaturity) }}
-                components={{ strong: <strong /> }}
-              />
-            </AlertDescription>
-          </Alert>
-
-          {error && (
-            <Alert variant="warning" data-testid="disburse-maturity-amount-error">
-              <AlertTriangle className="h-4 w-4 text-destructive" />
-              <AlertDescription>{error}</AlertDescription>
+            <Alert variant="info">
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                <Trans
+                  i18nKey={($) => $.neuronDetailModal.disburseMaturity.info}
+                  t={t}
+                  values={{ amount: formatNumber(unstakedMaturity) }}
+                  components={{ strong: <strong /> }}
+                />
+              </AlertDescription>
             </Alert>
-          )}
 
-          <div className="flex gap-3">
-            {!isPending && (
+            {validationError && (
+              <Alert variant="warning" data-testid="disburse-maturity-amount-error">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+                <AlertDescription>{validationError}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="flex gap-3">
               <Button
                 variant="outline"
                 size="xl"
                 className="flex-1 transition-colors hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0"
-                onClick={() => onOpenChange(false)}
-                disabled={isPending}
+                onClick={close}
               >
                 {t(($) => $.neuronDetailModal.disburseMaturity.cancel)}
               </Button>
-            )}
-            <Button size="xl" className="flex-1" onClick={handleConfirm} disabled={isPending}>
-              {isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t(($) => $.neuronDetailModal.disburseMaturity.confirming)}
-                </>
-              ) : (
-                t(($) => $.neuronDetailModal.disburseMaturity.confirm)
-              )}
-            </Button>
+              <Button size="xl" className="flex-1" onClick={() => handleConfirm(execute)}>
+                {t(($) => $.neuronDetailModal.disburseMaturity.confirm)}
+              </Button>
+            </div>
           </div>
-        </div>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+        </>
+      )}
+    </MutationDialog>
   );
 }
