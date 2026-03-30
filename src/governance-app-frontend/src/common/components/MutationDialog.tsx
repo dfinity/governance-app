@@ -8,6 +8,7 @@ import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
+  ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { DIALOG_RESET_DELAY_MS, SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
@@ -118,7 +119,7 @@ export function MutationDialog({
             {phase === Phase.Idle && (
               <motion.div
                 key="body"
-                className="flex min-h-0 flex-1 flex-col"
+                className="flex min-h-0 flex-1 flex-col overflow-hidden"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -176,6 +177,38 @@ export function MutationDialog({
       </ResponsiveDialog>
     </>
   );
+}
+
+export function MutationDialogHeader({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<typeof ResponsiveDialogHeader>) {
+  return (
+    <ResponsiveDialogHeader className={cn('shrink-0', className)} {...props}>
+      {children}
+    </ResponsiveDialogHeader>
+  );
+}
+
+export function MutationDialogBody({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return <div className={cn('flex-1 overflow-y-auto', className)}>{children}</div>;
+}
+
+export function MutationDialogFooter({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return <div className={cn('shrink-0 px-4 pt-4 pb-4 md:px-0 md:pb-0', className)}>{children}</div>;
 }
 
 function PhaseContainer({

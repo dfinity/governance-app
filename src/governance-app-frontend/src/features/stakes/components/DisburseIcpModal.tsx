@@ -8,8 +8,13 @@ import { useAccountSelection } from '@features/accounts/hooks/useAccountSelectio
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { Label } from '@components/Label';
-import { MutationDialog } from '@components/MutationDialog';
-import { ResponsiveDialogHeader, ResponsiveDialogTitle } from '@components/ResponsiveDialog';
+import {
+  MutationDialog,
+  MutationDialogBody,
+  MutationDialogFooter,
+  MutationDialogHeader,
+} from '@components/MutationDialog';
+import { ResponsiveDialogTitle } from '@components/ResponsiveDialog';
 import { E8Sn } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronStakeAfterFeesE8s } from '@utils/neuron';
@@ -42,13 +47,13 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
     >
       {({ execute, close }) => (
         <>
-          <ResponsiveDialogHeader className="shrink-0">
+          <MutationDialogHeader>
             <ResponsiveDialogTitle>
               {t(($) => $.neuronDetailModal.disburseIcp.title)}
             </ResponsiveDialogTitle>
-          </ResponsiveDialogHeader>
+          </MutationDialogHeader>
 
-          <div className="mt-4 flex flex-col gap-4 px-4 pb-4 md:px-0 md:pb-0">
+          <MutationDialogBody className="mt-4 flex flex-col gap-4 px-4 md:px-0">
             {subaccountsEnabled && (
               <div className="space-y-1">
                 <Label htmlFor="disburse-icp-to-account">
@@ -74,30 +79,30 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
                 />
               </AlertDescription>
             </Alert>
+          </MutationDialogBody>
 
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                size="xl"
-                className="flex-1 transition-colors hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0"
-                onClick={close}
-              >
-                {t(($) => $.neuronDetailModal.disburseIcp.cancel)}
-              </Button>
-              <Button
-                size="xl"
-                className="flex-1"
-                onClick={() =>
-                  neuron &&
-                  execute(() =>
-                    mutateAsync({ neuronId: neuron.neuronId, toAccountId: resolvedAccountId }),
-                  )
-                }
-              >
-                {t(($) => $.neuronDetailModal.disburseIcp.confirm)}
-              </Button>
-            </div>
-          </div>
+          <MutationDialogFooter className="flex gap-3">
+            <Button
+              variant="outline"
+              size="xl"
+              className="flex-1 transition-colors hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0"
+              onClick={close}
+            >
+              {t(($) => $.neuronDetailModal.disburseIcp.cancel)}
+            </Button>
+            <Button
+              size="xl"
+              className="flex-1"
+              onClick={() =>
+                neuron &&
+                execute(() =>
+                  mutateAsync({ neuronId: neuron.neuronId, toAccountId: resolvedAccountId }),
+                )
+              }
+            >
+              {t(($) => $.neuronDetailModal.disburseIcp.confirm)}
+            </Button>
+          </MutationDialogFooter>
         </>
       )}
     </MutationDialog>
