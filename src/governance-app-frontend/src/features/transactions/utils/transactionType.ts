@@ -5,6 +5,8 @@ import { TransactionType } from '@features/account/types';
 export const getAmountE8s = (operation: IcpIndexDid.Operation): bigint | null => {
   if ('Transfer' in operation) return operation.Transfer.amount.e8s;
   if ('Mint' in operation) return operation.Mint.amount.e8s;
+  if ('Burn' in operation) return operation.Burn.amount.e8s;
+  if ('Approve' in operation) return operation.Approve.allowance.e8s;
   return null;
 };
 
@@ -14,6 +16,8 @@ export const detectTransactionType = (
   neuronAccountIds: Set<string>,
 ): TransactionType => {
   if ('Mint' in operation) return TransactionType.MINT;
+  if ('Burn' in operation) return TransactionType.BURN;
+  if ('Approve' in operation) return TransactionType.APPROVE;
   if (!('Transfer' in operation)) return TransactionType.UNKNOWN;
 
   const transfer = operation.Transfer;

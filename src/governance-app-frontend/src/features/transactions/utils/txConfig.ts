@@ -4,6 +4,8 @@ import {
   ArrowUpDown,
   CircleQuestionMark,
   Coins,
+  Flame,
+  HandCoins,
   Lock,
   type LucideIcon,
 } from 'lucide-react';
@@ -17,13 +19,15 @@ export const txConfig: Record<
     iconBgClasses: string;
     amountClasses: string;
     sign: string;
-    labelKey: 'sent' | 'received' | 'staked' | 'minted' | 'selfTransfer';
+    labelKey: 'sent' | 'received' | 'staked' | 'minted' | 'selfTransfer' | 'burned' | 'approved';
     latestLabelKey:
       | 'latestSent'
       | 'latestReceived'
       | 'latestStaked'
       | 'latestMinted'
-      | 'latestSelfTransfer';
+      | 'latestSelfTransfer'
+      | 'latestBurned'
+      | 'latestApproved';
     addressDirection: 'fromAddress' | 'intoAddress' | 'toAddress' | null;
   }
 > = {
@@ -72,6 +76,24 @@ export const txConfig: Record<
     sign: '+',
     labelKey: 'minted',
     latestLabelKey: 'latestMinted',
+    addressDirection: null,
+  },
+  [TransactionType.BURN]: {
+    icon: Flame,
+    iconBgClasses: 'bg-red-200/30 text-red-800 dark:bg-red-100/10 dark:text-red-400',
+    amountClasses: 'text-red-800 dark:text-red-400',
+    sign: '-',
+    labelKey: 'burned',
+    latestLabelKey: 'latestBurned',
+    addressDirection: null,
+  },
+  [TransactionType.APPROVE]: {
+    icon: HandCoins,
+    iconBgClasses: 'bg-muted text-muted-foreground',
+    amountClasses: 'text-muted-foreground',
+    sign: '',
+    labelKey: 'approved',
+    latestLabelKey: 'latestApproved',
     addressDirection: null,
   },
   [TransactionType.UNKNOWN]: {
