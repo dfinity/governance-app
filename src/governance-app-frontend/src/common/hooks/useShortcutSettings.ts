@@ -40,7 +40,7 @@ const getSnapshot = (): boolean => getStoredValue();
 
 /**
  * Hook to manage keyboard shortcuts global toggle with localStorage persistence.
- * Uses useSyncExternalStore for cross-component reactivity.
+ * Uses useSyncExternalStore for cross-component and cross-tab reactivity.
  * Returns a single boolean — all shortcuts are either enabled or disabled together.
  */
 export const useShortcutSettings = () => {

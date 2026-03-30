@@ -40,7 +40,7 @@ const getSnapshot = (): boolean => getStoredValue();
 
 /**
  * Hook to manage the hide balances privacy toggle with localStorage persistence.
- * Uses useSyncExternalStore for cross-component reactivity.
+ * Uses useSyncExternalStore for cross-component and cross-tab reactivity.
  */
 export const useHideBalances = () => {
   const hidden = useSyncExternalStore(subscribe, getSnapshot);
