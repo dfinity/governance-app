@@ -12,23 +12,13 @@ import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
 import {
-  AnimatedErrorIcon,
-  AnimatedSpinner,
-  AnimatedSuccessIcon,
-  FadeInText,
-  PhaseContainer,
-} from '@components/MutationPhases';
-import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
-import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogDescription,
-  ResponsiveDialogFooter,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-} from '@components/ResponsiveDialog';
+  MutationDialog,
+  MutationDialogFooter,
+  MutationDialogHeader,
+} from '@components/MutationDialog';
+import { ResponsiveDialogDescription, ResponsiveDialogTitle } from '@components/ResponsiveDialog';
 import { Skeleton } from '@components/Skeleton';
-import { DIALOG_RESET_DELAY_MS, SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
+import { DIALOG_RESET_DELAY_MS } from '@constants/extra';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import { errorMessage } from '@utils/error';
@@ -44,31 +34,6 @@ import {
 } from '../utils/knownNeurons';
 import { hasComplexFollowing } from '../utils/topicFollowing';
 import { KnownNeuronCard } from './KnownNeuronCard';
-
-enum DialogPhase {
-  Closed = 'closed',
-  Confirm = 'confirm',
-  Processing = 'processing',
-  Success = 'success',
-  Error = 'error',
-}
-
-type DialogState =
-  | { phase: DialogPhase.Closed }
-  | { phase: DialogPhase.Confirm; neuron: KnownNeuron }
-  | { phase: DialogPhase.Processing; neuron: KnownNeuron }
-  | { phase: DialogPhase.Success; neuronName: string }
-  | { phase: DialogPhase.Error; neuron: KnownNeuron };
-
-const hasNeuron = (
-  state: DialogState,
-): state is {
-  phase: DialogPhase.Confirm | DialogPhase.Processing | DialogPhase.Error;
-  neuron: KnownNeuron;
-} =>
-  state.phase === DialogPhase.Confirm ||
-  state.phase === DialogPhase.Processing ||
-  state.phase === DialogPhase.Error;
 
 type Props = {
   open: boolean;
@@ -109,15 +74,8 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
     return sortedKnownNeurons?.filter((n) => n.name.toLowerCase().includes(query));
   }, [sortedKnownNeurons, searchQuery]);
 
-  const [dialogState, setDialogState] = useState<DialogState>({ phase: DialogPhase.Closed });
-  const isBlocking = dialogState.phase === DialogPhase.Processing;
-  const isInConfirmFlow = dialogState.phase !== DialogPhase.Closed;
-
-  const handleFollow = (knownNeuron: KnownNeuron) => {
-    if (updateFollowingMutation.isPending || isWaitingForCertifiedData || !canister) return;
-    setDialogState({ phase: DialogPhase.Processing, neuron: knownNeuron });
-    updateFollowingMutation.mutate({ neurons: userNeurons!, knownNeuron });
-  };
+  const [pendingNeuron, setPendingNeuron] = useState<KnownNeuron | null>(null);
+  const [activeNeuronName, setActiveNeuronName] = useState('');
 
   const updateFollowingMutation = useMutation<
     void[],
@@ -148,28 +106,34 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
         neuron_name: variables.knownNeuron.name,
       });
       await queryClient
-        .invalidateQueries({
-          queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
-        })
+        .invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] })
         .catch(failedRefresh);
-      setDialogState({ phase: DialogPhase.Success, neuronName: variables.knownNeuron.name });
     },
-    onError: (error, variables, context) => {
+    onError: (error, _variables, context) => {
       errorMessage('SimpleFollowingModal', error.message);
       analytics.event(AnalyticsEvent.FollowingSimpleConfirmationError);
       setUserOverrideId(context?.previousSelectedId ?? null);
-      setDialogState({ phase: DialogPhase.Error, neuron: variables.knownNeuron });
     },
   });
 
-  const handleSelect = (knownNeuron: KnownNeuron) => {
+  const handleFollow = (
+    knownNeuron: KnownNeuron,
+    execute: (fn: () => Promise<unknown>) => void,
+  ) => {
+    if (updateFollowingMutation.isPending || isWaitingForCertifiedData || !canister) return;
+    setActiveNeuronName(knownNeuron.name);
+    execute(() => updateFollowingMutation.mutateAsync({ neurons: userNeurons!, knownNeuron }));
+  };
+
+  const handleSelect = (
+    knownNeuron: KnownNeuron,
+    execute: (fn: () => Promise<unknown>) => void,
+  ) => {
     if (selectedNeuronId === knownNeuron.id.toString()) return;
     if (isWaitingForCertifiedData || !canister) return;
 
     if (userNeurons!.length === 0) {
-      warningNotification({
-        description: t(($) => $.voting.warnings.stakeRequired),
-      });
+      warningNotification({ description: t(($) => $.voting.warnings.stakeRequired) });
       return;
     }
 
@@ -180,64 +144,77 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
       });
 
       if (currentFollowed.length > 0) {
-        setDialogState({ phase: DialogPhase.Confirm, neuron: knownNeuron });
+        setPendingNeuron(knownNeuron);
         return;
       }
     }
 
-    handleFollow(knownNeuron);
+    handleFollow(knownNeuron, execute);
   };
 
   useEffect(() => {
-    if (!open) {
-      const timer = setTimeout(() => {
-        setDialogState({ phase: DialogPhase.Closed });
-        setUserOverrideId(undefined);
-        setSearchQuery('');
-        updateFollowingMutation.reset();
-        // Timeout to ensure the dialog is fully closed before resetting the state
-      }, DIALOG_RESET_DELAY_MS);
-      return () => clearTimeout(timer);
-    }
+    if (open) return;
+    const timer = setTimeout(() => {
+      setPendingNeuron(null);
+      setUserOverrideId(undefined);
+      setSearchQuery('');
+      setActiveNeuronName('');
+      updateFollowingMutation.reset();
+    }, DIALOG_RESET_DELAY_MS);
+    return () => clearTimeout(timer);
   }, [open, updateFollowingMutation]);
 
-  const handleOpenChange = (nextOpen: boolean) => {
-    if (!nextOpen && isBlocking) return;
-    onOpenChange(nextOpen);
-  };
-
   return (
-    <>
-      <NavigationBlockerDialog
-        isBlocked={isBlocking}
-        description={t(($) => $.knownNeurons.api.processing, {
-          name: hasNeuron(dialogState) ? dialogState.neuron.name : '',
-        })}
-      />
-
-      <ResponsiveDialog open={open} onOpenChange={handleOpenChange} dismissible={!isBlocking}>
-        <ResponsiveDialogContent
-          showCloseButton={!isBlocking}
-          className="flex max-h-[90vh] flex-col"
-        >
-          {isInConfirmFlow ? (
-            <ConfirmFlow
-              state={dialogState}
-              onFollow={() => hasNeuron(dialogState) && handleFollow(dialogState.neuron)}
-              onClose={() => setDialogState({ phase: DialogPhase.Closed })}
-              onDone={() => {
-                setDialogState({ phase: DialogPhase.Closed });
-                onOpenChange(false);
-              }}
-            />
+    <MutationDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      processingMessage={t(($) => $.knownNeurons.api.processing, { name: activeNeuronName })}
+      successMessage={t(($) => $.knownNeurons.api.success, { name: activeNeuronName })}
+      navBlockerDescription={t(($) => $.knownNeurons.api.processing, { name: activeNeuronName })}
+    >
+      {({ execute }) => (
+        <AnimatePresence mode="wait" initial={false}>
+          {pendingNeuron ? (
+            <motion.div
+              key="confirm"
+              className="flex flex-1 flex-col justify-between"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              <MutationDialogHeader>
+                <ResponsiveDialogTitle>
+                  {t(($) => $.knownNeurons.confirmation.title)}
+                </ResponsiveDialogTitle>
+                <ResponsiveDialogDescription>
+                  {t(($) => $.knownNeurons.confirmation.description)}
+                </ResponsiveDialogDescription>
+              </MutationDialogHeader>
+              <MutationDialogFooter className="md:justify-end">
+                <Button variant="ghost" onClick={() => setPendingNeuron(null)}>
+                  {t(($) => $.common.cancel)}
+                </Button>
+                <Button onClick={() => handleFollow(pendingNeuron, execute)}>
+                  {t(($) => $.common.confirm)}
+                </Button>
+              </MutationDialogFooter>
+            </motion.div>
           ) : (
-            <div className="flex flex-1 flex-col gap-4 overflow-hidden pb-4 md:pb-0">
-              <ResponsiveDialogHeader>
+            <motion.div
+              key="list"
+              className="flex flex-1 flex-col gap-4 overflow-hidden pb-4 md:pb-0"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              <MutationDialogHeader>
                 <ResponsiveDialogTitle>{t(($) => $.knownNeurons.title)}</ResponsiveDialogTitle>
                 <ResponsiveDialogDescription>
                   {t(($) => $.knownNeurons.description)}
                 </ResponsiveDialogDescription>
-              </ResponsiveDialogHeader>
+              </MutationDialogHeader>
 
               {isComplex && (
                 <Alert variant="warning">
@@ -289,7 +266,7 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
                         <KnownNeuronCard
                           neuron={neuron}
                           isSelected={selectedNeuronId === neuron.id.toString()}
-                          onSelect={handleSelect}
+                          onSelect={(n) => handleSelect(n, execute)}
                           isLoading={
                             updateFollowingMutation.isPending &&
                             selectedNeuronId === neuron.id.toString()
@@ -306,106 +283,10 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
                   )}
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
-    </>
-  );
-}
-
-function ConfirmFlow({
-  state,
-  onFollow,
-  onClose,
-  onDone,
-}: {
-  state: DialogState;
-  onFollow: () => void;
-  onClose: () => void;
-  onDone: () => void;
-}) {
-  const { t } = useTranslation();
-
-  useEffect(() => {
-    if (state.phase !== DialogPhase.Success) return;
-    const timer = setTimeout(onDone, SUCCESS_AUTO_CLOSE_MS);
-    return () => clearTimeout(timer);
-  }, [state.phase, onDone]);
-
-  return (
-    <AnimatePresence mode="wait" initial={false}>
-      {state.phase === DialogPhase.Confirm && (
-        <motion.div
-          key="confirm"
-          className="flex flex-1 flex-col justify-between"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
-        >
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>
-              {t(($) => $.knownNeurons.confirmation.title)}
-            </ResponsiveDialogTitle>
-            <ResponsiveDialogDescription>
-              {t(($) => $.knownNeurons.confirmation.description)}
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
-          <ResponsiveDialogFooter className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={onClose}>
-              {t(($) => $.common.cancel)}
-            </Button>
-            <Button onClick={onFollow}>{t(($) => $.common.confirm)}</Button>
-          </ResponsiveDialogFooter>
-        </motion.div>
+        </AnimatePresence>
       )}
-
-      {state.phase === DialogPhase.Processing && (
-        <PhaseContainer key="processing" className="items-center justify-center gap-5">
-          <ResponsiveDialogTitle className="sr-only">
-            {t(($) => $.knownNeurons.api.processing, { name: state.neuron.name })}
-          </ResponsiveDialogTitle>
-          <AnimatedSpinner />
-          <FadeInText delay={0.2}>
-            {t(($) => $.knownNeurons.api.processing, { name: state.neuron.name })}
-          </FadeInText>
-        </PhaseContainer>
-      )}
-
-      {state.phase === DialogPhase.Success && (
-        <PhaseContainer key="success" className="items-center justify-center gap-5">
-          <ResponsiveDialogTitle className="sr-only">
-            {t(($) => $.knownNeurons.api.success, { name: state.neuronName })}
-          </ResponsiveDialogTitle>
-          <AnimatedSuccessIcon />
-          <FadeInText delay={0.35} className="max-w-xs">
-            {t(($) => $.knownNeurons.api.success, { name: state.neuronName })}
-          </FadeInText>
-        </PhaseContainer>
-      )}
-
-      {state.phase === DialogPhase.Error && (
-        <PhaseContainer key="error" className="items-center justify-between">
-          <ResponsiveDialogTitle className="sr-only">
-            {t(($) => $.knownNeurons.api.error, { name: state.neuron.name })}
-          </ResponsiveDialogTitle>
-          <div className="flex flex-1 flex-col items-center justify-center gap-4">
-            <AnimatedErrorIcon />
-            <FadeInText delay={0.3} className="max-w-xs">
-              {t(($) => $.knownNeurons.api.error, { name: state.neuron.name })}
-            </FadeInText>
-          </div>
-          <div className="flex w-full gap-3 pt-4">
-            <Button variant="outline" size="xl" className="flex-1" onClick={onClose}>
-              {t(($) => $.common.close)}
-            </Button>
-            <Button size="xl" className="flex-1" onClick={onFollow}>
-              {t(($) => $.knownNeurons.api.retry)}
-            </Button>
-          </div>
-        </PhaseContainer>
-      )}
-    </AnimatePresence>
+    </MutationDialog>
   );
 }
