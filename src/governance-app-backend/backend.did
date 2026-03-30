@@ -48,6 +48,21 @@ type GetAddressBookResponse = variant {
 };
 // End Address Book
 
+// Exchange Rate
+type CachedRate = record {
+    rate_e8s : nat64;
+    // When the exchange rate canister (XRC) observed this rate.
+    timestamp_seconds : nat64;
+    // When our canister last wrote this entry to the cache.
+    updated_at_seconds : nat64;
+};
+
+type IcpExchangeRateResponse = record {
+    current : opt CachedRate;
+    one_day_ago : opt CachedRate;
+};
+// End Exchange Rate
+
 service : {
     // HTTP
     http_request : (request : HttpRequest) -> (HttpResponse) query;
@@ -57,4 +72,8 @@ service : {
     get_address_book : () -> (GetAddressBookResponse) query;
     set_address_book : (AddressBook) -> (SetAddressBookResponse);
     // End Address Book
+
+    // Exchange Rate
+    get_icp_to_usd_exchange_rate : () -> (IcpExchangeRateResponse) query;
+    // End Exchange Rate
 }

@@ -14,11 +14,16 @@ crate-type = ["cdylib"]
 [dependencies]
 candid = "0.10"
 ic-cdk = "0.19"
+ic-cdk-timers = "1.0"
 ic-http-certification = "3.0"
 ic-asset-certification = "3.0.3"
+ic-xrc-types = "1.2"
 include_dir = "0.7"
 ic-stable-structures = "0.7.2"
 ic-ledger-types = "0.16"
 icrc-ledger-types = "0.1.12"
 serde = { version = "1.0.219", features = ["derive"] }
 regex = "1.11"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt"] }

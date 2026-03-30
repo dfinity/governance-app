@@ -3,25 +3,26 @@ use ic_http_certification::{HttpRequest, HttpResponse};
 
 mod address_book;
 mod assets;
+mod exchange_rate;
 mod user_data;
 
 use address_book::{AddressBook, GetAddressBookResponse, SetAddressBookResponse};
+use exchange_rate::cache::IcpExchangeRateResponse;
 
 #[init]
 fn init() {
-    // Initialize and certify the assets on deployment
     assets::certify_assets_hook();
+    exchange_rate::init_exchange_rate_timer();
 }
 
 #[post_upgrade]
 fn post_upgrade() {
-    // Re-certify the assets after an upgrade
     assets::certify_assets_hook();
+    exchange_rate::init_exchange_rate_timer();
 }
 
 #[query]
 fn http_request(req: HttpRequest<'static>) -> HttpResponse<'static> {
-    // Delegate HTTP requests to the assets module
     assets::http_request_handler(&req)
 }
 
@@ -35,4 +36,15 @@ fn get_address_book() -> GetAddressBookResponse {
 fn set_address_book(addresses: AddressBook) -> SetAddressBookResponse {
     let caller = ic_cdk::api::msg_caller();
     address_book::set_address_book(caller, addresses)
+}
+
+#[query]
+fn get_icp_to_usd_exchange_rate() -> IcpExchangeRateResponse {
+    exchange_rate::get_icp_to_usd_exchange_rate()
+}
+
+#[cfg(feature = "testnet")]
+#[update]
+fn set_mock_exchange_rate(current_rate_e8s: u64, rate_one_day_ago_e8s: u64) {
+    exchange_rate::set_mock_exchange_rate(current_rate_e8s, rate_one_day_ago_e8s);
 }

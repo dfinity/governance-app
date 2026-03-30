@@ -275,13 +275,16 @@ dependencies = [
  "candid",
  "ic-asset-certification",
  "ic-cdk",
+ "ic-cdk-timers",
  "ic-http-certification",
  "ic-ledger-types",
  "ic-stable-structures 0.7.2",
+ "ic-xrc-types",
  "icrc-ledger-types",
  "include_dir",
  "regex",
  "serde",
+ "tokio",
 ]
 
 [[package]]
@@ -370,6 +373,17 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.104",
+]
+
+[[package]]
+name = "ic-cdk-timers"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6852b9c1d4a82ff50fc7318599298aee8bfb082bd7e9fe7e5c1420692b2170f7"
+dependencies = [
+ "ic-cdk-executor",
+ "ic0",
+ "slotmap",
 ]
 
 [[package]]
@@ -464,6 +478,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ee3372ddc0cf2a747fc26ce2d075a240ed6bfab151e63bc70109e8967f7ce6f"
 dependencies = [
  "ic_principal",
+]
+
+[[package]]
+name = "ic-xrc-types"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1a2b2eaa332201f4abbd1192a307f7a5b6ea55d077a7f489ac62bf8e358b5a2"
+dependencies = [
+ "candid",
+ "serde",
 ]
 
 [[package]]
@@ -957,6 +981,27 @@ checksum = "2e70e4c5a0e0a8a4823ad65dfe1a6930e4f4d756dcd9dd7939022b5e8c501215"
 dependencies = [
  "num-conv",
  "time-core",
+]
+
+[[package]]
+name = "tokio"
+version = "1.50.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "27ad5e34374e03cfffefc301becb44e9dc3c17584f414349ebe29ed26661822d"
+dependencies = [
+ "pin-project-lite",
+ "tokio-macros",
+]
+
+[[package]]
+name = "tokio-macros"
+version = "2.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5c55a2eff8b69ce66c84f85e1da1c233edc36ceb85a2058d11b0d6a3c7e7569c"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.104",
 ]
 
 [[package]]
