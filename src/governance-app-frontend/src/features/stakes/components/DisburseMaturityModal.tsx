@@ -115,12 +115,12 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
             <Button
               variant="outline"
               size="xl"
-              className="flex-1 transition-colors hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0"
+              className="transition-colors hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0 md:flex-1"
               onClick={close}
             >
               {t(($) => $.neuronDetailModal.disburseMaturity.cancel)}
             </Button>
-            <Button size="xl" className="flex-1" onClick={() => handleConfirm(execute)}>
+            <Button size="xl" className="md:flex-1" onClick={() => handleConfirm(execute)}>
               {t(($) => $.neuronDetailModal.disburseMaturity.confirm)}
             </Button>
           </MutationDialogFooter>

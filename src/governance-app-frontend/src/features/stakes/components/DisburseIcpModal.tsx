@@ -85,14 +85,14 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
             <Button
               variant="outline"
               size="xl"
-              className="flex-1 transition-colors hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0"
+              className="transition-colors hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0 md:flex-1"
               onClick={close}
             >
               {t(($) => $.neuronDetailModal.disburseIcp.cancel)}
             </Button>
             <Button
               size="xl"
-              className="flex-1"
+              className="md:flex-1"
               onClick={() =>
                 neuron &&
                 execute(() =>
