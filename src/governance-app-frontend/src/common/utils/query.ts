@@ -34,6 +34,7 @@ const NNS_DAPP = {
 
 const GOVERNANCE_APP_BACKEND = {
   ADDRESS_BOOK: 'governanceAppBackendAddressBook',
+  EXCHANGE_RATE: 'governanceAppBackendExchangeRate',
 };
 
 const SPAM_FILTER = {
