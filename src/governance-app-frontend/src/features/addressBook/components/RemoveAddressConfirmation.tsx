@@ -55,7 +55,7 @@ export const RemoveAddressConfirmation: React.FC<Props> = ({
             </ResponsiveDialogDescription>
           </MutationDialogHeader>
 
-          <MutationDialogFooter className="flex justify-end gap-2">
+          <MutationDialogFooter className="md:justify-end">
             <Button variant="ghost" onClick={close} data-testid="remove-address-cancel-btn">
               {t(($) => $.common.close)}
             </Button>

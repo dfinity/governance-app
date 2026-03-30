@@ -208,7 +208,16 @@ export function MutationDialogFooter({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <div className={cn('shrink-0 px-4 pt-4 pb-4 md:px-0 md:pb-0', className)}>{children}</div>;
+  return (
+    <div
+      className={cn(
+        'flex shrink-0 flex-col gap-2 px-4 pt-4 pb-4 md:flex-row md:gap-3 md:px-0 md:pb-0',
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
 }
 
 function PhaseContainer({

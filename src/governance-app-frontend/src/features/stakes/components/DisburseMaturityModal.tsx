@@ -111,7 +111,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
             )}
           </MutationDialogBody>
 
-          <MutationDialogFooter className="flex gap-3">
+          <MutationDialogFooter>
             <Button
               variant="outline"
               size="xl"

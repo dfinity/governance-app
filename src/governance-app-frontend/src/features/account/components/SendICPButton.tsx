@@ -3,7 +3,7 @@ import { decodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
 import { nonNullish, nowInBigIntNanoSeconds, toNullable } from '@dfinity/utils';
 import { useMutation } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { AlertTriangle, ArrowUpRight, BookUser, Loader, Send } from 'lucide-react';
+import { AlertTriangle, ArrowUpRight, BookUser, Send } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import React, { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -18,36 +18,26 @@ import { AddressBookSelect } from '@features/addressBook/components/AddressBookS
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { AmountInput } from '@components/AmountInput';
-import { AnimatedCheckmark } from '@components/AnimatedCheckmark';
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
 import { Label } from '@components/Label';
-import { AnimatedErrorIcon, FadeInText, PhaseContainer } from '@components/MutationPhases';
-import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
 import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogDescription,
-  ResponsiveDialogFooter,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-  ResponsiveDialogTrigger,
-} from '@components/ResponsiveDialog';
+  MutationDialog,
+  MutationDialogBody,
+  MutationDialogFooter,
+  MutationDialogHeader,
+} from '@components/MutationDialog';
+import { ResponsiveDialogDescription, ResponsiveDialogTitle } from '@components/ResponsiveDialog';
 import { Switch } from '@components/Switch';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import {
-  DIALOG_RESET_DELAY_MS,
-  E8Sn,
-  ICP_TRANSACTION_FEE,
-  SUCCESS_AUTO_CLOSE_MS,
-} from '@constants/extra';
+import { DIALOG_RESET_DELAY_MS, E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
 import { useTickerPrices } from '@hooks/tickers';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
 import { addressBookGetAddressString } from '@utils/addressBook';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
-import { isCertifiedRejectError, mapCanisterError } from '@utils/errors';
+import { isCertifiedRejectError } from '@utils/errors';
 import { formatNumber, roundToE8sPrecision } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
@@ -57,12 +47,9 @@ type Props = {
   variant?: 'simple' | 'advanced';
 };
 
-enum Phase {
+enum Step {
   Form = 'form',
   Confirmation = 'confirmation',
-  Processing = 'processing',
-  Success = 'success',
-  Error = 'error',
 }
 
 const variantConfig = {
@@ -91,13 +78,12 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   const hasAddresses = addressBookEntries.length > 0;
 
   const [open, setOpen] = useState(false);
+  const [step, setStep] = useState(Step.Form);
   const [amount, setAmount] = useState('');
   const [amountError, setAmountError] = useState('');
   const [toAccount, setToAccount] = useState('');
   const [toAccountError, setToAccountError] = useState('');
   const [selectedName, setSelectedName] = useState('');
-  const [phase, setPhase] = useState<Phase>(Phase.Form);
-  const [errorMessage, setErrorMessage] = useState('');
   const [useAddressBookToggle, setUseAddressBookToggle] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
   const amountInputRef = useRef<HTMLInputElement>(null);
@@ -127,7 +113,6 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
       const createdAt = createdAtRef.current ?? nowInBigIntNanoSeconds();
       createdAtRef.current = createdAt;
       const transferAmount = bigIntMul(E8Sn, Number(amount));
-
       const subAccountArr = effectiveSubAccount ? Array.from(effectiveSubAccount) : undefined;
 
       if (isValidIcpAddress(toAccount)) {
@@ -147,29 +132,38 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
         createdAt,
       });
     },
-    onMutate: () => {
-      setPhase(Phase.Processing);
-    },
     onSuccess: () => {
-      setPhase(Phase.Success);
       createdAtRef.current = null;
     },
     onError: (error) => {
       if (isCertifiedRejectError(error) || error instanceof TransferError) {
         createdAtRef.current = null;
       }
-      setErrorMessage(mapCanisterError(error));
-      setPhase(Phase.Error);
     },
   });
 
-  const isProcessing = phase === Phase.Processing;
-
-  const canTransfer =
-    effectiveBalance > ICP_TRANSACTION_FEE && ledgerReady && ledgerAuthenticated && !isProcessing;
+  const canTransfer = effectiveBalance > ICP_TRANSACTION_FEE && ledgerReady && ledgerAuthenticated;
   const max = roundToE8sPrecision(effectiveBalance - ICP_TRANSACTION_FEE);
 
-  const handleSubmit = async (event: React.SyntheticEvent) => {
+  const resetFormState = useEffectEvent(() => {
+    setStep(Step.Form);
+    setToAccount('');
+    setSelectedName('');
+    setAmount('');
+    setAmountError('');
+    setToAccountError('');
+    setSelectedAccountId(fromAccountId);
+    setSelectedAccount(undefined);
+    createdAtRef.current = null;
+  });
+
+  useEffect(() => {
+    if (open) return;
+    const timer = setTimeout(resetFormState, DIALOG_RESET_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [open]);
+
+  const handleFormSubmit = (event: React.SyntheticEvent) => {
     event.preventDefault();
     setToAccountError('');
     setAmountError('');
@@ -189,7 +183,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
       return;
     }
 
-    setPhase(Phase.Confirmation);
+    setStep(Step.Confirmation);
   };
 
   const handleAccountChange = (value: string) => {
@@ -208,44 +202,6 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
     amountInputRef?.current?.focus();
   };
 
-  const closingRef = useRef(false);
-
-  const handleOpenChange = (value: boolean) => {
-    if (isProcessing) return;
-    if (!value) {
-      if (closingRef.current) return;
-      closingRef.current = true;
-      // Delay reset to allow close animation to complete
-      setTimeout(() => {
-        setPhase(Phase.Form);
-        setToAccount('');
-        setSelectedName('');
-        setAmount('');
-        setAmountError('');
-        setToAccountError('');
-        setErrorMessage('');
-        setSelectedAccountId(fromAccountId);
-        setSelectedAccount(undefined);
-        createdAtRef.current = null;
-        closingRef.current = false;
-      }, DIALOG_RESET_DELAY_MS);
-    }
-    setOpen(value);
-  };
-
-  const handleClose = () => handleOpenChange(false);
-  const handleRetry = () => setPhase(Phase.Confirmation);
-  const autoCloseOnSuccess = useEffectEvent(() => {
-    handleOpenChange(false);
-  });
-
-  // Auto-close on success
-  useEffect(() => {
-    if (phase !== Phase.Success) return;
-    const timer = setTimeout(autoCloseOnSuccess, SUCCESS_AUTO_CLOSE_MS);
-    return () => clearTimeout(timer);
-  }, [phase]);
-
   const numericAmount = Number(amount);
   const approxUsd =
     icpPrice && numericAmount > 0
@@ -262,31 +218,29 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
 
   return (
     <>
-      <NavigationBlockerDialog
-        isBlocked={isProcessing}
-        description={t(($) => $.account.confirmNavigation)}
-      />
-      <ResponsiveDialog open={open} onOpenChange={handleOpenChange}>
-        <ResponsiveDialogTrigger asChild>
-          <Button
-            variant="outline"
-            disabled={!canTransfer}
-            size="xl"
-            className={cn('w-full', isProcessing && 'opacity-50', variantClassName)}
-            data-testid="send-icp-btn"
-          >
-            <Icon aria-hidden />
-            {isProcessing ? t(($) => $.common.sending) : t(($) => $.common[label])}
-          </Button>
-        </ResponsiveDialogTrigger>
+      <Button
+        variant="outline"
+        disabled={!canTransfer}
+        size="xl"
+        className={cn('w-full', variantClassName)}
+        data-testid="send-icp-btn"
+        onClick={() => setOpen(true)}
+      >
+        <Icon aria-hidden />
+        {t(($) => $.common[label])}
+      </Button>
 
-        <ResponsiveDialogContent
-          className="flex max-h-[90vh] flex-col"
-          showCloseButton={phase === Phase.Form || phase === Phase.Confirmation}
-        >
+      <MutationDialog
+        open={open}
+        onOpenChange={setOpen}
+        processingMessage={t(($) => $.account.transferProcessing, { amount, destination })}
+        successMessage={t(($) => $.account.transferSuccess, { amount, destination })}
+        navBlockerDescription={t(($) => $.account.confirmNavigation)}
+      >
+        {({ execute, close }) => (
           <AnimatePresence mode="wait" initial={false}>
-            {phase === Phase.Form && (
-              <SendFormPhase
+            {step === Step.Form && (
+              <SendFormStep
                 subaccountsEnabled={subaccountsEnabled}
                 selectedAccountId={selectedAccountId}
                 onSelectedAccountIdChange={setSelectedAccountId}
@@ -316,50 +270,32 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
                 onMaxSelect={handleMaxSelect}
                 amountInputRef={amountInputRef}
                 approxUsd={approxUsd}
-                isProcessing={isProcessing}
-                onSubmit={handleSubmit}
-                onClose={handleClose}
+                onSubmit={handleFormSubmit}
+                onClose={close}
               />
             )}
 
-            {phase === Phase.Confirmation && (
-              <SendConfirmationPhase
+            {step === Step.Confirmation && (
+              <SendConfirmationStep
                 fromAccountName={fromAccountName}
                 toAccount={toAccount}
                 selectedName={selectedName}
                 addressBookEntries={addressBookEntries}
                 amount={amount}
                 approxUsd={approxUsd}
-                onBack={() => setPhase(Phase.Form)}
-                onConfirm={() => transferMutation.mutate()}
+                onBack={() => setStep(Step.Form)}
+                onConfirm={() => execute(() => transferMutation.mutateAsync())}
                 icpPriceUsd={icpPrice?.usd}
-                isProcessing={isProcessing}
-              />
-            )}
-
-            {(phase === Phase.Processing || phase === Phase.Success) && (
-              <SendTransferPhase
-                isSuccess={phase === Phase.Success}
-                processingMessage={t(($) => $.account.transferProcessing, { amount, destination })}
-                successMessage={t(($) => $.account.transferSuccess, { amount, destination })}
-              />
-            )}
-
-            {phase === Phase.Error && (
-              <SendErrorPhase
-                errorMessage={errorMessage}
-                onClose={handleClose}
-                onRetry={handleRetry}
               />
             )}
           </AnimatePresence>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
+        )}
+      </MutationDialog>
     </>
   );
 };
 
-type SendFormPhaseProps = {
+type SendFormStepProps = {
   subaccountsEnabled: boolean;
   selectedAccountId?: string;
   onSelectedAccountIdChange: (id: string) => void;
@@ -381,12 +317,11 @@ type SendFormPhaseProps = {
   onMaxSelect: (value: string) => void;
   amountInputRef: React.RefObject<HTMLInputElement | null>;
   approxUsd?: string;
-  isProcessing: boolean;
   onSubmit: (event: React.SyntheticEvent) => void;
   onClose: () => void;
 };
 
-function SendFormPhase({
+function SendFormStep({
   subaccountsEnabled,
   selectedAccountId,
   onSelectedAccountIdChange,
@@ -408,10 +343,9 @@ function SendFormPhase({
   onMaxSelect,
   amountInputRef,
   approxUsd,
-  isProcessing,
   onSubmit,
   onClose,
-}: SendFormPhaseProps) {
+}: SendFormStepProps) {
   const { t } = useTranslation();
   const showToggle = !addressBookLoading && hasAddresses;
 
@@ -425,14 +359,14 @@ function SendFormPhase({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.15 }}
     >
-      <ResponsiveDialogHeader className="shrink-0">
+      <MutationDialogHeader>
         <ResponsiveDialogTitle>{t(($) => $.account.transferTitle)}</ResponsiveDialogTitle>
         <ResponsiveDialogDescription className="sr-only">
           {t(($) => $.account.transferDescription)}
         </ResponsiveDialogDescription>
-      </ResponsiveDialogHeader>
+      </MutationDialogHeader>
 
-      <div className="-mx-1 flex-1 overflow-y-auto px-5 pt-6 pb-4 md:px-1">
+      <MutationDialogBody className="-mx-1 px-5 pt-6 pb-4 md:px-1">
         <div className="flex flex-col gap-6">
           {subaccountsEnabled && (
             <div className="flex flex-col gap-2">
@@ -493,13 +427,11 @@ function SendFormPhase({
                 addresses={addressBookEntries}
                 selectedName={selectedName}
                 onSelect={onDestinationSelect}
-                disabled={isProcessing}
               />
             ) : (
               <Input
                 id="destination-account"
                 onChange={(e) => onDestinationChange(e.target.value)}
-                disabled={isProcessing}
                 value={toAccount}
                 className={cn('font-mono', toAccountError && 'border-destructive')}
                 aria-invalid={!!toAccountError}
@@ -527,7 +459,6 @@ function SendFormPhase({
               onChange={onAmountChange}
               maxAmount={max}
               onMaxSelect={onMaxSelect}
-              disabled={isProcessing}
               required
               error={!!amountError}
               approxUsdLabel={approxUsd}
@@ -541,21 +472,21 @@ function SendFormPhase({
             )}
           </div>
         </div>
-      </div>
+      </MutationDialogBody>
 
-      <ResponsiveDialogFooter className="flex shrink-0 justify-end gap-2">
-        <Button type="button" variant="ghost" size="lg" onClick={onClose} disabled={isProcessing}>
+      <MutationDialogFooter className="md:justify-end">
+        <Button type="button" variant="ghost" size="lg" onClick={onClose}>
           {t(($) => $.common.close)}
         </Button>
-        <Button type="submit" size="lg" disabled={isProcessing} data-testid="send-icp-next-btn">
+        <Button type="submit" size="lg" data-testid="send-icp-next-btn">
           {t(($) => $.common.next)}
         </Button>
-      </ResponsiveDialogFooter>
+      </MutationDialogFooter>
     </motion.form>
   );
 }
 
-type SendConfirmationPhaseProps = {
+type SendConfirmationStepProps = {
   fromAccountName: string;
   toAccount: string;
   selectedName: string;
@@ -565,10 +496,9 @@ type SendConfirmationPhaseProps = {
   icpPriceUsd?: number;
   onBack: () => void;
   onConfirm: () => void;
-  isProcessing: boolean;
 };
 
-function SendConfirmationPhase({
+function SendConfirmationStep({
   fromAccountName,
   toAccount,
   selectedName,
@@ -578,8 +508,7 @@ function SendConfirmationPhase({
   icpPriceUsd,
   onBack,
   onConfirm,
-  isProcessing,
-}: SendConfirmationPhaseProps) {
+}: SendConfirmationStepProps) {
   const { t } = useTranslation();
   const { data: accountsState } = useAccounts();
 
@@ -605,14 +534,14 @@ function SendConfirmationPhase({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.15 }}
     >
-      <ResponsiveDialogHeader className="shrink-0">
+      <MutationDialogHeader>
         <ResponsiveDialogTitle>{t(($) => $.account.confirmTransferTitle)}</ResponsiveDialogTitle>
         <ResponsiveDialogDescription className="sr-only">
           {t(($) => $.account.confirmTransferTitle)}
         </ResponsiveDialogDescription>
-      </ResponsiveDialogHeader>
+      </MutationDialogHeader>
 
-      <div className="-mx-1 flex-1 overflow-y-auto px-5 pt-6 pb-4 md:px-1">
+      <MutationDialogBody className="-mx-1 px-5 pt-6 pb-4 md:px-1">
         <div className="flex flex-col gap-5">
           {/* Amount highlight */}
           <div className="flex flex-col items-center gap-1 py-2">
@@ -666,178 +595,16 @@ function SendConfirmationPhase({
             </div>
           </div>
         </div>
-      </div>
+      </MutationDialogBody>
 
-      <ResponsiveDialogFooter className="flex shrink-0 justify-end gap-2">
-        <Button type="button" variant="ghost" size="lg" onClick={onBack} disabled={isProcessing}>
+      <MutationDialogFooter className="md:justify-end">
+        <Button type="button" variant="ghost" size="lg" onClick={onBack}>
           {t(($) => $.common.back)}
         </Button>
-        <Button
-          type="button"
-          size="lg"
-          onClick={onConfirm}
-          disabled={isProcessing}
-          data-testid="send-icp-confirm-btn"
-        >
+        <Button type="button" size="lg" onClick={onConfirm} data-testid="send-icp-confirm-btn">
           {t(($) => $.common.confirm)}
         </Button>
-      </ResponsiveDialogFooter>
+      </MutationDialogFooter>
     </motion.div>
-  );
-}
-
-function AnimatedSendIcon() {
-  const strokeProps = {
-    stroke: 'currentColor',
-    strokeWidth: 1.5,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
-    fill: 'none',
-  };
-
-  return (
-    <motion.svg className="size-12 text-muted-foreground" viewBox="0 0 24 24" aria-hidden>
-      <motion.path
-        d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"
-        {...strokeProps}
-        initial={{ pathLength: 0 }}
-        animate={{ pathLength: 1 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-      />
-      <motion.path
-        d="m21.854 2.147-10.94 10.939"
-        {...strokeProps}
-        initial={{ pathLength: 0, opacity: 0 }}
-        animate={{ pathLength: 1, opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.4, ease: 'easeOut' }}
-      />
-    </motion.svg>
-  );
-}
-
-const DRAW_DURATION_MS = 1000;
-
-enum IconState {
-  Send = 'send',
-  Spinner = 'spinner',
-  Success = 'success',
-}
-
-function SendTransferPhase({
-  isSuccess,
-  processingMessage,
-  successMessage,
-}: {
-  isSuccess: boolean;
-  processingMessage: string;
-  successMessage: string;
-}) {
-  const [showSpinner, setShowSpinner] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setShowSpinner(true), DRAW_DURATION_MS);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const message = isSuccess ? successMessage : processingMessage;
-  const iconState = isSuccess
-    ? IconState.Success
-    : showSpinner
-      ? IconState.Spinner
-      : IconState.Send;
-
-  return (
-    <motion.div
-      key="transfer"
-      className="flex flex-1 flex-col items-center justify-center gap-5 py-8 text-center"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
-    >
-      <ResponsiveDialogTitle className="sr-only">{message}</ResponsiveDialogTitle>
-      <motion.div
-        className={cn(
-          'flex size-20 items-center justify-center rounded-full transition-colors duration-300',
-          isSuccess ? 'bg-green-600/10' : 'bg-primary/10',
-        )}
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-      >
-        <AnimatePresence mode="wait">
-          {iconState === IconState.Send && (
-            <motion.div key="send" exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.2 }}>
-              <AnimatedSendIcon />
-            </motion.div>
-          )}
-          {iconState === IconState.Spinner && (
-            <motion.div
-              key="spinner"
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Loader className="size-10 animate-spin text-muted-foreground" />
-            </motion.div>
-          )}
-          {iconState === IconState.Success && (
-            <motion.div
-              key="checkmark"
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              <AnimatedCheckmark />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-      <AnimatePresence mode="wait">
-        <motion.p
-          key={message}
-          className="text-sm font-medium text-muted-foreground"
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.2 }}
-        >
-          {message}
-        </motion.p>
-      </AnimatePresence>
-    </motion.div>
-  );
-}
-
-function SendErrorPhase({
-  errorMessage,
-  onClose,
-  onRetry,
-}: {
-  errorMessage: string;
-  onClose: () => void;
-  onRetry: () => void;
-}) {
-  const { t } = useTranslation();
-
-  return (
-    <PhaseContainer key="error" className="items-center justify-between">
-      <ResponsiveDialogTitle className="sr-only">{errorMessage}</ResponsiveDialogTitle>
-      <div className="flex flex-1 flex-col items-center justify-center gap-4">
-        <AnimatedErrorIcon />
-        <FadeInText delay={0.3} className="max-w-xs">
-          {errorMessage}
-        </FadeInText>
-      </div>
-      <div className="flex w-full gap-3 pt-4">
-        <Button variant="outline" className="flex-1" onClick={onClose}>
-          {t(($) => $.common.close)}
-        </Button>
-        <Button className="flex-1" onClick={onRetry}>
-          {t(($) => $.common.retry)}
-        </Button>
-      </div>
-    </PhaseContainer>
   );
 }

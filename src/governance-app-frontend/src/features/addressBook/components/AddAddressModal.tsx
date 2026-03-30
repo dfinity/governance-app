@@ -221,7 +221,7 @@ export const AddAddressModal: React.FC<Props> = ({
             </div>
           </MutationDialogBody>
 
-          <MutationDialogFooter className="flex justify-end gap-2">
+          <MutationDialogFooter className="md:justify-end">
             <Button type="button" variant="ghost" onClick={close}>
               {t(($) => $.common.close)}
             </Button>

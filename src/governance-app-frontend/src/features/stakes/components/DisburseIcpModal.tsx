@@ -81,7 +81,7 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
             </Alert>
           </MutationDialogBody>
 
-          <MutationDialogFooter className="flex gap-3">
+          <MutationDialogFooter>
             <Button
               variant="outline"
               size="xl"
