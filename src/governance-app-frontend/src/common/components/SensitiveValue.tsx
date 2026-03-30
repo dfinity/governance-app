@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import { useHideBalances } from '@hooks/useHideBalances';
 
 type SensitiveValueProps = {
@@ -15,8 +17,13 @@ export const SENSITIVE_PLACEHOLDER = {
 
 export const SensitiveValue = ({ children, size = 'md' }: SensitiveValueProps) => {
   const { hidden } = useHideBalances();
+  const { t } = useTranslation();
 
-  if (hidden) return <>{SENSITIVE_PLACEHOLDER[size]}</>;
+  if (hidden) {
+    return (
+      <span aria-label={t(($) => $.common.aria.hiddenValue)}>{SENSITIVE_PLACEHOLDER[size]}</span>
+    );
+  }
 
   return <>{children}</>;
 };

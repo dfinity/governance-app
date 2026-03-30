@@ -62,6 +62,9 @@
   "alt": {
     "icpLogo": "Internet Computer (ICP) Logo"
   },
+  "aria": {
+    "hiddenValue": "Hidden value"
+  },
   "max": "Max",
   "leave": "Leave",
   "maxRewards": "Max rewards",
