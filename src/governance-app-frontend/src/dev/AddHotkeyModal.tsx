@@ -95,7 +95,7 @@ export const AddHotkeyModal = ({ neuron }: Props) => {
                 </Label>
                 <Input
                   id="hotkey-principal-input"
-                  className="h-14 border-2 text-lg! font-semibold focus-visible:ring-0"
+                  className="h-14 border-2 text-lg font-semibold focus-visible:ring-0"
                   onChange={(e) => {
                     setPrincipalId(e.target.value);
                     setValidationError(null);
