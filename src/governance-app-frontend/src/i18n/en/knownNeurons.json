@@ -4,9 +4,7 @@
   "empty": "No known neurons available.",
   "api": {
     "processing": "Updating your neurons to follow {{name}}...",
-    "success": "Now following {{name}} for all your neurons.",
-    "error": "Failed to follow {{name}}.",
-    "retry": "Retry"
+    "success": "Now following {{name}} for all your neurons."
   },
   "confirmation": {
     "title": "Confirm your selection",

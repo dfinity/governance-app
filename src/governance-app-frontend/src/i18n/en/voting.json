@@ -59,8 +59,6 @@
     "removeSuccess": "Following updated successfully.",
     "mixed": "Mixed",
     "followeesCount": "{{count}} set",
-    "removeError": "Failed to update following.",
-    "retryRemove": "Retry",
     "certifying": "Certifying data...",
     "clearAllFollowing": "Clear all following",
     "clearAllConfirm": "This will remove all followees from every topic for all your neurons. You can set up new following afterwards.",
@@ -90,9 +88,7 @@
       "overrideDescription": "Your neurons currently have different following configurations. This will replace all existing following with the new setup for every neuron."
     },
     "processing": "Updating following configuration...",
-    "success": "Following updated successfully.",
-    "error": "Failed to update following.",
-    "retry": "Retry"
+    "success": "Following updated successfully."
   },
   "topics": {
     "governance": "Governance",
