@@ -5,4 +5,6 @@ export enum TransactionType {
   STAKE = 'stake',
   SELF = 'self',
   MINT = 'mint',
+  BURN = 'burn',
+  APPROVE = 'approve',
 }
