@@ -1,6 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { AlertTriangle, Loader2 } from 'lucide-react';
-import { FormEvent, useRef, useState } from 'react';
+import { AlertTriangle } from 'lucide-react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useAddHotkey } from '@features/stakes/hooks/useAddHotkey';
@@ -10,18 +10,14 @@ import { Button } from '@components/button';
 import { Input } from '@components/Input';
 import { Label } from '@components/Label';
 import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogDescription,
-  ResponsiveDialogFooter,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-  ResponsiveDialogTrigger,
-} from '@components/ResponsiveDialog';
-import { IS_TESTNET } from '@constants/extra';
+  MutationDialog,
+  MutationDialogBody,
+  MutationDialogFooter,
+  MutationDialogHeader,
+} from '@components/MutationDialog';
+import { ResponsiveDialogDescription, ResponsiveDialogTitle } from '@components/ResponsiveDialog';
+import { DIALOG_RESET_DELAY_MS, IS_TESTNET } from '@constants/extra';
 import { errorMessage } from '@utils/error';
-import { mapCanisterError } from '@utils/errors';
-import { errorNotification, successNotification } from '@utils/notification';
 import { getPrincipalFromString } from '@utils/principal';
 
 type Props = {
@@ -38,120 +34,96 @@ export const AddHotkeyModal = ({ neuron }: Props) => {
   const [open, setOpen] = useState(false);
   const [principalId, setPrincipalId] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
 
-  const handleOpenChange = (isOpen: boolean) => {
-    setOpen(isOpen);
-    if (!isOpen) {
+  useEffect(() => {
+    if (open) return;
+    const timer = setTimeout(() => {
       setPrincipalId('');
       setValidationError(null);
-    }
-  };
+    }, DIALOG_RESET_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [open]);
 
-  const handlePrincipalChange = (value: string) => {
-    setPrincipalId(value);
-    setValidationError(null);
-  };
+  const handleSubmit =
+    (execute: (fn: () => Promise<unknown>) => void) => (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+      const trimmed = principalId.trim();
+      if (!trimmed || !getPrincipalFromString(trimmed)) {
+        setValidationError(t(($) => $.devActionsModal.addHotkey.errors.invalidPrincipal));
+        return;
+      }
 
-    const trimmed = principalId.trim();
-    if (!trimmed || !getPrincipalFromString(trimmed)) {
-      setValidationError(t(($) => $.devActionsModal.addHotkey.errors.invalidPrincipal));
-      return;
-    }
-
-    setPending(true);
-    try {
-      await addHotkeyMutation.mutateAsync({
-        neuronId: neuron.neuronId,
-        principal: trimmed,
-      });
-      successNotification({
-        description: t(($) => $.devActionsModal.addHotkey.success),
-      });
-      setPrincipalId('');
-      setPending(false);
-      setOpen(false);
-    } catch (error) {
-      setPending(false);
-      errorNotification({
-        description: mapCanisterError(error as Error),
-      });
-    }
-  };
+      execute(() =>
+        addHotkeyMutation.mutateAsync({ neuronId: neuron.neuronId, principal: trimmed }),
+      );
+    };
 
   return (
-    <ResponsiveDialog open={open} onOpenChange={handleOpenChange}>
-      <ResponsiveDialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="lg"
-          className="h-auto py-4 transition-colors hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0"
-        >
-          {t(($) => $.devActionsModal.addHotkey.title)}
-        </Button>
-      </ResponsiveDialogTrigger>
+    <>
+      <Button
+        variant="outline"
+        size="lg"
+        className="h-auto py-4 transition-colors hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0"
+        onClick={() => setOpen(true)}
+      >
+        {t(($) => $.devActionsModal.addHotkey.title)}
+      </Button>
 
-      <ResponsiveDialogContent>
-        <form onSubmit={handleSubmit}>
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>
-              {t(($) => $.devActionsModal.addHotkey.title)}
-            </ResponsiveDialogTitle>
-            <ResponsiveDialogDescription>
-              {t(($) => $.devActionsModal.addHotkey.description)}
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
+      <MutationDialog
+        open={open}
+        onOpenChange={setOpen}
+        processingMessage={t(($) => $.devActionsModal.addHotkey.confirming)}
+        successMessage={t(($) => $.devActionsModal.addHotkey.success)}
+        navBlockerDescription={t(($) => $.devActionsModal.addHotkey.confirming)}
+      >
+        {({ execute, close }) => (
+          <form onSubmit={handleSubmit(execute)} className="flex min-h-0 flex-1 flex-col">
+            <MutationDialogHeader>
+              <ResponsiveDialogTitle>
+                {t(($) => $.devActionsModal.addHotkey.title)}
+              </ResponsiveDialogTitle>
+              <ResponsiveDialogDescription>
+                {t(($) => $.devActionsModal.addHotkey.description)}
+              </ResponsiveDialogDescription>
+            </MutationDialogHeader>
 
-          <div className="space-y-4 py-4">
-            <div className="space-y-1">
-              <Label htmlFor="hotkey-principal-input">
-                {t(($) => $.devActionsModal.addHotkey.principalLabel)}
-              </Label>
-              <Input
-                id="hotkey-principal-input"
-                className="h-14 border-2 !text-lg font-semibold focus-visible:ring-0"
-                onChange={(e) => handlePrincipalChange(e.target.value)}
-                placeholder="xxxxx-xxxxx-xxxxx-xxxxx-xxx"
-                ref={inputRef}
-                value={principalId}
-                disabled={pending}
-                type="text"
-              />
-            </div>
+            <MutationDialogBody className="space-y-4 px-4 py-4 md:px-0">
+              <div className="space-y-1">
+                <Label htmlFor="hotkey-principal-input">
+                  {t(($) => $.devActionsModal.addHotkey.principalLabel)}
+                </Label>
+                <Input
+                  id="hotkey-principal-input"
+                  className="h-14 border-2 text-lg! font-semibold focus-visible:ring-0"
+                  onChange={(e) => {
+                    setPrincipalId(e.target.value);
+                    setValidationError(null);
+                  }}
+                  placeholder="xxxxx-xxxxx-xxxxx-xxxxx-xxx"
+                  ref={inputRef}
+                  value={principalId}
+                  type="text"
+                />
+              </div>
 
-            {validationError && (
-              <Alert variant="warning">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>{validationError}</AlertDescription>
-              </Alert>
-            )}
-          </div>
-
-          <ResponsiveDialogFooter className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => handleOpenChange(false)}
-              disabled={pending}
-            >
-              {t(($) => $.devActionsModal.common.close)}
-            </Button>
-            <Button type="submit" disabled={pending}>
-              {pending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t(($) => $.devActionsModal.addHotkey.confirming)}
-                </>
-              ) : (
-                t(($) => $.devActionsModal.addHotkey.confirm)
+              {validationError && (
+                <Alert variant="warning">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>{validationError}</AlertDescription>
+                </Alert>
               )}
-            </Button>
-          </ResponsiveDialogFooter>
-        </form>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+            </MutationDialogBody>
+
+            <MutationDialogFooter className="md:justify-end">
+              <Button type="button" variant="ghost" onClick={close}>
+                {t(($) => $.devActionsModal.common.close)}
+              </Button>
+              <Button type="submit">{t(($) => $.devActionsModal.addHotkey.confirm)}</Button>
+            </MutationDialogFooter>
+          </form>
+        )}
+      </MutationDialog>
+    </>
   );
 };

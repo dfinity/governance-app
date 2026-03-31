@@ -1,24 +1,18 @@
 import { MakeProposalRequest, NeuronInfo, NnsGovernanceCanister } from '@icp-sdk/canisters/nns';
 import { useQueryClient } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogDescription,
-  ResponsiveDialogFooter,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-  ResponsiveDialogTrigger,
-} from '@components/ResponsiveDialog';
+  MutationDialog,
+  MutationDialogFooter,
+  MutationDialogHeader,
+} from '@components/MutationDialog';
+import { ResponsiveDialogDescription, ResponsiveDialogTitle } from '@components/ResponsiveDialog';
 import { SECONDS_IN_HALF_YEAR, SECONDS_IN_MONTH } from '@constants/extra';
 import { useNnsGovernance } from '@hooks/governance';
-import { mapCanisterError } from '@utils/errors';
-import { errorNotification, successNotification } from '@utils/notification';
-import { QUERY_KEYS } from '@utils/query';
+import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
 // Taken from proposal 22690
 const addNodeToSubnetPayload = new Uint8Array([
@@ -531,89 +525,76 @@ export const CreateDummyProposalsButton = ({ neuron }: { neuron: NeuronInfo }) =
   const { ready, canister, authenticated } = useNnsGovernance();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [pending, setPending] = useState(false);
+  const [resultCount, setResultCount] = useState(0);
 
   const canCreate = ready && canister && authenticated;
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!canCreate) return;
+  const handleSubmit =
+    (execute: (fn: () => Promise<unknown>) => void) => (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      if (!canCreate) return;
 
-    setPending(true);
-    try {
-      const { successCount, totalCount } = await makeDummyProposals({
-        canister,
-        neuronId: neuron.neuronId,
-      });
-      console.log('invalidating queries');
-      await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS] });
+      execute(async () => {
+        const { successCount, totalCount } = await makeDummyProposals({
+          canister,
+          neuronId: neuron.neuronId,
+        });
+        await queryClient
+          .invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS] })
+          .catch(failedRefresh);
+        setResultCount(successCount);
 
-      if (successCount === totalCount) {
-        successNotification({
-          description: t(($) => $.devActionsModal.createProposals.success, { count: successCount }),
-        });
-        setOpen(false);
-      } else {
-        errorNotification({
-          description: t(($) => $.devActionsModal.createProposals.errors.partial, {
-            success: successCount,
-            total: totalCount,
-          }),
-        });
-      }
-    } catch (error) {
-      errorNotification({
-        description: mapCanisterError(error as Error),
+        if (successCount !== totalCount) {
+          throw new Error(
+            t(($) => $.devActionsModal.createProposals.errors.partial, {
+              success: successCount,
+              total: totalCount,
+            }),
+          );
+        }
       });
-    } finally {
-      setPending(false);
-    }
-  };
+    };
+
+  if (!canCreate) return null;
 
   return (
-    <ResponsiveDialog open={open} onOpenChange={setOpen}>
-      <ResponsiveDialogTrigger asChild>
-        {canCreate ? (
-          <Button
-            variant="outline"
-            size="lg"
-            className="h-auto py-4 transition-colors hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0"
-          >
-            {t(($) => $.devActionsModal.createProposals.button)}
-          </Button>
-        ) : (
-          <></>
+    <>
+      <Button
+        variant="outline"
+        size="lg"
+        className="h-auto py-4 transition-colors hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0"
+        onClick={() => setOpen(true)}
+      >
+        {t(($) => $.devActionsModal.createProposals.button)}
+      </Button>
+
+      <MutationDialog
+        open={open}
+        onOpenChange={setOpen}
+        processingMessage={t(($) => $.devActionsModal.createProposals.creating)}
+        successMessage={t(($) => $.devActionsModal.createProposals.success, { count: resultCount })}
+        navBlockerDescription={t(($) => $.devActionsModal.createProposals.creating)}
+      >
+        {({ execute, close }) => (
+          <form onSubmit={handleSubmit(execute)} className="flex min-h-0 flex-1 flex-col">
+            <MutationDialogHeader>
+              <ResponsiveDialogTitle>
+                {t(($) => $.devActionsModal.createProposals.title)}
+              </ResponsiveDialogTitle>
+              <ResponsiveDialogDescription>
+                {t(($) => $.devActionsModal.createProposals.description)}
+              </ResponsiveDialogDescription>
+            </MutationDialogHeader>
+
+            <MutationDialogFooter className="md:justify-end">
+              <Button type="button" variant="ghost" onClick={close}>
+                {t(($) => $.devActionsModal.common.close)}
+              </Button>
+              <Button type="submit">{t(($) => $.devActionsModal.createProposals.confirm)}</Button>
+            </MutationDialogFooter>
+          </form>
         )}
-      </ResponsiveDialogTrigger>
-
-      <ResponsiveDialogContent>
-        <form onSubmit={handleSubmit}>
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>
-              {t(($) => $.devActionsModal.createProposals.title)}
-            </ResponsiveDialogTitle>
-            <ResponsiveDialogDescription>
-              {t(($) => $.devActionsModal.createProposals.description)}
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
-
-          <ResponsiveDialogFooter className="mt-4 flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
-              {t(($) => $.devActionsModal.common.close)}
-            </Button>
-            <Button type="submit" disabled={pending}>
-              {pending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t(($) => $.devActionsModal.createProposals.creating)}
-                </>
-              ) : (
-                t(($) => $.devActionsModal.createProposals.confirm)
-              )}
-            </Button>
-          </ResponsiveDialogFooter>
-        </form>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+      </MutationDialog>
+    </>
   );
 };
