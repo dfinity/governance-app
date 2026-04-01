@@ -61,107 +61,109 @@ export const AddressBookModal: React.FC<Props> = ({ isOpen, onOpenChange }) => {
   );
 
   return (
-    <ResponsiveDialog open={isOpen} onOpenChange={onOpenChange}>
-      <ResponsiveDialogContent
-        className="flex max-h-[90vh] flex-col"
-        data-testid="address-book-modal"
-      >
-        <ResponsiveDialogHeader className="shrink-0">
-          <div className="flex items-center justify-between">
-            <ResponsiveDialogTitle>{t(($) => $.addressBook.title)}</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription className="sr-only">
-              {t(($) => $.addressBook.description)}
-            </ResponsiveDialogDescription>
-          </div>
-        </ResponsiveDialogHeader>
+    <>
+      <ResponsiveDialog open={isOpen} onOpenChange={onOpenChange}>
+        <ResponsiveDialogContent
+          className="flex max-h-[90vh] flex-col"
+          data-testid="address-book-modal"
+        >
+          <ResponsiveDialogHeader className="shrink-0">
+            <div className="flex items-center justify-between">
+              <ResponsiveDialogTitle>{t(($) => $.addressBook.title)}</ResponsiveDialogTitle>
+              <ResponsiveDialogDescription className="sr-only">
+                {t(($) => $.addressBook.description)}
+              </ResponsiveDialogDescription>
+            </div>
+          </ResponsiveDialogHeader>
 
-        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4 md:px-0 md:pb-0">
-          <QueryStates<CertifiedData<AddressBook>>
-            query={addressBookQuery}
-            isEmpty={(data) => data.response.named_addresses.length === 0}
-            loadingComponent={
-              <div className="flex flex-col items-center justify-center gap-4 py-16">
-                <div className="rounded-full bg-muted p-4">
-                  <Spinner className="size-8" />
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {t(($) => $.addressBook.sendFlow.tooltipLoading)}
-                </p>
-              </div>
-            }
-            emptyComponent={
-              <div
-                className="flex flex-col items-center gap-5 py-12 text-center"
-                data-testid="address-book-empty"
-              >
-                <div className="rounded-full bg-muted p-4">
-                  <BookUser className="size-10 text-muted-foreground" />
-                </div>
-                <div className="space-y-2">
-                  <p className="max-w-md font-medium">{t(($) => $.addressBook.emptyTitle)}</p>
-                  <p className="max-w-md text-sm text-muted-foreground">
-                    {t(($) => $.addressBook.emptyDescription)}
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4 md:px-0 md:pb-0">
+            <QueryStates<CertifiedData<AddressBook>>
+              query={addressBookQuery}
+              isEmpty={(data) => data.response.named_addresses.length === 0}
+              loadingComponent={
+                <div className="flex flex-col items-center justify-center gap-4 py-16">
+                  <div className="rounded-full bg-muted p-4">
+                    <Spinner className="size-8" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {t(($) => $.addressBook.sendFlow.tooltipLoading)}
                   </p>
                 </div>
-                {addButton(false)}
-              </div>
-            }
-          >
-            {(data) => {
-              const namedAddresses = data.response.named_addresses;
-              const isMaxReached = namedAddresses.length >= ADDRESS_BOOK_MAX_ENTRIES;
-
-              return (
-                <>
-                  <div className="flex shrink-0 items-center justify-between">
-                    <p className="text-sm text-muted-foreground">
-                      {t(($) => $.addressBook.entryCount, {
-                        count: namedAddresses.length,
-                        max: ADDRESS_BOOK_MAX_ENTRIES,
-                      })}
+              }
+              emptyComponent={
+                <div
+                  className="flex flex-col items-center gap-5 py-12 text-center"
+                  data-testid="address-book-empty"
+                >
+                  <div className="rounded-full bg-muted p-4">
+                    <BookUser className="size-10 text-muted-foreground" />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="max-w-md font-medium">{t(($) => $.addressBook.emptyTitle)}</p>
+                    <p className="max-w-md text-sm text-muted-foreground">
+                      {t(($) => $.addressBook.emptyDescription)}
                     </p>
-                    {isMaxReached ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>{addButton(true)}</TooltipTrigger>
-                        <TooltipContent>{t(($) => $.addressBook.maxReached)}</TooltipContent>
-                      </Tooltip>
-                    ) : (
-                      addButton(false)
-                    )}
                   </div>
-                  <div className="flex flex-col gap-2" data-testid="address-book-list">
-                    {namedAddresses.map((entry) => (
-                      <AddressBookEntry
-                        key={entry.name}
-                        namedAddress={entry}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                      />
-                    ))}
-                  </div>
-                </>
-              );
-            }}
-          </QueryStates>
-        </div>
+                  {addButton(false)}
+                </div>
+              }
+            >
+              {(data) => {
+                const namedAddresses = data.response.named_addresses;
+                const isMaxReached = namedAddresses.length >= ADDRESS_BOOK_MAX_ENTRIES;
 
-        <AddAddressModal
-          isOpen={showAddModal}
-          onClose={() => {
-            setShowAddModal(false);
-            setEditingAddress(undefined);
-          }}
-          namedAddress={editingAddress}
-          existingAddresses={addressBookQuery.data?.response?.named_addresses ?? []}
-        />
+                return (
+                  <>
+                    <div className="flex shrink-0 items-center justify-between">
+                      <p className="text-sm text-muted-foreground">
+                        {t(($) => $.addressBook.entryCount, {
+                          count: namedAddresses.length,
+                          max: ADDRESS_BOOK_MAX_ENTRIES,
+                        })}
+                      </p>
+                      {isMaxReached ? (
+                        <Tooltip>
+                          <TooltipTrigger asChild>{addButton(true)}</TooltipTrigger>
+                          <TooltipContent>{t(($) => $.addressBook.maxReached)}</TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        addButton(false)
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-2" data-testid="address-book-list">
+                      {namedAddresses.map((entry) => (
+                        <AddressBookEntry
+                          key={entry.name}
+                          namedAddress={entry}
+                          onEdit={handleEdit}
+                          onDelete={handleDelete}
+                        />
+                      ))}
+                    </div>
+                  </>
+                );
+              }}
+            </QueryStates>
+          </div>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
-        <RemoveAddressConfirmation
-          isOpen={!!deletingAddress}
-          onClose={() => setDeletingAddress(undefined)}
-          namedAddress={deletingAddress}
-          existingAddresses={addressBookQuery.data?.response?.named_addresses ?? []}
-        />
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+      <AddAddressModal
+        isOpen={showAddModal}
+        onClose={() => {
+          setShowAddModal(false);
+          setEditingAddress(undefined);
+        }}
+        namedAddress={editingAddress}
+        existingAddresses={addressBookQuery.data?.response?.named_addresses ?? []}
+      />
+
+      <RemoveAddressConfirmation
+        isOpen={!!deletingAddress}
+        onClose={() => setDeletingAddress(undefined)}
+        namedAddress={deletingAddress}
+        existingAddresses={addressBookQuery.data?.response?.named_addresses ?? []}
+      />
+    </>
   );
 };

@@ -1,22 +1,14 @@
 import { type NeuronInfo, Topic } from '@icp-sdk/canisters/nns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AlertTriangle, Loader2, Plus } from 'lucide-react';
-import { AnimatePresence } from 'motion/react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
 
 import { Button } from '@components/button';
-import {
-  AnimatedErrorIcon,
-  AnimatedSpinner,
-  AnimatedSuccessIcon,
-  FadeInText,
-  PhaseContainer,
-} from '@components/MutationPhases';
-import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
+import { MutationDialog, MutationDialogFooter } from '@components/MutationDialog';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -25,7 +17,6 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { Skeleton } from '@components/Skeleton';
-import { SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import { errorMessage } from '@utils/error';
@@ -181,13 +172,6 @@ export function AdvancedFollowingModal({ open, onOpenChange }: Props) {
   );
 }
 
-enum RemovePhase {
-  Confirm = 'confirm',
-  Processing = 'processing',
-  Success = 'success',
-  Error = 'error',
-}
-
 function RemoveFolloweeDialog({
   open,
   onOpenChange,
@@ -204,12 +188,6 @@ function RemoveFolloweeDialog({
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { canister } = useNnsGovernance();
-  const [phase, setPhase] = useState<RemovePhase>(RemovePhase.Confirm);
-  const [prevOpen, setPrevOpen] = useState(open);
-  if (open !== prevOpen) {
-    setPrevOpen(open);
-    if (open) setPhase(RemovePhase.Confirm);
-  }
 
   const mutation = useMutation<void[], Error>({
     mutationFn: () => {
@@ -230,131 +208,50 @@ function RemoveFolloweeDialog({
       await queryClient
         .invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] })
         .catch(failedRefresh);
-      setPhase(RemovePhase.Success);
     },
     onError: (error) => {
       errorMessage('RemoveFolloweeDialog', error.message);
-      setPhase(RemovePhase.Error);
     },
   });
 
-  const handleConfirm = () => {
-    setPhase(RemovePhase.Processing);
-    mutation.mutate();
-  };
-
-  useEffect(() => {
-    if (phase !== RemovePhase.Success) return;
-    const timer = setTimeout(() => onOpenChange(false), SUCCESS_AUTO_CLOSE_MS);
-    return () => clearTimeout(timer);
-  }, [phase, onOpenChange]);
-
-  const isBlocking = phase === RemovePhase.Processing;
-
   return (
-    <>
-      <NavigationBlockerDialog
-        isBlocked={isBlocking}
-        description={t(($) => $.voting.manageFollowing.removingFollowee)}
-      />
-      <ResponsiveDialog
-        open={open}
-        onOpenChange={(o) => !isBlocking && onOpenChange(o)}
-        dismissible={!isBlocking}
-      >
-        <ResponsiveDialogContent
-          showCloseButton={!isBlocking}
-          className="flex flex-col md:max-w-md"
-          data-testid="remove-followee-dialog"
-        >
-          <AnimatePresence mode="wait" initial={false}>
-            {phase === RemovePhase.Confirm && (
-              <PhaseContainer key="rm-confirm" className="items-center justify-between">
-                <ResponsiveDialogTitle className="sr-only">
-                  {t(($) => $.voting.manageFollowing.remove)}
-                </ResponsiveDialogTitle>
-                <div className="flex flex-1 flex-col items-center justify-center gap-4">
-                  <div className="flex size-14 items-center justify-center rounded-full bg-orange-500/10">
-                    <AlertTriangle className="size-8 text-orange-500 dark:text-orange-400" />
-                  </div>
-                  <p className="max-w-xs text-sm text-muted-foreground">
-                    {t(($) => $.voting.manageFollowing.removeConfirm, {
-                      name: target?.name ?? '',
-                    })}
-                  </p>
-                </div>
-                <div className="flex w-full gap-3 pt-4">
-                  <Button
-                    variant="outline"
-                    size="xl"
-                    className="flex-1"
-                    onClick={() => onOpenChange(false)}
-                  >
-                    {t(($) => $.common.cancel)}
-                  </Button>
-                  <Button
-                    size="xl"
-                    className="flex-1"
-                    onClick={handleConfirm}
-                    data-testid="remove-followee-confirm-btn"
-                  >
-                    {t(($) => $.voting.manageFollowing.remove)}
-                  </Button>
-                </div>
-              </PhaseContainer>
-            )}
-            {phase === RemovePhase.Processing && (
-              <PhaseContainer key="rm-processing" className="items-center justify-center gap-5">
-                <ResponsiveDialogTitle className="sr-only">
-                  {t(($) => $.voting.manageFollowing.removingFollowee)}
-                </ResponsiveDialogTitle>
-                <AnimatedSpinner />
-                <FadeInText delay={0.2}>
-                  {t(($) => $.voting.manageFollowing.removingFollowee)}
-                </FadeInText>
-              </PhaseContainer>
-            )}
-            {phase === RemovePhase.Success && (
-              <PhaseContainer key="rm-success" className="items-center justify-center gap-5">
-                <ResponsiveDialogTitle className="sr-only">
-                  {t(($) => $.voting.manageFollowing.removeSuccess)}
-                </ResponsiveDialogTitle>
-                <AnimatedSuccessIcon />
-                <FadeInText delay={0.35} className="max-w-xs">
-                  {t(($) => $.voting.manageFollowing.removeSuccess)}
-                </FadeInText>
-              </PhaseContainer>
-            )}
-            {phase === RemovePhase.Error && (
-              <PhaseContainer key="rm-error" className="items-center justify-between">
-                <ResponsiveDialogTitle className="sr-only">
-                  {t(($) => $.voting.manageFollowing.removeError)}
-                </ResponsiveDialogTitle>
-                <div className="flex flex-1 flex-col items-center justify-center gap-4">
-                  <AnimatedErrorIcon />
-                  <FadeInText delay={0.3} className="max-w-xs">
-                    {t(($) => $.voting.manageFollowing.removeError)}
-                  </FadeInText>
-                </div>
-                <div className="flex w-full gap-3 pt-4">
-                  <Button
-                    variant="outline"
-                    size="xl"
-                    className="flex-1"
-                    onClick={() => onOpenChange(false)}
-                  >
-                    {t(($) => $.common.close)}
-                  </Button>
-                  <Button size="xl" className="flex-1" onClick={handleConfirm}>
-                    {t(($) => $.voting.manageFollowing.retryRemove)}
-                  </Button>
-                </div>
-              </PhaseContainer>
-            )}
-          </AnimatePresence>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
-    </>
+    <MutationDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      processingMessage={t(($) => $.voting.manageFollowing.removingFollowee)}
+      successMessage={t(($) => $.voting.manageFollowing.removeSuccess)}
+      navBlockerDescription={t(($) => $.voting.manageFollowing.removingFollowee)}
+      data-testid="remove-followee-dialog"
+    >
+      {({ execute, close }) => (
+        <>
+          <ResponsiveDialogTitle className="sr-only">
+            {t(($) => $.voting.manageFollowing.remove)}
+          </ResponsiveDialogTitle>
+          <div className="mt-4 flex flex-1 flex-col items-center justify-center gap-4 md:mt-0">
+            <div className="flex size-14 items-center justify-center rounded-full bg-orange-500/10">
+              <AlertTriangle className="size-8 text-orange-500 dark:text-orange-400" />
+            </div>
+            <p className="px-2 text-center text-sm text-muted-foreground">
+              {t(($) => $.voting.manageFollowing.removeConfirm, { name: target?.name ?? '' })}
+            </p>
+          </div>
+          <MutationDialogFooter>
+            <Button variant="outline" size="xl" className="md:flex-1" onClick={close}>
+              {t(($) => $.common.cancel)}
+            </Button>
+            <Button
+              size="xl"
+              className="md:flex-1"
+              onClick={() => execute(() => mutation.mutateAsync())}
+              data-testid="remove-followee-confirm-btn"
+            >
+              {t(($) => $.voting.manageFollowing.remove)}
+            </Button>
+          </MutationDialogFooter>
+        </>
+      )}
+    </MutationDialog>
   );
 }
 
@@ -370,12 +267,6 @@ function ClearAllFollowingDialog({
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { canister } = useNnsGovernance();
-  const [phase, setPhase] = useState<RemovePhase>(RemovePhase.Confirm);
-  const [prevOpen, setPrevOpen] = useState(open);
-  if (open !== prevOpen) {
-    setPrevOpen(open);
-    if (open) setPhase(RemovePhase.Confirm);
-  }
 
   const mutation = useMutation<void[], Error>({
     mutationFn: () => {
@@ -390,134 +281,55 @@ function ClearAllFollowingDialog({
       await queryClient
         .invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] })
         .catch(failedRefresh);
-      setPhase(RemovePhase.Success);
     },
     onError: (error) => {
       errorMessage('ClearAllFollowingDialog', error.message);
-      setPhase(RemovePhase.Error);
     },
   });
 
-  const handleConfirm = () => {
-    setPhase(RemovePhase.Processing);
-    mutation.mutate();
-  };
-
-  useEffect(() => {
-    if (phase !== RemovePhase.Success) return;
-    const timer = setTimeout(() => onOpenChange(false), SUCCESS_AUTO_CLOSE_MS);
-    return () => clearTimeout(timer);
-  }, [phase, onOpenChange]);
-
-  const isBlocking = phase === RemovePhase.Processing;
-
   return (
-    <>
-      <NavigationBlockerDialog
-        isBlocked={isBlocking}
-        description={t(($) => $.voting.manageFollowing.clearAllProcessing)}
-      />
-      <ResponsiveDialog
-        open={open}
-        onOpenChange={(o) => !isBlocking && onOpenChange(o)}
-        dismissible={!isBlocking}
-      >
-        <ResponsiveDialogContent
-          showCloseButton={!isBlocking}
-          className="flex flex-col md:max-w-md"
-          data-testid="clear-all-dialog"
-        >
-          <AnimatePresence mode="wait" initial={false}>
-            {phase === RemovePhase.Confirm && (
-              <PhaseContainer key="clear-confirm" className="items-center justify-between">
-                <ResponsiveDialogTitle className="sr-only">
-                  {t(($) => $.voting.manageFollowing.clearAllFollowing)}
-                </ResponsiveDialogTitle>
-                <div className="flex flex-1 flex-col items-center justify-center gap-4">
-                  <div className="flex size-14 items-center justify-center rounded-full bg-orange-500/10">
-                    <AlertTriangle className="size-8 text-orange-500 dark:text-orange-400" />
-                  </div>
-                  <div className="flex flex-col items-center gap-1">
-                    <p className="text-sm font-semibold">
-                      {t(($) => $.voting.manageFollowing.clearAllFollowing)}
-                    </p>
-                    <p className="max-w-xs text-center text-sm text-muted-foreground">
-                      {t(($) => $.voting.manageFollowing.clearAllConfirm)}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex w-full gap-3 pt-4">
-                  <Button
-                    variant="outline"
-                    size="xl"
-                    className="flex-1"
-                    onClick={() => onOpenChange(false)}
-                  >
-                    {t(($) => $.common.cancel)}
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="xl"
-                    className="flex-1"
-                    onClick={handleConfirm}
-                    data-testid="clear-all-confirm-btn"
-                  >
-                    {t(($) => $.voting.manageFollowing.clearAllAction)}
-                  </Button>
-                </div>
-              </PhaseContainer>
-            )}
-            {phase === RemovePhase.Processing && (
-              <PhaseContainer key="clear-processing" className="items-center justify-center gap-5">
-                <ResponsiveDialogTitle className="sr-only">
-                  {t(($) => $.voting.manageFollowing.clearAllProcessing)}
-                </ResponsiveDialogTitle>
-                <AnimatedSpinner />
-                <FadeInText delay={0.2}>
-                  {t(($) => $.voting.manageFollowing.clearAllProcessing)}
-                </FadeInText>
-              </PhaseContainer>
-            )}
-            {phase === RemovePhase.Success && (
-              <PhaseContainer key="clear-success" className="items-center justify-center gap-5">
-                <ResponsiveDialogTitle className="sr-only">
-                  {t(($) => $.voting.manageFollowing.clearAllSuccess)}
-                </ResponsiveDialogTitle>
-                <AnimatedSuccessIcon />
-                <FadeInText delay={0.35} className="max-w-xs">
-                  {t(($) => $.voting.manageFollowing.clearAllSuccess)}
-                </FadeInText>
-              </PhaseContainer>
-            )}
-            {phase === RemovePhase.Error && (
-              <PhaseContainer key="clear-error" className="items-center justify-between">
-                <ResponsiveDialogTitle className="sr-only">
-                  {t(($) => $.voting.manageFollowing.removeError)}
-                </ResponsiveDialogTitle>
-                <div className="flex flex-1 flex-col items-center justify-center gap-4">
-                  <AnimatedErrorIcon />
-                  <FadeInText delay={0.3} className="max-w-xs">
-                    {t(($) => $.voting.manageFollowing.removeError)}
-                  </FadeInText>
-                </div>
-                <div className="flex w-full gap-3 pt-4">
-                  <Button
-                    variant="outline"
-                    size="xl"
-                    className="flex-1"
-                    onClick={() => onOpenChange(false)}
-                  >
-                    {t(($) => $.common.close)}
-                  </Button>
-                  <Button size="xl" className="flex-1" onClick={handleConfirm}>
-                    {t(($) => $.voting.manageFollowing.retryRemove)}
-                  </Button>
-                </div>
-              </PhaseContainer>
-            )}
-          </AnimatePresence>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
-    </>
+    <MutationDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      processingMessage={t(($) => $.voting.manageFollowing.clearAllProcessing)}
+      successMessage={t(($) => $.voting.manageFollowing.clearAllSuccess)}
+      navBlockerDescription={t(($) => $.voting.manageFollowing.clearAllProcessing)}
+      data-testid="clear-all-dialog"
+    >
+      {({ execute, close }) => (
+        <>
+          <ResponsiveDialogTitle className="sr-only">
+            {t(($) => $.voting.manageFollowing.clearAllFollowing)}
+          </ResponsiveDialogTitle>
+          <div className="mt-4 flex flex-1 flex-col items-center justify-center gap-4 md:mt-0">
+            <div className="flex size-14 items-center justify-center rounded-full bg-orange-500/10">
+              <AlertTriangle className="size-8 text-orange-500 dark:text-orange-400" />
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <p className="text-sm font-semibold">
+                {t(($) => $.voting.manageFollowing.clearAllFollowing)}
+              </p>
+              <p className="px-2 text-center text-sm text-muted-foreground">
+                {t(($) => $.voting.manageFollowing.clearAllConfirm)}
+              </p>
+            </div>
+          </div>
+          <MutationDialogFooter>
+            <Button variant="outline" size="xl" className="md:flex-1" onClick={close}>
+              {t(($) => $.common.cancel)}
+            </Button>
+            <Button
+              variant="destructive"
+              size="xl"
+              className="md:flex-1"
+              onClick={() => execute(() => mutation.mutateAsync())}
+              data-testid="clear-all-confirm-btn"
+            >
+              {t(($) => $.voting.manageFollowing.clearAllAction)}
+            </Button>
+          </MutationDialogFooter>
+        </>
+      )}
+    </MutationDialog>
   );
 }

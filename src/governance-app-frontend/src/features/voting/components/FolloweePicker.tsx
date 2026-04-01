@@ -12,7 +12,6 @@ import {
   Square,
   X,
 } from 'lucide-react';
-import { AnimatePresence } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -25,22 +24,13 @@ import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
 import {
-  AnimatedErrorIcon,
-  AnimatedSpinner,
-  AnimatedSuccessIcon,
-  FadeInText,
-  PhaseContainer,
-} from '@components/MutationPhases';
-import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
-import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogDescription,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-} from '@components/ResponsiveDialog';
+  MutationDialog,
+  MutationDialogFooter,
+  MutationDialogHeader,
+} from '@components/MutationDialog';
+import { ResponsiveDialogDescription, ResponsiveDialogTitle } from '@components/ResponsiveDialog';
 import { Skeleton } from '@components/Skeleton';
-import { DIALOG_RESET_DELAY_MS, SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
+import { DIALOG_RESET_DELAY_MS } from '@constants/extra';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import { stringToBigInt } from '@utils/bigInt';
@@ -58,9 +48,6 @@ enum WizardStep {
   SelectNeurons = 'selectNeurons',
   SelectTopics = 'selectTopics',
   Confirm = 'confirm',
-  Processing = 'processing',
-  Success = 'success',
-  Error = 'error',
 }
 
 type Props = {
@@ -94,9 +81,6 @@ export function FolloweePicker({
   const [searchQuery, setSearchQuery] = useState('');
   const [customIdInput, setCustomIdInput] = useState('');
   const [customIdError, setCustomIdError] = useState<string | null>(null);
-  const [appliedTopicCount, setAppliedTopicCount] = useState(0);
-
-  const isBlocking = step === WizardStep.Processing;
 
   useEffect(() => {
     if (!open) {
@@ -108,7 +92,6 @@ export function FolloweePicker({
         setSearchQuery('');
         setCustomIdInput('');
         setCustomIdError(null);
-        setAppliedTopicCount(0);
       }, DIALOG_RESET_DELAY_MS);
       return () => clearTimeout(timer);
     }
@@ -211,129 +194,92 @@ export function FolloweePicker({
       await queryClient
         .invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] })
         .catch(failedRefresh);
-      setAppliedTopicCount(selectedTopics.size);
-      setStep(WizardStep.Success);
     },
     onError: (error) => {
       errorMessage('FolloweePicker', error.message);
       analytics.event(AnalyticsEvent.FollowingPickerApplyError);
-      setStep(WizardStep.Error);
     },
   });
 
-  const handleApply = () => {
-    if (!neuronsQuery.data?.certified || !canister) return;
-    setStep(WizardStep.Processing);
-    applyMutation.mutate();
-  };
-
-  useEffect(() => {
-    if (step !== WizardStep.Success) return;
-    const timer = setTimeout(() => onOpenChange(false), SUCCESS_AUTO_CLOSE_MS);
-    return () => clearTimeout(timer);
-  }, [step, onOpenChange]);
-
-  const handleOpenChange = (nextOpen: boolean) => {
-    if (!nextOpen && isBlocking) return;
-    onOpenChange(nextOpen);
-  };
-
   const selectedCount = selectedNeuronIds.size;
   const topicCount = selectedTopics.size;
-  const isWizardStep = step === WizardStep.SelectNeurons || step === WizardStep.SelectTopics;
 
   return (
-    <>
-      <NavigationBlockerDialog
-        isBlocked={isBlocking}
-        description={t(($) => $.voting.picker.processing)}
-      />
-
-      <ResponsiveDialog open={open} onOpenChange={handleOpenChange} dismissible={!isBlocking}>
-        <ResponsiveDialogContent
-          showCloseButton={!isBlocking}
-          className="flex max-h-[90vh] flex-col"
-          data-testid="followee-picker-dialog"
-        >
-          {isWizardStep ? (
-            <>
-              <div
-                className={cn(
-                  'flex flex-1 flex-col overflow-hidden',
-                  step !== WizardStep.SelectNeurons && 'hidden',
-                )}
-              >
-                <StepSelectNeurons
-                  knownNeurons={filteredNeurons}
-                  customNeuronIds={customNeuronIds}
-                  selectedNeuronIds={selectedNeuronIds}
-                  isLoading={knownNeuronsQuery.isLoading}
-                  searchQuery={searchQuery}
-                  customIdInput={customIdInput}
-                  customIdError={customIdError}
-                  onSearchChange={setSearchQuery}
-                  onCustomIdChange={(v) => {
-                    setCustomIdInput(v);
-                    setCustomIdError(null);
-                  }}
-                  onAddCustom={addCustomNeuron}
-                  onRemoveCustom={removeCustomNeuron}
-                  onToggle={toggleNeuron}
-                  onNext={() => {
-                    analytics.event(AnalyticsEvent.FollowingPickerSelectTopics, {
-                      count: selectedCount.toString(),
-                    });
-                    setStep(WizardStep.SelectTopics);
-                  }}
-                  selectedCount={selectedCount}
-                />
-              </div>
-
-              <div
-                className={cn(
-                  'flex flex-1 flex-col overflow-hidden',
-                  step !== WizardStep.SelectTopics && 'hidden',
-                )}
-              >
-                <StepSelectTopics
-                  selectedNeuronIds={selectedNeuronIds}
-                  knownNeurons={sortedKnownNeurons}
-                  customNeuronIds={customNeuronIds}
-                  selectedTopics={selectedTopics}
-                  allIndividualSelected={allIndividualSelected}
-                  onToggleTopic={toggleTopic}
-                  onToggleAllIndividual={toggleAllIndividual}
-                  onBack={() => setStep(WizardStep.SelectNeurons)}
-                  onApply={() => setStep(WizardStep.Confirm)}
-                  topicCount={topicCount}
-                />
-              </div>
-            </>
-          ) : (
-            <AnimatePresence mode="wait" initial={false}>
-              {step === WizardStep.Confirm && (
-                <ConfirmPhase
-                  onConfirm={handleApply}
-                  onCancel={() => setStep(WizardStep.SelectTopics)}
-                  isOverride={isOverride}
-                />
+    <MutationDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      processingMessage={t(($) => $.voting.picker.processing)}
+      successMessage={t(($) => $.voting.picker.success, { count: selectedTopics.size })}
+      navBlockerDescription={t(($) => $.voting.picker.processing)}
+      data-testid="followee-picker-dialog"
+    >
+      {({ execute }) =>
+        step === WizardStep.Confirm ? (
+          <ConfirmStep
+            onConfirm={() => {
+              if (!neuronsQuery.data?.certified || !canister) return;
+              execute(() => applyMutation.mutateAsync());
+            }}
+            onCancel={() => setStep(WizardStep.SelectTopics)}
+            isOverride={isOverride}
+          />
+        ) : (
+          <>
+            <div
+              className={cn(
+                'flex flex-1 flex-col overflow-hidden',
+                step !== WizardStep.SelectNeurons && 'hidden',
               )}
+            >
+              <StepSelectNeurons
+                knownNeurons={filteredNeurons}
+                customNeuronIds={customNeuronIds}
+                selectedNeuronIds={selectedNeuronIds}
+                isLoading={knownNeuronsQuery.isLoading}
+                searchQuery={searchQuery}
+                customIdInput={customIdInput}
+                customIdError={customIdError}
+                onSearchChange={setSearchQuery}
+                onCustomIdChange={(v) => {
+                  setCustomIdInput(v);
+                  setCustomIdError(null);
+                }}
+                onAddCustom={addCustomNeuron}
+                onRemoveCustom={removeCustomNeuron}
+                onToggle={toggleNeuron}
+                onNext={() => {
+                  analytics.event(AnalyticsEvent.FollowingPickerSelectTopics, {
+                    count: selectedCount.toString(),
+                  });
+                  setStep(WizardStep.SelectTopics);
+                }}
+                selectedCount={selectedCount}
+              />
+            </div>
 
-              {step === WizardStep.Processing && <ProcessingPhase />}
-
-              {step === WizardStep.Success && <SuccessPhase topicCount={appliedTopicCount} />}
-
-              {step === WizardStep.Error && (
-                <ErrorPhase
-                  onRetry={handleApply}
-                  onClose={() => setStep(WizardStep.SelectTopics)}
-                />
+            <div
+              className={cn(
+                'flex flex-1 flex-col overflow-hidden',
+                step !== WizardStep.SelectTopics && 'hidden',
               )}
-            </AnimatePresence>
-          )}
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
-    </>
+            >
+              <StepSelectTopics
+                selectedNeuronIds={selectedNeuronIds}
+                knownNeurons={sortedKnownNeurons}
+                customNeuronIds={customNeuronIds}
+                selectedTopics={selectedTopics}
+                allIndividualSelected={allIndividualSelected}
+                onToggleTopic={toggleTopic}
+                onToggleAllIndividual={toggleAllIndividual}
+                onBack={() => setStep(WizardStep.SelectNeurons)}
+                onApply={() => setStep(WizardStep.Confirm)}
+                topicCount={topicCount}
+              />
+            </div>
+          </>
+        )
+      }
+    </MutationDialog>
   );
 }
 
@@ -381,12 +327,12 @@ function StepSelectNeurons({
 
   return (
     <div className="flex flex-1 flex-col gap-4 overflow-hidden">
-      <ResponsiveDialogHeader>
+      <MutationDialogHeader>
         <ResponsiveDialogTitle>{t(($) => $.voting.picker.selectNeurons)}</ResponsiveDialogTitle>
         <ResponsiveDialogDescription>
           {t(($) => $.voting.picker.selectNeuronsDesc)}
         </ResponsiveDialogDescription>
-      </ResponsiveDialogHeader>
+      </MutationDialogHeader>
 
       <Input
         placeholder={t(($) => $.voting.picker.searchPlaceholder)}
@@ -519,7 +465,7 @@ function StepSelectTopics({
 
   return (
     <div className="flex flex-1 flex-col gap-4 overflow-hidden">
-      <ResponsiveDialogHeader>
+      <MutationDialogHeader>
         <div className="flex items-center gap-2">
           <button onClick={onBack} className="rounded-md p-1 hover:bg-muted">
             <ArrowLeft className="size-5" />
@@ -531,7 +477,7 @@ function StepSelectTopics({
             </ResponsiveDialogDescription>
           </div>
         </div>
-      </ResponsiveDialogHeader>
+      </MutationDialogHeader>
 
       <div className="rounded-lg border bg-muted/30 px-4 py-3">
         <p className="mb-2 text-xs font-medium text-muted-foreground">
@@ -717,7 +663,7 @@ function TopicCheckbox({
   );
 }
 
-function ConfirmPhase({
+function ConfirmStep({
   onConfirm,
   onCancel,
   isOverride,
@@ -729,7 +675,7 @@ function ConfirmPhase({
   const { t } = useTranslation();
 
   return (
-    <PhaseContainer key="confirm" className="items-center justify-between">
+    <>
       <ResponsiveDialogTitle className="sr-only">
         {t(($) => $.voting.picker.confirm.title)}
       </ResponsiveDialogTitle>
@@ -755,70 +701,19 @@ function ConfirmPhase({
           </p>
         </div>
       </div>
-      <div className="flex w-full gap-3 pt-4">
-        <Button variant="outline" size="xl" className="flex-1" onClick={onCancel}>
+      <MutationDialogFooter>
+        <Button variant="outline" size="xl" className="md:flex-1" onClick={onCancel}>
           {t(($) => $.common.cancel)}
         </Button>
-        <Button size="xl" className="flex-1" onClick={onConfirm} data-testid="picker-confirm-btn">
+        <Button
+          size="xl"
+          className="md:flex-1"
+          onClick={onConfirm}
+          data-testid="picker-confirm-btn"
+        >
           {t(($) => $.common.confirm)}
         </Button>
-      </div>
-    </PhaseContainer>
-  );
-}
-
-function ProcessingPhase() {
-  const { t } = useTranslation();
-
-  return (
-    <PhaseContainer key="processing" className="items-center justify-center gap-5">
-      <ResponsiveDialogTitle className="sr-only">
-        {t(($) => $.voting.picker.processing)}
-      </ResponsiveDialogTitle>
-      <AnimatedSpinner />
-      <FadeInText delay={0.2}>{t(($) => $.voting.picker.processing)}</FadeInText>
-    </PhaseContainer>
-  );
-}
-
-function SuccessPhase({ topicCount }: { topicCount: number }) {
-  const { t } = useTranslation();
-
-  return (
-    <PhaseContainer key="success" className="items-center justify-center gap-5">
-      <ResponsiveDialogTitle className="sr-only">
-        {t(($) => $.voting.picker.success, { count: topicCount })}
-      </ResponsiveDialogTitle>
-      <AnimatedSuccessIcon />
-      <FadeInText delay={0.35} className="max-w-xs">
-        {t(($) => $.voting.picker.success, { count: topicCount })}
-      </FadeInText>
-    </PhaseContainer>
-  );
-}
-
-function ErrorPhase({ onRetry, onClose }: { onRetry: () => void; onClose: () => void }) {
-  const { t } = useTranslation();
-
-  return (
-    <PhaseContainer key="error" className="items-center justify-between">
-      <ResponsiveDialogTitle className="sr-only">
-        {t(($) => $.voting.picker.error)}
-      </ResponsiveDialogTitle>
-      <div className="flex flex-1 flex-col items-center justify-center gap-4">
-        <AnimatedErrorIcon />
-        <FadeInText delay={0.3} className="max-w-xs">
-          {t(($) => $.voting.picker.error)}
-        </FadeInText>
-      </div>
-      <div className="flex w-full gap-3 pt-4">
-        <Button variant="outline" size="xl" className="flex-1" onClick={onClose}>
-          {t(($) => $.common.close)}
-        </Button>
-        <Button size="xl" className="flex-1" onClick={onRetry}>
-          {t(($) => $.voting.picker.retry)}
-        </Button>
-      </div>
-    </PhaseContainer>
+      </MutationDialogFooter>
+    </>
   );
 }

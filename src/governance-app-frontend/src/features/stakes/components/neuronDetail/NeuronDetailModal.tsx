@@ -12,6 +12,7 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { DIALOG_RESET_DELAY_MS, IS_TESTNET } from '@constants/extra';
+import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import {
   getNeuronId,
@@ -24,6 +25,7 @@ import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 import { NeuronDetailDevActionsView } from './NeuronDetailDevActionsView';
 import { NeuronDetailDissolveView } from './NeuronDetailDissolveView';
+import { NeuronDetailFollowingDialog } from './NeuronDetailFollowingDialog';
 import { NeuronDetailIncreaseDelayView } from './NeuronDetailIncreaseDelayView';
 import { NeuronDetailIncreaseStakeView } from './NeuronDetailIncreaseStakeView';
 import { NeuronDetailMaturityModeView } from './NeuronDetailMaturityModeView';
@@ -43,6 +45,7 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [followingDialogOpen, setFollowingDialogOpen] = useState(false);
 
   // Keep neuron and view in refs to persist during close animation
   const neuronRef = useRef<NeuronInfo | null>(neuron);
@@ -67,6 +70,8 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
   const displayNeuron = isOpen ? neuron : neuronRef.current;
   const displayView = isOpen ? view : viewRef.current;
 
+  const knownNeuronsQuery = useGovernanceKnownNeurons();
+  const knownNeurons = knownNeuronsQuery.data?.response ?? [];
   const stakingRewards = useStakingRewards();
   const apy =
     displayNeuron && isStakingRewardDataReady(stakingRewards)
@@ -152,6 +157,7 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
                 isAutoStake={isAutoStake}
                 isHotkey={isHotkey}
                 onNavigate={onViewChange}
+                onShowFollowing={() => setFollowingDialogOpen(true)}
               />
             )}
 
@@ -198,6 +204,15 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
           </div>
         </ResponsiveDialogContent>
       </ResponsiveDialog>
+
+      {displayNeuron && (
+        <NeuronDetailFollowingDialog
+          open={followingDialogOpen}
+          onOpenChange={setFollowingDialogOpen}
+          neuron={displayNeuron}
+          knownNeurons={knownNeurons}
+        />
+      )}
     </>
   );
 }

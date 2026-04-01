@@ -1,26 +1,20 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogDescription,
-  ResponsiveDialogFooter,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTitle,
-  ResponsiveDialogTrigger,
-} from '@components/ResponsiveDialog';
+  MutationDialog,
+  MutationDialogFooter,
+  MutationDialogHeader,
+} from '@components/MutationDialog';
+import { ResponsiveDialogDescription, ResponsiveDialogTitle } from '@components/ResponsiveDialog';
 import { IS_TESTNET, U64_MAX } from '@constants/extra';
 import { useNnsGovernanceTest } from '@hooks/governance/useGovernanceTest';
 import { errorMessage } from '@utils/error';
-import { mapCanisterError } from '@utils/errors';
-import { errorNotification, successNotification } from '@utils/notification';
-import { QUERY_KEYS } from '@utils/query';
+import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
 type Props = {
   neuron: NeuronInfo;
@@ -39,12 +33,11 @@ export const UnlockNeuronModal = ({ neuron }: Props) => {
   } = useNnsGovernanceTest();
 
   const [open, setOpen] = useState(false);
-  const [pending, setPending] = useState(false);
   const neuronId = neuron.neuronId.toString();
   const canUpdate =
     nonNullish(governanceTestCanister) && governanceTestAuthenticated && governanceTestReady;
 
-  const setUnlockNeuronMutation = useMutation({
+  const mutation = useMutation({
     mutationFn: () => {
       if (isNullish(neuron.fullNeuron)) {
         throw new Error(`Full neuron is not defined for neuron #${neuronId}.`);
@@ -57,76 +50,59 @@ export const UnlockNeuronModal = ({ neuron }: Props) => {
         agingSinceTimestampSeconds: U64_MAX,
       });
     },
-    onMutate: () => setPending(true),
-    onSuccess: () =>
-      queryClient
-        .invalidateQueries({
-          queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
-        })
-        .then(() => {
-          successNotification({
-            description: t(($) => $.devActionsModal.unlockStake.success),
-          });
-          setPending(false);
-          setOpen(false);
-        }),
-    onError: (error) => {
-      setPending(false);
-      errorNotification({
-        description: mapCanisterError(error),
-      });
+    onSuccess: async () => {
+      await queryClient
+        .invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] })
+        .catch(failedRefresh);
     },
   });
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setUnlockNeuronMutation.mutate();
-  };
+  const handleSubmit =
+    (execute: (fn: () => Promise<unknown>) => void) => (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      execute(() => mutation.mutateAsync());
+    };
+
+  if (!canUpdate) return null;
 
   return (
-    <ResponsiveDialog open={open} onOpenChange={setOpen}>
-      <ResponsiveDialogTrigger asChild>
-        {canUpdate ? (
-          <Button
-            variant="outline"
-            size="lg"
-            className="h-auto py-4 transition-colors hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0"
-          >
-            {t(($) => $.devActionsModal.unlockStake.title)}
-          </Button>
-        ) : (
-          <></>
+    <>
+      <Button
+        variant="outline"
+        size="lg"
+        className="h-auto py-4 transition-colors hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0"
+        onClick={() => setOpen(true)}
+      >
+        {t(($) => $.devActionsModal.unlockStake.title)}
+      </Button>
+
+      <MutationDialog
+        open={open}
+        onOpenChange={setOpen}
+        processingMessage={t(($) => $.devActionsModal.unlockStake.confirming)}
+        successMessage={t(($) => $.devActionsModal.unlockStake.success)}
+        navBlockerDescription={t(($) => $.devActionsModal.unlockStake.confirming)}
+      >
+        {({ execute, close }) => (
+          <form onSubmit={handleSubmit(execute)} className="flex min-h-0 flex-1 flex-col">
+            <MutationDialogHeader>
+              <ResponsiveDialogTitle>
+                {t(($) => $.devActionsModal.unlockStake.title)}
+              </ResponsiveDialogTitle>
+              <ResponsiveDialogDescription>
+                {t(($) => $.devActionsModal.unlockStake.description)}
+              </ResponsiveDialogDescription>
+            </MutationDialogHeader>
+
+            <MutationDialogFooter className="md:justify-end">
+              <Button type="button" variant="ghost" onClick={close}>
+                {t(($) => $.devActionsModal.common.close)}
+              </Button>
+              <Button type="submit">{t(($) => $.devActionsModal.unlockStake.confirm)}</Button>
+            </MutationDialogFooter>
+          </form>
         )}
-      </ResponsiveDialogTrigger>
-
-      <ResponsiveDialogContent>
-        <form onSubmit={handleSubmit}>
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>
-              {t(($) => $.devActionsModal.unlockStake.title)}
-            </ResponsiveDialogTitle>
-            <ResponsiveDialogDescription>
-              {t(($) => $.devActionsModal.unlockStake.description)}
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
-
-          <ResponsiveDialogFooter className="mt-4 flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
-              {t(($) => $.devActionsModal.common.close)}
-            </Button>
-            <Button type="submit" disabled={pending}>
-              {pending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t(($) => $.devActionsModal.unlockStake.confirming)}
-                </>
-              ) : (
-                t(($) => $.devActionsModal.unlockStake.confirm)
-              )}
-            </Button>
-          </ResponsiveDialogFooter>
-        </form>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+      </MutationDialog>
+    </>
   );
 };
