@@ -118,7 +118,7 @@ const MARCH_2026: MonthlyGovernanceSummary = {
       description: 'Mission70 motions passed, rejection fee doubled to 50 ICP',
       highlights: [
         { value: 2, label: 'Motions passed' },
-        { value: 37, label: 'Rejected' },
+        { value: 37, label: 'Community rejected' },
         { value: 0, label: 'SNS launched' },
       ],
     },
