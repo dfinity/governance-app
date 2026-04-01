@@ -131,6 +131,7 @@ const JANUARY_2026: MonthlyGovernanceSummary = {
   ],
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const FEBRUARY_2026: MonthlyGovernanceSummary = {
   month: 'February',
   year: 2026,
@@ -194,5 +195,81 @@ const FEBRUARY_2026: MonthlyGovernanceSummary = {
   ],
 };
 
+const MARCH_2026: MonthlyGovernanceSummary = {
+  month: 'March',
+  year: 2026,
+
+  outcomes: [
+    { status: 'approved', count: 489 },
+    { status: 'rejected', count: 42 },
+    { status: 'failed', count: 1 },
+  ],
+
+  topChanges: [
+    {
+      icon: 'network',
+      title: 'Network operations & infrastructure',
+      description: '425 rollouts completed, 10 new OS versions elected',
+      highlights: [
+        { value: 425, label: 'rollouts completed' },
+        { value: 5, label: 'GuestOS versions' },
+        { value: 5, label: 'HostOS versions' },
+      ],
+    },
+    {
+      icon: 'protocol',
+      title: 'Core protocol & app upgrades',
+      description: 'Multiple canister upgrades including ckBTC minter and Internet Identity',
+      highlights: [
+        { value: 15, label: 'protocol upgrades' },
+        { value: 22, label: 'app upgrades' },
+      ],
+    },
+    {
+      icon: 'community',
+      title: 'Community governance (motions & SNS)',
+      description: 'Mission70 motions passed, rejection fee doubled to 50 ICP',
+      highlights: [
+        { value: 2, label: 'Motions passed' },
+        { value: 37, label: 'Rejected' },
+        { value: 0, label: 'SNS launched' },
+      ],
+    },
+  ],
+
+  communityHighlights: [
+    {
+      title: 'Mission70: Voting rewards and node rewards adjustments',
+      outcome: 'passed',
+      label: 'Passed',
+    },
+    {
+      title: 'Mission70: Adjustment of Subnet Target Topology',
+      outcome: 'passed',
+      label: 'Passed',
+    },
+    {
+      title: 'Increase NNS proposal rejection fee to 50 ICP',
+      outcome: 'passed',
+      label: 'Passed',
+    },
+    {
+      title: 'Yusan SNS creation',
+      outcome: 'rejected',
+      label: 'Rejected',
+    },
+    {
+      title: 'Mission 70 Counter Proposal',
+      outcome: 'rejected',
+      label: 'Rejected',
+    },
+    {
+      title: 'Protecting NNS Proposals from Spam Exploitation',
+      outcome: 'rejected',
+      label: 'Rejected',
+    },
+  ],
+};
+
 /** The currently displayed summary — update this reference each month */
-export const currentSummary: MonthlyGovernanceSummary = FEBRUARY_2026;
+export const currentSummary: MonthlyGovernanceSummary = MARCH_2026;
