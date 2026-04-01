@@ -1,17 +1,17 @@
 import { useSyncExternalStore } from 'react';
 
-import { SHORTCUTS_SETTINGS_KEY } from '@constants/extra';
+import { HIDE_BALANCES_KEY } from '@constants/extra';
 
 const getStoredValue = (): boolean => {
   try {
-    return localStorage.getItem(SHORTCUTS_SETTINGS_KEY) === 'true';
+    return localStorage.getItem(HIDE_BALANCES_KEY) === 'true';
   } catch {
     return false;
   }
 };
 
-const storeValue = (enabled: boolean): void => {
-  localStorage.setItem(SHORTCUTS_SETTINGS_KEY, String(enabled));
+const storeValue = (hidden: boolean): void => {
+  localStorage.setItem(HIDE_BALANCES_KEY, String(hidden));
   notifyListeners();
 };
 
@@ -22,7 +22,7 @@ function notifyListeners() {
 }
 
 const onStorage = (e: StorageEvent) => {
-  if (e.key === SHORTCUTS_SETTINGS_KEY) notifyListeners();
+  if (e.key === HIDE_BALANCES_KEY) notifyListeners();
 };
 
 const subscribe = (listener: () => void) => {
@@ -39,12 +39,11 @@ const subscribe = (listener: () => void) => {
 const getSnapshot = (): boolean => getStoredValue();
 
 /**
- * Hook to manage keyboard shortcuts global toggle with localStorage persistence.
+ * Hook to manage the hide balances privacy toggle with localStorage persistence.
  * Uses useSyncExternalStore for cross-component and cross-tab reactivity.
- * Returns a single boolean — all shortcuts are either enabled or disabled together.
  */
-export const useShortcutSettings = () => {
-  const enabled = useSyncExternalStore(subscribe, getSnapshot);
+export const useHideBalances = () => {
+  const hidden = useSyncExternalStore(subscribe, getSnapshot);
 
-  return { enabled, setEnabled: storeValue };
+  return { hidden, setHidden: storeValue };
 };

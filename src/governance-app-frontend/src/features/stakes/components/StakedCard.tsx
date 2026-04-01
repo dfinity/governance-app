@@ -12,6 +12,7 @@ import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
+import { SensitiveValue } from '@components/SensitiveValue';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
@@ -100,7 +101,9 @@ export function StakedCard() {
             <Skeleton className="h-8 w-32" />
           ) : (
             <p className="text-2xl font-semibold">
-              {t(($) => $.common.inIcp, { value: formatNumber(totalStaked) })}
+              <SensitiveValue>
+                {t(($) => $.common.inIcp, { value: formatNumber(totalStaked) })}
+              </SensitiveValue>
             </p>
           )}
 
@@ -108,7 +111,9 @@ export function StakedCard() {
             <Skeleton className="h-4 w-20" />
           ) : (
             <p className="text-sm text-muted-foreground">
-              {t(($) => $.account.approxUsd, { value: usdValue })}
+              <SensitiveValue size="sm">
+                {t(($) => $.account.approxUsd, { value: usdValue })}
+              </SensitiveValue>
             </p>
           )}
         </div>

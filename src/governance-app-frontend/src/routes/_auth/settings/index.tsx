@@ -8,6 +8,7 @@ import { AddressBookCard } from '@features/addressBook/components/AddressBookCar
 import { AccountIdCard } from '@features/userAccount/components/AccountIdCard';
 import { AdvancedFeaturesCard } from '@features/userAccount/components/AdvancedFeaturesCard';
 import { GovernanceAccessCard } from '@features/userAccount/components/GovernanceAccessCard';
+import { HideBalancesCard } from '@features/userAccount/components/HideBalancesCard';
 import { ManageIICard } from '@features/userAccount/components/ManageIICard';
 import { PrincipalCard } from '@features/userAccount/components/PrincipalCard';
 import { ShortcutsCard } from '@features/userAccount/components/ShortcutsCard';
@@ -136,6 +137,9 @@ function Settings() {
           <div className="flex flex-col divide-y">
             <div className="px-6 py-5">
               <ThemeCard />
+            </div>
+            <div className="px-6 py-5">
+              <HideBalancesCard />
             </div>
             <div className="px-6 py-5">
               <ShortcutsCard />

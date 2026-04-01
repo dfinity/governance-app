@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
+import { SensitiveValue } from '@components/SensitiveValue';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
@@ -51,7 +52,9 @@ export const AccountsCard = () => {
             <Skeleton className="h-8 w-32" />
           ) : (
             <p className="text-2xl font-semibold">
-              {t(($) => $.common.inIcp, { value: formatNumber(totalBalanceIcp ?? 0) })}
+              <SensitiveValue>
+                {t(($) => $.common.inIcp, { value: formatNumber(totalBalanceIcp ?? 0) })}
+              </SensitiveValue>
             </p>
           )}
 
@@ -59,7 +62,9 @@ export const AccountsCard = () => {
             <Skeleton className="h-4 w-20" />
           ) : (
             <p className="text-sm text-muted-foreground">
-              {t(($) => $.account.approxUsd, { value: usdValue })}
+              <SensitiveValue size="sm">
+                {t(($) => $.account.approxUsd, { value: usdValue })}
+              </SensitiveValue>
             </p>
           )}
         </div>
@@ -113,9 +118,13 @@ function AccountPreviewList({ accounts }: { accounts: Account[] }) {
           <div key={account.accountId} className="flex items-center justify-between py-2.5 text-sm">
             <span className="text-muted-foreground">{account.name}</span>
             <span className="font-medium">
-              {balanceICP !== undefined
-                ? t(($) => $.common.inIcp, { value: formatNumber(balanceICP) })
-                : '-'}
+              {balanceICP !== undefined ? (
+                <SensitiveValue size="sm">
+                  {t(($) => $.common.inIcp, { value: formatNumber(balanceICP) })}
+                </SensitiveValue>
+              ) : (
+                '-'
+              )}
             </span>
           </div>
         );

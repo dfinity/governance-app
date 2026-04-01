@@ -1,3 +1,4 @@
+import { nonNullish } from '@dfinity/utils';
 import { useTranslation } from 'react-i18next';
 import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts';
 
@@ -6,6 +7,7 @@ import { StakingRatioModal } from '@features/stakes/components/StakingRatioModal
 
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { type ChartConfig, ChartContainer } from '@components/Chart';
+import { SensitiveValue } from '@components/SensitiveValue';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
@@ -67,7 +69,13 @@ export const TotalAssetsCard = () => {
           {isLoading || tickersQuery.isLoading ? (
             <Skeleton className="h-8 w-40" />
           ) : (
-            <p className="text-2xl font-semibold text-foreground">${totalAssetsUsd ?? '—'}</p>
+            <p className="text-2xl font-semibold text-foreground">
+              {nonNullish(totalAssetsUsd) ? (
+                <SensitiveValue>${totalAssetsUsd}</SensitiveValue>
+              ) : (
+                '—'
+              )}
+            </p>
           )}
         </div>
       </CardHeader>
