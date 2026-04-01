@@ -10,6 +10,7 @@ import {
   ProposalFilter,
   validateProposalsSearch,
 } from '@features/proposals/utils';
+import { useNonConstructiveProposalIds } from '@hooks/spamFilter';
 import { AdvancedFollowingModal } from '@features/voting/components/AdvancedFollowingModal';
 import { SimpleFollowingModal } from '@features/voting/components/SimpleFollowingModal';
 import { VotingOverviewAdvanced } from '@features/voting/components/VotingOverviewAdvanced';
@@ -66,6 +67,15 @@ function Voting() {
   });
   const allProposals = useGovernanceProposals();
   const activeQuery = proposalFilter === ProposalFilter.Open ? openProposals : allProposals;
+
+  const nonConstructiveQuery = useNonConstructiveProposalIds();
+  const nonConstructiveIds = nonConstructiveQuery.data?.response;
+  const spamProposalIds = nonConstructiveIds
+    ? new Set([
+        ...nonConstructiveIds.abusive.map(String),
+        ...nonConstructiveIds.non_actionable.map(String),
+      ])
+    : undefined;
 
   const { features } = useAdvancedFeatures();
   const isAdvancedFollowing = features[AdvancedFeature.AdvancedFollowing];
@@ -215,21 +225,26 @@ function Voting() {
             {(data) => (
               <>
                 {data?.pages?.map((page) =>
-                  page?.response.proposals.map((proposal) => (
-                    <div key={proposal.id?.toString()} className="w-full">
-                      <Link
-                        to="/voting/proposals/$id"
-                        params={{ id: proposal.id! }}
-                        search={{
-                          showProposals,
-                          proposalFilter,
-                        }}
-                        className="w-full"
-                      >
-                        <ProposalListItem proposal={proposal} certified={page?.certified} />
-                      </Link>
-                    </div>
-                  )),
+                  page?.response.proposals
+                    .filter(
+                      (proposal) =>
+                        !spamProposalIds || !spamProposalIds.has(proposal.id?.toString() ?? ''),
+                    )
+                    .map((proposal) => (
+                      <div key={proposal.id?.toString()} className="w-full">
+                        <Link
+                          to="/voting/proposals/$id"
+                          params={{ id: proposal.id! }}
+                          search={{
+                            showProposals,
+                            proposalFilter,
+                          }}
+                          className="w-full"
+                        >
+                          <ProposalListItem proposal={proposal} certified={page?.certified} />
+                        </Link>
+                      </div>
+                    )),
                 )}
 
                 {activeQuery.hasNextPage && (

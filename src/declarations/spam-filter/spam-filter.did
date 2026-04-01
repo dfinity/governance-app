@@ -1,0 +1,33 @@
+type CheckResult =
+ variant {
+   abusive: vec text;
+   constructive;
+   nonActionable: vec text;
+ };
+service : {
+  get_all_checked_proposal_ids: () -> (vec nat64) query;
+  get_error_queue: () -> (vec nat64) query;
+  get_non_constructive_proposal_ids: () ->
+   (record {
+      abusive: vec nat64;
+      non_actionable: vec nat64;
+    }) query;
+  get_recent_results: (limit: nat) -> (vec record {
+                                             nat64;
+                                             CheckResult;
+                                           }) query;
+  get_stats: () ->
+   (record {
+      checked_count: nat;
+      error_queue_size: nat;
+      scan_pointer: opt nat64;
+    }) query;
+  re_evaluate: (proposalId: nat64) -> (CheckResult);
+  spam_check: (proposalIds: vec nat64) ->
+   (vec record {
+          nat64;
+          opt CheckResult;
+        }) query;
+  upload_archived_proposal: (proposalId: nat64, title: text, summary:
+   text, motionText: opt text) -> (CheckResult);
+}
