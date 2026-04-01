@@ -565,11 +565,11 @@ function SendConfirmationStep({
               </div>
 
               <div className="border-t pt-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">
+                <div className="flex min-w-0 items-center justify-between gap-2">
+                  <span className="shrink-0 text-sm text-muted-foreground">
                     {t(($) => $.account.confirmTo)}
                   </span>
-                  <span className="text-sm font-medium">{destinationName}</span>
+                  <span className="truncate text-sm font-medium">{destinationName}</span>
                 </div>
                 <p className="mt-1 text-right font-mono text-sm break-all text-muted-foreground">
                   {toAccount}
