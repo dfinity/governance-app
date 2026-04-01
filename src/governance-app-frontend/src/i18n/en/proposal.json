@@ -26,9 +26,9 @@
   "spamBadge": "Spam",
   "nonActionableBadge": "Non-actionable",
   "spamWarning": {
-    "abusiveTitle": "This proposal has been flagged as spam",
-    "nonActionableTitle": "This proposal has been flagged as non-actionable",
-    "reasons": "Reasons:"
+    "abusiveTitle": "Spam",
+    "nonActionableTitle": "Non-actionable",
+    "reasons": "This proposal has been flagged due to the following reasons:"
   },
   "selfDescribingAction": {
     "empty": "empty",
