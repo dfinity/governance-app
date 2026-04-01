@@ -29,7 +29,7 @@ import { MarkdownRenderer } from '@components/MarkdownRenderer';
 import { MultipleSkeletons } from '@components/MultipleSkeletons';
 import { QueryStates } from '@components/QueryStates';
 import { useGovernanceProposal } from '@hooks/governance/useGovernanceProposal';
-import { useSpamCheck } from '@hooks/spamFilter';
+import { CheckResultKey, useSpamCheck } from '@hooks/spamFilter';
 import { CertifiedData } from '@typings/queries';
 import { stringToBigInt } from '@utils/bigInt';
 import { safeParseUrl } from '@utils/urls';
@@ -71,7 +71,7 @@ function ProposalDetailsRouteComponent() {
   const proposalQuery = useGovernanceProposal({
     proposalId: id!,
   });
-  const spamCheckQuery = useSpamCheck(id);
+  const spamCheckResult = useSpamCheck(id).data?.response;
 
   return (
     <div className="flex flex-col gap-6">
@@ -151,28 +151,28 @@ function ProposalDetailsRouteComponent() {
                   </div>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4">
-                  {spamCheckQuery.data && 'abusive' in spamCheckQuery.data && (
+                  {spamCheckResult && CheckResultKey.Abusive in spamCheckResult && (
                     <Alert variant="danger">
                       <ShieldBan className="size-4" />
                       <AlertTitle>{t(($) => $.proposal.spamWarning.abusiveTitle)}</AlertTitle>
                       <AlertDescription>
                         <p>{t(($) => $.proposal.spamWarning.reasons)}</p>
                         <ul className="list-inside list-disc">
-                          {spamCheckQuery.data.abusive.map((reason, i) => (
+                          {spamCheckResult.abusive.map((reason, i) => (
                             <li key={i}>{reason}</li>
                           ))}
                         </ul>
                       </AlertDescription>
                     </Alert>
                   )}
-                  {spamCheckQuery.data && 'nonActionable' in spamCheckQuery.data && (
+                  {spamCheckResult && CheckResultKey.NonActionable in spamCheckResult && (
                     <Alert variant="warning">
                       <MessageSquareOff className="size-4" />
                       <AlertTitle>{t(($) => $.proposal.spamWarning.nonActionableTitle)}</AlertTitle>
                       <AlertDescription>
                         <p>{t(($) => $.proposal.spamWarning.reasons)}</p>
                         <ul className="list-inside list-disc">
-                          {spamCheckQuery.data.nonActionable.map((reason, i) => (
+                          {spamCheckResult.nonActionable.map((reason, i) => (
                             <li key={i}>{reason}</li>
                           ))}
                         </ul>

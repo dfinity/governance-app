@@ -68,17 +68,16 @@ function Voting() {
   const allProposals = useGovernanceProposals();
   const activeQuery = proposalFilter === ProposalFilter.Open ? openProposals : allProposals;
 
-  const nonConstructiveQuery = useNonConstructiveProposalIds();
-  const nonConstructiveIds = nonConstructiveQuery.data;
+  const { features } = useAdvancedFeatures();
+  const showNonConstructiveProposals = features[AdvancedFeature.ShowNonConstructiveProposals];
+
+  const nonConstructiveIds = useNonConstructiveProposalIds().data?.response;
   const spamProposalIds = nonConstructiveIds
     ? new Set(Array.from(nonConstructiveIds.abusive, String))
     : undefined;
   const nonActionableProposalIds = nonConstructiveIds
     ? new Set(Array.from(nonConstructiveIds.non_actionable, String))
     : undefined;
-
-  const { features } = useAdvancedFeatures();
-  const showNonConstructiveProposals = features[AdvancedFeature.ShowNonConstructiveProposals];
   const isAdvancedFollowing = features[AdvancedFeature.AdvancedFollowing];
 
   const neuronsQuery = useGovernanceNeurons();

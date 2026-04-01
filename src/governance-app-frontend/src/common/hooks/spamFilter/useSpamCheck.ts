@@ -1,23 +1,32 @@
 import { isNullish } from '@dfinity/utils';
-import { useQuery } from '@tanstack/react-query';
+import type { ActorSubclass } from '@icp-sdk/core/agent';
 
-import type { CheckResult } from '@declarations/spam-filter/spam-filter.did';
+import type { CheckResult, _SERVICE } from '@declarations/spam-filter/spam-filter.did';
 
+import { useQueryThenUpdateCall } from '@hooks/useQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/query';
 
 import { useSpamFilterCanister } from './useSpamFilterCanister';
 
+const fetchSpamCheck = async (
+  actor: ActorSubclass<_SERVICE>,
+  proposalId: bigint,
+): Promise<CheckResult | undefined> => {
+  const results = await actor.spam_check([proposalId]);
+  const entry = results[0];
+  if (isNullish(entry) || entry[1].length === 0) return undefined;
+  return entry[1][0];
+};
+
 export const useSpamCheck = (proposalId: bigint | undefined) => {
   const { ready, canister } = useSpamFilterCanister();
 
-  return useQuery<CheckResult | undefined>({
+  return useQueryThenUpdateCall<CheckResult | undefined>({
     queryKey: [QUERY_KEYS.SPAM_FILTER.SPAM_CHECK, proposalId?.toString()],
-    queryFn: async () => {
-      const results = await canister!.spam_check([proposalId!]);
-      const entry = results[0];
-      if (isNullish(entry) || entry[1].length === 0) return undefined;
-      return entry[1][0];
+    queryFn: () => fetchSpamCheck(canister!.service, proposalId!),
+    updateFn: () => fetchSpamCheck(canister!.certifiedService, proposalId!),
+    options: {
+      enabled: ready && !isNullish(proposalId),
     },
-    enabled: ready && !isNullish(proposalId),
   });
 };
