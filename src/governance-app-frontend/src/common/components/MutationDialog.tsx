@@ -105,7 +105,10 @@ export function MutationDialog({
 
       <ResponsiveDialog open={open} onOpenChange={handleOpenChange} dismissible={!isProcessing}>
         <ResponsiveDialogContent
-          className={cn('flex max-h-[90vh] flex-col focus:outline-none md:max-w-md', className)}
+          className={cn(
+            'flex max-h-[90vh] flex-col transition-[max-width] duration-200 focus:outline-none md:max-w-md',
+            phase === Phase.Idle && className,
+          )}
           showCloseButton={phase === Phase.Idle}
           data-testid={dataTestId}
         >

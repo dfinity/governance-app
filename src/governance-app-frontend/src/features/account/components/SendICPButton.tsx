@@ -236,6 +236,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
         processingMessage={t(($) => $.account.transferProcessing, { amount, destination })}
         successMessage={t(($) => $.account.transferSuccess, { amount, destination })}
         navBlockerDescription={t(($) => $.account.confirmNavigation)}
+        className="md:max-w-2xl"
       >
         {({ execute, close }) => (
           <AnimatePresence mode="wait" initial={false}>
