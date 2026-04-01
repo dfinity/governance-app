@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from '@components/Alert';
 import { Card, CardContent } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
 import { CopyButton } from '@components/CopyButton';
+import { SensitiveValue } from '@components/SensitiveValue';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { E8Sn } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
@@ -163,14 +164,16 @@ export const AccountTransactionItem = ({
                 )}
               </div>
               <span className={cn('text-base font-semibold', amountClasses)}>
-                {sign}
+                <SensitiveValue size="sm">
+                  {sign}
 
-                {t(($) => $.common.inIcp, {
-                  value: formatNumber(bigIntDiv(amountE8s, E8Sn), {
-                    minFraction: 2,
-                    maxFraction: 8,
-                  }),
-                })}
+                  {t(($) => $.common.inIcp, {
+                    value: formatNumber(bigIntDiv(amountE8s, E8Sn), {
+                      minFraction: 2,
+                      maxFraction: 8,
+                    }),
+                  })}
+                </SensitiveValue>
               </span>
             </div>
           </div>

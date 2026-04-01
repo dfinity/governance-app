@@ -7,6 +7,7 @@ import { analytics } from '@features/analytics/service';
 
 import { MainLayout } from '@components/MainLayout';
 import { useIcpIndexTransactionsPolling } from '@hooks/icpIndex/useIcpIndexTransactionsPolling';
+import { useHideBalancesShortcut } from '@hooks/useHideBalancesShortcut';
 import { useLogoutShortcut } from '@hooks/useLogoutShortcut';
 import { useNewFeatureCheck } from '@hooks/useNewFeatureCheck';
 import { useScrollResetOnNavigation } from '@hooks/useScrollResetOnNavigation';
@@ -29,6 +30,7 @@ function AuthLayout() {
 
   useThemeShortcut();
   useLogoutShortcut();
+  useHideBalancesShortcut();
   useSessionCountdownToast();
   useIcpIndexTransactionsPolling();
   useScrollResetOnNavigation();

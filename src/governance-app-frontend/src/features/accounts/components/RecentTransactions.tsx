@@ -4,6 +4,7 @@ import { txConfig } from '@features/transactions/utils/txConfig';
 
 import { Badge } from '@components/badge';
 import { Card, CardContent, CardHeader } from '@components/Card';
+import { SensitiveValue } from '@components/SensitiveValue';
 import { Skeleton } from '@components/Skeleton';
 import { E8Sn } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
@@ -74,10 +75,12 @@ function TransactionRow({ tx }: { tx: AccountTransaction }) {
       </div>
 
       <span className={cn('shrink-0 text-sm font-semibold', amountClasses)}>
-        {sign}
-        {t(($) => $.common.inIcp, {
-          value: formatNumber(amountICP, { minFraction: 2, maxFraction: 8 }),
-        })}
+        <SensitiveValue size="sm">
+          {sign}
+          {t(($) => $.common.inIcp, {
+            value: formatNumber(amountICP, { minFraction: 2, maxFraction: 8 }),
+          })}
+        </SensitiveValue>
       </span>
     </div>
   );

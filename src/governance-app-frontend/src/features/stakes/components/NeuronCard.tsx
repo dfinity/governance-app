@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@components/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
+import { SensitiveValue } from '@components/SensitiveValue';
 import { Skeleton } from '@components/Skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
@@ -85,14 +86,18 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
         <CardHeader className="flex flex-row items-start justify-between space-y-0">
           <div className="flex flex-col gap-1">
             <p className="text-3xl font-bold" data-testid="neuron-card-staked-amount">
-              {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
+              <SensitiveValue>
+                {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
+              </SensitiveValue>
             </p>
             {tickersQuery.isLoading ? (
               <Skeleton className="h-5 w-20" />
             ) : (
               usdValue && (
                 <p className="text-sm text-muted-foreground">
-                  {t(($) => $.account.approxUsd, { value: usdValue })}
+                  <SensitiveValue size="sm">
+                    {t(($) => $.account.approxUsd, { value: usdValue })}
+                  </SensitiveValue>
                 </p>
               )
             )}

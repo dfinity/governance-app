@@ -15,6 +15,7 @@ import { txConfig } from '@features/transactions/utils/txConfig';
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { CopyButton } from '@components/CopyButton';
+import { SENSITIVE_PLACEHOLDER, SensitiveValue } from '@components/SensitiveValue';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
@@ -22,6 +23,7 @@ import { E8Sn, IS_TESTNET, NANOSECONDS_IN_SECOND } from '@constants/extra';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useIcpIndexAccountsTransactions } from '@hooks/icpIndex';
 import { useTickerPrices } from '@hooks/tickers';
+import { useHideBalances } from '@hooks/useHideBalances';
 import { addressBookGetAddressString } from '@utils/addressBook';
 import { bigIntDiv } from '@utils/bigInt';
 import { secondsToDate } from '@utils/date';
@@ -131,10 +133,14 @@ function AccountBalance({
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-0.5">
         <p className="text-2xl font-bold">
-          {t(($) => $.common.inIcp, { value: formatNumber(balanceICP) })}
+          <SensitiveValue>
+            {t(($) => $.common.inIcp, { value: formatNumber(balanceICP) })}
+          </SensitiveValue>
         </p>
         <p className="text-sm text-muted-foreground">
-          {t(($) => $.account.approxUsd, { value: usdValue })}
+          <SensitiveValue size="sm">
+            {t(($) => $.account.approxUsd, { value: usdValue })}
+          </SensitiveValue>
         </p>
       </div>
       <div className="flex gap-3">
@@ -160,6 +166,7 @@ function AccountBalance({
 
 function LastTransaction({ accountId }: { accountId: string }) {
   const { t } = useTranslation();
+  const { hidden } = useHideBalances();
   const { accountIds: neuronAccountIds } = useNeuronAccountsIds();
   const txQuery = useIcpIndexAccountsTransactions({
     accountIds: [accountId],
@@ -189,7 +196,9 @@ function LastTransaction({ accountId }: { accountId: string }) {
   const timestamp = Number(nanos / BigInt(NANOSECONDS_IN_SECOND));
 
   const amountICP = bigIntDiv(amountE8s, E8Sn);
-  const amount = t(($) => $.common.inIcp, { value: formatNumber(amountICP) });
+  const amount = hidden
+    ? SENSITIVE_PLACEHOLDER.sm
+    : t(($) => $.common.inIcp, { value: formatNumber(amountICP) });
 
   const { amountClasses, latestLabelKey, addressDirection } = txConfig[type];
   const counterparty = nonNullish(addressDirection)
