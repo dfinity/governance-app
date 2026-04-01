@@ -2,7 +2,7 @@ import { useExchangeRate } from './useExchangeRate';
 import { useIcpSwapPrices } from './useIcpSwapPrices';
 
 export enum TickerPricesSource {
-  BACKEND = 'Backend',
+  XRC = 'XRC',
   ICP_SWAP = 'IcpSwap',
 }
 
@@ -14,6 +14,6 @@ export const useTickerPrices = () => {
   return {
     // Fallback to IcpSwap if the backend exchange rate fails.
     tickerPrices: useFallback ? icpSwapPrices : exchangeRate,
-    tickerPricesSource: useFallback ? TickerPricesSource.ICP_SWAP : TickerPricesSource.BACKEND,
+    tickerPricesSource: useFallback ? TickerPricesSource.ICP_SWAP : TickerPricesSource.XRC,
   };
 };
