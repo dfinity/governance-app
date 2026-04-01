@@ -5,8 +5,6 @@ import {
   ArrowLeft,
   Clock,
   Link as LinkIcon,
-  MessageSquareOff,
-  ShieldBan,
   Tag,
   User,
 } from 'lucide-react';
@@ -152,8 +150,7 @@ function ProposalDetailsRouteComponent() {
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4">
                   {spamCheckResult && CheckResultKey.Abusive in spamCheckResult && (
-                    <Alert variant="danger">
-                      <ShieldBan className="size-4" />
+                    <Alert variant="warning">
                       <AlertTitle>{t(($) => $.proposal.spamWarning.abusiveTitle)}</AlertTitle>
                       <AlertDescription>
                         <p>{t(($) => $.proposal.spamWarning.reasons)}</p>
@@ -167,7 +164,6 @@ function ProposalDetailsRouteComponent() {
                   )}
                   {spamCheckResult && CheckResultKey.NonActionable in spamCheckResult && (
                     <Alert variant="warning">
-                      <MessageSquareOff className="size-4" />
                       <AlertTitle>{t(($) => $.proposal.spamWarning.nonActionableTitle)}</AlertTitle>
                       <AlertDescription>
                         <p>{t(($) => $.proposal.spamWarning.reasons)}</p>
