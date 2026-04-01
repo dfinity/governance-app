@@ -144,7 +144,7 @@ function ProposalDetailsRouteComponent() {
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4">
                   {spamCheckQuery.data && 'abusive' in spamCheckQuery.data && (
-                    <Alert className="border-red-200 bg-red-50 text-red-800 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-200 [&>svg]:text-current *:data-[slot=alert-description]:text-red-700 dark:*:data-[slot=alert-description]:text-red-300">
+                    <Alert variant="danger">
                       <ShieldBan className="size-4" />
                       <AlertTitle>
                         {t(($) => $.proposal.spamWarning.abusiveTitle)}
