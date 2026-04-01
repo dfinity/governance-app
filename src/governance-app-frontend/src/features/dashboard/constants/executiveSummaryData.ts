@@ -209,7 +209,7 @@ const MARCH_2026: MonthlyGovernanceSummary = {
     {
       icon: 'network',
       title: 'Network operations & infrastructure',
-      description: '425 rollouts completed, 10 new OS versions elected',
+      description: 'Mass OS rollouts, with minor subnet topology changes',
       highlights: [
         { value: 425, label: 'rollouts completed' },
         { value: 5, label: 'GuestOS versions' },
