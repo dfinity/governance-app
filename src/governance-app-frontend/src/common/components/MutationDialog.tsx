@@ -62,32 +62,26 @@ export function MutationDialog({
 
   const close = useCallback(() => onOpenChange(false), [onOpenChange]);
 
-  const execute = useCallback(
-    async (fn: () => Promise<unknown>) => {
-      setLastMutation({ fn });
-      setPhase(Phase.Processing);
-      try {
-        await fn();
-        setPhase(Phase.Success);
-      } catch (err) {
-        setErrorMessage(
-          err instanceof Error
-            ? mapCanisterError(err)
-            : (errorFallbackMessage ?? t(($) => $.common.unknownError)),
-        );
-        setPhase(Phase.Error);
-      }
-    },
-    [errorFallbackMessage, t],
-  );
+  const execute = async (fn: () => Promise<unknown>) => {
+    setLastMutation({ fn });
+    setPhase(Phase.Processing);
+    try {
+      await fn();
+      setPhase(Phase.Success);
+    } catch (err) {
+      setErrorMessage(
+        err instanceof Error
+          ? mapCanisterError(err)
+          : (errorFallbackMessage ?? t(($) => $.common.unknownError)),
+      );
+      setPhase(Phase.Error);
+    }
+  };
 
-  const handleOpenChange = useCallback(
-    (value: boolean) => {
-      if (isProcessing && !value) return;
-      onOpenChange(value);
-    },
-    [isProcessing, onOpenChange],
-  );
+  const handleOpenChange = (value: boolean) => {
+    if (isProcessing && !value) return;
+    onOpenChange(value);
+  };
 
   useEffect(() => {
     if (phase !== Phase.Success) return;
