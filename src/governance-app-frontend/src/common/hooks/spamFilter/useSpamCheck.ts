@@ -1,7 +1,7 @@
-import { isNullish } from '@dfinity/utils';
 import type { ActorSubclass } from '@icp-sdk/core/agent';
+import { isNullish } from '@dfinity/utils';
 
-import type { CheckResult, _SERVICE } from '@declarations/spam-filter/spam-filter.did';
+import type { _SERVICE, CheckResult } from '@declarations/spam-filter/spam-filter.did';
 
 import { useQueryThenUpdateCall } from '@hooks/useQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/query';
