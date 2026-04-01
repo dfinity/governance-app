@@ -2,7 +2,6 @@ import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
 import { Clock, Key, Lock, PlusCircle, Settings, Unlock, Wrench } from 'lucide-react';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -36,7 +35,6 @@ import { formatNumber, formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
 import { NeuronStateBadge } from '../NeuronStateBadge';
-import { NeuronDetailFollowingDialog } from './NeuronDetailFollowingDialog';
 import { NeuronDetailView } from './types';
 
 type Props = {
@@ -48,6 +46,7 @@ type Props = {
   isAutoStake: boolean;
   isHotkey: boolean;
   onNavigate: (view: NeuronDetailView) => void;
+  onShowFollowing: () => void;
 };
 
 export function NeuronDetailSummaryView({
@@ -59,6 +58,7 @@ export function NeuronDetailSummaryView({
   isAutoStake,
   isHotkey,
   onNavigate,
+  onShowFollowing,
 }: Props) {
   const { t } = useTranslation();
   const apyColor = useApyColor(apy?.cur ?? 0);
@@ -92,8 +92,6 @@ export function NeuronDetailSummaryView({
   const followeeName = uniformFollowee
     ? resolveFolloweeNames([uniformFollowee], knownNeurons)[0]
     : undefined;
-
-  const [followingDialogOpen, setFollowingDialogOpen] = useState(false);
 
   return (
     <div className="flex flex-col gap-4">
@@ -221,7 +219,7 @@ export function NeuronDetailSummaryView({
             ) : (
               <button
                 className="font-semibold text-primary hover:underline"
-                onClick={() => setFollowingDialogOpen(true)}
+                onClick={onShowFollowing}
               >
                 {t(($) => $.neuron.followingViewDetails)}
               </button>
@@ -229,15 +227,6 @@ export function NeuronDetailSummaryView({
           </InfoRow>
         )}
       </div>
-
-      {isAdvancedFollowing && (
-        <NeuronDetailFollowingDialog
-          open={followingDialogOpen}
-          onOpenChange={setFollowingDialogOpen}
-          neuron={neuron}
-          knownNeurons={knownNeurons}
-        />
-      )}
 
       {/* Quick Actions Grid */}
       <div className="grid grid-cols-2 gap-4">
