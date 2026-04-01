@@ -1,7 +1,15 @@
 import { ProposalInfo, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
-import { ArrowLeft, Clock, Link as LinkIcon, MessageSquareOff, ShieldBan, Tag, User } from 'lucide-react';
+import {
+  ArrowLeft,
+  Clock,
+  Link as LinkIcon,
+  MessageSquareOff,
+  ShieldBan,
+  Tag,
+  User,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalDetailsVoting } from '@features/proposals/components/ProposalDetailsVoting';
@@ -146,9 +154,7 @@ function ProposalDetailsRouteComponent() {
                   {spamCheckQuery.data && 'abusive' in spamCheckQuery.data && (
                     <Alert variant="danger">
                       <ShieldBan className="size-4" />
-                      <AlertTitle>
-                        {t(($) => $.proposal.spamWarning.abusiveTitle)}
-                      </AlertTitle>
+                      <AlertTitle>{t(($) => $.proposal.spamWarning.abusiveTitle)}</AlertTitle>
                       <AlertDescription>
                         <p>{t(($) => $.proposal.spamWarning.reasons)}</p>
                         <ul className="list-inside list-disc">
@@ -162,9 +168,7 @@ function ProposalDetailsRouteComponent() {
                   {spamCheckQuery.data && 'nonActionable' in spamCheckQuery.data && (
                     <Alert variant="warning">
                       <MessageSquareOff className="size-4" />
-                      <AlertTitle>
-                        {t(($) => $.proposal.spamWarning.nonActionableTitle)}
-                      </AlertTitle>
+                      <AlertTitle>{t(($) => $.proposal.spamWarning.nonActionableTitle)}</AlertTitle>
                       <AlertDescription>
                         <p>{t(($) => $.proposal.spamWarning.reasons)}</p>
                         <ul className="list-inside list-disc">

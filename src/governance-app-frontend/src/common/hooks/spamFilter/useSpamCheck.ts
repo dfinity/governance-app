@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import { isNullish } from '@dfinity/utils';
+import { useQuery } from '@tanstack/react-query';
 
 import type { CheckResult } from '@declarations/spam-filter/spam-filter.did';
 

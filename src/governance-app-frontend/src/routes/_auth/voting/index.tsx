@@ -10,7 +10,6 @@ import {
   ProposalFilter,
   validateProposalsSearch,
 } from '@features/proposals/utils';
-import { useNonConstructiveProposalIds } from '@hooks/spamFilter';
 import { AdvancedFollowingModal } from '@features/voting/components/AdvancedFollowingModal';
 import { SimpleFollowingModal } from '@features/voting/components/SimpleFollowingModal';
 import { VotingOverviewAdvanced } from '@features/voting/components/VotingOverviewAdvanced';
@@ -31,6 +30,7 @@ import { ToggleGroup, ToggleGroupItem } from '@components/ToggleGroup';
 import { DIALOG_RESET_DELAY_MS } from '@constants/extra';
 import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
+import { useNonConstructiveProposalIds } from '@hooks/spamFilter';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { warningNotification } from '@utils/notification';
