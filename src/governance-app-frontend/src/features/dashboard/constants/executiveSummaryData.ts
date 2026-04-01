@@ -12,8 +12,9 @@ import type { MonthlyGovernanceSummary } from '../types/executiveSummary';
  *   1. Gather the raw governance data for the month (proposal counts, key
  *      changes, notable community votes, etc.)
  *   2. Give the raw data to an LLM together with the prompt below.
- *   3. Paste the LLM's output as a new const (e.g., FEBRUARY_2026).
+ *   3. Paste the LLM's output as a new const (e.g., APRIL_2026).
  *   4. Update the `currentSummary` export at the bottom of this file.
+ *   5. Remove the previous month's constant (only keep the current one).
  *
  * ────────────────────────────────────────────────────────────────────────────
  * LLM PROMPT — copy everything between the ▼ markers and paste it into your
@@ -80,120 +81,6 @@ import type { MonthlyGovernanceSummary } from '../types/executiveSummary';
  *
  * ▲▲▲ END PROMPT ▲▲▲
  */
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const JANUARY_2026: MonthlyGovernanceSummary = {
-  month: 'January',
-  year: 2026,
-
-  outcomes: [
-    { status: 'approved', count: 260 },
-    { status: 'rejected', count: 7 },
-    { status: 'failed', count: 1 },
-  ],
-
-  topChanges: [
-    {
-      icon: 'network',
-      title: 'Network operations & enforcement',
-      description: '550 nodes updated across 196 rollouts',
-      highlights: [
-        { value: 11, label: 'nodes replaced' },
-        { value: 1, label: 'provider removed' },
-      ],
-    },
-    {
-      icon: 'protocol',
-      title: 'Core protocol upgrades',
-      description: 'Core governance and network changes applied',
-      highlights: [
-        { value: 4, label: 'GuestOS' },
-        { value: 3, label: 'HostOS' },
-      ],
-    },
-    {
-      icon: 'community',
-      title: 'Community governance (motions & SNS)',
-      description: 'Community and DAO proposals',
-      highlights: [
-        { value: 3, label: 'Motions passed' },
-        { value: 3, label: 'Rejected' },
-      ],
-    },
-  ],
-
-  communityHighlights: [
-    { title: 'Signal Support for Cloak DAO launch', outcome: 'passed', label: 'Passed' },
-    { title: '#mission70 Community Vote', outcome: 'passed', label: 'Passed' },
-    { title: 'EU/EEA Subnet rebranding', outcome: 'passed', label: 'Passed' },
-    { title: 'Two anti-#Mission70 motions', outcome: 'rejected', label: 'Rejected' },
-    { title: 'Creation of a G20 Subnet', outcome: 'rejected', label: 'Rejected' },
-  ],
-};
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const FEBRUARY_2026: MonthlyGovernanceSummary = {
-  month: 'February',
-  year: 2026,
-
-  outcomes: [
-    { status: 'approved', count: 403 },
-    { status: 'rejected', count: 5 },
-    { status: 'failed', count: 3 },
-  ],
-
-  topChanges: [
-    {
-      icon: 'network',
-      title: 'Network operations & infrastructure',
-      description: '344 rollouts completed, new TEE subnet and subnet recovery',
-      highlights: [
-        { value: 344, label: 'rollouts completed' },
-        { value: 6, label: 'nodes replaced' },
-        { value: 1, label: 'new subnet created' },
-      ],
-    },
-    {
-      icon: 'protocol',
-      title: 'Core protocol & app upgrades',
-      description: 'Multiple canister upgrades and 8 new replica versions',
-      highlights: [
-        { value: 5, label: 'GuestOS versions' },
-        { value: 3, label: 'HostOS versions' },
-        { value: 17, label: 'app upgrades' },
-      ],
-    },
-    {
-      icon: 'community',
-      title: 'Community governance (motions & SNS)',
-      description: 'Mission70 memory repricing passed, onicai SNS launched',
-      highlights: [
-        { value: 2, label: 'Motions passed' },
-        { value: 4, label: 'Rejected' },
-        { value: 1, label: 'SNS launched' },
-      ],
-    },
-  ],
-
-  communityHighlights: [
-    {
-      title: 'Mission70: Repricing Replicated Subnet Memory',
-      outcome: 'passed',
-      label: 'Passed',
-    },
-    {
-      title: 'II 1.0 Backward Compatibility removal',
-      outcome: 'passed',
-      label: 'Passed',
-    },
-    { title: 'onicai SNS creation', outcome: 'passed', label: 'Launch Approved' },
-    {
-      title: 'Performance Based Voting Rewards',
-      outcome: 'rejected',
-      label: 'Rejected',
-    },
-  ],
-};
 
 const MARCH_2026: MonthlyGovernanceSummary = {
   month: 'March',
