@@ -37,6 +37,11 @@ const GOVERNANCE_APP_BACKEND = {
   ADDRESS_BOOK: 'governanceAppBackendAddressBook',
 };
 
+const SPAM_FILTER = {
+  NON_CONSTRUCTIVE_PROPOSAL_IDS: 'spamFilterNonConstructiveProposalIds',
+  SPAM_CHECK: 'spamFilterSpamCheck',
+};
+
 export const QUERY_KEYS = {
   ICP_LEDGER,
   NNS_GOVERNANCE,
@@ -44,6 +49,7 @@ export const QUERY_KEYS = {
   ICP_INDEX,
   EXTERNAL_SERVICES,
   GOVERNANCE_APP_BACKEND,
+  SPAM_FILTER,
 };
 
 export const stringifyKeys = (keys: readonly unknown[]) => {

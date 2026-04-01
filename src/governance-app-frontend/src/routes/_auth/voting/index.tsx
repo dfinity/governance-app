@@ -30,6 +30,7 @@ import { ToggleGroup, ToggleGroupItem } from '@components/ToggleGroup';
 import { DIALOG_RESET_DELAY_MS } from '@constants/extra';
 import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
+import { useNonConstructiveProposalIds } from '@hooks/spamFilter';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { warningNotification } from '@utils/notification';
@@ -68,6 +69,15 @@ function Voting() {
   const activeQuery = proposalFilter === ProposalFilter.Open ? openProposals : allProposals;
 
   const { features } = useAdvancedFeatures();
+  const showNonConstructiveProposals = features[AdvancedFeature.ShowNonConstructiveProposals];
+
+  const nonConstructiveIds = useNonConstructiveProposalIds().data?.response;
+  const spamProposalIds = nonConstructiveIds
+    ? new Set(Array.from(nonConstructiveIds.abusive, String))
+    : undefined;
+  const nonActionableProposalIds = nonConstructiveIds
+    ? new Set(Array.from(nonConstructiveIds.non_actionable, String))
+    : undefined;
   const isAdvancedFollowing = features[AdvancedFeature.AdvancedFollowing];
 
   const neuronsQuery = useGovernanceNeurons();
@@ -215,21 +225,38 @@ function Voting() {
             {(data) => (
               <>
                 {data?.pages?.map((page) =>
-                  page?.response.proposals.map((proposal) => (
-                    <div key={proposal.id?.toString()} className="w-full">
-                      <Link
-                        to="/voting/proposals/$id"
-                        params={{ id: proposal.id! }}
-                        search={{
-                          showProposals,
-                          proposalFilter,
-                        }}
-                        className="w-full"
-                      >
-                        <ProposalListItem proposal={proposal} certified={page?.certified} />
-                      </Link>
-                    </div>
-                  )),
+                  page?.response.proposals
+                    .filter((proposal) => {
+                      if (showNonConstructiveProposals) return true;
+                      const id = proposal.id?.toString() ?? '';
+                      return !spamProposalIds?.has(id) && !nonActionableProposalIds?.has(id);
+                    })
+                    .map((proposal) => {
+                      const id = proposal.id?.toString() ?? '';
+                      const isSpam = spamProposalIds?.has(id);
+                      const isNonActionable = nonActionableProposalIds?.has(id);
+
+                      return (
+                        <div key={id} className="w-full">
+                          <Link
+                            to="/voting/proposals/$id"
+                            params={{ id: proposal.id! }}
+                            search={{
+                              showProposals,
+                              proposalFilter,
+                            }}
+                            className="w-full"
+                          >
+                            <ProposalListItem
+                              proposal={proposal}
+                              certified={page?.certified}
+                              isSpam={isSpam}
+                              isNonActionable={isNonActionable}
+                            />
+                          </Link>
+                        </div>
+                      );
+                    }),
                 )}
 
                 {activeQuery.hasNextPage && (

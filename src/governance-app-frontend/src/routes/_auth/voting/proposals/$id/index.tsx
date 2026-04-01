@@ -12,6 +12,7 @@ import {
   validateProposalsSearch,
 } from '@features/proposals/utils';
 
+import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
@@ -20,6 +21,7 @@ import { MarkdownRenderer } from '@components/MarkdownRenderer';
 import { MultipleSkeletons } from '@components/MultipleSkeletons';
 import { QueryStates } from '@components/QueryStates';
 import { useGovernanceProposal } from '@hooks/governance/useGovernanceProposal';
+import { CheckResultKey, useSpamCheck } from '@hooks/spamFilter';
 import { CertifiedData } from '@typings/queries';
 import { stringToBigInt } from '@utils/bigInt';
 import { safeParseUrl } from '@utils/urls';
@@ -61,6 +63,7 @@ function ProposalDetailsRouteComponent() {
   const proposalQuery = useGovernanceProposal({
     proposalId: id!,
   });
+  const spamCheckResult = useSpamCheck(id).data?.response;
 
   return (
     <div className="flex flex-col gap-6">
@@ -139,7 +142,33 @@ function ProposalDetailsRouteComponent() {
                     )}
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex flex-col gap-4">
+                  {spamCheckResult && CheckResultKey.Abusive in spamCheckResult && (
+                    <Alert variant="warning">
+                      <AlertTitle>{t(($) => $.proposal.spamWarning.abusiveTitle)}</AlertTitle>
+                      <AlertDescription>
+                        <p>{t(($) => $.proposal.spamWarning.reasons)}</p>
+                        <ul className="list-inside list-disc">
+                          {spamCheckResult.abusive.map((reason, i) => (
+                            <li key={i}>{reason}</li>
+                          ))}
+                        </ul>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  {spamCheckResult && CheckResultKey.NonActionable in spamCheckResult && (
+                    <Alert variant="warning">
+                      <AlertTitle>{t(($) => $.proposal.spamWarning.nonActionableTitle)}</AlertTitle>
+                      <AlertDescription>
+                        <p>{t(($) => $.proposal.spamWarning.reasons)}</p>
+                        <ul className="list-inside list-disc">
+                          {spamCheckResult.nonActionable.map((reason, i) => (
+                            <li key={i}>{reason}</li>
+                          ))}
+                        </ul>
+                      </AlertDescription>
+                    </Alert>
+                  )}
                   <MarkdownRenderer content={proposal.proposal?.summary || ''} />
                 </CardContent>
               </Card>

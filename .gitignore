@@ -17,6 +17,7 @@
 src/declarations/*
 # exceptions to the above rule, needed for the nns-dapp subaccount feature
 !src/declarations/nns-dapp/
+!src/declarations/spam-filter/
 
 # rust
 target/
