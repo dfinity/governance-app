@@ -7,17 +7,9 @@ import { idlFactory } from '@declarations/spam-filter/spam-filter.did.js';
 import { CANISTER_ID_SPAM_FILTER } from '@constants/canisterIds';
 import { useAgentPool } from '@hooks/useAgentPool';
 import { CanisterStatus } from '@typings/canisters';
-import { toCertifiedIdlFactory } from '@utils/candid';
 import { errorMessage } from '@utils/error';
 
-const certifiedIdlFactory = toCertifiedIdlFactory(idlFactory);
-
-type SpamFilterCanister = {
-  service: ActorSubclass<_SERVICE>;
-  certifiedService: ActorSubclass<_SERVICE>;
-};
-
-export const useSpamFilterCanister = (): CanisterStatus<SpamFilterCanister> => {
+export const useSpamFilterCanister = (): CanisterStatus<ActorSubclass<_SERVICE>> => {
   if (!CANISTER_ID_SPAM_FILTER)
     throw errorMessage('useSpamFilterCanister', 'the canister Id is not defined');
 
@@ -27,18 +19,11 @@ export const useSpamFilterCanister = (): CanisterStatus<SpamFilterCanister> => {
   if (!agent) return { ready: false, authenticated: false, canister: undefined };
 
   const canisterId = Principal.fromText(CANISTER_ID_SPAM_FILTER);
-  const service = Actor.createActor<_SERVICE>(idlFactory, { agent, canisterId });
-  const certifiedService = Actor.createActor<_SERVICE>(certifiedIdlFactory, {
-    agent,
-    canisterId,
-  });
+  const canister = Actor.createActor<_SERVICE>(idlFactory, { agent, canisterId });
 
   return {
     ready: true,
     authenticated: !!authenticated.agent,
-    canister: {
-      service,
-      certifiedService,
-    },
+    canister,
   };
 };

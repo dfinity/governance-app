@@ -23,6 +23,13 @@
   "no": "No",
   "mixed": "Mixed",
   "ariaLabelVote": "Vote {{vote}} on proposal {{proposalId}}",
+  "spamBadge": "Spam",
+  "nonActionableBadge": "Non-actionable",
+  "spamWarning": {
+    "abusiveTitle": "This proposal has been flagged as spam",
+    "nonActionableTitle": "This proposal has been flagged as non-actionable",
+    "reasons": "Reasons:"
+  },
   "selfDescribingAction": {
     "empty": "empty",
     "null": "null",

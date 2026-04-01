@@ -39,6 +39,7 @@ const GOVERNANCE_APP_BACKEND = {
 
 const SPAM_FILTER = {
   NON_CONSTRUCTIVE_PROPOSAL_IDS: 'spamFilterNonConstructiveProposalIds',
+  SPAM_CHECK: 'spamFilterSpamCheck',
 };
 
 export const QUERY_KEYS = {

@@ -106,6 +106,7 @@
   "newFeatureCheck": {
     "detected": "{{feature}} detected! You can enable it in the Settings.",
     "subaccounts": "Multiple accounts",
-    "advancedFollowing": "Advanced following"
+    "advancedFollowing": "Advanced following",
+    "showSpamProposals": "Show all proposals"
   }
 }

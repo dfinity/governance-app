@@ -4,6 +4,8 @@ import {
   CheckCircle,
   Clock,
   Loader2,
+  MessageSquareOff,
+  ShieldBan,
   Tag,
   ThumbsDown,
   ThumbsUp,
@@ -26,9 +28,11 @@ import { getProposalStatusColor, getProposalTimeLeftInSeconds } from '../utils';
 type Props = {
   proposal: ProposalInfo;
   certified?: boolean;
+  isSpam?: boolean;
+  isNonActionable?: boolean;
 };
 
-export function ProposalListItem({ proposal, certified }: Props) {
+export function ProposalListItem({ proposal, certified, isSpam, isNonActionable }: Props) {
   const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
   const [votingFor, setVotingFor] = useState<Vote.No | Vote.Yes | undefined>();
@@ -99,6 +103,18 @@ export function ProposalListItem({ proposal, certified }: Props) {
               <Tag className="size-3.5" />
               {Topic[proposal.topic]}
             </Badge>
+            {isSpam && (
+              <Badge className="gap-1.5 border-transparent bg-red-100 font-normal text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                <ShieldBan className="size-3.5" />
+                {t(($) => $.proposal.spamBadge)}
+              </Badge>
+            )}
+            {isNonActionable && (
+              <Badge className="gap-1.5 border-transparent bg-amber-100 font-normal text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                <MessageSquareOff className="size-3.5" />
+                {t(($) => $.proposal.nonActionableBadge)}
+              </Badge>
+            )}
           </div>
 
           <div className="flex w-full min-w-[200px] flex-1 items-center gap-2 lg:ml-auto lg:w-auto lg:max-w-[500px]">

@@ -1,7 +1,7 @@
 import { ProposalInfo, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
-import { ArrowLeft, Clock, Link as LinkIcon, Tag, User } from 'lucide-react';
+import { ArrowLeft, Clock, Link as LinkIcon, MessageSquareOff, ShieldBan, Tag, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalDetailsVoting } from '@features/proposals/components/ProposalDetailsVoting';
@@ -12,6 +12,7 @@ import {
   validateProposalsSearch,
 } from '@features/proposals/utils';
 
+import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
@@ -20,6 +21,7 @@ import { MarkdownRenderer } from '@components/MarkdownRenderer';
 import { MultipleSkeletons } from '@components/MultipleSkeletons';
 import { QueryStates } from '@components/QueryStates';
 import { useGovernanceProposal } from '@hooks/governance/useGovernanceProposal';
+import { useSpamCheck } from '@hooks/spamFilter';
 import { CertifiedData } from '@typings/queries';
 import { stringToBigInt } from '@utils/bigInt';
 import { safeParseUrl } from '@utils/urls';
@@ -61,6 +63,7 @@ function ProposalDetailsRouteComponent() {
   const proposalQuery = useGovernanceProposal({
     proposalId: id!,
   });
+  const spamCheckQuery = useSpamCheck(id);
 
   return (
     <div className="flex flex-col gap-6">
@@ -139,7 +142,39 @@ function ProposalDetailsRouteComponent() {
                     )}
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex flex-col gap-4">
+                  {spamCheckQuery.data && 'abusive' in spamCheckQuery.data && (
+                    <Alert className="border-red-200 bg-red-50 text-red-800 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-200 [&>svg]:text-current *:data-[slot=alert-description]:text-red-700 dark:*:data-[slot=alert-description]:text-red-300">
+                      <ShieldBan className="size-4" />
+                      <AlertTitle>
+                        {t(($) => $.proposal.spamWarning.abusiveTitle)}
+                      </AlertTitle>
+                      <AlertDescription>
+                        <p>{t(($) => $.proposal.spamWarning.reasons)}</p>
+                        <ul className="list-inside list-disc">
+                          {spamCheckQuery.data.abusive.map((reason, i) => (
+                            <li key={i}>{reason}</li>
+                          ))}
+                        </ul>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  {spamCheckQuery.data && 'nonActionable' in spamCheckQuery.data && (
+                    <Alert variant="warning">
+                      <MessageSquareOff className="size-4" />
+                      <AlertTitle>
+                        {t(($) => $.proposal.spamWarning.nonActionableTitle)}
+                      </AlertTitle>
+                      <AlertDescription>
+                        <p>{t(($) => $.proposal.spamWarning.reasons)}</p>
+                        <ul className="list-inside list-disc">
+                          {spamCheckQuery.data.nonActionable.map((reason, i) => (
+                            <li key={i}>{reason}</li>
+                          ))}
+                        </ul>
+                      </AlertDescription>
+                    </Alert>
+                  )}
                   <MarkdownRenderer content={proposal.proposal?.summary || ''} />
                 </CardContent>
               </Card>
