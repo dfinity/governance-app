@@ -14,7 +14,7 @@ type FeatureDefinition = {
 const FEATURES: FeatureDefinition[] = [
   { key: AdvancedFeature.Subaccounts, icon: Layers },
   { key: AdvancedFeature.AdvancedFollowing, icon: Users },
-  { key: AdvancedFeature.ShowSpamProposals, icon: ShieldAlert },
+  { key: AdvancedFeature.ShowNonConstructiveProposals, icon: ShieldAlert },
 ];
 
 export const AdvancedFeaturesCard = () => {

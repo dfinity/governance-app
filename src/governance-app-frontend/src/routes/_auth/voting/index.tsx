@@ -78,7 +78,7 @@ function Voting() {
     : undefined;
 
   const { features } = useAdvancedFeatures();
-  const showSpamProposals = features[AdvancedFeature.ShowSpamProposals];
+  const showNonConstructiveProposals = features[AdvancedFeature.ShowNonConstructiveProposals];
   const isAdvancedFollowing = features[AdvancedFeature.AdvancedFollowing];
 
   const neuronsQuery = useGovernanceNeurons();
@@ -228,7 +228,7 @@ function Voting() {
                 {data?.pages?.map((page) =>
                   page?.response.proposals
                     .filter((proposal) => {
-                      if (showSpamProposals) return true;
+                      if (showNonConstructiveProposals) return true;
                       const id = proposal.id?.toString() ?? '';
                       return !spamProposalIds?.has(id) && !nonActionableProposalIds?.has(id);
                     })

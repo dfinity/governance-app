@@ -91,7 +91,7 @@
         "disabled": "Advanced following disabled",
         "disabledDescription": "Per-topic following management is now hidden. Your existing following configuration is preserved."
       },
-      "showSpamProposals": {
+      "showNonConstructiveProposals": {
         "label": "Show all proposals",
         "description": "Display proposals flagged as spam or non-constructive. These are hidden by default.",
         "aria": {
