@@ -1,4 +1,9 @@
 {
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "description": "Please refresh the page. If the problem persists, try clearing your browser cache.",
+    "tryAgain": "Try again"
+  },
   "nnsGovernanceErrors": {
     "CouldNotClaimNeuronError": "Could not find the neuron to claim.",
     "InsufficientAmountError": "The amount is not enough.",
