@@ -39,6 +39,8 @@ export const SECONDS_IN_DAY = 60 * 60 * 24;
 export const SECONDS_IN_YEAR = ((4 * 365 + 1) * SECONDS_IN_DAY) / 4;
 export const SECONDS_IN_HALF_YEAR = SECONDS_IN_YEAR / 2;
 export const SECONDS_IN_MONTH = SECONDS_IN_YEAR / 12;
+export const SECONDS_IN_TWO_WEEKS = SECONDS_IN_DAY * 14;
+export const SECONDS_IN_TWO_YEARS = SECONDS_IN_YEAR * 2;
 export const SECONDS_IN_FOUR_YEARS = SECONDS_IN_YEAR * 4;
 export const SECONDS_IN_EIGHT_YEARS = SECONDS_IN_YEAR * 8;
 export const DAYS_IN_AVG_YEAR = 365.25;
@@ -47,10 +49,15 @@ export const DAYS_IN_AVG_YEAR = 365.25;
 export const NNS_GENESIS_TIMESTAMP_SECONDS = 1_620_604_800; // May 10, 2021
 export const NNS_INITIAL_REWARD_RATE = 0.1; // 10%
 export const NNS_FINAL_REWARD_RATE = 0.05; // 5%
+export const POOL_REDUCTION_FACTOR = 0.635;
 
-// Neuron bonuses
-export const MAX_DISSOLVE_DELAY_BONUS = 1; // +100%
+// Neuron bonuses (Mission 70: quadratic dissolve delay bonus up to 3x over 2 years)
+export const MAX_DISSOLVE_DELAY_BONUS = 2; // +200% (total multiplier = 1 + 2 = 3x at max dissolve delay)
 export const MAX_AGE_BONUS = 0.25; // +25%
+
+// 8-year gang bonus: 10% of snapshotted base, expires end of 2030
+export const EIGHT_YEAR_GANG_BONUS_RATE = 0.1;
+export const EIGHT_YEAR_GANG_BONUS_EXPIRY_SECONDS = 1_924_991_999; // 2030-12-31T23:59:59Z
 
 // Local Storage Keys
 export const MANUAL_LOGOUT_KEY = 'nns-manual-logout';
