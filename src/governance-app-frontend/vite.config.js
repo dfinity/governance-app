@@ -149,5 +149,15 @@ export default defineConfig({
     exclude: ['./node_modules', './dist', './tests/e2e/**'],
     // Run before each test file
     setupFiles: ['vitest.setup.ts'],
+    // The governance-app-backend declarations are DFX-generated and not committed to git.
+    // Redirect to a minimal mock so tests that transitively import the IDL factory still run.
+    alias: [
+      {
+        find: '@declarations/governance-app-backend/governance-app-backend.did.js',
+        replacement: fileURLToPath(
+          new URL('./tests/mocks/governance-app-backend.did.js', import.meta.url),
+        ),
+      },
+    ],
   },
 });

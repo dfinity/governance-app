@@ -43,8 +43,7 @@ export const IcpPriceCard = () => {
               >
                 <span>{isPositive ? '▲' : '▼'}</span>
                 {isPositive ? '+' : ''}
-                {formatNumber(change)}%{' '}
-                ({t(($) => $.home.icpPrice24h)})
+                {formatNumber(change)}% ({t(($) => $.home.icpPrice24h)})
               </p>
             )}
           </>
