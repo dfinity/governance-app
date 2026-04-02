@@ -6,11 +6,11 @@ export enum StakingWizardStep {
 }
 
 export enum StakingWizardDissolveDelayPreset {
+  OneMonth = 1,
+  ThreeMonths = 3,
   SixMonths = 6,
   OneYear = 12,
   TwoYears = 24,
-  FourYears = 48,
-  EightYears = 96,
 }
 
 export enum StakingWizardMaturityMode {

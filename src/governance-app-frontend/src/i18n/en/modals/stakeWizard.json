@@ -11,11 +11,11 @@
       "title": "Set dissolve delay",
       "description": "Longer dissolve delays mint higher rewards.",
       "presets": {
+        "1month": "1 month",
+        "3months": "3 months",
         "6months": "6 months",
         "1year": "1 year",
-        "2years": "2 years",
-        "4years": "4 years",
-        "8years": "8 years"
+        "2years": "2 years"
       }
     },
     "configuration": {

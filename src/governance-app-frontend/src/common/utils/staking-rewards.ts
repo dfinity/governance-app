@@ -25,6 +25,7 @@ import {
   SECONDS_IN_EIGHT_YEARS,
   SECONDS_IN_FOUR_YEARS,
   SECONDS_IN_MONTH,
+  SECONDS_IN_TWO_WEEKS,
   SECONDS_IN_TWO_YEARS,
 } from '@constants/extra';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
@@ -48,7 +49,7 @@ import { logWithTimestamp } from '@/dev/log';
 
 ////////////// STAKING FLOW APY COMBINATIONS
 
-const stakingFlowApyDissolveDelayInMonths = [6, 12, 24, 48, 96];
+const stakingFlowApyDissolveDelayInMonths = [1, 3, 6, 12, 24];
 
 type StakingFlowApyPreview = Record<
   (typeof stakingFlowApyDissolveDelayInMonths)[number],
@@ -498,7 +499,9 @@ const getNeuronBonus = (
   });
 
 const getRewardParams = (params: StakingRewardCalcParams) => ({
-  minDissolve: params.economics.votingPowerEconomics?.neuronMinimumDissolveDelayToVoteSeconds ?? 0n,
+  // minDissolve: params.economics.votingPowerEconomics?.neuronMinimumDissolveDelayToVoteSeconds ?? 0n,
+  // @TODO UPDATE MISSION 70
+  minDissolve: SECONDS_IN_TWO_WEEKS,
   minStake: params.economics.neuronMinimumStake ?? 0n,
   maxDissolve: SECONDS_IN_TWO_YEARS,
   maxDissolveBonus: MAX_DISSOLVE_DELAY_BONUS,
