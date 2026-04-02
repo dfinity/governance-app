@@ -37,7 +37,7 @@ export const StakingRewardsProvider = ({ children }: { children: ReactNode }) =>
         isAuthenticated: !!identity,
         economics,
         neurons,
-        // LOCAL: mocked value since the PocketIC data is off.
+        // LOCAL: mocked value since the PocketIC data is off. @TODO UPDATE MISSION 70
         totalVotingPower: IS_TESTNET ? 50_276_005_084_190_970n : totalVotingPower,
         // LOCAL: mocked value since the PocketIC data is off.
         governanceMetrics: IS_TESTNET
