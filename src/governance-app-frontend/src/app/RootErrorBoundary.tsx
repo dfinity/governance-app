@@ -1,9 +1,11 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 
-import { Button } from '@components/button';
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
+
+import { Button } from '@components/button';
 import { firstComponentFromStack } from '@utils/error';
+
 import i18n from '@/i18n/config';
 
 type Props = {
