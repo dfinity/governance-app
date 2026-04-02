@@ -20,10 +20,12 @@ import {
   NNS_FINAL_REWARD_RATE,
   NNS_GENESIS_TIMESTAMP_SECONDS,
   NNS_INITIAL_REWARD_RATE,
+  POOL_REDUCTION_FACTOR,
   SECONDS_IN_DAY,
   SECONDS_IN_EIGHT_YEARS,
   SECONDS_IN_FOUR_YEARS,
   SECONDS_IN_MONTH,
+  SECONDS_IN_TWO_YEARS,
 } from '@constants/extra';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { nowInSeconds } from '@utils/date';
@@ -442,7 +444,7 @@ export const getPoolReward = (params: {
     rewardRate = finalRewardRate + rateDiff * (remainingDays / durationDays) ** 2;
   }
 
-  return (totalSupply * rewardRate) / DAYS_IN_AVG_YEAR;
+  return ((totalSupply * rewardRate) / DAYS_IN_AVG_YEAR) * POOL_REDUCTION_FACTOR;
 };
 
 const getTokenReward = (
@@ -494,7 +496,7 @@ const getNeuronBonus = (
 const getRewardParams = (params: StakingRewardCalcParams) => ({
   minDissolve: params.economics.votingPowerEconomics?.neuronMinimumDissolveDelayToVoteSeconds ?? 0n,
   minStake: params.economics.neuronMinimumStake ?? 0n,
-  maxDissolve: SECONDS_IN_EIGHT_YEARS,
+  maxDissolve: SECONDS_IN_TWO_YEARS,
   maxDissolveBonus: MAX_DISSOLVE_DELAY_BONUS,
   maxAge: SECONDS_IN_FOUR_YEARS,
   maxAgeBonus: MAX_AGE_BONUS,
