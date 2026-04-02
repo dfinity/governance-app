@@ -31,6 +31,7 @@ import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { nowInSeconds } from '@utils/date';
 import {
   cloneNeurons,
+  getEightYearGangBonusE8s,
   getNeuronBonusRatio,
   getNeuronId,
   getNeuronStakeAfterFeesE8s,
@@ -376,7 +377,10 @@ const getNeuronsRewardEstimate = (
           getDate(i, forceInitialDate),
         )
       ) {
-        const fullStake = getNeuronTotalStakeAfterFeesE8s(neuron);
+        const referenceDate = getDate(i, forceInitialDate);
+        const baseStake = getNeuronTotalStakeAfterFeesE8s(neuron);
+        const eightYearGangExtra = getEightYearGangBonusE8s(neuron, referenceDate);
+        const fullStake = baseStake + eightYearGangExtra;
         if (fullStake > 0n) {
           const votingPowerRatio = 1 + getNeuronBonus(params, neuron, i, forceInitialDate);
           neuronVotingPower = bigIntMul(fullStake, votingPowerRatio, 20);

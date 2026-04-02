@@ -3,7 +3,13 @@ import { nonNullish } from '@dfinity/utils';
 
 import { FOLLOWABLE_TOPIC_SET } from '@features/voting/utils/topicFollowing';
 
-import { E8Sn, ICP_TRANSACTION_FEE_E8Sn, SECONDS_IN_YEAR } from '@constants/extra';
+import {
+  E8Sn,
+  EIGHT_YEAR_GANG_BONUS_EXPIRY_SECONDS,
+  EIGHT_YEAR_GANG_BONUS_RATE,
+  ICP_TRANSACTION_FEE_E8Sn,
+  SECONDS_IN_YEAR,
+} from '@constants/extra';
 import { ICP_MAX_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { bigIntDiv, bigIntMax } from '@utils/bigInt';
 import { nowInSeconds } from '@utils/date';
@@ -83,6 +89,28 @@ export const getNeuronIsDissolving = (neuron: NeuronInfo): boolean => {
 
 export const getNeuronIsMaxDissolveDelay = (neuron: NeuronInfo): boolean => {
   return neuron.dissolveDelaySeconds >= BigInt(ICP_MAX_DISSOLVE_DELAY_SECONDS);
+};
+
+/**
+ * Returns the 8-year gang bonus in e8s to be added to the effective stake.
+ * The bonus = eightYearGangBonusBaseE8s * EIGHT_YEAR_GANG_BONUS_RATE, subject to:
+ * - The neuron is not dissolving (bonus is lost once dissolving starts, even if re-locked later)
+ * - The field being > 0 (neuron has the 8y gang flag)
+ * - The reference date being before the expiry (end of 2030)
+ *
+ * The SDK doesn't expose this field yet; we access it via a type cast.
+ */
+export const getEightYearGangBonusE8s = (neuron: NeuronInfo, referenceDate: Date): bigint => {
+  if (getNeuronIsDissolving(neuron)) return 0n;
+
+  const referenceDateSeconds = Math.floor(referenceDate.getTime() / 1000);
+  if (referenceDateSeconds > EIGHT_YEAR_GANG_BONUS_EXPIRY_SECONDS) return 0n;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- field not yet in SDK types @TODO UPDATE SDK
+  const base: bigint = (neuron.fullNeuron as any)?.eightYearGangBonusBaseE8s ?? 0n;
+  if (base <= 0n) return 0n;
+
+  return BigInt(Math.floor(Number(base) * EIGHT_YEAR_GANG_BONUS_RATE));
 };
 
 export const getNeuronDissolveDelaySeconds = (neuron: NeuronInfo, referenceDate?: Date): bigint => {
