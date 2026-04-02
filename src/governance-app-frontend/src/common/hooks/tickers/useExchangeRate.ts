@@ -48,8 +48,13 @@ export const parseExchangeRateResponse = (response: IcpExchangeRateResponse): To
   }
 
   const oneDayAgoRate = response.one_day_ago[0];
-  const previousUsd =
-    nonNullish(oneDayAgoRate) ? Number(oneDayAgoRate.rate_e8s) / E8S : undefined;
+  let previousUsd: number | undefined;
+  if (nonNullish(oneDayAgoRate)) {
+    const value = Number(oneDayAgoRate.rate_e8s) / E8S;
+    if (value > 0 && Number.isFinite(value)) {
+      previousUsd = value;
+    }
+  }
 
   const result: TokenPrices = new Map();
   result.set(CANISTER_ID_ICP_LEDGER, { _name: 'ICP', icp: 1, usd: icpPriceUsd, previousUsd });

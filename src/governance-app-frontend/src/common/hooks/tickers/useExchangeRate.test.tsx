@@ -61,6 +61,32 @@ describe('parseExchangeRateResponse', () => {
     ).toThrow('No current exchange rate available');
   });
 
+  it('Returns undefined previousUsd when one_day_ago rate is invalid.', () => {
+    const result = parseExchangeRateResponse({
+      current: [
+        {
+          rate_e8s: 227_079_136n,
+          timestamp_seconds: 1_774_870_800n,
+          updated_at_seconds: 1_774_870_850n,
+        },
+      ],
+      one_day_ago: [
+        {
+          rate_e8s: 0n,
+          timestamp_seconds: 1_774_784_400n,
+          updated_at_seconds: 1_774_870_864n,
+        },
+      ],
+    });
+
+    expect(result.get(CANISTER_ID_ICP_LEDGER!)).toEqual({
+      _name: 'ICP',
+      icp: 1,
+      usd: 2.27079136,
+      previousUsd: undefined,
+    });
+  });
+
   it('Throws when rate is zero.', () => {
     expect(() =>
       parseExchangeRateResponse({
