@@ -3,7 +3,8 @@ import { nonNullish } from '@dfinity/utils';
 
 import { FOLLOWABLE_TOPIC_SET } from '@features/voting/utils/topicFollowing';
 
-import { E8Sn, ICP_TRANSACTION_FEE_E8Sn, SECONDS_IN_EIGHT_YEARS } from '@constants/extra';
+import { E8Sn, ICP_TRANSACTION_FEE_E8Sn, SECONDS_IN_YEAR } from '@constants/extra';
+import { ICP_MAX_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { bigIntDiv, bigIntMax } from '@utils/bigInt';
 import { nowInSeconds } from '@utils/date';
 import { shortenId } from '@utils/id';
@@ -81,7 +82,7 @@ export const getNeuronIsDissolving = (neuron: NeuronInfo): boolean => {
 };
 
 export const getNeuronIsMaxDissolveDelay = (neuron: NeuronInfo): boolean => {
-  return neuron.dissolveDelaySeconds >= BigInt(SECONDS_IN_EIGHT_YEARS);
+  return neuron.dissolveDelaySeconds >= BigInt(ICP_MAX_DISSOLVE_DELAY_SECONDS);
 };
 
 export const getNeuronDissolveDelaySeconds = (neuron: NeuronInfo, referenceDate?: Date): bigint => {
@@ -149,8 +150,14 @@ export const getNeuronBonusRatio = (
   const ageSeconds = getNeuronAgeSeconds(neuron, referenceDate);
   const agingBonus = Math.min(ageSeconds / ageMax, 1) * ageBonus;
 
+  // Mission 70: quadratic dissolve delay bonus f(x) = a * x^2 + 1
+  // where a = dissolveBonus / maxDelayYears^2
   const dissolveSeconds = getNeuronDissolveDelaySeconds(neuron, referenceDate);
-  const dissolvingBonus = Math.min(Number(dissolveSeconds) / dissolveMax, 1) * dissolveBonus;
+  const dissolveMaxYears = dissolveMax / SECONDS_IN_YEAR;
+  const dissolveYears = Math.min(Number(dissolveSeconds) / SECONDS_IN_YEAR, dissolveMaxYears);
+  const a = dissolveBonus / dissolveMaxYears ** 2;
+  const dissolvingBonus = a * dissolveYears ** 2;
+
   return (1 + dissolvingBonus) * (1 + agingBonus) - 1;
 };
 
