@@ -449,7 +449,7 @@ export const getPoolReward = (params: {
     rewardRate = finalRewardRate + rateDiff * (remainingDays / durationDays) ** 2;
   }
 
-  return ((totalSupply * rewardRate) / DAYS_IN_AVG_YEAR) * POOL_REDUCTION_FACTOR;
+  return (totalSupply * rewardRate * POOL_REDUCTION_FACTOR) / DAYS_IN_AVG_YEAR;
 };
 
 const getTokenReward = (
@@ -501,7 +501,7 @@ const getNeuronBonus = (
 const getRewardParams = (params: StakingRewardCalcParams) => ({
   // minDissolve: params.economics.votingPowerEconomics?.neuronMinimumDissolveDelayToVoteSeconds ?? 0n,
   // @TODO UPDATE MISSION 70
-  minDissolve: SECONDS_IN_TWO_WEEKS,
+  minDissolve: BigInt(SECONDS_IN_TWO_WEEKS),
   minStake: params.economics.neuronMinimumStake ?? 0n,
   maxDissolve: SECONDS_IN_TWO_YEARS,
   maxDissolveBonus: MAX_DISSOLVE_DELAY_BONUS,

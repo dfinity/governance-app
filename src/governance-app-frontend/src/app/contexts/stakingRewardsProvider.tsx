@@ -41,7 +41,7 @@ export const StakingRewardsProvider = ({ children }: { children: ReactNode }) =>
         totalVotingPower: IS_TESTNET ? 50_276_005_084_190_970n : totalVotingPower,
         // LOCAL: mocked value since the PocketIC data is off.
         governanceMetrics: IS_TESTNET
-          ? ({ totalSupplyIcp: 534_809_202n } as unknown as GovernanceCachedMetrics)
+          ? ({ totalSupplyIcp: 551_000_000n } as unknown as GovernanceCachedMetrics)
           : governanceMetrics,
       });
       setData(data);
