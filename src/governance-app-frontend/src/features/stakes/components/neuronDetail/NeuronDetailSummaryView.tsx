@@ -26,6 +26,7 @@ import { AdvancedFeature } from '@typings/advancedFeatures';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatTimestampToLocalDate } from '@utils/date';
 import {
+  getEightYearGangBonusE8s,
   getNeuronFreeMaturityE8s,
   getNeuronStakeAfterFeesE8s,
   getNeuronStakedMaturityE8s,
@@ -158,6 +159,11 @@ export function NeuronDetailSummaryView({
             <Skeleton className="h-5 w-16" />
           ) : nonNullish(apy) && apyColor.ready ? (
             <div className="flex items-center gap-2">
+              {getEightYearGangBonusE8s(neuron, new Date()) > 0n && (
+                <span className="rounded-sm border border-foreground/20 bg-foreground/5 px-1.5 py-0.5 text-[10px] font-bold text-foreground uppercase">
+                  8Y Gang
+                </span>
+              )}
               <span className="font-semibold" style={{ color: apyColor.textColor }}>
                 {formatPercentage(apy.cur)}
               </span>
