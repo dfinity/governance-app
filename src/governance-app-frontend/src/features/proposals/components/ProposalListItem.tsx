@@ -104,7 +104,7 @@ export function ProposalListItem({ proposal, certified, isSpam, isNonActionable 
               {Topic[proposal.topic]}
             </Badge>
             {isSpam && (
-              <Badge className="gap-1.5 border-transparent bg-red-100 font-normal text-red-800 dark:bg-red-900/30 dark:text-red-400">
+              <Badge className="gap-1.5 border-transparent bg-amber-100 font-normal text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
                 <ShieldBan className="size-3.5" />
                 {t(($) => $.proposal.spamBadge)}
               </Badge>
