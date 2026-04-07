@@ -5,7 +5,7 @@ import { Card, CardContent } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { useTickerPrices } from '@hooks/tickers';
-import { formatNumber } from '@utils/numbers';
+import { formatNumber, formatPercentage } from '@utils/numbers';
 
 export const IcpPriceCard = () => {
   const { t } = useTranslation();
@@ -16,7 +16,7 @@ export const IcpPriceCard = () => {
 
   const change =
     icpPrice?.previousUsd && icpPrice.usd
-      ? ((icpPrice.usd - icpPrice.previousUsd) / icpPrice.previousUsd) * 100
+      ? (icpPrice.usd - icpPrice.previousUsd) / icpPrice.previousUsd
       : undefined;
 
   const isPositive = nonNullish(change) && change >= 0;
@@ -42,8 +42,7 @@ export const IcpPriceCard = () => {
                 className={`mt-1 flex items-center gap-1 text-sm font-medium ${isPositive ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}`}
               >
                 <span>{isPositive ? '▲' : '▼'}</span>
-                {isPositive ? '+' : ''}
-                {formatNumber(change)}% ({t(($) => $.home.icpPrice24h)})
+                {formatPercentage(Math.abs(change))} ({t(($) => $.home.icpPrice24h)})
               </p>
             )}
           </>

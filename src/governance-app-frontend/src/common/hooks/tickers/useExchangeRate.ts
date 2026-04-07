@@ -33,19 +33,13 @@ export const useExchangeRate = ({ enabled = true, retryCount = 3 }: Props) => {
 };
 
 export const parseExchangeRateResponse = (response: IcpExchangeRateResponse): TokenPrices => {
-  if (isNullish(CANISTER_ID_ICP_LEDGER)) {
-    throw new Error('ICP ledger canister ID is not defined');
-  }
+  if (isNullish(CANISTER_ID_ICP_LEDGER)) throw new Error('ICP ledger canister ID is not defined');
 
   const currentRate = response.current[0];
-  if (isNullish(currentRate)) {
-    throw new Error('No current exchange rate available');
-  }
+  if (isNullish(currentRate)) throw new Error('No current exchange rate available');
 
   const icpPriceUsd = Number(currentRate.rate_e8s) / E8S;
-  if (icpPriceUsd <= 0 || !Number.isFinite(icpPriceUsd)) {
-    throw new Error('Invalid exchange rate');
-  }
+  if (icpPriceUsd <= 0 || !Number.isFinite(icpPriceUsd)) throw new Error('Invalid exchange rate');
 
   const oneDayAgoRate = response.one_day_ago[0];
   let previousUsd: number | undefined;
