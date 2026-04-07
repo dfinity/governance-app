@@ -18,7 +18,8 @@ import { getPoolReward } from '@utils/staking-rewards';
 export const DailyRewardsCard = () => {
   const { t } = useTranslation();
   const { data: metricsData, isLoading } = useGovernanceMetrics();
-  const { data: rewardEventData, isLoading: isRewardEventLoading } = useGovernanceLatestRewardEvent();
+  const { data: rewardEventData, isLoading: isRewardEventLoading } =
+    useGovernanceLatestRewardEvent();
 
   const metrics = metricsData?.response;
   const lastRewardTimestamp = rewardEventData?.response?.actual_timestamp_seconds;
