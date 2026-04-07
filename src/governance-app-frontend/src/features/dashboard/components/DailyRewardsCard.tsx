@@ -11,14 +11,17 @@ import {
   NNS_INITIAL_REWARD_RATE,
   SECONDS_IN_EIGHT_YEARS,
 } from '@constants/extra';
-import { useGovernanceMetrics } from '@hooks/governance';
+import { useGovernanceLatestRewardEvent, useGovernanceMetrics } from '@hooks/governance';
+import { secondsToDate } from '@utils/date';
 import { getPoolReward } from '@utils/staking-rewards';
 
 export const DailyRewardsCard = () => {
   const { t } = useTranslation();
   const { data: metricsData, isLoading } = useGovernanceMetrics();
+  const { data: rewardEventData, isLoading: isRewardEventLoading } = useGovernanceLatestRewardEvent();
 
   const metrics = metricsData?.response;
+  const lastRewardTimestamp = rewardEventData?.response?.actual_timestamp_seconds;
 
   const dailyReward = useMemo(() => {
     if (isNullish(metrics?.totalSupplyIcp)) return undefined;
@@ -52,6 +55,17 @@ export const DailyRewardsCard = () => {
               '—'
             )}
           </p>
+        )}
+        {isRewardEventLoading ? (
+          <Skeleton className="mt-1 h-4 w-32" />
+        ) : (
+          nonNullish(lastRewardTimestamp) && (
+            <p className="mt-1 text-sm font-normal text-muted-foreground">
+              {t(($) => $.home.lastRewardEvent, {
+                date: secondsToDate(Number(lastRewardTimestamp)),
+              })}
+            </p>
+          )
         )}
       </CardContent>
     </Card>
