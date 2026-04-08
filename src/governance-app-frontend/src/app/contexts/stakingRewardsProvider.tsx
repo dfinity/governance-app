@@ -37,11 +37,11 @@ export const StakingRewardsProvider = ({ children }: { children: ReactNode }) =>
         isAuthenticated: !!identity,
         economics,
         neurons,
-        // LOCAL: mocked value since the PocketIC data is off. @TODO UPDATE MISSION 70
+        // LOCAL: mocked value since the PocketIC data is off (Mission 70 - Jan 2026 snapshot).
         totalVotingPower: IS_TESTNET ? 88_150_266_299_091_680n : totalVotingPower,
-        // LOCAL: mocked value since the PocketIC data is off.
+        // LOCAL: mocked value since the PocketIC data is off (08/04/2026).
         governanceMetrics: IS_TESTNET
-          ? ({ totalSupplyIcp: 551_000_000n } as unknown as GovernanceCachedMetrics)
+          ? ({ totalSupplyIcp: 550_775_607n } as unknown as GovernanceCachedMetrics)
           : governanceMetrics,
       });
       setData(data);

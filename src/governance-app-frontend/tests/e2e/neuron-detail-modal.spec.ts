@@ -31,6 +31,7 @@ test.describe.serial('Neuron Detail Modal', () => {
     await page.getByTestId('empty-neurons-state-open-staking-wizard-btn').click();
     await page.getByTestId('staking-wizard-amount-input').fill('5');
     await page.getByTestId('staking-wizard-next-btn').click();
+    await page.getByTestId('staking-wizard-delay-option-6').click();
     await page.getByTestId('staking-wizard-next-btn').click();
     await page.getByTestId('staking-wizard-create-btn').click();
     await expect(page.getByTestId('staking-wizard-success')).toBeVisible({ timeout: 30000 });
@@ -47,7 +48,7 @@ test.describe.serial('Neuron Detail Modal', () => {
     await test.step('Opens modal with correct neuron data when card is clicked', async () => {
       await openNeuronDetailModal(page);
       await expect(page.getByTestId('neuron-detail-staked-amount')).toHaveText(/5\.00.*ICP/i);
-      await expect(page.getByTestId('neuron-detail-dissolve-delay')).toHaveText(/2 years/i);
+      await expect(page.getByTestId('neuron-detail-dissolve-delay')).toHaveText(/6 months/i);
       await closeModal(page);
     });
 
@@ -125,15 +126,14 @@ test.describe.serial('Neuron Detail Modal', () => {
     await test.step('Successfully increases delay', async () => {
       await openNeuronDetailModal(page);
       await page.getByTestId('neuron-detail-action-increase-delay').click();
-      await page.getByTestId('increase-delay-option-48').click();
+      await page.getByTestId('increase-delay-option-24').click();
       await page.getByTestId('increase-delay-confirm-btn').click();
-      await expect(page.getByTestId('increase-delay-option-24')).not.toBeVisible({
+      await expect(page.getByTestId('increase-delay-option-12')).not.toBeVisible({
         timeout: 30000,
       });
       await closeModal(page);
       const neuronCard = page.getByTestId('neuron-card');
-      // Text can be: 3 years, 365 days or 4 years, testing for both
-      await expect(neuronCard.getByTestId('neuron-card-dissolve-delay')).toHaveText(/[34] years/i);
+      await expect(neuronCard.getByTestId('neuron-card-dissolve-delay')).toHaveText(/2 years/i);
     });
   });
 
