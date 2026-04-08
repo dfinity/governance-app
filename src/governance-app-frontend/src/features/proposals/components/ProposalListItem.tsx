@@ -32,6 +32,9 @@ type Props = {
   isNonActionable?: boolean;
 };
 
+const warningBadgeClassName =
+  'gap-1.5 border-transparent bg-amber-100 font-normal text-amber-800 dark:bg-amber-900/30 dark:text-amber-400';
+
 export function ProposalListItem({ proposal, certified, isSpam, isNonActionable }: Props) {
   const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
@@ -104,13 +107,13 @@ export function ProposalListItem({ proposal, certified, isSpam, isNonActionable 
               {Topic[proposal.topic]}
             </Badge>
             {isSpam && (
-              <Badge className="gap-1.5 border-transparent bg-red-100 font-normal text-red-800 dark:bg-red-900/30 dark:text-red-400">
+              <Badge className={warningBadgeClassName}>
                 <ShieldBan className="size-3.5" />
                 {t(($) => $.proposal.spamBadge)}
               </Badge>
             )}
             {isNonActionable && (
-              <Badge className="gap-1.5 border-transparent bg-amber-100 font-normal text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+              <Badge className={warningBadgeClassName}>
                 <MessageSquareOff className="size-3.5" />
                 {t(($) => $.proposal.nonActionableBadge)}
               </Badge>
