@@ -5,6 +5,7 @@
   "totalStaked": "Total locked",
   "ofTotalSupply": "{{value}}% of total supply",
   "dailyRewards": "Daily rewards",
+  "lastRewardEvent": "Last distribution {{date}}",
   "icpPrice": "ICP price",
   "maxApy": "Current max minting",
   "yourApy": "Maturity",
