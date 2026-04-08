@@ -48,7 +48,7 @@ test.describe.serial('Neuron Detail Modal', () => {
     await test.step('Opens modal with correct neuron data when card is clicked', async () => {
       await openNeuronDetailModal(page);
       await expect(page.getByTestId('neuron-detail-staked-amount')).toHaveText(/5\.00.*ICP/i);
-      await expect(page.getByTestId('neuron-detail-dissolve-delay')).toHaveText(/6 months/i);
+      await expect(page.getByTestId('neuron-detail-dissolve-delay')).toHaveText(/182 days/i);
       await closeModal(page);
     });
 
