@@ -33,7 +33,7 @@ type Props = {
 };
 
 const warningBadgeClassName =
-  "gap-1.5 border-transparent bg-amber-100 font-normal text-amber-800 dark:bg-amber-900/30 dark:text-amber-400";
+  'gap-1.5 border-transparent bg-amber-100 font-normal text-amber-800 dark:bg-amber-900/30 dark:text-amber-400';
 
 export function ProposalListItem({ proposal, certified, isSpam, isNonActionable }: Props) {
   const { t } = useTranslation();
