@@ -96,7 +96,8 @@ export function ProposalListItem({ proposal, certified, isSpam, isNonActionable 
         <div className="flex flex-col gap-2 text-xs lg:flex-row lg:flex-wrap lg:items-center">
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <Badge className={statusColor}>
-              {ProposalStatus[proposal.status] ?? t(($) => $.proposal.unknownStatus, { id: proposal.status })}
+              {ProposalStatus[proposal.status] ??
+                t(($) => $.proposal.unknownStatus, { id: proposal.status })}
             </Badge>
             {timeLeft.length > 0 && (
               <Badge variant="secondary" className="gap-1.5 font-normal">
