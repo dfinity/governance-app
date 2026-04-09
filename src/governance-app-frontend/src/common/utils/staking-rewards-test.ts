@@ -34,7 +34,7 @@ export type StakingRewardTestParams = {
   governanceMetrics: Pick<GovernanceCachedMetrics, 'totalSupplyIcp'>;
 };
 
-export const stakingRewardsTestReferenceDate = new Date('2025-07-04T00:00:00Z'); // 4 Jul 2025
+export const stakingRewardsTestReferenceDate = new Date('2026-04-08T00:00:00Z'); // 8 Apr 2026
 const stakingRewardsTestReferenceDateSeconds = stakingRewardsTestReferenceDate.getTime() / 1000;
 
 let neuronCounter = 0n;
@@ -68,7 +68,7 @@ export const getStakingRewardsInitialMockedParams = (): StakingRewardTestParams 
       neuronMinimumDissolveDelayToVoteSeconds: BigInt(SECONDS_IN_TWO_WEEKS),
     },
   },
-  governanceMetrics: { totalSupplyIcp: 534_809_202n },
+  governanceMetrics: { totalSupplyIcp: 550_775_607n },
 });
 
 export const roundToDecimals = (value: number, decimals: number): number => {

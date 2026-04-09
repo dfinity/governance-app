@@ -237,32 +237,32 @@ describe('staking-rewards', () => {
     const data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(checkNumber(0.0237, data.stakingFlowApyPreview[1].autoStake.locked)).toBe(true);
+      expect(checkNumber(0.0229, data.stakingFlowApyPreview[1].autoStake.locked)).toBe(true);
       expect(checkNumber(0.0011, data.stakingFlowApyPreview[1].autoStake.dissolving)).toBe(true);
-      expect(checkNumber(0.0234, data.stakingFlowApyPreview[1].nonAutoStake.locked)).toBe(true);
+      expect(checkNumber(0.0226, data.stakingFlowApyPreview[1].nonAutoStake.locked)).toBe(true);
       expect(checkNumber(0.0011, data.stakingFlowApyPreview[1].nonAutoStake.dissolving)).toBe(true);
 
-      expect(checkNumber(0.0244, data.stakingFlowApyPreview[3].autoStake.locked)).toBe(true);
-      expect(checkNumber(0.0051, data.stakingFlowApyPreview[3].autoStake.dissolving)).toBe(true);
-      expect(checkNumber(0.0241, data.stakingFlowApyPreview[3].nonAutoStake.locked)).toBe(true);
-      expect(checkNumber(0.0051, data.stakingFlowApyPreview[3].nonAutoStake.dissolving)).toBe(true);
+      expect(checkNumber(0.0235, data.stakingFlowApyPreview[3].autoStake.locked)).toBe(true);
+      expect(checkNumber(0.0049, data.stakingFlowApyPreview[3].autoStake.dissolving)).toBe(true);
+      expect(checkNumber(0.0232, data.stakingFlowApyPreview[3].nonAutoStake.locked)).toBe(true);
+      expect(checkNumber(0.0049, data.stakingFlowApyPreview[3].nonAutoStake.dissolving)).toBe(true);
 
-      expect(checkNumber(0.0266, data.stakingFlowApyPreview[6].autoStake.locked)).toBe(true);
-      expect(checkNumber(0.0113, data.stakingFlowApyPreview[6].autoStake.dissolving)).toBe(true);
-      expect(checkNumber(0.0263, data.stakingFlowApyPreview[6].nonAutoStake.locked)).toBe(true);
-      expect(checkNumber(0.0112, data.stakingFlowApyPreview[6].nonAutoStake.dissolving)).toBe(true);
+      expect(checkNumber(0.0257, data.stakingFlowApyPreview[6].autoStake.locked)).toBe(true);
+      expect(checkNumber(0.0108, data.stakingFlowApyPreview[6].autoStake.dissolving)).toBe(true);
+      expect(checkNumber(0.0253, data.stakingFlowApyPreview[6].nonAutoStake.locked)).toBe(true);
+      expect(checkNumber(0.0108, data.stakingFlowApyPreview[6].nonAutoStake.dissolving)).toBe(true);
 
-      expect(checkNumber(0.0356, data.stakingFlowApyPreview[12].autoStake.locked)).toBe(true);
-      expect(checkNumber(0.0261, data.stakingFlowApyPreview[12].autoStake.dissolving)).toBe(true);
-      expect(checkNumber(0.035, data.stakingFlowApyPreview[12].nonAutoStake.locked)).toBe(true);
-      expect(checkNumber(0.0258, data.stakingFlowApyPreview[12].nonAutoStake.dissolving)).toBe(
+      expect(checkNumber(0.0344, data.stakingFlowApyPreview[12].autoStake.locked)).toBe(true);
+      expect(checkNumber(0.0251, data.stakingFlowApyPreview[12].autoStake.dissolving)).toBe(true);
+      expect(checkNumber(0.0338, data.stakingFlowApyPreview[12].nonAutoStake.locked)).toBe(true);
+      expect(checkNumber(0.0248, data.stakingFlowApyPreview[12].nonAutoStake.dissolving)).toBe(
         true,
       );
 
-      expect(checkNumber(0.0725, data.stakingFlowApyPreview[24].autoStake.locked)).toBe(true);
-      expect(checkNumber(0.0506, data.stakingFlowApyPreview[24].autoStake.dissolving)).toBe(true);
-      expect(checkNumber(0.07, data.stakingFlowApyPreview[24].nonAutoStake.locked)).toBe(true);
-      expect(checkNumber(0.0494, data.stakingFlowApyPreview[24].nonAutoStake.dissolving)).toBe(
+      expect(checkNumber(0.0699, data.stakingFlowApyPreview[24].autoStake.locked)).toBe(true);
+      expect(checkNumber(0.0488, data.stakingFlowApyPreview[24].autoStake.dissolving)).toBe(true);
+      expect(checkNumber(0.0676, data.stakingFlowApyPreview[24].nonAutoStake.locked)).toBe(true);
+      expect(checkNumber(0.0476, data.stakingFlowApyPreview[24].nonAutoStake.dissolving)).toBe(
         true,
       );
     }
@@ -272,22 +272,22 @@ describe('staking-rewards', () => {
     let data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(checkNumber(0.0097, data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0)).toBe(
+      expect(checkNumber(0.0093, data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0)).toBe(
         true,
       );
-      expect(checkNumber(0.0682, data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0)).toBe(
+      expect(checkNumber(0.0653, data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0)).toBe(
         true,
       );
-      expect(checkNumber(0.2927, data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0)).toBe(
+      expect(checkNumber(0.2804, data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0)).toBe(
         true,
       );
       expect(
-        checkNumber(0.8906, data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0),
+        checkNumber(0.8541, data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(1.7898, data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0),
+        checkNumber(1.719, data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0),
       ).toBe(true);
-      expect(checkNumber(3.6273, data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0)).toBe(
+      expect(checkNumber(3.4956, data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0)).toBe(
         true,
       );
     }
@@ -296,22 +296,22 @@ describe('staking-rewards', () => {
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(checkNumber(0.0195, data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0)).toBe(
+      expect(checkNumber(0.0187, data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0)).toBe(
         true,
       );
-      expect(checkNumber(0.1364, data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0)).toBe(
+      expect(checkNumber(0.1307, data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0)).toBe(
         true,
       );
-      expect(checkNumber(0.5854, data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0)).toBe(
+      expect(checkNumber(0.5609, data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0)).toBe(
         true,
       );
       expect(
-        checkNumber(1.7812, data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0),
+        checkNumber(1.7081, data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(3.5796, data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0),
+        checkNumber(3.438, data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0),
       ).toBe(true);
-      expect(checkNumber(7.2546, data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0)).toBe(
+      expect(checkNumber(6.9913, data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0)).toBe(
         true,
       );
     }
@@ -320,22 +320,22 @@ describe('staking-rewards', () => {
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(checkNumber(0.0292, data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0)).toBe(
+      expect(checkNumber(0.028, data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0)).toBe(
         true,
       );
-      expect(checkNumber(0.2047, data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0)).toBe(
+      expect(checkNumber(0.196, data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0)).toBe(
         true,
       );
-      expect(checkNumber(0.8781, data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0)).toBe(
+      expect(checkNumber(0.8413, data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0)).toBe(
         true,
       );
       expect(
-        checkNumber(2.6718, data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0),
+        checkNumber(2.5622, data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(5.3693, data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0),
+        checkNumber(5.1569, data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0),
       ).toBe(true);
-      expect(checkNumber(10.8819, data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0)).toBe(
+      expect(checkNumber(10.4869, data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0)).toBe(
         true,
       );
     }
@@ -345,24 +345,24 @@ describe('staking-rewards', () => {
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(checkNumber(2.9227, data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0)).toBe(
+      expect(checkNumber(2.799, data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0)).toBe(
         true,
       );
-      expect(checkNumber(20.4651, data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0)).toBe(
+      expect(checkNumber(19.6007, data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0)).toBe(
+        true,
+      );
+      expect(checkNumber(84.128, data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0)).toBe(
         true,
       );
       expect(
-        checkNumber(87.8078, data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0),
+        checkNumber(256.2216, data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(267.1768, data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0),
+        checkNumber(515.6927, data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(536.9339, data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0),
+        checkNumber(1048.6891, data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0),
       ).toBe(true);
-      expect(checkNumber(1088.19, data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0)).toBe(
-        true,
-      );
     }
 
     params.neurons[0].fullNeuron!.autoStakeMaturity = false;
@@ -375,23 +375,23 @@ describe('staking-rewards', () => {
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(checkNumber(2.9227, data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0)).toBe(
+      expect(checkNumber(2.799, data.rewardEstimates.get(MaturityEstimatePeriod.DAY) ?? 0)).toBe(
         true,
       );
-      expect(checkNumber(20.3311, data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0)).toBe(
+      expect(checkNumber(19.4729, data.rewardEstimates.get(MaturityEstimatePeriod.WEEK) ?? 0)).toBe(
         true,
       );
       expect(
-        checkNumber(85.0665, data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0),
+        checkNumber(81.5107, data.rewardEstimates.get(MaturityEstimatePeriod.MONTH) ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(242.22, data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0),
+        checkNumber(232.3581, data.rewardEstimates.get(MaturityEstimatePeriod.THREE_MONTHS) ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(441.4791, data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0),
+        checkNumber(424.2073, data.rewardEstimates.get(MaturityEstimatePeriod.SIX_MONTHS) ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(740.8458, data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0),
+        checkNumber(714.1348, data.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0),
       ).toBe(true);
     }
 
@@ -416,13 +416,13 @@ describe('staking-rewards', () => {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(1);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
       ).toBe(true);
-      expect(checkNumber(0.0725, data.apy.cur)).toBe(true);
-      expect(checkNumber(0.0725, data.apy.max)).toBe(true);
+      expect(checkNumber(0.0699, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
     // Fees don't affect the APY % ratio (only the absolute value of the rewards).
@@ -433,13 +433,13 @@ describe('staking-rewards', () => {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(1);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
       ).toBe(true);
-      expect(checkNumber(0.0725, data.apy.cur)).toBe(true);
-      expect(checkNumber(0.0725, data.apy.max)).toBe(true);
+      expect(checkNumber(0.0699, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
     // Unless the total stake is depleted by the fees.
@@ -468,13 +468,13 @@ describe('staking-rewards', () => {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(1);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
       ).toBe(true);
-      expect(checkNumber(0.0725, data.apy.cur)).toBe(true);
-      expect(checkNumber(0.0725, data.apy.max)).toBe(true);
+      expect(checkNumber(0.0699, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
     // Change: auto stake maturity off.
@@ -485,13 +485,13 @@ describe('staking-rewards', () => {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(1);
       expect(
-        checkNumber(0.07, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
+        checkNumber(0.0676, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
       ).toBe(true);
-      expect(checkNumber(0.07, data.apy.cur)).toBe(true);
-      expect(checkNumber(0.0725, data.apy.max)).toBe(true);
+      expect(checkNumber(0.0676, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
     // Change: dissolving neuron with 2 years remaining.
@@ -507,13 +507,13 @@ describe('staking-rewards', () => {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(1);
       expect(
-        checkNumber(0.0494, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
+        checkNumber(0.0476, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
       ).toBe(true);
-      expect(checkNumber(0.0494, data.apy.cur)).toBe(true);
-      expect(checkNumber(0.0725, data.apy.max)).toBe(true);
+      expect(checkNumber(0.0476, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
     // Change: dissolve delay to 1 year.
@@ -528,13 +528,13 @@ describe('staking-rewards', () => {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(1);
       expect(
-        checkNumber(0.0258, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
+        checkNumber(0.0248, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
       ).toBe(true);
-      expect(checkNumber(0.0258, data.apy.cur)).toBe(true);
-      expect(checkNumber(0.0725, data.apy.max)).toBe(true);
+      expect(checkNumber(0.0248, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
     // Change: dissolve delay to 1 week (below 2-week minimum).
@@ -552,10 +552,10 @@ describe('staking-rewards', () => {
         true,
       );
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
       ).toBe(true);
       expect(checkNumber(0, data.apy.cur)).toBe(true);
-      expect(checkNumber(0.0725, data.apy.max)).toBe(true);
+      expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
     // Change: add a second neuron.
@@ -569,16 +569,16 @@ describe('staking-rewards', () => {
         true,
       );
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.cur ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.cur ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0),
       ).toBe(true);
-      expect(checkNumber(0.0363, data.apy.cur)).toBe(true);
-      expect(checkNumber(0.0725, data.apy.max)).toBe(true);
+      expect(checkNumber(0.035, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
     // Change: add a third neuron.
@@ -592,22 +592,22 @@ describe('staking-rewards', () => {
         true,
       );
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.cur ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.cur ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.cur ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.cur ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.max ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.max ?? 0),
       ).toBe(true);
-      expect(checkNumber(0.0483, data.apy.cur)).toBe(true);
-      expect(checkNumber(0.0725, data.apy.max)).toBe(true);
+      expect(checkNumber(0.0466, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
     // Change: the third neuron has a much bigger stake and overshadows the other two (weighting factor is applied).
@@ -621,22 +621,22 @@ describe('staking-rewards', () => {
         true,
       );
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.cur ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.cur ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.cur ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.cur ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.max ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.max ?? 0),
       ).toBe(true);
-      expect(checkNumber(0.0725, data.apy.cur)).toBe(true);
-      expect(checkNumber(0.0725, data.apy.max)).toBe(true);
+      expect(checkNumber(0.0699, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
     // Change: the third neuron dissolving with 1 month (above 2-week min, but low bonus).
@@ -655,22 +655,22 @@ describe('staking-rewards', () => {
         true,
       );
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.cur ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.cur ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0),
       ).toBe(true);
       expect(
         checkNumber(0.0011, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.cur ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.max ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.max ?? 0),
       ).toBe(true);
       expect(checkNumber(0.0011, data.apy.cur)).toBe(true);
-      expect(checkNumber(0.0725, data.apy.max)).toBe(true);
+      expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
     // Change: remove the third neuron.
@@ -684,16 +684,16 @@ describe('staking-rewards', () => {
         true,
       );
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.cur ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.cur ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0725, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0),
+        checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0),
       ).toBe(true);
-      expect(checkNumber(0.0363, data.apy.cur)).toBe(true);
-      expect(checkNumber(0.0725, data.apy.max)).toBe(true);
+      expect(checkNumber(0.035, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
   });
 });
