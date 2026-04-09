@@ -23,6 +23,8 @@
   "no": "No",
   "mixed": "Mixed",
   "ariaLabelVote": "Vote {{vote}} on proposal {{proposalId}}",
+  "unknownTopic": "Unknown topic: {{id}}",
+  "unknownStatus": "Unknown status: {{id}}",
   "spamBadge": "Spam",
   "nonActionableBadge": "Non-actionable",
   "spamWarning": {

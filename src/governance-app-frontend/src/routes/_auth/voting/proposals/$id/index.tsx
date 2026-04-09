@@ -106,7 +106,9 @@ function ProposalDetailsRouteComponent() {
                     {proposal.proposal?.title}
                   </CardTitle>
                   <div className="flex flex-wrap gap-2 text-sm">
-                    <Badge className={statusColor}>{ProposalStatus[proposal.status]}</Badge>
+                    <Badge className={statusColor}>
+                      {ProposalStatus[proposal.status] ?? t(($) => $.proposal.unknownStatus, { id: proposal.status })}
+                    </Badge>
                     {timeLeft.length > 0 && (
                       <Badge variant="secondary" className="gap-1.5 font-normal">
                         <Clock className="h-3.5 w-3.5" />
@@ -115,7 +117,7 @@ function ProposalDetailsRouteComponent() {
                     )}
                     <Badge variant="secondary" className="gap-1.5 font-normal">
                       <Tag className="h-3.5 w-3.5" />
-                      {Topic[proposal.topic]}
+                      {Topic[proposal.topic] ?? t(($) => $.proposal.unknownTopic, { id: proposal.topic })}
                     </Badge>
                     <Badge variant="secondary" className="gap-1.5 font-normal">
                       <User className="h-3.5 w-3.5" />
