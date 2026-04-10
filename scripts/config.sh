@@ -65,7 +65,6 @@ CANISTER_ID_NNS_DAPP=qoctq-giaaa-aaaaa-aaaea-cai
 CANISTER_ID_SPAM_FILTER=xhfiu-7yaaa-aaaal-qvdja-cai
 CANISTER_ID_SELF=mc7vh-sqaaa-aaaai-q33na-cai
 EXTRA_ICP_SWAP_URL='https://uvevg-iyaaa-aaaak-ac27q-cai.raw.ic0.app'
-EXTRA_KONG_SWAP_URL='https://api.kongswap.io/api'
 EXTRA_PLAUSIBLE_DOMAIN_URL='nns.internetcomputer.org'
 EOF
 

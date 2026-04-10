@@ -7,6 +7,7 @@
   "dailyRewards": "Daily rewards",
   "lastRewardEvent": "Last distribution {{date}}",
   "icpPrice": "ICP price",
+  "icpPrice24h": "24h",
   "maxApy": "Current max minting",
   "yourApy": "Maturity",
   "maturity": "Maturity",

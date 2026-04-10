@@ -1,5 +1,4 @@
 export const ICP_SWAP_URL = process.env.EXTRA_ICP_SWAP_URL;
-export const KONG_SWAP_URL = process.env.EXTRA_KONG_SWAP_URL;
 export const PLAUSIBLE_DOMAIN_URL = process.env.EXTRA_PLAUSIBLE_DOMAIN_URL;
 
 // Support and documentation URLs

@@ -1,19 +1,19 @@
+import { useExchangeRate } from './useExchangeRate';
 import { useIcpSwapPrices } from './useIcpSwapPrices';
-import { useKongSwapPrices } from './useKongSwapPrices';
 
 export enum TickerPricesSource {
-  KONG_SWAP = 'KongSwap',
+  XRC = 'XRC',
   ICP_SWAP = 'IcpSwap',
 }
 
 export const useTickerPrices = () => {
-  const icpSwapPrices = useIcpSwapPrices({ enabled: true, retryCount: 1 });
-  const useFallback = icpSwapPrices.isError;
-  const kongSwapPrices = useKongSwapPrices({ enabled: useFallback, retryCount: 3 });
+  const exchangeRate = useExchangeRate({ enabled: true, retryCount: 1 });
+  const useFallback = exchangeRate.isError;
+  const icpSwapPrices = useIcpSwapPrices({ enabled: useFallback, retryCount: 1 });
 
   return {
-    // Fallback to KongSwap if IcpSwap fails.
-    tickerPrices: useFallback ? kongSwapPrices : icpSwapPrices,
-    tickerPricesSource: useFallback ? TickerPricesSource.KONG_SWAP : TickerPricesSource.ICP_SWAP,
+    // Fallback to IcpSwap if the backend exchange rate fails.
+    tickerPrices: useFallback ? icpSwapPrices : exchangeRate,
+    tickerPricesSource: useFallback ? TickerPricesSource.ICP_SWAP : TickerPricesSource.XRC,
   };
 };

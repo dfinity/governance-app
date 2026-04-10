@@ -25,7 +25,6 @@ const ICP_INDEX = {
 };
 
 const EXTERNAL_SERVICES = {
-  KONG_SWAP_PRICES: 'kongSwapPrices',
   ICP_SWAP_PRICES: 'icpSwapPrices',
 };
 
@@ -35,6 +34,7 @@ const NNS_DAPP = {
 
 const GOVERNANCE_APP_BACKEND = {
   ADDRESS_BOOK: 'governanceAppBackendAddressBook',
+  EXCHANGE_RATE: 'governanceAppBackendExchangeRate',
 };
 
 const SPAM_FILTER = {

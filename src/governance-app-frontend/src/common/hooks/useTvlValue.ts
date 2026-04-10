@@ -1,7 +1,7 @@
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
 import { useGovernanceMetrics } from '@hooks/governance';
-import { useIcpSwapPrices } from '@hooks/tickers/useIcpSwapPrices';
+import { useTickerPrices } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
 
 export const useTvlValue = () => {
@@ -10,7 +10,9 @@ export const useTvlValue = () => {
     isLoading: isMetricsLoading,
     isError: isMetricsError,
   } = useGovernanceMetrics();
-  const { data: prices, isLoading: isPricesLoading, isError: isPricesError } = useIcpSwapPrices({});
+  const {
+    tickerPrices: { data: prices, isLoading: isPricesLoading, isError: isPricesError },
+  } = useTickerPrices();
 
   const lockedIcpE8s = metrics?.response?.totalLockedE8s;
   const icpPrice = CANISTER_ID_ICP_LEDGER ? prices?.get(CANISTER_ID_ICP_LEDGER)?.usd : undefined;
