@@ -10,7 +10,7 @@ jobs:
     container: ghcr.io/dfinity/governance-app/builder-base:0.0.10
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Install dependencies
         shell: bash
@@ -37,7 +37,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Install dependencies
         run: npm ci
@@ -58,7 +58,7 @@ jobs:
           echo '```' >> build_report.md
 
       - name: Post build stats comment
-        uses: mshick/add-pr-comment@v2
+        uses: mshick/add-pr-comment@b8f338c590a895d50bcbfa6c5859251edc8952fc # v2.8.2
         if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
         with:
           message-path: build_report.md
@@ -70,7 +70,7 @@ jobs:
     container: ghcr.io/dfinity/governance-app/builder-base:0.0.10
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Generate .env file
         run: ./scripts/config.sh -n local
@@ -88,7 +88,7 @@ jobs:
     container: ghcr.io/dfinity/governance-app/builder-base:0.0.10
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Create frontend dist placeholder
         run: mkdir -p src/governance-app-frontend/dist
