@@ -13,13 +13,13 @@ jobs:
     runs-on: dind-small
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Build using Docker
         run: ./scripts/build.sh --keep-wasm
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: ${{ github.run_id }}-wasm
           path: ./governance_app_backend.wasm
