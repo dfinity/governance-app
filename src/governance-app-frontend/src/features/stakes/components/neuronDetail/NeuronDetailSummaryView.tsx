@@ -161,7 +161,7 @@ export function NeuronDetailSummaryView({
             <div className="flex items-center gap-2">
               {getEightYearGangBonusE8s(neuron, new Date()) > 0n && (
                 <span className="rounded-sm border border-foreground/20 bg-foreground/5 px-1.5 py-0.5 text-[10px] font-bold text-foreground uppercase">
-                  8Y Gang
+                  {t(($) => $.neuron.eightYearGang)}
                 </span>
               )}
               <span className="font-semibold" style={{ color: apyColor.textColor }}>

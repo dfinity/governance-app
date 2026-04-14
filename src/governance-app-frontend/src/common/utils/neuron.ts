@@ -6,7 +6,6 @@ import { FOLLOWABLE_TOPIC_SET } from '@features/voting/utils/topicFollowing';
 import {
   E8Sn,
   EIGHT_YEAR_GANG_BONUS_EXPIRY_SECONDS,
-  EIGHT_YEAR_GANG_BONUS_RATE,
   ICP_TRANSACTION_FEE_E8Sn,
   SECONDS_IN_YEAR,
 } from '@constants/extra';
@@ -110,7 +109,7 @@ export const getEightYearGangBonusE8s = (neuron: NeuronInfo, referenceDate: Date
   const base: bigint = (neuron.fullNeuron as any)?.eightYearGangBonusBaseE8s ?? 0n;
   if (base <= 0n) return 0n;
 
-  return BigInt(Math.floor(Number(base) * EIGHT_YEAR_GANG_BONUS_RATE));
+  return base / 10n; // EIGHT_YEAR_GANG_BONUS_RATE = 10%
 };
 
 export const getNeuronDissolveDelaySeconds = (neuron: NeuronInfo, referenceDate?: Date): bigint => {

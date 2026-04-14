@@ -108,7 +108,9 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
             <div className="flex items-center gap-1.5">
               {isEightYearGang && (
                 <div className="rounded-sm border border-foreground/20 bg-foreground/5 p-2">
-                  <p className="text-[13px] font-bold text-foreground uppercase">8Y Gang</p>
+                  <p className="text-[13px] font-bold text-foreground uppercase">
+                    {t(($) => $.neuron.eightYearGang)}
+                  </p>
                 </div>
               )}
               <div

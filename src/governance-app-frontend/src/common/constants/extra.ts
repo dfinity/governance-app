@@ -49,6 +49,8 @@ export const DAYS_IN_AVG_YEAR = 365.25;
 export const NNS_GENESIS_TIMESTAMP_SECONDS = 1_620_604_800; // May 10, 2021
 export const NNS_INITIAL_REWARD_RATE = 0.1; // 10%
 export const NNS_FINAL_REWARD_RATE = 0.05; // 5%
+// Mission 70 contraction factor: scales the voting reward pool to match reduced inflation target.
+// Derived from neuron population simulation.
 export const POOL_REDUCTION_FACTOR = 0.6329;
 
 // Neuron bonuses (Mission 70: quadratic dissolve delay bonus up to 3x over 2 years)
