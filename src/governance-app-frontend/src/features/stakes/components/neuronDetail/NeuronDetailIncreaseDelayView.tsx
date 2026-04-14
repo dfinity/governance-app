@@ -7,9 +7,8 @@ import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { MaxRewardsBadge } from '@components/MaxRewardsBadge';
 import { SECONDS_IN_MONTH } from '@constants/extra';
-import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
 import { mapCanisterError } from '@utils/errors';
-import { getNeuronDissolveDelaySeconds } from '@utils/neuron';
+import { getNeuronDissolveDelaySeconds, getNeuronIsMaxDissolveDelay } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
 
 import { useIncreaseDelay } from '../../hooks/useIncreaseDelay';
@@ -34,11 +33,8 @@ export function NeuronDetailIncreaseDelayView({
 
   const { mutateAsync, isPending } = useIncreaseDelay();
 
-  // Get current dissolve delay in months
   const currentDelaySeconds = Number(getNeuronDissolveDelaySeconds(neuron));
-  const currentDelayMonths = Math.round(currentDelaySeconds / SECONDS_IN_MONTH);
-
-  const isMaxDelay = currentDelayMonths >= ICP_MAX_DISSOLVE_DELAY_MONTHS;
+  const isMaxDelay = getNeuronIsMaxDissolveDelay(neuron);
 
   const handleConfirm = async () => {
     if (!selectedMonths) return;
@@ -49,6 +45,7 @@ export function NeuronDetailIncreaseDelayView({
       await mutateAsync({
         neuronId: neuron.neuronId,
         dissolveDelayMonths: selectedMonths,
+        currentDissolveDelaySeconds: currentDelaySeconds,
       });
 
       successNotification({
@@ -101,7 +98,7 @@ export function NeuronDetailIncreaseDelayView({
         <div className="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {regularOptions.map((option) => {
             const isSelected = selectedMonths === option.value;
-            const isDisabled = option.value <= currentDelayMonths;
+            const isDisabled = option.value * SECONDS_IN_MONTH <= currentDelaySeconds;
 
             return (
               <button
@@ -128,7 +125,7 @@ export function NeuronDetailIncreaseDelayView({
         {/* Max rewards option */}
         {(() => {
           const isSelected = selectedMonths === maxRewardsOption.value;
-          const isDisabled = maxRewardsOption.value === currentDelayMonths;
+          const isDisabled = maxRewardsOption.value * SECONDS_IN_MONTH <= currentDelaySeconds;
 
           return (
             <button

@@ -9,7 +9,7 @@ import {
   getConsistentTopicFollowees,
 } from '@features/voting/utils/topicFollowing';
 
-import { E8Sn, ICP_TRANSACTION_FEE_E8Sn, SECONDS_IN_MONTH } from '@constants/extra';
+import { E8Sn, ICP_TRANSACTION_FEE_E8Sn, SECONDS_IN_DAY, SECONDS_IN_MONTH } from '@constants/extra';
 import { useNnsGovernance } from '@hooks/governance';
 import { useIcpLedger } from '@hooks/icpLedger';
 import { bigIntMul } from '@utils/bigInt';
@@ -88,12 +88,13 @@ export function useCreateNeuron(params: Props) {
       }
 
       // Step 2: Set dissolve delay
+      // New neurons start with a default 7-day dissolve delay, so subtract it
       if (step === StakingWizardCreateNeuronStep.SetDissolveDelay) {
-        const newDissolveTimestamp =
-          Math.floor(Date.now() / 1000) + params.dissolveDelayMonths * SECONDS_IN_MONTH;
-        await governanceCanister.setDissolveDelay({
+        const defaultDelay = SECONDS_IN_DAY * 7;
+        const targetDelay = params.dissolveDelayMonths * SECONDS_IN_MONTH;
+        await governanceCanister.increaseDissolveDelay({
           neuronId,
-          dissolveDelaySeconds: newDissolveTimestamp,
+          additionalDissolveDelaySeconds: Math.max(targetDelay - defaultDelay, 0),
         });
         step = StakingWizardCreateNeuronStep.SetAutoStakeMaturity;
         setCurrentStep(step);
