@@ -1,4 +1,4 @@
-import { ICP_MAX_DISSOLVE_DELAY_MONTHS, ICP_MIN_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
+import { ICP_MAX_DISSOLVE_DELAY_MONTHS, STAKING_APY_PREVIEW_MIN_MONTHS } from '@constants/neuron';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { getApyColors, getApyNormalizedPosition, isMaxApy } from '@utils/apy-colors';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
@@ -24,7 +24,7 @@ export function useApyColor(apyValue: number): ApyColorResult {
   }
 
   const minApy =
-    stakingRewards.stakingFlowApyPreview[ICP_MIN_DISSOLVE_DELAY_MONTHS].nonAutoStake.dissolving;
+    stakingRewards.stakingFlowApyPreview[STAKING_APY_PREVIEW_MIN_MONTHS].nonAutoStake.dissolving;
   const maxApy =
     stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_MONTHS].autoStake.locked;
 
