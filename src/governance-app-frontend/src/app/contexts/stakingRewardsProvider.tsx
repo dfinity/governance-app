@@ -38,11 +38,16 @@ export const StakingRewardsProvider = ({ children }: { children: ReactNode }) =>
         economics,
         neurons,
         // LOCAL: mocked value since the PocketIC data is off (Mission 70 - Jan 2026 snapshot).
-        totalVotingPower: IS_TESTNET ? 88_150_266_299_091_680n : totalVotingPower,
+        // @TODO UPDATE MISSION 70 force new number until the API catches up, then remove this
+        // eslint-disable-next-line no-constant-condition
+        totalVotingPower: IS_TESTNET || 1 ? 88_150_266_299_091_680n : totalVotingPower,
         // LOCAL: mocked value since the PocketIC data is off (08/04/2026).
-        governanceMetrics: IS_TESTNET
-          ? ({ totalSupplyIcp: 550_775_607n } as unknown as GovernanceCachedMetrics)
-          : governanceMetrics,
+        // @TODO UPDATE MISSION 70 force new number until the API catches up, then remove this
+        governanceMetrics:
+          // eslint-disable-next-line no-constant-condition
+          IS_TESTNET || 1
+            ? ({ totalSupplyIcp: 550_775_607n } as unknown as GovernanceCachedMetrics)
+            : governanceMetrics,
       });
       setData(data);
     });
