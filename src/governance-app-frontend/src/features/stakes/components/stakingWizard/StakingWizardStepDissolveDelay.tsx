@@ -23,10 +23,10 @@ export function StakingWizardStepDissolveDelay({
 
   // Separate regular options from the max rewards option
   const regularOptions = STAKING_WIZARD_DISSOLVE_DELAY_OPTIONS.filter(
-    (opt) => opt.value !== StakingWizardDissolveDelayPreset.EightYears,
+    (opt) => opt.value !== StakingWizardDissolveDelayPreset.TwoYears,
   );
   const maxRewardsOption = STAKING_WIZARD_DISSOLVE_DELAY_OPTIONS.find(
-    (opt) => opt.value === StakingWizardDissolveDelayPreset.EightYears,
+    (opt) => opt.value === StakingWizardDissolveDelayPreset.TwoYears,
   )!;
   const isMaxRewardsSelected = dissolveDelayMonths === maxRewardsOption.value;
 

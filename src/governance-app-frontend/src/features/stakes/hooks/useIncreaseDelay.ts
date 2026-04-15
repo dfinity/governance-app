@@ -9,6 +9,7 @@ import { failedRefresh, QUERY_KEYS } from '@utils/query';
 type IncreaseDelayParams = {
   neuronId: bigint;
   dissolveDelayMonths: number;
+  currentDissolveDelaySeconds: number;
 };
 
 /**
@@ -27,14 +28,11 @@ export function useIncreaseDelay() {
         throw new Error(t(($) => $.neuronDetailModal.increaseDelay.errors.failed));
       }
 
-      // Calculate the new dissolve delay timestamp
-      // This is the current time + the delay in seconds
-      const newDissolveTimestamp =
-        Math.floor(Date.now() / 1000) + params.dissolveDelayMonths * SECONDS_IN_MONTH;
-
-      await governanceCanister.setDissolveDelay({
+      const targetDelay = params.dissolveDelayMonths * SECONDS_IN_MONTH;
+      const additional = Math.max(targetDelay - params.currentDissolveDelaySeconds, 0);
+      await governanceCanister.increaseDissolveDelay({
         neuronId: params.neuronId,
-        dissolveDelaySeconds: newDissolveTimestamp,
+        additionalDissolveDelaySeconds: additional,
       });
 
       await queryClient

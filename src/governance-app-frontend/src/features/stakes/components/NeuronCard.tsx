@@ -18,6 +18,7 @@ import { bigIntDiv } from '@utils/bigInt';
 import { formatTimestampToLocalDate } from '@utils/date';
 import {
   getDissolvingTimeInSeconds,
+  getEightYearGangBonusE8s,
   getLockedTimeInSeconds,
   getNeuronFreeMaturityE8s,
   getNeuronHasNoFollowing,
@@ -54,6 +55,7 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
   const hasNoFollowing = getNeuronHasNoFollowing(neuron);
   const hasUnstakedMaturity = getNeuronFreeMaturityE8s(neuron) > 0n;
   const hasStakeToDisburse = getNeuronStakeAfterFeesE8s(neuron) > 0n;
+  const isEightYearGang = getEightYearGangBonusE8s(neuron, new Date()) > 0n;
   const isHotkey = isUserHotkey({
     neuron,
     principalId: identity?.getPrincipal().toText(),
@@ -103,25 +105,34 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
             )}
           </div>
           {nonNullish(apy) && apyColor.ready && (
-            <div
-              className="flex items-center gap-2 rounded-sm border p-2"
-              style={{
-                backgroundColor: apyColor.bgColor,
-                borderColor: apyColor.borderColor,
-                color: apyColor.textColor,
-              }}
-              role="button"
-              tabIndex={0}
-              aria-label="Optimize neuron APY"
-            >
-              <p className="text-[13px] font-semibold">{formatPercentage(apy.cur)}</p>
-              {apyColor.isMax ? (
-                <span className="rounded bg-green-600 px-1 py-0.5 text-[10px] font-bold text-white uppercase">
-                  {t(($) => $.common.max)}
-                </span>
-              ) : (
-                <CircleAlert className="hidden size-4 sm:block" />
+            <div className="flex items-center gap-1.5">
+              {isEightYearGang && (
+                <div className="rounded-sm border border-foreground/20 bg-foreground/5 p-2">
+                  <p className="text-[13px] font-bold text-foreground uppercase">
+                    {t(($) => $.neuron.eightYearGang)}
+                  </p>
+                </div>
               )}
+              <div
+                className="flex items-center gap-2 rounded-sm border p-2"
+                style={{
+                  backgroundColor: apyColor.bgColor,
+                  borderColor: apyColor.borderColor,
+                  color: apyColor.textColor,
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label="Optimize neuron APY"
+              >
+                <p className="text-[13px] font-semibold">{formatPercentage(apy.cur)}</p>
+                {apyColor.isMax ? (
+                  <span className="rounded bg-green-600 px-1 py-0.5 text-[10px] font-bold text-white uppercase">
+                    {t(($) => $.common.max)}
+                  </span>
+                ) : (
+                  <CircleAlert className="hidden size-4 sm:block" />
+                )}
+              </div>
             </div>
           )}
         </CardHeader>

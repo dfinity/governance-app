@@ -14,11 +14,11 @@ export const STAKING_WIZARD_DEFAULT_FORM_STATE: StakingWizardFormState = {
 
 export const STAKING_WIZARD_DISSOLVE_DELAY_OPTIONS: {
   value: StakingWizardDissolveDelayPreset;
-  labelKey: '6months' | '1year' | '2years' | '4years' | '8years';
+  labelKey: '1month' | '3months' | '6months' | '1year' | '2years';
 }[] = [
+  { value: StakingWizardDissolveDelayPreset.OneMonth, labelKey: '1month' },
+  { value: StakingWizardDissolveDelayPreset.ThreeMonths, labelKey: '3months' },
   { value: StakingWizardDissolveDelayPreset.SixMonths, labelKey: '6months' },
   { value: StakingWizardDissolveDelayPreset.OneYear, labelKey: '1year' },
   { value: StakingWizardDissolveDelayPreset.TwoYears, labelKey: '2years' },
-  { value: StakingWizardDissolveDelayPreset.FourYears, labelKey: '4years' },
-  { value: StakingWizardDissolveDelayPreset.EightYears, labelKey: '8years' },
 ];

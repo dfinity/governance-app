@@ -37,12 +37,17 @@ export const StakingRewardsProvider = ({ children }: { children: ReactNode }) =>
         isAuthenticated: !!identity,
         economics,
         neurons,
-        // LOCAL: mocked value since the PocketIC data is off.
-        totalVotingPower: IS_TESTNET ? 50_276_005_084_190_970n : totalVotingPower,
-        // LOCAL: mocked value since the PocketIC data is off.
-        governanceMetrics: IS_TESTNET
-          ? ({ totalSupplyIcp: 534_809_202n } as unknown as GovernanceCachedMetrics)
-          : governanceMetrics,
+        // LOCAL: mocked value since the PocketIC data is off (Mission 70 - Jan 2026 snapshot).
+        // @TODO UPDATE MISSION 70 force new number until the API catches up, then remove this
+        // eslint-disable-next-line no-constant-condition
+        totalVotingPower: IS_TESTNET || 1 ? 88_150_266_299_091_680n : totalVotingPower,
+        // LOCAL: mocked value since the PocketIC data is off (08/04/2026).
+        // @TODO UPDATE MISSION 70 force new number until the API catches up, then remove this
+        governanceMetrics:
+          // eslint-disable-next-line no-constant-condition
+          IS_TESTNET || 1
+            ? ({ totalSupplyIcp: 550_775_607n } as unknown as GovernanceCachedMetrics)
+            : governanceMetrics,
       });
       setData(data);
     });

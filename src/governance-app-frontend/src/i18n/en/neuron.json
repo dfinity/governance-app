@@ -26,6 +26,7 @@
   "disburseIcp": "Disburse ICPs",
   "disburseMaturity": "Disburse maturity",
   "stakeMaturity": "Lock maturity",
+  "eightYearGang": "8Y Gang",
   "summary": {
     "capital": "Locked in neurons",
     "engagement": "Participation rate",

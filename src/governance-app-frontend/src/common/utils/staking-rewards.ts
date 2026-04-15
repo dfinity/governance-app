@@ -20,15 +20,18 @@ import {
   NNS_FINAL_REWARD_RATE,
   NNS_GENESIS_TIMESTAMP_SECONDS,
   NNS_INITIAL_REWARD_RATE,
+  POOL_REDUCTION_FACTOR,
   SECONDS_IN_DAY,
   SECONDS_IN_EIGHT_YEARS,
   SECONDS_IN_FOUR_YEARS,
   SECONDS_IN_MONTH,
 } from '@constants/extra';
+import { ICP_MAX_DISSOLVE_DELAY_SECONDS, ICP_MIN_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { nowInSeconds } from '@utils/date';
 import {
   cloneNeurons,
+  getEightYearGangBonusE8s,
   getNeuronBonusRatio,
   getNeuronId,
   getNeuronStakeAfterFeesE8s,
@@ -45,7 +48,7 @@ import { logWithTimestamp } from '@/dev/log';
 
 ////////////// STAKING FLOW APY COMBINATIONS
 
-const stakingFlowApyDissolveDelayInMonths = [6, 12, 24, 48, 96];
+const stakingFlowApyDissolveDelayInMonths = [1, 3, 6, 12, 24];
 
 type StakingFlowApyPreview = Record<
   (typeof stakingFlowApyDissolveDelayInMonths)[number],
@@ -374,7 +377,10 @@ const getNeuronsRewardEstimate = (
           getDate(i, forceInitialDate),
         )
       ) {
-        const fullStake = getNeuronTotalStakeAfterFeesE8s(neuron);
+        const referenceDate = getDate(i, forceInitialDate);
+        const baseStake = getNeuronTotalStakeAfterFeesE8s(neuron);
+        const eightYearGangExtra = getEightYearGangBonusE8s(neuron, referenceDate);
+        const fullStake = baseStake + eightYearGangExtra;
         if (fullStake > 0n) {
           const votingPowerRatio = 1 + getNeuronBonus(params, neuron, i, forceInitialDate);
           neuronVotingPower = bigIntMul(fullStake, votingPowerRatio, 20);
@@ -442,7 +448,7 @@ export const getPoolReward = (params: {
     rewardRate = finalRewardRate + rateDiff * (remainingDays / durationDays) ** 2;
   }
 
-  return (totalSupply * rewardRate) / DAYS_IN_AVG_YEAR;
+  return (totalSupply * rewardRate * POOL_REDUCTION_FACTOR) / DAYS_IN_AVG_YEAR;
 };
 
 const getTokenReward = (
@@ -492,9 +498,11 @@ const getNeuronBonus = (
   });
 
 const getRewardParams = (params: StakingRewardCalcParams) => ({
-  minDissolve: params.economics.votingPowerEconomics?.neuronMinimumDissolveDelayToVoteSeconds ?? 0n,
+  // minDissolve: params.economics.votingPowerEconomics?.neuronMinimumDissolveDelayToVoteSeconds ?? 0n,
+  // @TODO UPDATE MISSION 70
+  minDissolve: BigInt(ICP_MIN_DISSOLVE_DELAY_SECONDS),
   minStake: params.economics.neuronMinimumStake ?? 0n,
-  maxDissolve: SECONDS_IN_EIGHT_YEARS,
+  maxDissolve: ICP_MAX_DISSOLVE_DELAY_SECONDS,
   maxDissolveBonus: MAX_DISSOLVE_DELAY_BONUS,
   maxAge: SECONDS_IN_FOUR_YEARS,
   maxAgeBonus: MAX_AGE_BONUS,

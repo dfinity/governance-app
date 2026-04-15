@@ -5,7 +5,7 @@ import {
   NeuronState,
 } from '@icp-sdk/canisters/nns';
 
-import { E8S, SECONDS_IN_EIGHT_YEARS, SECONDS_IN_HALF_YEAR } from '@constants/extra';
+import { E8S, SECONDS_IN_TWO_WEEKS, SECONDS_IN_TWO_YEARS } from '@constants/extra';
 
 export type StakingRewardTestParams = {
   isAuthenticated: boolean;
@@ -34,7 +34,7 @@ export type StakingRewardTestParams = {
   governanceMetrics: Pick<GovernanceCachedMetrics, 'totalSupplyIcp'>;
 };
 
-export const stakingRewardsTestReferenceDate = new Date('2025-07-04T00:00:00Z'); // 4 Jul 2025
+export const stakingRewardsTestReferenceDate = new Date('2026-04-08T00:00:00Z'); // 8 Apr 2026
 const stakingRewardsTestReferenceDateSeconds = stakingRewardsTestReferenceDate.getTime() / 1000;
 
 let neuronCounter = 0n;
@@ -43,7 +43,7 @@ export const getStakingRewardsTestNeuron = (
 ): StakingRewardTestParams['neurons'][0] => ({
   neuronId: neuronCounter++,
   state: NeuronState.Locked,
-  dissolveDelaySeconds: BigInt(SECONDS_IN_EIGHT_YEARS),
+  dissolveDelaySeconds: BigInt(SECONDS_IN_TWO_YEARS),
   fullNeuron: {
     maturityE8sEquivalent: BigInt(0),
     stakedMaturityE8sEquivalent: BigInt(0),
@@ -51,7 +51,7 @@ export const getStakingRewardsTestNeuron = (
     neuronFees: BigInt(0),
     agingSinceTimestampSeconds: BigInt(refDateSeconds),
     dissolveState: {
-      DissolveDelaySeconds: BigInt(SECONDS_IN_EIGHT_YEARS),
+      DissolveDelaySeconds: BigInt(SECONDS_IN_TWO_YEARS),
     },
     autoStakeMaturity: true,
   },
@@ -59,16 +59,16 @@ export const getStakingRewardsTestNeuron = (
 
 export const getStakingRewardsInitialMockedParams = (): StakingRewardTestParams => ({
   isAuthenticated: true,
-  totalVotingPower: 50_276_005_084_190_970n, // 24 Jun 2025
+  totalVotingPower: 88_150_266_299_091_680n, // Mission 70 (Jan 2026 snapshot)
   balance: 100,
   neurons: [getStakingRewardsTestNeuron()],
   economics: {
     neuronMinimumStake: BigInt(1 * E8S),
     votingPowerEconomics: {
-      neuronMinimumDissolveDelayToVoteSeconds: BigInt(SECONDS_IN_HALF_YEAR),
+      neuronMinimumDissolveDelayToVoteSeconds: BigInt(SECONDS_IN_TWO_WEEKS),
     },
   },
-  governanceMetrics: { totalSupplyIcp: 534_809_202n }, // 24 Jun 2025
+  governanceMetrics: { totalSupplyIcp: 550_775_607n },
 });
 
 export const roundToDecimals = (value: number, decimals: number): number => {

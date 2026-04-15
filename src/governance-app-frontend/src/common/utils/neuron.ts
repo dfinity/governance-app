@@ -3,7 +3,13 @@ import { nonNullish } from '@dfinity/utils';
 
 import { FOLLOWABLE_TOPIC_SET } from '@features/voting/utils/topicFollowing';
 
-import { E8Sn, ICP_TRANSACTION_FEE_E8Sn, SECONDS_IN_EIGHT_YEARS } from '@constants/extra';
+import {
+  E8Sn,
+  EIGHT_YEAR_GANG_BONUS_EXPIRY_SECONDS,
+  ICP_TRANSACTION_FEE_E8Sn,
+  SECONDS_IN_YEAR,
+} from '@constants/extra';
+import { ICP_MAX_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { bigIntDiv, bigIntMax } from '@utils/bigInt';
 import { nowInSeconds } from '@utils/date';
 import { shortenId } from '@utils/id';
@@ -81,7 +87,29 @@ export const getNeuronIsDissolving = (neuron: NeuronInfo): boolean => {
 };
 
 export const getNeuronIsMaxDissolveDelay = (neuron: NeuronInfo): boolean => {
-  return neuron.dissolveDelaySeconds >= BigInt(SECONDS_IN_EIGHT_YEARS);
+  return neuron.dissolveDelaySeconds >= BigInt(ICP_MAX_DISSOLVE_DELAY_SECONDS);
+};
+
+/**
+ * Returns the 8-year gang bonus in e8s to be added to the effective stake.
+ * The bonus = eightYearGangBonusBaseE8s * EIGHT_YEAR_GANG_BONUS_RATE, subject to:
+ * - The neuron is not dissolving (bonus is lost once dissolving starts, even if re-locked later)
+ * - The field being > 0 (neuron has the 8y gang flag)
+ * - The reference date being before the expiry (end of 2030)
+ *
+ * The SDK doesn't expose this field yet; we access it via a type cast.
+ */
+export const getEightYearGangBonusE8s = (neuron: NeuronInfo, referenceDate: Date): bigint => {
+  if (getNeuronIsDissolving(neuron)) return 0n;
+
+  const referenceDateSeconds = Math.floor(referenceDate.getTime() / 1000);
+  if (referenceDateSeconds > EIGHT_YEAR_GANG_BONUS_EXPIRY_SECONDS) return 0n;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- field not yet in SDK types @TODO UPDATE MISSION 70
+  const base: bigint = (neuron.fullNeuron as any)?.eightYearGangBonusBaseE8s ?? 0n;
+  if (base <= 0n) return 0n;
+
+  return base / 10n; // EIGHT_YEAR_GANG_BONUS_RATE = 10%
 };
 
 export const getNeuronDissolveDelaySeconds = (neuron: NeuronInfo, referenceDate?: Date): bigint => {
@@ -149,8 +177,14 @@ export const getNeuronBonusRatio = (
   const ageSeconds = getNeuronAgeSeconds(neuron, referenceDate);
   const agingBonus = Math.min(ageSeconds / ageMax, 1) * ageBonus;
 
+  // Mission 70: quadratic dissolve delay bonus f(x) = a * x^2 + 1
+  // where a = dissolveBonus / maxDelayYears^2
   const dissolveSeconds = getNeuronDissolveDelaySeconds(neuron, referenceDate);
-  const dissolvingBonus = Math.min(Number(dissolveSeconds) / dissolveMax, 1) * dissolveBonus;
+  const dissolveMaxYears = dissolveMax / SECONDS_IN_YEAR;
+  const dissolveYears = Math.min(Number(dissolveSeconds) / SECONDS_IN_YEAR, dissolveMaxYears);
+  const a = dissolveBonus / dissolveMaxYears ** 2;
+  const dissolvingBonus = a * dissolveYears ** 2;
+
   return (1 + dissolvingBonus) * (1 + agingBonus) - 1;
 };
 
