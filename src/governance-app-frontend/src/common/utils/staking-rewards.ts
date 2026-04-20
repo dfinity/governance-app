@@ -26,7 +26,7 @@ import {
   SECONDS_IN_FOUR_YEARS,
   SECONDS_IN_MONTH,
 } from '@constants/extra';
-import { ICP_MAX_DISSOLVE_DELAY_SECONDS, ICP_MIN_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
+import { ICP_MAX_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { nowInSeconds } from '@utils/date';
 import {
@@ -498,9 +498,7 @@ const getNeuronBonus = (
   });
 
 const getRewardParams = (params: StakingRewardCalcParams) => ({
-  // minDissolve: params.economics.votingPowerEconomics?.neuronMinimumDissolveDelayToVoteSeconds ?? 0n,
-  // @TODO UPDATE MISSION 70
-  minDissolve: BigInt(ICP_MIN_DISSOLVE_DELAY_SECONDS),
+  minDissolve: params.economics.votingPowerEconomics?.neuronMinimumDissolveDelayToVoteSeconds ?? 0n,
   minStake: params.economics.neuronMinimumStake ?? 0n,
   maxDissolve: ICP_MAX_DISSOLVE_DELAY_SECONDS,
   maxDissolveBonus: MAX_DISSOLVE_DELAY_BONUS,
