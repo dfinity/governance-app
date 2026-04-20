@@ -27,6 +27,7 @@ export const mockFullNeuron = (overrides: Partial<Neuron> = {}): Neuron => ({
   votingPowerRefreshedTimestampSeconds: undefined,
   potentialVotingPower: undefined,
   decidingVotingPower: undefined,
+  eightYearGangBonusBaseE8s: undefined,
   ...overrides,
 });
 
@@ -49,6 +50,7 @@ export const mockNeuron = (
     votingPowerRefreshedTimestampSeconds: undefined,
     decidingVotingPower: undefined,
     potentialVotingPower: undefined,
+    eightYearGangBonusBaseE8s: undefined,
     ageSeconds: 0n,
     visibility: undefined,
     fullNeuron:

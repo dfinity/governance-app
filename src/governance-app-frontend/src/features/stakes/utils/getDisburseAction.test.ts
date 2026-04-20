@@ -21,6 +21,7 @@ const mockNeuron = (
   votingPowerRefreshedTimestampSeconds: undefined,
   decidingVotingPower: undefined,
   potentialVotingPower: undefined,
+  eightYearGangBonusBaseE8s: undefined,
   ageSeconds: 0n,
   fullNeuron: overrides?.maturityE8sEquivalent
     ? ({ maturityE8sEquivalent: overrides.maturityE8sEquivalent } as NeuronInfo['fullNeuron'])
