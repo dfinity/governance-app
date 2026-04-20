@@ -96,8 +96,6 @@ export const getNeuronIsMaxDissolveDelay = (neuron: NeuronInfo): boolean => {
  * - The neuron is not dissolving (bonus is lost once dissolving starts, even if re-locked later)
  * - The field being > 0 (neuron has the 8y gang flag)
  * - The reference date being before the expiry (end of 2030)
- *
- * The SDK doesn't expose this field yet; we access it via a type cast.
  */
 export const getEightYearGangBonusE8s = (neuron: NeuronInfo, referenceDate: Date): bigint => {
   if (getNeuronIsDissolving(neuron)) return 0n;
@@ -105,8 +103,8 @@ export const getEightYearGangBonusE8s = (neuron: NeuronInfo, referenceDate: Date
   const referenceDateSeconds = Math.floor(referenceDate.getTime() / 1000);
   if (referenceDateSeconds > EIGHT_YEAR_GANG_BONUS_EXPIRY_SECONDS) return 0n;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- field not yet in SDK types @TODO UPDATE MISSION 70
-  const base: bigint = (neuron.fullNeuron as any)?.eightYearGangBonusBaseE8s ?? 0n;
+  const base: bigint =
+    neuron.eightYearGangBonusBaseE8s ?? neuron.fullNeuron?.eightYearGangBonusBaseE8s ?? 0n;
   if (base <= 0n) return 0n;
 
   return base / 10n; // EIGHT_YEAR_GANG_BONUS_RATE = 10%
