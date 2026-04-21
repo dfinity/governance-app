@@ -243,7 +243,10 @@ export const hasAutoStakeMaturityOn = ({ fullNeuron }: NeuronInfo): boolean =>
 // but SECONDS_IN_YEAR averages the leap day across every year (365.25 days).
 // For non-multiples of 4 years the two definitions diverge by a fractional day
 // (e.g. 2y → 12h) that shows up as a spurious hour in the output.
+// years is computed using 365-day years to match secondsToDuration's internal model,
+// avoiding false strips for dissolving neurons near year boundaries.
 const SECONDS_IN_DAY_BIG = BigInt(SECONDS_IN_DAY);
+const SECONDS_IN_365_DAYS = BigInt(365 * SECONDS_IN_DAY);
 const YEAR_ARTIFACT = BigInt(SECONDS_IN_YEAR % SECONDS_IN_DAY); // 21600n (6h per year)
 export const formatDissolveDelay = ({
   seconds,
@@ -253,7 +256,7 @@ export const formatDissolveDelay = ({
   i18n?: I18nSecondsToDuration;
 }): string => {
   const subDay = seconds % SECONDS_IN_DAY_BIG;
-  const years = seconds / BigInt(SECONDS_IN_YEAR);
+  const years = seconds / SECONDS_IN_365_DAYS;
   const expectedArtifact = (years * YEAR_ARTIFACT) % SECONDS_IN_DAY_BIG;
   const corrected = subDay > 0n && subDay === expectedArtifact ? seconds - subDay : seconds;
   return secondsToDuration({ seconds: corrected, i18n });
