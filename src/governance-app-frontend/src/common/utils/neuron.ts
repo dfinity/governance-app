@@ -1,5 +1,5 @@
 import { type NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
-import { nonNullish } from '@dfinity/utils';
+import { type I18nSecondsToDuration, nonNullish, secondsToDuration } from '@dfinity/utils';
 
 import { FOLLOWABLE_TOPIC_SET } from '@features/voting/utils/topicFollowing';
 
@@ -7,6 +7,7 @@ import {
   E8Sn,
   EIGHT_YEAR_GANG_BONUS_EXPIRY_SECONDS,
   ICP_TRANSACTION_FEE_E8Sn,
+  SECONDS_IN_DAY,
   SECONDS_IN_YEAR,
 } from '@constants/extra';
 import { ICP_MAX_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
@@ -237,6 +238,26 @@ export const getLockedTimeInSeconds = (neuron: NeuronInfo): bigint | undefined =
 
 export const hasAutoStakeMaturityOn = ({ fullNeuron }: NeuronInfo): boolean =>
   fullNeuron?.autoStakeMaturity === true;
+
+// SECONDS_IN_YEAR uses 365.25 days, so N years produces N×0.25 days of sub-day
+// remainder (e.g. 2y → 12h) that secondsToDuration surfaces as a spurious hour
+// component. Strip it only when the sub-day remainder exactly matches the expected
+// rounding artifact — preserving legitimate hours for dissolving neurons.
+const SECONDS_IN_DAY_BIG = BigInt(SECONDS_IN_DAY);
+const YEAR_ARTIFACT = BigInt(SECONDS_IN_YEAR % SECONDS_IN_DAY); // 21600n (6h per year)
+export const formatDissolveDelay = ({
+  seconds,
+  i18n,
+}: {
+  seconds: bigint;
+  i18n?: I18nSecondsToDuration;
+}): string => {
+  const subDay = seconds % SECONDS_IN_DAY_BIG;
+  const years = seconds / BigInt(SECONDS_IN_YEAR);
+  const expectedArtifact = (years * YEAR_ARTIFACT) % SECONDS_IN_DAY_BIG;
+  const corrected = subDay > 0n && subDay === expectedArtifact ? seconds - subDay : seconds;
+  return secondsToDuration({ seconds: corrected, i18n });
+};
 
 export const getNeuronHasNoFollowing = (neuron: NeuronInfo): boolean => {
   const followees = neuron.fullNeuron?.followees ?? [];

@@ -1,5 +1,5 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { nonNullish, secondsToDuration } from '@dfinity/utils';
+import { nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { AlertTriangle, CircleAlert, Coins, Key, PackagePlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -27,6 +27,7 @@ import {
   getNeuronIsDissolving,
   getNeuronStakeAfterFeesE8s,
   getNeuronStakedMaturityE8s,
+  formatDissolveDelay,
   isUserHotkey,
   shortenNeuronId,
 } from '@utils/neuron';
@@ -65,7 +66,7 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
     ? getDissolvingTimeInSeconds(neuron)
     : getLockedTimeInSeconds(neuron);
 
-  const durationText = secondsToDuration({
+  const durationText = formatDissolveDelay({
     seconds: dissolveDelaySeconds || 0n,
     i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
   });
