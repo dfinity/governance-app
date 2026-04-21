@@ -17,6 +17,7 @@ import { useApyColor } from '@hooks/useApyColor';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatTimestampToLocalDate } from '@utils/date';
 import {
+  formatDissolveDelay,
   getDissolvingTimeInSeconds,
   getEightYearGangBonusE8s,
   getLockedTimeInSeconds,
@@ -27,7 +28,6 @@ import {
   getNeuronIsDissolving,
   getNeuronStakeAfterFeesE8s,
   getNeuronStakedMaturityE8s,
-  formatDissolveDelay,
   isUserHotkey,
   shortenNeuronId,
 } from '@utils/neuron';

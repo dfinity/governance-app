@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import { SECONDS_IN_DAY, SECONDS_IN_YEAR } from '@constants/extra';
-
 import { formatDissolveDelay } from '@utils/neuron';
 
 describe('formatDissolveDelay', () => {
