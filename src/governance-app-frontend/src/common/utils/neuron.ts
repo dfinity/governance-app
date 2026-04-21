@@ -239,10 +239,10 @@ export const getLockedTimeInSeconds = (neuron: NeuronInfo): bigint | undefined =
 export const hasAutoStakeMaturityOn = ({ fullNeuron }: NeuronInfo): boolean =>
   fullNeuron?.autoStakeMaturity === true;
 
-// SECONDS_IN_YEAR uses 365.25 days, so N years produces N×0.25 days of sub-day
-// remainder (e.g. 2y → 12h) that secondsToDuration surfaces as a spurious hour
-// component. Strip it only when the sub-day remainder exactly matches the expected
-// rounding artifact — preserving legitimate hours for dissolving neurons.
+// secondsToDuration awards leap days only after full 4-year cycles (floor(N/4)),
+// but SECONDS_IN_YEAR averages the leap day across every year (365.25 days).
+// For non-multiples of 4 years the two definitions diverge by a fractional day
+// (e.g. 2y → 12h) that shows up as a spurious hour in the output.
 const SECONDS_IN_DAY_BIG = BigInt(SECONDS_IN_DAY);
 const YEAR_ARTIFACT = BigInt(SECONDS_IN_YEAR % SECONDS_IN_DAY); // 21600n (6h per year)
 export const formatDissolveDelay = ({
