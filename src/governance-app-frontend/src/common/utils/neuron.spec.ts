@@ -54,11 +54,15 @@ describe('formatDissolveDelay', () => {
 
   describe('year boundary', () => {
     it('just below 1 year shows days and hours, not years', () => {
-      expect(formatDissolveDelay({ seconds: BigInt(SECONDS_IN_YEAR) - 1n })).toBe('365 days, 5 hours');
+      expect(formatDissolveDelay({ seconds: BigInt(SECONDS_IN_YEAR) - 1n })).toBe(
+        '365 days, 5 hours',
+      );
     });
 
     it('just above 1 year shows years and seconds', () => {
-      expect(formatDissolveDelay({ seconds: BigInt(SECONDS_IN_YEAR) + 1n })).toBe('1 year, 1 second');
+      expect(formatDissolveDelay({ seconds: BigInt(SECONDS_IN_YEAR) + 1n })).toBe(
+        '1 year, 1 second',
+      );
     });
   });
 
@@ -96,7 +100,9 @@ describe('formatDissolveDelay', () => {
     });
 
     it('with 1 day and 1 hour remaining shows "1 day, 1 hour"', () => {
-      expect(formatDissolveDelay({ seconds: BigInt(SECONDS_IN_DAY) + 3600n })).toBe('1 day, 1 hour');
+      expect(formatDissolveDelay({ seconds: BigInt(SECONDS_IN_DAY) + 3600n })).toBe(
+        '1 day, 1 hour',
+      );
     });
 
     it('with 1 hour remaining shows "1 hour"', () => {

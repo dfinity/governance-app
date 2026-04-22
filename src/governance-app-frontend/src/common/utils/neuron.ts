@@ -273,8 +273,10 @@ export const formatDissolveDelay = ({
   if (years > 0n) parts.push(label(years, i18n?.year ?? 'year', i18n?.year_plural ?? 'years'));
   if (days > 0n) parts.push(label(days, i18n?.day ?? 'day', i18n?.day_plural ?? 'days'));
   if (hours > 0n) parts.push(label(hours, i18n?.hour ?? 'hour', i18n?.hour_plural ?? 'hours'));
-  if (minutes > 0n) parts.push(label(minutes, i18n?.minute ?? 'minute', i18n?.minute_plural ?? 'minutes'));
-  if (secs > 0n) parts.push(label(secs, i18n?.second ?? 'second', i18n?.second_plural ?? 'seconds'));
+  if (minutes > 0n)
+    parts.push(label(minutes, i18n?.minute ?? 'minute', i18n?.minute_plural ?? 'minutes'));
+  if (secs > 0n)
+    parts.push(label(secs, i18n?.second ?? 'second', i18n?.second_plural ?? 'seconds'));
 
   return parts.slice(0, 2).join(', ');
 };
