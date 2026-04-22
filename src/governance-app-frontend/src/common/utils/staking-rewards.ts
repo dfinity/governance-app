@@ -17,6 +17,7 @@ import { CANISTER_ID_SELF } from '@constants/canisterIds';
 import {
   DAYS_IN_AVG_YEAR,
   E8S,
+  IS_TESTNET,
   MAX_AGE_BONUS,
   MAX_DISSOLVE_DELAY_BONUS,
   NNS_FINAL_REWARD_RATE,
@@ -27,7 +28,7 @@ import {
   SECONDS_IN_EIGHT_YEARS,
   SECONDS_IN_FOUR_YEARS,
 } from '@constants/extra';
-import { ICP_MAX_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
+import { ICP_MAX_DISSOLVE_DELAY_SECONDS, ICP_MIN_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { nowInSeconds } from '@utils/date';
 import {
@@ -499,7 +500,9 @@ const getNeuronBonus = (
   });
 
 const getRewardParams = (params: StakingRewardCalcParams) => ({
-  minDissolve: params.economics.votingPowerEconomics?.neuronMinimumDissolveDelayToVoteSeconds ?? 0n,
+  minDissolve: IS_TESTNET
+    ? ICP_MIN_DISSOLVE_DELAY_SECONDS
+    : (params.economics.votingPowerEconomics?.neuronMinimumDissolveDelayToVoteSeconds ?? 0n),
   minStake: params.economics.neuronMinimumStake ?? 0n,
   maxDissolve: ICP_MAX_DISSOLVE_DELAY_SECONDS,
   maxDissolveBonus: MAX_DISSOLVE_DELAY_BONUS,
