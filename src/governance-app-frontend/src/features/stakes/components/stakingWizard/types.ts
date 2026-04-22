@@ -1,3 +1,10 @@
+import {
+  SECONDS_IN_MONTH,
+  SECONDS_IN_TWO_WEEKS,
+  SECONDS_IN_TWO_YEARS,
+  SECONDS_IN_YEAR,
+} from '@constants/extra';
+
 export enum StakingWizardStep {
   Amount,
   DissolveDelay,
@@ -5,13 +12,17 @@ export enum StakingWizardStep {
   Confirmation,
 }
 
-export enum StakingWizardDissolveDelayPreset {
-  OneMonth = 1,
-  ThreeMonths = 3,
-  SixMonths = 6,
-  OneYear = 12,
-  TwoYears = 24,
-}
+// Values are dissolve-delay durations expressed in seconds so we can represent
+// the true network minimum (2 weeks), which is not an integer number of months.
+export const StakingWizardDissolveDelayPreset = {
+  TwoWeeks: SECONDS_IN_TWO_WEEKS,
+  ThreeMonths: 3 * SECONDS_IN_MONTH,
+  SixMonths: 6 * SECONDS_IN_MONTH,
+  OneYear: SECONDS_IN_YEAR,
+  TwoYears: SECONDS_IN_TWO_YEARS,
+} as const;
+export type StakingWizardDissolveDelayPreset =
+  (typeof StakingWizardDissolveDelayPreset)[keyof typeof StakingWizardDissolveDelayPreset];
 
 export enum StakingWizardMaturityMode {
   Auto,
@@ -34,7 +45,7 @@ export enum StakingWizardCreateNeuronStep {
 
 export interface StakingWizardFormState {
   amount: string;
-  dissolveDelayMonths: StakingWizardDissolveDelayPreset;
+  dissolveDelaySeconds: StakingWizardDissolveDelayPreset;
   maturityMode: StakingWizardMaturityMode;
   initialState: StakingWizardInitialState;
   selectedAccountId?: string;

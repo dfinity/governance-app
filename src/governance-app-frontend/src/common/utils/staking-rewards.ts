@@ -11,6 +11,8 @@ import {
 } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
 
+import { StakingWizardDissolveDelayPreset } from '@features/stakes/components/stakingWizard/types';
+
 import { CANISTER_ID_SELF } from '@constants/canisterIds';
 import {
   DAYS_IN_AVG_YEAR,
@@ -24,7 +26,6 @@ import {
   SECONDS_IN_DAY,
   SECONDS_IN_EIGHT_YEARS,
   SECONDS_IN_FOUR_YEARS,
-  SECONDS_IN_MONTH,
 } from '@constants/extra';
 import { ICP_MAX_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
@@ -48,10 +49,12 @@ import { logWithTimestamp } from '@/dev/log';
 
 ////////////// STAKING FLOW APY COMBINATIONS
 
-const stakingFlowApyDissolveDelayInMonths = [1, 3, 6, 12, 24];
+// Dissolve-delay durations (in seconds) for which we precompute an APY preview.
+// Reuses the wizard presets as the single source of truth.
+const stakingFlowApyDissolveDelaySeconds = Object.values(StakingWizardDissolveDelayPreset);
 
 type StakingFlowApyPreview = Record<
-  (typeof stakingFlowApyDissolveDelayInMonths)[number],
+  StakingWizardDissolveDelayPreset,
   {
     autoStake: {
       dissolving: number;
@@ -274,7 +277,7 @@ const getStakingFlowApyPreview = (params: StakingRewardCalcParams, forceInitialD
     : nowInSeconds();
 
   const result: StakingFlowApyPreview = {};
-  stakingFlowApyDissolveDelayInMonths.forEach((dissolveDelay) => {
+  stakingFlowApyDissolveDelaySeconds.forEach((dissolveDelay) => {
     result[dissolveDelay] = {
       autoStake: { dissolving: 0, locked: 0 },
       nonAutoStake: { dissolving: 0, locked: 0 },
@@ -285,19 +288,17 @@ const getStakingFlowApyPreview = (params: StakingRewardCalcParams, forceInitialD
         const neuron = getStakingRewardsTestNeuron(initialDateSeconds);
 
         neuron.fullNeuron.autoStakeMaturity = autoStake === 1;
-        neuron.dissolveDelaySeconds = BigInt(dissolveDelay * SECONDS_IN_MONTH);
+        neuron.dissolveDelaySeconds = BigInt(dissolveDelay);
 
         if (locked === 1) {
           neuron.state = NeuronState.Locked;
           neuron.fullNeuron.dissolveState = {
-            DissolveDelaySeconds: BigInt(dissolveDelay * SECONDS_IN_MONTH),
+            DissolveDelaySeconds: BigInt(dissolveDelay),
           };
         } else {
           neuron.state = NeuronState.Dissolving;
           neuron.fullNeuron.dissolveState = {
-            WhenDissolvedTimestampSeconds: BigInt(
-              initialDateSeconds + dissolveDelay * SECONDS_IN_MONTH,
-            ),
+            WhenDissolvedTimestampSeconds: BigInt(initialDateSeconds + dissolveDelay),
           };
         }
 

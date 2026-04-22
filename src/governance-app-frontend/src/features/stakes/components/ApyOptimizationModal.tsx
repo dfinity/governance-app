@@ -15,7 +15,7 @@ import {
   ResponsiveDialogTrigger,
 } from '@components/ResponsiveDialog';
 import { Spinner } from '@components/Spinner';
-import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
+import { ICP_MAX_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useApyColor } from '@hooks/useApyColor';
 import { useStakingRewards } from '@hooks/useStakingRewards';
@@ -66,7 +66,7 @@ export function ApyOptimizationModal() {
   const stakingRewards = useStakingRewards();
   const maxApy = isStakingRewardDataReady(stakingRewards)
     ? formatPercentage(
-        stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_MONTHS].autoStake.locked,
+        stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_SECONDS].autoStake.locked,
       )
     : '...';
   const apyColor = useApyColor(

@@ -103,7 +103,7 @@ export function StakingWizardStepConfirmation({
 
   // Success state
   const dissolveDelayOption = STAKING_WIZARD_DISSOLVE_DELAY_OPTIONS.find(
-    (opt) => opt.value === formState.dissolveDelayMonths,
+    (opt) => opt.value === formState.dissolveDelaySeconds,
   );
   const dissolveDelayLabel = dissolveDelayOption
     ? t(($) => $.stakeWizardModal.steps.dissolveDelay.presets[dissolveDelayOption.labelKey])

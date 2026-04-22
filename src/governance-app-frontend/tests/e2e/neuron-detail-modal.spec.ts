@@ -31,7 +31,7 @@ test.describe.serial('Neuron Detail Modal', () => {
     await page.getByTestId('empty-neurons-state-open-staking-wizard-btn').click();
     await page.getByTestId('staking-wizard-amount-input').fill('5');
     await page.getByTestId('staking-wizard-next-btn').click();
-    await page.getByTestId('staking-wizard-delay-option-6').click();
+    await page.getByTestId('staking-wizard-delay-option-6months').click();
     await page.getByTestId('staking-wizard-next-btn').click();
     await page.getByTestId('staking-wizard-create-btn').click();
     await expect(page.getByTestId('staking-wizard-success')).toBeVisible({ timeout: 30000 });
@@ -114,21 +114,21 @@ test.describe.serial('Neuron Detail Modal', () => {
       await page.getByTestId('neuron-detail-action-increase-delay').click();
       const url = page.url();
       expect(url).toContain('action=increaseDelay');
-      await expect(page.getByTestId('increase-delay-option-24')).toBeVisible();
+      await expect(page.getByTestId('increase-delay-option-2years')).toBeVisible();
       await page.getByTestId('neuron-detail-back-btn').click();
       await expect(page.getByTestId('neuron-detail-action-increase-delay')).toBeVisible();
       await page.getByTestId('neuron-detail-action-increase-delay').click();
       await page.reload();
-      await expect(page.getByTestId('increase-delay-option-24')).toBeVisible();
+      await expect(page.getByTestId('increase-delay-option-2years')).toBeVisible();
       await closeModal(page);
     });
 
     await test.step('Successfully increases delay', async () => {
       await openNeuronDetailModal(page);
       await page.getByTestId('neuron-detail-action-increase-delay').click();
-      await page.getByTestId('increase-delay-option-24').click();
+      await page.getByTestId('increase-delay-option-2years').click();
       await page.getByTestId('increase-delay-confirm-btn').click();
-      await expect(page.getByTestId('increase-delay-option-12')).not.toBeVisible({
+      await expect(page.getByTestId('increase-delay-option-1year')).not.toBeVisible({
         timeout: 30000,
       });
       await closeModal(page);

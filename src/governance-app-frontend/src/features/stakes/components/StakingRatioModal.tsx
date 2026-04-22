@@ -14,7 +14,7 @@ import {
 } from '@components/ResponsiveDialog';
 import { Spinner } from '@components/Spinner';
 import { E8Sn } from '@constants/extra';
-import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
+import { ICP_MAX_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
@@ -32,7 +32,7 @@ export function StakingRatioModal() {
   const stakingRewards = useStakingRewards();
   const maxApy = isStakingRewardDataReady(stakingRewards)
     ? formatPercentage(
-        stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_MONTHS].autoStake.locked,
+        stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_SECONDS].autoStake.locked,
       )
     : '';
 

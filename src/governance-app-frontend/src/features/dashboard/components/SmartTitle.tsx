@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@components/button';
 import { Skeleton } from '@components/Skeleton';
 import { E8Sn } from '@constants/extra';
-import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
+import { ICP_MAX_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useStakingRewards } from '@hooks/useStakingRewards';
@@ -65,7 +65,7 @@ export function SmartTitle() {
         : t(($) => $.home.smartTitle.noAssetsSubtitle, {
             value: isStakingRewardDataReady(stakingRewards)
               ? formatPercentage(
-                  stakingRewards?.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_MONTHS].autoStake
+                  stakingRewards?.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_SECONDS].autoStake
                     .locked,
                 )
               : `--.--%`,

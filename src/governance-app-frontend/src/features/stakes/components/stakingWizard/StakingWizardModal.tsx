@@ -78,7 +78,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
 
   const createNeuron = useCreateNeuron({
     amount: formState.amount,
-    dissolveDelayMonths: formState.dissolveDelayMonths,
+    dissolveDelaySeconds: formState.dissolveDelaySeconds,
     autoStakeMaturity: formState.maturityMode === StakingWizardMaturityMode.Auto,
     startDissolving: formState.initialState === StakingWizardInitialState.Dissolving,
     fromSubAccount,
@@ -181,7 +181,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
           .then(() => {
             analytics.event(AnalyticsEvent.StakingConfirmation, {
               amount: formState.amount,
-              dissolveDelayMonths: formState.dissolveDelayMonths.toString(),
+              dissolveDelaySeconds: formState.dissolveDelaySeconds.toString(),
               maturityMode:
                 formState.maturityMode === StakingWizardMaturityMode.Auto ? 'auto' : 'liquid',
               initialState:
@@ -201,8 +201,8 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
     setFormState((prev) => ({ ...prev, amount }));
   };
 
-  const updateDissolveDelay = (dissolveDelayMonths: StakingWizardDissolveDelayPreset) => {
-    setFormState((prev) => ({ ...prev, dissolveDelayMonths }));
+  const updateDissolveDelay = (dissolveDelaySeconds: StakingWizardDissolveDelayPreset) => {
+    setFormState((prev) => ({ ...prev, dissolveDelaySeconds }));
   };
 
   const updateMaturityMode = (maturityMode: StakingWizardMaturityMode) => {
@@ -244,7 +244,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
     if (!isStakingRewardDataReady(stakingRewards)) {
       return 0;
     }
-    const preview = stakingRewards.stakingFlowApyPreview[formState.dissolveDelayMonths];
+    const preview = stakingRewards.stakingFlowApyPreview[formState.dissolveDelaySeconds];
     const maturityKey =
       formState.maturityMode === StakingWizardMaturityMode.Auto ? 'autoStake' : 'nonAutoStake';
     const stateKey =
@@ -336,7 +336,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
 
             {step === StakingWizardStep.DissolveDelay && (
               <StakingWizardStepDissolveDelay
-                dissolveDelayMonths={formState.dissolveDelayMonths}
+                dissolveDelaySeconds={formState.dissolveDelaySeconds}
                 onDissolveDelayChange={updateDissolveDelay}
                 onNext={goNext}
               />

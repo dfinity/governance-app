@@ -6,7 +6,6 @@ import { useTranslation } from 'react-i18next';
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { MaxRewardsBadge } from '@components/MaxRewardsBadge';
-import { SECONDS_IN_MONTH } from '@constants/extra';
 import { mapCanisterError } from '@utils/errors';
 import { getNeuronDissolveDelaySeconds, getNeuronIsMaxDissolveDelay } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
@@ -29,7 +28,7 @@ export function NeuronDetailIncreaseDelayView({
   onProcessingChange,
 }: Props) {
   const { t } = useTranslation();
-  const [selectedMonths, setSelectedMonths] = useState<number | null>(null);
+  const [selectedSeconds, setSelectedSeconds] = useState<number | null>(null);
 
   const { mutateAsync, isPending } = useIncreaseDelay();
 
@@ -37,14 +36,14 @@ export function NeuronDetailIncreaseDelayView({
   const isMaxDelay = getNeuronIsMaxDissolveDelay(neuron);
 
   const handleConfirm = async () => {
-    if (!selectedMonths) return;
+    if (!selectedSeconds) return;
 
     onProcessingChange(true);
 
     try {
       await mutateAsync({
         neuronId: neuron.neuronId,
-        dissolveDelayMonths: selectedMonths,
+        dissolveDelaySeconds: selectedSeconds,
         currentDissolveDelaySeconds: currentDelaySeconds,
       });
 
@@ -65,7 +64,7 @@ export function NeuronDetailIncreaseDelayView({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isPending && selectedMonths) {
+    if (!isPending && selectedSeconds) {
       handleConfirm();
     }
   };
@@ -97,14 +96,14 @@ export function NeuronDetailIncreaseDelayView({
       <div>
         <div className="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {regularOptions.map((option) => {
-            const isSelected = selectedMonths === option.value;
-            const isDisabled = option.value * SECONDS_IN_MONTH <= currentDelaySeconds;
+            const isSelected = selectedSeconds === option.value;
+            const isDisabled = option.value <= currentDelaySeconds;
 
             return (
               <button
                 type="button"
                 key={option.value}
-                onClick={() => !isDisabled && !isHotkey && setSelectedMonths(option.value)}
+                onClick={() => !isDisabled && !isHotkey && setSelectedSeconds(option.value)}
                 disabled={isDisabled || isPending || isHotkey}
                 className={`rounded-lg border-2 px-4 py-4 text-center font-medium transition-colors outline-none focus-visible:bg-muted/70 active:bg-muted ${
                   isSelected
@@ -113,7 +112,7 @@ export function NeuronDetailIncreaseDelayView({
                       ? 'cursor-not-allowed border-border/50 bg-muted/30 text-muted-foreground/50'
                       : 'border-border hover:bg-muted/50'
                 }`}
-                data-testid={`increase-delay-option-${option.value}`}
+                data-testid={`increase-delay-option-${option.labelKey}`}
                 aria-pressed={isSelected}
               >
                 <span>{t(($) => $.neuronDetailModal.increaseDelay.presets[option.labelKey])}</span>
@@ -124,13 +123,13 @@ export function NeuronDetailIncreaseDelayView({
 
         {/* Max rewards option */}
         {(() => {
-          const isSelected = selectedMonths === maxRewardsOption.value;
-          const isDisabled = maxRewardsOption.value * SECONDS_IN_MONTH <= currentDelaySeconds;
+          const isSelected = selectedSeconds === maxRewardsOption.value;
+          const isDisabled = maxRewardsOption.value <= currentDelaySeconds;
 
           return (
             <button
               type="button"
-              onClick={() => !isDisabled && !isHotkey && setSelectedMonths(maxRewardsOption.value)}
+              onClick={() => !isDisabled && !isHotkey && setSelectedSeconds(maxRewardsOption.value)}
               disabled={isDisabled || isPending || isHotkey}
               className={`w-full rounded-lg border-2 px-4 py-4 text-center transition-colors outline-none ${
                 isSelected
@@ -139,7 +138,7 @@ export function NeuronDetailIncreaseDelayView({
                     ? 'cursor-not-allowed border-border/50 bg-muted/30 text-muted-foreground/50'
                     : 'border-green-600/30 bg-gradient-to-br from-green-600/8 to-green-600/4 hover:from-green-600/14 hover:to-green-600/8 focus-visible:from-green-600/18 focus-visible:to-green-600/10'
               }`}
-              data-testid={`increase-delay-option-${maxRewardsOption.value}`}
+              data-testid={`increase-delay-option-${maxRewardsOption.labelKey}`}
               aria-pressed={isSelected}
             >
               <span className="font-medium">
@@ -165,7 +164,7 @@ export function NeuronDetailIncreaseDelayView({
         type="submit"
         size="xl"
         className="w-full"
-        disabled={isPending || !selectedMonths || isHotkey}
+        disabled={isPending || !selectedSeconds || isHotkey}
         data-testid="increase-delay-confirm-btn"
       >
         {isPending ? (

@@ -5,6 +5,7 @@ import {
   E8S,
   SECONDS_IN_DAY,
   SECONDS_IN_MONTH,
+  SECONDS_IN_TWO_WEEKS,
   SECONDS_IN_TWO_YEARS,
   SECONDS_IN_YEAR,
 } from '@constants/extra';
@@ -237,34 +238,84 @@ describe('staking-rewards', () => {
     const data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      expect(checkNumber(0.0229, data.stakingFlowApyPreview[1].autoStake.locked)).toBe(true);
-      expect(checkNumber(0.0011, data.stakingFlowApyPreview[1].autoStake.dissolving)).toBe(true);
-      expect(checkNumber(0.0226, data.stakingFlowApyPreview[1].nonAutoStake.locked)).toBe(true);
-      expect(checkNumber(0.0011, data.stakingFlowApyPreview[1].nonAutoStake.dissolving)).toBe(true);
+      // 2-week preset (the network minimum dissolve delay). When dissolving,
+      // the neuron drops below the vote threshold almost immediately, so APY ~0.
+      expect(
+        checkNumber(0.0228, data.stakingFlowApyPreview[SECONDS_IN_TWO_WEEKS].autoStake.locked),
+      ).toBe(true);
+      expect(
+        checkNumber(0.0001, data.stakingFlowApyPreview[SECONDS_IN_TWO_WEEKS].autoStake.dissolving),
+      ).toBe(true);
+      expect(
+        checkNumber(0.0225, data.stakingFlowApyPreview[SECONDS_IN_TWO_WEEKS].nonAutoStake.locked),
+      ).toBe(true);
+      expect(
+        checkNumber(
+          0.0001,
+          data.stakingFlowApyPreview[SECONDS_IN_TWO_WEEKS].nonAutoStake.dissolving,
+        ),
+      ).toBe(true);
 
-      expect(checkNumber(0.0235, data.stakingFlowApyPreview[3].autoStake.locked)).toBe(true);
-      expect(checkNumber(0.0049, data.stakingFlowApyPreview[3].autoStake.dissolving)).toBe(true);
-      expect(checkNumber(0.0232, data.stakingFlowApyPreview[3].nonAutoStake.locked)).toBe(true);
-      expect(checkNumber(0.0049, data.stakingFlowApyPreview[3].nonAutoStake.dissolving)).toBe(true);
+      expect(
+        checkNumber(0.0235, data.stakingFlowApyPreview[3 * SECONDS_IN_MONTH].autoStake.locked),
+      ).toBe(true);
+      expect(
+        checkNumber(0.0049, data.stakingFlowApyPreview[3 * SECONDS_IN_MONTH].autoStake.dissolving),
+      ).toBe(true);
+      expect(
+        checkNumber(0.0232, data.stakingFlowApyPreview[3 * SECONDS_IN_MONTH].nonAutoStake.locked),
+      ).toBe(true);
+      expect(
+        checkNumber(
+          0.0049,
+          data.stakingFlowApyPreview[3 * SECONDS_IN_MONTH].nonAutoStake.dissolving,
+        ),
+      ).toBe(true);
 
-      expect(checkNumber(0.0257, data.stakingFlowApyPreview[6].autoStake.locked)).toBe(true);
-      expect(checkNumber(0.0108, data.stakingFlowApyPreview[6].autoStake.dissolving)).toBe(true);
-      expect(checkNumber(0.0253, data.stakingFlowApyPreview[6].nonAutoStake.locked)).toBe(true);
-      expect(checkNumber(0.0108, data.stakingFlowApyPreview[6].nonAutoStake.dissolving)).toBe(true);
+      expect(
+        checkNumber(0.0257, data.stakingFlowApyPreview[6 * SECONDS_IN_MONTH].autoStake.locked),
+      ).toBe(true);
+      expect(
+        checkNumber(0.0108, data.stakingFlowApyPreview[6 * SECONDS_IN_MONTH].autoStake.dissolving),
+      ).toBe(true);
+      expect(
+        checkNumber(0.0253, data.stakingFlowApyPreview[6 * SECONDS_IN_MONTH].nonAutoStake.locked),
+      ).toBe(true);
+      expect(
+        checkNumber(
+          0.0108,
+          data.stakingFlowApyPreview[6 * SECONDS_IN_MONTH].nonAutoStake.dissolving,
+        ),
+      ).toBe(true);
 
-      expect(checkNumber(0.0344, data.stakingFlowApyPreview[12].autoStake.locked)).toBe(true);
-      expect(checkNumber(0.0251, data.stakingFlowApyPreview[12].autoStake.dissolving)).toBe(true);
-      expect(checkNumber(0.0338, data.stakingFlowApyPreview[12].nonAutoStake.locked)).toBe(true);
-      expect(checkNumber(0.0248, data.stakingFlowApyPreview[12].nonAutoStake.dissolving)).toBe(
-        true,
-      );
+      expect(
+        checkNumber(0.0344, data.stakingFlowApyPreview[SECONDS_IN_YEAR].autoStake.locked),
+      ).toBe(true);
+      expect(
+        checkNumber(0.0251, data.stakingFlowApyPreview[SECONDS_IN_YEAR].autoStake.dissolving),
+      ).toBe(true);
+      expect(
+        checkNumber(0.0338, data.stakingFlowApyPreview[SECONDS_IN_YEAR].nonAutoStake.locked),
+      ).toBe(true);
+      expect(
+        checkNumber(0.0248, data.stakingFlowApyPreview[SECONDS_IN_YEAR].nonAutoStake.dissolving),
+      ).toBe(true);
 
-      expect(checkNumber(0.0699, data.stakingFlowApyPreview[24].autoStake.locked)).toBe(true);
-      expect(checkNumber(0.0488, data.stakingFlowApyPreview[24].autoStake.dissolving)).toBe(true);
-      expect(checkNumber(0.0676, data.stakingFlowApyPreview[24].nonAutoStake.locked)).toBe(true);
-      expect(checkNumber(0.0476, data.stakingFlowApyPreview[24].nonAutoStake.dissolving)).toBe(
-        true,
-      );
+      expect(
+        checkNumber(0.0699, data.stakingFlowApyPreview[SECONDS_IN_TWO_YEARS].autoStake.locked),
+      ).toBe(true);
+      expect(
+        checkNumber(0.0488, data.stakingFlowApyPreview[SECONDS_IN_TWO_YEARS].autoStake.dissolving),
+      ).toBe(true);
+      expect(
+        checkNumber(0.0676, data.stakingFlowApyPreview[SECONDS_IN_TWO_YEARS].nonAutoStake.locked),
+      ).toBe(true);
+      expect(
+        checkNumber(
+          0.0476,
+          data.stakingFlowApyPreview[SECONDS_IN_TWO_YEARS].nonAutoStake.dissolving,
+        ),
+      ).toBe(true);
     }
   });
 
