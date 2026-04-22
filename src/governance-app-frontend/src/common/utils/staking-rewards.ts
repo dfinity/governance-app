@@ -501,7 +501,7 @@ const getNeuronBonus = (
 
 const getRewardParams = (params: StakingRewardCalcParams) => ({
   minDissolve: IS_TESTNET
-    ? ICP_MIN_DISSOLVE_DELAY_SECONDS
+    ? BigInt(ICP_MIN_DISSOLVE_DELAY_SECONDS)
     : (params.economics.votingPowerEconomics?.neuronMinimumDissolveDelayToVoteSeconds ?? 0n),
   minStake: params.economics.neuronMinimumStake ?? 0n,
   maxDissolve: ICP_MAX_DISSOLVE_DELAY_SECONDS,
