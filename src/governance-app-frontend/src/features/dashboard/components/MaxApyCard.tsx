@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
-import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
+import { ICP_MAX_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
@@ -13,7 +13,7 @@ export const MaxApyCard = () => {
 
   const maxApy = isStakingRewardDataReady(stakingRewards)
     ? formatPercentage(
-        stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_MONTHS].autoStake.locked,
+        stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_SECONDS].autoStake.locked,
       )
     : undefined;
 

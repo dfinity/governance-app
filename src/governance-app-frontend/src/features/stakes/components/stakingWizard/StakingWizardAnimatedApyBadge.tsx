@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Skeleton } from '@components/Skeleton';
-import { ICP_MAX_DISSOLVE_DELAY_MONTHS, STAKING_APY_PREVIEW_MIN_MONTHS } from '@constants/neuron';
+import { ICP_MAX_DISSOLVE_DELAY_SECONDS, STAKING_APY_PREVIEW_MIN_SECONDS } from '@constants/neuron';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { interpolateApyColor, isMaxApy } from '@utils/apy-colors';
 import { formatPercentage } from '@utils/numbers';
@@ -22,10 +22,10 @@ export function StakingWizardAnimatedApyBadge({ value }: Props) {
   }
 
   const minApy =
-    stakingRewards.stakingFlowApyPreview[STAKING_APY_PREVIEW_MIN_MONTHS].nonAutoStake.dissolving *
+    stakingRewards.stakingFlowApyPreview[STAKING_APY_PREVIEW_MIN_SECONDS].nonAutoStake.dissolving *
     100;
   const maxApy =
-    stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_MONTHS].autoStake.locked * 100;
+    stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_SECONDS].autoStake.locked * 100;
 
   return <AnimatedApyBadgeInner value={value} minApy={minApy} maxApy={maxApy} />;
 }

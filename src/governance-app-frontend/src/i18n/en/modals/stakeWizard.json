@@ -11,7 +11,7 @@
       "title": "Set dissolve delay",
       "description": "Longer dissolve delays mint higher rewards.",
       "presets": {
-        "1month": "1 month",
+        "2weeks": "2 weeks",
         "3months": "3 months",
         "6months": "6 months",
         "1year": "1 year",

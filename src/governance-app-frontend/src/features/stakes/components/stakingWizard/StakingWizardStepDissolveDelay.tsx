@@ -9,13 +9,13 @@ import { STAKING_WIZARD_DISSOLVE_DELAY_OPTIONS } from './constants';
 import { StakingWizardDissolveDelayPreset } from './types';
 
 interface Props {
-  dissolveDelayMonths: StakingWizardDissolveDelayPreset;
-  onDissolveDelayChange: (months: StakingWizardDissolveDelayPreset) => void;
+  dissolveDelaySeconds: StakingWizardDissolveDelayPreset;
+  onDissolveDelayChange: (seconds: StakingWizardDissolveDelayPreset) => void;
   onNext: () => void;
 }
 
 export function StakingWizardStepDissolveDelay({
-  dissolveDelayMonths,
+  dissolveDelaySeconds,
   onDissolveDelayChange,
   onNext,
 }: Props) {
@@ -28,7 +28,7 @@ export function StakingWizardStepDissolveDelay({
   const maxRewardsOption = STAKING_WIZARD_DISSOLVE_DELAY_OPTIONS.find(
     (opt) => opt.value === StakingWizardDissolveDelayPreset.TwoYears,
   )!;
-  const isMaxRewardsSelected = dissolveDelayMonths === maxRewardsOption.value;
+  const isMaxRewardsSelected = dissolveDelaySeconds === maxRewardsOption.value;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +48,7 @@ export function StakingWizardStepDissolveDelay({
       <div>
         <div className="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {regularOptions.map((option) => {
-            const isSelected = dissolveDelayMonths === option.value;
+            const isSelected = dissolveDelaySeconds === option.value;
 
             return (
               <button
@@ -56,7 +56,7 @@ export function StakingWizardStepDissolveDelay({
                 key={option.value}
                 onClick={() => onDissolveDelayChange(option.value)}
                 className={`rounded-lg border-2 px-4 py-4 text-center font-medium transition-colors outline-none focus-visible:bg-muted/70 active:bg-muted ${isSelected ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}
-                data-testid={`staking-wizard-delay-option-${option.value}`}
+                data-testid={`staking-wizard-delay-option-${option.labelKey}`}
                 aria-pressed={isSelected}
               >
                 {t(($) => $.stakeWizardModal.steps.dissolveDelay.presets[option.labelKey])}
@@ -73,7 +73,7 @@ export function StakingWizardStepDissolveDelay({
               ? 'border-green-600 bg-gradient-to-br from-green-600/12 to-green-600/4'
               : 'border-green-600/30 bg-gradient-to-br from-green-600/8 to-green-600/4 hover:bg-gradient-to-br hover:from-green-600/14 hover:to-green-600/8'
           }`}
-          data-testid={`staking-wizard-delay-option-${maxRewardsOption.value}`}
+          data-testid={`staking-wizard-delay-option-${maxRewardsOption.labelKey}`}
           aria-pressed={isMaxRewardsSelected}
         >
           <span className="font-medium">

@@ -10,7 +10,7 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from '@components/ResponsiveDialog';
-import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
+import { ICP_MAX_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
@@ -27,7 +27,7 @@ export function MaturitySymbol({ className = '' }: Props) {
   const stakingRewards = useStakingRewards();
   const maxApy = isStakingRewardDataReady(stakingRewards)
     ? formatPercentage(
-        stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_MONTHS].autoStake.locked,
+        stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_SECONDS].autoStake.locked,
       )
     : '...';
 

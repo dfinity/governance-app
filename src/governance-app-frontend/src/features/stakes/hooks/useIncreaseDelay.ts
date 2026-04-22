@@ -2,13 +2,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
-import { SECONDS_IN_MONTH } from '@constants/extra';
 import { useNnsGovernance } from '@hooks/governance';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
 type IncreaseDelayParams = {
   neuronId: bigint;
-  dissolveDelayMonths: number;
+  dissolveDelaySeconds: number;
   currentDissolveDelaySeconds: number;
 };
 
@@ -28,8 +27,10 @@ export function useIncreaseDelay() {
         throw new Error(t(($) => $.neuronDetailModal.increaseDelay.errors.failed));
       }
 
-      const targetDelay = params.dissolveDelayMonths * SECONDS_IN_MONTH;
-      const additional = Math.max(targetDelay - params.currentDissolveDelaySeconds, 0);
+      const additional = Math.max(
+        params.dissolveDelaySeconds - params.currentDissolveDelaySeconds,
+        0,
+      );
       await governanceCanister.increaseDissolveDelay({
         neuronId: params.neuronId,
         additionalDissolveDelaySeconds: additional,

@@ -12,7 +12,7 @@ import { Button } from '@components/button';
 import { Label } from '@components/Label';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE } from '@constants/extra';
-import { ICP_MAX_DISSOLVE_DELAY_MONTHS } from '@constants/neuron';
+import { ICP_MAX_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useTickerPrices } from '@hooks/tickers';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
@@ -67,7 +67,7 @@ export function StakingWizardStepAmount({
   const stakingRewards = useStakingRewards();
   const maxApyFormatted = isStakingRewardDataReady(stakingRewards)
     ? formatPercentage(
-        stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_MONTHS].autoStake.locked,
+        stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_SECONDS].autoStake.locked,
       )
     : '...';
 

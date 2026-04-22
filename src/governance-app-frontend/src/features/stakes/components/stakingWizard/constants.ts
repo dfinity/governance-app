@@ -7,16 +7,16 @@ import {
 
 export const STAKING_WIZARD_DEFAULT_FORM_STATE: StakingWizardFormState = {
   amount: '',
-  dissolveDelayMonths: StakingWizardDissolveDelayPreset.TwoYears,
+  dissolveDelaySeconds: StakingWizardDissolveDelayPreset.TwoYears,
   maturityMode: StakingWizardMaturityMode.Liquid,
   initialState: StakingWizardInitialState.Locked,
 };
 
 export const STAKING_WIZARD_DISSOLVE_DELAY_OPTIONS: {
   value: StakingWizardDissolveDelayPreset;
-  labelKey: '1month' | '3months' | '6months' | '1year' | '2years';
+  labelKey: '2weeks' | '3months' | '6months' | '1year' | '2years';
 }[] = [
-  { value: StakingWizardDissolveDelayPreset.OneMonth, labelKey: '1month' },
+  { value: StakingWizardDissolveDelayPreset.TwoWeeks, labelKey: '2weeks' },
   { value: StakingWizardDissolveDelayPreset.ThreeMonths, labelKey: '3months' },
   { value: StakingWizardDissolveDelayPreset.SixMonths, labelKey: '6months' },
   { value: StakingWizardDissolveDelayPreset.OneYear, labelKey: '1year' },

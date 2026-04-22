@@ -49,7 +49,7 @@ test.describe('Staking Wizard', () => {
     await page.getByTestId('staking-wizard-next-btn').click();
 
     // Select non-default dissolve delay (6 months).
-    await page.getByTestId('staking-wizard-delay-option-6').click();
+    await page.getByTestId('staking-wizard-delay-option-6months').click();
     await page.getByTestId('staking-wizard-next-btn').click();
 
     // Verify we're on configuration.
@@ -59,7 +59,7 @@ test.describe('Staking Wizard', () => {
     await page.getByTestId('staking-wizard-back-btn').click();
     await expect(page.getByTestId('staking-wizard-dissolve-delay-step')).toBeVisible();
     // The 6 months button should be selected.
-    await expect(page.getByTestId('staking-wizard-delay-option-6')).toHaveAttribute(
+    await expect(page.getByTestId('staking-wizard-delay-option-6months')).toHaveAttribute(
       'aria-pressed',
       'true',
     );
