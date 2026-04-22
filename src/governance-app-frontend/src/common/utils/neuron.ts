@@ -1,5 +1,5 @@
 import { type NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
-import { type I18nSecondsToDuration, nonNullish, secondsToDuration } from '@dfinity/utils';
+import { type I18nSecondsToDuration, nonNullish } from '@dfinity/utils';
 
 import { FOLLOWABLE_TOPIC_SET } from '@features/voting/utils/topicFollowing';
 
