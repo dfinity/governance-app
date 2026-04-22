@@ -1,5 +1,5 @@
 import { type NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
-import { nonNullish } from '@dfinity/utils';
+import { type I18nSecondsToDuration, nonNullish } from '@dfinity/utils';
 
 import { FOLLOWABLE_TOPIC_SET } from '@features/voting/utils/topicFollowing';
 
@@ -7,6 +7,7 @@ import {
   E8Sn,
   EIGHT_YEAR_GANG_BONUS_EXPIRY_SECONDS,
   ICP_TRANSACTION_FEE_E8Sn,
+  SECONDS_IN_DAY,
   SECONDS_IN_YEAR,
 } from '@constants/extra';
 import { ICP_MAX_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
@@ -237,6 +238,48 @@ export const getLockedTimeInSeconds = (neuron: NeuronInfo): bigint | undefined =
 
 export const hasAutoStakeMaturityOn = ({ fullNeuron }: NeuronInfo): boolean =>
   fullNeuron?.autoStakeMaturity === true;
+
+// secondsToDuration awards leap days only after full 4-year cycles (floor(N/4)),
+// but SECONDS_IN_YEAR averages the leap day across every year (365.25 days).
+// Uses 365.25-day years (SECONDS_IN_YEAR) throughout so that N * SECONDS_IN_YEAR
+// produces exactly "N years" with no sub-day remainder, eliminating the artifact
+// that secondsToDuration produces when mixing 365.25-day and 365-day year models.
+const SECONDS_IN_YEAR_BIG = BigInt(SECONDS_IN_YEAR);
+const SECONDS_IN_DAY_BIG = BigInt(SECONDS_IN_DAY);
+const SECONDS_IN_HOUR = 3600n;
+const SECONDS_IN_MINUTE = 60n;
+export const formatDissolveDelay = ({
+  seconds,
+  i18n,
+}: {
+  seconds: bigint;
+  i18n?: I18nSecondsToDuration;
+}): string => {
+  if (seconds === 0n) return '';
+
+  const label = (n: bigint, singular: string, plural: string) =>
+    `${n} ${n === 1n ? singular : plural}`;
+
+  const years = seconds / SECONDS_IN_YEAR_BIG;
+  let rem = seconds % SECONDS_IN_YEAR_BIG;
+  const days = rem / SECONDS_IN_DAY_BIG;
+  rem = rem % SECONDS_IN_DAY_BIG;
+  const hours = rem / SECONDS_IN_HOUR;
+  rem = rem % SECONDS_IN_HOUR;
+  const minutes = rem / SECONDS_IN_MINUTE;
+  const secs = rem % SECONDS_IN_MINUTE;
+
+  const parts: string[] = [];
+  if (years > 0n) parts.push(label(years, i18n?.year ?? 'year', i18n?.year_plural ?? 'years'));
+  if (days > 0n) parts.push(label(days, i18n?.day ?? 'day', i18n?.day_plural ?? 'days'));
+  if (hours > 0n) parts.push(label(hours, i18n?.hour ?? 'hour', i18n?.hour_plural ?? 'hours'));
+  if (minutes > 0n)
+    parts.push(label(minutes, i18n?.minute ?? 'minute', i18n?.minute_plural ?? 'minutes'));
+  if (secs > 0n)
+    parts.push(label(secs, i18n?.second ?? 'second', i18n?.second_plural ?? 'seconds'));
+
+  return parts.slice(0, 2).join(', ');
+};
 
 export const getNeuronHasNoFollowing = (neuron: NeuronInfo): boolean => {
   const followees = neuron.fullNeuron?.followees ?? [];

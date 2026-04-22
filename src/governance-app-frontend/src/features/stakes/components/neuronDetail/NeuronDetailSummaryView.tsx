@@ -1,5 +1,5 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { nonNullish, secondsToDuration } from '@dfinity/utils';
+import { nonNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
 import { Clock, Key, Lock, PlusCircle, Settings, Unlock, Wrench } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -26,6 +26,7 @@ import { AdvancedFeature } from '@typings/advancedFeatures';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatTimestampToLocalDate } from '@utils/date';
 import {
+  formatDissolveDelay,
   getEightYearGangBonusE8s,
   getNeuronFreeMaturityE8s,
   getNeuronStakeAfterFeesE8s,
@@ -73,7 +74,7 @@ export function NeuronDetailSummaryView({
   const usdValue = icpPrice ? formatNumber(stakedAmount * icpPrice.usd) : undefined;
 
   const dissolveDelaySeconds = neuron.dissolveDelaySeconds;
-  const durationText = secondsToDuration({
+  const durationText = formatDissolveDelay({
     seconds: dissolveDelaySeconds || 0n,
     i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
   });
