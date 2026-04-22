@@ -500,6 +500,7 @@ const getNeuronBonus = (
   });
 
 const getRewardParams = (params: StakingRewardCalcParams) => ({
+  // PocketIC has outdated data
   minDissolve: IS_TESTNET
     ? BigInt(ICP_MIN_DISSOLVE_DELAY_SECONDS)
     : (params.economics.votingPowerEconomics?.neuronMinimumDissolveDelayToVoteSeconds ?? 0n),
