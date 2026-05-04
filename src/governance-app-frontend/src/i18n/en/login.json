@@ -1,9 +1,9 @@
 {
-  "headerTitle": "Benefit by helping the network think",
+  "headerTitle": "Internet Computer governance made easy",
   "totalProposals": "Governance proposals",
   "participants": "Participants",
   "tvl": "Total value locked",
-  "accessText": "Access ICP vault and voting functionality",
+  "accessText": "Access ICP token vault and voting neuron functionality",
   "loginWithII": "Login with Internet Identity",
   "authenticating": "Authenticating with Internet Identity ...",
   "legacyNnsDapp": "Go to the legacy NNS Dapp"
