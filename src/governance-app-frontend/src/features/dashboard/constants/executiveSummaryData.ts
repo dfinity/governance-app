@@ -82,76 +82,77 @@ import type { MonthlyGovernanceSummary } from '../types/executiveSummary';
  * ▲▲▲ END PROMPT ▲▲▲
  */
 
-const MARCH_2026: MonthlyGovernanceSummary = {
-  month: 'March',
+const APRIL_2026: MonthlyGovernanceSummary = {
+  month: 'April',
   year: 2026,
 
   outcomes: [
-    { status: 'approved', count: 489 },
-    { status: 'rejected', count: 42 },
-    { status: 'failed', count: 1 },
+    { status: 'approved', count: 467 },
+    { status: 'rejected', count: 23 },
+    { status: 'failed', count: 0 },
   ],
 
   topChanges: [
     {
       icon: 'network',
       title: 'Network operations & infrastructure',
-      description: 'Mass OS rollouts, with minor subnet topology changes',
+      description: 'Routine subnet rollouts and first cloud engine lifecycle test',
       highlights: [
-        { value: 425, label: 'rollouts completed' },
+        { value: 385, label: 'rollouts completed' },
         { value: 5, label: 'GuestOS versions' },
-        { value: 5, label: 'HostOS versions' },
+        { value: 4, label: 'HostOS versions' },
+        { value: 9, label: 'subnets resized' },
       ],
     },
     {
       icon: 'protocol',
       title: 'Core protocol & app upgrades',
-      description: 'Multiple canister upgrades including ckBTC minter and Internet Identity',
+      description: 'Governance canister upgraded 5× alongside Internet Identity and NNS Dapp',
       highlights: [
-        { value: 15, label: 'protocol upgrades' },
-        { value: 22, label: 'app upgrades' },
+        { value: 12, label: 'protocol upgrades' },
+        { value: 10, label: 'app upgrades' },
       ],
     },
     {
       icon: 'community',
-      title: 'Community governance (motions & SNS)',
-      description: 'Mission70 motions passed, rejection fee doubled to 50 ICP',
+      title: 'Community governance',
+      description: 'Three known neurons deregistered; 19 spam proposals rejected',
       highlights: [
-        { value: 2, label: 'Motions passed' },
-        { value: 37, label: 'Community rejected' },
-        { value: 0, label: 'SNS launched' },
+        { value: 6, label: 'motions passed' },
+        { value: 19, label: 'spam rejected' },
+        { value: 1, label: 'node rewards updated' },
       ],
     },
   ],
 
   communityHighlights: [
     {
-      title: 'Mission70: Voting rewards and node rewards adjustments',
+      title: 'Deregister Known Neuron: CODEGOV',
       outcome: 'passed',
       label: 'Passed',
     },
     {
-      title: 'Mission70: Adjustment of Subnet Target Topology',
+      title: 'Deregister Known Neuron: WENZEL',
       outcome: 'passed',
       label: 'Passed',
     },
     {
-      title: 'Increase NNS proposal rejection fee to 50 ICP',
+      title: 'Register Known Neuron: HashEra',
       outcome: 'passed',
       label: 'Passed',
     },
     {
-      title: 'Yusan SNS creation',
+      title: 'Update the Node Rewards Table (Gen-1 type1.1 −40%)',
+      outcome: 'passed',
+      label: 'Passed',
+    },
+    {
+      title: 'Motion: Explore Separation of SNS from NNS Surface',
       outcome: 'rejected',
       label: 'Rejected',
     },
     {
-      title: 'Mission 70 Counter Proposal',
-      outcome: 'rejected',
-      label: 'Rejected',
-    },
-    {
-      title: 'Protecting NNS Proposals from Spam Exploitation',
+      title: 'Motion: Daily Node Performance Audits & Topology Exemptions',
       outcome: 'rejected',
       label: 'Rejected',
     },
@@ -159,4 +160,4 @@ const MARCH_2026: MonthlyGovernanceSummary = {
 };
 
 /** The currently displayed summary — update this reference each month */
-export const currentSummary: MonthlyGovernanceSummary = MARCH_2026;
+export const currentSummary: MonthlyGovernanceSummary = APRIL_2026;
