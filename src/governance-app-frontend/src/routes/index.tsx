@@ -145,7 +145,7 @@ function LoginPage() {
                 {t(($) => $.common.head.appName)}
               </span>
             </div>
-            <h1 className="animate-fade-up text-hero-responsive mt-4 mb-6 max-w-xl font-bold tracking-wide md:mt-12 md:mb-0 md:max-w-3xl">
+            <h1 className="animate-fade-up text-hero-responsive mt-4 mb-6 max-w-xl font-bold tracking-wide md:mt-12 md:mb-0 md:max-w-3xl 2xl:mt-30 2xl:max-w-4xl">
               {t(($) => $.login.headerTitle)}
             </h1>
           </div>

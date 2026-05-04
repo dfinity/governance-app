@@ -143,13 +143,13 @@
 
 @layer utilities {
   .text-hero-responsive {
-    font-size: clamp(2rem, 5vh, 4.5rem);
+    font-size: clamp(2rem, 5vh, 4rem);
     line-height: 1.1;
   }
 
   @media (min-width: 768px) {
     .text-hero-responsive {
-      font-size: clamp(3rem, 7vh, 6rem);
+      font-size: clamp(3rem, 7vh, 5rem);
       line-height: 1.1;
     }
   }
