@@ -263,3 +263,8 @@ html.route-dashboard {
 body {
   overflow: hidden;
 }
+
+/* Login page is the document scroller so iOS Safari can collapse its toolbar on scroll. */
+body:has(.login-page) {
+  overflow: auto;
+}
