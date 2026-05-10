@@ -48,7 +48,8 @@ const themeValue = (theme: Theme) => `theme:${theme}`;
 
 type HintKey = 'goToPage' | 'openProposal' | 'applyTheme' | 'toggleBalances' | 'signOut';
 
-const getHintKey = (value: string): HintKey | null => {
+const getHintKey = (value: unknown): HintKey | null => {
+  if (typeof value !== 'string' || value === '') return null;
   if (value.startsWith('nav:')) return 'goToPage';
   if (value.startsWith('theme:')) return 'applyTheme';
   if (value === TOGGLE_BALANCES_VALUE) return 'toggleBalances';
@@ -59,7 +60,7 @@ const getHintKey = (value: string): HintKey | null => {
 
 const CommandHintFooter = () => {
   const { t } = useTranslation();
-  const value = useCommandState((state) => state.value as string);
+  const value = useCommandState((state) => state.value);
   const hintKey = getHintKey(value);
   if (!hintKey) return null;
 
