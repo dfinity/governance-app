@@ -1,0 +1,20 @@
+{
+  "title": "Command palette",
+  "description": "Search for commands and navigate the app.",
+  "placeholder": "Type a command or search…",
+  "empty": "No results found.",
+  "groups": {
+    "navigate": "Navigate",
+    "proposals": "Proposals",
+    "preferences": "Preferences"
+  },
+  "items": {
+    "goToProposal": "Go to proposal #{{id}}",
+    "themeLight": "Light theme",
+    "themeDark": "Dark theme",
+    "themeSystem": "System theme",
+    "hideBalances": "Hide balances",
+    "showBalances": "Show balances",
+    "signOut": "Sign out"
+  }
+}
