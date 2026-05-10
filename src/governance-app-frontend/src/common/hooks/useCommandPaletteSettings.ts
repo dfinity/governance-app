@@ -1,3 +1,4 @@
+import { isNullish } from '@dfinity/utils';
 import { useSyncExternalStore } from 'react';
 
 import { COMMAND_PALETTE_SETTINGS_KEY } from '@constants/extra';
@@ -5,7 +6,7 @@ import { COMMAND_PALETTE_SETTINGS_KEY } from '@constants/extra';
 const getStoredValue = (): boolean => {
   try {
     const raw = localStorage.getItem(COMMAND_PALETTE_SETTINGS_KEY);
-    if (raw === null) return true;
+    if (isNullish(raw)) return true;
     return raw === 'true';
   } catch {
     return true;

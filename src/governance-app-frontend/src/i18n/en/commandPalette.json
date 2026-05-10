@@ -1,7 +1,7 @@
 {
   "title": "Command palette",
   "description": "Search for commands and navigate the app.",
-  "placeholder": "Type a command or search…",
+  "placeholder": "Search commands or enter a proposal ID…",
   "empty": "No results found.",
   "groups": {
     "navigate": "Navigate",
@@ -10,11 +10,19 @@
   },
   "items": {
     "goToProposal": "Go to proposal #{{id}}",
+    "proposalHint": "Open a proposal by ID — type a number",
     "themeLight": "Light theme",
     "themeDark": "Dark theme",
     "themeSystem": "System theme",
     "hideBalances": "Hide balances",
     "showBalances": "Show balances",
+    "signOut": "Sign out"
+  },
+  "hints": {
+    "goToPage": "Go to page",
+    "openProposal": "Open proposal",
+    "applyTheme": "Apply theme",
+    "toggleBalances": "Toggle balances",
     "signOut": "Sign out"
   }
 }

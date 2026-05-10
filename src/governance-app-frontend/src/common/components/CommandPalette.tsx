@@ -1,4 +1,6 @@
+import { nonNullish } from '@dfinity/utils';
 import { useNavigate } from '@tanstack/react-router';
+import { useCommandState } from 'cmdk';
 import {
   CheckIcon,
   EyeIcon,
@@ -9,7 +11,7 @@ import {
   MoonIcon,
   SunIcon,
 } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -21,6 +23,7 @@ import {
   CommandList,
   CommandSeparator,
 } from '@components/Command';
+import { Kbd } from '@components/Kbd';
 import { getNavigationItems } from '@components/navigation/NavigationItems';
 import { Theme } from '@constants/theme';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
@@ -29,6 +32,44 @@ import { useHideBalances } from '@hooks/useHideBalances';
 import { useLogout } from '@hooks/useLogout';
 import { useTheme } from '@hooks/useTheme';
 import { stringToBigInt } from '@utils/bigInt';
+
+const NAVIGATION_KEYWORDS: Record<string, string[]> = {
+  '/dashboard': ['home', 'overview'],
+  '/neurons': ['stake', 'stakes', 'staking'],
+  '/voting': ['proposals', 'vote', 'governance'],
+  '/accounts': ['wallet', 'balance', 'send', 'receive'],
+  '/settings': ['preferences', 'config'],
+};
+
+const TOGGLE_BALANCES_VALUE = 'toggle-balances';
+const SIGN_OUT_VALUE = 'signout';
+const navValue = (href: string) => `nav:${href}`;
+const themeValue = (theme: Theme) => `theme:${theme}`;
+
+type HintKey = 'goToPage' | 'openProposal' | 'applyTheme' | 'toggleBalances' | 'signOut';
+
+const getHintKey = (value: string): HintKey | null => {
+  if (value.startsWith('nav:')) return 'goToPage';
+  if (value.startsWith('theme:')) return 'applyTheme';
+  if (value === TOGGLE_BALANCES_VALUE) return 'toggleBalances';
+  if (value === SIGN_OUT_VALUE) return 'signOut';
+  if (/^\d+$/.test(value)) return 'openProposal';
+  return null;
+};
+
+const CommandHintFooter = () => {
+  const { t } = useTranslation();
+  const value = useCommandState((state) => state.value as string);
+  const hintKey = getHintKey(value);
+  if (!hintKey) return null;
+
+  return (
+    <div className="flex items-center gap-2 border-t px-3 py-2 text-xs text-muted-foreground">
+      <Kbd>↵</Kbd>
+      <span>{t(($) => $.commandPalette.hints[hintKey])}</span>
+    </div>
+  );
+};
 
 export const CommandPalette = () => {
   const { t } = useTranslation();
@@ -40,8 +81,7 @@ export const CommandPalette = () => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
 
-  const toggleOpen = useCallback(() => setOpen((prev) => !prev), []);
-  useCommandPaletteShortcut(toggleOpen);
+  useCommandPaletteShortcut(() => setOpen((prev) => !prev));
 
   const runAndClose = (fn: () => void) => {
     fn();
@@ -53,6 +93,7 @@ export const CommandPalette = () => {
 
   const trimmedSearch = search.trim();
   const proposalIdMatch = /^\d+$/.test(trimmedSearch) ? stringToBigInt(trimmedSearch) : undefined;
+  const showProposalHint = trimmedSearch === '';
   const goToProposal = (id: bigint) => {
     runAndClose(() => navigate({ to: '/voting/proposals/$id', params: { id } }));
   };
@@ -73,23 +114,12 @@ export const CommandPalette = () => {
       <CommandList>
         <CommandEmpty>{t(($) => $.commandPalette.empty)}</CommandEmpty>
 
-        {proposalIdMatch !== undefined && (
-          <CommandGroup heading={t(($) => $.commandPalette.groups.proposals)}>
-            <CommandItem value={trimmedSearch} onSelect={() => goToProposal(proposalIdMatch)}>
-              <FileTextIcon />
-              <span>
-                {t(($) => $.commandPalette.items.goToProposal, {
-                  id: proposalIdMatch.toString(),
-                })}
-              </span>
-            </CommandItem>
-          </CommandGroup>
-        )}
-
         <CommandGroup heading={t(($) => $.commandPalette.groups.navigate)}>
           {navigationItems.map((item) => (
             <CommandItem
               key={item.href}
+              value={navValue(item.href)}
+              keywords={NAVIGATION_KEYWORDS[item.href]}
               onSelect={() => runAndClose(() => navigate({ to: item.href }))}
             >
               <item.icon />
@@ -98,25 +128,61 @@ export const CommandPalette = () => {
           ))}
         </CommandGroup>
 
+        {(showProposalHint || nonNullish(proposalIdMatch)) && (
+          <CommandGroup heading={t(($) => $.commandPalette.groups.proposals)}>
+            {nonNullish(proposalIdMatch) ? (
+              <CommandItem value={trimmedSearch} onSelect={() => goToProposal(proposalIdMatch)}>
+                <FileTextIcon />
+                <span>
+                  {t(($) => $.commandPalette.items.goToProposal, {
+                    id: proposalIdMatch.toString(),
+                  })}
+                </span>
+              </CommandItem>
+            ) : (
+              <CommandItem value="proposal-hint" disabled>
+                <FileTextIcon />
+                <span>{t(($) => $.commandPalette.items.proposalHint)}</span>
+              </CommandItem>
+            )}
+          </CommandGroup>
+        )}
+
         <CommandSeparator />
 
         <CommandGroup heading={t(($) => $.commandPalette.groups.preferences)}>
-          <CommandItem onSelect={() => setTheme(Theme.Light)}>
+          <CommandItem
+            value={themeValue(Theme.Light)}
+            keywords={['appearance', 'color']}
+            onSelect={() => setTheme(Theme.Light)}
+          >
             <SunIcon />
             <span>{t(($) => $.commandPalette.items.themeLight)}</span>
             {theme === Theme.Light && <CheckIcon className="ml-auto" />}
           </CommandItem>
-          <CommandItem onSelect={() => setTheme(Theme.Dark)}>
+          <CommandItem
+            value={themeValue(Theme.Dark)}
+            keywords={['appearance', 'color']}
+            onSelect={() => setTheme(Theme.Dark)}
+          >
             <MoonIcon />
             <span>{t(($) => $.commandPalette.items.themeDark)}</span>
             {theme === Theme.Dark && <CheckIcon className="ml-auto" />}
           </CommandItem>
-          <CommandItem onSelect={() => setTheme(Theme.System)}>
+          <CommandItem
+            value={themeValue(Theme.System)}
+            keywords={['appearance', 'color', 'auto']}
+            onSelect={() => setTheme(Theme.System)}
+          >
             <MonitorIcon />
             <span>{t(($) => $.commandPalette.items.themeSystem)}</span>
             {theme === Theme.System && <CheckIcon className="ml-auto" />}
           </CommandItem>
-          <CommandItem onSelect={() => runAndClose(() => setHidden(!hidden))}>
+          <CommandItem
+            value={TOGGLE_BALANCES_VALUE}
+            keywords={['privacy', 'balance']}
+            onSelect={() => runAndClose(() => setHidden(!hidden))}
+          >
             {hidden ? <EyeIcon /> : <EyeOffIcon />}
             <span>
               {hidden
@@ -124,12 +190,17 @@ export const CommandPalette = () => {
                 : t(($) => $.commandPalette.items.hideBalances)}
             </span>
           </CommandItem>
-          <CommandItem onSelect={() => runAndClose(logout)}>
+          <CommandItem
+            value={SIGN_OUT_VALUE}
+            keywords={['logout', 'log out']}
+            onSelect={() => runAndClose(logout)}
+          >
             <LogOutIcon />
             <span>{t(($) => $.commandPalette.items.signOut)}</span>
           </CommandItem>
         </CommandGroup>
       </CommandList>
+      <CommandHintFooter />
     </CommandDialog>
   );
 };
