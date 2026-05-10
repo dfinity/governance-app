@@ -2,7 +2,7 @@ import { Command as CommandPrimitive } from 'cmdk';
 import { SearchIcon } from 'lucide-react';
 import * as React from 'react';
 
-import { Dialog, DialogContent } from '@components/Dialog';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@components/Dialog';
 import { cn } from '@utils/shadcn';
 
 function Command({ className, ...props }: React.ComponentProps<typeof CommandPrimitive>) {
@@ -37,12 +37,8 @@ function CommandDialog({
         className={cn('overflow-hidden p-0', className)}
         showCloseButton={showCloseButton}
       >
-        {(title || description) && (
-          <div className="sr-only">
-            {title && <h2>{title}</h2>}
-            {description && <p>{description}</p>}
-          </div>
-        )}
+        {title && <DialogTitle className="sr-only">{title}</DialogTitle>}
+        {description && <DialogDescription className="sr-only">{description}</DialogDescription>}
         <Command className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:size-4 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-2 [&_[cmdk-item]_svg]:size-4">
           {children}
         </Command>

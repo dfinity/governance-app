@@ -82,12 +82,16 @@ export const CommandPalette = () => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
 
-  useCommandPaletteShortcut(() => setOpen((prev) => !prev));
+  const handleOpenChange = (next: boolean) => {
+    if (!next) setSearch('');
+    setOpen(next);
+  };
+
+  useCommandPaletteShortcut(() => handleOpenChange(!open));
 
   const runAndClose = (fn: () => void) => {
     fn();
-    setOpen(false);
-    setSearch('');
+    handleOpenChange(false);
   };
 
   const navigationItems = getNavigationItems({ subaccountsEnabled: features.subaccounts });
@@ -102,7 +106,7 @@ export const CommandPalette = () => {
   return (
     <CommandDialog
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={handleOpenChange}
       title={t(($) => $.commandPalette.title)}
       description={t(($) => $.commandPalette.description)}
       showCloseButton={false}
