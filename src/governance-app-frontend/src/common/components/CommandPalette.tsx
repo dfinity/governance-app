@@ -14,6 +14,8 @@ import {
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { parseProposalId } from '@features/proposals/utils';
+
 import {
   CommandDialog,
   CommandEmpty,
@@ -31,7 +33,6 @@ import { useCommandPaletteShortcut } from '@hooks/useCommandPaletteShortcut';
 import { useHideBalances } from '@hooks/useHideBalances';
 import { useLogout } from '@hooks/useLogout';
 import { useTheme } from '@hooks/useTheme';
-import { stringToBigInt } from '@utils/bigInt';
 
 const NAVIGATION_KEYWORDS: Record<string, string[]> = {
   '/dashboard': ['home', 'overview'],
@@ -97,7 +98,7 @@ export const CommandPalette = () => {
   const navigationItems = getNavigationItems({ subaccountsEnabled: features.subaccounts });
 
   const trimmedSearch = search.trim();
-  const proposalIdMatch = /^\d+$/.test(trimmedSearch) ? stringToBigInt(trimmedSearch) : undefined;
+  const proposalIdMatch = parseProposalId(trimmedSearch);
   const showProposalHint = trimmedSearch === '';
   const goToProposal = (id: bigint) => {
     runAndClose(() => navigate({ to: '/voting/proposals/$id', params: { id } }));

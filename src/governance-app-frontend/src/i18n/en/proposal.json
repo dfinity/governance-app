@@ -1,5 +1,6 @@
 {
   "proposalId": "Proposal #{{id}}",
+  "notFound": "No proposal found with ID #{{id}}",
   "backToProposals": "Back to proposals",
   "action": "Action",
   "timeLeft": "{{timeLeft}} left",

@@ -1,4 +1,16 @@
 import { ProposalInfo, ProposalStatus } from '@icp-sdk/canisters/nns';
+import { isNullish } from '@dfinity/utils';
+
+import { stringToBigInt } from '@utils/bigInt';
+
+export const isValidProposalId = (id: bigint | undefined): id is bigint =>
+  !isNullish(id) && id > 0n;
+
+export const parseProposalId = (raw: string): bigint | undefined => {
+  if (!/^\d+$/.test(raw)) return undefined;
+  const parsed = stringToBigInt(raw);
+  return isValidProposalId(parsed) ? parsed : undefined;
+};
 
 export const getProposalTimeLeftInSeconds = (proposal: ProposalInfo): bigint => {
   const now = Date.now() / 1000;
