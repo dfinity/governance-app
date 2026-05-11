@@ -4,6 +4,8 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
 import {
   isProposalFilter,
@@ -112,11 +114,15 @@ function Voting() {
     setManageFollowing(true);
   };
 
-  const toggleViewProposals = () =>
+  const toggleViewProposals = () => {
+    const nextShown = !showProposals;
+    if (nextShown) analytics.event(AnalyticsEvent.VotingShowProposals);
+
     navigate({
-      search: (prev) => ({ ...prev, showProposals: !showProposals ? true : undefined }),
+      search: (prev) => ({ ...prev, showProposals: nextShown ? true : undefined }),
       replace: true,
     });
+  };
 
   useEffect(() => {
     if (!showProposals) return;
@@ -246,6 +252,11 @@ function Voting() {
                               proposalFilter,
                             }}
                             className="w-full"
+                            onClick={() =>
+                              analytics.event(AnalyticsEvent.VotingOpenProposalDetail, {
+                                proposal_filter: proposalFilter,
+                              })
+                            }
                           >
                             <ProposalListItem
                               proposal={proposal}

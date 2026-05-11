@@ -24,10 +24,13 @@ export enum AnalyticsEvent {
   FollowingPickerApplyError = 'following_picker_apply_error',
   FollowingRemoveFollowee = 'following_remove_followee',
   FollowingClearAll = 'following_clear_all',
+
+  // Voting / proposals funnel
+  VotingShowProposals = 'voting_show_proposals',
+  VotingOpenProposalDetail = 'voting_open_proposal_detail',
 }
 // @TODO:
 //  - successful login
 //  - click on the navigation items
 //  - click on dashboard buttons (deposit / withdraw / staking - apy warning icons)
-//  - view proposal link
 //  - manual voting
