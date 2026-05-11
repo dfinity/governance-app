@@ -116,9 +116,8 @@ function Voting() {
 
   const toggleViewProposals = () => {
     const nextShown = !showProposals;
-    if (nextShown) {
-      analytics.event(AnalyticsEvent.VotingShowProposals);
-    }
+    if (nextShown) analytics.event(AnalyticsEvent.VotingShowProposals);
+
     navigate({
       search: (prev) => ({ ...prev, showProposals: nextShown ? true : undefined }),
       replace: true,
