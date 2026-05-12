@@ -223,17 +223,36 @@ const getAPYs = (params: StakingRewardCalcParams, forceInitialDate?: Date) => {
   }
 };
 
+// Per-neuron APY is annualized over the days the neuron is actually eligible
+// to vote, not averaged over a full 365-day window. For a locked neuron
+// eligible all year this collapses to the same value; for a dissolving neuron
+// it stops counting the post-dissolution period where the funds are no longer
+// staked and would presumably be redeployed by the user.
+const SIMULATED_DAYS = 365;
+const annualizeOverEligibleWindow = (
+  reward: number,
+  stake: number,
+  eligibleDays: number,
+): number => {
+  if (stake <= 0 || eligibleDays <= 0) return 0;
+  return (reward / stake) * (SIMULATED_DAYS / eligibleDays);
+};
+
 const getAPY = (params: StakingRewardCalcParams, forceInitialDate?: Date) => {
   const {
-    total: yearEstimatedRewardTotal,
     neurons: yearEstimatedRewardNeurons,
+    neuronsEligibleDays: yearEstimatedEligibleDays,
     periodsRewards,
-  } = getNeuronsRewardEstimate(params, 365, false, forceInitialDate);
-  const { total: yearEstimatedMaxRewardTotal, neurons: yearEstimatedMaxRewardNeurons } =
-    getNeuronsRewardEstimate(params, 365, true, forceInitialDate);
+  } = getNeuronsRewardEstimate(params, SIMULATED_DAYS, false, forceInitialDate);
+  const {
+    neurons: yearEstimatedMaxRewardNeurons,
+    neuronsEligibleDays: yearEstimatedMaxEligibleDays,
+  } = getNeuronsRewardEstimate(params, SIMULATED_DAYS, true, forceInitialDate);
 
   let total = 0;
   let totalMax = 0;
+  let stakeWeightedApySum = 0;
+  let stakeWeightedMaxApySum = 0;
   const singleNeuronsApy = new Map<string, { cur: number; max: number }>();
 
   params.neurons.forEach((neuron) => {
@@ -248,20 +267,26 @@ const getAPY = (params: StakingRewardCalcParams, forceInitialDate?: Date) => {
     totalMax += neuronTotalMaxStake;
 
     const neuronId = getNeuronId(neuron);
-    singleNeuronsApy.set(neuronId, {
-      cur: neuronTotalStake
-        ? (yearEstimatedRewardNeurons.get(neuronId) ?? 0) / neuronTotalStake
-        : 0,
-      max: neuronTotalMaxStake
-        ? (yearEstimatedMaxRewardNeurons.get(neuronId) ?? 0) / neuronTotalMaxStake
-        : 0,
-    });
+    const cur = annualizeOverEligibleWindow(
+      yearEstimatedRewardNeurons.get(neuronId) ?? 0,
+      neuronTotalStake,
+      yearEstimatedEligibleDays.get(neuronId) ?? 0,
+    );
+    const max = annualizeOverEligibleWindow(
+      yearEstimatedMaxRewardNeurons.get(neuronId) ?? 0,
+      neuronTotalMaxStake,
+      yearEstimatedMaxEligibleDays.get(neuronId) ?? 0,
+    );
+    singleNeuronsApy.set(neuronId, { cur, max });
+
+    stakeWeightedApySum += cur * neuronTotalStake;
+    stakeWeightedMaxApySum += max * neuronTotalMaxStake;
   });
 
   return {
-    cur: total ? yearEstimatedRewardTotal / total : 0,
+    cur: total ? stakeWeightedApySum / total : 0,
     curPeriodsRewards: periodsRewards,
-    max: totalMax ? yearEstimatedMaxRewardTotal / totalMax : 0,
+    max: totalMax ? stakeWeightedMaxApySum / totalMax : 0,
     neurons: singleNeuronsApy,
   };
 };
@@ -349,12 +374,18 @@ const getNeuronsRewardEstimate = (
 ): {
   total: number;
   neurons: Map<string, number>;
+  neuronsEligibleDays: Map<string, number>;
   periodsRewards: Map<MaturityEstimatePeriod, number>;
 } => {
   const { neurons: _neurons } = params;
 
   if (!_neurons || _neurons.length === 0) {
-    return { total: 0, neurons: new Map(), periodsRewards: new Map() };
+    return {
+      total: 0,
+      neurons: new Map(),
+      neuronsEligibleDays: new Map(),
+      periodsRewards: new Map(),
+    };
   }
   const neurons = cloneNeurons(_neurons);
 
@@ -367,9 +398,11 @@ const getNeuronsRewardEstimate = (
   let neuronsTotalReward = 0;
   const periodsRewards = new Map<MaturityEstimatePeriod, number>();
   const neuronsRewards = new Map<string, number>();
+  const neuronsEligibleDays = new Map<string, number>();
   for (let i = 0; i < days; i++) {
     const totalDayReward = neurons.reduce((acc, neuron) => {
       let neuronVotingPower = 0n;
+      const neuronId = getNeuronId(neuron);
 
       if (
         isNeuronEligibleToVote(
@@ -379,6 +412,8 @@ const getNeuronsRewardEstimate = (
           getDate(i, forceInitialDate),
         )
       ) {
+        neuronsEligibleDays.set(neuronId, (neuronsEligibleDays.get(neuronId) ?? 0) + 1);
+
         const referenceDate = getDate(i, forceInitialDate);
         const baseStake = getNeuronTotalStakeAfterFeesE8s(neuron);
         const eightYearGangExtra = getEightYearGangBonusE8s(neuron, referenceDate);
@@ -391,7 +426,6 @@ const getNeuronsRewardEstimate = (
 
       if (neuronVotingPower > 0n) {
         const tokenReward = getTokenReward(params, neuronVotingPower, i, forceInitialDate);
-        const neuronId = getNeuronId(neuron);
         const prev = neuronsRewards.get(neuronId) ?? 0;
         neuronsRewards.set(neuronId, prev + tokenReward);
 
@@ -408,7 +442,12 @@ const getNeuronsRewardEstimate = (
     }
   }
 
-  return { total: neuronsTotalReward, neurons: neuronsRewards, periodsRewards };
+  return {
+    total: neuronsTotalReward,
+    neurons: neuronsRewards,
+    neuronsEligibleDays,
+    periodsRewards,
+  };
 };
 
 const getDate = (addDays: number = 0, forceInitialDate?: Date): Date => {

@@ -238,20 +238,21 @@ describe('staking-rewards', () => {
     const data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      // 2-week preset (the network minimum dissolve delay). When dissolving,
-      // the neuron drops below the vote threshold almost immediately, so APY ~0.
+      // APY is annualized over the eligible-to-vote window, so a dissolving
+      // neuron's APY reflects the rate at which it's earning during dissolution
+      // rather than averaging in the post-eligibility zero-earning tail.
       expect(
         checkNumber(0.0228, data.stakingFlowApyPreview[SECONDS_IN_TWO_WEEKS].autoStake.locked),
       ).toBe(true);
       expect(
-        checkNumber(0.0001, data.stakingFlowApyPreview[SECONDS_IN_TWO_WEEKS].autoStake.dissolving),
+        checkNumber(0.0227, data.stakingFlowApyPreview[SECONDS_IN_TWO_WEEKS].autoStake.dissolving),
       ).toBe(true);
       expect(
         checkNumber(0.0225, data.stakingFlowApyPreview[SECONDS_IN_TWO_WEEKS].nonAutoStake.locked),
       ).toBe(true);
       expect(
         checkNumber(
-          0.0001,
+          0.0227,
           data.stakingFlowApyPreview[SECONDS_IN_TWO_WEEKS].nonAutoStake.dissolving,
         ),
       ).toBe(true);
@@ -260,14 +261,14 @@ describe('staking-rewards', () => {
         checkNumber(0.0235, data.stakingFlowApyPreview[3 * SECONDS_IN_MONTH].autoStake.locked),
       ).toBe(true);
       expect(
-        checkNumber(0.0049, data.stakingFlowApyPreview[3 * SECONDS_IN_MONTH].autoStake.dissolving),
+        checkNumber(0.0228, data.stakingFlowApyPreview[3 * SECONDS_IN_MONTH].autoStake.dissolving),
       ).toBe(true);
       expect(
         checkNumber(0.0232, data.stakingFlowApyPreview[3 * SECONDS_IN_MONTH].nonAutoStake.locked),
       ).toBe(true);
       expect(
         checkNumber(
-          0.0049,
+          0.0228,
           data.stakingFlowApyPreview[3 * SECONDS_IN_MONTH].nonAutoStake.dissolving,
         ),
       ).toBe(true);
@@ -276,14 +277,14 @@ describe('staking-rewards', () => {
         checkNumber(0.0257, data.stakingFlowApyPreview[6 * SECONDS_IN_MONTH].autoStake.locked),
       ).toBe(true);
       expect(
-        checkNumber(0.0108, data.stakingFlowApyPreview[6 * SECONDS_IN_MONTH].autoStake.dissolving),
+        checkNumber(0.0234, data.stakingFlowApyPreview[6 * SECONDS_IN_MONTH].autoStake.dissolving),
       ).toBe(true);
       expect(
         checkNumber(0.0253, data.stakingFlowApyPreview[6 * SECONDS_IN_MONTH].nonAutoStake.locked),
       ).toBe(true);
       expect(
         checkNumber(
-          0.0108,
+          0.0233,
           data.stakingFlowApyPreview[6 * SECONDS_IN_MONTH].nonAutoStake.dissolving,
         ),
       ).toBe(true);
@@ -292,13 +293,13 @@ describe('staking-rewards', () => {
         checkNumber(0.0344, data.stakingFlowApyPreview[SECONDS_IN_YEAR].autoStake.locked),
       ).toBe(true);
       expect(
-        checkNumber(0.0251, data.stakingFlowApyPreview[SECONDS_IN_YEAR].autoStake.dissolving),
+        checkNumber(0.0261, data.stakingFlowApyPreview[SECONDS_IN_YEAR].autoStake.dissolving),
       ).toBe(true);
       expect(
         checkNumber(0.0338, data.stakingFlowApyPreview[SECONDS_IN_YEAR].nonAutoStake.locked),
       ).toBe(true);
       expect(
-        checkNumber(0.0248, data.stakingFlowApyPreview[SECONDS_IN_YEAR].nonAutoStake.dissolving),
+        checkNumber(0.0257, data.stakingFlowApyPreview[SECONDS_IN_YEAR].nonAutoStake.dissolving),
       ).toBe(true);
 
       expect(
@@ -567,7 +568,9 @@ describe('staking-rewards', () => {
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
-    // Change: dissolve delay to 1 year.
+    // Change: dissolve delay to 1 year. The neuron is eligible to vote for ~351
+    // of the 365 simulated days (until its dissolve delay drops below the
+    // 2-week voting threshold), and the APY is annualized over that window.
     params.neurons[0].fullNeuron!.dissolveState = {
       WhenDissolvedTimestampSeconds: BigInt(
         stakingRewardsTestReferenceDate.getTime() / 1000 + SECONDS_IN_YEAR,
@@ -579,12 +582,12 @@ describe('staking-rewards', () => {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(1);
       expect(
-        checkNumber(0.0248, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
+        checkNumber(0.0257, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
       ).toBe(true);
       expect(
         checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
       ).toBe(true);
-      expect(checkNumber(0.0248, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.0257, data.apy.cur)).toBe(true);
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
@@ -690,7 +693,11 @@ describe('staking-rewards', () => {
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
-    // Change: the third neuron dissolving with 1 month (above 2-week min, but low bonus).
+    // Change: the third neuron dissolving with 1 month (above 2-week min, but
+    // low bonus). It's only eligible to vote for ~17 days, but its APY is
+    // annualized over that window rather than averaged over the full year, so
+    // it lands near the network base rate instead of close to zero. Its huge
+    // stake dominates the portfolio APY.
     params.neurons[2].state = NeuronState.Dissolving;
     params.neurons[2].fullNeuron!.dissolveState = {
       WhenDissolvedTimestampSeconds: BigInt(
@@ -715,12 +722,12 @@ describe('staking-rewards', () => {
         checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0011, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.cur ?? 0),
+        checkNumber(0.0227, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.cur ?? 0),
       ).toBe(true);
       expect(
         checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.max ?? 0),
       ).toBe(true);
-      expect(checkNumber(0.0011, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.0227, data.apy.cur)).toBe(true);
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
