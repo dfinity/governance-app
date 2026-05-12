@@ -529,7 +529,6 @@ describe('staking-rewards', () => {
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
-    // Change: auto stake maturity off.
     params.neurons[0].fullNeuron!.autoStakeMaturity = false;
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
@@ -546,7 +545,6 @@ describe('staking-rewards', () => {
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
-    // Change: dissolving neuron with 2 years remaining.
     params.neurons[0].state = NeuronState.Dissolving;
     params.neurons[0].fullNeuron!.dissolveState = {
       WhenDissolvedTimestampSeconds: BigInt(
@@ -568,9 +566,6 @@ describe('staking-rewards', () => {
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
-    // Change: dissolve delay to 1 year. The neuron is eligible to vote for ~351
-    // of the 365 simulated days (until its dissolve delay drops below the
-    // 2-week voting threshold), and the APY is annualized over that window.
     params.neurons[0].fullNeuron!.dissolveState = {
       WhenDissolvedTimestampSeconds: BigInt(
         stakingRewardsTestReferenceDate.getTime() / 1000 + SECONDS_IN_YEAR,
@@ -591,7 +586,6 @@ describe('staking-rewards', () => {
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
-    // Change: dissolve delay to 1 week (below 2-week minimum).
     params.neurons[0].fullNeuron!.dissolveState = {
       WhenDissolvedTimestampSeconds: BigInt(
         stakingRewardsTestReferenceDate.getTime() / 1000 + 7 * SECONDS_IN_DAY,
@@ -612,7 +606,6 @@ describe('staking-rewards', () => {
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
-    // Change: add a second neuron.
     params.neurons.push(getStakingRewardsTestNeuron() as NeuronInfo);
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
@@ -635,7 +628,6 @@ describe('staking-rewards', () => {
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
-    // Change: add a third neuron.
     params.neurons.push(getStakingRewardsTestNeuron() as NeuronInfo);
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
@@ -664,7 +656,6 @@ describe('staking-rewards', () => {
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
-    // Change: the third neuron has a much bigger stake and overshadows the other two (weighting factor is applied).
     params.neurons[2].fullNeuron!.cachedNeuronStake = BigInt(1_000_000 * E8S);
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
@@ -693,11 +684,6 @@ describe('staking-rewards', () => {
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
-    // Change: the third neuron dissolving with 1 month (above 2-week min, but
-    // low bonus). It's only eligible to vote for ~17 days, but its APY is
-    // annualized over that window rather than averaged over the full year, so
-    // it lands near the network base rate instead of close to zero. Its huge
-    // stake dominates the portfolio APY.
     params.neurons[2].state = NeuronState.Dissolving;
     params.neurons[2].fullNeuron!.dissolveState = {
       WhenDissolvedTimestampSeconds: BigInt(
@@ -731,7 +717,6 @@ describe('staking-rewards', () => {
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
-    // Change: remove the third neuron.
     params.neurons.pop();
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
