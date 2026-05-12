@@ -244,12 +244,12 @@ const annualizeOverEligibleWindow = (
 
 const getAPY = (params: StakingRewardCalcParams, forceInitialDate?: Date) => {
   const {
-    neurons: yearEstimatedRewardNeurons,
+    neuronsRewardsForApy: yearEstimatedRewardNeurons,
     neuronsEligibleDays: yearEstimatedEligibleDays,
     periodsRewards,
   } = getNeuronsRewardEstimate(params, SIMULATED_DAYS, false, forceInitialDate);
   const {
-    neurons: yearEstimatedMaxRewardNeurons,
+    neuronsRewardsForApy: yearEstimatedMaxRewardNeurons,
     neuronsEligibleDays: yearEstimatedMaxEligibleDays,
   } = getNeuronsRewardEstimate(params, SIMULATED_DAYS, true, forceInitialDate);
 
@@ -377,8 +377,16 @@ const getNeuronsRewardEstimate = (
   forceInitialDate?: Date,
 ): {
   total: number;
-  neurons: Map<string, number>;
+  // Per-neuron rewards computed with the pool reward held at day 0. These are
+  // what we annualize into APY: "rate at today's conditions, projected forward"
+  // — the same framing the IC dashboard uses (daily_maturity × 365). If we
+  // instead used the real (decaying) pool here, short-eligibility dissolving
+  // neurons would appear to out-earn the equivalent locked neuron because
+  // their single eligible day is day 0, when the pool is at its yearly high.
+  neuronsRewardsForApy: Map<string, number>;
   neuronsEligibleDays: Map<string, number>;
+  // Total + per-period rewards use the real decaying pool, since they
+  // forecast actual maturity gains over time.
   periodsRewards: Map<MaturityEstimatePeriod, number>;
 } => {
   const { neurons: _neurons } = params;
@@ -386,7 +394,7 @@ const getNeuronsRewardEstimate = (
   if (!_neurons || _neurons.length === 0) {
     return {
       total: 0,
-      neurons: new Map(),
+      neuronsRewardsForApy: new Map(),
       neuronsEligibleDays: new Map(),
       periodsRewards: new Map(),
     };
@@ -401,7 +409,7 @@ const getNeuronsRewardEstimate = (
 
   let neuronsTotalReward = 0;
   const periodsRewards = new Map<MaturityEstimatePeriod, number>();
-  const neuronsRewards = new Map<string, number>();
+  const neuronsRewardsForApy = new Map<string, number>();
   const neuronsEligibleDays = new Map<string, number>();
   for (let i = 0; i < days; i++) {
     const totalDayReward = neurons.reduce((acc, neuron) => {
@@ -430,8 +438,12 @@ const getNeuronsRewardEstimate = (
 
       if (neuronVotingPower > 0n) {
         const tokenReward = getTokenReward(params, neuronVotingPower, i, forceInitialDate);
-        const prev = neuronsRewards.get(neuronId) ?? 0;
-        neuronsRewards.set(neuronId, prev + tokenReward);
+        const tokenRewardForApy =
+          i === 0 ? tokenReward : getTokenReward(params, neuronVotingPower, 0, forceInitialDate);
+        neuronsRewardsForApy.set(
+          neuronId,
+          (neuronsRewardsForApy.get(neuronId) ?? 0) + tokenRewardForApy,
+        );
 
         increaseNeuronMaturity(neuron, BigInt(Math.floor(tokenReward * Number(E8S))));
         return acc + tokenReward;
@@ -448,7 +460,7 @@ const getNeuronsRewardEstimate = (
 
   return {
     total: neuronsTotalReward,
-    neurons: neuronsRewards,
+    neuronsRewardsForApy,
     neuronsEligibleDays,
     periodsRewards,
   };
