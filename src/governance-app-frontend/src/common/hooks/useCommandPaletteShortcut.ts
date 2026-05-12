@@ -10,6 +10,7 @@ export const useCommandPaletteShortcut = (onTrigger: () => void) => {
       if (!enabled) return;
       if (event.repeat) return;
       if (!(event.metaKey || event.ctrlKey)) return;
+      if (event.shiftKey || event.altKey) return;
       if (event.key !== 'k' && event.key !== 'K') return;
 
       event.preventDefault();
