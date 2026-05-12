@@ -1,6 +1,40 @@
 import { describe, expect, it } from 'vitest';
 
-import { isProposalFilter, ProposalFilter, validateProposalsSearch } from './utils';
+import {
+  isProposalFilter,
+  isValidProposalId,
+  parseProposalId,
+  ProposalFilter,
+  validateProposalsSearch,
+} from './utils';
+
+describe('isValidProposalId', () => {
+  it('returns true for positive bigints', () => {
+    expect(isValidProposalId(1n)).toBe(true);
+    expect(isValidProposalId(12345n)).toBe(true);
+  });
+
+  it('returns false for zero, negative, or missing values', () => {
+    expect(isValidProposalId(0n)).toBe(false);
+    expect(isValidProposalId(-1n)).toBe(false);
+    expect(isValidProposalId(undefined)).toBe(false);
+  });
+});
+
+describe('parseProposalId', () => {
+  it('returns the bigint for digit strings that represent positive IDs', () => {
+    expect(parseProposalId('1')).toBe(1n);
+    expect(parseProposalId('12345')).toBe(12345n);
+  });
+
+  it('returns undefined for zero, non-digit, or empty input', () => {
+    expect(parseProposalId('0')).toBeUndefined();
+    expect(parseProposalId('')).toBeUndefined();
+    expect(parseProposalId('abc')).toBeUndefined();
+    expect(parseProposalId('12a')).toBeUndefined();
+    expect(parseProposalId('-5')).toBeUndefined();
+  });
+});
 
 describe('isProposalFilter', () => {
   it('returns true for valid ProposalFilter values', () => {

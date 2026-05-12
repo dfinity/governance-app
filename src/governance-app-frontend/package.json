@@ -40,6 +40,7 @@
     "@tanstack/react-router": "1.159.5",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
+    "cmdk": "1.1.1",
     "i18next": "25.8.7",
     "ic-use-internet-identity": "0.7.0",
     "lockfile-lint": "5.0.0",

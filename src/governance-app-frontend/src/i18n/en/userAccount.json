@@ -66,6 +66,13 @@
       "toggle": "Toggle balance visibility"
     }
   },
+  "commandPalette": {
+    "title": "Command palette",
+    "description": "Quickly navigate the app and toggle preferences with a searchable menu.",
+    "aria": {
+      "toggle": "Toggle command palette"
+    }
+  },
   "advancedFeatures": {
     "title": "Advanced features",
     "items": {

@@ -4,6 +4,7 @@ import { initReactI18next } from 'react-i18next';
 import account from './en/account.json';
 import accounts from './en/accounts.json';
 import addressBook from './en/addressBook.json';
+import commandPalette from './en/commandPalette.json';
 import common from './en/common.json';
 import errors from './en/errors.json';
 import home from './en/home.json';
@@ -43,6 +44,7 @@ export const resources = {
       account,
       accounts,
       addressBook,
+      commandPalette,
       userAccount,
       welcomeModal,
       knownNeurons,

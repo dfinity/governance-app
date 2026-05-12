@@ -65,6 +65,7 @@ export const EIGHT_YEAR_GANG_BONUS_EXPIRY_SECONDS = 1_924_991_999; // 2030-12-31
 export const MANUAL_LOGOUT_KEY = 'nns-manual-logout';
 export const WELCOME_MODAL_STORAGE_KEY = 'nns-welcome-modal-seen';
 export const SHORTCUTS_SETTINGS_KEY = 'nns-shortcuts-settings';
+export const COMMAND_PALETTE_SETTINGS_KEY = 'nns-command-palette-settings';
 export const ADVANCED_FEATURES_STORAGE_KEY = 'nns-advanced-features';
 export const THEME_STORAGE_KEY = 'nns-theme';
 export const HIDE_BALANCES_KEY = 'nns-hide-balances';
