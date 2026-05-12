@@ -228,14 +228,14 @@ const getAPYs = (params: StakingRewardCalcParams, forceInitialDate?: Date) => {
 // eligible all year this collapses to the same value; for a dissolving neuron
 // it stops counting the post-dissolution period where the funds are no longer
 // staked and would presumably be redeployed by the user.
-const SIMULATED_DAYS = 365;
 const annualizeOverEligibleWindow = (
   reward: number,
   stake: number,
   eligibleDays: number,
+  simulatedDays: number,
 ): number => {
   if (stake <= 0 || eligibleDays <= 0) return 0;
-  return (reward / stake) * (SIMULATED_DAYS / eligibleDays);
+  return (reward / stake) * (simulatedDays / eligibleDays);
 };
 
 const getAPY = (params: StakingRewardCalcParams, forceInitialDate?: Date) => {
@@ -243,11 +243,11 @@ const getAPY = (params: StakingRewardCalcParams, forceInitialDate?: Date) => {
     neurons: yearEstimatedRewardNeurons,
     neuronsEligibleDays: yearEstimatedEligibleDays,
     periodsRewards,
-  } = getNeuronsRewardEstimate(params, SIMULATED_DAYS, false, forceInitialDate);
+  } = getNeuronsRewardEstimate(params, 365, false, forceInitialDate);
   const {
     neurons: yearEstimatedMaxRewardNeurons,
     neuronsEligibleDays: yearEstimatedMaxEligibleDays,
-  } = getNeuronsRewardEstimate(params, SIMULATED_DAYS, true, forceInitialDate);
+  } = getNeuronsRewardEstimate(params, 365, true, forceInitialDate);
 
   let total = 0;
   let totalMax = 0;
@@ -271,11 +271,13 @@ const getAPY = (params: StakingRewardCalcParams, forceInitialDate?: Date) => {
       yearEstimatedRewardNeurons.get(neuronId) ?? 0,
       neuronTotalStake,
       yearEstimatedEligibleDays.get(neuronId) ?? 0,
+      365,
     );
     const max = annualizeOverEligibleWindow(
       yearEstimatedMaxRewardNeurons.get(neuronId) ?? 0,
       neuronTotalMaxStake,
       yearEstimatedMaxEligibleDays.get(neuronId) ?? 0,
+      365,
     );
     singleNeuronsApy.set(neuronId, { cur, max });
 
