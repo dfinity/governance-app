@@ -10,7 +10,7 @@
   },
   "modulation": {
     "title": "Maturity modulation",
-    "description": "Maturity conversion to ICP is non-deterministic. When disbursed, the rate varies between 0.95 to 1.05 ICP per unit of maturity (±5%) based on recent ICP/Cycles conversion rate trends.",
+    "description": "Maturity conversion to ICP is non-deterministic. When disbursed, the rate varies between 0.90 and 1.02 ICP per unit of maturity (−10% to +2%) based on recent ICP/Cycles conversion rate trends.",
     "learnMore": "Learn more about maturity modulation"
   },
   "managing": {
