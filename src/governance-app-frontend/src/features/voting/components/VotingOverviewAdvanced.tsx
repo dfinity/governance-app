@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
 import { Card, CardContent } from '@components/Card';
+import { EmptyActionState } from '@components/EmptyActionState';
 import { PageHeader } from '@components/PageHeader';
 import { Skeleton } from '@components/Skeleton';
 
@@ -109,21 +110,14 @@ function EmptyState({ onManageFollowing }: { onManageFollowing: () => void }) {
   const { t } = useTranslation();
 
   return (
-    <div className="mt-20 flex flex-col items-center justify-center gap-6 text-center">
-      <div className="rounded-full border-2 border-secondary/90 bg-secondary/30 p-6">
-        <Users className="size-10 text-muted-foreground" />
-      </div>
-      <h3 className="text-2xl font-semibold">{t(($) => $.voting.overview.noNeurons.title)}</h3>
-      <p className="max-w-sm text-base text-muted-foreground">
-        {t(($) => $.voting.overview.noNeurons.body)}
-      </p>
-      <div className="flex flex-col gap-3 pt-2 sm:items-center">
-        <Button size="xl" className="w-full sm:w-auto" onClick={onManageFollowing}>
-          <Users />
-          {t(($) => $.voting.overview.noNeurons.cta)}
-        </Button>
-      </div>
-    </div>
+    <EmptyActionState
+      icon={Users}
+      title={t(($) => $.voting.overview.noNeurons.title)}
+      description={t(($) => $.voting.overview.noNeurons.body)}
+      ctaLabel={t(($) => $.voting.overview.noNeurons.cta)}
+      ctaIcon={Users}
+      onCtaClick={onManageFollowing}
+    />
   );
 }
 

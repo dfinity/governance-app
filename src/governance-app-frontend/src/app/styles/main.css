@@ -1,82 +1,122 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,380;6..72,400;6..72,500&display=swap');
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 @import 'tw-animate-css';
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is([data-theme='dark'] *));
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --icp-serif:
+    'Newsreader', 'Newsreader Fallback', Charter, Georgia, Cambria, 'Times New Roman', serif;
+  --icp-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --icp-mono:
+    'JetBrains Mono', 'JetBrains Mono Fallback', ui-monospace, SFMono-Regular, Menlo, Consolas,
+    'Liberation Mono', monospace;
+  --icp-bg: #faf9f5;
+  --icp-bg-sunk: #f3f1ea;
+  --icp-bg-elev: #ffffff;
+  --icp-bg-card: #ffffff;
+  --icp-fg: #1a1a1a;
+  --icp-fg-secondary: #4b4943;
+  --icp-fg-muted: #868078;
+  --icp-rule: #e7e3da;
+  --icp-rule-strong: #4b4943;
+  --icp-accent: #a8482b;
+  --icp-accent-strong: #8e3b22;
+  --icp-accent-dim: rgba(168, 72, 43, 0.1);
+  --icp-section-teal: #0b5e5c;
+  --icp-section-blue: #1c3d5a;
+  --icp-indicator-teal: #14938e;
+  --icp-grid-line: rgba(26, 26, 26, 0.04);
+  --icp-grid-tile: 24px;
+  --background: var(--icp-bg);
+  --foreground: var(--icp-fg);
+  --card: var(--icp-bg-card);
+  --card-foreground: var(--icp-fg);
+  --popover: var(--icp-bg-card);
+  --popover-foreground: var(--icp-fg);
+  --primary: var(--icp-accent);
+  --primary-foreground: #ffffff;
+  --secondary: var(--icp-bg-sunk);
+  --secondary-foreground: var(--icp-fg);
+  --muted: var(--icp-bg-sunk);
+  --muted-foreground: var(--icp-fg-muted);
+  --accent: var(--icp-accent-dim);
+  --accent-foreground: var(--icp-accent-strong);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
+  --border: var(--icp-rule);
+  --input: var(--icp-rule);
+  --ring: var(--icp-accent-strong);
+  --chart-1: var(--icp-accent);
+  --chart-2: var(--icp-section-teal);
+  --chart-3: var(--icp-section-blue);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-  --main-content: oklch(0.988 0 0); /* rgb(252, 252, 252) - subtle grey for main content */
-  --staking-ratio: #0057ff;
+  --radius: 0.5rem;
+  --sidebar: var(--icp-bg);
+  --sidebar-foreground: var(--icp-fg);
+  --sidebar-primary: var(--icp-accent);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--icp-accent-dim);
+  --sidebar-accent-foreground: var(--icp-accent-strong);
+  --sidebar-border: var(--icp-rule);
+  --sidebar-ring: var(--icp-accent-strong);
+  --main-content: var(--icp-bg);
+  --staking-ratio: var(--icp-section-teal);
 }
 
-.dark {
-  --background: oklch(0.12 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.18 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.18 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+[data-theme='dark'] {
+  --icp-bg: #14110d;
+  --icp-bg-sunk: #1b1812;
+  --icp-bg-elev: #1b1812;
+  --icp-bg-card: #1b1812;
+  --icp-fg: #f0ebe0;
+  --icp-fg-secondary: #c6bdad;
+  --icp-fg-muted: #a29a8d;
+  --icp-rule: #2d2820;
+  --icp-rule-strong: #5a5446;
+  --icp-accent: #c25a37;
+  --icp-accent-strong: #d96a45;
+  --icp-accent-dim: rgba(194, 90, 55, 0.16);
+  --icp-section-teal: #2c8a85;
+  --icp-section-blue: #4a7da8;
+  --icp-indicator-teal: #2c8a85;
+  --icp-grid-line: rgba(240, 235, 224, 0.05);
+  --background: var(--icp-bg);
+  --foreground: var(--icp-fg);
+  --card: var(--icp-bg-card);
+  --card-foreground: var(--icp-fg);
+  --popover: var(--icp-bg-card);
+  --popover-foreground: var(--icp-fg);
+  --primary: var(--icp-accent);
+  --primary-foreground: #ffffff;
+  --secondary: var(--icp-bg-sunk);
+  --secondary-foreground: var(--icp-fg);
+  --muted: var(--icp-bg-sunk);
+  --muted-foreground: var(--icp-fg-muted);
+  --accent: var(--icp-accent-dim);
+  --accent-foreground: var(--icp-accent-strong);
   --destructive: oklch(0.396 0.141 25.723);
   --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
+  --border: var(--icp-rule);
+  --input: var(--icp-rule);
+  --ring: var(--icp-accent-strong);
+  --chart-1: var(--icp-accent);
+  --chart-2: var(--icp-section-teal);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
-  --main-content: var(--background);
-  --staking-ratio: #4d8aff;
+  --sidebar: var(--icp-bg);
+  --sidebar-foreground: var(--icp-fg);
+  --sidebar-primary: var(--icp-accent);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--icp-accent-dim);
+  --sidebar-accent-foreground: var(--icp-accent-strong);
+  --sidebar-border: var(--icp-rule);
+  --sidebar-ring: var(--icp-accent-strong);
+  --main-content: var(--icp-bg);
+  --staking-ratio: var(--icp-section-teal);
 }
 
 @theme inline {
@@ -122,17 +162,44 @@
   /* Custom */
   --breakpoint-xs: 360px;
   --breakpoint-3xl: 1980px;
+  --font-sans: var(--icp-ui);
+  --font-serif: var(--icp-serif);
+  --font-mono: var(--icp-mono);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring/70;
+  }
+
+  html {
+    background: var(--icp-bg);
+    color: var(--icp-fg);
+    font-family: var(--icp-ui);
+    text-rendering: optimizeLegibility;
   }
 
   body {
     @apply bg-main-content text-foreground;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--icp-serif);
+    letter-spacing: -0.012em;
+  }
+
+  ::selection {
+    background: var(--icp-accent);
+    color: #ffffff;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--icp-accent-strong);
+    outline-offset: 2px;
   }
 
   button:not(:disabled),
@@ -157,6 +224,23 @@
   .login-card-responsive {
     font-size: clamp(1.25rem, 2.5vh, 1.875rem);
     line-height: 1.4;
+  }
+
+  .icp-grid-paper,
+  .icp-grid-paper-overlay {
+    background-image:
+      linear-gradient(90deg, var(--icp-grid-line) 1px, transparent 1px),
+      linear-gradient(var(--icp-grid-line) 1px, transparent 1px);
+    background-size: var(--icp-grid-tile) var(--icp-grid-tile);
+    background-position: -1px -1px;
+    background-repeat: repeat;
+  }
+
+  .icp-grid-paper-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.8;
   }
 
   @media (min-width: 768px) {
@@ -208,40 +292,26 @@
   }
 }
 
-/* Dashboard gradient, painted on the canvas (html) so it covers the overscroll area on iOS / macOS rubber-banding. */
+/* Dashboard texture, painted on the canvas (html) so it covers the overscroll area on iOS / macOS rubber-banding. */
 html.route-dashboard {
-  --main-wrapper-right-edge: 100%;
-
   &::before {
     content: '';
     position: fixed;
     z-index: 10;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     pointer-events: none;
+    opacity: 0.45;
     animation: dashboard-gradient-in 1s ease-out forwards;
-    background:
-      radial-gradient(
-        circle 800px at calc(var(--main-wrapper-right-edge) + 150px) 140px,
-        rgba(234, 88, 12, 0.45) -25%,
-        transparent 60%
-      ),
-      radial-gradient(
-        circle 650px at calc(var(--main-wrapper-right-edge) - 100px) 80px,
-        rgba(59, 130, 246, 0.3) 0%,
-        transparent 70%
-      );
+    background-image:
+      linear-gradient(90deg, var(--icp-grid-line) 1px, transparent 1px),
+      linear-gradient(var(--icp-grid-line) 1px, transparent 1px);
+    background-size: var(--icp-grid-tile) var(--icp-grid-tile);
+    background-position: -1px -1px;
+    background-repeat: repeat;
   }
 
   main {
     background-color: transparent;
-  }
-}
-
-/* Keeps the orbs in the right place on larger screens, where the content wrapper is centered. */
-@media (min-width: 1536px) {
-  html.route-dashboard {
-    --main-wrapper-right-edge: calc(50% + 746px);
   }
 }
 
