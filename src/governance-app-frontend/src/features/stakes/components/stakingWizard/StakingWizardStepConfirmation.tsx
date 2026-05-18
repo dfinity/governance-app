@@ -80,7 +80,7 @@ export function StakingWizardStepConfirmation({
           <AnimatedErrorIcon />
         </div>
         <div>
-          <h3 className="mb-3 text-lg font-semibold">
+          <h3 className="mb-3 text-2xl font-normal">
             {t(($) => $.stakeWizardModal.steps.confirmation.error.title)}
           </h3>
           <span className="rounded-md bg-orange-100/50 px-3 py-1.5 text-sm text-orange-600 dark:bg-orange-900/30 dark:text-orange-400">
@@ -122,7 +122,7 @@ export function StakingWizardStepConfirmation({
       >
         <AnimatedCheckmark />
       </motion.div>
-      <h3 className="text-xl font-semibold">
+      <h3 className="text-2xl font-normal">
         {t(($) => $.stakeWizardModal.steps.confirmation.success.title)}
       </h3>
 

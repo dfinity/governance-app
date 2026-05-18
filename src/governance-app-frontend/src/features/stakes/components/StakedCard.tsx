@@ -120,8 +120,8 @@ export function StakedCard() {
       </CardHeader>
 
       <CardContent className="flex flex-1 flex-col justify-between gap-6">
-        <div className="mt-auto grid grid-cols-2 gap-4 text-right">
-          <div className="flex flex-col gap-1 rounded-lg bg-gradient-to-br from-[#2563EB]/8 to-[#F97316]/8 p-3">
+        <div className="mt-auto grid grid-cols-2 gap-6 border-t pt-4 text-right">
+          <div className="flex flex-col gap-1">
             <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
               {t(($) => $.home.maturity)}
             </p>
@@ -135,7 +135,7 @@ export function StakedCard() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-1 rounded-lg bg-gradient-to-br from-[#2563EB]/8 to-[#F97316]/8 p-3">
+          <div className="flex flex-col gap-1 border-l pl-6">
             <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
               {t(($) => $.home.forecast.oneYear)}
             </p>

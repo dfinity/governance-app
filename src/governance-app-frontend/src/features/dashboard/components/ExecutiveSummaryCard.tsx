@@ -128,7 +128,7 @@ export const ExecutiveSummaryCard = () => {
           {isLoading ? (
             <Skeleton className="h-8 w-48" />
           ) : (
-            <h2 className="text-2xl font-semibold text-foreground">
+            <h2 className="text-3xl font-normal text-foreground">
               {month} {year}
             </h2>
           )}
@@ -191,7 +191,7 @@ export const ExecutiveSummaryCard = () => {
         ) : (
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             <div className="flex flex-col gap-5">
-              <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              <h3 className="font-sans text-xs font-medium tracking-wide text-muted-foreground uppercase">
                 {t(($) => $.home.executiveSummary.topChanges)}
               </h3>
               <div className="flex flex-col gap-5">
@@ -202,7 +202,7 @@ export const ExecutiveSummaryCard = () => {
             </div>
 
             <div className="flex flex-col gap-5">
-              <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              <h3 className="font-sans text-xs font-medium tracking-wide text-muted-foreground uppercase">
                 {t(($) => $.home.executiveSummary.communityVotes)}
               </h3>
               <div className="flex flex-col gap-4">

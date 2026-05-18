@@ -133,10 +133,10 @@ export function NeuronDetailIncreaseDelayView({
               disabled={isDisabled || isPending || isHotkey}
               className={`w-full rounded-lg border-2 px-4 py-4 text-center transition-colors outline-none ${
                 isSelected
-                  ? 'border-green-600 bg-gradient-to-br from-green-600/12 to-green-600/4'
+                  ? 'border-primary bg-primary/10'
                   : isDisabled
                     ? 'cursor-not-allowed border-border/50 bg-muted/30 text-muted-foreground/50'
-                    : 'border-green-600/30 bg-gradient-to-br from-green-600/8 to-green-600/4 hover:from-green-600/14 hover:to-green-600/8 focus-visible:from-green-600/18 focus-visible:to-green-600/10'
+                    : 'border-primary/30 bg-primary/5 hover:bg-primary/10'
               }`}
               data-testid={`increase-delay-option-${maxRewardsOption.labelKey}`}
               aria-pressed={isSelected}

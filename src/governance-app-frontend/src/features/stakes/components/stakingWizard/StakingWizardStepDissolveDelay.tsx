@@ -68,10 +68,10 @@ export function StakingWizardStepDissolveDelay({
         <button
           type="button"
           onClick={() => onDissolveDelayChange(maxRewardsOption.value)}
-          className={`w-full rounded-lg border-2 px-4 py-4 text-center transition-colors outline-none focus-visible:from-green-600/18 focus-visible:to-green-600/10 active:from-green-600/20 active:to-green-600/12 ${
+          className={`w-full rounded-lg border-2 px-4 py-4 text-center transition-colors outline-none ${
             isMaxRewardsSelected
-              ? 'border-green-600 bg-gradient-to-br from-green-600/12 to-green-600/4'
-              : 'border-green-600/30 bg-gradient-to-br from-green-600/8 to-green-600/4 hover:bg-gradient-to-br hover:from-green-600/14 hover:to-green-600/8'
+              ? 'border-primary bg-primary/10'
+              : 'border-primary/30 bg-primary/5 hover:bg-primary/10'
           }`}
           data-testid={`staking-wizard-delay-option-${maxRewardsOption.labelKey}`}
           aria-pressed={isMaxRewardsSelected}
