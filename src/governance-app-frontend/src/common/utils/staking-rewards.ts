@@ -404,9 +404,7 @@ const computeDayPoolRewards = (
       totalSupply: rewardParams.totalSupply,
     });
     if (poolReward === 0) {
-      logWithTimestamp(
-        `Staking rewards: pool reward is 0 for ${CANISTER_ID_SELF} in ${i} days.`,
-      );
+      logWithTimestamp(`Staking rewards: pool reward is 0 for ${CANISTER_ID_SELF} in ${i} days.`);
     }
     result[i] = poolReward;
   }
