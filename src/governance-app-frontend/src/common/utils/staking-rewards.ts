@@ -229,7 +229,7 @@ const getAPYs = (params: StakingRewardCalcParams, forceInitialDate?: Date) => {
 const SIMULATED_DAYS = 365;
 
 // Per-neuron APY is computed as (rewards during eligibility / stake) scaled by
-// (fullYearPoolSum / eligiblePoolSum). For a locked neuron eligible all year
+// (simulatedPoolSum / eligiblePoolSum). For a locked neuron eligible all year
 // the scaling factor is exactly 1, so APY = rewards/stake matches the original
 // "average over 365 days" definition. For a dissolving neuron eligible only
 // for a short window at the start of the simulation, the scaling factor
@@ -241,10 +241,10 @@ const annualizeWithPoolCorrection = (
   reward: number,
   stake: number,
   eligiblePoolSum: number,
-  fullYearPoolSum: number,
+  simulatedPoolSum: number,
 ): number => {
   if (stake <= 0 || eligiblePoolSum <= 0) return 0;
-  return (reward / stake) * (fullYearPoolSum / eligiblePoolSum);
+  return (reward / stake) * (simulatedPoolSum / eligiblePoolSum);
 };
 
 const getAPY = (params: StakingRewardCalcParams, forceInitialDate?: Date) => {
@@ -252,7 +252,7 @@ const getAPY = (params: StakingRewardCalcParams, forceInitialDate?: Date) => {
   // so compute it once and share it across the cur/max simulations and the
   // per-neuron token-reward calculations inside the loop.
   const dayPoolRewards = computeDayPoolRewards(params, SIMULATED_DAYS, forceInitialDate);
-  const fullYearPoolSum = dayPoolRewards.reduce((acc, p) => acc + p, 0);
+  const simulatedPoolSum = dayPoolRewards.reduce((acc, p) => acc + p, 0);
 
   const {
     neurons: yearEstimatedRewardNeurons,
@@ -286,13 +286,13 @@ const getAPY = (params: StakingRewardCalcParams, forceInitialDate?: Date) => {
       yearEstimatedRewardNeurons.get(neuronId) ?? 0,
       neuronTotalStake,
       yearEstimatedEligiblePoolSums.get(neuronId) ?? 0,
-      fullYearPoolSum,
+      simulatedPoolSum,
     );
     const max = annualizeWithPoolCorrection(
       yearEstimatedMaxRewardNeurons.get(neuronId) ?? 0,
       neuronTotalMaxStake,
       yearEstimatedMaxEligiblePoolSums.get(neuronId) ?? 0,
-      fullYearPoolSum,
+      simulatedPoolSum,
     );
     singleNeuronsApy.set(neuronId, { cur, max });
 
@@ -395,7 +395,7 @@ const computeDayPoolRewards = (
   const rewardParams = getRewardParams(params);
   const result: number[] = new Array(days);
   for (let i = 0; i < days; i++) {
-    result[i] = getPoolReward({
+    const poolReward = getPoolReward({
       genesisTimestampSeconds: NNS_GENESIS_TIMESTAMP_SECONDS,
       referenceDate: getDate(i, forceInitialDate),
       transitionDurationSeconds: rewardParams.rewardTransition,
@@ -403,6 +403,12 @@ const computeDayPoolRewards = (
       finalRewardRate: rewardParams.finalReward,
       totalSupply: rewardParams.totalSupply,
     });
+    if (poolReward === 0) {
+      logWithTimestamp(
+        `Staking rewards: pool reward is 0 for ${CANISTER_ID_SELF} in ${i} days.`,
+      );
+    }
+    result[i] = poolReward;
   }
   return result;
 };
@@ -416,10 +422,10 @@ const getNeuronsRewardEstimate = (
   total: number;
   neurons: Map<string, number>;
   // Sum of the pool reward over the days each neuron was eligible. Paired with
-  // the externally-known full-year pool sum to compute APY with a pool-decay
-  // correction, so that a dissolving neuron's short eligibility window (which
-  // happens to land on the highest-pool days of the year) doesn't outrun the
-  // locked equivalent.
+  // the externally-known simulated-window pool sum to compute APY with a
+  // pool-decay correction, so that a dissolving neuron's short eligibility
+  // window (which happens to land on the highest-pool days of the simulated
+  // window) doesn't outrun the locked equivalent.
   eligiblePoolSums: Map<string, number>;
   periodsRewards: Map<MaturityEstimatePeriod, number>;
 } => {
@@ -552,10 +558,6 @@ const getTokenReward = (
   }
 
   const neuronRewardRatioForTheDay = bigIntDiv(neuronVotingPower, totalVotingPower!, 20);
-
-  if (poolReward === 0) {
-    logWithTimestamp(`Staking rewards: pool reward is 0 for ${CANISTER_ID_SELF}.`);
-  }
 
   return Math.trunc(poolReward * E8S * neuronRewardRatioForTheDay) / E8S;
 };

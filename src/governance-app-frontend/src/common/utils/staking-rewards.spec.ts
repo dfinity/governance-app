@@ -239,7 +239,7 @@ describe('staking-rewards', () => {
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
       // APY is annualized over the eligible-to-vote window, scaled by a
-      // pool-decay correction (fullYearPoolSum / eligiblePoolSum). For a
+      // pool-decay correction (simulatedPoolSum / eligiblePoolSum). For a
       // locked neuron eligible all year the correction collapses to 1 and the
       // value matches the original "sum / stake" definition. For a dissolving
       // neuron the correction discounts the early high-pool days so that
