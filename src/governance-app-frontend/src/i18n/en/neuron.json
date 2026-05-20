@@ -23,6 +23,25 @@
     "editLink": "Edit following settings"
   },
   "noFollowingWarning": "Not following anyone yet. Set up following in the voting page.",
+  "followingStatus": {
+    "badgeWarning": "Confirm following",
+    "badgeExpired": "Following cleared",
+    "tooltipWarning": "This neuron's voting power will start decaying soon (or already is). Confirm following to keep earning rewards.",
+    "tooltipExpired": "This neuron's following has been cleared and it is no longer earning maturity. Confirm following to restore it.",
+    "alertTitleOk": "Following is active",
+    "alertTitleWarning": "Action needed: confirm following",
+    "alertTitleExpired": "Following has been cleared",
+    "alertDescriptionOk": "Your following is valid for {{duration}}. After that, voting power starts to decay until you confirm.",
+    "alertDescriptionWarning": "Following will be cleared in {{duration}} unless you confirm. Voting power decays until then, reducing the rewards this neuron earns.",
+    "alertDescriptionExpired": "Following was cleared by the protocol. This neuron stopped earning maturity. Confirm to restore voting power and following.",
+    "cta": "Confirm following",
+    "processing": "Confirming, please wait...",
+    "success": "Following confirmed. Voting power and following are refreshed.",
+    "hotkeyNote": "Confirming following is one of the few actions a hotkey can perform.",
+    "errors": {
+      "failed": "Failed to confirm following. Please try again."
+    }
+  },
   "disburseIcp": "Disburse ICPs",
   "disburseMaturity": "Disburse maturity",
   "stakeMaturity": "Lock maturity",

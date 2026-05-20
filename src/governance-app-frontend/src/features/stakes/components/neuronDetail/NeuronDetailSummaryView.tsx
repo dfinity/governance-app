@@ -36,6 +36,7 @@ import {
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
+import { FollowingStatusAlert } from '../FollowingStatusAlert';
 import { NeuronStateBadge } from '../NeuronStateBadge';
 import { NeuronDetailView } from './types';
 
@@ -97,6 +98,8 @@ export function NeuronDetailSummaryView({
 
   return (
     <div className="flex flex-col gap-4">
+      <FollowingStatusAlert neuron={neuron} isHotkey={isHotkey} />
+
       {/* Staked Amount - Prominent Display */}
       <div className="flex flex-col items-center gap-1 pb-2">
         <p className="text-3xl font-bold md:text-4xl" data-testid="neuron-detail-staked-amount">
