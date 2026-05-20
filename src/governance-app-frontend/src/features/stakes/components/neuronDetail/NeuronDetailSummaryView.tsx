@@ -37,6 +37,7 @@ import { formatNumber, formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
 import { FollowingStatusAlert } from '../FollowingStatusAlert';
+import { FollowingStatusInline } from '../FollowingStatusInline';
 import { NeuronStateBadge } from '../NeuronStateBadge';
 import { NeuronDetailView } from './types';
 
@@ -202,14 +203,18 @@ export function NeuronDetailSummaryView({
           </div>
         </InfoRow>
 
-        <InfoRow
-          label={t(($) => $.neuron.maturityMode)}
-          isLast={!isAdvancedFollowing}
-          dataTestId="neuron-detail-maturity-mode"
-        >
+        <InfoRow label={t(($) => $.neuron.maturityMode)} dataTestId="neuron-detail-maturity-mode">
           <span className="font-semibold">
             {isAutoStake ? t(($) => $.neuron.autoStake) : t(($) => $.neuron.keepLiquid)}
           </span>
+        </InfoRow>
+
+        <InfoRow
+          label={t(($) => $.neuron.followingStatus.rowLabel)}
+          isLast={!isAdvancedFollowing}
+          dataTestId="neuron-detail-following-status"
+        >
+          <FollowingStatusInline neuron={neuron} />
         </InfoRow>
 
         {isAdvancedFollowing && (
