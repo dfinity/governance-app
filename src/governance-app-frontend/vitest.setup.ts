@@ -27,4 +27,3 @@ vi.mock('@components/Tooltip', () => ({
   TooltipContent: ({ children }: { children: React.ReactNode }) =>
     React.createElement('span', null, children),
 }));
-
