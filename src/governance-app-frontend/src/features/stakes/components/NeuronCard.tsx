@@ -34,6 +34,7 @@ import {
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { APY } from '@utils/staking-rewards';
 
+import { FollowingStatusBadge } from './FollowingStatusBadge';
 import type { NeuronAction } from './neuronDetail';
 import { NeuronStandaloneAction } from './neuronDetail';
 import { NeuronStateBadge } from './NeuronStateBadge';
@@ -143,6 +144,7 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
             <div className="flex items-center justify-between border-b border-border/50 py-3">
               <p className="text-[13px] text-muted-foreground">{t(($) => $.neuron.stakeId)}</p>
               <div className="flex items-center gap-2">
+                <FollowingStatusBadge neuron={neuron} />
                 {isHotkey && (
                   <Tooltip>
                     <TooltipTrigger asChild>
