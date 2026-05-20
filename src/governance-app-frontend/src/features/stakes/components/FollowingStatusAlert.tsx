@@ -108,9 +108,7 @@ export function FollowingStatusAlert({ neuron, isHotkey }: Props) {
           </Button>
         )}
         {health !== 'ok' && isHotkey && (
-          <p className="text-xs opacity-80">
-            {t(($) => $.neuron.followingStatus.hotkeyNote)}
-          </p>
+          <p className="text-xs opacity-80">{t(($) => $.neuron.followingStatus.hotkeyNote)}</p>
         )}
       </AlertDescription>
     </Alert>

@@ -235,8 +235,7 @@ describe('getFollowingHealth', () => {
 
   it("stays 'warning' between startReducing and the clear deadline", () => {
     // 6.5 months elapsed: past startReducing but before startReducing + clearFollowing.
-    const refreshed =
-      NOW_SECONDS - (6n * SECONDS_IN_MONTH + BigInt(15 * 24 * 60 * 60));
+    const refreshed = NOW_SECONDS - (6n * SECONDS_IN_MONTH + BigInt(15 * 24 * 60 * 60));
     const neuron = mockNeuron({ votingPowerRefreshedTimestampSeconds: refreshed });
     expect(getFollowingHealth(neuron, ECONOMICS, NOW)).toBe('warning');
   });
