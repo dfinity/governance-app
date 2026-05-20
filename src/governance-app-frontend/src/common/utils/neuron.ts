@@ -291,6 +291,106 @@ export const getNeuronHasNoFollowing = (neuron: NeuronInfo): boolean => {
     .every((topicFollowees) => topicFollowees.followees.length === 0);
 };
 
+export type FollowingHealth = 'ok' | 'warning' | 'expired';
+
+export type VotingPowerEconomicsThresholds = {
+  startReducingVotingPowerAfterSeconds: bigint | undefined | null;
+  clearFollowingAfterSeconds: bigint | undefined | null;
+};
+
+/**
+ * How long before voting power starts to decay we begin to surface a warning.
+ * Matches nns-dapp's NOTIFICATION_PERIOD_BEFORE_REWARD_LOSS_STARTS_DAYS (30 days).
+ */
+export const FOLLOWING_WARNING_WINDOW_SECONDS = BigInt(30 * SECONDS_IN_DAY);
+
+export const getVotingPowerRefreshedTimestampSeconds = (neuron: NeuronInfo): bigint | undefined =>
+  neuron.votingPowerRefreshedTimestampSeconds ??
+  neuron.fullNeuron?.votingPowerRefreshedTimestampSeconds ??
+  undefined;
+
+/**
+ * Seconds since the neuron's voting power was last refreshed. A refresh happens
+ * automatically on most controller actions (setting followees, voting…) or
+ * explicitly via `refreshVotingPower`.
+ */
+export const getSecondsSinceVotingPowerRefresh = (
+  neuron: NeuronInfo,
+  referenceDate: Date = new Date(),
+): bigint | undefined => {
+  const refreshed = getVotingPowerRefreshedTimestampSeconds(neuron);
+  if (refreshed === undefined) return undefined;
+  const now = BigInt(Math.floor(referenceDate.getTime() / 1000));
+  return now > refreshed ? now - refreshed : 0n;
+};
+
+/**
+ * Seconds remaining before the neuron's following is cleared by the protocol.
+ * The protocol clears following at `startReducing + clearFollowing` seconds
+ * after the last refresh — `clearFollowingAfterSeconds` is the duration of the
+ * voting-power-reduction phase, not the absolute deadline from refresh. See
+ * governance.proto VotingPowerEconomics.
+ *
+ * Returns `undefined` if the threshold or refresh timestamp is missing.
+ * Returns `0n` once the deadline has passed.
+ */
+export const getSecondsUntilFollowingCleared = (
+  neuron: NeuronInfo,
+  economics: VotingPowerEconomicsThresholds | undefined,
+  referenceDate: Date = new Date(),
+): bigint | undefined => {
+  const elapsed = getSecondsSinceVotingPowerRefresh(neuron, referenceDate);
+  const startReducing = economics?.startReducingVotingPowerAfterSeconds;
+  const clearAfter = economics?.clearFollowingAfterSeconds;
+  if (
+    elapsed === undefined ||
+    startReducing === undefined ||
+    startReducing === null ||
+    clearAfter === undefined ||
+    clearAfter === null
+  ) {
+    return undefined;
+  }
+  const deadline = startReducing + clearAfter;
+  return deadline > elapsed ? deadline - elapsed : 0n;
+};
+
+/**
+ * Classifies the current following health:
+ * - `ok`       — within the safe window (more than `FOLLOWING_WARNING_WINDOW_SECONDS`
+ *                before voting power starts to decay)
+ * - `warning`  — voting power is decaying or about to decay (within the warning
+ *                window before `startReducing`, up to `startReducing + clearFollowing`)
+ * - `expired`  — past `startReducing + clearFollowing`; following has been
+ *                cleared and the neuron earns no maturity until refreshed
+ */
+export const getFollowingHealth = (
+  neuron: NeuronInfo,
+  economics: VotingPowerEconomicsThresholds | undefined,
+  referenceDate: Date = new Date(),
+): FollowingHealth | undefined => {
+  const elapsed = getSecondsSinceVotingPowerRefresh(neuron, referenceDate);
+  const startReducing = economics?.startReducingVotingPowerAfterSeconds;
+  const clearAfter = economics?.clearFollowingAfterSeconds;
+  if (
+    elapsed === undefined ||
+    startReducing === undefined ||
+    startReducing === null ||
+    clearAfter === undefined ||
+    clearAfter === null
+  ) {
+    return undefined;
+  }
+  const clearDeadline = startReducing + clearAfter;
+  const warningStart =
+    startReducing > FOLLOWING_WARNING_WINDOW_SECONDS
+      ? startReducing - FOLLOWING_WARNING_WINDOW_SECONDS
+      : 0n;
+  if (elapsed >= clearDeadline) return 'expired';
+  if (elapsed >= warningStart) return 'warning';
+  return 'ok';
+};
+
 /**
  * Returns true if the current user is a hotkey of the neuron (and not the controller).
  * Hotkeys have limited permissions: they can vote, set followees,
