@@ -209,16 +209,8 @@ export function NeuronDetailSummaryView({
           </span>
         </InfoRow>
 
-        <InfoRow
-          label={t(($) => $.neuron.followingStatus.rowLabel)}
-          isLast={!isAdvancedFollowing}
-          dataTestId="neuron-detail-following-status"
-        >
-          <FollowingStatusInline neuron={neuron} />
-        </InfoRow>
-
         {isAdvancedFollowing && (
-          <InfoRow label={t(($) => $.neuron.following)} isLast dataTestId="neuron-detail-following">
+          <InfoRow label={t(($) => $.neuron.following)} dataTestId="neuron-detail-following">
             {knownNeuronsQuery.isLoading ? (
               <Skeleton className="h-5 w-24" />
             ) : !hasFollowees ? (
@@ -241,6 +233,14 @@ export function NeuronDetailSummaryView({
             )}
           </InfoRow>
         )}
+
+        <InfoRow
+          label={t(($) => $.neuron.followingStatus.rowLabel)}
+          isLast
+          dataTestId="neuron-detail-following-status"
+        >
+          <FollowingStatusInline neuron={neuron} />
+        </InfoRow>
       </div>
 
       {/* Quick Actions Grid */}
