@@ -394,6 +394,7 @@ const computeDayPoolRewards = (
 ): number[] => {
   const rewardParams = getRewardParams(params);
   const result: number[] = new Array(days);
+  let hasZero = false;
   for (let i = 0; i < days; i++) {
     const poolReward = getPoolReward({
       genesisTimestampSeconds: NNS_GENESIS_TIMESTAMP_SECONDS,
@@ -403,10 +404,13 @@ const computeDayPoolRewards = (
       finalRewardRate: rewardParams.finalReward,
       totalSupply: rewardParams.totalSupply,
     });
-    if (poolReward === 0) {
-      logWithTimestamp(`Staking rewards: pool reward is 0 for ${CANISTER_ID_SELF} in ${i} days.`);
-    }
+    if (poolReward === 0) hasZero = true;
     result[i] = poolReward;
+  }
+  if (hasZero) {
+    logWithTimestamp(
+      `Staking rewards: pool reward is 0 for ${CANISTER_ID_SELF} on one or more simulated days.`,
+    );
   }
   return result;
 };
