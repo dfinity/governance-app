@@ -7,6 +7,7 @@ import {
   getFollowingHealth,
   getNeuronMaturityDisbursementsInProgressE8s,
   getSecondsSinceVotingPowerRefresh,
+  getSecondsUntilDecayStarts,
   getSecondsUntilFollowingCleared,
   hasValueAboveTransactionFee,
   isNonEmptyNeuron,
@@ -197,6 +198,32 @@ describe('getSecondsUntilFollowingCleared', () => {
   });
 });
 
+describe('getSecondsUntilDecayStarts', () => {
+  it('returns remaining seconds before startReducing is reached', () => {
+    const neuron = mockNeuron({
+      votingPowerRefreshedTimestampSeconds: NOW_SECONDS - 5n * SECONDS_IN_MONTH,
+    });
+    expect(getSecondsUntilDecayStarts(neuron, ECONOMICS, NOW)).toBe(1n * SECONDS_IN_MONTH);
+  });
+
+  it('returns 0 once startReducing has been crossed', () => {
+    const neuron = mockNeuron({
+      votingPowerRefreshedTimestampSeconds: NOW_SECONDS - 7n * SECONDS_IN_MONTH,
+    });
+    expect(getSecondsUntilDecayStarts(neuron, ECONOMICS, NOW)).toBe(0n);
+  });
+
+  it('returns undefined when economics are missing', () => {
+    const neuron = mockNeuron({ votingPowerRefreshedTimestampSeconds: NOW_SECONDS });
+    expect(getSecondsUntilDecayStarts(neuron, undefined, NOW)).toBeUndefined();
+  });
+
+  it('returns undefined when the refresh timestamp is missing', () => {
+    const neuron = mockNeuron({ votingPowerRefreshedTimestampSeconds: undefined });
+    expect(getSecondsUntilDecayStarts(neuron, ECONOMICS, NOW)).toBeUndefined();
+  });
+});
+
 describe('getFollowingHealth', () => {
   it("returns 'ok' well inside the safe window", () => {
     const neuron = mockNeuron({
@@ -219,11 +246,18 @@ describe('getFollowingHealth', () => {
     expect(getFollowingHealth(neuron, ECONOMICS, NOW)).toBe('ok');
   });
 
-  it("returns 'warning' once voting power starts to reduce", () => {
+  it("transitions to 'decaying' the moment voting power starts to reduce", () => {
     const neuron = mockNeuron({
       votingPowerRefreshedTimestampSeconds: NOW_SECONDS - 6n * SECONDS_IN_MONTH,
     });
-    expect(getFollowingHealth(neuron, ECONOMICS, NOW)).toBe('warning');
+    expect(getFollowingHealth(neuron, ECONOMICS, NOW)).toBe('decaying');
+  });
+
+  it("stays 'decaying' between startReducing and the clear deadline", () => {
+    // 6.5 months elapsed: past startReducing but before startReducing + clearFollowing.
+    const refreshed = NOW_SECONDS - (6n * SECONDS_IN_MONTH + BigInt(15 * 24 * 60 * 60));
+    const neuron = mockNeuron({ votingPowerRefreshedTimestampSeconds: refreshed });
+    expect(getFollowingHealth(neuron, ECONOMICS, NOW)).toBe('decaying');
   });
 
   it("returns 'expired' once following is cleared (startReducing + clearFollowing)", () => {
@@ -231,13 +265,6 @@ describe('getFollowingHealth', () => {
       votingPowerRefreshedTimestampSeconds: NOW_SECONDS - 7n * SECONDS_IN_MONTH,
     });
     expect(getFollowingHealth(neuron, ECONOMICS, NOW)).toBe('expired');
-  });
-
-  it("stays 'warning' between startReducing and the clear deadline", () => {
-    // 6.5 months elapsed: past startReducing but before startReducing + clearFollowing.
-    const refreshed = NOW_SECONDS - (6n * SECONDS_IN_MONTH + BigInt(15 * 24 * 60 * 60));
-    const neuron = mockNeuron({ votingPowerRefreshedTimestampSeconds: refreshed });
-    expect(getFollowingHealth(neuron, ECONOMICS, NOW)).toBe('warning');
   });
 
   it('returns undefined when thresholds are missing', () => {

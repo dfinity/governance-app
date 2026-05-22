@@ -1,5 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { AlertTriangle, Clock, Loader2 } from 'lucide-react';
+import { isNullish } from '@dfinity/utils';
+import { AlertTriangle, Clock, Loader2, TrendingDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
@@ -12,6 +13,7 @@ import { mapCanisterError } from '@utils/errors';
 import {
   formatDissolveDelay,
   getFollowingHealth,
+  getSecondsUntilDecayStarts,
   getSecondsUntilFollowingCleared,
 } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
@@ -25,10 +27,18 @@ type Props = {
 
 /**
  * Prominent alert with a "Confirm following" CTA. Only renders in the
- * 'warning' and 'expired' states — the healthy state is surfaced compactly
- * via `FollowingStatusInline` in the details table instead. Hotkeys are
- * allowed to call refreshVotingPower (controller is not required), so the
- * button is enabled for them too.
+ * 'warning', 'decaying' and 'expired' states — the healthy state is surfaced
+ * compactly via `FollowingStatusInline` in the details table instead.
+ *
+ * State semantics:
+ * - warning: voting power is still full; warning is preemptive. Duration shown
+ *   is "time until decay starts".
+ * - decaying: voting power is actively decreasing toward zero. Duration shown
+ *   is "time until following is cleared".
+ * - expired: following has been cleared by the protocol. No duration.
+ *
+ * Hotkeys are allowed to call refreshVotingPower (controller is not required),
+ * so the button is enabled for them too.
  */
 export function FollowingStatusAlert({ neuron, isHotkey }: Props) {
   const { t } = useTranslation();
@@ -36,28 +46,44 @@ export function FollowingStatusAlert({ neuron, isHotkey }: Props) {
   const economics = economicsQuery.data?.response?.votingPowerEconomics ?? undefined;
   const now = new Date();
   const health = getFollowingHealth(neuron, economics, now);
-  const secondsRemaining = getSecondsUntilFollowingCleared(neuron, economics, now);
 
   const { mutateAsync, isPending } = useRefreshVotingPower();
 
-  if (!health || health === 'ok' || secondsRemaining === undefined) return null;
+  if (!health || health === 'ok') return null;
 
-  const remainingText = formatDissolveDelay({
-    seconds: secondsRemaining,
-    i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
-  });
+  const durationI18n = t(($) => $.common.durationUnits, { returnObjects: true });
 
-  const variant: 'warning' | 'danger' = health === 'expired' ? 'danger' : 'warning';
+  let variant: 'warning' | 'danger';
+  let Icon: typeof AlertTriangle;
+  let buttonVariant: 'default' | 'destructive';
+  let title: string;
+  let description: string;
 
-  const title =
-    health === 'expired'
-      ? t(($) => $.neuron.followingStatus.alertTitleExpired)
-      : t(($) => $.neuron.followingStatus.alertTitleWarning);
-
-  const description =
-    health === 'expired'
-      ? t(($) => $.neuron.followingStatus.alertDescriptionExpired)
-      : t(($) => $.neuron.followingStatus.alertDescriptionWarning, { duration: remainingText });
+  if (health === 'warning') {
+    const untilDecay = getSecondsUntilDecayStarts(neuron, economics, now);
+    if (isNullish(untilDecay)) return null;
+    const duration = formatDissolveDelay({ seconds: untilDecay, i18n: durationI18n });
+    variant = 'warning';
+    Icon = Clock;
+    buttonVariant = 'default';
+    title = t(($) => $.neuron.followingStatus.alertTitleWarning);
+    description = t(($) => $.neuron.followingStatus.alertDescriptionWarning, { duration });
+  } else if (health === 'decaying') {
+    const untilCleared = getSecondsUntilFollowingCleared(neuron, economics, now);
+    if (isNullish(untilCleared)) return null;
+    const duration = formatDissolveDelay({ seconds: untilCleared, i18n: durationI18n });
+    variant = 'danger';
+    Icon = TrendingDown;
+    buttonVariant = 'destructive';
+    title = t(($) => $.neuron.followingStatus.alertTitleDecaying);
+    description = t(($) => $.neuron.followingStatus.alertDescriptionDecaying, { duration });
+  } else {
+    variant = 'danger';
+    Icon = AlertTriangle;
+    buttonVariant = 'destructive';
+    title = t(($) => $.neuron.followingStatus.alertTitleExpired);
+    description = t(($) => $.neuron.followingStatus.alertDescriptionExpired);
+  }
 
   const handleConfirm = async () => {
     try {
@@ -76,14 +102,14 @@ export function FollowingStatusAlert({ neuron, isHotkey }: Props) {
 
   return (
     <Alert variant={variant} data-testid={`neuron-following-status-${health}`}>
-      <AlertTriangle className="size-4" />
+      <Icon className="size-4" />
       <AlertTitle>{title}</AlertTitle>
       <AlertDescription className="gap-3">
         <p>{description}</p>
         <Button
           type="button"
           size="sm"
-          variant={health === 'expired' ? 'destructive' : 'default'}
+          variant={buttonVariant}
           onClick={handleConfirm}
           disabled={isPending}
           data-testid="confirm-following-btn"
