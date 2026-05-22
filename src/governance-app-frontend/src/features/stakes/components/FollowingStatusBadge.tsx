@@ -34,34 +34,47 @@ export function FollowingStatusBadge({ neuron }: Props) {
   const secondsUntilCleared = getSecondsUntilFollowingCleared(neuron, economics);
   const durationI18n = t(($) => $.common.durationUnits, { returnObjects: true });
 
-  let styles: string;
-  let Icon: typeof AlertTriangle;
-  let label: string;
-  let tooltip: string;
-
-  if (health === 'warning') {
-    styles =
-      'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-400';
-    Icon = Clock;
-    label = t(($) => $.neuron.followingStatus.badgeWarning);
-    tooltip = t(($) => $.neuron.followingStatus.tooltipWarning, {
-      duration: formatRemainingTime(secondsUntilDecay ?? 0n, durationI18n),
-    });
-  } else if (health === 'decaying') {
-    styles =
-      'border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-400';
-    Icon = TrendingDown;
-    label = t(($) => $.neuron.followingStatus.badgeDecaying);
-    tooltip = t(($) => $.neuron.followingStatus.tooltipDecaying, {
-      duration: formatRemainingTime(secondsUntilCleared ?? 0n, durationI18n),
-    });
-  } else {
-    styles =
-      'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400';
-    Icon = AlertTriangle;
-    label = t(($) => $.neuron.followingStatus.badgeExpired);
-    tooltip = t(($) => $.neuron.followingStatus.tooltipExpired);
-  }
+  const { styles, Icon, label, tooltip } = ((): {
+    styles: string;
+    Icon: typeof AlertTriangle;
+    label: string;
+    tooltip: string;
+  } => {
+    switch (health) {
+      case 'warning':
+        return {
+          styles:
+            'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
+          Icon: Clock,
+          label: t(($) => $.neuron.followingStatus.badgeWarning),
+          tooltip: t(($) => $.neuron.followingStatus.tooltipWarning, {
+            duration: formatRemainingTime(secondsUntilDecay ?? 0n, durationI18n),
+          }),
+        };
+      case 'decaying':
+        return {
+          styles:
+            'border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
+          Icon: TrendingDown,
+          label: t(($) => $.neuron.followingStatus.badgeDecaying),
+          tooltip: t(($) => $.neuron.followingStatus.tooltipDecaying, {
+            duration: formatRemainingTime(secondsUntilCleared ?? 0n, durationI18n),
+          }),
+        };
+      case 'expired':
+        return {
+          styles:
+            'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400',
+          Icon: AlertTriangle,
+          label: t(($) => $.neuron.followingStatus.badgeExpired),
+          tooltip: t(($) => $.neuron.followingStatus.tooltipExpired),
+        };
+      default: {
+        const exhaustive: never = health;
+        throw new Error(`Unhandled FollowingHealth: ${exhaustive}`);
+      }
+    }
+  })();
 
   return (
     <Tooltip>

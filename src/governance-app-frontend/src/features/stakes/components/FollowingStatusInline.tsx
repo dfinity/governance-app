@@ -38,40 +38,62 @@ export function FollowingStatusInline({ neuron }: Props) {
 
   const durationI18n = t(($) => $.common.durationUnits, { returnObjects: true });
 
-  let Icon: typeof ShieldCheck;
-  let colorClasses: string;
-  let label: string;
-  let tooltip: string;
-
-  if (health === 'ok') {
-    const untilDecay = getSecondsUntilDecayStarts(neuron, economics, now);
-    const duration = nonNullish(untilDecay) ? formatRemainingTime(untilDecay, durationI18n) : '';
-    Icon = ShieldCheck;
-    colorClasses = 'text-green-700 dark:text-green-400';
-    label = t(($) => $.neuron.followingStatus.inlineOk);
-    tooltip = t(($) => $.neuron.followingStatus.tooltipOk, { duration });
-  } else if (health === 'warning') {
-    const untilDecay = getSecondsUntilDecayStarts(neuron, economics, now);
-    const duration = nonNullish(untilDecay) ? formatRemainingTime(untilDecay, durationI18n) : '';
-    Icon = Clock;
-    colorClasses = 'text-amber-700 dark:text-amber-400';
-    label = t(($) => $.neuron.followingStatus.inlineWarning);
-    tooltip = t(($) => $.neuron.followingStatus.tooltipWarning, { duration });
-  } else if (health === 'decaying') {
-    const untilCleared = getSecondsUntilFollowingCleared(neuron, economics, now);
-    const duration = nonNullish(untilCleared)
-      ? formatRemainingTime(untilCleared, durationI18n)
-      : '';
-    Icon = TrendingDown;
-    colorClasses = 'text-orange-700 dark:text-orange-400';
-    label = t(($) => $.neuron.followingStatus.inlineDecaying);
-    tooltip = t(($) => $.neuron.followingStatus.tooltipDecaying, { duration });
-  } else {
-    Icon = AlertTriangle;
-    colorClasses = 'text-red-700 dark:text-red-400';
-    label = t(($) => $.neuron.followingStatus.inlineExpired);
-    tooltip = t(($) => $.neuron.followingStatus.tooltipExpired);
-  }
+  const { Icon, colorClasses, label, tooltip } = ((): {
+    Icon: typeof ShieldCheck;
+    colorClasses: string;
+    label: string;
+    tooltip: string;
+  } => {
+    switch (health) {
+      case 'ok': {
+        const untilDecay = getSecondsUntilDecayStarts(neuron, economics, now);
+        const duration = nonNullish(untilDecay)
+          ? formatRemainingTime(untilDecay, durationI18n)
+          : '';
+        return {
+          Icon: ShieldCheck,
+          colorClasses: 'text-green-700 dark:text-green-400',
+          label: t(($) => $.neuron.followingStatus.inlineOk),
+          tooltip: t(($) => $.neuron.followingStatus.tooltipOk, { duration }),
+        };
+      }
+      case 'warning': {
+        const untilDecay = getSecondsUntilDecayStarts(neuron, economics, now);
+        const duration = nonNullish(untilDecay)
+          ? formatRemainingTime(untilDecay, durationI18n)
+          : '';
+        return {
+          Icon: Clock,
+          colorClasses: 'text-amber-700 dark:text-amber-400',
+          label: t(($) => $.neuron.followingStatus.inlineWarning),
+          tooltip: t(($) => $.neuron.followingStatus.tooltipWarning, { duration }),
+        };
+      }
+      case 'decaying': {
+        const untilCleared = getSecondsUntilFollowingCleared(neuron, economics, now);
+        const duration = nonNullish(untilCleared)
+          ? formatRemainingTime(untilCleared, durationI18n)
+          : '';
+        return {
+          Icon: TrendingDown,
+          colorClasses: 'text-orange-700 dark:text-orange-400',
+          label: t(($) => $.neuron.followingStatus.inlineDecaying),
+          tooltip: t(($) => $.neuron.followingStatus.tooltipDecaying, { duration }),
+        };
+      }
+      case 'expired':
+        return {
+          Icon: AlertTriangle,
+          colorClasses: 'text-red-700 dark:text-red-400',
+          label: t(($) => $.neuron.followingStatus.inlineExpired),
+          tooltip: t(($) => $.neuron.followingStatus.tooltipExpired),
+        };
+      default: {
+        const exhaustive: never = health;
+        throw new Error(`Unhandled FollowingHealth: ${exhaustive}`);
+      }
+    }
+  })();
 
   return (
     <Tooltip>

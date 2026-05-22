@@ -57,33 +57,51 @@ export function FollowingStatusAlert({ neuron, isHotkey }: Props) {
 
   const durationI18n = t(($) => $.common.durationUnits, { returnObjects: true });
 
-  let variant: 'warning' | 'danger';
-  let Icon: typeof AlertTriangle;
-  let title: string;
-  let description: string;
+  // Bail early if economics or refresh timestamp aren't available — both
+  // helpers return undefined under the same conditions, so either being
+  // nullish means we can't render anything meaningful.
+  const untilDecay = getSecondsUntilDecayStarts(neuron, economics, now);
+  const untilCleared = getSecondsUntilFollowingCleared(neuron, economics, now);
+  if (isNullish(untilDecay) || isNullish(untilCleared)) return null;
 
-  if (health === 'warning') {
-    const untilDecay = getSecondsUntilDecayStarts(neuron, economics, now);
-    if (isNullish(untilDecay)) return null;
-    const duration = formatRemainingTime(untilDecay, durationI18n);
-    variant = 'warning';
-    Icon = Clock;
-    title = t(($) => $.neuron.followingStatus.alertTitleWarning);
-    description = t(($) => $.neuron.followingStatus.alertDescriptionWarning, { duration });
-  } else if (health === 'decaying') {
-    const untilCleared = getSecondsUntilFollowingCleared(neuron, economics, now);
-    if (isNullish(untilCleared)) return null;
-    const duration = formatRemainingTime(untilCleared, durationI18n);
-    variant = 'danger';
-    Icon = TrendingDown;
-    title = t(($) => $.neuron.followingStatus.alertTitleDecaying);
-    description = t(($) => $.neuron.followingStatus.alertDescriptionDecaying, { duration });
-  } else {
-    variant = 'danger';
-    Icon = AlertTriangle;
-    title = t(($) => $.neuron.followingStatus.alertTitleExpired);
-    description = t(($) => $.neuron.followingStatus.alertDescriptionExpired);
-  }
+  const { variant, Icon, title, description } = ((): {
+    variant: 'warning' | 'danger';
+    Icon: typeof AlertTriangle;
+    title: string;
+    description: string;
+  } => {
+    switch (health) {
+      case 'warning':
+        return {
+          variant: 'warning',
+          Icon: Clock,
+          title: t(($) => $.neuron.followingStatus.alertTitleWarning),
+          description: t(($) => $.neuron.followingStatus.alertDescriptionWarning, {
+            duration: formatRemainingTime(untilDecay, durationI18n),
+          }),
+        };
+      case 'decaying':
+        return {
+          variant: 'danger',
+          Icon: TrendingDown,
+          title: t(($) => $.neuron.followingStatus.alertTitleDecaying),
+          description: t(($) => $.neuron.followingStatus.alertDescriptionDecaying, {
+            duration: formatRemainingTime(untilCleared, durationI18n),
+          }),
+        };
+      case 'expired':
+        return {
+          variant: 'danger',
+          Icon: AlertTriangle,
+          title: t(($) => $.neuron.followingStatus.alertTitleExpired),
+          description: t(($) => $.neuron.followingStatus.alertDescriptionExpired),
+        };
+      default: {
+        const exhaustive: never = health;
+        throw new Error(`Unhandled FollowingHealth: ${exhaustive}`);
+      }
+    }
+  })();
 
   const handleConfirm = async () => {
     try {
