@@ -11,7 +11,7 @@ import { Button } from '@components/button';
 import { useGovernanceEconomics } from '@hooks/governance/useGovernanceEconomics';
 import { mapCanisterError } from '@utils/errors';
 import {
-  formatDissolveDelay,
+  formatRemainingTime,
   getFollowingHealth,
   getSecondsUntilDecayStarts,
   getSecondsUntilFollowingCleared,
@@ -62,7 +62,7 @@ export function FollowingStatusAlert({ neuron, isHotkey }: Props) {
   if (health === 'warning') {
     const untilDecay = getSecondsUntilDecayStarts(neuron, economics, now);
     if (isNullish(untilDecay)) return null;
-    const duration = formatDissolveDelay({ seconds: untilDecay, i18n: durationI18n });
+    const duration = formatRemainingTime(untilDecay, durationI18n);
     variant = 'warning';
     Icon = Clock;
     buttonVariant = 'default';
@@ -71,7 +71,7 @@ export function FollowingStatusAlert({ neuron, isHotkey }: Props) {
   } else if (health === 'decaying') {
     const untilCleared = getSecondsUntilFollowingCleared(neuron, economics, now);
     if (isNullish(untilCleared)) return null;
-    const duration = formatDissolveDelay({ seconds: untilCleared, i18n: durationI18n });
+    const duration = formatRemainingTime(untilCleared, durationI18n);
     variant = 'danger';
     Icon = TrendingDown;
     buttonVariant = 'destructive';

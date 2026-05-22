@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { useGovernanceEconomics } from '@hooks/governance/useGovernanceEconomics';
 import {
-  formatDissolveDelay,
+  formatRemainingTime,
   getFollowingHealth,
   getSecondsUntilDecayStarts,
   getSecondsUntilFollowingCleared,
@@ -45,30 +45,23 @@ export function FollowingStatusInline({ neuron }: Props) {
 
   if (health === 'ok') {
     const untilDecay = getSecondsUntilDecayStarts(neuron, economics, now);
-    const duration =
-      nonNullish(untilDecay) && untilDecay > 0n
-        ? formatDissolveDelay({ seconds: untilDecay, i18n: durationI18n })
-        : '';
+    const duration = nonNullish(untilDecay) ? formatRemainingTime(untilDecay, durationI18n) : '';
     Icon = ShieldCheck;
     colorClasses = 'text-green-700 dark:text-green-400';
     label = t(($) => $.neuron.followingStatus.inlineOk);
     tooltip = t(($) => $.neuron.followingStatus.tooltipOk, { duration });
   } else if (health === 'warning') {
     const untilDecay = getSecondsUntilDecayStarts(neuron, economics, now);
-    const duration =
-      nonNullish(untilDecay) && untilDecay > 0n
-        ? formatDissolveDelay({ seconds: untilDecay, i18n: durationI18n })
-        : '';
+    const duration = nonNullish(untilDecay) ? formatRemainingTime(untilDecay, durationI18n) : '';
     Icon = Clock;
     colorClasses = 'text-amber-700 dark:text-amber-400';
     label = t(($) => $.neuron.followingStatus.inlineWarning);
     tooltip = t(($) => $.neuron.followingStatus.tooltipWarning, { duration });
   } else if (health === 'decaying') {
     const untilCleared = getSecondsUntilFollowingCleared(neuron, economics, now);
-    const duration =
-      nonNullish(untilCleared) && untilCleared > 0n
-        ? formatDissolveDelay({ seconds: untilCleared, i18n: durationI18n })
-        : '';
+    const duration = nonNullish(untilCleared)
+      ? formatRemainingTime(untilCleared, durationI18n)
+      : '';
     Icon = TrendingDown;
     colorClasses = 'text-orange-700 dark:text-orange-400';
     label = t(($) => $.neuron.followingStatus.inlineDecaying);

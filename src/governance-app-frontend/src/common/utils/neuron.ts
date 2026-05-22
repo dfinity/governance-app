@@ -281,6 +281,23 @@ export const formatDissolveDelay = ({
   return parts.slice(0, 2).join(', ');
 };
 
+/**
+ * Variant of `formatDissolveDelay` for "time remaining" labels in the
+ * FollowingStatus components. Rounds to the nearest whole day once the
+ * duration is at least one day so the display doesn't flicker between e.g.
+ * "10 days" and "9 days, 23 hours" when `Date.now()` crosses a second
+ * boundary between renders. Sub-day values are passed through unchanged.
+ */
+export const formatRemainingTime = (seconds: bigint, i18n?: I18nSecondsToDuration): string => {
+  if (seconds <= 0n) return '';
+  const secondsInDayBig = BigInt(SECONDS_IN_DAY);
+  const display =
+    seconds >= secondsInDayBig
+      ? ((seconds + secondsInDayBig / 2n) / secondsInDayBig) * secondsInDayBig
+      : seconds;
+  return formatDissolveDelay({ seconds: display, i18n });
+};
+
 export const getNeuronHasNoFollowing = (neuron: NeuronInfo): boolean => {
   const followees = neuron.fullNeuron?.followees ?? [];
 
