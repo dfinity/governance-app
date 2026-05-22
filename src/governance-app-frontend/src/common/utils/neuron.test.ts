@@ -4,6 +4,7 @@ import { ICP_TRANSACTION_FEE_E8Sn } from '@constants/extra';
 import { mockDisbursement, mockNeuron } from '@fixtures/neuron';
 
 import {
+  formatRemainingTime,
   getFollowingHealth,
   getNeuronMaturityDisbursementsInProgressE8s,
   getSecondsSinceVotingPowerRefresh,
@@ -195,6 +196,37 @@ describe('getSecondsUntilFollowingCleared', () => {
   it('returns undefined when the refresh timestamp is missing', () => {
     const neuron = mockNeuron({ votingPowerRefreshedTimestampSeconds: undefined });
     expect(getSecondsUntilFollowingCleared(neuron, ECONOMICS, NOW)).toBeUndefined();
+  });
+});
+
+describe('formatRemainingTime', () => {
+  const SECONDS_IN_DAY_BIG = BigInt(24 * 60 * 60);
+
+  it('returns empty string for non-positive values', () => {
+    expect(formatRemainingTime(0n)).toBe('');
+    expect(formatRemainingTime(-1n)).toBe('');
+  });
+
+  it('rounds to a whole day when just under a day boundary (the flicker fix)', () => {
+    // 9d 23h 59m 59s — would normally render as "9 days, 23 hours"
+    expect(formatRemainingTime(10n * SECONDS_IN_DAY_BIG - 1n)).toBe('10 days');
+  });
+
+  it('rounds to a whole day when just over a day boundary', () => {
+    // 10d 1s — would normally render as "10 days, 1 second"
+    expect(formatRemainingTime(10n * SECONDS_IN_DAY_BIG + 1n)).toBe('10 days');
+  });
+
+  it('uses the nearest day when between day boundaries', () => {
+    // 10d 12h — rounds up to 11 days (banker's-style ties go up here).
+    expect(formatRemainingTime(10n * SECONDS_IN_DAY_BIG + 12n * 3600n)).toBe('11 days');
+    // 10d 11h — rounds down to 10 days.
+    expect(formatRemainingTime(10n * SECONDS_IN_DAY_BIG + 11n * 3600n)).toBe('10 days');
+  });
+
+  it('preserves precision for sub-day durations', () => {
+    expect(formatRemainingTime(BigInt(3 * 60 * 60))).toBe('3 hours');
+    expect(formatRemainingTime(BigInt(23 * 60 * 60 + 30 * 60))).toBe('23 hours, 30 minutes');
   });
 });
 

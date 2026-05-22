@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { useGovernanceEconomics } from '@hooks/governance/useGovernanceEconomics';
 import {
-  formatDissolveDelay,
+  formatRemainingTime,
   getFollowingHealth,
   getSecondsUntilDecayStarts,
   getSecondsUntilFollowingCleared,
@@ -45,7 +45,7 @@ export function FollowingStatusBadge({ neuron }: Props) {
     Icon = Clock;
     label = t(($) => $.neuron.followingStatus.badgeWarning);
     tooltip = t(($) => $.neuron.followingStatus.tooltipWarning, {
-      duration: formatDissolveDelay({ seconds: secondsUntilDecay ?? 0n, i18n: durationI18n }),
+      duration: formatRemainingTime(secondsUntilDecay ?? 0n, durationI18n),
     });
   } else if (health === 'decaying') {
     styles =
@@ -53,7 +53,7 @@ export function FollowingStatusBadge({ neuron }: Props) {
     Icon = TrendingDown;
     label = t(($) => $.neuron.followingStatus.badgeDecaying);
     tooltip = t(($) => $.neuron.followingStatus.tooltipDecaying, {
-      duration: formatDissolveDelay({ seconds: secondsUntilCleared ?? 0n, i18n: durationI18n }),
+      duration: formatRemainingTime(secondsUntilCleared ?? 0n, durationI18n),
     });
   } else {
     styles =
