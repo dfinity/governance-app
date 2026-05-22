@@ -1,5 +1,5 @@
 import { type NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
-import { type I18nSecondsToDuration, nonNullish } from '@dfinity/utils';
+import { type I18nSecondsToDuration, isNullish, nonNullish } from '@dfinity/utils';
 
 import { FOLLOWABLE_TOPIC_SET } from '@features/voting/utils/topicFollowing';
 
@@ -291,7 +291,7 @@ export const getNeuronHasNoFollowing = (neuron: NeuronInfo): boolean => {
     .every((topicFollowees) => topicFollowees.followees.length === 0);
 };
 
-export type FollowingHealth = 'ok' | 'warning' | 'expired';
+export type FollowingHealth = 'ok' | 'warning' | 'decaying' | 'expired';
 
 export type VotingPowerEconomicsThresholds = {
   startReducingVotingPowerAfterSeconds: bigint | undefined | null;
@@ -319,7 +319,7 @@ export const getSecondsSinceVotingPowerRefresh = (
   referenceDate: Date = new Date(),
 ): bigint | undefined => {
   const refreshed = getVotingPowerRefreshedTimestampSeconds(neuron);
-  if (refreshed === undefined) return undefined;
+  if (isNullish(refreshed)) return undefined;
   const now = BigInt(Math.floor(referenceDate.getTime() / 1000));
   return now > refreshed ? now - refreshed : 0n;
 };
@@ -342,13 +342,7 @@ export const getSecondsUntilFollowingCleared = (
   const elapsed = getSecondsSinceVotingPowerRefresh(neuron, referenceDate);
   const startReducing = economics?.startReducingVotingPowerAfterSeconds;
   const clearAfter = economics?.clearFollowingAfterSeconds;
-  if (
-    elapsed === undefined ||
-    startReducing === undefined ||
-    startReducing === null ||
-    clearAfter === undefined ||
-    clearAfter === null
-  ) {
+  if (isNullish(elapsed) || isNullish(startReducing) || isNullish(clearAfter)) {
     return undefined;
   }
   const deadline = startReducing + clearAfter;
@@ -356,13 +350,42 @@ export const getSecondsUntilFollowingCleared = (
 };
 
 /**
- * Classifies the current following health:
- * - `ok`       — within the safe window (more than `FOLLOWING_WARNING_WINDOW_SECONDS`
- *                before voting power starts to decay)
- * - `warning`  — voting power is decaying or about to decay (within the warning
- *                window before `startReducing`, up to `startReducing + clearFollowing`)
- * - `expired`  — past `startReducing + clearFollowing`; following has been
- *                cleared and the neuron earns no maturity until refreshed
+ * Seconds remaining before voting power starts to decay (i.e. when the
+ * neuron enters the `decaying` health state). Returns `0n` once the boundary
+ * has been crossed; returns `undefined` if thresholds or refresh timestamp
+ * are missing.
+ */
+export const getSecondsUntilDecayStarts = (
+  neuron: NeuronInfo,
+  economics: VotingPowerEconomicsThresholds | undefined,
+  referenceDate: Date = new Date(),
+): bigint | undefined => {
+  const elapsed = getSecondsSinceVotingPowerRefresh(neuron, referenceDate);
+  const startReducing = economics?.startReducingVotingPowerAfterSeconds;
+  if (isNullish(elapsed) || isNullish(startReducing)) {
+    return undefined;
+  }
+  return startReducing > elapsed ? startReducing - elapsed : 0n;
+};
+
+/**
+ * Classifies the current following health into four phases that map onto the
+ * protocol's voting-power lifecycle:
+ *
+ *  Time since refresh:   0 ────── (startReducing − warningWindow) ─── startReducing ──────── (startReducing + clearFollowing) ──►
+ *  Voting power:         |        full                                full → decreasing linearly → 0                              |
+ *  Followees:            |        intact                              intact                                                cleared
+ *  Health value:         |  ok   |             warning              |               decaying                              | expired
+ *
+ * - `ok`       — well inside the safe window; voting power full, followees intact.
+ * - `warning`  — within the proactive notice window before decay. Voting power
+ *                is still full, followees still intact, but action is recommended
+ *                so the user avoids losing any rewards.
+ * - `decaying` — voting power is actively decreasing toward zero. Followees are
+ *                still intact, but the neuron is earning less per vote. Confirming
+ *                stops the bleed.
+ * - `expired`  — past `startReducing + clearFollowing`; voting power is zero
+ *                and followees have been cleared by the protocol.
  */
 export const getFollowingHealth = (
   neuron: NeuronInfo,
@@ -372,13 +395,7 @@ export const getFollowingHealth = (
   const elapsed = getSecondsSinceVotingPowerRefresh(neuron, referenceDate);
   const startReducing = economics?.startReducingVotingPowerAfterSeconds;
   const clearAfter = economics?.clearFollowingAfterSeconds;
-  if (
-    elapsed === undefined ||
-    startReducing === undefined ||
-    startReducing === null ||
-    clearAfter === undefined ||
-    clearAfter === null
-  ) {
+  if (isNullish(elapsed) || isNullish(startReducing) || isNullish(clearAfter)) {
     return undefined;
   }
   const clearDeadline = startReducing + clearAfter;
@@ -387,6 +404,7 @@ export const getFollowingHealth = (
       ? startReducing - FOLLOWING_WARNING_WINDOW_SECONDS
       : 0n;
   if (elapsed >= clearDeadline) return 'expired';
+  if (elapsed >= startReducing) return 'decaying';
   if (elapsed >= warningStart) return 'warning';
   return 'ok';
 };
