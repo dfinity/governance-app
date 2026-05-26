@@ -238,20 +238,24 @@ describe('staking-rewards', () => {
     const data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
     if (isStakingRewardDataReady(data)) {
-      // 2-week preset (the network minimum dissolve delay). When dissolving,
-      // the neuron drops below the vote threshold almost immediately, so APY ~0.
+      // APY is annualized over the eligible-to-vote window, scaled by a
+      // pool-decay correction (simulatedPoolSum / eligiblePoolSum). For a
+      // locked neuron eligible all year the correction collapses to 1 and the
+      // value matches the original "sum / stake" definition. For a dissolving
+      // neuron the correction discounts the early high-pool days so that
+      // locked >= dissolving at every delay.
       expect(
         checkNumber(0.0228, data.stakingFlowApyPreview[SECONDS_IN_TWO_WEEKS].autoStake.locked),
       ).toBe(true);
       expect(
-        checkNumber(0.0001, data.stakingFlowApyPreview[SECONDS_IN_TWO_WEEKS].autoStake.dissolving),
+        checkNumber(0.0219, data.stakingFlowApyPreview[SECONDS_IN_TWO_WEEKS].autoStake.dissolving),
       ).toBe(true);
       expect(
         checkNumber(0.0225, data.stakingFlowApyPreview[SECONDS_IN_TWO_WEEKS].nonAutoStake.locked),
       ).toBe(true);
       expect(
         checkNumber(
-          0.0001,
+          0.0219,
           data.stakingFlowApyPreview[SECONDS_IN_TWO_WEEKS].nonAutoStake.dissolving,
         ),
       ).toBe(true);
@@ -260,14 +264,14 @@ describe('staking-rewards', () => {
         checkNumber(0.0235, data.stakingFlowApyPreview[3 * SECONDS_IN_MONTH].autoStake.locked),
       ).toBe(true);
       expect(
-        checkNumber(0.0049, data.stakingFlowApyPreview[3 * SECONDS_IN_MONTH].autoStake.dissolving),
+        checkNumber(0.0222, data.stakingFlowApyPreview[3 * SECONDS_IN_MONTH].autoStake.dissolving),
       ).toBe(true);
       expect(
         checkNumber(0.0232, data.stakingFlowApyPreview[3 * SECONDS_IN_MONTH].nonAutoStake.locked),
       ).toBe(true);
       expect(
         checkNumber(
-          0.0049,
+          0.0221,
           data.stakingFlowApyPreview[3 * SECONDS_IN_MONTH].nonAutoStake.dissolving,
         ),
       ).toBe(true);
@@ -276,14 +280,14 @@ describe('staking-rewards', () => {
         checkNumber(0.0257, data.stakingFlowApyPreview[6 * SECONDS_IN_MONTH].autoStake.locked),
       ).toBe(true);
       expect(
-        checkNumber(0.0108, data.stakingFlowApyPreview[6 * SECONDS_IN_MONTH].autoStake.dissolving),
+        checkNumber(0.023, data.stakingFlowApyPreview[6 * SECONDS_IN_MONTH].autoStake.dissolving),
       ).toBe(true);
       expect(
         checkNumber(0.0253, data.stakingFlowApyPreview[6 * SECONDS_IN_MONTH].nonAutoStake.locked),
       ).toBe(true);
       expect(
         checkNumber(
-          0.0108,
+          0.0229,
           data.stakingFlowApyPreview[6 * SECONDS_IN_MONTH].nonAutoStake.dissolving,
         ),
       ).toBe(true);
@@ -292,13 +296,13 @@ describe('staking-rewards', () => {
         checkNumber(0.0344, data.stakingFlowApyPreview[SECONDS_IN_YEAR].autoStake.locked),
       ).toBe(true);
       expect(
-        checkNumber(0.0251, data.stakingFlowApyPreview[SECONDS_IN_YEAR].autoStake.dissolving),
+        checkNumber(0.026, data.stakingFlowApyPreview[SECONDS_IN_YEAR].autoStake.dissolving),
       ).toBe(true);
       expect(
         checkNumber(0.0338, data.stakingFlowApyPreview[SECONDS_IN_YEAR].nonAutoStake.locked),
       ).toBe(true);
       expect(
-        checkNumber(0.0248, data.stakingFlowApyPreview[SECONDS_IN_YEAR].nonAutoStake.dissolving),
+        checkNumber(0.0257, data.stakingFlowApyPreview[SECONDS_IN_YEAR].nonAutoStake.dissolving),
       ).toBe(true);
 
       expect(
@@ -528,7 +532,6 @@ describe('staking-rewards', () => {
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
-    // Change: auto stake maturity off.
     params.neurons[0].fullNeuron!.autoStakeMaturity = false;
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
@@ -545,7 +548,6 @@ describe('staking-rewards', () => {
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
-    // Change: dissolving neuron with 2 years remaining.
     params.neurons[0].state = NeuronState.Dissolving;
     params.neurons[0].fullNeuron!.dissolveState = {
       WhenDissolvedTimestampSeconds: BigInt(
@@ -567,7 +569,6 @@ describe('staking-rewards', () => {
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
-    // Change: dissolve delay to 1 year.
     params.neurons[0].fullNeuron!.dissolveState = {
       WhenDissolvedTimestampSeconds: BigInt(
         stakingRewardsTestReferenceDate.getTime() / 1000 + SECONDS_IN_YEAR,
@@ -579,16 +580,15 @@ describe('staking-rewards', () => {
       expect(data.apy.error).toBe(undefined);
       expect(data.apy.neurons.size).toBe(1);
       expect(
-        checkNumber(0.0248, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
+        checkNumber(0.0257, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.cur ?? 0),
       ).toBe(true);
       expect(
         checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[0]))?.max ?? 0),
       ).toBe(true);
-      expect(checkNumber(0.0248, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.0257, data.apy.cur)).toBe(true);
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
-    // Change: dissolve delay to 1 week (below 2-week minimum).
     params.neurons[0].fullNeuron!.dissolveState = {
       WhenDissolvedTimestampSeconds: BigInt(
         stakingRewardsTestReferenceDate.getTime() / 1000 + 7 * SECONDS_IN_DAY,
@@ -609,7 +609,6 @@ describe('staking-rewards', () => {
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
-    // Change: add a second neuron.
     params.neurons.push(getStakingRewardsTestNeuron() as NeuronInfo);
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
@@ -632,7 +631,6 @@ describe('staking-rewards', () => {
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
-    // Change: add a third neuron.
     params.neurons.push(getStakingRewardsTestNeuron() as NeuronInfo);
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
@@ -661,7 +659,6 @@ describe('staking-rewards', () => {
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
-    // Change: the third neuron has a much bigger stake and overshadows the other two (weighting factor is applied).
     params.neurons[2].fullNeuron!.cachedNeuronStake = BigInt(1_000_000 * E8S);
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
@@ -690,7 +687,6 @@ describe('staking-rewards', () => {
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
-    // Change: the third neuron dissolving with 1 month (above 2-week min, but low bonus).
     params.neurons[2].state = NeuronState.Dissolving;
     params.neurons[2].fullNeuron!.dissolveState = {
       WhenDissolvedTimestampSeconds: BigInt(
@@ -715,16 +711,15 @@ describe('staking-rewards', () => {
         checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[1]))?.max ?? 0),
       ).toBe(true);
       expect(
-        checkNumber(0.0011, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.cur ?? 0),
+        checkNumber(0.0219, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.cur ?? 0),
       ).toBe(true);
       expect(
         checkNumber(0.0699, data.apy.neurons.get(getNeuronId(params.neurons[2]))?.max ?? 0),
       ).toBe(true);
-      expect(checkNumber(0.0011, data.apy.cur)).toBe(true);
+      expect(checkNumber(0.0219, data.apy.cur)).toBe(true);
       expect(checkNumber(0.0699, data.apy.max)).toBe(true);
     }
 
-    // Change: remove the third neuron.
     params.neurons.pop();
     data = getStakingRewardData(params, stakingRewardsTestReferenceDate);
     expect(isStakingRewardDataReady(data)).toBe(true);
