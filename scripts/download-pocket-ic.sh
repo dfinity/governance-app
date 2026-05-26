@@ -21,11 +21,7 @@ fi
 # Detect Platform
 PLATFORM="x86_64-linux"
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  if [[ "$(uname -m)" == "arm64" ]]; then
-    PLATFORM="arm64-darwin"
-  else
-    PLATFORM="x86_64-darwin"
-  fi
+  PLATFORM="arm64-darwin"
 fi
 
 # Target directory and file
