@@ -1,10 +1,13 @@
+import { decodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { AlertTriangle, Info } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Link } from '@tanstack/react-router';
+import { AlertTriangle, BookUser, Info } from 'lucide-react';
+import { useEffect, useEffectEvent, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { AccountSelect } from '@features/accounts/components/AccountSelect';
 import { useAccountSelection } from '@features/accounts/hooks/useAccountSelection';
+import { AddressBookSelect } from '@features/addressBook/components/AddressBookSelect';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
@@ -16,12 +19,17 @@ import {
   MutationDialogHeader,
 } from '@components/MutationDialog';
 import { ResponsiveDialogTitle } from '@components/ResponsiveDialog';
+import { Switch } from '@components/Switch';
 import { E8Sn, ICP_MIN_DISBURSE_MATURITY_AMOUNT } from '@constants/extra';
+import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronFreeMaturityE8s } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
 
-import { useDisburseMaturity } from '../hooks/useDisburseMaturity';
+import {
+  type DisburseMaturityDestination,
+  useDisburseMaturity,
+} from '../hooks/useDisburseMaturity';
 
 type Props = {
   neuron: NeuronInfo | null;
@@ -36,12 +44,30 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
     useAccountSelection();
   const [validationError, setValidationError] = useState<string | null>(null);
 
+  const addressBookQuery = useAddressBook();
+  const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
+  const addressBookLoading = addressBookQuery.isLoading;
+  const hasAddresses = addressBookEntries.length > 0;
+
+  const [useAddressBookToggle, setUseAddressBookToggle] = useState(false);
+  const [selectedAddressBookName, setSelectedAddressBookName] = useState('');
+
+  const autoToggleAddressBook = useEffectEvent(() => {
+    if (hasAddresses) setUseAddressBookToggle(true);
+  });
+
   useEffect(() => {
-    if (isOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setValidationError(null);
-    }
+    if (!isOpen) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setValidationError(null);
+    setSelectedAddressBookName('');
+    setUseAddressBookToggle(false);
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || addressBookLoading) return;
+    autoToggleAddressBook();
+  }, [isOpen, addressBookLoading]);
 
   const unstakedMaturity = neuron ? bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn) : 0;
 
@@ -56,8 +82,34 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
       return;
     }
 
-    execute(() => mutateAsync({ neuronId: neuron.neuronId, toAccountId: resolvedAccountId }));
+    let destination: DisburseMaturityDestination;
+    if (useAddressBookToggle) {
+      const entry = addressBookEntries.find((e) => e.name === selectedAddressBookName);
+      if (!entry) {
+        setValidationError(t(($) => $.neuronDetailModal.disburseMaturity.errors.noDestination));
+        return;
+      }
+      if ('Icp' in entry.address) {
+        destination = { kind: 'icp', accountIdentifier: entry.address.Icp };
+      } else {
+        const { owner, subaccount } = decodeIcrcAccount(entry.address.Icrc1);
+        destination = { kind: 'icrc1', owner, subaccount };
+      }
+    } else {
+      destination = { kind: 'icp', accountIdentifier: resolvedAccountId };
+    }
+
+    execute(() => mutateAsync({ neuronId: neuron.neuronId, destination }));
   };
+
+  const handleToggleChange = (checked: boolean) => {
+    setUseAddressBookToggle(checked);
+    setSelectedAddressBookName('');
+    setValidationError(null);
+  };
+
+  const showDestinationSection = subaccountsEnabled || hasAddresses || addressBookLoading;
+  const showToggle = !addressBookLoading && hasAddresses;
 
   return (
     <MutationDialog
@@ -77,17 +129,67 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
           </MutationDialogHeader>
 
           <MutationDialogBody className="mt-4 flex flex-col gap-4 px-4 md:px-0">
-            {subaccountsEnabled && (
-              <div className="space-y-1">
-                <Label htmlFor="disburse-maturity-to-account">
-                  {t(($) => $.neuronDetailModal.disburseMaturity.toAccount)}
-                </Label>
-                <AccountSelect
-                  id="disburse-maturity-to-account"
-                  value={selectedAccountId}
-                  onChange={setSelectedAccountId}
-                  data-testid="disburse-maturity-account-select"
-                />
+            {showDestinationSection && (
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <Label
+                    htmlFor={
+                      useAddressBookToggle ? 'address-book-select' : 'disburse-maturity-to-account'
+                    }
+                  >
+                    {t(($) => $.neuronDetailModal.disburseMaturity.toAccount)}
+                  </Label>
+                  {addressBookLoading ? (
+                    <div className="flex items-center gap-1.5">
+                      <BookUser className="size-3.5 animate-pulse text-muted-foreground" />
+                      <span className="animate-pulse text-xs text-muted-foreground">
+                        {t(($) => $.addressBook.sendFlow.tooltipLoading)}
+                      </span>
+                    </div>
+                  ) : showToggle ? (
+                    <label className="flex cursor-pointer items-center gap-1.5">
+                      <BookUser className="size-3.5 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">
+                        {t(($) => $.addressBook.sendFlow.toggleLabel)}
+                      </span>
+                      <Switch
+                        checked={useAddressBookToggle}
+                        onCheckedChange={handleToggleChange}
+                        size="sm"
+                        data-testid="disburse-maturity-address-book-toggle"
+                      />
+                    </label>
+                  ) : !hasAddresses ? (
+                    <Link
+                      to="/settings"
+                      search={{ openAddressBook: true }}
+                      className="flex items-center gap-1.5 transition-opacity hover:opacity-80"
+                    >
+                      <BookUser className="size-3.5 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground underline">
+                        {t(($) => $.addressBook.sendFlow.tooltipEmpty)}
+                      </span>
+                    </Link>
+                  ) : null}
+                </div>
+
+                {useAddressBookToggle ? (
+                  <AddressBookSelect
+                    addresses={addressBookEntries}
+                    selectedName={selectedAddressBookName}
+                    onSelect={(name) => {
+                      setSelectedAddressBookName(name);
+                      setValidationError(null);
+                    }}
+                  />
+                ) : subaccountsEnabled ? (
+                  <AccountSelect
+                    id="disburse-maturity-to-account"
+                    value={selectedAccountId}
+                    onChange={setSelectedAccountId}
+                    data-testid="disburse-maturity-account-select"
+                  />
+                ) : null}
               </div>
             )}
 
