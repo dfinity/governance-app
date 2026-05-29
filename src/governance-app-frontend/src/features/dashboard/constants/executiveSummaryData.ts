@@ -117,7 +117,8 @@ const MAY_2026: MonthlyGovernanceSummary = {
     {
       icon: 'community',
       title: 'Community governance',
-      description: 'Node Provider Standards motion passed; spam and non-actionable motions rejected',
+      description:
+        'Node Provider Standards motion passed; spam and non-actionable motions rejected',
       highlights: [
         { value: 1, label: 'motion passed' },
         { value: 9, label: 'motions rejected' },
