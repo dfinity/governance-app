@@ -81,7 +81,7 @@ function ProposalDetailsRouteComponent() {
         </Button>
       </div>
 
-      <QueryStates<CertifiedData<ProposalInfo>>
+      <QueryStates<CertifiedData<ProposalInfo | undefined>>
         query={proposalQuery}
         isEmpty={(proposal) => !proposal.response}
         emptyComponent={
@@ -89,6 +89,7 @@ function ProposalDetailsRouteComponent() {
         }
       >
         {({ response: proposal }) => {
+          if (!nonNullish(proposal)) return null;
           const timeLeft = secondsToDuration({
             seconds: getProposalTimeLeftInSeconds(proposal),
             i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
