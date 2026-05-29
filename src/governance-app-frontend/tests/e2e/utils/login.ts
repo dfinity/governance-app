@@ -29,6 +29,10 @@ export const login = async ({ page }: { page: Page }) => {
     await newTab.waitForEvent('close');
     expect(newTab.isClosed()).toBe(true);
 
+    // A loading overlay stays mounted until the router redirects away — if
+    // post-login assertions flake, wait for the authenticated route, not for
+    // landing-page elements.
+
     // Close the welcome modal if it appears.
     // The Continue button may be delayed while advanced feature detection runs.
     const welcomeModal = page.getByTestId('welcome-modal');

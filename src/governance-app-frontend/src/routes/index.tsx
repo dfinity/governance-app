@@ -62,7 +62,7 @@ export const Route = createFileRoute('/')({
 });
 
 function LoginPage() {
-  const { login, isLoggingIn } = useInternetIdentity();
+  const { login, isLoggingIn, isLoginSuccess } = useInternetIdentity();
   const { t } = useTranslation();
 
   // Enforce dark theme on body for login page
@@ -84,7 +84,7 @@ function LoginPage() {
     <>
       <div className="login-page dark relative min-h-dvh w-full font-sans text-foreground">
         {/* Loading Overlay */}
-        {isLoggingIn && (
+        {(isLoggingIn || isLoginSuccess) && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
             <div
               className="flex flex-col items-center gap-6 text-white"
