@@ -1,4 +1,5 @@
-import { ListProposalsRequest } from '@icp-sdk/canisters/nns';
+import { ListProposalsRequest, ProposalInfo } from '@icp-sdk/canisters/nns';
+import { isNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 
 import { useQueryThenUpdateCall } from '@hooks/useQueryThenUpdateCall';
@@ -29,15 +30,19 @@ export const useGovernanceProposal = (props?: { proposalId: bigint }) => {
 
   const principal = identity?.getPrincipal().toText();
 
+  // `beforeProposal: proposalId + 1n` falls back to a neighboring proposal when the requested ID doesn't exist; drop those.
+  const matchesRequestedId = (proposal: ProposalInfo | undefined) =>
+    isNullish(proposalId) || proposal?.id === proposalId ? proposal : undefined;
+
   return useQueryThenUpdateCall({
     queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL, proposalId, request, principal],
     queryFn: async () => {
       const res = await canister!.listProposals({ request, certified: false });
-      return res.proposals[0];
+      return matchesRequestedId(res.proposals[0]);
     },
     updateFn: async () => {
       const res = await canister!.listProposals({ request, certified: true });
-      return res.proposals[0];
+      return matchesRequestedId(res.proposals[0]);
     },
     options: {
       enabled: ready,
