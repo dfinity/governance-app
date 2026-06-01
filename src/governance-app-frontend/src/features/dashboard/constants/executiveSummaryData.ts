@@ -107,7 +107,7 @@ const MAY_2026: MonthlyGovernanceSummary = {
     {
       icon: 'protocol',
       title: 'Core protocol & app upgrades',
-      description: 'Internet Identity gained Recovery Emails; ckBTC and ckDOGE minters upgraded',
+      description: 'Internet Identity gained recovery emails; ckBTC and ckDOGE minters upgraded',
       highlights: [
         { value: 7, label: 'protocol upgrades' },
         { value: 8, label: 'II upgrades' },
@@ -118,7 +118,7 @@ const MAY_2026: MonthlyGovernanceSummary = {
       icon: 'community',
       title: 'Community governance',
       description:
-        'Node Provider Standards motion passed; spam and non-actionable motions rejected',
+        'Node provider standards motion passed; spam and non-actionable motions rejected',
       highlights: [
         { value: 1, label: 'motion passed' },
         { value: 9, label: 'motions rejected' },
