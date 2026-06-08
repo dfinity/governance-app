@@ -20,6 +20,10 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
+  /* Cap workers on CI: many parallel workers contend for the single local pocket-ic
+   * replica, slowing consensus-bound actions (staking, voting) enough to blow setup
+   * timeouts. Fewer workers keeps per-action latency low and the suite stable. */
+  workers: process.env.CI ? 4 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ['list'], // prints results to CI logs
