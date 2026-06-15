@@ -26,15 +26,7 @@
   "workspaces": [
     "src/governance-app-frontend"
   ],
-  "overrides": {
-    "@tanstack/eslint-plugin-query": {
-      "eslint": "$eslint"
-    },
-    "eslint-plugin-import": {
-      "eslint": "$eslint"
-    },
-    "eslint-plugin-react-hooks": {
-      "eslint": "$eslint"
-    }
+  "devDependencies": {
+    "eslint": "10.0.0"
   }
 }
