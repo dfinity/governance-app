@@ -8,6 +8,21 @@ import i18n from '@/i18n/config';
 
 import { warningNotification } from './notification';
 
+/**
+ * Returns true only for values safe to use as a post-login redirect destination:
+ * a same-origin, absolute internal path. Rejects absolute URLs, protocol-relative
+ * (`//host`) and backslash (`/\host`) bypasses that browsers can treat as cross-origin.
+ *
+ * TanStack's `redirect({ to })` path-normalizes hostile values today, but validating
+ * here keeps the guarantee independent of router internals and guards against a future
+ * switch to `href` (which does navigate cross-origin).
+ */
+export const isSafeInternalRedirect = (value: unknown): value is string =>
+  typeof value === 'string' &&
+  value.startsWith('/') &&
+  !value.startsWith('//') &&
+  !value.startsWith('/\\');
+
 export const requireIdentity = async ({ location }: { location: ParsedLocation }) => {
   let identity;
 
