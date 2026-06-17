@@ -13,6 +13,7 @@ import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { useGovernanceProposal } from '@hooks/governance';
 import { useTvlValue } from '@hooks/useTvlValue';
+import { isSafeInternalRedirect } from '@utils/router';
 
 import i18n from '@/i18n/config';
 
@@ -28,7 +29,8 @@ type LoginSearch = {
 export const Route = createFileRoute('/')({
   validateSearch: (search: Record<string, unknown>): LoginSearch => {
     return {
-      redirect: typeof search.redirect === 'string' ? search.redirect : undefined,
+      // Only accept same-origin internal paths to prevent open-redirect abuse.
+      redirect: isSafeInternalRedirect(search.redirect) ? search.redirect : undefined,
     };
   },
   beforeLoad: async ({ search }) => {
