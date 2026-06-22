@@ -39,7 +39,7 @@ export function StakingWizardStepConfiguration({
       {/* Maturity Mode Section */}
       <div className="space-y-3">
         <div>
-          <h3 className="text-base font-semibold">
+          <h3 className="text-lg font-normal">
             {t(($) => $.stakeWizardModal.steps.configuration.maturity.label)}
           </h3>
           <p className="text-sm text-muted-foreground">
@@ -65,7 +65,7 @@ export function StakingWizardStepConfiguration({
       {/* Initial State Section */}
       <div className="space-y-3">
         <div>
-          <h3 className="text-base font-semibold">
+          <h3 className="text-lg font-normal">
             {t(($) => $.stakeWizardModal.steps.configuration.state.label)}
           </h3>
           <p className="text-sm text-muted-foreground">

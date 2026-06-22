@@ -1,7 +1,7 @@
 import { nonNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
 import { TrendingUp } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { Skeleton } from '@components/Skeleton';
@@ -59,20 +59,37 @@ export function SmartTitle() {
         : t(($) => $.home.smartTitle.stakedTitle);
 
   const subtitle =
-    state === 'no-assets'
-      ? isStakingRewardDataError(stakingRewards)
-        ? t(($) => $.home.smartTitle.noAssetsSubtitleStatic)
-        : t(($) => $.home.smartTitle.noAssetsSubtitle, {
+    state === 'no-assets' ? (
+      isStakingRewardDataError(stakingRewards) ? (
+        <Trans
+          i18nKey={($) => $.home.smartTitle.noAssetsSubtitleStatic}
+          components={{ em: <em className="italic" /> }}
+        />
+      ) : (
+        <Trans
+          i18nKey={($) => $.home.smartTitle.noAssetsSubtitle}
+          values={{
             value: isStakingRewardDataReady(stakingRewards)
               ? formatPercentage(
                   stakingRewards?.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_SECONDS].autoStake
                     .locked,
                 )
               : `--.--%`,
-          })
-      : state === 'liquid-only'
-        ? t(($) => $.home.smartTitle.liquidOnlySubtitle)
-        : t(($) => $.home.smartTitle.stakedSubtitle);
+          }}
+          components={{ em: <em className="italic" /> }}
+        />
+      )
+    ) : state === 'liquid-only' ? (
+      <Trans
+        i18nKey={($) => $.home.smartTitle.liquidOnlySubtitle}
+        components={{ em: <em className="italic" /> }}
+      />
+    ) : (
+      <Trans
+        i18nKey={($) => $.home.smartTitle.stakedSubtitle}
+        components={{ em: <em className="italic" /> }}
+      />
+    );
 
   const cta =
     state === 'no-assets' ? (
@@ -92,8 +109,8 @@ export function SmartTitle() {
 
   return (
     <div className="flex flex-col">
-      <h2 className="text-3xl font-medium text-foreground">{title}</h2>
-      <div className="text-3xl text-muted-foreground">{subtitle}</div>
+      <h2 className="font-serif text-4xl font-normal text-foreground">{title}</h2>
+      <div className="font-serif text-4xl text-muted-foreground">{subtitle}</div>
       {cta && <div className="mt-5">{cta}</div>}
     </div>
   );

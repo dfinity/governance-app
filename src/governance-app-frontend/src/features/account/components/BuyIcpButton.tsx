@@ -52,7 +52,12 @@ export const BuyIcpButton = ({ accountId }: Props) => {
 
   return (
     <>
-      <Button size="xl" variant="secondary" className="w-full" onClick={() => setConfirmOpen(true)}>
+      <Button
+        size="xl"
+        variant="secondary"
+        className="w-full border border-border bg-secondary text-foreground hover:bg-accent hover:text-accent-foreground"
+        onClick={() => setConfirmOpen(true)}
+      >
         <CreditCard aria-hidden="true" />
         {t(($) => $.account.buyIcp)}
       </Button>

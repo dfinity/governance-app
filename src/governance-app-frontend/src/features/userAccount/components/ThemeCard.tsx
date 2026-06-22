@@ -1,4 +1,4 @@
-import { Monitor, Moon, Sun } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { ToggleGroup, ToggleGroupItem } from '@components/ToggleGroup';
@@ -38,14 +38,6 @@ export const ThemeCard = () => {
         >
           <Moon className="mr-2 size-4" />
           <span className="hidden xs:inline">{t(($) => $.userAccount.modes.dark)}</span>
-        </ToggleGroupItem>
-        <ToggleGroupItem
-          className="shrink-0 grow-1"
-          value={Theme.System}
-          aria-label={t(($) => $.userAccount.aria.toggleSystem)}
-        >
-          <Monitor className="mr-2 size-4" />
-          <span className="hidden xs:inline">{t(($) => $.userAccount.modes.system)}</span>
         </ToggleGroupItem>
       </ToggleGroup>
     </div>
