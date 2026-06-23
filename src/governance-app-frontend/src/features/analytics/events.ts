@@ -14,6 +14,8 @@ export enum AnalyticsEvent {
   StakingSetConfiguration = 'staking_set_configuration',
   StakingConfirmation = 'staking_confirmation',
   StakingConfirmationError = 'staking_confirmation_error',
+  StakingRefreshVotingPower = 'staking_refresh_voting_power',
+  StakingRefreshVotingPowerError = 'staking_refresh_voting_power_error',
 
   // Following flow
   FollowingSimpleConfirmation = 'following_simple_confirmation',

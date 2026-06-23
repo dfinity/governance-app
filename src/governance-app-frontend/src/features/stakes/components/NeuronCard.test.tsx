@@ -32,6 +32,10 @@ vi.mock('@hooks/useApyColor', () => ({
   useApyColor: () => ({ ready: false }),
 }));
 
+vi.mock('@hooks/governance/useGovernanceEconomics', () => ({
+  useGovernanceEconomics: () => ({ data: undefined, isLoading: false }),
+}));
+
 // ─── Helpers ─────────────────────────────────────────────────────
 
 const NEURON_DEFAULTS: Parameters<typeof baseMockNeuron>[0] = {

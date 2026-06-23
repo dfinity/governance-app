@@ -1,5 +1,5 @@
 import { type NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
-import { type I18nSecondsToDuration, nonNullish } from '@dfinity/utils';
+import { type I18nSecondsToDuration, isNullish, nonNullish } from '@dfinity/utils';
 
 import { FOLLOWABLE_TOPIC_SET } from '@features/voting/utils/topicFollowing';
 
@@ -281,6 +281,23 @@ export const formatDissolveDelay = ({
   return parts.slice(0, 2).join(', ');
 };
 
+/**
+ * Variant of `formatDissolveDelay` for "time remaining" labels in the
+ * FollowingStatus components. Rounds to the nearest whole day once the
+ * duration is at least one day so the display doesn't flicker between e.g.
+ * "10 days" and "9 days, 23 hours" when `Date.now()` crosses a second
+ * boundary between renders. Sub-day values are passed through unchanged.
+ */
+export const formatRemainingTime = (seconds: bigint, i18n?: I18nSecondsToDuration): string => {
+  if (seconds <= 0n) return '';
+  const secondsInDayBig = BigInt(SECONDS_IN_DAY);
+  const display =
+    seconds >= secondsInDayBig
+      ? ((seconds + secondsInDayBig / 2n) / secondsInDayBig) * secondsInDayBig
+      : seconds;
+  return formatDissolveDelay({ seconds: display, i18n });
+};
+
 export const getNeuronHasNoFollowing = (neuron: NeuronInfo): boolean => {
   const followees = neuron.fullNeuron?.followees ?? [];
 
@@ -289,6 +306,124 @@ export const getNeuronHasNoFollowing = (neuron: NeuronInfo): boolean => {
   return followees
     .filter((f) => FOLLOWABLE_TOPIC_SET.has(f.topic))
     .every((topicFollowees) => topicFollowees.followees.length === 0);
+};
+
+export type FollowingHealth = 'ok' | 'warning' | 'decaying' | 'expired';
+
+export type VotingPowerEconomicsThresholds = {
+  startReducingVotingPowerAfterSeconds: bigint | undefined | null;
+  clearFollowingAfterSeconds: bigint | undefined | null;
+};
+
+/**
+ * How long before voting power starts to decay we begin to surface a warning.
+ * Matches nns-dapp's NOTIFICATION_PERIOD_BEFORE_REWARD_LOSS_STARTS_DAYS (30 days).
+ */
+export const FOLLOWING_WARNING_WINDOW_SECONDS = BigInt(30 * SECONDS_IN_DAY);
+
+export const getVotingPowerRefreshedTimestampSeconds = (neuron: NeuronInfo): bigint | undefined =>
+  neuron.votingPowerRefreshedTimestampSeconds ??
+  neuron.fullNeuron?.votingPowerRefreshedTimestampSeconds ??
+  undefined;
+
+/**
+ * Seconds since the neuron's voting power was last refreshed. A refresh happens
+ * automatically on most controller actions (setting followees, voting…) or
+ * explicitly via `refreshVotingPower`.
+ */
+export const getSecondsSinceVotingPowerRefresh = (
+  neuron: NeuronInfo,
+  referenceDate: Date = new Date(),
+): bigint | undefined => {
+  const refreshed = getVotingPowerRefreshedTimestampSeconds(neuron);
+  if (isNullish(refreshed)) return undefined;
+  const now = BigInt(Math.floor(referenceDate.getTime() / 1000));
+  return now > refreshed ? now - refreshed : 0n;
+};
+
+/**
+ * Seconds remaining before the neuron's following is cleared by the protocol.
+ * The protocol clears following at `startReducing + clearFollowing` seconds
+ * after the last refresh — `clearFollowingAfterSeconds` is the duration of the
+ * voting-power-reduction phase, not the absolute deadline from refresh. See
+ * governance.proto VotingPowerEconomics.
+ *
+ * Returns `undefined` if the threshold or refresh timestamp is missing.
+ * Returns `0n` once the deadline has passed.
+ */
+export const getSecondsUntilFollowingCleared = (
+  neuron: NeuronInfo,
+  economics: VotingPowerEconomicsThresholds | undefined,
+  referenceDate: Date = new Date(),
+): bigint | undefined => {
+  const elapsed = getSecondsSinceVotingPowerRefresh(neuron, referenceDate);
+  const startReducing = economics?.startReducingVotingPowerAfterSeconds;
+  const clearAfter = economics?.clearFollowingAfterSeconds;
+  if (isNullish(elapsed) || isNullish(startReducing) || isNullish(clearAfter)) {
+    return undefined;
+  }
+  const deadline = startReducing + clearAfter;
+  return deadline > elapsed ? deadline - elapsed : 0n;
+};
+
+/**
+ * Seconds remaining before voting power starts to decay (i.e. when the
+ * neuron enters the `decaying` health state). Returns `0n` once the boundary
+ * has been crossed; returns `undefined` if thresholds or refresh timestamp
+ * are missing.
+ */
+export const getSecondsUntilDecayStarts = (
+  neuron: NeuronInfo,
+  economics: VotingPowerEconomicsThresholds | undefined,
+  referenceDate: Date = new Date(),
+): bigint | undefined => {
+  const elapsed = getSecondsSinceVotingPowerRefresh(neuron, referenceDate);
+  const startReducing = economics?.startReducingVotingPowerAfterSeconds;
+  if (isNullish(elapsed) || isNullish(startReducing)) {
+    return undefined;
+  }
+  return startReducing > elapsed ? startReducing - elapsed : 0n;
+};
+
+/**
+ * Classifies the current following health into four phases that map onto the
+ * protocol's voting-power lifecycle:
+ *
+ *  Time since refresh:   0 ────── (startReducing − warningWindow) ─── startReducing ──────── (startReducing + clearFollowing) ──►
+ *  Voting power:         |        full                                full → decreasing linearly → 0                              |
+ *  Followees:            |        intact                              intact                                                cleared
+ *  Health value:         |  ok   |             warning              |               decaying                              | expired
+ *
+ * - `ok`       — well inside the safe window; voting power full, followees intact.
+ * - `warning`  — within the proactive notice window before decay. Voting power
+ *                is still full, followees still intact, but action is recommended
+ *                so the user avoids losing any rewards.
+ * - `decaying` — voting power is actively decreasing toward zero. Followees are
+ *                still intact, but the neuron is earning less per vote. Confirming
+ *                stops the bleed.
+ * - `expired`  — past `startReducing + clearFollowing`; voting power is zero
+ *                and followees have been cleared by the protocol.
+ */
+export const getFollowingHealth = (
+  neuron: NeuronInfo,
+  economics: VotingPowerEconomicsThresholds | undefined,
+  referenceDate: Date = new Date(),
+): FollowingHealth | undefined => {
+  const elapsed = getSecondsSinceVotingPowerRefresh(neuron, referenceDate);
+  const startReducing = economics?.startReducingVotingPowerAfterSeconds;
+  const clearAfter = economics?.clearFollowingAfterSeconds;
+  if (isNullish(elapsed) || isNullish(startReducing) || isNullish(clearAfter)) {
+    return undefined;
+  }
+  const clearDeadline = startReducing + clearAfter;
+  const warningStart =
+    startReducing > FOLLOWING_WARNING_WINDOW_SECONDS
+      ? startReducing - FOLLOWING_WARNING_WINDOW_SECONDS
+      : 0n;
+  if (elapsed >= clearDeadline) return 'expired';
+  if (elapsed >= startReducing) return 'decaying';
+  if (elapsed >= warningStart) return 'warning';
+  return 'ok';
 };
 
 /**
