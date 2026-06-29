@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 
 import { analytics } from '@features/analytics/service';
 
+import { CommandPalette } from '@components/CommandPalette';
 import { MainLayout } from '@components/MainLayout';
 import { useIcpIndexTransactionsPolling } from '@hooks/icpIndex/useIcpIndexTransactionsPolling';
 import { useHideBalancesShortcut } from '@hooks/useHideBalancesShortcut';
@@ -48,6 +49,7 @@ function AuthLayout() {
   return (
     <MainLayout>
       <Outlet />
+      <CommandPalette />
     </MainLayout>
   );
 }

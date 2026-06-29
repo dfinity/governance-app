@@ -1,6 +1,7 @@
+import babel from '@rolldown/plugin-babel';
 import tailwindcss from '@tailwindcss/vite';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
-import react from '@vitejs/plugin-react';
+import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import { execSync } from 'child_process';
 import dotenv from 'dotenv';
 import { visualizer } from 'rollup-plugin-visualizer';
@@ -66,9 +67,11 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    esbuildOptions: {
-      define: {
-        global: 'globalThis',
+    rolldownOptions: {
+      transform: {
+        define: {
+          global: 'globalThis',
+        },
       },
     },
   },
@@ -78,11 +81,8 @@ export default defineConfig({
       target: 'react',
       autoCodeSplitting: true,
     }),
-    react({
-      babel: {
-        plugins: ['babel-plugin-react-compiler'],
-      },
-    }),
+    react(),
+    babel({ presets: [reactCompilerPreset()] }),
     environment('all', { prefix: 'CANISTER_' }),
     environment('all', { prefix: 'DFX_' }),
     environment('all', { prefix: 'EXTRA_' }),

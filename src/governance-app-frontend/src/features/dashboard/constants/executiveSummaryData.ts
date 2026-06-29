@@ -82,77 +82,79 @@ import type { MonthlyGovernanceSummary } from '../types/executiveSummary';
  * ▲▲▲ END PROMPT ▲▲▲
  */
 
-const APRIL_2026: MonthlyGovernanceSummary = {
-  month: 'April',
+const MAY_2026: MonthlyGovernanceSummary = {
+  month: 'May',
   year: 2026,
 
   outcomes: [
-    { status: 'approved', count: 467 },
-    { status: 'rejected', count: 23 },
-    { status: 'failed', count: 0 },
+    { status: 'approved', count: 316 },
+    { status: 'rejected', count: 15 },
+    { status: 'failed', count: 1 },
   ],
 
   topChanges: [
     {
       icon: 'network',
       title: 'Network operations & infrastructure',
-      description: 'Routine subnet rollouts and first cloud engine lifecycle test',
+      description: 'Pakistani cloud engine launched; routine GuestOS rollouts across mainnet',
       highlights: [
-        { value: 385, label: 'rollouts completed' },
+        { value: 240, label: 'rollouts completed' },
         { value: 5, label: 'GuestOS versions' },
         { value: 4, label: 'HostOS versions' },
-        { value: 9, label: 'subnets resized' },
+        { value: 1, label: 'new cloud engine' },
       ],
     },
     {
       icon: 'protocol',
       title: 'Core protocol & app upgrades',
-      description: 'Governance canister upgraded 5× alongside Internet Identity and NNS Dapp',
+      description: 'Internet Identity gained recovery emails; ckBTC and ckDOGE minters upgraded',
       highlights: [
-        { value: 12, label: 'protocol upgrades' },
-        { value: 10, label: 'app upgrades' },
+        { value: 7, label: 'protocol upgrades' },
+        { value: 8, label: 'II upgrades' },
+        { value: 4, label: 'other app upgrades' },
       ],
     },
     {
       icon: 'community',
       title: 'Community governance',
-      description: 'Three known neurons deregistered; 19 spam proposals rejected',
+      description:
+        'Node provider standards motion passed; spam and non-actionable motions rejected',
       highlights: [
-        { value: 6, label: 'motions passed' },
-        { value: 19, label: 'spam rejected' },
-        { value: 1, label: 'node rewards updated' },
+        { value: 1, label: 'motion passed' },
+        { value: 9, label: 'motions rejected' },
+        { value: 1, label: 'KYC approval' },
       ],
     },
   ],
 
   communityHighlights: [
     {
-      title: 'Deregister Known Neuron: CODEGOV',
+      title: 'Motion: Node Provider Standards',
       outcome: 'passed',
       label: 'Passed',
     },
     {
-      title: 'Deregister Known Neuron: WENZEL',
+      title: 'Create the Pakistani Cloud Engine',
+      outcome: 'passed',
+      label: 'Launch Approved',
+    },
+    {
+      title: 'Delete Test Cloud Engine: jmfme',
       outcome: 'passed',
       label: 'Passed',
     },
     {
-      title: 'Register Known Neuron: HashEra',
+      title: 'Recover Subnet: 3hhby',
       outcome: 'passed',
       label: 'Passed',
     },
     {
-      title: 'Update the Node Rewards Table (Gen-1 type1.1 −40%)',
-      outcome: 'passed',
-      label: 'Passed',
-    },
-    {
-      title: 'Motion: Explore Separation of SNS from NNS Surface',
+      title: 'Motion: Forensic Accounting of Cycle Grants',
       outcome: 'rejected',
       label: 'Rejected',
     },
     {
-      title: 'Motion: Daily Node Performance Audits & Topology Exemptions',
+      title: 'Motion: Make Canister Cycle Balances Public',
       outcome: 'rejected',
       label: 'Rejected',
     },
@@ -160,4 +162,4 @@ const APRIL_2026: MonthlyGovernanceSummary = {
 };
 
 /** The currently displayed summary — update this reference each month */
-export const currentSummary: MonthlyGovernanceSummary = APRIL_2026;
+export const currentSummary: MonthlyGovernanceSummary = MAY_2026;

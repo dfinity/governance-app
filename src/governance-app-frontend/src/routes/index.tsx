@@ -13,6 +13,7 @@ import { Skeleton } from '@components/Skeleton';
 import { Theme } from '@constants/theme';
 import { useGovernanceProposal } from '@hooks/governance';
 import { useTvlValue } from '@hooks/useTvlValue';
+import { isSafeInternalRedirect } from '@utils/router';
 
 import i18n from '@/i18n/config';
 
@@ -28,7 +29,8 @@ type LoginSearch = {
 export const Route = createFileRoute('/')({
   validateSearch: (search: Record<string, unknown>): LoginSearch => {
     return {
-      redirect: typeof search.redirect === 'string' ? search.redirect : undefined,
+      // Only accept same-origin internal paths to prevent open-redirect abuse.
+      redirect: isSafeInternalRedirect(search.redirect) ? search.redirect : undefined,
     };
   },
   beforeLoad: async ({ search }) => {
@@ -62,7 +64,7 @@ export const Route = createFileRoute('/')({
 });
 
 function LoginPage() {
-  const { login, isLoggingIn } = useInternetIdentity();
+  const { login, isLoggingIn, isLoginSuccess } = useInternetIdentity();
   const { t } = useTranslation();
 
   // The login hero uses an opt-in dark canvas while preserving the user's app theme.
@@ -91,7 +93,7 @@ function LoginPage() {
     <>
       <div className="login-page relative min-h-dvh w-full font-sans text-foreground">
         {/* Loading Overlay */}
-        {isLoggingIn && (
+        {(isLoggingIn || isLoginSuccess) && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
             <div
               className="flex flex-col items-center gap-6 text-white"

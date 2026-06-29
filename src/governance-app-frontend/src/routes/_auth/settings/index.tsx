@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { AddressBookCard } from '@features/addressBook/components/AddressBookCard';
 import { AccountIdCard } from '@features/userAccount/components/AccountIdCard';
 import { AdvancedFeaturesCard } from '@features/userAccount/components/AdvancedFeaturesCard';
+import { CommandPaletteCard } from '@features/userAccount/components/CommandPaletteCard';
 import { GovernanceAccessCard } from '@features/userAccount/components/GovernanceAccessCard';
 import { HideBalancesCard } from '@features/userAccount/components/HideBalancesCard';
 import { ManageIICard } from '@features/userAccount/components/ManageIICard';
@@ -141,6 +142,9 @@ function Settings() {
             </div>
             <div className="px-6 py-5">
               <ShortcutsCard />
+            </div>
+            <div className="px-6 py-5">
+              <CommandPaletteCard />
             </div>
           </div>
         </Card>

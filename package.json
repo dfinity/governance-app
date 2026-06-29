@@ -3,6 +3,10 @@
     "node": "^25",
     "npm": "^11"
   },
+  "volta": {
+    "node": "25.8.0",
+    "npm": "11.13.0"
+  },
   "name": "the-governance-app",
   "scripts": {
     "build": "npm run build --workspaces --if-present",
@@ -22,15 +26,7 @@
   "workspaces": [
     "src/governance-app-frontend"
   ],
-  "overrides": {
-    "@tanstack/eslint-plugin-query": {
-      "eslint": "$eslint"
-    },
-    "eslint-plugin-import": {
-      "eslint": "$eslint"
-    },
-    "eslint-plugin-react-hooks": {
-      "eslint": "$eslint"
-    }
+  "devDependencies": {
+    "eslint": "10.0.0"
   }
 }

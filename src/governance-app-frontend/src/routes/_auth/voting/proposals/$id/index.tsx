@@ -9,6 +9,7 @@ import { SelfDescribingActionView } from '@features/proposals/components/SelfDes
 import {
   getProposalStatusColor,
   getProposalTimeLeftInSeconds,
+  isValidProposalId,
   validateProposalsSearch,
 } from '@features/proposals/utils';
 
@@ -17,6 +18,7 @@ import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
+import { EmptyMessage } from '@components/EmptyMessage';
 import { MarkdownRenderer } from '@components/MarkdownRenderer';
 import { MultipleSkeletons } from '@components/MultipleSkeletons';
 import { QueryStates } from '@components/QueryStates';
@@ -37,7 +39,7 @@ export const Route = createFileRoute('/_auth/voting/proposals/$id/')({
   },
   validateSearch: validateProposalsSearch,
   beforeLoad: async ({ params }) => {
-    if (!params.id) throw redirect({ to: '/voting', replace: true });
+    if (!isValidProposalId(params.id)) throw redirect({ to: '/voting', replace: true });
   },
   pendingComponent: () => <MultipleSkeletons count={3} />,
   component: ProposalDetailsRouteComponent,
@@ -79,11 +81,15 @@ function ProposalDetailsRouteComponent() {
         </Button>
       </div>
 
-      <QueryStates<CertifiedData<ProposalInfo>>
+      <QueryStates<CertifiedData<ProposalInfo | undefined>>
         query={proposalQuery}
         isEmpty={(proposal) => !proposal.response}
+        emptyComponent={
+          <EmptyMessage message={t(($) => $.proposal.notFound, { id: id?.toString() ?? '' })} />
+        }
       >
         {({ response: proposal }) => {
+          if (!nonNullish(proposal)) return null;
           const timeLeft = secondsToDuration({
             seconds: getProposalTimeLeftInSeconds(proposal),
             i18n: t(($) => $.common.durationUnits, { returnObjects: true }),

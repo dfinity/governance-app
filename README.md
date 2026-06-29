@@ -10,7 +10,6 @@
 
 [![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/dfinity/governance-app/build.yaml?logo=github&label=Build%20and%20test)](https://github.com/dfinity/governance-app/actions/workflows/build.yaml)
 [![Chat on Discord](https://img.shields.io/badge/chat-Discord-lightgrey?logo=Discord&style=flat-square)](https://discord.internetcomputer.org)
-
 </div>
 
 ---
