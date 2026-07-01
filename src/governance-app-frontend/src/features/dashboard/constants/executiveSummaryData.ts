@@ -82,24 +82,24 @@ import type { MonthlyGovernanceSummary } from '../types/executiveSummary';
  * ▲▲▲ END PROMPT ▲▲▲
  */
 
-const MAY_2026: MonthlyGovernanceSummary = {
-  month: 'May',
+const JUNE_2026: MonthlyGovernanceSummary = {
+  month: 'June',
   year: 2026,
 
   outcomes: [
-    { status: 'approved', count: 316 },
-    { status: 'rejected', count: 15 },
-    { status: 'failed', count: 1 },
+    { status: 'approved', count: 620 },
+    { status: 'rejected', count: 4 },
+    { status: 'failed', count: 4 },
   ],
 
   topChanges: [
     {
       icon: 'network',
       title: 'Network operations & infrastructure',
-      description: 'Pakistani cloud engine launched; routine GuestOS rollouts across mainnet',
+      description: 'Confidential subnet type launched; new long-running cloud engine created',
       highlights: [
-        { value: 240, label: 'rollouts completed' },
-        { value: 5, label: 'GuestOS versions' },
+        { value: 420, label: 'rollouts completed' },
+        { value: 10, label: 'GuestOS versions' },
         { value: 4, label: 'HostOS versions' },
         { value: 1, label: 'new cloud engine' },
       ],
@@ -107,39 +107,39 @@ const MAY_2026: MonthlyGovernanceSummary = {
     {
       icon: 'protocol',
       title: 'Core protocol & app upgrades',
-      description: 'Internet Identity gained recovery emails; ckBTC and ckDOGE minters upgraded',
+      description: 'Engine-controller canister added; Internet Identity upgraded 13 times',
       highlights: [
-        { value: 7, label: 'protocol upgrades' },
-        { value: 8, label: 'II upgrades' },
-        { value: 4, label: 'other app upgrades' },
+        { value: 12, label: 'protocol upgrades' },
+        { value: 13, label: 'II upgrades' },
+        { value: 3, label: 'other app upgrades' },
+        { value: 1, label: 'new NNS canister' },
       ],
     },
     {
       icon: 'community',
       title: 'Community governance',
-      description:
-        'Node provider standards motion passed; spam and non-actionable motions rejected',
+      description: 'Forum archiving motion passed; BSV integration and node provider rejected',
       highlights: [
         { value: 1, label: 'motion passed' },
-        { value: 9, label: 'motions rejected' },
-        { value: 1, label: 'KYC approval' },
+        { value: 1, label: 'motion rejected' },
+        { value: 1, label: 'node provider rejected' },
       ],
     },
   ],
 
   communityHighlights: [
     {
-      title: 'Motion: Node Provider Standards',
+      title: 'Motion: Transitioning or Archiving the DFINITY Forum',
       outcome: 'passed',
       label: 'Passed',
     },
     {
-      title: 'Create the Pakistani Cloud Engine',
+      title: 'Create a Long-Running Cloud Engine',
       outcome: 'passed',
-      label: 'Launch Approved',
+      label: 'Passed',
     },
     {
-      title: 'Delete Test Cloud Engine: jmfme',
+      title: 'Add New Subnet Type: Confidential',
       outcome: 'passed',
       label: 'Passed',
     },
@@ -149,12 +149,12 @@ const MAY_2026: MonthlyGovernanceSummary = {
       label: 'Passed',
     },
     {
-      title: 'Motion: Forensic Accounting of Cycle Grants',
+      title: 'Motion: Native Bitcoin SV (BSV) Headers-Only Integration',
       outcome: 'rejected',
       label: 'Rejected',
     },
     {
-      title: 'Motion: Make Canister Cycle Balances Public',
+      title: 'Add Node Provider: HashEra (Mongolia)',
       outcome: 'rejected',
       label: 'Rejected',
     },
@@ -162,4 +162,4 @@ const MAY_2026: MonthlyGovernanceSummary = {
 };
 
 /** The currently displayed summary — update this reference each month */
-export const currentSummary: MonthlyGovernanceSummary = MAY_2026;
+export const currentSummary: MonthlyGovernanceSummary = JUNE_2026;
