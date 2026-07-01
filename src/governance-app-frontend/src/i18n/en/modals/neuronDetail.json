@@ -93,6 +93,8 @@
     "success": "Maturity disbursement started. ICP will be added to your balance in approximately 1 week.",
     "errors": {
       "amountTooLow": "Minimum amount is {{min}} maturity.",
+      "noDestination": "Pick a destination address from your address book.",
+      "invalidDestination": "This address book entry is invalid. Please pick another.",
       "failed": "Failed to disburse maturity. Please try again."
     }
   },
