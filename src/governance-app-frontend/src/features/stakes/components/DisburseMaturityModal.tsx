@@ -246,7 +246,12 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
             >
               {t(($) => $.neuronDetailModal.disburseMaturity.cancel)}
             </Button>
-            <Button size="xl" className="md:flex-1" onClick={() => handleConfirm(execute)}>
+            <Button
+              size="xl"
+              className="md:flex-1"
+              disabled={addressBookLoading}
+              onClick={() => handleConfirm(execute)}
+            >
               {t(($) => $.neuronDetailModal.disburseMaturity.confirm)}
             </Button>
           </MutationDialogFooter>
