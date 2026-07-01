@@ -123,7 +123,6 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
     setValidationError(null);
   };
 
-  const showDestinationSection = subaccountsEnabled || hasAddresses || addressBookLoading;
   const showToggle = !addressBookLoading && hasAddresses;
 
   return (
@@ -144,78 +143,75 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
           </MutationDialogHeader>
 
           <MutationDialogBody className="mt-4 flex flex-col gap-4 px-4 md:px-0">
-            {showDestinationSection && (
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <Label
-                    htmlFor={
-                      useAddressBookToggle ? 'address-book-select' : 'disburse-maturity-to-account'
-                    }
-                  >
-                    {t(($) => $.neuronDetailModal.disburseMaturity.toAccount)}
-                  </Label>
-                  {addressBookLoading ? (
-                    <div className="flex items-center gap-1.5">
-                      <BookUser className="size-3.5 animate-pulse text-muted-foreground" />
-                      <span className="animate-pulse text-xs text-muted-foreground">
-                        {t(($) => $.addressBook.sendFlow.tooltipLoading)}
-                      </span>
-                    </div>
-                  ) : showToggle ? (
-                    <label className="flex cursor-pointer items-center gap-1.5">
-                      <BookUser className="size-3.5 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">
-                        {t(($) => $.addressBook.sendFlow.toggleLabel)}
-                      </span>
-                      <Switch
-                        checked={useAddressBookToggle}
-                        onCheckedChange={handleToggleChange}
-                        size="sm"
-                        data-testid="disburse-maturity-address-book-toggle"
-                      />
-                    </label>
-                  ) : !hasAddresses ? (
-                    <Link
-                      to="/settings"
-                      search={{ openAddressBook: true }}
-                      className="flex items-center gap-1.5 transition-opacity hover:opacity-80"
-                    >
-                      <BookUser className="size-3.5 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground underline">
-                        {t(($) => $.addressBook.sendFlow.tooltipEmpty)}
-                      </span>
-                    </Link>
-                  ) : null}
-                </div>
-
-                {useAddressBookToggle ? (
-                  <AddressBookSelect
-                    addresses={addressBookEntries}
-                    selectedName={selectedAddressBookName}
-                    onSelect={(name) => {
-                      setSelectedAddressBookName(name);
-                      setValidationError(null);
-                    }}
-                  />
-                ) : subaccountsEnabled ? (
-                  <AccountSelect
-                    id="disburse-maturity-to-account"
-                    value={selectedAccountId}
-                    onChange={setSelectedAccountId}
-                    data-testid="disburse-maturity-account-select"
-                  />
-                ) : (
-                  <div
-                    id="disburse-maturity-to-account"
-                    className="flex h-9 w-full items-center rounded-md border-2 border-input px-3 text-sm text-muted-foreground"
-                    data-testid="disburse-maturity-main-account"
-                  >
-                    {mainAccountLabel}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <Label
+                  htmlFor={
+                    useAddressBookToggle ? 'address-book-select' : 'disburse-maturity-to-account'
+                  }
+                >
+                  {t(($) => $.neuronDetailModal.disburseMaturity.toAccount)}
+                </Label>
+                {addressBookLoading ? (
+                  <div className="flex items-center gap-1.5">
+                    <BookUser className="size-3.5 animate-pulse text-muted-foreground" />
+                    <span className="animate-pulse text-xs text-muted-foreground">
+                      {t(($) => $.addressBook.sendFlow.tooltipLoading)}
+                    </span>
                   </div>
-                )}
+                ) : showToggle ? (
+                  <label className="flex cursor-pointer items-center gap-1.5">
+                    <BookUser className="size-3.5 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">
+                      {t(($) => $.addressBook.sendFlow.toggleLabel)}
+                    </span>
+                    <Switch
+                      checked={useAddressBookToggle}
+                      onCheckedChange={handleToggleChange}
+                      size="sm"
+                      data-testid="disburse-maturity-address-book-toggle"
+                    />
+                  </label>
+                ) : !hasAddresses ? (
+                  <Link
+                    to="/settings"
+                    search={{ openAddressBook: true }}
+                    className="flex items-center gap-1.5 transition-opacity hover:opacity-80"
+                  >
+                    <BookUser className="size-3.5 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground underline">
+                      {t(($) => $.addressBook.sendFlow.tooltipEmpty)}
+                    </span>
+                  </Link>
+                ) : null}
               </div>
-            )}
 
+              {useAddressBookToggle ? (
+                <AddressBookSelect
+                  addresses={addressBookEntries}
+                  selectedName={selectedAddressBookName}
+                  onSelect={(name) => {
+                    setSelectedAddressBookName(name);
+                    setValidationError(null);
+                  }}
+                />
+              ) : subaccountsEnabled ? (
+                <AccountSelect
+                  id="disburse-maturity-to-account"
+                  value={selectedAccountId}
+                  onChange={setSelectedAccountId}
+                  data-testid="disburse-maturity-account-select"
+                />
+              ) : (
+                <div
+                  id="disburse-maturity-to-account"
+                  className="flex h-9 w-full items-center rounded-md border-2 border-input px-3 text-sm text-muted-foreground"
+                  data-testid="disburse-maturity-main-account"
+                >
+                  {mainAccountLabel}
+                </div>
+              )}
+            </div>
             <Alert variant="info">
               <Info className="h-4 w-4" />
               <AlertDescription>
