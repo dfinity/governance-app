@@ -16,12 +16,15 @@ type DisburseMaturityParams = {
   destination: DisburseMaturityDestination;
 };
 
+// Only 32-byte subaccounts are valid; treat anything else as the default subaccount so the
+// forwarded destination and the balance-invalidation key stay in sync.
+const normalizeIcrcSubaccount = (subaccount?: Uint8Array): Uint8Array | undefined =>
+  subaccount && subaccount.length === 32 ? subaccount : undefined;
+
 const resolveDestinationAccountId = (destination: DisburseMaturityDestination): string => {
   if (destination.kind === 'icp') return destination.accountIdentifier;
-  const subAccount =
-    destination.subaccount && destination.subaccount.length === 32
-      ? SubAccount.fromBytes(destination.subaccount)
-      : undefined;
+  const subaccount = normalizeIcrcSubaccount(destination.subaccount);
+  const subAccount = subaccount ? SubAccount.fromBytes(subaccount) : undefined;
   return AccountIdentifier.fromPrincipal({ principal: destination.owner, subAccount }).toHex();
 };
 
@@ -51,12 +54,13 @@ export function useDisburseMaturity() {
           toAccountIdentifier: destination.accountIdentifier,
         });
       } else {
+        const subaccount = normalizeIcrcSubaccount(destination.subaccount);
         await governanceCanister.disburseMaturity({
           neuronId: params.neuronId,
           percentageToDisburse: 100,
           toAccount: {
             owner: destination.owner,
-            subaccount: destination.subaccount ? Array.from(destination.subaccount) : undefined,
+            subaccount: subaccount ? Array.from(subaccount) : undefined,
           },
         });
       }

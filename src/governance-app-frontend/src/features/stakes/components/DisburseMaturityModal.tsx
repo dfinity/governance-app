@@ -100,8 +100,15 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
       if ('Icp' in entry.address) {
         destination = { kind: 'icp', accountIdentifier: entry.address.Icp };
       } else {
-        const { owner, subaccount } = decodeIcrcAccount(entry.address.Icrc1);
-        destination = { kind: 'icrc1', owner, subaccount };
+        try {
+          const { owner, subaccount } = decodeIcrcAccount(entry.address.Icrc1);
+          destination = { kind: 'icrc1', owner, subaccount };
+        } catch {
+          setValidationError(
+            t(($) => $.neuronDetailModal.disburseMaturity.errors.invalidDestination),
+          );
+          return;
+        }
       }
     } else {
       destination = { kind: 'icp', accountIdentifier: resolvedAccountId };
