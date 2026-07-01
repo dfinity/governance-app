@@ -2,7 +2,7 @@ import { decodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { Link } from '@tanstack/react-router';
 import { AlertTriangle, BookUser, Info } from 'lucide-react';
-import { useEffect, useEffectEvent, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { AccountSelect } from '@features/accounts/components/AccountSelect';
@@ -65,12 +65,9 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
       }`
     : t(($) => $.accounts.mainAccount);
 
+  // Default to the account picker as the primary action; the address book is opt-in.
   const [useAddressBookToggle, setUseAddressBookToggle] = useState(false);
   const [selectedAddressBookName, setSelectedAddressBookName] = useState('');
-
-  const autoToggleAddressBook = useEffectEvent(() => {
-    if (hasAddresses) setUseAddressBookToggle(true);
-  });
 
   useEffect(() => {
     if (!isOpen) return;
@@ -79,11 +76,6 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
     setSelectedAddressBookName('');
     setUseAddressBookToggle(false);
   }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen || addressBookLoading) return;
-    autoToggleAddressBook();
-  }, [isOpen, addressBookLoading]);
 
   const unstakedMaturity = neuron ? bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn) : 0;
 
