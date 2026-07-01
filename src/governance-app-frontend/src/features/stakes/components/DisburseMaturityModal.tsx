@@ -6,7 +6,9 @@ import { useEffect, useEffectEvent, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { AccountSelect } from '@features/accounts/components/AccountSelect';
+import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { useAccountSelection } from '@features/accounts/hooks/useAccountSelection';
+import { isAccountReady } from '@features/accounts/types';
 import { AddressBookSelect } from '@features/addressBook/components/AddressBookSelect';
 
 import { Alert, AlertDescription } from '@components/Alert';
@@ -48,6 +50,20 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
   const addressBookLoading = addressBookQuery.isLoading;
   const hasAddresses = addressBookEntries.length > 0;
+
+  // Without subaccounts there is no account picker, so surface the fixed main-account
+  // destination as a read-only field instead of leaving the section blank.
+  const { data: accountsState } = useAccounts();
+  const mainAccount = accountsState?.accounts.find(
+    (a) => a.accountId === accountsState.mainAccountId,
+  );
+  const mainAccountLabel = mainAccount
+    ? `${mainAccount.name}${
+        isAccountReady(mainAccount)
+          ? ` — ${formatNumber(bigIntDiv(mainAccount.balanceE8s, E8Sn))} ICP`
+          : ''
+      }`
+    : t(($) => $.accounts.mainAccount);
 
   const [useAddressBookToggle, setUseAddressBookToggle] = useState(false);
   const [selectedAddressBookName, setSelectedAddressBookName] = useState('');
@@ -189,7 +205,15 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
                     onChange={setSelectedAccountId}
                     data-testid="disburse-maturity-account-select"
                   />
-                ) : null}
+                ) : (
+                  <div
+                    id="disburse-maturity-to-account"
+                    className="flex h-9 w-full items-center rounded-md border-2 border-input px-3 text-sm text-muted-foreground"
+                    data-testid="disburse-maturity-main-account"
+                  >
+                    {mainAccountLabel}
+                  </div>
+                )}
               </div>
             )}
 
