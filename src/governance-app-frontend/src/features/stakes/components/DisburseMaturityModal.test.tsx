@@ -1,3 +1,7 @@
+// Initialize i18n so the button/error labels this test locates by text are translated,
+// regardless of vitest file ordering.
+import '@/i18n/config';
+
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
