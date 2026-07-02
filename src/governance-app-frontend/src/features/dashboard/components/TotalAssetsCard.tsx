@@ -23,7 +23,7 @@ const chartConfig = {
     label: 'Staking ratio',
     theme: {
       light: 'var(--icp-section-teal)',
-      dark: 'var(--icp-section-teal)',
+      dark: 'var(--staking-ratio)',
     },
   },
 } satisfies ChartConfig;

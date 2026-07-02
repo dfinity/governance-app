@@ -1,8 +1,9 @@
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { ensureInitialized, useInternetIdentity } from 'ic-use-internet-identity';
-import { type CSSProperties, useLayoutEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Moon, Sun } from 'lucide-react';
+import { type CSSProperties, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 
 import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGovernanceLogo';
 
@@ -10,8 +11,10 @@ import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Button } from '@components/button';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
+import { ToggleGroup, ToggleGroupItem } from '@components/ToggleGroup';
 import { Theme } from '@constants/theme';
 import { useGovernanceProposal } from '@hooks/governance';
+import { useTheme } from '@hooks/useTheme';
 import { useTvlValue } from '@hooks/useTvlValue';
 import { isSafeInternalRedirect } from '@utils/router';
 
@@ -66,21 +69,7 @@ export const Route = createFileRoute('/')({
 function LoginPage() {
   const { login, isLoggingIn, isLoginSuccess } = useInternetIdentity();
   const { t } = useTranslation();
-
-  // The login hero uses an opt-in dark canvas while preserving the user's app theme.
-  useLayoutEffect(() => {
-    const root = document.documentElement;
-    const previousTheme = root.dataset.theme;
-    root.dataset.theme = Theme.Dark;
-
-    return () => {
-      if (previousTheme) {
-        root.dataset.theme = previousTheme;
-      } else {
-        root.removeAttribute('data-theme');
-      }
-    };
-  }, []);
+  const { theme, setTheme } = useTheme();
 
   const [isVideoReady, setIsVideoReady] = useState(false);
   const { tvl, isLoading: isTvlLoading, isError: isTvlError } = useTvlValue();
@@ -91,12 +80,12 @@ function LoginPage() {
 
   return (
     <>
-      <div className="login-page relative min-h-dvh w-full font-sans text-foreground">
+      <div className="login-page relative isolate min-h-dvh w-full font-sans text-foreground">
         {/* Loading Overlay */}
         {(isLoggingIn || isLoginSuccess) && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
             <div
-              className="flex flex-col items-center gap-6 text-white"
+              className="flex flex-col items-center gap-6 text-foreground"
               role="status"
               aria-live="polite"
             >
@@ -107,15 +96,14 @@ function LoginPage() {
         )}
 
         {/* Background */}
-        <div className="absolute inset-0 -z-10 overflow-hidden" data-testid="video-background">
+        <div className="absolute inset-0 z-0 overflow-hidden" data-testid="video-background">
           <div className="absolute inset-0 bg-background" />
-          <div className="icp-grid-paper-overlay" />
-          <div className="flex h-full w-full 3xl:mx-auto 3xl:max-w-[2000px] md:items-center">
+          <div className="flex h-full w-full items-center 3xl:mx-auto 3xl:max-w-[2000px]">
             {/* Static image for users with reduced motion preference */}
             <img
               src="/core-bg.webp"
               alt=""
-              className="relative hidden max-h-[720px] w-fit object-cover motion-reduce:block 3xl:translate-x-3/4 md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 xl:translate-x-1/2 2xl:translate-x-2/3"
+              className="relative hidden max-h-[720px] w-fit scale-125 object-cover brightness-[1.05] contrast-[0.9] hue-rotate-180 invert saturate-[0.55] motion-reduce:block 3xl:translate-x-3/4 md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 md:scale-100 xl:translate-x-1/2 2xl:translate-x-2/3 dark:brightness-100 dark:contrast-100 dark:hue-rotate-0 dark:invert-0 dark:saturate-100"
               aria-hidden={true}
               style={FADE_MASK_STYLE}
             />
@@ -127,7 +115,7 @@ function LoginPage() {
               playsInline
               preload="auto"
               onCanPlayThrough={() => setIsVideoReady(true)}
-              className={`relative max-h-[720px] w-fit object-cover transition-opacity duration-1000 ease-in motion-reduce:hidden 3xl:translate-x-3/4 md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 xl:translate-x-1/2 2xl:translate-x-2/3 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}
+              className={`relative max-h-[720px] w-fit scale-125 object-cover brightness-[1.05] contrast-[0.9] hue-rotate-180 invert saturate-[0.55] transition-opacity duration-1000 ease-in motion-reduce:hidden 3xl:translate-x-3/4 md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 md:scale-100 xl:translate-x-1/2 2xl:translate-x-2/3 dark:brightness-100 dark:contrast-100 dark:hue-rotate-0 dark:invert-0 dark:saturate-100 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}
               aria-hidden={true}
               style={FADE_MASK_STYLE}
             >
@@ -135,28 +123,61 @@ function LoginPage() {
               <source src="/core-bg-original.mp4" type="video/mp4" />
             </video>
           </div>
+          <div className="absolute inset-0 bg-background/35 dark:bg-background/5" />
+          <div className="icp-grid-paper-overlay [--icp-grid-line:rgba(26,26,26,0.04)] dark:[--icp-grid-line:rgba(240,235,224,0.05)]" />
         </div>
 
         {/* Mobile overlay - behind content, above background */}
-        <div className="absolute inset-0 -z-[9] bg-background/20 md:hidden" />
+        <div className="absolute inset-0 z-[1] bg-background/20 md:hidden" />
 
         {/* Content */}
-        <div className="relative flex min-h-dvh w-full flex-col justify-between px-4 py-10 3xl:mx-auto 3xl:max-w-[2000px] sm:p-12">
+        <div className="relative z-10 flex min-h-dvh w-full flex-col justify-between px-4 py-10 3xl:mx-auto 3xl:max-w-[2000px] sm:p-12">
           {/* Header Section */}
           <div className="relative flex flex-col gap-6 md:mb-12 md:gap-0">
-            <div className="relative flex w-fit items-center gap-4">
-              <img
-                src="/governance-logo.svg"
-                alt=""
-                aria-hidden={true}
-                className="h-6 w-fit invert"
-              />
-              <span className="text-sm leading-tight font-semibold">
-                {t(($) => $.common.head.appName)}
-              </span>
+            <div className="relative flex items-start justify-between gap-4">
+              <div className="flex w-fit items-center gap-4">
+                <img
+                  src="/governance-logo.svg"
+                  alt=""
+                  aria-hidden={true}
+                  className="h-6 w-fit dark:invert"
+                />
+                <span className="text-sm leading-tight font-semibold">
+                  {t(($) => $.common.head.appName)}
+                </span>
+              </div>
+              <ToggleGroup
+                type="single"
+                size="sm"
+                value={theme}
+                onValueChange={(value: Theme) => {
+                  if (value) setTheme(value);
+                }}
+                className="rounded-md border bg-background/80 backdrop-blur-sm"
+              >
+                <ToggleGroupItem
+                  value={Theme.Light}
+                  aria-label={t(($) => $.userAccount.aria.toggleLight)}
+                  title={t(($) => $.userAccount.aria.toggleLight)}
+                >
+                  <Sun className="size-4" />
+                  <span className="hidden sm:inline">{t(($) => $.userAccount.modes.light)}</span>
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  value={Theme.Dark}
+                  aria-label={t(($) => $.userAccount.aria.toggleDark)}
+                  title={t(($) => $.userAccount.aria.toggleDark)}
+                >
+                  <Moon className="size-4" />
+                  <span className="hidden sm:inline">{t(($) => $.userAccount.modes.dark)}</span>
+                </ToggleGroupItem>
+              </ToggleGroup>
             </div>
             <h1 className="animate-fade-up text-hero-responsive mt-4 mb-6 max-w-xl font-serif font-normal tracking-tight md:mt-12 md:mb-0 md:max-w-3xl 2xl:mt-30 2xl:max-w-4xl">
-              {t(($) => $.login.headerTitle)}
+              <Trans
+                i18nKey="login.headerTitle"
+                components={{ em: <em className="text-primary italic" /> }}
+              />
             </h1>
           </div>
 
@@ -183,7 +204,7 @@ function LoginPage() {
 
               <Separator
                 orientation="vertical"
-                className="hidden bg-muted-foreground/50 md:block"
+                className="hidden bg-muted-foreground/25 md:block dark:bg-muted-foreground/50"
                 aria-hidden={true}
               />
 
@@ -205,7 +226,7 @@ function LoginPage() {
 
               <Separator
                 orientation="vertical"
-                className="hidden bg-muted-foreground/50 md:block"
+                className="hidden bg-muted-foreground/25 md:block dark:bg-muted-foreground/50"
                 aria-hidden={true}
               />
 
@@ -230,7 +251,7 @@ function LoginPage() {
             </dl>
 
             {/* Login Card Section  */}
-            <div className="animate-fade-up animate-delay-200 order-2 flex w-full flex-col gap-6 rounded-[6px] border border-border bg-[var(--icp-fg)] p-5 text-[var(--icp-bg)] sm:p-7 md:order-1 md:my-auto md:max-w-lg md:min-w-lg">
+            <div className="animate-fade-up animate-delay-200 order-2 flex w-full flex-col gap-6 rounded-[6px] border border-border bg-card/95 p-5 text-card-foreground sm:p-7 md:order-1 md:my-auto md:max-w-lg md:min-w-lg">
               <p className="login-card-responsive font-light text-pretty">
                 {t(($) => $.login.accessText)}
               </p>
@@ -252,7 +273,7 @@ function LoginPage() {
                   href="https://nns.ic0.app"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm tracking-wide text-[var(--icp-bg)] transition-colors hover:text-primary hover:underline md:text-base"
+                  className="flex items-center gap-2 text-sm tracking-wide text-muted-foreground transition-colors hover:text-foreground hover:underline md:text-base"
                 >
                   <span>{t(($) => $.login.legacyNnsDapp)}</span>
                   <span aria-hidden={true}>↗</span>

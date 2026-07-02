@@ -3,18 +3,18 @@ export function AnimatedGovernanceLogo() {
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 46 22"
-      className="h-16 w-auto"
+      className="h-16 w-auto text-foreground"
       aria-hidden={true}
     >
       <defs>
         <linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="white" stopOpacity="0.3">
+          <stop offset="0%" stopColor="currentColor" stopOpacity="0.3">
             <animate attributeName="offset" values="-2;1" dur="3s" repeatCount="indefinite" />
           </stop>
-          <stop offset="50%" stopColor="white" stopOpacity="1">
+          <stop offset="50%" stopColor="currentColor" stopOpacity="1">
             <animate attributeName="offset" values="-1;2" dur="3s" repeatCount="indefinite" />
           </stop>
-          <stop offset="100%" stopColor="white" stopOpacity="0.3">
+          <stop offset="100%" stopColor="currentColor" stopOpacity="0.3">
             <animate attributeName="offset" values="0;3" dur="3s" repeatCount="indefinite" />
           </stop>
         </linearGradient>

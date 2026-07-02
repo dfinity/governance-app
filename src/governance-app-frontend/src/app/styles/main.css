@@ -116,7 +116,7 @@
   --sidebar-border: var(--icp-rule);
   --sidebar-ring: var(--icp-accent-strong);
   --main-content: var(--icp-bg);
-  --staking-ratio: var(--icp-section-teal);
+  --staking-ratio: #3fafaa;
 }
 
 @theme inline {
