@@ -3,6 +3,7 @@ import { nonNullish } from '@dfinity/utils';
 import { AlertTriangle, Clock, ShieldCheck, TrendingDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { Skeleton } from '@components/Skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { useGovernanceEconomics } from '@hooks/governance/useGovernanceEconomics';
 import {
@@ -26,6 +27,11 @@ type Props = {
  * - ok / warning: how long until voting power starts to decay
  * - decaying: how long until following is cleared
  * - expired: no duration (already past the cliff)
+ *
+ * Sits in an always-rendered `InfoRow`, so it must never resolve to an empty
+ * cell: it shows a skeleton while economics load and an em-dash when the health
+ * can't be derived (e.g. a neuron with no refresh timestamp) — matching the APY
+ * row's loading/unavailable handling.
  */
 export function FollowingStatusInline({ neuron }: Props) {
   const { t } = useTranslation();
@@ -34,7 +40,8 @@ export function FollowingStatusInline({ neuron }: Props) {
   const now = new Date();
   const health = getFollowingHealth(neuron, economics, now);
 
-  if (!health) return null;
+  if (economicsQuery.isLoading) return <Skeleton className="h-5 w-20" />;
+  if (!health) return <span className="font-semibold text-muted-foreground">—</span>;
 
   const durationI18n = t(($) => $.common.durationUnits, { returnObjects: true });
 
