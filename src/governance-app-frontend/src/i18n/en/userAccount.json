@@ -7,11 +7,13 @@
   "accountIdExchangeBadge": "ICP tokens only",
   "modes": {
     "light": "Light",
-    "dark": "Dark"
+    "dark": "Dark",
+    "system": "System"
   },
   "aria": {
     "toggleLight": "Toggle light",
     "toggleDark": "Toggle dark",
+    "toggleSystem": "Toggle system",
     "iiLink": "Manage your Internet Identity (opens in new tab)"
   },
   "appearance": "Appearance",
