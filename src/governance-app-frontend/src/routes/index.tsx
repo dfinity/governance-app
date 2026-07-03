@@ -208,7 +208,7 @@ function LoginPage() {
             </div>
             <h1 className="animate-fade-up text-hero-responsive mt-4 mb-6 max-w-xl font-serif font-normal tracking-tight md:mt-12 md:mb-0 md:max-w-3xl 2xl:mt-30 2xl:max-w-4xl">
               <Trans
-                i18nKey="login.headerTitle"
+                i18nKey={($) => $.login.headerTitle}
                 components={{ em: <em className="text-primary italic" /> }}
               />
             </h1>
