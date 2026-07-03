@@ -76,12 +76,18 @@ function LoginPage() {
   const allStatsReady = !isTvlLoading && !proposalsQuery?.isLoading;
 
   // Keep the two background video layers loosely in sync without per-frame seeking.
+  // Skipped entirely when the user prefers reduced motion (the videos are hidden then).
   useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
     const base = baseVideoRef.current;
     const core = coreVideoRef.current;
     if (!base || !core) return;
 
     const syncInterval = window.setInterval(() => {
+      // Wait until both layers have enough data to read/seek without throwing.
+      if (base.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
+      if (core.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
       if (Math.abs(core.currentTime - base.currentTime) > 0.2) {
         core.currentTime = base.currentTime;
       }
