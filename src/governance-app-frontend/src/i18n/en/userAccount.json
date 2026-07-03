@@ -7,16 +7,18 @@
   "accountIdExchangeBadge": "ICP tokens only",
   "modes": {
     "light": "Light",
-    "dark": "Dark"
+    "dark": "Dark",
+    "system": "System"
   },
   "aria": {
     "toggleLight": "Toggle light",
     "toggleDark": "Toggle dark",
+    "toggleSystem": "Toggle system",
     "iiLink": "Manage your Internet Identity (opens in new tab)"
   },
   "appearance": "Appearance",
   "theme": "Theme",
-  "themeDescription": "Choose a light or dark theme for the application.",
+  "themeDescription": "Choose a light, dark, or system theme for the application.",
   "manageII": "Manage your Internet Identity",
   "governance": {
     "title": "Governance",

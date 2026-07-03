@@ -7,6 +7,7 @@ import {
   EyeOffIcon,
   FileTextIcon,
   LogOutIcon,
+  MonitorIcon,
   MoonIcon,
   SunIcon,
 } from 'lucide-react';
@@ -173,6 +174,15 @@ export const CommandPalette = () => {
             <MoonIcon />
             <span>{t(($) => $.commandPalette.items.themeDark)}</span>
             {theme === Theme.Dark && <CheckIcon className="ml-auto" />}
+          </CommandItem>
+          <CommandItem
+            value={themeValue(Theme.System)}
+            keywords={['appearance', 'color']}
+            onSelect={() => setTheme(Theme.System)}
+          >
+            <MonitorIcon />
+            <span>{t(($) => $.commandPalette.items.themeSystem)}</span>
+            {theme === Theme.System && <CheckIcon className="ml-auto" />}
           </CommandItem>
           <CommandItem
             value={TOGGLE_BALANCES_VALUE}

@@ -1,8 +1,8 @@
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { ensureInitialized, useInternetIdentity } from 'ic-use-internet-identity';
-import { Moon, Sun } from 'lucide-react';
-import { type CSSProperties, useState } from 'react';
+import { Monitor, Moon, Sun } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGovernanceLogo';
@@ -19,11 +19,6 @@ import { useTvlValue } from '@hooks/useTvlValue';
 import { isSafeInternalRedirect } from '@utils/router';
 
 import i18n from '@/i18n/config';
-
-const FADE_MASK_STYLE: CSSProperties = {
-  maskImage: 'radial-gradient(ellipse at center, black 30%, transparent 70%)',
-  WebkitMaskImage: 'radial-gradient(ellipse at center, black 30%, transparent 70%)',
-};
 
 type LoginSearch = {
   redirect?: string;
@@ -72,11 +67,28 @@ function LoginPage() {
   const { theme, setTheme } = useTheme();
 
   const [isVideoReady, setIsVideoReady] = useState(false);
+  const baseVideoRef = useRef<HTMLVideoElement>(null);
+  const coreVideoRef = useRef<HTMLVideoElement>(null);
   const { tvl, isLoading: isTvlLoading, isError: isTvlError } = useTvlValue();
   const participants = 57986;
   const proposalsQuery = useGovernanceProposal();
   const totalProposals = proposalsQuery?.data?.response?.id ?? 0n;
   const allStatsReady = !isTvlLoading && !proposalsQuery?.isLoading;
+
+  // Keep the two background video layers loosely in sync without per-frame seeking.
+  useEffect(() => {
+    const base = baseVideoRef.current;
+    const core = coreVideoRef.current;
+    if (!base || !core) return;
+
+    const syncInterval = window.setInterval(() => {
+      if (Math.abs(core.currentTime - base.currentTime) > 0.2) {
+        core.currentTime = base.currentTime;
+      }
+    }, 400);
+
+    return () => window.clearInterval(syncInterval);
+  }, []);
 
   return (
     <>
@@ -103,25 +115,43 @@ function LoginPage() {
             <img
               src="/core-bg.webp"
               alt=""
-              className="relative hidden max-h-[720px] w-fit scale-125 object-cover brightness-[1.05] contrast-[0.9] hue-rotate-180 invert saturate-[0.55] motion-reduce:block 3xl:translate-x-3/4 md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 md:scale-100 xl:translate-x-1/2 2xl:translate-x-2/3 dark:brightness-100 dark:contrast-100 dark:hue-rotate-0 dark:invert-0 dark:saturate-100"
+              className="login-vfx-base relative hidden max-h-[720px] w-fit scale-125 object-cover motion-reduce:block 3xl:translate-x-3/4 md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 md:scale-100 xl:translate-x-1/2 2xl:translate-x-2/3"
               aria-hidden={true}
-              style={FADE_MASK_STYLE}
             />
-            {/* Video background - hidden when reduced motion is preferred */}
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="auto"
-              onCanPlayThrough={() => setIsVideoReady(true)}
-              className={`relative max-h-[720px] w-fit scale-125 object-cover brightness-[1.05] contrast-[0.9] hue-rotate-180 invert saturate-[0.55] transition-opacity duration-1000 ease-in motion-reduce:hidden 3xl:translate-x-3/4 md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 md:scale-100 xl:translate-x-1/2 2xl:translate-x-2/3 dark:brightness-100 dark:contrast-100 dark:hue-rotate-0 dark:invert-0 dark:saturate-100 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}
-              aria-hidden={true}
-              style={FADE_MASK_STYLE}
+            {/* Video background - two layered copies, hidden when reduced motion is preferred */}
+            <div
+              className={`relative w-fit scale-125 transition-opacity duration-1000 ease-in motion-reduce:hidden 3xl:translate-x-3/4 md:translate-x-1/3 md:-translate-y-12 md:scale-100 xl:translate-x-1/2 2xl:translate-x-2/3 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}
             >
-              <source src="/core-bg-original.webm" type="video/webm" />
-              <source src="/core-bg-original.mp4" type="video/mp4" />
-            </video>
+              {/* Base: inked-on-parchment treatment with feathered edges. */}
+              <video
+                ref={baseVideoRef}
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="auto"
+                onCanPlayThrough={() => setIsVideoReady(true)}
+                className="login-vfx-base block max-h-[720px] w-fit object-cover md:max-h-[798px]"
+                aria-hidden={true}
+              >
+                <source src="/core-bg-original.webm" type="video/webm" />
+                <source src="/core-bg-original.mp4" type="video/mp4" />
+              </video>
+              {/* Core: original colors revealed in a soft radial center. */}
+              <video
+                ref={coreVideoRef}
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="auto"
+                className="login-vfx-core absolute inset-0 size-full object-cover"
+                aria-hidden={true}
+              >
+                <source src="/core-bg-original.webm" type="video/webm" />
+                <source src="/core-bg-original.mp4" type="video/mp4" />
+              </video>
+            </div>
           </div>
           <div className="absolute inset-0 bg-background/35 dark:bg-background/5" />
           <div className="icp-grid-paper-overlay [--icp-grid-line:rgba(26,26,26,0.04)] dark:[--icp-grid-line:rgba(240,235,224,0.05)]" />
@@ -136,12 +166,7 @@ function LoginPage() {
           <div className="relative flex flex-col gap-6 md:mb-12 md:gap-0">
             <div className="relative flex items-start justify-between gap-4">
               <div className="flex w-fit items-center gap-4">
-                <img
-                  src="/governance-logo.svg"
-                  alt=""
-                  aria-hidden={true}
-                  className="h-6 w-fit dark:invert"
-                />
+                <img src="/infinity-mark.png" alt="" aria-hidden={true} className="h-6 w-fit" />
                 <span className="text-sm leading-tight font-semibold">
                   {t(($) => $.common.head.appName)}
                 </span>
@@ -159,17 +184,25 @@ function LoginPage() {
                   value={Theme.Light}
                   aria-label={t(($) => $.userAccount.aria.toggleLight)}
                   title={t(($) => $.userAccount.aria.toggleLight)}
+                  className="px-2"
                 >
                   <Sun className="size-4" />
-                  <span className="hidden sm:inline">{t(($) => $.userAccount.modes.light)}</span>
                 </ToggleGroupItem>
                 <ToggleGroupItem
                   value={Theme.Dark}
                   aria-label={t(($) => $.userAccount.aria.toggleDark)}
                   title={t(($) => $.userAccount.aria.toggleDark)}
+                  className="px-2"
                 >
                   <Moon className="size-4" />
-                  <span className="hidden sm:inline">{t(($) => $.userAccount.modes.dark)}</span>
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  value={Theme.System}
+                  aria-label={t(($) => $.userAccount.aria.toggleSystem)}
+                  title={t(($) => $.userAccount.aria.toggleSystem)}
+                  className="px-2"
+                >
+                  <Monitor className="size-4" />
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>

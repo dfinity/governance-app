@@ -100,9 +100,9 @@ function UnauthenticatedNotFound() {
       <div className="px-4 py-10 sm:p-12">
         <div className="relative w-fit">
           <img
-            src="/governance-logo.svg"
+            src="/infinity-mark.png"
             alt={t(($) => $.common.alt.icpLogo)}
-            className="h-6 w-fit dark:invert"
+            className="h-6 w-fit"
           />
         </div>
       </div>

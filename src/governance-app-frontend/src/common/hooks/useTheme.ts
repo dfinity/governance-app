@@ -41,19 +41,38 @@ const subscribe = (listener: () => void) => {
 
 const getSnapshot = (): Theme => getStoredTheme();
 
+const getSystemTheme = (): Theme.Dark | Theme.Light =>
+  window.matchMedia('(prefers-color-scheme: dark)').matches ? Theme.Dark : Theme.Light;
+
+const applyTheme = (theme: Theme): void => {
+  const root = window.document.documentElement;
+  const resolvedTheme = theme === Theme.System ? getSystemTheme() : theme;
+
+  root.classList.remove(Theme.Light, Theme.Dark);
+
+  if (resolvedTheme === Theme.Dark) {
+    root.dataset.theme = Theme.Dark;
+    return;
+  }
+
+  root.removeAttribute('data-theme');
+};
+
 export const useTheme = () => {
   const theme = useSyncExternalStore(subscribe, getSnapshot);
 
   useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.remove(Theme.Light, Theme.Dark);
+    applyTheme(theme);
 
-    if (theme === Theme.Dark) {
-      root.dataset.theme = Theme.Dark;
+    if (theme !== Theme.System) {
       return;
     }
 
-    root.removeAttribute('data-theme');
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => applyTheme(Theme.System);
+
+    media.addEventListener('change', handleChange);
+    return () => media.removeEventListener('change', handleChange);
   }, [theme]);
 
   return { theme, setTheme: storeTheme };

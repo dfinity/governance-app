@@ -27,12 +27,7 @@ export const Sidebar = () => {
   return (
     <aside className="sticky top-0 z-20 hidden h-full w-72 flex-col border-r bg-background text-sm lg:flex">
       <div className="flex h-14 items-center px-6">
-        <img
-          src="/governance-logo.svg"
-          alt=""
-          className="me-4 h-[1.375rem] text-foreground dark:invert"
-          aria-hidden="true"
-        />
+        <img src="/infinity-mark.png" alt="" className="me-4 h-[1.375rem]" aria-hidden="true" />
         <span className="text-xs leading-tight font-medium tracking-[0.04em]">
           Network Nervous System
         </span>

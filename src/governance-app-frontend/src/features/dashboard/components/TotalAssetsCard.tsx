@@ -22,8 +22,8 @@ const chartConfig = {
   stakingRatio: {
     label: 'Staking ratio',
     theme: {
-      light: 'var(--icp-section-teal)',
-      dark: 'var(--staking-ratio)',
+      light: 'var(--primary)',
+      dark: 'var(--primary)',
     },
   },
 } satisfies ChartConfig;
@@ -85,7 +85,7 @@ export const TotalAssetsCard = () => {
         <div className="relative mx-auto w-full">
           <ChartContainer
             config={chartConfig}
-            className="mx-auto aspect-square w-full max-w-48 [&_.recharts-surface]:overflow-visible"
+            className="mx-auto aspect-square w-full max-w-48 [&_.recharts-radial-bar-background-sector]:fill-border dark:[&_.recharts-radial-bar-background-sector]:fill-muted-foreground/20 [&_.recharts-surface]:overflow-visible"
           >
             <RadialBarChart
               data={chartData}
