@@ -10,7 +10,7 @@ const getStoredTheme = (): Theme => {
   } catch {
     // ignore
   }
-  return Theme.Light;
+  return Theme.System;
 };
 
 let listeners: Array<() => void> = [];
@@ -47,8 +47,6 @@ const getSystemTheme = (): Theme.Dark | Theme.Light =>
 const applyTheme = (theme: Theme): void => {
   const root = window.document.documentElement;
   const resolvedTheme = theme === Theme.System ? getSystemTheme() : theme;
-
-  root.classList.remove(Theme.Light, Theme.Dark);
 
   if (resolvedTheme === Theme.Dark) {
     root.dataset.theme = Theme.Dark;

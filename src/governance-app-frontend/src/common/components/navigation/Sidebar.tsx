@@ -38,7 +38,7 @@ export const Sidebar = () => {
             key={item.href}
             to={item.href}
             className={cn(
-              'relative flex items-center gap-3 rounded-md px-4 py-3 text-[color:var(--icp-fg-secondary)] transition-colors hover:bg-accent hover:text-accent-foreground',
+              'relative flex items-center gap-3 rounded-md px-4 py-3 text-foreground-secondary transition-colors hover:bg-accent hover:text-accent-foreground',
               shouldAnimate && item.href === '/accounts' && 'animate-highlight-pulse',
             )}
             onAnimationEnd={item.href === '/accounts' ? () => setShouldAnimate(false) : undefined}

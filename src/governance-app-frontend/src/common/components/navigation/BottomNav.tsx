@@ -31,7 +31,7 @@ export const BottomNav = () => {
             key={item.href}
             to={item.href}
             className={cn(
-              'flex w-full flex-col items-center justify-center text-[color:var(--icp-fg-secondary)] transition-colors hover:text-accent-foreground',
+              'flex w-full flex-col items-center justify-center text-foreground-secondary transition-colors hover:text-accent-foreground',
               shouldAnimate && item.href === '/accounts' && 'animate-highlight-pulse',
             )}
             onAnimationEnd={item.href === '/accounts' ? () => setShouldAnimate(false) : undefined}
