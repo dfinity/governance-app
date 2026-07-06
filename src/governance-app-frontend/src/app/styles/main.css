@@ -379,6 +379,29 @@ html.route-dashboard {
   animation: highlight-pulse 1.5s ease-out;
 }
 
+/* Gentle breathing pulse for the brand mark while a background task is pending. */
+@keyframes logo-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.97);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.03);
+  }
+}
+
+.animate-logo-breathe {
+  animation: logo-breathe 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-logo-breathe {
+    animation: none;
+  }
+}
+
 /* Prevents overscroll outside the main wrapper. */
 body {
   overflow: hidden;
