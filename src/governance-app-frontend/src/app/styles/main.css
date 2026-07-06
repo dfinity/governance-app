@@ -97,7 +97,7 @@
   --muted-foreground: var(--icp-fg-muted);
   --accent: var(--icp-accent-dim);
   --accent-foreground: var(--icp-accent-strong);
-  --destructive: oklch(0.396 0.141 25.723);
+  --destructive: oklch(0.55 0.22 27.325);
   --destructive-foreground: oklch(0.637 0.237 25.331);
   --border: var(--icp-rule);
   --input: var(--icp-rule);
