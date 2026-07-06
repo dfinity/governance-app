@@ -1,7 +1,6 @@
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { ensureInitialized, useInternetIdentity } from 'ic-use-internet-identity';
-import { Monitor, Moon, Sun } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
@@ -11,10 +10,7 @@ import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Button } from '@components/button';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
-import { ToggleGroup, ToggleGroupItem } from '@components/ToggleGroup';
-import { Theme } from '@constants/theme';
 import { useGovernanceProposal } from '@hooks/governance';
-import { useTheme } from '@hooks/useTheme';
 import { useTvlValue } from '@hooks/useTvlValue';
 import { isSafeInternalRedirect } from '@utils/router';
 
@@ -64,7 +60,6 @@ export const Route = createFileRoute('/')({
 function LoginPage() {
   const { login, isLoggingIn, isLoginSuccess } = useInternetIdentity();
   const { t } = useTranslation();
-  const { theme, setTheme } = useTheme();
 
   const [isVideoReady, setIsVideoReady] = useState(false);
   const baseVideoRef = useRef<HTMLVideoElement>(null);
@@ -177,40 +172,6 @@ function LoginPage() {
                   {t(($) => $.common.head.appName)}
                 </span>
               </div>
-              <ToggleGroup
-                type="single"
-                size="sm"
-                value={theme}
-                onValueChange={(value: Theme) => {
-                  if (value) setTheme(value);
-                }}
-                className="rounded-md border bg-background/80 backdrop-blur-sm"
-              >
-                <ToggleGroupItem
-                  value={Theme.Light}
-                  aria-label={t(($) => $.userAccount.aria.toggleLight)}
-                  title={t(($) => $.userAccount.aria.toggleLight)}
-                  className="px-2"
-                >
-                  <Sun className="size-4" />
-                </ToggleGroupItem>
-                <ToggleGroupItem
-                  value={Theme.Dark}
-                  aria-label={t(($) => $.userAccount.aria.toggleDark)}
-                  title={t(($) => $.userAccount.aria.toggleDark)}
-                  className="px-2"
-                >
-                  <Moon className="size-4" />
-                </ToggleGroupItem>
-                <ToggleGroupItem
-                  value={Theme.System}
-                  aria-label={t(($) => $.userAccount.aria.toggleSystem)}
-                  title={t(($) => $.userAccount.aria.toggleSystem)}
-                  className="px-2"
-                >
-                  <Monitor className="size-4" />
-                </ToggleGroupItem>
-              </ToggleGroup>
             </div>
             <h1 className="animate-fade-up text-hero-responsive mt-4 mb-6 max-w-xl font-serif font-normal tracking-tight md:mt-12 md:mb-0 md:max-w-3xl 2xl:mt-30 2xl:max-w-4xl">
               <Trans
