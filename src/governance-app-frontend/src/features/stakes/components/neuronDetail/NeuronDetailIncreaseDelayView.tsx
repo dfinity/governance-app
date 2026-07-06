@@ -131,7 +131,7 @@ export function NeuronDetailIncreaseDelayView({
               type="button"
               onClick={() => !isDisabled && !isHotkey && setSelectedSeconds(maxRewardsOption.value)}
               disabled={isDisabled || isPending || isHotkey}
-              className={`w-full rounded-lg border-2 px-4 py-4 text-center transition-colors outline-none ${
+              className={`w-full rounded-lg border-2 px-4 py-4 text-center transition-colors outline-none focus-visible:bg-primary/15 ${
                 isSelected
                   ? 'border-primary bg-primary/10'
                   : isDisabled

@@ -68,7 +68,7 @@ export function StakingWizardStepDissolveDelay({
         <button
           type="button"
           onClick={() => onDissolveDelayChange(maxRewardsOption.value)}
-          className={`w-full rounded-lg border-2 px-4 py-4 text-center transition-colors outline-none ${
+          className={`w-full rounded-lg border-2 px-4 py-4 text-center transition-colors outline-none focus-visible:bg-primary/15 ${
             isMaxRewardsSelected
               ? 'border-primary bg-primary/10'
               : 'border-primary/30 bg-primary/5 hover:bg-primary/10'
