@@ -48,12 +48,7 @@ const applyTheme = (theme: Theme): void => {
   const root = window.document.documentElement;
   const resolvedTheme = theme === Theme.System ? getSystemTheme() : theme;
 
-  if (resolvedTheme === Theme.Dark) {
-    root.dataset.theme = Theme.Dark;
-    return;
-  }
-
-  root.removeAttribute('data-theme');
+  root.classList.toggle(Theme.Dark, resolvedTheme === Theme.Dark);
 };
 
 export const useTheme = () => {

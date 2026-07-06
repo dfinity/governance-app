@@ -3,7 +3,7 @@
 @plugin '@tailwindcss/typography';
 @import 'tw-animate-css';
 
-@custom-variant dark (&:is([data-theme='dark'] *));
+@custom-variant dark (&:is(.dark *));
 
 :root {
   --icp-serif:
@@ -66,7 +66,7 @@
   --staking-ratio: var(--icp-section-teal);
 }
 
-[data-theme='dark'] {
+.dark {
   --icp-bg: #14110d;
   --icp-bg-sunk: #1b1812;
   --icp-bg-elev: #1b1812;
@@ -283,13 +283,13 @@
     mask-repeat: no-repeat;
   }
 
-  [data-theme='dark'] .login-vfx-base {
+  .dark .login-vfx-base {
     filter: none;
     -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
     mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
   }
 
-  [data-theme='dark'] .login-vfx-core {
+  .dark .login-vfx-core {
     display: none;
   }
 
