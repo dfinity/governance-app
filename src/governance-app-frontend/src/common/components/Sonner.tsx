@@ -1,5 +1,3 @@
-import { isNullish } from '@dfinity/utils';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import {
   CircleCheckBig,
   InfoIcon,
@@ -11,13 +9,8 @@ import { Toaster, type ToasterProps } from 'sonner';
 
 import { useTheme } from '@hooks/useTheme';
 
-// @TODO: Investigate why sonner fails to update theme when user navigates to non-auth pages with light theme
-// The body theme is hardcoded to dark for non-auth pages
-const NON_AUTH_THEME = 'dark';
-
 const Sonner = ({ ...props }: ToasterProps) => {
   const { theme } = useTheme();
-  const { identity } = useInternetIdentity();
 
   /*
    * mobileOffset: Includes safe-area-inset-top for iOS PWA notch support.
@@ -26,7 +19,7 @@ const Sonner = ({ ...props }: ToasterProps) => {
    */
   return (
     <Toaster
-      theme={isNullish(identity) ? NON_AUTH_THEME : theme}
+      theme={theme}
       className="toaster group"
       mobileOffset="calc(0.5rem + env(safe-area-inset-top))"
       icons={{

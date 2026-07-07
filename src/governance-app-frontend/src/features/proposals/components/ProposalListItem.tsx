@@ -89,7 +89,7 @@ export function ProposalListItem({ proposal, certified, isSpam, isNonActionable 
           <CertifiedBadge certified={certified} />
         </div>
 
-        <h3 className="min-w-0 text-lg leading-tight font-bold break-words decoration-primary underline-offset-4">
+        <h3 className="min-w-0 text-xl leading-tight font-normal break-words decoration-primary underline-offset-4">
           {proposal.proposal?.title}
         </h3>
 

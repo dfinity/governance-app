@@ -72,7 +72,7 @@ function AuthenticatedNotFound() {
             404
           </h1>
           <div className="-mt-4 space-y-2">
-            <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">
+            <h2 className="text-2xl font-normal tracking-tight sm:text-3xl">
               {t(($) => $.common.notFound.title)}
             </h2>
             <p className="text-sm text-muted-foreground">
@@ -100,9 +100,9 @@ function UnauthenticatedNotFound() {
       <div className="px-4 py-10 sm:p-12">
         <div className="relative w-fit">
           <img
-            src="/governance-logo.svg"
+            src="/infinity-mark.png"
             alt={t(($) => $.common.alt.icpLogo)}
-            className="h-6 w-fit dark:invert"
+            className="h-6 w-fit"
           />
         </div>
       </div>
@@ -112,7 +112,7 @@ function UnauthenticatedNotFound() {
             404
           </h1>
           <div className="-mt-8 space-y-3">
-            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            <h2 className="text-3xl font-normal tracking-tight sm:text-4xl">
               {t(($) => $.common.notFound.title)}
             </h2>
             <p className="text-muted-foreground">{t(($) => $.common.notFound.description)}</p>

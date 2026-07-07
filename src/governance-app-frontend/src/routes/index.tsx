@@ -1,9 +1,8 @@
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { ensureInitialized, useInternetIdentity } from 'ic-use-internet-identity';
-import { ExternalLink } from 'lucide-react';
-import { type CSSProperties, useLayoutEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useEffect, useRef, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 
 import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGovernanceLogo';
 
@@ -16,11 +15,6 @@ import { useTvlValue } from '@hooks/useTvlValue';
 import { isSafeInternalRedirect } from '@utils/router';
 
 import i18n from '@/i18n/config';
-
-const FADE_MASK_STYLE: CSSProperties = {
-  maskImage: 'radial-gradient(ellipse at center, black 30%, transparent 70%)',
-  WebkitMaskImage: 'radial-gradient(ellipse at center, black 30%, transparent 70%)',
-};
 
 type LoginSearch = {
   redirect?: string;
@@ -67,29 +61,44 @@ function LoginPage() {
   const { login, isLoggingIn, isLoginSuccess } = useInternetIdentity();
   const { t } = useTranslation();
 
-  // Enforce dark theme on body for login page
-  useLayoutEffect(() => {
-    document.body.classList.add('dark');
-    return () => {
-      document.body.classList.remove('dark');
-    };
-  }, []);
-
   const [isVideoReady, setIsVideoReady] = useState(false);
+  const baseVideoRef = useRef<HTMLVideoElement>(null);
+  const coreVideoRef = useRef<HTMLVideoElement>(null);
   const { tvl, isLoading: isTvlLoading, isError: isTvlError } = useTvlValue();
   const participants = 57986;
   const proposalsQuery = useGovernanceProposal();
   const totalProposals = proposalsQuery?.data?.response?.id ?? 0n;
   const allStatsReady = !isTvlLoading && !proposalsQuery?.isLoading;
 
+  // Keep the two background video layers loosely in sync without per-frame seeking.
+  // Skipped entirely when the user prefers reduced motion (the videos are hidden then).
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const base = baseVideoRef.current;
+    const core = coreVideoRef.current;
+    if (!base || !core) return;
+
+    const syncInterval = window.setInterval(() => {
+      // Wait until both layers have enough data to read/seek without throwing.
+      if (base.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
+      if (core.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
+      if (Math.abs(core.currentTime - base.currentTime) > 0.2) {
+        core.currentTime = base.currentTime;
+      }
+    }, 400);
+
+    return () => window.clearInterval(syncInterval);
+  }, []);
+
   return (
     <>
-      <div className="login-page dark relative min-h-dvh w-full font-sans text-foreground">
+      <div className="login-page relative isolate min-h-dvh w-full font-sans text-foreground">
         {/* Loading Overlay */}
         {(isLoggingIn || isLoginSuccess) && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
             <div
-              className="flex flex-col items-center gap-6 text-white"
+              className="flex flex-col items-center gap-6 text-foreground"
               role="status"
               aria-live="polite"
             >
@@ -100,55 +109,75 @@ function LoginPage() {
         )}
 
         {/* Background */}
-        <div className="absolute inset-0 -z-10 overflow-hidden" data-testid="video-background">
-          <div className="absolute inset-0 bg-black" />
-          <div className="flex h-full w-full 3xl:mx-auto 3xl:max-w-[2000px] md:items-center">
+        <div className="absolute inset-0 z-0 overflow-hidden" data-testid="video-background">
+          <div className="absolute inset-0 bg-background" />
+          <div className="flex h-full w-full items-center 3xl:mx-auto 3xl:max-w-[2000px]">
             {/* Static image for users with reduced motion preference */}
             <img
               src="/core-bg.webp"
               alt=""
-              className="relative hidden max-h-[720px] w-fit object-cover motion-reduce:block 3xl:translate-x-3/4 md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 xl:translate-x-1/2 2xl:translate-x-2/3"
+              className="login-vfx-base relative hidden max-h-[720px] w-fit scale-125 object-cover motion-reduce:block 3xl:translate-x-3/4 md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 md:scale-100 xl:translate-x-1/2 2xl:translate-x-2/3"
               aria-hidden={true}
-              style={FADE_MASK_STYLE}
             />
-            {/* Video background - hidden when reduced motion is preferred */}
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="auto"
-              onCanPlayThrough={() => setIsVideoReady(true)}
-              className={`relative max-h-[720px] w-fit object-cover transition-opacity duration-1000 ease-in motion-reduce:hidden 3xl:translate-x-3/4 md:max-h-[798px] md:translate-x-1/3 md:-translate-y-12 xl:translate-x-1/2 2xl:translate-x-2/3 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}
-              aria-hidden={true}
-              style={FADE_MASK_STYLE}
+            {/* Video background - two layered copies, hidden when reduced motion is preferred */}
+            <div
+              className={`relative w-fit scale-125 transition-opacity duration-1000 ease-in motion-reduce:hidden 3xl:translate-x-3/4 md:translate-x-1/3 md:-translate-y-12 md:scale-100 xl:translate-x-1/2 2xl:translate-x-2/3 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}
             >
-              <source src="/core-bg-original.webm" type="video/webm" />
-              <source src="/core-bg-original.mp4" type="video/mp4" />
-            </video>
+              {/* Base: inked-on-parchment treatment with feathered edges. */}
+              <video
+                ref={baseVideoRef}
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="auto"
+                onCanPlayThrough={() => setIsVideoReady(true)}
+                className="login-vfx-base block max-h-[720px] w-fit object-cover md:max-h-[798px]"
+                aria-hidden={true}
+              >
+                <source src="/core-bg-original.webm" type="video/webm" />
+                <source src="/core-bg-original.mp4" type="video/mp4" />
+              </video>
+              {/* Core: original colors revealed in a soft radial center. */}
+              <video
+                ref={coreVideoRef}
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="auto"
+                className="login-vfx-core absolute inset-0 size-full object-cover"
+                aria-hidden={true}
+              >
+                <source src="/core-bg-original.webm" type="video/webm" />
+                <source src="/core-bg-original.mp4" type="video/mp4" />
+              </video>
+            </div>
           </div>
+          <div className="absolute inset-0 bg-background/35 dark:bg-background/5" />
+          <div className="icp-grid-paper-overlay [--icp-grid-line:rgba(26,26,26,0.04)] dark:[--icp-grid-line:rgba(240,235,224,0.05)]" />
         </div>
 
         {/* Mobile overlay - behind content, above background */}
-        <div className="absolute inset-0 -z-[9] bg-black/20 md:hidden" />
+        <div className="absolute inset-0 z-[1] bg-background/20 md:hidden" />
 
         {/* Content */}
-        <div className="relative flex min-h-dvh w-full flex-col justify-between px-4 py-10 3xl:mx-auto 3xl:max-w-[2000px] sm:p-12">
+        <div className="relative z-10 flex min-h-dvh w-full flex-col justify-between px-4 py-10 3xl:mx-auto 3xl:max-w-[2000px] sm:p-12">
           {/* Header Section */}
           <div className="relative flex flex-col gap-6 md:mb-12 md:gap-0">
-            <div className="relative flex w-fit items-center gap-4">
-              <img
-                src="/governance-logo.svg"
-                alt=""
-                aria-hidden={true}
-                className="h-6 w-fit invert"
-              />
-              <span className="text-sm leading-tight font-semibold">
-                {t(($) => $.common.head.appName)}
-              </span>
+            <div className="relative flex items-start justify-between gap-4">
+              <div className="flex w-fit items-center gap-4">
+                <img src="/infinity-mark.png" alt="" aria-hidden={true} className="h-6 w-fit" />
+                <span className="text-sm leading-tight font-semibold">
+                  {t(($) => $.common.head.appName)}
+                </span>
+              </div>
             </div>
-            <h1 className="animate-fade-up text-hero-responsive mt-4 mb-6 max-w-xl font-bold tracking-wide md:mt-12 md:mb-0 md:max-w-3xl 2xl:mt-30 2xl:max-w-4xl">
-              {t(($) => $.login.headerTitle)}
+            <h1 className="animate-fade-up text-hero-responsive mt-4 mb-6 max-w-xl font-serif font-normal tracking-tight md:mt-12 md:mb-0 md:max-w-3xl 2xl:mt-30 2xl:max-w-4xl">
+              <Trans
+                i18nKey={($) => $.login.headerTitle}
+                components={{ em: <em className="text-primary italic" /> }}
+              />
             </h1>
           </div>
 
@@ -156,10 +185,10 @@ function LoginPage() {
             {/* Stats Section (Desktop: Bottom / Mobile: Below Title) */}
             <dl className="animate-fade-up animate-delay-400 order-1 mt-auto mb-4 flex flex-col gap-8 md:order-2 md:mb-6 md:h-13 md:flex-row md:gap-16">
               <div className="flex flex-col-reverse gap-1">
-                <dt className="text-sm font-light tracking-wider text-muted-foreground">
+                <dt className="font-sans text-sm font-light tracking-wider text-muted-foreground">
                   {t(($) => $.login.totalProposals)}
                 </dt>
-                <dd className="text-2xl leading-none font-bold md:text-3xl">
+                <dd className="font-mono text-2xl leading-none font-medium md:text-3xl">
                   {!allStatsReady ? (
                     <Skeleton className="h-7 w-30 md:h-8" />
                   ) : proposalsQuery?.isError ? (
@@ -175,15 +204,15 @@ function LoginPage() {
 
               <Separator
                 orientation="vertical"
-                className="hidden bg-muted-foreground/50 md:block"
+                className="hidden bg-muted-foreground/25 md:block dark:bg-muted-foreground/50"
                 aria-hidden={true}
               />
 
               <div className="flex flex-col-reverse gap-1">
-                <dt className="text-sm font-light tracking-wider text-muted-foreground">
+                <dt className="font-sans text-sm font-light tracking-wider text-muted-foreground">
                   {t(($) => $.login.participants)}
                 </dt>
-                <dd className="text-2xl leading-none font-bold md:text-3xl">
+                <dd className="font-mono text-2xl leading-none font-medium md:text-3xl">
                   {!allStatsReady ? (
                     <Skeleton className="h-7 w-26 md:h-8" />
                   ) : (
@@ -197,15 +226,15 @@ function LoginPage() {
 
               <Separator
                 orientation="vertical"
-                className="hidden bg-muted-foreground/50 md:block"
+                className="hidden bg-muted-foreground/25 md:block dark:bg-muted-foreground/50"
                 aria-hidden={true}
               />
 
               <div className="flex flex-col-reverse gap-1">
-                <dt className="text-sm font-light tracking-wider text-muted-foreground">
+                <dt className="font-sans text-sm font-light tracking-wider text-muted-foreground">
                   {t(($) => $.login.tvl)}
                 </dt>
-                <dd className="text-2xl leading-none font-bold md:text-3xl">
+                <dd className="font-mono text-2xl leading-none font-medium md:text-3xl">
                   {!allStatsReady ? (
                     <Skeleton className="h-7 w-52 md:h-8" />
                   ) : isTvlError || isNullish(tvl) ? (
@@ -222,7 +251,7 @@ function LoginPage() {
             </dl>
 
             {/* Login Card Section  */}
-            <div className="animate-fade-up animate-delay-200 order-2 flex w-full flex-col gap-6 rounded-3xl border border-white/10 bg-white p-5 text-black backdrop-blur-md sm:p-7 md:order-1 md:my-auto md:max-w-lg md:min-w-lg">
+            <div className="animate-fade-up animate-delay-200 order-2 flex w-full flex-col gap-6 rounded-[6px] border border-border bg-card/95 p-5 text-card-foreground sm:p-7 md:order-1 md:my-auto md:max-w-lg md:min-w-lg">
               <p className="login-card-responsive font-light text-pretty">
                 {t(($) => $.login.accessText)}
               </p>
@@ -231,7 +260,7 @@ function LoginPage() {
                 <Button
                   onClick={login}
                   disabled={isLoggingIn}
-                  className="w-full bg-neutral-900 text-base font-medium text-white hover:bg-neutral-800"
+                  className="w-full text-base"
                   variant="default"
                   size="xxl"
                   data-testid="login-btn"
@@ -244,10 +273,10 @@ function LoginPage() {
                   href="https://nns.ic0.app"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm tracking-wide text-neutral-500 transition-colors hover:text-black hover:underline md:text-base"
+                  className="flex items-center gap-2 text-sm tracking-wide text-muted-foreground transition-colors hover:text-foreground hover:underline md:text-base"
                 >
-                  <ExternalLink className="size-4" aria-hidden={true} />
                   <span>{t(($) => $.login.legacyNnsDapp)}</span>
+                  <span aria-hidden={true}>↗</span>
                   <span className="sr-only">{t(($) => $.common.opensInNewTab)}</span>
                 </a>
               </div>

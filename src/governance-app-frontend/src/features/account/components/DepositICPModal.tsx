@@ -18,8 +18,8 @@ import { Separator } from '@components/Separator';
 
 import { BuyIcpButton } from './BuyIcpButton';
 
-// Aspect ratio (width / height) of the ICP logo based on the source SVG viewBox (46 x 22).
-const QR_CODE_LOGO_ASPECT_RATIO = 46 / 22;
+// Aspect ratio (width / height) of the ICP logo image embedded in the QR code.
+const QR_CODE_LOGO_ASPECT_RATIO = 195 / 92;
 const QR_CODE_LOGO_HEIGHT = 35;
 const QR_CODE_LOGO_WIDTH = QR_CODE_LOGO_HEIGHT * QR_CODE_LOGO_ASPECT_RATIO;
 
@@ -72,7 +72,7 @@ export const DepositICPModal = ({
                 size={220}
                 level="H"
                 imageSettings={{
-                  src: '/governance-logo.svg',
+                  src: '/infinity-mark.png',
                   height: QR_CODE_LOGO_HEIGHT,
                   width: QR_CODE_LOGO_WIDTH,
                   excavate: true,

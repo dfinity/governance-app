@@ -177,7 +177,7 @@ export const CommandPalette = () => {
           </CommandItem>
           <CommandItem
             value={themeValue(Theme.System)}
-            keywords={['appearance', 'color', 'auto']}
+            keywords={['appearance', 'color']}
             onSelect={() => setTheme(Theme.System)}
           >
             <MonitorIcon />

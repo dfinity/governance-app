@@ -27,13 +27,13 @@
   },
   "smartTitle": {
     "noAssetsTitle": "Participate in ICP governance",
-    "noAssetsSubtitle": "Lock, vote, mint up to {{value}} per year",
-    "noAssetsSubtitleStatic": "Lock, vote, and mint rewards",
+    "noAssetsSubtitle": "Lock, vote, mint up to <em>{{value}} per year</em>",
+    "noAssetsSubtitleStatic": "Lock, vote, and <em>mint rewards</em>",
     "noAssetsCta": "Deposit or buy ICP",
     "liquidOnlyTitle": "Your ICP are not participating in governance",
-    "liquidOnlySubtitle": "Lock ICP to start voting and mint rewards",
+    "liquidOnlySubtitle": "Lock ICP to start voting and <em>mint rewards</em>",
     "liquidOnlyCta": "Create neuron",
     "stakedTitle": "Participating in ICP governance",
-    "stakedSubtitle": "Your ICP is locked and minting rewards"
+    "stakedSubtitle": "Your ICP is locked and <em>minting rewards</em>"
   }
 }

@@ -18,7 +18,7 @@
   },
   "appearance": "Appearance",
   "theme": "Theme",
-  "themeDescription": "Select your preferred theme for the application.",
+  "themeDescription": "Choose a light, dark, or system theme for the application.",
   "manageII": "Manage your Internet Identity",
   "governance": {
     "title": "Governance",
