@@ -102,7 +102,7 @@ function UnauthenticatedNotFound() {
           <img
             src="/infinity-mark.png"
             alt={t(($) => $.common.alt.icpLogo)}
-            className="h-6 w-fit"
+            className="h-6 w-auto"
           />
         </div>
       </div>
