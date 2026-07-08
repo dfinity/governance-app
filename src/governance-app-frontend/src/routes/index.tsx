@@ -167,7 +167,7 @@ function LoginPage() {
           <div className="relative flex flex-col gap-6 md:mb-12 md:gap-0">
             <div className="relative flex items-start justify-between gap-4">
               <div className="flex w-fit items-center gap-4">
-                <img src="/infinity-mark.png" alt="" aria-hidden={true} className="h-6 w-fit" />
+                <img src="/infinity-mark.png" alt="" aria-hidden={true} className="h-6 w-auto" />
                 <span className="text-sm leading-tight font-semibold">
                   {t(($) => $.common.head.appName)}
                 </span>
