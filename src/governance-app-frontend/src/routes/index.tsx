@@ -8,6 +8,7 @@ import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGover
 
 import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Button } from '@components/button';
+import { NnsWordmark } from '@components/icons/NnsWordmark';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { useGovernanceProposal } from '@hooks/governance';
@@ -167,10 +168,13 @@ function LoginPage() {
           <div className="relative flex flex-col gap-6 md:mb-12 md:gap-0">
             <div className="relative flex items-start justify-between gap-4">
               <div className="flex w-fit items-center gap-4">
-                <img src="/infinity-mark.png" alt="" aria-hidden={true} className="h-6 w-auto" />
-                <span className="text-sm leading-tight font-semibold">
-                  {t(($) => $.common.head.appName)}
-                </span>
+                <img
+                  src="/infinity-mark.png"
+                  alt=""
+                  aria-hidden={true}
+                  className="h-7 w-auto lg:h-8"
+                />
+                <NnsWordmark className="h-[1.625rem] w-auto text-foreground lg:h-7" />
               </div>
             </div>
             <h1 className="animate-fade-up text-hero-responsive mt-4 mb-6 max-w-xl font-serif font-normal tracking-tight md:mt-12 md:mb-0 md:max-w-3xl 2xl:mt-30 2xl:max-w-4xl">
