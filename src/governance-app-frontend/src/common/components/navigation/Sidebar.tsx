@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { NnsWordmark } from '@components/icons/NnsWordmark';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { cn } from '@utils/shadcn';
 
@@ -25,12 +26,10 @@ export const Sidebar = () => {
   }
 
   return (
-    <aside className="sticky top-0 z-20 hidden h-full w-72 flex-col border-r bg-background text-sm lg:flex">
-      <div className="flex h-14 items-center px-6">
-        <img src="/infinity-mark.png" alt="" className="me-4 h-[1.375rem]" aria-hidden="true" />
-        <span className="text-xs leading-tight font-medium tracking-[0.04em]">
-          Network Nervous System
-        </span>
+    <aside className="sticky top-0 z-20 hidden h-full w-80 flex-col border-r bg-background text-sm lg:flex">
+      <div className="flex items-center gap-3 px-6 pt-8 pb-6">
+        <img src="/infinity-mark.png" alt="" className="h-7 w-auto" aria-hidden="true" />
+        <NnsWordmark className="h-[1.625rem] w-auto text-foreground" />
       </div>
       <nav className="flex-1 space-y-1 p-2">
         {navigationItems.map((item) => (
