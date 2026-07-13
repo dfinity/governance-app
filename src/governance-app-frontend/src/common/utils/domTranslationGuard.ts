@@ -39,15 +39,24 @@ export const installDomTranslationGuard = (): void => {
     newNode: T,
     referenceNode: Node | null,
   ): T {
-    // A translator re-parented the reference node: append instead of throwing.
+    // A translator re-parented the reference node (typically by wrapping it in
+    // a <font>). Insert before the ancestor that is still a direct child of
+    // `this` so ordering is preserved; only append if no such ancestor exists.
     if (referenceNode && referenceNode.parentNode !== this) {
+      let ancestor: Node | null = referenceNode.parentNode;
+      while (ancestor && ancestor.parentNode !== this) {
+        ancestor = ancestor.parentNode;
+      }
       if (import.meta.env.DEV) {
         console.warn(
-          '[domTranslationGuard] insertBefore reference node is not a child; appending instead.',
+          '[domTranslationGuard] insertBefore reference node was re-parented; ' +
+            (ancestor ? 'inserting before its wrapper.' : 'appending instead.'),
           { newNode, referenceNode, parent: this },
         );
       }
-      return this.appendChild(newNode);
+      return ancestor
+        ? (originalInsertBefore.call(this, newNode, ancestor) as T)
+        : (this.appendChild(newNode) as T);
     }
     return originalInsertBefore.call(this, newNode, referenceNode) as T;
   };

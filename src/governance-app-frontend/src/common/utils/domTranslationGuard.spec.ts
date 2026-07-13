@@ -34,16 +34,34 @@ describe('domTranslationGuard', () => {
       expect(() => nativeInsertBefore.call(parent, newNode, orphanReference)).toThrow();
     });
 
-    it('appends instead of throwing when the reference was re-parented', () => {
+    it('inserts before the wrapper when the reference was wrapped in place', () => {
       const parent = document.createElement('div');
-      // Simulate the translator moving the reference node under a <font> wrapper.
+      // Translator wrapped the reference text node in a <font> that is still a
+      // direct child of the parent (the common Google Translate case).
+      const tail = document.createElement('span');
       const fontWrapper = document.createElement('font');
       const reference = document.createTextNode('translated');
       fontWrapper.appendChild(reference);
-      const newNode = document.createElement('span');
+      parent.append(fontWrapper, tail);
+      const newNode = document.createElement('b');
 
       expect(() => parent.insertBefore(newNode, reference)).not.toThrow();
-      expect(newNode.parentNode).toBe(parent);
+      // Order is preserved: new node lands before the wrapper, not appended.
+      expect(Array.from(parent.childNodes)).toEqual([newNode, fontWrapper, tail]);
+    });
+
+    it('appends when the re-parented reference has no ancestor under the parent', () => {
+      const parent = document.createElement('div');
+      const existing = document.createElement('span');
+      parent.appendChild(existing);
+      // Reference lives in an unrelated subtree entirely.
+      const detached = document.createElement('font');
+      const reference = document.createTextNode('translated');
+      detached.appendChild(reference);
+      const newNode = document.createElement('b');
+
+      expect(() => parent.insertBefore(newNode, reference)).not.toThrow();
+      expect(Array.from(parent.childNodes)).toEqual([existing, newNode]);
     });
 
     it('preserves normal ordering for a real child reference', () => {
