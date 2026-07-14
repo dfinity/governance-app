@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { ICP_TRANSACTION_FEE_E8Sn } from '@constants/extra';
+import {
+  ICP_TRANSACTION_FEE_E8Sn,
+  SECONDS_IN_MONTH as SECONDS_IN_MONTH_SECONDS,
+} from '@constants/extra';
 import { mockDisbursement, mockNeuron } from '@fixtures/neuron';
 
 import {
@@ -14,7 +17,9 @@ import {
   isNonEmptyNeuron,
 } from './neuron';
 
-const SECONDS_IN_MONTH = BigInt(30 * 24 * 60 * 60);
+// Reuse the shared month constant (SECONDS_IN_YEAR / 12) rather than a local
+// 30-day approximation, so these thresholds can't drift from the rest of the app.
+const SECONDS_IN_MONTH = BigInt(SECONDS_IN_MONTH_SECONDS);
 // Matches the protocol defaults from governance.proto VotingPowerEconomics:
 // voting power starts to decline 6 months after the last refresh, and following
 // is cleared one month later (so 7 months after the last refresh in total).
