@@ -105,13 +105,14 @@ export function FollowingStatusInline({ neuron }: Props) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <div
+        <button
+          type="button"
           className={`flex cursor-help items-center gap-1.5 font-semibold ${colorClasses}`}
           data-testid={`neuron-following-status-inline-${health}`}
         >
           <Icon className="size-4" aria-hidden="true" />
           <span>{label}</span>
-        </div>
+        </button>
       </TooltipTrigger>
       <TooltipContent>{tooltip}</TooltipContent>
     </Tooltip>

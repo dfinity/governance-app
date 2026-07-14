@@ -223,7 +223,7 @@ describe('formatRemainingTime', () => {
   });
 
   it('uses the nearest day when between day boundaries', () => {
-    // 10d 12h — rounds up to 11 days (banker's-style ties go up here).
+    // 10d 12h — the half-day tie rounds up (half-up rounding: add ½ day, then floor).
     expect(formatRemainingTime(10n * SECONDS_IN_DAY_BIG + 12n * 3600n)).toBe('11 days');
     // 10d 11h — rounds down to 10 days.
     expect(formatRemainingTime(10n * SECONDS_IN_DAY_BIG + 11n * 3600n)).toBe('10 days');

@@ -79,13 +79,14 @@ export function FollowingStatusBadge({ neuron }: Props) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <div
+        <button
+          type="button"
           className={`flex cursor-help items-center gap-1 rounded-sm border px-2 py-0.5 ${styles}`}
           data-testid={`neuron-following-${health}-badge`}
         >
           <Icon className="size-3" aria-hidden="true" />
           <span className="text-[11px] font-medium">{label}</span>
-        </div>
+        </button>
       </TooltipTrigger>
       <TooltipContent>{tooltip}</TooltipContent>
     </Tooltip>
