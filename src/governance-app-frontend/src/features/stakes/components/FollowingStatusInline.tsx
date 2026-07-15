@@ -1,6 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
-import { AlertTriangle, Clock, ShieldCheck, TrendingDown } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Clock, TrendingDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Skeleton } from '@components/Skeleton';
@@ -46,7 +46,7 @@ export function FollowingStatusInline({ neuron }: Props) {
   const durationI18n = t(($) => $.common.durationUnits, { returnObjects: true });
 
   const { Icon, colorClasses, label, tooltip } = ((): {
-    Icon: typeof ShieldCheck;
+    Icon: typeof CheckCircle;
     colorClasses: string;
     label: string;
     tooltip: string;
@@ -58,7 +58,7 @@ export function FollowingStatusInline({ neuron }: Props) {
           ? formatRemainingTime(untilDecay, durationI18n)
           : '';
         return {
-          Icon: ShieldCheck,
+          Icon: CheckCircle,
           colorClasses: 'text-green-700 dark:text-green-400',
           label: t(($) => $.neuron.followingStatus.inlineOk),
           tooltip: t(($) => $.neuron.followingStatus.tooltipOk, { duration }),
