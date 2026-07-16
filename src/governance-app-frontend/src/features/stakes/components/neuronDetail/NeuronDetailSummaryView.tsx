@@ -36,6 +36,8 @@ import {
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
+import { FollowingStatusAlert } from '../FollowingStatusAlert';
+import { FollowingStatusInline } from '../FollowingStatusInline';
 import { NeuronStateBadge } from '../NeuronStateBadge';
 import { NeuronDetailView } from './types';
 
@@ -97,6 +99,8 @@ export function NeuronDetailSummaryView({
 
   return (
     <div className="flex flex-col gap-4">
+      <FollowingStatusAlert neuron={neuron} isHotkey={isHotkey} />
+
       {/* Staked Amount - Prominent Display */}
       <div className="flex flex-col items-center gap-1 pb-2">
         <p className="text-3xl font-bold md:text-4xl" data-testid="neuron-detail-staked-amount">
@@ -199,18 +203,14 @@ export function NeuronDetailSummaryView({
           </div>
         </InfoRow>
 
-        <InfoRow
-          label={t(($) => $.neuron.maturityMode)}
-          isLast={!isAdvancedFollowing}
-          dataTestId="neuron-detail-maturity-mode"
-        >
+        <InfoRow label={t(($) => $.neuron.maturityMode)} dataTestId="neuron-detail-maturity-mode">
           <span className="font-semibold">
             {isAutoStake ? t(($) => $.neuron.autoStake) : t(($) => $.neuron.keepLiquid)}
           </span>
         </InfoRow>
 
         {isAdvancedFollowing && (
-          <InfoRow label={t(($) => $.neuron.following)} isLast dataTestId="neuron-detail-following">
+          <InfoRow label={t(($) => $.neuron.following)} dataTestId="neuron-detail-following">
             {knownNeuronsQuery.isLoading ? (
               <Skeleton className="h-5 w-24" />
             ) : !hasFollowees ? (
@@ -233,6 +233,14 @@ export function NeuronDetailSummaryView({
             )}
           </InfoRow>
         )}
+
+        <InfoRow
+          label={t(($) => $.neuron.followingStatus.rowLabel)}
+          isLast
+          dataTestId="neuron-detail-following-status"
+        >
+          <FollowingStatusInline neuron={neuron} />
+        </InfoRow>
       </div>
 
       {/* Quick Actions Grid */}

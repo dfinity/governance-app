@@ -158,6 +158,13 @@ export default defineConfig({
           new URL('./tests/mocks/governance-app-backend.did.js', import.meta.url),
         ),
       },
+      // The Plausible tracker package doesn't resolve cleanly under vite/vitest
+      // (missing main/exports in its package.json). Redirect the service to a
+      // stub so any transitive import in a test chain doesn't blow up.
+      {
+        find: '@features/analytics/service',
+        replacement: fileURLToPath(new URL('./tests/mocks/analytics-service.ts', import.meta.url)),
+      },
     ],
   },
 });
