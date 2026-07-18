@@ -89,7 +89,7 @@
       },
       "advancedFollowing": {
         "label": "Advanced following",
-        "description": "Follow different known neurons per topic across all your neurons.",
+        "description": "Follow different neurons per topic — pick from known neurons or add any neuron by its ID.",
         "aria": {
           "toggle": "Toggle advanced following feature"
         },
