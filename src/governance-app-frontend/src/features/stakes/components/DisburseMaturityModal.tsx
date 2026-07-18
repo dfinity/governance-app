@@ -8,6 +8,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { AccountSelect } from '@features/accounts/components/AccountSelect';
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { useAccountSelection } from '@features/accounts/hooks/useAccountSelection';
+import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
 import { isAccountReady } from '@features/accounts/types';
 import { AddressBookSelect } from '@features/addressBook/components/AddressBookSelect';
 
@@ -79,6 +80,14 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
 
   const unstakedMaturity = neuron ? bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn) : 0;
 
+  // "Your balance" only holds for the main account; an address-book entry or a non-main
+  // subaccount is a distinct destination, so surface it as "the selected account" instead.
+  // Compare against the synchronously-derived main account id (the same value
+  // resolvedAccountId falls back to) so we never mislabel the main account while accounts load.
+  const mainAccountId = useMainAccountMetadata().data?.accountId;
+  const isToSelectedAccount =
+    useAddressBookToggle || (subaccountsEnabled && resolvedAccountId !== mainAccountId);
+
   const handleConfirm = (execute: (fn: () => Promise<unknown>) => void) => {
     if (!neuron) return;
     if (unstakedMaturity < ICP_MIN_DISBURSE_MATURITY_AMOUNT) {
@@ -130,7 +139,11 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
       open={isOpen}
       onOpenChange={onOpenChange}
       processingMessage={t(($) => $.neuronDetailModal.disburseMaturity.confirming)}
-      successMessage={t(($) => $.neuronDetailModal.disburseMaturity.success)}
+      successMessage={t(($) =>
+        isToSelectedAccount
+          ? $.neuronDetailModal.disburseMaturity.successToAccount
+          : $.neuronDetailModal.disburseMaturity.success,
+      )}
       navBlockerDescription={t(($) => $.neuronDetailModal.confirmNavigation)}
       data-testid="disburse-maturity-modal"
     >
@@ -216,7 +229,11 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
               <Info className="h-4 w-4" />
               <AlertDescription>
                 <Trans
-                  i18nKey={($) => $.neuronDetailModal.disburseMaturity.info}
+                  i18nKey={($) =>
+                    isToSelectedAccount
+                      ? $.neuronDetailModal.disburseMaturity.infoToAccount
+                      : $.neuronDetailModal.disburseMaturity.info
+                  }
                   t={t}
                   values={{ amount: formatNumber(unstakedMaturity) }}
                   components={{ strong: <strong /> }}
