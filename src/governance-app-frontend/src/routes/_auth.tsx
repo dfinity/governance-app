@@ -7,12 +7,12 @@ import { analytics } from '@features/analytics/service';
 
 import { CommandPalette } from '@components/CommandPalette';
 import { MainLayout } from '@components/MainLayout';
-import { useIcpIndexTransactionsPolling } from '@hooks/icpIndex/useIcpIndexTransactionsPolling';
+import { SessionCountdownToast } from '@components/SessionCountdownToast';
+import { TransactionPollingWatcher } from '@components/TransactionPollingWatcher';
 import { useHideBalancesShortcut } from '@hooks/useHideBalancesShortcut';
 import { useLogoutShortcut } from '@hooks/useLogoutShortcut';
 import { useNewFeatureCheck } from '@hooks/useNewFeatureCheck';
 import { useScrollResetOnNavigation } from '@hooks/useScrollResetOnNavigation';
-import { useSessionCountdownToast } from '@hooks/useSessionCountdownToast';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
 import { requireIdentity } from '@utils/router';
 
@@ -32,8 +32,6 @@ function AuthLayout() {
   useThemeShortcut();
   useLogoutShortcut();
   useHideBalancesShortcut();
-  useSessionCountdownToast();
-  useIcpIndexTransactionsPolling();
   useScrollResetOnNavigation();
   useNewFeatureCheck();
 
@@ -50,6 +48,8 @@ function AuthLayout() {
     <MainLayout>
       <Outlet />
       <CommandPalette />
+      <SessionCountdownToast />
+      <TransactionPollingWatcher />
     </MainLayout>
   );
 }

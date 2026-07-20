@@ -8,10 +8,24 @@ import { useLogout } from '@hooks/useLogout';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
 import { shortenId } from '@utils/id';
 
+// Isolated so the once-per-second session tick re-renders only this small label
+// instead of the whole UserMenu subtree.
+const SessionTimeLeftLabel = () => {
+  const { t } = useTranslation();
+  const timeLeft = useSessionTimeLeft();
+
+  if (!nonNullish(timeLeft)) return null;
+
+  return (
+    <p className="text-xs text-muted-foreground">
+      {t(($) => $.userAccount.session.timeLeftShort, { minutes: timeLeft.minutes })}
+    </p>
+  );
+};
+
 export const UserMenu = () => {
   const { identity } = useInternetIdentity();
   const { t } = useTranslation();
-  const timeLeft = useSessionTimeLeft();
   const logout = useLogout();
 
   const principal = identity?.getPrincipal().toText();
@@ -22,11 +36,7 @@ export const UserMenu = () => {
         {nonNullish(principal) && (
           <p className="truncate text-sm font-medium">{shortenId(principal, 7)}</p>
         )}
-        {nonNullish(timeLeft) && (
-          <p className="text-xs text-muted-foreground">
-            {t(($) => $.userAccount.session.timeLeftShort, { minutes: timeLeft.minutes })}
-          </p>
-        )}
+        <SessionTimeLeftLabel />
       </div>
       <Tooltip>
         <TooltipTrigger asChild>

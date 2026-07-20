@@ -16,8 +16,8 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { MainLayout } from '@components/MainLayout';
+import { SessionCountdownToast } from '@components/SessionCountdownToast';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
-import { useSessionCountdownToast } from '@hooks/useSessionCountdownToast';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
 import { isE2E } from '@utils/e2e';
 import { infoNotification } from '@utils/notification';
@@ -62,10 +62,10 @@ function AuthenticatedNotFound() {
   const { t } = useTranslation();
 
   useThemeShortcut();
-  useSessionCountdownToast();
 
   return (
     <MainLayout>
+      <SessionCountdownToast />
       <div className="flex flex-1 flex-col items-center justify-center py-16">
         <div className="flex max-w-md flex-col items-center text-center">
           <h1 className="text-8xl leading-none font-bold tracking-tighter text-muted-foreground/20 sm:text-9xl">
