@@ -75,16 +75,20 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   const [useAddressBookToggle, setUseAddressBookToggle] = useState(false);
   const [selectedAddressBookName, setSelectedAddressBookName] = useState('');
 
-  // Disburse the whole balance by default so the common case stays a single click.
-  const [percentage, setPercentage] = useState(DEFAULT_PERCENTAGE);
+  // Disburse the whole balance by default so the common case stays a single click. The raw
+  // input string is the source of truth so the field can be cleared; percentage is derived.
+  const [percentageInput, setPercentageInput] = useState(String(DEFAULT_PERCENTAGE));
 
   useEffect(() => {
     if (!isOpen) return;
     setValidationError(null);
     setSelectedAddressBookName('');
     setUseAddressBookToggle(false);
-    setPercentage(DEFAULT_PERCENTAGE);
+    setPercentageInput(String(DEFAULT_PERCENTAGE));
   }, [isOpen]);
+
+  // Clamp to a valid 0-100 integer for all downstream math and validation.
+  const percentage = Math.min(100, Math.max(0, Math.floor(Number(percentageInput) || 0)));
 
   const freeMaturityE8s = neuron ? getNeuronFreeMaturityE8s(neuron) : 0n;
   const availableMaturity = bigIntDiv(freeMaturityE8s, E8Sn);
@@ -102,13 +106,10 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
 
   const handlePercentageChange = (value: string) => {
     setValidationError(null);
-    if (value === '') {
-      setPercentage(0);
-      return;
-    }
-    const parsed = Math.floor(Number(value));
-    if (Number.isNaN(parsed)) return;
-    setPercentage(Math.min(100, Math.max(0, parsed)));
+    // Digits only, so an empty field stays empty and "0" stays "0" instead of clearing.
+    if (!/^\d*$/.test(value)) return;
+    // Clamp values above the max, but let everything else through as typed.
+    setPercentageInput(value !== '' && Number(value) > 100 ? '100' : value);
   };
 
   const handleConfirm = (execute: (fn: () => Promise<unknown>) => void) => {
@@ -254,7 +255,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="disburse-maturity-percentage">
-                  {t(($) => $.neuronDetailModal.disburseMaturity.amount)}
+                  {t(($) => $.neuronDetailModal.disburseMaturity.portion)}
                 </Label>
                 <span className="text-xs text-muted-foreground">
                   {t(($) => $.neuronDetailModal.disburseMaturity.available, {
@@ -268,7 +269,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
                     key={preset}
                     type="button"
                     onClick={() => {
-                      setPercentage(preset);
+                      setPercentageInput(String(preset));
                       setValidationError(null);
                     }}
                     aria-pressed={percentage === preset}
@@ -287,10 +288,9 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
               <div className="relative">
                 <Input
                   id="disburse-maturity-percentage"
-                  type="number"
-                  min={1}
-                  max={100}
-                  value={percentage === 0 ? '' : percentage}
+                  type="text"
+                  inputMode="numeric"
+                  value={percentageInput}
                   onChange={(e) => handlePercentageChange(e.target.value)}
                   aria-label={t(($) => $.neuronDetailModal.disburseMaturity.percentageAria)}
                   className="pr-9"

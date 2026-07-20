@@ -47,7 +47,13 @@ export function useDisburseMaturity() {
         throw new Error(t(($) => $.neuronDetailModal.disburseMaturity.errors.failed));
       }
 
-      const { destination, percentageToDisburse } = params;
+      const { destination } = params;
+      // The canister expects an integer 1-100; clamp defensively so no call site can
+      // forward an out-of-range or fractional percentage.
+      const percentageToDisburse = Math.min(
+        100,
+        Math.max(1, Math.round(params.percentageToDisburse)),
+      );
 
       if (destination.kind === 'icp') {
         await governanceCanister.disburseMaturity({

@@ -86,8 +86,8 @@
   "disburseMaturity": {
     "title": "Disburse maturity",
     "toAccount": "To account",
-    "amount": "Amount to disburse",
-    "available": "{{amount}} available",
+    "portion": "Portion to disburse",
+    "available": "{{amount}} maturity available",
     "percentageAria": "Percentage of maturity to disburse",
     "info": "<strong>Disbursement takes 1 week.</strong> {{amount}} maturity will be converted to ICP and added to your balance.",
     "infoToAccount": "<strong>Disbursement takes 1 week.</strong> {{amount}} maturity will be converted to ICP and added to the selected account.",
