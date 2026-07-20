@@ -87,10 +87,12 @@
     "title": "Disburse maturity",
     "toAccount": "To account",
     "info": "<strong>Disbursement takes 1 week.</strong> {{amount}} maturity will be converted to ICP and added to your balance.",
+    "infoToAccount": "<strong>Disbursement takes 1 week.</strong> {{amount}} maturity will be converted to ICP and added to the selected account.",
     "cancel": "Cancel",
     "confirm": "Disburse",
     "confirming": "Disbursing, please wait...",
     "success": "Maturity disbursement started. ICP will be added to your balance in approximately 1 week.",
+    "successToAccount": "Maturity disbursement started. ICP will be added to the selected account in approximately 1 week.",
     "errors": {
       "amountTooLow": "Minimum amount is {{min}} maturity.",
       "noDestination": "Pick a destination address from your address book.",
