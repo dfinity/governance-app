@@ -14,6 +14,7 @@ import { AddressBookSelect } from '@features/addressBook/components/AddressBookS
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
+import { Input } from '@components/Input';
 import { Label } from '@components/Label';
 import {
   MutationDialog,
@@ -28,11 +29,15 @@ import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronFreeMaturityE8s } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
+import { cn } from '@utils/shadcn';
 
 import {
   type DisburseMaturityDestination,
   useDisburseMaturity,
 } from '../hooks/useDisburseMaturity';
+
+const PRESET_PERCENTAGES = [25, 50, 75, 100] as const;
+const DEFAULT_PERCENTAGE = 100;
 
 type Props = {
   neuron: NeuronInfo | null;
@@ -70,15 +75,26 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   const [useAddressBookToggle, setUseAddressBookToggle] = useState(false);
   const [selectedAddressBookName, setSelectedAddressBookName] = useState('');
 
+  // Disburse the whole balance by default so the common case stays a single click. The raw
+  // input string is the source of truth so the field can be cleared; percentage is derived.
+  const [percentageInput, setPercentageInput] = useState(String(DEFAULT_PERCENTAGE));
+
   useEffect(() => {
     if (!isOpen) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setValidationError(null);
     setSelectedAddressBookName('');
     setUseAddressBookToggle(false);
+    setPercentageInput(String(DEFAULT_PERCENTAGE));
   }, [isOpen]);
 
-  const unstakedMaturity = neuron ? bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn) : 0;
+  // Clamp to a valid 0-100 integer for all downstream math and validation.
+  const percentage = Math.min(100, Math.max(0, Math.floor(Number(percentageInput) || 0)));
+
+  const freeMaturityE8s = neuron ? getNeuronFreeMaturityE8s(neuron) : 0n;
+  const availableMaturity = bigIntDiv(freeMaturityE8s, E8Sn);
+  // Compute the portion in e8s to avoid rounding drift, then convert once for display.
+  const selectedMaturityE8s = (freeMaturityE8s * BigInt(percentage)) / 100n;
+  const selectedMaturity = bigIntDiv(selectedMaturityE8s, E8Sn);
 
   // "Your balance" only holds for the main account; an address-book entry or a non-main
   // subaccount is a distinct destination, so surface it as "the selected account" instead.
@@ -88,9 +104,17 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   const isToSelectedAccount =
     useAddressBookToggle || (subaccountsEnabled && resolvedAccountId !== mainAccountId);
 
+  const handlePercentageChange = (value: string) => {
+    setValidationError(null);
+    // Digits only, so an empty field stays empty and "0" stays "0" instead of clearing.
+    if (!/^\d*$/.test(value)) return;
+    // Clamp values above the max, but let everything else through as typed.
+    setPercentageInput(value !== '' && Number(value) > 100 ? '100' : value);
+  };
+
   const handleConfirm = (execute: (fn: () => Promise<unknown>) => void) => {
     if (!neuron) return;
-    if (unstakedMaturity < ICP_MIN_DISBURSE_MATURITY_AMOUNT) {
+    if (selectedMaturity < ICP_MIN_DISBURSE_MATURITY_AMOUNT) {
       setValidationError(
         t(($) => $.neuronDetailModal.disburseMaturity.errors.amountTooLow, {
           min: ICP_MIN_DISBURSE_MATURITY_AMOUNT,
@@ -123,7 +147,9 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
       destination = { kind: 'icp', accountIdentifier: resolvedAccountId };
     }
 
-    execute(() => mutateAsync({ neuronId: neuron.neuronId, destination }));
+    execute(() =>
+      mutateAsync({ neuronId: neuron.neuronId, destination, percentageToDisburse: percentage }),
+    );
   };
 
   const handleToggleChange = (checked: boolean) => {
@@ -225,6 +251,57 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
                 </div>
               )}
             </div>
+
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="disburse-maturity-percentage">
+                  {t(($) => $.neuronDetailModal.disburseMaturity.portion)}
+                </Label>
+                <span className="text-xs text-muted-foreground">
+                  {t(($) => $.neuronDetailModal.disburseMaturity.available, {
+                    amount: formatNumber(availableMaturity),
+                  })}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                {PRESET_PERCENTAGES.map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => {
+                      setPercentageInput(String(preset));
+                      setValidationError(null);
+                    }}
+                    aria-pressed={percentage === preset}
+                    data-testid={`disburse-maturity-preset-${preset}`}
+                    className={cn(
+                      'flex-1 rounded-md border-2 py-1.5 text-sm font-medium transition-colors',
+                      percentage === preset
+                        ? 'border-primary bg-primary/10 text-foreground'
+                        : 'border-input text-muted-foreground hover:border-primary/50',
+                    )}
+                  >
+                    {preset}%
+                  </button>
+                ))}
+              </div>
+              <div className="relative">
+                <Input
+                  id="disburse-maturity-percentage"
+                  type="text"
+                  inputMode="numeric"
+                  value={percentageInput}
+                  onChange={(e) => handlePercentageChange(e.target.value)}
+                  aria-label={t(($) => $.neuronDetailModal.disburseMaturity.percentageAria)}
+                  className="pr-9"
+                  data-testid="disburse-maturity-percentage-input"
+                />
+                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground">
+                  %
+                </span>
+              </div>
+            </div>
+
             <Alert variant="info">
               <Info className="h-4 w-4" />
               <AlertDescription>
@@ -235,7 +312,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
                       : $.neuronDetailModal.disburseMaturity.info
                   }
                   t={t}
-                  values={{ amount: formatNumber(unstakedMaturity) }}
+                  values={{ amount: formatNumber(selectedMaturity) }}
                   components={{ strong: <strong /> }}
                 />
               </AlertDescription>

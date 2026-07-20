@@ -14,6 +14,8 @@ export type DisburseMaturityDestination =
 type DisburseMaturityParams = {
   neuronId: bigint;
   destination: DisburseMaturityDestination;
+  // Integer 1-100; the canister converts this share of the neuron's maturity to ICP.
+  percentageToDisburse: number;
 };
 
 // Only 32-byte subaccounts are valid; treat anything else as the default subaccount so the
@@ -31,7 +33,7 @@ const resolveDestinationAccountId = (destination: DisburseMaturityDestination): 
 /**
  * Hook to disburse maturity from a neuron.
  * Initiates the conversion of maturity to ICP (takes ~1 week).
- * Disburses 100% of available maturity.
+ * Disburses the given percentage (1-100) of the neuron's available maturity.
  */
 export function useDisburseMaturity() {
   const { t } = useTranslation();
@@ -46,18 +48,24 @@ export function useDisburseMaturity() {
       }
 
       const { destination } = params;
+      // The canister expects an integer 1-100; clamp defensively so no call site can
+      // forward an out-of-range or fractional percentage.
+      const percentageToDisburse = Math.min(
+        100,
+        Math.max(1, Math.round(params.percentageToDisburse)),
+      );
 
       if (destination.kind === 'icp') {
         await governanceCanister.disburseMaturity({
           neuronId: params.neuronId,
-          percentageToDisburse: 100,
+          percentageToDisburse,
           toAccountIdentifier: destination.accountIdentifier,
         });
       } else {
         const subaccount = normalizeIcrcSubaccount(destination.subaccount);
         await governanceCanister.disburseMaturity({
           neuronId: params.neuronId,
-          percentageToDisburse: 100,
+          percentageToDisburse,
           toAccount: {
             owner: destination.owner,
             subaccount: subaccount ? Array.from(subaccount) : undefined,
