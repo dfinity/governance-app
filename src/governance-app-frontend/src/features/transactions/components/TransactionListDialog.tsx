@@ -44,8 +44,11 @@ export function TransactionListDialog({
 
   // Keep the query idle while the dialog is closed: this component is mounted
   // once per account row, so an ungated query would fire a paginated Index call
-  // for every hidden dialog the user never opens.
-  const transactions = useIcpIndexTransactions(accountId, { enabled: open });
+  // for every hidden dialog the user never opens. Also gate on a resolved
+  // account id so it matches what the UI renders (skeleton while it is null).
+  const transactions = useIcpIndexTransactions(accountId, {
+    enabled: open && nonNullish(accountIdHex),
+  });
   const { accountIds: neuronAccountIds } = useNeuronAccountsIds();
 
   const allTransactions =
