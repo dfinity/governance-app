@@ -1,4 +1,4 @@
-import { Layers, type LucideIcon, ShieldAlert, Users } from 'lucide-react';
+import { Layers, type LucideIcon, ShieldAlert, StickyNote, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Switch } from '@components/Switch';
@@ -15,6 +15,7 @@ const FEATURES: FeatureDefinition[] = [
   { key: AdvancedFeature.Subaccounts, icon: Layers },
   { key: AdvancedFeature.AdvancedFollowing, icon: Users },
   { key: AdvancedFeature.ShowNonConstructiveProposals, icon: ShieldAlert },
+  { key: AdvancedFeature.TransactionMemo, icon: StickyNote },
 ];
 
 export const AdvancedFeaturesCard = () => {
