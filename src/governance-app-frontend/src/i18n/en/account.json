@@ -30,5 +30,10 @@
   "unknownAddress": "External address",
   "destinationWarning": "This address is not in your address book. Please verify it is correct.",
   "transferDescription": "Transfer ICP tokens to another account.",
-  "confirmNavigation": "A transfer is in progress. Leaving this page may cause unexpected results. Are you sure you want to leave?"
+  "confirmNavigation": "A transfer is in progress. Leaving this page may cause unexpected results. Are you sure you want to leave?",
+  "memoLabel": "Transaction memo (optional)",
+  "memoHint": "This is an advanced feature. Leave it empty if you don't need it.",
+  "memoIcpError": "The memo for an ICP address must be a positive whole number.",
+  "memoIcrcError": "The memo for an ICRC-1 address must be at most 32 bytes.",
+  "confirmMemo": "Memo"
 }
