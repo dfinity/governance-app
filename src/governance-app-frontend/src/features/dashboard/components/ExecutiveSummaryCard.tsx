@@ -1,13 +1,11 @@
 import { Link } from '@tanstack/react-router';
 import { Check, CircleDot, Clock, Share2, X } from 'lucide-react';
 import type { ComponentType } from 'react';
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { Card, CardAction, CardContent, CardHeader } from '@components/Card';
 import { Separator } from '@components/Separator';
-import { Skeleton } from '@components/Skeleton';
 import { cn } from '@utils/shadcn';
 
 import { currentSummary } from '../constants/executiveSummaryData';
@@ -111,13 +109,6 @@ export const ExecutiveSummaryCard = () => {
   const { t } = useTranslation();
   const { month, year, outcomes, topChanges, communityHighlights } = currentSummary;
 
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1_000);
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <Card>
       <CardHeader>
@@ -125,13 +116,9 @@ export const ExecutiveSummaryCard = () => {
           <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
             {t(($) => $.home.executiveSummary.title)}
           </p>
-          {isLoading ? (
-            <Skeleton className="h-8 w-48" />
-          ) : (
-            <h2 className="text-3xl font-normal text-foreground">
-              {month} {year}
-            </h2>
-          )}
+          <h2 className="text-3xl font-normal text-foreground">
+            {month} {year}
+          </h2>
         </div>
         <CardAction>
           <Button variant="outline" size="sm" asChild>
@@ -143,76 +130,42 @@ export const ExecutiveSummaryCard = () => {
       </CardHeader>
 
       <div className="flex flex-wrap items-center gap-2 px-6">
-        {isLoading
-          ? Array.from({ length: 3 }, (_, i) => (
-              <Skeleton key={i} className="h-7 w-28 rounded-full" />
-            ))
-          : outcomes.map((o) => (
-              <OutcomePill
-                key={o.status}
-                status={o.status}
-                label={t(($) => $.home.executiveSummary.outcomes[o.status])}
-                count={o.count}
-              />
-            ))}
+        {outcomes.map((o) => (
+          <OutcomePill
+            key={o.status}
+            status={o.status}
+            label={t(($) => $.home.executiveSummary.outcomes[o.status])}
+            count={o.count}
+          />
+        ))}
       </div>
 
       <CardContent className="flex flex-col gap-6">
         <Separator />
 
-        {isLoading ? (
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          <div className="flex flex-col gap-5">
+            <h3 className="font-sans text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              {t(($) => $.home.executiveSummary.topChanges)}
+            </h3>
             <div className="flex flex-col gap-5">
-              <Skeleton className="h-3 w-24" />
-              {Array.from({ length: 3 }, (_, i) => (
-                <div key={i} className="flex gap-3">
-                  <Skeleton className="size-9 shrink-0 rounded-lg" />
-                  <div className="flex flex-1 flex-col gap-2">
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-3 w-1/2" />
-                    <Skeleton className="h-3 w-2/5" />
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="flex flex-col gap-5">
-              <Skeleton className="h-3 w-48" />
-              {Array.from({ length: 5 }, (_, i) => (
-                <div key={i} className="flex items-start gap-2.5">
-                  <Skeleton className="size-5 shrink-0 rounded-full" />
-                  <div className="flex flex-1 flex-col gap-1.5">
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-3 w-16" />
-                  </div>
-                </div>
+              {topChanges.map((change) => (
+                <TopChangeItem key={change.title} change={change} />
               ))}
             </div>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-            <div className="flex flex-col gap-5">
-              <h3 className="font-sans text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                {t(($) => $.home.executiveSummary.topChanges)}
-              </h3>
-              <div className="flex flex-col gap-5">
-                {topChanges.map((change) => (
-                  <TopChangeItem key={change.title} change={change} />
-                ))}
-              </div>
-            </div>
 
-            <div className="flex flex-col gap-5">
-              <h3 className="font-sans text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                {t(($) => $.home.executiveSummary.communityVotes)}
-              </h3>
-              <div className="flex flex-col gap-4">
-                {communityHighlights.map((vote) => (
-                  <CommunityVoteItem key={vote.title} vote={vote} />
-                ))}
-              </div>
+          <div className="flex flex-col gap-5">
+            <h3 className="font-sans text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              {t(($) => $.home.executiveSummary.communityVotes)}
+            </h3>
+            <div className="flex flex-col gap-4">
+              {communityHighlights.map((vote) => (
+                <CommunityVoteItem key={vote.title} vote={vote} />
+              ))}
             </div>
           </div>
-        )}
+        </div>
       </CardContent>
     </Card>
   );
