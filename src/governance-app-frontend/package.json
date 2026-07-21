@@ -43,7 +43,7 @@
     "cmdk": "1.1.1",
     "i18next": "25.8.7",
     "ic-use-internet-identity": "0.7.0",
-    "lucide-react": "0.564.0",
+    "lucide-react": "1.24.0",
     "motion": "12.34.0",
     "qrcode.react": "4.2.0",
     "radix-ui": "1.4.3",
