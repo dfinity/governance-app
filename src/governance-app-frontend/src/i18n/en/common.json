@@ -107,6 +107,7 @@
     "detected": "{{feature}} detected! You can enable it in the Settings.",
     "subaccounts": "Multiple accounts",
     "advancedFollowing": "Advanced following",
-    "showNonConstructiveProposals": "Show all proposals"
+    "showNonConstructiveProposals": "Show all proposals",
+    "transactionMemo": "Transaction memo"
   }
 }

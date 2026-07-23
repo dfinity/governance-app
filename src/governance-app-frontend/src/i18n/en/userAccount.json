@@ -108,6 +108,17 @@
         "enabledDescription": "Spam and non-constructive proposals are now shown with a warning badge.",
         "disabled": "Spam proposals hidden",
         "disabledDescription": "Proposals flagged as spam or non-constructive are now hidden from the list."
+      },
+      "transactionMemo": {
+        "label": "Transaction memo",
+        "description": "Add an optional memo when sending ICP. Numeric memo for ICP addresses, or a short text memo for ICRC-1 addresses.",
+        "aria": {
+          "toggle": "Toggle transaction memo feature"
+        },
+        "enabled": "Transaction memo enabled",
+        "enabledDescription": "You can now add a memo when sending ICP.",
+        "disabled": "Transaction memo disabled",
+        "disabledDescription": "The memo field is now hidden from the send form."
       }
     }
   },

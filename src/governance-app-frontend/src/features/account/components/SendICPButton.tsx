@@ -10,6 +10,11 @@ import { useTranslation } from 'react-i18next';
 
 import type { NamedAddress } from '@declarations/governance-app-backend/governance-app-backend.did';
 
+import {
+  encodeMemoToIcp,
+  encodeMemoToIcrc1,
+  validateTransactionMemo,
+} from '@features/account/utils/transactionMemo';
 import { AccountSelect } from '@features/accounts/components/AccountSelect';
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { useAccountSelection } from '@features/accounts/hooks/useAccountSelection';
@@ -34,6 +39,8 @@ import { DIALOG_RESET_DELAY_MS, E8Sn, ICP_TRANSACTION_FEE } from '@constants/ext
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
 import { useTickerPrices } from '@hooks/tickers';
+import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { AdvancedFeature } from '@typings/advancedFeatures';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
 import { addressBookGetAddressString } from '@utils/addressBook';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
@@ -72,6 +79,9 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   const { selectedAccountId, setSelectedAccountId, subaccountsEnabled } =
     useAccountSelection(fromAccountId);
 
+  const { features } = useAdvancedFeatures();
+  const memoEnabled = features[AdvancedFeature.TransactionMemo];
+
   const addressBookQuery = useAddressBook();
   const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
   const addressBookLoading = addressBookQuery.isLoading;
@@ -83,6 +93,8 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   const [amountError, setAmountError] = useState('');
   const [toAccount, setToAccount] = useState('');
   const [toAccountError, setToAccountError] = useState('');
+  const [memo, setMemo] = useState('');
+  const [memoError, setMemoError] = useState('');
   const [selectedName, setSelectedName] = useState('');
   const [useAddressBookToggle, setUseAddressBookToggle] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
@@ -114,12 +126,14 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
       createdAtRef.current = createdAt;
       const transferAmount = bigIntMul(E8Sn, Number(amount));
       const subAccountArr = effectiveSubAccount ? Array.from(effectiveSubAccount) : undefined;
+      const memoValue = memoEnabled && memo !== '' ? memo : undefined;
 
       if (isValidIcpAddress(toAccount)) {
         return ledgerCanister!.transfer({
           to: AccountIdentifier.fromHex(toAccount),
           amount: transferAmount,
           fromSubAccount: subAccountArr,
+          memo: memoValue !== undefined ? encodeMemoToIcp(memoValue) : undefined,
           createdAt,
         });
       }
@@ -129,6 +143,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
         to: { owner, subaccount: toNullable(subaccount) },
         fromSubAccount: subAccountArr ? Uint8Array.from(subAccountArr) : undefined,
         amount: transferAmount,
+        icrc1Memo: memoValue !== undefined ? encodeMemoToIcrc1(memoValue) : undefined,
         createdAt,
       });
     },
@@ -152,6 +167,8 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
     setAmount('');
     setAmountError('');
     setToAccountError('');
+    setMemo('');
+    setMemoError('');
     setSelectedAccountId(fromAccountId);
     setSelectedAccount(undefined);
     createdAtRef.current = null;
@@ -167,6 +184,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
     event.preventDefault();
     setToAccountError('');
     setAmountError('');
+    setMemoError('');
 
     if (!isValidIcpAddress(toAccount) && !isValidIcrcAddress(toAccount)) {
       setToAccountError(t(($) => $.account.accountError));
@@ -183,6 +201,21 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
       return;
     }
 
+    if (memoEnabled) {
+      const memoValidation = validateTransactionMemo({
+        memo: memo === '' ? undefined : memo,
+        destinationAddress: toAccount,
+      });
+      if (memoValidation === 'ICP_MEMO_ERROR') {
+        setMemoError(t(($) => $.account.memoIcpError));
+        return;
+      }
+      if (memoValidation === 'ICRC_MEMO_ERROR') {
+        setMemoError(t(($) => $.account.memoIcrcError));
+        return;
+      }
+    }
+
     setStep(Step.Confirmation);
   };
 
@@ -194,6 +227,11 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   const handleAmountChange = (value: string) => {
     setAmount(value);
     setAmountError('');
+  };
+
+  const handleMemoChange = (value: string) => {
+    setMemo(value);
+    setMemoError('');
   };
 
   const handleMaxSelect = (value: string) => {
@@ -271,6 +309,10 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
                 onMaxSelect={handleMaxSelect}
                 amountInputRef={amountInputRef}
                 approxUsd={approxUsd}
+                memoEnabled={memoEnabled}
+                memo={memo}
+                memoError={memoError}
+                onMemoChange={handleMemoChange}
                 onSubmit={handleFormSubmit}
                 onClose={close}
               />
@@ -284,6 +326,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
                 addressBookEntries={addressBookEntries}
                 amount={amount}
                 approxUsd={approxUsd}
+                memo={memoEnabled && memo !== '' ? memo : undefined}
                 onBack={() => setStep(Step.Form)}
                 onConfirm={() => execute(() => transferMutation.mutateAsync())}
                 icpPriceUsd={icpPrice?.usd}
@@ -318,6 +361,10 @@ type SendFormStepProps = {
   onMaxSelect: (value: string) => void;
   amountInputRef: React.RefObject<HTMLInputElement | null>;
   approxUsd?: string;
+  memoEnabled: boolean;
+  memo: string;
+  memoError: string;
+  onMemoChange: (value: string) => void;
   onSubmit: (event: React.SyntheticEvent) => void;
   onClose: () => void;
 };
@@ -344,6 +391,10 @@ function SendFormStep({
   onMaxSelect,
   amountInputRef,
   approxUsd,
+  memoEnabled,
+  memo,
+  memoError,
+  onMemoChange,
   onSubmit,
   onClose,
 }: SendFormStepProps) {
@@ -472,6 +523,30 @@ function SendFormStep({
               </Alert>
             )}
           </div>
+
+          {memoEnabled && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="transaction-memo">{t(($) => $.account.memoLabel)}</Label>
+              <Input
+                id="transaction-memo"
+                data-testid="send-icp-memo-input"
+                value={memo}
+                onChange={(e) => onMemoChange(e.target.value)}
+                className={cn(memoError && 'border-destructive')}
+                aria-invalid={!!memoError}
+                autoComplete="off"
+                data-1p-ignore
+                data-lpignore="true"
+              />
+              <span className="text-xs text-muted-foreground">{t(($) => $.account.memoHint)}</span>
+              {memoError && (
+                <Alert variant="warning">
+                  <AlertTriangle className="size-4 text-destructive" />
+                  <AlertDescription>{memoError}</AlertDescription>
+                </Alert>
+              )}
+            </div>
+          )}
         </div>
       </MutationDialogBody>
 
@@ -494,6 +569,7 @@ type SendConfirmationStepProps = {
   addressBookEntries: NamedAddress[];
   amount: string;
   approxUsd?: string;
+  memo?: string;
   icpPriceUsd?: number;
   onBack: () => void;
   onConfirm: () => void;
@@ -506,6 +582,7 @@ function SendConfirmationStep({
   addressBookEntries,
   amount,
   approxUsd,
+  memo,
   icpPriceUsd,
   onBack,
   onConfirm,
@@ -593,6 +670,15 @@ function SendConfirmationStep({
                     ` (${formatTransactionFeeUsd(ICP_TRANSACTION_FEE * icpPriceUsd)})`}
                 </span>
               </div>
+
+              {nonNullish(memo) && (
+                <div className="flex min-w-0 items-center justify-between gap-2 border-t pt-3">
+                  <span className="shrink-0 text-sm text-muted-foreground">
+                    {t(($) => $.account.confirmMemo)}
+                  </span>
+                  <span className="truncate font-mono text-sm font-medium">{memo}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
