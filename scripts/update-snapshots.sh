@@ -75,7 +75,7 @@ gh run download "$RUN_ID" --pattern "$ARTIFACT_PATTERN" --dir "$tmp_dir"
 mapfile -t PNGS < <(find "$tmp_dir" -type f -iname '*.png' | sort)
 if (( ${#PNGS[@]} == 0 )); then
   echo "⚠️ No PNGs found. Nothing to update."
-  echo '   Note: the "updated-snapshots" artifact is retained for only 1 day.'
+  echo "   Note: the \"${ARTIFACT_PATTERN}\" artifacts are retained for only 1 day."
   exit 0
 fi
 

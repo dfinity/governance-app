@@ -23,9 +23,10 @@ const stakeNeuron = async (page: Page, isFirst: boolean) => {
   await page.getByTestId('staking-wizard-create-btn').click();
   await expect(page.getByTestId('staking-wizard-success')).toBeVisible({ timeout: 30000 });
   await page.getByTestId('staking-wizard-done-btn').click();
-  // Wait for the wizard to actually close rather than sleeping, so the next stake never races
-  // the dialog teardown.
-  await expect(page.getByTestId('staking-wizard-success')).not.toBeVisible();
+  // Wait for the wizard itself to close rather than sleeping, so the next stake never races the
+  // dialog teardown. Keyed on the dialog, not the success screen: the latter can disappear
+  // mid-close-animation once the wizard state resets.
+  await expect(page.getByTestId('staking-wizard-dialog')).not.toBeVisible({ timeout: 30000 });
 };
 
 const getNeuronIds = async (page: Page): Promise<string[]> => {
