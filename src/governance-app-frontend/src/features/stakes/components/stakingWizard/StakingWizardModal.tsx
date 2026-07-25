@@ -1,6 +1,6 @@
 import { nonNullish } from '@dfinity/utils';
 import { ArrowLeft } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
@@ -99,20 +99,26 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
     }
   }, [isCloseConfirmed, setIsOpen]);
 
-  // Reset form state when modal closes
+  const resetWizardState = useEffectEvent(() => {
+    setStep(StakingWizardStep.Amount);
+    setFormState(STAKING_WIZARD_DEFAULT_FORM_STATE);
+    createNeuron.reset();
+    setShowCloseConfirmation(false);
+    setIsCloseConfirmed(false);
+  });
+
+  // Reset form state around the modal's closed state. The delayed reset on close keeps the
+  // close animation from visibly snapping back to step 1, but that timer is cleared if the
+  // modal reopens first — so reset on open too, otherwise reopening within
+  // DIALOG_RESET_DELAY_MS leaves the wizard stuck on the previous success screen.
   useEffect(() => {
-    if (!isOpen) {
-      // Delay reset to allow close animation to complete
-      const timer = setTimeout(() => {
-        setStep(StakingWizardStep.Amount);
-        setFormState(STAKING_WIZARD_DEFAULT_FORM_STATE);
-        createNeuron.reset();
-        setShowCloseConfirmation(false);
-        setIsCloseConfirmed(false);
-      }, DIALOG_RESET_DELAY_MS);
-      return () => clearTimeout(timer);
+    if (isOpen) {
+      resetWizardState();
+      return;
     }
-  }, [isOpen, createNeuron]);
+    const timer = setTimeout(resetWizardState, DIALOG_RESET_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [isOpen]);
 
   // Check if user has unsaved data (step 2 or 3, not processing)
   const hasUnsavedData =
