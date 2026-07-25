@@ -13,8 +13,11 @@ import { useIcpIndex } from './useIcpIndex';
  * Fetches paginated transactions from the ICP Index canister.
  * When called without arguments, uses the main account.
  * Pass an accountId hex string to fetch transactions for a specific sub-account.
+ *
+ * Pass `enabled: false` to keep the query idle (e.g. while the hosting dialog is
+ * closed) so we don't fire a paginated Index call per mounted-but-hidden instance.
  */
-export const useIcpIndexTransactions = (accountId?: string) => {
+export const useIcpIndexTransactions = (accountId?: string, { enabled = true } = {}) => {
   const { identity } = useInternetIdentity();
   const { ready, authenticated, canister } = useIcpIndex();
 
@@ -54,7 +57,7 @@ export const useIcpIndexTransactions = (accountId?: string) => {
       return lastTransactionId;
     },
     options: {
-      enabled: ready && authenticated,
+      enabled: enabled && ready && authenticated,
     },
   });
 };
