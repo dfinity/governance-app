@@ -6,6 +6,7 @@ import {
   EyeIcon,
   EyeOffIcon,
   FileTextIcon,
+  KeyboardIcon,
   LogOutIcon,
   MonitorIcon,
   MoonIcon,
@@ -33,6 +34,7 @@ import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useCommandPaletteShortcut } from '@hooks/useCommandPaletteShortcut';
 import { useHideBalances } from '@hooks/useHideBalances';
 import { useLogout } from '@hooks/useLogout';
+import { useShortcutSettings } from '@hooks/useShortcutSettings';
 import { useTheme } from '@hooks/useTheme';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { notifyAdvancedFeatureChange } from '@utils/advancedFeatures';
@@ -57,6 +59,7 @@ const FEATURE_KEYWORDS: Record<AdvancedFeature, string[]> = {
 };
 
 const TOGGLE_BALANCES_VALUE = 'toggle-balances';
+const TOGGLE_SHORTCUTS_VALUE = 'toggle-shortcuts';
 const SIGN_OUT_VALUE = 'signout';
 const navValue = (href: string) => `nav:${href}`;
 const themeValue = (theme: Theme) => `theme:${theme}`;
@@ -67,6 +70,7 @@ type HintKey =
   | 'openProposal'
   | 'applyTheme'
   | 'toggleBalances'
+  | 'toggleShortcuts'
   | 'toggleFeature'
   | 'signOut';
 
@@ -76,6 +80,7 @@ const getHintKey = (value: unknown): HintKey | null => {
   if (value.startsWith('theme:')) return 'applyTheme';
   if (value.startsWith('feature:')) return 'toggleFeature';
   if (value === TOGGLE_BALANCES_VALUE) return 'toggleBalances';
+  if (value === TOGGLE_SHORTCUTS_VALUE) return 'toggleShortcuts';
   if (value === SIGN_OUT_VALUE) return 'signOut';
   if (/^\d+$/.test(value)) return 'openProposal';
   return null;
@@ -100,6 +105,7 @@ export const CommandPalette = () => {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const { hidden, setHidden } = useHideBalances();
+  const { enabled: shortcutsEnabled, setEnabled: setShortcutsEnabled } = useShortcutSettings();
   const { features, setFeature } = useAdvancedFeatures();
   const logout = useLogout();
   const [open, setOpen] = useState(false);
@@ -225,6 +231,16 @@ export const CommandPalette = () => {
                 ? t(($) => $.commandPalette.items.showBalances)
                 : t(($) => $.commandPalette.items.hideBalances)}
             </span>
+          </CommandItem>
+          {/* Stays open: the checkmark is the only feedback this toggle gives. */}
+          <CommandItem
+            value={TOGGLE_SHORTCUTS_VALUE}
+            keywords={['keyboard', 'shortcuts', 'hotkeys', 'keys']}
+            onSelect={() => setShortcutsEnabled(!shortcutsEnabled)}
+          >
+            <KeyboardIcon />
+            <span>{t(($) => $.commandPalette.items.keyboardShortcuts)}</span>
+            {shortcutsEnabled && <CheckIcon className="ml-auto" />}
           </CommandItem>
         </CommandGroup>
 

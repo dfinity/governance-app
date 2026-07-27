@@ -17,6 +17,7 @@
     "themeSystem": "System theme",
     "hideBalances": "Hide balances",
     "showBalances": "Show balances",
+    "keyboardShortcuts": "Keyboard shortcuts",
     "signOut": "Sign out"
   },
   "hints": {
@@ -24,6 +25,7 @@
     "openProposal": "Open proposal",
     "applyTheme": "Apply theme",
     "toggleBalances": "Toggle balances",
+    "toggleShortcuts": "Toggle keyboard shortcuts",
     "toggleFeature": "Toggle feature",
     "signOut": "Sign out"
   }
