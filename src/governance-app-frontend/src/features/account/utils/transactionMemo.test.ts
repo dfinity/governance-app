@@ -1,8 +1,11 @@
+import { IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { describe, expect, it } from 'vitest';
 
+import { TransactionType } from '../types';
 import {
   encodeMemoToIcp,
   encodeMemoToIcrc1,
+  formatTransactionMemo,
   isValidIcpMemo,
   isValidIcrc1Memo,
   validateTransactionMemo,
@@ -86,5 +89,128 @@ describe('validateTransactionMemo', () => {
     expect(
       validateTransactionMemo({ memo: 'a'.repeat(33), destinationAddress: ICRC_ADDRESS }),
     ).toBe('ICRC_MEMO_ERROR');
+  });
+});
+
+describe('formatTransactionMemo', () => {
+  const RTL_OVERRIDE = String.fromCodePoint(0x202e);
+  const NEWLINE = String.fromCodePoint(0x0a);
+
+  const transaction = ({
+    memo = 0n,
+    icrc1Memo,
+  }: {
+    memo?: bigint;
+    icrc1Memo?: Uint8Array;
+  } = {}): IcpIndexDid.Transaction => ({
+    memo,
+    icrc1_memo: icrc1Memo === undefined ? [] : [icrc1Memo],
+    operation: {
+      Transfer: {
+        to: ICP_ADDRESS,
+        fee: { e8s: 10_000n },
+        from: ICP_ADDRESS,
+        amount: { e8s: 100_000_000n },
+        spender: [],
+      },
+    },
+    timestamp: [],
+    created_at_time: [],
+  });
+
+  it('returns undefined when the transaction carries no memo', () => {
+    expect(
+      formatTransactionMemo({ transaction: transaction(), type: TransactionType.RECEIVE }),
+    ).toBeUndefined();
+  });
+
+  it('decodes an ICRC-1 memo as text', () => {
+    expect(
+      formatTransactionMemo({
+        transaction: transaction({ icrc1Memo: encodeMemoToIcrc1('rent for July') }),
+        type: TransactionType.RECEIVE,
+      }),
+    ).toEqual({ kind: 'text', value: 'rent for July' });
+  });
+
+  it('prefers the ICRC-1 memo over the numeric one', () => {
+    expect(
+      formatTransactionMemo({
+        transaction: transaction({ memo: 42n, icrc1Memo: encodeMemoToIcrc1('note') }),
+        type: TransactionType.SEND,
+      }),
+    ).toEqual({ kind: 'text', value: 'note' });
+  });
+
+  it('ignores an ICRC-1 memo that is not valid UTF-8', () => {
+    // 0xFF is never a valid UTF-8 lead byte, so this stands in for the binary
+    // payloads other ledger flows put in the field.
+    expect(
+      formatTransactionMemo({
+        transaction: transaction({ icrc1Memo: new Uint8Array([0xff, 0x00, 0xfe]) }),
+        type: TransactionType.RECEIVE,
+      }),
+    ).toBeUndefined();
+  });
+
+  it('strips control and bidi characters from a text memo', () => {
+    expect(
+      formatTransactionMemo({
+        transaction: transaction({
+          icrc1Memo: encodeMemoToIcrc1(`in${RTL_OVERRIDE}voice${NEWLINE}7`),
+        }),
+        type: TransactionType.RECEIVE,
+      }),
+    ).toEqual({ kind: 'text', value: 'invoice7' });
+  });
+
+  it('returns undefined when a text memo is only unsafe characters', () => {
+    expect(
+      formatTransactionMemo({
+        transaction: transaction({ icrc1Memo: encodeMemoToIcrc1(`${RTL_OVERRIDE}${NEWLINE}  `) }),
+        type: TransactionType.RECEIVE,
+      }),
+    ).toBeUndefined();
+  });
+
+  it('shows a non-zero numeric memo', () => {
+    expect(
+      formatTransactionMemo({
+        transaction: transaction({ memo: 1234567890n }),
+        type: TransactionType.SEND,
+      }),
+    ).toEqual({ kind: 'numeric', value: '1234567890' });
+  });
+
+  it('treats a numeric memo of 0 as absent', () => {
+    expect(
+      formatTransactionMemo({ transaction: transaction({ memo: 0n }), type: TransactionType.SEND }),
+    ).toBeUndefined();
+  });
+
+  it('hides memos on transaction types that use them for bookkeeping', () => {
+    for (const type of [
+      TransactionType.STAKE,
+      TransactionType.MINT,
+      TransactionType.BURN,
+      TransactionType.APPROVE,
+      TransactionType.UNKNOWN,
+    ]) {
+      expect(
+        formatTransactionMemo({
+          transaction: transaction({ memo: 42n, icrc1Memo: encodeMemoToIcrc1('note') }),
+          type,
+        }),
+      ).toBeUndefined();
+    }
+  });
+
+  it('shows memos on self-transfers', () => {
+    expect(
+      formatTransactionMemo({
+        transaction: transaction({ icrc1Memo: encodeMemoToIcrc1('moving funds') }),
+        type: TransactionType.SELF,
+      }),
+    ).toEqual({ kind: 'text', value: 'moving funds' });
   });
 });

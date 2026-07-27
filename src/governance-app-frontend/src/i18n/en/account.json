@@ -35,5 +35,6 @@
   "memoHint": "This is an advanced feature. Leave it empty if you don't need it.",
   "memoIcpError": "The memo for an ICP address must be a whole number of 0 or greater.",
   "memoIcrcError": "The memo for an ICRC-1 address must be at most 32 bytes.",
-  "confirmMemo": "Memo"
+  "confirmMemo": "Memo",
+  "memoDisplayLabel": "Memo:"
 }
