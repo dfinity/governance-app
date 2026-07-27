@@ -140,9 +140,7 @@ export function MutationDialog({
               <PhaseContainer key="success" className="items-center justify-center gap-5">
                 <ResponsiveDialogTitle className="sr-only">{successMessage}</ResponsiveDialogTitle>
                 <AnimatedSuccessIcon />
-                <FadeInText delay={0.35} className="max-w-xs">
-                  {successMessage}
-                </FadeInText>
+                <FadeInText delay={0.35}>{successMessage}</FadeInText>
               </PhaseContainer>
             )}
 
@@ -151,9 +149,7 @@ export function MutationDialog({
                 <ResponsiveDialogTitle className="sr-only">{errorMessage}</ResponsiveDialogTitle>
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                   <AnimatedErrorIcon />
-                  <FadeInText delay={0.3} className="max-w-xs">
-                    {errorMessage}
-                  </FadeInText>
+                  <FadeInText delay={0.3}>{errorMessage}</FadeInText>
                 </div>
                 <div className="flex w-full gap-3 pt-4">
                   <Button variant="outline" size="xl" className="flex-1" onClick={close}>
@@ -286,7 +282,7 @@ function FadeInText({
 }) {
   return (
     <motion.p
-      className={cn('text-sm font-medium text-muted-foreground', className)}
+      className={cn('max-w-xs text-sm font-medium wrap-anywhere text-muted-foreground', className)}
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.3 }}
