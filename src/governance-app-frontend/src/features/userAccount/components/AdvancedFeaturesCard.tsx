@@ -1,22 +1,9 @@
-import { Layers, type LucideIcon, ShieldAlert, StickyNote, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Switch } from '@components/Switch';
+import { ADVANCED_FEATURES } from '@constants/advancedFeatures';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
-import { AdvancedFeature } from '@typings/advancedFeatures';
-import { defaultNotification, successNotification } from '@utils/notification';
-
-type FeatureDefinition = {
-  key: AdvancedFeature;
-  icon: LucideIcon;
-};
-
-const FEATURES: FeatureDefinition[] = [
-  { key: AdvancedFeature.Subaccounts, icon: Layers },
-  { key: AdvancedFeature.AdvancedFollowing, icon: Users },
-  { key: AdvancedFeature.ShowNonConstructiveProposals, icon: ShieldAlert },
-  { key: AdvancedFeature.TransactionMemo, icon: StickyNote },
-];
+import { notifyAdvancedFeatureChange } from '@utils/advancedFeatures';
 
 export const AdvancedFeaturesCard = () => {
   const { t } = useTranslation();
@@ -24,7 +11,7 @@ export const AdvancedFeaturesCard = () => {
 
   return (
     <div className="flex flex-col divide-y">
-      {FEATURES.map(({ key, icon: Icon }) => (
+      {ADVANCED_FEATURES.map(({ key, icon: Icon }) => (
         <div key={key} className="flex items-start justify-between gap-4 px-6 py-5">
           <div className="flex items-center gap-3">
             <Icon className="size-5 shrink-0 text-muted-foreground" />
@@ -41,15 +28,7 @@ export const AdvancedFeaturesCard = () => {
             checked={features[key]}
             onCheckedChange={(value) => {
               setFeature(key, value);
-              const notify = value ? successNotification : defaultNotification;
-              notify({
-                title: value
-                  ? t(($) => $.userAccount.advancedFeatures.items[key].enabled)
-                  : t(($) => $.userAccount.advancedFeatures.items[key].disabled),
-                description: value
-                  ? t(($) => $.userAccount.advancedFeatures.items[key].enabledDescription)
-                  : t(($) => $.userAccount.advancedFeatures.items[key].disabledDescription),
-              });
+              notifyAdvancedFeatureChange(t, key, value);
             }}
             aria-label={t(($) => $.userAccount.advancedFeatures.items[key].aria.toggle)}
             className="shrink-0"
