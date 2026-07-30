@@ -12,16 +12,22 @@ import { LOADING_INDICATOR_DELAY } from '@constants/extra';
  */
 export const useDelayedFlag = (active: boolean, delayMs: number = LOADING_INDICATOR_DELAY) => {
   const [elapsed, setElapsed] = useState(false);
+  const [previousActive, setPreviousActive] = useState(active);
+
+  // Rearm on any change of `active`, so the next active spell waits the delay
+  // out again. Adjusting during render rather than in an effect: React reruns
+  // this component before committing, so no extra frame is shown.
+  if (previousActive !== active) {
+    setPreviousActive(active);
+    setElapsed(false);
+  }
 
   useEffect(() => {
     if (!active) return;
 
     const timeout = window.setTimeout(() => setElapsed(true), delayMs);
 
-    return () => {
-      window.clearTimeout(timeout);
-      setElapsed(false);
-    };
+    return () => window.clearTimeout(timeout);
   }, [active, delayMs]);
 
   return active && elapsed;

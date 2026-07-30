@@ -54,9 +54,12 @@ describe('route loader prefetching', () => {
     const queryClient = testQueryClient();
 
     await prefetchNeuronsRoute(queryClient);
-    // Both legs of the certified pair, and nothing more.
-    await waitFor(() => expect(listNeurons).toHaveBeenCalledTimes(2));
-    expect(accountBalance).toHaveBeenCalledTimes(2);
+    // Both legs of both certified pairs. The prefetches are not awaited, so
+    // both counts have to be waited on together.
+    await waitFor(() => {
+      expect(listNeurons).toHaveBeenCalledTimes(2);
+      expect(accountBalance).toHaveBeenCalledTimes(2);
+    });
 
     const { result } = renderHook(() => useGovernanceNeurons(), {
       wrapper: wrapper(queryClient),
