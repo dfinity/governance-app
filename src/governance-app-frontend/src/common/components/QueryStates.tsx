@@ -1,6 +1,8 @@
 import { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
+import { useDelayedFlag } from '@hooks/useDelayedFlag';
+
 import { EmptyMessage } from './EmptyMessage';
 import { MultipleSkeletons } from './MultipleSkeletons';
 import { WarningMessage } from './WarningMessage';
@@ -40,9 +42,11 @@ export const QueryStates = <TData,>({
 }: Props<TData>) => {
   const { t } = useTranslation();
   const q = query || infiniteQuery;
+  const showLoading = useDelayedFlag(q.isLoading);
 
   if (q.isLoading) {
-    return loadingComponent || <MultipleSkeletons count={3} />;
+    // Hold the frame empty until the delay elapses rather than flashing a skeleton.
+    return showLoading ? loadingComponent || <MultipleSkeletons count={3} /> : null;
   }
 
   if (q.error) {

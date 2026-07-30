@@ -1,7 +1,7 @@
 import { nonNullish } from '@dfinity/utils';
-import { useQueryClient } from '@tanstack/react-query';
+import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import {
-  createRootRoute,
+  createRootRouteWithContext,
   HeadContent,
   Link,
   Outlet,
@@ -24,7 +24,12 @@ import { infoNotification } from '@utils/notification';
 
 import i18n from '@/i18n/config';
 
-export const Route = createRootRoute({
+export type RouterContext = {
+  /** Lets route loaders warm queries before the route's component mounts. */
+  queryClient: QueryClient;
+};
+
+export const Route = createRootRouteWithContext<RouterContext>()({
   head: () => {
     const appName = i18n.t(($) => $.common.head.appName);
     const description = i18n.t(($) => $.common.head.defaultDescription);
