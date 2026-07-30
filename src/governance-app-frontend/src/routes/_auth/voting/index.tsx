@@ -47,6 +47,10 @@ export const Route = createFileRoute('/_auth/voting/')({
     prefetchVotingRoute(context.queryClient, {
       openProposalsOnly: (deps.proposalFilter ?? ProposalFilter.Open) === ProposalFilter.Open,
     }),
+  // Entry and filter changes only. `proposalFilter` is in `loaderDeps`, so a
+  // new filter still reruns the loader; `?manageFollowing`/`?showProposals`
+  // drive modal state and must not.
+  staleTime: Infinity,
   component: Voting,
   pendingComponent: () => <MultipleSkeletons count={3} />,
   head: () => {

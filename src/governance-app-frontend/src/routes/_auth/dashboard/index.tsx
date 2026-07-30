@@ -28,6 +28,8 @@ export const Route = createFileRoute('/_auth/dashboard/')({
     depositModal: search.depositModal === 'true' || search.depositModal === true ? true : undefined,
   }),
   loader: ({ context }) => prefetchDashboardRoute(context.queryClient),
+  // Entry only — `?depositModal` toggles must not rerun the loader.
+  staleTime: Infinity,
   component: Dashboard,
   head: () => {
     const title = i18n.t(($) => $.common.head.dashboard.title);
