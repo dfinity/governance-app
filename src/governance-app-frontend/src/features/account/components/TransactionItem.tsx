@@ -22,6 +22,7 @@ import { cn } from '@utils/shadcn';
 import { useNeuronAccountsIds } from '../hooks/useNeuronAccountsIds';
 import { TransactionType } from '../types';
 import { isSuspiciousAddress } from '../utils/addressPoisoning';
+import { formatTransactionMemo } from '../utils/transactionMemo';
 
 export const AccountTransactionItem = ({
   tx,
@@ -74,6 +75,8 @@ export const AccountTransactionItem = ({
     type === TransactionType.RECEIVE &&
     nonNullish(address) &&
     isSuspiciousAddress(address, amountE8s, trustedAddresses);
+
+  const memo = formatTransactionMemo({ transaction: tx.transaction, type });
 
   const shortAddress = nonNullish(address) ? shortenId(address, 10) : '';
   const fullAddress = nonNullish(address) ? shortenId(address, 18) : '';
@@ -155,6 +158,12 @@ export const AccountTransactionItem = ({
                     )}
                   </div>
                 ) : null}
+                {nonNullish(memo) && (
+                  <div className="flex min-w-0 items-start gap-1 text-sm text-muted-foreground">
+                    <span className="shrink-0">{t(($) => $.account.memoDisplayLabel)}</span>
+                    <span className="min-w-0 font-mono break-all">{memo.value}</span>
+                  </div>
+                )}
                 {suspicious && (
                   <Alert variant="warning" className="px-3 py-2">
                     <AlertDescription className="text-xs">
