@@ -36,20 +36,35 @@ import { useNonConstructiveProposalIds } from '@hooks/spamFilter';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { warningNotification } from '@utils/notification';
-import { prefetchVotingRoute } from '@common/queries/routeLoaders';
+import { PrefetchedProposals, prefetchVotingRoute } from '@common/queries/routeLoaders';
 
 import i18n from '@/i18n/config';
 
+const proposalsToPrefetch = ({
+  showProposals,
+  proposalFilter,
+}: {
+  showProposals?: boolean;
+  proposalFilter?: ProposalFilter;
+}): PrefetchedProposals => {
+  if (!showProposals) return 'none';
+
+  return (proposalFilter ?? ProposalFilter.Open) === ProposalFilter.Open ? 'open' : 'all';
+};
+
 export const Route = createFileRoute('/_auth/voting/')({
   validateSearch: validateProposalsSearch,
-  loaderDeps: ({ search: { proposalFilter } }) => ({ proposalFilter }),
+  // Only the two params that change *what* gets prefetched. `manageFollowing`
+  // stays out: it is modal state, and rerunning the loader on it is what the
+  // route's `staleTime` is here to prevent.
+  loaderDeps: ({ search: { proposalFilter, showProposals } }) => ({
+    proposalFilter,
+    showProposals,
+  }),
+  // Mirrors the `enabled` gates in the component. Prefetching a list the
+  // component does not ask for would reinstate the certified calls they avoid.
   loader: ({ context, deps }) =>
-    prefetchVotingRoute(context.queryClient, {
-      openProposalsOnly: (deps.proposalFilter ?? ProposalFilter.Open) === ProposalFilter.Open,
-    }),
-  // Entry and filter changes only. `proposalFilter` is in `loaderDeps`, so a
-  // new filter still reruns the loader; `?manageFollowing`/`?showProposals`
-  // drive modal state and must not.
+    prefetchVotingRoute(context.queryClient, { proposals: proposalsToPrefetch(deps) }),
   staleTime: Infinity,
   component: Voting,
   pendingComponent: () => <MultipleSkeletons count={3} />,
@@ -74,10 +89,16 @@ function Voting() {
   const proposalsRef = useRef<HTMLDivElement>(null);
 
   const proposalFilter = search.proposalFilter ?? ProposalFilter.Open;
-  const openProposals = useGovernanceProposals({
-    includeStatus: [ProposalStatus.Open],
+  // The list sits behind the "show proposals" toggle and only ever renders one
+  // filter, so fetching the hidden ones just crowds the certified update calls
+  // that already dominate this page.
+  const openProposals = useGovernanceProposals(
+    { includeStatus: [ProposalStatus.Open] },
+    { enabled: showProposals && proposalFilter === ProposalFilter.Open },
+  );
+  const allProposals = useGovernanceProposals(undefined, {
+    enabled: showProposals && proposalFilter === ProposalFilter.All,
   });
-  const allProposals = useGovernanceProposals();
   const activeQuery = proposalFilter === ProposalFilter.Open ? openProposals : allProposals;
 
   const { features } = useAdvancedFeatures();
