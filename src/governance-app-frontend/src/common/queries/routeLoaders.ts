@@ -58,9 +58,12 @@ export const prefetchNeuronsRoute = async (queryClient: QueryClient) => {
   prefetchNeuronsAndBalance(queryClient, identity);
 };
 
+/** Which proposals list the page will render, if any. */
+export type PrefetchedProposals = 'open' | 'all' | 'none';
+
 export const prefetchVotingRoute = async (
   queryClient: QueryClient,
-  { openProposalsOnly }: { openProposalsOnly: boolean },
+  { proposals }: { proposals: PrefetchedProposals },
 ) => {
   const identity = await sessionIdentity();
   if (!identity) return;
@@ -73,10 +76,12 @@ export const prefetchVotingRoute = async (
     }),
   );
 
-  // Only the filter the page will actually render — the other one is mounted but
-  // hidden, and can fetch on its own once the component is up.
+  // The list is collapsed by default, and only one filter is ever on screen.
+  // Warming anything else would undo the gating in the component.
+  if (proposals === 'none') return;
+
   const request = proposalsRequest(
-    openProposalsOnly ? { includeStatus: [ProposalStatus.Open] } : undefined,
+    proposals === 'open' ? { includeStatus: [ProposalStatus.Open] } : undefined,
   );
 
   prefetchCertifiedInfiniteQuery(
