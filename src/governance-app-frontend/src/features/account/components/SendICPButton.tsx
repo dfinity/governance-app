@@ -45,6 +45,7 @@ import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
 import { addressBookGetAddressString } from '@utils/addressBook';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { isCertifiedRejectError } from '@utils/errors';
+import { shortenId } from '@utils/id';
 import { formatNumber, roundToE8sPrecision } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
@@ -250,7 +251,9 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
     ? selectedAccount.name
     : t(($) => $.accounts.mainAccount);
 
-  const destination = selectedName || toAccount;
+  // Status messages only need to identify the destination, not let the user verify it
+  // character by character — the confirmation step already shows the full address.
+  const destination = selectedName || shortenId(toAccount, 8);
 
   const { Icon, className: variantClassName, label } = variantConfig[variant];
 
