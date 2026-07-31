@@ -27,12 +27,15 @@ import {
 } from '@components/Command';
 import { Kbd } from '@components/Kbd';
 import { getNavigationItems } from '@components/navigation/NavigationItems';
+import { ADVANCED_FEATURES } from '@constants/advancedFeatures';
 import { Theme } from '@constants/theme';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useCommandPaletteShortcut } from '@hooks/useCommandPaletteShortcut';
 import { useHideBalances } from '@hooks/useHideBalances';
 import { useLogout } from '@hooks/useLogout';
 import { useTheme } from '@hooks/useTheme';
+import { AdvancedFeature } from '@typings/advancedFeatures';
+import { notifyAdvancedFeatureChange } from '@utils/advancedFeatures';
 
 const NAVIGATION_KEYWORDS: Record<string, string[]> = {
   '/dashboard': ['home', 'overview'],
@@ -42,17 +45,36 @@ const NAVIGATION_KEYWORDS: Record<string, string[]> = {
   '/settings': ['preferences', 'config'],
 };
 
+const FEATURE_KEYWORDS: Record<AdvancedFeature, string[]> = {
+  [AdvancedFeature.Subaccounts]: ['subaccounts', 'multiple accounts', 'wallets'],
+  [AdvancedFeature.AdvancedFollowing]: ['follow', 'following', 'topics', 'neurons'],
+  [AdvancedFeature.ShowNonConstructiveProposals]: [
+    'show all proposals',
+    'spam',
+    'non-constructive',
+  ],
+  [AdvancedFeature.TransactionMemo]: ['memo', 'send', 'transaction'],
+};
+
 const TOGGLE_BALANCES_VALUE = 'toggle-balances';
 const SIGN_OUT_VALUE = 'signout';
 const navValue = (href: string) => `nav:${href}`;
 const themeValue = (theme: Theme) => `theme:${theme}`;
+const featureValue = (feature: AdvancedFeature) => `feature:${feature}`;
 
-type HintKey = 'goToPage' | 'openProposal' | 'applyTheme' | 'toggleBalances' | 'signOut';
+type HintKey =
+  | 'goToPage'
+  | 'openProposal'
+  | 'applyTheme'
+  | 'toggleBalances'
+  | 'toggleFeature'
+  | 'signOut';
 
 const getHintKey = (value: unknown): HintKey | null => {
   if (typeof value !== 'string' || value === '') return null;
   if (value.startsWith('nav:')) return 'goToPage';
   if (value.startsWith('theme:')) return 'applyTheme';
+  if (value.startsWith('feature:')) return 'toggleFeature';
   if (value === TOGGLE_BALANCES_VALUE) return 'toggleBalances';
   if (value === SIGN_OUT_VALUE) return 'signOut';
   if (/^\d+$/.test(value)) return 'openProposal';
@@ -78,7 +100,7 @@ export const CommandPalette = () => {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const { hidden, setHidden } = useHideBalances();
-  const { features } = useAdvancedFeatures();
+  const { features, setFeature } = useAdvancedFeatures();
   const logout = useLogout();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -102,6 +124,14 @@ export const CommandPalette = () => {
   const showProposalHint = trimmedSearch === '';
   const goToProposal = (id: bigint) => {
     runAndClose(() => navigate({ to: '/voting/proposals/$id', params: { id } }));
+  };
+
+  const toggleFeature = (key: AdvancedFeature) => {
+    const next = !features[key];
+    runAndClose(() => {
+      setFeature(key, next);
+      notifyAdvancedFeatureChange(t, key, next);
+    });
   };
 
   return (
@@ -196,6 +226,26 @@ export const CommandPalette = () => {
                 : t(($) => $.commandPalette.items.hideBalances)}
             </span>
           </CommandItem>
+        </CommandGroup>
+
+        <CommandGroup heading={t(($) => $.commandPalette.groups.advancedFeatures)}>
+          {ADVANCED_FEATURES.map(({ key, icon: Icon }) => (
+            <CommandItem
+              key={key}
+              value={featureValue(key)}
+              keywords={FEATURE_KEYWORDS[key]}
+              onSelect={() => toggleFeature(key)}
+            >
+              <Icon />
+              <span>{t(($) => $.userAccount.advancedFeatures.items[key].label)}</span>
+              {features[key] && <CheckIcon className="ml-auto" />}
+            </CommandItem>
+          ))}
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup>
           <CommandItem
             value={SIGN_OUT_VALUE}
             keywords={['logout', 'log out']}

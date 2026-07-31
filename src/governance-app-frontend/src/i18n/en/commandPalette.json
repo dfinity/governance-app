@@ -6,7 +6,8 @@
   "groups": {
     "navigate": "Navigate",
     "proposals": "Proposals",
-    "preferences": "Preferences"
+    "preferences": "Preferences",
+    "advancedFeatures": "Advanced features"
   },
   "items": {
     "goToProposal": "Go to proposal #{{id}}",
@@ -23,6 +24,7 @@
     "openProposal": "Open proposal",
     "applyTheme": "Apply theme",
     "toggleBalances": "Toggle balances",
+    "toggleFeature": "Toggle feature",
     "signOut": "Sign out"
   }
 }
