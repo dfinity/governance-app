@@ -12,7 +12,10 @@ import {
 
 import { useNnsGovernance } from './useGovernance';
 
-export const useGovernanceProposals = (overrides?: Partial<ListProposalsRequest>) => {
+export const useGovernanceProposals = (
+  overrides?: Partial<ListProposalsRequest>,
+  { enabled = true }: { enabled?: boolean } = {},
+) => {
   const request = proposalsRequest(overrides);
   const { identity } = useInternetIdentity();
   const { ready } = useNnsGovernance();
@@ -24,7 +27,7 @@ export const useGovernanceProposals = (overrides?: Partial<ListProposalsRequest>
     initialPageParam: PROPOSALS_INITIAL_PAGE_PARAM,
     getNextPageParam: proposalsNextPageParam(request),
     options: {
-      enabled: ready,
+      enabled: ready && enabled,
     },
   });
 };

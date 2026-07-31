@@ -16,9 +16,13 @@ const NEURONS: NeuronInfo[] = [
 
 const listNeurons = vi.fn(async () => NEURONS);
 const accountBalance = vi.fn(async () => 42n);
+const listProposals = vi.fn(async ({ certified }: { request: unknown; certified: boolean }) => ({
+  proposals: [],
+  certifiedLeg: certified,
+}));
 
 vi.mock('@common/canisters', () => ({
-  getNnsGovernanceCanister: async () => ({ listNeurons }),
+  getNnsGovernanceCanister: async () => ({ listNeurons, listProposals }),
   getIcpLedgerCanister: async () => ({ accountBalance }),
 }));
 
@@ -32,7 +36,7 @@ vi.mock('@hooks/governance/useGovernance', () => ({
 }));
 
 const { useGovernanceNeurons } = await import('@hooks/governance/useGovernanceNeurons');
-const { prefetchNeuronsRoute } = await import('./routeLoaders');
+const { prefetchNeuronsRoute, prefetchVotingRoute } = await import('./routeLoaders');
 
 // Mirrors `queryClientConfig`. The staleTime matters: it is what makes the
 // mounting hook adopt the prefetched entry instead of revalidating it.
@@ -48,6 +52,7 @@ describe('route loader prefetching', () => {
   beforeEach(() => {
     listNeurons.mockClear();
     accountBalance.mockClear();
+    listProposals.mockClear();
   });
 
   it('warms exactly the cache entries the neurons hook goes on to read.', async () => {
@@ -70,5 +75,28 @@ describe('route loader prefetching', () => {
     await waitFor(() => expect(result.current.data?.response).toEqual(NEURONS));
     expect(listNeurons).toHaveBeenCalledTimes(2);
     expect(result.current.isLoading).toBe(false);
+  });
+
+  it('leaves the proposals list alone while it is collapsed.', async () => {
+    const queryClient = testQueryClient();
+
+    await prefetchVotingRoute(queryClient, { proposals: 'none' });
+
+    // Following data still loads — it is on screen either way.
+    await waitFor(() => expect(listNeurons).toHaveBeenCalledTimes(2));
+    // The list is behind a toggle, so warming it would reinstate the two
+    // certified calls the component's `enabled` gate exists to avoid.
+    expect(listProposals).not.toHaveBeenCalled();
+  });
+
+  it('warms one filter, not both, once the list is expanded.', async () => {
+    const queryClient = testQueryClient();
+
+    await prefetchVotingRoute(queryClient, { proposals: 'open' });
+
+    await waitFor(() => expect(listProposals).toHaveBeenCalledTimes(2));
+
+    const certified = listProposals.mock.calls.map(([args]) => args.certified);
+    expect(certified.toSorted()).toEqual([false, true]);
   });
 });
