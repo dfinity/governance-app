@@ -4,6 +4,12 @@ on:
   pull_request:
   merge_group:
 
+# Supersede in-flight runs for the same PR. Never applied to merge_group: those runs gate the
+# queue and cancelling one would drop a merge.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   check:
     name: Codestyle & Tests

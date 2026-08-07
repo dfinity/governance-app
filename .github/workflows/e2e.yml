@@ -4,20 +4,54 @@ on:
 
 jobs:
   tests:
-    name: E2E Tests
+    name: E2E Tests (${{ matrix.project }})
     timeout-minutes: 30
     runs-on: dind-small
+    # Sharded per Playwright project: each project gets its own runner and its own replica, so
+    # the two no longer queue behind each other on a single machine.
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, mobile]
     # NOTE: NOT using the GitHub Actions `container:` directive, but instead running docker "manually"
     # This fixes Playwright connectivity issues found in GitHub Actions default containers
     env:
       BASE_URL: http://mc7vh-sqaaa-aaaai-q33na-cai.localhost:8080
       CONTAINER_IMAGE: ghcr.io/dfinity/governance-app/builder-base:0.0.10
+      # Cache dirs live inside the workspace so they are visible both to actions/cache on the
+      # host and to the tooling running inside the mounted container.
+      NPM_CACHE_DIR: .ci-cache/npm
+      CARGO_HOME_DIR: .ci-cache/cargo
+      PLAYWRIGHT_BROWSERS_DIR: .ci-cache/playwright
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
+
+      - name: Restore npm cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ${{ env.NPM_CACHE_DIR }}
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: npm-${{ runner.os }}-
+
+      - name: Restore cargo cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            ${{ env.CARGO_HOME_DIR }}
+            target
+          key: cargo-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: cargo-${{ runner.os }}-
+
+      - name: Restore Playwright browsers
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ${{ env.PLAYWRIGHT_BROWSERS_DIR }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: playwright-${{ runner.os }}-
 
       - name: Pull container image
         run: docker pull $CONTAINER_IMAGE
@@ -30,6 +64,10 @@ jobs:
             -w /app \
             -e BASE_URL="$BASE_URL" \
             -e CI=true \
+            -e PROJECT="${{ matrix.project }}" \
+            -e npm_config_cache="/app/$NPM_CACHE_DIR" \
+            -e CARGO_HOME="/app/$CARGO_HOME_DIR" \
+            -e PLAYWRIGHT_BROWSERS_PATH="/app/$PLAYWRIGHT_BROWSERS_DIR" \
             $CONTAINER_IMAGE \
             bash -c '
               set -e
@@ -38,6 +76,7 @@ jobs:
               echo "User: $(whoami)"
               echo "Node: $(node -v)"
               echo "DFX: $(dfx --version)"
+              echo "Project: $PROJECT"
               echo ""
 
               echo "=== Installing dependencies ==="
@@ -71,7 +110,7 @@ jobs:
               echo ""
               echo "=== Running E2E tests (updating snapshots) ==="
               cd src/governance-app-frontend
-              npx playwright test --update-snapshots --reporter=list,html
+              npx playwright test --project="$PROJECT" --update-snapshots --reporter=list,html
 
               echo ""
               echo "=== Stopping dfx ==="
@@ -115,7 +154,7 @@ jobs:
         if: ${{ steps.collect_snaps.outputs.has_changes == 'true' && !cancelled() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: updated-snapshots
+          name: updated-snapshots-${{ matrix.project }}
           path: ${{ steps.collect_snaps.outputs.files }}
           if-no-files-found: error
           retention-days: 1
@@ -123,7 +162,7 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.project }}
           path: src/governance-app-frontend/playwright-report/
           retention-days: 30
 

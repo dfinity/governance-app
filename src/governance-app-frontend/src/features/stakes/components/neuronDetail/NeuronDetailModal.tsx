@@ -1,7 +1,7 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ArrowLeft } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
@@ -84,6 +84,25 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
     }
   };
 
+  // Returning to the summary is a router navigation, so it is swallowed while
+  // NavigationBlockerDialog is still armed. Rather than racing the blocker on a timer, action
+  // views flag success and we navigate from an effect: child effects (the blocker's
+  // re-registration with isBlocked=false) always run before this parent effect.
+  const [pendingSuccess, setPendingSuccess] = useState(false);
+
+  const leaveActionView = useEffectEvent(() => {
+    setPendingSuccess(false);
+    onViewChange(NeuronDetailView.Summary);
+  });
+
+  useEffect(() => {
+    if (pendingSuccess && !isProcessing) {
+      leaveActionView();
+    }
+  }, [pendingSuccess, isProcessing]);
+
+  const handleActionSuccess = () => setPendingSuccess(true);
+
   const handleOpenChange = (open: boolean) => {
     if (isProcessing && !open) return;
     onOpenChange(open);
@@ -164,7 +183,7 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
             {displayView === NeuronDetailView.IncreaseStake && (
               <NeuronDetailIncreaseStakeView
                 neuron={displayNeuron}
-                onSuccess={goBack}
+                onSuccess={handleActionSuccess}
                 onProcessingChange={setIsProcessing}
               />
             )}
@@ -173,7 +192,7 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
               <NeuronDetailIncreaseDelayView
                 neuron={displayNeuron}
                 isHotkey={isHotkey}
-                onSuccess={goBack}
+                onSuccess={handleActionSuccess}
                 onProcessingChange={setIsProcessing}
               />
             )}
@@ -182,7 +201,7 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
               <NeuronDetailMaturityModeView
                 neuron={displayNeuron}
                 isHotkey={isHotkey}
-                onSuccess={goBack}
+                onSuccess={handleActionSuccess}
                 onProcessingChange={setIsProcessing}
               />
             )}
@@ -193,7 +212,7 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
                 isDissolved={isDissolved}
                 isDissolving={isDissolving}
                 isHotkey={isHotkey}
-                onSuccess={goBack}
+                onSuccess={handleActionSuccess}
                 onProcessingChange={setIsProcessing}
               />
             )}
