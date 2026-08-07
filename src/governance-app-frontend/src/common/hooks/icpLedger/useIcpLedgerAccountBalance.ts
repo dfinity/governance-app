@@ -3,13 +3,13 @@ import { AnonymousIdentity } from '@icp-sdk/core/agent';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 
 import { useQueryThenUpdateCall } from '@hooks/useQueryThenUpdateCall';
-import { QUERY_KEYS } from '@utils/query';
+import { icpLedgerAccountBalanceQuery } from '@common/queries/icpLedger';
 
 import { useIcpLedger } from './useIcpLedger';
 
 export const useIcpLedgerAccountBalance = (accountId?: string) => {
   const { identity } = useInternetIdentity();
-  const { ready, authenticated, canister } = useIcpLedger();
+  const { ready, authenticated } = useIcpLedger();
 
   const accountIdentifier =
     accountId ??
@@ -20,17 +20,7 @@ export const useIcpLedgerAccountBalance = (accountId?: string) => {
     }).toHex();
 
   return useQueryThenUpdateCall({
-    queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE, accountIdentifier],
-    queryFn: () =>
-      canister!.accountBalance({
-        accountIdentifier,
-        certified: false,
-      }),
-    updateFn: () =>
-      canister!.accountBalance({
-        accountIdentifier,
-        certified: true,
-      }),
+    ...icpLedgerAccountBalanceQuery(accountIdentifier),
     options: {
       enabled: ready && authenticated,
     },

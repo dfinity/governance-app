@@ -1,9 +1,11 @@
-import { AnonymousIdentity } from '@icp-sdk/core/agent';
-import { createAgent } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode, useEffect, useState } from 'react';
 
-import { IS_LOCAL, NETWORK } from '@constants/extra';
+import {
+  clearAuthenticatedAgent,
+  getAnonymousAgent,
+  getAuthenticatedAgent,
+} from '@common/canisters/agents';
 
 import { AgentPool, AgentPoolContext } from './agentPoolContext';
 
@@ -22,11 +24,7 @@ export const AgentPoolProvider = ({ children }: { children: ReactNode }) => {
   });
 
   useEffect(() => {
-    createAgent({
-      identity: new AnonymousIdentity(),
-      host: NETWORK,
-      fetchRootKey: IS_LOCAL,
-    })
+    getAnonymousAgent()
       .then((agent) => {
         setAgentPool((prev) => ({
           ...prev,
@@ -63,11 +61,7 @@ export const AgentPoolProvider = ({ children }: { children: ReactNode }) => {
         },
       }));
 
-      createAgent({
-        identity,
-        host: NETWORK,
-        fetchRootKey: IS_LOCAL,
-      })
+      getAuthenticatedAgent(identity)
         .then((agent) => {
           setAgentPool((prev) => ({
             ...prev,
@@ -90,6 +84,8 @@ export const AgentPoolProvider = ({ children }: { children: ReactNode }) => {
           }));
         });
     } else {
+      // Drop the cached agent too, so a later login cannot reuse a stale identity.
+      clearAuthenticatedAgent();
       setAgentPool((prev) => ({
         ...prev,
         authenticated: {

@@ -1,52 +1,23 @@
-import { NeuronId } from '@icp-sdk/canisters/nns';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 
 import { useQueryThenUpdateCall } from '@hooks/useQueryThenUpdateCall';
-import { isNonEmptyNeuron } from '@utils/neuron';
-import { QUERY_KEYS } from '@utils/query';
+import { governanceNeuronsQuery, NeuronsRequest, neuronsRequest } from '@common/queries/governance';
 
 import { useNnsGovernance } from './useGovernance';
 
-type RequestParams = {
-  neuronIds?: NeuronId[];
-  includeEmptyNeurons?: boolean;
-  includePublicNeurons?: boolean;
-  neuronSubaccounts?: { subaccount: Uint8Array }[];
-};
-
-type Params = RequestParams & { enabled?: boolean };
-
-const sortByCreatedDesc = (
-  a: { createdTimestampSeconds: bigint },
-  b: { createdTimestampSeconds: bigint },
-) => Number(b.createdTimestampSeconds - a.createdTimestampSeconds);
+type Params = NeuronsRequest & { enabled?: boolean };
 
 export const useGovernanceNeurons = (params?: Params) => {
   const { identity } = useInternetIdentity();
-  const { ready, canister, authenticated } = useNnsGovernance();
+  const { ready, authenticated } = useNnsGovernance();
 
   const { enabled = true, ...overrides } = params ?? {};
 
-  const request: RequestParams = {
-    neuronIds: undefined,
-    includeEmptyNeurons: false,
-    includePublicNeurons: true,
-    neuronSubaccounts: undefined,
-    ...overrides,
-  };
-
+  const request = neuronsRequest(overrides);
   const principal = identity?.getPrincipal().toText();
 
   return useQueryThenUpdateCall({
-    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS, request, principal],
-    queryFn: () =>
-      canister!
-        .listNeurons({ ...request, certified: false })
-        .then((data) => data.filter(isNonEmptyNeuron).toSorted(sortByCreatedDesc)),
-    updateFn: () =>
-      canister!
-        .listNeurons({ ...request, certified: true })
-        .then((data) => data.filter(isNonEmptyNeuron).toSorted(sortByCreatedDesc)),
+    ...governanceNeuronsQuery({ request, principal }),
     options: {
       enabled: ready && authenticated && enabled,
     },
