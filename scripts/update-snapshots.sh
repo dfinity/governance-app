@@ -3,7 +3,8 @@
 
 set -euo pipefail
 
-ARTIFACT_NAME="updated-snapshots"
+# E2E is sharded per Playwright project, so each shard uploads its own artifact.
+ARTIFACT_PATTERN="updated-snapshots-*"
 
 # --- Usage ---
 usage() {
@@ -67,21 +68,14 @@ echo "   url:         ${RUN_URL}"
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
-echo "⬇️  Downloading artifact '${ARTIFACT_NAME}'..."
-gh run download "$RUN_ID" -n "$ARTIFACT_NAME" --dir "$tmp_dir"
+echo "⬇️  Downloading artifacts matching '${ARTIFACT_PATTERN}'..."
+gh run download "$RUN_ID" --pattern "$ARTIFACT_PATTERN" --dir "$tmp_dir"
 
-# gh creates a subfolder named after the artifact
-ART_DIR="${tmp_dir}/${ARTIFACT_NAME}"
-if [[ ! -d "$ART_DIR" ]]; then
-  # Fallback: sometimes gh may put contents directly in tmp_dir
-  ART_DIR="$tmp_dir"
-fi
-
-# Count PNGs and copy
-mapfile -t PNGS < <(find "$ART_DIR" -maxdepth 1 -type f -iname '*.png' | sort)
+# gh creates one subfolder per matched artifact, so search recursively.
+mapfile -t PNGS < <(find "$tmp_dir" -type f -iname '*.png' | sort)
 if (( ${#PNGS[@]} == 0 )); then
   echo "⚠️ No PNGs found. Nothing to update."
-  echo '   Note: the "updated-snapshots" artifact is retained for only 1 day.'
+  echo "   Note: the \"${ARTIFACT_PATTERN}\" artifacts are retained for only 1 day."
   exit 0
 fi
 

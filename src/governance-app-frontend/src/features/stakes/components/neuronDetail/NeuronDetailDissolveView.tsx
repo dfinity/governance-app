@@ -45,8 +45,8 @@ export function NeuronDetailDissolveView({
           : t(($) => $.neuronDetailModal.dissolve.successStart),
       });
 
-      // Wait for the navigation blocker to be released (isPending propagated to false)
-      setTimeout(onSuccess);
+      // The parent defers the actual navigation until the blocker has been released.
+      onSuccess();
     } catch (err) {
       errorNotification({
         description: mapCanisterError(err as Error),

@@ -45,3 +45,6 @@ stats.html
 # e2e
 src/governance-app-frontend/playwright-report/
 src/governance-app-frontend/test-results/
+
+# CI dependency caches (npm / cargo / Playwright browsers)
+.ci-cache/
