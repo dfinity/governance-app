@@ -30,6 +30,9 @@ export const queryClientConfig = new QueryClient({
 
 export const routerConfig = createRouter({
   routeTree,
+  // Exposed to route loaders so they can warm the cache while the route's own
+  // chunk is still downloading, instead of waiting for the component to mount.
+  context: { queryClient: queryClientConfig },
   defaultPreload: 'intent',
   defaultPendingMs: 100,
   defaultPendingMinMs: 300,

@@ -7,10 +7,8 @@ import {
 } from '@tanstack/react-query';
 import { useCallback, useEffect } from 'react';
 
-import { MIN_ASYNC_DELAY } from '@constants/extra';
-import { withMinimumDelay } from '@utils/async';
-import { stringifyKeys } from '@utils/query';
-import { CertifiedData, QueryType } from '@common/typings/queries';
+import { certifiedQueryKey, nonCertifiedQueryKey } from '@common/queries/certified';
+import { CertifiedData } from '@common/typings/queries';
 
 type QueryOptions<TData, TPageParam> = UseInfiniteQueryOptions<
   CertifiedData<TData>,
@@ -43,7 +41,7 @@ export const useInfiniteQueryThenUpdateCall = <TData, TPageParam>({
   const queryCall = async (
     context: QueryFunctionContext<QueryKey, TPageParam>,
   ): Promise<CertifiedData<TData>> => ({
-    response: await withMinimumDelay(queryFn(context), MIN_ASYNC_DELAY),
+    response: await queryFn(context),
     certified: false,
   });
   const queryQuery = useInfiniteQuery<
@@ -53,7 +51,7 @@ export const useInfiniteQueryThenUpdateCall = <TData, TPageParam>({
     QueryKey,
     TPageParam
   >({
-    queryKey: [...stringifyKeys(queryKey), QueryType.NonCertified],
+    queryKey: nonCertifiedQueryKey(queryKey),
     queryFn: queryCall,
     initialPageParam,
     getNextPageParam,
@@ -68,11 +66,11 @@ export const useInfiniteQueryThenUpdateCall = <TData, TPageParam>({
   const updateCall = async (
     context: QueryFunctionContext<QueryKey, TPageParam>,
   ): Promise<CertifiedData<TData>> => ({
-    response: await withMinimumDelay(updateFn(context), MIN_ASYNC_DELAY),
+    response: await updateFn(context),
     certified: true,
   });
   const updateQuery = useInfiniteQuery({
-    queryKey: [...stringifyKeys(queryKey), QueryType.Certified],
+    queryKey: certifiedQueryKey(queryKey),
     queryFn: updateCall,
     initialPageParam,
     getNextPageParam,

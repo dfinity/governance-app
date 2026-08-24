@@ -24,6 +24,7 @@ import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import type { CertifiedData } from '@typings/queries';
 import { bigIntDiv, stringToBigInt } from '@utils/bigInt';
 import { warningNotification } from '@utils/notification';
+import { prefetchNeuronsRoute } from '@common/queries/routeLoaders';
 
 import i18n from '@/i18n/config';
 
@@ -39,6 +40,11 @@ export const Route = createFileRoute('/_auth/neurons/')({
     action: typeof search.action === 'string' ? search.action : undefined,
     openWizard: search.openWizard === 'true' || search.openWizard === true ? true : undefined,
   }),
+  loader: ({ context }) => prefetchNeuronsRoute(context.queryClient),
+  // The loader warms the cache on entry and nothing more. Without this the
+  // router reruns it on every navigation to the route, which here means every
+  // `?openWizard`/`?neuronId` toggle — modal state lives in the search params.
+  staleTime: Infinity,
   component: NeuronsComponent,
   head: () => {
     const title = i18n.t(($) => $.common.head.stakes.title);

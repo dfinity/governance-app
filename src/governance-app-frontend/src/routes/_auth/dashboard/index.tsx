@@ -15,6 +15,7 @@ import { TotalStakedCard } from '@features/dashboard/components/TotalStakedCard'
 import { StakedCard } from '@features/stakes/components/StakedCard';
 
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { prefetchDashboardRoute } from '@common/queries/routeLoaders';
 
 import i18n from '@/i18n/config';
 
@@ -26,6 +27,9 @@ export const Route = createFileRoute('/_auth/dashboard/')({
   validateSearch: (search: Record<string, unknown>): DashboardSearchParams => ({
     depositModal: search.depositModal === 'true' || search.depositModal === true ? true : undefined,
   }),
+  loader: ({ context }) => prefetchDashboardRoute(context.queryClient),
+  // Entry only — `?depositModal` toggles must not rerun the loader.
+  staleTime: Infinity,
   component: Dashboard,
   head: () => {
     const title = i18n.t(($) => $.common.head.dashboard.title);

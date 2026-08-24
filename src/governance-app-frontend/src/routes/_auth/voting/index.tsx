@@ -36,11 +36,21 @@ import { useNonConstructiveProposalIds } from '@hooks/spamFilter';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { warningNotification } from '@utils/notification';
+import { prefetchVotingRoute } from '@common/queries/routeLoaders';
 
 import i18n from '@/i18n/config';
 
 export const Route = createFileRoute('/_auth/voting/')({
   validateSearch: validateProposalsSearch,
+  loaderDeps: ({ search: { proposalFilter } }) => ({ proposalFilter }),
+  loader: ({ context, deps }) =>
+    prefetchVotingRoute(context.queryClient, {
+      openProposalsOnly: (deps.proposalFilter ?? ProposalFilter.Open) === ProposalFilter.Open,
+    }),
+  // Entry and filter changes only. `proposalFilter` is in `loaderDeps`, so a
+  // new filter still reruns the loader; `?manageFollowing`/`?showProposals`
+  // drive modal state and must not.
+  staleTime: Infinity,
   component: Voting,
   pendingComponent: () => <MultipleSkeletons count={3} />,
   head: () => {
