@@ -24,6 +24,11 @@ import { TransactionType } from '../types';
 import { isSuspiciousAddress } from '../utils/addressPoisoning';
 import { formatTransactionMemo } from '../utils/transactionMemo';
 
+// Characters kept on each side of a shortened account identifier. One value for
+// every viewport: a breakpoint-dependent length made the row jump at `md`, and
+// the longer variant alone claimed ~420px of an ~700px dialog.
+const ADDRESS_VISIBLE_CHARS = 12;
+
 export const AccountTransactionItem = ({
   tx,
   accountId,
@@ -78,114 +83,115 @@ export const AccountTransactionItem = ({
 
   const memo = formatTransactionMemo({ transaction: tx.transaction, type });
 
-  const shortAddress = nonNullish(address) ? shortenId(address, 10) : '';
-  const fullAddress = nonNullish(address) ? shortenId(address, 18) : '';
-  const addressComponents = { address: <span className="font-mono" /> };
+  const shortAddress = nonNullish(address) ? shortenId(address, ADDRESS_VISIBLE_CHARS) : '';
 
   return (
     <Card key={tx.id} className="p-0">
-      <CardContent className="px-6 py-4">
-        <div className="flex items-center gap-4">
-          <div className={cn('rounded-full p-3', iconBgClasses)}>
+      <CardContent className="px-4 py-3 sm:px-6 sm:py-4">
+        {/* `minmax(0, 1fr)` caps the details column. Without it the address line,
+            which cannot wrap, sets the width of the whole dialog and pushes it
+            into a horizontal scrollbar. The amount sits beside the details from
+            `sm` up, and below them on a phone, where the row is too narrow. */}
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:gap-x-4 sm:gap-y-0">
+          <div
+            className={cn(
+              'col-start-1 row-span-2 row-start-1 self-center rounded-full p-3 sm:row-span-1',
+              iconBgClasses,
+            )}
+          >
             <Icon className="size-5" />
           </div>
-          <div className="flex w-full min-w-0 shrink flex-col gap-0.5">
-            <div className="flex justify-between">
+
+          <div className="col-start-2 row-start-1 flex min-w-0 flex-col gap-0.5">
+            <div className="flex items-center gap-2">
               <h4 className="text-sm font-semibold">{t(($) => $.accounts[labelKey])}</h4>
               <CertifiedBadge certified={certified} />
             </div>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex min-w-0 flex-col gap-1 sm:max-w-[66%]">
-                <span className="text-xs text-muted-foreground">
-                  {secondsToDate(transactionTimestamp)} - {secondsToTime(transactionTimestamp)}
-                </span>
 
-                {nonNullish(address) && nonNullish(addressName) ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground"
-                      >
-                        <span className="truncate">
-                          <Trans
-                            i18nKey={($) => $.account[addressDirection!]}
-                            values={{ address: addressName }}
-                            components={{
-                              address: <span className="font-semibold" />,
-                            }}
-                          />
-                        </span>
-                        {addressEntry?.source === 'addressBook' ? (
-                          <BookUser className="size-3.5 shrink-0" aria-hidden />
-                        ) : (
-                          <WalletMinimal className="size-3.5 shrink-0" aria-hidden />
-                        )}
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="font-mono text-xs">{address}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                ) : nonNullish(address) ? (
-                  <div
-                    className={cn(
-                      'flex min-w-0 items-center gap-1 text-sm text-muted-foreground',
-                      suspicious && 'text-amber-800 dark:text-amber-200',
-                    )}
-                  >
-                    <span className="truncate md:hidden">
-                      <Trans
-                        i18nKey={($) => $.account[addressDirection!]}
-                        values={{ address: shortAddress }}
-                        components={addressComponents}
-                      />
-                    </span>
-                    <span className="hidden truncate md:inline">
-                      <Trans
-                        i18nKey={($) => $.account[addressDirection!]}
-                        values={{ address: fullAddress }}
-                        components={addressComponents}
-                      />
-                    </span>
-                    {!suspicious && (
-                      <CopyButton
-                        value={address}
-                        size="sm"
-                        variant="ghost"
-                        label={t(($) => $.account.address)}
-                      />
-                    )}
-                  </div>
-                ) : null}
-                {nonNullish(memo) && (
-                  <div className="flex min-w-0 items-start gap-1 text-sm text-muted-foreground">
-                    <span className="shrink-0">{t(($) => $.account.memoDisplayLabel)}</span>
-                    <span className="min-w-0 font-mono break-all">{memo.value}</span>
-                  </div>
+            <span className="text-xs text-muted-foreground">
+              {secondsToDate(transactionTimestamp)} - {secondsToTime(transactionTimestamp)}
+            </span>
+
+            {nonNullish(address) && (
+              <div
+                className={cn(
+                  'flex min-w-0 items-center gap-1 text-sm text-muted-foreground',
+                  suspicious && 'text-amber-800 dark:text-amber-200',
                 )}
-                {suspicious && (
-                  <Alert variant="warning" className="px-3 py-2">
-                    <AlertDescription className="text-xs">
-                      {t(($) => $.account.suspiciousAddressWarning)}
-                    </AlertDescription>
-                  </Alert>
+              >
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="min-w-0 truncate text-left">
+                      <Trans
+                        i18nKey={($) => $.account[addressDirection!]}
+                        values={{ address: addressName ?? shortAddress }}
+                        components={{
+                          address: (
+                            <span
+                              className={nonNullish(addressName) ? 'font-semibold' : 'font-mono'}
+                            />
+                          ),
+                        }}
+                      />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="font-mono text-xs break-all">{address}</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                {nonNullish(addressName) ? (
+                  addressEntry?.source === 'addressBook' ? (
+                    <BookUser className="size-3.5 shrink-0" aria-hidden />
+                  ) : (
+                    <WalletMinimal className="size-3.5 shrink-0" aria-hidden />
+                  )
+                ) : (
+                  !suspicious && (
+                    <CopyButton
+                      value={address}
+                      size="sm"
+                      variant="ghost"
+                      label={t(($) => $.account.address)}
+                    />
+                  )
                 )}
               </div>
-              <span className={cn('text-base font-semibold', amountClasses)}>
-                <SensitiveValue size="sm">
-                  {sign}
+            )}
 
-                  {t(($) => $.common.inIcp, {
-                    value: formatNumber(bigIntDiv(amountE8s, E8Sn), {
-                      minFraction: 2,
-                      maxFraction: 8,
-                    }),
-                  })}
-                </SensitiveValue>
-              </span>
-            </div>
+            {nonNullish(memo) && (
+              <div className="flex min-w-0 items-start gap-1 text-sm text-muted-foreground">
+                <span className="shrink-0">{t(($) => $.account.memoDisplayLabel)}</span>
+                <span className="min-w-0 font-mono break-all">{memo.value}</span>
+              </div>
+            )}
+
+            {suspicious && (
+              <Alert variant="warning" className="mt-1 px-3 py-2">
+                <AlertDescription className="text-xs">
+                  {t(($) => $.account.suspiciousAddressWarning)}
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
+
+          <span
+            className={cn(
+              'col-start-2 row-start-2 text-base font-semibold tabular-nums sm:col-start-3 sm:row-start-1 sm:text-right sm:whitespace-nowrap',
+              amountClasses,
+            )}
+          >
+            <SensitiveValue size="sm">
+              {sign}
+
+              {t(($) => $.common.inIcp, {
+                value: formatNumber(bigIntDiv(amountE8s, E8Sn), {
+                  minFraction: 2,
+                  maxFraction: 8,
+                }),
+              })}
+            </SensitiveValue>
+          </span>
         </div>
       </CardContent>
     </Card>
