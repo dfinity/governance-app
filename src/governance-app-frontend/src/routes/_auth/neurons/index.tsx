@@ -18,6 +18,7 @@ import {
 import { Button } from '@components/button';
 import { PageHeader } from '@components/PageHeader';
 import { QueryStates } from '@components/QueryStates';
+import { NeuronsContentSkeleton, NeuronsSkeleton } from '@components/skeletons/NeuronsSkeleton';
 import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
@@ -41,6 +42,7 @@ export const Route = createFileRoute('/_auth/neurons/')({
     openWizard: search.openWizard === 'true' || search.openWizard === true ? true : undefined,
   }),
   loader: ({ context }) => prefetchNeuronsRoute(context.queryClient),
+  pendingComponent: NeuronsSkeleton,
   // The loader warms the cache on entry and nothing more. Without this the
   // router reruns it on every navigation to the route, which here means every
   // `?openWizard`/`?neuronId` toggle — modal state lives in the search params.
@@ -123,6 +125,7 @@ function NeuronsComponent() {
         query={neuronsQuery}
         isEmpty={(neurons) => neurons.response.length === 0}
         emptyComponent={<EmptyNeuronsState openStakingWizard={handleOpenStakingWizard} />}
+        loadingComponent={<NeuronsContentSkeleton />}
       >
         {(neurons) => (
           <>

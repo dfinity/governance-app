@@ -1,11 +1,12 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { AlertTriangle, Key, Loader2 } from 'lucide-react';
+import { AlertTriangle, Key } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { MaxRewardsBadge } from '@components/MaxRewardsBadge';
+import { Spinner } from '@components/Spinner';
 import { mapCanisterError } from '@utils/errors';
 import { getNeuronDissolveDelaySeconds, getNeuronIsMaxDissolveDelay } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
@@ -169,7 +170,7 @@ export function NeuronDetailIncreaseDelayView({
       >
         {isPending ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Spinner className="mr-2" />
             {t(($) => $.neuronDetailModal.increaseDelay.confirming)}
           </>
         ) : (

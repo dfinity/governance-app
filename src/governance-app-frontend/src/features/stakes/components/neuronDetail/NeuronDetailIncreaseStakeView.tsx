@@ -1,6 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
-import { AlertTriangle, Info, Loader2 } from 'lucide-react';
+import { AlertTriangle, Info } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from '@components/Alert';
 import { AmountInput } from '@components/AmountInput';
 import { Button } from '@components/button';
 import { Label } from '@components/Label';
+import { Spinner } from '@components/Spinner';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
@@ -204,7 +205,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
       >
         {isPending ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Spinner className="mr-2" />
             {t(($) => $.neuronDetailModal.increaseStake.confirming)}
           </>
         ) : (

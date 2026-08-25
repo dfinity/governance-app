@@ -30,19 +30,18 @@ export function CapitalCard({ neurons }: CapitalCardProps) {
         <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {t(($) => $.neuron.summary.capital)}
         </p>
-        {tickersQuery.isLoading ? (
-          <>
-            <Skeleton className="mb-2 h-8 w-32" />
-            <Skeleton className="h-4 w-20" />
-          </>
-        ) : (
-          <>
-            <p className="text-lg font-semibold text-foreground md:text-2xl">
-              <SensitiveValue>
-                {t(($) => $.common.inIcp, { value: formatNumber(totalStaked) })}
-              </SensitiveValue>
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
+        {/* The staked total arrives with the neurons, so it never waits on the
+            ticker price. Only the USD line below does. */}
+        <p className="text-lg font-semibold text-foreground md:text-2xl">
+          <SensitiveValue>
+            {t(($) => $.common.inIcp, { value: formatNumber(totalStaked) })}
+          </SensitiveValue>
+        </p>
+        <div className="mt-1 text-sm text-muted-foreground">
+          {tickersQuery.isLoading ? (
+            <Skeleton className="h-5 w-20" />
+          ) : (
+            <p>
               {nonNullish(usdValue) ? (
                 <SensitiveValue size="sm">
                   {t(($) => $.account.approxUsd, {
@@ -53,8 +52,8 @@ export function CapitalCard({ neurons }: CapitalCardProps) {
                 '—'
               )}
             </p>
-          </>
-        )}
+          )}
+        </div>
       </CardContent>
     </Card>
   );

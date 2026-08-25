@@ -61,6 +61,11 @@
   --sidebar-ring: var(--icp-accent-strong);
   --main-content: var(--icp-bg);
   --staking-ratio: var(--icp-section-teal);
+  /* Skeleton bars pulse between these two. The pulse animates a color, which
+     leaves `opacity` free for the delayed reveal. An ink wash on the parchment,
+     not a tint of the rust accent: a placeholder must not read as content. */
+  --skeleton-base: rgba(26, 26, 26, 0.07);
+  --skeleton-peak: rgba(26, 26, 26, 0.035);
 }
 
 .dark {
@@ -111,6 +116,8 @@
   --sidebar-ring: var(--icp-accent-strong);
   --main-content: var(--icp-bg);
   --staking-ratio: #3fafaa;
+  --skeleton-base: rgba(162, 154, 141, 0.2);
+  --skeleton-peak: rgba(162, 154, 141, 0.1);
 }
 
 @theme inline {
@@ -204,6 +211,58 @@
 }
 
 @layer utilities {
+  /*
+   * Skeleton bars.
+   *
+   * A bar claims its space on the first frame, so the content lands without a
+   * jump. It stays invisible for `--skeleton-delay` first, so a fast query
+   * resolves into content with no grey flash on the way.
+   *
+   * The reveal animates `opacity` and the pulse animates `background-color`.
+   * Two animations on one property fight, and the pulse is declared last, so
+   * it would win and cancel the delay.
+   */
+  @keyframes skeleton-reveal {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes skeleton-pulse {
+    0%,
+    100% {
+      background-color: var(--skeleton-base);
+    }
+    50% {
+      background-color: var(--skeleton-peak);
+    }
+  }
+
+  .skeleton {
+    --skeleton-delay: 120ms;
+    background-color: var(--skeleton-base);
+    animation:
+      skeleton-reveal 150ms ease-out var(--skeleton-delay) both,
+      skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) var(--skeleton-delay) infinite;
+  }
+
+  /*
+   * Keep the delayed reveal, drop the pulse. Spinners keep turning: they are
+   * the only sign that a mutation is still running.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton {
+      animation: skeleton-reveal 0s linear var(--skeleton-delay) both;
+    }
+
+    .animate-pulse {
+      animation: none;
+    }
+  }
+
   .text-hero-responsive {
     font-size: clamp(2rem, 5vh, 4rem);
     line-height: 1.1;

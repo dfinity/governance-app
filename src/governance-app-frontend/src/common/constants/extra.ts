@@ -14,10 +14,6 @@ export const PAGINATION_LIMIT_PROPOSALS = 25;
 // Somehow this one has a different limit in case of a certified request.
 export const PAGINATION_LIMIT_TRANSACTIONS = 50;
 
-// Loading indicators are held back for this long before appearing, so a fast
-// response resolves into content instead of flashing a skeleton on the way.
-export const LOADING_INDICATOR_DELAY = 120;
-
 export const E8S_PRECISION = 8;
 export const E8S = 10 ** E8S_PRECISION;
 export const E8Sn = BigInt(E8S);

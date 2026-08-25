@@ -20,8 +20,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
 import { EmptyMessage } from '@components/EmptyMessage';
 import { MarkdownRenderer } from '@components/MarkdownRenderer';
-import { MultipleSkeletons } from '@components/MultipleSkeletons';
 import { QueryStates } from '@components/QueryStates';
+import {
+  ProposalDetailContentSkeleton,
+  ProposalDetailSkeleton,
+} from '@components/skeletons/ProposalDetailSkeleton';
 import { useGovernanceProposal } from '@hooks/governance/useGovernanceProposal';
 import { CheckResultKey, useSpamCheck } from '@hooks/spamFilter';
 import { CertifiedData } from '@typings/queries';
@@ -41,7 +44,7 @@ export const Route = createFileRoute('/_auth/voting/proposals/$id/')({
   beforeLoad: async ({ params }) => {
     if (!isValidProposalId(params.id)) throw redirect({ to: '/voting', replace: true });
   },
-  pendingComponent: () => <MultipleSkeletons count={3} />,
+  pendingComponent: ProposalDetailSkeleton,
   component: ProposalDetailsRouteComponent,
 
   head: ({ params }) => {
@@ -87,6 +90,7 @@ function ProposalDetailsRouteComponent() {
         emptyComponent={
           <EmptyMessage message={t(($) => $.proposal.notFound, { id: id?.toString() ?? '' })} />
         }
+        loadingComponent={<ProposalDetailContentSkeleton />}
       >
         {({ response: proposal }) => {
           if (!nonNullish(proposal)) return null;

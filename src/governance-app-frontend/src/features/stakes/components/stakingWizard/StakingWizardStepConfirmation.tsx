@@ -1,9 +1,10 @@
-import { AlertTriangle, Loader } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 
 import { AnimatedCheckmark } from '@components/AnimatedCheckmark';
 import { Button } from '@components/button';
+import { ProcessingSpinner } from '@components/ProcessingSpinner';
 
 import { STAKING_WIZARD_DISSOLVE_DELAY_OPTIONS } from './constants';
 import { StakingWizardCreateNeuronStep, StakingWizardFormState } from './types';
@@ -54,7 +55,7 @@ export function StakingWizardStepConfirmation({
         className="flex flex-col items-center gap-6 text-center"
         data-testid="staking-wizard-processing"
       >
-        <AnimatedLoader />
+        <ProcessingSpinner />
         <div>
           <p className="mb-3 text-lg font-semibold">
             {t(($) => $.stakeWizardModal.steps.confirmation.processing.title)}
@@ -158,19 +159,6 @@ export function StakingWizardStepConfirmation({
         {t(($) => $.stakeWizardModal.steps.confirmation.success.done)}
       </Button>
     </div>
-  );
-}
-
-function AnimatedLoader() {
-  return (
-    <motion.div
-      className="flex size-20 items-center justify-center rounded-full bg-green-600/10"
-      initial={{ scale: 0.8, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 0.3 }}
-    >
-      <Loader className="size-10 animate-spin text-green-600" />
-    </motion.div>
   );
 }
 

@@ -116,7 +116,7 @@ function AccountBalance({
     return (
       <div className="flex flex-col gap-0.5">
         <Skeleton className="h-8 w-32" />
-        <Skeleton className="h-4 w-20" />
+        <Skeleton className="h-5 w-20" />
       </div>
     );
   }

@@ -64,7 +64,7 @@ export const AccountsTotalCard = () => {
             </p>
           )}
           {isLoading || tickersQuery.isLoading ? (
-            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-5 w-20" />
           ) : (
             <p className="text-sm text-muted-foreground">
               <SensitiveValue size="sm">
@@ -96,8 +96,8 @@ export const AccountsTotalCard = () => {
 
         {isLoading ? (
           <div className="flex gap-4">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-5 w-24" />
+            <Skeleton className="h-5 w-24" />
           </div>
         ) : (
           <div className="flex flex-wrap gap-x-4 gap-y-1">
