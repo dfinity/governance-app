@@ -17,7 +17,7 @@ import {
   MutationDialogHeader,
 } from '@components/MutationDialog';
 import { ResponsiveDialogDescription, ResponsiveDialogTitle } from '@components/ResponsiveDialog';
-import { Skeleton } from '@components/Skeleton';
+import { SkeletonPickerRows } from '@components/skeletons/SkeletonListRows';
 import { DIALOG_RESET_DELAY_MS } from '@constants/extra';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
@@ -242,14 +242,7 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
               >
                 <div className="flex flex-col divide-y">
                   {knownNeuronsQuery.isLoading ? (
-                    <div className="flex flex-col gap-3 p-3">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="flex items-center gap-4 p-4">
-                          <Skeleton className="size-6 rounded" />
-                          <Skeleton className="h-5 w-48" />
-                        </div>
-                      ))}
-                    </div>
+                    <SkeletonPickerRows />
                   ) : knownNeuronsQuery.isError ? (
                     <p className="py-4 text-center text-destructive">
                       {t(($) => $.common.loadingError)}
