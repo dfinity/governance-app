@@ -82,7 +82,12 @@ export function TransactionListDialog({
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
       <ResponsiveDialogContent
-        className="max-h-[80vh] overflow-y-auto sm:max-w-3xl"
+        // `overflow-y-auto` makes `overflow-x` compute to `auto`, so any row that is
+        // one pixel too wide adds a horizontal scrollbar. Hide that axis instead.
+        // `min()` keeps the 2rem gutter: a plain `sm:max-w-3xl` overrides the base
+        // `max-w-[calc(100%-2rem)]` and lets the dialog touch both viewport edges
+        // between 768px and 800px.
+        className="max-h-[80vh] overflow-x-hidden overflow-y-auto sm:max-w-[min(48rem,calc(100%-2rem))]"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <ResponsiveDialogHeader>
@@ -93,11 +98,11 @@ export function TransactionListDialog({
         </ResponsiveDialogHeader>
 
         {isNullish(accountIdHex) ? (
-          <div className="flex flex-col gap-2">
+          <div className="flex min-w-0 flex-col gap-2">
             <MultipleSkeletons count={3} />
           </div>
         ) : (
-          <div className="flex flex-col gap-2 pb-2 lg:pb-0">
+          <div className="flex min-w-0 flex-col gap-2 pb-2 lg:pb-0">
             <QueryStates<CertifiedData<IcpIndexDid.GetAccountIdentifierTransactionsResponse>>
               infiniteQuery={transactions}
               isEmpty={(data) => !data.pages?.length || !data.pages[0].response.transactions.length}
