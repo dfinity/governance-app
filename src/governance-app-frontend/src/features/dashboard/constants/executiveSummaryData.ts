@@ -96,7 +96,7 @@ const AUGUST_2026: MonthlyGovernanceSummary = {
     {
       icon: 'network',
       title: 'Network operations & infrastructure',
-      description: 'Swiss subnet SEV migration continued (waves 2 to 8); 8 retired subnets deleted',
+      description: 'Swiss subnet SEV migration completed (waves 2 to 8); 8 retired subnets deleted',
       highlights: [
         { value: 393, label: 'rollouts completed' },
         { value: 6, label: 'GuestOS versions' },
