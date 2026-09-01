@@ -82,80 +82,80 @@ import type { MonthlyGovernanceSummary } from '../types/executiveSummary';
  * ▲▲▲ END PROMPT ▲▲▲
  */
 
-const JULY_2026: MonthlyGovernanceSummary = {
-  month: 'July',
+const AUGUST_2026: MonthlyGovernanceSummary = {
+  month: 'August',
   year: 2026,
 
   outcomes: [
-    { status: 'approved', count: 612 },
-    { status: 'rejected', count: 6 },
-    { status: 'failed', count: 1 },
+    { status: 'approved', count: 478 },
+    { status: 'rejected', count: 3 },
+    { status: 'failed', count: 3 },
   ],
 
   topChanges: [
     {
       icon: 'network',
       title: 'Network operations & infrastructure',
-      description: 'Confidential computing migration started; Swiss subnet rebuilt with SEV-SNP',
+      description: 'Swiss subnet SEV migration ran waves 2 to 8; 8 retired subnets deleted',
       highlights: [
-        { value: 533, label: 'rollouts completed' },
-        { value: 7, label: 'GuestOS versions' },
+        { value: 393, label: 'rollouts completed' },
+        { value: 6, label: 'GuestOS versions' },
         { value: 3, label: 'HostOS versions' },
-        { value: 4, label: 'nodes replaced' },
+        { value: 8, label: 'subnets retired' },
       ],
     },
     {
       icon: 'protocol',
       title: 'Core protocol & app upgrades',
-      description: 'Internet Identity shipped MCP support, SSO gating, and session length choice',
+      description: 'ckBAT joined the ckERC20 suite; Internet Identity shipped app metadata support',
       highlights: [
-        { value: 16, label: 'protocol upgrades' },
+        { value: 14, label: 'protocol upgrades' },
         { value: 9, label: 'II upgrades' },
-        { value: 2, label: 'other app upgrades' },
-        { value: 1, label: 'canister reinstalled' },
+        { value: 2, label: 'NNS Dapp upgrades' },
+        { value: 1, label: 'ckERC20 token added' },
       ],
     },
     {
       icon: 'community',
       title: 'Community governance',
-      description: 'Target topology revised; ICP/XDR reward floor set; three releases voted down',
+      description: 'DOXA swap protective motion passed; DoxaUSD SNS launched; NOKU SA removed',
       highlights: [
-        { value: 2, label: 'motions passed' },
+        { value: 1, label: 'motion passed' },
+        { value: 1, label: 'SNS launched' },
         { value: 3, label: 'releases rejected' },
         { value: 1, label: 'node provider removed' },
-        { value: 1, label: 'subnet recovered' },
       ],
     },
   ],
 
   communityHighlights: [
     {
-      title: 'Motion: Revised Target Topology',
+      title: 'Motion: Urgent Protective Action for the DOXA SNS Swap',
       outcome: 'passed',
       label: 'Passed',
     },
     {
-      title: 'Motion: Node Provider Standards Follow-Up',
+      title: "Create a SNS Named 'DoxaUSD (DUSD)'",
+      outcome: 'passed',
+      label: 'Launch Approved',
+    },
+    {
+      title: 'Add ckBAT to the ckERC20 Ledger Suite',
       outcome: 'passed',
       label: 'Passed',
     },
     {
-      title: 'Set Minimum ICP/XDR Rate Floor to 2 XDR',
+      title: 'Remove NOKU SA as a Node Provider',
       outcome: 'passed',
       label: 'Passed',
     },
     {
-      title: 'Create Second SEV-Enabled (TEE) Subnet',
-      outcome: 'passed',
-      label: 'Passed',
-    },
-    {
-      title: 'Elect IC/GuestOS Revision (1153c70)',
+      title: 'Elect IC/GuestOS Revision (fffab35)',
       outcome: 'rejected',
       label: 'Rejected',
     },
     {
-      title: 'Upgrade Cycles-Minting Canister (d0bbf76)',
+      title: 'Elect IC/HostOS Revision (fffab35)',
       outcome: 'rejected',
       label: 'Rejected',
     },
@@ -163,4 +163,4 @@ const JULY_2026: MonthlyGovernanceSummary = {
 };
 
 /** The currently displayed summary — update this reference each month */
-export const currentSummary: MonthlyGovernanceSummary = JULY_2026;
+export const currentSummary: MonthlyGovernanceSummary = AUGUST_2026;
