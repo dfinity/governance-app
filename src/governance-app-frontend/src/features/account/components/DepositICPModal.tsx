@@ -16,8 +16,6 @@ import {
 } from '@components/ResponsiveDialog';
 import { Separator } from '@components/Separator';
 
-import { BuyIcpButton } from './BuyIcpButton';
-
 // Aspect ratio (width / height) of the ICP logo image embedded in the QR code.
 const QR_CODE_LOGO_ASPECT_RATIO = 195 / 92;
 const QR_CODE_LOGO_HEIGHT = 35;
@@ -92,12 +90,6 @@ export const DepositICPModal = ({
               <CopyButton value={accountId.toHex()} label={t(($) => $.account.accountIdentifier)} />
             </div>
           </div>
-
-          <Separator />
-
-          <p className="text-sm text-muted-foreground">{t(($) => $.depositModal.buyIcpHint)}</p>
-
-          <BuyIcpButton accountId={accountId} />
         </div>
       </ResponsiveDialogContent>
     </ResponsiveDialog>
