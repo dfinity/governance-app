@@ -85,6 +85,18 @@ export const AccountTransactionItem = ({
 
   const shortAddress = nonNullish(address) ? shortenId(address, ADDRESS_VISIBLE_CHARS) : '';
 
+  // A suspicious row shows the shortened address only. The full address stays
+  // hidden so the user cannot read it from a tooltip and copy it by hand.
+  const addressLabel = nonNullish(addressDirection) && (
+    <Trans
+      i18nKey={($) => $.account[addressDirection]}
+      values={{ address: addressName ?? shortAddress }}
+      components={{
+        address: <span className={nonNullish(addressName) ? 'font-semibold' : 'font-mono'} />,
+      }}
+    />
+  );
+
   return (
     <Card key={tx.id} className="p-0">
       <CardContent className="px-4 py-3 sm:px-6 sm:py-4">
@@ -119,26 +131,20 @@ export const AccountTransactionItem = ({
                   suspicious && 'text-amber-800 dark:text-amber-200',
                 )}
               >
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button type="button" className="min-w-0 truncate text-left">
-                      <Trans
-                        i18nKey={($) => $.account[addressDirection!]}
-                        values={{ address: addressName ?? shortAddress }}
-                        components={{
-                          address: (
-                            <span
-                              className={nonNullish(addressName) ? 'font-semibold' : 'font-mono'}
-                            />
-                          ),
-                        }}
-                      />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="font-mono text-xs break-all">{address}</p>
-                  </TooltipContent>
-                </Tooltip>
+                {suspicious ? (
+                  <span className="min-w-0 truncate">{addressLabel}</span>
+                ) : (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="min-w-0 truncate text-left">
+                        {addressLabel}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="font-mono text-xs break-all">{address}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
 
                 {nonNullish(addressName) ? (
                   addressEntry?.source === 'addressBook' ? (
