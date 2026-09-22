@@ -35,5 +35,10 @@
   "memoIcpError": "The memo for an ICP address must be a whole number of 0 or greater.",
   "memoIcrcError": "The memo for an ICRC-1 address must be at most 32 bytes.",
   "confirmMemo": "Memo",
-  "memoDisplayLabel": "Memo:"
+  "memoDisplayLabel": "Memo:",
+  "scanQrCode": "Scan QR code",
+  "scanQrTitle": "Scan a QR code",
+  "scanQrDescription": "Point the camera at a QR code that contains an ICP or ICRC-1 address.",
+  "scanQrCameraError": "The camera is not available. Allow camera access in your browser and try again.",
+  "scanQrInvalid": "This QR code does not contain a valid ICP or ICRC-1 address."
 }

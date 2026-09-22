@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 
 import type { NamedAddress } from '@declarations/governance-app-backend/governance-app-backend.did';
 
+import { ScanAddressButton } from '@features/account/components/ScanAddressButton';
 import {
   encodeMemoToIcp,
   encodeMemoToIcrc1,
@@ -40,6 +41,7 @@ import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
 import { useTickerPrices } from '@hooks/tickers';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { useQrScannerSupport } from '@hooks/useQrScannerSupport';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
 import { addressBookGetAddressString } from '@utils/addressBook';
@@ -403,6 +405,7 @@ function SendFormStep({
 }: SendFormStepProps) {
   const { t } = useTranslation();
   const showToggle = !addressBookLoading && hasAddresses;
+  const qrScannerSupported = useQrScannerSupport();
 
   return (
     <motion.form
@@ -484,17 +487,29 @@ function SendFormStep({
                 onSelect={onDestinationSelect}
               />
             ) : (
-              <Input
-                id="destination-account"
-                onChange={(e) => onDestinationChange(e.target.value)}
-                value={toAccount}
-                className={cn('font-mono', toAccountError && 'border-destructive')}
-                aria-invalid={!!toAccountError}
-                autoComplete="off"
-                data-1p-ignore
-                data-lpignore="true"
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="destination-account"
+                  onChange={(e) => onDestinationChange(e.target.value)}
+                  value={toAccount}
+                  className={cn(
+                    'font-mono',
+                    qrScannerSupported && 'pr-10',
+                    toAccountError && 'border-destructive',
+                  )}
+                  aria-invalid={!!toAccountError}
+                  autoComplete="off"
+                  data-1p-ignore
+                  data-lpignore="true"
+                  required
+                />
+                {qrScannerSupported && (
+                  <ScanAddressButton
+                    className="absolute top-1/2 right-0.5 -translate-y-1/2"
+                    onScan={onDestinationChange}
+                  />
+                )}
+              </div>
             )}
             {toAccountError && (
               <Alert variant="warning">
