@@ -53,7 +53,7 @@ export const ScanAddressButton: React.FC<Props> = ({ onScan, className }) => {
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t(($) => $.account.scanQrTitle)}</DialogTitle>
             <DialogDescription>{t(($) => $.account.scanQrDescription)}</DialogDescription>
@@ -74,14 +74,17 @@ function QrScanner({ onScan }: QrScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [status, setStatus] = useState(Status.Scanning);
 
-  const handleDetected = useEffectEvent((raw: string): boolean => {
-    const address = parseScannedAddress(raw);
-    if (address === undefined) {
-      setStatus(Status.InvalidCode);
-      return false;
+  // A frame can hold several codes. Take the first one that is an address.
+  const handleDetected = useEffectEvent((codes: DetectedBarcode[]): boolean => {
+    for (const code of codes) {
+      const address = parseScannedAddress(code.rawValue);
+      if (address !== undefined) {
+        onScan(address);
+        return true;
+      }
     }
-    onScan(address);
-    return true;
+    setStatus(Status.InvalidCode);
+    return false;
   });
 
   useEffect(() => {
@@ -98,8 +101,7 @@ function QrScanner({ onScan }: QrScannerProps) {
       if (video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA) {
         try {
           const codes = await detector.detect(video);
-          const raw = codes[0]?.rawValue;
-          if (!cancelled && raw !== undefined && handleDetected(raw)) return;
+          if (!cancelled && codes.length > 0 && handleDetected(codes)) return;
         } catch {
           // A frame can fail to decode. Skip it and try the next one.
         }
@@ -142,7 +144,7 @@ function QrScanner({ onScan }: QrScannerProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="relative aspect-square w-full overflow-hidden rounded-md bg-black">
+      <div className="relative mx-auto aspect-square w-full max-w-[50dvh] overflow-hidden rounded-md bg-black">
         <video
           ref={videoRef}
           className="size-full object-cover"
