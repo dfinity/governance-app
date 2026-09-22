@@ -126,7 +126,12 @@ function QrScanner({ onScan }: QrScannerProps) {
       try {
         await video.play();
       } catch {
-        // The effect cleanup paused the video before playback started.
+        // The effect cleanup pauses the video, which rejects a pending play().
+        // Any other rejection means the browser blocked playback.
+        if (!cancelled) {
+          stream.getTracks().forEach((track) => track.stop());
+          setStatus(Status.CameraError);
+        }
         return;
       }
       timer = setTimeout(tick, DETECT_INTERVAL_MS);
