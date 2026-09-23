@@ -115,6 +115,8 @@ function QrScanner({ onScan }: QrScannerProps) {
         if (!cancelled) setStatus(Status.LoadError);
         return;
       }
+      // The dialog can close while the decoder downloads. Do not open the camera then.
+      if (cancelled) return;
 
       const tick = () => {
         if (cancelled) return;
