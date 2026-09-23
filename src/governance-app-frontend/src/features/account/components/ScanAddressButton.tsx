@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@components/Dialog';
-import { createQrDetector, parseScannedAddress } from '@utils/qrScanner';
+import { createQrDetector, parseScannedPayment, type ScannedPayment } from '@utils/qrScanner';
 import { cn } from '@utils/shadcn';
 
 // Time between two detection attempts. Decoding every frame drains the battery
@@ -25,7 +25,7 @@ enum Status {
 }
 
 type Props = {
-  onScan: (address: string) => void;
+  onScan: (payment: ScannedPayment) => void;
   className?: string;
 };
 
@@ -33,8 +33,8 @@ export const ScanAddressButton: React.FC<Props> = ({ onScan, className }) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
-  const handleScan = (address: string) => {
-    onScan(address);
+  const handleScan = (payment: ScannedPayment) => {
+    onScan(payment);
     setOpen(false);
   };
 
@@ -66,7 +66,7 @@ export const ScanAddressButton: React.FC<Props> = ({ onScan, className }) => {
 };
 
 type QrScannerProps = {
-  onScan: (address: string) => void;
+  onScan: (payment: ScannedPayment) => void;
 };
 
 function QrScanner({ onScan }: QrScannerProps) {
@@ -74,12 +74,13 @@ function QrScanner({ onScan }: QrScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [status, setStatus] = useState(Status.Scanning);
 
-  // A frame can hold several codes. Take the first one that is an address.
+  // A frame can hold several codes. Take the first one that is an address or
+  // a payment URI.
   const handleDetected = useEffectEvent((codes: DetectedBarcode[]): boolean => {
     for (const code of codes) {
-      const address = parseScannedAddress(code.rawValue);
-      if (address !== undefined) {
-        onScan(address);
+      const payment = parseScannedPayment(code.rawValue);
+      if (payment !== undefined) {
+        onScan(payment);
         return true;
       }
     }

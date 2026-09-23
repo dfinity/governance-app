@@ -2,29 +2,65 @@ import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { Principal } from '@icp-sdk/core/principal';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { isQrScannerSupported, parseScannedAddress } from '@utils/qrScanner';
+import { isQrScannerSupported, parseScannedPayment } from '@utils/qrScanner';
 
 const ICRC_ADDRESS = 'aaaaa-aa';
 const ICP_ADDRESS = AccountIdentifier.fromPrincipal({
   principal: Principal.fromText(ICRC_ADDRESS),
 }).toHex();
 
-describe('parseScannedAddress', () => {
+describe('parseScannedPayment', () => {
   it('should return an ICP account identifier', () => {
-    expect(parseScannedAddress(ICP_ADDRESS)).toBe(ICP_ADDRESS);
+    expect(parseScannedPayment(ICP_ADDRESS)).toEqual({ address: ICP_ADDRESS });
   });
 
   it('should return an ICRC-1 address', () => {
-    expect(parseScannedAddress(ICRC_ADDRESS)).toBe(ICRC_ADDRESS);
+    expect(parseScannedPayment(ICRC_ADDRESS)).toEqual({ address: ICRC_ADDRESS });
   });
 
   it('should trim whitespace around the address', () => {
-    expect(parseScannedAddress(`  ${ICP_ADDRESS}\n`)).toBe(ICP_ADDRESS);
+    expect(parseScannedPayment(`  ${ICP_ADDRESS}\n`)).toEqual({ address: ICP_ADDRESS });
+  });
+
+  it('should return the address and the amount from a payment URI', () => {
+    expect(parseScannedPayment(`icp:${ICP_ADDRESS}?amount=1.5`)).toEqual({
+      address: ICP_ADDRESS,
+      amount: 1.5,
+    });
+    expect(parseScannedPayment(`icp:${ICRC_ADDRESS}?amount=0.25`)).toEqual({
+      address: ICRC_ADDRESS,
+      amount: 0.25,
+    });
+  });
+
+  it('should return only the address from a payment URI without an amount', () => {
+    expect(parseScannedPayment(`icp:${ICP_ADDRESS}`)).toEqual({ address: ICP_ADDRESS });
+  });
+
+  it('should ignore an amount that is not a number', () => {
+    expect(parseScannedPayment(`icp:${ICP_ADDRESS}?amount=abc`)).toEqual({
+      address: ICP_ADDRESS,
+    });
+  });
+
+  it('should accept the token in any case', () => {
+    expect(parseScannedPayment(`ICP:${ICP_ADDRESS}?amount=2`)).toEqual({
+      address: ICP_ADDRESS,
+      amount: 2,
+    });
+  });
+
+  it('should return undefined for a payment URI with another token', () => {
+    expect(parseScannedPayment(`ckbtc:${ICRC_ADDRESS}?amount=1`)).toBeUndefined();
+  });
+
+  it('should return undefined for a payment URI with an invalid address', () => {
+    expect(parseScannedPayment('icp:not-an-address?amount=1')).toBeUndefined();
   });
 
   it('should return undefined for a payload that is not an address', () => {
-    expect(parseScannedAddress('https://example.com')).toBeUndefined();
-    expect(parseScannedAddress('')).toBeUndefined();
+    expect(parseScannedPayment('https://example.com')).toBeUndefined();
+    expect(parseScannedPayment('')).toBeUndefined();
   });
 });
 
