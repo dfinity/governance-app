@@ -3,30 +3,28 @@ import { isNullish, nonNullish } from '@dfinity/utils';
 
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
 
-const QR_CODE_FORMAT = 'qr_code';
+export type QrDecoder = (image: ImageData) => string | undefined;
 
 // The only token that the send flow supports in a payment URI.
 const PAYMENT_TOKEN = 'icp';
 
 /**
- * Checks that the browser can scan QR codes from a camera stream.
- * Chrome ships `BarcodeDetector` on every platform but only Android, ChromeOS,
- * and macOS decode QR codes, so the format list is the real signal.
+ * Checks that the browser exposes the camera API.
+ * Browsers remove `mediaDevices` on insecure origins.
  */
-export const isQrScannerSupported = async (): Promise<boolean> => {
-  if (typeof BarcodeDetector === 'undefined') return false;
-  if (isNullish(navigator.mediaDevices?.getUserMedia)) return false;
+export const isCameraSupported = (): boolean =>
+  !isNullish(globalThis.navigator?.mediaDevices?.getUserMedia);
 
-  try {
-    const formats = await BarcodeDetector.getSupportedFormats();
-    return formats.includes(QR_CODE_FORMAT);
-  } catch {
-    return false;
-  }
+/**
+ * Loads the QR decoder on demand, so users who never scan do not download it.
+ * The native `BarcodeDetector` API is not an option: Safari ships it behind a
+ * flag and it is broken on iOS 18+, and Firefox does not implement it.
+ */
+export const loadQrDecoder = async (): Promise<QrDecoder> => {
+  const { default: jsQR } = await import('jsqr');
+  return (image) =>
+    jsQR(image.data, image.width, image.height, { inversionAttempts: 'dontInvert' })?.data;
 };
-
-export const createQrDetector = (): BarcodeDetector =>
-  new BarcodeDetector({ formats: [QR_CODE_FORMAT] });
 
 export type ScannedPayment = {
   address: string;

@@ -41,7 +41,6 @@ import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
 import { useTickerPrices } from '@hooks/tickers';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
-import { useQrScannerSupport } from '@hooks/useQrScannerSupport';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
 import { addressBookGetAddressString } from '@utils/addressBook';
@@ -49,6 +48,7 @@ import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { isCertifiedRejectError } from '@utils/errors';
 import { shortenId } from '@utils/id';
 import { formatNumber, roundToE8sPrecision } from '@utils/numbers';
+import { isCameraSupported } from '@utils/qrScanner';
 import { cn } from '@utils/shadcn';
 
 type Props = {
@@ -405,7 +405,7 @@ function SendFormStep({
 }: SendFormStepProps) {
   const { t } = useTranslation();
   const showToggle = !addressBookLoading && hasAddresses;
-  const qrScannerSupported = useQrScannerSupport();
+  const cameraSupported = isCameraSupported();
 
   return (
     <motion.form
@@ -494,7 +494,7 @@ function SendFormStep({
                   value={toAccount}
                   className={cn(
                     'font-mono',
-                    qrScannerSupported && 'pr-10',
+                    cameraSupported && 'pr-10',
                     toAccountError && 'border-destructive',
                   )}
                   aria-invalid={!!toAccountError}
@@ -503,7 +503,7 @@ function SendFormStep({
                   data-lpignore="true"
                   required
                 />
-                {qrScannerSupported && (
+                {cameraSupported && (
                   <ScanAddressButton
                     className="absolute top-1/2 right-0.5 -translate-y-1/2"
                     onScan={({ address, amount }) => {
