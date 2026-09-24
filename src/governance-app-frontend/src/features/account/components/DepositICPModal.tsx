@@ -69,6 +69,8 @@ export const DepositICPModal = ({
                 value={accountId.toHex()}
                 size={220}
                 level="H"
+                // Quiet zone inside the SVG, so the code keeps a white margin on a dark card.
+                marginSize={4}
                 imageSettings={{
                   src: '/infinity-mark.png',
                   height: QR_CODE_LOGO_HEIGHT,
