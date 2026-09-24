@@ -506,7 +506,10 @@ function SendFormStep({
                 {cameraSupported && (
                   <ScanAddressButton
                     className="absolute top-1/2 right-0.5 -translate-y-1/2"
-                    onScan={onDestinationChange}
+                    onScan={({ address, amount }) => {
+                      onDestinationChange(address);
+                      if (nonNullish(amount)) onAmountChange(String(amount));
+                    }}
                   />
                 )}
               </div>

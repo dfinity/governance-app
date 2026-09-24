@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@components/Dialog';
-import { loadQrDecoder, parseScannedAddress } from '@utils/qrScanner';
+import { loadQrDecoder, parseScannedPayment, type ScannedPayment } from '@utils/qrScanner';
 import { cn } from '@utils/shadcn';
 
 // Time between two detection attempts. Decoding every frame drains the battery
@@ -29,7 +29,7 @@ enum Status {
 }
 
 type Props = {
-  onScan: (address: string) => void;
+  onScan: (payment: ScannedPayment) => void;
   className?: string;
 };
 
@@ -37,8 +37,8 @@ export const ScanAddressButton: React.FC<Props> = ({ onScan, className }) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
-  const handleScan = (address: string) => {
-    onScan(address);
+  const handleScan = (payment: ScannedPayment) => {
+    onScan(payment);
     setOpen(false);
   };
 
@@ -70,7 +70,7 @@ export const ScanAddressButton: React.FC<Props> = ({ onScan, className }) => {
 };
 
 type QrScannerProps = {
-  onScan: (address: string) => void;
+  onScan: (payment: ScannedPayment) => void;
 };
 
 function QrScanner({ onScan }: QrScannerProps) {
@@ -79,12 +79,12 @@ function QrScanner({ onScan }: QrScannerProps) {
   const [status, setStatus] = useState(Status.Scanning);
 
   const handleDetected = useEffectEvent((raw: string): boolean => {
-    const address = parseScannedAddress(raw);
-    if (address === undefined) {
+    const payment = parseScannedPayment(raw);
+    if (payment === undefined) {
       setStatus(Status.InvalidCode);
       return false;
     }
-    onScan(address);
+    onScan(payment);
     return true;
   });
 
