@@ -40,5 +40,6 @@
   "scanQrTitle": "Scan a QR code",
   "scanQrDescription": "Point the camera at a QR code that contains an ICP or ICRC-1 address.",
   "scanQrCameraError": "The camera is not available. Allow camera access in your browser and try again.",
-  "scanQrInvalid": "This QR code does not contain a valid ICP or ICRC-1 address."
+  "scanQrInvalid": "This QR code does not contain a valid ICP or ICRC-1 address.",
+  "scanQrLoadError": "The QR scanner failed to load. Check your connection and try again."
 }

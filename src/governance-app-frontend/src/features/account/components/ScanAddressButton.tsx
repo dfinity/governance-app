@@ -11,16 +11,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@components/Dialog';
-import { createQrDetector, parseScannedAddress } from '@utils/qrScanner';
+import { loadQrDecoder, parseScannedAddress } from '@utils/qrScanner';
 import { cn } from '@utils/shadcn';
 
 // Time between two detection attempts. Decoding every frame drains the battery
 // with no gain, because a QR code stays in view for many frames.
 const DETECT_INTERVAL_MS = 150;
+// Longest side of the frame handed to the decoder. Smaller frames decode faster
+// and a QR code that fills the viewfinder stays readable at this size.
+const MAX_DECODE_SIZE_PX = 480;
 
 enum Status {
   Scanning = 'scanning',
   CameraError = 'cameraError',
+  LoadError = 'loadError',
   InvalidCode = 'invalidCode',
 }
 
@@ -74,17 +78,14 @@ function QrScanner({ onScan }: QrScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [status, setStatus] = useState(Status.Scanning);
 
-  // A frame can hold several codes. Take the first one that is an address.
-  const handleDetected = useEffectEvent((codes: DetectedBarcode[]): boolean => {
-    for (const code of codes) {
-      const address = parseScannedAddress(code.rawValue);
-      if (address !== undefined) {
-        onScan(address);
-        return true;
-      }
+  const handleDetected = useEffectEvent((raw: string): boolean => {
+    const address = parseScannedAddress(raw);
+    if (address === undefined) {
+      setStatus(Status.InvalidCode);
+      return false;
     }
-    setStatus(Status.InvalidCode);
-    return false;
+    onScan(address);
+    return true;
   });
 
   useEffect(() => {
@@ -94,22 +95,39 @@ function QrScanner({ onScan }: QrScannerProps) {
     let cancelled = false;
     let stream: MediaStream | undefined;
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const detector = createQrDetector();
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d', { willReadFrequently: true });
 
-    const tick = async () => {
-      if (cancelled) return;
-      if (video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA) {
-        try {
-          const codes = await detector.detect(video);
-          if (!cancelled && codes.length > 0 && handleDetected(codes)) return;
-        } catch {
-          // A frame can fail to decode. Skip it and try the next one.
-        }
-      }
-      if (!cancelled) timer = setTimeout(tick, DETECT_INTERVAL_MS);
+    const readFrame = (): ImageData | undefined => {
+      if (!context || video.videoWidth === 0) return undefined;
+      const scale = Math.min(1, MAX_DECODE_SIZE_PX / Math.max(video.videoWidth, video.videoHeight));
+      canvas.width = Math.round(video.videoWidth * scale);
+      canvas.height = Math.round(video.videoHeight * scale);
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      return context.getImageData(0, 0, canvas.width, canvas.height);
     };
 
     const start = async () => {
+      let decode: Awaited<ReturnType<typeof loadQrDecoder>>;
+      try {
+        decode = await loadQrDecoder();
+      } catch {
+        if (!cancelled) setStatus(Status.LoadError);
+        return;
+      }
+      // The dialog can close while the decoder downloads. Do not open the camera then.
+      if (cancelled) return;
+
+      const tick = () => {
+        if (cancelled) return;
+        if (video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA) {
+          const frame = readFrame();
+          const raw = frame && decode(frame);
+          if (raw !== undefined && handleDetected(raw)) return;
+        }
+        timer = setTimeout(tick, DETECT_INTERVAL_MS);
+      };
+
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'environment' },
@@ -158,7 +176,7 @@ function QrScanner({ onScan }: QrScannerProps) {
           playsInline
           data-testid="scan-address-video"
         />
-        {status !== Status.CameraError && (
+        {status !== Status.CameraError && status !== Status.LoadError && (
           <div
             aria-hidden
             className="pointer-events-none absolute inset-[15%] rounded-lg border-2 border-white/80"
@@ -169,6 +187,12 @@ function QrScanner({ onScan }: QrScannerProps) {
         <Alert variant="warning">
           <AlertTriangle className="size-4 text-destructive" />
           <AlertDescription>{t(($) => $.account.scanQrCameraError)}</AlertDescription>
+        </Alert>
+      )}
+      {status === Status.LoadError && (
+        <Alert variant="warning">
+          <AlertTriangle className="size-4 text-destructive" />
+          <AlertDescription>{t(($) => $.account.scanQrLoadError)}</AlertDescription>
         </Alert>
       )}
       {status === Status.InvalidCode && (

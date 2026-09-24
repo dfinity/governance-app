@@ -59,6 +59,9 @@ export default defineConfig({
             if (id.includes('recharts') || id.includes('d3') || id.includes('lodash'))
               return 'vendor-recharts';
 
+            // Loaded on demand by the QR scanner. Keep it out of the shared vendor chunk.
+            if (id.includes('node_modules/jsqr/')) return 'vendor-jsqr';
+
             // Everything else (Lucide, Radix, Motion)
             return 'vendor-libs';
           }
