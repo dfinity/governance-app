@@ -114,6 +114,17 @@
       "failed": "Failed to lock maturity. Please try again."
     }
   },
+  "disbursements": {
+    "title": "Active disbursements",
+    "view": "View",
+    "total": "Total disbursing",
+    "amount": "Maturity disbursing",
+    "to": "To",
+    "started": "Started",
+    "completes": "Completes",
+    "unknownDestination": "Unknown destination",
+    "info": "These disbursements are in progress and irreversible. 7 days after each disbursement started, the ICP is minted and sent to the destination account. The final amount depends on the maturity modulation at that time."
+  },
   "hotkeyNotice": "As a hotkey, you can view this setting but only the neuron controller can make changes.",
   "devActions": {
     "title": "Dev actions"

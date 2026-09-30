@@ -6,6 +6,7 @@ export enum NeuronDetailView {
   IncreaseStake = 'increaseStake',
   IncreaseDelay = 'increaseDelay',
   MaturityMode = 'maturityMode',
+  Disbursements = 'disbursements',
   Dissolve = 'dissolve',
   DevActions = 'devActions',
 }

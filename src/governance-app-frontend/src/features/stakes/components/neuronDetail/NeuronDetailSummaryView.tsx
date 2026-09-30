@@ -1,7 +1,7 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
-import { Clock, Key, Lock, PlusCircle, Settings, Unlock, Wrench } from 'lucide-react';
+import { Clock, Hourglass, Key, Lock, PlusCircle, Settings, Unlock, Wrench } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -29,6 +29,7 @@ import {
   formatDissolveDelay,
   getEightYearGangBonusE8s,
   getNeuronFreeMaturityE8s,
+  getNeuronMaturityDisbursementsInProgressE8s,
   getNeuronStakeAfterFeesE8s,
   getNeuronStakedMaturityE8s,
   shortenNeuronId,
@@ -71,6 +72,8 @@ export function NeuronDetailSummaryView({
   const stakedAmount = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
   const stakedMaturity = bigIntDiv(getNeuronStakedMaturityE8s(neuron), E8Sn);
   const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
+  const disbursingMaturityE8s = getNeuronMaturityDisbursementsInProgressE8s(neuron);
+  const disbursingMaturity = bigIntDiv(disbursingMaturityE8s, E8Sn);
 
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const usdValue = icpPrice ? formatNumber(stakedAmount * icpPrice.usd) : undefined;
@@ -202,6 +205,29 @@ export function NeuronDetailSummaryView({
             <MaturitySymbol />
           </div>
         </InfoRow>
+
+        {disbursingMaturityE8s > 0n && (
+          <InfoRow
+            label={t(($) => $.neuron.disbursingMaturity)}
+            dataTestId="neuron-detail-disbursing-maturity"
+          >
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <Hourglass className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                <span className="font-semibold">{formatNumber(disbursingMaturity)}</span>
+                <MaturitySymbol />
+              </div>
+              <button
+                type="button"
+                className="font-semibold text-primary hover:underline"
+                onClick={() => onNavigate(NeuronDetailView.Disbursements)}
+                data-testid="neuron-detail-view-disbursements-btn"
+              >
+                {t(($) => $.neuronDetailModal.disbursements.view)}
+              </button>
+            </div>
+          </InfoRow>
+        )}
 
         <InfoRow label={t(($) => $.neuron.maturityMode)} dataTestId="neuron-detail-maturity-mode">
           <span className="font-semibold">

@@ -1,4 +1,5 @@
-import { type NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
+import { encodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
+import { type MaturityDisbursement, type NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
 import { type I18nSecondsToDuration, isNullish, nonNullish } from '@dfinity/utils';
 
 import { FOLLOWABLE_TOPIC_SET } from '@features/voting/utils/topicFollowing';
@@ -7,6 +8,7 @@ import {
   E8Sn,
   EIGHT_YEAR_GANG_BONUS_EXPIRY_SECONDS,
   ICP_TRANSACTION_FEE_E8Sn,
+  MATURITY_DISBURSEMENT_DELAY_SECONDS,
   SECONDS_IN_DAY,
   SECONDS_IN_YEAR,
 } from '@constants/extra';
@@ -59,11 +61,52 @@ export const getNeuronTotalValueAfterFeesE8s = (neuron: NeuronInfo): bigint => {
   return getNeuronTotalStakeAfterFeesE8s(neuron) + getNeuronFreeMaturityE8s(neuron);
 };
 
+export const getNeuronMaturityDisbursementsInProgress = (
+  neuron: NeuronInfo,
+): MaturityDisbursement[] => neuron.fullNeuron?.maturityDisbursementsInProgress ?? [];
+
 export const getNeuronMaturityDisbursementsInProgressE8s = (neuron: NeuronInfo): bigint =>
-  neuron.fullNeuron?.maturityDisbursementsInProgress?.reduce(
+  getNeuronMaturityDisbursementsInProgress(neuron).reduce(
     (acc, disbursement) => acc + (disbursement.amountE8s ?? 0n),
     0n,
-  ) ?? 0n;
+  );
+
+/**
+ * The timestamp at which the governance canister finalizes the disbursement and mints the ICP.
+ * Falls back to start + 7 days when the canister did not report a finalize timestamp.
+ */
+export const getMaturityDisbursementFinalizeTimestampSeconds = (
+  disbursement: MaturityDisbursement,
+): bigint | undefined => {
+  if (nonNullish(disbursement.finalizeDisbursementTimestampSeconds)) {
+    return disbursement.finalizeDisbursementTimestampSeconds;
+  }
+  if (nonNullish(disbursement.timestampOfDisbursementSeconds)) {
+    return (
+      disbursement.timestampOfDisbursementSeconds + BigInt(MATURITY_DISBURSEMENT_DELAY_SECONDS)
+    );
+  }
+  return undefined;
+};
+
+/**
+ * The destination of a maturity disbursement as text: an ICP account identifier (hex) or an
+ * ICRC-1 account (textual encoding). Returns undefined when the canister reported neither.
+ */
+export const getMaturityDisbursementDestination = (
+  disbursement: MaturityDisbursement,
+): string | undefined => {
+  if (nonNullish(disbursement.accountIdentifierToDisburseTo)) {
+    return disbursement.accountIdentifierToDisburseTo;
+  }
+  const owner = disbursement.accountToDisburseTo?.owner;
+  if (isNullish(owner)) return undefined;
+  const subaccount = disbursement.accountToDisburseTo?.subaccount;
+  return encodeIcrcAccount({
+    owner,
+    subaccount: nonNullish(subaccount) ? Uint8Array.from(subaccount) : undefined,
+  });
+};
 
 export const hasValueAboveTransactionFee = (neuron: NeuronInfo): boolean =>
   nonNullish(neuron.fullNeuron)

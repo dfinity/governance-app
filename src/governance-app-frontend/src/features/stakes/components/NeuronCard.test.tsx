@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { E8S } from '@constants/extra';
-import { mockNeuron as baseMockNeuron } from '@fixtures/neuron';
+import { mockDisbursement, mockNeuron as baseMockNeuron } from '@fixtures/neuron';
 
 import { NeuronCard } from './NeuronCard';
 import { NeuronStandaloneAction } from './neuronDetail';
@@ -77,6 +77,31 @@ describe('NeuronCard', () => {
 
       expect(queryTestId('neuron-card-maturity-auto-stake')).toBeTruthy();
       expect(queryTestId('neuron-card-maturity-keep-liquid')).toBeFalsy();
+    });
+  });
+
+  describe('disbursing maturity row', () => {
+    it('shows the row with the total when disbursements are in progress', () => {
+      render(
+        <NeuronCard
+          neuron={mockNeuron({
+            fullNeuron: {
+              maturityDisbursementsInProgress: [
+                mockDisbursement({ amountE8s: BigInt(2 * E8S) }),
+                mockDisbursement({ amountE8s: BigInt(3 * E8S) }),
+              ],
+            },
+          })}
+        />,
+      );
+
+      expect(getTestId('neuron-card-disbursing-maturity').textContent).toContain('5.00');
+    });
+
+    it('hides the row when no disbursement is in progress', () => {
+      render(<NeuronCard neuron={mockNeuron()} />);
+
+      expect(queryTestId('neuron-card-disbursing-maturity')).toBeFalsy();
     });
   });
 

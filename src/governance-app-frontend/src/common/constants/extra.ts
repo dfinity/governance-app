@@ -47,6 +47,8 @@ export const SECONDS_IN_TWO_YEARS = SECONDS_IN_YEAR * 2;
 export const SECONDS_IN_FOUR_YEARS = SECONDS_IN_YEAR * 4;
 export const SECONDS_IN_EIGHT_YEARS = SECONDS_IN_YEAR * 8;
 export const DAYS_IN_AVG_YEAR = 365.25;
+// The governance canister mints the ICP 7 days after a maturity disbursement starts.
+export const MATURITY_DISBURSEMENT_DELAY_SECONDS = SECONDS_IN_DAY * 7;
 
 // NNS reward parameters
 export const NNS_GENESIS_TIMESTAMP_SECONDS = 1_620_604_800; // May 10, 2021
