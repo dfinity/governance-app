@@ -13,6 +13,7 @@ import { formatTimestampToLocalDate } from '@utils/date';
 import { shortenId } from '@utils/id';
 import {
   getMaturityDisbursementDestination,
+  getMaturityDisbursementDestinationAccountIdentifier,
   getMaturityDisbursementFinalizeTimestampSeconds,
   getNeuronMaturityDisbursementsInProgress,
   getNeuronMaturityDisbursementsInProgressE8s,
@@ -30,10 +31,13 @@ export function NeuronDetailDisbursementsView({ neuron }: Props) {
   const disbursements = getNeuronMaturityDisbursementsInProgress(neuron);
   const totalMaturity = bigIntDiv(getNeuronMaturityDisbursementsInProgressE8s(neuron), E8Sn);
 
-  // Show the account name when the destination is one of the user's own accounts.
-  const resolveDestinationLabel = (destination: string | undefined): string => {
+  // Show the account name when the destination is one of the user's own accounts. Own accounts
+  // are keyed by ICP account identifier, so match on that form for ICRC-1 destinations too.
+  const resolveDestinationLabel = (disbursement: MaturityDisbursement): string => {
+    const destination = getMaturityDisbursementDestination(disbursement);
     if (!destination) return t(($) => $.neuronDetailModal.disbursements.unknownDestination);
-    const ownAccount = accountsState?.accounts.find((a) => a.accountId === destination);
+    const accountIdentifier = getMaturityDisbursementDestinationAccountIdentifier(disbursement);
+    const ownAccount = accountsState?.accounts.find((a) => a.accountId === accountIdentifier);
     return ownAccount?.name ?? shortenId(destination, 8);
   };
 
@@ -54,9 +58,7 @@ export function NeuronDetailDisbursementsView({ neuron }: Props) {
           <DisbursementEntry
             key={`${disbursement.timestampOfDisbursementSeconds ?? index}-${index}`}
             disbursement={disbursement}
-            destinationLabel={resolveDestinationLabel(
-              getMaturityDisbursementDestination(disbursement),
-            )}
+            destinationLabel={resolveDestinationLabel(disbursement)}
           />
         ))}
       </ul>

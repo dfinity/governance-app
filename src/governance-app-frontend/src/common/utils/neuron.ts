@@ -1,3 +1,4 @@
+import { AccountIdentifier, SubAccount } from '@icp-sdk/canisters/ledger/icp';
 import { encodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
 import { type MaturityDisbursement, type NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
 import { type I18nSecondsToDuration, isNullish, nonNullish } from '@dfinity/utils';
@@ -90,8 +91,31 @@ export const getMaturityDisbursementFinalizeTimestampSeconds = (
 };
 
 /**
- * The destination of a maturity disbursement as text: an ICP account identifier (hex) or an
- * ICRC-1 account (textual encoding). Returns undefined when the canister reported neither.
+ * The destination of a maturity disbursement as an ICP account identifier (hex), for both the
+ * ICP and the ICRC-1 form. Use it to match the destination against the user's own accounts.
+ * Returns undefined when the canister reported no destination.
+ */
+export const getMaturityDisbursementDestinationAccountIdentifier = (
+  disbursement: MaturityDisbursement,
+): string | undefined => {
+  if (nonNullish(disbursement.accountIdentifierToDisburseTo)) {
+    return disbursement.accountIdentifierToDisburseTo;
+  }
+  const owner = disbursement.accountToDisburseTo?.owner;
+  if (isNullish(owner)) return undefined;
+  const subaccount = disbursement.accountToDisburseTo?.subaccount;
+  // Only 32-byte subaccounts are valid; anything else is the default subaccount.
+  const subAccount =
+    nonNullish(subaccount) && subaccount.length === 32
+      ? SubAccount.fromBytes(Uint8Array.from(subaccount))
+      : undefined;
+  return AccountIdentifier.fromPrincipal({ principal: owner, subAccount }).toHex();
+};
+
+/**
+ * The destination of a maturity disbursement as text for display: an ICP account identifier
+ * (hex) or an ICRC-1 account (textual encoding). Returns undefined when the canister reported
+ * neither.
  */
 export const getMaturityDisbursementDestination = (
   disbursement: MaturityDisbursement,

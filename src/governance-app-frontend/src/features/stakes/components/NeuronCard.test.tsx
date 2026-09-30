@@ -98,6 +98,20 @@ describe('NeuronCard', () => {
       expect(getTestId('neuron-card-disbursing-maturity').textContent).toContain('5.00');
     });
 
+    it('shows the row when a disbursement has no amount', () => {
+      render(
+        <NeuronCard
+          neuron={mockNeuron({
+            fullNeuron: {
+              maturityDisbursementsInProgress: [mockDisbursement({ amountE8s: undefined })],
+            },
+          })}
+        />,
+      );
+
+      expect(queryTestId('neuron-card-disbursing-maturity')).toBeTruthy();
+    });
+
     it('hides the row when no disbursement is in progress', () => {
       render(<NeuronCard neuron={mockNeuron()} />);
 

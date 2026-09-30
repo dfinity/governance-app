@@ -1,3 +1,4 @@
+import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { encodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
 import { Principal } from '@icp-sdk/core/principal';
 import { describe, expect, it } from 'vitest';
@@ -13,6 +14,7 @@ import {
   formatRemainingTime,
   getFollowingHealth,
   getMaturityDisbursementDestination,
+  getMaturityDisbursementDestinationAccountIdentifier,
   getMaturityDisbursementFinalizeTimestampSeconds,
   getNeuronMaturityDisbursementsInProgress,
   getNeuronMaturityDisbursementsInProgressE8s,
@@ -109,6 +111,37 @@ describe('getMaturityDisbursementDestination', () => {
 
   it('returns undefined when no destination is reported', () => {
     expect(getMaturityDisbursementDestination(mockDisbursement())).toBeUndefined();
+  });
+});
+
+describe('getMaturityDisbursementDestinationAccountIdentifier', () => {
+  const owner = Principal.fromText('aaaaa-aa');
+
+  it('returns the ICP account identifier when present', () => {
+    const disbursement = mockDisbursement({ accountIdentifierToDisburseTo: 'abc123' });
+    expect(getMaturityDisbursementDestinationAccountIdentifier(disbursement)).toBe('abc123');
+  });
+
+  it('converts an ICRC-1 account without a subaccount to the main account identifier', () => {
+    const disbursement = mockDisbursement({
+      accountToDisburseTo: { owner, subaccount: undefined },
+    });
+    expect(getMaturityDisbursementDestinationAccountIdentifier(disbursement)).toBe(
+      AccountIdentifier.fromPrincipal({ principal: owner }).toHex(),
+    );
+  });
+
+  it('treats a subaccount that is not 32 bytes as the default subaccount', () => {
+    const disbursement = mockDisbursement({
+      accountToDisburseTo: { owner, subaccount: [1, 2, 3] },
+    });
+    expect(getMaturityDisbursementDestinationAccountIdentifier(disbursement)).toBe(
+      AccountIdentifier.fromPrincipal({ principal: owner }).toHex(),
+    );
+  });
+
+  it('returns undefined when no destination is reported', () => {
+    expect(getMaturityDisbursementDestinationAccountIdentifier(mockDisbursement())).toBeUndefined();
   });
 });
 

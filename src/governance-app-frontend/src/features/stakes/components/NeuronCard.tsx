@@ -26,6 +26,7 @@ import {
   getNeuronIsAutoStakingMaturity,
   getNeuronIsDissolved,
   getNeuronIsDissolving,
+  getNeuronMaturityDisbursementsInProgress,
   getNeuronMaturityDisbursementsInProgressE8s,
   getNeuronStakeAfterFeesE8s,
   getNeuronStakedMaturityE8s,
@@ -77,8 +78,8 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
 
   const stakedMaturity = bigIntDiv(getNeuronStakedMaturityE8s(neuron), E8Sn);
   const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
-  const disbursingMaturityE8s = getNeuronMaturityDisbursementsInProgressE8s(neuron);
-  const disbursingMaturity = bigIntDiv(disbursingMaturityE8s, E8Sn);
+  const hasDisbursementsInProgress = getNeuronMaturityDisbursementsInProgress(neuron).length > 0;
+  const disbursingMaturity = bigIntDiv(getNeuronMaturityDisbursementsInProgressE8s(neuron), E8Sn);
   const stakedAmount = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
 
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
@@ -206,7 +207,7 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
             </div>
 
             {/* Disbursing Maturity */}
-            {disbursingMaturityE8s > 0n && (
+            {hasDisbursementsInProgress && (
               <div
                 className="flex items-center justify-between border-b border-border/50 py-3"
                 data-testid="neuron-card-disbursing-maturity"

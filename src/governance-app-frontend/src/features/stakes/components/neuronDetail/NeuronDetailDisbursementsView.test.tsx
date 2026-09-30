@@ -1,3 +1,5 @@
+import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
+import { Principal } from '@icp-sdk/core/principal';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -9,7 +11,8 @@ import { NeuronDetailDisbursementsView } from './NeuronDetailDisbursementsView';
 
 // ─── Module mocks ────────────────────────────────────────────────
 
-const MAIN_ACCOUNT_ID = 'a'.repeat(64);
+const OWNER = Principal.fromText('aaaaa-aa');
+const MAIN_ACCOUNT_ID = AccountIdentifier.fromPrincipal({ principal: OWNER }).toHex();
 
 vi.mock('@features/accounts/hooks/useAccounts', () => ({
   useAccounts: () => ({
@@ -79,6 +82,16 @@ describe('NeuronDetailDisbursementsView', () => {
     renderView([mockDisbursement({ accountIdentifierToDisburseTo: MAIN_ACCOUNT_ID })]);
 
     expect(screen.getByTestId('disbursement-destination').textContent).toBe('Main account');
+  });
+
+  it('shows the account name for an ICRC-1 destination that is one of the user accounts', () => {
+    renderView([
+      mockDisbursement({ accountToDisburseTo: { owner: OWNER, subaccount: undefined } }),
+    ]);
+
+    const destination = screen.getByTestId('disbursement-destination');
+    expect(destination.textContent).toBe('Main account');
+    expect(destination.getAttribute('title')).toBe(OWNER.toText());
   });
 
   it('shortens an unknown destination and keeps the full value as title', () => {

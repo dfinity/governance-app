@@ -29,6 +29,7 @@ import {
   formatDissolveDelay,
   getEightYearGangBonusE8s,
   getNeuronFreeMaturityE8s,
+  getNeuronMaturityDisbursementsInProgress,
   getNeuronMaturityDisbursementsInProgressE8s,
   getNeuronStakeAfterFeesE8s,
   getNeuronStakedMaturityE8s,
@@ -72,8 +73,8 @@ export function NeuronDetailSummaryView({
   const stakedAmount = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
   const stakedMaturity = bigIntDiv(getNeuronStakedMaturityE8s(neuron), E8Sn);
   const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
-  const disbursingMaturityE8s = getNeuronMaturityDisbursementsInProgressE8s(neuron);
-  const disbursingMaturity = bigIntDiv(disbursingMaturityE8s, E8Sn);
+  const hasDisbursementsInProgress = getNeuronMaturityDisbursementsInProgress(neuron).length > 0;
+  const disbursingMaturity = bigIntDiv(getNeuronMaturityDisbursementsInProgressE8s(neuron), E8Sn);
 
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
   const usdValue = icpPrice ? formatNumber(stakedAmount * icpPrice.usd) : undefined;
@@ -206,7 +207,7 @@ export function NeuronDetailSummaryView({
           </div>
         </InfoRow>
 
-        {disbursingMaturityE8s > 0n && (
+        {hasDisbursementsInProgress && (
           <InfoRow
             label={t(($) => $.neuron.disbursingMaturity)}
             dataTestId="neuron-detail-disbursing-maturity"
