@@ -1,3 +1,4 @@
+import { nonNullish } from '@dfinity/utils';
 import { AlertTriangle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -28,6 +29,8 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   namedAddress?: NamedAddress;
+  /** Prefills the address field when the modal creates a new entry. */
+  initialAddress?: string;
   existingAddresses: NamedAddress[];
 };
 
@@ -35,13 +38,18 @@ export const AddAddressModal: React.FC<Props> = ({
   isOpen,
   onClose,
   namedAddress,
+  initialAddress,
   existingAddresses,
 }) => {
   const { t } = useTranslation();
   const saveAddressBook = useSaveAddressBook();
 
+  const initialAddressValue = nonNullish(namedAddress)
+    ? addressBookGetAddressString(namedAddress.address)
+    : (initialAddress ?? '');
+
   const [nickname, setNickname] = useState(namedAddress?.name ?? '');
-  const [address, setAddress] = useState(addressBookGetAddressString(namedAddress?.address));
+  const [address, setAddress] = useState(initialAddressValue);
   const [nicknameError, setNicknameError] = useState('');
   const [addressError, setAddressError] = useState('');
   const [isEditMode, setIsEditMode] = useState(namedAddress !== undefined);
@@ -51,11 +59,11 @@ export const AddAddressModal: React.FC<Props> = ({
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsEditMode(namedAddress !== undefined);
       setNickname(namedAddress?.name ?? '');
-      setAddress(addressBookGetAddressString(namedAddress?.address));
+      setAddress(initialAddressValue);
       setNicknameError('');
       setAddressError('');
     }
-  }, [isOpen, namedAddress]);
+  }, [isOpen, namedAddress, initialAddressValue]);
 
   const normalizeNickname = (value: string) => value.trim().replace(/\s+/g, ' ');
 

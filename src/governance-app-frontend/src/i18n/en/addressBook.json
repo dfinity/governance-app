@@ -8,6 +8,7 @@
   "addAddress": "Add new address",
   "editAddress": "Edit address",
   "saveAddress": "Save address",
+  "saveToAddressBook": "Save to address book",
   "updatingAddressBook": "Updating address book...",
   "confirmNavigation": "Your address book is being updated. Leaving this page may cause unexpected results. Are you sure you want to leave?",
   "addSuccess": "Address saved successfully.",
