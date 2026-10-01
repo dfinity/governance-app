@@ -14,6 +14,7 @@ import { TotalAssetsCard } from '@features/dashboard/components/TotalAssetsCard'
 import { TotalStakedCard } from '@features/dashboard/components/TotalStakedCard';
 import { StakedCard } from '@features/stakes/components/StakedCard';
 
+import { DashboardSkeleton } from '@components/skeletons/DashboardSkeleton';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { prefetchDashboardRoute } from '@common/queries/routeLoaders';
 
@@ -28,6 +29,7 @@ export const Route = createFileRoute('/_auth/dashboard/')({
     depositModal: search.depositModal === 'true' || search.depositModal === true ? true : undefined,
   }),
   loader: ({ context }) => prefetchDashboardRoute(context.queryClient),
+  pendingComponent: DashboardSkeleton,
   // Entry only — `?depositModal` toggles must not rerun the loader.
   staleTime: Infinity,
   component: Dashboard,

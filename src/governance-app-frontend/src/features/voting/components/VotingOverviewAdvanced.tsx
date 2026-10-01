@@ -8,6 +8,8 @@ import { Card, CardContent } from '@components/Card';
 import { EmptyActionState } from '@components/EmptyActionState';
 import { PageHeader } from '@components/PageHeader';
 import { Skeleton } from '@components/Skeleton';
+import { SkeletonPageHeader } from '@components/skeletons/SkeletonPageHeader';
+import { SkeletonScreen } from '@components/skeletons/SkeletonScreen';
 
 import {
   getConfiguredTopicCount,
@@ -86,23 +88,22 @@ export function VotingOverviewAdvanced({
 
 function OverviewSkeleton() {
   return (
-    <div className="flex flex-col gap-3">
-      <Skeleton className="h-8 w-48" />
-      <Skeleton className="h-4 w-full max-w-md" />
-      <Card className="mt-2 p-0">
+    <SkeletonScreen className="flex flex-col gap-6">
+      <SkeletonPageHeader action={true} />
+      <Card className="p-0">
         <CardContent className="flex flex-col divide-y p-0">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="flex items-center justify-between px-4 py-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="flex items-center justify-between px-4 py-4">
               <div className="flex items-center gap-3">
-                <Skeleton className="size-5 rounded-full" />
-                <Skeleton className="h-4 w-32" />
+                <Skeleton className="size-5 shrink-0 rounded-full" />
+                <Skeleton className="h-5 w-32" />
               </div>
-              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-5 w-24" />
             </div>
           ))}
         </CardContent>
       </Card>
-    </div>
+    </SkeletonScreen>
   );
 }
 
