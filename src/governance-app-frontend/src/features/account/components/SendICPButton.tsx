@@ -3,7 +3,7 @@ import { decodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
 import { nonNullish, nowInBigIntNanoSeconds, toNullable } from '@dfinity/utils';
 import { useMutation } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { AlertTriangle, ArrowUpRight, BookUser, Send } from 'lucide-react';
+import { AlertTriangle, ArrowUpRight, BookPlus, BookUser, Send } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import React, { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +20,7 @@ import { AccountSelect } from '@features/accounts/components/AccountSelect';
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { useAccountSelection } from '@features/accounts/hooks/useAccountSelection';
 import { type Account, isAccountReady } from '@features/accounts/types';
+import { AddAddressModal } from '@features/addressBook/components/AddAddressModal';
 import { AddressBookSelect } from '@features/addressBook/components/AddressBookSelect';
 
 import { Alert, AlertDescription } from '@components/Alert';
@@ -35,6 +36,7 @@ import {
 } from '@components/MutationDialog';
 import { ResponsiveDialogDescription, ResponsiveDialogTitle } from '@components/ResponsiveDialog';
 import { Switch } from '@components/Switch';
+import { ADDRESS_BOOK_MAX_ENTRIES } from '@constants/addressBook';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { DIALOG_RESET_DELAY_MS, E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
@@ -100,6 +102,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   const [memoError, setMemoError] = useState('');
   const [selectedName, setSelectedName] = useState('');
   const [useAddressBookToggle, setUseAddressBookToggle] = useState(false);
+  const [saveAddressOpen, setSaveAddressOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
   const amountInputRef = useRef<HTMLInputElement>(null);
 
@@ -253,9 +256,18 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
     ? selectedAccount.name
     : t(($) => $.accounts.mainAccount);
 
+  // The name comes from the address book, whether the user picked the entry or
+  // saved the destination from the confirmation step.
+  const addressBookName = addressBookEntries.find(
+    (entry) => addressBookGetAddressString(entry.address) === toAccount,
+  )?.name;
+  // A failed read leaves `data` empty. Saving on top of it would wipe the stored entries.
+  const canSaveAddress =
+    nonNullish(addressBookQuery.data) && addressBookEntries.length < ADDRESS_BOOK_MAX_ENTRIES;
+
   // Status messages only need to identify the destination, not let the user verify it
   // character by character — the confirmation step already shows the full address.
-  const destination = selectedName || shortenId(toAccount, 8);
+  const destination = addressBookName ?? shortenId(toAccount, 8);
 
   const { Icon, className: variantClassName, label } = variantConfig[variant];
 
@@ -327,8 +339,8 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
               <SendConfirmationStep
                 fromAccountName={fromAccountName}
                 toAccount={toAccount}
-                selectedName={selectedName}
-                addressBookEntries={addressBookEntries}
+                addressBookName={addressBookName}
+                onSaveAddress={canSaveAddress ? () => setSaveAddressOpen(true) : undefined}
                 amount={amount}
                 approxUsd={approxUsd}
                 memo={memoEnabled && memo !== '' ? memo : undefined}
@@ -340,6 +352,13 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
           </AnimatePresence>
         )}
       </MutationDialog>
+
+      <AddAddressModal
+        isOpen={saveAddressOpen}
+        onClose={() => setSaveAddressOpen(false)}
+        initialAddress={toAccount}
+        existingAddresses={addressBookEntries}
+      />
     </>
   );
 };
@@ -490,6 +509,7 @@ function SendFormStep({
               <div className="relative">
                 <Input
                   id="destination-account"
+                  data-testid="send-icp-destination-input"
                   onChange={(e) => onDestinationChange(e.target.value)}
                   value={toAccount}
                   className={cn(
@@ -586,8 +606,8 @@ function SendFormStep({
 type SendConfirmationStepProps = {
   fromAccountName: string;
   toAccount: string;
-  selectedName: string;
-  addressBookEntries: NamedAddress[];
+  addressBookName?: string;
+  onSaveAddress?: () => void;
   amount: string;
   approxUsd?: string;
   memo?: string;
@@ -599,8 +619,8 @@ type SendConfirmationStepProps = {
 function SendConfirmationStep({
   fromAccountName,
   toAccount,
-  selectedName,
-  addressBookEntries,
+  addressBookName,
+  onSaveAddress,
   amount,
   approxUsd,
   memo,
@@ -614,14 +634,11 @@ function SendConfirmationStep({
   const formatTransactionFeeUsd = (usdValue: number): string =>
     usdValue < 0.01 ? '< $0.01' : `≈ $${formatNumber(usdValue)}`;
 
-  const isDestinationKnown =
-    addressBookEntries.some((entry) => addressBookGetAddressString(entry.address) === toAccount) ||
-    (accountsState?.accounts.some((a) => a.accountId === toAccount) ?? false);
+  const ownAccountName = accountsState?.accounts.find((a) => a.accountId === toAccount)?.name;
+  const isDestinationKnown = nonNullish(addressBookName) || nonNullish(ownAccountName);
 
   const destinationName = isDestinationKnown
-    ? selectedName ||
-      accountsState?.accounts.find((a) => a.accountId === toAccount)?.name ||
-      toAccount
+    ? (addressBookName ?? ownAccountName ?? toAccount)
     : t(($) => $.account.unknownAddress);
 
   return (
@@ -668,7 +685,12 @@ function SendConfirmationStep({
                   <span className="shrink-0 text-sm text-muted-foreground">
                     {t(($) => $.account.confirmTo)}
                   </span>
-                  <span className="truncate text-sm font-medium">{destinationName}</span>
+                  <span
+                    className="truncate text-sm font-medium"
+                    data-testid="send-icp-destination-name"
+                  >
+                    {destinationName}
+                  </span>
                 </div>
                 <p className="mt-1 text-right font-mono text-sm break-all text-muted-foreground">
                   {toAccount}
@@ -678,6 +700,20 @@ function SendConfirmationStep({
                     <AlertTriangle className="size-4" />
                     <AlertDescription>{t(($) => $.account.destinationWarning)}</AlertDescription>
                   </Alert>
+                )}
+                {!isDestinationKnown && nonNullish(onSaveAddress) && (
+                  <div className="mt-2 flex justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={onSaveAddress}
+                      data-testid="send-icp-save-address-btn"
+                    >
+                      <BookPlus className="size-4" aria-hidden />
+                      {t(($) => $.addressBook.saveToAddressBook)}
+                    </Button>
+                  </div>
                 )}
               </div>
 
