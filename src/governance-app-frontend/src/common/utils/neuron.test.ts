@@ -250,6 +250,15 @@ describe('isNonEmptyNeuron', () => {
     expect(isNonEmptyNeuron(neuron)).toBe(true);
   });
 
+  it('returns true when a disbursement in progress has no amount', () => {
+    const neuron = mockNeuron({
+      fullNeuron: {
+        maturityDisbursementsInProgress: [mockDisbursement({ amountE8s: undefined })],
+      },
+    });
+    expect(isNonEmptyNeuron(neuron)).toBe(true);
+  });
+
   it('returns true when neuron has zero stake but disbursements in progress', () => {
     const neuron = mockNeuron({
       fullNeuron: {

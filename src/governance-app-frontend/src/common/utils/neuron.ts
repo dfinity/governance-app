@@ -144,7 +144,8 @@ export const hasValueAboveTransactionFee = (neuron: NeuronInfo): boolean =>
  * Ref: https://github.com/dfinity/nns-dapp/blob/0ed30e6c92b8d813bbd6723f531dc56ab3de3f8e/frontend/src/lib/derived/neurons.derived.ts#L18
  */
 export const isNonEmptyNeuron = (neuron: NeuronInfo): boolean =>
-  hasValueAboveTransactionFee(neuron) || getNeuronMaturityDisbursementsInProgressE8s(neuron) > 0n;
+  hasValueAboveTransactionFee(neuron) ||
+  getNeuronMaturityDisbursementsInProgress(neuron).length > 0;
 
 export const getNeuronIsAutoStakingMaturity = (neuron: NeuronInfo): boolean => {
   return hasAutoStakeMaturityOn(neuron);
