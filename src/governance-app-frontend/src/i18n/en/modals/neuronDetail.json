@@ -117,6 +117,7 @@
   "disbursements": {
     "title": "Active disbursements",
     "view": "View",
+    "viewAria": "View active disbursements",
     "total": "Total disbursing",
     "amount": "Maturity disbursing",
     "to": "To",

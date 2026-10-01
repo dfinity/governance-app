@@ -222,6 +222,7 @@ export function NeuronDetailSummaryView({
                 type="button"
                 className="font-semibold text-primary hover:underline"
                 onClick={() => onNavigate(NeuronDetailView.Disbursements)}
+                aria-label={t(($) => $.neuronDetailModal.disbursements.viewAria)}
                 data-testid="neuron-detail-view-disbursements-btn"
               >
                 {t(($) => $.neuronDetailModal.disbursements.view)}
