@@ -261,8 +261,9 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   const addressBookName = addressBookEntries.find(
     (entry) => addressBookGetAddressString(entry.address) === toAccount,
   )?.name;
+  // A failed read leaves `data` empty. Saving on top of it would wipe the stored entries.
   const canSaveAddress =
-    !addressBookLoading && addressBookEntries.length < ADDRESS_BOOK_MAX_ENTRIES;
+    nonNullish(addressBookQuery.data) && addressBookEntries.length < ADDRESS_BOOK_MAX_ENTRIES;
 
   // Status messages only need to identify the destination, not let the user verify it
   // character by character — the confirmation step already shows the full address.

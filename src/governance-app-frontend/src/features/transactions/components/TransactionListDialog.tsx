@@ -71,8 +71,9 @@ export function TransactionListDialog({
   const addressBookQuery = useAddressBook();
   const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
   const [addressToSave, setAddressToSave] = useState<string | undefined>();
+  // A failed read leaves `data` empty. Saving on top of it would wipe the stored entries.
   const canSaveAddress =
-    !addressBookQuery.isLoading && addressBookEntries.length < ADDRESS_BOOK_MAX_ENTRIES;
+    nonNullish(addressBookQuery.data) && addressBookEntries.length < ADDRESS_BOOK_MAX_ENTRIES;
 
   const addressNameMap = new Map<string, { name: string; source: 'account' | 'addressBook' }>();
   for (const account of accountsData?.accounts ?? []) {

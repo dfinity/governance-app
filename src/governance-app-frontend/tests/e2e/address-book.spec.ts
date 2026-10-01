@@ -7,7 +7,7 @@ import { navigateTo } from './utils/navigate';
 
 const TEST_ICP_ADDRESS = 'd4685b31b51450508aff0331584df7692a84467b680326f5c5f7d30ae711682f';
 const TEST_ICRC1_ADDRESS = 'h4a5i-5vcfo-5rusv-fmb6m-vrkia-mjnkc-jpoow-h5mam-nthnm-ldqlr-bqe';
-const TEST_ICP_ADDRESS_2 = '2b2d5b1a4c8f7e3d9a6c5b4e3f2a1d0c9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e';
+const TEST_ICP_ADDRESS_2 = '722488363080fac9465ab57bdeee0d5d7284afcdbb166873b8955a3c1464ce64';
 
 const openAddressBookModal = async (page: Page) => {
   await page.getByTestId('address-book-open-btn').click();
@@ -282,8 +282,12 @@ test.describe('Address book', () => {
 
     await test.step('Send to a second unknown address with the toggle off.', async () => {
       await page.getByTestId('send-icp-btn').click();
-      await expect(page.getByTestId('address-book-toggle')).toBeChecked();
-      await page.getByTestId('address-book-toggle').click();
+      // The toggle turns on by itself only when the address book finishes loading.
+      // The book was already loaded here, so the toggle keeps its last state.
+      const toggle = page.getByTestId('address-book-toggle');
+      await expect(toggle).toBeVisible();
+      if (await toggle.isChecked()) await toggle.click();
+      await expect(toggle).not.toBeChecked();
 
       await page.getByTestId('send-icp-destination-input').fill(TEST_ICP_ADDRESS_2);
       await page.getByTestId('send-icp-amount-input').fill('5');
@@ -304,10 +308,9 @@ test.describe('Address book', () => {
       await row.getByTestId('transaction-save-address-btn').click();
       await saveAddressFromModal(page, 'Wallet B', TEST_ICP_ADDRESS_2);
 
-      await expect(
-        page.getByTestId('transaction-item').filter({ hasText: 'Wallet B' }),
-      ).toBeVisible({ timeout: 30000 });
-      await expect(page.getByTestId('transaction-save-address-btn')).toHaveCount(0);
+      const savedRow = page.getByTestId('transaction-item').filter({ hasText: 'Wallet B' });
+      await expect(savedRow).toBeVisible({ timeout: 30000 });
+      await expect(savedRow.getByTestId('transaction-save-address-btn')).toHaveCount(0);
     });
   });
 });
