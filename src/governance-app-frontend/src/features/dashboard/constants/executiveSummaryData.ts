@@ -82,13 +82,13 @@ import type { MonthlyGovernanceSummary } from '../types/executiveSummary';
  * ▲▲▲ END PROMPT ▲▲▲
  */
 
-const AUGUST_2026: MonthlyGovernanceSummary = {
-  month: 'August',
+const SEPTEMBER_2026: MonthlyGovernanceSummary = {
+  month: 'September',
   year: 2026,
 
   outcomes: [
-    { status: 'approved', count: 478 },
-    { status: 'rejected', count: 3 },
+    { status: 'approved', count: 423 },
+    { status: 'rejected', count: 2 },
     { status: 'failed', count: 3 },
   ],
 
@@ -96,66 +96,55 @@ const AUGUST_2026: MonthlyGovernanceSummary = {
     {
       icon: 'network',
       title: 'Network operations & infrastructure',
-      description: 'Swiss subnet SEV migration completed; 8 retired subnets deleted',
+      description: 'Cloud engines received 5 releases in staged waves; 3 nodes removed',
       highlights: [
-        { value: 393, label: 'rollouts completed' },
-        { value: 6, label: 'GuestOS versions' },
-        { value: 3, label: 'HostOS versions' },
-        { value: 8, label: 'subnets retired' },
+        { value: 318, label: 'rollouts completed' },
+        { value: 7, label: 'GuestOS versions' },
+        { value: 4, label: 'HostOS versions' },
+        { value: 6, label: 'nodes replaced' },
       ],
     },
     {
       icon: 'protocol',
       title: 'Core protocol & app upgrades',
-      description: 'ckBAT joined the ckERC20 suite; Internet Identity shipped app metadata support',
+      description: 'Internet Identity added remote sign-out; chain-key canister limits raised',
       highlights: [
-        { value: 14, label: 'protocol upgrades' },
+        { value: 9, label: 'protocol upgrades' },
         { value: 9, label: 'II upgrades' },
         { value: 2, label: 'NNS Dapp upgrades' },
-        { value: 1, label: 'ckERC20 token added' },
+        { value: 58, label: 'canister settings updated' },
       ],
     },
     {
       icon: 'community',
       title: 'Community governance',
-      description: 'DOXA motion passed; DoxaUSD SNS launched; NOKU SA node provider removed',
+      description: 'Menese Protocol SNS launched; ckDOGE wind-down motion opened for vote',
       highlights: [
-        { value: 1, label: 'motion passed' },
         { value: 1, label: 'SNS launched' },
-        { value: 3, label: 'releases rejected' },
-        { value: 1, label: 'node provider removed' },
+        { value: 1, label: 'motion rejected' },
+        { value: 1, label: 'node provider rejected' },
       ],
     },
   ],
 
   communityHighlights: [
     {
-      title: 'Motion: Urgent Protective Action for the DOXA SNS Swap',
-      outcome: 'passed',
-      label: 'Passed',
-    },
-    {
-      title: "Create a SNS Named 'DoxaUSD (DUSD)'",
+      title: 'Create an SNS DAO for Menese Protocol',
       outcome: 'passed',
       label: 'Launch Approved',
     },
     {
-      title: 'Add ckBAT to the ckERC20 Ledger Suite',
+      title: 'Upgrade Internet Identity to 3cd91d621',
       outcome: 'passed',
       label: 'Passed',
     },
     {
-      title: 'Remove NOKU SA as a Node Provider',
-      outcome: 'passed',
-      label: 'Passed',
-    },
-    {
-      title: 'Elect IC/GuestOS Revision (fffab35)',
+      title: 'Delulu.game: a 100% On Chain MMORPG running on the IC',
       outcome: 'rejected',
       label: 'Rejected',
     },
     {
-      title: 'Elect IC/HostOS Revision (fffab35)',
+      title: 'Add Validator Solutions LLC as a Node Provider',
       outcome: 'rejected',
       label: 'Rejected',
     },
@@ -163,4 +152,4 @@ const AUGUST_2026: MonthlyGovernanceSummary = {
 };
 
 /** The currently displayed summary — update this reference each month */
-export const currentSummary: MonthlyGovernanceSummary = AUGUST_2026;
+export const currentSummary: MonthlyGovernanceSummary = SEPTEMBER_2026;
