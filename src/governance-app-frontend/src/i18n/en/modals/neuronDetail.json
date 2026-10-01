@@ -124,7 +124,7 @@
     "started": "Started",
     "completes": "Completes",
     "unknownDestination": "Unknown destination",
-    "info": "These disbursements are in progress and irreversible. 7 days after each disbursement started, the ICP is minted and sent to the destination account. The final amount depends on the maturity modulation at that time."
+    "info": "These disbursements are in progress and irreversible. 7 days after a disbursement starts, the ICP is minted and sent to the destination account. The final amount depends on the maturity modulation at that time."
   },
   "hotkeyNotice": "As a hotkey, you can view this setting but only the neuron controller can make changes.",
   "devActions": {
