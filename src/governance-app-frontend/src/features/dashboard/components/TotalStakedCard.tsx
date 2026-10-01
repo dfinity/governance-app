@@ -35,32 +35,33 @@ export const TotalStakedCard = () => {
           {t(($) => $.home.totalStaked)}
         </p>
         {isLoading ? (
-          <>
-            <Skeleton className="mb-2 h-8 w-40" />
-            <Skeleton className="h-4 w-28" />
-          </>
+          <Skeleton className="h-8 w-40" />
         ) : (
-          <>
-            <p className="text-2xl font-semibold text-foreground">
-              {nonNullish(tvl) ? (
-                <AnimatedNumber
-                  value={tvl}
-                  prefix="$"
-                  formatOptions={{ minFraction: 0, maxFraction: 0 }}
-                />
-              ) : (
-                '—'
-              )}
-            </p>
-            {nonNullish(stakedPercentage) && (
-              <p className="mt-1 text-sm font-normal text-muted-foreground">
+          <p className="text-2xl font-semibold text-foreground">
+            {nonNullish(tvl) ? (
+              <AnimatedNumber
+                value={tvl}
+                prefix="$"
+                formatOptions={{ minFraction: 0, maxFraction: 0 }}
+              />
+            ) : (
+              '—'
+            )}
+          </p>
+        )}
+        <div className="mt-1 min-h-5">
+          {isLoading ? (
+            <Skeleton className="h-5 w-28" />
+          ) : (
+            nonNullish(stakedPercentage) && (
+              <p className="text-sm font-normal text-muted-foreground">
                 {t(($) => $.home.ofTotalSupply, {
                   value: formatNumber(stakedPercentage, { minFraction: 1, maxFraction: 1 }),
                 })}
               </p>
-            )}
-          </>
-        )}
+            )
+          )}
+        </div>
       </CardContent>
     </Card>
   );
