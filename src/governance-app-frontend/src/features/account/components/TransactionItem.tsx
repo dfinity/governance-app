@@ -1,13 +1,12 @@
 import { IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { nonNullish } from '@dfinity/utils';
-import { BookPlus, BookUser, WalletMinimal } from 'lucide-react';
+import { BookUser, WalletMinimal } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { detectTransactionType, getAmountE8s } from '@features/transactions/utils/transactionType';
 import { txConfig } from '@features/transactions/utils/txConfig';
 
 import { Alert, AlertDescription } from '@components/Alert';
-import { Button } from '@components/button';
 import { Card, CardContent } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
 import { CopyButton } from '@components/CopyButton';
@@ -36,15 +35,12 @@ export const AccountTransactionItem = ({
   certified,
   trustedAddresses,
   addressNameMap,
-  onSaveAddress,
 }: {
   tx: IcpIndexDid.TransactionWithId;
   accountId: string;
   certified: boolean;
   trustedAddresses: Set<string>;
   addressNameMap?: Map<string, { name: string; source: 'account' | 'addressBook' }>;
-  /** Offers to save an unnamed counterparty. Absent when the address book is full. */
-  onSaveAddress?: (address: string) => void;
 }) => {
   const { t } = useTranslation();
   const userNeuronsAccountIds = useNeuronAccountsIds();
@@ -102,7 +98,7 @@ export const AccountTransactionItem = ({
   );
 
   return (
-    <Card key={tx.id} className="p-0" data-testid="transaction-item">
+    <Card key={tx.id} className="p-0">
       <CardContent className="px-4 py-3 sm:px-6 sm:py-4">
         {/* `minmax(0, 1fr)` caps the details column. Without it the address line,
             which cannot wrap, sets the width of the whole dialog and pushes it
@@ -158,26 +154,12 @@ export const AccountTransactionItem = ({
                   )
                 ) : (
                   !suspicious && (
-                    <>
-                      <CopyButton
-                        value={address}
-                        size="sm"
-                        variant="ghost"
-                        label={t(($) => $.account.address)}
-                      />
-                      {nonNullish(onSaveAddress) && (
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => onSaveAddress(address)}
-                          aria-label={t(($) => $.addressBook.saveToAddressBook)}
-                          title={t(($) => $.addressBook.saveToAddressBook)}
-                          data-testid="transaction-save-address-btn"
-                        >
-                          <BookPlus aria-hidden />
-                        </Button>
-                      )}
-                    </>
+                    <CopyButton
+                      value={address}
+                      size="sm"
+                      variant="ghost"
+                      label={t(($) => $.account.address)}
+                    />
                   )
                 )}
               </div>

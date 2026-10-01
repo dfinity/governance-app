@@ -7,7 +7,6 @@ import { navigateTo } from './utils/navigate';
 
 const TEST_ICP_ADDRESS = 'd4685b31b51450508aff0331584df7692a84467b680326f5c5f7d30ae711682f';
 const TEST_ICRC1_ADDRESS = 'h4a5i-5vcfo-5rusv-fmb6m-vrkia-mjnkc-jpoow-h5mam-nthnm-ldqlr-bqe';
-const TEST_ICP_ADDRESS_2 = '722488363080fac9465ab57bdeee0d5d7284afcdbb166873b8955a3c1464ce64';
 
 const openAddressBookModal = async (page: Page) => {
   await page.getByTestId('address-book-open-btn').click();
@@ -254,7 +253,7 @@ test.describe('Address book', () => {
     });
   });
 
-  test('Save addresses from the send flow and from a transaction row', async ({ page }) => {
+  test('Save an address from the send review step', async ({ page }) => {
     await test.step('Open app and login.', async () => {
       await openApp({ page });
       await login({ page });
@@ -278,39 +277,6 @@ test.describe('Address book', () => {
       await expect(
         page.getByRole('paragraph').filter({ hasText: 'successfully sent 5 ICP to Wallet A' }),
       ).toBeVisible({ timeout: 30000 });
-    });
-
-    await test.step('Send to a second unknown address with the toggle off.', async () => {
-      await page.getByTestId('send-icp-btn').click();
-      // The toggle turns on by itself only when the address book finishes loading.
-      // The book was already loaded here, so the toggle keeps its last state.
-      const toggle = page.getByTestId('address-book-toggle');
-      await expect(toggle).toBeVisible();
-      if (await toggle.isChecked()) await toggle.click();
-      await expect(toggle).not.toBeChecked();
-
-      await page.getByTestId('send-icp-destination-input').fill(TEST_ICP_ADDRESS_2);
-      await page.getByTestId('send-icp-amount-input').fill('5');
-      await page.getByTestId('send-icp-next-btn').click();
-      await page.getByTestId('send-icp-confirm-btn').click();
-      await expect(
-        page.getByRole('paragraph').filter({ hasText: 'successfully sent 5 ICP to' }),
-      ).toBeVisible({ timeout: 30000 });
-    });
-
-    await test.step('Save the second address from its transaction row.', async () => {
-      await page.getByRole('button', { name: 'Open transactions list' }).first().click();
-
-      const shortAddress = `${TEST_ICP_ADDRESS_2.slice(0, 12)}...${TEST_ICP_ADDRESS_2.slice(-12)}`;
-      const row = page.getByTestId('transaction-item').filter({ hasText: shortAddress });
-      await expect(row).toBeVisible({ timeout: 30000 });
-
-      await row.getByTestId('transaction-save-address-btn').click();
-      await saveAddressFromModal(page, 'Wallet B', TEST_ICP_ADDRESS_2);
-
-      const savedRow = page.getByTestId('transaction-item').filter({ hasText: 'Wallet B' });
-      await expect(savedRow).toBeVisible({ timeout: 30000 });
-      await expect(savedRow.getByTestId('transaction-save-address-btn')).toHaveCount(0);
     });
   });
 });
