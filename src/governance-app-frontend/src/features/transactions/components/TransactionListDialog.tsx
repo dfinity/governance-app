@@ -1,12 +1,14 @@
 import { AccountIdentifier, IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AccountTransactionItem } from '@features/account/components/TransactionItem';
 import { useNeuronAccountsIds } from '@features/account/hooks/useNeuronAccountsIds';
 import { buildTrustedAddresses } from '@features/account/utils/addressPoisoning';
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
+import { AddAddressModal } from '@features/addressBook/components/AddAddressModal';
 
 import { MultipleSkeletons } from '@components/MultipleSkeletons';
 import { QueryStates } from '@components/QueryStates';
@@ -17,6 +19,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
+import { ADDRESS_BOOK_MAX_ENTRIES } from '@constants/addressBook';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
 import { CertifiedData } from '@typings/queries';
@@ -67,6 +70,10 @@ export function TransactionListDialog({
   const { data: accountsData } = useAccounts();
   const addressBookQuery = useAddressBook();
   const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
+  const [addressToSave, setAddressToSave] = useState<string | undefined>();
+  // A failed read leaves `data` empty. Saving on top of it would wipe the stored entries.
+  const canSaveAddress =
+    nonNullish(addressBookQuery.data) && addressBookEntries.length < ADDRESS_BOOK_MAX_ENTRIES;
 
   const addressNameMap = new Map<string, { name: string; source: 'account' | 'addressBook' }>();
   for (const account of accountsData?.accounts ?? []) {
@@ -80,59 +87,71 @@ export function TransactionListDialog({
   }
 
   return (
-    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
-      <ResponsiveDialogContent
-        // `overflow-y-auto` makes `overflow-x` compute to `auto`, so any row that is
-        // one pixel too wide adds a horizontal scrollbar. Hide that axis instead.
-        // `min()` keeps the 2rem gutter: a plain `sm:max-w-3xl` overrides the base
-        // `max-w-[calc(100%-2rem)]` and lets the dialog touch both viewport edges
-        // between 768px and 800px.
-        className="max-h-[80vh] overflow-x-hidden overflow-y-auto sm:max-w-[min(48rem,calc(100%-2rem))]"
-        onOpenAutoFocus={(e) => e.preventDefault()}
-      >
-        <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>{t(($) => $.common.transactions)}</ResponsiveDialogTitle>
-          <ResponsiveDialogDescription>
-            {t(($) => $.account.transactionListDescription)}
-          </ResponsiveDialogDescription>
-        </ResponsiveDialogHeader>
+    <>
+      <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+        <ResponsiveDialogContent
+          // `overflow-y-auto` makes `overflow-x` compute to `auto`, so any row that is
+          // one pixel too wide adds a horizontal scrollbar. Hide that axis instead.
+          // `min()` keeps the 2rem gutter: a plain `sm:max-w-3xl` overrides the base
+          // `max-w-[calc(100%-2rem)]` and lets the dialog touch both viewport edges
+          // between 768px and 800px.
+          className="max-h-[80vh] overflow-x-hidden overflow-y-auto sm:max-w-[min(48rem,calc(100%-2rem))]"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>{t(($) => $.common.transactions)}</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription>
+              {t(($) => $.account.transactionListDescription)}
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
 
-        {isNullish(accountIdHex) ? (
-          <div className="flex min-w-0 flex-col gap-2">
-            <MultipleSkeletons count={3} />
-          </div>
-        ) : (
-          <div className="flex min-w-0 flex-col gap-2 pb-2 lg:pb-0">
-            <QueryStates<CertifiedData<IcpIndexDid.GetAccountIdentifierTransactionsResponse>>
-              infiniteQuery={transactions}
-              isEmpty={(data) => !data.pages?.length || !data.pages[0].response.transactions.length}
-              loadingComponent={<MultipleSkeletons count={3} />}
-              emptyComponent={
-                <p className="py-8 text-center text-sm text-muted-foreground">
-                  {t(($) => $.account.noTransactions)}
-                </p>
-              }
-            >
-              {(data) => (
-                <div className="flex flex-col gap-3">
-                  {data.pages?.map((page) =>
-                    page.response.transactions.map((tx) => (
-                      <AccountTransactionItem
-                        certified={page.certified}
-                        accountId={accountIdHex}
-                        key={tx.id}
-                        tx={tx}
-                        trustedAddresses={trustedAddresses}
-                        addressNameMap={addressNameMap}
-                      />
-                    )),
-                  )}
-                </div>
-              )}
-            </QueryStates>
-          </div>
-        )}
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+          {isNullish(accountIdHex) ? (
+            <div className="flex min-w-0 flex-col gap-2">
+              <MultipleSkeletons count={3} />
+            </div>
+          ) : (
+            <div className="flex min-w-0 flex-col gap-2 pb-2 lg:pb-0">
+              <QueryStates<CertifiedData<IcpIndexDid.GetAccountIdentifierTransactionsResponse>>
+                infiniteQuery={transactions}
+                isEmpty={(data) =>
+                  !data.pages?.length || !data.pages[0].response.transactions.length
+                }
+                loadingComponent={<MultipleSkeletons count={3} />}
+                emptyComponent={
+                  <p className="py-8 text-center text-sm text-muted-foreground">
+                    {t(($) => $.account.noTransactions)}
+                  </p>
+                }
+              >
+                {(data) => (
+                  <div className="flex flex-col gap-3">
+                    {data.pages?.map((page) =>
+                      page.response.transactions.map((tx) => (
+                        <AccountTransactionItem
+                          certified={page.certified}
+                          accountId={accountIdHex}
+                          key={tx.id}
+                          tx={tx}
+                          trustedAddresses={trustedAddresses}
+                          addressNameMap={addressNameMap}
+                          onSaveAddress={canSaveAddress ? setAddressToSave : undefined}
+                        />
+                      )),
+                    )}
+                  </div>
+                )}
+              </QueryStates>
+            </div>
+          )}
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+
+      <AddAddressModal
+        isOpen={nonNullish(addressToSave)}
+        onClose={() => setAddressToSave(undefined)}
+        initialAddress={addressToSave}
+        existingAddresses={addressBookEntries}
+      />
+    </>
   );
 }
