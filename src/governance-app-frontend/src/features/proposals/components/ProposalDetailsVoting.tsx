@@ -1,11 +1,12 @@
 import { ProposalInfo, Vote } from '@icp-sdk/canisters/nns';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { CheckCircle, Loader2, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
+import { CheckCircle, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@components/Card';
+import { Spinner } from '@components/Spinner';
 import { E8S } from '@constants/extra';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
@@ -178,7 +179,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
                 variant="outline"
               >
                 {isVoting && votingFor === Vote.Yes ? (
-                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  <Spinner className="mr-2" />
                 ) : (
                   <ThumbsUp className="mr-2 size-4" />
                 )}
@@ -197,7 +198,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
                 variant="outline"
               >
                 {isVoting && votingFor === Vote.No ? (
-                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  <Spinner className="mr-2" />
                 ) : (
                   <ThumbsDown className="mr-2 size-4" />
                 )}

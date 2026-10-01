@@ -1,7 +1,7 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { isNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
-import { AlertTriangle, ArrowRight, Clock, Loader2, TrendingDown } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Clock, TrendingDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
@@ -9,6 +9,7 @@ import { analytics } from '@features/analytics/service';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
+import { Spinner } from '@components/Spinner';
 import { useGovernanceEconomics } from '@hooks/governance/useGovernanceEconomics';
 import { mapCanisterError } from '@utils/errors';
 import {
@@ -142,7 +143,7 @@ export function FollowingStatusAlert({ neuron, isHotkey }: Props) {
           >
             {isPending ? (
               <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
+                <Spinner className="mr-2" />
                 {t(($) => $.neuron.followingStatus.processing)}
               </>
             ) : (
