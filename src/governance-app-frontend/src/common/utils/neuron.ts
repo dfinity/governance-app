@@ -90,6 +90,10 @@ export const getMaturityDisbursementFinalizeTimestampSeconds = (
   return undefined;
 };
 
+// Only 32-byte subaccounts are valid; anything else is the default subaccount.
+const normalizeIcrcSubaccount = (subaccount: number[] | undefined): Uint8Array | undefined =>
+  nonNullish(subaccount) && subaccount.length === 32 ? Uint8Array.from(subaccount) : undefined;
+
 /**
  * The destination of a maturity disbursement as an ICP account identifier (hex), for both the
  * ICP and the ICRC-1 form. Use it to match the destination against the user's own accounts.
@@ -103,12 +107,8 @@ export const getMaturityDisbursementDestinationAccountIdentifier = (
   }
   const owner = disbursement.accountToDisburseTo?.owner;
   if (isNullish(owner)) return undefined;
-  const subaccount = disbursement.accountToDisburseTo?.subaccount;
-  // Only 32-byte subaccounts are valid; anything else is the default subaccount.
-  const subAccount =
-    nonNullish(subaccount) && subaccount.length === 32
-      ? SubAccount.fromBytes(Uint8Array.from(subaccount))
-      : undefined;
+  const subaccount = normalizeIcrcSubaccount(disbursement.accountToDisburseTo?.subaccount);
+  const subAccount = subaccount ? SubAccount.fromBytes(subaccount) : undefined;
   return AccountIdentifier.fromPrincipal({ principal: owner, subAccount }).toHex();
 };
 
@@ -125,10 +125,9 @@ export const getMaturityDisbursementDestination = (
   }
   const owner = disbursement.accountToDisburseTo?.owner;
   if (isNullish(owner)) return undefined;
-  const subaccount = disbursement.accountToDisburseTo?.subaccount;
   return encodeIcrcAccount({
     owner,
-    subaccount: nonNullish(subaccount) ? Uint8Array.from(subaccount) : undefined,
+    subaccount: normalizeIcrcSubaccount(disbursement.accountToDisburseTo?.subaccount),
   });
 };
 

@@ -109,6 +109,13 @@ describe('getMaturityDisbursementDestination', () => {
     );
   });
 
+  it('encodes a subaccount that is not 32 bytes as the default subaccount', () => {
+    const disbursement = mockDisbursement({
+      accountToDisburseTo: { owner, subaccount: [1, 2, 3] },
+    });
+    expect(getMaturityDisbursementDestination(disbursement)).toBe(owner.toText());
+  });
+
   it('returns undefined when no destination is reported', () => {
     expect(getMaturityDisbursementDestination(mockDisbursement())).toBeUndefined();
   });
