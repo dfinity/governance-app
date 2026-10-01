@@ -134,11 +134,6 @@ const SEPTEMBER_2026: MonthlyGovernanceSummary = {
       label: 'Launch Approved',
     },
     {
-      title: 'Upgrade Internet Identity to 3cd91d621',
-      outcome: 'passed',
-      label: 'Passed',
-    },
-    {
       title: 'Delulu.game: a 100% On Chain MMORPG running on the IC',
       outcome: 'rejected',
       label: 'Rejected',
