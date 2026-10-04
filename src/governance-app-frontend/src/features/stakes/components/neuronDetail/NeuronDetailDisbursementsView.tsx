@@ -1,15 +1,17 @@
 import type { MaturityDisbursement, NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
 import { Hourglass, Info } from 'lucide-react';
+import { useEffect, useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { MaturitySymbol } from '@components/MaturitySymbol';
-import { E8Sn } from '@constants/extra';
+import { E8Sn, MATURITY_DISBURSEMENT_DELAY_SECONDS } from '@constants/extra';
+import { useNowInSeconds } from '@hooks/useNowInSeconds';
 import { bigIntDiv } from '@utils/bigInt';
-import { formatTimestampToLocalDate } from '@utils/date';
+import { secondsToCountdownParts, secondsToDate } from '@utils/date';
 import { shortenId } from '@utils/id';
 import {
   getMaturityDisbursementDestination,
@@ -80,48 +82,151 @@ function DisbursementEntry({ disbursement, destinationLabel }: EntryProps) {
   const { t } = useTranslation();
 
   const amount = bigIntDiv(disbursement.amountE8s ?? 0n, E8Sn);
-  const startedAt = formatTimestampToLocalDate(disbursement.timestampOfDisbursementSeconds);
+  const startTimestamp = disbursement.timestampOfDisbursementSeconds;
   const finalizeTimestamp = getMaturityDisbursementFinalizeTimestampSeconds(disbursement);
-  const completesAt = formatTimestampToLocalDate(finalizeTimestamp);
   const destination = getMaturityDisbursementDestination(disbursement);
 
   return (
-    <li className="flex gap-3 rounded-lg border p-3" data-testid="disbursement-entry">
-      <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-        <Hourglass className="size-4" aria-hidden="true" />
+    <li className="flex flex-col gap-4 rounded-lg border p-4" data-testid="disbursement-entry">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex shrink-0 flex-col gap-1">
+          <span className="text-[13px] whitespace-nowrap text-muted-foreground">
+            {t(($) => $.neuronDetailModal.disbursements.amount)}
+          </span>
+          <div className="flex items-center gap-1 text-lg" data-testid="disbursement-amount">
+            <span className="font-semibold">{formatNumber(amount)}</span>
+            <MaturitySymbol />
+          </div>
+        </div>
+        <div className="flex min-w-0 flex-col items-end gap-1">
+          <span className="text-[13px] text-muted-foreground">
+            {t(($) => $.neuronDetailModal.disbursements.to)}
+          </span>
+          <span
+            className="max-w-full truncate text-[15px] font-medium"
+            title={destination}
+            data-testid="disbursement-destination"
+          >
+            {destinationLabel}
+          </span>
+        </div>
       </div>
-      <dl className="grid flex-1 grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[13px]">
-        <dt className="text-muted-foreground">
-          {t(($) => $.neuronDetailModal.disbursements.amount)}
-        </dt>
-        <dd className="flex items-center gap-1 text-right" data-testid="disbursement-amount">
-          <span className="ml-auto font-semibold">{formatNumber(amount)}</span>
-          <MaturitySymbol />
-        </dd>
 
-        <dt className="text-muted-foreground">{t(($) => $.neuronDetailModal.disbursements.to)}</dt>
-        <dd
-          className="truncate text-right font-medium"
-          title={destination}
-          data-testid="disbursement-destination"
-        >
-          {destinationLabel}
-        </dd>
+      {nonNullish(finalizeTimestamp) && (
+        <DisbursementCountdown
+          startTimestamp={startTimestamp}
+          finalizeTimestamp={finalizeTimestamp}
+        />
+      )}
 
-        <dt className="text-muted-foreground">
-          {t(($) => $.neuronDetailModal.disbursements.started)}
-        </dt>
-        <dd className="text-right" data-testid="disbursement-started">
-          {startedAt}
-        </dd>
-
-        <dt className="text-muted-foreground">
-          {t(($) => $.neuronDetailModal.disbursements.completes)}
-        </dt>
-        <dd className="text-right font-medium" data-testid="disbursement-completes">
-          {nonNullish(finalizeTimestamp) ? completesAt : '-'}
-        </dd>
-      </dl>
+      <div className="flex justify-between gap-3 text-[12px] text-muted-foreground">
+        <span>
+          {t(($) => $.neuronDetailModal.disbursements.started)}{' '}
+          <span className="text-foreground" data-testid="disbursement-started">
+            {formatDisbursementDate(startTimestamp)}
+          </span>
+        </span>
+        <span className="text-right">
+          {t(($) => $.neuronDetailModal.disbursements.completes)}{' '}
+          <span className="font-medium text-foreground" data-testid="disbursement-completes">
+            {formatDisbursementDate(finalizeTimestamp)}
+          </span>
+        </span>
+      </div>
     </li>
+  );
+}
+
+const formatDisbursementDate = (timestamp: bigint | undefined): string =>
+  nonNullish(timestamp) ? secondsToDate(Number(timestamp)) : '-';
+
+const COUNTDOWN_UNITS = ['days', 'hours', 'minutes', 'seconds'] as const;
+
+type CountdownProps = {
+  startTimestamp: bigint | undefined;
+  finalizeTimestamp: bigint;
+};
+
+// Owns the one-second tick, so only this leaf re-renders while the countdown runs.
+function DisbursementCountdown({ startTimestamp, finalizeTimestamp }: CountdownProps) {
+  const { t } = useTranslation();
+  const labelId = useId();
+  const now = useNowInSeconds();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setIsMounted(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  const end = Number(finalizeTimestamp);
+  const start = nonNullish(startTimestamp)
+    ? Number(startTimestamp)
+    : end - MATURITY_DISBURSEMENT_DELAY_SECONDS;
+  const remainingSeconds = end - now;
+  const progress = end > start ? Math.min(1, Math.max(0, (now - start) / (end - start))) : 1;
+  const progressPercent = Math.round(progress * 100);
+  const countdown = secondsToCountdownParts(remainingSeconds);
+
+  return (
+    <div className="flex flex-col gap-3">
+      {remainingSeconds > 0 ? (
+        <div className="flex flex-col gap-2">
+          <span
+            id={labelId}
+            className="flex items-center gap-1.5 text-[13px] text-muted-foreground"
+          >
+            <Hourglass className="size-3.5" aria-hidden="true" />
+            {t(($) => $.neuronDetailModal.disbursements.arrivesIn)}
+          </span>
+          <div
+            role="timer"
+            aria-labelledby={labelId}
+            className="grid grid-cols-4 gap-2"
+            data-testid="disbursement-countdown"
+          >
+            {COUNTDOWN_UNITS.map((unit) => (
+              <div
+                key={unit}
+                className="flex flex-col items-center gap-0.5 rounded-md bg-muted/60 py-2"
+              >
+                <span
+                  className="text-2xl font-semibold tabular-nums"
+                  data-testid={`disbursement-countdown-${unit}`}
+                >
+                  {String(countdown[unit]).padStart(2, '0')}
+                </span>
+                <span className="text-[11px] tracking-wide text-muted-foreground uppercase">
+                  {t(($) => $.neuronDetailModal.disbursements.countdownUnits[unit])}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <p
+          className="flex items-center gap-1.5 text-[13px] font-medium"
+          data-testid="disbursement-finalizing"
+        >
+          <Hourglass className="size-3.5 text-muted-foreground" aria-hidden="true" />
+          {t(($) => $.neuronDetailModal.disbursements.finalizing)}
+        </p>
+      )}
+
+      <div
+        role="progressbar"
+        aria-label={t(($) => $.neuronDetailModal.disbursements.progressAria)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={progressPercent}
+        className="h-1.5 overflow-hidden rounded-full bg-muted"
+        data-testid="disbursement-progress"
+      >
+        <div
+          className="h-full rounded-full bg-amber-500 transition-[width] duration-1000 ease-out motion-reduce:transition-none dark:bg-amber-400"
+          style={{ width: `${isMounted ? progress * 100 : 0}%` }}
+        />
+      </div>
+    </div>
   );
 }
