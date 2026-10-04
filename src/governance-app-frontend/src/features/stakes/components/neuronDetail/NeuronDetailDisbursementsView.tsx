@@ -205,6 +205,7 @@ function DisbursementCountdown({ startTimestamp, finalizeTimestamp }: CountdownP
         </div>
       ) : (
         <p
+          role="status"
           className="flex items-center gap-1.5 text-[13px] font-medium"
           data-testid="disbursement-finalizing"
         >
