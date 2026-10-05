@@ -75,5 +75,7 @@ service : {
 
     // Exchange Rate
     get_icp_to_usd_exchange_rate : () -> (IcpExchangeRateResponse) query;
+    // The one-day-ago rate, then the newer rates of the last day, oldest first.
+    get_icp_to_usd_rate_history : () -> (vec CachedRate) query;
     // End Exchange Rate
 }

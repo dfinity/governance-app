@@ -1,4 +1,6 @@
-use super::cache::{get_cached_rates, CachedRate};
+use super::cache::{
+    add_history_rate, get_cached_rates, get_rate_history, set_one_day_ago_rate, CachedRate,
+};
 use super::time::testing::set_time_seconds;
 use super::xrc_client::testing;
 use super::*;
@@ -109,6 +111,11 @@ async fn test_update_exchange_rate_success() {
     assert_eq!(requests.len(), 2);
     assert_eq!(requests[0].timestamp, None);
     assert_eq!(requests[1].timestamp, Some(past_ts));
+
+    assert_eq!(
+        get_rate_history(),
+        vec![rates.one_day_ago.unwrap(), rates.current.unwrap()]
+    );
 }
 
 #[tokio::test]
@@ -136,5 +143,159 @@ async fn test_update_exchange_rate_error_preserves_cache() {
     assert!(
         rates.one_day_ago.is_some(),
         "one-day-ago rate should be preserved after error"
+    );
+}
+
+fn cached_rate(rate_e8s: u64, timestamp_seconds: u64) -> CachedRate {
+    CachedRate {
+        rate_e8s,
+        timestamp_seconds,
+        updated_at_seconds: timestamp_seconds,
+    }
+}
+
+#[test]
+fn test_rate_history_starts_empty() {
+    assert_eq!(get_rate_history(), vec![]);
+}
+
+#[tokio::test]
+async fn test_backfill_rate_history() {
+    let now = 300_000;
+    set_time_seconds(now);
+
+    for hours_ago in 1..=BACKFILL_HOURS {
+        let timestamp = now - hours_ago * ONE_HOUR_SECS;
+        let rate = make_exchange_rate(1_000_000_000 + hours_ago, 8, timestamp);
+        testing::add_exchange_rate_response(Ok(Ok(rate)));
+    }
+
+    backfill_rate_history().await;
+
+    let requests = testing::drain_requests();
+    assert_eq!(requests.len(), BACKFILL_HOURS as usize);
+    assert_eq!(requests[0].timestamp, Some(now - ONE_HOUR_SECS));
+    assert_eq!(
+        requests[BACKFILL_HOURS as usize - 1].timestamp,
+        Some(now - BACKFILL_HOURS * ONE_HOUR_SECS)
+    );
+
+    let history = get_rate_history();
+    assert_eq!(history.len(), BACKFILL_HOURS as usize);
+    assert_eq!(
+        history.first().unwrap().timestamp_seconds,
+        now - BACKFILL_HOURS * ONE_HOUR_SECS
+    );
+    assert_eq!(
+        history.last().unwrap().timestamp_seconds,
+        now - ONE_HOUR_SECS
+    );
+    assert!(history
+        .windows(2)
+        .all(|pair| pair[0].timestamp_seconds < pair[1].timestamp_seconds));
+}
+
+#[tokio::test]
+async fn test_backfill_rate_history_skips_failed_calls() {
+    let now = 300_000;
+    set_time_seconds(now);
+
+    for hours_ago in 1..=BACKFILL_HOURS {
+        if hours_ago == 2 {
+            testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
+        } else {
+            let rate = make_exchange_rate(1_000_000_000, 8, now - hours_ago * ONE_HOUR_SECS);
+            testing::add_exchange_rate_response(Ok(Ok(rate)));
+        }
+    }
+
+    backfill_rate_history().await;
+
+    let history = get_rate_history();
+    assert_eq!(history.len(), BACKFILL_HOURS as usize - 1);
+    assert!(history
+        .iter()
+        .all(|rate| rate.timestamp_seconds != now - 2 * ONE_HOUR_SECS));
+}
+
+#[test]
+fn test_rate_history_drops_rates_older_than_one_day() {
+    set_time_seconds(100_000);
+    add_history_rate(cached_rate(100_000_000, 50_000));
+    add_history_rate(cached_rate(110_000_000, 99_000));
+
+    set_time_seconds(140_000);
+    add_history_rate(cached_rate(120_000_000, 139_000));
+
+    assert_eq!(
+        get_rate_history(),
+        vec![
+            cached_rate(110_000_000, 99_000),
+            cached_rate(120_000_000, 139_000)
+        ]
+    );
+}
+
+#[test]
+fn test_rate_history_replaces_rate_with_same_timestamp() {
+    set_time_seconds(100_000);
+    add_history_rate(cached_rate(100_000_000, 99_000));
+    add_history_rate(cached_rate(110_000_000, 99_000));
+
+    assert_eq!(get_rate_history(), vec![cached_rate(110_000_000, 99_000)]);
+}
+
+#[tokio::test]
+async fn test_rate_history_skips_rates_before_one_day_ago_rate() {
+    let now = 200_000;
+    set_time_seconds(now);
+    let past_ts = now - ONE_DAY_SECS;
+
+    // Backfilled rate older than the one-day-ago rate.
+    add_history_rate(cached_rate(90_000_000, past_ts - 60));
+    add_history_rate(cached_rate(95_000_000, past_ts + ONE_HOUR_SECS));
+
+    testing::add_exchange_rate_response(Ok(Ok(make_exchange_rate(100_000_000, 8, now))));
+    testing::add_exchange_rate_response(Ok(Ok(make_exchange_rate(80_000_000, 8, past_ts))));
+    update_exchange_rate().await;
+
+    let timestamps: Vec<u64> = get_rate_history()
+        .iter()
+        .map(|rate| rate.timestamp_seconds)
+        .collect();
+    assert_eq!(timestamps, vec![past_ts, past_ts + ONE_HOUR_SECS, now]);
+}
+
+#[test]
+fn test_rate_history_includes_one_day_ago_rate_within_tolerance() {
+    let now = 200_000;
+    set_time_seconds(now);
+    let one_day_ago = cached_rate(80_000_000, now - ONE_DAY_SECS - ONE_DAY_AGO_TOLERANCE_SECS);
+    set_one_day_ago_rate(one_day_ago.clone());
+    add_history_rate(cached_rate(100_000_000, now));
+
+    assert_eq!(
+        get_rate_history(),
+        vec![one_day_ago, cached_rate(100_000_000, now)]
+    );
+}
+
+#[test]
+fn test_rate_history_skips_stale_one_day_ago_rate() {
+    let now = 200_000;
+    set_time_seconds(now);
+    set_one_day_ago_rate(cached_rate(
+        80_000_000,
+        now - ONE_DAY_SECS - ONE_DAY_AGO_TOLERANCE_SECS - 1,
+    ));
+    add_history_rate(cached_rate(90_000_000, now - ONE_DAY_SECS + ONE_HOUR_SECS));
+    add_history_rate(cached_rate(100_000_000, now));
+
+    assert_eq!(
+        get_rate_history(),
+        vec![
+            cached_rate(90_000_000, now - ONE_DAY_SECS + ONE_HOUR_SECS),
+            cached_rate(100_000_000, now)
+        ]
     );
 }

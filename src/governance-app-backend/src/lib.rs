@@ -7,7 +7,7 @@ mod exchange_rate;
 mod user_data;
 
 use address_book::{AddressBook, GetAddressBookResponse, SetAddressBookResponse};
-use exchange_rate::cache::IcpExchangeRateResponse;
+use exchange_rate::cache::{CachedRate, IcpExchangeRateResponse};
 
 #[init]
 fn init() {
@@ -41,6 +41,11 @@ fn set_address_book(addresses: AddressBook) -> SetAddressBookResponse {
 #[query]
 fn get_icp_to_usd_exchange_rate() -> IcpExchangeRateResponse {
     exchange_rate::get_icp_to_usd_exchange_rate()
+}
+
+#[query]
+fn get_icp_to_usd_rate_history() -> Vec<CachedRate> {
+    exchange_rate::get_icp_to_usd_rate_history()
 }
 
 #[cfg(feature = "testnet")]
