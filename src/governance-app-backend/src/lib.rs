@@ -7,7 +7,7 @@ mod exchange_rate;
 mod user_data;
 
 use address_book::{AddressBook, GetAddressBookResponse, SetAddressBookResponse};
-use exchange_rate::cache::IcpExchangeRateResponse;
+use exchange_rate::cache::{FiatExchangeRate, IcpExchangeRateResponse};
 
 #[init]
 fn init() {
@@ -43,8 +43,19 @@ fn get_icp_to_usd_exchange_rate() -> IcpExchangeRateResponse {
     exchange_rate::get_icp_to_usd_exchange_rate()
 }
 
+#[query]
+fn get_usd_to_fiat_exchange_rates() -> Vec<FiatExchangeRate> {
+    exchange_rate::get_usd_to_fiat_exchange_rates()
+}
+
 #[cfg(feature = "testnet")]
 #[update]
 fn set_mock_exchange_rate(current_rate_e8s: u64, rate_one_day_ago_e8s: u64) {
     exchange_rate::set_mock_exchange_rate(current_rate_e8s, rate_one_day_ago_e8s);
+}
+
+#[cfg(feature = "testnet")]
+#[update]
+fn set_mock_fiat_exchange_rate(symbol: String, current_rate_e8s: u64, rate_one_day_ago_e8s: u64) {
+    exchange_rate::set_mock_fiat_exchange_rate(symbol, current_rate_e8s, rate_one_day_ago_e8s);
 }

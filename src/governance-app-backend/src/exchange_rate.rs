@@ -7,25 +7,48 @@ mod tests;
 
 use std::time::Duration;
 
-use cache::{CachedRate, IcpExchangeRateResponse};
+use cache::{CachedRate, FiatExchangeRate, IcpExchangeRateResponse};
 use xrc_client::{Asset, AssetClass, GetExchangeRateRequest};
 
 const UPDATE_INTERVAL: Duration = Duration::from_secs(300); // 5 minutes
+/// Forex rates change once a day.
+const FIAT_UPDATE_INTERVAL: Duration = Duration::from_secs(3_600); // 1 hour
 const ONE_DAY_SECS: u64 = 86_400;
+
+/// Fiat currencies with a cached USD exchange rate.
+const FIAT_SYMBOLS: [&str; 7] = ["EUR", "GBP", "CHF", "JPY", "CNY", "CAD", "AUD"];
 
 /// Called from `init` and `post_upgrade` to kick off periodic exchange-rate fetching.
 pub fn init_exchange_rate_timer() {
     ic_cdk_timers::set_timer(Duration::ZERO, update_exchange_rate());
     ic_cdk_timers::set_timer_interval(UPDATE_INTERVAL, || update_exchange_rate());
+    ic_cdk_timers::set_timer(Duration::ZERO, update_fiat_exchange_rates());
+    ic_cdk_timers::set_timer_interval(FIAT_UPDATE_INTERVAL, || update_fiat_exchange_rates());
 }
 
 pub fn get_icp_to_usd_exchange_rate() -> IcpExchangeRateResponse {
     cache::get_cached_rates()
 }
 
+pub fn get_usd_to_fiat_exchange_rates() -> Vec<FiatExchangeRate> {
+    cache::get_cached_fiat_rates()
+}
+
 #[cfg(feature = "testnet")]
 pub fn set_mock_exchange_rate(current_rate_e8s: u64, rate_one_day_ago_e8s: u64) {
     cache::set_mock_rates(current_rate_e8s, rate_one_day_ago_e8s);
+}
+
+#[cfg(feature = "testnet")]
+pub fn set_mock_fiat_exchange_rate(
+    symbol: String,
+    current_rate_e8s: u64,
+    rate_one_day_ago_e8s: u64,
+) {
+    let Some(&symbol) = FIAT_SYMBOLS.iter().find(|&&s| s == symbol) else {
+        ic_cdk::trap(format!("Unsupported fiat symbol: {symbol}"));
+    };
+    cache::set_mock_fiat_rates(symbol, current_rate_e8s, rate_one_day_ago_e8s);
 }
 
 fn icp_asset() -> Asset {
@@ -36,78 +59,109 @@ fn icp_asset() -> Asset {
 }
 
 fn usd_asset() -> Asset {
+    fiat_asset("USD")
+}
+
+fn fiat_asset(symbol: &str) -> Asset {
     Asset {
-        symbol: "USD".to_string(),
+        symbol: symbol.to_string(),
         class: AssetClass::FiatCurrency,
     }
 }
 
 async fn update_exchange_rate() {
-    let now_secs = time::time_seconds();
-    let past_timestamp = now_secs.saturating_sub(ONE_DAY_SECS);
+    let past_timestamp = time::time_seconds().saturating_sub(ONE_DAY_SECS);
 
     // No timestamp = latest available rate from XRC.
     // https://github.com/dfinity/exchange-rate-canister/blob/41393865715eecb620474de34351096ec77a13fa/src/xrc/src/api.rs#L369
-    fetch_and_cache_rate(None, RateKind::Current).await;
-    fetch_and_cache_rate(Some(past_timestamp), RateKind::OneDayAgo).await;
+    if let Some(rate) = fetch_rate(icp_asset(), usd_asset(), None, "current").await {
+        cache::set_current_rate(rate);
+    }
+    if let Some(rate) = fetch_rate(
+        icp_asset(),
+        usd_asset(),
+        Some(past_timestamp),
+        "one-day-ago",
+    )
+    .await
+    {
+        cache::set_one_day_ago_rate(rate);
+    }
 }
 
-enum RateKind {
-    Current,
-    OneDayAgo,
+async fn update_fiat_exchange_rates() {
+    let past_timestamp = time::time_seconds().saturating_sub(ONE_DAY_SECS);
+
+    // Fiat/fiat requests need no HTTPS outcalls, so the XRC charges only its base fee.
+    for symbol in FIAT_SYMBOLS {
+        if let Some(rate) = fetch_rate(usd_asset(), fiat_asset(symbol), None, "current").await {
+            cache::set_current_fiat_rate(symbol, rate);
+        }
+        if let Some(rate) = fetch_rate(
+            usd_asset(),
+            fiat_asset(symbol),
+            Some(past_timestamp),
+            "one-day-ago",
+        )
+        .await
+        {
+            cache::set_one_day_ago_fiat_rate(symbol, rate);
+        }
+    }
 }
 
-async fn fetch_and_cache_rate(timestamp: Option<u64>, kind: RateKind) {
+/// Fetches a rate from the XRC. Returns `None` and logs the reason if the call or the conversion fails.
+async fn fetch_rate(
+    base_asset: Asset,
+    quote_asset: Asset,
+    timestamp: Option<u64>,
+    label: &str,
+) -> Option<CachedRate> {
+    let pair = format!("{}/{}", base_asset.symbol, quote_asset.symbol);
     let request = GetExchangeRateRequest {
-        base_asset: icp_asset(),
-        quote_asset: usd_asset(),
+        base_asset,
+        quote_asset,
         timestamp,
     };
 
-    let label = match kind {
-        RateKind::Current => "current",
-        RateKind::OneDayAgo => "one-day-ago",
-    };
-
-    let result = xrc_client::get_exchange_rate(request).await;
-    match result {
+    match xrc_client::get_exchange_rate(request).await {
         Ok(Ok(exchange_rate)) => {
             let Some(rate_e8s) =
                 convert_to_e8s(exchange_rate.rate, exchange_rate.metadata.decimals)
             else {
                 ic_cdk::println!(
-                    "Keeping {} ICP/USD rate unchanged: conversion overflow (rate={}, decimals={})",
+                    "Keeping {} {} rate unchanged: conversion overflow (rate={}, decimals={})",
                     label,
+                    pair,
                     exchange_rate.rate,
                     exchange_rate.metadata.decimals,
                 );
-                return;
+                return None;
             };
-            let now_secs = time::time_seconds();
-            let cached = CachedRate {
+            ic_cdk::println!("Updated {} {} rate to {} e8s", label, pair, rate_e8s);
+            Some(CachedRate {
                 rate_e8s,
                 timestamp_seconds: exchange_rate.timestamp,
-                updated_at_seconds: now_secs,
-            };
-            match kind {
-                RateKind::Current => cache::set_current_rate(cached),
-                RateKind::OneDayAgo => cache::set_one_day_ago_rate(cached),
-            }
-            ic_cdk::println!("Updated {} ICP/USD rate to {} e8s", label, rate_e8s);
+                updated_at_seconds: time::time_seconds(),
+            })
         }
         Ok(Err(err)) => {
             ic_cdk::println!(
-                "Keeping {} ICP/USD rate unchanged due to XRC error: {:?}",
+                "Keeping {} {} rate unchanged due to XRC error: {:?}",
                 label,
+                pair,
                 err
             );
+            None
         }
         Err(call_err) => {
             ic_cdk::println!(
-                "Keeping {} ICP/USD rate unchanged due to call error: {}",
+                "Keeping {} {} rate unchanged due to call error: {}",
                 label,
+                pair,
                 call_err
             );
+            None
         }
     }
 }
