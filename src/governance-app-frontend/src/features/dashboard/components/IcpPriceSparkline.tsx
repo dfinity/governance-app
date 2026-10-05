@@ -39,8 +39,12 @@ export const IcpPriceSparkline = ({ points, label, className }: Props) => (
       className,
     )}
   >
-    {/* The accessibility layer moves the tooltip with the arrow keys. */}
-    <AreaChart data={points} margin={{ top: 4, right: 4, bottom: 0, left: 4 }} title={label}>
+    <AreaChart
+      data={points}
+      margin={{ top: 4, right: 4, bottom: 0, left: 4 }}
+      title={label}
+      accessibilityLayer
+    >
       <XAxis hide dataKey="timestampSeconds" type="number" domain={['dataMin', 'dataMax']} />
       <YAxis hide domain={['dataMin', 'dataMax']} />
       <ChartTooltip
