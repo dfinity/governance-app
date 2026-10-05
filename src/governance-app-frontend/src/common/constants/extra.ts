@@ -31,6 +31,8 @@ export const ICP_TRANSACTION_FEE_E8Sn = BigInt(ICP_TRANSACTION_FEE_E8S);
 export const ICP_TRANSACTION_PROPAGATION_DELAY_MS = 2_000;
 export const SUCCESS_AUTO_CLOSE_MS = 2_400;
 export const DIALOG_RESET_DELAY_MS = 300;
+// The backend gets a new ICP/USD rate from the XRC at this interval.
+export const EXCHANGE_RATE_REFRESH_MS = 5 * 60 * 1_000;
 
 export const VOTING_RESULTS_PRECISION = 6; // Number of digits after the decimal point.
 
