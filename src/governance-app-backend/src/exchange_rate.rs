@@ -21,9 +21,11 @@ const BACKFILL_HOURS: u64 = 23;
 
 /// Called from `init` and `post_upgrade` to kick off periodic exchange-rate fetching.
 pub fn init_exchange_rate_timer() {
-    ic_cdk_timers::set_timer(Duration::ZERO, update_exchange_rate());
-    // The history lives on the heap, so it is empty after `init` and `post_upgrade`.
-    ic_cdk_timers::set_timer(Duration::ZERO, backfill_rate_history());
+    ic_cdk_timers::set_timer(Duration::ZERO, async {
+        update_exchange_rate().await;
+        // The history lives on the heap, so it is empty after `init` and `post_upgrade`.
+        backfill_rate_history().await;
+    });
     ic_cdk_timers::set_timer_interval(UPDATE_INTERVAL, || update_exchange_rate());
 }
 
