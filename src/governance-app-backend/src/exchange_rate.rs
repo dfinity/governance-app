@@ -13,6 +13,9 @@ use xrc_client::{Asset, AssetClass, GetExchangeRateRequest};
 const UPDATE_INTERVAL: Duration = Duration::from_secs(300); // 5 minutes
 const ONE_DAY_SECS: u64 = 86_400;
 const ONE_HOUR_SECS: u64 = 3_600;
+/// The history includes the one-day-ago rate only if it is at most this much older than one day.
+/// Two intervals allow for one failed update.
+const ONE_DAY_AGO_TOLERANCE_SECS: u64 = 2 * UPDATE_INTERVAL.as_secs();
 /// The update timer adds the current and one-day-ago rates, so the backfill covers the hours in between.
 const BACKFILL_HOURS: u64 = 23;
 

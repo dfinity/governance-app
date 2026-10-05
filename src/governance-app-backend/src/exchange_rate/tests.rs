@@ -1,4 +1,6 @@
-use super::cache::{add_history_rate, get_cached_rates, get_rate_history, CachedRate};
+use super::cache::{
+    add_history_rate, get_cached_rates, get_rate_history, set_one_day_ago_rate, CachedRate,
+};
 use super::time::testing::set_time_seconds;
 use super::xrc_client::testing;
 use super::*;
@@ -262,4 +264,38 @@ async fn test_rate_history_skips_rates_before_one_day_ago_rate() {
         .map(|rate| rate.timestamp_seconds)
         .collect();
     assert_eq!(timestamps, vec![past_ts, past_ts + ONE_HOUR_SECS, now]);
+}
+
+#[test]
+fn test_rate_history_includes_one_day_ago_rate_within_tolerance() {
+    let now = 200_000;
+    set_time_seconds(now);
+    let one_day_ago = cached_rate(80_000_000, now - ONE_DAY_SECS - ONE_DAY_AGO_TOLERANCE_SECS);
+    set_one_day_ago_rate(one_day_ago.clone());
+    add_history_rate(cached_rate(100_000_000, now));
+
+    assert_eq!(
+        get_rate_history(),
+        vec![one_day_ago, cached_rate(100_000_000, now)]
+    );
+}
+
+#[test]
+fn test_rate_history_skips_stale_one_day_ago_rate() {
+    let now = 200_000;
+    set_time_seconds(now);
+    set_one_day_ago_rate(cached_rate(
+        80_000_000,
+        now - ONE_DAY_SECS - ONE_DAY_AGO_TOLERANCE_SECS - 1,
+    ));
+    add_history_rate(cached_rate(90_000_000, now - ONE_DAY_SECS + ONE_HOUR_SECS));
+    add_history_rate(cached_rate(100_000_000, now));
+
+    assert_eq!(
+        get_rate_history(),
+        vec![
+            cached_rate(90_000_000, now - ONE_DAY_SECS + ONE_HOUR_SECS),
+            cached_rate(100_000_000, now)
+        ]
+    );
 }

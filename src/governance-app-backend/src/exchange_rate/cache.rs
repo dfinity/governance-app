@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 use std::ops::Bound;
 
 use super::time::time_seconds;
-use super::ONE_DAY_SECS;
+use super::{ONE_DAY_AGO_TOLERANCE_SECS, ONE_DAY_SECS};
 
 #[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq)]
 pub struct CachedRate {
@@ -45,16 +45,19 @@ pub fn get_cached_rates() -> IcpExchangeRateResponse {
 }
 
 /// Returns the one-day-ago rate followed by the newer history rates, oldest first.
-/// Without a one-day-ago rate, returns the history rates of the last day.
+/// Without a fresh one-day-ago rate, returns the history rates of the last day.
 pub fn get_rate_history() -> Vec<CachedRate> {
     CACHE.with(|cache| {
         let c = cache.borrow();
-        let (first, start) = match &c.one_day_ago {
+        let cutoff = time_seconds().saturating_sub(ONE_DAY_SECS);
+        let one_day_ago = c.one_day_ago.as_ref().filter(|rate| {
+            rate.timestamp_seconds
+                .saturating_add(ONE_DAY_AGO_TOLERANCE_SECS)
+                >= cutoff
+        });
+        let (first, start) = match one_day_ago {
             Some(rate) => (Some(rate.clone()), Bound::Excluded(rate.timestamp_seconds)),
-            None => (
-                None,
-                Bound::Included(time_seconds().saturating_sub(ONE_DAY_SECS)),
-            ),
+            None => (None, Bound::Included(cutoff)),
         };
         first
             .into_iter()
