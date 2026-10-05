@@ -1,3 +1,4 @@
+import type { ComponentProps } from 'react';
 import { Area, AreaChart, XAxis, YAxis } from 'recharts';
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@components/Chart';
@@ -21,20 +22,25 @@ const formatPointTime = (seconds: number) =>
     minute: '2-digit',
   });
 
+// A live region, so screen readers read the point that the arrow keys select.
+const SparklineTooltipContent = (props: ComponentProps<typeof ChartTooltipContent>) => (
+  <div role="status" aria-live="polite">
+    <ChartTooltipContent {...props} />
+  </div>
+);
+
 // The line and the fill use `currentColor`, so the parent text color sets the trend color.
 export const IcpPriceSparkline = ({ points, label, className }: Props) => (
   <ChartContainer
     config={{}}
-    role="img"
-    aria-label={label}
     data-testid="icp-price-sparkline"
-    className={cn('aspect-auto h-13 w-full', className)}
+    className={cn(
+      'aspect-auto h-13 w-full [&_.recharts-surface:focus-visible]:rounded-[2px] [&_.recharts-surface:focus-visible]:outline-2 [&_.recharts-surface:focus-visible]:outline-offset-2 [&_.recharts-surface:focus-visible]:outline-ring/50 [&_.recharts-surface:focus-visible]:outline-solid',
+      className,
+    )}
   >
-    <AreaChart
-      data={points}
-      margin={{ top: 4, right: 4, bottom: 0, left: 4 }}
-      accessibilityLayer={false}
-    >
+    {/* The accessibility layer moves the tooltip with the arrow keys. */}
+    <AreaChart data={points} margin={{ top: 4, right: 4, bottom: 0, left: 4 }} title={label}>
       <XAxis hide dataKey="timestampSeconds" type="number" domain={['dataMin', 'dataMax']} />
       <YAxis hide domain={['dataMin', 'dataMax']} />
       <ChartTooltip
@@ -44,7 +50,7 @@ export const IcpPriceSparkline = ({ points, label, className }: Props) => (
         wrapperStyle={{ zIndex: 10 }}
         isAnimationActive={false}
         content={
-          <ChartTooltipContent
+          <SparklineTooltipContent
             hideIndicator
             className="min-w-0 whitespace-nowrap"
             labelClassName="text-muted-foreground"

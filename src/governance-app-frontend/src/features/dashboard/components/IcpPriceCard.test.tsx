@@ -30,12 +30,15 @@ const POINTS = [
   { timestampSeconds: 1_774_870_800, usd: 3.24 },
 ];
 
-const mockTickerPrices = (source: TickerPricesSource) =>
+const mockTickerPrices = (source: TickerPricesSource, withChange = true) =>
   mocks.tickerPrices.mockReturnValue({
     tickerPrices: {
       isLoading: false,
       data: new Map([
-        [CANISTER_ID_ICP_LEDGER!, { _name: 'ICP', icp: 1, usd: 3.24, previousUsd: 3.435 }],
+        [
+          CANISTER_ID_ICP_LEDGER!,
+          { _name: 'ICP', icp: 1, usd: 3.24, previousUsd: withChange ? 3.435 : undefined },
+        ],
       ]),
     },
     tickerPricesSource: source,
@@ -60,6 +63,16 @@ describe('IcpPriceCard', () => {
     expect(screen.getByText(/5\.68%/)).toBeTruthy();
     expect(screen.queryByTestId('icp-price-sparkline')).toBeTruthy();
     expect(mocks.rateHistory).toHaveBeenCalledWith({ enabled: true });
+  });
+
+  it('shows the chart without the 24h change', () => {
+    mockTickerPrices(TickerPricesSource.XRC, false);
+    mockRateHistory(POINTS);
+
+    render(<IcpPriceCard />);
+
+    expect(screen.queryByText(/24h/)).toBeNull();
+    expect(screen.queryByTestId('icp-price-sparkline')).toBeTruthy();
   });
 
   it('does not show the chart for the ICPSwap source', () => {

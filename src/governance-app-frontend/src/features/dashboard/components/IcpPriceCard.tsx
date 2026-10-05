@@ -9,6 +9,9 @@ import { formatNumber, formatPercentage } from '@utils/numbers';
 
 import { IcpPriceSparkline } from './IcpPriceSparkline';
 
+const trendColor = (isPositive: boolean) =>
+  isPositive ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400';
+
 export const IcpPriceCard = () => {
   const { t } = useTranslation();
   const { tickerPrices: tickersQuery, tickerPricesSource } = useTickerPrices();
@@ -25,13 +28,12 @@ export const IcpPriceCard = () => {
       : undefined;
 
   const isPositive = nonNullish(change) && change >= 0;
-  const trendColor = isPositive
-    ? 'text-emerald-700 dark:text-emerald-400'
-    : 'text-red-700 dark:text-red-400';
 
   const historyPoints = historyQuery.data ?? [];
   const isLoading = tickersQuery.isLoading || (hasHistorySource && historyQuery.isLoading);
-  const showChart = hasHistorySource && nonNullish(change) && historyPoints.length >= 2;
+  const showChart = hasHistorySource && historyPoints.length >= 2;
+  const isChartPositive =
+    showChart && historyPoints[historyPoints.length - 1].usd >= historyPoints[0].usd;
 
   return (
     <Card className="gap-3 py-4">
@@ -54,7 +56,9 @@ export const IcpPriceCard = () => {
                 {icpPriceUsd ? `$${icpPriceUsd}` : '—'}
               </p>
               {nonNullish(change) && (
-                <p className={`mt-1 flex items-center gap-1 text-sm font-medium ${trendColor}`}>
+                <p
+                  className={`mt-1 flex items-center gap-1 text-sm font-medium ${trendColor(isPositive)}`}
+                >
                   <span>{isPositive ? '▲' : '▼'}</span>
                   {formatPercentage(Math.abs(change))} ({t(($) => $.home.icpPrice24h)})
                 </p>
@@ -64,7 +68,7 @@ export const IcpPriceCard = () => {
               <IcpPriceSparkline
                 points={historyPoints}
                 label={t(($) => $.home.icpPrice24hChart)}
-                className={`min-w-0 flex-1 ${trendColor}`}
+                className={`min-w-0 flex-1 ${trendColor(isChartPositive)}`}
               />
             )}
           </div>
