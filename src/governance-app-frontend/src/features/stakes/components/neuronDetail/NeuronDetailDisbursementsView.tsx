@@ -1,17 +1,18 @@
 import type { MaturityDisbursement, NeuronInfo } from '@icp-sdk/canisters/nns';
-import { nonNullish } from '@dfinity/utils';
+import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import { Hourglass, Info } from 'lucide-react';
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
 
 import { Alert, AlertDescription } from '@components/Alert';
+import { Badge } from '@components/badge';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { E8Sn, MATURITY_DISBURSEMENT_DELAY_SECONDS } from '@constants/extra';
 import { useNowInSeconds } from '@hooks/useNowInSeconds';
 import { bigIntDiv } from '@utils/bigInt';
-import { secondsToCountdownParts, secondsToDate } from '@utils/date';
+import { secondsToDate } from '@utils/date';
 import { shortenId } from '@utils/id';
 import {
   getMaturityDisbursementDestination,
@@ -87,7 +88,7 @@ function DisbursementEntry({ disbursement, destinationLabel }: EntryProps) {
   const destination = getMaturityDisbursementDestination(disbursement);
 
   return (
-    <li className="flex flex-col gap-4 rounded-lg border p-4" data-testid="disbursement-entry">
+    <li className="flex flex-col gap-3 rounded-lg border p-4" data-testid="disbursement-entry">
       <div className="flex items-start justify-between gap-3">
         <div className="flex shrink-0 flex-col gap-1">
           <span className="text-[13px] whitespace-nowrap text-muted-foreground">
@@ -140,8 +141,6 @@ function DisbursementEntry({ disbursement, destinationLabel }: EntryProps) {
 const formatDisbursementDate = (timestamp: bigint | undefined): string =>
   nonNullish(timestamp) ? secondsToDate(Number(timestamp)) : '-';
 
-const COUNTDOWN_UNITS = ['days', 'hours', 'minutes', 'seconds'] as const;
-
 type CountdownProps = {
   startTimestamp: bigint | undefined;
   finalizeTimestamp: bigint;
@@ -150,7 +149,6 @@ type CountdownProps = {
 // Owns the one-second tick, so only this leaf re-renders while the countdown runs.
 function DisbursementCountdown({ startTimestamp, finalizeTimestamp }: CountdownProps) {
   const { t } = useTranslation();
-  const labelId = useId();
   const now = useNowInSeconds();
   const [isMounted, setIsMounted] = useState(false);
 
@@ -165,53 +163,32 @@ function DisbursementCountdown({ startTimestamp, finalizeTimestamp }: CountdownP
     : end - MATURITY_DISBURSEMENT_DELAY_SECONDS;
   const remainingSeconds = end - now;
   const progress = end > start ? Math.min(1, Math.max(0, (now - start) / (end - start))) : 1;
-  const progressPercent = Math.round(progress * 100);
-  const countdown = secondsToCountdownParts(remainingSeconds);
+  const duration = secondsToDuration({
+    seconds: BigInt(Math.max(0, remainingSeconds)),
+    i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
+  });
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2.5">
       {remainingSeconds > 0 ? (
-        <div className="flex flex-col gap-2">
-          <span
-            id={labelId}
-            className="flex items-center gap-1.5 text-[13px] text-muted-foreground"
-          >
-            <Hourglass className="size-3.5" aria-hidden="true" />
-            {t(($) => $.neuronDetailModal.disbursements.arrivesIn)}
-          </span>
-          <div
-            role="timer"
-            aria-labelledby={labelId}
-            className="grid grid-cols-4 gap-2"
-            data-testid="disbursement-countdown"
-          >
-            {COUNTDOWN_UNITS.map((unit) => (
-              <div
-                key={unit}
-                className="flex flex-col items-center gap-0.5 rounded-md bg-muted/60 py-2"
-              >
-                <span
-                  className="text-2xl font-semibold tabular-nums"
-                  data-testid={`disbursement-countdown-${unit}`}
-                >
-                  {String(countdown[unit]).padStart(2, '0')}
-                </span>
-                <span className="text-[11px] tracking-wide text-muted-foreground uppercase">
-                  {t(($) => $.neuronDetailModal.disbursements.countdownUnits[unit])}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+        <Badge
+          variant="secondary"
+          className="gap-1.5 font-normal"
+          data-testid="disbursement-time-left"
+        >
+          <Hourglass className="size-3.5" aria-hidden="true" />
+          {t(($) => $.neuronDetailModal.disbursements.arrivesIn, { duration })}
+        </Badge>
       ) : (
-        <p
+        <Badge
           role="status"
-          className="flex items-center gap-1.5 text-[13px] font-medium"
+          variant="secondary"
+          className="gap-1.5 font-normal"
           data-testid="disbursement-finalizing"
         >
-          <Hourglass className="size-3.5 text-muted-foreground" aria-hidden="true" />
+          <Hourglass className="size-3.5" aria-hidden="true" />
           {t(($) => $.neuronDetailModal.disbursements.finalizing)}
-        </p>
+        </Badge>
       )}
 
       <div
@@ -219,8 +196,8 @@ function DisbursementCountdown({ startTimestamp, finalizeTimestamp }: CountdownP
         aria-label={t(($) => $.neuronDetailModal.disbursements.progressAria)}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-valuenow={progressPercent}
-        className="h-1.5 overflow-hidden rounded-full bg-muted"
+        aria-valuenow={Math.round(progress * 100)}
+        className="h-1 overflow-hidden rounded-full bg-muted"
         data-testid="disbursement-progress"
       >
         <div

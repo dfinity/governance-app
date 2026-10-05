@@ -1,3 +1,5 @@
+import '@/i18n/config';
+
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { Principal } from '@icp-sdk/core/principal';
 import { act, render, screen } from '@testing-library/react';
@@ -92,24 +94,28 @@ describe('NeuronDetailDisbursementsView', () => {
     );
   });
 
-  it('counts down the time left until the ICP arrives', () => {
+  it('shows the time left until the ICP arrives and updates it', () => {
     const elapsed = SECONDS_IN_DAY + 2 * 60 * 60 + 3 * 60 + 4;
     setNow(START + BigInt(elapsed));
     renderView([mockDisbursement({ timestampOfDisbursementSeconds: START })]);
 
-    expect(screen.getByTestId('disbursement-countdown-days').textContent).toBe('05');
-    expect(screen.getByTestId('disbursement-countdown-hours').textContent).toBe('21');
-    expect(screen.getByTestId('disbursement-countdown-minutes').textContent).toBe('56');
-    expect(screen.getByTestId('disbursement-countdown-seconds').textContent).toBe('56');
+    expect(screen.getByTestId('disbursement-time-left').textContent).toBe(
+      'ICP arrives in 5 days, 21 hours',
+    );
     expect(screen.getByTestId('disbursement-progress').getAttribute('aria-valuenow')).toBe(
       String(Math.round((elapsed / MATURITY_DISBURSEMENT_DELAY_SECONDS) * 100)),
     );
 
+    vi.setSystemTime(
+      (Number(START) + MATURITY_DISBURSEMENT_DELAY_SECONDS - 90) * MILLISECONDS_IN_SECOND,
+    );
     act(() => {
       vi.advanceTimersByTime(MILLISECONDS_IN_SECOND);
     });
 
-    expect(screen.getByTestId('disbursement-countdown-seconds').textContent).toBe('55');
+    expect(screen.getByTestId('disbursement-time-left').textContent).toBe(
+      'ICP arrives in 1 minute',
+    );
   });
 
   it('shows the finalizing state after the completion time', () => {
@@ -117,7 +123,7 @@ describe('NeuronDetailDisbursementsView', () => {
     renderView([mockDisbursement({ timestampOfDisbursementSeconds: START })]);
 
     expect(screen.getByTestId('disbursement-finalizing')).toBeTruthy();
-    expect(screen.queryByTestId('disbursement-countdown')).toBeNull();
+    expect(screen.queryByTestId('disbursement-time-left')).toBeNull();
     expect(screen.getByTestId('disbursement-progress').getAttribute('aria-valuenow')).toBe('100');
   });
 
@@ -149,7 +155,7 @@ describe('NeuronDetailDisbursementsView', () => {
     renderView([mockDisbursement()]);
 
     expect(screen.getByTestId('disbursement-destination').getAttribute('title')).toBeNull();
-    expect(screen.queryByTestId('disbursement-countdown')).toBeNull();
+    expect(screen.queryByTestId('disbursement-time-left')).toBeNull();
     expect(screen.queryByTestId('disbursement-progress')).toBeNull();
     expect(screen.getByTestId('disbursement-started').textContent).toBe('-');
     expect(screen.getByTestId('disbursement-completes').textContent).toBe('-');

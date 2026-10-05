@@ -1,7 +1,4 @@
-import { MILLISECONDS_IN_SECOND, NANOSECONDS_IN_SECOND, SECONDS_IN_DAY } from '@constants/extra';
-
-const SECONDS_IN_HOUR = 60 * 60;
-const SECONDS_IN_MINUTE = 60;
+import { MILLISECONDS_IN_SECOND, NANOSECONDS_IN_SECOND } from '@constants/extra';
 
 export const nowInSeconds = (): number => Math.round(Date.now() / 1000);
 
@@ -14,19 +11,6 @@ export const getSessionTimeLeftForUi = (timeLeft: { minutes: number; seconds: nu
   minutes: timeLeft.minutes,
   seconds: timeLeft.seconds.toString().padStart(2, '0'),
 });
-
-export type CountdownParts = { days: number; hours: number; minutes: number; seconds: number };
-
-/** Splits a duration into the parts of a countdown. A negative duration gives all zeros. */
-export const secondsToCountdownParts = (totalSeconds: number): CountdownParts => {
-  const remaining = Math.max(0, Math.floor(totalSeconds));
-  return {
-    days: Math.floor(remaining / SECONDS_IN_DAY),
-    hours: Math.floor((remaining % SECONDS_IN_DAY) / SECONDS_IN_HOUR),
-    minutes: Math.floor((remaining % SECONDS_IN_HOUR) / SECONDS_IN_MINUTE),
-    seconds: remaining % SECONDS_IN_MINUTE,
-  };
-};
 
 export const formatTimestampToLocalDate = (seconds: bigint | undefined): string => {
   if (!seconds) return '-';
