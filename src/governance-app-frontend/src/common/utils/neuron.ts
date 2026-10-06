@@ -1,4 +1,6 @@
-import { type NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
+import { AccountIdentifier, SubAccount } from '@icp-sdk/canisters/ledger/icp';
+import { encodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
+import { type MaturityDisbursement, type NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
 import { type I18nSecondsToDuration, isNullish, nonNullish } from '@dfinity/utils';
 
 import { FOLLOWABLE_TOPIC_SET } from '@features/voting/utils/topicFollowing';
@@ -7,6 +9,7 @@ import {
   E8Sn,
   EIGHT_YEAR_GANG_BONUS_EXPIRY_SECONDS,
   ICP_TRANSACTION_FEE_E8Sn,
+  MATURITY_DISBURSEMENT_DELAY_SECONDS,
   SECONDS_IN_DAY,
   SECONDS_IN_YEAR,
 } from '@constants/extra';
@@ -59,11 +62,74 @@ export const getNeuronTotalValueAfterFeesE8s = (neuron: NeuronInfo): bigint => {
   return getNeuronTotalStakeAfterFeesE8s(neuron) + getNeuronFreeMaturityE8s(neuron);
 };
 
+export const getNeuronMaturityDisbursementsInProgress = (
+  neuron: NeuronInfo,
+): MaturityDisbursement[] => neuron.fullNeuron?.maturityDisbursementsInProgress ?? [];
+
 export const getNeuronMaturityDisbursementsInProgressE8s = (neuron: NeuronInfo): bigint =>
-  neuron.fullNeuron?.maturityDisbursementsInProgress?.reduce(
+  getNeuronMaturityDisbursementsInProgress(neuron).reduce(
     (acc, disbursement) => acc + (disbursement.amountE8s ?? 0n),
     0n,
-  ) ?? 0n;
+  );
+
+/**
+ * The timestamp at which the governance canister finalizes the disbursement and mints the ICP.
+ * Falls back to start + 7 days when the canister did not report a finalize timestamp.
+ */
+export const getMaturityDisbursementFinalizeTimestampSeconds = (
+  disbursement: MaturityDisbursement,
+): bigint | undefined => {
+  if (nonNullish(disbursement.finalizeDisbursementTimestampSeconds)) {
+    return disbursement.finalizeDisbursementTimestampSeconds;
+  }
+  if (nonNullish(disbursement.timestampOfDisbursementSeconds)) {
+    return (
+      disbursement.timestampOfDisbursementSeconds + BigInt(MATURITY_DISBURSEMENT_DELAY_SECONDS)
+    );
+  }
+  return undefined;
+};
+
+// Only 32-byte subaccounts are valid; anything else is the default subaccount.
+const normalizeIcrcSubaccount = (subaccount: number[] | undefined): Uint8Array | undefined =>
+  nonNullish(subaccount) && subaccount.length === 32 ? Uint8Array.from(subaccount) : undefined;
+
+/**
+ * The destination of a maturity disbursement as an ICP account identifier (hex), for both the
+ * ICP and the ICRC-1 form. Use it to match the destination against the user's own accounts.
+ * Returns undefined when the canister reported no destination.
+ */
+export const getMaturityDisbursementDestinationAccountIdentifier = (
+  disbursement: MaturityDisbursement,
+): string | undefined => {
+  if (nonNullish(disbursement.accountIdentifierToDisburseTo)) {
+    return disbursement.accountIdentifierToDisburseTo;
+  }
+  const owner = disbursement.accountToDisburseTo?.owner;
+  if (isNullish(owner)) return undefined;
+  const subaccount = normalizeIcrcSubaccount(disbursement.accountToDisburseTo?.subaccount);
+  const subAccount = subaccount ? SubAccount.fromBytes(subaccount) : undefined;
+  return AccountIdentifier.fromPrincipal({ principal: owner, subAccount }).toHex();
+};
+
+/**
+ * The destination of a maturity disbursement as text for display: an ICP account identifier
+ * (hex) or an ICRC-1 account (textual encoding). Returns undefined when the canister reported
+ * neither.
+ */
+export const getMaturityDisbursementDestination = (
+  disbursement: MaturityDisbursement,
+): string | undefined => {
+  if (nonNullish(disbursement.accountIdentifierToDisburseTo)) {
+    return disbursement.accountIdentifierToDisburseTo;
+  }
+  const owner = disbursement.accountToDisburseTo?.owner;
+  if (isNullish(owner)) return undefined;
+  return encodeIcrcAccount({
+    owner,
+    subaccount: normalizeIcrcSubaccount(disbursement.accountToDisburseTo?.subaccount),
+  });
+};
 
 export const hasValueAboveTransactionFee = (neuron: NeuronInfo): boolean =>
   nonNullish(neuron.fullNeuron)
@@ -77,7 +143,8 @@ export const hasValueAboveTransactionFee = (neuron: NeuronInfo): boolean =>
  * Ref: https://github.com/dfinity/nns-dapp/blob/0ed30e6c92b8d813bbd6723f531dc56ab3de3f8e/frontend/src/lib/derived/neurons.derived.ts#L18
  */
 export const isNonEmptyNeuron = (neuron: NeuronInfo): boolean =>
-  hasValueAboveTransactionFee(neuron) || getNeuronMaturityDisbursementsInProgressE8s(neuron) > 0n;
+  hasValueAboveTransactionFee(neuron) ||
+  getNeuronMaturityDisbursementsInProgress(neuron).length > 0;
 
 export const getNeuronIsAutoStakingMaturity = (neuron: NeuronInfo): boolean => {
   return hasAutoStakeMaturityOn(neuron);

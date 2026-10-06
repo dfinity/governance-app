@@ -43,16 +43,16 @@ export const QueryStates = <TData,>({
   const q = query || infiniteQuery;
 
   if (q.isLoading) {
-    // The skeleton holds the space at once and reveals itself after a short
-    // delay, so a fast query needs no hold-back here. See `.skeleton` in
-    // `main.css`. Pass a `loadingComponent` built from `Skeleton` to keep that,
-    // and wrap it in `SkeletonScreen` so screen readers hear "loading".
+    // The loader holds its space at once and reveals itself after a short
+    // delay, so a fast query shows no flash. See `.skeleton` and
+    // `.reveal-delayed` in `main.css`. Wrap a custom skeleton in
+    // `SkeletonScreen` so screen readers hear "loading".
+    if (loadingComponent) return <div className="reveal-delayed">{loadingComponent}</div>;
+
     return (
-      loadingComponent || (
-        <SkeletonScreen>
-          <SkeletonText lines={3} />
-        </SkeletonScreen>
-      )
+      <SkeletonScreen>
+        <SkeletonText lines={3} />
+      </SkeletonScreen>
     );
   }
 

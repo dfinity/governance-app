@@ -1,6 +1,6 @@
 import { type NeuronInfo, Topic } from '@icp-sdk/canisters/nns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, Loader2, Plus } from 'lucide-react';
+import { AlertTriangle, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -17,6 +17,7 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { SkeletonTopicRows } from '@components/skeletons/SkeletonListRows';
+import { Spinner } from '@components/Spinner';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import { errorMessage } from '@utils/error';
@@ -91,11 +92,7 @@ export function AdvancedFollowingModal({ open, onOpenChange }: Props) {
                   }}
                   data-testid="set-followees-btn"
                 >
-                  {isWaitingForCertifiedData ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <Plus className="size-4" />
-                  )}
+                  {isWaitingForCertifiedData ? <Spinner /> : <Plus className="size-4" />}
                   {isWaitingForCertifiedData
                     ? t(($) => $.voting.manageFollowing.certifying)
                     : t(($) => $.voting.manageFollowing.setFollowees)}

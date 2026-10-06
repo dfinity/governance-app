@@ -26,15 +26,13 @@ export const TotalStakedCard = () => {
       ? (totalLockedIcp / Number(metrics.totalSupplyIcp)) * 100
       : undefined;
 
-  const isLoading = isTvlLoading || isMetricsLoading;
-
   return (
     <Card className="gap-3 py-4">
       <CardContent>
         <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {t(($) => $.home.totalStaked)}
         </p>
-        {isLoading ? (
+        {isTvlLoading ? (
           <Skeleton className="h-8 w-40" />
         ) : (
           <p className="text-2xl font-semibold text-foreground">
@@ -50,7 +48,7 @@ export const TotalStakedCard = () => {
           </p>
         )}
         <div className="mt-1 min-h-5">
-          {isLoading ? (
+          {isMetricsLoading ? (
             <Skeleton className="h-5 w-28" />
           ) : (
             nonNullish(stakedPercentage) && (

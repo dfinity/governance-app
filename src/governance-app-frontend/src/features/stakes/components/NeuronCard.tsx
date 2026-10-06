@@ -1,7 +1,7 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
 import { useInternetIdentity } from 'ic-use-internet-identity';
-import { AlertTriangle, CircleAlert, Coins, Key, PackagePlus } from 'lucide-react';
+import { AlertTriangle, CircleAlert, Coins, Hourglass, Key, PackagePlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
@@ -26,6 +26,8 @@ import {
   getNeuronIsAutoStakingMaturity,
   getNeuronIsDissolved,
   getNeuronIsDissolving,
+  getNeuronMaturityDisbursementsInProgress,
+  getNeuronMaturityDisbursementsInProgressE8s,
   getNeuronStakeAfterFeesE8s,
   getNeuronStakedMaturityE8s,
   isUserHotkey,
@@ -76,6 +78,8 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
 
   const stakedMaturity = bigIntDiv(getNeuronStakedMaturityE8s(neuron), E8Sn);
   const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
+  const hasDisbursementsInProgress = getNeuronMaturityDisbursementsInProgress(neuron).length > 0;
+  const disbursingMaturity = bigIntDiv(getNeuronMaturityDisbursementsInProgressE8s(neuron), E8Sn);
   const stakedAmount = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
 
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
@@ -201,6 +205,23 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
                 <MaturitySymbol />
               </div>
             </div>
+
+            {/* Disbursing Maturity */}
+            {hasDisbursementsInProgress && (
+              <div
+                className="flex items-center justify-between border-b border-border/50 py-3"
+                data-testid="neuron-card-disbursing-maturity"
+              >
+                <p className="text-[13px] text-muted-foreground">
+                  {t(($) => $.neuron.disbursingMaturity)}
+                </p>
+                <div className="flex items-center gap-1">
+                  <Hourglass className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                  <p className="text-[15px] font-semibold">{formatNumber(disbursingMaturity)}</p>
+                  <MaturitySymbol />
+                </div>
+              </div>
+            )}
 
             {/* Maturity Mode */}
             <div className="flex items-center justify-between py-3">

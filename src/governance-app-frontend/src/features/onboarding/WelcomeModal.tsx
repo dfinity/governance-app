@@ -1,11 +1,12 @@
 import { nonNullish } from '@dfinity/utils';
-import { AlertTriangle, CheckCircle2, Loader } from 'lucide-react';
+import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
+import { Spinner } from '@components/Spinner';
 import { WELCOME_MODAL_STORAGE_KEY } from '@constants/extra';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useDetectAdvancedFeatures } from '@hooks/useDetectAdvancedFeatures';
@@ -138,7 +139,8 @@ function DetectingFeatures() {
             rotate: { duration: 2, repeat: Infinity, ease: 'linear', delay: 0.4 },
           }}
         >
-          <Loader className="size-4 text-primary/50" />
+          {/* The parent turns the icon, and the text beside it names the wait. */}
+          <Spinner aria-hidden className="animate-none text-primary/50" />
         </motion.div>
       </div>
       <motion.span
