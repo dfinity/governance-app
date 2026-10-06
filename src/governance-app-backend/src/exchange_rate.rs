@@ -34,7 +34,7 @@ pub fn get_icp_to_usd_exchange_rate() -> IcpExchangeRateResponse {
 }
 
 pub fn get_icp_to_usd_rate_history() -> Vec<CachedRate> {
-    cache::get_rate_history()
+    cache::list_past_day_rates()
 }
 
 #[cfg(feature = "testnet")]
@@ -67,7 +67,8 @@ async fn update_exchange_rate() {
 }
 
 /// Fetches one rate per hour for the last day.
-/// The calls are sequential, so they do not load the XRC with parallel requests.
+/// A failed call is not retried. It leaves a one-hour gap, and the 5-minute updates replace
+/// the backfill rates within one day.
 async fn backfill_rate_history() {
     let now_secs = time::time_seconds();
     for hours_ago in 1..=BACKFILL_HOURS {

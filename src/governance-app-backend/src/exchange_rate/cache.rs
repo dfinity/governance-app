@@ -2,7 +2,6 @@ use candid::CandidType;
 use serde::Deserialize;
 use std::cell::RefCell;
 use std::collections::BTreeMap;
-use std::ops::Bound;
 
 use super::time::time_seconds;
 use super::{ONE_DAY_AGO_TOLERANCE_SECS, ONE_DAY_SECS};
@@ -44,29 +43,30 @@ pub fn get_cached_rates() -> IcpExchangeRateResponse {
     })
 }
 
-/// Returns the one-day-ago rate followed by the newer history rates, oldest first.
-/// Without a fresh one-day-ago rate, returns the history rates of the last day.
-pub fn get_rate_history() -> Vec<CachedRate> {
+/// Returns the rates of the last day, oldest first.
+/// The first rate is the one-day-ago rate, unless it is stale.
+pub fn list_past_day_rates() -> Vec<CachedRate> {
     CACHE.with(|cache| {
-        let c = cache.borrow();
-        let cutoff = time_seconds().saturating_sub(ONE_DAY_SECS);
-        let one_day_ago = c.one_day_ago.as_ref().filter(|rate| {
-            rate.timestamp_seconds
-                .saturating_add(ONE_DAY_AGO_TOLERANCE_SECS)
-                >= cutoff
-        });
-        let (first, start) = match one_day_ago {
-            Some(rate) => (Some(rate.clone()), Bound::Excluded(rate.timestamp_seconds)),
-            None => (None, Bound::Included(cutoff)),
+        let cache = cache.borrow();
+        let one_day_ago_timestamp_seconds = time_seconds().saturating_sub(ONE_DAY_SECS);
+        let mut rates = vec![];
+
+        if let Some(one_day_ago) = cache.one_day_ago.as_ref() {
+            let is_fresh = one_day_ago.timestamp_seconds
+                >= one_day_ago_timestamp_seconds.saturating_sub(ONE_DAY_AGO_TOLERANCE_SECS);
+            if is_fresh {
+                rates.push(one_day_ago.clone());
+            }
+        }
+
+        // The history starts after the one-day-ago rate, or at the one-day cutoff without it.
+        let begin = match rates.last() {
+            Some(one_day_ago) => one_day_ago.timestamp_seconds.saturating_add(1),
+            None => one_day_ago_timestamp_seconds,
         };
-        first
-            .into_iter()
-            .chain(
-                c.history
-                    .range((start, Bound::Unbounded))
-                    .map(|(_, rate)| rate.clone()),
-            )
-            .collect()
+        rates.extend(cache.history.range(begin..).map(|(_, rate)| rate.clone()));
+
+        rates
     })
 }
 
