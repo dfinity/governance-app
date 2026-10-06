@@ -16,7 +16,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
-import { Skeleton } from '@components/Skeleton';
+import { SkeletonTopicRows } from '@components/skeletons/SkeletonListRows';
 import { Spinner } from '@components/Spinner';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
@@ -78,17 +78,7 @@ export function AdvancedFollowingModal({ open, onOpenChange }: Props) {
           </ResponsiveDialogHeader>
 
           {isLoading ? (
-            <div className="flex flex-col gap-4 py-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center justify-between px-4">
-                  <div className="flex items-center gap-3">
-                    <Skeleton className="size-4 rounded-full" />
-                    <Skeleton className="h-4 w-32" />
-                  </div>
-                  <Skeleton className="h-4 w-20" />
-                </div>
-              ))}
-            </div>
+            <SkeletonTopicRows />
           ) : (
             <>
               <div className={cn('mt-2 mb-4', isWaitingForCertifiedData && 'animate-pulse')}>
