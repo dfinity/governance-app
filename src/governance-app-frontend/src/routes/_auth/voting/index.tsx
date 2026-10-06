@@ -67,7 +67,7 @@ export const Route = createFileRoute('/_auth/voting/')({
     prefetchVotingRoute(context.queryClient, { proposals: proposalsToPrefetch(deps) }),
   staleTime: Infinity,
   component: Voting,
-  pendingComponent: VotingSkeleton,
+  pendingComponent: VotingPending,
   head: () => {
     const title = i18n.t(($) => $.common.head.voting.title);
 
@@ -79,6 +79,12 @@ export const Route = createFileRoute('/_auth/voting/')({
     title: 'common.voting',
   },
 });
+
+function VotingPending() {
+  const { showProposals } = Route.useSearch();
+
+  return <VotingSkeleton showProposals={!!showProposals} />;
+}
 
 function Voting() {
   const { t } = useTranslation();
@@ -291,7 +297,7 @@ function Voting() {
 
                 {activeQuery.hasNextPage && (
                   <InViewSentinel retrigger={data} callback={activeQuery.fetchNextPage}>
-                    <ProposalListSkeleton count={2} />
+                    {activeQuery.isFetchingNextPage && <ProposalListSkeleton count={2} />}
                   </InViewSentinel>
                 )}
               </>

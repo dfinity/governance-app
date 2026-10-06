@@ -12,9 +12,9 @@ type Props = {
 export const SkeletonStatCard = ({ caption = true, className }: Props) => (
   <Card className={cn('gap-3 py-4', className)}>
     <CardContent>
-      <Skeleton className="mb-2 h-4 w-24" />
-      <Skeleton className="h-7 w-32 md:h-8" />
-      {caption && <Skeleton className="mt-1 h-5 w-20" />}
+      <Skeleton className="mb-2 h-4 w-24 max-w-full" />
+      <Skeleton className="h-7 w-32 max-w-full md:h-8" />
+      {caption && <Skeleton className="mt-1 h-5 w-20 max-w-full" />}
     </CardContent>
   </Card>
 );

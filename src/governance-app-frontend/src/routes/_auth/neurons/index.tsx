@@ -103,7 +103,7 @@ function NeuronsComponent() {
 
   return (
     <div className="flex flex-col gap-6">
-      {hasNeurons && (
+      {(hasNeurons || neuronsQuery.isLoading) && (
         <PageHeader
           title={t(($) => $.neuron.title)}
           description={t(($) => $.neuron.description)}

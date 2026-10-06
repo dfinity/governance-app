@@ -34,11 +34,18 @@ const SkeletonProposalCard = () => (
   </Card>
 );
 
-/** Stands in for the proposals list, in the page and in the infinite scroll. */
-export const ProposalListSkeleton = ({ count = 3 }: Props) => (
-  <SkeletonScreen className="flex flex-col gap-4">
+/** The proposal cards alone, for a parent that already announces the load. */
+export const SkeletonProposalCards = ({ count = 3 }: Props) => (
+  <div className="flex flex-col gap-4">
     {Array.from({ length: count }).map((_, index) => (
       <SkeletonProposalCard key={index} />
     ))}
+  </div>
+);
+
+/** Stands in for the proposals list, in the page and in the infinite scroll. */
+export const ProposalListSkeleton = ({ count = 3 }: Props) => (
+  <SkeletonScreen>
+    <SkeletonProposalCards count={count} />
   </SkeletonScreen>
 );
