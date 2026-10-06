@@ -13,7 +13,7 @@ type Props = {
   className?: string;
 };
 
-// We only support english for now.
+// We only support English for now.
 const formatPointTime = (seconds: number) =>
   new Date(seconds * MILLISECONDS_IN_SECOND).toLocaleString('en', {
     month: 'short',
