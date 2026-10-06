@@ -53,7 +53,7 @@ export function EarningsCard({ neurons }: EarningsCardProps) {
           ) : stakingRewardsError ? (
             <p>—</p>
           ) : (
-            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-5 w-24" />
           )}
         </div>
       </CardContent>
