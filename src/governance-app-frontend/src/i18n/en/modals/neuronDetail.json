@@ -123,6 +123,9 @@
     "to": "To",
     "started": "Started",
     "completes": "Completes",
+    "arrivesIn": "ICP arrives in {{duration}}",
+    "finalizing": "Finalizing. The ICP arrives soon.",
+    "progressAria": "Disbursement progress",
     "unknownDestination": "Unknown destination",
     "info": "These disbursements are in progress and irreversible. 7 days after a disbursement starts, the ICP is minted and sent to the destination account. The final amount depends on the maturity modulation at that time."
   },
