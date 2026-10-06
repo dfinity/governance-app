@@ -15,7 +15,7 @@ export const SkeletonAddressBookRows = ({ count = 3 }: Props) => (
         className="flex items-center justify-between gap-4 rounded-lg border bg-muted/20 p-4"
       >
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-6 w-40 max-w-full" />
           <Skeleton className="h-4 w-full max-w-xs" />
         </div>
         <div className="flex shrink-0 gap-1">

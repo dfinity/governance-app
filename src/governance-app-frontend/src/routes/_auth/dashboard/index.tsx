@@ -29,7 +29,7 @@ export const Route = createFileRoute('/_auth/dashboard/')({
     depositModal: search.depositModal === 'true' || search.depositModal === true ? true : undefined,
   }),
   loader: ({ context }) => prefetchDashboardRoute(context.queryClient),
-  pendingComponent: DashboardSkeleton,
+  pendingComponent: DashboardPending,
   // Entry only — `?depositModal` toggles must not rerun the loader.
   staleTime: Infinity,
   component: Dashboard,
@@ -44,6 +44,12 @@ export const Route = createFileRoute('/_auth/dashboard/')({
     title: 'common.dashboard',
   },
 });
+
+function DashboardPending() {
+  const { features } = useAdvancedFeatures();
+
+  return <DashboardSkeleton subaccounts={features.subaccounts} />;
+}
 
 function Dashboard() {
   const { t } = useTranslation();
