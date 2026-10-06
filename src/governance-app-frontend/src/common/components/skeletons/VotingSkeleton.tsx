@@ -1,31 +1,27 @@
-import { Card, CardContent } from '@components/Card';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 
 import { SkeletonProposalCards } from './ProposalListSkeleton';
+import {
+  SkeletonAdvancedFollowingCard,
+  SkeletonSimpleFollowingCard,
+} from './SkeletonFollowingCard';
 import { SkeletonPageHeader } from './SkeletonPageHeader';
 import { SkeletonScreen } from './SkeletonScreen';
 
 type Props = {
   /** Mirrors the `showProposals` search param, which shows the list. */
   showProposals?: boolean;
+  /** Mirrors the advanced following feature, which swaps the overview card. */
+  advancedFollowing?: boolean;
 };
 
 /** Mirrors the `/voting` layout: header, following card, proposals toggle, list. */
-export const VotingSkeleton = ({ showProposals = false }: Props) => (
+export const VotingSkeleton = ({ showProposals = false, advancedFollowing = false }: Props) => (
   <SkeletonScreen className="flex flex-col gap-6 lg:gap-8">
     <SkeletonPageHeader action={true} />
 
-    {/* FollowedNeuronCard. */}
-    <Card className="p-0">
-      <CardContent className="flex items-center justify-between gap-4 p-4">
-        <div className="flex min-w-0 items-center gap-3">
-          <Skeleton className="size-9 shrink-0 rounded-md" />
-          <Skeleton className="h-6 w-48 max-w-full" />
-        </div>
-        <Skeleton className="h-8 w-36 shrink-0" />
-      </CardContent>
-    </Card>
+    {advancedFollowing ? <SkeletonAdvancedFollowingCard /> : <SkeletonSimpleFollowingCard />}
 
     <Separator className="mt-8 mb-4 lg:mt-16" />
 

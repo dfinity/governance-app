@@ -7,7 +7,7 @@ import { Button } from '@components/button';
 import { Card, CardContent } from '@components/Card';
 import { EmptyActionState } from '@components/EmptyActionState';
 import { PageHeader } from '@components/PageHeader';
-import { Skeleton } from '@components/Skeleton';
+import { SkeletonAdvancedFollowingCard } from '@components/skeletons/SkeletonFollowingCard';
 import { SkeletonPageHeader } from '@components/skeletons/SkeletonPageHeader';
 import { SkeletonScreen } from '@components/skeletons/SkeletonScreen';
 
@@ -90,19 +90,7 @@ function OverviewSkeleton() {
   return (
     <SkeletonScreen className="flex flex-col gap-6">
       <SkeletonPageHeader action={true} />
-      <Card className="p-0">
-        <CardContent className="flex flex-col divide-y p-0">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="flex items-center justify-between px-4 py-4">
-              <div className="flex items-center gap-3">
-                <Skeleton className="size-5 shrink-0 rounded-full" />
-                <Skeleton className="h-5 w-32" />
-              </div>
-              <Skeleton className="h-5 w-24" />
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <SkeletonAdvancedFollowingCard />
     </SkeletonScreen>
   );
 }

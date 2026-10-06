@@ -82,8 +82,14 @@ export const Route = createFileRoute('/_auth/voting/')({
 
 function VotingPending() {
   const { showProposals } = Route.useSearch();
+  const { features } = useAdvancedFeatures();
 
-  return <VotingSkeleton showProposals={!!showProposals} />;
+  return (
+    <VotingSkeleton
+      showProposals={!!showProposals}
+      advancedFollowing={features[AdvancedFeature.AdvancedFollowing]}
+    />
+  );
 }
 
 function Voting() {
