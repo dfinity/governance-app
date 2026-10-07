@@ -1,4 +1,5 @@
-import { Skeleton } from '@components/Skeleton';
+import { SkeletonAccountCard } from '@components/skeletons/SkeletonAccountCard';
+import { SkeletonScreen } from '@components/skeletons/SkeletonScreen';
 
 import { useAccounts } from '../hooks/useAccounts';
 import { AccountsListItem } from './AccountsListItem';
@@ -9,10 +10,10 @@ export const AccountsList = () => {
 
   if (!accountsState) {
     return (
-      <div className="flex flex-col gap-4">
-        <Skeleton className="h-40 rounded-xl" />
-        <Skeleton className="h-40 rounded-xl" />
-      </div>
+      <SkeletonScreen className="flex flex-col gap-4">
+        <SkeletonAccountCard />
+        <SkeletonAccountCard />
+      </SkeletonScreen>
     );
   }
 

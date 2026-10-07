@@ -30,7 +30,7 @@ export const IcpPriceCard = () => {
   const isPositive = nonNullish(change) && change >= 0;
 
   const historyPoints = historyQuery.data ?? [];
-  const isLoading = tickersQuery.isLoading || (hasHistorySource && historyQuery.isLoading);
+  const isHistoryLoading = hasHistorySource && historyQuery.isLoading;
   const showChart = hasHistorySource && historyPoints.length >= 2;
   const isChartPositive =
     showChart && historyPoints[historyPoints.length - 1].usd >= historyPoints[0].usd;
@@ -41,38 +41,44 @@ export const IcpPriceCard = () => {
         <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {t(($) => $.home.icpPrice)}
         </p>
-        {isLoading ? (
-          <div className="flex items-end gap-4">
-            <div>
-              <Skeleton className="mb-2 h-8 w-24" />
-              <Skeleton className="h-4 w-20" />
-            </div>
-            {hasHistorySource && <Skeleton className="h-13 min-w-0 flex-1" />}
-          </div>
-        ) : (
-          <div className="flex items-end gap-4">
-            <div className="shrink-0">
+        <div className="flex items-end gap-4">
+          <div className="shrink-0">
+            {tickersQuery.isLoading ? (
+              <Skeleton className="h-8 w-24" />
+            ) : (
               <p className="text-2xl font-semibold text-foreground">
                 {icpPriceUsd ? `$${icpPriceUsd}` : '—'}
               </p>
-              {nonNullish(change) && (
-                <p
-                  className={`mt-1 flex items-center gap-1 text-sm font-medium ${trendColor(isPositive)}`}
-                >
-                  <span>{isPositive ? '▲' : '▼'}</span>
-                  {formatPercentage(Math.abs(change))} ({t(($) => $.home.icpPrice24h)})
-                </p>
+            )}
+            {/* The row keeps its height with or without a change, so the card does
+                not shrink when the skeleton leaves. */}
+            <div className="mt-1 min-h-5">
+              {tickersQuery.isLoading ? (
+                <Skeleton className="h-5 w-20" />
+              ) : (
+                nonNullish(change) && (
+                  <p
+                    className={`flex items-center gap-1 text-sm font-medium ${trendColor(isPositive)}`}
+                  >
+                    <span>{isPositive ? '▲' : '▼'}</span>
+                    {formatPercentage(Math.abs(change))} ({t(($) => $.home.icpPrice24h)})
+                  </p>
+                )
               )}
             </div>
-            {showChart && (
+          </div>
+          {isHistoryLoading ? (
+            <Skeleton className="h-13 min-w-0 flex-1" />
+          ) : (
+            showChart && (
               <IcpPriceSparkline
                 points={historyPoints}
                 label={t(($) => $.home.icpPrice24hChart)}
                 className={`min-w-0 flex-1 ${trendColor(isChartPositive)}`}
               />
-            )}
-          </div>
-        )}
+            )
+          )}
+        </div>
       </CardContent>
     </Card>
   );

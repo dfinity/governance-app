@@ -96,13 +96,13 @@ describe('IcpPriceCard', () => {
     expect(screen.queryByTestId('icp-price-sparkline')).toBeNull();
   });
 
-  it('shows the skeleton while the history loads', () => {
+  it('shows the price while the history loads', () => {
     mockTickerPrices(TickerPricesSource.XRC);
     mockRateHistory(undefined, true);
 
     render(<IcpPriceCard />);
 
-    expect(screen.queryByText('$3.24')).toBeNull();
+    expect(screen.getByText('$3.24')).toBeTruthy();
     expect(screen.queryByTestId('icp-price-sparkline')).toBeNull();
   });
 });

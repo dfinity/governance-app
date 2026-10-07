@@ -1,10 +1,11 @@
-import { AlertTriangle, Loader } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
+import { ProcessingSpinner } from '@components/ProcessingSpinner';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -131,7 +132,7 @@ export function MutationDialog({
                 <ResponsiveDialogTitle className="sr-only">
                   {processingMessage}
                 </ResponsiveDialogTitle>
-                <AnimatedSpinner />
+                <ProcessingSpinner />
                 <FadeInText delay={0.2}>{processingMessage}</FadeInText>
               </PhaseContainer>
             )}
@@ -228,19 +229,6 @@ function PhaseContainer({
       {...props}
     >
       {children}
-    </motion.div>
-  );
-}
-
-function AnimatedSpinner() {
-  return (
-    <motion.div
-      className="flex size-16 items-center justify-center rounded-full bg-primary/10"
-      initial={{ scale: 0.8, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-    >
-      <Loader className="size-8 animate-spin text-primary" />
     </motion.div>
   );
 }

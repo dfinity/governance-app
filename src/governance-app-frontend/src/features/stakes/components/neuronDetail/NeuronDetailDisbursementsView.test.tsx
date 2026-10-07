@@ -1,10 +1,17 @@
+import '@/i18n/config';
+
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { Principal } from '@icp-sdk/core/principal';
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { act, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { E8S, MATURITY_DISBURSEMENT_DELAY_SECONDS } from '@constants/extra';
-import { formatTimestampToLocalDate } from '@utils/date';
+import {
+  E8S,
+  MATURITY_DISBURSEMENT_DELAY_SECONDS,
+  MILLISECONDS_IN_SECOND,
+  SECONDS_IN_DAY,
+} from '@constants/extra';
+import { secondsToDate } from '@utils/date';
 import { mockDisbursement, mockNeuron } from '@fixtures/neuron';
 
 import { NeuronDetailDisbursementsView } from './NeuronDetailDisbursementsView';
@@ -28,6 +35,11 @@ vi.mock('@features/accounts/hooks/useAccounts', () => ({
 const START = 1_700_000_000n;
 const OTHER_ACCOUNT_ID = 'b'.repeat(64);
 
+const setNow = (seconds: bigint) => {
+  vi.useFakeTimers();
+  vi.setSystemTime(Number(seconds) * MILLISECONDS_IN_SECOND);
+};
+
 const renderView = (disbursements: ReturnType<typeof mockDisbursement>[]) =>
   render(
     <NeuronDetailDisbursementsView
@@ -36,6 +48,10 @@ const renderView = (disbursements: ReturnType<typeof mockDisbursement>[]) =>
   );
 
 describe('NeuronDetailDisbursementsView', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('shows the total maturity disbursing', () => {
     renderView([
       mockDisbursement({ amountE8s: BigInt(2 * E8S) }),
@@ -57,10 +73,10 @@ describe('NeuronDetailDisbursementsView', () => {
 
     expect(screen.getByTestId('disbursement-amount').textContent).toContain('2.00');
     expect(screen.getByTestId('disbursement-started').textContent).toBe(
-      formatTimestampToLocalDate(START),
+      secondsToDate(Number(START)),
     );
     expect(screen.getByTestId('disbursement-completes').textContent).toBe(
-      formatTimestampToLocalDate(START + BigInt(MATURITY_DISBURSEMENT_DELAY_SECONDS)),
+      secondsToDate(Number(START) + MATURITY_DISBURSEMENT_DELAY_SECONDS),
     );
   });
 
@@ -74,8 +90,41 @@ describe('NeuronDetailDisbursementsView', () => {
     ]);
 
     expect(screen.getByTestId('disbursement-completes').textContent).toBe(
-      formatTimestampToLocalDate(finalize),
+      secondsToDate(Number(finalize)),
     );
+  });
+
+  it('shows the time left until the ICP arrives and updates it', () => {
+    const elapsed = SECONDS_IN_DAY + 2 * 60 * 60 + 3 * 60 + 4;
+    setNow(START + BigInt(elapsed));
+    renderView([mockDisbursement({ timestampOfDisbursementSeconds: START })]);
+
+    expect(screen.getByTestId('disbursement-time-left').textContent).toBe(
+      'ICP arrives in 5 days, 21 hours',
+    );
+    expect(screen.getByTestId('disbursement-progress').getAttribute('aria-valuenow')).toBe(
+      String(Math.round((elapsed / MATURITY_DISBURSEMENT_DELAY_SECONDS) * 100)),
+    );
+
+    vi.setSystemTime(
+      (Number(START) + MATURITY_DISBURSEMENT_DELAY_SECONDS - 90) * MILLISECONDS_IN_SECOND,
+    );
+    act(() => {
+      vi.advanceTimersByTime(MILLISECONDS_IN_SECOND);
+    });
+
+    expect(screen.getByTestId('disbursement-time-left').textContent).toBe(
+      'ICP arrives in 1 minute',
+    );
+  });
+
+  it('shows the finalizing state after the completion time', () => {
+    setNow(START + BigInt(MATURITY_DISBURSEMENT_DELAY_SECONDS) + 60n);
+    renderView([mockDisbursement({ timestampOfDisbursementSeconds: START })]);
+
+    expect(screen.getByTestId('disbursement-finalizing')).toBeTruthy();
+    expect(screen.queryByTestId('disbursement-time-left')).toBeNull();
+    expect(screen.getByTestId('disbursement-progress').getAttribute('aria-valuenow')).toBe('100');
   });
 
   it('shows the account name when the destination is one of the user accounts', () => {
@@ -102,10 +151,13 @@ describe('NeuronDetailDisbursementsView', () => {
     expect(destination.getAttribute('title')).toBe(OTHER_ACCOUNT_ID);
   });
 
-  it('shows no destination title and a date placeholder when the canister reports nothing', () => {
+  it('shows no destination title, countdown or dates when the canister reports nothing', () => {
     renderView([mockDisbursement()]);
 
     expect(screen.getByTestId('disbursement-destination').getAttribute('title')).toBeNull();
+    expect(screen.queryByTestId('disbursement-time-left')).toBeNull();
+    expect(screen.queryByTestId('disbursement-progress')).toBeNull();
+    expect(screen.getByTestId('disbursement-started').textContent).toBe('-');
     expect(screen.getByTestId('disbursement-completes').textContent).toBe('-');
   });
 });
