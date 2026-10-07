@@ -49,8 +49,8 @@ fn get_icp_to_usd_rate_history() -> Vec<CachedRate> {
 }
 
 #[query]
-fn get_usd_to_fiat_exchange_rates() -> Vec<FiatExchangeRate> {
-    exchange_rate::get_usd_to_fiat_exchange_rates()
+fn list_usd_to_fiat_exchange_rates() -> Vec<FiatExchangeRate> {
+    exchange_rate::list_usd_to_fiat_exchange_rates()
 }
 
 #[cfg(feature = "testnet")]

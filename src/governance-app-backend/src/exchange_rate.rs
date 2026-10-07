@@ -44,8 +44,8 @@ pub fn get_icp_to_usd_rate_history() -> Vec<CachedRate> {
     cache::list_past_day_rates()
 }
 
-pub fn get_usd_to_fiat_exchange_rates() -> Vec<FiatExchangeRate> {
-    cache::get_cached_fiat_rates()
+pub fn list_usd_to_fiat_exchange_rates() -> Vec<FiatExchangeRate> {
+    cache::list_cached_fiat_rates()
 }
 
 #[cfg(feature = "testnet")]
@@ -113,9 +113,11 @@ async fn backfill_rate_history() {
     }
 }
 
+/// Fetches the USD rate of each currency in `FIAT_SYMBOLS` and caches it.
+/// A failed call keeps the previous rate. The next timer run tries again.
 async fn update_fiat_exchange_rates() {
-    // Fiat/fiat requests need no HTTPS outcalls, so the XRC charges only its base fee.
     for symbol in FIAT_SYMBOLS {
+        // No timestamp = latest available rate from XRC.
         if let Some(rate) = fetch_rate(usd_asset(), fiat_asset(symbol), None, "current").await {
             cache::set_fiat_rate(symbol, rate);
         }

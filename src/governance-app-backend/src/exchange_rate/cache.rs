@@ -98,14 +98,14 @@ pub fn add_history_rate(rate: CachedRate) {
 }
 
 /// Returns one entry for each symbol in `FIAT_SYMBOLS`, in the same order.
-pub fn get_cached_fiat_rates() -> Vec<FiatExchangeRate> {
+pub fn list_cached_fiat_rates() -> Vec<FiatExchangeRate> {
     FIAT_CACHE.with(|cache| {
-        let c = cache.borrow();
+        let cache = cache.borrow();
         FIAT_SYMBOLS
             .iter()
             .map(|&symbol| FiatExchangeRate {
                 symbol: symbol.to_string(),
-                rate: c.get(symbol).cloned(),
+                rate: cache.get(symbol).cloned(),
             })
             .collect()
     })
@@ -113,7 +113,7 @@ pub fn get_cached_fiat_rates() -> Vec<FiatExchangeRate> {
 
 pub fn set_fiat_rate(symbol: &'static str, rate: CachedRate) {
     FIAT_CACHE.with(|cache| {
-        cache.borrow_mut().insert(symbol, rate);
+        let _previous_rate = cache.borrow_mut().insert(symbol, rate);
     });
 }
 
