@@ -8,6 +8,7 @@
   "lastRewardEvent": "Last distribution {{date}}",
   "icpPrice": "ICP price",
   "icpPrice24h": "24h",
+  "icpPrice24hChart": "ICP price over the last 24 hours",
   "maxApy": "Current max minting",
   "yourApy": "Maturity",
   "maturity": "Maturity",

@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { IcpExchangeRateResponse } from '@declarations/governance-app-backend/governance-app-backend.did';
 
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { E8S } from '@constants/extra';
+import { E8S, EXCHANGE_RATE_REFRESH_MS } from '@constants/extra';
 import { useGovernanceAppCanister } from '@hooks/addressBook/useGovernanceAppCanister';
 import { TokenPrices } from '@typings/tokenPrices';
 import { QUERY_KEYS } from '@utils/query';
@@ -28,6 +28,7 @@ export const useExchangeRate = ({ enabled = true, retryCount = 3 }: Props) => {
       return parseExchangeRateResponse(response);
     },
     enabled: enabled && canisterStatus.ready,
+    refetchInterval: EXCHANGE_RATE_REFRESH_MS,
     retry: (failureCount) => failureCount < retryCount,
   });
 };
