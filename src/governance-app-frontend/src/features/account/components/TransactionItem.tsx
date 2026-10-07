@@ -130,10 +130,10 @@ export const AccountTransactionItem = ({
     />
   );
 
-  const copyAddress = () => {
+  const copyAddress = async () => {
     if (!address) return;
     try {
-      navigator.clipboard.writeText(address);
+      await navigator.clipboard.writeText(address);
       successNotification({
         description: t(($) => $.common.clipboard.copied, { label: t(($) => $.account.address) }),
       });

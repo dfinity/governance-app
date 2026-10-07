@@ -302,8 +302,8 @@ test.describe('Address book', () => {
     await test.step('Save the address from its transaction row.', async () => {
       await page.getByRole('button', { name: 'Open transactions list' }).first().click();
 
-      const shortAddress = `${TEST_ICP_ADDRESS_2.slice(0, 12)}...${TEST_ICP_ADDRESS_2.slice(-12)}`;
-      const row = page.getByTestId('transaction-item').filter({ hasText: shortAddress });
+      // The row clips the address with CSS. Its DOM text still holds the full address.
+      const row = page.getByTestId('transaction-item').filter({ hasText: TEST_ICP_ADDRESS_2 });
       await expect(row).toBeVisible({ timeout: 30000 });
 
       await row.getByTestId('transaction-address-trigger').click();
