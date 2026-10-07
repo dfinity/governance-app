@@ -38,8 +38,8 @@ export function EngagementCard({ neurons }: EngagementCardProps) {
         </Tooltip>
         {isLoading ? (
           <>
-            <Skeleton className="mb-2 h-8 w-32" />
-            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-7 w-32 md:h-8" />
+            <Skeleton className="mt-1 h-5 w-20" />
           </>
         ) : (
           <>

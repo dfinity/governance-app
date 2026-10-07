@@ -1,8 +1,16 @@
-use super::cache::{get_cached_fiat_rates, get_cached_rates, CachedRate};
+use super::cache::{
+    add_history_rate, get_cached_fiat_rates, get_cached_rates, list_past_day_rates,
+    set_one_day_ago_rate, CachedRate,
+};
 use super::time::testing::set_time_seconds;
 use super::xrc_client::testing;
 use super::*;
 use ic_xrc_types::{Asset, AssetClass, ExchangeRate, ExchangeRateError, ExchangeRateMetadata};
+
+/// Monday, September 21, 2026 at 14:13:20 UTC.
+const NOW_SECONDS: u64 = 1_790_000_000;
+/// With 8 decimals, the `rate` of `make_exchange_rate` is in e8s.
+const E8S_DECIMALS: u32 = 8;
 
 fn icp() -> Asset {
     Asset {
@@ -23,7 +31,7 @@ fn make_exchange_rate(rate: u64, decimals: u32, timestamp: u64) -> ExchangeRate 
 }
 
 fn make_fiat_exchange_rate(symbol: &str, rate: u64, timestamp: u64) -> ExchangeRate {
-    make_pair_exchange_rate(usd(), fiat_asset(symbol), rate, 9, timestamp)
+    make_pair_exchange_rate(usd(), fiat_asset(symbol), rate, E8S_DECIMALS, timestamp)
 }
 
 fn make_pair_exchange_rate(
@@ -89,11 +97,11 @@ fn test_cache_starts_empty() {
 
 #[tokio::test]
 async fn test_update_exchange_rate_success() {
-    set_time_seconds(100_000);
+    set_time_seconds(NOW_SECONDS);
 
-    let past_ts = 100_000 - ONE_DAY_SECS;
+    let past_ts = NOW_SECONDS - ONE_DAY_SECS;
 
-    let current_rate = make_exchange_rate(12_345_000_000, 10, 99_990);
+    let current_rate = make_exchange_rate(12_345_000_000, 10, NOW_SECONDS - 10);
     let past_rate = make_exchange_rate(11_000_000_000, 10, past_ts);
 
     testing::add_exchange_rate_response(Ok(Ok(current_rate)));
@@ -106,8 +114,8 @@ async fn test_update_exchange_rate_success() {
         rates.current,
         Some(CachedRate {
             rate_e8s: 123_450_000,
-            timestamp_seconds: 99_990,
-            updated_at_seconds: 100_000,
+            timestamp_seconds: NOW_SECONDS - 10,
+            updated_at_seconds: NOW_SECONDS,
         })
     );
     assert_eq!(
@@ -115,7 +123,7 @@ async fn test_update_exchange_rate_success() {
         Some(CachedRate {
             rate_e8s: 110_000_000,
             timestamp_seconds: past_ts,
-            updated_at_seconds: 100_000,
+            updated_at_seconds: NOW_SECONDS,
         })
     );
 
@@ -123,15 +131,20 @@ async fn test_update_exchange_rate_success() {
     assert_eq!(requests.len(), 2);
     assert_eq!(requests[0].timestamp, None);
     assert_eq!(requests[1].timestamp, Some(past_ts));
+
+    assert_eq!(
+        list_past_day_rates(),
+        vec![rates.one_day_ago.unwrap(), rates.current.unwrap()]
+    );
 }
 
 #[tokio::test]
 async fn test_update_exchange_rate_error_preserves_cache() {
-    set_time_seconds(200_000);
+    set_time_seconds(NOW_SECONDS);
 
-    let past_ts = 200_000 - ONE_DAY_SECS;
+    let past_ts = NOW_SECONDS - ONE_DAY_SECS;
 
-    let current_rate = make_exchange_rate(12_345_000_000, 10, 199_990);
+    let current_rate = make_exchange_rate(12_345_000_000, 10, NOW_SECONDS - 10);
     let past_rate = make_exchange_rate(11_000_000_000, 10, past_ts);
     testing::add_exchange_rate_response(Ok(Ok(current_rate)));
     testing::add_exchange_rate_response(Ok(Ok(past_rate)));
@@ -154,133 +167,264 @@ async fn test_update_exchange_rate_error_preserves_cache() {
 }
 
 #[test]
+fn test_past_day_rates_start_empty() {
+    assert_eq!(list_past_day_rates(), vec![]);
+}
+
+#[tokio::test]
+async fn test_backfill_rate_history() {
+    set_time_seconds(NOW_SECONDS);
+    let failed_hours_ago = 2;
+
+    let mut expected = vec![];
+    for hours_ago in 1..=BACKFILL_HOURS {
+        let timestamp_seconds = NOW_SECONDS - hours_ago * ONE_HOUR_SECS;
+        if hours_ago == failed_hours_ago {
+            testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
+            continue;
+        }
+        let rate_e8s = 300_000_000 + hours_ago * 1_000_000;
+        let response = make_exchange_rate(rate_e8s, E8S_DECIMALS, timestamp_seconds);
+        testing::add_exchange_rate_response(Ok(Ok(response)));
+        expected.push(CachedRate {
+            rate_e8s,
+            timestamp_seconds,
+            updated_at_seconds: NOW_SECONDS,
+        });
+    }
+
+    backfill_rate_history().await;
+
+    let request_timestamps: Vec<Option<u64>> = testing::drain_requests()
+        .iter()
+        .map(|request| request.timestamp)
+        .collect();
+    let expected_request_timestamps: Vec<Option<u64>> = (1..=BACKFILL_HOURS)
+        .map(|hours_ago| Some(NOW_SECONDS - hours_ago * ONE_HOUR_SECS))
+        .collect();
+    assert_eq!(request_timestamps, expected_request_timestamps);
+
+    // Oldest first, without the failed hour.
+    expected.reverse();
+    assert_eq!(list_past_day_rates(), expected);
+}
+
+#[test]
+fn test_past_day_rates_drop_rates_older_than_one_day() {
+    set_time_seconds(NOW_SECONDS);
+    let old = CachedRate {
+        rate_e8s: 310_000_000,
+        timestamp_seconds: NOW_SECONDS - 20 * ONE_HOUR_SECS,
+        updated_at_seconds: NOW_SECONDS,
+    };
+    let recent = CachedRate {
+        rate_e8s: 320_000_000,
+        timestamp_seconds: NOW_SECONDS - ONE_HOUR_SECS,
+        updated_at_seconds: NOW_SECONDS,
+    };
+    add_history_rate(old);
+    add_history_rate(recent.clone());
+
+    // Five hours later, `old` is more than one day old.
+    let later_seconds = NOW_SECONDS + 5 * ONE_HOUR_SECS;
+    set_time_seconds(later_seconds);
+    let newest = CachedRate {
+        rate_e8s: 330_000_000,
+        timestamp_seconds: later_seconds,
+        updated_at_seconds: later_seconds,
+    };
+    add_history_rate(newest.clone());
+
+    assert_eq!(list_past_day_rates(), vec![recent, newest]);
+}
+
+#[test]
+fn test_past_day_rates_replace_rate_with_same_timestamp() {
+    set_time_seconds(NOW_SECONDS);
+    let first = CachedRate {
+        rate_e8s: 310_000_000,
+        timestamp_seconds: NOW_SECONDS,
+        updated_at_seconds: NOW_SECONDS,
+    };
+    let second = CachedRate {
+        rate_e8s: 320_000_000,
+        ..first.clone()
+    };
+    add_history_rate(first);
+    add_history_rate(second.clone());
+
+    assert_eq!(list_past_day_rates(), vec![second]);
+}
+
+#[tokio::test]
+async fn test_past_day_rates_start_with_one_day_ago_rate() {
+    set_time_seconds(NOW_SECONDS);
+    let one_day_ago_seconds = NOW_SECONDS - ONE_DAY_SECS;
+
+    // The current rate of one day ago has the same timestamp as the one-day-ago rate.
+    add_history_rate(CachedRate {
+        rate_e8s: 340_000_000,
+        timestamp_seconds: one_day_ago_seconds,
+        updated_at_seconds: one_day_ago_seconds,
+    });
+    let backfilled = CachedRate {
+        rate_e8s: 335_000_000,
+        timestamp_seconds: one_day_ago_seconds + ONE_HOUR_SECS,
+        updated_at_seconds: NOW_SECONDS,
+    };
+    add_history_rate(backfilled.clone());
+
+    let current = make_exchange_rate(324_000_000, E8S_DECIMALS, NOW_SECONDS);
+    let one_day_ago = make_exchange_rate(343_500_000, E8S_DECIMALS, one_day_ago_seconds);
+    testing::add_exchange_rate_response(Ok(Ok(current)));
+    testing::add_exchange_rate_response(Ok(Ok(one_day_ago)));
+    update_exchange_rate().await;
+
+    assert_eq!(
+        list_past_day_rates(),
+        vec![
+            CachedRate {
+                rate_e8s: 343_500_000,
+                timestamp_seconds: one_day_ago_seconds,
+                updated_at_seconds: NOW_SECONDS,
+            },
+            backfilled,
+            CachedRate {
+                rate_e8s: 324_000_000,
+                timestamp_seconds: NOW_SECONDS,
+                updated_at_seconds: NOW_SECONDS,
+            },
+        ]
+    );
+}
+
+#[test]
+fn test_past_day_rates_include_one_day_ago_rate_within_tolerance() {
+    set_time_seconds(NOW_SECONDS);
+    let one_day_ago = CachedRate {
+        rate_e8s: 343_500_000,
+        timestamp_seconds: NOW_SECONDS - ONE_DAY_SECS - ONE_DAY_AGO_TOLERANCE_SECS,
+        updated_at_seconds: NOW_SECONDS,
+    };
+    let current = CachedRate {
+        rate_e8s: 324_000_000,
+        timestamp_seconds: NOW_SECONDS,
+        updated_at_seconds: NOW_SECONDS,
+    };
+    set_one_day_ago_rate(one_day_ago.clone());
+    add_history_rate(current.clone());
+
+    assert_eq!(list_past_day_rates(), vec![one_day_ago, current]);
+}
+
+#[test]
+fn test_past_day_rates_skip_stale_one_day_ago_rate() {
+    set_time_seconds(NOW_SECONDS);
+    set_one_day_ago_rate(CachedRate {
+        rate_e8s: 343_500_000,
+        timestamp_seconds: NOW_SECONDS - ONE_DAY_SECS - ONE_DAY_AGO_TOLERANCE_SECS - 1,
+        updated_at_seconds: NOW_SECONDS,
+    });
+    let backfilled = CachedRate {
+        rate_e8s: 335_000_000,
+        timestamp_seconds: NOW_SECONDS - ONE_DAY_SECS + ONE_HOUR_SECS,
+        updated_at_seconds: NOW_SECONDS,
+    };
+    let current = CachedRate {
+        rate_e8s: 324_000_000,
+        timestamp_seconds: NOW_SECONDS,
+        updated_at_seconds: NOW_SECONDS,
+    };
+    add_history_rate(backfilled.clone());
+    add_history_rate(current.clone());
+
+    assert_eq!(list_past_day_rates(), vec![backfilled, current]);
+}
+
+#[test]
 fn test_fiat_cache_starts_empty() {
     let rates = get_cached_fiat_rates();
     let symbols: Vec<&str> = rates.iter().map(|r| r.symbol.as_str()).collect();
     assert_eq!(symbols, FIAT_SYMBOLS);
-    for rate in rates {
-        assert_eq!(rate.current, None);
-        assert_eq!(rate.one_day_ago, None);
-    }
+    assert!(rates.iter().all(|r| r.rate.is_none()));
 }
 
 #[tokio::test]
 async fn test_update_fiat_exchange_rates_success() {
-    set_time_seconds(300_000);
+    set_time_seconds(NOW_SECONDS);
+    let forex_timestamp = NOW_SECONDS - ONE_DAY_SECS;
 
-    let past_ts = 300_000 - ONE_DAY_SECS;
-
-    for (i, symbol) in FIAT_SYMBOLS.iter().enumerate() {
-        let i = i as u64;
-        testing::add_exchange_rate_response(Ok(Ok(make_fiat_exchange_rate(
-            symbol,
-            (i + 1) * 1_000_000_000,
-            259_200,
-        ))));
-        testing::add_exchange_rate_response(Ok(Ok(make_fiat_exchange_rate(
-            symbol,
-            (i + 1) * 900_000_000,
-            172_800,
-        ))));
+    let mut expected = vec![];
+    for (i, symbol) in (1..).zip(FIAT_SYMBOLS) {
+        let rate_e8s = i * 100_000_000;
+        let response = make_fiat_exchange_rate(symbol, rate_e8s, forex_timestamp);
+        testing::add_exchange_rate_response(Ok(Ok(response)));
+        expected.push(FiatExchangeRate {
+            symbol: symbol.to_string(),
+            rate: Some(CachedRate {
+                rate_e8s,
+                timestamp_seconds: forex_timestamp,
+                updated_at_seconds: NOW_SECONDS,
+            }),
+        });
     }
 
     update_fiat_exchange_rates().await;
 
-    let rates = get_cached_fiat_rates();
-    assert_eq!(rates.len(), FIAT_SYMBOLS.len());
-    for (i, rate) in rates.iter().enumerate() {
-        let i = i as u64;
-        assert_eq!(rate.symbol, FIAT_SYMBOLS[i as usize]);
-        assert_eq!(
-            rate.current,
-            Some(CachedRate {
-                rate_e8s: (i + 1) * 100_000_000,
-                timestamp_seconds: 259_200,
-                updated_at_seconds: 300_000,
-            })
-        );
-        assert_eq!(
-            rate.one_day_ago,
-            Some(CachedRate {
-                rate_e8s: (i + 1) * 90_000_000,
-                timestamp_seconds: 172_800,
-                updated_at_seconds: 300_000,
-            })
-        );
-    }
+    assert_eq!(get_cached_fiat_rates(), expected);
 
     let requests = testing::drain_requests();
-    assert_eq!(requests.len(), FIAT_SYMBOLS.len() * 2);
-    for (i, symbol) in FIAT_SYMBOLS.iter().enumerate() {
-        let current = &requests[i * 2];
-        let past = &requests[i * 2 + 1];
-        assert_eq!(current.base_asset, usd());
-        assert_eq!(current.quote_asset, fiat_asset(symbol));
-        assert_eq!(current.timestamp, None);
-        assert_eq!(past.base_asset, usd());
-        assert_eq!(past.quote_asset, fiat_asset(symbol));
-        assert_eq!(past.timestamp, Some(past_ts));
+    assert_eq!(requests.len(), FIAT_SYMBOLS.len());
+    for (request, symbol) in requests.iter().zip(FIAT_SYMBOLS) {
+        assert_eq!(request.base_asset, usd());
+        assert_eq!(request.quote_asset, fiat_asset(symbol));
+        assert_eq!(request.timestamp, None);
     }
 }
 
 #[tokio::test]
-async fn test_update_fiat_exchange_rates_error_keeps_other_rates() {
-    set_time_seconds(400_000);
-
+async fn test_update_fiat_exchange_rates_error_keeps_rate() {
+    set_time_seconds(NOW_SECONDS);
     for symbol in FIAT_SYMBOLS {
-        testing::add_exchange_rate_response(Ok(Ok(make_fiat_exchange_rate(
-            symbol,
-            1_000_000_000,
-            399_000,
-        ))));
-        testing::add_exchange_rate_response(Ok(Ok(make_fiat_exchange_rate(
-            symbol,
-            900_000_000,
-            313_000,
-        ))));
+        let response = make_fiat_exchange_rate(symbol, 100_000_000, NOW_SECONDS);
+        testing::add_exchange_rate_response(Ok(Ok(response)));
     }
     update_fiat_exchange_rates().await;
 
-    // The first currency fails, the other currencies get new rates.
-    set_time_seconds(500_000);
+    // The first two currencies fail. The other currencies get new rates.
+    set_time_seconds(NOW_SECONDS + ONE_HOUR_SECS);
     testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
     testing::add_exchange_rate_response(Ok(Err(ExchangeRateError::ForexInvalidTimestamp)));
-    for symbol in &FIAT_SYMBOLS[1..] {
-        testing::add_exchange_rate_response(Ok(Ok(make_fiat_exchange_rate(
-            symbol,
-            2_000_000_000,
-            499_000,
-        ))));
-        testing::add_exchange_rate_response(Ok(Ok(make_fiat_exchange_rate(
-            symbol,
-            1_900_000_000,
-            413_000,
-        ))));
+    for symbol in &FIAT_SYMBOLS[2..] {
+        let response = make_fiat_exchange_rate(symbol, 200_000_000, NOW_SECONDS);
+        testing::add_exchange_rate_response(Ok(Ok(response)));
     }
     update_fiat_exchange_rates().await;
 
-    let rates = get_cached_fiat_rates();
-    let first = &rates[0];
-    assert_eq!(first.current.as_ref().unwrap().rate_e8s, 100_000_000);
-    assert_eq!(first.current.as_ref().unwrap().updated_at_seconds, 400_000);
-    assert_eq!(first.one_day_ago.as_ref().unwrap().rate_e8s, 90_000_000);
-    for rate in &rates[1..] {
-        assert_eq!(rate.current.as_ref().unwrap().rate_e8s, 200_000_000);
-        assert_eq!(rate.one_day_ago.as_ref().unwrap().rate_e8s, 190_000_000);
+    let rates: Vec<CachedRate> = get_cached_fiat_rates()
+        .into_iter()
+        .map(|r| r.rate.unwrap())
+        .collect();
+    for rate in &rates[..2] {
+        assert_eq!(rate.rate_e8s, 100_000_000);
+        assert_eq!(rate.updated_at_seconds, NOW_SECONDS);
+    }
+    for rate in &rates[2..] {
+        assert_eq!(rate.rate_e8s, 200_000_000);
+        assert_eq!(rate.updated_at_seconds, NOW_SECONDS + ONE_HOUR_SECS);
     }
 }
 
 #[tokio::test]
 async fn test_update_exchange_rate_does_not_touch_fiat_rates() {
-    set_time_seconds(600_000);
+    set_time_seconds(NOW_SECONDS);
+    let current = make_exchange_rate(300_000_000, E8S_DECIMALS, NOW_SECONDS);
+    let one_day_ago = make_exchange_rate(290_000_000, E8S_DECIMALS, NOW_SECONDS - ONE_DAY_SECS);
+    testing::add_exchange_rate_response(Ok(Ok(current)));
+    testing::add_exchange_rate_response(Ok(Ok(one_day_ago)));
 
-    testing::add_exchange_rate_response(Ok(Ok(make_exchange_rate(12_345_000_000, 10, 599_990))));
-    testing::add_exchange_rate_response(Ok(Ok(make_exchange_rate(11_000_000_000, 10, 513_600))));
     update_exchange_rate().await;
 
     assert!(get_cached_rates().current.is_some());
-    for rate in get_cached_fiat_rates() {
-        assert_eq!(rate.current, None);
-        assert_eq!(rate.one_day_ago, None);
-    }
+    assert!(get_cached_fiat_rates().iter().all(|r| r.rate.is_none()));
 }

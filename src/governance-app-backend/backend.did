@@ -66,8 +66,7 @@ type IcpExchangeRateResponse = record {
 type FiatExchangeRate = record {
     // ISO 4217 currency code, e.g. "EUR".
     symbol : text;
-    current : opt CachedRate;
-    one_day_ago : opt CachedRate;
+    rate : opt CachedRate;
 };
 // End Exchange Rate
 
@@ -83,6 +82,8 @@ service : {
 
     // Exchange Rate
     get_icp_to_usd_exchange_rate : () -> (IcpExchangeRateResponse) query;
+    // The one-day-ago rate, then the newer rates of the last day, oldest first.
+    get_icp_to_usd_rate_history : () -> (vec CachedRate) query;
     get_usd_to_fiat_exchange_rates : () -> (vec FiatExchangeRate) query;
     // End Exchange Rate
 }

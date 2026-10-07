@@ -72,7 +72,7 @@ export const FollowedNeuronCard = ({ neuron }: Props) => {
           <div className="flex shrink-0 items-center justify-center rounded-md bg-muted p-2">
             <CheckCircle2 className="size-5 text-muted-foreground" />
           </div>
-          {knownNeuronsQuery.isLoading ? <Skeleton className="h-6 w-40" /> : renderContent()}
+          {knownNeuronsQuery.isLoading ? <Skeleton className="h-6 w-48" /> : renderContent()}
         </div>
 
         <Button variant="outline" size="sm" asChild>

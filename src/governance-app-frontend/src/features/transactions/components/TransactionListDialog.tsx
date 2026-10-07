@@ -8,7 +8,6 @@ import { useNeuronAccountsIds } from '@features/account/hooks/useNeuronAccountsI
 import { buildTrustedAddresses } from '@features/account/utils/addressPoisoning';
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
 
-import { MultipleSkeletons } from '@components/MultipleSkeletons';
 import { QueryStates } from '@components/QueryStates';
 import {
   ResponsiveDialog,
@@ -17,6 +16,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
+import { SkeletonTransactionList } from '@components/skeletons/SkeletonTransactionList';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
 import { CertifiedData } from '@typings/queries';
@@ -99,14 +99,14 @@ export function TransactionListDialog({
 
         {isNullish(accountIdHex) ? (
           <div className="flex min-w-0 flex-col gap-2">
-            <MultipleSkeletons count={3} />
+            <SkeletonTransactionList />
           </div>
         ) : (
           <div className="flex min-w-0 flex-col gap-2 pb-2 lg:pb-0">
             <QueryStates<CertifiedData<IcpIndexDid.GetAccountIdentifierTransactionsResponse>>
               infiniteQuery={transactions}
               isEmpty={(data) => !data.pages?.length || !data.pages[0].response.transactions.length}
-              loadingComponent={<MultipleSkeletons count={3} />}
+              loadingComponent={<SkeletonTransactionList />}
               emptyComponent={
                 <p className="py-8 text-center text-sm text-muted-foreground">
                   {t(($) => $.account.noTransactions)}

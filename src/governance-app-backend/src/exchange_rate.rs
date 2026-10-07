@@ -12,15 +12,25 @@ use xrc_client::{Asset, AssetClass, GetExchangeRateRequest};
 
 const UPDATE_INTERVAL: Duration = Duration::from_secs(300); // 5 minutes
 /// Forex rates change once a day.
-const FIAT_UPDATE_INTERVAL: Duration = Duration::from_secs(3_600); // 1 hour
+const FIAT_UPDATE_INTERVAL: Duration = Duration::from_secs(ONE_HOUR_SECS);
 const ONE_DAY_SECS: u64 = 86_400;
+const ONE_HOUR_SECS: u64 = 3_600;
+/// The history includes the one-day-ago rate only if it is at most this much older than one day.
+/// Two intervals allow for one failed update.
+const ONE_DAY_AGO_TOLERANCE_SECS: u64 = 2 * UPDATE_INTERVAL.as_secs();
+/// The update timer adds the current and one-day-ago rates, so the backfill covers the hours in between.
+const BACKFILL_HOURS: u64 = 23;
 
 /// Fiat currencies with a cached USD exchange rate.
 const FIAT_SYMBOLS: [&str; 7] = ["EUR", "GBP", "CHF", "JPY", "CNY", "CAD", "AUD"];
 
 /// Called from `init` and `post_upgrade` to kick off periodic exchange-rate fetching.
 pub fn init_exchange_rate_timer() {
-    ic_cdk_timers::set_timer(Duration::ZERO, update_exchange_rate());
+    ic_cdk_timers::set_timer(Duration::ZERO, async {
+        update_exchange_rate().await;
+        // The history lives on the heap, so it is empty after `init` and `post_upgrade`.
+        backfill_rate_history().await;
+    });
     ic_cdk_timers::set_timer_interval(UPDATE_INTERVAL, || update_exchange_rate());
     ic_cdk_timers::set_timer(Duration::ZERO, update_fiat_exchange_rates());
     ic_cdk_timers::set_timer_interval(FIAT_UPDATE_INTERVAL, || update_fiat_exchange_rates());
@@ -28,6 +38,10 @@ pub fn init_exchange_rate_timer() {
 
 pub fn get_icp_to_usd_exchange_rate() -> IcpExchangeRateResponse {
     cache::get_cached_rates()
+}
+
+pub fn get_icp_to_usd_rate_history() -> Vec<CachedRate> {
+    cache::list_past_day_rates()
 }
 
 pub fn get_usd_to_fiat_exchange_rates() -> Vec<FiatExchangeRate> {
@@ -40,15 +54,11 @@ pub fn set_mock_exchange_rate(current_rate_e8s: u64, rate_one_day_ago_e8s: u64) 
 }
 
 #[cfg(feature = "testnet")]
-pub fn set_mock_fiat_exchange_rate(
-    symbol: String,
-    current_rate_e8s: u64,
-    rate_one_day_ago_e8s: u64,
-) {
+pub fn set_mock_fiat_exchange_rate(symbol: String, rate_e8s: u64) {
     let Some(&symbol) = FIAT_SYMBOLS.iter().find(|&&s| s == symbol) else {
         ic_cdk::trap(format!("Unsupported fiat symbol: {symbol}"));
     };
-    cache::set_mock_fiat_rates(symbol, current_rate_e8s, rate_one_day_ago_e8s);
+    cache::set_mock_fiat_rate(symbol, rate_e8s);
 }
 
 fn icp_asset() -> Asset {
@@ -89,23 +99,24 @@ async fn update_exchange_rate() {
     }
 }
 
-async fn update_fiat_exchange_rates() {
-    let past_timestamp = time::time_seconds().saturating_sub(ONE_DAY_SECS);
+/// Fetches one rate per hour for the last day.
+/// A failed call is not retried. It leaves a one-hour gap, and the 5-minute updates replace
+/// the backfill rates within one day.
+async fn backfill_rate_history() {
+    let now_secs = time::time_seconds();
+    for hours_ago in 1..=BACKFILL_HOURS {
+        let timestamp = now_secs.saturating_sub(hours_ago * ONE_HOUR_SECS);
+        if let Some(rate) = fetch_rate(icp_asset(), usd_asset(), Some(timestamp), "history").await {
+            cache::add_history_rate(rate);
+        }
+    }
+}
 
+async fn update_fiat_exchange_rates() {
     // Fiat/fiat requests need no HTTPS outcalls, so the XRC charges only its base fee.
     for symbol in FIAT_SYMBOLS {
         if let Some(rate) = fetch_rate(usd_asset(), fiat_asset(symbol), None, "current").await {
-            cache::set_current_fiat_rate(symbol, rate);
-        }
-        if let Some(rate) = fetch_rate(
-            usd_asset(),
-            fiat_asset(symbol),
-            Some(past_timestamp),
-            "one-day-ago",
-        )
-        .await
-        {
-            cache::set_one_day_ago_fiat_rate(symbol, rate);
+            cache::set_fiat_rate(symbol, rate);
         }
     }
 }

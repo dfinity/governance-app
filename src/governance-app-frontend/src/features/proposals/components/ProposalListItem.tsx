@@ -3,7 +3,6 @@ import { secondsToDuration } from '@dfinity/utils';
 import {
   CheckCircle,
   Clock,
-  Loader2,
   MessageSquareOff,
   ShieldBan,
   Tag,
@@ -18,6 +17,7 @@ import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card, CardFooter, CardHeader } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
+import { Spinner } from '@components/Spinner';
 import { E8S } from '@constants/extra';
 import { formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
@@ -210,7 +210,7 @@ export function ProposalListItem({ proposal, certified, isSpam, isNonActionable 
                 variant="outline"
               >
                 {isVoting && votingFor === Vote.Yes ? (
-                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  <Spinner className="mr-2" />
                 ) : (
                   <ThumbsUp className="mr-2 size-4" />
                 )}
@@ -229,7 +229,7 @@ export function ProposalListItem({ proposal, certified, isSpam, isNonActionable 
                 variant="outline"
               >
                 {isVoting && votingFor === Vote.No ? (
-                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  <Spinner className="mr-2" />
                 ) : (
                   <ThumbsDown className="mr-2 size-4" />
                 )}

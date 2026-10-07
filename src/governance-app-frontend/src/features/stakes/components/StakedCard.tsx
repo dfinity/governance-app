@@ -91,7 +91,7 @@ export function StakedCard() {
                 {stakingRewards.apy.cur < stakingRewards.apy.max && <ApyOptimizationModal />}
               </span>
             ) : (
-              <Skeleton className="h-5 w-16" />
+              <Skeleton className="h-7 w-16" />
             )}
           </div>
         </div>
@@ -108,7 +108,7 @@ export function StakedCard() {
           )}
 
           {neuronsQuery.isLoading || tickersQuery.isLoading ? (
-            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-5 w-20" />
           ) : (
             <p className="text-sm text-muted-foreground">
               <SensitiveValue size="sm">

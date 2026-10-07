@@ -28,25 +28,28 @@ export const IcpPriceCard = () => {
           {t(($) => $.home.icpPrice)}
         </p>
         {tickersQuery.isLoading ? (
-          <>
-            <Skeleton className="mb-2 h-8 w-24" />
-            <Skeleton className="h-4 w-20" />
-          </>
+          <Skeleton className="h-8 w-24" />
         ) : (
-          <>
-            <p className="text-2xl font-semibold text-foreground">
-              {icpPriceUsd ? `$${icpPriceUsd}` : '—'}
-            </p>
-            {nonNullish(change) && (
+          <p className="text-2xl font-semibold text-foreground">
+            {icpPriceUsd ? `$${icpPriceUsd}` : '—'}
+          </p>
+        )}
+        {/* The row keeps its height with or without a change, so the card does
+            not shrink when the skeleton leaves. */}
+        <div className="mt-1 min-h-5">
+          {tickersQuery.isLoading ? (
+            <Skeleton className="h-5 w-20" />
+          ) : (
+            nonNullish(change) && (
               <p
-                className={`mt-1 flex items-center gap-1 text-sm font-medium ${isPositive ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}`}
+                className={`flex items-center gap-1 text-sm font-medium ${isPositive ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}`}
               >
                 <span>{isPositive ? '▲' : '▼'}</span>
                 {formatPercentage(Math.abs(change))} ({t(($) => $.home.icpPrice24h)})
               </p>
-            )}
-          </>
-        )}
+            )
+          )}
+        </div>
       </CardContent>
     </Card>
   );
