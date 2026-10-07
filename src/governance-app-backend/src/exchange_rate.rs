@@ -87,14 +87,15 @@ async fn update_exchange_rate() {
     if let Some(rate) = fetch_rate(icp_asset(), usd_asset(), None, "current").await {
         cache::set_current_rate(rate);
     }
-    if let Some(rate) = fetch_rate(
+    let one_day_ago_rate = fetch_rate(
         icp_asset(),
         usd_asset(),
         Some(past_timestamp),
         "one-day-ago",
     )
-    .await
-    {
+    .await;
+
+    if let Some(rate) = one_day_ago_rate {
         cache::set_one_day_ago_rate(rate);
     }
 }
@@ -141,7 +142,7 @@ async fn fetch_rate(
                 convert_to_e8s(exchange_rate.rate, exchange_rate.metadata.decimals)
             else {
                 ic_cdk::println!(
-                    "Keeping {} {} rate unchanged: conversion overflow (rate={}, decimals={})",
+                    "Failed to fetch {} {} rate: conversion overflow (rate={}, decimals={})",
                     label,
                     pair,
                     exchange_rate.rate,
@@ -149,7 +150,7 @@ async fn fetch_rate(
                 );
                 return None;
             };
-            ic_cdk::println!("Updated {} {} rate to {} e8s", label, pair, rate_e8s);
+            ic_cdk::println!("Fetched {} {} rate: {} e8s", label, pair, rate_e8s);
             Some(CachedRate {
                 rate_e8s,
                 timestamp_seconds: exchange_rate.timestamp,
@@ -158,7 +159,7 @@ async fn fetch_rate(
         }
         Ok(Err(err)) => {
             ic_cdk::println!(
-                "Keeping {} {} rate unchanged due to XRC error: {:?}",
+                "Failed to fetch {} {} rate: XRC error: {:?}",
                 label,
                 pair,
                 err
@@ -167,7 +168,7 @@ async fn fetch_rate(
         }
         Err(call_err) => {
             ic_cdk::println!(
-                "Keeping {} {} rate unchanged due to call error: {}",
+                "Failed to fetch {} {} rate: call error: {}",
                 label,
                 pair,
                 call_err
