@@ -1,8 +1,8 @@
 import { isNullish } from '@dfinity/utils';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
 import { CopyButton } from '@components/CopyButton';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 
 export const PrincipalCard = () => {
   const { identity } = useInternetIdentity();

@@ -1,5 +1,4 @@
 import { GovernanceCachedMetrics } from '@icp-sdk/canisters/nns';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode, useEffect, useState } from 'react';
 
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
@@ -11,6 +10,7 @@ import {
   useGovernanceNeurons,
   useGovernanceProposal,
 } from '@hooks/governance';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { getStakingRewardData, StakingRewardResult } from '@utils/staking-rewards';
 
 import { StakingRewardsContext } from './stakingRewardsContext';

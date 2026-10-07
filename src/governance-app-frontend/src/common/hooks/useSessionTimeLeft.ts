@@ -1,6 +1,7 @@
 import { isNullish, nonNullish } from '@dfinity/utils';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useState } from 'react';
+
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 
 // The II provider expires the session 10 seconds before the actual expiration
 const II_EARLY_EXPIRATION_SECONDS = 10;

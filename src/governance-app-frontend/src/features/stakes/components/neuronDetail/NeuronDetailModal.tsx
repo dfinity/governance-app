@@ -1,5 +1,4 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +12,7 @@ import {
 } from '@components/ResponsiveDialog';
 import { DIALOG_RESET_DELAY_MS, IS_TESTNET } from '@constants/extra';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import {
   getNeuronId,

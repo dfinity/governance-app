@@ -1,11 +1,11 @@
 import type { ActorSubclass } from '@icp-sdk/core/agent';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 
 import type {
   _SERVICE,
   AddressBook,
 } from '@declarations/governance-app-backend/governance-app-backend.did';
 
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useQueryThenUpdateCall } from '@hooks/useQueryThenUpdateCall';
 import { errorMessage } from '@utils/error';
 import { QUERY_KEYS } from '@utils/query';

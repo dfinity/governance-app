@@ -1,6 +1,5 @@
 import { isNullish } from '@dfinity/utils';
 import { createFileRoute, Outlet } from '@tanstack/react-router';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect } from 'react';
 
 import { analytics } from '@features/analytics/service';
@@ -10,6 +9,7 @@ import { MainLayout } from '@components/MainLayout';
 import { SessionCountdownToast } from '@components/SessionCountdownToast';
 import { TransactionPollingWatcher } from '@components/TransactionPollingWatcher';
 import { useHideBalancesShortcut } from '@hooks/useHideBalancesShortcut';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useLogoutShortcut } from '@hooks/useLogoutShortcut';
 import { useNewFeatureCheck } from '@hooks/useNewFeatureCheck';
 import { useScrollResetOnNavigation } from '@hooks/useScrollResetOnNavigation';

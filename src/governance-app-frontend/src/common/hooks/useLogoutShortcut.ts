@@ -1,6 +1,6 @@
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect } from 'react';
 
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useLogout } from '@hooks/useLogout';
 import { useShortcutSettings } from '@hooks/useShortcutSettings';
 import { shouldIgnoreKeyboardShortcut } from '@utils/keyboard';

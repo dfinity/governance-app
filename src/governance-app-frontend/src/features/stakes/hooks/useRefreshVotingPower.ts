@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
 import { useNnsGovernance } from '@hooks/governance';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
 type RefreshVotingPowerParams = {
