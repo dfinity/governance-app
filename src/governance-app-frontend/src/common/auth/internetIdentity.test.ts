@@ -1,17 +1,21 @@
-import type { AuthClientLoginOptions } from '@icp-sdk/auth/client';
-import { AnonymousIdentity, type Identity } from '@icp-sdk/core/agent';
-import { DelegationChain, DelegationIdentity, Ed25519KeyIdentity } from '@icp-sdk/core/identity';
+import type {
+  AuthClientCreateOptions,
+  AuthClientSignInOptions,
+  SessionStatus,
+} from '@icp-sdk/auth/client';
+import type { Identity } from '@icp-sdk/core/agent';
+import { Ed25519KeyIdentity } from '@icp-sdk/core/identity';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { createAuthClient, syncTime, getTimeDiffMsecs } = vi.hoisted(() => ({
-  createAuthClient: vi.fn(),
+import { II_AUTHORIZE_URL, NETWORK } from '@constants/extra';
+
+const { AuthClient, syncTime, getTimeDiffMsecs } = vi.hoisted(() => ({
+  AuthClient: vi.fn(),
   syncTime: vi.fn(async () => undefined),
   getTimeDiffMsecs: vi.fn(() => 0),
 }));
 
-vi.mock('@icp-sdk/auth/client', () => ({
-  AuthClient: { create: createAuthClient },
-}));
+vi.mock('@icp-sdk/auth/client', () => ({ AuthClient }));
 
 vi.mock('@common/canisters/agents', () => ({
   getAnonymousAgent: async () => ({ syncTime, getTimeDiffMsecs }),
@@ -22,42 +26,72 @@ vi.mock('@constants/extra', async (importOriginal) => ({
   IS_LOCAL: false,
 }));
 
-const delegationIdentity = async (expiresInMs: number): Promise<DelegationIdentity> => {
-  const root = Ed25519KeyIdentity.generate();
-  const session = Ed25519KeyIdentity.generate();
-  const chain = await DelegationChain.create(
-    root,
-    session.getPublicKey(),
-    new Date(Date.now() + expiresInMs),
-  );
+const ONE_HOUR_MS = 60 * 60 * 1_000;
 
-  return DelegationIdentity.fromDelegation(session, chain);
+const signedIn = (identity: Identity, expiresAtMs: number): SessionStatus => ({
+  state: 'signed-in',
+  principal: identity.getPrincipal(),
+  expiresAtMs,
+});
+
+const deferred = <T>() => {
+  let resolve!: (value: T) => void;
+  let reject!: (reason: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+
+  return { promise, resolve, reject };
 };
 
-const expirationMs = (identity: DelegationIdentity): number =>
-  Number(identity.getDelegation().delegations[0].delegation.expiration / 1_000_000n);
+/** A fake auth client. `change` is a login or a logout that another tab makes. */
+const mockAuthClient = (session?: { identity: Identity; expiresAtMs: number }) => {
+  const sessionListeners = new Set<() => void>();
 
-const mockAuthClient = (identity?: Identity) => {
   const client = {
-    identity: identity ?? new AnonymousIdentity(),
-    isAuthenticated: vi.fn(async () => identity !== undefined),
-    getIdentity: vi.fn(() => client.identity),
-    login: vi.fn<(options: AuthClientLoginOptions) => Promise<void>>(async () => undefined),
-    logout: vi.fn(async () => undefined),
+    status: (session
+      ? signedIn(session.identity, session.expiresAtMs)
+      : { state: 'signed-out' }) as SessionStatus,
+    identity: session?.identity,
+    getStatus: vi.fn(() => client.status),
+    isAuthenticated: vi.fn(() => client.status.state === 'signed-in'),
+    getIdentity: vi.fn(async (): Promise<Identity> => {
+      if (!client.identity) throw new Error('No identity');
+      return client.identity;
+    }),
+    subscribe: vi.fn((listener: () => void) => {
+      sessionListeners.add(listener);
+      return () => sessionListeners.delete(listener);
+    }),
+    // Pending until a test settles it, as while the popup is open.
+    signIn: vi.fn<(options?: AuthClientSignInOptions) => Promise<Identity>>(
+      () => new Promise(() => undefined),
+    ),
+    signOut: vi.fn(async () => {
+      client.identity = undefined;
+      client.status = { state: 'signed-out' };
+    }),
+    change: (identity: Identity | undefined, status: SessionStatus) => {
+      client.identity = identity;
+      client.status = status;
+      sessionListeners.forEach((listener) => listener());
+    },
   };
 
-  createAuthClient.mockResolvedValueOnce(client);
+  AuthClient.mockImplementationOnce(function () {
+    return client;
+  });
+
   return client;
 };
 
 const loadModule = () => import('./internetIdentity');
 
-const ONE_HOUR_MS = 60 * 60 * 1_000;
-
 describe('internetIdentity', () => {
   beforeEach(() => {
     vi.resetModules();
-    createAuthClient.mockReset();
+    AuthClient.mockReset();
     syncTime.mockClear();
     getTimeDiffMsecs.mockReturnValue(0);
   });
@@ -67,8 +101,9 @@ describe('internetIdentity', () => {
   });
 
   it('restores a stored session.', async () => {
-    const identity = await delegationIdentity(ONE_HOUR_MS);
-    mockAuthClient(identity);
+    const identity = Ed25519KeyIdentity.generate();
+    const expiresAtMs = Date.now() + ONE_HOUR_MS;
+    mockAuthClient({ identity, expiresAtMs });
     const auth = await loadModule();
 
     await expect(auth.ensureInitialized()).resolves.toBe(identity);
@@ -76,13 +111,40 @@ describe('internetIdentity', () => {
       expect(auth.getAuthState()).toEqual({
         status: 'authenticated',
         identity,
-        sessionEndsAtMs: expirationMs(identity) - 10_000,
+        sessionEndsAtMs: expiresAtMs - 10_000,
       }),
     );
   });
 
+  it('creates the auth client for the Internet Identity canister.', async () => {
+    mockAuthClient();
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    const options: AuthClientCreateOptions = AuthClient.mock.calls[0][0];
+    expect(options.identityProvider).toEqual({
+      authorizeUrl: II_AUTHORIZE_URL,
+      canisterId: 'rdmx6-jaaaa-aaaaa-aaadq-cai',
+    });
+    expect(II_AUTHORIZE_URL).toMatch(/\/authorize\?/);
+    expect(options.agentOptions).toEqual({ host: NETWORK, shouldFetchRootKey: false });
+  });
+
   it('resolves without an identity when there is no stored session.', async () => {
     mockAuthClient();
+    const auth = await loadModule();
+
+    await expect(auth.ensureInitialized()).resolves.toBeUndefined();
+    expect(auth.getAuthState()).toEqual({ status: 'idle' });
+  });
+
+  it('resolves without an identity when the stored session cannot be read.', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const client = mockAuthClient({
+      identity: Ed25519KeyIdentity.generate(),
+      expiresAtMs: Date.now() + ONE_HOUR_MS,
+    });
+    client.getIdentity.mockRejectedValueOnce(new Error('Failed to mint'));
     const auth = await loadModule();
 
     await expect(auth.ensureInitialized()).resolves.toBeUndefined();
@@ -96,12 +158,14 @@ describe('internetIdentity', () => {
     auth.subscribeAuthState(() => undefined);
     await Promise.all([auth.ensureInitialized(), auth.ensureInitialized()]);
 
-    expect(createAuthClient).toHaveBeenCalledTimes(1);
+    expect(AuthClient).toHaveBeenCalledTimes(1);
   });
 
   it('rejects when the auth client cannot be created.', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    createAuthClient.mockRejectedValueOnce(new Error('IndexedDB unavailable'));
+    AuthClient.mockImplementationOnce(function () {
+      throw new Error('IndexedDB unavailable');
+    });
     const auth = await loadModule();
 
     await expect(auth.ensureInitialized()).rejects.toThrow('IndexedDB unavailable');
@@ -109,40 +173,35 @@ describe('internetIdentity', () => {
 
   it('logs in with a one-hour session.', async () => {
     const client = mockAuthClient();
+    const signIn = deferred<Identity>();
+    client.signIn.mockReturnValueOnce(signIn.promise);
     const auth = await loadModule();
     await auth.ensureInitialized();
 
     auth.login();
     expect(auth.getAuthState().status).toBe('logging-in');
+    expect(client.signIn).toHaveBeenCalledWith({ maxTimeToLive: 60n * 60n * 1_000_000_000n });
 
-    const options = client.login.mock.calls[0][0];
-    expect(options.maxTimeToLive).toBe(60n * 60n * 1_000_000_000n);
+    const identity = Ed25519KeyIdentity.generate();
+    const expiresAtMs = Date.now() + ONE_HOUR_MS;
+    // The login writes the session before `signIn` resolves.
+    client.change(identity, signedIn(identity, expiresAtMs));
+    expect(auth.getAuthState().status).toBe('logging-in');
 
-    const identity = await delegationIdentity(ONE_HOUR_MS);
-    client.identity = identity;
-    (options.onSuccess as () => void)();
-
-    expect(auth.getAuthState()).toMatchObject({ status: 'authenticated', identity });
+    signIn.resolve(identity);
+    await vi.waitFor(() =>
+      expect(auth.getAuthState()).toEqual({
+        status: 'authenticated',
+        identity,
+        sessionEndsAtMs: expiresAtMs - 10_000,
+      }),
+    );
     await expect(auth.ensureInitialized()).resolves.toBe(identity);
   });
 
   it('allows a new login after a failed one.', async () => {
     const client = mockAuthClient();
-    const auth = await loadModule();
-    await auth.ensureInitialized();
-
-    auth.login();
-    client.login.mock.calls[0][0].onError?.('UserInterrupt');
-    expect(auth.getAuthState()).toEqual({ status: 'idle' });
-
-    auth.login();
-    expect(client.login).toHaveBeenCalledTimes(2);
-  });
-
-  it('allows a new login after the login fails to start.', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    const client = mockAuthClient();
-    client.login.mockRejectedValueOnce(new Error('window.open failed'));
+    client.signIn.mockRejectedValueOnce(new Error('UserInterrupt'));
     const auth = await loadModule();
     await auth.ensureInitialized();
 
@@ -150,13 +209,28 @@ describe('internetIdentity', () => {
     await vi.waitFor(() => expect(auth.getAuthState()).toEqual({ status: 'idle' }));
 
     auth.login();
-    expect(client.login).toHaveBeenCalledTimes(2);
+    expect(client.signIn).toHaveBeenCalledTimes(2);
   });
 
-  it('clears the identity at once on logout, then logs in with a new auth client.', async () => {
-    const identity = await delegationIdentity(ONE_HOUR_MS);
-    const client = mockAuthClient(identity);
-    const nextClient = mockAuthClient();
+  it('follows a login and a logout in another tab.', async () => {
+    const client = mockAuthClient();
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    const identity = Ed25519KeyIdentity.generate();
+    client.change(identity, signedIn(identity, Date.now() + ONE_HOUR_MS));
+    await vi.waitFor(() => expect(auth.getAuthState()).toMatchObject({ identity }));
+
+    client.change(undefined, { state: 'signed-out' });
+    await vi.waitFor(() => expect(auth.getAuthState()).toEqual({ status: 'idle' }));
+    expect(client.signOut).not.toHaveBeenCalled();
+  });
+
+  it('clears the identity at once on logout, then allows a new login.', async () => {
+    const client = mockAuthClient({
+      identity: Ed25519KeyIdentity.generate(),
+      expiresAtMs: Date.now() + ONE_HOUR_MS,
+    });
     const auth = await loadModule();
     await auth.ensureInitialized();
 
@@ -166,24 +240,24 @@ describe('internetIdentity', () => {
 
     expect(auth.getAuthState()).toEqual({ status: 'logging-out' });
     auth.login();
-    expect(auth.getAuthState()).toEqual({ status: 'logging-out' });
+    expect(client.signIn).not.toHaveBeenCalled();
 
     await vi.waitFor(() => expect(auth.getAuthState()).toEqual({ status: 'idle' }));
-    expect(client.logout).toHaveBeenCalled();
+    expect(client.signOut).toHaveBeenCalled();
     expect(listener).toHaveBeenCalled();
     await expect(auth.ensureInitialized()).resolves.toBeUndefined();
 
     auth.login();
-    expect(client.login).not.toHaveBeenCalled();
-    expect(nextClient.login).toHaveBeenCalled();
+    expect(client.signIn).toHaveBeenCalled();
   });
 
-  it('creates a new auth client even when the logout fails.', async () => {
+  it('allows a new login after a failed logout.', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    const identity = await delegationIdentity(ONE_HOUR_MS);
-    const client = mockAuthClient(identity);
-    client.logout.mockRejectedValueOnce(new Error('IndexedDB unavailable'));
-    const nextClient = mockAuthClient();
+    const client = mockAuthClient({
+      identity: Ed25519KeyIdentity.generate(),
+      expiresAtMs: Date.now() + ONE_HOUR_MS,
+    });
+    client.signOut.mockRejectedValueOnce(new Error('Failed to revoke'));
     const auth = await loadModule();
     await auth.ensureInitialized();
 
@@ -191,16 +265,16 @@ describe('internetIdentity', () => {
     await vi.waitFor(() => expect(auth.getAuthState()).toEqual({ status: 'idle' }));
 
     auth.login();
-    expect(client.login).not.toHaveBeenCalled();
-    expect(nextClient.login).toHaveBeenCalled();
+    expect(client.signIn).toHaveBeenCalled();
   });
 
   it('ends a session that is past its end when the timer has not run yet.', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
 
-    const identity = await delegationIdentity(ONE_HOUR_MS);
-    const client = mockAuthClient(identity);
-    mockAuthClient();
+    const client = mockAuthClient({
+      identity: Ed25519KeyIdentity.generate(),
+      expiresAtMs: Date.now() + ONE_HOUR_MS,
+    });
     const auth = await loadModule();
     await auth.ensureInitialized();
     // Lets the clock sync finish and set the session end.
@@ -211,7 +285,7 @@ describe('internetIdentity', () => {
 
     await expect(auth.ensureInitialized()).resolves.toBeUndefined();
     await vi.waitFor(() => expect(auth.getAuthState()).toEqual({ status: 'idle' }));
-    expect(client.logout).toHaveBeenCalled();
+    expect(client.signOut).toHaveBeenCalled();
   });
 
   it('keeps a session that ends early by a fast local clock until the clock sync ends.', async () => {
@@ -223,19 +297,18 @@ describe('internetIdentity', () => {
     getTimeDiffMsecs.mockReturnValue(-60_000);
 
     // 5 seconds left by the local clock, 55 seconds by the IC clock.
-    const identity = await delegationIdentity(5_000);
-    const client = mockAuthClient(identity);
+    const identity = Ed25519KeyIdentity.generate();
+    const expiresAtMs = Date.now() + 5_000;
+    const client = mockAuthClient({ identity, expiresAtMs });
     const auth = await loadModule();
 
     await expect(auth.ensureInitialized()).resolves.toBe(identity);
     expect(auth.getAuthState()).toEqual({ status: 'authenticated', identity });
 
     finishSync();
-    await vi.waitFor(() =>
-      expect(auth.getAuthState().sessionEndsAtMs).toBe(expirationMs(identity) + 50_000),
-    );
+    await vi.waitFor(() => expect(auth.getAuthState().sessionEndsAtMs).toBe(expiresAtMs + 50_000));
     await expect(auth.ensureInitialized()).resolves.toBe(identity);
-    expect(client.logout).not.toHaveBeenCalled();
+    expect(client.signOut).not.toHaveBeenCalled();
 
     auth.logout();
   });
@@ -244,9 +317,8 @@ describe('internetIdentity', () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
     syncTime.mockImplementationOnce(() => new Promise<undefined>(() => undefined));
 
-    const identity = await delegationIdentity(ONE_HOUR_MS);
-    const client = mockAuthClient(identity);
-    mockAuthClient();
+    const expiresAtMs = Date.now() + ONE_HOUR_MS;
+    const client = mockAuthClient({ identity: Ed25519KeyIdentity.generate(), expiresAtMs });
     const auth = await loadModule();
     await auth.ensureInitialized();
 
@@ -254,10 +326,10 @@ describe('internetIdentity', () => {
     expect(auth.getAuthState().sessionEndsAtMs).toBeUndefined();
 
     await vi.advanceTimersByTimeAsync(1);
-    expect(auth.getAuthState().sessionEndsAtMs).toBe(expirationMs(identity) - 10_000);
+    expect(auth.getAuthState().sessionEndsAtMs).toBe(expiresAtMs - 10_000);
 
     await vi.advanceTimersByTimeAsync(ONE_HOUR_MS);
-    expect(client.logout).toHaveBeenCalled();
+    expect(client.signOut).toHaveBeenCalled();
   });
 
   it('keeps the expiry delay in the range of setTimeout when the clock sync fails.', async () => {
@@ -265,15 +337,11 @@ describe('internetIdentity', () => {
     syncTime.mockRejectedValueOnce(new Error('network error'));
 
     // 30 days left by the local clock, more than setTimeout accepts.
-    const thirtyDaysMs = 30 * 24 * ONE_HOUR_MS;
-    const identity = await delegationIdentity(thirtyDaysMs);
-    mockAuthClient(identity);
-    mockAuthClient();
+    const expiresAtMs = Date.now() + 30 * 24 * ONE_HOUR_MS;
+    mockAuthClient({ identity: Ed25519KeyIdentity.generate(), expiresAtMs });
     const auth = await loadModule();
     await auth.ensureInitialized();
-    await vi.waitFor(() =>
-      expect(auth.getAuthState().sessionEndsAtMs).toBe(expirationMs(identity) - 10_000),
-    );
+    await vi.waitFor(() => expect(auth.getAuthState().sessionEndsAtMs).toBe(expiresAtMs - 10_000));
 
     const delays = setTimeoutSpy.mock.calls.map(([, delay]) => delay ?? 0);
     expect(Math.max(...delays)).toBe(2 ** 31 - 1);
@@ -282,27 +350,26 @@ describe('internetIdentity', () => {
     setTimeoutSpy.mockRestore();
   });
 
-  it('ends the session 10 seconds before the delegation expires by the IC clock.', async () => {
+  it('ends the session 10 seconds before it expires by the IC clock.', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
     // The IC clock runs 5 seconds ahead of the local one.
     getTimeDiffMsecs.mockReturnValue(5_000);
 
-    const identity = await delegationIdentity(ONE_HOUR_MS);
-    const client = mockAuthClient(identity);
-    mockAuthClient();
+    const expiresAtMs = Date.now() + ONE_HOUR_MS;
+    const client = mockAuthClient({ identity: Ed25519KeyIdentity.generate(), expiresAtMs });
     const auth = await loadModule();
     await auth.ensureInitialized();
     // Lets the clock sync finish and move the expiry timer.
     await vi.advanceTimersByTimeAsync(0);
     expect(syncTime).toHaveBeenCalled();
     expect(vi.getTimerCount()).toBe(1);
-    expect(auth.getAuthState().sessionEndsAtMs).toBe(expirationMs(identity) - 15_000);
+    expect(auth.getAuthState().sessionEndsAtMs).toBe(expiresAtMs - 15_000);
 
     await vi.advanceTimersByTimeAsync(ONE_HOUR_MS - 15_001);
-    expect(client.logout).not.toHaveBeenCalled();
+    expect(client.signOut).not.toHaveBeenCalled();
 
     await vi.advanceTimersByTimeAsync(1);
-    expect(client.logout).toHaveBeenCalled();
+    expect(client.signOut).toHaveBeenCalled();
     await vi.waitFor(() => expect(auth.getAuthState()).toEqual({ status: 'idle' }));
   });
 });

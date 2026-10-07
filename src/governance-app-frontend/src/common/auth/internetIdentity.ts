@@ -1,9 +1,14 @@
 import { AuthClient } from '@icp-sdk/auth/client';
 import type { Identity } from '@icp-sdk/core/agent';
-import { DelegationIdentity } from '@icp-sdk/core/identity';
 import { isNullish, nonNullish } from '@dfinity/utils';
 
-import { II_DERIVATION_ORIGIN, II_LOGIN_URL, IS_LOCAL } from '@constants/extra';
+import {
+  II_AUTHORIZE_URL,
+  II_BACKEND_CANISTER_ID,
+  II_DERIVATION_ORIGIN,
+  IS_LOCAL,
+  NETWORK,
+} from '@constants/extra';
 import { getAnonymousAgent } from '@common/canisters/agents';
 
 /**
@@ -11,8 +16,9 @@ import { getAnonymousAgent } from '@common/canisters/agents';
  * before anything mounts. Components read it through `useInternetIdentity`.
  */
 
+// Bounds the session at Internet Identity. The auth client rotates the delegation inside it.
 const SESSION_TTL_NS = 60n * 60n * 1_000_000_000n; // 1 hour
-// Ends the session before the delegation expires, so no call goes out with an expired one.
+// Ends the session before it expires, so no call goes out with an expired delegation.
 const EXPIRY_BUFFER_MS = 10_000;
 // `setTimeout` fires at once for a longer delay. A local clock far behind the IC can ask for one
 // when the clock sync fails.
@@ -42,22 +48,13 @@ let authClient: AuthClient | undefined;
 let initialization: Promise<void> | undefined;
 let expiryTimeout: ReturnType<typeof setTimeout> | undefined;
 
-const createAuthClient = async (): Promise<AuthClient> => {
-  authClient = await AuthClient.create({ idleOptions: { disableIdle: true } });
-  return authClient;
-};
-
-const delegationExpirationMs = (identity: Identity): number | undefined => {
-  if (!(identity instanceof DelegationIdentity)) return undefined;
-
-  const expirations = identity
-    .getDelegation()
-    .delegations.map(({ delegation }) => delegation.expiration);
-  if (expirations.length === 0) return undefined;
-
-  const earliest = expirations.reduce((min, expiration) => (expiration < min ? expiration : min));
-  return Number(earliest / 1_000_000n);
-};
+const createAuthClient = (): AuthClient =>
+  new AuthClient({
+    identityProvider: { authorizeUrl: II_AUTHORIZE_URL, canisterId: II_BACKEND_CANISTER_ID },
+    // For the calls that mint the delegations. A local replica needs its root key.
+    agentOptions: { host: NETWORK, shouldFetchRootKey: IS_LOCAL },
+    ...(nonNullish(II_DERIVATION_ORIGIN) && { derivationOrigin: II_DERIVATION_ORIGIN }),
+  });
 
 const syncedTimeDiffMs = async (): Promise<number> => {
   const agent = await getAnonymousAgent();
@@ -65,7 +62,7 @@ const syncedTimeDiffMs = async (): Promise<number> => {
   return agent.getTimeDiffMsecs();
 };
 
-// The delegation expires by the IC clock, which can drift from the local one.
+// The session expires by the IC clock, which can drift from the local one.
 const icTimeDiffMs = async (): Promise<number> => {
   if (IS_LOCAL) return 0;
 
@@ -83,44 +80,69 @@ const icTimeDiffMs = async (): Promise<number> => {
   }
 };
 
-const startSession = (identity: Identity, timeDiffMs: number) => {
+const startSession = (identity: Identity, expiresAtMs: number, timeDiffMs: number) => {
   clearTimeout(expiryTimeout);
 
-  const expirationMs = delegationExpirationMs(identity);
-  const sessionEndsAtMs =
-    expirationMs === undefined ? undefined : expirationMs - timeDiffMs - EXPIRY_BUFFER_MS;
-
+  const sessionEndsAtMs = expiresAtMs - timeDiffMs - EXPIRY_BUFFER_MS;
   setState({ status: 'authenticated', identity, sessionEndsAtMs });
 
-  if (sessionEndsAtMs !== undefined) {
-    const delayMs = Math.min(Math.max(0, sessionEndsAtMs - Date.now()), MAX_TIMEOUT_MS);
-    expiryTimeout = setTimeout(logout, delayMs);
-  }
+  const delayMs = Math.min(Math.max(0, sessionEndsAtMs - Date.now()), MAX_TIMEOUT_MS);
+  expiryTimeout = setTimeout(logout, delayMs);
 };
 
-const authenticate = (identity: Identity) => {
+const authenticate = (identity: Identity, expiresAtMs: number) => {
   clearTimeout(expiryTimeout);
   setState({ status: 'authenticated', identity });
 
   void icTimeDiffMs().then((timeDiffMs) => {
     // A logout or another login replaced the session while the clock synced.
-    if (state.identity === identity) startSession(identity, timeDiffMs);
+    if (state.identity === identity) startSession(identity, expiresAtMs, timeDiffMs);
   });
+};
+
+const clearSession = () => {
+  clearTimeout(expiryTimeout);
+  setState({ status: 'idle' });
+};
+
+/** Sets the state from the session that the auth client holds. */
+const syncSession = async (client: AuthClient) => {
+  let identity: Identity | undefined;
+
+  try {
+    if (client.isAuthenticated()) identity = await client.getIdentity();
+  } catch (err) {
+    console.error('Internet Identity: failed to read the session.', err);
+  }
+
+  // Read after the wait, because another tab can log in or out meanwhile.
+  const status = client.getStatus();
+
+  if (nonNullish(identity) && status.state === 'signed-in') {
+    authenticate(identity, status.expiresAtMs);
+  } else {
+    clearSession();
+  }
+};
+
+// A login or a logout in this tab sets the state when it ends.
+const onSessionChange = () => {
+  if (authClient && (state.status === 'idle' || state.status === 'authenticated')) {
+    void syncSession(authClient);
+  }
 };
 
 const restoreSession = async () => {
   try {
-    const client = await createAuthClient();
-
-    if (await client.isAuthenticated()) {
-      authenticate(client.getIdentity());
-    } else {
-      setState({ status: 'idle' });
-    }
+    authClient = createAuthClient();
   } catch (err) {
-    console.error('Internet Identity: failed to restore the session.', err);
+    console.error('Internet Identity: failed to create the auth client.', err);
     throw err;
   }
+
+  // Other tabs share the session, so their logins and logouts arrive here.
+  authClient.subscribe(onSessionChange);
+  await syncSession(authClient);
 };
 
 const initialize = (): Promise<void> => (initialization ??= restoreSession());
@@ -157,39 +179,33 @@ export const login = () => {
 
   setState({ status: 'logging-in' });
 
-  client
-    .login({
-      identityProvider: II_LOGIN_URL,
-      ...(nonNullish(II_DERIVATION_ORIGIN) && { derivationOrigin: II_DERIVATION_ORIGIN }),
-      maxTimeToLive: SESSION_TTL_NS,
-      onSuccess: () => authenticate(client.getIdentity()),
-      onError: () => setState({ status: 'idle' }),
-    })
-    .catch((err) => {
-      console.error('Internet Identity: failed to start the login.', err);
-      if (state.status === 'logging-in') setState({ status: 'idle' });
-    });
+  void client
+    .signIn({ maxTimeToLive: SESSION_TTL_NS })
+    // A failed login syncs too, because another tab can log in meanwhile.
+    .catch(() => undefined)
+    .then(() => syncSession(client));
 };
 
-const endSession = async () => {
-  await authClient
-    ?.logout()
-    .catch((err) => console.error('Internet Identity: failed to log out.', err));
-
-  // A new client, so the next login does not reuse the session key of this one. If it cannot
-  // be created, the old client still works for the next login.
-  await createAuthClient().catch((err) =>
-    console.error('Internet Identity: failed to create a new auth client.', err),
-  );
+const endSession = async (client: AuthClient) => {
+  try {
+    await client.signOut();
+  } catch (err) {
+    // The session is cleared here even when Internet Identity cannot end it.
+    console.error('Internet Identity: failed to log out.', err);
+  }
 
   setState({ status: 'idle' });
 };
 
-/** Clears the identity at once. `login` waits for `idle`, so it cannot reuse the old client. */
+/**
+ * Clears the identity at once, then ends the session at Internet Identity, which logs out every
+ * tab. `login` waits for `idle`, so it cannot start during the logout.
+ */
 export const logout = () => {
-  if (state.status !== 'authenticated') return;
+  const client = authClient;
+  if (!client || state.status !== 'authenticated') return;
 
   clearTimeout(expiryTimeout);
   setState({ status: 'logging-out' });
-  void endSession();
+  void endSession(client);
 };

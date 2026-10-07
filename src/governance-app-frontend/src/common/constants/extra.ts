@@ -83,6 +83,8 @@ export const FIAT_CURRENCY_STORAGE_KEY = 'nns-fiat-currency';
 export const DASHBOARD_URL = `https://dashboard.internetcomputer.org/neuron`;
 
 const II_DOMAIN = IS_LOCAL ? `http://${CANISTER_ID_INTERNET_IDENTITY}.${HOST}` : 'https://id.ai';
-export const II_LOGIN_URL = `${II_DOMAIN}/?feature_flag_min_guided_upgrade=true`;
+export const II_AUTHORIZE_URL = `${II_DOMAIN}/authorize?feature_flag_min_guided_upgrade=true`;
 export const II_MANAGE_URL = `${II_DOMAIN}/manage`;
 export const II_DERIVATION_ORIGIN = IS_LOCAL ? null : 'https://nns.ic0.app';
+// The Internet Identity backend, which mints the delegations. It has this ID locally too.
+export const II_BACKEND_CANISTER_ID = 'rdmx6-jaaaa-aaaaa-aaadq-cai';
