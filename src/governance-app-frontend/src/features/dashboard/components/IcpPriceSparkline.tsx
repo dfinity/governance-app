@@ -43,6 +43,7 @@ export const IcpPriceSparkline = ({ points, label, className }: Props) => {
     <ChartContainer
       config={{}}
       data-testid="icp-price-sparkline"
+      // The card clips the chart at its edges, so the focus ring sits inside the chart.
       className={cn(
         'aspect-auto w-full [&_.recharts-surface:focus-visible]:outline-2 [&_.recharts-surface:focus-visible]:-outline-offset-2 [&_.recharts-surface:focus-visible]:outline-ring/50 [&_.recharts-surface:focus-visible]:outline-solid',
         className,

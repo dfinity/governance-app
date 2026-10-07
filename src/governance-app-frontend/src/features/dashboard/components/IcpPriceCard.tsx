@@ -59,13 +59,17 @@ export const IcpPriceCard = () => {
           </div>
         )}
       </CardContent>
-      {/* The chart fills the bottom of the card, edge to edge. The slot keeps its height
-          without a chart, so the card does not shrink when the skeleton leaves. */}
+      {/* The negative bottom margin cancels the card padding, so the chart touches the
+          bottom edge. The negative top margin uses the empty line space under the price.
+          The slot keeps its height without a chart, so the card does not shrink when the
+          skeleton leaves. */}
       <div className="-mt-1 -mb-4 flex min-h-11 flex-1 flex-col">
         {isHistoryLoading ? (
           <Skeleton className="mt-3 flex-1 rounded-none" />
         ) : (
           showChart && (
+            // `min-h-0` lets the chart shrink with the card.
+            // Without it, the drawn SVG holds the old height.
             <IcpPriceSparkline
               points={historyPoints}
               label={t(($) => $.home.icpPrice24hChart)}
