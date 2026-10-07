@@ -15,11 +15,13 @@ const SESSION_TTL_NS = 60n * 60n * 1_000_000_000n; // 1 hour
 // Ends the session before the delegation expires, so no call goes out with an expired one.
 const EXPIRY_BUFFER_MS = 10_000;
 
-export type AuthStatus = 'initializing' | 'idle' | 'logging-in' | 'authenticated';
+export type AuthStatus = 'initializing' | 'idle' | 'logging-in' | 'authenticated' | 'logging-out';
 
 export type AuthState = {
   status: AuthStatus;
   identity?: Identity;
+  /** When the session ends, by the local clock. */
+  sessionEndsAtMs?: number;
 };
 
 let state: AuthState = { status: 'initializing' };
@@ -68,23 +70,27 @@ const icTimeDiffMs = async (): Promise<number> => {
   }
 };
 
-const scheduleExpiry = async (identity: Identity) => {
+const startSession = (identity: Identity, timeDiffMs: number) => {
   clearTimeout(expiryTimeout);
 
   const expirationMs = delegationExpirationMs(identity);
-  if (expirationMs === undefined) return;
+  const sessionEndsAtMs =
+    expirationMs === undefined ? undefined : expirationMs - timeDiffMs - EXPIRY_BUFFER_MS;
 
-  const timeDiffMs = await icTimeDiffMs();
-  // A logout or another login replaced the session while the clock synced.
-  if (state.identity !== identity) return;
+  setState({ status: 'authenticated', identity, sessionEndsAtMs });
 
-  const delayMs = Math.max(0, expirationMs - Date.now() - timeDiffMs - EXPIRY_BUFFER_MS);
-  expiryTimeout = setTimeout(logout, delayMs);
+  if (sessionEndsAtMs !== undefined) {
+    expiryTimeout = setTimeout(logout, Math.max(0, sessionEndsAtMs - Date.now()));
+  }
 };
 
 const authenticate = (identity: Identity) => {
-  setState({ status: 'authenticated', identity });
-  void scheduleExpiry(identity);
+  startSession(identity, 0);
+
+  void icTimeDiffMs().then((timeDiffMs) => {
+    // A logout or another login replaced the session while the clock synced.
+    if (timeDiffMs !== 0 && state.identity === identity) startSession(identity, timeDiffMs);
+  });
 };
 
 const restoreSession = async () => {
@@ -153,7 +159,11 @@ const endSession = async () => {
   setState({ status: 'idle' });
 };
 
+/** Clears the identity at once. `login` waits for `idle`, so it cannot reuse the old client. */
 export const logout = () => {
+  if (state.status !== 'authenticated') return;
+
   clearTimeout(expiryTimeout);
+  setState({ status: 'logging-out' });
   void endSession();
 };

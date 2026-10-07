@@ -1,78 +1,18 @@
-import { isNullish, nonNullish } from '@dfinity/utils';
-import { useEffect, useState } from 'react';
+import { isNullish } from '@dfinity/utils';
 
+import { MILLISECONDS_IN_SECOND } from '@constants/extra';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
-
-// The II provider expires the session 10 seconds before the actual expiration
-const II_EARLY_EXPIRATION_SECONDS = 10;
-
-type IdentityWithDelegation = {
-  getDelegation: () => {
-    delegations: Array<{
-      delegation: {
-        expiration: bigint;
-      };
-    }>;
-  };
-};
-
-const hasGetDelegation = (obj: unknown): obj is IdentityWithDelegation => {
-  return (
-    typeof obj === 'object' &&
-    obj !== null &&
-    'getDelegation' in obj &&
-    typeof (obj as { getDelegation?: unknown }).getDelegation === 'function'
-  );
-};
+import { useNowInSeconds } from '@hooks/useNowInSeconds';
 
 type SessionTimeLeft = { minutes: number; seconds: number };
 
 export const useSessionTimeLeft = (): SessionTimeLeft | null => {
-  const { identity } = useInternetIdentity();
-  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const { sessionEndsAtMs } = useInternetIdentity();
+  const nowSeconds = useNowInSeconds();
 
-  useEffect(() => {
-    if (!hasGetDelegation(identity)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setTimeLeft(null);
-      return;
-    }
+  if (isNullish(sessionEndsAtMs)) return null;
 
-    const updateTimeLeft = () => {
-      try {
-        const delegation = identity.getDelegation();
-        if (isNullish(delegation)) return;
-
-        // Find the earliest expiration in the chain
-        let minExpiration: bigint | null = null;
-
-        for (const d of delegation.delegations) {
-          const exp = d.delegation.expiration;
-          if (isNullish(minExpiration) || exp < minExpiration) minExpiration = exp;
-        }
-
-        if (nonNullish(minExpiration)) {
-          const remaining = Number(minExpiration / BigInt(1_000_000)) - Date.now();
-          setTimeLeft(Math.max(0, Math.floor(remaining / 1000) - II_EARLY_EXPIRATION_SECONDS));
-        }
-      } catch (e) {
-        if (import.meta.env.DEV) {
-          console.error('Failed to get session expiration', e);
-        }
-        setTimeLeft(null);
-      }
-    };
-
-    // Calculate immediately
-    updateTimeLeft();
-
-    // Then update every second
-    const interval = setInterval(updateTimeLeft, 1000);
-
-    return () => clearInterval(interval);
-  }, [identity]);
-
-  if (isNullish(timeLeft)) return null;
+  const timeLeft = Math.max(0, Math.floor(sessionEndsAtMs / MILLISECONDS_IN_SECOND) - nowSeconds);
 
   return {
     minutes: Math.floor(timeLeft / 60),
