@@ -306,12 +306,16 @@ test.describe('Address book', () => {
       const row = page.getByTestId('transaction-item').filter({ hasText: shortAddress });
       await expect(row).toBeVisible({ timeout: 30000 });
 
-      await row.getByTestId('transaction-save-address-btn').click();
+      await row.getByTestId('transaction-address-trigger').click();
+      await page.getByTestId('transaction-save-address-btn').click();
       await saveAddressFromModal(page, 'Wallet B', TEST_ICP_ADDRESS_2);
 
       const savedRow = page.getByTestId('transaction-item').filter({ hasText: 'Wallet B' });
       await expect(savedRow).toBeVisible({ timeout: 30000 });
-      await expect(savedRow.getByTestId('transaction-save-address-btn')).toHaveCount(0);
+      await savedRow.getByTestId('transaction-address-trigger').click();
+      await expect(page.getByRole('menuitem', { name: 'Copy address' })).toBeVisible();
+      await expect(page.getByTestId('transaction-save-address-btn')).toHaveCount(0);
+      await page.keyboard.press('Escape');
     });
   });
 });

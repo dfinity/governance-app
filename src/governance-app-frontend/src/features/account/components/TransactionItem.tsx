@@ -1,22 +1,28 @@
 import { IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { nonNullish } from '@dfinity/utils';
-import { BookPlus, BookUser, WalletMinimal } from 'lucide-react';
+import { BookPlus, BookUser, ChevronDown, Copy, WalletMinimal } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { detectTransactionType, getAmountE8s } from '@features/transactions/utils/transactionType';
 import { txConfig } from '@features/transactions/utils/txConfig';
 
 import { Alert, AlertDescription } from '@components/Alert';
-import { Button } from '@components/button';
 import { Card, CardContent } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
-import { CopyButton } from '@components/CopyButton';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@components/DropdownMenu';
 import { SensitiveValue } from '@components/SensitiveValue';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { E8Sn } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
 import { secondsToDate, secondsToTime, timestampInNanosToSeconds } from '@utils/date';
 import { shortenId } from '@utils/id';
+import { errorNotification, successNotification } from '@utils/notification';
 import { formatNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
@@ -29,6 +35,21 @@ import { formatTransactionMemo } from '../utils/transactionMemo';
 // every viewport: a breakpoint-dependent length made the row jump at `md`, and
 // the longer variant alone claimed ~420px of an ~700px dialog.
 const ADDRESS_VISIBLE_CHARS = 12;
+
+// Keeps the end of the address visible at every width. The head shrinks with an
+// ellipsis, so a narrow row drops characters from the middle, not from the end.
+const MiddleTruncatedAddress = ({ children }: { children?: React.ReactNode }) => {
+  const value = String(children ?? '');
+  return (
+    <span className="inline-flex max-w-full min-w-0 font-mono">
+      {/* 12 characters plus the ellipsis, with a little slack for fonts whose ellipsis is wider than 1ch. */}
+      <span className="max-w-[13.3ch] min-w-0 truncate">
+        {value.slice(0, -ADDRESS_VISIBLE_CHARS)}
+      </span>
+      <span className="shrink-0">{value.slice(-ADDRESS_VISIBLE_CHARS)}</span>
+    </span>
+  );
+};
 
 export const AccountTransactionItem = ({
   tx,
@@ -87,19 +108,48 @@ export const AccountTransactionItem = ({
 
   const memo = formatTransactionMemo({ transaction: tx.transaction, type });
 
-  const shortAddress = nonNullish(address) ? shortenId(address, ADDRESS_VISIBLE_CHARS) : '';
-
   // A suspicious row shows the shortened address only. The full address stays
-  // hidden so the user cannot read it from a tooltip and copy it by hand.
+  // out of the DOM so the user cannot read it from a menu and copy it by hand.
+  const addressValue = nonNullish(addressName)
+    ? addressName
+    : suspicious
+      ? shortenId(address ?? '', ADDRESS_VISIBLE_CHARS)
+      : (address ?? '');
+  const addressComponent = nonNullish(addressName) ? (
+    <span className="font-semibold" />
+  ) : suspicious ? (
+    <span className="font-mono" />
+  ) : (
+    <MiddleTruncatedAddress />
+  );
   const addressLabel = nonNullish(addressDirection) && (
     <Trans
       i18nKey={($) => $.account[addressDirection]}
-      values={{ address: addressName ?? shortAddress }}
-      components={{
-        address: <span className={nonNullish(addressName) ? 'font-semibold' : 'font-mono'} />,
-      }}
+      values={{ address: addressValue }}
+      components={{ address: addressComponent }}
     />
   );
+
+  const copyAddress = () => {
+    if (!address) return;
+    try {
+      navigator.clipboard.writeText(address);
+      successNotification({
+        description: t(($) => $.common.clipboard.copied, { label: t(($) => $.account.address) }),
+      });
+    } catch (e) {
+      console.error('Failed to copy to clipboard', e);
+      errorNotification({ description: t(($) => $.common.clipboard.error) });
+    }
+  };
+
+  const sourceIcon =
+    nonNullish(addressName) &&
+    (addressEntry?.source === 'addressBook' ? (
+      <BookUser className="size-3.5 shrink-0" aria-hidden />
+    ) : (
+      <WalletMinimal className="size-3.5 shrink-0" aria-hidden />
+    ));
 
   return (
     <Card key={tx.id} className="p-0" data-testid="transaction-item">
@@ -138,47 +188,42 @@ export const AccountTransactionItem = ({
                 {suspicious ? (
                   <span className="min-w-0 truncate">{addressLabel}</span>
                 ) : (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button type="button" className="min-w-0 truncate text-left">
-                        {addressLabel}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        className="flex min-w-0 items-center gap-1 rounded-sm text-left hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                        data-testid="transaction-address-trigger"
+                      >
+                        <span className="flex min-w-0 items-baseline gap-1">{addressLabel}</span>
+                        {sourceIcon}
+                        <ChevronDown className="size-3.5 shrink-0" aria-hidden />
                       </button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="font-mono text-xs break-all">{address}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-
-                {nonNullish(addressName) ? (
-                  addressEntry?.source === 'addressBook' ? (
-                    <BookUser className="size-3.5 shrink-0" aria-hidden />
-                  ) : (
-                    <WalletMinimal className="size-3.5 shrink-0" aria-hidden />
-                  )
-                ) : (
-                  !suspicious && (
-                    <>
-                      <CopyButton
-                        value={address}
-                        size="sm"
-                        variant="ghost"
-                        label={t(($) => $.account.address)}
-                      />
-                      {nonNullish(onSaveAddress) && (
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => onSaveAddress(address)}
-                          aria-label={t(($) => $.addressBook.saveToAddressBook)}
-                          title={t(($) => $.addressBook.saveToAddressBook)}
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="start"
+                      collisionPadding={16}
+                      className="w-[calc(100vw-2rem)] sm:w-auto sm:max-w-sm"
+                    >
+                      <DropdownMenuLabel className="font-mono text-xs font-normal break-all">
+                        {address}
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onSelect={copyAddress}>
+                        <Copy aria-hidden />
+                        {t(($) => $.account.copyAddress)}
+                      </DropdownMenuItem>
+                      {nonNullish(onSaveAddress) && nonNullish(address) && !addressName && (
+                        <DropdownMenuItem
+                          onSelect={() => onSaveAddress(address)}
                           data-testid="transaction-save-address-btn"
                         >
                           <BookPlus aria-hidden />
-                        </Button>
+                          {t(($) => $.addressBook.saveToAddressBook)}
+                        </DropdownMenuItem>
                       )}
-                    </>
-                  )
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
               </div>
             )}
