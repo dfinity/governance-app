@@ -8,5 +8,12 @@ export const useInternetIdentity = () => {
     getAuthState,
   );
 
-  return { identity, sessionEndsAtMs, isLoggingIn: status === 'logging-in', login, logout };
+  return {
+    identity,
+    sessionEndsAtMs,
+    canLogin: status === 'idle',
+    isLoggingIn: status === 'logging-in',
+    login,
+    logout,
+  };
 };

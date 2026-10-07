@@ -60,7 +60,7 @@ export const Route = createFileRoute('/')({
 });
 
 function LoginPage() {
-  const { identity, login, isLoggingIn } = useInternetIdentity();
+  const { identity, canLogin, login, isLoggingIn } = useInternetIdentity();
   const { t } = useTranslation();
 
   const [isVideoReady, setIsVideoReady] = useState(false);
@@ -264,7 +264,7 @@ function LoginPage() {
               <div className="flex flex-col gap-4">
                 <Button
                   onClick={login}
-                  disabled={isLoggingIn}
+                  disabled={!canLogin}
                   className="w-full text-base"
                   variant="default"
                   size="xxl"

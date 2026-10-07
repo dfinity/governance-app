@@ -162,6 +162,23 @@ describe('internetIdentity', () => {
     expect(nextClient.login).toHaveBeenCalled();
   });
 
+  it('creates a new auth client even when the logout fails.', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const identity = await delegationIdentity(ONE_HOUR_MS);
+    const client = mockAuthClient(identity);
+    client.logout.mockRejectedValueOnce(new Error('IndexedDB unavailable'));
+    const nextClient = mockAuthClient();
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    auth.logout();
+    await vi.waitFor(() => expect(auth.getAuthState()).toEqual({ status: 'idle' }));
+
+    auth.login();
+    expect(client.login).not.toHaveBeenCalled();
+    expect(nextClient.login).toHaveBeenCalled();
+  });
+
   it('ends a session that is past its end when the timer has not run yet.', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
 

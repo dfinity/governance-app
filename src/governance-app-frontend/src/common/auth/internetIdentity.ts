@@ -149,13 +149,15 @@ export const login = () => {
 };
 
 const endSession = async () => {
-  try {
-    await authClient?.logout();
-    // A new client, so the next login does not reuse the session key of this one.
-    await createAuthClient();
-  } catch (err) {
-    console.error('Internet Identity: failed to log out.', err);
-  }
+  await authClient
+    ?.logout()
+    .catch((err) => console.error('Internet Identity: failed to log out.', err));
+
+  // A new client, so the next login does not reuse the session key of this one. If it cannot
+  // be created, the old client still works for the next login.
+  await createAuthClient().catch((err) =>
+    console.error('Internet Identity: failed to create a new auth client.', err),
+  );
 
   setState({ status: 'idle' });
 };
