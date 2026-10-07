@@ -162,6 +162,22 @@ describe('internetIdentity', () => {
     expect(nextClient.login).toHaveBeenCalled();
   });
 
+  it('ends a session that is past its end when the timer has not run yet.', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
+
+    const identity = await delegationIdentity(ONE_HOUR_MS);
+    const client = mockAuthClient(identity);
+    mockAuthClient();
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    vi.setSystemTime(Date.now() + ONE_HOUR_MS - 10_000);
+
+    await expect(auth.ensureInitialized()).resolves.toBeUndefined();
+    await vi.waitFor(() => expect(auth.getAuthState()).toEqual({ status: 'idle' }));
+    expect(client.logout).toHaveBeenCalled();
+  });
+
   it('ends the session 10 seconds before the delegation expires by the IC clock.', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
     // The IC clock runs 5 seconds ahead of the local one.

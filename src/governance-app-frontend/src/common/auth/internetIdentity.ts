@@ -1,6 +1,6 @@
 import { AuthClient } from '@icp-sdk/auth/client';
 import type { Identity } from '@icp-sdk/core/agent';
-import { DelegationIdentity, isDelegationValid } from '@icp-sdk/core/identity';
+import { DelegationIdentity } from '@icp-sdk/core/identity';
 import { nonNullish } from '@dfinity/utils';
 
 import { II_DERIVATION_ORIGIN, II_LOGIN_URL, IS_LOCAL } from '@constants/extra';
@@ -41,9 +41,6 @@ const createAuthClient = async (): Promise<AuthClient> => {
   authClient = await AuthClient.create({ idleOptions: { disableIdle: true } });
   return authClient;
 };
-
-const isActive = (identity: Identity): boolean =>
-  identity instanceof DelegationIdentity && isDelegationValid(identity.getDelegation());
 
 const delegationExpirationMs = (identity: Identity): number | undefined => {
   if (!(identity instanceof DelegationIdentity)) return undefined;
@@ -117,8 +114,12 @@ const initialize = (): Promise<void> => (initialization ??= restoreSession());
 export const ensureInitialized = async (): Promise<Identity | undefined> => {
   await initialize();
 
-  const { identity } = state;
-  return nonNullish(identity) && isActive(identity) ? identity : undefined;
+  const { identity, sessionEndsAtMs } = state;
+  if (nonNullish(sessionEndsAtMs) && Date.now() < sessionEndsAtMs) return identity;
+
+  // A background tab can run the expiry timer late.
+  logout();
+  return undefined;
 };
 
 export const getAuthState = (): AuthState => state;
