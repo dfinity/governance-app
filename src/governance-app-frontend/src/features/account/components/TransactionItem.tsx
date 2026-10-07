@@ -116,9 +116,7 @@ export const AccountTransactionItem = ({
       ? shortenId(address ?? '', ADDRESS_VISIBLE_CHARS)
       : (address ?? '');
   const addressComponent = nonNullish(addressName) ? (
-    <span className="font-semibold" />
-  ) : suspicious ? (
-    <span className="font-mono" />
+    <span className="min-w-0 truncate font-semibold" />
   ) : (
     <MiddleTruncatedAddress />
   );
@@ -186,7 +184,7 @@ export const AccountTransactionItem = ({
                 )}
               >
                 {suspicious ? (
-                  <span className="min-w-0 truncate">{addressLabel}</span>
+                  <span className="flex min-w-0 items-baseline gap-1">{addressLabel}</span>
                 ) : (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
