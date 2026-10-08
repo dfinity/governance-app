@@ -59,6 +59,8 @@ fn usd_asset() -> Asset {
 async fn update_exchange_rate() {
     let past_timestamp = time::time_seconds().saturating_sub(ONE_DAY_SECS);
 
+    // A `None` needs no log here, because `fetch_rate` logs the reason.
+
     // No timestamp = latest available rate from XRC.
     // https://github.com/dfinity/exchange-rate-canister/blob/41393865715eecb620474de34351096ec77a13fa/src/xrc/src/api.rs#L369
     if let Some(rate) = fetch_rate(icp_asset(), usd_asset(), None, "current").await {
@@ -84,6 +86,7 @@ async fn backfill_rate_history() {
     let now_secs = time::time_seconds();
     for hours_ago in 1..=BACKFILL_HOURS {
         let timestamp = now_secs.saturating_sub(hours_ago * ONE_HOUR_SECS);
+        // A `None` needs no log here, because `fetch_rate` logs the reason.
         if let Some(rate) = fetch_rate(icp_asset(), usd_asset(), Some(timestamp), "history").await {
             cache::add_history_rate(rate);
         }
@@ -97,34 +100,21 @@ async fn fetch_rate(
     timestamp: Option<u64>,
     label: &str,
 ) -> Option<CachedRate> {
-    let pair = format!("{}/{}", base_asset.symbol, quote_asset.symbol);
     let request = GetExchangeRateRequest {
         base_asset,
         quote_asset,
         timestamp,
     };
 
-    match xrc_client::get_exchange_rate(request).await {
-        Ok(Ok(exchange_rate)) => {
-            let Some(rate_e8s) =
-                convert_to_e8s(exchange_rate.rate, exchange_rate.metadata.decimals)
-            else {
-                ic_cdk::println!(
-                    "Failed to fetch {} {} rate: conversion overflow (rate={}, decimals={})",
-                    label,
-                    pair,
-                    exchange_rate.rate,
-                    exchange_rate.metadata.decimals,
-                );
-                return None;
-            };
-            ic_cdk::println!("Fetched {} {} rate: {} e8s", label, pair, rate_e8s);
-            Some(CachedRate {
-                rate_e8s,
-                timestamp_seconds: exchange_rate.timestamp,
-                updated_at_seconds: time::time_seconds(),
-            })
-        }
+    let pair = format!(
+        "{}/{}",
+        request.base_asset.symbol, request.quote_asset.symbol
+    );
+
+    let exchange_rate = match xrc_client::get_exchange_rate(request).await {
+        Ok(Ok(exchange_rate)) => exchange_rate,
+
+        // The other cases log the error and return `None`.
         Ok(Err(err)) => {
             ic_cdk::println!(
                 "Failed to fetch {} {} rate: XRC error: {:?}",
@@ -132,7 +122,7 @@ async fn fetch_rate(
                 pair,
                 err
             );
-            None
+            return None;
         }
         Err(call_err) => {
             ic_cdk::println!(
@@ -141,9 +131,27 @@ async fn fetch_rate(
                 pair,
                 call_err
             );
-            None
+            return None;
         }
-    }
+    };
+
+    let Some(rate_e8s) = convert_to_e8s(exchange_rate.rate, exchange_rate.metadata.decimals) else {
+        ic_cdk::println!(
+            "Failed to fetch {} {} rate: conversion overflow (rate={}, decimals={})",
+            label,
+            pair,
+            exchange_rate.rate,
+            exchange_rate.metadata.decimals,
+        );
+        return None;
+    };
+
+    ic_cdk::println!("Fetched {} {} rate: {} e8s", label, pair, rate_e8s);
+    Some(CachedRate {
+        rate_e8s,
+        timestamp_seconds: exchange_rate.timestamp,
+        updated_at_seconds: time::time_seconds(),
+    })
 }
 
 /// Converts a number such that it can be interpreted as a fixed-point number
