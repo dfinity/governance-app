@@ -11,7 +11,8 @@ use cache::{CachedRate, FiatExchangeRate, IcpExchangeRateResponse};
 use xrc_client::{Asset, AssetClass, GetExchangeRateRequest};
 
 const UPDATE_INTERVAL: Duration = Duration::from_secs(300); // 5 minutes
-/// Forex rates change once a day.
+/// The XRC moves to a new daily forex rate at no fixed time.
+/// An hourly check keeps the cached fiat rates at most one hour behind the XRC.
 const FIAT_UPDATE_INTERVAL: Duration = Duration::from_secs(ONE_HOUR_SECS);
 const ONE_DAY_SECS: u64 = 86_400;
 const ONE_HOUR_SECS: u64 = 3_600;
