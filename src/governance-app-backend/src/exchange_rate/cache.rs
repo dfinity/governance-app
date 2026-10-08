@@ -4,7 +4,7 @@ use std::cell::RefCell;
 use std::collections::BTreeMap;
 
 use super::time::time_seconds;
-use super::{FIAT_SYMBOLS, ONE_DAY_AGO_TOLERANCE_SECS, ONE_DAY_SECS};
+use super::{ONE_DAY_AGO_TOLERANCE_SECS, ONE_DAY_SECS, SUPPORTED_FIAT_SYMBOLS};
 
 #[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq)]
 pub struct CachedRate {
@@ -22,6 +22,7 @@ pub struct IcpExchangeRateResponse {
 }
 
 /// Units of `symbol` for one USD.
+/// For example, a `rate_e8s` of 314_000_000 for "XYZ" means that 1 USD buys 3.14 XYZ.
 #[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq)]
 pub struct FiatExchangeRate {
     /// ISO 4217 currency code, e.g. "EUR".
@@ -97,11 +98,11 @@ pub fn add_history_rate(rate: CachedRate) {
     CACHE.with(|cache| add_to_history(&mut cache.borrow_mut().history, rate));
 }
 
-/// Returns one entry for each symbol in `FIAT_SYMBOLS`, in the same order.
+/// Returns one entry for each symbol in `SUPPORTED_FIAT_SYMBOLS`, in the same order.
 pub fn list_cached_fiat_rates() -> Vec<FiatExchangeRate> {
     FIAT_CACHE.with(|cache| {
         let cache = cache.borrow();
-        FIAT_SYMBOLS
+        SUPPORTED_FIAT_SYMBOLS
             .iter()
             .map(|&symbol| FiatExchangeRate {
                 symbol: symbol.to_string(),

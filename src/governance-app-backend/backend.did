@@ -63,6 +63,7 @@ type IcpExchangeRateResponse = record {
 };
 
 // Units of `symbol` for one USD.
+// For example, a `rate_e8s` of 314_000_000 for "XYZ" means that 1 USD buys 3.14 XYZ.
 type FiatExchangeRate = record {
     // ISO 4217 currency code, e.g. "EUR".
     symbol : text;
