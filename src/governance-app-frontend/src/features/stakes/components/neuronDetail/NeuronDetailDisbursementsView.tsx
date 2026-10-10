@@ -201,7 +201,7 @@ function DisbursementCountdown({ startTimestamp, finalizeTimestamp }: CountdownP
         data-testid="disbursement-progress"
       >
         <div
-          className="h-full rounded-full bg-amber-500 transition-[width] duration-1000 ease-out motion-reduce:transition-none dark:bg-amber-400"
+          className="h-full rounded-full bg-primary transition-[width] duration-1000 ease-out motion-reduce:transition-none"
           style={{ width: `${isMounted ? progress * 100 : 0}%` }}
         />
       </div>
