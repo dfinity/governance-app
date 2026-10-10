@@ -57,13 +57,26 @@ fn usd_asset() -> Asset {
 }
 
 async fn update_exchange_rate() {
-    let now_secs = time::time_seconds();
-    let past_timestamp = now_secs.saturating_sub(ONE_DAY_SECS);
+    let past_timestamp = time::time_seconds().saturating_sub(ONE_DAY_SECS);
+
+    // A `None` needs no log here, because `fetch_rate` logs the reason.
 
     // No timestamp = latest available rate from XRC.
     // https://github.com/dfinity/exchange-rate-canister/blob/41393865715eecb620474de34351096ec77a13fa/src/xrc/src/api.rs#L369
-    fetch_and_cache_rate(None, RateKind::Current).await;
-    fetch_and_cache_rate(Some(past_timestamp), RateKind::OneDayAgo).await;
+    if let Some(rate) = fetch_rate(icp_asset(), usd_asset(), None, "current").await {
+        cache::set_current_rate(rate);
+    }
+    let one_day_ago_rate = fetch_rate(
+        icp_asset(),
+        usd_asset(),
+        Some(past_timestamp),
+        "one-day-ago",
+    )
+    .await;
+
+    if let Some(rate) = one_day_ago_rate {
+        cache::set_one_day_ago_rate(rate);
+    }
 }
 
 /// Fetches one rate per hour for the last day.
@@ -73,71 +86,72 @@ async fn backfill_rate_history() {
     let now_secs = time::time_seconds();
     for hours_ago in 1..=BACKFILL_HOURS {
         let timestamp = now_secs.saturating_sub(hours_ago * ONE_HOUR_SECS);
-        fetch_and_cache_rate(Some(timestamp), RateKind::History).await;
+        // A `None` needs no log here, because `fetch_rate` logs the reason.
+        if let Some(rate) = fetch_rate(icp_asset(), usd_asset(), Some(timestamp), "history").await {
+            cache::add_history_rate(rate);
+        }
     }
 }
 
-enum RateKind {
-    Current,
-    OneDayAgo,
-    History,
-}
-
-async fn fetch_and_cache_rate(timestamp: Option<u64>, kind: RateKind) {
+/// Fetches a rate from the XRC. Returns `None` and logs the reason if the call or the conversion fails.
+async fn fetch_rate(
+    base_asset: Asset,
+    quote_asset: Asset,
+    timestamp: Option<u64>,
+    label: &str,
+) -> Option<CachedRate> {
     let request = GetExchangeRateRequest {
-        base_asset: icp_asset(),
-        quote_asset: usd_asset(),
+        base_asset,
+        quote_asset,
         timestamp,
     };
 
-    let label = match kind {
-        RateKind::Current => "current",
-        RateKind::OneDayAgo => "one-day-ago",
-        RateKind::History => "history",
-    };
+    let pair = format!(
+        "{}/{}",
+        request.base_asset.symbol, request.quote_asset.symbol
+    );
 
-    let result = xrc_client::get_exchange_rate(request).await;
-    match result {
-        Ok(Ok(exchange_rate)) => {
-            let Some(rate_e8s) =
-                convert_to_e8s(exchange_rate.rate, exchange_rate.metadata.decimals)
-            else {
-                ic_cdk::println!(
-                    "Keeping {} ICP/USD rate unchanged: conversion overflow (rate={}, decimals={})",
-                    label,
-                    exchange_rate.rate,
-                    exchange_rate.metadata.decimals,
-                );
-                return;
-            };
-            let now_secs = time::time_seconds();
-            let cached = CachedRate {
-                rate_e8s,
-                timestamp_seconds: exchange_rate.timestamp,
-                updated_at_seconds: now_secs,
-            };
-            match kind {
-                RateKind::Current => cache::set_current_rate(cached),
-                RateKind::OneDayAgo => cache::set_one_day_ago_rate(cached),
-                RateKind::History => cache::add_history_rate(cached),
-            }
-            ic_cdk::println!("Updated {} ICP/USD rate to {} e8s", label, rate_e8s);
-        }
+    let exchange_rate = match xrc_client::get_exchange_rate(request).await {
+        Ok(Ok(exchange_rate)) => exchange_rate,
+
+        // The other cases log the error and return `None`.
         Ok(Err(err)) => {
             ic_cdk::println!(
-                "Keeping {} ICP/USD rate unchanged due to XRC error: {:?}",
+                "Failed to fetch {} {} rate: XRC error: {:?}",
                 label,
+                pair,
                 err
             );
+            return None;
         }
         Err(call_err) => {
             ic_cdk::println!(
-                "Keeping {} ICP/USD rate unchanged due to call error: {}",
+                "Failed to fetch {} {} rate: call error: {}",
                 label,
+                pair,
                 call_err
             );
+            return None;
         }
-    }
+    };
+
+    let Some(rate_e8s) = convert_to_e8s(exchange_rate.rate, exchange_rate.metadata.decimals) else {
+        ic_cdk::println!(
+            "Failed to fetch {} {} rate: conversion overflow (rate={}, decimals={})",
+            label,
+            pair,
+            exchange_rate.rate,
+            exchange_rate.metadata.decimals,
+        );
+        return None;
+    };
+
+    ic_cdk::println!("Fetched {} {} rate: {} e8s", label, pair, rate_e8s);
+    Some(CachedRate {
+        rate_e8s,
+        timestamp_seconds: exchange_rate.timestamp,
+        updated_at_seconds: time::time_seconds(),
+    })
 }
 
 /// Converts a number such that it can be interpreted as a fixed-point number
