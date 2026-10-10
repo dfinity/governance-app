@@ -7,10 +7,13 @@ mod tests;
 
 use std::time::Duration;
 
-use cache::{CachedRate, IcpExchangeRateResponse};
+use cache::{CachedRate, FiatExchangeRate, IcpExchangeRateResponse};
 use xrc_client::{Asset, AssetClass, GetExchangeRateRequest};
 
 const UPDATE_INTERVAL: Duration = Duration::from_secs(300); // 5 minutes
+/// The XRC moves to a new daily forex rate at no fixed time.
+/// An hourly check keeps the cached fiat rates at most one hour behind the XRC.
+const FIAT_UPDATE_INTERVAL: Duration = Duration::from_secs(ONE_HOUR_SECS);
 const ONE_DAY_SECS: u64 = 86_400;
 const ONE_HOUR_SECS: u64 = 3_600;
 /// The history includes the one-day-ago rate only if it is at most this much older than one day.
@@ -19,14 +22,19 @@ const ONE_DAY_AGO_TOLERANCE_SECS: u64 = 2 * UPDATE_INTERVAL.as_secs();
 /// The update timer adds the current and one-day-ago rates, so the backfill covers the hours in between.
 const BACKFILL_HOURS: u64 = 23;
 
+/// Fiat currencies with a cached USD exchange rate.
+const SUPPORTED_FIAT_SYMBOLS: [&str; 7] = ["EUR", "GBP", "CHF", "JPY", "CNY", "CAD", "AUD"];
+
 /// Called from `init` and `post_upgrade` to kick off periodic exchange-rate fetching.
 pub fn init_exchange_rate_timer() {
     ic_cdk_timers::set_timer(Duration::ZERO, async {
-        update_exchange_rate().await;
+        update_icp_to_usd_exchange_rate().await;
         // The history lives on the heap, so it is empty after `init` and `post_upgrade`.
         backfill_rate_history().await;
     });
-    ic_cdk_timers::set_timer_interval(UPDATE_INTERVAL, || update_exchange_rate());
+    ic_cdk_timers::set_timer_interval(UPDATE_INTERVAL, update_icp_to_usd_exchange_rate);
+    ic_cdk_timers::set_timer(Duration::ZERO, update_fiat_exchange_rates());
+    ic_cdk_timers::set_timer_interval(FIAT_UPDATE_INTERVAL, update_fiat_exchange_rates);
 }
 
 pub fn get_icp_to_usd_exchange_rate() -> IcpExchangeRateResponse {
@@ -37,9 +45,21 @@ pub fn get_icp_to_usd_rate_history() -> Vec<CachedRate> {
     cache::list_past_day_rates()
 }
 
+pub fn list_usd_to_fiat_exchange_rates() -> Vec<FiatExchangeRate> {
+    cache::list_cached_fiat_rates()
+}
+
 #[cfg(feature = "testnet")]
 pub fn set_mock_exchange_rate(current_rate_e8s: u64, rate_one_day_ago_e8s: u64) {
     cache::set_mock_rates(current_rate_e8s, rate_one_day_ago_e8s);
+}
+
+#[cfg(feature = "testnet")]
+pub fn set_mock_fiat_exchange_rate(symbol: String, rate_e8s: u64) {
+    let Some(&symbol) = SUPPORTED_FIAT_SYMBOLS.iter().find(|&&s| s == symbol) else {
+        ic_cdk::trap(format!("Unsupported fiat symbol: {symbol}"));
+    };
+    cache::set_mock_fiat_rate(symbol, rate_e8s);
 }
 
 fn icp_asset() -> Asset {
@@ -49,26 +69,26 @@ fn icp_asset() -> Asset {
     }
 }
 
-fn usd_asset() -> Asset {
+fn fiat_asset(symbol: &str) -> Asset {
     Asset {
-        symbol: "USD".to_string(),
+        symbol: symbol.to_string(),
         class: AssetClass::FiatCurrency,
     }
 }
 
-async fn update_exchange_rate() {
+async fn update_icp_to_usd_exchange_rate() {
     let past_timestamp = time::time_seconds().saturating_sub(ONE_DAY_SECS);
 
     // A `None` needs no log here, because `fetch_rate` logs the reason.
 
     // No timestamp = latest available rate from XRC.
     // https://github.com/dfinity/exchange-rate-canister/blob/41393865715eecb620474de34351096ec77a13fa/src/xrc/src/api.rs#L369
-    if let Some(rate) = fetch_rate(icp_asset(), usd_asset(), None, "current").await {
+    if let Some(rate) = fetch_rate(icp_asset(), fiat_asset("USD"), None, "current").await {
         cache::set_current_rate(rate);
     }
     let one_day_ago_rate = fetch_rate(
         icp_asset(),
-        usd_asset(),
+        fiat_asset("USD"),
         Some(past_timestamp),
         "one-day-ago",
     )
@@ -87,8 +107,23 @@ async fn backfill_rate_history() {
     for hours_ago in 1..=BACKFILL_HOURS {
         let timestamp = now_secs.saturating_sub(hours_ago * ONE_HOUR_SECS);
         // A `None` needs no log here, because `fetch_rate` logs the reason.
-        if let Some(rate) = fetch_rate(icp_asset(), usd_asset(), Some(timestamp), "history").await {
+        let history_rate =
+            fetch_rate(icp_asset(), fiat_asset("USD"), Some(timestamp), "history").await;
+        if let Some(rate) = history_rate {
             cache::add_history_rate(rate);
+        }
+    }
+}
+
+/// Fetches the USD rate of each currency in `SUPPORTED_FIAT_SYMBOLS` and caches it.
+/// A failed call keeps the previous rate. The next timer run tries again.
+async fn update_fiat_exchange_rates() {
+    for symbol in SUPPORTED_FIAT_SYMBOLS {
+        // No timestamp = latest available rate from XRC.
+        // A `None` needs no log here, because `fetch_rate` logs the reason.
+        let fiat_rate = fetch_rate(fiat_asset("USD"), fiat_asset(symbol), None, "current").await;
+        if let Some(rate) = fiat_rate {
+            cache::set_fiat_rate(symbol, rate);
         }
     }
 }
