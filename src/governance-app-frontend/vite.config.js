@@ -45,12 +45,7 @@ export default defineConfig({
             if (id.includes('@tanstack')) return 'vendor-tanstack';
 
             // Isolate the ICP SDKs as they are heavy
-            if (
-              id.includes('@dfinity') ||
-              id.includes('@icp-sdk') ||
-              id.includes('@noble') ||
-              id.includes('ic-use-internet-identity')
-            )
+            if (id.includes('@dfinity') || id.includes('@icp-sdk') || id.includes('@noble'))
               return 'vendor-icp';
 
             if (id.includes('markdown') || id.includes('remark') || id.includes('micromark'))

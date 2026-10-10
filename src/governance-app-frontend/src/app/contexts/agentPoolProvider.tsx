@@ -1,6 +1,6 @@
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode, useEffect, useState } from 'react';
 
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import {
   clearAuthenticatedAgent,
   getAnonymousAgent,

@@ -1,6 +1,5 @@
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -21,6 +20,7 @@ import { Card } from '@components/Card';
 import { PageHeader } from '@components/PageHeader';
 import { SettingsSkeleton } from '@components/skeletons/SettingsSkeleton';
 import { BUILD_DATE, GIT_COMMIT } from '@constants/extra';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useLogout } from '@hooks/useLogout';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
 import { getSessionTimeLeftForUi } from '@utils/date';

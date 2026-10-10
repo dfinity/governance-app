@@ -4,12 +4,12 @@ import type {
   NeuronInfo,
 } from '@icp-sdk/canisters/nns';
 import { ProposalRewardStatus, ProposalStatus } from '@icp-sdk/canisters/nns';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useMemo } from 'react';
 
 import { calculateEngagement } from '@features/stakes/utils/calculateEngagement';
 
 import { useNnsGovernance } from '@hooks/governance';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useQueryThenUpdateCall } from '@hooks/useQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/query';
 

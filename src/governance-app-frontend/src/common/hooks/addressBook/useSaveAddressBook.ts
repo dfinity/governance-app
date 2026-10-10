@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
 import type { NamedAddress } from '@declarations/governance-app-backend/governance-app-backend.did';
 
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { mapSetAddressBookError } from '@utils/errors/addressBook';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
