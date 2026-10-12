@@ -41,11 +41,17 @@ export function useSaveAddressBook() {
         );
       }
 
-      // The write replaces the whole book. The cache takes the written list at
-      // once, so a later save builds on it even when the refetch below fails.
+      // The write replaces the whole book. The cache of this identity takes the
+      // written list at once, so a later save builds on it even when the
+      // refetch below fails.
       const namedAddressesSorted = [...namedAddresses].sort((a, b) => a.name.localeCompare(b.name));
       queryClient.setQueriesData<CertifiedData<AddressBook>>(
-        { queryKey: [QUERY_KEYS.GOVERNANCE_APP_BACKEND.ADDRESS_BOOK] },
+        {
+          queryKey: [
+            QUERY_KEYS.GOVERNANCE_APP_BACKEND.ADDRESS_BOOK,
+            identity.getPrincipal().toText(),
+          ],
+        },
         (old) =>
           old
             ? { ...old, response: { ...old.response, named_addresses: namedAddressesSorted } }
