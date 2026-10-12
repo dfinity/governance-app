@@ -1,6 +1,6 @@
 import type { PlausibleRequestPayload } from '@plausible-analytics/tracker';
 
-const PROPOSAL_PATH = /\/voting\/proposals\/(\d+)/;
+const PROPOSAL_PATH = /\/voting\/proposals\/(\d+)(?=\/?(?:[?#]|$))/;
 
 /**
  * Reports every proposal page as `/voting/proposals/:id` and moves the ID to the

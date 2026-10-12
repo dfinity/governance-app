@@ -27,8 +27,24 @@ describe('groupProposalPages', () => {
     expect(result.p).toEqual({ theme: 'dark', proposal_id: '7' });
   });
 
+  it('accepts a trailing slash and a hash', () => {
+    expect(
+      groupProposalPages(payload('https://nns.internetcomputer.org/voting/proposals/7/')).u,
+    ).toBe('https://nns.internetcomputer.org/voting/proposals/:id/');
+    expect(
+      groupProposalPages(payload('https://nns.internetcomputer.org/voting/proposals/7#votes')).u,
+    ).toBe('https://nns.internetcomputer.org/voting/proposals/:id#votes');
+  });
+
   it('does not change other pages', () => {
     const input = payload('https://nns.internetcomputer.org/voting?showProposals=true');
     expect(groupProposalPages(input)).toBe(input);
+  });
+
+  it('does not change a path that only starts with a proposal ID', () => {
+    for (const path of ['/voting/proposals/123abc', '/voting/proposals/123/extra']) {
+      const input = payload(`https://nns.internetcomputer.org${path}`);
+      expect(groupProposalPages(input)).toBe(input);
+    }
   });
 });

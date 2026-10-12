@@ -43,15 +43,13 @@ class AnalyticsService {
     props?: Record<string, string>,
     options?: Omit<PlausibleEventOptions, 'props'>,
   ): void {
-    if (!this.isInitialized) {
-      if (IS_LOCAL) console.warn('Analytics tracker not initialized');
-      return;
-    }
+    // Local builds never initialize the tracker.
+    if (!this.isInitialized) return;
 
     try {
       track(event as string, { props, ...options });
-    } catch (error) {
-      if (IS_LOCAL) console.error('Plausible event error:', error);
+    } catch {
+      // Tracking must never break the app.
     }
   }
 

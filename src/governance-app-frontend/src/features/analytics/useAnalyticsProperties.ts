@@ -24,7 +24,8 @@ export const useAnalyticsProperties = () => {
       theme,
       hide_balances: yesNo(hidden),
       shortcuts_enabled: yesNo(shortcutsEnabled),
-      ...(neurons && { has_neurons: yesNo(neurons.length > 0) }),
+      // Overwrite a previous user's value while the neurons load.
+      has_neurons: neurons ? yesNo(neurons.length > 0) : 'unknown',
     });
   }, [theme, hidden, shortcutsEnabled, neurons]);
 };
