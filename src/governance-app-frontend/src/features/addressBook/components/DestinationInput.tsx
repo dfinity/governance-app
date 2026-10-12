@@ -1,6 +1,6 @@
 import { nonNullish } from '@dfinity/utils';
 import { BookPlus, X } from 'lucide-react';
-import { useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@components/badge';
@@ -82,6 +82,8 @@ export function DestinationInput({
   // separate button that the Tab key reaches.
   const itemCount = matches.length;
   const showList = open && (itemCount > 0 || nonNullish(onAddAddress));
+  // The suggestions can shrink while the list is open, for example after a refetch.
+  const activeMatch = activeIndex < itemCount ? activeIndex : -1;
 
   const close = () => {
     setOpen(false);
@@ -124,9 +126,9 @@ export function DestinationInput({
       });
       return;
     }
-    if (event.key === 'Enter' && showList && activeIndex >= 0) {
+    if (event.key === 'Enter' && showList && activeMatch >= 0) {
       event.preventDefault();
-      pick(matches[activeIndex]);
+      pick(matches[activeMatch]);
       return;
     }
     if (event.key === 'Escape' && showList) {
@@ -138,6 +140,14 @@ export function DestinationInput({
   };
 
   const optionId = (index: number) => `${listId}-option-${index}`;
+
+  // The focus stays on the input, so the active option scrolls into view by hand.
+  useEffect(() => {
+    if (activeMatch < 0) return;
+    document
+      .getElementById(`${listId}-option-${activeMatch}`)
+      ?.scrollIntoView({ block: 'nearest' });
+  }, [activeMatch, listId]);
 
   if (selected) {
     // An output element is labelable and, with a tab index, focusable, so the
@@ -189,7 +199,7 @@ export function DestinationInput({
           aria-expanded={showList}
           aria-controls={showList && itemCount > 0 ? listId : undefined}
           aria-autocomplete="list"
-          aria-activedescendant={showList && activeIndex >= 0 ? optionId(activeIndex) : undefined}
+          aria-activedescendant={showList && activeMatch >= 0 ? optionId(activeMatch) : undefined}
           aria-invalid={invalid}
           value={value}
           placeholder={placeholder}
@@ -221,10 +231,10 @@ export function DestinationInput({
                   key={`${suggestion.kind}:${suggestion.name}:${suggestion.address}`}
                   id={optionId(index)}
                   role="option"
-                  aria-selected={index === activeIndex}
+                  aria-selected={index === activeMatch}
                   className={cn(
                     'flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm',
-                    index === activeIndex && 'bg-accent text-accent-foreground',
+                    index === activeMatch && 'bg-accent text-accent-foreground',
                   )}
                   // The input keeps the focus, so the blur handler does not close the list first.
                   onMouseDown={(event) => event.preventDefault()}

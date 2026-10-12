@@ -6,6 +6,9 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { DestinationInput, type DestinationSuggestion } from './DestinationInput';
 
+// jsdom has no layout, so the active option scroll is a no-op here.
+Element.prototype.scrollIntoView = vi.fn();
+
 const ICP_ADDRESS = 'd4685b31b51450508aff0331584df7692a84467b680326f5c5f7d30ae711682f';
 const ICRC1_ADDRESS = 'h4a5i-5vcfo-5rusv-fmb6m-vrkia-mjnkc-jpoow-h5mam-nthnm-ldqlr-bqe';
 
@@ -177,6 +180,20 @@ describe('DestinationInput', () => {
     fireEvent.keyDown(input, { key: 'ArrowDown' });
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(onChange).toHaveBeenLastCalledWith(ICP_ADDRESS, 'Alice');
+  });
+
+  it('ignores a stale active index after the suggestions shrink', () => {
+    const onChange = vi.fn();
+    const { rerender } = render(<Harness onChange={onChange} />);
+    const input = screen.getByTestId('destination');
+
+    fireEvent.focus(input);
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    rerender(<Harness onChange={onChange} suggestions={[SUGGESTIONS[0]]} />);
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   it('keeps the list open while the focus moves to the add button', () => {
