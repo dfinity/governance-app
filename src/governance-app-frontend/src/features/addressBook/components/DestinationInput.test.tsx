@@ -98,15 +98,23 @@ describe('DestinationInput', () => {
     expect(onChange).toHaveBeenLastCalledWith(ICRC1_ADDRESS, 'Bob');
   });
 
-  it('renders the chip as a labelable button with the field id', () => {
-    render(<Harness />);
+  it('renders the chip as a labelable element that a click does not clear', () => {
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} />);
 
     fireEvent.focus(screen.getByTestId('destination'));
     fireEvent.click(screen.getByText('Alice'));
+    onChange.mockClear();
 
     const chip = screen.getByTestId('destination-selected');
-    expect(chip.tagName).toBe('BUTTON');
+    expect(chip.tagName).toBe('OUTPUT');
     expect(chip.id).toBe('destination');
+
+    fireEvent.click(chip);
+    expect(onChange).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(chip, { key: 'Backspace' });
+    expect(onChange).toHaveBeenLastCalledWith('', '');
   });
 
   it('picks a suggestion with the keyboard', () => {
