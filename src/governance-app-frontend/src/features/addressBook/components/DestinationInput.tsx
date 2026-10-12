@@ -23,7 +23,7 @@ type Props = {
   onChange: (value: string, selectedName: string) => void;
   /** Adds the "Add a new address" item to the list. */
   onAddAddress?: () => void;
-  /** Keeps the picked suggestion. The chip has no clear button. */
+  /** Keeps the picked suggestion. The chip is read-only and has no clear action. */
   locked?: boolean;
   invalid?: boolean;
   placeholder?: string;
@@ -66,6 +66,7 @@ export function DestinationInput({
   const { t } = useTranslation();
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const chipRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
 
@@ -90,6 +91,14 @@ export function DestinationInput({
   const pick = (suggestion: DestinationSuggestion) => {
     onChange(suggestion.address, suggestion.name);
     close();
+    // The chip replaces the input on the next render and takes the focus.
+    requestAnimationFrame(() => chipRef.current?.focus());
+  };
+
+  const clear = () => {
+    onChange('', '');
+    // The input mounts on the next render.
+    requestAnimationFrame(() => inputRef.current?.focus());
   };
 
   const activate = (index: number) => {
@@ -107,7 +116,11 @@ export function DestinationInput({
       if (itemCount === 0) return;
       setOpen(true);
       const step = event.key === 'ArrowDown' ? 1 : -1;
-      setActiveIndex((current) => (current + step + itemCount) % itemCount);
+      setActiveIndex((current) => {
+        // No active item: ArrowDown starts at the first item, ArrowUp at the last.
+        if (current < 0) return step > 0 ? 0 : itemCount - 1;
+        return (current + step + itemCount) % itemCount;
+      });
       return;
     }
     if (event.key === 'Enter' && showList && activeIndex >= 0) {
@@ -126,12 +139,10 @@ export function DestinationInput({
   const optionId = (index: number) => `${listId}-option-${index}`;
 
   if (selected) {
-    return (
-      <div
-        id={id}
-        className="flex h-9 w-full min-w-0 items-center gap-2 rounded-md border border-input px-3 text-sm dark:bg-input/30"
-        data-testid={testId ? `${testId}-selected` : undefined}
-      >
+    const chipClassName =
+      'flex h-9 w-full min-w-0 items-center gap-2 rounded-md border border-input px-3 text-left text-sm dark:bg-input/30';
+    const chipContent = (
+      <>
         <span className="min-w-0 shrink truncate font-medium">{selected.name}</span>
         <span className="hidden min-w-0 shrink truncate font-mono text-xs text-muted-foreground sm:inline">
           {shortenId(selected.address, SHORT_ADDRESS_CHARS)}
@@ -139,22 +150,42 @@ export function DestinationInput({
         <Badge variant="outline" className="shrink-0 text-[10px]">
           {t(($) => $.addressBook[kindLabelKey[selected.kind]])}
         </Badge>
-        {!locked && (
-          <button
-            type="button"
-            className="ml-auto flex size-6 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground"
-            aria-label={t(($) => $.addressBook.destination.clear)}
-            onClick={() => {
-              onChange('', '');
-              // The input mounts on the next render.
-              requestAnimationFrame(() => inputRef.current?.focus());
-            }}
-            data-testid={testId ? `${testId}-clear` : undefined}
-          >
-            <X className="size-4" />
-          </button>
-        )}
-      </div>
+      </>
+    );
+
+    // An output element is labelable, so the label still names the field.
+    if (locked) {
+      return (
+        <output
+          id={id}
+          className={chipClassName}
+          data-testid={testId ? `${testId}-selected` : undefined}
+        >
+          {chipContent}
+        </output>
+      );
+    }
+
+    // A button keeps the field focusable and labelable while the chip shows.
+    // Activating it clears the pick and returns to the input.
+    return (
+      <button
+        ref={chipRef}
+        type="button"
+        id={id}
+        className={cn(chipClassName, 'outline-none focus-visible:border-ring')}
+        onClick={clear}
+        data-testid={testId ? `${testId}-selected` : undefined}
+      >
+        {chipContent}
+        <span
+          className="ml-auto flex size-6 shrink-0 items-center justify-center text-muted-foreground"
+          data-testid={testId ? `${testId}-clear` : undefined}
+        >
+          <X className="size-4" aria-hidden />
+          <span className="sr-only">{t(($) => $.addressBook.destination.clear)}</span>
+        </span>
+      </button>
     );
   }
 

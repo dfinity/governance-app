@@ -25,7 +25,7 @@ import { ResponsiveDialogTitle } from '@components/ResponsiveDialog';
 import { E8Sn, ICP_MIN_DISBURSE_MATURITY_AMOUNT } from '@constants/extra';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
-import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
+import { addressToAccountIdentifier, isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
 import { addressBookGetAddressString, addressBookIsIcpAddress } from '@utils/addressBook';
 import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronFreeMaturityE8s } from '@utils/neuron';
@@ -104,7 +104,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
 
   // "Your balance" only holds for the main account. Any other destination is
   // "the selected account".
-  const isToSelectedAccount = destination.trim() !== mainAccountId;
+  const isToSelectedAccount = addressToAccountIdentifier(destination.trim()) !== mainAccountId;
 
   const handlePercentageChange = (value: string) => {
     setValidationError(null);
@@ -200,6 +200,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
                   setValidationError(null);
                 }}
                 placeholder={t(($) => $.addressBook.destination.placeholderWithAccounts)}
+                invalid={validationError !== null}
               />
             </div>
 

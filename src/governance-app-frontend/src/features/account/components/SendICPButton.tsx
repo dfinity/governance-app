@@ -105,8 +105,15 @@ export const SendICPDialog: React.FC<DialogProps> = ({
   const memoEnabled = features[AdvancedFeature.TransactionMemo];
 
   const addressBookQuery = useAddressBook();
-  const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
   const addressBookLoading = addressBookQuery.isLoading;
+  // A save succeeds even when the refetch of the book fails, so the saved
+  // entries stay in the list until the book reports them.
+  const [savedEntries, setSavedEntries] = useState<NamedAddress[]>([]);
+  const storedEntries = addressBookQuery.data?.response?.named_addresses ?? [];
+  const addressBookEntries = [
+    ...storedEntries,
+    ...savedEntries.filter((saved) => !storedEntries.some((entry) => entry.name === saved.name)),
+  ];
 
   const [step, setStep] = useState(Step.Form);
   const [amount, setAmount] = useState('');
@@ -374,6 +381,7 @@ export const SendICPDialog: React.FC<DialogProps> = ({
         initialAddress={toAccount}
         existingAddresses={addressBookEntries}
         onSaved={(entry) => {
+          setSavedEntries((entries) => [...entries, entry]);
           setSelectedName(entry.name);
           handleAccountChange(addressBookGetAddressString(entry.address));
         }}

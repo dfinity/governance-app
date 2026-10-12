@@ -264,6 +264,38 @@ test.describe('Address book', () => {
     });
   });
 
+  test('Add an address from the send form', async ({ page }) => {
+    await test.step('Open app and login.', async () => {
+      await openApp({ page });
+      await login({ page });
+      await getIcps(page, '20');
+    });
+
+    await test.step('Add the address from the destination list and send to it.', async () => {
+      await page.getByTestId('send-icp-btn').click();
+      await page.getByTestId('send-icp-destination-input').click();
+      await page.getByTestId('send-icp-destination-input-add').click();
+
+      await expect(page.getByTestId('add-address-modal')).toBeVisible();
+      await page.getByTestId('add-address-nickname-input').fill('Wallet C');
+      await page.getByTestId('add-address-address-input').fill(TEST_ICP_ADDRESS);
+      await page.getByTestId('add-address-save-btn').click();
+      await expect(page.getByTestId('add-address-modal')).not.toBeVisible({ timeout: 30000 });
+
+      // The send form stays open with the new entry picked.
+      await expect(page.getByTestId('send-icp-destination-input-selected')).toContainText(
+        'Wallet C',
+      );
+      await page.getByTestId('send-icp-amount-input').fill('5');
+      await page.getByTestId('send-icp-next-btn').click();
+      await expect(page.getByTestId('send-icp-destination-name')).toHaveText('Wallet C');
+      await page.getByTestId('send-icp-confirm-btn').click();
+      await expect(
+        page.getByRole('paragraph').filter({ hasText: 'successfully sent 5 ICP to Wallet C' }),
+      ).toBeVisible({ timeout: 30000 });
+    });
+  });
+
   test('Save an address from the send review step', async ({ page }) => {
     await test.step('Open app and login.', async () => {
       await openApp({ page });

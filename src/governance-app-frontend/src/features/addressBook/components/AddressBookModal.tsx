@@ -24,8 +24,9 @@ import {
 import { SkeletonAddressBookRows } from '@components/skeletons/SkeletonListRows';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { ADDRESS_BOOK_MAX_ENTRIES } from '@constants/addressBook';
-import { E8Sn } from '@constants/extra';
+import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
+import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
 import type { CertifiedData } from '@typings/queries';
 import { addressBookGetAddressString } from '@utils/addressBook';
 import { bigIntDiv } from '@utils/bigInt';
@@ -48,15 +49,22 @@ export const AddressBookModal: React.FC<Props> = ({ isOpen, onOpenChange }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [sendingTo, setSendingTo] = useState<NamedAddress | undefined>();
 
-  // The send dialog sends from the main account.
+  // The send dialog sends from the main account. The send action shows only
+  // once the balance is known and the ledger can transfer, as for the send button.
   const { data: accountsState } = useAccounts();
+  const { ready: ledgerReady, authenticated: ledgerAuthenticated } = useIcpLedger();
   const mainAccount = accountsState?.accounts.find(
     (account) => account.accountId === accountsState.mainAccountId,
   );
   const mainBalance =
     nonNullish(mainAccount) && isAccountReady(mainAccount)
       ? bigIntDiv(mainAccount.balanceE8s, E8Sn)
-      : 0;
+      : undefined;
+  const canSend =
+    nonNullish(mainBalance) &&
+    mainBalance > ICP_TRANSACTION_FEE &&
+    ledgerReady &&
+    ledgerAuthenticated;
 
   const handleEdit = (namedAddress: NamedAddress) => {
     setEditingAddress(namedAddress);
@@ -147,7 +155,7 @@ export const AddressBookModal: React.FC<Props> = ({ isOpen, onOpenChange }) => {
                           namedAddress={entry}
                           onEdit={handleEdit}
                           onDelete={handleDelete}
-                          onSend={setSendingTo}
+                          onSend={canSend ? setSendingTo : undefined}
                         />
                       ))}
                     </div>
@@ -174,7 +182,7 @@ export const AddressBookModal: React.FC<Props> = ({ isOpen, onOpenChange }) => {
         onOpenChange={(open) => {
           if (!open) setSendingTo(undefined);
         }}
-        balance={mainBalance}
+        balance={mainBalance ?? 0}
         initialDestination={
           nonNullish(sendingTo)
             ? { name: sendingTo.name, address: addressBookGetAddressString(sendingTo.address) }

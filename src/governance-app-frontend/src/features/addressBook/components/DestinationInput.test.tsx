@@ -86,6 +86,29 @@ describe('DestinationInput', () => {
     expect(screen.getByTestId<HTMLInputElement>('destination').value).toBe('');
   });
 
+  it('starts at the last item on ArrowUp', () => {
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} />);
+    const input = screen.getByTestId('destination');
+
+    fireEvent.focus(input);
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(onChange).toHaveBeenLastCalledWith(ICRC1_ADDRESS, 'Bob');
+  });
+
+  it('renders the chip as a labelable button with the field id', () => {
+    render(<Harness />);
+
+    fireEvent.focus(screen.getByTestId('destination'));
+    fireEvent.click(screen.getByText('Alice'));
+
+    const chip = screen.getByTestId('destination-selected');
+    expect(chip.tagName).toBe('BUTTON');
+    expect(chip.id).toBe('destination');
+  });
+
   it('picks a suggestion with the keyboard', () => {
     const onChange = vi.fn();
     render(<Harness onChange={onChange} />);
