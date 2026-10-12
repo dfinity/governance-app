@@ -2,6 +2,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { getErrorReason } from '@features/analytics/properties';
+import { analytics } from '@features/analytics/service';
+import { STAKING_WIZARD_DISSOLVE_DELAY_OPTIONS } from '@features/stakes/components/stakingWizard/constants';
+
 import { useNnsGovernance } from '@hooks/governance';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
@@ -41,6 +46,17 @@ export function useIncreaseDelay() {
           queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
         })
         .catch(failedRefresh);
+    },
+    onSuccess: (_, params) => {
+      analytics.event(AnalyticsEvent.NeuronIncreaseDelay, {
+        dissolve_delay:
+          STAKING_WIZARD_DISSOLVE_DELAY_OPTIONS.find(
+            (option) => option.value === params.dissolveDelaySeconds,
+          )?.labelKey ?? 'custom',
+      });
+    },
+    onError: (error) => {
+      analytics.event(AnalyticsEvent.NeuronIncreaseDelayError, { reason: getErrorReason(error) });
     },
   });
 }

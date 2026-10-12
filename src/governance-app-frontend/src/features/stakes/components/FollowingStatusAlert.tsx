@@ -5,6 +5,7 @@ import { AlertTriangle, ArrowRight, Clock, TrendingDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
+import { getErrorReason } from '@features/analytics/properties';
 import { analytics } from '@features/analytics/service';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
@@ -107,12 +108,15 @@ export function FollowingStatusAlert({ neuron, isHotkey }: Props) {
   const handleConfirm = async () => {
     try {
       await mutateAsync({ neuronId: neuron.neuronId });
-      analytics.event(AnalyticsEvent.StakingRefreshVotingPower);
+      analytics.event(AnalyticsEvent.StakingRefreshVotingPower, { health });
       successNotification({
         description: t(($) => $.neuron.followingStatus.success),
       });
     } catch (err) {
-      analytics.event(AnalyticsEvent.StakingRefreshVotingPowerError);
+      analytics.event(AnalyticsEvent.StakingRefreshVotingPowerError, {
+        health,
+        reason: getErrorReason(err),
+      });
       errorNotification({
         description: mapCanisterError(err as Error),
       });

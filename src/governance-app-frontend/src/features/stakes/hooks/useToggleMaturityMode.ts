@@ -2,6 +2,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { getErrorReason } from '@features/analytics/properties';
+import { analytics } from '@features/analytics/service';
+
 import { useNnsGovernance } from '@hooks/governance';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
@@ -37,6 +41,14 @@ export function useToggleMaturityMode() {
           queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
         })
         .catch(failedRefresh);
+    },
+    onSuccess: (_, params) => {
+      analytics.event(AnalyticsEvent.NeuronSetMaturityMode, {
+        mode: params.autoStake ? 'auto' : 'liquid',
+      });
+    },
+    onError: (error) => {
+      analytics.event(AnalyticsEvent.NeuronSetMaturityModeError, { reason: getErrorReason(error) });
     },
   });
 }

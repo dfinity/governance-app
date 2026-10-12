@@ -4,6 +4,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { getErrorReason } from '@features/analytics/properties';
+import { analytics } from '@features/analytics/service';
+
 import { useNnsGovernance } from '@hooks/governance';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
@@ -81,6 +85,19 @@ export function useDisburseMaturity() {
         }),
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] }),
       ]).catch(failedRefresh);
+    },
+    onSuccess: (_, params) => {
+      analytics.event(AnalyticsEvent.NeuronDisburseMaturity, {
+        destination: params.destination.kind,
+        percentage: [25, 50, 75, 100].includes(params.percentageToDisburse)
+          ? String(params.percentageToDisburse)
+          : 'custom',
+      });
+    },
+    onError: (error) => {
+      analytics.event(AnalyticsEvent.NeuronDisburseMaturityError, {
+        reason: getErrorReason(error),
+      });
     },
   });
 }

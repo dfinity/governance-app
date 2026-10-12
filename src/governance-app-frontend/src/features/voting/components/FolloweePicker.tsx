@@ -16,6 +16,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
+import { getErrorReason } from '@features/analytics/properties';
 import { analytics } from '@features/analytics/service';
 
 import { Alert, AlertDescription } from '@components/Alert';
@@ -197,7 +198,7 @@ export function FolloweePicker({
     },
     onError: (error) => {
       errorMessage('FolloweePicker', error.message);
-      analytics.event(AnalyticsEvent.FollowingPickerApplyError);
+      analytics.event(AnalyticsEvent.FollowingPickerApplyError, { reason: getErrorReason(error) });
     },
   });
 
