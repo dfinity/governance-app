@@ -266,8 +266,9 @@ export function DestinationInput({
                 if (event.key === 'Escape') {
                   event.preventDefault();
                   event.stopPropagation();
-                  close();
+                  // The focus opens the list, so the close comes after it.
                   inputRef.current?.focus();
+                  close();
                 }
               }}
               data-testid={testId ? `${testId}-add` : undefined}
