@@ -8,6 +8,8 @@ import { DepositICPModal } from '@features/account/components/DepositICPModal';
 import { SendICPButton } from '@features/account/components/SendICPButton';
 import { useNeuronAccountsIds } from '@features/account/hooks/useNeuronAccountsIds';
 import { TransactionType } from '@features/account/types';
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
 import { TransactionListDialog } from '@features/transactions/components/TransactionListDialog';
 import { detectTransactionType, getAmountE8s } from '@features/transactions/utils/transactionType';
 import { txConfig } from '@features/transactions/utils/txConfig';
@@ -149,7 +151,10 @@ function AccountBalance({
           variant="outline"
           size="xl"
           className="flex-1"
-          onClick={() => setIsDepositOpen(true)}
+          onClick={() => {
+            analytics.event(AnalyticsEvent.AccountOpenDeposit, { source: 'accounts' });
+            setIsDepositOpen(true);
+          }}
         >
           <ArrowDownLeft aria-hidden="true" />
           {t(($) => $.common.receive)}

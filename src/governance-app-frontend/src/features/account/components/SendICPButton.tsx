@@ -284,7 +284,10 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
         size="xl"
         className={cn('w-full', variantClassName)}
         data-testid="send-icp-btn"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          analytics.event(AnalyticsEvent.AccountOpenSend, { variant });
+          setOpen(true);
+        }}
       >
         <Icon aria-hidden />
         {t(($) => $.common[label])}

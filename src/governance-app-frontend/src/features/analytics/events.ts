@@ -16,6 +16,8 @@ export enum AnalyticsEvent {
   StakingConfirmationError = 'staking_confirmation_error',
   StakingRefreshVotingPower = 'staking_refresh_voting_power',
   StakingRefreshVotingPowerError = 'staking_refresh_voting_power_error',
+  StakingOpenApyOptimization = 'staking_open_apy_optimization',
+  StakingOpenStakingRatio = 'staking_open_staking_ratio',
 
   // Following flow
   FollowingSimpleConfirmation = 'following_simple_confirmation',
@@ -58,8 +60,22 @@ export enum AnalyticsEvent {
   AccountRenameSubaccountError = 'account_rename_subaccount_error',
   AddressBookSave = 'address_book_save',
   AddressBookSaveError = 'address_book_save_error',
+  AccountOpenDeposit = 'account_open_deposit',
+  AccountOpenSend = 'account_open_send',
+  AccountQrScanOpen = 'account_qr_scan_open',
+  AccountQrScanSuccess = 'account_qr_scan_success',
+  AccountQrScanError = 'account_qr_scan_error',
+
+  // Session
+  SessionLogout = 'session_logout',
+  SessionExpired = 'session_expired',
+
+  // Navigation and tools
+  CommandPaletteOpen = 'command_palette_open',
+  CommandPaletteSelect = 'command_palette_select',
+  ShortcutUsed = 'shortcut_used',
+  NotFound = 'not_found',
 }
 // @TODO:
 //  - successful login
 //  - click on the navigation items
-//  - click on dashboard buttons (deposit / withdraw / staking - apy warning icons)

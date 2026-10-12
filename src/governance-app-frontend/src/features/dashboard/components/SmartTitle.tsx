@@ -3,6 +3,9 @@ import { Link } from '@tanstack/react-router';
 import { TrendingUp } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
+
 import { Button } from '@components/button';
 import { Skeleton } from '@components/Skeleton';
 import { E8Sn } from '@constants/extra';
@@ -94,13 +97,26 @@ export function SmartTitle() {
   const cta =
     state === 'no-assets' ? (
       <Button asChild size="lg">
-        <Link to="/dashboard" search={{ depositModal: true }} replace>
+        <Link
+          to="/dashboard"
+          search={{ depositModal: true }}
+          replace
+          onClick={() =>
+            analytics.event(AnalyticsEvent.AccountOpenDeposit, { source: 'dashboard_title' })
+          }
+        >
           {t(($) => $.home.smartTitle.noAssetsCta)}
         </Link>
       </Button>
     ) : state === 'liquid-only' ? (
       <Button asChild size="lg">
-        <Link to="/neurons" search={{ openWizard: true }}>
+        <Link
+          to="/neurons"
+          search={{ openWizard: true }}
+          onClick={() =>
+            analytics.event(AnalyticsEvent.StakingOpenWizard, { source: 'dashboard_title' })
+          }
+        >
           <TrendingUp />
           {t(($) => $.home.smartTitle.liquidOnlyCta)}
         </Link>
