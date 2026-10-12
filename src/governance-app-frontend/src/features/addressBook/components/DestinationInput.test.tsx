@@ -159,6 +159,21 @@ describe('DestinationInput', () => {
     expect(onAddAddress).toHaveBeenCalledOnce();
   });
 
+  it('exposes the add action as a button, not as an option', () => {
+    render(<Harness onAddAddress={() => {}} />);
+
+    fireEvent.focus(screen.getByTestId('destination'));
+
+    expect(screen.getAllByRole('option')).toHaveLength(2);
+    expect(screen.getByTestId('destination-add').tagName).toBe('BUTTON');
+  });
+
+  it('marks the input as required', () => {
+    render(<Harness />);
+
+    expect(screen.getByTestId<HTMLInputElement>('destination').required).toBe(true);
+  });
+
   it('shows no list without suggestions and without the add action', () => {
     render(<Harness suggestions={[]} />);
 
