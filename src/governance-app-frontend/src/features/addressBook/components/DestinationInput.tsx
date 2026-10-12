@@ -23,6 +23,8 @@ type Props = {
   onChange: (value: string, selectedName: string) => void;
   /** Adds the "Add a new address" item to the list. */
   onAddAddress?: () => void;
+  /** Keeps the picked suggestion. The chip has no clear button. */
+  locked?: boolean;
   invalid?: boolean;
   placeholder?: string;
   /** Rendered inside the input box, at its right edge. */
@@ -54,6 +56,7 @@ export function DestinationInput({
   suggestions,
   onChange,
   onAddAddress,
+  locked = false,
   invalid,
   placeholder,
   endAdornment,
@@ -136,19 +139,21 @@ export function DestinationInput({
         <Badge variant="outline" className="shrink-0 text-[10px]">
           {t(($) => $.addressBook[kindLabelKey[selected.kind]])}
         </Badge>
-        <button
-          type="button"
-          className="ml-auto flex size-6 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground"
-          aria-label={t(($) => $.addressBook.destination.clear)}
-          onClick={() => {
-            onChange('', '');
-            // The input mounts on the next render.
-            requestAnimationFrame(() => inputRef.current?.focus());
-          }}
-          data-testid={testId ? `${testId}-clear` : undefined}
-        >
-          <X className="size-4" />
-        </button>
+        {!locked && (
+          <button
+            type="button"
+            className="ml-auto flex size-6 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground"
+            aria-label={t(($) => $.addressBook.destination.clear)}
+            onClick={() => {
+              onChange('', '');
+              // The input mounts on the next render.
+              requestAnimationFrame(() => inputRef.current?.focus());
+            }}
+            data-testid={testId ? `${testId}-clear` : undefined}
+          >
+            <X className="size-4" />
+          </button>
+        )}
       </div>
     );
   }

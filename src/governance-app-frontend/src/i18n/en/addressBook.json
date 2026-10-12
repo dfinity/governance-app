@@ -52,5 +52,6 @@
     "placeholderWithAccounts": "Your accounts, a contact, or an address",
     "addNew": "Add a new address",
     "clear": "Clear the destination"
-  }
+  },
+  "sendTo": "Send ICP to {{name}}"
 }

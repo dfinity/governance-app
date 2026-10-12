@@ -328,4 +328,31 @@ test.describe('Address book', () => {
       await page.keyboard.press('Escape');
     });
   });
+  test('Send ICP from a contact', async ({ page }) => {
+    await test.step('Open app, login, and save a contact.', async () => {
+      await openApp({ page });
+      await login({ page });
+      await getIcps(page, '20');
+      await navigateTo(page, 'settings');
+      await openAddressBookModal(page);
+      await addAddress(page, 'Wallet A', TEST_ICP_ADDRESS);
+    });
+
+    await test.step('Send from the entry with the destination kept.', async () => {
+      const entry = page.getByTestId('address-book-entry').filter({ hasText: 'Wallet A' });
+      await entry.getByTestId('address-book-send-btn').click();
+
+      await expect(page.getByTestId('send-icp-destination-input-selected')).toContainText(
+        'Wallet A',
+      );
+      await expect(page.getByTestId('send-icp-destination-input-clear')).toHaveCount(0);
+      await page.getByTestId('send-icp-amount-input').fill('5');
+      await page.getByTestId('send-icp-next-btn').click();
+      await expect(page.getByTestId('send-icp-destination-name')).toHaveText('Wallet A');
+      await page.getByTestId('send-icp-confirm-btn').click();
+      await expect(
+        page.getByRole('paragraph').filter({ hasText: 'successfully sent 5 ICP to Wallet A' }),
+      ).toBeVisible({ timeout: 30000 });
+    });
+  });
 });
