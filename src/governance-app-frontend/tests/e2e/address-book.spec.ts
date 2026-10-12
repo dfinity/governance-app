@@ -26,6 +26,18 @@ const addAddress = async (page: Page, nickname: string, address: string) => {
   await expect(page.getByTestId('add-address-modal')).not.toBeVisible({ timeout: 30000 });
 };
 
+const saveAddressFromModal = async (page: Page, nickname: string, address: string) => {
+  await expect(page.getByTestId('add-address-modal')).toBeVisible();
+  await expect(page.getByTestId('add-address-address-input')).toHaveValue(address);
+
+  await page.getByTestId('add-address-nickname-input').fill(nickname);
+  await page.getByTestId('add-address-save-btn').click();
+  await expect(
+    page.getByRole('paragraph').filter({ hasText: 'Address saved successfully.' }),
+  ).toBeVisible({ timeout: 30000 });
+  await expect(page.getByTestId('add-address-modal')).not.toBeVisible({ timeout: 30000 });
+};
+
 const getEntryNames = async (page: Page): Promise<string[]> => {
   const entries = page.getByTestId('address-book-entry-name');
   return entries.allTextContents();
@@ -237,6 +249,33 @@ test.describe('Address book', () => {
 
       await expect(
         page.getByRole('paragraph').filter({ hasText: 'successfully sent 5 ICP to Wallet B' }),
+      ).toBeVisible({ timeout: 30000 });
+    });
+  });
+
+  test('Save an address from the send review step', async ({ page }) => {
+    await test.step('Open app and login.', async () => {
+      await openApp({ page });
+      await login({ page });
+      await getIcps(page, '20');
+    });
+
+    await test.step('Send to an unknown address and save it from the review step.', async () => {
+      await page.getByTestId('send-icp-btn').click();
+      await page.getByTestId('send-icp-destination-input').fill(TEST_ICP_ADDRESS);
+      await page.getByTestId('send-icp-amount-input').fill('5');
+      await page.getByTestId('send-icp-next-btn').click();
+
+      await expect(page.getByTestId('send-icp-destination-name')).toHaveText('External address');
+      await page.getByTestId('send-icp-save-address-btn').click();
+      await saveAddressFromModal(page, 'Wallet A', TEST_ICP_ADDRESS);
+
+      await expect(page.getByTestId('send-icp-destination-name')).toHaveText('Wallet A');
+      await expect(page.getByTestId('send-icp-save-address-btn')).not.toBeVisible();
+
+      await page.getByTestId('send-icp-confirm-btn').click();
+      await expect(
+        page.getByRole('paragraph').filter({ hasText: 'successfully sent 5 ICP to Wallet A' }),
       ).toBeVisible({ timeout: 30000 });
     });
   });
