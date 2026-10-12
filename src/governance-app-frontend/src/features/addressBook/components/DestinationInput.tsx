@@ -1,3 +1,4 @@
+import { nonNullish } from '@dfinity/utils';
 import { BookPlus, X } from 'lucide-react';
 import { useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -66,6 +67,7 @@ export function DestinationInput({
   const { t } = useTranslation();
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const chipRef = useRef<HTMLOutputElement>(null);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -79,9 +81,10 @@ export function DestinationInput({
     query === ''
       ? suggestions
       : suggestions.filter((suggestion) => matchesQuery(suggestion, query));
-  // The add item sits after the matches and takes the next index.
-  const itemCount = matches.length + (onAddAddress ? 1 : 0);
-  const showList = open && itemCount > 0;
+  // The arrow keys move through the matches only. The add command is a
+  // separate button that the Tab key reaches.
+  const itemCount = matches.length;
+  const showList = open && (itemCount > 0 || nonNullish(onAddAddress));
 
   const close = () => {
     setOpen(false);
@@ -101,13 +104,14 @@ export function DestinationInput({
     requestAnimationFrame(() => inputRef.current?.focus());
   };
 
-  const activate = (index: number) => {
-    if (index < matches.length) {
-      pick(matches[index]);
-    } else {
-      onAddAddress?.();
-      close();
-    }
+  const addAddress = () => {
+    onAddAddress?.();
+    close();
+  };
+
+  // The list stays open while the focus moves between the input and the add button.
+  const handleBlur = (event: React.FocusEvent<HTMLDivElement>) => {
+    if (!containerRef.current?.contains(event.relatedTarget)) close();
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -125,7 +129,7 @@ export function DestinationInput({
     }
     if (event.key === 'Enter' && showList && activeIndex >= 0) {
       event.preventDefault();
-      activate(activeIndex);
+      pick(matches[activeIndex]);
       return;
     }
     if (event.key === 'Escape' && showList) {
@@ -185,14 +189,14 @@ export function DestinationInput({
   }
 
   return (
-    <div className="flex flex-col gap-1">
+    <div ref={containerRef} className="flex flex-col gap-1" onBlur={handleBlur}>
       <div className="relative">
         <Input
           ref={inputRef}
           id={id}
           role="combobox"
           aria-expanded={showList}
-          aria-controls={listId}
+          aria-controls={showList && itemCount > 0 ? listId : undefined}
           aria-autocomplete="list"
           aria-activedescendant={showList && activeIndex >= 0 ? optionId(activeIndex) : undefined}
           aria-invalid={invalid}
@@ -204,7 +208,6 @@ export function DestinationInput({
             setActiveIndex(-1);
           }}
           onFocus={() => setOpen(true)}
-          onBlur={close}
           onKeyDown={handleKeyDown}
           className={cn('font-mono', endAdornment && 'pr-10', inputClassName)}
           autoComplete="off"
@@ -251,19 +254,21 @@ export function DestinationInput({
           )}
           {onAddAddress && (
             // A command, not an option: it opens the add modal and picks nothing.
-            // The arrow keys still reach it through the active index.
             <button
               type="button"
-              id={optionId(matches.length)}
-              tabIndex={-1}
               className={cn(
-                'flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm',
+                'flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground',
                 matches.length > 0 && 'mt-1 border-t pt-2',
-                activeIndex === matches.length && 'bg-accent text-accent-foreground',
               )}
-              onMouseDown={(event) => event.preventDefault()}
-              onMouseEnter={() => setActiveIndex(matches.length)}
-              onClick={() => activate(matches.length)}
+              onClick={addAddress}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  close();
+                  inputRef.current?.focus();
+                }
+              }}
               data-testid={testId ? `${testId}-add` : undefined}
             >
               <BookPlus className="size-4 text-muted-foreground" />
