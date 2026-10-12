@@ -5,6 +5,7 @@ import { mockNeuron } from '@fixtures/neuron';
 
 import { ALL_FOLLOWABLE_TOPICS, INDIVIDUAL_TOPICS } from '../data/topics';
 import {
+  addFolloweesToTopics,
   buildAdvancedTopicFollowing,
   getConfiguredIndividualTopicCount,
   getConfiguredTopicCount,
@@ -12,7 +13,9 @@ import {
   getEffectiveFollowees,
   getFollowableTopicFolloweesMap,
   getSingleUniformFollowee,
+  getTopicsOverFolloweeLimit,
   hasComplexFollowing,
+  MAX_FOLLOWEES_PER_TOPIC,
   resolveFolloweeNames,
   TOTAL_TOPIC_COUNT,
 } from './topicFollowing';
@@ -366,6 +369,52 @@ describe('getConfiguredTopicCount', () => {
       [Topic.ExchangeRate, [10n, 20n, 30n]],
     ]);
     expect(getConfiguredTopicCount(map)).toBe(TOTAL_TOPIC_COUNT - 1);
+  });
+});
+
+describe('addFolloweesToTopics', () => {
+  it('adds the followees to each selected topic', () => {
+    const result = addFolloweesToTopics(new Map(), [Topic.Governance, Topic.Kyc], [10n, 20n]);
+    expect(result.get(Topic.Governance)).toEqual([10n, 20n]);
+    expect(result.get(Topic.Kyc)).toEqual([10n, 20n]);
+    expect(result.has(Topic.ExchangeRate)).toBe(false);
+  });
+
+  it('keeps the existing followees and removes duplicates', () => {
+    const current = new Map([[Topic.Governance, [10n, 30n]]]);
+    const result = addFolloweesToTopics(current, [Topic.Governance], [10n, 20n]);
+    expect(result.get(Topic.Governance)).toEqual([10n, 30n, 20n]);
+  });
+
+  it('does not change the input map', () => {
+    const current = new Map([[Topic.Governance, [10n]]]);
+    addFolloweesToTopics(current, [Topic.Governance], [20n]);
+    expect(current.get(Topic.Governance)).toEqual([10n]);
+  });
+});
+
+describe('getTopicsOverFolloweeLimit', () => {
+  const ids = (count: number, offset = 0) =>
+    Array.from({ length: count }, (_, i) => BigInt(i + 1 + offset));
+
+  it('returns no topics at the limit', () => {
+    const map = new Map([[Topic.Governance, ids(MAX_FOLLOWEES_PER_TOPIC)]]);
+    expect(getTopicsOverFolloweeLimit(map)).toEqual([]);
+  });
+
+  it('returns the topics above the limit', () => {
+    const map = new Map([
+      [Topic.Governance, ids(MAX_FOLLOWEES_PER_TOPIC + 1)],
+      [Topic.Kyc, ids(1)],
+      [Topic.Unspecified, ids(MAX_FOLLOWEES_PER_TOPIC + 5)],
+    ]);
+    expect(getTopicsOverFolloweeLimit(map)).toEqual([Topic.Governance, Topic.Unspecified]);
+  });
+
+  it('counts the existing followees together with the new ones', () => {
+    const current = new Map([[Topic.Governance, ids(10)]]);
+    const updated = addFolloweesToTopics(current, [Topic.Governance], ids(6, 100));
+    expect(getTopicsOverFolloweeLimit(updated)).toEqual([Topic.Governance]);
   });
 });
 
