@@ -106,11 +106,14 @@ export const AddAddressModal: React.FC<Props> = ({
     return undefined;
   };
 
-  const findDuplicate = (trimmed: string): NamedAddress | undefined =>
-    existingAddresses.find((entry) => {
+  // An edit that keeps its address introduces no new duplicate.
+  const findDuplicate = (trimmed: string): NamedAddress | undefined => {
+    if (isEditMode && trimmed.toLowerCase() === initialAddressValue.toLowerCase()) return undefined;
+    return existingAddresses.find((entry) => {
       if (isEditMode && entry.name === entryToEdit?.name) return false;
       return addressBookGetAddressString(entry.address).toLowerCase() === trimmed.toLowerCase();
     });
+  };
 
   const handleSubmit =
     (execute: (fn: () => Promise<unknown>) => void) => (event: React.SyntheticEvent) => {
