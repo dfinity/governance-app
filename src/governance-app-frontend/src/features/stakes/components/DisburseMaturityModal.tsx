@@ -104,7 +104,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
 
   // "Your balance" only holds for the main account. Any other destination is
   // "the selected account".
-  const isToSelectedAccount = destination.trim() !== mainAccountId;
+  const isToSelectedAccount = destination.trim().toLowerCase() !== mainAccountId;
 
   const handlePercentageChange = (value: string) => {
     setValidationError(null);
@@ -200,6 +200,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
                   setValidationError(null);
                 }}
                 placeholder={t(($) => $.addressBook.destination.placeholderWithAccounts)}
+                invalid={validationError !== null}
               />
             </div>
 
