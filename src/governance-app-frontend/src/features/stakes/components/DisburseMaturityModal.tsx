@@ -52,6 +52,8 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   const { features } = useAdvancedFeatures();
   const subaccountsEnabled = features.subaccounts;
   const [validationError, setValidationError] = useState<string | null>(null);
+  // The destination field is marked invalid only for its own errors, not for an amount error.
+  const [destinationInvalid, setDestinationInvalid] = useState(false);
 
   const addressBookQuery = useAddressBook();
   const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
@@ -88,6 +90,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   useEffect(() => {
     if (!isOpen) return;
     setValidationError(null);
+    setDestinationInvalid(false);
     setDestination(mainAccountId);
     setDestinationName(mainAccountName);
     setPercentageInput(String(DEFAULT_PERCENTAGE));
@@ -108,6 +111,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
 
   const handlePercentageChange = (value: string) => {
     setValidationError(null);
+    setDestinationInvalid(false);
     // Digits only, so an empty field stays empty and "0" stays "0" instead of clearing.
     if (!/^\d*$/.test(value)) return;
     // Clamp values above the max, but let everything else through as typed.
@@ -128,6 +132,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
     const address = destination.trim();
     if (address === '') {
       setValidationError(t(($) => $.neuronDetailModal.disburseMaturity.errors.noDestination));
+      setDestinationInvalid(true);
       return;
     }
 
@@ -139,6 +144,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
       target = { kind: 'icrc1', owner, subaccount };
     } else {
       setValidationError(t(($) => $.neuronDetailModal.disburseMaturity.errors.invalidDestination));
+      setDestinationInvalid(true);
       return;
     }
 
@@ -198,9 +204,10 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
                   setDestination(value);
                   setDestinationName(name);
                   setValidationError(null);
+                  setDestinationInvalid(false);
                 }}
                 placeholder={t(($) => $.addressBook.destination.placeholderWithAccounts)}
-                invalid={validationError !== null}
+                invalid={destinationInvalid}
               />
             </div>
 
@@ -223,6 +230,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
                     onClick={() => {
                       setPercentageInput(String(preset));
                       setValidationError(null);
+                      setDestinationInvalid(false);
                     }}
                     aria-pressed={percentage === preset}
                     data-testid={`disburse-maturity-preset-${preset}`}

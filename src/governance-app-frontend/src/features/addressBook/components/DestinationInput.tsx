@@ -63,7 +63,7 @@ export function DestinationInput({
   const { t } = useTranslation();
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
-  const chipRef = useRef<HTMLButtonElement>(null);
+  const chipRef = useRef<HTMLOutputElement>(null);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
 
@@ -136,32 +136,42 @@ export function DestinationInput({
   const optionId = (index: number) => `${listId}-option-${index}`;
 
   if (selected) {
-    // A button keeps the field focusable and labelable while the chip shows.
-    // Activating it clears the pick and returns to the input.
+    // An output element is labelable and, with a tab index, focusable, so the
+    // label names the chip and the focus stays on the field. A click on the
+    // label does nothing. Only the clear button and Backspace clear the pick.
     return (
-      <button
-        ref={chipRef}
-        type="button"
-        id={id}
-        className="flex h-9 w-full min-w-0 items-center gap-2 rounded-md border border-input px-3 text-left text-sm outline-none focus-visible:border-ring dark:bg-input/30"
-        onClick={clear}
-        data-testid={testId ? `${testId}-selected` : undefined}
-      >
-        <span className="min-w-0 shrink truncate font-medium">{selected.name}</span>
-        <span className="hidden min-w-0 shrink truncate font-mono text-xs text-muted-foreground sm:inline">
-          {shortenId(selected.address, SHORT_ADDRESS_CHARS)}
-        </span>
-        <Badge variant="outline" className="shrink-0 text-[10px]">
-          {t(($) => $.addressBook[kindLabelKey[selected.kind]])}
-        </Badge>
-        <span
-          className="ml-auto flex size-6 shrink-0 items-center justify-center text-muted-foreground"
+      <div className="relative">
+        <output
+          ref={chipRef}
+          id={id}
+          tabIndex={0}
+          className="flex h-9 w-full min-w-0 items-center gap-2 rounded-md border border-input py-1 pr-10 pl-3 text-sm outline-none focus-visible:border-ring dark:bg-input/30"
+          onKeyDown={(event) => {
+            if (event.key === 'Backspace' || event.key === 'Delete') {
+              event.preventDefault();
+              clear();
+            }
+          }}
+          data-testid={testId ? `${testId}-selected` : undefined}
+        >
+          <span className="min-w-0 shrink truncate font-medium">{selected.name}</span>
+          <span className="hidden min-w-0 shrink truncate font-mono text-xs text-muted-foreground sm:inline">
+            {shortenId(selected.address, SHORT_ADDRESS_CHARS)}
+          </span>
+          <Badge variant="outline" className="shrink-0 text-[10px]">
+            {t(($) => $.addressBook[kindLabelKey[selected.kind]])}
+          </Badge>
+        </output>
+        <button
+          type="button"
+          className="absolute top-1/2 right-1.5 flex size-7 -translate-y-1/2 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground"
+          aria-label={t(($) => $.addressBook.destination.clear)}
+          onClick={clear}
           data-testid={testId ? `${testId}-clear` : undefined}
         >
           <X className="size-4" aria-hidden />
-          <span className="sr-only">{t(($) => $.addressBook.destination.clear)}</span>
-        </span>
-      </button>
+        </button>
+      </div>
     );
   }
 
