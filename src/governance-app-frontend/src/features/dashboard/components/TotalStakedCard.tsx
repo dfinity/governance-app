@@ -12,7 +12,7 @@ import { formatNumber } from '@utils/numbers';
 
 export const TotalStakedCard = () => {
   const { t } = useTranslation();
-  const { tvl, isLoading: isTvlLoading } = useTvlValue();
+  const { tvl, formatTvl, isLoading: isTvlLoading } = useTvlValue();
   const { data: metricsData, isLoading: isMetricsLoading } = useGovernanceMetrics();
 
   const metrics = metricsData?.response;
@@ -36,15 +36,7 @@ export const TotalStakedCard = () => {
           <Skeleton className="h-8 w-40" />
         ) : (
           <p className="text-2xl font-semibold text-foreground">
-            {nonNullish(tvl) ? (
-              <AnimatedNumber
-                value={tvl}
-                prefix="$"
-                formatOptions={{ minFraction: 0, maxFraction: 0 }}
-              />
-            ) : (
-              '—'
-            )}
+            {nonNullish(tvl) ? <AnimatedNumber value={tvl} formatter={formatTvl} /> : '—'}
           </p>
         )}
         <div className="mt-1 min-h-5">

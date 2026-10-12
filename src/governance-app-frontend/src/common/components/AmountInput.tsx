@@ -18,8 +18,8 @@ type AmountInputProps = {
   required?: boolean;
   /** When true, shows invalid state (e.g. red border). */
   error?: boolean;
-  /** Approximate USD value label, e.g. "~ $12.34" */
-  approxUsdLabel?: string;
+  /** Approximate fiat value label, e.g. "≈ €12.34" */
+  approxFiatLabel?: string;
   /** Available balance label shown on the right, e.g. "Available: 12.345 ICP" */
   availableLabel?: string;
   availableLabelTestId?: string;
@@ -37,7 +37,7 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
       disabled,
       required,
       error,
-      approxUsdLabel,
+      approxFiatLabel,
       availableLabel,
       availableLabelTestId,
       'data-testid': testId,
@@ -48,7 +48,7 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
 
     const showMax = nonNullish(maxAmount) && nonNullish(onMaxSelect);
     const showBottomRow = Boolean(
-      nonNullish(approxUsdLabel) || nonNullish(availableLabel) || showMax,
+      nonNullish(approxFiatLabel) || nonNullish(availableLabel) || showMax,
     );
 
     return (
@@ -83,8 +83,8 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
 
         {showBottomRow && (
           <div className="flex items-center justify-between">
-            {approxUsdLabel ? (
-              <p className="text-sm text-muted-foreground">{approxUsdLabel}</p>
+            {approxFiatLabel ? (
+              <p className="text-sm text-muted-foreground">{approxFiatLabel}</p>
             ) : (
               <span />
             )}

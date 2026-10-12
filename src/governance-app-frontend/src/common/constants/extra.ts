@@ -29,6 +29,8 @@ export const SUCCESS_AUTO_CLOSE_MS = 2_400;
 export const DIALOG_RESET_DELAY_MS = 300;
 // The backend gets a new ICP/USD rate from the XRC at this interval.
 export const EXCHANGE_RATE_REFRESH_MS = 5 * 60 * 1_000;
+// The backend gets new USD to fiat rates from the XRC at this interval.
+export const FIAT_EXCHANGE_RATES_REFRESH_MS = 60 * 60 * 1_000;
 
 export const VOTING_RESULTS_PRECISION = 6; // Number of digits after the decimal point.
 
@@ -72,6 +74,7 @@ export const COMMAND_PALETTE_SETTINGS_KEY = 'nns-command-palette-settings';
 export const ADVANCED_FEATURES_STORAGE_KEY = 'nns-advanced-features';
 export const THEME_STORAGE_KEY = 'nns-theme';
 export const HIDE_BALANCES_KEY = 'nns-hide-balances';
+export const FIAT_CURRENCY_STORAGE_KEY = 'nns-fiat-currency';
 
 // External Links
 export const DASHBOARD_URL = `https://dashboard.internetcomputer.org/neuron`;

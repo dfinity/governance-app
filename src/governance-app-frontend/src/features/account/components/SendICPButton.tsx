@@ -35,11 +35,10 @@ import {
 } from '@components/MutationDialog';
 import { ResponsiveDialogDescription, ResponsiveDialogTitle } from '@components/ResponsiveDialog';
 import { Switch } from '@components/Switch';
-import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { DIALOG_RESET_DELAY_MS, E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
-import { useTickerPrices } from '@hooks/tickers';
+import { useIcpPrice } from '@hooks/tickers';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
@@ -47,7 +46,7 @@ import { addressBookGetAddressString } from '@utils/addressBook';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { isCertifiedRejectError } from '@utils/errors';
 import { shortenId } from '@utils/id';
-import { formatNumber, roundToE8sPrecision } from '@utils/numbers';
+import { getFiatFractionDigits, roundToE8sPrecision } from '@utils/numbers';
 import { isCameraSupported } from '@utils/qrScanner';
 import { cn } from '@utils/shadcn';
 
@@ -76,8 +75,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
     authenticated: ledgerAuthenticated,
   } = useIcpLedger();
 
-  const { tickerPrices: tickersQuery } = useTickerPrices();
-  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
+  const { icpPrice, formatFiat } = useIcpPrice();
 
   const { selectedAccountId, setSelectedAccountId, subaccountsEnabled } =
     useAccountSelection(fromAccountId);
@@ -244,9 +242,9 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   };
 
   const numericAmount = Number(amount);
-  const approxUsd =
-    icpPrice && numericAmount > 0
-      ? t(($) => $.account.approxUsd, { value: formatNumber(numericAmount * icpPrice.usd) })
+  const approxFiat =
+    nonNullish(icpPrice) && numericAmount > 0
+      ? t(($) => $.account.approxFiat, { value: formatFiat(numericAmount * icpPrice) })
       : undefined;
 
   const fromAccountName = nonNullish(selectedAccount)
@@ -313,7 +311,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
                 max={max}
                 onMaxSelect={handleMaxSelect}
                 amountInputRef={amountInputRef}
-                approxUsd={approxUsd}
+                approxFiat={approxFiat}
                 memoEnabled={memoEnabled}
                 memo={memo}
                 memoError={memoError}
@@ -330,11 +328,10 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
                 selectedName={selectedName}
                 addressBookEntries={addressBookEntries}
                 amount={amount}
-                approxUsd={approxUsd}
+                approxFiat={approxFiat}
                 memo={memoEnabled && memo !== '' ? memo : undefined}
                 onBack={() => setStep(Step.Form)}
                 onConfirm={() => execute(() => transferMutation.mutateAsync())}
-                icpPriceUsd={icpPrice?.usd}
               />
             )}
           </AnimatePresence>
@@ -365,7 +362,7 @@ type SendFormStepProps = {
   max: number;
   onMaxSelect: (value: string) => void;
   amountInputRef: React.RefObject<HTMLInputElement | null>;
-  approxUsd?: string;
+  approxFiat?: string;
   memoEnabled: boolean;
   memo: string;
   memoError: string;
@@ -395,7 +392,7 @@ function SendFormStep({
   max,
   onMaxSelect,
   amountInputRef,
-  approxUsd,
+  approxFiat,
   memoEnabled,
   memo,
   memoError,
@@ -534,7 +531,7 @@ function SendFormStep({
               onMaxSelect={onMaxSelect}
               required
               error={!!amountError}
-              approxUsdLabel={approxUsd}
+              approxFiatLabel={approxFiat}
               availableLabel={t(($) => $.account.availableBalance, { amount: max })}
             />
             {amountError && (
@@ -589,9 +586,8 @@ type SendConfirmationStepProps = {
   selectedName: string;
   addressBookEntries: NamedAddress[];
   amount: string;
-  approxUsd?: string;
+  approxFiat?: string;
   memo?: string;
-  icpPriceUsd?: number;
   onBack: () => void;
   onConfirm: () => void;
 };
@@ -602,17 +598,22 @@ function SendConfirmationStep({
   selectedName,
   addressBookEntries,
   amount,
-  approxUsd,
+  approxFiat,
   memo,
-  icpPriceUsd,
   onBack,
   onConfirm,
 }: SendConfirmationStepProps) {
   const { t } = useTranslation();
   const { data: accountsState } = useAccounts();
+  const { icpPrice, currency, formatFiat } = useIcpPrice();
 
-  const formatTransactionFeeUsd = (usdValue: number): string =>
-    usdValue < 0.01 ? '< $0.01' : `≈ $${formatNumber(usdValue)}`;
+  // The fee can be smaller than the smallest unit of the currency, for example "< $0.01".
+  const formatTransactionFeeFiat = (fiatValue: number): string => {
+    const smallestUnit = 10 ** -getFiatFractionDigits(currency);
+    return fiatValue < smallestUnit
+      ? `< ${formatFiat(smallestUnit)}`
+      : `≈ ${formatFiat(fiatValue)}`;
+  };
 
   const isDestinationKnown =
     addressBookEntries.some((entry) => addressBookGetAddressString(entry.address) === toAccount) ||
@@ -648,8 +649,8 @@ function SendConfirmationStep({
               <img src="/icp-token.svg" alt="" aria-hidden className="size-9" />
               <p className="text-3xl font-bold">{amount} ICP</p>
             </div>
-            {nonNullish(approxUsd) && (
-              <p className="text-base text-muted-foreground">{approxUsd}</p>
+            {nonNullish(approxFiat) && (
+              <p className="text-base text-muted-foreground">{approxFiat}</p>
             )}
           </div>
 
@@ -687,8 +688,8 @@ function SendConfirmationStep({
                 </span>
                 <span className="text-sm font-medium">
                   {ICP_TRANSACTION_FEE} ICP
-                  {nonNullish(icpPriceUsd) &&
-                    ` (${formatTransactionFeeUsd(ICP_TRANSACTION_FEE * icpPriceUsd)})`}
+                  {nonNullish(icpPrice) &&
+                    ` (${formatTransactionFeeFiat(ICP_TRANSACTION_FEE * icpPrice)})`}
                 </span>
               </div>
 

@@ -4,12 +4,14 @@ import { Area, AreaChart, XAxis, YAxis } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@components/Chart';
 import { MILLISECONDS_IN_SECOND } from '@constants/extra';
 import type { IcpRatePoint } from '@hooks/tickers';
-import { formatNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
 type Props = {
   points: IcpRatePoint[];
   label: string;
+  // The chart draws the USD prices, because one exchange rate does not change the shape of the line.
+  // Only the tooltip converts the price, with this function.
+  formatPrice: (usd: number) => string;
   className?: string;
 };
 
@@ -33,7 +35,7 @@ const SparklineTooltipContent = (props: ComponentProps<typeof ChartTooltipConten
 );
 
 // The line and the fill use `currentColor`, so the parent text color sets the trend color.
-export const IcpPriceSparkline = ({ points, label, className }: Props) => {
+export const IcpPriceSparkline = ({ points, label, formatPrice, className }: Props) => {
   const gradientId = useId();
   const prices = points.map(({ usd }) => usd);
   const min = Math.min(...prices);
@@ -81,7 +83,7 @@ export const IcpPriceSparkline = ({ points, label, className }: Props) => {
               }}
               formatter={(value) => (
                 <span className="font-mono font-medium text-foreground tabular-nums">
-                  ${formatNumber(Number(value))}
+                  {formatPrice(Number(value))}
                 </span>
               )}
             />

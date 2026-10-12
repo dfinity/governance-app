@@ -8,6 +8,7 @@ import { AddressBookCard } from '@features/addressBook/components/AddressBookCar
 import { AccountIdCard } from '@features/userAccount/components/AccountIdCard';
 import { AdvancedFeaturesCard } from '@features/userAccount/components/AdvancedFeaturesCard';
 import { CommandPaletteCard } from '@features/userAccount/components/CommandPaletteCard';
+import { FiatCurrencyCard } from '@features/userAccount/components/FiatCurrencyCard';
 import { GovernanceAccessCard } from '@features/userAccount/components/GovernanceAccessCard';
 import { HideBalancesCard } from '@features/userAccount/components/HideBalancesCard';
 import { ManageIICard } from '@features/userAccount/components/ManageIICard';
@@ -138,6 +139,9 @@ function Settings() {
           <div className="flex flex-col divide-y">
             <div className="px-6 py-5">
               <ThemeCard />
+            </div>
+            <div className="px-6 py-5">
+              <FiatCurrencyCard />
             </div>
             <div className="px-6 py-5">
               <HideBalancesCard />
