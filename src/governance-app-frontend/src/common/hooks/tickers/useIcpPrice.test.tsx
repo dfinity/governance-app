@@ -73,12 +73,13 @@ describe('useIcpPrice', () => {
     expect(result.current.currency).toBe(FiatCurrency.USD);
   });
 
-  it('Loads until the exchange rates arrive.', () => {
+  it('Gives no price until the exchange rates arrive.', () => {
     mockFiatCurrency(FiatCurrency.EUR);
     mockFiatExchangeRates(undefined, true);
 
     const { result } = renderHook(() => useIcpPrice());
 
+    expect(result.current.icpPrice).toBeUndefined();
     expect(result.current.isLoading).toBe(true);
   });
 });

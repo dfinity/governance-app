@@ -18,6 +18,7 @@ export const useIcpPrice = () => {
   const needsExchangeRate = fiatCurrency !== FiatCurrency.USD;
   const fiatExchangeRates = useFiatExchangeRates({ enabled: needsExchangeRate });
 
+  const isRateLoading = needsExchangeRate && fiatExchangeRates.isLoading;
   const usdToFiat = needsExchangeRate ? fiatExchangeRates.data?.get(fiatCurrency) : undefined;
   const currency = nonNullish(usdToFiat) ? fiatCurrency : FiatCurrency.USD;
   const toFiat = (usdValue: number) => usdValue * (usdToFiat ?? 1);
@@ -25,13 +26,13 @@ export const useIcpPrice = () => {
   const icpPriceUsd = tickerPrices.data?.get(CANISTER_ID_ICP_LEDGER!)?.usd;
 
   return {
-    icpPrice: nonNullish(icpPriceUsd) ? toFiat(icpPriceUsd) : undefined,
+    // No price while the rate loads, so that the values do not change from USD to the picked currency.
+    icpPrice: nonNullish(icpPriceUsd) && !isRateLoading ? toFiat(icpPriceUsd) : undefined,
     currency,
     toFiat,
     formatFiat: (value: number, options?: FormatFiatOptions) =>
       formatFiat(value, currency, options),
-    // Waits for the exchange rate, so that the values do not change from USD to the picked currency.
-    isLoading: tickerPrices.isLoading || (needsExchangeRate && fiatExchangeRates.isLoading),
+    isLoading: tickerPrices.isLoading || isRateLoading,
     isError: tickerPrices.isError,
   };
 };
