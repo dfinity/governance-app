@@ -83,9 +83,12 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
   }, [isOpen]);
 
   const stakedAmount = neuron ? bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn) : 0;
+  // The governance canister disburses to an account identifier only, so an
+  // ICRC-1 destination maps to the identifier the ICP ledger derives for it.
+  const toAccountId = addressToAccountIdentifier(destination.trim());
   // "Your balance" only holds for the main account. Any other destination is
   // "the selected account".
-  const isToSelectedAccount = destination.trim() !== mainAccountId;
+  const isToSelectedAccount = toAccountId !== mainAccountId;
 
   const handleConfirm = (execute: (fn: () => Promise<unknown>) => void) => {
     if (!neuron) return;
@@ -95,9 +98,6 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
       setValidationError(t(($) => $.neuronDetailModal.disburseIcp.errors.noDestination));
       return;
     }
-    // The governance canister disburses to an account identifier only, so an
-    // ICRC-1 destination maps to the identifier the ICP ledger derives for it.
-    const toAccountId = addressToAccountIdentifier(address);
     if (toAccountId === undefined) {
       setValidationError(t(($) => $.neuronDetailModal.disburseIcp.errors.invalidDestination));
       return;
@@ -155,6 +155,7 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
                   setValidationError(null);
                 }}
                 placeholder={t(($) => $.addressBook.destination.placeholderWithAccounts)}
+                invalid={validationError !== null}
               />
             </div>
 
