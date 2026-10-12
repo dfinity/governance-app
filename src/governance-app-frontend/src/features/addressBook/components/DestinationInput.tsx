@@ -218,6 +218,8 @@ export function DestinationInput({
             setActiveIndex(-1);
           }}
           onFocus={() => setOpen(true)}
+          // A click on the focused input gives no focus event, for example after Escape.
+          onClick={() => setOpen(true)}
           onKeyDown={handleKeyDown}
           className={cn('font-mono', endAdornment && 'pr-10', inputClassName)}
           autoComplete="off"

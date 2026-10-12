@@ -151,6 +151,18 @@ describe('DestinationInput', () => {
     expect(onEscape).not.toHaveBeenCalled();
   });
 
+  it('reopens the list with a click after Escape closed it', () => {
+    render(<Harness />);
+    const input = screen.getByTestId('destination');
+
+    fireEvent.focus(input);
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(screen.queryByRole('listbox')).toBeNull();
+
+    fireEvent.click(input);
+    expect(screen.queryByRole('listbox')).not.toBeNull();
+  });
+
   it('offers the add action after the matches', () => {
     const onAddAddress = vi.fn();
     render(<Harness suggestions={[]} onAddAddress={onAddAddress} />);
