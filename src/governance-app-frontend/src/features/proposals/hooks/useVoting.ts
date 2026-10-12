@@ -1,7 +1,11 @@
-import { ProposalInfo, votableNeurons, Vote } from '@icp-sdk/canisters/nns';
+import { ProposalInfo, Topic, votableNeurons, Vote } from '@icp-sdk/canisters/nns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+
+import { AnalyticsEvent } from '@features/analytics/events';
+import { getErrorReason } from '@features/analytics/properties';
+import { analytics } from '@features/analytics/service';
 
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { ephemeralNotification } from '@utils/notification';
@@ -97,8 +101,19 @@ export const useVoting = (proposal: ProposalInfo) => {
 
       return extendedPromise;
     },
-    onError: (error) => {
+    onSuccess: (_, { vote }) => {
+      analytics.event(AnalyticsEvent.VotingCastVote, {
+        vote: vote === Vote.Yes ? 'yes' : 'no',
+        topic: Topic[proposal.topic] ?? 'unknown',
+      });
+    },
+    onError: (error, { vote }) => {
       console.error(error);
+      analytics.event(AnalyticsEvent.VotingCastVoteError, {
+        vote: vote === Vote.Yes ? 'yes' : 'no',
+        topic: Topic[proposal.topic] ?? 'unknown',
+        reason: getErrorReason(error),
+      });
     },
   });
 

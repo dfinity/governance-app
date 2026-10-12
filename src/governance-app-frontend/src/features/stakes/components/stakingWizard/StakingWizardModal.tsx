@@ -7,6 +7,7 @@ import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
 import { AccountType } from '@features/accounts/types';
 import { AnalyticsEvent } from '@features/analytics/events';
+import { getAmountRange, getErrorReason } from '@features/analytics/properties';
 import { analytics } from '@features/analytics/service';
 
 import {
@@ -186,7 +187,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
           .mutateAsync()
           .then(() => {
             analytics.event(AnalyticsEvent.StakingConfirmation, {
-              amount: formState.amount,
+              amount_range: getAmountRange(Number(formState.amount)),
               dissolveDelaySeconds: formState.dissolveDelaySeconds.toString(),
               maturityMode:
                 formState.maturityMode === StakingWizardMaturityMode.Auto ? 'auto' : 'liquid',
@@ -196,8 +197,10 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
                   : 'dissolving',
             });
           })
-          .catch(() => {
-            analytics.event(AnalyticsEvent.StakingConfirmationError);
+          .catch((error) => {
+            analytics.event(AnalyticsEvent.StakingConfirmationError, {
+              reason: getErrorReason(error),
+            });
           });
         break;
     }

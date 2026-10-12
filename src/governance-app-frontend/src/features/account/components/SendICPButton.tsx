@@ -21,6 +21,9 @@ import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { useAccountSelection } from '@features/accounts/hooks/useAccountSelection';
 import { type Account, isAccountReady } from '@features/accounts/types';
 import { AddressBookSelect } from '@features/addressBook/components/AddressBookSelect';
+import { AnalyticsEvent } from '@features/analytics/events';
+import { getAmountRange, getErrorReason } from '@features/analytics/properties';
+import { analytics } from '@features/analytics/service';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { AmountInput } from '@components/AmountInput';
@@ -122,6 +125,12 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
       : balance;
   const effectiveSubAccount = subaccountsEnabled ? selectedAccount?.subAccount : undefined;
 
+  const getSendProperties = () => ({
+    variant,
+    destination: isValidIcpAddress(toAccount) ? 'icp' : 'icrc1',
+    address_book: useAddressBookToggle ? 'yes' : 'no',
+  });
+
   const transferMutation = useMutation({
     mutationFn: () => {
       // Use stored createdAt for retry deduplication, or generate a new one
@@ -152,11 +161,19 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
     },
     onSuccess: () => {
       createdAtRef.current = null;
+      analytics.event(AnalyticsEvent.AccountSendIcp, {
+        ...getSendProperties(),
+        amount_range: getAmountRange(Number(amount)),
+      });
     },
     onError: (error) => {
       if (isCertifiedRejectError(error) || error instanceof TransferError) {
         createdAtRef.current = null;
       }
+      analytics.event(AnalyticsEvent.AccountSendIcpError, {
+        ...getSendProperties(),
+        reason: getErrorReason(error),
+      });
     },
   });
 
