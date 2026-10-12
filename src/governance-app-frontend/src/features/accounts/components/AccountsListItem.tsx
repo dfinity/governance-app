@@ -23,7 +23,7 @@ import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useIcpIndexAccountsTransactions } from '@hooks/icpIndex';
 import { useIcpPrice } from '@hooks/tickers';
 import { useHideBalances } from '@hooks/useHideBalances';
-import { addressBookGetAddressString } from '@utils/addressBook';
+import { addressBookMatchesAddress } from '@utils/addressBook';
 import { bigIntDiv } from '@utils/bigInt';
 import { secondsToDate } from '@utils/date';
 import { shortenId } from '@utils/id';
@@ -200,9 +200,8 @@ function LastTransaction({ accountId }: { accountId: string }) {
     : null;
   const userAccount = counterparty ? userAccounts.find((a) => a.accountId === counterparty) : null;
   const addressBookName = counterparty
-    ? addressBookEntries.find(
-        (entry) => addressBookGetAddressString(entry.address) === counterparty,
-      )?.name
+    ? addressBookEntries.find((entry) => addressBookMatchesAddress(entry.address, counterparty))
+        ?.name
     : null;
   const address =
     userAccount?.name ?? addressBookName ?? (counterparty ? shortenId(counterparty, 8) : '');

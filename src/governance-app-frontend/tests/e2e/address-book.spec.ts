@@ -318,4 +318,38 @@ test.describe('Address book', () => {
       await page.keyboard.press('Escape');
     });
   });
+
+  test('Name an ICRC-1 contact in the transaction list', async ({ page }) => {
+    await test.step('Open app, login, and save an ICRC-1 contact.', async () => {
+      await openApp({ page });
+      await login({ page });
+      await getIcps(page, '20');
+      await navigateTo(page, 'settings');
+      await openAddressBookModal(page);
+      await addAddress(page, 'Bob', TEST_ICRC1_ADDRESS);
+      await page.keyboard.press('Escape');
+    });
+
+    await test.step('Send to the contact.', async () => {
+      await navigateTo(page, 'dashboard');
+      await page.getByTestId('send-icp-btn').click();
+      await page.getByTestId('address-book-select').selectOption('Bob');
+      await page.getByTestId('send-icp-amount-input').fill('5');
+      await page.getByTestId('send-icp-next-btn').click();
+      await expect(page.getByTestId('send-icp-destination-name')).toHaveText('Bob');
+      await page.getByTestId('send-icp-confirm-btn').click();
+      await expect(
+        page.getByRole('paragraph').filter({ hasText: 'successfully sent 5 ICP to Bob' }),
+      ).toBeVisible({ timeout: 30000 });
+    });
+
+    await test.step('The transaction row shows the contact name.', async () => {
+      await page.getByRole('button', { name: 'Open transactions list' }).first().click();
+
+      // The index reports the transfer by the account identifier of the principal.
+      const row = page.getByTestId('transaction-item').filter({ hasText: 'Bob' });
+      await expect(row).toBeVisible({ timeout: 30000 });
+      await expect(row.getByTestId('transaction-address-trigger')).toHaveText(/Bob/);
+    });
+  });
 });

@@ -47,7 +47,7 @@ import { useIcpPrice } from '@hooks/tickers';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
-import { addressBookGetAddressString } from '@utils/addressBook';
+import { addressBookMatchesAddress } from '@utils/addressBook';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { isCertifiedRejectError } from '@utils/errors';
 import { shortenId } from '@utils/id';
@@ -275,7 +275,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   // saved the destination from the confirmation step. Several entries can share
   // one address, so the picked entry wins over the first address match.
   const matchesDestination = (entry: NamedAddress) =>
-    addressBookGetAddressString(entry.address) === toAccount;
+    addressBookMatchesAddress(entry.address, toAccount);
   const addressBookName =
     addressBookEntries.find((entry) => entry.name === selectedName && matchesDestination(entry))
       ?.name ?? addressBookEntries.find(matchesDestination)?.name;
