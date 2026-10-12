@@ -17,6 +17,11 @@ export type EffectiveFollowees = {
 export const FOLLOWABLE_TOPIC_SET = new Set(ALL_FOLLOWABLE_TOPICS);
 
 /**
+ * The NNS governance canister rejects a topic with more followees than this.
+ */
+export const MAX_FOLLOWEES_PER_TOPIC = 15;
+
+/**
  * Extracts a per-topic followees map from a single neuron.
  * Only includes followable topics (excludes NeuronManagement, SnsDecentralizationSale).
  */
@@ -135,6 +140,30 @@ export const getConfiguredTopicCount = (followeesMap: Map<Topic, bigint[]>): num
 
 export const TOTAL_TOPIC_COUNT =
   TOP_LEVEL_TOPICS.filter((t) => t.topic !== Topic.Unspecified).length + INDIVIDUAL_TOPICS.length;
+
+/**
+ * Adds the followees to each topic and keeps the existing followees of that topic.
+ */
+export const addFolloweesToTopics = (
+  topicFollowees: Map<Topic, bigint[]>,
+  topics: Iterable<Topic>,
+  followeeIds: bigint[],
+): Map<Topic, bigint[]> => {
+  const updated = new Map(topicFollowees);
+  for (const topic of topics) {
+    const existing = updated.get(topic) ?? [];
+    updated.set(topic, Array.from(new Set([...existing, ...followeeIds])));
+  }
+  return updated;
+};
+
+/**
+ * Returns the topics with more followees than MAX_FOLLOWEES_PER_TOPIC.
+ */
+export const getTopicsOverFolloweeLimit = (topicFollowees: Map<Topic, bigint[]>): Topic[] =>
+  Array.from(topicFollowees)
+    .filter(([, followees]) => followees.length > MAX_FOLLOWEES_PER_TOPIC)
+    .map(([topic]) => topic);
 
 /**
  * Builds FolloweesForTopic[] for the setFollowing API.

@@ -42,7 +42,12 @@ import { cn } from '@utils/shadcn';
 
 import { INDIVIDUAL_TOPICS, TOP_LEVEL_TOPICS } from '../data/topics';
 import { isActiveKnownNeuron, sortKnownNeurons } from '../utils/knownNeurons';
-import { buildAdvancedTopicFollowing } from '../utils/topicFollowing';
+import {
+  addFolloweesToTopics,
+  buildAdvancedTopicFollowing,
+  getTopicsOverFolloweeLimit,
+  MAX_FOLLOWEES_PER_TOPIC,
+} from '../utils/topicFollowing';
 import { KnownNeuronCard } from './KnownNeuronCard';
 
 enum WizardStep {
@@ -171,19 +176,23 @@ export function FolloweePicker({
     });
   };
 
+  const updatedFollowees = addFolloweesToTopics(
+    currentFolloweesMap,
+    selectedTopics,
+    Array.from(selectedNeuronIds),
+  );
+  const overLimitTopicLabels = getTopicsOverFolloweeLimit(updatedFollowees).map((topic) => {
+    const labelKey = [...TOP_LEVEL_TOPICS, ...INDIVIDUAL_TOPICS].find(
+      (entry) => entry.topic === topic,
+    )?.labelKey;
+    return labelKey ? t(labelKey as never) : String(topic);
+  });
+
   const applyMutation = useMutation<void[], Error>({
     mutationFn: () => {
       if (!canister) throw new Error(t(($) => $.common.unknownError));
 
-      const updated = new Map(currentFolloweesMap);
-      const selectedIds = Array.from(selectedNeuronIds);
-
-      for (const topic of selectedTopics) {
-        const existing = updated.get(topic) ?? [];
-        updated.set(topic, Array.from(new Set([...existing, ...selectedIds])));
-      }
-
-      const topicFollowing = buildAdvancedTopicFollowing(updated);
+      const topicFollowing = buildAdvancedTopicFollowing(updatedFollowees);
       return Promise.all(
         userNeurons.map((n) => canister.setFollowing({ neuronId: n.neuronId, topicFollowing })),
       );
@@ -275,6 +284,7 @@ export function FolloweePicker({
                 onBack={() => setStep(WizardStep.SelectNeurons)}
                 onApply={() => setStep(WizardStep.Confirm)}
                 topicCount={topicCount}
+                overLimitTopicLabels={overLimitTopicLabels}
               />
             </div>
           </>
@@ -402,12 +412,20 @@ function StepSelectNeurons({
           <AlertDescription>{customIdError}</AlertDescription>
         </Alert>
       )}
+      {selectedCount > MAX_FOLLOWEES_PER_TOPIC && (
+        <Alert variant="warning" data-testid="picker-too-many-neurons">
+          <AlertTriangle className="size-4 text-destructive" />
+          <AlertDescription>
+            {t(($) => $.voting.picker.tooManyNeurons, { max: MAX_FOLLOWEES_PER_TOPIC })}
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="mt-auto pt-2 pb-4 md:pb-0">
         <Button
           size="xl"
           className="w-full"
-          disabled={selectedCount === 0}
+          disabled={selectedCount === 0 || selectedCount > MAX_FOLLOWEES_PER_TOPIC}
           onClick={onNext}
           data-testid="picker-next-btn"
         >
@@ -429,6 +447,7 @@ function StepSelectTopics({
   onBack,
   onApply,
   topicCount,
+  overLimitTopicLabels,
 }: {
   selectedNeuronIds: Set<bigint>;
   knownNeurons: KnownNeuron[];
@@ -440,6 +459,7 @@ function StepSelectTopics({
   onBack: () => void;
   onApply: () => void;
   topicCount: number;
+  overLimitTopicLabels: string[];
 }) {
   const { t } = useTranslation();
 
@@ -556,11 +576,23 @@ function StepSelectTopics({
         </div>
       </div>
 
+      {overLimitTopicLabels.length > 0 && (
+        <Alert variant="warning" data-testid="picker-followee-limit">
+          <AlertTriangle className="size-4 text-destructive" />
+          <AlertDescription>
+            {t(($) => $.voting.picker.followeeLimit, {
+              max: MAX_FOLLOWEES_PER_TOPIC,
+              topics: overLimitTopicLabels.join(', '),
+            })}
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="mt-auto pt-2 pb-4 md:pb-0">
         <Button
           size="xl"
           className="w-full"
-          disabled={topicCount === 0}
+          disabled={topicCount === 0 || overLimitTopicLabels.length > 0}
           onClick={onApply}
           data-testid="picker-apply-btn"
         >
