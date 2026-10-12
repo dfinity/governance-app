@@ -22,10 +22,8 @@ vi.mock('@hooks/useInternetIdentity', () => ({
   }),
 }));
 
-vi.mock('@hooks/tickers/useTickerPrices', () => ({
-  useTickerPrices: () => ({
-    tickerPrices: { isLoading: false, data: undefined },
-  }),
+vi.mock('@hooks/tickers/useIcpPrice', () => ({
+  useIcpPrice: () => ({ icpPrice: undefined, isLoading: false }),
 }));
 
 vi.mock('@hooks/useApyColor', () => ({

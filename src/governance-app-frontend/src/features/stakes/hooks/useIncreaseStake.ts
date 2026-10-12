@@ -4,6 +4,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { getAmountRange, getErrorReason } from '@features/analytics/properties';
+import { analytics } from '@features/analytics/service';
+
 import { E8Sn, ICP_TRANSACTION_FEE_E8Sn } from '@constants/extra';
 import { useNnsGovernance } from '@hooks/governance';
 import { useIcpLedger } from '@hooks/icpLedger';
@@ -71,6 +75,14 @@ export function useIncreaseStake() {
         }),
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] }),
       ]).catch(failedRefresh);
+    },
+    onSuccess: (_, params) => {
+      analytics.event(AnalyticsEvent.NeuronIncreaseStake, {
+        amount_range: getAmountRange(params.amount),
+      });
+    },
+    onError: (error) => {
+      analytics.event(AnalyticsEvent.NeuronIncreaseStakeError, { reason: getErrorReason(error) });
     },
   });
 }

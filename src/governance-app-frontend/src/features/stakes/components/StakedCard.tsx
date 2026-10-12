@@ -1,3 +1,4 @@
+import { nonNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
 import { Coins, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
@@ -14,11 +15,10 @@ import { Card, CardContent, CardHeader } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { SensitiveValue } from '@components/SensitiveValue';
 import { Skeleton } from '@components/Skeleton';
-import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
-import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
+import { useIcpPrice } from '@hooks/tickers';
 import { useApyColor } from '@hooks/useApyColor';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
@@ -32,7 +32,7 @@ export function StakedCard() {
 
   const neuronsQuery = useGovernanceNeurons();
   const balanceQuery = useIcpLedgerAccountBalance();
-  const { tickerPrices: tickersQuery } = useTickerPrices();
+  const { icpPrice, formatFiat, isLoading: isIcpPriceLoading } = useIcpPrice();
   const stakingRewards = useStakingRewards();
   const apyColor = useApyColor(
     isStakingRewardDataReady(stakingRewards) ? stakingRewards.apy.cur : 0,
@@ -57,8 +57,7 @@ export function StakedCard() {
   const disburseAction = getDisburseAction(neurons);
   const [disburseModalOpen, setDisburseModalOpen] = useState(false);
 
-  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const usdValue = icpPrice ? formatNumber(totalStaked * icpPrice.usd) : '-';
+  const fiatValue = nonNullish(icpPrice) ? formatFiat(totalStaked * icpPrice) : '-';
 
   const stakingRewardsReady = isStakingRewardDataReady(stakingRewards);
 
@@ -107,12 +106,12 @@ export function StakedCard() {
             </p>
           )}
 
-          {neuronsQuery.isLoading || tickersQuery.isLoading ? (
+          {neuronsQuery.isLoading || isIcpPriceLoading ? (
             <Skeleton className="h-5 w-20" />
           ) : (
             <p className="text-sm text-muted-foreground">
               <SensitiveValue size="sm">
-                {t(($) => $.account.approxUsd, { value: usdValue })}
+                {t(($) => $.account.approxFiat, { value: fiatValue })}
               </SensitiveValue>
             </p>
           )}

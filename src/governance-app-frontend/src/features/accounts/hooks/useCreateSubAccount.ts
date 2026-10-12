@@ -1,8 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { getErrorReason } from '@features/analytics/properties';
+import { analytics } from '@features/analytics/service';
+
 import { useNnsDapp } from '@hooks/nnsDapp/useNnsDapp';
 import { mapSubAccountError } from '@utils/errors/nnsDapp';
+import { CanisterResponseError, getResponseVariant } from '@utils/errors/response';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
 export function useCreateSubAccount() {
@@ -20,11 +25,12 @@ export function useCreateSubAccount() {
       const response = await canister.certifiedService.create_sub_account(name);
 
       if (!('Ok' in response))
-        throw new Error(
+        throw new CanisterResponseError(
           mapSubAccountError(
             response,
             t(($) => $.accounts.createSubAccount.error),
           ),
+          getResponseVariant(response),
         );
 
       await queryClient
@@ -32,6 +38,14 @@ export function useCreateSubAccount() {
         .catch(failedRefresh);
 
       return response.Ok;
+    },
+    onSuccess: () => {
+      analytics.event(AnalyticsEvent.AccountCreateSubaccount);
+    },
+    onError: (error) => {
+      analytics.event(AnalyticsEvent.AccountCreateSubaccountError, {
+        reason: getErrorReason(error),
+      });
     },
   });
 }

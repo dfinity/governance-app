@@ -1,6 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { getErrorReason } from '@features/analytics/properties';
+import { analytics } from '@features/analytics/service';
+
 import { useNnsGovernance } from '@hooks/governance';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
@@ -38,6 +42,16 @@ export function useToggleDissolving() {
           queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
         })
         .catch(failedRefresh);
+    },
+    onSuccess: (_, params) => {
+      analytics.event(AnalyticsEvent.NeuronToggleDissolving, {
+        action: params.startDissolving ? 'start' : 'stop',
+      });
+    },
+    onError: (error) => {
+      analytics.event(AnalyticsEvent.NeuronToggleDissolvingError, {
+        reason: getErrorReason(error),
+      });
     },
   });
 }

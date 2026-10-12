@@ -3,6 +3,7 @@ import { createFileRoute, Outlet } from '@tanstack/react-router';
 import { useEffect } from 'react';
 
 import { analytics } from '@features/analytics/service';
+import { useAnalyticsProperties } from '@features/analytics/useAnalyticsProperties';
 
 import { CommandPalette } from '@components/CommandPalette';
 import { MainLayout } from '@components/MainLayout';
@@ -34,6 +35,7 @@ function AuthLayout() {
   useHideBalancesShortcut();
   useScrollResetOnNavigation();
   useNewFeatureCheck();
+  useAnalyticsProperties();
 
   useEffect(() => {
     analytics.init();

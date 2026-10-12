@@ -5,12 +5,15 @@ import { PLAUSIBLE_DOMAIN_URL } from '@constants/externalServices';
 import { IS_LOCAL } from '@constants/extra';
 
 import { AnalyticsEvent } from './events';
+import { groupProposalPages } from './transformRequest';
 
 class AnalyticsService {
   private isInitialized = false;
+  private properties: Record<string, string> = {};
 
   init(): void {
-    if (this.isInitialized || !PLAUSIBLE_DOMAIN_URL) return;
+    // Local builds can run on a LAN address, which the tracker does not treat as localhost.
+    if (this.isInitialized || !PLAUSIBLE_DOMAIN_URL || IS_LOCAL) return;
 
     init({
       // Required Your site's domain, as declared by you in Plausible's settings.
@@ -21,10 +24,9 @@ class AnalyticsService {
       autoCapturePageviews: true,
       // https://plausible.io/docs/hash-based-routing
       hashBasedRouting: false,
-      // Change to true for local development and see traffic at Plausible dashboard
       captureOnLocalhost: false,
-      // Object or function that returns custom properties for a given event.
-      customProperties: {},
+      customProperties: () => this.properties,
+      transformRequest: groupProposalPages,
     });
 
     this.isInitialized = true;
@@ -41,16 +43,22 @@ class AnalyticsService {
     props?: Record<string, string>,
     options?: Omit<PlausibleEventOptions, 'props'>,
   ): void {
-    if (!this.isInitialized) {
-      if (IS_LOCAL) console.warn('Analytics tracker not initialized');
-      return;
-    }
+    // Local builds never initialize the tracker.
+    if (!this.isInitialized) return;
 
     try {
       track(event as string, { props, ...options });
-    } catch (error) {
-      if (IS_LOCAL) console.error('Plausible event error:', error);
+    } catch {
+      // Tracking must never break the app.
     }
+  }
+
+  /**
+   * Sets properties that Plausible adds to every later event, pageviews included.
+   * @param properties - Properties to add or replace
+   */
+  setProperties(properties: Record<string, string>): void {
+    this.properties = { ...this.properties, ...properties };
   }
 
   get initialized(): boolean {

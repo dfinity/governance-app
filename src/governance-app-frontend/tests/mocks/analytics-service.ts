@@ -6,6 +6,7 @@
 export const analytics = {
   init: () => {},
   event: () => {},
+  setProperties: () => {},
   get initialized() {
     return false;
   },

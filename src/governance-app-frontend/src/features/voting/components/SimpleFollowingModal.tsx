@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
+import { getErrorReason } from '@features/analytics/properties';
 import { analytics } from '@features/analytics/service';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
@@ -111,7 +112,9 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
     },
     onError: (error, _variables, context) => {
       errorMessage('SimpleFollowingModal', error.message);
-      analytics.event(AnalyticsEvent.FollowingSimpleConfirmationError);
+      analytics.event(AnalyticsEvent.FollowingSimpleConfirmationError, {
+        reason: getErrorReason(error),
+      });
       setUserOverrideId(context?.previousSelectedId ?? null);
     },
   });

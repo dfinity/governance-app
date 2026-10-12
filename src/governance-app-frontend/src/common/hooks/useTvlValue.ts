@@ -1,7 +1,6 @@
-import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
 import { useGovernanceMetrics } from '@hooks/governance';
-import { useTickerPrices } from '@hooks/tickers';
+import { useIcpPrice } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
 
 export const useTvlValue = () => {
@@ -11,11 +10,13 @@ export const useTvlValue = () => {
     isError: isMetricsError,
   } = useGovernanceMetrics();
   const {
-    tickerPrices: { data: prices, isLoading: isPricesLoading, isError: isPricesError },
-  } = useTickerPrices();
+    icpPrice,
+    formatFiat,
+    isLoading: isIcpPriceLoading,
+    isError: isIcpPriceError,
+  } = useIcpPrice();
 
   const lockedIcpE8s = metrics?.response?.totalLockedE8s;
-  const icpPrice = CANISTER_ID_ICP_LEDGER ? prices?.get(CANISTER_ID_ICP_LEDGER)?.usd : undefined;
 
   let tvl: number | undefined;
   if (lockedIcpE8s && icpPrice) {
@@ -24,7 +25,8 @@ export const useTvlValue = () => {
 
   return {
     tvl,
-    isLoading: isMetricsLoading || isPricesLoading,
-    isError: isMetricsError || isPricesError,
+    formatTvl: (value: number) => formatFiat(value, { minFraction: 0, maxFraction: 0 }),
+    isLoading: isMetricsLoading || isIcpPriceLoading,
+    isError: isMetricsError || isIcpPriceError,
   };
 };

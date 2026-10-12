@@ -3,8 +3,13 @@ import { useTranslation } from 'react-i18next';
 
 import type { NamedAddress } from '@declarations/governance-app-backend/governance-app-backend.did';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { getErrorReason } from '@features/analytics/properties';
+import { analytics } from '@features/analytics/service';
+
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { mapSetAddressBookError } from '@utils/errors/addressBook';
+import { CanisterResponseError, getResponseVariant } from '@utils/errors/response';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
 import { useGovernanceAppCanister } from './useGovernanceAppCanister';
@@ -26,7 +31,10 @@ export function useSaveAddressBook() {
       });
 
       if (!('Ok' in response)) {
-        throw new Error(mapSetAddressBookError(response));
+        throw new CanisterResponseError(
+          mapSetAddressBookError(response),
+          getResponseVariant(response),
+        );
       }
 
       await queryClient
@@ -34,6 +42,12 @@ export function useSaveAddressBook() {
           queryKey: [QUERY_KEYS.GOVERNANCE_APP_BACKEND.ADDRESS_BOOK],
         })
         .catch(failedRefresh);
+    },
+    onSuccess: () => {
+      analytics.event(AnalyticsEvent.AddressBookSave);
+    },
+    onError: (error) => {
+      analytics.event(AnalyticsEvent.AddressBookSaveError, { reason: getErrorReason(error) });
     },
   });
 }
