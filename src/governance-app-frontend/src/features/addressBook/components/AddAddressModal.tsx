@@ -32,8 +32,6 @@ type Props = {
   /** Prefills the address field when the modal creates a new entry. */
   initialAddress?: string;
   existingAddresses: NamedAddress[];
-  /** Offers to edit the entry that already holds the typed address. */
-  onEditInstead?: (entry: NamedAddress) => void;
 };
 
 export const AddAddressModal: React.FC<Props> = ({
@@ -42,20 +40,24 @@ export const AddAddressModal: React.FC<Props> = ({
   namedAddress,
   initialAddress,
   existingAddresses,
-  onEditInstead,
 }) => {
   const { t } = useTranslation();
   const saveAddressBook = useSaveAddressBook();
 
-  const initialAddressValue = nonNullish(namedAddress)
-    ? addressBookGetAddressString(namedAddress.address)
+  // The duplicate warning can switch the modal to the edit of the entry that
+  // already holds the address. That entry replaces the one from the props.
+  const [editTarget, setEditTarget] = useState<NamedAddress | undefined>();
+  const entryToEdit = editTarget ?? namedAddress;
+
+  const initialAddressValue = nonNullish(entryToEdit)
+    ? addressBookGetAddressString(entryToEdit.address)
     : (initialAddress ?? '');
 
-  const [nickname, setNickname] = useState(namedAddress?.name ?? '');
+  const [nickname, setNickname] = useState(entryToEdit?.name ?? '');
   const [address, setAddress] = useState(initialAddressValue);
   const [nicknameError, setNicknameError] = useState('');
   const [addressError, setAddressError] = useState('');
-  const [isEditMode, setIsEditMode] = useState(namedAddress !== undefined);
+  const [isEditMode, setIsEditMode] = useState(entryToEdit !== undefined);
   // The entry that already holds the typed address. The save goes through on
   // the next submit, once the warning is shown.
   const [duplicateEntry, setDuplicateEntry] = useState<NamedAddress | undefined>();
@@ -63,14 +65,14 @@ export const AddAddressModal: React.FC<Props> = ({
   useEffect(() => {
     if (isOpen) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsEditMode(namedAddress !== undefined);
-      setNickname(namedAddress?.name ?? '');
+      setIsEditMode(entryToEdit !== undefined);
+      setNickname(entryToEdit?.name ?? '');
       setAddress(initialAddressValue);
       setNicknameError('');
       setAddressError('');
       setDuplicateEntry(undefined);
     }
-  }, [isOpen, namedAddress, initialAddressValue]);
+  }, [isOpen, entryToEdit, initialAddressValue]);
 
   const normalizeNickname = (value: string) => value.trim().replace(/\s+/g, ' ');
 
@@ -85,7 +87,7 @@ export const AddAddressModal: React.FC<Props> = ({
     }
 
     const isDuplicate = existingAddresses.some((entry) => {
-      if (isEditMode && entry.name === namedAddress?.name) {
+      if (isEditMode && entry.name === entryToEdit?.name) {
         return false;
       }
       return entry.name.trim().toLowerCase() === normalized.toLowerCase();
@@ -106,7 +108,7 @@ export const AddAddressModal: React.FC<Props> = ({
 
   const findDuplicate = (trimmed: string): NamedAddress | undefined =>
     existingAddresses.find((entry) => {
-      if (isEditMode && entry.name === namedAddress?.name) return false;
+      if (isEditMode && entry.name === entryToEdit?.name) return false;
       return addressBookGetAddressString(entry.address).toLowerCase() === trimmed.toLowerCase();
     });
 
@@ -152,7 +154,7 @@ export const AddAddressModal: React.FC<Props> = ({
       let updatedAddresses: NamedAddress[];
       if (isEditMode) {
         updatedAddresses = existingAddresses.map((entry) =>
-          entry.name.trim().toLowerCase() === namedAddress?.name.trim().toLowerCase()
+          entry.name.trim().toLowerCase() === entryToEdit?.name.trim().toLowerCase()
             ? updatedEntry
             : entry,
         );
@@ -166,7 +168,11 @@ export const AddAddressModal: React.FC<Props> = ({
   return (
     <MutationDialog
       open={isOpen}
-      onOpenChange={(open) => !open && onClose()}
+      onOpenChange={(open) => {
+        if (open) return;
+        setEditTarget(undefined);
+        onClose();
+      }}
       processingMessage={t(($) => $.addressBook.updatingAddressBook)}
       successMessage={t(($) => (isEditMode ? $.addressBook.editSuccess : $.addressBook.addSuccess))}
       navBlockerDescription={t(($) => $.addressBook.confirmNavigation)}
@@ -255,19 +261,17 @@ export const AddAddressModal: React.FC<Props> = ({
                         values={{ name: duplicateEntry.name }}
                         components={{ strong: <strong /> }}
                       />
-                      {onEditInstead && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => onEditInstead(duplicateEntry)}
-                          data-testid="add-address-edit-instead-btn"
-                        >
-                          {t(($) => $.addressBook.validation.editInstead, {
-                            name: duplicateEntry.name,
-                          })}
-                        </Button>
-                      )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditTarget(duplicateEntry)}
+                        data-testid="add-address-edit-instead-btn"
+                      >
+                        {t(($) => $.addressBook.validation.editInstead, {
+                          name: duplicateEntry.name,
+                        })}
+                      </Button>
                     </AlertDescription>
                   </Alert>
                 )}

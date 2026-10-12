@@ -146,11 +146,37 @@ test.describe('Address book', () => {
       expect(addresses[1]).toBe(TEST_ICRC1_ADDRESS);
     });
 
-    await test.step('Delete "Bob" - confirm.', async () => {
-      const bobEntry = page.getByTestId('address-book-entry').filter({ hasText: 'Bob' });
+    await test.step('Add a duplicate address - edit the existing entry instead.', async () => {
+      await page.getByTestId('address-book-add-btn').click();
+      await expect(page.getByTestId('add-address-modal')).toBeVisible();
+      await page.getByTestId('add-address-nickname-input').fill('Bob again');
+      await page.getByTestId('add-address-address-input').fill(TEST_ICRC1_ADDRESS);
+      await page.getByTestId('add-address-save-btn').click();
+
+      await expect(page.getByTestId('add-address-duplicate-warning')).toContainText('Bob');
+      await page.getByTestId('add-address-edit-instead-btn').click();
+
+      // The modal switches to the edit of "Bob".
+      await expect(page.getByTestId('add-address-modal')).toContainText('Edit address');
+      await expect(page.getByTestId('add-address-nickname-input')).toHaveValue('Bob');
+      await expect(page.getByTestId('add-address-address-input')).toHaveValue(TEST_ICRC1_ADDRESS);
+      await page.getByTestId('add-address-nickname-input').fill('Bobby');
+      await page.getByTestId('add-address-save-btn').click();
+
+      await expect(
+        page.getByRole('paragraph').filter({ hasText: 'Address updated successfully.' }),
+      ).toBeVisible({ timeout: 30000 });
+      await expect(page.getByTestId('add-address-modal')).not.toBeVisible({ timeout: 30000 });
+
+      const names = await getEntryNames(page);
+      expect(names).toEqual(['Bobby', 'Marta']);
+    });
+
+    await test.step('Delete "Bobby" - confirm.', async () => {
+      const bobEntry = page.getByTestId('address-book-entry').filter({ hasText: 'Bobby' });
       await bobEntry.getByTestId('address-book-delete-btn').click();
       await expect(page.getByTestId('remove-address-confirmation')).toBeVisible();
-      await expect(page.getByTestId('remove-address-confirmation')).toContainText('Bob');
+      await expect(page.getByTestId('remove-address-confirmation')).toContainText('Bobby');
       await page.getByTestId('remove-address-confirm-btn').click();
 
       await expect(
