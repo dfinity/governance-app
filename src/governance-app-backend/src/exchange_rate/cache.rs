@@ -4,7 +4,7 @@ use std::cell::RefCell;
 use std::collections::BTreeMap;
 
 use super::time::time_seconds;
-use super::{ONE_DAY_AGO_TOLERANCE_SECS, ONE_DAY_SECS};
+use super::{ONE_DAY_AGO_TOLERANCE_SECS, ONE_DAY_SECS, SUPPORTED_FIAT_SYMBOLS};
 
 #[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq)]
 pub struct CachedRate {
@@ -21,6 +21,15 @@ pub struct IcpExchangeRateResponse {
     pub one_day_ago: Option<CachedRate>,
 }
 
+/// Units of `symbol` for one USD.
+/// For example, a `rate_e8s` of 314_000_000 for "XYZ" means that 1 USD buys 3.14 XYZ.
+#[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq)]
+pub struct FiatExchangeRate {
+    /// ISO 4217 currency code, e.g. "EUR".
+    pub symbol: String,
+    pub rate: Option<CachedRate>,
+}
+
 #[derive(Default)]
 struct ExchangeRateCache {
     current: Option<CachedRate>,
@@ -31,6 +40,7 @@ struct ExchangeRateCache {
 
 thread_local! {
     static CACHE: RefCell<ExchangeRateCache> = RefCell::new(ExchangeRateCache::default());
+    static FIAT_CACHE: RefCell<BTreeMap<&'static str, CachedRate>> = RefCell::default();
 }
 
 pub fn get_cached_rates() -> IcpExchangeRateResponse {
@@ -88,6 +98,26 @@ pub fn add_history_rate(rate: CachedRate) {
     CACHE.with(|cache| add_to_history(&mut cache.borrow_mut().history, rate));
 }
 
+/// Returns one entry for each symbol in `SUPPORTED_FIAT_SYMBOLS`, in the same order.
+pub fn list_cached_fiat_rates() -> Vec<FiatExchangeRate> {
+    FIAT_CACHE.with(|cache| {
+        let cache = cache.borrow();
+        SUPPORTED_FIAT_SYMBOLS
+            .iter()
+            .map(|&symbol| FiatExchangeRate {
+                symbol: symbol.to_string(),
+                rate: cache.get(symbol).cloned(),
+            })
+            .collect()
+    })
+}
+
+pub fn set_fiat_rate(symbol: &'static str, rate: CachedRate) {
+    FIAT_CACHE.with(|cache| {
+        let _previous_rate = cache.borrow_mut().insert(symbol, rate);
+    });
+}
+
 /// Inserts the rate and drops the rates older than one day.
 fn add_to_history(history: &mut BTreeMap<u64, CachedRate>, rate: CachedRate) {
     history.insert(rate.timestamp_seconds, rate);
@@ -108,4 +138,17 @@ pub fn set_mock_rates(current_rate_e8s: u64, rate_one_day_ago_e8s: u64) {
         timestamp_seconds: now.saturating_sub(ONE_DAY_SECS),
         updated_at_seconds: now,
     });
+}
+
+#[cfg(feature = "testnet")]
+pub fn set_mock_fiat_rate(symbol: &'static str, rate_e8s: u64) {
+    let now = time_seconds();
+    set_fiat_rate(
+        symbol,
+        CachedRate {
+            rate_e8s,
+            timestamp_seconds: now,
+            updated_at_seconds: now,
+        },
+    );
 }

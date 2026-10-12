@@ -61,6 +61,14 @@ type IcpExchangeRateResponse = record {
     current : opt CachedRate;
     one_day_ago : opt CachedRate;
 };
+
+// Units of `symbol` for one USD.
+// For example, a `rate_e8s` of 314_000_000 for "XYZ" means that 1 USD buys 3.14 XYZ.
+type FiatExchangeRate = record {
+    // ISO 4217 currency code, e.g. "EUR".
+    symbol : text;
+    rate : opt CachedRate;
+};
 // End Exchange Rate
 
 service : {
@@ -77,5 +85,6 @@ service : {
     get_icp_to_usd_exchange_rate : () -> (IcpExchangeRateResponse) query;
     // The one-day-ago rate, then the newer rates of the last day, oldest first.
     get_icp_to_usd_rate_history : () -> (vec CachedRate) query;
+    list_usd_to_fiat_exchange_rates : () -> (vec FiatExchangeRate) query;
     // End Exchange Rate
 }
