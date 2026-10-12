@@ -196,6 +196,18 @@ describe('DestinationInput', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
+  it('closes the list with Escape on the add button', () => {
+    render(<Harness onAddAddress={() => {}} />);
+    const input = screen.getByTestId('destination');
+
+    fireEvent.focus(input);
+    const add = screen.getByTestId('destination-add');
+    fireEvent.blur(input, { relatedTarget: add });
+    fireEvent.keyDown(add, { key: 'Escape' });
+
+    expect(screen.queryByTestId('destination-add')).toBeNull();
+  });
+
   it('keeps the list open while the focus moves to the add button', () => {
     render(<Harness onAddAddress={() => {}} />);
     const input = screen.getByTestId('destination');
