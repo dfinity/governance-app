@@ -14,6 +14,9 @@ import { getAnonymousAgent } from '@common/canisters/agents';
 const SESSION_TTL_NS = 60n * 60n * 1_000_000_000n; // 1 hour
 // Ends the session before the delegation expires, so no call goes out with an expired one.
 const EXPIRY_BUFFER_MS = 10_000;
+// `setTimeout` fires at once for a longer delay. A local clock far behind the IC can ask for one
+// before the clock sync corrects it.
+const MAX_TIMEOUT_MS = 2 ** 31 - 1;
 
 export type AuthStatus = 'initializing' | 'idle' | 'logging-in' | 'authenticated' | 'logging-out';
 
@@ -77,7 +80,8 @@ const startSession = (identity: Identity, timeDiffMs: number) => {
   setState({ status: 'authenticated', identity, sessionEndsAtMs });
 
   if (sessionEndsAtMs !== undefined) {
-    expiryTimeout = setTimeout(logout, Math.max(0, sessionEndsAtMs - Date.now()));
+    const delayMs = Math.min(Math.max(0, sessionEndsAtMs - Date.now()), MAX_TIMEOUT_MS);
+    expiryTimeout = setTimeout(logout, delayMs);
   }
 };
 

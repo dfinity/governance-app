@@ -195,6 +195,29 @@ describe('internetIdentity', () => {
     expect(client.logout).toHaveBeenCalled();
   });
 
+  it('keeps the expiry delay in the range of setTimeout when the local clock is far behind.', async () => {
+    const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+    const thirtyDaysMs = 30 * 24 * ONE_HOUR_MS;
+    getTimeDiffMsecs.mockReturnValue(thirtyDaysMs);
+
+    const identity = await delegationIdentity(thirtyDaysMs + ONE_HOUR_MS);
+    mockAuthClient(identity);
+    mockAuthClient();
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+    await vi.waitFor(() =>
+      expect(auth.getAuthState().sessionEndsAtMs).toBe(
+        expirationMs(identity) - thirtyDaysMs - 10_000,
+      ),
+    );
+
+    const delays = setTimeoutSpy.mock.calls.map(([, delay]) => delay ?? 0);
+    expect(Math.max(...delays)).toBeLessThanOrEqual(2 ** 31 - 1);
+
+    auth.logout();
+    setTimeoutSpy.mockRestore();
+  });
+
   it('ends the session 10 seconds before the delegation expires by the IC clock.', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
     // The IC clock runs 5 seconds ahead of the local one.
