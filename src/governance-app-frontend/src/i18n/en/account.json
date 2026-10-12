@@ -9,7 +9,7 @@
   "accountError": "Please enter a valid ICP or ICRC1 address.",
   "insufficientBalance": "Insufficient balance. You can send up to {{max}} ICP.",
   "amountTooLow": "Enter an amount greater than zero.",
-  "approxUsd": "≈ ${{value}}",
+  "approxFiat": "≈ {{value}}",
   "unknownTransaction": "Unknown transaction",
   "fromAddress": "From <address>{{address}}</address>",
   "toAddress": "To <address>{{address}}</address>",

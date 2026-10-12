@@ -59,9 +59,14 @@
       "toggle": "Toggle keyboard shortcuts"
     }
   },
+  "fiatCurrency": {
+    "title": "Currency",
+    "description": "Choose the currency for the approximate value of ICP amounts.",
+    "fallback": "No exchange rate for {{currency}} is available at the moment. The app shows values in USD."
+  },
   "hideBalances": {
     "title": "Hide balances",
-    "description": "Hide ICP and USD values across the app for privacy.",
+    "description": "Hide ICP and fiat values across the app for privacy.",
     "aria": {
       "toggle": "Toggle balance visibility"
     }

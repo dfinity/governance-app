@@ -65,7 +65,7 @@ export const SettingsSkeleton = () => (
     </section>
     <section className="flex flex-col gap-4">
       <SkeletonHeading />
-      <SkeletonRows rows={4} />
+      <SkeletonRows rows={5} />
     </section>
     <section className="flex flex-col gap-4">
       <SkeletonHeading description />

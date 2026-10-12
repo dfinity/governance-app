@@ -10,9 +10,8 @@ import { MaturitySymbol } from '@components/MaturitySymbol';
 import { SensitiveValue } from '@components/SensitiveValue';
 import { Skeleton } from '@components/Skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
-import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
-import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
+import { useIcpPrice } from '@hooks/tickers';
 import { useApyColor } from '@hooks/useApyColor';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatTimestampToLocalDate } from '@utils/date';
@@ -51,7 +50,7 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
   const apyColor = useApyColor(apy?.cur ?? 0);
-  const { tickerPrices: tickersQuery } = useTickerPrices();
+  const { icpPrice, formatFiat, isLoading: isIcpPriceLoading } = useIcpPrice();
 
   const isDissolved = getNeuronIsDissolved(neuron);
   const isDissolving = getNeuronIsDissolving(neuron);
@@ -82,8 +81,7 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
   const disbursingMaturity = bigIntDiv(getNeuronMaturityDisbursementsInProgressE8s(neuron), E8Sn);
   const stakedAmount = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
 
-  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const usdValue = icpPrice ? formatNumber(stakedAmount * icpPrice.usd) : undefined;
+  const fiatValue = nonNullish(icpPrice) ? formatFiat(stakedAmount * icpPrice) : undefined;
 
   return (
     <>
@@ -98,13 +96,13 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
                 {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
               </SensitiveValue>
             </p>
-            {tickersQuery.isLoading ? (
+            {isIcpPriceLoading ? (
               <Skeleton className="h-5 w-20" />
             ) : (
-              usdValue && (
+              fiatValue && (
                 <p className="text-sm text-muted-foreground">
                   <SensitiveValue size="sm">
-                    {t(($) => $.account.approxUsd, { value: usdValue })}
+                    {t(($) => $.account.approxFiat, { value: fiatValue })}
                   </SensitiveValue>
                 </p>
               )

@@ -16,10 +16,9 @@ import { MaturitySymbol } from '@components/MaturitySymbol';
 import { SensitiveValue } from '@components/SensitiveValue';
 import { Skeleton } from '@components/Skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
-import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
-import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
+import { useIcpPrice } from '@hooks/tickers';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useApyColor } from '@hooks/useApyColor';
 import { AdvancedFeature } from '@typings/advancedFeatures';
@@ -68,7 +67,7 @@ export function NeuronDetailSummaryView({
 }: Props) {
   const { t } = useTranslation();
   const apyColor = useApyColor(apy?.cur ?? 0);
-  const { tickerPrices: tickersQuery } = useTickerPrices();
+  const { icpPrice, formatFiat, isLoading: isIcpPriceLoading } = useIcpPrice();
 
   const stakedAmount = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
   const stakedMaturity = bigIntDiv(getNeuronStakedMaturityE8s(neuron), E8Sn);
@@ -76,8 +75,7 @@ export function NeuronDetailSummaryView({
   const hasDisbursementsInProgress = getNeuronMaturityDisbursementsInProgress(neuron).length > 0;
   const disbursingMaturity = bigIntDiv(getNeuronMaturityDisbursementsInProgressE8s(neuron), E8Sn);
 
-  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const usdValue = icpPrice ? formatNumber(stakedAmount * icpPrice.usd) : undefined;
+  const fiatValue = nonNullish(icpPrice) ? formatFiat(stakedAmount * icpPrice) : undefined;
 
   const dissolveDelaySeconds = neuron.dissolveDelaySeconds;
   const durationText = formatDissolveDelay({
@@ -112,13 +110,13 @@ export function NeuronDetailSummaryView({
             {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
           </SensitiveValue>
         </p>
-        {tickersQuery.isLoading ? (
+        {isIcpPriceLoading ? (
           <Skeleton className="h-5 w-24" />
         ) : (
-          usdValue && (
+          fiatValue && (
             <p className="text-sm text-muted-foreground md:text-base">
               <SensitiveValue size="sm">
-                {t(($) => $.account.approxUsd, { value: usdValue })}
+                {t(($) => $.account.approxFiat, { value: fiatValue })}
               </SensitiveValue>
             </p>
           )

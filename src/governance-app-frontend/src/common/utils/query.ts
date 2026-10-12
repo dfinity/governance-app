@@ -36,6 +36,7 @@ const GOVERNANCE_APP_BACKEND = {
   ADDRESS_BOOK: 'governanceAppBackendAddressBook',
   EXCHANGE_RATE: 'governanceAppBackendExchangeRate',
   EXCHANGE_RATE_HISTORY: 'governanceAppBackendExchangeRateHistory',
+  FIAT_EXCHANGE_RATES: 'governanceAppBackendFiatExchangeRates',
 };
 
 const SPAM_FILTER = {

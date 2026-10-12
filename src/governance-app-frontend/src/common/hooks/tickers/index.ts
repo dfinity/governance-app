@@ -1,5 +1,11 @@
 export { parseExchangeRateResponse, useExchangeRate } from './useExchangeRate';
 export {
+  type FiatExchangeRates,
+  parseFiatExchangeRatesResponse,
+  useFiatExchangeRates,
+} from './useFiatExchangeRates';
+export { useIcpPrice } from './useIcpPrice';
+export {
   type IcpRatePoint,
   parseRateHistoryResponse,
   useIcpRateHistory,

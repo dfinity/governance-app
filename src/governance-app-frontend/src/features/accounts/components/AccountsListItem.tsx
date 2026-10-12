@@ -20,11 +20,10 @@ import { CopyButton } from '@components/CopyButton';
 import { SENSITIVE_PLACEHOLDER, SensitiveValue } from '@components/SensitiveValue';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
-import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, IS_TESTNET, NANOSECONDS_IN_SECOND } from '@constants/extra';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useIcpIndexAccountsTransactions } from '@hooks/icpIndex';
-import { useTickerPrices } from '@hooks/tickers';
+import { useIcpPrice } from '@hooks/tickers';
 import { useHideBalances } from '@hooks/useHideBalances';
 import { addressBookGetAddressString } from '@utils/addressBook';
 import { bigIntDiv } from '@utils/bigInt';
@@ -44,7 +43,6 @@ type Props = {
 
 export const AccountsListItem = ({ account }: Props) => {
   const { t } = useTranslation();
-  const { tickerPrices: tickersQuery } = useTickerPrices();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   return (
@@ -90,7 +88,7 @@ export const AccountsListItem = ({ account }: Props) => {
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
-          <AccountBalance account={account} tickersQuery={tickersQuery} />
+          <AccountBalance account={account} />
           <Separator className="my-1" />
           <LastTransaction accountId={account.accountId} />
         </CardContent>
@@ -104,14 +102,9 @@ export const AccountsListItem = ({ account }: Props) => {
   );
 };
 
-function AccountBalance({
-  account,
-  tickersQuery,
-}: {
-  account: Account;
-  tickersQuery: ReturnType<typeof useTickerPrices>['tickerPrices'];
-}) {
+function AccountBalance({ account }: { account: Account }) {
   const { t } = useTranslation();
+  const { icpPrice, formatFiat } = useIcpPrice();
   const [isDepositOpen, setIsDepositOpen] = useState(false);
 
   if (account.status === 'loading') {
@@ -128,8 +121,7 @@ function AccountBalance({
   }
 
   const balanceICP = bigIntDiv(account.balanceE8s, E8Sn);
-  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const usdValue = icpPrice ? formatNumber(balanceICP * icpPrice.usd) : '-';
+  const fiatValue = nonNullish(icpPrice) ? formatFiat(balanceICP * icpPrice) : '-';
 
   return (
     <div className="flex flex-col gap-3">
@@ -141,7 +133,7 @@ function AccountBalance({
         </p>
         <p className="text-sm text-muted-foreground">
           <SensitiveValue size="sm">
-            {t(($) => $.account.approxUsd, { value: usdValue })}
+            {t(($) => $.account.approxFiat, { value: fiatValue })}
           </SensitiveValue>
         </p>
       </div>

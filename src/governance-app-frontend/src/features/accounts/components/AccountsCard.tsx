@@ -8,9 +8,8 @@ import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { SensitiveValue } from '@components/SensitiveValue';
 import { Skeleton } from '@components/Skeleton';
-import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn } from '@constants/extra';
-import { useTickerPrices } from '@hooks/tickers';
+import { useIcpPrice } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber } from '@utils/numbers';
 
@@ -22,14 +21,13 @@ const MAX_PREVIEW_ACCOUNTS = 2;
 export const AccountsCard = () => {
   const { t } = useTranslation();
   const { data: accountsState, isLoading, totalBalanceIcp } = useAccounts();
-  const { tickerPrices: tickersQuery } = useTickerPrices();
+  const { icpPrice, formatFiat, isLoading: isIcpPriceLoading } = useIcpPrice();
 
   const accounts = accountsState?.accounts ?? [];
   const count = accounts.length;
-  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const usdValue =
+  const fiatValue =
     nonNullish(icpPrice) && nonNullish(totalBalanceIcp)
-      ? formatNumber(totalBalanceIcp * icpPrice.usd)
+      ? formatFiat(totalBalanceIcp * icpPrice)
       : '-';
   const topAccounts = accounts.slice(0, MAX_PREVIEW_ACCOUNTS);
 
@@ -58,12 +56,12 @@ export const AccountsCard = () => {
             </p>
           )}
 
-          {isLoading || tickersQuery.isLoading ? (
+          {isLoading || isIcpPriceLoading ? (
             <Skeleton className="h-5 w-20" />
           ) : (
             <p className="text-sm text-muted-foreground">
               <SensitiveValue size="sm">
-                {t(($) => $.account.approxUsd, { value: usdValue })}
+                {t(($) => $.account.approxFiat, { value: fiatValue })}
               </SensitiveValue>
             </p>
           )}
