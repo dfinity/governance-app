@@ -1,5 +1,5 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { Info, Key, Loader2 } from 'lucide-react';
+import { Info, Key } from 'lucide-react';
 import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { MaxRewardsBadge } from '@components/MaxRewardsBadge';
 import { SegmentedToggle, type SegmentedToggleValue } from '@components/SegmentedToggle';
+import { Spinner } from '@components/Spinner';
 import { mapCanisterError } from '@utils/errors';
 import { getNeuronIsAutoStakingMaturity } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
@@ -127,7 +128,7 @@ export function NeuronDetailMaturityModeView({
       >
         {isPending ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Spinner className="mr-2" />
             {t(($) => $.neuronDetailModal.maturityMode.confirming)}
           </>
         ) : (

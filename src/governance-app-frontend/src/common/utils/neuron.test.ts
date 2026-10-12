@@ -1,7 +1,11 @@
+import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
+import { encodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
+import { Principal } from '@icp-sdk/core/principal';
 import { describe, expect, it } from 'vitest';
 
 import {
   ICP_TRANSACTION_FEE_E8Sn,
+  MATURITY_DISBURSEMENT_DELAY_SECONDS,
   SECONDS_IN_MONTH as SECONDS_IN_MONTH_SECONDS,
 } from '@constants/extra';
 import { mockDisbursement, mockNeuron } from '@fixtures/neuron';
@@ -9,6 +13,10 @@ import { mockDisbursement, mockNeuron } from '@fixtures/neuron';
 import {
   formatRemainingTime,
   getFollowingHealth,
+  getMaturityDisbursementDestination,
+  getMaturityDisbursementDestinationAccountIdentifier,
+  getMaturityDisbursementFinalizeTimestampSeconds,
+  getNeuronMaturityDisbursementsInProgress,
   getNeuronMaturityDisbursementsInProgressE8s,
   getSecondsSinceVotingPowerRefresh,
   getSecondsUntilDecayStarts,
@@ -31,6 +39,118 @@ const ECONOMICS = {
 };
 const NOW = new Date('2026-01-01T00:00:00Z');
 const NOW_SECONDS = BigInt(Math.floor(NOW.getTime() / 1000));
+
+describe('getNeuronMaturityDisbursementsInProgress', () => {
+  it('returns an empty array when fullNeuron is undefined', () => {
+    const neuron = mockNeuron({ fullNeuron: undefined });
+    expect(getNeuronMaturityDisbursementsInProgress(neuron)).toEqual([]);
+  });
+
+  it('returns an empty array when no disbursements exist', () => {
+    const neuron = mockNeuron();
+    expect(getNeuronMaturityDisbursementsInProgress(neuron)).toEqual([]);
+  });
+
+  it('returns the disbursements of the neuron', () => {
+    const disbursements = [
+      mockDisbursement({ amountE8s: 1n }),
+      mockDisbursement({ amountE8s: 2n }),
+    ];
+    const neuron = mockNeuron({
+      fullNeuron: { maturityDisbursementsInProgress: disbursements },
+    });
+    expect(getNeuronMaturityDisbursementsInProgress(neuron)).toEqual(disbursements);
+  });
+});
+
+describe('getMaturityDisbursementFinalizeTimestampSeconds', () => {
+  it('returns the finalize timestamp when the canister reports it', () => {
+    const disbursement = mockDisbursement({
+      timestampOfDisbursementSeconds: 1_000n,
+      finalizeDisbursementTimestampSeconds: 5_000n,
+    });
+    expect(getMaturityDisbursementFinalizeTimestampSeconds(disbursement)).toBe(5_000n);
+  });
+
+  it('falls back to start + 7 days when the finalize timestamp is missing', () => {
+    const disbursement = mockDisbursement({ timestampOfDisbursementSeconds: 1_000n });
+    expect(getMaturityDisbursementFinalizeTimestampSeconds(disbursement)).toBe(
+      1_000n + BigInt(MATURITY_DISBURSEMENT_DELAY_SECONDS),
+    );
+  });
+
+  it('returns undefined when both timestamps are missing', () => {
+    expect(getMaturityDisbursementFinalizeTimestampSeconds(mockDisbursement())).toBeUndefined();
+  });
+});
+
+describe('getMaturityDisbursementDestination', () => {
+  const owner = Principal.fromText('aaaaa-aa');
+
+  it('returns the ICP account identifier when present', () => {
+    const disbursement = mockDisbursement({ accountIdentifierToDisburseTo: 'abc123' });
+    expect(getMaturityDisbursementDestination(disbursement)).toBe('abc123');
+  });
+
+  it('encodes an ICRC-1 account without a subaccount', () => {
+    const disbursement = mockDisbursement({
+      accountToDisburseTo: { owner, subaccount: undefined },
+    });
+    expect(getMaturityDisbursementDestination(disbursement)).toBe(owner.toText());
+  });
+
+  it('encodes an ICRC-1 account with a subaccount', () => {
+    const subaccount = Array.from({ length: 32 }, (_, i) => (i === 31 ? 1 : 0));
+    const disbursement = mockDisbursement({
+      accountToDisburseTo: { owner, subaccount },
+    });
+    expect(getMaturityDisbursementDestination(disbursement)).toBe(
+      encodeIcrcAccount({ owner, subaccount: Uint8Array.from(subaccount) }),
+    );
+  });
+
+  it('encodes a subaccount that is not 32 bytes as the default subaccount', () => {
+    const disbursement = mockDisbursement({
+      accountToDisburseTo: { owner, subaccount: [1, 2, 3] },
+    });
+    expect(getMaturityDisbursementDestination(disbursement)).toBe(owner.toText());
+  });
+
+  it('returns undefined when no destination is reported', () => {
+    expect(getMaturityDisbursementDestination(mockDisbursement())).toBeUndefined();
+  });
+});
+
+describe('getMaturityDisbursementDestinationAccountIdentifier', () => {
+  const owner = Principal.fromText('aaaaa-aa');
+
+  it('returns the ICP account identifier when present', () => {
+    const disbursement = mockDisbursement({ accountIdentifierToDisburseTo: 'abc123' });
+    expect(getMaturityDisbursementDestinationAccountIdentifier(disbursement)).toBe('abc123');
+  });
+
+  it('converts an ICRC-1 account without a subaccount to the main account identifier', () => {
+    const disbursement = mockDisbursement({
+      accountToDisburseTo: { owner, subaccount: undefined },
+    });
+    expect(getMaturityDisbursementDestinationAccountIdentifier(disbursement)).toBe(
+      AccountIdentifier.fromPrincipal({ principal: owner }).toHex(),
+    );
+  });
+
+  it('treats a subaccount that is not 32 bytes as the default subaccount', () => {
+    const disbursement = mockDisbursement({
+      accountToDisburseTo: { owner, subaccount: [1, 2, 3] },
+    });
+    expect(getMaturityDisbursementDestinationAccountIdentifier(disbursement)).toBe(
+      AccountIdentifier.fromPrincipal({ principal: owner }).toHex(),
+    );
+  });
+
+  it('returns undefined when no destination is reported', () => {
+    expect(getMaturityDisbursementDestinationAccountIdentifier(mockDisbursement())).toBeUndefined();
+  });
+});
 
 describe('getNeuronMaturityDisbursementsInProgressE8s', () => {
   it('returns 0 when fullNeuron is undefined', () => {
@@ -133,6 +253,15 @@ describe('isNonEmptyNeuron', () => {
   it('returns true when neuron has valid stake', () => {
     const neuron = mockNeuron({
       fullNeuron: { cachedNeuronStake: ICP_TRANSACTION_FEE_E8Sn + 1n },
+    });
+    expect(isNonEmptyNeuron(neuron)).toBe(true);
+  });
+
+  it('returns true when a disbursement in progress has no amount', () => {
+    const neuron = mockNeuron({
+      fullNeuron: {
+        maturityDisbursementsInProgress: [mockDisbursement({ amountE8s: undefined })],
+      },
     });
     expect(isNonEmptyNeuron(neuron)).toBe(true);
   });

@@ -23,11 +23,11 @@ import {
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
-import { Card } from '@components/Card';
 import { InViewSentinel } from '@components/InViewSentinel';
-import { MultipleSkeletons } from '@components/MultipleSkeletons';
 import { QueryStates } from '@components/QueryStates';
 import { Separator } from '@components/Separator';
+import { ProposalListSkeleton } from '@components/skeletons/ProposalListSkeleton';
+import { VotingSkeleton } from '@components/skeletons/VotingSkeleton';
 import { ToggleGroup, ToggleGroupItem } from '@components/ToggleGroup';
 import { DIALOG_RESET_DELAY_MS } from '@constants/extra';
 import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/governance';
@@ -67,7 +67,7 @@ export const Route = createFileRoute('/_auth/voting/')({
     prefetchVotingRoute(context.queryClient, { proposals: proposalsToPrefetch(deps) }),
   staleTime: Infinity,
   component: Voting,
-  pendingComponent: () => <MultipleSkeletons count={3} />,
+  pendingComponent: VotingPending,
   head: () => {
     const title = i18n.t(($) => $.common.head.voting.title);
 
@@ -79,6 +79,18 @@ export const Route = createFileRoute('/_auth/voting/')({
     title: 'common.voting',
   },
 });
+
+function VotingPending() {
+  const { showProposals } = Route.useSearch();
+  const { features } = useAdvancedFeatures();
+
+  return (
+    <VotingSkeleton
+      showProposals={!!showProposals}
+      advancedFollowing={features[AdvancedFeature.AdvancedFollowing]}
+    />
+  );
+}
 
 function Voting() {
   const { t } = useTranslation();
@@ -245,19 +257,7 @@ function Voting() {
                 )}
               </p>
             }
-            loadingComponent={
-              <div className="flex flex-col gap-4">
-                <Card>
-                  <MultipleSkeletons count={3} />
-                </Card>
-                <Card>
-                  <MultipleSkeletons count={3} />
-                </Card>
-                <Card>
-                  <MultipleSkeletons count={3} />
-                </Card>
-              </div>
-            }
+            loadingComponent={<ProposalListSkeleton />}
           >
             {(data) => (
               <>
@@ -303,8 +303,7 @@ function Voting() {
 
                 {activeQuery.hasNextPage && (
                   <InViewSentinel retrigger={data} callback={activeQuery.fetchNextPage}>
-                    {/* @TODO: Update skeleton loader to match list item */}
-                    <MultipleSkeletons count={3} />
+                    {activeQuery.isFetchingNextPage && <ProposalListSkeleton count={2} />}
                   </InViewSentinel>
                 )}
               </>

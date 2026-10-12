@@ -41,7 +41,7 @@ export const AccountsCard = () => {
             {t(($) => $.accounts.title)}
           </p>
           {isLoading ? (
-            <Skeleton className="h-5 w-5 rounded-full" />
+            <Skeleton className="size-5 rounded-full" />
           ) : (
             <Badge variant="outline">{count}</Badge>
           )}
@@ -59,7 +59,7 @@ export const AccountsCard = () => {
           )}
 
           {isLoading || tickersQuery.isLoading ? (
-            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-5 w-20" />
           ) : (
             <p className="text-sm text-muted-foreground">
               <SensitiveValue size="sm">
@@ -75,8 +75,8 @@ export const AccountsCard = () => {
           <div className="flex flex-col divide-y">
             {Array.from({ length: 2 }).map((_, i) => (
               <div key={i} className="flex items-center justify-between py-2.5">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-5 w-20" />
               </div>
             ))}
           </div>

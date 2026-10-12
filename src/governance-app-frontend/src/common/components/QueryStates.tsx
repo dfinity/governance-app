@@ -1,10 +1,9 @@
 import { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
-import { useDelayedFlag } from '@hooks/useDelayedFlag';
-
 import { EmptyMessage } from './EmptyMessage';
-import { MultipleSkeletons } from './MultipleSkeletons';
+import { SkeletonScreen } from './skeletons/SkeletonScreen';
+import { SkeletonText } from './skeletons/SkeletonText';
 import { WarningMessage } from './WarningMessage';
 
 type InfiniteQueryData<TData = unknown> = Partial<InfiniteData<TData, unknown>>;
@@ -42,11 +41,19 @@ export const QueryStates = <TData,>({
 }: Props<TData>) => {
   const { t } = useTranslation();
   const q = query || infiniteQuery;
-  const showLoading = useDelayedFlag(q.isLoading);
 
   if (q.isLoading) {
-    // Hold the frame empty until the delay elapses rather than flashing a skeleton.
-    return showLoading ? loadingComponent || <MultipleSkeletons count={3} /> : null;
+    // The loader holds its space at once and reveals itself after a short
+    // delay, so a fast query shows no flash. See `.skeleton` and
+    // `.reveal-delayed` in `main.css`. Wrap a custom skeleton in
+    // `SkeletonScreen` so screen readers hear "loading".
+    if (loadingComponent) return <div className="reveal-delayed">{loadingComponent}</div>;
+
+    return (
+      <SkeletonScreen>
+        <SkeletonText lines={3} />
+      </SkeletonScreen>
+    );
   }
 
   if (q.error) {

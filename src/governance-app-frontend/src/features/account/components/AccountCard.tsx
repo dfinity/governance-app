@@ -77,7 +77,7 @@ export function AccountCard() {
             )}
 
             {balanceQuery.isLoading || tickersQuery.isLoading ? (
-              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-5 w-20" />
             ) : (
               <p className="text-sm text-muted-foreground">
                 <SensitiveValue size="sm">

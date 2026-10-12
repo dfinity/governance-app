@@ -7,12 +7,14 @@ import { CreateSubAccountDialog } from '@features/accounts/components/CreateSubA
 import { RecentTransactions } from '@features/accounts/components/RecentTransactions';
 
 import { PageHeader } from '@components/PageHeader';
+import { AccountsSkeleton } from '@components/skeletons/AccountsSkeleton';
 import { readFromStorage as readAdvancedFeaturesFromStorage } from '@hooks/useAdvancedFeatures';
 
 import i18n from '@/i18n/config';
 
 export const Route = createFileRoute('/_auth/accounts/')({
   component: AccountsPage,
+  pendingComponent: AccountsSkeleton,
   beforeLoad: () => {
     const features = readAdvancedFeaturesFromStorage();
 

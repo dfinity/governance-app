@@ -7,7 +7,9 @@ import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
 import { EmptyActionState } from '@components/EmptyActionState';
 import { PageHeader } from '@components/PageHeader';
-import { Skeleton } from '@components/Skeleton';
+import { SkeletonSimpleFollowingCard } from '@components/skeletons/SkeletonFollowingCard';
+import { SkeletonPageHeader } from '@components/skeletons/SkeletonPageHeader';
+import { SkeletonScreen } from '@components/skeletons/SkeletonScreen';
 
 import { hasComplexFollowing } from '../utils/topicFollowing';
 import { FollowedNeuronCard } from './FollowedNeuronCard';
@@ -29,11 +31,10 @@ export function VotingOverviewSimple({
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-3">
-        <Skeleton className="h-16 w-full" />
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-full" />
-      </div>
+      <SkeletonScreen className="flex flex-col gap-6">
+        <SkeletonPageHeader action={true} />
+        <SkeletonSimpleFollowingCard />
+      </SkeletonScreen>
     );
   }
 

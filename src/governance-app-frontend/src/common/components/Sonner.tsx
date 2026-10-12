@@ -1,12 +1,7 @@
-import {
-  CircleCheckBig,
-  InfoIcon,
-  Loader2Icon,
-  OctagonXIcon,
-  TriangleAlertIcon,
-} from 'lucide-react';
+import { CircleCheckBig, InfoIcon, OctagonXIcon, TriangleAlertIcon } from 'lucide-react';
 import { Toaster, type ToasterProps } from 'sonner';
 
+import { Spinner } from '@components/Spinner';
 import { useTheme } from '@hooks/useTheme';
 
 const Sonner = ({ ...props }: ToasterProps) => {
@@ -27,7 +22,8 @@ const Sonner = ({ ...props }: ToasterProps) => {
         info: <InfoIcon className="size-4" />,
         warning: <TriangleAlertIcon className="size-4 text-amber-700 dark:text-amber-400" />,
         error: <OctagonXIcon className="size-4" />,
-        loading: <Loader2Icon className="size-4 animate-spin" />,
+        // The toast is already a live region, so the spinner adds no second status.
+        loading: <Spinner aria-hidden />,
       }}
       style={
         {

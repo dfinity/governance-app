@@ -14,10 +14,6 @@ export const PAGINATION_LIMIT_PROPOSALS = 25;
 // Somehow this one has a different limit in case of a certified request.
 export const PAGINATION_LIMIT_TRANSACTIONS = 50;
 
-// Loading indicators are held back for this long before appearing, so a fast
-// response resolves into content instead of flashing a skeleton on the way.
-export const LOADING_INDICATOR_DELAY = 120;
-
 export const E8S_PRECISION = 8;
 export const E8S = 10 ** E8S_PRECISION;
 export const E8Sn = BigInt(E8S);
@@ -31,6 +27,8 @@ export const ICP_TRANSACTION_FEE_E8Sn = BigInt(ICP_TRANSACTION_FEE_E8S);
 export const ICP_TRANSACTION_PROPAGATION_DELAY_MS = 2_000;
 export const SUCCESS_AUTO_CLOSE_MS = 2_400;
 export const DIALOG_RESET_DELAY_MS = 300;
+// The backend gets a new ICP/USD rate from the XRC at this interval.
+export const EXCHANGE_RATE_REFRESH_MS = 5 * 60 * 1_000;
 
 export const VOTING_RESULTS_PRECISION = 6; // Number of digits after the decimal point.
 
@@ -47,6 +45,8 @@ export const SECONDS_IN_TWO_YEARS = SECONDS_IN_YEAR * 2;
 export const SECONDS_IN_FOUR_YEARS = SECONDS_IN_YEAR * 4;
 export const SECONDS_IN_EIGHT_YEARS = SECONDS_IN_YEAR * 8;
 export const DAYS_IN_AVG_YEAR = 365.25;
+// The governance canister mints the ICP 7 days after a maturity disbursement starts.
+export const MATURITY_DISBURSEMENT_DELAY_SECONDS = SECONDS_IN_DAY * 7;
 
 // NNS reward parameters
 export const NNS_GENESIS_TIMESTAMP_SECONDS = 1_620_604_800; // May 10, 2021

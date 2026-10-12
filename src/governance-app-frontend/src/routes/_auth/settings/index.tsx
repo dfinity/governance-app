@@ -19,6 +19,7 @@ import { ThemeCard } from '@features/userAccount/components/ThemeCard';
 import { Button } from '@components/button';
 import { Card } from '@components/Card';
 import { PageHeader } from '@components/PageHeader';
+import { SettingsSkeleton } from '@components/skeletons/SettingsSkeleton';
 import { BUILD_DATE, GIT_COMMIT } from '@constants/extra';
 import { useLogout } from '@hooks/useLogout';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
@@ -36,6 +37,7 @@ export const Route = createFileRoute('/_auth/settings/')({
       search.openAddressBook === 'true' || search.openAddressBook === true ? true : undefined,
   }),
   component: Settings,
+  pendingComponent: SettingsSkeleton,
   head: () => {
     const title = i18n.t(($) => $.common.head.settings.title);
 

@@ -24,6 +24,7 @@ import {
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 import { NeuronDetailDevActionsView } from './NeuronDetailDevActionsView';
+import { NeuronDetailDisbursementsView } from './NeuronDetailDisbursementsView';
 import { NeuronDetailDissolveView } from './NeuronDetailDissolveView';
 import { NeuronDetailFollowingDialog } from './NeuronDetailFollowingDialog';
 import { NeuronDetailIncreaseDelayView } from './NeuronDetailIncreaseDelayView';
@@ -128,6 +129,8 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
         return t(($) => $.neuronDetailModal.increaseDelay.title);
       case NeuronDetailView.MaturityMode:
         return t(($) => $.neuronDetailModal.maturityMode.title);
+      case NeuronDetailView.Disbursements:
+        return t(($) => $.neuronDetailModal.disbursements.title);
       case NeuronDetailView.Dissolve:
         return isDissolving
           ? t(($) => $.neuronDetailModal.dissolve.stopTitle)
@@ -204,6 +207,10 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
                 onSuccess={handleActionSuccess}
                 onProcessingChange={setIsProcessing}
               />
+            )}
+
+            {displayView === NeuronDetailView.Disbursements && (
+              <NeuronDetailDisbursementsView neuron={displayNeuron} />
             )}
 
             {displayView === NeuronDetailView.Dissolve && (

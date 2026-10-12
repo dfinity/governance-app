@@ -257,10 +257,13 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
     : t(($) => $.accounts.mainAccount);
 
   // The name comes from the address book, whether the user picked the entry or
-  // saved the destination from the confirmation step.
-  const addressBookName = addressBookEntries.find(
-    (entry) => addressBookGetAddressString(entry.address) === toAccount,
-  )?.name;
+  // saved the destination from the confirmation step. Several entries can share
+  // one address, so the picked entry wins over the first address match.
+  const matchesDestination = (entry: NamedAddress) =>
+    addressBookGetAddressString(entry.address) === toAccount;
+  const addressBookName =
+    addressBookEntries.find((entry) => entry.name === selectedName && matchesDestination(entry))
+      ?.name ?? addressBookEntries.find(matchesDestination)?.name;
   // A failed read leaves `data` empty. Saving on top of it would wipe the stored entries.
   const canSaveAddress =
     nonNullish(addressBookQuery.data) && addressBookEntries.length < ADDRESS_BOOK_MAX_ENTRIES;

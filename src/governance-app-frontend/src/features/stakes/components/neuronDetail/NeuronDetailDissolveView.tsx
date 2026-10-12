@@ -1,9 +1,10 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { AlertTriangle, Info, Key, Loader2 } from 'lucide-react';
+import { AlertTriangle, Info, Key } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
+import { Spinner } from '@components/Spinner';
 import { mapCanisterError } from '@utils/errors';
 import { errorNotification, successNotification } from '@utils/notification';
 
@@ -124,7 +125,7 @@ export function NeuronDetailDissolveView({
       >
         {isPending ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Spinner className="mr-2" />
             {isDissolving
               ? t(($) => $.neuronDetailModal.dissolve.confirmingStop)
               : t(($) => $.neuronDetailModal.dissolve.confirmingStart)}

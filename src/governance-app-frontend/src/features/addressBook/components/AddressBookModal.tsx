@@ -16,7 +16,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
-import { Spinner } from '@components/Spinner';
+import { SkeletonAddressBookRows } from '@components/skeletons/SkeletonListRows';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { ADDRESS_BOOK_MAX_ENTRIES } from '@constants/addressBook';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
@@ -80,16 +80,7 @@ export const AddressBookModal: React.FC<Props> = ({ isOpen, onOpenChange }) => {
             <QueryStates<CertifiedData<AddressBook>>
               query={addressBookQuery}
               isEmpty={(data) => data.response.named_addresses.length === 0}
-              loadingComponent={
-                <div className="flex flex-col items-center justify-center gap-4 py-16">
-                  <div className="rounded-full bg-muted p-4">
-                    <Spinner className="size-8" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {t(($) => $.addressBook.sendFlow.tooltipLoading)}
-                  </p>
-                </div>
-              }
+              loadingComponent={<SkeletonAddressBookRows />}
               emptyComponent={
                 <div
                   className="flex flex-col items-center gap-5 py-12 text-center"
