@@ -208,10 +208,12 @@ test.describe('Address book', () => {
       await getIcps(page, '20');
     });
 
-    await test.step('Open send dialog - verify no address book toggle.', async () => {
+    await test.step('Open send dialog - verify the empty book offers only the add action.', async () => {
       await page.getByTestId('send-icp-btn').click();
-      await expect(page.getByTestId('address-book-toggle')).not.toBeVisible();
-      await expect(page.getByText('The address book is empty')).toBeVisible();
+      await page.getByTestId('send-icp-destination-input').click();
+      await expect(page.getByTestId('send-icp-destination-input-add')).toBeVisible();
+      await expect(page.getByTestId('send-icp-destination-input-option')).toHaveCount(0);
+      await page.keyboard.press('Escape');
       await page.keyboard.press('Escape');
     });
 
@@ -234,16 +236,24 @@ test.describe('Address book', () => {
       await page.keyboard.press('Escape');
     });
 
-    await test.step('Open send dialog - verify toggle is on and dropdown visible.', async () => {
+    await test.step('Open send dialog - verify both contacts are suggested.', async () => {
       await navigateTo(page, 'dashboard');
       await page.getByTestId('send-icp-btn').click();
-      await expect(page.getByTestId('address-book-toggle')).toBeVisible();
-      await expect(page.getByTestId('address-book-toggle')).toBeChecked();
-      await expect(page.getByTestId('address-book-select')).toBeVisible();
+      await page.getByTestId('send-icp-destination-input').click();
+      const options = page.getByTestId('send-icp-destination-input-option');
+      await expect(options).toHaveCount(2);
+      await expect(options.nth(0)).toContainText('Wallet A');
+      await expect(options.nth(1)).toContainText('Wallet B');
     });
 
-    await test.step('Select "Wallet B", fill amount, and submit.', async () => {
-      await page.getByTestId('address-book-select').selectOption('Wallet B');
+    await test.step('Pick "Wallet B" by name, fill amount, and submit.', async () => {
+      await page.getByTestId('send-icp-destination-input').fill('wallet b');
+      const options = page.getByTestId('send-icp-destination-input-option');
+      await expect(options).toHaveCount(1);
+      await options.first().click();
+      await expect(page.getByTestId('send-icp-destination-input-selected')).toContainText(
+        'Wallet B',
+      );
       await page.getByTestId('send-icp-amount-input').fill('5');
       await page.getByTestId('send-icp-next-btn').click();
       await page.getByTestId('send-icp-confirm-btn').click();

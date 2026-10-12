@@ -32,6 +32,8 @@ type Props = {
   /** Prefills the address field when the modal creates a new entry. */
   initialAddress?: string;
   existingAddresses: NamedAddress[];
+  /** Called with the saved entry after the address book update succeeds. */
+  onSaved?: (entry: NamedAddress) => void;
 };
 
 export const AddAddressModal: React.FC<Props> = ({
@@ -40,6 +42,7 @@ export const AddAddressModal: React.FC<Props> = ({
   namedAddress,
   initialAddress,
   existingAddresses,
+  onSaved,
 }) => {
   const { t } = useTranslation();
   const saveAddressBook = useSaveAddressBook();
@@ -141,7 +144,10 @@ export const AddAddressModal: React.FC<Props> = ({
         updatedAddresses = [...existingAddresses, updatedEntry];
       }
 
-      execute(() => saveAddressBook.mutateAsync(updatedAddresses));
+      execute(async () => {
+        await saveAddressBook.mutateAsync(updatedAddresses);
+        onSaved?.(updatedEntry);
+      });
     };
 
   return (
