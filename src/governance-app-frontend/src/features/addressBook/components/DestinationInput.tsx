@@ -201,49 +201,54 @@ export function DestinationInput({
           autoComplete="off"
           data-1p-ignore
           data-lpignore="true"
+          required
           data-testid={testId}
         />
         {endAdornment}
       </div>
       {showList && (
-        <ul
-          id={listId}
-          role="listbox"
-          className="max-h-56 overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
+        <div
+          className="rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
           data-testid={testId ? `${testId}-list` : undefined}
         >
-          {matches.map((suggestion, index) => (
-            <li
-              key={`${suggestion.kind}:${suggestion.name}:${suggestion.address}`}
-              id={optionId(index)}
-              role="option"
-              aria-selected={index === activeIndex}
-              className={cn(
-                'flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm',
-                index === activeIndex && 'bg-accent text-accent-foreground',
-              )}
-              // The input keeps the focus, so the blur handler does not close the list first.
-              onMouseDown={(event) => event.preventDefault()}
-              onMouseEnter={() => setActiveIndex(index)}
-              onClick={() => pick(suggestion)}
-              data-testid={testId ? `${testId}-option` : undefined}
-            >
-              <span className="min-w-0 shrink truncate font-medium">{suggestion.name}</span>
-              <span className="min-w-0 shrink truncate font-mono text-xs text-muted-foreground">
-                {shortenId(suggestion.address, SHORT_ADDRESS_CHARS)}
-              </span>
-              <Badge variant="outline" className="ml-auto shrink-0 text-[10px]">
-                {t(($) => $.addressBook[kindLabelKey[suggestion.kind]])}
-              </Badge>
-            </li>
-          ))}
+          {matches.length > 0 && (
+            <ul id={listId} role="listbox" className="max-h-56 overflow-y-auto">
+              {matches.map((suggestion, index) => (
+                <li
+                  key={`${suggestion.kind}:${suggestion.name}:${suggestion.address}`}
+                  id={optionId(index)}
+                  role="option"
+                  aria-selected={index === activeIndex}
+                  className={cn(
+                    'flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm',
+                    index === activeIndex && 'bg-accent text-accent-foreground',
+                  )}
+                  // The input keeps the focus, so the blur handler does not close the list first.
+                  onMouseDown={(event) => event.preventDefault()}
+                  onMouseEnter={() => setActiveIndex(index)}
+                  onClick={() => pick(suggestion)}
+                  data-testid={testId ? `${testId}-option` : undefined}
+                >
+                  <span className="min-w-0 shrink truncate font-medium">{suggestion.name}</span>
+                  <span className="min-w-0 shrink truncate font-mono text-xs text-muted-foreground">
+                    {shortenId(suggestion.address, SHORT_ADDRESS_CHARS)}
+                  </span>
+                  <Badge variant="outline" className="ml-auto shrink-0 text-[10px]">
+                    {t(($) => $.addressBook[kindLabelKey[suggestion.kind]])}
+                  </Badge>
+                </li>
+              ))}
+            </ul>
+          )}
           {onAddAddress && (
-            <li
+            // A command, not an option: it opens the add modal and picks nothing.
+            // The arrow keys still reach it through the active index.
+            <button
+              type="button"
               id={optionId(matches.length)}
-              role="option"
-              aria-selected={activeIndex === matches.length}
+              tabIndex={-1}
               className={cn(
-                'flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm',
+                'flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm',
                 matches.length > 0 && 'mt-1 border-t pt-2',
                 activeIndex === matches.length && 'bg-accent text-accent-foreground',
               )}
@@ -254,9 +259,9 @@ export function DestinationInput({
             >
               <BookPlus className="size-4 text-muted-foreground" />
               <span>{t(($) => $.addressBook.destination.addNew)}</span>
-            </li>
+            </button>
           )}
-        </ul>
+        </div>
       )}
     </div>
   );
