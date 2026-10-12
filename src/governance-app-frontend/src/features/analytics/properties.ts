@@ -30,14 +30,14 @@ export const getErrorReason = (error: unknown): string => {
   if (error instanceof InsufficientAmountError) return 'insufficient_amount';
   if (error instanceof CouldNotClaimNeuronError) return 'could_not_claim_neuron';
   if (error instanceof InsufficientFundsError) return 'insufficient_funds';
+  if (error instanceof BadFeeError) return 'bad_fee';
   if (error instanceof TxTooOldError) return 'tx_too_old';
   if (error instanceof TxCreatedInFutureError) return 'tx_created_in_future';
   if (error instanceof TxDuplicateError) return 'tx_duplicate';
   if (error instanceof InvalidSenderError) return 'invalid_sender';
-  if (error instanceof TransferError) return 'transfer_error';
-  if (error instanceof BadFeeError) return 'bad_fee';
-  if (error instanceof IcrcError) return 'ledger_error';
   if (error instanceof InvalidAccountIDError) return 'invalid_account_id';
+  if (error instanceof TransferError) return 'transfer_error';
+  if (error instanceof IcrcError) return 'ledger_error';
   if (error instanceof AgentError) return `agent_${error.kind.toLowerCase()}`;
   return 'unknown';
 };

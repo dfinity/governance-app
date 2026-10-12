@@ -1,5 +1,7 @@
 import {
+  BadFeeError,
   InsufficientFundsError,
+  InvalidAccountIDError,
   TransferError,
   TxTooOldError,
 } from '@icp-sdk/canisters/ledger/icp';
@@ -30,6 +32,8 @@ describe('getErrorReason', () => {
   it('maps a specific ledger error before the generic transfer error', () => {
     expect(getErrorReason(new InsufficientFundsError(0n))).toBe('insufficient_funds');
     expect(getErrorReason(new TxTooOldError())).toBe('tx_too_old');
+    expect(getErrorReason(new BadFeeError(10_000n))).toBe('bad_fee');
+    expect(getErrorReason(new InvalidAccountIDError())).toBe('invalid_account_id');
     expect(getErrorReason(new TransferError())).toBe('transfer_error');
   });
 
