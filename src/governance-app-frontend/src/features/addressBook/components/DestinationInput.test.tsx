@@ -159,13 +159,36 @@ describe('DestinationInput', () => {
     expect(onAddAddress).toHaveBeenCalledOnce();
   });
 
-  it('exposes the add action as a button, not as an option', () => {
-    render(<Harness onAddAddress={() => {}} />);
+  it('exposes the add action as a button outside the arrow-key navigation', () => {
+    const onChange = vi.fn();
+    render(<Harness onAddAddress={() => {}} onChange={onChange} />);
+    const input = screen.getByTestId('destination');
 
-    fireEvent.focus(screen.getByTestId('destination'));
+    fireEvent.focus(input);
 
     expect(screen.getAllByRole('option')).toHaveLength(2);
-    expect(screen.getByTestId('destination-add').tagName).toBe('BUTTON');
+    const add = screen.getByTestId('destination-add');
+    expect(add.tagName).toBe('BUTTON');
+    expect(add.getAttribute('role')).toBeNull();
+
+    // Two matches: ArrowDown three times wraps back to the first match.
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onChange).toHaveBeenLastCalledWith(ICP_ADDRESS, 'Alice');
+  });
+
+  it('keeps the list open while the focus moves to the add button', () => {
+    render(<Harness onAddAddress={() => {}} />);
+    const input = screen.getByTestId('destination');
+
+    fireEvent.focus(input);
+    const add = screen.getByTestId('destination-add');
+    fireEvent.blur(input, { relatedTarget: add });
+
+    expect(screen.getByTestId('destination-add')).toBeDefined();
+    expect(screen.queryByRole('listbox')).not.toBeNull();
   });
 
   it('marks the input as required', () => {
