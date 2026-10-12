@@ -30,7 +30,7 @@ describe('groupProposalPages', () => {
   it('accepts a trailing slash and a hash', () => {
     expect(
       groupProposalPages(payload('https://nns.internetcomputer.org/voting/proposals/7/')).u,
-    ).toBe('https://nns.internetcomputer.org/voting/proposals/:id/');
+    ).toBe('https://nns.internetcomputer.org/voting/proposals/:id');
     expect(
       groupProposalPages(payload('https://nns.internetcomputer.org/voting/proposals/7#votes')).u,
     ).toBe('https://nns.internetcomputer.org/voting/proposals/:id#votes');
@@ -39,6 +39,16 @@ describe('groupProposalPages', () => {
   it('does not change other pages', () => {
     const input = payload('https://nns.internetcomputer.org/voting?showProposals=true');
     expect(groupProposalPages(input)).toBe(input);
+  });
+
+  it('does not match a proposal path in the query or the hash', () => {
+    for (const url of [
+      'https://nns.internetcomputer.org/voting?back=/voting/proposals/123',
+      'https://nns.internetcomputer.org/dashboard#/voting/proposals/123',
+    ]) {
+      const input = payload(url);
+      expect(groupProposalPages(input)).toBe(input);
+    }
   });
 
   it('does not change a path that only starts with a proposal ID', () => {
