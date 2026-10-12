@@ -192,12 +192,7 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
             >
               {t(($) => $.neuronDetailModal.disburseIcp.cancel)}
             </Button>
-            <Button
-              size="xl"
-              className="md:flex-1"
-              disabled={addressBookLoading}
-              onClick={() => handleConfirm(execute)}
-            >
+            <Button size="xl" className="md:flex-1" onClick={() => handleConfirm(execute)}>
               {t(($) => $.neuronDetailModal.disburseIcp.confirm)}
             </Button>
           </MutationDialogFooter>
