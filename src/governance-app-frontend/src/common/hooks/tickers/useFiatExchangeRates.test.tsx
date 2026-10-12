@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseFiatExchangeRatesResponse } from './useFiatExchangeRates';
+import { FIAT_EXCHANGE_RATES_REFRESH_MS, FIAT_EXCHANGE_RATES_RETRY_MS } from '@constants/extra';
+import { FiatCurrency } from '@constants/fiat';
+
+import {
+  getFiatExchangeRatesRefreshMs,
+  parseFiatExchangeRatesResponse,
+} from './useFiatExchangeRates';
 
 const rate = (rate_e8s: bigint) => ({
   rate_e8s,
@@ -35,5 +41,27 @@ describe('parseFiatExchangeRatesResponse', () => {
 
   it('Returns an empty map for an empty response.', () => {
     expect(parseFiatExchangeRatesResponse([])).toEqual(new Map());
+  });
+});
+
+describe('getFiatExchangeRatesRefreshMs', () => {
+  it('Waits one hour if every currency has a rate.', () => {
+    const rates = new Map(
+      Object.values(FiatCurrency)
+        .filter((currency) => currency !== FiatCurrency.USD)
+        .map((currency) => [currency, 1]),
+    );
+
+    expect(getFiatExchangeRatesRefreshMs(rates)).toBe(FIAT_EXCHANGE_RATES_REFRESH_MS);
+  });
+
+  it('Retries sooner if a currency has no rate.', () => {
+    expect(getFiatExchangeRatesRefreshMs(new Map([[FiatCurrency.EUR, 0.92]]))).toBe(
+      FIAT_EXCHANGE_RATES_RETRY_MS,
+    );
+  });
+
+  it('Retries sooner without a response.', () => {
+    expect(getFiatExchangeRatesRefreshMs(undefined)).toBe(FIAT_EXCHANGE_RATES_RETRY_MS);
   });
 });

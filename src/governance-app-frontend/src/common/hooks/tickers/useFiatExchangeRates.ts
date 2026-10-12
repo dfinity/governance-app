@@ -3,7 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { FiatExchangeRate } from '@declarations/governance-app-backend/governance-app-backend.did';
 
-import { E8S, FIAT_EXCHANGE_RATES_REFRESH_MS } from '@constants/extra';
+import {
+  E8S,
+  FIAT_EXCHANGE_RATES_REFRESH_MS,
+  FIAT_EXCHANGE_RATES_RETRY_MS,
+} from '@constants/extra';
+import { FiatCurrency } from '@constants/fiat';
 import { useGovernanceAppCanister } from '@hooks/addressBook/useGovernanceAppCanister';
 import { QUERY_KEYS } from '@utils/query';
 
@@ -28,10 +33,19 @@ export const useFiatExchangeRates = ({ enabled = true }: Props) => {
       return parseFiatExchangeRatesResponse(response);
     },
     enabled: enabled && canisterStatus.ready,
-    refetchInterval: FIAT_EXCHANGE_RATES_REFRESH_MS,
+    refetchInterval: (query) => getFiatExchangeRatesRefreshMs(query.state.data),
     retry: 1,
   });
 };
+
+const SUPPORTED_FIAT_SYMBOLS = Object.values(FiatCurrency).filter(
+  (currency) => currency !== FiatCurrency.USD,
+);
+
+export const getFiatExchangeRatesRefreshMs = (rates: FiatExchangeRates | undefined): number =>
+  nonNullish(rates) && SUPPORTED_FIAT_SYMBOLS.every((symbol) => rates.has(symbol))
+    ? FIAT_EXCHANGE_RATES_REFRESH_MS
+    : FIAT_EXCHANGE_RATES_RETRY_MS;
 
 // Skips the currencies without a rate, so that the UI falls back to USD for them.
 export const parseFiatExchangeRatesResponse = (rates: FiatExchangeRate[]): FiatExchangeRates =>

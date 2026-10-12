@@ -31,6 +31,9 @@ export const DIALOG_RESET_DELAY_MS = 300;
 export const EXCHANGE_RATE_REFRESH_MS = 5 * 60 * 1_000;
 // The backend gets new USD to fiat rates from the XRC at this interval.
 export const FIAT_EXCHANGE_RATES_REFRESH_MS = 60 * 60 * 1_000;
+// A response without every fiat rate is fetched again at this interval.
+// For example, the backend fills an empty cache right after an upgrade.
+export const FIAT_EXCHANGE_RATES_RETRY_MS = 60 * 1_000;
 
 export const VOTING_RESULTS_PRECISION = 6; // Number of digits after the decimal point.
 
