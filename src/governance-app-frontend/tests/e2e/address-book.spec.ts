@@ -124,6 +124,12 @@ test.describe('Address book', () => {
       await page.getByTestId('add-address-address-input').fill(TEST_ICRC1_ADDRESS);
       await page.getByTestId('add-address-save-btn').click();
 
+      // "Bob" already holds this address. The warning offers the edit and the save stays possible.
+      await expect(page.getByTestId('add-address-duplicate-warning')).toContainText('Bob');
+      await expect(page.getByTestId('add-address-edit-instead-btn')).toBeVisible();
+      await expect(page.getByTestId('add-address-save-btn')).toHaveText('Save anyway');
+      await page.getByTestId('add-address-save-btn').click();
+
       await expect(
         page.getByRole('paragraph').filter({ hasText: 'Address updated successfully.' }),
       ).toBeVisible({ timeout: 30000 });

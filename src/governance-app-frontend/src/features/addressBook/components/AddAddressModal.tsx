@@ -1,7 +1,7 @@
 import { nonNullish } from '@dfinity/utils';
 import { AlertTriangle } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 import type {
   AddressType,
@@ -32,6 +32,8 @@ type Props = {
   /** Prefills the address field when the modal creates a new entry. */
   initialAddress?: string;
   existingAddresses: NamedAddress[];
+  /** Offers to edit the entry that already holds the typed address. */
+  onEditInstead?: (entry: NamedAddress) => void;
 };
 
 export const AddAddressModal: React.FC<Props> = ({
@@ -40,6 +42,7 @@ export const AddAddressModal: React.FC<Props> = ({
   namedAddress,
   initialAddress,
   existingAddresses,
+  onEditInstead,
 }) => {
   const { t } = useTranslation();
   const saveAddressBook = useSaveAddressBook();
@@ -53,6 +56,9 @@ export const AddAddressModal: React.FC<Props> = ({
   const [nicknameError, setNicknameError] = useState('');
   const [addressError, setAddressError] = useState('');
   const [isEditMode, setIsEditMode] = useState(namedAddress !== undefined);
+  // The entry that already holds the typed address. The save goes through on
+  // the next submit, once the warning is shown.
+  const [duplicateEntry, setDuplicateEntry] = useState<NamedAddress | undefined>();
 
   useEffect(() => {
     if (isOpen) {
@@ -62,6 +68,7 @@ export const AddAddressModal: React.FC<Props> = ({
       setAddress(initialAddressValue);
       setNicknameError('');
       setAddressError('');
+      setDuplicateEntry(undefined);
     }
   }, [isOpen, namedAddress, initialAddressValue]);
 
@@ -97,6 +104,12 @@ export const AddAddressModal: React.FC<Props> = ({
     return undefined;
   };
 
+  const findDuplicate = (trimmed: string): NamedAddress | undefined =>
+    existingAddresses.find((entry) => {
+      if (isEditMode && entry.name === namedAddress?.name) return false;
+      return addressBookGetAddressString(entry.address).toLowerCase() === trimmed.toLowerCase();
+    });
+
   const handleSubmit =
     (execute: (fn: () => Promise<unknown>) => void) => (event: React.SyntheticEvent) => {
       event.preventDefault();
@@ -118,6 +131,12 @@ export const AddAddressModal: React.FC<Props> = ({
       const addrErr = validateAddress(trimmedAddress);
       if (addrErr) {
         setAddressError(addrErr);
+        return;
+      }
+
+      const duplicate = findDuplicate(trimmedAddress);
+      if (nonNullish(duplicate) && duplicate.name !== duplicateEntry?.name) {
+        setDuplicateEntry(duplicate);
         return;
       }
 
@@ -207,6 +226,7 @@ export const AddAddressModal: React.FC<Props> = ({
                   onChange={(e) => {
                     setAddress(e.target.value);
                     setAddressError('');
+                    setDuplicateEntry(undefined);
                   }}
                   placeholder={t(($) => $.addressBook.addressPlaceholder)}
                   className={cn(
@@ -225,6 +245,32 @@ export const AddAddressModal: React.FC<Props> = ({
                     <AlertDescription>{addressError}</AlertDescription>
                   </Alert>
                 )}
+                {nonNullish(duplicateEntry) && (
+                  <Alert variant="warning" data-testid="add-address-duplicate-warning">
+                    <AlertTriangle className="size-4 text-destructive" />
+                    <AlertDescription className="flex flex-col items-start gap-2">
+                      <Trans
+                        i18nKey={($) => $.addressBook.validation.addressAlreadySaved}
+                        t={t}
+                        values={{ name: duplicateEntry.name }}
+                        components={{ strong: <strong /> }}
+                      />
+                      {onEditInstead && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onEditInstead(duplicateEntry)}
+                          data-testid="add-address-edit-instead-btn"
+                        >
+                          {t(($) => $.addressBook.validation.editInstead, {
+                            name: duplicateEntry.name,
+                          })}
+                        </Button>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
             </div>
           </MutationDialogBody>
@@ -234,7 +280,9 @@ export const AddAddressModal: React.FC<Props> = ({
               {t(($) => $.common.close)}
             </Button>
             <Button type="submit" data-testid="add-address-save-btn">
-              {t(($) => $.addressBook.saveAddress)}
+              {t(($) =>
+                nonNullish(duplicateEntry) ? $.addressBook.saveAnyway : $.addressBook.saveAddress,
+              )}
             </Button>
           </MutationDialogFooter>
         </form>

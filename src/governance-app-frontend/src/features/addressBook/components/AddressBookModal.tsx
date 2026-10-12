@@ -147,6 +147,7 @@ export const AddressBookModal: React.FC<Props> = ({ isOpen, onOpenChange }) => {
         }}
         namedAddress={editingAddress}
         existingAddresses={addressBookQuery.data?.response?.named_addresses ?? []}
+        onEditInstead={setEditingAddress}
       />
 
       <RemoveAddressConfirmation
