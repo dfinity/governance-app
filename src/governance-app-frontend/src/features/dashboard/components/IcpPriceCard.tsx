@@ -36,7 +36,8 @@ export const IcpPriceCard = () => {
   const isPositive = nonNullish(change) && change >= 0;
 
   const historyPoints = historyQuery.data ?? [];
-  const isHistoryLoading = hasHistorySource && historyQuery.isLoading;
+  // The chart also waits for the price, so that its tooltip shows the picked currency.
+  const isChartLoading = hasHistorySource && (historyQuery.isLoading || isLoading);
   const showChart = hasHistorySource && historyPoints.length >= 2;
   const isChartPositive =
     showChart && historyPoints[historyPoints.length - 1].usd >= historyPoints[0].usd;
@@ -70,7 +71,7 @@ export const IcpPriceCard = () => {
           The slot keeps its height without a chart, so the card does not shrink when the
           skeleton leaves. */}
       <div className="-mt-1 -mb-4 flex min-h-11 flex-1 flex-col">
-        {isHistoryLoading ? (
+        {isChartLoading ? (
           <Skeleton className="mt-3 flex-1 rounded-none" />
         ) : (
           showChart && (

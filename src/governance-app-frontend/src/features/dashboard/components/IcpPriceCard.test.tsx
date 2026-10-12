@@ -132,4 +132,16 @@ describe('IcpPriceCard', () => {
     expect(screen.getByText('€2.92')).toBeTruthy();
     expect(screen.getByText(/5\.68%/)).toBeTruthy();
   });
+
+  it('does not show the chart while the exchange rate loads', () => {
+    mocks.fiatCurrency.mockReturnValue({ fiatCurrency: FiatCurrency.EUR });
+    mocks.fiatExchangeRates.mockReturnValue({ data: undefined, isLoading: true });
+    mockTickerPrices(TickerPricesSource.XRC);
+    mockRateHistory(POINTS);
+
+    render(<IcpPriceCard />);
+
+    expect(screen.queryByText('$3.24')).toBeNull();
+    expect(screen.queryByTestId('icp-price-sparkline')).toBeNull();
+  });
 });
