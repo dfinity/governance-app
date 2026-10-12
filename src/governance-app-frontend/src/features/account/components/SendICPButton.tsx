@@ -212,16 +212,10 @@ export const SendICPDialog: React.FC<DialogProps> = ({
     return () => clearTimeout(timer);
   }, [open]);
 
-  // The entry can change between two opens of the same dialog.
-  const applyInitialDestination = useEffectEvent(() => {
-    if (nonNullish(initialDestination)) {
-      setToAccount(initialDestination.address);
-      setSelectedName(initialDestination.name);
-    }
-  });
-
+  // A reopen within the reset delay keeps the state of the last transfer, and
+  // the entry can change between two opens. Reset the whole form on open.
   useEffect(() => {
-    if (open) applyInitialDestination();
+    if (open) resetFormState();
   }, [open]);
 
   const handleFormSubmit = (event: React.SyntheticEvent) => {
