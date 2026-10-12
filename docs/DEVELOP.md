@@ -34,8 +34,10 @@ This script downloads the required `pocket-ic` binary (version defined in `confi
   - SNS Aggregator: http://3r4gx-wqaaa-aaaaq-aaaia-cai.localhost:8080
   - Internet Identity: http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:8080
   
-Note: This requires a version of dfx that supports the `--system-canisters` flag (version 0.30.1 or higher).
-It can be installed with `dfxvm install 0.30.1`.
+Note: `dfx.json` pins dfx 0.31.0, the same version that CI uses. Inside the repo, dfxvm runs this version automatically.
+Install it once with `dfxvm install 0.31.0`.
+Do not use dfx 0.32.0 or later. Its Internet Identity has no frontend, so the local login fails with a 503 error.
+After a dfx version change, restart the replica with `npm run start:ic -- --clean` to reinstall Internet Identity.
 
 2. **Start the frontend:**
 
