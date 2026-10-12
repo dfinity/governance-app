@@ -16,8 +16,13 @@ const PRINCIPAL_SUBACCOUNT_1_ACCOUNT_ID =
   '394a5269b1c6950b37f68bf7f592bdd1f3b55ec52f4673753733056d8cee10e6';
 
 describe('addressBookGetAccountIdentifier', () => {
-  it('returns an ICP address as is', () => {
+  it('returns an ICP address in lowercase', () => {
     expect(addressBookGetAccountIdentifier({ Icp: ICP_ADDRESS })).toBe(ICP_ADDRESS);
+    expect(addressBookGetAccountIdentifier({ Icp: ICP_ADDRESS.toUpperCase() })).toBe(ICP_ADDRESS);
+  });
+
+  it('returns undefined for an ICP address that does not decode', () => {
+    expect(addressBookGetAccountIdentifier({ Icp: 'not-hex' })).toBeUndefined();
   });
 
   it('derives the account identifier of a principal', () => {
@@ -36,8 +41,15 @@ describe('addressBookGetAccountIdentifier', () => {
 });
 
 describe('addressBookGetAddressKeys', () => {
-  it('returns one key for an ICP address', () => {
+  it('returns one key for a lowercase ICP address', () => {
     expect(addressBookGetAddressKeys({ Icp: ICP_ADDRESS })).toEqual([ICP_ADDRESS]);
+  });
+
+  it('returns the saved text and the lowercase form for an uppercase ICP address', () => {
+    expect(addressBookGetAddressKeys({ Icp: ICP_ADDRESS.toUpperCase() })).toEqual([
+      ICP_ADDRESS.toUpperCase(),
+      ICP_ADDRESS,
+    ]);
   });
 
   it('returns the text and the account identifier for an ICRC-1 address', () => {

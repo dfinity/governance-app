@@ -14,13 +14,14 @@ export const addressBookGetAddressString = (address: AddressType | undefined): s
 export const addressBookIsIcpAddress = (address: AddressType): boolean => 'Icp' in address;
 
 /**
- * The ICP account identifier (hex) of an entry. The ICP ledger and index report
- * transfers to an ICRC-1 account by this identifier, not by the ICRC-1 text.
- * Returns undefined when the ICRC-1 text does not decode.
+ * The ICP account identifier of an entry, in the lowercase hex form the ICP
+ * index reports. The index reports transfers to an ICRC-1 account by this
+ * identifier, not by the ICRC-1 text. Returns undefined when the saved text
+ * does not decode.
  */
 export const addressBookGetAccountIdentifier = (address: AddressType): string | undefined => {
-  if ('Icp' in address) return address.Icp;
   try {
+    if ('Icp' in address) return AccountIdentifier.fromHex(address.Icp).toHex();
     const { owner, subaccount } = decodeIcrcAccount(address.Icrc1);
     const subAccount =
       nonNullish(subaccount) && subaccount.length === 32
@@ -32,7 +33,7 @@ export const addressBookGetAccountIdentifier = (address: AddressType): string | 
   }
 };
 
-/** The lookup keys of an entry: the saved text and, for an ICRC-1 entry, the account identifier. */
+/** The lookup keys of an entry: the saved text and its account identifier, when they differ. */
 export const addressBookGetAddressKeys = (address: AddressType): Array<string> => {
   const text = addressBookGetAddressString(address);
   const accountIdentifier = addressBookGetAccountIdentifier(address);

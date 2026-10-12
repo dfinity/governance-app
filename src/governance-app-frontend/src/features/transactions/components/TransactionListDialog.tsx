@@ -84,9 +84,12 @@ export function TransactionListDialog({
   }
   // The index reports an ICRC-1 counterparty by its account identifier, so an
   // ICRC-1 entry is keyed on both the saved text and the derived identifier.
+  // The first name for a key wins, as in the other lookups of the app.
   for (const entry of addressBookEntries) {
     for (const key of addressBookGetAddressKeys(entry.address)) {
-      addressNameMap.set(key, { name: entry.name, source: 'addressBook' });
+      if (!addressNameMap.has(key)) {
+        addressNameMap.set(key, { name: entry.name, source: 'addressBook' });
+      }
     }
   }
 
