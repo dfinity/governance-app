@@ -92,7 +92,9 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   const addressBookQuery = useAddressBook();
   const addressBookLoading = addressBookQuery.isLoading;
   // A save succeeds even when the refetch of the book fails, so the saved
-  // entries stay in the list until the book reports them.
+  // entries stay in the list until the book reports them. They serve the
+  // display only. A write uses the stored entries, so a stale copy of a
+  // contact deleted elsewhere never gets written back.
   const [savedEntries, setSavedEntries] = useState<NamedAddress[]>([]);
   const storedEntries = addressBookQuery.data?.response?.named_addresses ?? [];
   const addressBookEntries = [
@@ -277,7 +279,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
       ?.name ?? addressBookEntries.find(matchesDestination)?.name;
   // A failed read leaves `data` empty. Saving on top of it would wipe the stored entries.
   const canSaveAddress =
-    nonNullish(addressBookQuery.data) && addressBookEntries.length < ADDRESS_BOOK_MAX_ENTRIES;
+    nonNullish(addressBookQuery.data) && storedEntries.length < ADDRESS_BOOK_MAX_ENTRIES;
   const destinationSuggestions: DestinationSuggestion[] = addressBookEntries.map((entry) => ({
     name: entry.name,
     address: addressBookGetAddressString(entry.address),
@@ -367,7 +369,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
         isOpen={saveAddressOpen}
         onClose={() => setSaveAddressOpen(false)}
         initialAddress={toAccount}
-        existingAddresses={addressBookEntries}
+        existingAddresses={storedEntries}
         onSaved={(entry) => {
           setSavedEntries((entries) => [...entries, entry]);
           setSelectedName(entry.name);
