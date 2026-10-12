@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
+import { FiatCurrency } from '@constants/fiat';
 import { TickerPricesSource } from '@hooks/tickers';
 
 import { IcpPriceCard } from './IcpPriceCard';
@@ -9,7 +10,11 @@ import { IcpPriceCard } from './IcpPriceCard';
 const mocks = vi.hoisted(() => ({
   tickerPrices: vi.fn(),
   rateHistory: vi.fn(),
+  fiatExchangeRates: vi.fn(),
+  fiatCurrency: vi.fn(),
 }));
+
+vi.mock('@hooks/useFiatCurrency', () => ({ useFiatCurrency: mocks.fiatCurrency }));
 
 vi.mock('@hooks/tickers/useTickerPrices', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@hooks/tickers/useTickerPrices')>()),
@@ -19,6 +24,11 @@ vi.mock('@hooks/tickers/useTickerPrices', async (importOriginal) => ({
 vi.mock('@hooks/tickers/useIcpRateHistory', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@hooks/tickers/useIcpRateHistory')>()),
   useIcpRateHistory: mocks.rateHistory,
+}));
+
+vi.mock('@hooks/tickers/useFiatExchangeRates', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@hooks/tickers/useFiatExchangeRates')>()),
+  useFiatExchangeRates: mocks.fiatExchangeRates,
 }));
 
 vi.mock('./IcpPriceSparkline', () => ({
@@ -51,6 +61,8 @@ describe('IcpPriceCard', () => {
   beforeEach(() => {
     mocks.tickerPrices.mockReset();
     mocks.rateHistory.mockReset();
+    mocks.fiatExchangeRates.mockReturnValue({ data: undefined, isLoading: false });
+    mocks.fiatCurrency.mockReturnValue({ fiatCurrency: FiatCurrency.USD });
   });
 
   it('shows the price, the 24h change, and the chart for the XRC source', () => {
@@ -103,6 +115,33 @@ describe('IcpPriceCard', () => {
     render(<IcpPriceCard />);
 
     expect(screen.getByText('$3.24')).toBeTruthy();
+    expect(screen.queryByTestId('icp-price-sparkline')).toBeNull();
+  });
+
+  it('shows the price in the picked currency', () => {
+    mocks.fiatCurrency.mockReturnValue({ fiatCurrency: FiatCurrency.EUR });
+    mocks.fiatExchangeRates.mockReturnValue({
+      data: new Map([[FiatCurrency.EUR, 0.9]]),
+      isLoading: false,
+    });
+    mockTickerPrices(TickerPricesSource.XRC);
+    mockRateHistory(POINTS);
+
+    render(<IcpPriceCard />);
+
+    expect(screen.getByText('€2.92')).toBeTruthy();
+    expect(screen.getByText(/5\.68%/)).toBeTruthy();
+  });
+
+  it('does not show the chart while the exchange rate loads', () => {
+    mocks.fiatCurrency.mockReturnValue({ fiatCurrency: FiatCurrency.EUR });
+    mocks.fiatExchangeRates.mockReturnValue({ data: undefined, isLoading: true });
+    mockTickerPrices(TickerPricesSource.XRC);
+    mockRateHistory(POINTS);
+
+    render(<IcpPriceCard />);
+
+    expect(screen.queryByText('$3.24')).toBeNull();
     expect(screen.queryByTestId('icp-price-sparkline')).toBeNull();
   });
 });

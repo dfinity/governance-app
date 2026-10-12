@@ -1,10 +1,10 @@
+import { nonNullish } from '@dfinity/utils';
 import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { SensitiveValue } from '@components/SensitiveValue';
 import { Skeleton } from '@components/Skeleton';
-import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { useTickerPrices } from '@hooks/tickers';
+import { useIcpPrice } from '@hooks/tickers';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 
 import { useAccounts } from '../hooks/useAccounts';
@@ -36,14 +36,14 @@ function buildSegments(readyAccounts: AccountReady[], totalE8s: bigint) {
 
 export const AccountsTotalCard = () => {
   const { t } = useTranslation();
-  const { tickerPrices: tickersQuery } = useTickerPrices();
+  const { icpPrice, formatFiat, isLoading: isIcpPriceLoading } = useIcpPrice();
   const { data: accountsState, isLoading, totalBalanceIcp } = useAccounts();
   const accounts = accountsState?.accounts ?? [];
 
   const readyAccounts = accounts.filter((a): a is AccountReady => a.status === 'ready');
   const totalE8s = accountsState?.totalBalanceE8s ?? 0n;
-  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const usdValue = icpPrice && totalBalanceIcp ? formatNumber(totalBalanceIcp * icpPrice.usd) : '-';
+  const fiatValue =
+    nonNullish(icpPrice) && totalBalanceIcp ? formatFiat(totalBalanceIcp * icpPrice) : '-';
 
   const segments = buildSegments(readyAccounts, totalE8s);
 
@@ -63,12 +63,12 @@ export const AccountsTotalCard = () => {
               </SensitiveValue>
             </p>
           )}
-          {isLoading || tickersQuery.isLoading ? (
+          {isLoading || isIcpPriceLoading ? (
             <Skeleton className="h-5 w-20" />
           ) : (
             <p className="text-sm text-muted-foreground">
               <SensitiveValue size="sm">
-                {t(($) => $.account.approxUsd, { value: usdValue })}
+                {t(($) => $.account.approxFiat, { value: fiatValue })}
               </SensitiveValue>
             </p>
           )}

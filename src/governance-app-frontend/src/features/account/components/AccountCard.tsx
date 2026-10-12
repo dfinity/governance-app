@@ -12,10 +12,9 @@ import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { SensitiveValue } from '@components/SensitiveValue';
 import { Skeleton } from '@components/Skeleton';
-import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
-import { useTickerPrices } from '@hooks/tickers';
+import { useIcpPrice } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber } from '@utils/numbers';
 
@@ -28,7 +27,7 @@ export function AccountCard() {
   const { identity } = useInternetIdentity();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const { tickerPrices: tickersQuery } = useTickerPrices();
+  const { icpPrice, formatFiat, isLoading: isIcpPriceLoading } = useIcpPrice();
   const balanceQuery = useIcpLedgerAccountBalance();
 
   const accountId = nonNullish(identity)
@@ -40,8 +39,7 @@ export function AccountCard() {
   if (isNullish(accountId)) return null;
 
   const balanceICP = bigIntDiv(balanceQuery.data?.response || 0n, E8Sn);
-  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const usdValue = icpPrice ? formatNumber(balanceICP * icpPrice.usd) : '-';
+  const fiatValue = nonNullish(icpPrice) ? formatFiat(balanceICP * icpPrice) : '-';
 
   return (
     <>
@@ -76,12 +74,12 @@ export function AccountCard() {
               </p>
             )}
 
-            {balanceQuery.isLoading || tickersQuery.isLoading ? (
+            {balanceQuery.isLoading || isIcpPriceLoading ? (
               <Skeleton className="h-5 w-20" />
             ) : (
               <p className="text-sm text-muted-foreground">
                 <SensitiveValue size="sm">
-                  {t(($) => $.account.approxUsd, { value: usdValue })}
+                  {t(($) => $.account.approxFiat, { value: fiatValue })}
                 </SensitiveValue>
               </p>
             )}

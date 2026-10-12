@@ -10,12 +10,11 @@ import { type ChartConfig, ChartContainer } from '@components/Chart';
 import { SensitiveValue } from '@components/SensitiveValue';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
-import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { useGovernanceNeurons } from '@hooks/governance';
-import { useTickerPrices } from '@hooks/tickers';
+import { useIcpPrice } from '@hooks/tickers';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { getNeuronsAggregatedData } from '@utils/neuron';
-import { formatNumber, formatPercentage } from '@utils/numbers';
+import { formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 const chartConfig = {
@@ -31,7 +30,7 @@ const chartConfig = {
 export const TotalAssetsCard = () => {
   const { t } = useTranslation();
 
-  const { tickerPrices: tickersQuery } = useTickerPrices();
+  const { icpPrice, formatFiat, isLoading: isIcpPriceLoading } = useIcpPrice();
   const neuronsQuery = useGovernanceNeurons();
   const { isLoading: isLoadingAccounts, totalBalanceIcp } = useAccounts();
   const stakingRewards = useStakingRewards();
@@ -44,8 +43,7 @@ export const TotalAssetsCard = () => {
 
   const totalAssets = liquidBalance + stakedBalance;
 
-  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const totalAssetsUsd = icpPrice ? formatNumber(totalAssets * icpPrice.usd) : undefined;
+  const totalAssetsFiat = nonNullish(icpPrice) ? formatFiat(totalAssets * icpPrice) : undefined;
 
   const isLoading = isLoadingAccounts || neuronsQuery.isLoading;
   const stakingRewardsReady = isStakingRewardDataReady(stakingRewards);
@@ -66,12 +64,12 @@ export const TotalAssetsCard = () => {
         </div>
 
         <div>
-          {isLoading || tickersQuery.isLoading ? (
+          {isLoading || isIcpPriceLoading ? (
             <Skeleton className="h-8 w-40" />
           ) : (
             <p className="text-2xl font-semibold text-foreground">
-              {nonNullish(totalAssetsUsd) ? (
-                <SensitiveValue>${totalAssetsUsd}</SensitiveValue>
+              {nonNullish(totalAssetsFiat) ? (
+                <SensitiveValue>{totalAssetsFiat}</SensitiveValue>
               ) : (
                 '—'
               )}

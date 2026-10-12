@@ -65,7 +65,7 @@ function LoginPage() {
   const [isVideoReady, setIsVideoReady] = useState(false);
   const baseVideoRef = useRef<HTMLVideoElement>(null);
   const coreVideoRef = useRef<HTMLVideoElement>(null);
-  const { tvl, isLoading: isTvlLoading, isError: isTvlError } = useTvlValue();
+  const { tvl, formatTvl, isLoading: isTvlLoading, isError: isTvlError } = useTvlValue();
   const participants = 57986;
   const proposalsQuery = useGovernanceProposal();
   const totalProposals = proposalsQuery?.data?.response?.id ?? 0n;
@@ -244,11 +244,7 @@ function LoginPage() {
                   ) : isTvlError || isNullish(tvl) ? (
                     '-'
                   ) : (
-                    <AnimatedNumber
-                      value={tvl}
-                      prefix="$"
-                      formatOptions={{ minFraction: 0, maxFraction: 0 }}
-                    />
+                    <AnimatedNumber value={tvl} formatter={formatTvl} />
                   )}
                 </dd>
               </div>

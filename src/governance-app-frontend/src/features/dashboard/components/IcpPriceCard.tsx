@@ -4,8 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
-import { TickerPricesSource, useIcpRateHistory, useTickerPrices } from '@hooks/tickers';
-import { formatNumber, formatPercentage } from '@utils/numbers';
+import {
+  TickerPricesSource,
+  useIcpPrice,
+  useIcpRateHistory,
+  useTickerPrices,
+} from '@hooks/tickers';
+import { formatPercentage } from '@utils/numbers';
 
 import { IcpPriceSparkline } from './IcpPriceSparkline';
 
@@ -15,13 +20,14 @@ const trendColor = (isPositive: boolean) =>
 export const IcpPriceCard = () => {
   const { t } = useTranslation();
   const { tickerPrices: tickersQuery, tickerPricesSource } = useTickerPrices();
+  const { icpPrice: icpPriceFiat, toFiat, formatFiat, isLoading } = useIcpPrice();
   // Only the backend (XRC) source keeps a price history.
   const hasHistorySource = tickerPricesSource === TickerPricesSource.XRC;
   const historyQuery = useIcpRateHistory({ enabled: hasHistorySource });
 
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const icpPriceUsd = icpPrice ? formatNumber(icpPrice.usd) : undefined;
 
+  // One exchange rate converts both prices, so the change is the same in each currency.
   const change =
     icpPrice?.previousUsd && icpPrice.usd
       ? (icpPrice.usd - icpPrice.previousUsd) / icpPrice.previousUsd
@@ -30,7 +36,8 @@ export const IcpPriceCard = () => {
   const isPositive = nonNullish(change) && change >= 0;
 
   const historyPoints = historyQuery.data ?? [];
-  const isHistoryLoading = hasHistorySource && historyQuery.isLoading;
+  // The chart also waits for the price, so that its tooltip shows the picked currency.
+  const isChartLoading = hasHistorySource && (historyQuery.isLoading || isLoading);
   const showChart = hasHistorySource && historyPoints.length >= 2;
   const isChartPositive =
     showChart && historyPoints[historyPoints.length - 1].usd >= historyPoints[0].usd;
@@ -41,12 +48,12 @@ export const IcpPriceCard = () => {
         <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {t(($) => $.home.icpPrice)}
         </p>
-        {tickersQuery.isLoading ? (
+        {isLoading ? (
           <Skeleton className="h-8 w-40" />
         ) : (
           <div className="flex flex-wrap items-baseline gap-x-2">
             <p className="text-2xl font-semibold text-foreground">
-              {icpPriceUsd ? `$${icpPriceUsd}` : '—'}
+              {nonNullish(icpPriceFiat) ? formatFiat(icpPriceFiat) : '—'}
             </p>
             {nonNullish(change) && (
               <p
@@ -64,7 +71,7 @@ export const IcpPriceCard = () => {
           The slot keeps its height without a chart, so the card does not shrink when the
           skeleton leaves. */}
       <div className="-mt-1 -mb-4 flex min-h-11 flex-1 flex-col">
-        {isHistoryLoading ? (
+        {isChartLoading ? (
           <Skeleton className="mt-3 flex-1 rounded-none" />
         ) : (
           showChart && (
@@ -73,6 +80,7 @@ export const IcpPriceCard = () => {
             <IcpPriceSparkline
               points={historyPoints}
               label={t(($) => $.home.icpPrice24hChart)}
+              formatPrice={(usd) => formatFiat(toFiat(usd))}
               className={`min-h-0 flex-1 ${trendColor(isChartPositive)}`}
             />
           )

@@ -13,15 +13,14 @@ import { AmountInput } from '@components/AmountInput';
 import { Button } from '@components/button';
 import { Label } from '@components/Label';
 import { Spinner } from '@components/Spinner';
-import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
-import { useTickerPrices } from '@hooks/tickers';
+import { useIcpPrice } from '@hooks/tickers';
 import { bigIntDiv } from '@utils/bigInt';
 import { mapCanisterError } from '@utils/errors';
 import { getNeuronStakeAfterFeesE8s } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
-import { formatNumber, roundToE8sPrecision } from '@utils/numbers';
+import { roundToE8sPrecision } from '@utils/numbers';
 
 import { useIncreaseStake } from '../../hooks/useIncreaseStake';
 
@@ -40,8 +39,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
   const [validationError, setValidationError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { tickerPrices: tickersQuery } = useTickerPrices();
-  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
+  const { icpPrice, formatFiat } = useIcpPrice();
 
   // Default balance from main account ledger (used when subaccounts FF is off)
   const { data: balanceValue } = useIcpLedgerAccountBalance();
@@ -130,9 +128,9 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
   };
 
   const numericAmount = Number(amount);
-  const approxUsd =
-    icpPrice && numericAmount > 0
-      ? t(($) => $.account.approxUsd, { value: formatNumber(numericAmount * icpPrice.usd) })
+  const approxFiat =
+    nonNullish(icpPrice) && numericAmount > 0
+      ? t(($) => $.account.approxFiat, { value: formatFiat(numericAmount * icpPrice) })
       : undefined;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -172,7 +170,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
           onMaxSelect={handleMaxSelect}
           disabled={isPending}
           error={!!validationError}
-          approxUsdLabel={approxUsd}
+          approxFiatLabel={approxFiat}
           availableLabel={t(($) => $.neuronDetailModal.increaseStake.currentAndAvailable, {
             current: currentStake.toString(),
             available: availableBalance.toString(),

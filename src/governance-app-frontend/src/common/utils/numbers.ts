@@ -28,6 +28,40 @@ export const formatNumber = (
     .replace(',', '.');
 };
 
+export type FormatFiatOptions = { minFraction: number; maxFraction: number };
+
+/**
+ * The number of decimals of the currency's smallest unit. For example, 2 for "EUR" and 0 for "JPY".
+ */
+export const getFiatFractionDigits = (currency: string): number =>
+  new Intl.NumberFormat('en', { style: 'currency', currency }).resolvedOptions()
+    .maximumFractionDigits ?? 2;
+
+/**
+ * Default format: (1234.5, "EUR") -> "€1’234.50", (1234.5, "CHF") -> "CHF 1’234.50",
+ * (1234.5, "JPY") -> "¥1’235"
+ */
+export const formatFiat = (
+  value: number,
+  currency: string,
+  options?: FormatFiatOptions,
+): string => {
+  const fractionDigits = getFiatFractionDigits(currency);
+  const { minFraction = fractionDigits, maxFraction = fractionDigits } = options || {};
+
+  // The `en` locale puts the symbol before the number, for example "CA$" or "CHF ".
+  const parts = new Intl.NumberFormat('en', { style: 'currency', currency }).formatToParts(0);
+  const symbol = parts
+    .slice(
+      0,
+      parts.findIndex(({ type }) => type === 'integer'),
+    )
+    .map(({ value }) => value)
+    .join('');
+
+  return `${symbol}${formatNumber(value, { minFraction, maxFraction })}`;
+};
+
 /**
  * Default format: 0.150123 -> "15.01%"
  */
