@@ -38,7 +38,8 @@ export const PROPOSAL_VOTING_ID = 'proposal-voting';
 export const scrollToProposalVoting = () => {
   const voting = document.getElementById(PROPOSAL_VOTING_ID);
   voting?.focus({ preventScroll: true });
-  voting?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  voting?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
 };
 
 export enum ProposalFilter {

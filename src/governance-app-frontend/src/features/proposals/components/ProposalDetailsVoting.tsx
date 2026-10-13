@@ -59,7 +59,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
     <Card
       id={PROPOSAL_VOTING_ID}
       tabIndex={-1}
-      className="scroll-mt-[calc(1rem+env(safe-area-inset-top))] outline-none"
+      className="scroll-mt-[calc(1rem+env(safe-area-inset-top))] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/30"
     >
       <CardHeader>
         <CardTitle>{t(($) => $.proposal.votingStatus)}</CardTitle>
