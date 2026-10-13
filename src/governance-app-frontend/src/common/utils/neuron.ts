@@ -517,21 +517,23 @@ export const isUserHotkey = ({
 
 /**
  * Aggregates staking data from multiple neurons.
+ * Staked maturity counts in totalStakedAfterFees only, so the two totals never overlap.
  * @param neurons - Array of neurons to aggregate data from
- * @returns Object containing totalStakedAfterFees and totalMaturity
+ * @returns Object containing totalStakedAfterFees (stake plus staked maturity) and
+ * totalFreeMaturity (maturity that is not staked)
  */
 export const getNeuronsAggregatedData = (
   neurons: NeuronInfo[] = [],
-): { totalStakedAfterFees: number; totalMaturity: number } => {
+): { totalStakedAfterFees: number; totalFreeMaturity: number } => {
   return neurons.reduce(
     (acc, neuron) => {
-      const stake = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
-      const maturity = bigIntDiv(getNeuronTotalMaturityE8s(neuron), E8Sn);
+      const stake = bigIntDiv(getNeuronTotalStakeAfterFeesE8s(neuron), E8Sn);
+      const freeMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
       return {
         totalStakedAfterFees: acc.totalStakedAfterFees + stake,
-        totalMaturity: acc.totalMaturity + maturity,
+        totalFreeMaturity: acc.totalFreeMaturity + freeMaturity,
       };
     },
-    { totalStakedAfterFees: 0, totalMaturity: 0 },
+    { totalStakedAfterFees: 0, totalFreeMaturity: 0 },
   );
 };

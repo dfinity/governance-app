@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@components/Card';
 import { SensitiveValue } from '@components/SensitiveValue';
 import { Skeleton } from '@components/Skeleton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { useIcpPrice } from '@hooks/tickers';
 import { getNeuronsAggregatedData } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
@@ -25,9 +26,15 @@ export function CapitalCard({ neurons }: CapitalCardProps) {
   return (
     <Card className="gap-3 py-4" data-testid="stakes-summary-capital-card">
       <CardContent>
-        <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-          {t(($) => $.neuron.summary.capital)}
-        </p>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <p className="mb-2 w-fit cursor-default text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              {t(($) => $.neuron.summary.capital)}
+              <span className="sr-only">{t(($) => $.neuron.summary.capitalTooltip)}</span>
+            </p>
+          </TooltipTrigger>
+          <TooltipContent>{t(($) => $.neuron.summary.capitalTooltip)}</TooltipContent>
+        </Tooltip>
         {/* The staked total arrives with the neurons, so it never waits on the
             ticker price. Only the fiat line below does. */}
         <p className="text-lg font-semibold text-foreground md:text-2xl">

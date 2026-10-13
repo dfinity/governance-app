@@ -4,6 +4,7 @@ import { Principal } from '@icp-sdk/core/principal';
 import { describe, expect, it } from 'vitest';
 
 import {
+  E8Sn,
   ICP_TRANSACTION_FEE_E8Sn,
   MATURITY_DISBURSEMENT_DELAY_SECONDS,
   SECONDS_IN_MONTH as SECONDS_IN_MONTH_SECONDS,
@@ -18,6 +19,7 @@ import {
   getMaturityDisbursementFinalizeTimestampSeconds,
   getNeuronMaturityDisbursementsInProgress,
   getNeuronMaturityDisbursementsInProgressE8s,
+  getNeuronsAggregatedData,
   getSecondsSinceVotingPowerRefresh,
   getSecondsUntilDecayStarts,
   getSecondsUntilFollowingCleared,
@@ -241,6 +243,61 @@ describe('hasValueAboveTransactionFee', () => {
       },
     });
     expect(hasValueAboveTransactionFee(neuron)).toBe(false);
+  });
+});
+
+describe('getNeuronsAggregatedData', () => {
+  it('returns zero totals when there are no neurons', () => {
+    expect(getNeuronsAggregatedData()).toEqual({ totalStakedAfterFees: 0, totalFreeMaturity: 0 });
+  });
+
+  it('includes staked maturity in the staked total and not in the free maturity', () => {
+    const neuron = mockNeuron({
+      fullNeuron: {
+        cachedNeuronStake: 10n * E8Sn,
+        stakedMaturityE8sEquivalent: 2n * E8Sn,
+        maturityE8sEquivalent: 3n * E8Sn,
+      },
+    });
+    expect(getNeuronsAggregatedData([neuron])).toEqual({
+      totalStakedAfterFees: 12,
+      totalFreeMaturity: 3,
+    });
+  });
+
+  it('subtracts neuron fees from the stake but not from the staked maturity', () => {
+    const neuron = mockNeuron({
+      fullNeuron: {
+        cachedNeuronStake: 10n * E8Sn,
+        neuronFees: 1n * E8Sn,
+        stakedMaturityE8sEquivalent: 2n * E8Sn,
+      },
+    });
+    expect(getNeuronsAggregatedData([neuron]).totalStakedAfterFees).toBe(11);
+  });
+
+  it('sums the totals of all neurons', () => {
+    const neurons = [
+      mockNeuron({
+        fullNeuron: {
+          cachedNeuronStake: 10n * E8Sn,
+          stakedMaturityE8sEquivalent: 2n * E8Sn,
+          maturityE8sEquivalent: 1n * E8Sn,
+        },
+      }),
+      mockNeuron({
+        neuronId: 2n,
+        fullNeuron: {
+          cachedNeuronStake: 5n * E8Sn,
+          stakedMaturityE8sEquivalent: 1n * E8Sn,
+          maturityE8sEquivalent: 4n * E8Sn,
+        },
+      }),
+    ];
+    expect(getNeuronsAggregatedData(neurons)).toEqual({
+      totalStakedAfterFees: 18,
+      totalFreeMaturity: 5,
+    });
   });
 });
 

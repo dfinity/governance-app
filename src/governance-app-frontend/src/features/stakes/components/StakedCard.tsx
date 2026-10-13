@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { SensitiveValue } from '@components/SensitiveValue';
 import { Skeleton } from '@components/Skeleton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { E8Sn } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
@@ -52,7 +53,8 @@ export function StakedCard() {
   const neurons = neuronsQuery.data?.response ?? [];
   const neuronCount = neurons.length;
 
-  const { totalStakedAfterFees: totalStaked, totalMaturity } = getNeuronsAggregatedData(neurons);
+  const { totalStakedAfterFees: totalStaked, totalFreeMaturity } =
+    getNeuronsAggregatedData(neurons);
 
   const disburseAction = getDisburseAction(neurons);
   const [disburseModalOpen, setDisburseModalOpen] = useState(false);
@@ -66,10 +68,16 @@ export function StakedCard() {
       <CardHeader className="flex flex-col gap-0">
         <div className="flex min-h-9 w-full items-center justify-between">
           <div className="flex shrink-0 items-center gap-2">
-            <p className="text-sm tracking-wide text-muted-foreground uppercase">
-              <span className="sm:hidden">{t(($) => $.common.stakedShort)}</span>
-              <span className="hidden sm:inline">{t(($) => $.common.staked)}</span>
-            </p>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <p className="cursor-default text-sm tracking-wide text-muted-foreground uppercase">
+                  <span className="sm:hidden">{t(($) => $.common.stakedShort)}</span>
+                  <span className="hidden sm:inline">{t(($) => $.common.staked)}</span>
+                  <span className="sr-only">{t(($) => $.neuron.summary.capitalTooltip)}</span>
+                </p>
+              </TooltipTrigger>
+              <TooltipContent>{t(($) => $.neuron.summary.capitalTooltip)}</TooltipContent>
+            </Tooltip>
             {neuronsQuery.isLoading ? (
               <Skeleton className="size-5 rounded-full" />
             ) : (
@@ -128,7 +136,7 @@ export function StakedCard() {
               {neuronsQuery.isLoading ? (
                 <Skeleton className="h-7 w-13" />
               ) : (
-                <span className="text-xl font-bold">{formatNumber(totalMaturity)}</span>
+                <span className="text-xl font-bold">{formatNumber(totalFreeMaturity)}</span>
               )}
               <MaturitySymbol />
             </div>
