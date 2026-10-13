@@ -32,6 +32,15 @@ export const getProposalStatusColor = (proposal: ProposalInfo): string => {
   return 'bg-secondary text-secondary-foreground';
 };
 
+export const PROPOSAL_VOTING_ID = 'proposal-voting';
+
+/** Moves focus to the voting card and scrolls it into view. */
+export const scrollToProposalVoting = () => {
+  const voting = document.getElementById(PROPOSAL_VOTING_ID);
+  voting?.focus({ preventScroll: true });
+  voting?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
 export enum ProposalFilter {
   Open = 'open',
   All = 'all',
