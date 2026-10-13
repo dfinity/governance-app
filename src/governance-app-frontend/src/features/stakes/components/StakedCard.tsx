@@ -70,11 +70,14 @@ export function StakedCard() {
           <div className="flex shrink-0 items-center gap-2">
             <Tooltip>
               <TooltipTrigger asChild>
-                <p className="cursor-default text-sm tracking-wide text-muted-foreground uppercase">
+                <button
+                  type="button"
+                  className="cursor-default text-sm tracking-wide text-muted-foreground uppercase"
+                >
                   <span className="sm:hidden">{t(($) => $.common.stakedShort)}</span>
-                  <span className="hidden sm:inline">{t(($) => $.common.staked)}</span>
+                  <span className="hidden sm:inline">{t(($) => $.common.staked)}</span>{' '}
                   <span className="sr-only">{t(($) => $.neuron.summary.capitalTooltip)}</span>
-                </p>
+                </button>
               </TooltipTrigger>
               <TooltipContent>{t(($) => $.neuron.summary.capitalTooltip)}</TooltipContent>
             </Tooltip>

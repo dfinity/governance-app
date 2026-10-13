@@ -28,6 +28,8 @@ describe('CapitalCard', () => {
   it('tells the user that the total includes staked maturity', () => {
     render(<CapitalCard neurons={[mockNeuron()]} />);
 
-    expect(screen.getAllByText('Includes staked maturity').length).toBeGreaterThan(0);
+    expect(
+      screen.getByRole('button', { name: 'Locked in neurons Includes staked maturity' }),
+    ).toBeTruthy();
   });
 });

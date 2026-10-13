@@ -28,10 +28,13 @@ export function CapitalCard({ neurons }: CapitalCardProps) {
       <CardContent>
         <Tooltip>
           <TooltipTrigger asChild>
-            <p className="mb-2 w-fit cursor-default text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              {t(($) => $.neuron.summary.capital)}
+            <button
+              type="button"
+              className="mb-2 block w-fit cursor-default text-xs font-medium tracking-wide text-muted-foreground uppercase"
+            >
+              {t(($) => $.neuron.summary.capital)}{' '}
               <span className="sr-only">{t(($) => $.neuron.summary.capitalTooltip)}</span>
-            </p>
+            </button>
           </TooltipTrigger>
           <TooltipContent>{t(($) => $.neuron.summary.capitalTooltip)}</TooltipContent>
         </Tooltip>
