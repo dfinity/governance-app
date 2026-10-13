@@ -1,5 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { isNullish, nonNullish } from '@dfinity/utils';
+import { useInternetIdentity } from 'ic-use-internet-identity';
 import { AlertTriangle, CheckCircle, Clock, TrendingDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -15,6 +16,8 @@ import {
   getSecondsUntilDecayStarts,
   getSecondsUntilFollowingCleared,
   getVotingPowerRefreshedTimestampSeconds,
+  isUserController,
+  isUserHotkey,
 } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
 
@@ -32,7 +35,7 @@ type Props = {
  *
  * The 'ok' state has no alert, so the row itself shows the last confirmed date
  * and a "Confirm following" button. Hotkeys can call `refreshVotingPower`, so
- * the button is enabled for controllers and hotkeys.
+ * the button shows for controllers and hotkeys.
  *
  * The tooltip's duration text adapts per state:
  * - ok / warning: how long until voting power starts to decay
@@ -46,6 +49,7 @@ type Props = {
  */
 export function FollowingStatusInline({ neuron }: Props) {
   const { t } = useTranslation();
+  const { identity } = useInternetIdentity();
   const economicsQuery = useGovernanceEconomics();
   const economics = economicsQuery.data?.response?.votingPowerEconomics ?? undefined;
   const now = new Date();
@@ -132,11 +136,15 @@ export function FollowingStatusInline({ neuron }: Props) {
   const refreshedSeconds = getVotingPowerRefreshedTimestampSeconds(neuron);
   if (health !== 'ok' || isNullish(refreshedSeconds)) return status;
 
+  const principalId = identity?.getPrincipal().toText();
+  const canConfirm =
+    isUserController({ neuron, principalId }) || isUserHotkey({ neuron, principalId });
+
   return (
     <div className="flex flex-col items-end gap-1">
       <div className="flex items-center gap-3">
         {status}
-        <ConfirmFollowingButton neuronId={neuron.neuronId} />
+        {canConfirm && <ConfirmFollowingButton neuronId={neuron.neuronId} />}
       </div>
       <span className="text-xs text-muted-foreground" data-testid="neuron-following-last-confirmed">
         {t(($) => $.neuron.followingStatus.lastConfirmed, {

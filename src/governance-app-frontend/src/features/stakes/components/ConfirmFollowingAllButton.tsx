@@ -5,8 +5,9 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { Spinner } from '@components/Spinner';
+import { useGovernanceEconomics } from '@hooks/governance/useGovernanceEconomics';
 import { mapCanisterError } from '@utils/errors';
-import { isUserController } from '@utils/neuron';
+import { getFollowingHealth, isUserController } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
 
 import { useRefreshVotingPowerForNeurons } from '../hooks/useRefreshVotingPowerForNeurons';
@@ -16,18 +17,26 @@ type Props = {
 };
 
 /**
- * Confirms following on each neuron that the user controls. Neurons where the
- * user is only a hotkey are not included. Renders nothing if the user controls
- * no neuron.
+ * Confirms following on each neuron that the user controls. It skips:
+ * - neurons where the user is only a hotkey.
+ * - expired neurons, because a refresh does not restore cleared followees.
+ *
+ * Renders nothing if no neuron is left.
  */
 export function ConfirmFollowingAllButton({ neurons }: Props) {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
+  const economicsQuery = useGovernanceEconomics();
+  const economics = economicsQuery.data?.response?.votingPowerEconomics ?? undefined;
   const { mutateAsync, isPending } = useRefreshVotingPowerForNeurons();
 
   const principalId = identity?.getPrincipal().toText();
   const neuronIds = neurons
-    .filter((neuron) => isUserController({ neuron, principalId }))
+    .filter(
+      (neuron) =>
+        isUserController({ neuron, principalId }) &&
+        getFollowingHealth(neuron, economics) !== 'expired',
+    )
     .map((neuron) => neuron.neuronId);
 
   if (neuronIds.length === 0) return null;

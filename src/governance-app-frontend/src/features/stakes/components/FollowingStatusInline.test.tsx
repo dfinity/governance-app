@@ -114,6 +114,16 @@ describe('FollowingStatusInline', () => {
     expect(successNotification).not.toHaveBeenCalled();
   });
 
+  it('shows the date but not the button for a user who is not a controller or a hotkey', () => {
+    renderInline({
+      refreshedSeconds: daysAgo(10),
+      fullNeuron: { controller: 'other-principal', hotKeys: [] },
+    });
+
+    expect(screen.getByTestId('neuron-following-last-confirmed')).toBeTruthy();
+    expect(confirmButton()).toBeNull();
+  });
+
   it('does not show the button or the date outside the ok state', () => {
     // 5 months and 10 days ago: inside the 30-day warning window.
     renderInline({ refreshedSeconds: daysAgo(160) });
