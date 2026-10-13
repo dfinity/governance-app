@@ -78,6 +78,15 @@ describe('ProposalJumpToVoteLink', () => {
     expect(document.activeElement?.id).toBe(PROPOSAL_VOTING_ID);
     expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
   });
+
+  it('scrolls without animation when the user prefers reduced motion', async () => {
+    vi.mocked(matchMedia).mockReturnValueOnce({ matches: true } as MediaQueryList);
+    renderWithVoting(<ProposalJumpToVoteLink proposal={proposal} />);
+
+    await userEvent.click(screen.getByRole('link', { name: 'Vote' }));
+
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'auto', block: 'start' });
+  });
 });
 
 describe('ProposalJumpToVoteButton', () => {
