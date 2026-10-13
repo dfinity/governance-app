@@ -15,7 +15,7 @@ import { ConfirmFollowingAllButton } from './ConfirmFollowingAllButton';
 
 // ─── Module mocks ────────────────────────────────────────────────
 
-const { USER, ECONOMICS, refreshVotingPower } = vi.hoisted(() => ({
+const { USER, ECONOMICS, economicsState, refreshVotingPower } = vi.hoisted(() => ({
   USER: 'user-principal',
   // Protocol defaults: decay starts 6 months after the last refresh, and
   // following is cleared 1 month later.
@@ -23,6 +23,7 @@ const { USER, ECONOMICS, refreshVotingPower } = vi.hoisted(() => ({
     startReducingVotingPowerAfterSeconds: BigInt(6 * 30 * 86_400),
     clearFollowingAfterSeconds: BigInt(30 * 86_400),
   },
+  economicsState: { loaded: true },
   refreshVotingPower: vi.fn(),
 }));
 
@@ -37,10 +38,10 @@ vi.mock('@hooks/governance', () => ({
 }));
 
 vi.mock('@hooks/governance/useGovernanceEconomics', () => ({
-  useGovernanceEconomics: () => ({
-    data: { response: { votingPowerEconomics: ECONOMICS } },
-    isLoading: false,
-  }),
+  useGovernanceEconomics: () =>
+    economicsState.loaded
+      ? { data: { response: { votingPowerEconomics: ECONOMICS } }, isLoading: false }
+      : { data: undefined, isLoading: true },
 }));
 
 vi.mock('@utils/notification', () => ({
@@ -77,6 +78,7 @@ const confirmAllButton = () => screen.queryByTestId('confirm-following-all-btn')
 describe('ConfirmFollowingAllButton', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    economicsState.loaded = true;
     refreshVotingPower.mockResolvedValue(undefined);
   });
 
@@ -104,6 +106,13 @@ describe('ConfirmFollowingAllButton', () => {
 
   it('renders nothing when the user controls no neuron that is not expired', () => {
     renderButton([hotkeyNeuron(1n), controlledNeuron(2n, 240)]);
+
+    expect(confirmAllButton()).toBeNull();
+  });
+
+  it('renders nothing before the economics load', () => {
+    economicsState.loaded = false;
+    renderButton([controlledNeuron(1n), controlledNeuron(2n, 240)]);
 
     expect(confirmAllButton()).toBeNull();
   });

@@ -20,6 +20,8 @@ type Props = {
  * Confirms following on each neuron that the user controls. It skips:
  * - neurons where the user is only a hotkey.
  * - expired neurons, because a refresh does not restore cleared followees.
+ * - neurons with an unknown health (for example, before economics load), because
+ *   they can be expired.
  *
  * Renders nothing if no neuron is left.
  */
@@ -32,11 +34,10 @@ export function ConfirmFollowingAllButton({ neurons }: Props) {
 
   const principalId = identity?.getPrincipal().toText();
   const neuronIds = neurons
-    .filter(
-      (neuron) =>
-        isUserController({ neuron, principalId }) &&
-        getFollowingHealth(neuron, economics) !== 'expired',
-    )
+    .filter((neuron) => {
+      const health = getFollowingHealth(neuron, economics);
+      return isUserController({ neuron, principalId }) && !!health && health !== 'expired';
+    })
     .map((neuron) => neuron.neuronId);
 
   if (neuronIds.length === 0) return null;
