@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
+import { ConfirmFollowingAllButton } from '@features/stakes/components/ConfirmFollowingAllButton';
 import { EmptyNeuronsState } from '@features/stakes/components/EmptyNeuronsState';
 import { NeuronsList } from '@features/stakes/components/NeuronsList';
 import { StakingWizardModal } from '@features/stakes/components/stakingWizard/StakingWizardModal';
@@ -108,15 +109,18 @@ function NeuronsComponent() {
           title={t(($) => $.neuron.title)}
           description={t(($) => $.neuron.description)}
           actions={
-            <Button
-              onClick={handleOpenStakingWizard}
-              data-testid="staking-wizard-trigger-btn"
-              className="w-full sm:w-auto"
-              size="xl"
-            >
-              <Plus />
-              {t(($) => $.stakeWizardModal.title)}
-            </Button>
+            <div className="flex w-full flex-col-reverse gap-2 sm:w-auto sm:flex-row">
+              <ConfirmFollowingAllButton neurons={neuronsQuery.data?.response ?? []} />
+              <Button
+                onClick={handleOpenStakingWizard}
+                data-testid="staking-wizard-trigger-btn"
+                className="w-full sm:w-auto"
+                size="xl"
+              >
+                <Plus />
+                {t(($) => $.stakeWizardModal.title)}
+              </Button>
+            </div>
           }
         />
       )}

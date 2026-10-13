@@ -516,6 +516,17 @@ export const isUserHotkey = ({
 };
 
 /**
+ * Returns true if the current user is the controller of the neuron.
+ */
+export const isUserController = ({
+  neuron,
+  principalId,
+}: {
+  neuron: NeuronInfo;
+  principalId?: string | null;
+}): boolean => !!principalId && neuron.fullNeuron?.controller === principalId;
+
+/**
  * Aggregates staking data from multiple neurons.
  * @param neurons - Array of neurons to aggregate data from
  * @returns Object containing totalStakedAfterFees and totalMaturity
