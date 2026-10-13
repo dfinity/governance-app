@@ -12,6 +12,7 @@ import { formatNumber, formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
 import { useVoting } from '../hooks/useVoting';
+import { PROPOSAL_VOTING_ID } from '../utils';
 
 type Props = {
   proposal: ProposalInfo;
@@ -55,7 +56,11 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   if (!identity) return null;
 
   return (
-    <Card>
+    <Card
+      id={PROPOSAL_VOTING_ID}
+      tabIndex={-1}
+      className="scroll-mt-[calc(1rem+env(safe-area-inset-top))] outline-none"
+    >
       <CardHeader>
         <CardTitle>{t(($) => $.proposal.votingStatus)}</CardTitle>
       </CardHeader>
