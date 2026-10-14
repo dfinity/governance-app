@@ -29,10 +29,13 @@ export function EngagementCard({ neurons }: EngagementCardProps) {
       <CardContent>
         <Tooltip>
           <TooltipTrigger asChild>
-            <p className="mb-2 w-fit cursor-default text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              {t(($) => $.neuron.summary.engagement)}
+            <button
+              type="button"
+              className="mb-2 block w-fit cursor-default text-xs font-medium tracking-wide text-muted-foreground uppercase"
+            >
+              {t(($) => $.neuron.summary.engagement)}{' '}
               <span className="sr-only">{t(($) => $.neuron.summary.engagementTooltip)}</span>
-            </p>
+            </button>
           </TooltipTrigger>
           <TooltipContent>{t(($) => $.neuron.summary.engagementTooltip)}</TooltipContent>
         </Tooltip>
