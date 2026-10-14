@@ -15,6 +15,11 @@ clap.define short=e long=environment desc="icp environment: local (2s delay on u
 # Source the output file
 source "$(clap.build)"
 
+if [[ "$ENVIRONMENT" != "local" && "$ENVIRONMENT" != "e2e" ]]; then
+  echo "Error: Environment must be 'local' or 'e2e', got: $ENVIRONMENT"
+  exit 1
+fi
+
 # Change to root directory
 cd "$ROOT_DIR"
 

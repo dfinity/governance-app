@@ -26,7 +26,8 @@ const controller = Principal.fromText(controllerText);
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const descriptorPath = resolve(rootDir, '.icp/cache/networks', network, 'descriptor.json');
 const descriptor = JSON.parse(readFileSync(descriptorPath, 'utf8'));
-const instanceUrl = `http://127.0.0.1:${descriptor['pocketic-config-port']}/instances/${descriptor['pocketic-instance-id']}`;
+const serverUrl = `http://127.0.0.1:${descriptor['pocketic-config-port']}`;
+const instanceUrl = `${serverUrl}/instances/${descriptor['pocketic-instance-id']}`;
 
 const toBase64 = (bytes) => Buffer.from(bytes).toString('base64');
 
@@ -37,7 +38,25 @@ const CreateArgs = IDL.Record({
 });
 const CreateResult = IDL.Record({ canister_id: IDL.Principal });
 
-// The network runs in live mode, so PocketIC answers 409 while it advances time. Retry until done.
+const sleep = () => new Promise((done) => setTimeout(done, RETRY_DELAY_MS));
+
+const timeOut = (what) => {
+  console.error(`Timed out on ${what} for ${canisterId.toText()}.`);
+  process.exit(1);
+};
+
+// PocketIC answers 202 with a handle when it starts an operation. Poll the handle until done.
+const pollOperation = async ({ state_label, op_id }) => {
+  const url = `${serverUrl}/read_graph/${encodeURIComponent(state_label)}/${encodeURIComponent(op_id)}`;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const response = await fetch(url);
+    if (response.status !== 404) return { ok: response.ok, result: await response.json() };
+    await sleep();
+  }
+  timeOut(`operation ${op_id}`);
+};
+
+// The network runs in live mode, so PocketIC answers 409 while it advances time. Retry until free.
 const post = async (path, body) => {
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     const response = await fetch(`${instanceUrl}/update/${path}`, {
@@ -45,13 +64,11 @@ const post = async (path, body) => {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(body),
     });
-    if (response.status !== 409 && response.status !== 202) {
-      return { ok: response.ok, result: await response.json() };
-    }
-    await new Promise((done) => setTimeout(done, RETRY_DELAY_MS));
+    if (response.status === 202) return pollOperation(await response.json());
+    if (response.status !== 409) return { ok: response.ok, result: await response.json() };
+    await sleep();
   }
-  console.error(`Timed out on ${path} for ${canisterId.toText()}.`);
-  process.exit(1);
+  timeOut(path);
 };
 
 // The sender becomes the only controller of the new canister.
