@@ -1,17 +1,26 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { nonNullish } from '@dfinity/utils';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { AlertTriangle, CheckCircle, Clock, TrendingDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Skeleton } from '@components/Skeleton';
+import { Spinner } from '@components/Spinner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { useGovernanceEconomics } from '@hooks/governance/useGovernanceEconomics';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
+import { secondsToDate } from '@utils/date';
+import { mapCanisterError } from '@utils/errors';
 import {
   formatRemainingTime,
   getFollowingHealth,
   getSecondsUntilDecayStarts,
   getSecondsUntilFollowingCleared,
+  getVotingPowerRefreshedTimestampSeconds,
+  isUserControllerOrHotkey,
 } from '@utils/neuron';
+import { errorNotification, successNotification } from '@utils/notification';
+
+import { useRefreshVotingPower } from '../hooks/useRefreshVotingPower';
 
 type Props = {
   neuron: NeuronInfo;
@@ -22,6 +31,10 @@ type Props = {
  * label) in all four states. The 'warning', 'decaying' and 'expired' states are
  * also surfaced as a full alert with a CTA at the top of the detail view; this
  * row stays as a quick at-a-glance reference.
+ *
+ * The 'ok' state has no alert, so the row itself shows the last confirmed date
+ * and a "Confirm following" button. Hotkeys can call `refreshVotingPower`, so
+ * the button shows for controllers and hotkeys.
  *
  * The tooltip's duration text adapts per state:
  * - ok / warning: how long until voting power starts to decay
@@ -35,6 +48,7 @@ type Props = {
  */
 export function FollowingStatusInline({ neuron }: Props) {
   const { t } = useTranslation();
+  const { identity } = useInternetIdentity();
   const economicsQuery = useGovernanceEconomics();
   const economics = economicsQuery.data?.response?.votingPowerEconomics ?? undefined;
   const now = new Date();
@@ -102,7 +116,7 @@ export function FollowingStatusInline({ neuron }: Props) {
     }
   })();
 
-  return (
+  const status = (
     <Tooltip>
       <TooltipTrigger asChild>
         <button
@@ -116,5 +130,56 @@ export function FollowingStatusInline({ neuron }: Props) {
       </TooltipTrigger>
       <TooltipContent>{tooltip}</TooltipContent>
     </Tooltip>
+  );
+
+  const refreshedSeconds = getVotingPowerRefreshedTimestampSeconds(neuron);
+  if (health !== 'ok' || isNullish(refreshedSeconds)) return status;
+
+  const principalId = identity?.getPrincipal().toText();
+  const canConfirm = isUserControllerOrHotkey({ neuron, principalId });
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <div className="flex items-center gap-3">
+        {status}
+        {canConfirm && <ConfirmFollowingButton neuronId={neuron.neuronId} />}
+      </div>
+      <span className="text-xs text-muted-foreground" data-testid="neuron-following-last-confirmed">
+        {t(($) => $.neuron.followingStatus.lastConfirmed, {
+          date: secondsToDate(Number(refreshedSeconds)),
+        })}
+      </span>
+    </div>
+  );
+}
+
+function ConfirmFollowingButton({ neuronId }: { neuronId: bigint }) {
+  const { t } = useTranslation();
+  const { mutateAsync, isPending } = useRefreshVotingPower();
+
+  const handleConfirm = async () => {
+    try {
+      await mutateAsync({ neuronId, health: 'ok' });
+      successNotification({
+        description: t(($) => $.neuron.followingStatus.success),
+      });
+    } catch (err) {
+      errorNotification({
+        description: mapCanisterError(err as Error),
+      });
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      className="flex items-center gap-1.5 font-semibold text-primary hover:underline disabled:pointer-events-none disabled:opacity-50"
+      onClick={handleConfirm}
+      disabled={isPending}
+      data-testid="confirm-following-inline-btn"
+    >
+      {isPending && <Spinner className="size-3.5" />}
+      {t(($) => $.neuron.followingStatus.cta)}
+    </button>
   );
 }

@@ -4,6 +4,7 @@ import { Principal } from '@icp-sdk/core/principal';
 import { describe, expect, it } from 'vitest';
 
 import {
+  E8Sn,
   ICP_TRANSACTION_FEE_E8Sn,
   MATURITY_DISBURSEMENT_DELAY_SECONDS,
   SECONDS_IN_MONTH as SECONDS_IN_MONTH_SECONDS,
@@ -18,11 +19,13 @@ import {
   getMaturityDisbursementFinalizeTimestampSeconds,
   getNeuronMaturityDisbursementsInProgress,
   getNeuronMaturityDisbursementsInProgressE8s,
+  getNeuronsAggregatedData,
   getSecondsSinceVotingPowerRefresh,
   getSecondsUntilDecayStarts,
   getSecondsUntilFollowingCleared,
   hasValueAboveTransactionFee,
   isNonEmptyNeuron,
+  isUserControllerOrHotkey,
 } from './neuron';
 
 // Reuse the shared month constant (SECONDS_IN_YEAR / 12) rather than a local
@@ -244,6 +247,66 @@ describe('hasValueAboveTransactionFee', () => {
   });
 });
 
+describe('getNeuronsAggregatedData', () => {
+  it('returns zero totals when there are no neurons', () => {
+    expect(getNeuronsAggregatedData()).toEqual({
+      totalStakedAfterFees: 0,
+      totalMaturity: 0,
+      totalStakedMaturity: 0,
+      totalFreeMaturity: 0,
+    });
+  });
+
+  it('counts staked maturity in the maturity totals and not in the stake', () => {
+    const neuron = mockNeuron({
+      fullNeuron: {
+        cachedNeuronStake: 10n * E8Sn,
+        stakedMaturityE8sEquivalent: 2n * E8Sn,
+        maturityE8sEquivalent: 3n * E8Sn,
+      },
+    });
+    expect(getNeuronsAggregatedData([neuron])).toEqual({
+      totalStakedAfterFees: 10,
+      totalMaturity: 5,
+      totalStakedMaturity: 2,
+      totalFreeMaturity: 3,
+    });
+  });
+
+  it('subtracts neuron fees from the stake', () => {
+    const neuron = mockNeuron({
+      fullNeuron: { cachedNeuronStake: 10n * E8Sn, neuronFees: 1n * E8Sn },
+    });
+    expect(getNeuronsAggregatedData([neuron]).totalStakedAfterFees).toBe(9);
+  });
+
+  it('sums the totals of all neurons', () => {
+    const neurons = [
+      mockNeuron({
+        fullNeuron: {
+          cachedNeuronStake: 10n * E8Sn,
+          stakedMaturityE8sEquivalent: 2n * E8Sn,
+          maturityE8sEquivalent: 1n * E8Sn,
+        },
+      }),
+      mockNeuron({
+        neuronId: 2n,
+        fullNeuron: {
+          cachedNeuronStake: 5n * E8Sn,
+          stakedMaturityE8sEquivalent: 1n * E8Sn,
+          maturityE8sEquivalent: 4n * E8Sn,
+        },
+      }),
+    ];
+    expect(getNeuronsAggregatedData(neurons)).toEqual({
+      totalStakedAfterFees: 15,
+      totalMaturity: 8,
+      totalStakedMaturity: 3,
+      totalFreeMaturity: 5,
+    });
+  });
+});
+
 describe('isNonEmptyNeuron', () => {
   it('returns false for a neuron with no stake, no maturity, no disbursements', () => {
     const neuron = mockNeuron();
@@ -436,5 +499,34 @@ describe('getFollowingHealth', () => {
   it('returns undefined when thresholds are missing', () => {
     const neuron = mockNeuron({ votingPowerRefreshedTimestampSeconds: NOW_SECONDS });
     expect(getFollowingHealth(neuron, undefined, NOW)).toBeUndefined();
+  });
+});
+
+describe('isUserControllerOrHotkey', () => {
+  const USER = 'user-principal';
+
+  it('returns true when the user is the controller', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: USER } });
+    expect(isUserControllerOrHotkey({ neuron, principalId: USER })).toBe(true);
+  });
+
+  it('returns true when the user is a hotkey', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: 'other', hotKeys: [USER] } });
+    expect(isUserControllerOrHotkey({ neuron, principalId: USER })).toBe(true);
+  });
+
+  it('returns false when the user is neither the controller nor a hotkey', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: 'other', hotKeys: ['another'] } });
+    expect(isUserControllerOrHotkey({ neuron, principalId: USER })).toBe(false);
+  });
+
+  it('returns false without a principal', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: USER } });
+    expect(isUserControllerOrHotkey({ neuron, principalId: undefined })).toBe(false);
+  });
+
+  it('returns false without a full neuron', () => {
+    const neuron = mockNeuron({ fullNeuron: undefined });
+    expect(isUserControllerOrHotkey({ neuron, principalId: USER })).toBe(false);
   });
 });

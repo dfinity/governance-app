@@ -8,6 +8,7 @@
   "addAddress": "Add new address",
   "editAddress": "Edit address",
   "saveAddress": "Save address",
+  "saveAnyway": "Save anyway",
   "saveToAddressBook": "Save to address book",
   "updatingAddressBook": "Updating address book...",
   "confirmNavigation": "Your address book is being updated. Leaving this page may cause unexpected results. Are you sure you want to leave?",
@@ -29,7 +30,9 @@
     "nicknameTooShort": "Nickname must be at least 3 characters.",
     "nicknameTooLong": "Nickname must be at most 64 characters.",
     "nicknameAlreadyUsed": "This nickname is already in use.",
-    "invalidAddress": "Please enter a valid ICP or ICRC1 address."
+    "invalidAddress": "Please enter a valid ICP or ICRC1 address.",
+    "addressAlreadySaved": "This address is already saved as <strong>{{name}}</strong>.",
+    "editInstead": "Edit {{name}} instead"
   },
   "toast": {
     "anonymousNotAllowed": "Please sign in to manage the address book.",
@@ -43,9 +46,14 @@
   },
   "maxReached": "You have reached the maximum of 20 saved addresses.",
   "sendFlow": {
-    "toggleLabel": "Use address book",
     "tooltipLoading": "Loading address book...",
-    "tooltipEmpty": "The address book is empty",
     "selectPlaceholder": "Select an address"
+  },
+  "account": "Account",
+  "destination": {
+    "placeholder": "Type a name or paste an address",
+    "placeholderWithAccounts": "Your accounts, a contact, or an address",
+    "addNew": "Add a new address",
+    "clear": "Clear the destination"
   }
 }

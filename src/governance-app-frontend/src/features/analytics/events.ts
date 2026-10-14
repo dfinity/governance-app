@@ -16,6 +16,8 @@ export enum AnalyticsEvent {
   StakingConfirmationError = 'staking_confirmation_error',
   StakingRefreshVotingPower = 'staking_refresh_voting_power',
   StakingRefreshVotingPowerError = 'staking_refresh_voting_power_error',
+  StakingRefreshVotingPowerAll = 'staking_refresh_voting_power_all',
+  StakingRefreshVotingPowerAllError = 'staking_refresh_voting_power_all_error',
   StakingOpenApyOptimization = 'staking_open_apy_optimization',
   StakingOpenStakingRatio = 'staking_open_staking_ratio',
 
