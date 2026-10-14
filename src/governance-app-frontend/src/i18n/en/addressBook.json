@@ -43,9 +43,14 @@
   },
   "maxReached": "You have reached the maximum of 20 saved addresses.",
   "sendFlow": {
-    "toggleLabel": "Use address book",
     "tooltipLoading": "Loading address book...",
-    "tooltipEmpty": "The address book is empty",
     "selectPlaceholder": "Select an address"
+  },
+  "account": "Account",
+  "destination": {
+    "placeholder": "Type a name or paste an address",
+    "placeholderWithAccounts": "Your accounts, a contact, or an address",
+    "addNew": "Add a new address",
+    "clear": "Clear the destination"
   }
 }
