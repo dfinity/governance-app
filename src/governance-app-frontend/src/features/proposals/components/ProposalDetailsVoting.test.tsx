@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   observer: undefined as
     | { callback: IntersectionObserverCallback; options?: IntersectionObserverInit }
     | undefined,
+  resize: undefined as (() => void) | undefined,
 }));
 
 vi.mock('ic-use-internet-identity', () => ({
@@ -39,6 +40,15 @@ class FakeIntersectionObserver {
   disconnect = vi.fn();
 }
 vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver);
+
+class FakeResizeObserver {
+  constructor(callback: () => void) {
+    mocks.resize = callback;
+  }
+  observe = vi.fn();
+  disconnect = vi.fn();
+}
+vi.stubGlobal('ResizeObserver', FakeResizeObserver);
 
 // ─── Helpers ─────────────────────────────────────────────────────
 
@@ -76,6 +86,7 @@ beforeEach(() => {
   mocks.canVote = true;
   mocks.hasVoted = false;
   mocks.observer = undefined;
+  mocks.resize = undefined;
 });
 
 describe('ProposalDetailsVoting', () => {
@@ -102,6 +113,15 @@ describe('ProposalDetailsVoting', () => {
     const main = renderInMain();
 
     expect(mocks.observer?.options).toMatchObject({ root: main, rootMargin: '0px 0px -8px 0px' });
+  });
+
+  it('follows the bottom padding of main when it changes', () => {
+    const main = renderInMain();
+
+    main.style.paddingBottom = '32px';
+    act(() => mocks.resize!());
+
+    expect(mocks.observer?.options).toMatchObject({ root: main, rootMargin: '0px 0px -32px 0px' });
   });
 
   it('shows no vote buttons when the user cannot vote', () => {
