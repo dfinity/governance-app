@@ -1,5 +1,5 @@
 import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
-import { secondsToDuration } from '@dfinity/utils';
+import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import {
   CheckCircle,
   Clock,
@@ -9,6 +9,7 @@ import {
   ThumbsDown,
   ThumbsUp,
   TriangleAlert,
+  User,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -19,6 +20,8 @@ import { Card, CardFooter, CardHeader } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
 import { Spinner } from '@components/Spinner';
 import { E8S } from '@constants/extra';
+import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
+import { shortenNeuronId } from '@utils/neuron';
 import { formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
@@ -52,6 +55,12 @@ export function ProposalListItem({ proposal, certified, isSpam, isNonActionable 
     i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
   });
   const statusColor = getProposalStatusColor(proposal);
+
+  const knownNeurons = useGovernanceKnownNeurons().data?.response;
+  const proposer = proposal.proposer;
+  const proposerName = nonNullish(proposer)
+    ? (knownNeurons?.find(({ id }) => id === proposer)?.name ?? shortenNeuronId(proposer))
+    : undefined;
 
   const { vote, isVoting, hasVoted, isVoteMixed, voteValue, canVote } = useVoting(proposal);
 
@@ -93,7 +102,7 @@ export function ProposalListItem({ proposal, certified, isSpam, isNonActionable 
           {proposal.proposal?.title}
         </h3>
 
-        <div className="flex flex-col gap-2 text-xs lg:flex-row lg:flex-wrap lg:items-center">
+        <div className="flex flex-col gap-2 text-xs lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <Badge className={statusColor}>
               {ProposalStatus[proposal.status] ??
@@ -109,6 +118,16 @@ export function ProposalListItem({ proposal, certified, isSpam, isNonActionable 
               <Tag className="size-3.5" />
               {Topic[proposal.topic] ?? t(($) => $.proposal.unknownTopic, { id: proposal.topic })}
             </Badge>
+            {nonNullish(proposerName) && (
+              <Badge
+                variant="secondary"
+                className="gap-1.5 font-normal"
+                data-testid="proposal-proposer-badge"
+              >
+                <User className="size-3.5" />
+                <span className="max-w-[150px] truncate">{proposerName}</span>
+              </Badge>
+            )}
             {isSpam && (
               <Badge className={warningBadgeClassName}>
                 <ShieldBan className="size-3.5" />
@@ -123,7 +142,7 @@ export function ProposalListItem({ proposal, certified, isSpam, isNonActionable 
             )}
           </div>
 
-          <div className="flex w-full min-w-[200px] flex-1 items-center gap-2 lg:ml-auto lg:w-auto lg:max-w-[500px]">
+          <div className="flex w-full min-w-[200px] flex-1 items-center gap-2 lg:w-auto lg:max-w-[500px]">
             <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400">
               {formatPercentage(yesProportion)}
             </span>
