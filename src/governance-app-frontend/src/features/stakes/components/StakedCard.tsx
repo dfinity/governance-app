@@ -131,17 +131,23 @@ export function StakedCard() {
       <CardContent className="flex flex-1 flex-col justify-between gap-6">
         <div className="mt-auto grid grid-cols-2 gap-6 border-t pt-4 text-right">
           <div className="flex flex-col gap-1">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  className="cursor-default self-end text-xs font-medium tracking-wide text-muted-foreground uppercase"
-                >
-                  {t(($) => $.home.maturity)} <span className="sr-only">{maturityTooltip}</span>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>{maturityTooltip}</TooltipContent>
-            </Tooltip>
+            {neuronsQuery.isLoading ? (
+              <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                {t(($) => $.home.maturity)}
+              </p>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="cursor-default self-end text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                  >
+                    {t(($) => $.home.maturity)} <span className="sr-only">{maturityTooltip}</span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>{maturityTooltip}</TooltipContent>
+              </Tooltip>
+            )}
             <div className="flex items-center justify-end gap-1.5">
               {neuronsQuery.isLoading ? (
                 <Skeleton className="h-7 w-13" />
