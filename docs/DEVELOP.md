@@ -31,7 +31,9 @@ npm run start:ic
 
 The script uses [icp-cli](https://github.com/dfinity/icp-cli) to start the network that [icp.yaml](/icp.yaml) defines. `npm ci` installs icp-cli, because it is a devDependency. The first start downloads the network launcher.
 
-The network has the system canisters (NNS, SNS, II). Update calls get a 2-second delay to simulate mainnet. Each start begins with a clean state and deploys `governance-app-backend` with its mainnet canister ID.
+The network has the system canisters (NNS, SNS, II). Update calls get a 2-second delay to simulate mainnet. A new network begins with a clean state and gets `governance-app-backend` with its mainnet canister ID.
+
+If the network already runs, the script only upgrades `governance-app-backend`. Neurons, balances and canister data stay. A stopped network loses its state, because icp-cli always starts from a clean state.
   - Governance app: http://mc7vh-sqaaa-aaaai-q33na-cai.localhost:8080
   - NNS dapp: http://qoctq-giaaa-aaaaa-aaaea-cai.localhost:8080
   - SNS Aggregator: http://3r4gx-wqaaa-aaaaq-aaaia-cai.localhost:8080

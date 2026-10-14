@@ -36,19 +36,26 @@ NETWORK="$ENVIRONMENT"
 source "$ROOT_DIR/.env"
 
 echo ""
-echo "🚀 Starting the local network with system canisters (NNS, SNS, II)..."
+# icp-cli starts every network from a clean state, so a running network is the only way to keep
+# neurons, balances and canister data.
+if icp network status "$NETWORK" >/dev/null 2>&1; then
+  echo "♻️  The '$NETWORK' network already runs. Upgrading governance-app-backend and keeping the network state..."
+else
+  echo "🚀 Starting the local network with system canisters (NNS, SNS, II)..."
 
-# icp-cli starts every network from a clean state. Stop a network that still runs on the port.
-for network in local e2e; do
-  icp network stop "$network" >/dev/null 2>&1 || true
-done
-icp network start "$NETWORK" --background
+  # Stop a network that still runs on the port.
+  for network in local e2e; do
+    icp network stop "$network" >/dev/null 2>&1 || true
+  done
+  icp network start "$NETWORK" --background
 
-# Create governance-app-backend with the same ID as production, then deploy it.
-node "$DIR/create-local-canister.mjs" "$NETWORK" "$CANISTER_ID_SELF" "$(icp identity principal)"
-# The IDs from an earlier run belong to a network that no longer exists.
-rm -f "$ROOT_DIR/.icp/cache/mappings/$ENVIRONMENT.ids.json"
-icp canister link governance-app-backend "$CANISTER_ID_SELF" --environment "$ENVIRONMENT"
+  # Create governance-app-backend with the same ID as production.
+  node "$DIR/create-local-canister.mjs" "$NETWORK" "$CANISTER_ID_SELF" "$(icp identity principal)"
+  # The IDs from an earlier run belong to a network that no longer exists.
+  rm -f "$ROOT_DIR/.icp/cache/mappings/$ENVIRONMENT.ids.json"
+  icp canister link governance-app-backend "$CANISTER_ID_SELF" --environment "$ENVIRONMENT"
+fi
+
 icp deploy governance-app-backend --environment "$ENVIRONMENT" --yes
 
 echo ""
