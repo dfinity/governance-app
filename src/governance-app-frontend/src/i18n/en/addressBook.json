@@ -43,8 +43,7 @@
   },
   "maxReached": "You have reached the maximum of 20 saved addresses.",
   "sendFlow": {
-    "tooltipLoading": "Loading address book...",
-    "selectPlaceholder": "Select an address"
+    "tooltipLoading": "Loading address book..."
   },
   "account": "Account",
   "destination": {
