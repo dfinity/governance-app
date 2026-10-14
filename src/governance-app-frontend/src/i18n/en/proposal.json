@@ -5,7 +5,6 @@
   "action": "Action",
   "timeLeft": "{{timeLeft}} left",
   "votingStatus": "Voting status",
-  "jumpToVote": "Vote",
   "totalVotingPower": "Total voting power",
   "participation": "Participation",
   "yesVotes": "Yes votes",
