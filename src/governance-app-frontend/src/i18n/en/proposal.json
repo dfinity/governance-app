@@ -28,6 +28,7 @@
   "unknownStatus": "Unknown status: {{id}}",
   "spamBadge": "Spam",
   "nonActionableBadge": "Non-actionable",
+  "proposer": "Proposer: {{name}}",
   "spamWarning": {
     "abusiveTitle": "Spam",
     "nonActionableTitle": "Non-actionable",
