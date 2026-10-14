@@ -1,7 +1,7 @@
 import { Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import type { NamedAddress } from '@declarations/governance-app-backend/governance-app-backend.did';
+import type { NamedAddress } from '@declarations/governance-app-backend/backend.did';
 
 import { Badge } from '@components/badge';
 import { Button } from '@components/button';

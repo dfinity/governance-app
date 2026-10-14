@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import React, { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { NamedAddress } from '@declarations/governance-app-backend/governance-app-backend.did';
+import type { NamedAddress } from '@declarations/governance-app-backend/backend.did';
 
 import { ScanAddressButton } from '@features/account/components/ScanAddressButton';
 import {

@@ -1,6 +1,6 @@
 import { isNullish } from '@dfinity/utils';
 
-import type { AddressType } from '@declarations/governance-app-backend/governance-app-backend.did';
+import type { AddressType } from '@declarations/governance-app-backend/backend.did';
 
 export const addressBookGetAddressString = (address: AddressType | undefined): string => {
   if (isNullish(address)) return '';

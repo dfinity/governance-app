@@ -1,0 +1,45 @@
+# Local development only. Mainnet wasms come from scripts/build.sh and ship through Orbit
+# (scripts/release-prod).
+networks:
+  - name: local
+    mode: managed
+    version: v16.0.0-2026-09-25-03-28
+    gateway:
+      port: 8080
+    nns: true
+    # Mainnet-like latency for update calls.
+    artificial-delay-ms: 2000
+  - name: e2e
+    mode: managed
+    version: v16.0.0-2026-09-25-03-28
+    gateway:
+      port: 8080
+    nns: true
+
+canisters:
+  - name: governance-app-backend
+    build:
+      steps:
+        - type: script
+          commands:
+            - |-
+              if [ "$ICP_CLI_ENVIRONMENT" = ic ]; then
+                echo >&2 'Build mainnet wasms with scripts/build.sh and release them with scripts/release-prod.'
+                exit 1
+              fi
+            - ./scripts/config.sh -n local
+            - npm run generate:bindings
+            - npm run build
+            - cargo build --target wasm32-unknown-unknown --release -p governance-app-backend --locked --features testnet
+            - gzip --no-name --stdout target/wasm32-unknown-unknown/release/governance_app_backend.wasm > "$ICP_WASM_OUTPUT_PATH"
+
+environments:
+  - name: local
+    network: local
+    canisters: [governance-app-backend]
+  - name: e2e
+    network: e2e
+    canisters: [governance-app-backend]
+  - name: ic
+    network: ic
+    canisters: [governance-app-backend]

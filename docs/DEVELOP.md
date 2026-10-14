@@ -21,21 +21,26 @@ When bumping versions, update both the `volta` block (exact pin) and `engines` (
 
 ## Local
 
-To run the project locally, you need to start the local replica and then deploy the application.
+To run the project locally, start the local network and then start the frontend.
 
-1. **Start the local replica:** This will download the version of `pocket-ic` specified in [config.json](/config.json) if it is not already present. It will then start `dfx` with system canisters (NNS, II, SNS) and a delay for Update calls to simulate real mainnet conditions.
+1. **Start the local network:**
 
 ```sh
 npm run start:ic
 ```
 
-This script downloads the required `pocket-ic` binary (version defined in `config.json`) if needed, and starts the replica with system canisters (NNS, II, SNS) enabled.
+The script uses [icp-cli](https://github.com/dfinity/icp-cli) to start the network that [icp.yaml](/icp.yaml) defines. `npm ci` installs icp-cli, because it is a devDependency. The first start downloads the network launcher.
+
+The network has the system canisters (NNS, SNS, II). Update calls get a 2-second delay to simulate mainnet. Each start begins with a clean state and deploys `governance-app-backend` with its mainnet canister ID.
+  - Governance app: http://mc7vh-sqaaa-aaaai-q33na-cai.localhost:8080
   - NNS dapp: http://qoctq-giaaa-aaaaa-aaaea-cai.localhost:8080
   - SNS Aggregator: http://3r4gx-wqaaa-aaaaq-aaaia-cai.localhost:8080
-  - Internet Identity: http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:8080
-  
-Note: This requires a version of dfx that supports the `--system-canisters` flag (version 0.30.1 or higher).
-It can be installed with `dfxvm install 0.30.1`.
+  - Internet Identity: http://uqzsh-gqaaa-aaaaq-qaada-cai.localhost:8080
+
+To start a network without the delay (the e2e tests in CI use it), run `npm run start:ic -- --environment e2e`.
+To stop the network, press Ctrl+C, or run `npx icp network stop` if the network runs in the background.
+
+Note: The network uses port 8080. If a dfx replica still runs, stop it first with `dfx stop`.
 
 2. **Start the frontend:**
 
