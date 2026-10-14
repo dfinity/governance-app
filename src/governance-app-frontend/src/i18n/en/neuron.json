@@ -74,7 +74,7 @@
       "notSetUp": "Not set up",
       "setupVoting": "Select known neuron",
       "notSetUpDetail": "Your neurons do not vote automatically.",
-      "partialDetail": "Some topics do not vote automatically.",
+      "partialDetail": "Your neurons do not vote automatically on some topics.",
       "dueIn": "Due in {{duration}}",
       "confirmNow": "Confirm now",
       "confirmSoon": "Confirm soon",
