@@ -5,10 +5,6 @@ import { ArrowLeft, Clock, Link as LinkIcon, Tag } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalDetailsVoting } from '@features/proposals/components/ProposalDetailsVoting';
-import {
-  ProposalJumpToVoteButton,
-  ProposalJumpToVoteLink,
-} from '@features/proposals/components/ProposalJumpToVote';
 import { ProposerBadge } from '@features/proposals/components/ProposerBadge';
 import { SelfDescribingActionView } from '@features/proposals/components/SelfDescribingActionView';
 import {
@@ -134,7 +130,6 @@ function ProposalDetailsRouteComponent() {
                         {t(($) => $.proposal.timeLeft, { timeLeft })}
                       </Badge>
                     )}
-                    <ProposalJumpToVoteLink proposal={proposal} />
                     <Badge variant="secondary" className="gap-1.5 font-normal">
                       <Tag className="h-3.5 w-3.5" />
                       {Topic[proposal.topic] ??
@@ -216,8 +211,6 @@ function ProposalDetailsRouteComponent() {
                   </CardContent>
                 </Card>
               )}
-
-              <ProposalJumpToVoteButton proposal={proposal} />
             </>
           );
         }}
