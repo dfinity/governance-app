@@ -248,10 +248,15 @@ describe('hasValueAboveTransactionFee', () => {
 
 describe('getNeuronsAggregatedData', () => {
   it('returns zero totals when there are no neurons', () => {
-    expect(getNeuronsAggregatedData()).toEqual({ totalStakedAfterFees: 0, totalFreeMaturity: 0 });
+    expect(getNeuronsAggregatedData()).toEqual({
+      totalStakedAfterFees: 0,
+      totalMaturity: 0,
+      totalStakedMaturity: 0,
+      totalFreeMaturity: 0,
+    });
   });
 
-  it('includes staked maturity in the staked total and not in the free maturity', () => {
+  it('counts staked maturity in the maturity totals and not in the stake', () => {
     const neuron = mockNeuron({
       fullNeuron: {
         cachedNeuronStake: 10n * E8Sn,
@@ -260,20 +265,18 @@ describe('getNeuronsAggregatedData', () => {
       },
     });
     expect(getNeuronsAggregatedData([neuron])).toEqual({
-      totalStakedAfterFees: 12,
+      totalStakedAfterFees: 10,
+      totalMaturity: 5,
+      totalStakedMaturity: 2,
       totalFreeMaturity: 3,
     });
   });
 
-  it('subtracts neuron fees from the stake but not from the staked maturity', () => {
+  it('subtracts neuron fees from the stake', () => {
     const neuron = mockNeuron({
-      fullNeuron: {
-        cachedNeuronStake: 10n * E8Sn,
-        neuronFees: 1n * E8Sn,
-        stakedMaturityE8sEquivalent: 2n * E8Sn,
-      },
+      fullNeuron: { cachedNeuronStake: 10n * E8Sn, neuronFees: 1n * E8Sn },
     });
-    expect(getNeuronsAggregatedData([neuron]).totalStakedAfterFees).toBe(11);
+    expect(getNeuronsAggregatedData([neuron]).totalStakedAfterFees).toBe(9);
   });
 
   it('sums the totals of all neurons', () => {
@@ -295,7 +298,9 @@ describe('getNeuronsAggregatedData', () => {
       }),
     ];
     expect(getNeuronsAggregatedData(neurons)).toEqual({
-      totalStakedAfterFees: 18,
+      totalStakedAfterFees: 15,
+      totalMaturity: 8,
+      totalStakedMaturity: 3,
       totalFreeMaturity: 5,
     });
   });

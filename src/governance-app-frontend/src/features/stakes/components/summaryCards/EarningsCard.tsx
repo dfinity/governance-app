@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { Skeleton } from '@components/Skeleton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { getNeuronsAggregatedData } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
@@ -22,7 +23,12 @@ export function EarningsCard({ neurons }: EarningsCardProps) {
 
   const stakingRewards = useStakingRewards();
 
-  const { totalFreeMaturity } = getNeuronsAggregatedData(neurons);
+  const { totalMaturity, totalStakedMaturity, totalFreeMaturity } =
+    getNeuronsAggregatedData(neurons);
+  const maturityTooltip = t(($) => $.neuron.summary.maturityTooltip, {
+    locked: formatNumber(totalStakedMaturity),
+    available: formatNumber(totalFreeMaturity),
+  });
 
   const stakingRewardsReady = isStakingRewardDataReady(stakingRewards);
   const stakingRewardsError = isStakingRewardDataError(stakingRewards);
@@ -33,12 +39,21 @@ export function EarningsCard({ neurons }: EarningsCardProps) {
   return (
     <Card className="gap-3 py-4" data-testid="stakes-summary-earnings-card">
       <CardContent>
-        <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-          {t(($) => $.neuron.summary.earnings)}
-        </p>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              className="mb-2 block w-fit cursor-default text-xs font-medium tracking-wide text-muted-foreground uppercase"
+            >
+              {t(($) => $.neuron.summary.earnings)}{' '}
+              <span className="sr-only">{maturityTooltip}</span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>{maturityTooltip}</TooltipContent>
+        </Tooltip>
         <div className="flex items-center gap-1.5">
           <span className="text-lg font-semibold text-foreground md:text-2xl">
-            {formatNumber(totalFreeMaturity)}
+            {formatNumber(totalMaturity)}
           </span>
           <MaturitySymbol />
         </div>

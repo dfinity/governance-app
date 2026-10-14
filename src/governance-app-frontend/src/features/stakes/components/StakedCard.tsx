@@ -53,8 +53,16 @@ export function StakedCard() {
   const neurons = neuronsQuery.data?.response ?? [];
   const neuronCount = neurons.length;
 
-  const { totalStakedAfterFees: totalStaked, totalFreeMaturity } =
-    getNeuronsAggregatedData(neurons);
+  const {
+    totalStakedAfterFees: totalStaked,
+    totalMaturity,
+    totalStakedMaturity,
+    totalFreeMaturity,
+  } = getNeuronsAggregatedData(neurons);
+  const maturityTooltip = t(($) => $.neuron.summary.maturityTooltip, {
+    locked: formatNumber(totalStakedMaturity),
+    available: formatNumber(totalFreeMaturity),
+  });
 
   const disburseAction = getDisburseAction(neurons);
   const [disburseModalOpen, setDisburseModalOpen] = useState(false);
@@ -68,19 +76,10 @@ export function StakedCard() {
       <CardHeader className="flex flex-col gap-0">
         <div className="flex min-h-9 w-full items-center justify-between">
           <div className="flex shrink-0 items-center gap-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  className="cursor-default text-sm tracking-wide text-muted-foreground uppercase"
-                >
-                  <span className="sm:hidden">{t(($) => $.common.stakedShort)}</span>
-                  <span className="hidden sm:inline">{t(($) => $.common.staked)}</span>{' '}
-                  <span className="sr-only">{t(($) => $.neuron.summary.capitalTooltip)}</span>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>{t(($) => $.neuron.summary.capitalTooltip)}</TooltipContent>
-            </Tooltip>
+            <p className="text-sm tracking-wide text-muted-foreground uppercase">
+              <span className="sm:hidden">{t(($) => $.common.stakedShort)}</span>
+              <span className="hidden sm:inline">{t(($) => $.common.staked)}</span>
+            </p>
             {neuronsQuery.isLoading ? (
               <Skeleton className="size-5 rounded-full" />
             ) : (
@@ -132,14 +131,22 @@ export function StakedCard() {
       <CardContent className="flex flex-1 flex-col justify-between gap-6">
         <div className="mt-auto grid grid-cols-2 gap-6 border-t pt-4 text-right">
           <div className="flex flex-col gap-1">
-            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              {t(($) => $.home.maturity)}
-            </p>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className="cursor-default self-end text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                >
+                  {t(($) => $.home.maturity)} <span className="sr-only">{maturityTooltip}</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{maturityTooltip}</TooltipContent>
+            </Tooltip>
             <div className="flex items-center justify-end gap-1.5">
               {neuronsQuery.isLoading ? (
                 <Skeleton className="h-7 w-13" />
               ) : (
-                <span className="text-xl font-bold">{formatNumber(totalFreeMaturity)}</span>
+                <span className="text-xl font-bold">{formatNumber(totalMaturity)}</span>
               )}
               <MaturitySymbol />
             </div>

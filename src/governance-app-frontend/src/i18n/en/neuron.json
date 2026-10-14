@@ -58,12 +58,12 @@
   "eightYearGang": "8Y Gang",
   "summary": {
     "capital": "Locked in neurons",
-    "capitalTooltip": "Includes staked maturity",
     "engagement": "Participation rate",
     "engagementTooltip": "Based on the last 50 proposals",
     "engagementAction": "View proposals",
     "engagementActionComplete": "All caught up",
     "earnings": "Maturity",
+    "maturityTooltip": "Locked: {{locked}}. Available: {{available}}.",
     "earningsForecast": "1y forecast",
     "automaticVoting": {
       "label": "Automatic voting",
