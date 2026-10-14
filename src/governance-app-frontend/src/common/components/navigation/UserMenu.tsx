@@ -26,7 +26,7 @@ const SessionTimeLeftLabel = () => {
 export const UserMenu = () => {
   const { identity } = useInternetIdentity();
   const { t } = useTranslation();
-  const logout = useLogout();
+  const logout = useLogout('user_menu');
 
   const principal = identity?.getPrincipal().toText();
 

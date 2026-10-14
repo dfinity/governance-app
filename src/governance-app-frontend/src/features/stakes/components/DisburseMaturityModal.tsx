@@ -1,16 +1,15 @@
 import { decodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { Link } from '@tanstack/react-router';
 import { AlertTriangle, BookUser, Info } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
-import { AccountSelect } from '@features/accounts/components/AccountSelect';
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
-import { useAccountSelection } from '@features/accounts/hooks/useAccountSelection';
 import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
-import { isAccountReady } from '@features/accounts/types';
-import { AddressBookSelect } from '@features/addressBook/components/AddressBookSelect';
+import {
+  DestinationInput,
+  type DestinationSuggestion,
+} from '@features/addressBook/components/DestinationInput';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
@@ -23,9 +22,11 @@ import {
   MutationDialogHeader,
 } from '@components/MutationDialog';
 import { ResponsiveDialogTitle } from '@components/ResponsiveDialog';
-import { Switch } from '@components/Switch';
 import { E8Sn, ICP_MIN_DISBURSE_MATURITY_AMOUNT } from '@constants/extra';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
+import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { addressToAccountIdentifier, isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
+import { addressBookGetAddressString, addressBookIsIcpAddress } from '@utils/addressBook';
 import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronFreeMaturityE8s } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
@@ -48,32 +49,39 @@ type Props = {
 export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation();
   const { mutateAsync } = useDisburseMaturity();
-  const { selectedAccountId, setSelectedAccountId, resolvedAccountId, subaccountsEnabled } =
-    useAccountSelection();
+  const { features } = useAdvancedFeatures();
+  const subaccountsEnabled = features.subaccounts;
   const [validationError, setValidationError] = useState<string | null>(null);
+  // The destination field is marked invalid only for its own errors, not for an amount error.
+  const [destinationInvalid, setDestinationInvalid] = useState(false);
 
   const addressBookQuery = useAddressBook();
   const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
   const addressBookLoading = addressBookQuery.isLoading;
-  const hasAddresses = addressBookEntries.length > 0;
 
-  // Without subaccounts there is no account picker, so surface the fixed main-account
-  // destination as a read-only field instead of leaving the section blank.
+  // The accounts come from the identity, so the main account is known at once.
+  const mainAccountId = useMainAccountMetadata().data!.accountId;
+  const mainAccountName = t(($) => $.accounts.mainAccount);
   const { data: accountsState } = useAccounts();
-  const mainAccount = accountsState?.accounts.find(
-    (a) => a.accountId === accountsState.mainAccountId,
+  const ownAccounts = (accountsState?.accounts ?? []).filter(
+    (account) => subaccountsEnabled || account.accountId === mainAccountId,
   );
-  const mainAccountLabel = mainAccount
-    ? `${mainAccount.name}${
-        isAccountReady(mainAccount)
-          ? ` — ${formatNumber(bigIntDiv(mainAccount.balanceE8s, E8Sn))} ICP`
-          : ''
-      }`
-    : t(($) => $.accounts.mainAccount);
+  const destinationSuggestions: DestinationSuggestion[] = [
+    ...ownAccounts.map((account) => ({
+      name: account.name,
+      address: account.accountId,
+      kind: 'account' as const,
+    })),
+    ...addressBookEntries.map((entry) => ({
+      name: entry.name,
+      address: addressBookGetAddressString(entry.address),
+      kind: addressBookIsIcpAddress(entry.address) ? ('icp' as const) : ('icrc1' as const),
+    })),
+  ];
 
-  // Default to the account picker as the primary action; the address book is opt-in.
-  const [useAddressBookToggle, setUseAddressBookToggle] = useState(false);
-  const [selectedAddressBookName, setSelectedAddressBookName] = useState('');
+  // The main account is the default destination.
+  const [destination, setDestination] = useState('');
+  const [destinationName, setDestinationName] = useState('');
 
   // Disburse the whole balance by default so the common case stays a single click. The raw
   // input string is the source of truth so the field can be cleared; percentage is derived.
@@ -82,10 +90,11 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   useEffect(() => {
     if (!isOpen) return;
     setValidationError(null);
-    setSelectedAddressBookName('');
-    setUseAddressBookToggle(false);
+    setDestinationInvalid(false);
+    setDestination(mainAccountId);
+    setDestinationName(mainAccountName);
     setPercentageInput(String(DEFAULT_PERCENTAGE));
-  }, [isOpen]);
+  }, [isOpen, mainAccountId, mainAccountName]);
 
   // Clamp to a valid 0-100 integer for all downstream math and validation.
   const percentage = Math.min(100, Math.max(0, Math.floor(Number(percentageInput) || 0)));
@@ -96,16 +105,13 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   const selectedMaturityE8s = (freeMaturityE8s * BigInt(percentage)) / 100n;
   const selectedMaturity = bigIntDiv(selectedMaturityE8s, E8Sn);
 
-  // "Your balance" only holds for the main account; an address-book entry or a non-main
-  // subaccount is a distinct destination, so surface it as "the selected account" instead.
-  // Compare against the synchronously-derived main account id (the same value
-  // resolvedAccountId falls back to) so we never mislabel the main account while accounts load.
-  const mainAccountId = useMainAccountMetadata().data?.accountId;
-  const isToSelectedAccount =
-    useAddressBookToggle || (subaccountsEnabled && resolvedAccountId !== mainAccountId);
+  // "Your balance" only holds for the main account. Any other destination is
+  // "the selected account".
+  const isToSelectedAccount = addressToAccountIdentifier(destination.trim()) !== mainAccountId;
 
   const handlePercentageChange = (value: string) => {
     setValidationError(null);
+    setDestinationInvalid(false);
     // Digits only, so an empty field stays empty and "0" stays "0" instead of clearing.
     if (!/^\d*$/.test(value)) return;
     // Clamp values above the max, but let everything else through as typed.
@@ -123,42 +129,33 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
       return;
     }
 
-    let destination: DisburseMaturityDestination;
-    if (useAddressBookToggle) {
-      const entry = addressBookEntries.find((e) => e.name === selectedAddressBookName);
-      if (!entry) {
-        setValidationError(t(($) => $.neuronDetailModal.disburseMaturity.errors.noDestination));
-        return;
-      }
-      if ('Icp' in entry.address) {
-        destination = { kind: 'icp', accountIdentifier: entry.address.Icp };
-      } else {
-        try {
-          const { owner, subaccount } = decodeIcrcAccount(entry.address.Icrc1);
-          destination = { kind: 'icrc1', owner, subaccount };
-        } catch {
-          setValidationError(
-            t(($) => $.neuronDetailModal.disburseMaturity.errors.invalidDestination),
-          );
-          return;
-        }
-      }
+    const address = destination.trim();
+    if (address === '') {
+      setValidationError(t(($) => $.neuronDetailModal.disburseMaturity.errors.noDestination));
+      setDestinationInvalid(true);
+      return;
+    }
+
+    let target: DisburseMaturityDestination;
+    if (isValidIcpAddress(address)) {
+      target = { kind: 'icp', accountIdentifier: address };
+    } else if (isValidIcrcAddress(address)) {
+      const { owner, subaccount } = decodeIcrcAccount(address);
+      target = { kind: 'icrc1', owner, subaccount };
     } else {
-      destination = { kind: 'icp', accountIdentifier: resolvedAccountId };
+      setValidationError(t(($) => $.neuronDetailModal.disburseMaturity.errors.invalidDestination));
+      setDestinationInvalid(true);
+      return;
     }
 
     execute(() =>
-      mutateAsync({ neuronId: neuron.neuronId, destination, percentageToDisburse: percentage }),
+      mutateAsync({
+        neuronId: neuron.neuronId,
+        destination: target,
+        percentageToDisburse: percentage,
+      }),
     );
   };
-
-  const handleToggleChange = (checked: boolean) => {
-    setUseAddressBookToggle(checked);
-    setSelectedAddressBookName('');
-    setValidationError(null);
-  };
-
-  const showToggle = !addressBookLoading && hasAddresses;
 
   return (
     <MutationDialog
@@ -184,72 +181,34 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
           <MutationDialogBody className="mt-4 flex flex-col gap-4 px-4 md:px-0">
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <Label
-                  htmlFor={
-                    useAddressBookToggle ? 'address-book-select' : 'disburse-maturity-to-account'
-                  }
-                >
+                <Label htmlFor="disburse-maturity-to-account">
                   {t(($) => $.neuronDetailModal.disburseMaturity.toAccount)}
                 </Label>
-                {addressBookLoading ? (
+                {addressBookLoading && (
                   <div className="flex items-center gap-1.5">
                     <BookUser className="size-3.5 animate-pulse text-muted-foreground" />
                     <span className="animate-pulse text-xs text-muted-foreground">
                       {t(($) => $.addressBook.sendFlow.tooltipLoading)}
                     </span>
                   </div>
-                ) : showToggle ? (
-                  <label className="flex cursor-pointer items-center gap-1.5">
-                    <BookUser className="size-3.5 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">
-                      {t(($) => $.addressBook.sendFlow.toggleLabel)}
-                    </span>
-                    <Switch
-                      checked={useAddressBookToggle}
-                      onCheckedChange={handleToggleChange}
-                      size="sm"
-                      data-testid="disburse-maturity-address-book-toggle"
-                    />
-                  </label>
-                ) : !hasAddresses ? (
-                  <Link
-                    to="/settings"
-                    search={{ openAddressBook: true }}
-                    className="flex items-center gap-1.5 transition-opacity hover:opacity-80"
-                  >
-                    <BookUser className="size-3.5 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground underline">
-                      {t(($) => $.addressBook.sendFlow.tooltipEmpty)}
-                    </span>
-                  </Link>
-                ) : null}
+                )}
               </div>
 
-              {useAddressBookToggle ? (
-                <AddressBookSelect
-                  addresses={addressBookEntries}
-                  selectedName={selectedAddressBookName}
-                  onSelect={(name) => {
-                    setSelectedAddressBookName(name);
-                    setValidationError(null);
-                  }}
-                />
-              ) : subaccountsEnabled ? (
-                <AccountSelect
-                  id="disburse-maturity-to-account"
-                  value={selectedAccountId}
-                  onChange={setSelectedAccountId}
-                  data-testid="disburse-maturity-account-select"
-                />
-              ) : (
-                <div
-                  id="disburse-maturity-to-account"
-                  className="flex h-9 w-full items-center rounded-md border-2 border-input px-3 text-sm text-muted-foreground"
-                  data-testid="disburse-maturity-main-account"
-                >
-                  {mainAccountLabel}
-                </div>
-              )}
+              <DestinationInput
+                id="disburse-maturity-to-account"
+                data-testid="disburse-maturity-destination-input"
+                value={destination}
+                selectedName={destinationName}
+                suggestions={destinationSuggestions}
+                onChange={(value, name) => {
+                  setDestination(value);
+                  setDestinationName(name);
+                  setValidationError(null);
+                  setDestinationInvalid(false);
+                }}
+                placeholder={t(($) => $.addressBook.destination.placeholderWithAccounts)}
+                invalid={destinationInvalid}
+              />
             </div>
 
             <div className="flex flex-col gap-2">
@@ -271,6 +230,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
                     onClick={() => {
                       setPercentageInput(String(preset));
                       setValidationError(null);
+                      setDestinationInvalid(false);
                     }}
                     aria-pressed={percentage === preset}
                     data-testid={`disburse-maturity-preset-${preset}`}

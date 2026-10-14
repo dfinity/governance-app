@@ -12,9 +12,12 @@ import {
   MoonIcon,
   SunIcon,
 } from 'lucide-react';
+import type { ComponentProps } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
 import { parseProposalId } from '@features/proposals/utils';
 
 import {
@@ -100,6 +103,22 @@ const CommandHintFooter = () => {
   );
 };
 
+/**
+ * CommandItem that reports the selected item to analytics. A proposal ID is reported as
+ * `proposal`.
+ */
+const TrackedCommandItem = ({ onSelect, ...props }: ComponentProps<typeof CommandItem>) => (
+  <CommandItem
+    {...props}
+    onSelect={(value) => {
+      analytics.event(AnalyticsEvent.CommandPaletteSelect, {
+        item: /^\d+$/.test(value) ? 'proposal' : value,
+      });
+      onSelect?.(value);
+    }}
+  />
+);
+
 export const CommandPalette = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -107,11 +126,12 @@ export const CommandPalette = () => {
   const { hidden, setHidden } = useHideBalances();
   const { enabled: shortcutsEnabled, setEnabled: setShortcutsEnabled } = useShortcutSettings();
   const { features, setFeature } = useAdvancedFeatures();
-  const logout = useLogout();
+  const logout = useLogout('command_palette');
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
 
   const handleOpenChange = (next: boolean) => {
+    if (next && !open) analytics.event(AnalyticsEvent.CommandPaletteOpen);
     if (!next) setSearch('');
     setOpen(next);
   };
@@ -158,7 +178,7 @@ export const CommandPalette = () => {
 
         <CommandGroup heading={t(($) => $.commandPalette.groups.navigate)}>
           {navigationItems.map((item) => (
-            <CommandItem
+            <TrackedCommandItem
               key={item.href}
               value={navValue(item.href)}
               keywords={NAVIGATION_KEYWORDS[item.href]}
@@ -166,26 +186,29 @@ export const CommandPalette = () => {
             >
               <item.icon />
               <span>{t(item.label as never)}</span>
-            </CommandItem>
+            </TrackedCommandItem>
           ))}
         </CommandGroup>
 
         {(showProposalHint || nonNullish(proposalIdMatch)) && (
           <CommandGroup heading={t(($) => $.commandPalette.groups.proposals)}>
             {nonNullish(proposalIdMatch) ? (
-              <CommandItem value={trimmedSearch} onSelect={() => goToProposal(proposalIdMatch)}>
+              <TrackedCommandItem
+                value={trimmedSearch}
+                onSelect={() => goToProposal(proposalIdMatch)}
+              >
                 <FileTextIcon />
                 <span>
                   {t(($) => $.commandPalette.items.goToProposal, {
                     id: proposalIdMatch.toString(),
                   })}
                 </span>
-              </CommandItem>
+              </TrackedCommandItem>
             ) : (
-              <CommandItem value="proposal-hint" disabled>
+              <TrackedCommandItem value="proposal-hint" disabled>
                 <FileTextIcon />
                 <span>{t(($) => $.commandPalette.items.proposalHint)}</span>
-              </CommandItem>
+              </TrackedCommandItem>
             )}
           </CommandGroup>
         )}
@@ -193,7 +216,7 @@ export const CommandPalette = () => {
         <CommandSeparator />
 
         <CommandGroup heading={t(($) => $.commandPalette.groups.preferences)}>
-          <CommandItem
+          <TrackedCommandItem
             value={themeValue(Theme.Light)}
             keywords={['appearance', 'color']}
             onSelect={() => setTheme(Theme.Light)}
@@ -201,8 +224,8 @@ export const CommandPalette = () => {
             <SunIcon />
             <span>{t(($) => $.commandPalette.items.themeLight)}</span>
             {theme === Theme.Light && <CheckIcon className="ml-auto" />}
-          </CommandItem>
-          <CommandItem
+          </TrackedCommandItem>
+          <TrackedCommandItem
             value={themeValue(Theme.Dark)}
             keywords={['appearance', 'color']}
             onSelect={() => setTheme(Theme.Dark)}
@@ -210,8 +233,8 @@ export const CommandPalette = () => {
             <MoonIcon />
             <span>{t(($) => $.commandPalette.items.themeDark)}</span>
             {theme === Theme.Dark && <CheckIcon className="ml-auto" />}
-          </CommandItem>
-          <CommandItem
+          </TrackedCommandItem>
+          <TrackedCommandItem
             value={themeValue(Theme.System)}
             keywords={['appearance', 'color']}
             onSelect={() => setTheme(Theme.System)}
@@ -219,8 +242,8 @@ export const CommandPalette = () => {
             <MonitorIcon />
             <span>{t(($) => $.commandPalette.items.themeSystem)}</span>
             {theme === Theme.System && <CheckIcon className="ml-auto" />}
-          </CommandItem>
-          <CommandItem
+          </TrackedCommandItem>
+          <TrackedCommandItem
             value={TOGGLE_BALANCES_VALUE}
             keywords={['privacy', 'balance']}
             onSelect={() => runAndClose(() => setHidden(!hidden))}
@@ -231,9 +254,9 @@ export const CommandPalette = () => {
                 ? t(($) => $.commandPalette.items.showBalances)
                 : t(($) => $.commandPalette.items.hideBalances)}
             </span>
-          </CommandItem>
+          </TrackedCommandItem>
           {/* Stays open: the checkmark is the only feedback this toggle gives. */}
-          <CommandItem
+          <TrackedCommandItem
             value={TOGGLE_SHORTCUTS_VALUE}
             keywords={['keyboard', 'shortcuts', 'hotkeys', 'keys']}
             onSelect={() => setShortcutsEnabled(!shortcutsEnabled)}
@@ -241,12 +264,12 @@ export const CommandPalette = () => {
             <KeyboardIcon />
             <span>{t(($) => $.commandPalette.items.keyboardShortcuts)}</span>
             {shortcutsEnabled && <CheckIcon className="ml-auto" />}
-          </CommandItem>
+          </TrackedCommandItem>
         </CommandGroup>
 
         <CommandGroup heading={t(($) => $.commandPalette.groups.advancedFeatures)}>
           {ADVANCED_FEATURES.map(({ key, icon: Icon }) => (
-            <CommandItem
+            <TrackedCommandItem
               key={key}
               value={featureValue(key)}
               keywords={FEATURE_KEYWORDS[key]}
@@ -255,21 +278,21 @@ export const CommandPalette = () => {
               <Icon />
               <span>{t(($) => $.userAccount.advancedFeatures.items[key].label)}</span>
               {features[key] && <CheckIcon className="ml-auto" />}
-            </CommandItem>
+            </TrackedCommandItem>
           ))}
         </CommandGroup>
 
         <CommandSeparator />
 
         <CommandGroup>
-          <CommandItem
+          <TrackedCommandItem
             value={SIGN_OUT_VALUE}
             keywords={['logout', 'log out']}
             onSelect={() => runAndClose(logout)}
           >
             <LogOutIcon />
             <span>{t(($) => $.commandPalette.items.signOut)}</span>
-          </CommandItem>
+          </TrackedCommandItem>
         </CommandGroup>
       </CommandList>
       <CommandHintFooter />

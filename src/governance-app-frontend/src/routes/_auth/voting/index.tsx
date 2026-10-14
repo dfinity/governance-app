@@ -8,6 +8,7 @@ import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
 import {
+  getKnownNeuronNames,
   isProposalFilter,
   ProposalFilter,
   validateProposalsSearch,
@@ -131,6 +132,7 @@ function Voting() {
 
   const userNeurons = neuronsQuery.data?.response ?? [];
   const knownNeurons = knownNeuronsQuery.data?.response ?? [];
+  const knownNeuronNames = getKnownNeuronNames(knownNeurons);
 
   const consistentFollowees = getConsistentTopicFollowees(userNeurons);
   const uniformFolloweeId = consistentFollowees
@@ -291,6 +293,7 @@ function Voting() {
                           >
                             <ProposalListItem
                               proposal={proposal}
+                              knownNeuronNames={knownNeuronNames}
                               certified={page?.certified}
                               isSpam={isSpam}
                               isNonActionable={isNonActionable}

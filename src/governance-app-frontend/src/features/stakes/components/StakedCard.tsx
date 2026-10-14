@@ -1,9 +1,11 @@
-import { nonNullish } from '@dfinity/utils';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
 import { Coins, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
 import { ApyOptimizationModal } from '@features/stakes/components/ApyOptimizationModal';
 import { DisburseModal } from '@features/stakes/components/DisburseModal';
 import { DisburseActionType, getDisburseAction } from '@features/stakes/utils/getDisburseAction';
@@ -15,6 +17,7 @@ import { Card, CardContent, CardHeader } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { SensitiveValue } from '@components/SensitiveValue';
 import { Skeleton } from '@components/Skeleton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { E8Sn } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
@@ -46,13 +49,25 @@ export function StakedCard() {
       warningNotification({
         description: t(($) => $.neuron.stakeNeuron.errors.zeroBalance),
       });
+      return;
     }
+
+    analytics.event(AnalyticsEvent.StakingOpenWizard, { source: 'staked_card' });
   };
 
   const neurons = neuronsQuery.data?.response ?? [];
   const neuronCount = neurons.length;
 
-  const { totalStakedAfterFees: totalStaked, totalMaturity } = getNeuronsAggregatedData(neurons);
+  const {
+    totalStakedAfterFees: totalStaked,
+    totalMaturity,
+    totalStakedMaturity,
+    totalFreeMaturity,
+  } = getNeuronsAggregatedData(neurons);
+  const maturityTooltip = t(($) => $.neuron.summary.maturityTooltip, {
+    locked: formatNumber(totalStakedMaturity),
+    available: formatNumber(totalFreeMaturity),
+  });
 
   const disburseAction = getDisburseAction(neurons);
   const [disburseModalOpen, setDisburseModalOpen] = useState(false);
@@ -121,9 +136,23 @@ export function StakedCard() {
       <CardContent className="flex flex-1 flex-col justify-between gap-6">
         <div className="mt-auto grid grid-cols-2 gap-6 border-t pt-4 text-right">
           <div className="flex flex-col gap-1">
-            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              {t(($) => $.home.maturity)}
-            </p>
+            {isNullish(neuronsQuery.data) ? (
+              <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                {t(($) => $.home.maturity)}
+              </p>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="cursor-default self-end text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                  >
+                    {t(($) => $.home.maturity)} <span className="sr-only">{maturityTooltip}</span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>{maturityTooltip}</TooltipContent>
+              </Tooltip>
+            )}
             <div className="flex items-center justify-end gap-1.5">
               {neuronsQuery.isLoading ? (
                 <Skeleton className="h-7 w-13" />
