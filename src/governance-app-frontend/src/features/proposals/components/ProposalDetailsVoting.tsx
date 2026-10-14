@@ -31,25 +31,44 @@ const DockingFooter = ({ children }: { children: ReactNode }) => {
     const sentinel = sentinelRef.current;
     if (!main || !sentinel) return;
 
+    let observer: IntersectionObserver | undefined;
+    let paddingBottom: number | undefined;
+
     // The sticky footer stops at the bottom padding of `main`, so the root ends there too.
-    const paddingBottom = parseFloat(getComputedStyle(main).paddingBottom) || 0;
-    const observer = new IntersectionObserver(
-      ([entry]) => setIsDocked(entry.boundingClientRect.top < (entry.rootBounds?.bottom ?? 0)),
-      { root: main, rootMargin: `0px 0px -${paddingBottom}px 0px` },
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
+    // The padding changes with the breakpoint, so the observer follows the size of `main`.
+    const observe = () => {
+      const nextPaddingBottom = parseFloat(getComputedStyle(main).paddingBottom) || 0;
+      if (nextPaddingBottom === paddingBottom) return;
+
+      paddingBottom = nextPaddingBottom;
+      observer?.disconnect();
+      observer = new IntersectionObserver(
+        ([entry]) => setIsDocked(entry.boundingClientRect.top < (entry.rootBounds?.bottom ?? 0)),
+        { root: main, rootMargin: `0px 0px -${paddingBottom}px 0px` },
+      );
+      observer.observe(sentinel);
+    };
+
+    observe();
+    const resizeObserver = new ResizeObserver(observe);
+    resizeObserver.observe(main);
+
+    return () => {
+      resizeObserver.disconnect();
+      observer?.disconnect();
+    };
   }, []);
 
   return (
     <>
+      {/* Inset shadows draw the outline, so the docked footer joins the card without a seam. */}
       <div
         data-state={isDocked ? 'docked' : 'floating'}
         className={cn(
-          'sticky bottom-0 z-10 -mt-6 border border-border bg-card px-6 py-5 transition-[border-radius,box-shadow] duration-200 ease-out motion-reduce:transition-none',
+          'sticky bottom-0 z-10 -mt-6 bg-card px-6 py-5 transition-[border-radius,box-shadow] duration-200 ease-out motion-reduce:transition-none',
           isDocked
-            ? 'rounded-t-none rounded-b-[6px] border-t-transparent'
-            : 'rounded-xl shadow-[0_8px_30px_rgb(0_0_0/0.12)]',
+            ? 'rounded-t-none rounded-b-[6px] shadow-[inset_1px_0_var(--color-border),inset_-1px_0_var(--color-border),inset_0_-1px_var(--color-border),inset_0_1px_transparent,0_8px_30px_transparent]'
+            : 'rounded-xl shadow-[inset_1px_0_var(--color-border),inset_-1px_0_var(--color-border),inset_0_-1px_var(--color-border),inset_0_1px_var(--color-border),0_8px_30px_rgb(0_0_0/0.12)]',
         )}
       >
         {children}
