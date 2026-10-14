@@ -16,8 +16,7 @@ import {
   getSecondsUntilDecayStarts,
   getSecondsUntilFollowingCleared,
   getVotingPowerRefreshedTimestampSeconds,
-  isUserController,
-  isUserHotkey,
+  isUserControllerOrHotkey,
 } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
 
@@ -137,8 +136,7 @@ export function FollowingStatusInline({ neuron }: Props) {
   if (health !== 'ok' || isNullish(refreshedSeconds)) return status;
 
   const principalId = identity?.getPrincipal().toText();
-  const canConfirm =
-    isUserController({ neuron, principalId }) || isUserHotkey({ neuron, principalId });
+  const canConfirm = isUserControllerOrHotkey({ neuron, principalId });
 
   return (
     <div className="flex flex-col items-end gap-1">

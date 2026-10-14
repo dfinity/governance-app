@@ -120,10 +120,20 @@ describe('getAutomaticVotingStatus', () => {
     });
   });
 
-  it('ignores hotkey neurons for the confirmation phases', () => {
+  it('includes hotkey neurons in the confirmation phases', () => {
     const status = statusOf([
       neuron({ id: 1n }),
       neuron({ id: 2n, refreshedDaysAgo: 190n, fullNeuron: hotkeyFullNeuron }),
+    ]);
+
+    expect(status.phase).toBe(AutomaticVotingPhase.LosingRewards);
+    expect(status.confirmableNeuronIds).toEqual([1n, 2n]);
+  });
+
+  it('ignores neurons that the user cannot refresh', () => {
+    const status = statusOf([
+      neuron({ id: 1n }),
+      neuron({ id: 2n, refreshedDaysAgo: 190n, fullNeuron: { controller: 'other-principal' } }),
     ]);
 
     expect(status.phase).toBe(AutomaticVotingPhase.Active);

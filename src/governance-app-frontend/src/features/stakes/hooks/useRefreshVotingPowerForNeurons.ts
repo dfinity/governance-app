@@ -63,9 +63,11 @@ export function useRefreshVotingPowerForNeurons() {
       });
     },
     onError: (error, { neuronIds }) => {
+      const isPartial = error instanceof AggregateError;
       analytics.event(AnalyticsEvent.StakingRefreshVotingPowerAllError, {
         neuron_count: String(neuronIds.length),
-        reason: getErrorReason(error instanceof AggregateError ? error.errors[0] : error),
+        failed_count: String(isPartial ? error.errors.length : neuronIds.length),
+        reason: getErrorReason(isPartial ? error.errors[0] : error),
       });
     },
   });

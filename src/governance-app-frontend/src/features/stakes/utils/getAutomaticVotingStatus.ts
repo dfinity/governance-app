@@ -11,7 +11,7 @@ import {
   getFollowingHealth,
   getSecondsUntilDecayStarts,
   getSecondsUntilFollowingCleared,
-  isUserController,
+  isUserControllerOrHotkey,
   type VotingPowerEconomicsThresholds,
 } from '@utils/neuron';
 
@@ -30,7 +30,7 @@ export enum AutomaticVotingPhase {
 
 export type AutomaticVotingStatus = {
   phase: AutomaticVotingPhase;
-  /** Controlled neurons with a known health that is not 'expired'. */
+  /** Neurons that the user can refresh, with a known health that is not 'expired'. */
   confirmableNeuronIds: bigint[];
   /**
    * The nearest deadline of the phase: decay start for `ConfirmSoon` and
@@ -49,7 +49,7 @@ const minOf = (values: (bigint | undefined)[]): bigint | undefined =>
 
 /**
  * Coverage uses all neurons. The confirmation phases use only the neurons that
- * the user controls, because "Confirm following" refreshes only those.
+ * the user controls or is a hotkey of, because only those can be refreshed.
  */
 export function getAutomaticVotingStatus({
   neurons,
@@ -68,13 +68,13 @@ export function getAutomaticVotingStatus({
   const hasNoFollowing = topicCounts.every((count) => count === 0);
   const hasPartialFollowing = topicCounts.some((count) => count < TOTAL_TOPIC_COUNT);
 
-  const controlled = neurons
-    .filter((neuron) => isUserController({ neuron, principalId }))
+  const refreshable = neurons
+    .filter((neuron) => isUserControllerOrHotkey({ neuron, principalId }))
     .map((neuron) => ({ neuron, health: getFollowingHealth(neuron, economics, now) }));
-  const confirmable = controlled.filter(({ health }) => !!health && health !== 'expired');
+  const confirmable = refreshable.filter(({ health }) => !!health && health !== 'expired');
   const confirmableNeuronIds = confirmable.map(({ neuron }) => neuron.neuronId);
   const withHealth = (health: FollowingHealth) =>
-    controlled.filter((entry) => entry.health === health).map(({ neuron }) => neuron);
+    refreshable.filter((entry) => entry.health === health).map(({ neuron }) => neuron);
 
   if (neurons.length === 0 || hasNoFollowing) {
     return { phase: AutomaticVotingPhase.NotSetUp, confirmableNeuronIds };

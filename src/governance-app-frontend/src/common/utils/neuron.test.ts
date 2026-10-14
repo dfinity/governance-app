@@ -23,7 +23,7 @@ import {
   getSecondsUntilFollowingCleared,
   hasValueAboveTransactionFee,
   isNonEmptyNeuron,
-  isUserController,
+  isUserControllerOrHotkey,
 } from './neuron';
 
 // Reuse the shared month constant (SECONDS_IN_YEAR / 12) rather than a local
@@ -440,26 +440,31 @@ describe('getFollowingHealth', () => {
   });
 });
 
-describe('isUserController', () => {
-  const CONTROLLER = 'controller-principal';
+describe('isUserControllerOrHotkey', () => {
+  const USER = 'user-principal';
 
   it('returns true when the user is the controller', () => {
-    const neuron = mockNeuron({ fullNeuron: { controller: CONTROLLER } });
-    expect(isUserController({ neuron, principalId: CONTROLLER })).toBe(true);
+    const neuron = mockNeuron({ fullNeuron: { controller: USER } });
+    expect(isUserControllerOrHotkey({ neuron, principalId: USER })).toBe(true);
   });
 
-  it('returns false when the user is only a hotkey', () => {
-    const neuron = mockNeuron({ fullNeuron: { controller: 'other', hotKeys: [CONTROLLER] } });
-    expect(isUserController({ neuron, principalId: CONTROLLER })).toBe(false);
+  it('returns true when the user is a hotkey', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: 'other', hotKeys: [USER] } });
+    expect(isUserControllerOrHotkey({ neuron, principalId: USER })).toBe(true);
+  });
+
+  it('returns false when the user is neither the controller nor a hotkey', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: 'other', hotKeys: ['another'] } });
+    expect(isUserControllerOrHotkey({ neuron, principalId: USER })).toBe(false);
   });
 
   it('returns false without a principal', () => {
-    const neuron = mockNeuron({ fullNeuron: { controller: CONTROLLER } });
-    expect(isUserController({ neuron, principalId: undefined })).toBe(false);
+    const neuron = mockNeuron({ fullNeuron: { controller: USER } });
+    expect(isUserControllerOrHotkey({ neuron, principalId: undefined })).toBe(false);
   });
 
   it('returns false without a full neuron', () => {
     const neuron = mockNeuron({ fullNeuron: undefined });
-    expect(isUserController({ neuron, principalId: CONTROLLER })).toBe(false);
+    expect(isUserControllerOrHotkey({ neuron, principalId: USER })).toBe(false);
   });
 });

@@ -74,10 +74,13 @@ export function AutomaticVotingCard({ neurons }: AutomaticVotingCardProps) {
     : '';
 
   const handleConfirm = async () => {
+    const neuronIds = status.confirmableNeuronIds;
     try {
-      await mutateAsync({ neuronIds: status.confirmableNeuronIds });
+      await mutateAsync({ neuronIds });
       successNotification({
-        description: t(($) => $.neuron.followingStatus.successAll),
+        description: t(($) => $.neuron.followingStatus.successAll, {
+          neuronCount: neuronIds.length,
+        }),
       });
     } catch (err) {
       errorNotification({

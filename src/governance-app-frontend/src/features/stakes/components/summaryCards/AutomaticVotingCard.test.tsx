@@ -8,6 +8,9 @@ import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
+
 import { SECONDS_IN_DAY } from '@constants/extra';
 import { nowInSeconds } from '@utils/date';
 import { errorNotification, successNotification } from '@utils/notification';
@@ -115,6 +118,7 @@ const byTestId = (id: string) => screen.queryByTestId(id);
 describe('AutomaticVotingCard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(analytics, 'event');
     economicsState.loaded = true;
     refreshVotingPower.mockResolvedValue(undefined);
   });
@@ -131,16 +135,17 @@ describe('AutomaticVotingCard', () => {
 
     expect(refreshVotingPower).toHaveBeenCalledTimes(2);
     expect(successNotification).toHaveBeenCalledExactlyOnceWith({
-      description: 'Following confirmed for all neurons you control.',
+      description: 'Following confirmed for 2 of your neurons.',
     });
   });
 
-  it('confirms each controlled neuron with one success toast when a neuron loses rewards', async () => {
+  it('confirms controlled and hotkey neurons with one success toast when a neuron loses rewards', async () => {
     const user = userEvent.setup();
     renderCard([
       neuron({ id: 1n }),
       neuron({ id: 2n, refreshedDaysAgo: 190 }),
       neuron({ id: 3n, refreshedDaysAgo: 190, fullNeuron: hotkeyFullNeuron }),
+      neuron({ id: 4n, refreshedDaysAgo: 190, fullNeuron: { controller: 'other-principal' } }),
     ]);
 
     expect(card().dataset.phase).toBe('losingRewards');
@@ -148,10 +153,12 @@ describe('AutomaticVotingCard', () => {
 
     await user.click(byTestId('automatic-voting-confirm-btn')!);
 
-    expect(refreshVotingPower).toHaveBeenCalledTimes(2);
-    expect(refreshVotingPower).toHaveBeenCalledWith({ neuronId: 1n });
-    expect(refreshVotingPower).toHaveBeenCalledWith({ neuronId: 2n });
-    expect(successNotification).toHaveBeenCalledOnce();
+    expect(refreshVotingPower).toHaveBeenCalledTimes(3);
+    expect(refreshVotingPower).toHaveBeenCalledWith({ neuronId: 3n });
+    expect(refreshVotingPower).not.toHaveBeenCalledWith({ neuronId: 4n });
+    expect(successNotification).toHaveBeenCalledExactlyOnceWith({
+      description: 'Following confirmed for 3 of your neurons.',
+    });
     expect(errorNotification).not.toHaveBeenCalled();
   });
 
@@ -176,6 +183,10 @@ describe('AutomaticVotingCard', () => {
       description: 'Failed to confirm following for 1 of 3 neurons. Please try again.',
     });
     expect(successNotification).not.toHaveBeenCalled();
+    expect(analytics.event).toHaveBeenCalledExactlyOnceWith(
+      AnalyticsEvent.StakingRefreshVotingPowerAllError,
+      { neuron_count: '3', failed_count: '1', reason: 'unknown' },
+    );
   });
 
   it('shows the error of the first call when all calls fail', async () => {
