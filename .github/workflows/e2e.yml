@@ -92,6 +92,8 @@ jobs:
               echo ""
 
               echo "=== Installing dependencies ==="
+              # The icp binary links against libdbus, which builder-base:0.0.10 does not ship.
+              apt-get update -qq && apt-get install -y -qq --no-install-recommends libdbus-1-3 > /dev/null
               npm ci
               echo "icp: $(npx icp --version)"
 
