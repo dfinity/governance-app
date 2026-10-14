@@ -1,8 +1,8 @@
-import { AccountIdentifier, SubAccount } from '@icp-sdk/canisters/ledger/icp';
-import { decodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
 import { isNullish, nonNullish } from '@dfinity/utils';
 
 import type { AddressType } from '@declarations/governance-app-backend/governance-app-backend.did';
+
+import { addressToAccountIdentifier } from '@utils/address';
 
 export const addressBookGetAddressString = (address: AddressType | undefined): string => {
   if (isNullish(address)) return '';
@@ -19,19 +19,8 @@ export const addressBookIsIcpAddress = (address: AddressType): boolean => 'Icp' 
  * identifier, not by the ICRC-1 text. Returns undefined when the saved text
  * does not decode.
  */
-export const addressBookGetAccountIdentifier = (address: AddressType): string | undefined => {
-  try {
-    if ('Icp' in address) return AccountIdentifier.fromHex(address.Icp).toHex();
-    const { owner, subaccount } = decodeIcrcAccount(address.Icrc1);
-    const subAccount =
-      nonNullish(subaccount) && subaccount.length === 32
-        ? SubAccount.fromBytes(subaccount)
-        : undefined;
-    return AccountIdentifier.fromPrincipal({ principal: owner, subAccount }).toHex();
-  } catch {
-    return undefined;
-  }
-};
+export const addressBookGetAccountIdentifier = (address: AddressType): string | undefined =>
+  addressToAccountIdentifier(addressBookGetAddressString(address));
 
 /** The lookup keys of an entry: the saved text and its account identifier, when they differ. */
 export const addressBookGetAddressKeys = (address: AddressType): Array<string> => {
