@@ -1,24 +1,13 @@
 import '@/i18n/config';
 
-import type { KnownNeuron, ProposalInfo } from '@icp-sdk/canisters/nns';
+import type { ProposalInfo } from '@icp-sdk/canisters/nns';
 import { ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
-import { render, screen, within } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 
 import { ProposalListItem } from './ProposalListItem';
 
 // ─── Module mocks ────────────────────────────────────────────────
-
-const knownNeuronsState = vi.hoisted(() => ({
-  response: undefined as KnownNeuron[] | undefined,
-}));
-
-vi.mock('@hooks/governance/useGovernanceKnownNeurons', () => ({
-  useGovernanceKnownNeurons: () => ({
-    data: knownNeuronsState.response && { certified: true, response: knownNeuronsState.response },
-    isLoading: false,
-  }),
-}));
 
 vi.mock('../hooks/useVoting', () => ({
   useVoting: () => ({
@@ -33,13 +22,7 @@ vi.mock('../hooks/useVoting', () => ({
 
 // ─── Helpers ─────────────────────────────────────────────────────
 
-const KNOWN_NEURON: KnownNeuron = {
-  id: 27n,
-  name: 'DFINITY Foundation',
-  description: '',
-  links: [],
-  committed_topics: [],
-};
+const KNOWN_NEURON_NAMES = new Map([[27n, 'DFINITY Foundation']]);
 
 const mockProposal = (proposer: bigint | undefined): ProposalInfo =>
   ({
@@ -52,39 +35,22 @@ const mockProposal = (proposer: bigint | undefined): ProposalInfo =>
     proposal: { title: 'Test proposal' },
   }) as unknown as ProposalInfo;
 
-const expectProposer = (name: string) => {
-  const badge = screen.getByTestId('proposal-proposer-badge');
-
-  expect(within(badge).getByText(name).getAttribute('aria-hidden')).toBe('true');
-  expect(within(badge).getByText(`Proposer: ${name}`).className).toContain('sr-only');
-};
+const renderItem = (proposer: bigint | undefined) =>
+  render(
+    <ProposalListItem proposal={mockProposal(proposer)} knownNeuronNames={KNOWN_NEURON_NAMES} />,
+  );
 
 describe('ProposalListItem', () => {
-  beforeEach(() => {
-    knownNeuronsState.response = [KNOWN_NEURON];
-  });
+  it('shows the proposer badge with the known neuron name', () => {
+    renderItem(27n);
 
-  it('shows the name of a known proposer with an accessible label', () => {
-    render(<ProposalListItem proposal={mockProposal(27n)} />);
-
-    expectProposer('DFINITY Foundation');
-  });
-
-  it('shows the truncated neuron ID of an unknown proposer', () => {
-    render(<ProposalListItem proposal={mockProposal(6914974521667616512n)} />);
-
-    expectProposer('69149...16512');
-  });
-
-  it('shows the neuron ID of a known proposer until the known neurons load', () => {
-    knownNeuronsState.response = undefined;
-    render(<ProposalListItem proposal={mockProposal(27n)} />);
-
-    expectProposer('27');
+    expect(screen.getByTestId('proposal-proposer-badge').textContent).toContain(
+      'DFINITY Foundation',
+    );
   });
 
   it('shows no proposer badge without a proposer', () => {
-    render(<ProposalListItem proposal={mockProposal(undefined)} />);
+    renderItem(undefined);
 
     expect(screen.queryByTestId('proposal-proposer-badge')).toBeNull();
   });

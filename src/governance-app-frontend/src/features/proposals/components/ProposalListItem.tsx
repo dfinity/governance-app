@@ -9,7 +9,6 @@ import {
   ThumbsDown,
   ThumbsUp,
   TriangleAlert,
-  User,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -20,16 +19,16 @@ import { Card, CardFooter, CardHeader } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
 import { Spinner } from '@components/Spinner';
 import { E8S } from '@constants/extra';
-import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
-import { shortenNeuronId } from '@utils/neuron';
 import { formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
 import { useVoting } from '../hooks/useVoting';
 import { getProposalStatusColor, getProposalTimeLeftInSeconds } from '../utils';
+import { ProposerBadge } from './ProposerBadge';
 
 type Props = {
   proposal: ProposalInfo;
+  knownNeuronNames: Map<bigint, string>;
   certified?: boolean;
   isSpam?: boolean;
   isNonActionable?: boolean;
@@ -38,7 +37,13 @@ type Props = {
 const warningBadgeClassName =
   'gap-1.5 border-transparent bg-amber-100 font-normal text-amber-800 dark:bg-amber-900/30 dark:text-amber-400';
 
-export function ProposalListItem({ proposal, certified, isSpam, isNonActionable }: Props) {
+export function ProposalListItem({
+  proposal,
+  knownNeuronNames,
+  certified,
+  isSpam,
+  isNonActionable,
+}: Props) {
   const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
   const [votingFor, setVotingFor] = useState<Vote.No | Vote.Yes | undefined>();
@@ -55,12 +60,6 @@ export function ProposalListItem({ proposal, certified, isSpam, isNonActionable 
     i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
   });
   const statusColor = getProposalStatusColor(proposal);
-
-  const knownNeurons = useGovernanceKnownNeurons().data?.response;
-  const proposer = proposal.proposer;
-  const proposerName = nonNullish(proposer)
-    ? (knownNeurons?.find(({ id }) => id === proposer)?.name ?? shortenNeuronId(proposer))
-    : undefined;
 
   const { vote, isVoting, hasVoted, isVoteMixed, voteValue, canVote } = useVoting(proposal);
 
@@ -118,20 +117,8 @@ export function ProposalListItem({ proposal, certified, isSpam, isNonActionable 
               <Tag className="size-3.5" />
               {Topic[proposal.topic] ?? t(($) => $.proposal.unknownTopic, { id: proposal.topic })}
             </Badge>
-            {nonNullish(proposerName) && (
-              <Badge
-                variant="secondary"
-                className="gap-1.5 font-normal"
-                data-testid="proposal-proposer-badge"
-              >
-                <User className="size-3.5" />
-                <span className="max-w-[150px] truncate" aria-hidden="true">
-                  {proposerName}
-                </span>
-                <span className="sr-only">
-                  {t(($) => $.proposal.proposer, { name: proposerName })}
-                </span>
-              </Badge>
+            {nonNullish(proposal.proposer) && (
+              <ProposerBadge proposer={proposal.proposer} knownNeuronNames={knownNeuronNames} />
             )}
             {isSpam && (
               <Badge className={warningBadgeClassName}>
