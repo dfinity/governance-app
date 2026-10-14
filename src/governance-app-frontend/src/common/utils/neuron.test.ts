@@ -25,6 +25,7 @@ import {
   getSecondsUntilFollowingCleared,
   hasValueAboveTransactionFee,
   isNonEmptyNeuron,
+  isUserControllerOrHotkey,
 } from './neuron';
 
 // Reuse the shared month constant (SECONDS_IN_YEAR / 12) rather than a local
@@ -498,5 +499,34 @@ describe('getFollowingHealth', () => {
   it('returns undefined when thresholds are missing', () => {
     const neuron = mockNeuron({ votingPowerRefreshedTimestampSeconds: NOW_SECONDS });
     expect(getFollowingHealth(neuron, undefined, NOW)).toBeUndefined();
+  });
+});
+
+describe('isUserControllerOrHotkey', () => {
+  const USER = 'user-principal';
+
+  it('returns true when the user is the controller', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: USER } });
+    expect(isUserControllerOrHotkey({ neuron, principalId: USER })).toBe(true);
+  });
+
+  it('returns true when the user is a hotkey', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: 'other', hotKeys: [USER] } });
+    expect(isUserControllerOrHotkey({ neuron, principalId: USER })).toBe(true);
+  });
+
+  it('returns false when the user is neither the controller nor a hotkey', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: 'other', hotKeys: ['another'] } });
+    expect(isUserControllerOrHotkey({ neuron, principalId: USER })).toBe(false);
+  });
+
+  it('returns false without a principal', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: USER } });
+    expect(isUserControllerOrHotkey({ neuron, principalId: undefined })).toBe(false);
+  });
+
+  it('returns false without a full neuron', () => {
+    const neuron = mockNeuron({ fullNeuron: undefined });
+    expect(isUserControllerOrHotkey({ neuron, principalId: USER })).toBe(false);
   });
 });

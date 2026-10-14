@@ -516,6 +516,21 @@ export const isUserHotkey = ({
 };
 
 /**
+ * Returns true if the current user is the controller or a hotkey of the neuron.
+ * Both can call `refreshVotingPower`.
+ */
+export const isUserControllerOrHotkey = ({
+  neuron,
+  principalId,
+}: {
+  neuron: NeuronInfo;
+  principalId?: string | null;
+}): boolean =>
+  !!principalId &&
+  (neuron.fullNeuron?.controller === principalId ||
+    (neuron.fullNeuron?.hotKeys.includes(principalId) ?? false));
+
+/**
  * Aggregates staking data from multiple neurons.
  * @param neurons - Array of neurons to aggregate data from
  * @returns Object containing totalStakedAfterFees (ICP stake only), totalMaturity, and its
