@@ -47,7 +47,7 @@
     "ctaExpired": "Set up following",
     "processing": "Confirming, please wait...",
     "success": "Following confirmed. Voting power and following are refreshed.",
-    "successAll": "Following confirmed for all your neurons.",
+    "successAll": "Following confirmed for all neurons you control.",
     "lastConfirmed": "Last confirmed {{date}}",
     "hotkeyNote": "Confirming following is one of the few actions a hotkey can perform.",
     "errors": {

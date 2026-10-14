@@ -131,7 +131,7 @@ describe('AutomaticVotingCard', () => {
 
     expect(refreshVotingPower).toHaveBeenCalledTimes(2);
     expect(successNotification).toHaveBeenCalledExactlyOnceWith({
-      description: 'Following confirmed for all your neurons.',
+      description: 'Following confirmed for all neurons you control.',
     });
   });
 
@@ -218,6 +218,7 @@ describe('AutomaticVotingCard', () => {
     renderCard([neuron({ id: 1n, refreshedDaysAgo: 190 })]);
 
     expect(card().dataset.phase).toBeUndefined();
+    expect(screen.getByRole('status')).toBeTruthy();
     expect(byTestId('automatic-voting-confirm-btn')).toBeNull();
   });
 });

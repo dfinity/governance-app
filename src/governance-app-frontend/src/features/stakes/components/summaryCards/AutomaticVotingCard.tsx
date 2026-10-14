@@ -22,6 +22,7 @@ import {
 import { Button } from '@components/button';
 import { Card, CardContent } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
+import { SkeletonScreen } from '@components/skeletons/SkeletonScreen';
 import { Spinner } from '@components/Spinner';
 import { useGovernanceEconomics } from '@hooks/governance/useGovernanceEconomics';
 import { mapCanisterError } from '@utils/errors';
@@ -163,7 +164,9 @@ export function AutomaticVotingCard({ neurons }: AutomaticVotingCardProps) {
           {t(($) => $.neuron.summary.automaticVoting.label)}
         </p>
         {isLoading ? (
-          <Skeleton className="h-8 w-32" />
+          <SkeletonScreen>
+            <Skeleton className="h-8 w-32" />
+          </SkeletonScreen>
         ) : (
           <>
             <div className="flex items-center gap-2">
