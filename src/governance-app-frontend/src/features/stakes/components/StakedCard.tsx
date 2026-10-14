@@ -1,4 +1,4 @@
-import { nonNullish } from '@dfinity/utils';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
 import { Coins, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
@@ -131,7 +131,7 @@ export function StakedCard() {
       <CardContent className="flex flex-1 flex-col justify-between gap-6">
         <div className="mt-auto grid grid-cols-2 gap-6 border-t pt-4 text-right">
           <div className="flex flex-col gap-1">
-            {neuronsQuery.isLoading ? (
+            {isNullish(neuronsQuery.data) ? (
               <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                 {t(($) => $.home.maturity)}
               </p>
