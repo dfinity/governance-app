@@ -63,6 +63,7 @@
     "engagementAction": "View proposals",
     "engagementActionComplete": "All caught up",
     "earnings": "Maturity",
+    "maturityTooltip": "Locked: {{locked}}. Available: {{available}}.",
     "earningsForecast": "1y forecast",
     "automaticVoting": {
       "label": "Automatic voting",
