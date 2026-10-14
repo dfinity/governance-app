@@ -57,7 +57,7 @@ function Settings() {
   const timeLeft = useSessionTimeLeft();
   const navigate = useNavigate({ from: Route.fullPath });
   const { openAddressBook } = Route.useSearch();
-  const logout = useLogout();
+  const logout = useLogout('settings');
 
   const handleAddressBookOpenChange = (open: boolean) => {
     navigate({ search: open ? { openAddressBook: true } : {}, replace: true });

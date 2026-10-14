@@ -13,6 +13,9 @@ import { ArrowLeft, LogIn } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
+
 import { Button } from '@components/button';
 import { MainLayout } from '@components/MainLayout';
 import { SessionCountdownToast } from '@components/SessionCountdownToast';
@@ -67,6 +70,11 @@ function AuthenticatedNotFound() {
   const { t } = useTranslation();
 
   useThemeShortcut();
+
+  useEffect(() => {
+    analytics.init();
+    analytics.event(AnalyticsEvent.NotFound, undefined, { interactive: false });
+  }, []);
 
   return (
     <MainLayout>
@@ -158,6 +166,8 @@ function RootComponent() {
         localStorage.removeItem(MANUAL_LOGOUT_KEY);
 
         if (isManualLogout) return;
+
+        analytics.event(AnalyticsEvent.SessionExpired, undefined, { interactive: false });
 
         // Notify user only on auto-expiration
         infoNotification({ description: t(($) => $.common.autoExpirationLogout) });

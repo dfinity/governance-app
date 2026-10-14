@@ -4,6 +4,8 @@ import { Coins, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
 import { ApyOptimizationModal } from '@features/stakes/components/ApyOptimizationModal';
 import { DisburseModal } from '@features/stakes/components/DisburseModal';
 import { DisburseActionType, getDisburseAction } from '@features/stakes/utils/getDisburseAction';
@@ -46,7 +48,10 @@ export function StakedCard() {
       warningNotification({
         description: t(($) => $.neuron.stakeNeuron.errors.zeroBalance),
       });
+      return;
     }
+
+    analytics.event(AnalyticsEvent.StakingOpenWizard, { source: 'staked_card' });
   };
 
   const neurons = neuronsQuery.data?.response ?? [];
