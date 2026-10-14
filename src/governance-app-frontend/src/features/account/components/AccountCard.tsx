@@ -6,6 +6,8 @@ import { List, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
 import { TransactionListDialog } from '@features/transactions/components/TransactionListDialog';
 
 import { Button } from '@components/button';
@@ -89,7 +91,14 @@ export function AccountCard() {
         <CardContent className="flex flex-1 flex-col justify-between gap-6">
           <div className="mt-auto flex flex-col gap-3">
             <Button asChild size="xl" className="w-full">
-              <Link to="/dashboard" search={{ depositModal: true }} replace>
+              <Link
+                to="/dashboard"
+                search={{ depositModal: true }}
+                replace
+                onClick={() =>
+                  analytics.event(AnalyticsEvent.AccountOpenDeposit, { source: 'dashboard_card' })
+                }
+              >
                 <Plus aria-hidden="true" />
                 {t(($) => $.account.addIcp)}
               </Link>
