@@ -125,7 +125,12 @@ export function ProposalListItem({ proposal, certified, isSpam, isNonActionable 
                 data-testid="proposal-proposer-badge"
               >
                 <User className="size-3.5" />
-                <span className="max-w-[150px] truncate">{proposerName}</span>
+                <span className="max-w-[150px] truncate" aria-hidden="true">
+                  {proposerName}
+                </span>
+                <span className="sr-only">
+                  {t(($) => $.proposal.proposer, { name: proposerName })}
+                </span>
               </Badge>
             )}
             {isSpam && (

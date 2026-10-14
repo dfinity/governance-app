@@ -2,7 +2,7 @@ import '@/i18n/config';
 
 import type { KnownNeuron, ProposalInfo } from '@icp-sdk/canisters/nns';
 import { ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ProposalListItem } from './ProposalListItem';
@@ -52,30 +52,35 @@ const mockProposal = (proposer: bigint | undefined): ProposalInfo =>
     proposal: { title: 'Test proposal' },
   }) as unknown as ProposalInfo;
 
-const getProposerBadge = () => screen.getByTestId('proposal-proposer-badge');
+const expectProposer = (name: string) => {
+  const badge = screen.getByTestId('proposal-proposer-badge');
+
+  expect(within(badge).getByText(name).getAttribute('aria-hidden')).toBe('true');
+  expect(within(badge).getByText(`Proposer: ${name}`).className).toContain('sr-only');
+};
 
 describe('ProposalListItem', () => {
   beforeEach(() => {
     knownNeuronsState.response = [KNOWN_NEURON];
   });
 
-  it('shows the name of a known proposer', () => {
+  it('shows the name of a known proposer with an accessible label', () => {
     render(<ProposalListItem proposal={mockProposal(27n)} />);
 
-    expect(getProposerBadge().textContent).toBe('DFINITY Foundation');
+    expectProposer('DFINITY Foundation');
   });
 
   it('shows the truncated neuron ID of an unknown proposer', () => {
     render(<ProposalListItem proposal={mockProposal(6914974521667616512n)} />);
 
-    expect(getProposerBadge().textContent).toBe('69149...16512');
+    expectProposer('69149...16512');
   });
 
   it('shows the neuron ID of a known proposer until the known neurons load', () => {
     knownNeuronsState.response = undefined;
     render(<ProposalListItem proposal={mockProposal(27n)} />);
 
-    expect(getProposerBadge().textContent).toBe('27');
+    expectProposer('27');
   });
 
   it('shows no proposer badge without a proposer', () => {
