@@ -3,10 +3,10 @@ import '@/i18n/config';
 import type { Neuron, NeuronInfo } from '@icp-sdk/canisters/nns';
 import { Topic } from '@icp-sdk/canisters/nns';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
@@ -121,6 +121,22 @@ describe('AutomaticVotingCard', () => {
     vi.spyOn(analytics, 'event');
     economicsState.loaded = true;
     refreshVotingPower.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('moves to the next phase while the card stays mounted', () => {
+    vi.useFakeTimers();
+    // 30 seconds before the 30-day warning window starts.
+    renderCard([neuron({ id: 1n, refreshedDaysAgo: 150 - 30 / SECONDS_IN_DAY })]);
+
+    expect(card().dataset.phase).toBe('active');
+
+    act(() => vi.advanceTimersByTime(60_000));
+
+    expect(card().dataset.phase).toBe('confirmSoon');
   });
 
   it('shows the due date and a quiet "Confirm now" when all neurons are healthy', async () => {

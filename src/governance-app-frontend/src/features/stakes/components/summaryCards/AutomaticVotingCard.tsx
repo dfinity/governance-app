@@ -24,7 +24,9 @@ import { Card, CardContent } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
 import { SkeletonScreen } from '@components/skeletons/SkeletonScreen';
 import { Spinner } from '@components/Spinner';
+import { MILLISECONDS_IN_SECOND } from '@constants/extra';
 import { useGovernanceEconomics } from '@hooks/governance/useGovernanceEconomics';
+import { useNowInSeconds } from '@hooks/useNowInSeconds';
 import { mapCanisterError } from '@utils/errors';
 import { formatRemainingTime } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
@@ -33,6 +35,9 @@ import { cn } from '@utils/shadcn';
 type AutomaticVotingCardProps = {
   neurons: NeuronInfo[];
 };
+
+// The phases change on a scale of days, so one tick per minute is enough.
+const CLOCK_INTERVAL_MS = 60 * MILLISECONDS_IN_SECOND;
 
 type Tone = 'ok' | 'neutral' | 'warning' | 'danger';
 type Action = 'confirm' | 'setUp' | 'selectNeuron' | 'confirmNow';
@@ -62,11 +67,13 @@ export function AutomaticVotingCard({ neurons }: AutomaticVotingCardProps) {
   const economicsQuery = useGovernanceEconomics();
   const economics = economicsQuery.data?.response?.votingPowerEconomics ?? undefined;
   const { mutateAsync, isPending } = useRefreshVotingPowerForNeurons();
+  const nowInSeconds = useNowInSeconds(CLOCK_INTERVAL_MS);
 
   const status = getAutomaticVotingStatus({
     neurons,
     economics,
     principalId: identity?.getPrincipal().toText(),
+    now: new Date(nowInSeconds * MILLISECONDS_IN_SECOND),
   });
   const durationI18n = t(($) => $.common.durationUnits, { returnObjects: true });
   const duration = nonNullish(status.secondsLeft)
