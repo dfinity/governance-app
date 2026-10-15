@@ -8,6 +8,7 @@
   "addAddress": "Add new address",
   "editAddress": "Edit address",
   "saveAddress": "Save address",
+  "saveAnyway": "Save anyway",
   "saveToAddressBook": "Save to address book",
   "updatingAddressBook": "Updating address book...",
   "confirmNavigation": "Your address book is being updated. Leaving this page may cause unexpected results. Are you sure you want to leave?",
@@ -29,7 +30,9 @@
     "nicknameTooShort": "Nickname must be at least 3 characters.",
     "nicknameTooLong": "Nickname must be at most 64 characters.",
     "nicknameAlreadyUsed": "This nickname is already in use.",
-    "invalidAddress": "Please enter a valid ICP or ICRC1 address."
+    "invalidAddress": "Please enter a valid ICP or ICRC1 address.",
+    "addressAlreadySaved": "This address is already saved as <strong>{{name}}</strong>.",
+    "editInstead": "Edit {{name}} instead"
   },
   "toast": {
     "anonymousNotAllowed": "Please sign in to manage the address book.",
