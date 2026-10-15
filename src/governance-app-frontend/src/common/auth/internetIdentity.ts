@@ -157,13 +157,18 @@ export const login = () => {
 
   setState({ status: 'logging-in' });
 
-  void client.login({
-    identityProvider: II_LOGIN_URL,
-    ...(nonNullish(II_DERIVATION_ORIGIN) && { derivationOrigin: II_DERIVATION_ORIGIN }),
-    maxTimeToLive: SESSION_TTL_NS,
-    onSuccess: () => authenticate(client.getIdentity()),
-    onError: () => setState({ status: 'idle' }),
-  });
+  client
+    .login({
+      identityProvider: II_LOGIN_URL,
+      ...(nonNullish(II_DERIVATION_ORIGIN) && { derivationOrigin: II_DERIVATION_ORIGIN }),
+      maxTimeToLive: SESSION_TTL_NS,
+      onSuccess: () => authenticate(client.getIdentity()),
+      onError: () => setState({ status: 'idle' }),
+    })
+    .catch((err) => {
+      console.error('Internet Identity: failed to start the login.', err);
+      if (state.status === 'logging-in') setState({ status: 'idle' });
+    });
 };
 
 const endSession = async () => {

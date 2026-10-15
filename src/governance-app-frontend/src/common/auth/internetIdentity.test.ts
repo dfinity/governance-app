@@ -139,6 +139,20 @@ describe('internetIdentity', () => {
     expect(client.login).toHaveBeenCalledTimes(2);
   });
 
+  it('allows a new login after the login fails to start.', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const client = mockAuthClient();
+    client.login.mockRejectedValueOnce(new Error('window.open failed'));
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    auth.login();
+    await vi.waitFor(() => expect(auth.getAuthState()).toEqual({ status: 'idle' }));
+
+    auth.login();
+    expect(client.login).toHaveBeenCalledTimes(2);
+  });
+
   it('clears the identity at once on logout, then logs in with a new auth client.', async () => {
     const identity = await delegationIdentity(ONE_HOUR_MS);
     const client = mockAuthClient(identity);
