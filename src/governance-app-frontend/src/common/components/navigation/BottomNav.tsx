@@ -50,7 +50,8 @@ export const BottomNav = () => {
             )}
             onAnimationEnd={item.href === '/accounts' ? () => setShouldAnimate(false) : undefined}
             activeProps={{
-              className: 'bg-primary/10 text-primary dark:bg-primary/15',
+              className:
+                'bg-primary/10 text-primary dark:bg-primary/15 dark:text-accent-foreground',
             }}
             aria-label={t(item.label as never)}
           >
