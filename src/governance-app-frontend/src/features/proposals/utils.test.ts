@@ -1,12 +1,28 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  getKnownNeuronNames,
   isProposalFilter,
   isValidProposalId,
   parseProposalId,
   ProposalFilter,
   validateProposalsSearch,
 } from './utils';
+
+describe('getKnownNeuronNames', () => {
+  it('maps each known neuron ID to its name', () => {
+    const names = getKnownNeuronNames([
+      { id: 27n, name: 'DFINITY Foundation', description: '', links: [], committed_topics: [] },
+    ]);
+
+    expect(names.get(27n)).toBe('DFINITY Foundation');
+    expect(names.get(28n)).toBeUndefined();
+  });
+
+  it('returns an empty map until the known neurons load', () => {
+    expect(getKnownNeuronNames(undefined).size).toBe(0);
+  });
+});
 
 describe('isValidProposalId', () => {
   it('returns true for positive bigints', () => {

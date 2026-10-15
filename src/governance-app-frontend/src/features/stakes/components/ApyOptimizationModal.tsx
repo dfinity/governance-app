@@ -5,6 +5,9 @@ import { CheckCircle2, MessageCircleQuestionMarkIcon } from 'lucide-react';
 import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
+
 import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import {
@@ -79,7 +82,13 @@ export function ApyOptimizationModal() {
   const hasUnoptimized = neuronStatuses.some((status) => !status.isOptimized);
 
   return (
-    <ResponsiveDialog open={open} onOpenChange={setOpen}>
+    <ResponsiveDialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (isOpen) analytics.event(AnalyticsEvent.StakingOpenApyOptimization);
+        setOpen(isOpen);
+      }}
+    >
       <ResponsiveDialogTrigger
         className="cursor-pointer rounded-sm p-0.5 transition-all duration-300 hover:scale-110 focus-visible:ring-2 focus-visible:ring-muted-foreground focus-visible:ring-offset-1 focus-visible:outline-none"
         disabled={isLoading}

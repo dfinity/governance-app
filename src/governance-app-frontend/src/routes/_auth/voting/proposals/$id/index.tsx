@@ -1,12 +1,14 @@
 import { ProposalInfo, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
-import { ArrowLeft, Clock, Link as LinkIcon, Tag, User } from 'lucide-react';
+import { ArrowLeft, Clock, Link as LinkIcon, Tag } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalDetailsVoting } from '@features/proposals/components/ProposalDetailsVoting';
+import { ProposerBadge } from '@features/proposals/components/ProposerBadge';
 import { SelfDescribingActionView } from '@features/proposals/components/SelfDescribingActionView';
 import {
+  getKnownNeuronNames,
   getProposalStatusColor,
   getProposalTimeLeftInSeconds,
   isValidProposalId,
@@ -25,6 +27,7 @@ import {
   ProposalDetailContentSkeleton,
   ProposalDetailSkeleton,
 } from '@components/skeletons/ProposalDetailSkeleton';
+import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import { useGovernanceProposal } from '@hooks/governance/useGovernanceProposal';
 import { CheckResultKey, useSpamCheck } from '@hooks/spamFilter';
 import { CertifiedData } from '@typings/queries';
@@ -69,6 +72,7 @@ function ProposalDetailsRouteComponent() {
     proposalId: id!,
   });
   const spamCheckResult = useSpamCheck(id).data?.response;
+  const knownNeuronNames = getKnownNeuronNames(useGovernanceKnownNeurons().data?.response);
 
   return (
     <div className="flex flex-col gap-6">
@@ -131,12 +135,12 @@ function ProposalDetailsRouteComponent() {
                       {Topic[proposal.topic] ??
                         t(($) => $.proposal.unknownTopic, { id: proposal.topic })}
                     </Badge>
-                    <Badge variant="secondary" className="gap-1.5 font-normal">
-                      <User className="h-3.5 w-3.5" />
-                      <span className="max-w-[150px] truncate">
-                        {proposal.proposer?.toString()}
-                      </span>
-                    </Badge>
+                    {nonNullish(proposal.proposer) && (
+                      <ProposerBadge
+                        proposer={proposal.proposer}
+                        knownNeuronNames={knownNeuronNames}
+                      />
+                    )}
                     {proposalUrl && (
                       <a
                         href={proposalUrl.href}

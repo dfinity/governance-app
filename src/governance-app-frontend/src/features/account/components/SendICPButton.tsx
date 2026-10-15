@@ -2,7 +2,6 @@ import { AccountIdentifier, TransferError } from '@icp-sdk/canisters/ledger/icp'
 import { decodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
 import { nonNullish, nowInBigIntNanoSeconds, toNullable } from '@dfinity/utils';
 import { useMutation } from '@tanstack/react-query';
-import { Link } from '@tanstack/react-router';
 import { AlertTriangle, ArrowUpRight, BookPlus, BookUser, Send } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import React, { useEffect, useEffectEvent, useRef, useState } from 'react';
@@ -21,7 +20,10 @@ import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { useAccountSelection } from '@features/accounts/hooks/useAccountSelection';
 import { type Account, isAccountReady } from '@features/accounts/types';
 import { AddAddressModal } from '@features/addressBook/components/AddAddressModal';
-import { AddressBookSelect } from '@features/addressBook/components/AddressBookSelect';
+import {
+  DestinationInput,
+  type DestinationSuggestion,
+} from '@features/addressBook/components/DestinationInput';
 import { AnalyticsEvent } from '@features/analytics/events';
 import { getAmountRange, getErrorReason } from '@features/analytics/properties';
 import { analytics } from '@features/analytics/service';
@@ -38,7 +40,6 @@ import {
   MutationDialogHeader,
 } from '@components/MutationDialog';
 import { ResponsiveDialogDescription, ResponsiveDialogTitle } from '@components/ResponsiveDialog';
-import { Switch } from '@components/Switch';
 import { ADDRESS_BOOK_MAX_ENTRIES } from '@constants/addressBook';
 import { DIALOG_RESET_DELAY_MS, E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
@@ -47,7 +48,11 @@ import { useIcpPrice } from '@hooks/tickers';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
-import { addressBookMatchesAddress } from '@utils/addressBook';
+import {
+  addressBookGetAddressString,
+  addressBookIsIcpAddress,
+  addressBookMatchesAddress,
+} from '@utils/addressBook';
 import { bigIntDiv, bigIntMul } from '@utils/bigInt';
 import { isCertifiedRejectError } from '@utils/errors';
 import { shortenId } from '@utils/id';
@@ -89,9 +94,10 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   const memoEnabled = features[AdvancedFeature.TransactionMemo];
 
   const addressBookQuery = useAddressBook();
-  const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
   const addressBookLoading = addressBookQuery.isLoading;
-  const hasAddresses = addressBookEntries.length > 0;
+  // A save writes the new list into the cache at once, so the saved entry is
+  // in this list even when the refetch of the book fails.
+  const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
 
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(Step.Form);
@@ -102,20 +108,9 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   const [memo, setMemo] = useState('');
   const [memoError, setMemoError] = useState('');
   const [selectedName, setSelectedName] = useState('');
-  const [useAddressBookToggle, setUseAddressBookToggle] = useState(false);
   const [saveAddressOpen, setSaveAddressOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
   const amountInputRef = useRef<HTMLInputElement>(null);
-
-  const autoToggleAddressBook = useEffectEvent(() => {
-    if (hasAddresses && toAccount === '') {
-      setUseAddressBookToggle(true);
-    }
-  });
-
-  useEffect(() => {
-    if (!addressBookLoading) autoToggleAddressBook();
-  }, [addressBookLoading]);
 
   // Keep the createdAt value for retry purposes (used for deduplication at the ledger level)
   const createdAtRef = useRef<bigint | null>(null);
@@ -129,7 +124,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   const getSendProperties = () => ({
     variant,
     destination: isValidIcpAddress(toAccount) ? 'icp' : 'icrc1',
-    address_book: useAddressBookToggle ? 'yes' : 'no',
+    address_book: selectedName !== '' ? 'yes' : 'no',
   });
 
   const transferMutation = useMutation({
@@ -282,6 +277,11 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   // A failed read leaves `data` empty. Saving on top of it would wipe the stored entries.
   const canSaveAddress =
     nonNullish(addressBookQuery.data) && addressBookEntries.length < ADDRESS_BOOK_MAX_ENTRIES;
+  const destinationSuggestions: DestinationSuggestion[] = addressBookEntries.map((entry) => ({
+    name: entry.name,
+    address: addressBookGetAddressString(entry.address),
+    kind: addressBookIsIcpAddress(entry.address) ? 'icp' : 'icrc1',
+  }));
 
   // Status messages only need to identify the destination, not let the user verify it
   // character by character — the confirmation step already shows the full address.
@@ -297,7 +297,10 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
         size="xl"
         className={cn('w-full', variantClassName)}
         data-testid="send-icp-btn"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          analytics.event(AnalyticsEvent.AccountOpenSend, { variant });
+          setOpen(true);
+        }}
       >
         <Icon aria-hidden />
         {t(($) => $.common[label])}
@@ -322,21 +325,13 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
                 toAccount={toAccount}
                 toAccountError={toAccountError}
                 selectedName={selectedName}
-                useAddressBookToggle={useAddressBookToggle}
-                onAddressBookToggleChange={(checked) => {
-                  setUseAddressBookToggle(checked);
-                  setToAccount('');
-                  setSelectedName('');
-                  setToAccountError('');
-                }}
-                addressBookEntries={addressBookEntries}
+                destinationSuggestions={destinationSuggestions}
                 addressBookLoading={addressBookLoading}
-                hasAddresses={hasAddresses}
-                onDestinationSelect={(name, address) => {
+                onDestinationChange={(value, name) => {
                   setSelectedName(name);
-                  handleAccountChange(address);
+                  handleAccountChange(value);
                 }}
-                onDestinationChange={handleAccountChange}
+                onAddAddress={canSaveAddress ? () => setSaveAddressOpen(true) : undefined}
                 amount={amount}
                 amountError={amountError}
                 onAmountChange={handleAmountChange}
@@ -375,6 +370,10 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
         onClose={() => setSaveAddressOpen(false)}
         initialAddress={toAccount}
         existingAddresses={addressBookEntries}
+        onSaved={(entry) => {
+          setSelectedName(entry.name);
+          handleAccountChange(addressBookGetAddressString(entry.address));
+        }}
       />
     </>
   );
@@ -388,13 +387,10 @@ type SendFormStepProps = {
   toAccount: string;
   toAccountError: string;
   selectedName: string;
-  useAddressBookToggle: boolean;
-  onAddressBookToggleChange: (checked: boolean) => void;
-  addressBookEntries: NamedAddress[];
+  destinationSuggestions: DestinationSuggestion[];
   addressBookLoading: boolean;
-  hasAddresses: boolean;
-  onDestinationSelect: (name: string, address: string) => void;
-  onDestinationChange: (value: string) => void;
+  onDestinationChange: (value: string, selectedName: string) => void;
+  onAddAddress?: () => void;
   amount: string;
   amountError: string;
   onAmountChange: (value: string) => void;
@@ -418,13 +414,10 @@ function SendFormStep({
   toAccount,
   toAccountError,
   selectedName,
-  useAddressBookToggle,
-  onAddressBookToggleChange,
-  addressBookEntries,
+  destinationSuggestions,
   addressBookLoading,
-  hasAddresses,
-  onDestinationSelect,
   onDestinationChange,
+  onAddAddress,
   amount,
   amountError,
   onAmountChange,
@@ -440,7 +433,6 @@ function SendFormStep({
   onClose,
 }: SendFormStepProps) {
   const { t } = useTranslation();
-  const showToggle = !addressBookLoading && hasAddresses;
   const cameraSupported = isCameraSupported();
 
   return (
@@ -479,78 +471,40 @@ function SendFormStep({
 
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor={useAddressBookToggle ? 'address-book-select' : 'destination-account'}>
-                {t(($) => $.account.destinationAccount)}
-              </Label>
-              {addressBookLoading ? (
+              <Label htmlFor="destination-account">{t(($) => $.account.destinationAccount)}</Label>
+              {addressBookLoading && (
                 <div className="flex items-center gap-1.5">
                   <BookUser className="size-3.5 animate-pulse text-muted-foreground" />
                   <span className="animate-pulse text-xs text-muted-foreground">
                     {t(($) => $.addressBook.sendFlow.tooltipLoading)}
                   </span>
                 </div>
-              ) : showToggle ? (
-                <label className="flex cursor-pointer items-center gap-1.5">
-                  <BookUser className="size-3.5 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">
-                    {t(($) => $.addressBook.sendFlow.toggleLabel)}
-                  </span>
-                  <Switch
-                    checked={useAddressBookToggle}
-                    onCheckedChange={onAddressBookToggleChange}
-                    size="sm"
-                    data-testid="address-book-toggle"
-                  />
-                </label>
-              ) : !addressBookLoading && !hasAddresses ? (
-                <Link
-                  to="/settings"
-                  search={{ openAddressBook: true }}
-                  className="flex items-center gap-1.5 transition-opacity hover:opacity-80"
-                >
-                  <BookUser className="size-3.5 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground underline">
-                    {t(($) => $.addressBook.sendFlow.tooltipEmpty)}
-                  </span>
-                </Link>
-              ) : null}
+              )}
             </div>
 
-            {useAddressBookToggle ? (
-              <AddressBookSelect
-                addresses={addressBookEntries}
-                selectedName={selectedName}
-                onSelect={onDestinationSelect}
-              />
-            ) : (
-              <div className="relative">
-                <Input
-                  id="destination-account"
-                  data-testid="send-icp-destination-input"
-                  onChange={(e) => onDestinationChange(e.target.value)}
-                  value={toAccount}
-                  className={cn(
-                    'font-mono',
-                    cameraSupported && 'pr-10',
-                    toAccountError && 'border-destructive',
-                  )}
-                  aria-invalid={!!toAccountError}
-                  autoComplete="off"
-                  data-1p-ignore
-                  data-lpignore="true"
-                  required
-                />
-                {cameraSupported && (
+            <DestinationInput
+              id="destination-account"
+              data-testid="send-icp-destination-input"
+              value={toAccount}
+              selectedName={selectedName}
+              suggestions={destinationSuggestions}
+              onChange={onDestinationChange}
+              onAddAddress={onAddAddress}
+              invalid={!!toAccountError}
+              placeholder={t(($) => $.addressBook.destination.placeholder)}
+              inputClassName={cn(toAccountError && 'border-destructive')}
+              endAdornment={
+                cameraSupported ? (
                   <ScanAddressButton
                     className="absolute top-1/2 right-0.5 -translate-y-1/2"
                     onScan={({ address, amount }) => {
-                      onDestinationChange(address);
+                      onDestinationChange(address, '');
                       if (nonNullish(amount)) onAmountChange(String(amount));
                     }}
                   />
-                )}
-              </div>
-            )}
+                ) : undefined
+              }
+            />
             {toAccountError && (
               <Alert variant="warning">
                 <AlertTriangle className="size-4 text-destructive" />

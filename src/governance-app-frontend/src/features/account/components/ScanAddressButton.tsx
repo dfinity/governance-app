@@ -2,6 +2,9 @@ import { AlertTriangle, ScanQrCode } from 'lucide-react';
 import React, { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
+
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import {
@@ -38,6 +41,9 @@ export const ScanAddressButton: React.FC<Props> = ({ onScan, className }) => {
   const [open, setOpen] = useState(false);
 
   const handleScan = (payment: ScannedPayment) => {
+    analytics.event(AnalyticsEvent.AccountQrScanSuccess, {
+      has_amount: payment.amount === undefined ? 'no' : 'yes',
+    });
     onScan(payment);
     setOpen(false);
   };
@@ -51,7 +57,10 @@ export const ScanAddressButton: React.FC<Props> = ({ onScan, className }) => {
         className={cn('text-muted-foreground', className)}
         aria-label={t(($) => $.account.scanQrCode)}
         data-testid="scan-address-btn"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          analytics.event(AnalyticsEvent.AccountQrScanOpen);
+          setOpen(true);
+        }}
       >
         <ScanQrCode aria-hidden />
       </Button>
@@ -77,6 +86,12 @@ function QrScanner({ onScan }: QrScannerProps) {
   const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [status, setStatus] = useState(Status.Scanning);
+
+  useEffect(() => {
+    if (status !== Status.Scanning) {
+      analytics.event(AnalyticsEvent.AccountQrScanError, { reason: status });
+    }
+  }, [status]);
 
   const handleDetected = useEffectEvent((raw: string): boolean => {
     const payment = parseScannedPayment(raw);
