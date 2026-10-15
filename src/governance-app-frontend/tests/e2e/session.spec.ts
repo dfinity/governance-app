@@ -52,6 +52,8 @@ test('Protects routes and recovers from a closed Internet Identity window', asyn
     ]);
     await expect(page.getByTestId('login-btn')).toBeDisabled();
 
+    // The auth client sees the window close only after Internet Identity answers it.
+    await identityProvider.getByRole('button', { name: 'Create', exact: true }).waitFor();
     await identityProvider.close();
 
     await expectLoginPage(page);
