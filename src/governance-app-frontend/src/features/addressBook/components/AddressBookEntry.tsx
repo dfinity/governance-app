@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Send, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import type { NamedAddress } from '@declarations/governance-app-backend/governance-app-backend.did';
@@ -12,9 +12,10 @@ type Props = {
   namedAddress: NamedAddress;
   onEdit: (namedAddress: NamedAddress) => void;
   onDelete: (namedAddress: NamedAddress) => void;
+  onSend?: (namedAddress: NamedAddress) => void;
 };
 
-export const AddressBookEntry: React.FC<Props> = ({ namedAddress, onEdit, onDelete }) => {
+export const AddressBookEntry: React.FC<Props> = ({ namedAddress, onEdit, onDelete, onSend }) => {
   const { t } = useTranslation();
   const addressString = addressBookGetAddressString(namedAddress.address);
   const isIcp = addressBookIsIcpAddress(namedAddress.address);
@@ -41,6 +42,17 @@ export const AddressBookEntry: React.FC<Props> = ({ namedAddress, onEdit, onDele
         </p>
       </div>
       <div className="flex shrink-0 items-center gap-0.5">
+        {onSend && (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => onSend(namedAddress)}
+            data-testid="address-book-send-btn"
+            aria-label={t(($) => $.addressBook.sendTo, { name: namedAddress.name })}
+          >
+            <Send className="size-3.5" />
+          </Button>
+        )}
         <CopyButton
           value={addressString}
           label={t(($) => $.addressBook.address)}
