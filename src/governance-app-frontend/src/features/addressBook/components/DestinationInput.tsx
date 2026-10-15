@@ -130,6 +130,9 @@ export function DestinationInput({
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    // The keys of an input method editor (IME) composition belong to the IME.
+    // Safari sends the Enter that confirms a composition with key code 229.
+    if (event.nativeEvent.isComposing || event.keyCode === 229) return;
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
       if (itemCount === 0) return;

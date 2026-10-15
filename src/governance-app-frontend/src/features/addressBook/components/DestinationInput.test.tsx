@@ -147,6 +147,22 @@ describe('DestinationInput', () => {
     expect(onChange).toHaveBeenLastCalledWith(ICRC1_ADDRESS, 'Bob');
   });
 
+  it('ignores the Enter that confirms an IME composition', () => {
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} />);
+    const input = screen.getByTestId('destination');
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: 'bo' } });
+    onChange.mockClear();
+
+    fireEvent.keyDown(input, { key: 'Enter', isComposing: true });
+    fireEvent.keyDown(input, { key: 'Enter', keyCode: 229 });
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('destination-selected')).toBeNull();
+  });
+
   it('keeps a complete address as typed text on Enter', () => {
     const onChange = vi.fn();
     render(<Harness onChange={onChange} />);
