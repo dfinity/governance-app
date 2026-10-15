@@ -3,6 +3,9 @@ import { AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
+
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
 import {
@@ -39,7 +42,13 @@ export function StakingRatioModal() {
   const isLoading = balanceQuery.isLoading || stakingRewards.loading;
 
   return (
-    <ResponsiveDialog open={open} onOpenChange={setOpen}>
+    <ResponsiveDialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (isOpen) analytics.event(AnalyticsEvent.StakingOpenStakingRatio);
+        setOpen(isOpen);
+      }}
+    >
       <ResponsiveDialogTrigger
         className="cursor-pointer rounded-sm p-0.5 transition-all duration-300 hover:scale-110 focus-visible:ring-2 focus-visible:ring-muted-foreground focus-visible:ring-offset-1 focus-visible:outline-none"
         disabled={isLoading}
@@ -100,7 +109,13 @@ export function StakingRatioModal() {
           </Alert>
 
           <Button className="w-full" asChild>
-            <Link to="/neurons" search={{ openWizard: true }}>
+            <Link
+              to="/neurons"
+              search={{ openWizard: true }}
+              onClick={() =>
+                analytics.event(AnalyticsEvent.StakingOpenWizard, { source: 'staking_ratio' })
+              }
+            >
               {t(($) => $.stakingRatioModal.button)}
             </Link>
           </Button>

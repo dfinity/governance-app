@@ -1,7 +1,10 @@
-import { ProposalInfo, ProposalStatus } from '@icp-sdk/canisters/nns';
+import { KnownNeuron, ProposalInfo, ProposalStatus } from '@icp-sdk/canisters/nns';
 import { isNullish } from '@dfinity/utils';
 
 import { stringToBigInt } from '@utils/bigInt';
+
+export const getKnownNeuronNames = (knownNeurons: KnownNeuron[] = []): Map<bigint, string> =>
+  new Map(knownNeurons.map(({ id, name }) => [id, name]));
 
 export const isValidProposalId = (id: bigint | undefined): id is bigint =>
   !isNullish(id) && id > 0n;
