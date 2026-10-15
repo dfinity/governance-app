@@ -407,7 +407,8 @@ test.describe('Address book', () => {
     await test.step('Send to the contact.', async () => {
       await navigateTo(page, 'dashboard');
       await page.getByTestId('send-icp-btn').click();
-      await page.getByTestId('address-book-select').selectOption('Bob');
+      await page.getByTestId('send-icp-destination-input').fill('Bob');
+      await page.getByTestId('send-icp-destination-input-option').first().click();
       await page.getByTestId('send-icp-amount-input').fill('5');
       await page.getByTestId('send-icp-next-btn').click();
       await expect(page.getByTestId('send-icp-destination-name')).toHaveText('Bob');
