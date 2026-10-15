@@ -47,9 +47,12 @@
     "ctaExpired": "Set up following",
     "processing": "Confirming, please wait...",
     "success": "Following confirmed. Voting power and following are refreshed.",
+    "successAll": "Following confirmed for {{neuronCount}} of your neurons.",
+    "lastConfirmed": "Last confirmed {{date}}",
     "hotkeyNote": "Confirming following is one of the few actions a hotkey can perform.",
     "errors": {
-      "failed": "Failed to confirm following. Please try again."
+      "failed": "Failed to confirm following. Please try again.",
+      "failedSome": "Failed to confirm following for {{failed}} of {{total}} neurons. Please try again."
     }
   },
   "disburseIcp": "Disburse ICPs",
@@ -63,13 +66,26 @@
     "engagementAction": "View proposals",
     "engagementActionComplete": "All caught up",
     "earnings": "Maturity",
+    "maturityTooltip": "Locked: {{locked}}. Available: {{available}}.",
     "earningsForecast": "1y forecast",
     "automaticVoting": {
       "label": "Automatic voting",
       "knownNeuronSelected": "Enabled",
       "partial": "Partial",
       "notSetUp": "Not set up",
-      "setupVoting": "Select known neuron"
+      "setupVoting": "Select known neuron",
+      "notSetUpDetail": "Your neurons do not vote automatically.",
+      "partialDetail": "Your neurons do not vote automatically on some topics.",
+      "dueIn": "Due in {{duration}}",
+      "confirmNow": "Confirm now",
+      "confirmSoon": "Confirm soon",
+      "confirmSoonDetail": "Rewards start to drop in {{duration}}.",
+      "losingRewards": "Losing rewards",
+      "losingRewardsDetail": "Following is cleared in {{duration}}.",
+      "followingCleared": "Following cleared",
+      "followingClearedDetail": "Set up following again to earn rewards.",
+      "confirm": "Confirm",
+      "setUp": "Set up"
     }
   },
   "empty": {

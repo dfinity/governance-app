@@ -516,22 +516,47 @@ export const isUserHotkey = ({
 };
 
 /**
+ * Returns true if the current user is the controller or a hotkey of the neuron.
+ * Both can call `refreshVotingPower`.
+ */
+export const isUserControllerOrHotkey = ({
+  neuron,
+  principalId,
+}: {
+  neuron: NeuronInfo;
+  principalId?: string | null;
+}): boolean =>
+  !!principalId &&
+  (neuron.fullNeuron?.controller === principalId ||
+    (neuron.fullNeuron?.hotKeys.includes(principalId) ?? false));
+
+/**
  * Aggregates staking data from multiple neurons.
  * @param neurons - Array of neurons to aggregate data from
- * @returns Object containing totalStakedAfterFees and totalMaturity
+ * @returns Object containing totalStakedAfterFees (ICP stake only), totalMaturity, and its
+ * split into totalStakedMaturity and totalFreeMaturity
  */
 export const getNeuronsAggregatedData = (
   neurons: NeuronInfo[] = [],
-): { totalStakedAfterFees: number; totalMaturity: number } => {
+): {
+  totalStakedAfterFees: number;
+  totalMaturity: number;
+  totalStakedMaturity: number;
+  totalFreeMaturity: number;
+} => {
   return neurons.reduce(
     (acc, neuron) => {
       const stake = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
       const maturity = bigIntDiv(getNeuronTotalMaturityE8s(neuron), E8Sn);
+      const stakedMaturity = bigIntDiv(getNeuronStakedMaturityE8s(neuron), E8Sn);
+      const freeMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
       return {
         totalStakedAfterFees: acc.totalStakedAfterFees + stake,
         totalMaturity: acc.totalMaturity + maturity,
+        totalStakedMaturity: acc.totalStakedMaturity + stakedMaturity,
+        totalFreeMaturity: acc.totalFreeMaturity + freeMaturity,
       };
     },
-    { totalStakedAfterFees: 0, totalMaturity: 0 },
+    { totalStakedAfterFees: 0, totalMaturity: 0, totalStakedMaturity: 0, totalFreeMaturity: 0 },
   );
 };

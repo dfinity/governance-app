@@ -85,17 +85,15 @@ function NeuronsComponent() {
       search: isOpen ? { openWizard: true } : {},
       replace: true,
     });
-    if (isOpen) {
-      analytics.event(AnalyticsEvent.StakingOpenWizard);
-    }
   };
 
-  const handleOpenStakingWizard = () => {
+  const handleOpenStakingWizard = (source: string) => {
     if (!canStake) {
       warningNotification({
         description: t(($) => $.stakeWizardModal.errors.cannotStake),
       });
     }
+    analytics.event(AnalyticsEvent.StakingOpenWizard, { source });
     handleStakingWizardOpenChange(true);
   };
 
@@ -109,7 +107,7 @@ function NeuronsComponent() {
           description={t(($) => $.neuron.description)}
           actions={
             <Button
-              onClick={handleOpenStakingWizard}
+              onClick={() => handleOpenStakingWizard('neurons_header')}
               data-testid="staking-wizard-trigger-btn"
               className="w-full sm:w-auto"
               size="xl"
@@ -124,7 +122,9 @@ function NeuronsComponent() {
       <QueryStates<CertifiedData<NeuronInfo[]>>
         query={neuronsQuery}
         isEmpty={(neurons) => neurons.response.length === 0}
-        emptyComponent={<EmptyNeuronsState openStakingWizard={handleOpenStakingWizard} />}
+        emptyComponent={
+          <EmptyNeuronsState openStakingWizard={() => handleOpenStakingWizard('neurons_empty')} />
+        }
         loadingComponent={<NeuronsContentSkeleton />}
       >
         {(neurons) => (
