@@ -260,24 +260,23 @@ describe('internetIdentity', () => {
     expect(client.logout).toHaveBeenCalled();
   });
 
-  it('keeps the expiry delay in the range of setTimeout when the local clock is far behind.', async () => {
+  it('keeps the expiry delay in the range of setTimeout when the clock sync fails.', async () => {
     const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
-    const thirtyDaysMs = 30 * 24 * ONE_HOUR_MS;
-    getTimeDiffMsecs.mockReturnValue(thirtyDaysMs);
+    syncTime.mockRejectedValueOnce(new Error('network error'));
 
-    const identity = await delegationIdentity(thirtyDaysMs + ONE_HOUR_MS);
+    // 30 days left by the local clock, more than setTimeout accepts.
+    const thirtyDaysMs = 30 * 24 * ONE_HOUR_MS;
+    const identity = await delegationIdentity(thirtyDaysMs);
     mockAuthClient(identity);
     mockAuthClient();
     const auth = await loadModule();
     await auth.ensureInitialized();
     await vi.waitFor(() =>
-      expect(auth.getAuthState().sessionEndsAtMs).toBe(
-        expirationMs(identity) - thirtyDaysMs - 10_000,
-      ),
+      expect(auth.getAuthState().sessionEndsAtMs).toBe(expirationMs(identity) - 10_000),
     );
 
     const delays = setTimeoutSpy.mock.calls.map(([, delay]) => delay ?? 0);
-    expect(Math.max(...delays)).toBeLessThanOrEqual(2 ** 31 - 1);
+    expect(Math.max(...delays)).toBe(2 ** 31 - 1);
 
     auth.logout();
     setTimeoutSpy.mockRestore();
