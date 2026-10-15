@@ -66,6 +66,20 @@ type Props = {
   variant?: 'simple' | 'advanced';
 };
 
+export type SendDestination = {
+  name: string;
+  address: string;
+};
+
+type DialogProps = Omit<Props, 'variant'> & {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  /** The entry point, for the analytics events of the transfer. */
+  variant?: 'simple' | 'advanced' | 'contact';
+  /** Prefills the destination with an address book entry and keeps it. */
+  initialDestination?: SendDestination;
+};
+
 enum Step {
   Form = 'form',
   Confirmation = 'confirmation',
@@ -76,14 +90,17 @@ const variantConfig = {
   advanced: { Icon: ArrowUpRight, className: 'flex-1', label: 'send' },
 } as const;
 
-export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant = 'simple' }) => {
+export const SendICPDialog: React.FC<DialogProps> = ({
+  open,
+  onOpenChange,
+  balance,
+  fromAccountId,
+  variant = 'simple',
+  initialDestination,
+}) => {
   const { t } = useTranslation();
 
-  const {
-    ready: ledgerReady,
-    canister: ledgerCanister,
-    authenticated: ledgerAuthenticated,
-  } = useIcpLedger();
+  const { canister: ledgerCanister } = useIcpLedger();
 
   const { icpPrice, formatFiat } = useIcpPrice();
 
@@ -99,15 +116,14 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
   // in this list even when the refetch of the book fails.
   const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
 
-  const [open, setOpen] = useState(false);
   const [step, setStep] = useState(Step.Form);
   const [amount, setAmount] = useState('');
   const [amountError, setAmountError] = useState('');
-  const [toAccount, setToAccount] = useState('');
+  const [toAccount, setToAccount] = useState(initialDestination?.address ?? '');
   const [toAccountError, setToAccountError] = useState('');
   const [memo, setMemo] = useState('');
   const [memoError, setMemoError] = useState('');
-  const [selectedName, setSelectedName] = useState('');
+  const [selectedName, setSelectedName] = useState(initialDestination?.name ?? '');
   const [saveAddressOpen, setSaveAddressOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
   const amountInputRef = useRef<HTMLInputElement>(null);
@@ -173,27 +189,40 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
     },
   });
 
-  const canTransfer = effectiveBalance > ICP_TRANSACTION_FEE && ledgerReady && ledgerAuthenticated;
   const max = roundToE8sPrecision(effectiveBalance - ICP_TRANSACTION_FEE);
 
-  const resetFormState = useEffectEvent(() => {
+  const resetFormFields = () => {
     setStep(Step.Form);
-    setToAccount('');
-    setSelectedName('');
+    setToAccount(initialDestination?.address ?? '');
+    setSelectedName(initialDestination?.name ?? '');
     setAmount('');
     setAmountError('');
     setToAccountError('');
     setMemo('');
     setMemoError('');
+    createdAtRef.current = null;
+  };
+
+  // The account picker notifies only when its resolved id changes, so the
+  // account snapshot resets only after the close, with the picker.
+  const resetFormState = useEffectEvent(() => {
+    resetFormFields();
     setSelectedAccountId(fromAccountId);
     setSelectedAccount(undefined);
-    createdAtRef.current = null;
   });
+
+  const resetFormFieldsOnOpen = useEffectEvent(resetFormFields);
 
   useEffect(() => {
     if (open) return;
     const timer = setTimeout(resetFormState, DIALOG_RESET_DELAY_MS);
     return () => clearTimeout(timer);
+  }, [open]);
+
+  // A reopen within the reset delay keeps the state of the last transfer, and
+  // the entry can change between two opens. Reset the form fields on open.
+  useEffect(() => {
+    if (open) resetFormFieldsOnOpen();
   }, [open]);
 
   const handleFormSubmit = (event: React.SyntheticEvent) => {
@@ -282,33 +311,32 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
     address: addressBookGetAddressString(entry.address),
     kind: addressBookIsIcpAddress(entry.address) ? 'icp' : 'icrc1',
   }));
+  // The locked destination stays a known suggestion even when the book no
+  // longer holds the entry, so the chip stays in place.
+  if (
+    nonNullish(initialDestination) &&
+    !destinationSuggestions.some(
+      (suggestion) =>
+        suggestion.name === initialDestination.name &&
+        suggestion.address === initialDestination.address,
+    )
+  ) {
+    destinationSuggestions.push({
+      name: initialDestination.name,
+      address: initialDestination.address,
+      kind: isValidIcpAddress(initialDestination.address) ? 'icp' : 'icrc1',
+    });
+  }
 
   // Status messages only need to identify the destination, not let the user verify it
   // character by character — the confirmation step already shows the full address.
   const destination = addressBookName ?? shortenId(toAccount, 8);
 
-  const { Icon, className: variantClassName, label } = variantConfig[variant];
-
   return (
     <>
-      <Button
-        variant="outline"
-        disabled={!canTransfer}
-        size="xl"
-        className={cn('w-full', variantClassName)}
-        data-testid="send-icp-btn"
-        onClick={() => {
-          analytics.event(AnalyticsEvent.AccountOpenSend, { variant });
-          setOpen(true);
-        }}
-      >
-        <Icon aria-hidden />
-        {t(($) => $.common[label])}
-      </Button>
-
       <MutationDialog
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={onOpenChange}
         processingMessage={t(($) => $.account.transferProcessing, { amount, destination })}
         successMessage={t(($) => $.account.transferSuccess, { amount, destination })}
         navBlockerDescription={t(($) => $.account.confirmNavigation)}
@@ -332,6 +360,7 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
                   handleAccountChange(value);
                 }}
                 onAddAddress={canSaveAddress ? () => setSaveAddressOpen(true) : undefined}
+                destinationLocked={nonNullish(initialDestination)}
                 amount={amount}
                 amountError={amountError}
                 onAmountChange={handleAmountChange}
@@ -391,6 +420,7 @@ type SendFormStepProps = {
   addressBookLoading: boolean;
   onDestinationChange: (value: string, selectedName: string) => void;
   onAddAddress?: () => void;
+  destinationLocked: boolean;
   amount: string;
   amountError: string;
   onAmountChange: (value: string) => void;
@@ -418,6 +448,7 @@ function SendFormStep({
   addressBookLoading,
   onDestinationChange,
   onAddAddress,
+  destinationLocked,
   amount,
   amountError,
   onAmountChange,
@@ -490,6 +521,7 @@ function SendFormStep({
               suggestions={destinationSuggestions}
               onChange={onDestinationChange}
               onAddAddress={onAddAddress}
+              locked={destinationLocked}
               invalid={!!toAccountError}
               placeholder={t(($) => $.addressBook.destination.placeholder)}
               inputClassName={cn(toAccountError && 'border-destructive')}
@@ -727,3 +759,39 @@ function SendConfirmationStep({
     </motion.div>
   );
 }
+
+export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant = 'simple' }) => {
+  const { t } = useTranslation();
+  const { ready: ledgerReady, authenticated: ledgerAuthenticated } = useIcpLedger();
+  const [open, setOpen] = useState(false);
+
+  const canTransfer = balance > ICP_TRANSACTION_FEE && ledgerReady && ledgerAuthenticated;
+  const { Icon, className: variantClassName, label } = variantConfig[variant];
+
+  return (
+    <>
+      <Button
+        variant="outline"
+        disabled={!canTransfer}
+        size="xl"
+        className={cn('w-full', variantClassName)}
+        data-testid="send-icp-btn"
+        onClick={() => {
+          analytics.event(AnalyticsEvent.AccountOpenSend, { variant });
+          setOpen(true);
+        }}
+      >
+        <Icon aria-hidden />
+        {t(($) => $.common[label])}
+      </Button>
+
+      <SendICPDialog
+        open={open}
+        onOpenChange={setOpen}
+        balance={balance}
+        fromAccountId={fromAccountId}
+        variant={variant}
+      />
+    </>
+  );
+};

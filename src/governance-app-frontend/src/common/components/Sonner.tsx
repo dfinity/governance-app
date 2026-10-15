@@ -7,16 +7,17 @@ import { useTheme } from '@hooks/useTheme';
 const Sonner = ({ ...props }: ToasterProps) => {
   const { theme } = useTheme();
 
-  /*
-   * mobileOffset: Includes safe-area-inset-top for iOS PWA notch support.
-   * Note: This assumes toasts appear at the top (default). If position changes
-   * to bottom-*, update to use safe-area-inset-bottom instead.
-   */
   return (
     <Toaster
       theme={theme}
       className="toaster group"
-      mobileOffset="calc(0.5rem + env(safe-area-inset-top))"
+      // Each side clears its own safe-area inset (notch, home indicator, gesture bar).
+      mobileOffset={{
+        top: 'calc(0.5rem + env(safe-area-inset-top))',
+        right: 'calc(0.5rem + env(safe-area-inset-right))',
+        bottom: 'calc(0.5rem + env(safe-area-inset-bottom))',
+        left: 'calc(0.5rem + env(safe-area-inset-left))',
+      }}
       icons={{
         success: <CircleCheckBig className="size-4 text-emerald-700 dark:text-emerald-400" />,
         info: <InfoIcon className="size-4" />,

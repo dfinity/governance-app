@@ -24,6 +24,8 @@ type Props = {
   onChange: (value: string, selectedName: string) => void;
   /** Adds the "Add a new address" item to the list. */
   onAddAddress?: () => void;
+  /** Keeps the picked suggestion. The chip is read-only and has no clear action. */
+  locked?: boolean;
   invalid?: boolean;
   placeholder?: string;
   /** Rendered inside the input box, at its right edge. */
@@ -55,6 +57,7 @@ export function DestinationInput({
   suggestions,
   onChange,
   onAddAddress,
+  locked = false,
   invalid,
   placeholder,
   endAdornment,
@@ -158,9 +161,13 @@ export function DestinationInput({
         <output
           ref={chipRef}
           id={id}
-          tabIndex={0}
-          className="flex h-9 w-full min-w-0 items-center gap-2 rounded-md border border-input py-1 pr-10 pl-3 text-sm outline-none focus-visible:border-ring dark:bg-input/30"
+          tabIndex={locked ? undefined : 0}
+          className={cn(
+            'flex h-9 w-full min-w-0 items-center gap-2 rounded-md border border-input py-1 pl-3 text-sm outline-none focus-visible:border-ring dark:bg-input/30',
+            locked ? 'pr-3' : 'pr-10',
+          )}
           onKeyDown={(event) => {
+            if (locked) return;
             if (event.key === 'Backspace' || event.key === 'Delete') {
               event.preventDefault();
               clear();
@@ -176,15 +183,17 @@ export function DestinationInput({
             {t(($) => $.addressBook[kindLabelKey[selected.kind]])}
           </Badge>
         </output>
-        <button
-          type="button"
-          className="absolute top-1/2 right-1.5 flex size-7 -translate-y-1/2 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground"
-          aria-label={t(($) => $.addressBook.destination.clear)}
-          onClick={clear}
-          data-testid={testId ? `${testId}-clear` : undefined}
-        >
-          <X className="size-4" aria-hidden />
-        </button>
+        {!locked && (
+          <button
+            type="button"
+            className="absolute top-1/2 right-1.5 flex size-7 -translate-y-1/2 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground"
+            aria-label={t(($) => $.addressBook.destination.clear)}
+            onClick={clear}
+            data-testid={testId ? `${testId}-clear` : undefined}
+          >
+            <X className="size-4" aria-hidden />
+          </button>
+        )}
       </div>
     );
   }

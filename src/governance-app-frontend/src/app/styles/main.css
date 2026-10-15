@@ -5,6 +5,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Home Screen web app. After a cold start, iOS 26 can make dvh and fixed
+ * elements shorter than the screen by the top safe-area inset. 100vh always
+ * fills the screen here, because this mode has no browser toolbar.
+ */
+@custom-variant standalone (@media (display-mode: standalone));
+
 :root {
   --icp-serif:
     'Newsreader', 'Newsreader Fallback', Charter, Georgia, Cambria, 'Times New Roman', serif;
