@@ -35,6 +35,11 @@ describe('isSuspiciousAddress', () => {
     expect(isSuspiciousAddress(TRUSTED_ADDRESS, BELOW_THRESHOLD, trustedSet)).toBe(false);
   });
 
+  it('does not flag a trusted address that looks like another trusted address', () => {
+    const twoSimilarTrusted = new Set([TRUSTED_ADDRESS, SIMILAR_ADDRESS]);
+    expect(isSuspiciousAddress(SIMILAR_ADDRESS, BELOW_THRESHOLD, twoSimilarTrusted)).toBe(false);
+  });
+
   it('does not flag when only the prefix matches', () => {
     expect(isSuspiciousAddress(DIFFERENT_SUFFIX, BELOW_THRESHOLD, trustedSet)).toBe(false);
   });

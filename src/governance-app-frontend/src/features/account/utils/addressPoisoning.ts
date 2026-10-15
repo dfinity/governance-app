@@ -38,6 +38,8 @@ export const isSuspiciousAddress = (
   trustedAddresses: Set<string>,
 ): boolean => {
   if (amountE8s > SMALL_AMOUNT_THRESHOLD_E8S) return false;
+  // A trusted address is never suspicious, even when another trusted address looks like it.
+  if (trustedAddresses.has(address)) return false;
 
   for (const trusted of trustedAddresses) {
     if (isAddressSimilar(address, trusted)) return true;
