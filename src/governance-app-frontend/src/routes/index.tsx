@@ -95,10 +95,10 @@ function LoginPage() {
 
   return (
     <>
-      <div className="login-page relative isolate min-h-dvh w-full font-sans text-foreground">
+      <div className="login-page relative isolate min-h-dvh w-full font-sans text-foreground standalone:min-h-screen">
         {/* Loading Overlay */}
         {(isLoggingIn || nonNullish(identity)) && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm standalone:bottom-[calc(100dvh-100vh)]">
             <div
               className="flex flex-col items-center gap-6 text-foreground"
               role="status"
@@ -164,7 +164,7 @@ function LoginPage() {
         <div className="absolute inset-0 z-[1] bg-background/20 md:hidden" />
 
         {/* Content */}
-        <div className="relative z-10 flex min-h-dvh w-full flex-col justify-between px-4 py-10 3xl:mx-auto 3xl:max-w-[2000px] sm:p-12">
+        <div className="relative z-10 flex min-h-dvh w-full flex-col justify-between px-4 pt-[calc(2.5rem+env(safe-area-inset-top))] pb-[calc(2.5rem+env(safe-area-inset-bottom))] 3xl:mx-auto 3xl:max-w-[2000px] sm:p-12 standalone:min-h-screen">
           {/* Header Section */}
           <div className="relative flex flex-col gap-6 md:mb-12 md:gap-0">
             <div className="relative flex items-start justify-between gap-4">

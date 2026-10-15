@@ -46,8 +46,7 @@
   },
   "maxReached": "You have reached the maximum of 20 saved addresses.",
   "sendFlow": {
-    "tooltipLoading": "Loading address book...",
-    "selectPlaceholder": "Select an address"
+    "tooltipLoading": "Loading address book..."
   },
   "account": "Account",
   "destination": {
@@ -55,5 +54,6 @@
     "placeholderWithAccounts": "Your accounts, a contact, or an address",
     "addNew": "Add a new address",
     "clear": "Clear the destination"
-  }
+  },
+  "sendTo": "Send ICP to {{name}}"
 }

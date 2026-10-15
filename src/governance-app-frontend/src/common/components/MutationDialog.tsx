@@ -1,6 +1,6 @@
 import { AlertTriangle } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useEffectEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
@@ -90,13 +90,20 @@ export function MutationDialog({
     return () => clearTimeout(timer);
   }, [phase, close]);
 
+  const resetPhase = useEffectEvent(() => {
+    setPhase(Phase.Idle);
+    setErrorMessage('');
+    setLastMutation(null);
+  });
+
+  // The reset waits for the close animation. A reopen within that delay
+  // cancels the timer, so the open resets at once instead.
   useEffect(() => {
-    if (open) return;
-    const timer = setTimeout(() => {
-      setPhase(Phase.Idle);
-      setErrorMessage('');
-      setLastMutation(null);
-    }, DIALOG_RESET_DELAY_MS);
+    if (open) {
+      resetPhase();
+      return;
+    }
+    const timer = setTimeout(resetPhase, DIALOG_RESET_DELAY_MS);
     return () => clearTimeout(timer);
   }, [open]);
 
