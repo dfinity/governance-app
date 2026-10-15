@@ -11,6 +11,8 @@ import type {
 import { SendICPDialog } from '@features/account/components/SendICPButton';
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { isAccountReady } from '@features/accounts/types';
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
 
 import { Button } from '@components/button';
 import { QueryStates } from '@components/QueryStates';
@@ -155,7 +157,16 @@ export const AddressBookModal: React.FC<Props> = ({ isOpen, onOpenChange }) => {
                           namedAddress={entry}
                           onEdit={handleEdit}
                           onDelete={handleDelete}
-                          onSend={canSend ? setSendingTo : undefined}
+                          onSend={
+                            canSend
+                              ? (entry) => {
+                                  analytics.event(AnalyticsEvent.AccountOpenSend, {
+                                    variant: 'contact',
+                                  });
+                                  setSendingTo(entry);
+                                }
+                              : undefined
+                          }
                         />
                       ))}
                     </div>

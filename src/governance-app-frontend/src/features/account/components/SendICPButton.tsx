@@ -185,7 +185,7 @@ export const SendICPDialog: React.FC<DialogProps> = ({
 
   const max = roundToE8sPrecision(effectiveBalance - ICP_TRANSACTION_FEE);
 
-  const resetFormState = useEffectEvent(() => {
+  const resetFormFields = () => {
     setStep(Step.Form);
     setToAccount(initialDestination?.address ?? '');
     setSelectedName(initialDestination?.name ?? '');
@@ -194,10 +194,18 @@ export const SendICPDialog: React.FC<DialogProps> = ({
     setToAccountError('');
     setMemo('');
     setMemoError('');
+    createdAtRef.current = null;
+  };
+
+  // The account picker notifies only when its resolved id changes, so the
+  // account snapshot resets only after the close, with the picker.
+  const resetFormState = useEffectEvent(() => {
+    resetFormFields();
     setSelectedAccountId(fromAccountId);
     setSelectedAccount(undefined);
-    createdAtRef.current = null;
   });
+
+  const resetFormFieldsOnOpen = useEffectEvent(resetFormFields);
 
   useEffect(() => {
     if (open) return;
@@ -206,9 +214,9 @@ export const SendICPDialog: React.FC<DialogProps> = ({
   }, [open]);
 
   // A reopen within the reset delay keeps the state of the last transfer, and
-  // the entry can change between two opens. Reset the whole form on open.
+  // the entry can change between two opens. Reset the form fields on open.
   useEffect(() => {
-    if (open) resetFormState();
+    if (open) resetFormFieldsOnOpen();
   }, [open]);
 
   const handleFormSubmit = (event: React.SyntheticEvent) => {
@@ -297,6 +305,22 @@ export const SendICPDialog: React.FC<DialogProps> = ({
     address: addressBookGetAddressString(entry.address),
     kind: addressBookIsIcpAddress(entry.address) ? 'icp' : 'icrc1',
   }));
+  // The locked destination stays a known suggestion even when the book no
+  // longer holds the entry, so the chip stays in place.
+  if (
+    nonNullish(initialDestination) &&
+    !destinationSuggestions.some(
+      (suggestion) =>
+        suggestion.name === initialDestination.name &&
+        suggestion.address === initialDestination.address,
+    )
+  ) {
+    destinationSuggestions.push({
+      name: initialDestination.name,
+      address: initialDestination.address,
+      kind: isValidIcpAddress(initialDestination.address) ? 'icp' : 'icrc1',
+    });
+  }
 
   // Status messages only need to identify the destination, not let the user verify it
   // character by character — the confirmation step already shows the full address.
@@ -746,7 +770,10 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
         size="xl"
         className={cn('w-full', variantClassName)}
         data-testid="send-icp-btn"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          analytics.event(AnalyticsEvent.AccountOpenSend, { variant });
+          setOpen(true);
+        }}
       >
         <Icon aria-hidden />
         {t(($) => $.common[label])}
