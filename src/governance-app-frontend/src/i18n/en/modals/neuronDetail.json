@@ -75,11 +75,15 @@
     "title": "Disburse neuron",
     "toAccount": "To account",
     "info": "<strong>Disburse {{amount}} ICP.</strong> They will be returned to your available balance, and can be relocked at any time after disbursement.",
+    "infoToAccount": "<strong>Disburse {{amount}} ICP.</strong> They will be sent to the selected account.",
     "cancel": "Cancel",
     "confirm": "Disburse",
     "confirming": "Disbursing, please wait...",
     "success": "Neuron has been disbursed. ICP returned to your balance.",
+    "successToAccount": "Neuron has been disbursed. ICP sent to the selected account.",
     "errors": {
+      "noDestination": "Enter a destination account.",
+      "invalidDestination": "The destination is not a valid account.",
       "failed": "Failed to disburse neuron. Please try again."
     }
   },
