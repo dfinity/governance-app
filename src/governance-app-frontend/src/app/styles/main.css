@@ -457,6 +457,32 @@ html.route-dashboard {
   animation: highlight-pulse 1.5s ease-out;
 }
 
+/*
+ * The bottom nav lens stretches while it slides to the next tab. The two
+ * keyframes are the same, so a swap of the class restarts the animation.
+ */
+@keyframes lens-stretch-a {
+  35% {
+    scale: 1.16 0.9;
+  }
+}
+
+@keyframes lens-stretch-b {
+  35% {
+    scale: 1.16 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-lens-stretch-a {
+    animation: lens-stretch-a 500ms cubic-bezier(0.3, 0.7, 0.4, 1);
+  }
+
+  .animate-lens-stretch-b {
+    animation: lens-stretch-b 500ms cubic-bezier(0.3, 0.7, 0.4, 1);
+  }
+}
+
 /* Gentle breathing pulse for the brand mark while a background task is pending. */
 @keyframes logo-breathe {
   0%,
