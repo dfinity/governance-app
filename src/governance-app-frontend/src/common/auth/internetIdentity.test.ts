@@ -72,11 +72,13 @@ describe('internetIdentity', () => {
     const auth = await loadModule();
 
     await expect(auth.ensureInitialized()).resolves.toBe(identity);
-    expect(auth.getAuthState()).toEqual({
-      status: 'authenticated',
-      identity,
-      sessionEndsAtMs: expirationMs(identity) - 10_000,
-    });
+    await vi.waitFor(() =>
+      expect(auth.getAuthState()).toEqual({
+        status: 'authenticated',
+        identity,
+        sessionEndsAtMs: expirationMs(identity) - 10_000,
+      }),
+    );
   });
 
   it('resolves without an identity when there is no stored session.', async () => {
@@ -187,11 +189,60 @@ describe('internetIdentity', () => {
     mockAuthClient();
     const auth = await loadModule();
     await auth.ensureInitialized();
+    // Lets the clock sync finish and set the session end.
+    await vi.advanceTimersByTimeAsync(0);
+    expect(auth.getAuthState().sessionEndsAtMs).toBeDefined();
 
     vi.setSystemTime(Date.now() + ONE_HOUR_MS - 10_000);
 
     await expect(auth.ensureInitialized()).resolves.toBeUndefined();
     await vi.waitFor(() => expect(auth.getAuthState()).toEqual({ status: 'idle' }));
+    expect(client.logout).toHaveBeenCalled();
+  });
+
+  it('keeps a session that ends early by a fast local clock until the clock sync ends.', async () => {
+    let finishSync = () => undefined as void;
+    syncTime.mockImplementationOnce(
+      () => new Promise<undefined>((resolve) => (finishSync = () => resolve(undefined))),
+    );
+    // The local clock runs 60 seconds ahead of the IC clock.
+    getTimeDiffMsecs.mockReturnValue(-60_000);
+
+    // 5 seconds left by the local clock, 55 seconds by the IC clock.
+    const identity = await delegationIdentity(5_000);
+    const client = mockAuthClient(identity);
+    const auth = await loadModule();
+
+    await expect(auth.ensureInitialized()).resolves.toBe(identity);
+    expect(auth.getAuthState()).toEqual({ status: 'authenticated', identity });
+
+    finishSync();
+    await vi.waitFor(() =>
+      expect(auth.getAuthState().sessionEndsAtMs).toBe(expirationMs(identity) + 50_000),
+    );
+    await expect(auth.ensureInitialized()).resolves.toBe(identity);
+    expect(client.logout).not.toHaveBeenCalled();
+
+    auth.logout();
+  });
+
+  it('ends the session by the local clock when the clock sync stalls.', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
+    syncTime.mockImplementationOnce(() => new Promise<undefined>(() => undefined));
+
+    const identity = await delegationIdentity(ONE_HOUR_MS);
+    const client = mockAuthClient(identity);
+    mockAuthClient();
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    await vi.advanceTimersByTimeAsync(9_999);
+    expect(auth.getAuthState().sessionEndsAtMs).toBeUndefined();
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(auth.getAuthState().sessionEndsAtMs).toBe(expirationMs(identity) - 10_000);
+
+    await vi.advanceTimersByTimeAsync(ONE_HOUR_MS);
     expect(client.logout).toHaveBeenCalled();
   });
 

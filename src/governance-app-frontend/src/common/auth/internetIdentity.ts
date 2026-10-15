@@ -1,7 +1,7 @@
 import { AuthClient } from '@icp-sdk/auth/client';
 import type { Identity } from '@icp-sdk/core/agent';
 import { DelegationIdentity } from '@icp-sdk/core/identity';
-import { nonNullish } from '@dfinity/utils';
+import { isNullish, nonNullish } from '@dfinity/utils';
 
 import { II_DERIVATION_ORIGIN, II_LOGIN_URL, IS_LOCAL } from '@constants/extra';
 import { getAnonymousAgent } from '@common/canisters/agents';
@@ -15,15 +15,17 @@ const SESSION_TTL_NS = 60n * 60n * 1_000_000_000n; // 1 hour
 // Ends the session before the delegation expires, so no call goes out with an expired one.
 const EXPIRY_BUFFER_MS = 10_000;
 // `setTimeout` fires at once for a longer delay. A local clock far behind the IC can ask for one
-// before the clock sync corrects it.
+// when the clock sync fails.
 const MAX_TIMEOUT_MS = 2 ** 31 - 1;
+// After this, the session ends by the local clock.
+const CLOCK_SYNC_TIMEOUT_MS = 10_000;
 
 export type AuthStatus = 'initializing' | 'idle' | 'logging-in' | 'authenticated' | 'logging-out';
 
 export type AuthState = {
   status: AuthStatus;
   identity?: Identity;
-  /** When the session ends, by the local clock. */
+  /** When the session ends, by the local clock. Unset until the clock sync ends. */
   sessionEndsAtMs?: number;
 };
 
@@ -57,16 +59,27 @@ const delegationExpirationMs = (identity: Identity): number | undefined => {
   return Number(earliest / 1_000_000n);
 };
 
+const syncedTimeDiffMs = async (): Promise<number> => {
+  const agent = await getAnonymousAgent();
+  await agent.syncTime();
+  return agent.getTimeDiffMsecs();
+};
+
 // The delegation expires by the IC clock, which can drift from the local one.
 const icTimeDiffMs = async (): Promise<number> => {
   if (IS_LOCAL) return 0;
 
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  const fallback = new Promise<number>((resolve) => {
+    timeout = setTimeout(() => resolve(0), CLOCK_SYNC_TIMEOUT_MS);
+  });
+
   try {
-    const agent = await getAnonymousAgent();
-    await agent.syncTime();
-    return agent.getTimeDiffMsecs();
+    return await Promise.race([syncedTimeDiffMs(), fallback]);
   } catch {
     return 0;
+  } finally {
+    clearTimeout(timeout);
   }
 };
 
@@ -86,11 +99,12 @@ const startSession = (identity: Identity, timeDiffMs: number) => {
 };
 
 const authenticate = (identity: Identity) => {
-  startSession(identity, 0);
+  clearTimeout(expiryTimeout);
+  setState({ status: 'authenticated', identity });
 
   void icTimeDiffMs().then((timeDiffMs) => {
     // A logout or another login replaced the session while the clock synced.
-    if (timeDiffMs !== 0 && state.identity === identity) startSession(identity, timeDiffMs);
+    if (state.identity === identity) startSession(identity, timeDiffMs);
   });
 };
 
@@ -119,7 +133,7 @@ export const ensureInitialized = async (): Promise<Identity | undefined> => {
   await initialize();
 
   const { identity, sessionEndsAtMs } = state;
-  if (nonNullish(sessionEndsAtMs) && Date.now() < sessionEndsAtMs) return identity;
+  if (isNullish(sessionEndsAtMs) || Date.now() < sessionEndsAtMs) return identity;
 
   // A background tab can run the expiry timer late.
   logout();
