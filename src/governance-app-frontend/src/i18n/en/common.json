@@ -54,6 +54,13 @@
   "accounts": "ICP accounts",
   "stakes": "Voting neurons",
   "settings": "Settings",
+  "tabs": {
+    "dashboard": "Dashboard",
+    "accounts": "Accounts",
+    "stakes": "Neurons",
+    "voting": "Vote",
+    "settings": "Settings"
+  },
   "clipboard": {
     "copy": "Copy to clipboard",
     "copied": "Your {{label}} was copied to the clipboard.",
