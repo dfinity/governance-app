@@ -67,9 +67,11 @@ export type SendDestination = {
   address: string;
 };
 
-type DialogProps = Props & {
+type DialogProps = Omit<Props, 'variant'> & {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** The entry point, for the analytics events of the transfer. */
+  variant?: 'simple' | 'advanced' | 'contact';
   /** Prefills the destination with an address book entry and keeps it. */
   initialDestination?: SendDestination;
 };

@@ -194,6 +194,7 @@ export const AddressBookModal: React.FC<Props> = ({ isOpen, onOpenChange }) => {
           if (!open) setSendingTo(undefined);
         }}
         balance={mainBalance ?? 0}
+        variant="contact"
         initialDestination={
           nonNullish(sendingTo)
             ? { name: sendingTo.name, address: addressBookGetAddressString(sendingTo.address) }
