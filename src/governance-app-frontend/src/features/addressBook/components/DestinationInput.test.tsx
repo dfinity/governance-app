@@ -133,6 +133,34 @@ describe('DestinationInput', () => {
     expect(onChange).toHaveBeenLastCalledWith(ICRC1_ADDRESS, 'Bob');
   });
 
+  it('picks the first match with Enter after a typed name', () => {
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} />);
+    const input = screen.getByTestId('destination');
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: 'bo' } });
+    expect(input.getAttribute('aria-activedescendant')).toBe(screen.getByRole('option').id);
+
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(onChange).toHaveBeenLastCalledWith(ICRC1_ADDRESS, 'Bob');
+  });
+
+  it('keeps a complete address as typed text on Enter', () => {
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} />);
+    const input = screen.getByTestId('destination');
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: ICRC1_ADDRESS } });
+    expect(input.getAttribute('aria-activedescendant')).toBeNull();
+
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(onChange).toHaveBeenLastCalledWith(ICRC1_ADDRESS, '');
+  });
+
   it('closes the list with Escape and does not close the dialog', () => {
     const onEscape = vi.fn();
     render(

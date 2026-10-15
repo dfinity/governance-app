@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@components/badge';
 import { Input } from '@components/Input';
+import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
 import { shortenId } from '@utils/id';
 import { cn } from '@utils/shadcn';
 
@@ -44,6 +45,9 @@ const kindLabelKey = {
 
 const matchesQuery = (suggestion: DestinationSuggestion, query: string): boolean =>
   suggestion.name.toLowerCase().includes(query) || suggestion.address.toLowerCase().includes(query);
+
+const isCompleteAddress = (text: string): boolean =>
+  isValidIcpAddress(text) || isValidIcrcAddress(text);
 
 /**
  * One field for a destination account. The user types a name to filter the
@@ -91,6 +95,15 @@ export function DestinationInput({
   const close = () => {
     setOpen(false);
     setActiveIndex(-1);
+  };
+
+  // A typed name or part of an address makes the first match active, so Enter
+  // picks it. A complete address stays as typed: it can be the prefix of a
+  // contact with a subaccount.
+  const firstMatchIndex = (text: string): number => {
+    const nextQuery = text.trim().toLowerCase();
+    if (nextQuery === '' || isCompleteAddress(text.trim())) return -1;
+    return suggestions.some((suggestion) => matchesQuery(suggestion, nextQuery)) ? 0 : -1;
   };
 
   const pick = (suggestion: DestinationSuggestion) => {
@@ -215,13 +228,13 @@ export function DestinationInput({
           onChange={(event) => {
             onChange(event.target.value, '');
             setOpen(true);
-            setActiveIndex(-1);
+            setActiveIndex(firstMatchIndex(event.target.value));
           }}
           onFocus={() => setOpen(true)}
           // A click on the focused input gives no focus event, for example after Escape.
           onClick={() => setOpen(true)}
           onKeyDown={handleKeyDown}
-          className={cn('font-mono', endAdornment && 'pr-10', inputClassName)}
+          className={cn('font-mono placeholder:font-sans', endAdornment && 'pr-10', inputClassName)}
           autoComplete="off"
           data-1p-ignore
           data-lpignore="true"
