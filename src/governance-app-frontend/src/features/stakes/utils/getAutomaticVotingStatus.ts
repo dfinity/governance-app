@@ -37,8 +37,8 @@ export type AutomaticVotingStatus = {
    * `Active`, following cleared for `LosingRewards`.
    */
   secondsLeft?: bigint;
-  /** Used part (0 to 1) of the full voting power window, for `Active` only. */
-  windowProgress?: number;
+  /** Remaining part (0 to 1) of the full voting power window, for `Active` only. */
+  windowRemaining?: number;
 };
 
 const minOf = (values: (bigint | undefined)[]): bigint | undefined =>
@@ -114,8 +114,8 @@ export function getAutomaticVotingStatus({
     confirmable.map(({ neuron }) => getSecondsUntilDecayStarts(neuron, economics, now)),
   );
   const window = economics?.startReducingVotingPowerAfterSeconds;
-  const windowProgress =
-    secondsLeft !== undefined && !!window ? 1 - Number(secondsLeft) / Number(window) : undefined;
+  const windowRemaining =
+    secondsLeft !== undefined && !!window ? Number(secondsLeft) / Number(window) : undefined;
 
-  return { phase: AutomaticVotingPhase.Active, confirmableNeuronIds, secondsLeft, windowProgress };
+  return { phase: AutomaticVotingPhase.Active, confirmableNeuronIds, secondsLeft, windowRemaining };
 }

@@ -106,17 +106,17 @@ describe('getAutomaticVotingStatus', () => {
     expect(status.phase).toBe(AutomaticVotingPhase.Partial);
   });
 
-  it('returns Active with the nearest decay start and the used part of the window', () => {
+  it('returns Active with the nearest decay start and the remaining part of the window', () => {
     const status = statusOf([
       neuron({ id: 1n, refreshedDaysAgo: 45n }),
-      neuron({ id: 2n, refreshedDaysAgo: 90n }),
+      neuron({ id: 2n, refreshedDaysAgo: 135n }),
     ]);
 
     expect(status).toEqual({
       phase: AutomaticVotingPhase.Active,
       confirmableNeuronIds: [1n, 2n],
-      secondsLeft: 90n * DAY,
-      windowProgress: 0.5,
+      secondsLeft: 45n * DAY,
+      windowRemaining: 0.25,
     });
   });
 
@@ -152,7 +152,7 @@ describe('getAutomaticVotingStatus', () => {
       phase: AutomaticVotingPhase.Active,
       confirmableNeuronIds: [],
       secondsLeft: undefined,
-      windowProgress: undefined,
+      windowRemaining: undefined,
     });
   });
 });

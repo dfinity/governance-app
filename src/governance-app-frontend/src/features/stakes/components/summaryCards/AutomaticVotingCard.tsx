@@ -185,18 +185,18 @@ export function AutomaticVotingCard({ neurons }: AutomaticVotingCardProps) {
             </div>
             {detail && <p className="mt-1 text-sm text-muted-foreground">{detail}</p>}
 
-            {status.phase === AutomaticVotingPhase.Active && nonNullish(status.windowProgress) && (
+            {status.phase === AutomaticVotingPhase.Active && nonNullish(status.windowRemaining) && (
               <div
                 role="progressbar"
                 aria-label={t(($) => $.neuron.summary.automaticVoting.dueIn, { duration })}
                 aria-valuemin={0}
                 aria-valuemax={100}
-                aria-valuenow={Math.round(status.windowProgress * 100)}
+                aria-valuenow={Math.round(status.windowRemaining * 100)}
                 className="mt-2 h-1 overflow-hidden rounded-full bg-muted"
               >
                 <div
                   className="h-full rounded-full bg-emerald-500"
-                  style={{ width: `${status.windowProgress * 100}%` }}
+                  style={{ width: `${status.windowRemaining * 100}%` }}
                 />
               </div>
             )}
