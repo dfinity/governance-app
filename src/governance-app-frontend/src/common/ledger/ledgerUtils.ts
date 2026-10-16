@@ -1,11 +1,39 @@
 import type { ReadRequest, RequestId, Signature } from '@icp-sdk/core/agent';
 import { Principal } from '@icp-sdk/core/principal';
 import { isNullish } from '@dfinity/utils';
-import type { ResponseAddress, ResponseSign, ResponseSignUpdateCall } from '@zondax/ledger-icp';
+import type {
+  ResponseAddress,
+  ResponseBase,
+  ResponseSign,
+  ResponseSignUpdateCall,
+} from '@zondax/ledger-icp';
 
 import { LEDGER_SIGNATURE_LENGTH, LedgerReturnCode } from './constants';
 import { LedgerDeviceError, LedgerErrorCode } from './errors';
 import { Secp256k1PublicKey } from './secp256k1';
+
+/**
+ * Throws when the device answered with an error code.
+ * `rejectedCode` is the error for a `TransactionRejected` answer; its meaning depends on the command.
+ */
+export const assertResponseOk = (
+  { returnCode, errorMessage }: ResponseBase,
+  rejectedCode: LedgerErrorCode = LedgerErrorCode.UserRejected,
+): void => {
+  if (returnCode === LedgerReturnCode.NoErrors) return;
+
+  if (returnCode === LedgerReturnCode.TransactionRejected) {
+    throw new LedgerDeviceError(rejectedCode);
+  }
+
+  if (returnCode === LedgerReturnCode.AppNotOpen) {
+    throw new LedgerDeviceError(LedgerErrorCode.AppNotOpen);
+  }
+
+  throw new LedgerDeviceError(LedgerErrorCode.Unexpected, {
+    error: `${errorMessage} (code ${returnCode})`,
+  });
+};
 
 /** Reads the public key out of a `getAddressAndPubKey` answer and checks it against the principal. */
 export const decodePublicKey = ({

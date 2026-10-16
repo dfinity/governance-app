@@ -275,6 +275,52 @@ describe('LedgerIdentity', () => {
     expect(readRequest.endpoint).toBe('read_state');
   });
 
+  describe('device answers with an error code', () => {
+    it('maps a rejected address verification to UserRejected', async () => {
+      const identity = await LedgerIdentity.create();
+      app.showAddressAndPubKey.mockResolvedValue({
+        errorMessage: 'Transaction rejected',
+        returnCode: LedgerReturnCode.TransactionRejected,
+      });
+
+      await expect(identity.showAddressAndPubKeyOnDevice()).rejects.toMatchObject({
+        code: LedgerErrorCode.UserRejected,
+      });
+    });
+
+    it('returns a successful address verification', async () => {
+      const identity = await LedgerIdentity.create();
+      const response = { errorMessage: 'No errors', returnCode: LedgerReturnCode.NoErrors };
+      app.showAddressAndPubKey.mockResolvedValue(response);
+
+      await expect(identity.showAddressAndPubKeyOnDevice()).resolves.toEqual(response);
+    });
+
+    it('reports a failed version answer as a device error, not as an old app', async () => {
+      const identity = await LedgerIdentity.create();
+      app.getVersion.mockResolvedValue({
+        errorMessage: 'Unknown error',
+        returnCode: LedgerReturnCode.UnknownError,
+      });
+
+      await expect(identity.transformRequest(callRequest)).rejects.toMatchObject({
+        code: LedgerErrorCode.Unexpected,
+        details: { error: `Unknown error (code ${LedgerReturnCode.UnknownError})` },
+      });
+      expect(app.signUpdateCall).not.toHaveBeenCalled();
+    });
+
+    it('maps a rejected version answer to Locked', async () => {
+      const identity = await LedgerIdentity.create();
+      app.getVersion.mockResolvedValue({
+        errorMessage: 'Transaction rejected',
+        returnCode: LedgerReturnCode.TransactionRejected,
+      });
+
+      await expect(identity.getVersion()).rejects.toMatchObject({ code: LedgerErrorCode.Locked });
+    });
+  });
+
   describe('error normalization', () => {
     it('wraps a raw error from the public key exchange in create', async () => {
       vi.spyOn(LedgerIdentity, 'fetchPublicKeyFromDevice').mockRejectedValue(new Error('usb'));

@@ -12,6 +12,7 @@ import {
 import { LEDGER_SIGNATURE_LENGTH, LedgerReturnCode } from './constants';
 import { LedgerErrorCode } from './errors';
 import {
+  assertResponseOk,
   createReadStatePaths,
   decodePublicKey,
   decodeSignature,
@@ -159,5 +160,41 @@ describe('getRequestId', () => {
 
   it('returns undefined for another path', () => {
     expect(getRequestId(readRequest([[new TextEncoder().encode('time')]]))).toBeUndefined();
+  });
+});
+
+describe('assertResponseOk', () => {
+  it('accepts a successful answer', () => {
+    expect(() =>
+      assertResponseOk({ errorMessage: 'No errors', returnCode: LedgerReturnCode.NoErrors }),
+    ).not.toThrow();
+  });
+
+  it('maps a rejection to the given code', () => {
+    const response = { errorMessage: 'rejected', returnCode: LedgerReturnCode.TransactionRejected };
+
+    expect(() => assertResponseOk(response)).toThrow(
+      expect.objectContaining({ code: LedgerErrorCode.UserRejected }),
+    );
+    expect(() => assertResponseOk(response, LedgerErrorCode.Locked)).toThrow(
+      expect.objectContaining({ code: LedgerErrorCode.Locked }),
+    );
+  });
+
+  it('maps a closed app', () => {
+    expect(() =>
+      assertResponseOk({ errorMessage: 'app not open', returnCode: LedgerReturnCode.AppNotOpen }),
+    ).toThrow(expect.objectContaining({ code: LedgerErrorCode.AppNotOpen }));
+  });
+
+  it('keeps the device message for any other code', () => {
+    expect(() =>
+      assertResponseOk({ errorMessage: 'Wrong Length', returnCode: LedgerReturnCode.WrongLength }),
+    ).toThrow(
+      expect.objectContaining({
+        code: LedgerErrorCode.Unexpected,
+        details: { error: `Wrong Length (code ${LedgerReturnCode.WrongLength})` },
+      }),
+    );
   });
 });

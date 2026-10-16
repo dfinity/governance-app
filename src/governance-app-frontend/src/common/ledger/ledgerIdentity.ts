@@ -20,6 +20,7 @@ import type { ResponseAddress, ResponseVersion } from '@zondax/ledger-icp';
 import { LEDGER_DEFAULT_DERIVE_PATH, LEDGER_MIN_APP_VERSION } from './constants';
 import { LedgerDeviceError, LedgerErrorCode, type LedgerTransportError } from './errors';
 import {
+  assertResponseOk,
   createReadStatePaths,
   decodePublicKey,
   decodeSignature,
@@ -90,7 +91,12 @@ export class LedgerIdentity extends SignIdentity {
   /** Shows the principal and the account identifier on the device so the user can verify them. */
   public async showAddressAndPubKeyOnDevice(): Promise<ResponseAddress> {
     // Not destructured: `showAddressAndPubKey` reads `this.transport` internally.
-    return this.executeWithApp((app) => app.showAddressAndPubKey(this.derivePath));
+    return this.executeWithApp(async (app) => {
+      const response = await app.showAddressAndPubKey(this.derivePath);
+      assertResponseOk(response);
+
+      return response;
+    });
   }
 
   /**
@@ -98,7 +104,12 @@ export class LedgerIdentity extends SignIdentity {
    * `targetId` starts with the device model: 3300 Nano X, 3310 Nano S+, 3320 Stax, 3330 Flex.
    */
   public async getVersion(): Promise<ResponseVersion> {
-    return this.executeWithApp((app) => app.getVersion());
+    return this.executeWithApp(async (app) => {
+      const response = await app.getVersion();
+      assertResponseOk(response, LedgerErrorCode.Locked);
+
+      return response;
+    });
   }
 
   public override async sign(blob: Uint8Array): Promise<Signature> {
