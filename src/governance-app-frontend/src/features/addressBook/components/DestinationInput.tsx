@@ -258,7 +258,7 @@ export function DestinationInput({
   const listItems = (
     <>
       {matches.length > 0 && (
-        <ul id={listId} role="listbox" className="max-h-56 overflow-y-auto">
+        <ul id={listId} role="listbox" className="max-h-56 min-h-0 overflow-y-auto">
           {matches.map((suggestion, index) => (
             <li
               key={`${suggestion.kind}:${suggestion.name}:${suggestion.address}`}
@@ -291,7 +291,7 @@ export function DestinationInput({
         <button
           type="button"
           className={cn(
-            'flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground',
+            'flex w-full shrink-0 cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground',
             matches.length > 0 && 'mt-1 border-t pt-2',
           )}
           onClick={addAddress}
@@ -336,7 +336,9 @@ export function DestinationInput({
             // The list and the add button carry their own roles.
             role={undefined}
             align="start"
-            className="w-(--radix-popover-trigger-width) p-1"
+            collisionPadding={8}
+            // On a short window the list shrinks and scrolls, and the add button stays visible.
+            className="flex max-h-(--radix-popover-content-available-height) w-(--radix-popover-trigger-width) flex-col p-1"
             // The focus stays on the input while the list is open.
             onOpenAutoFocus={(event) => event.preventDefault()}
             onCloseAutoFocus={(event) => event.preventDefault()}
