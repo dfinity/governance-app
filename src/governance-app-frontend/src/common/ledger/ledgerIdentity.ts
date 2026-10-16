@@ -74,7 +74,7 @@ export class LedgerIdentity extends SignIdentity {
     } catch (error: unknown) {
       throw LedgerIdentity.normalizeError(error);
     } finally {
-      await transport.close();
+      await LedgerIdentity.closeTransport(transport);
     }
   }
 
@@ -226,7 +226,16 @@ export class LedgerIdentity extends SignIdentity {
     } catch (error: unknown) {
       throw LedgerIdentity.normalizeError(error);
     } finally {
+      await LedgerIdentity.closeTransport(transport);
+    }
+  }
+
+  // A failed close must not replace the result or the error of the action itself.
+  private static async closeTransport(transport: Transport): Promise<void> {
+    try {
       await transport.close();
+    } catch (error: unknown) {
+      console.warn('Failed to close the Ledger transport.', error);
     }
   }
 

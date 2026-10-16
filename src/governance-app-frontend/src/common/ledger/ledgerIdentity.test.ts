@@ -306,6 +306,25 @@ describe('LedgerIdentity', () => {
       });
     });
 
+    it('ignores a failed transport close after a successful action', async () => {
+      const identity = await LedgerIdentity.create();
+      transport.close.mockRejectedValue(new Error('already closed'));
+
+      await expect(identity.getVersion()).resolves.toEqual(version());
+      expect(console.warn).toHaveBeenCalledWith(
+        'Failed to close the Ledger transport.',
+        expect.any(Error),
+      );
+    });
+
+    it('keeps the action error when the transport close fails too', async () => {
+      const identity = await LedgerIdentity.create();
+      app.getVersion.mockRejectedValue(new LedgerDeviceError(LedgerErrorCode.Locked));
+      transport.close.mockRejectedValue(new Error('already closed'));
+
+      await expect(identity.getVersion()).rejects.toMatchObject({ code: LedgerErrorCode.Locked });
+    });
+
     it('keeps an already decoded error', async () => {
       const identity = await LedgerIdentity.create();
       app.getVersion.mockRejectedValue(new LedgerDeviceError(LedgerErrorCode.Locked));
