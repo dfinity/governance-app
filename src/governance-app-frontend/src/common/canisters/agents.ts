@@ -37,3 +37,21 @@ export const getAuthenticatedAgent = (identity: Identity): Promise<HttpAgent> =>
 export const clearAuthenticatedAgent = () => {
   authenticatedAgent = undefined;
 };
+
+// One agent per Ledger device principal. A user can register more than one device.
+const ledgerAgents = new Map<string, Promise<HttpAgent>>();
+
+export const getLedgerAgent = (identity: Identity): Promise<HttpAgent> => {
+  const principal = identity.getPrincipal().toText();
+  const cached = ledgerAgents.get(principal);
+  if (cached) return cached;
+
+  const agent = create(identity);
+  ledgerAgents.set(principal, agent);
+
+  return agent;
+};
+
+export const clearLedgerAgents = () => {
+  ledgerAgents.clear();
+};

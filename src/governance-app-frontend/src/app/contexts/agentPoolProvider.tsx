@@ -3,9 +3,11 @@ import { ReactNode, useEffect, useState } from 'react';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import {
   clearAuthenticatedAgent,
+  clearLedgerAgents,
   getAnonymousAgent,
   getAuthenticatedAgent,
 } from '@common/canisters/agents';
+import { clearLedgerIdentities } from '@common/ledger/session';
 
 import { AgentPool, AgentPoolContext } from './agentPoolContext';
 
@@ -84,8 +86,11 @@ export const AgentPoolProvider = ({ children }: { children: ReactNode }) => {
           }));
         });
     } else {
-      // Drop the cached agent too, so a later login cannot reuse a stale identity.
+      // Drop the cached agents too, so a later login cannot reuse a stale identity.
+      // The Ledger caches belong to the session that registered the devices.
       clearAuthenticatedAgent();
+      clearLedgerIdentities();
+      clearLedgerAgents();
       setAgentPool((prev) => ({
         ...prev,
         authenticated: {
