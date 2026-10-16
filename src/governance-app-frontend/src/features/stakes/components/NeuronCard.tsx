@@ -86,12 +86,16 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
   return (
     <>
       <Card
-        className="flex h-full flex-col gap-3 transition-colors hover:border-foreground"
+        className="@container/neuron-card flex h-full flex-col gap-3 transition-colors hover:border-foreground"
         data-testid="neuron-card"
       >
-        <CardHeader className="flex flex-row items-start justify-between space-y-0">
-          <div className="flex flex-col gap-1">
-            <p className="text-3xl font-bold" data-testid="neuron-card-staked-amount">
+        {/* The APY tags wrap below the amount on narrow cards, or if they do not fit beside it. */}
+        <CardHeader className="flex flex-wrap items-start justify-between gap-3 space-y-0">
+          <div className="flex w-full flex-col gap-1 @sm/neuron-card:w-auto">
+            <p
+              className="text-3xl font-bold whitespace-nowrap"
+              data-testid="neuron-card-staked-amount"
+            >
               <SensitiveValue>
                 {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
               </SensitiveValue>
@@ -112,7 +116,7 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
             <div className="flex items-center gap-1.5">
               {isEightYearGang && (
                 <div className="rounded-sm border border-foreground/20 bg-foreground/5 p-2">
-                  <p className="text-[13px] font-bold text-foreground uppercase">
+                  <p className="text-[13px] font-bold whitespace-nowrap text-foreground uppercase">
                     {t(($) => $.neuron.eightYearGang)}
                   </p>
                 </div>
