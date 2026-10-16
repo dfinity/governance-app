@@ -61,6 +61,22 @@ describe('getLedgerAgent', () => {
     expect(createAgent).toHaveBeenCalledTimes(2);
   });
 
+  it('creates a new agent when a fresh identity has the same principal', async () => {
+    const first = await getLedgerAgent(DEVICE_A);
+    const second = await getLedgerAgent(identityOf('2vxsx-fae'));
+
+    expect(second).not.toBe(first);
+    expect(createAgent).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not cache a failed creation', async () => {
+    createAgent.mockRejectedValueOnce(new Error('no root key'));
+
+    await expect(getLedgerAgent(DEVICE_A)).rejects.toThrow('no root key');
+    await expect(getLedgerAgent(DEVICE_A)).resolves.toEqual({ principal: '2vxsx-fae' });
+    expect(createAgent).toHaveBeenCalledTimes(2);
+  });
+
   it('does not share the cache with the authenticated agent', async () => {
     const ledger = await getLedgerAgent(DEVICE_A);
     const authenticated = await getAuthenticatedAgent(DEVICE_A);
