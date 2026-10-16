@@ -1,7 +1,7 @@
 import { nonNullish } from '@dfinity/utils';
 import { useQuery } from '@tanstack/react-query';
 
-import type { FiatExchangeRate } from '@declarations/governance-app-backend/governance-app-backend.did';
+import type { FiatExchangeRate } from '@declarations/governance-app-backend/backend.did';
 
 import {
   E8S,

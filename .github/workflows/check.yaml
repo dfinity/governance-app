@@ -62,7 +62,7 @@ jobs:
         run: npm ci
 
       - name: Generate canister declarations
-        run: dfx generate governance-app-backend
+        run: npm run generate:candid-bindings
 
       - name: Run build and clean output
         id: build_step

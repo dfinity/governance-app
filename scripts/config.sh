@@ -58,7 +58,7 @@ generate_env_content() {
   cat << EOF
 CANISTER_ID_ICP_INDEX=qhbym-qaaaa-aaaaa-aaafq-cai
 CANISTER_ID_ICP_LEDGER=ryjl3-tyaaa-aaaaa-aaaba-cai
-CANISTER_ID_INTERNET_IDENTITY=rdmx6-jaaaa-aaaaa-aaadq-cai
+CANISTER_ID_INTERNET_IDENTITY=uqzsh-gqaaa-aaaaq-qaada-cai
 CANISTER_ID_NNS_GOVERNANCE=rrkah-fqaaa-aaaaa-aaaaq-cai
 CANISTER_ID_CKUSD_LEDGER=xevnm-gaaaa-aaaar-qafnq-cai
 CANISTER_ID_NNS_DAPP=qoctq-giaaa-aaaaa-aaaea-cai

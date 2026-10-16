@@ -15,10 +15,13 @@ export const login = async ({ page }: { page: Page }) => {
     await newTab.waitForLoadState('networkidle');
     await expect(newTab).toHaveTitle(/Internet Identity/);
 
-    // Create new identity.
-    await newTab.getByRole('button', { name: 'Continue with passkey' }).click();
-    await newTab.getByRole('button', { name: 'Create new identity' }).click();
-    await newTab.getByPlaceholder('Identity name').fill('E2E Test');
+    // Create new identity. The local II uses dummy auth: instead of a passkey, it prompts for a
+    // seed index. A random seed gives each login its own identity.
+    const seed = Math.floor(Math.random() * 1_000_000_000);
+    newTab.on('dialog', (dialog) => dialog.accept(String(seed)));
+    await newTab.getByRole('button', { name: 'Create', exact: true }).click();
+    await newTab.getByRole('button', { name: 'Create with passkey' }).click();
+    await newTab.getByRole('textbox', { name: 'Identity name' }).fill('E2E Test');
     await newTab.getByRole('button', { name: 'Create identity' }).click();
 
     const continueBtn = newTab.getByRole('button', { name: 'continue' }).first();

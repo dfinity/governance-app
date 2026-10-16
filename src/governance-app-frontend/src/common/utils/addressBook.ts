@@ -1,6 +1,6 @@
 import { isNullish, nonNullish } from '@dfinity/utils';
 
-import type { AddressType } from '@declarations/governance-app-backend/governance-app-backend.did';
+import type { AddressType } from '@declarations/governance-app-backend/backend.did';
 
 import { addressToAccountIdentifier } from '@utils/address';
 

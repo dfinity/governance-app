@@ -3,10 +3,7 @@ import { AlertTriangle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
-import type {
-  AddressType,
-  NamedAddress,
-} from '@declarations/governance-app-backend/governance-app-backend.did';
+import type { AddressType, NamedAddress } from '@declarations/governance-app-backend/backend.did';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
