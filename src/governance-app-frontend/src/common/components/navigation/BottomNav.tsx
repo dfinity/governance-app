@@ -24,7 +24,7 @@ export const BottomNav = () => {
   }
 
   return (
-    <nav className="z-50 shrink-0 border-t bg-background/95 backdrop-blur-sm lg:hidden">
+    <nav className="z-50 shrink-0 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm lg:hidden">
       <div className="flex h-13 w-full">
         {navigationItems.map((item) => (
           <Link

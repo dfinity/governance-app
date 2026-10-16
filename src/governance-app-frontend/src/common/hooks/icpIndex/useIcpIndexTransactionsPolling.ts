@@ -1,5 +1,5 @@
 import { AccountIdentifier, IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
-import { isNullish } from '@dfinity/utils';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -10,7 +10,7 @@ import { useSubaccountsMetadata } from '@features/accounts/hooks/useSubaccountsM
 
 import { E8Sn } from '@constants/extra';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
-import { addressBookGetAddressString } from '@utils/addressBook';
+import { addressBookGetAccountIdentifier, addressBookMatchesAddress } from '@utils/addressBook';
 import { bigIntDiv } from '@utils/bigInt';
 import { shortenId } from '@utils/id';
 import { infoNotification } from '@utils/notification';
@@ -96,7 +96,9 @@ export const useIcpIndexTransactionsPolling = () => {
     // so poisoning attempts that mimic those addresses won't be caught here.
     const trustedAddresses = new Set([
       ...results.map(({ accountId }) => accountId),
-      ...addressBookEntries.map((entry) => addressBookGetAddressString(entry.address)),
+      ...addressBookEntries
+        .map((entry) => addressBookGetAccountIdentifier(entry.address))
+        .filter(nonNullish),
     ]);
 
     for (const { accountId, latestTransaction } of results) {
@@ -131,8 +133,8 @@ export const useIcpIndexTransactionsPolling = () => {
 
         if (isSuspiciousAddress(sender, operation.Transfer.amount.e8s, trustedAddresses)) continue;
 
-        const contactName = addressBookEntries.find(
-          (entry) => addressBookGetAddressString(entry.address) === sender,
+        const contactName = addressBookEntries.find((entry) =>
+          addressBookMatchesAddress(entry.address, sender),
         )?.name;
         const senderLabel = contactName ?? shortenId(sender, 6);
 

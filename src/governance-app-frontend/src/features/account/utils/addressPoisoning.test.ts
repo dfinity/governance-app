@@ -35,6 +35,11 @@ describe('isSuspiciousAddress', () => {
     expect(isSuspiciousAddress(TRUSTED_ADDRESS, BELOW_THRESHOLD, trustedSet)).toBe(false);
   });
 
+  it('does not flag a trusted address that looks like another trusted address', () => {
+    const twoSimilarTrusted = new Set([TRUSTED_ADDRESS, SIMILAR_ADDRESS]);
+    expect(isSuspiciousAddress(SIMILAR_ADDRESS, BELOW_THRESHOLD, twoSimilarTrusted)).toBe(false);
+  });
+
   it('does not flag when only the prefix matches', () => {
     expect(isSuspiciousAddress(DIFFERENT_SUFFIX, BELOW_THRESHOLD, trustedSet)).toBe(false);
   });
@@ -64,6 +69,7 @@ describe('buildTrustedAddresses', () => {
   const NEURON_ACCOUNT = 'bbbb0000000000000000000000000000000000000000000000000000000000bb';
   const SENT_TO_ACCOUNT = 'cccc0000000000000000000000000000000000000000000000000000000000cc';
   const RECEIVED_FROM_ACCOUNT = 'dddd0000000000000000000000000000000000000000000000000000000000dd';
+  const ADDRESS_BOOK_ACCOUNT = 'eeee0000000000000000000000000000000000000000000000000000000000ee';
 
   it('includes the user account', () => {
     const result = buildTrustedAddresses(USER_ACCOUNT, new Set(), []);
@@ -73,6 +79,11 @@ describe('buildTrustedAddresses', () => {
   it('includes neuron accounts', () => {
     const result = buildTrustedAddresses(USER_ACCOUNT, new Set([NEURON_ACCOUNT]), []);
     expect(result.has(NEURON_ACCOUNT)).toBe(true);
+  });
+
+  it('includes address book account identifiers', () => {
+    const result = buildTrustedAddresses(USER_ACCOUNT, new Set(), [], [ADDRESS_BOOK_ACCOUNT]);
+    expect(result.has(ADDRESS_BOOK_ACCOUNT)).toBe(true);
   });
 
   it('includes addresses the user has sent to', () => {

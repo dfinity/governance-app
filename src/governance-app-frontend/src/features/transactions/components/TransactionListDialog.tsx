@@ -23,7 +23,7 @@ import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { CertifiedData } from '@typings/queries';
-import { addressBookGetAddressString } from '@utils/addressBook';
+import { addressBookGetAccountIdentifier, addressBookGetAddressKeys } from '@utils/addressBook';
 
 interface TransactionListDialogProps {
   open: boolean;
@@ -59,17 +59,20 @@ export function TransactionListDialog({
       page.response.transactions.map((tx) => tx.transaction),
     ) ?? [];
 
+  const { data: accountsData } = useAccounts();
+  const addressBookQuery = useAddressBook();
+  const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
+  const addressBookAccountIds = addressBookEntries
+    .map((entry) => addressBookGetAccountIdentifier(entry.address))
+    .filter(nonNullish);
+
   // NOTE: Trusted addresses are built from the currently fetched pages only.
   // Detection improves as the user scrolls and more pages are loaded, but
   // poisoning attempts that mimic recipients from unfetched older history
   // won't be flagged until those pages are loaded.
   const trustedAddresses = nonNullish(accountIdHex)
-    ? buildTrustedAddresses(accountIdHex, neuronAccountIds, allTransactions)
+    ? buildTrustedAddresses(accountIdHex, neuronAccountIds, allTransactions, addressBookAccountIds)
     : new Set<string>();
-
-  const { data: accountsData } = useAccounts();
-  const addressBookQuery = useAddressBook();
-  const addressBookEntries = addressBookQuery.data?.response?.named_addresses ?? [];
   const [addressToSave, setAddressToSave] = useState<string | undefined>();
   // A failed read leaves `data` empty. Saving on top of it would wipe the stored entries.
   const canSaveAddress =
@@ -79,11 +82,15 @@ export function TransactionListDialog({
   for (const account of accountsData?.accounts ?? []) {
     addressNameMap.set(account.accountId, { name: account.name, source: 'account' });
   }
+  // The index reports an ICRC-1 counterparty by its account identifier, so an
+  // ICRC-1 entry is keyed on both the saved text and the derived identifier.
+  // The first name for a key wins, as in the other lookups of the app.
   for (const entry of addressBookEntries) {
-    addressNameMap.set(addressBookGetAddressString(entry.address), {
-      name: entry.name,
-      source: 'addressBook',
-    });
+    for (const key of addressBookGetAddressKeys(entry.address)) {
+      if (!addressNameMap.has(key)) {
+        addressNameMap.set(key, { name: entry.name, source: 'addressBook' });
+      }
+    }
   }
 
   return (

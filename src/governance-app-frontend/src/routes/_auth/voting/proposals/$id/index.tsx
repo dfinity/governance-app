@@ -139,6 +139,7 @@ function ProposalDetailsRouteComponent() {
                       <ProposerBadge
                         proposer={proposal.proposer}
                         knownNeuronNames={knownNeuronNames}
+                        interactive
                       />
                     )}
                     {proposalUrl && (
