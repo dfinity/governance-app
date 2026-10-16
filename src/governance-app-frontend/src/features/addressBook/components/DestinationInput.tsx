@@ -329,27 +329,31 @@ export function DestinationInput({
           }}
         >
           <PopoverAnchor asChild>{field}</PopoverAnchor>
-          <PopoverContent
-            // Inside the field: the list stays in the dialog, so the dialog's
-            // scroll lock lets it scroll and the Tab order follows the input.
-            container={container}
-            // The list and the add button carry their own roles.
-            role={undefined}
-            align="start"
-            collisionPadding={8}
-            // On a short window the list shrinks and scrolls, and the add button stays visible.
-            className="flex max-h-(--radix-popover-content-available-height) w-(--radix-popover-trigger-width) flex-col p-1"
-            // The focus stays on the input while the list is open.
-            onOpenAutoFocus={(event) => event.preventDefault()}
-            onCloseAutoFocus={(event) => event.preventDefault()}
-            // A press on the input is not a dismiss. The input reopens the list itself.
-            onInteractOutside={(event) => {
-              if (container?.contains(event.target as Node)) event.preventDefault();
-            }}
-            data-testid={testId ? `${testId}-list` : undefined}
-          >
-            {listItems}
-          </PopoverContent>
+          {/* No exit animation: a closing popover stays the top layer and takes
+              the next Escape, so the dialog would not close. */}
+          {showList && (
+            <PopoverContent
+              // Inside the field: the list stays in the dialog, so the dialog's
+              // scroll lock lets it scroll and the Tab order follows the input.
+              container={container}
+              // The list and the add button carry their own roles.
+              role={undefined}
+              align="start"
+              collisionPadding={8}
+              // On a short window the list shrinks and scrolls, and the add button stays visible.
+              className="flex max-h-(--radix-popover-content-available-height) w-(--radix-popover-trigger-width) flex-col p-1"
+              // The focus stays on the input while the list is open.
+              onOpenAutoFocus={(event) => event.preventDefault()}
+              onCloseAutoFocus={(event) => event.preventDefault()}
+              // A press on the input is not a dismiss. The input reopens the list itself.
+              onInteractOutside={(event) => {
+                if (container?.contains(event.target as Node)) event.preventDefault();
+              }}
+              data-testid={testId ? `${testId}-list` : undefined}
+            >
+              {listItems}
+            </PopoverContent>
+          )}
         </Popover>
       ) : (
         <>
