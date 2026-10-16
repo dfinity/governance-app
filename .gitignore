@@ -39,10 +39,7 @@ src/governance-app-frontend/src/i18n/generated*
 # tanstack temp
 .tanstack
 
-# Developmnet environment
-pocket-ic-server.log
-dev-env-*
-pocket-ic
+# rollup-plugin-visualizer output
 stats.html
 
 # e2e
