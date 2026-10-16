@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@components/badge';
 import { Input } from '@components/Input';
+import { Popover, PopoverAnchor, PopoverContent } from '@components/Popover';
+import { useMediaQuery } from '@hooks/useMediaQuery';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
 import { shortenId } from '@utils/id';
 import { cn } from '@utils/shadcn';
@@ -53,6 +55,10 @@ const isCompleteAddress = (text: string): boolean =>
  * One field for a destination account. The user types a name to filter the
  * suggestions, pastes an address, or picks a suggestion from the list. A
  * picked suggestion shows as a chip with a clear button.
+ *
+ * On desktop the list floats over the content below the field, so the dialog
+ * keeps its size. On mobile the list pushes the content down, because the
+ * on-screen keyboard leaves no room for a floating list.
  */
 export function DestinationInput({
   id,
@@ -71,10 +77,12 @@ export function DestinationInput({
   const { t } = useTranslation();
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  // State, not a ref: the floating list mounts into this element.
+  const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const chipRef = useRef<HTMLOutputElement>(null);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
   const selected = suggestions.find(
     (suggestion) => suggestion.name === selectedName && suggestion.address === value,
@@ -126,7 +134,7 @@ export function DestinationInput({
 
   // The list stays open while the focus moves between the input and the add button.
   const handleBlur = (event: React.FocusEvent<HTMLDivElement>) => {
-    if (!containerRef.current?.contains(event.relatedTarget)) close();
+    if (!container?.contains(event.relatedTarget)) close();
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -214,97 +222,139 @@ export function DestinationInput({
     );
   }
 
-  return (
-    <div ref={containerRef} className="flex flex-col gap-1" onBlur={handleBlur}>
-      <div className="relative">
-        <Input
-          ref={inputRef}
-          id={id}
-          role="combobox"
-          aria-expanded={showList}
-          aria-controls={showList && itemCount > 0 ? listId : undefined}
-          aria-autocomplete="list"
-          aria-activedescendant={showList && activeMatch >= 0 ? optionId(activeMatch) : undefined}
-          aria-invalid={invalid}
-          value={value}
-          placeholder={placeholder}
-          onChange={(event) => {
-            onChange(event.target.value, '');
-            setOpen(true);
-            setActiveIndex(firstMatchIndex(event.target.value));
-          }}
-          onFocus={() => setOpen(true)}
-          // A click on the focused input gives no focus event, for example after Escape.
-          onClick={() => setOpen(true)}
-          onKeyDown={handleKeyDown}
-          className={cn('font-mono placeholder:font-sans', endAdornment && 'pr-10', inputClassName)}
-          autoComplete="off"
-          data-1p-ignore
-          data-lpignore="true"
-          required
-          data-testid={testId}
-        />
-        {endAdornment}
-      </div>
-      {showList && (
-        <div
-          className="rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
-          data-testid={testId ? `${testId}-list` : undefined}
-        >
-          {matches.length > 0 && (
-            <ul id={listId} role="listbox" className="max-h-56 overflow-y-auto">
-              {matches.map((suggestion, index) => (
-                <li
-                  key={`${suggestion.kind}:${suggestion.name}:${suggestion.address}`}
-                  id={optionId(index)}
-                  role="option"
-                  aria-selected={index === activeMatch}
-                  className={cn(
-                    'flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm',
-                    index === activeMatch && 'bg-accent text-accent-foreground',
-                  )}
-                  // The input keeps the focus, so the blur handler does not close the list first.
-                  onMouseDown={(event) => event.preventDefault()}
-                  onMouseEnter={() => setActiveIndex(index)}
-                  onClick={() => pick(suggestion)}
-                  data-testid={testId ? `${testId}-option` : undefined}
-                >
-                  <span className="min-w-0 shrink truncate font-medium">{suggestion.name}</span>
-                  <span className="min-w-0 shrink truncate font-mono text-xs text-muted-foreground">
-                    {shortenId(suggestion.address, SHORT_ADDRESS_CHARS)}
-                  </span>
-                  <Badge variant="outline" className="ml-auto shrink-0 text-[10px]">
-                    {t(($) => $.addressBook[kindLabelKey[suggestion.kind]])}
-                  </Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-          {onAddAddress && (
-            // A command, not an option: it opens the add modal and picks nothing.
-            <button
-              type="button"
+  const field = (
+    <div className="relative">
+      <Input
+        ref={inputRef}
+        id={id}
+        role="combobox"
+        aria-expanded={showList}
+        aria-controls={showList && itemCount > 0 ? listId : undefined}
+        aria-autocomplete="list"
+        aria-activedescendant={showList && activeMatch >= 0 ? optionId(activeMatch) : undefined}
+        aria-invalid={invalid}
+        value={value}
+        placeholder={placeholder}
+        onChange={(event) => {
+          onChange(event.target.value, '');
+          setOpen(true);
+          setActiveIndex(firstMatchIndex(event.target.value));
+        }}
+        onFocus={() => setOpen(true)}
+        // A click on the focused input gives no focus event, for example after Escape.
+        onClick={() => setOpen(true)}
+        onKeyDown={handleKeyDown}
+        className={cn('font-mono placeholder:font-sans', endAdornment && 'pr-10', inputClassName)}
+        autoComplete="off"
+        data-1p-ignore
+        data-lpignore="true"
+        required
+        data-testid={testId}
+      />
+      {endAdornment}
+    </div>
+  );
+
+  const listItems = (
+    <>
+      {matches.length > 0 && (
+        <ul id={listId} role="listbox" className="max-h-56 overflow-y-auto">
+          {matches.map((suggestion, index) => (
+            <li
+              key={`${suggestion.kind}:${suggestion.name}:${suggestion.address}`}
+              id={optionId(index)}
+              role="option"
+              aria-selected={index === activeMatch}
               className={cn(
-                'flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground',
-                matches.length > 0 && 'mt-1 border-t pt-2',
+                'flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm',
+                index === activeMatch && 'bg-accent text-accent-foreground',
               )}
-              onClick={addAddress}
-              onKeyDown={(event) => {
-                if (event.key === 'Escape') {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  // The focus opens the list, so the close comes after it.
-                  inputRef.current?.focus();
-                  close();
-                }
-              }}
-              data-testid={testId ? `${testId}-add` : undefined}
+              // The input keeps the focus, so the blur handler does not close the list first.
+              onMouseDown={(event) => event.preventDefault()}
+              onMouseEnter={() => setActiveIndex(index)}
+              onClick={() => pick(suggestion)}
+              data-testid={testId ? `${testId}-option` : undefined}
             >
-              <BookPlus className="size-4 text-muted-foreground" />
-              <span>{t(($) => $.addressBook.destination.addNew)}</span>
-            </button>
+              <span className="min-w-0 shrink truncate font-medium">{suggestion.name}</span>
+              <span className="min-w-0 shrink truncate font-mono text-xs text-muted-foreground">
+                {shortenId(suggestion.address, SHORT_ADDRESS_CHARS)}
+              </span>
+              <Badge variant="outline" className="ml-auto shrink-0 text-[10px]">
+                {t(($) => $.addressBook[kindLabelKey[suggestion.kind]])}
+              </Badge>
+            </li>
+          ))}
+        </ul>
+      )}
+      {onAddAddress && (
+        // A command, not an option: it opens the add modal and picks nothing.
+        <button
+          type="button"
+          className={cn(
+            'flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground',
+            matches.length > 0 && 'mt-1 border-t pt-2',
           )}
-        </div>
+          onClick={addAddress}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              event.preventDefault();
+              event.stopPropagation();
+              // The focus opens the list, so the close comes after it.
+              inputRef.current?.focus();
+              close();
+            }
+          }}
+          data-testid={testId ? `${testId}-add` : undefined}
+        >
+          <BookPlus className="size-4 text-muted-foreground" />
+          <span>{t(($) => $.addressBook.destination.addNew)}</span>
+        </button>
+      )}
+    </>
+  );
+
+  return (
+    <div ref={setContainer} className="flex flex-col gap-1" onBlur={handleBlur}>
+      {isDesktop ? (
+        <Popover
+          open={showList}
+          onOpenChange={(nextOpen) => {
+            if (!nextOpen) close();
+          }}
+        >
+          <PopoverAnchor asChild>{field}</PopoverAnchor>
+          <PopoverContent
+            // Inside the field: the list stays in the dialog, so the dialog's
+            // scroll lock lets it scroll and the Tab order follows the input.
+            container={container}
+            // The list and the add button carry their own roles.
+            role={undefined}
+            align="start"
+            className="w-(--radix-popover-trigger-width) p-1"
+            // The focus stays on the input while the list is open.
+            onOpenAutoFocus={(event) => event.preventDefault()}
+            onCloseAutoFocus={(event) => event.preventDefault()}
+            // A press on the input is not a dismiss. The input reopens the list itself.
+            onInteractOutside={(event) => {
+              if (container?.contains(event.target as Node)) event.preventDefault();
+            }}
+            data-testid={testId ? `${testId}-list` : undefined}
+          >
+            {listItems}
+          </PopoverContent>
+        </Popover>
+      ) : (
+        <>
+          {field}
+          {showList && (
+            <div
+              className="rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
+              data-testid={testId ? `${testId}-list` : undefined}
+            >
+              {listItems}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

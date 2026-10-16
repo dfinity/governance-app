@@ -1,8 +1,10 @@
 import '@/i18n/config';
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { useState } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@components/Dialog';
 
 import { DestinationInput, type DestinationSuggestion } from './DestinationInput';
 
@@ -288,5 +290,109 @@ describe('DestinationInput', () => {
     fireEvent.focus(screen.getByTestId('destination'));
 
     expect(screen.queryByRole('listbox')).toBeNull();
+  });
+});
+
+describe('DestinationInput on desktop', () => {
+  beforeEach(() => {
+    // Radix positions the popover with ResizeObserver, which jsdom does not have.
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+    vi.spyOn(globalThis, 'matchMedia').mockImplementation(
+      (query: string) =>
+        ({
+          matches: query === '(min-width: 768px)',
+          media: query,
+          onchange: null,
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        }) as unknown as MediaQueryList,
+    );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  // Radix listens for a press outside the popover one tick after it opens.
+  const waitForOutsideListeners = () => act(() => new Promise((resolve) => setTimeout(resolve)));
+
+  it('floats the list in a popover inside the field', () => {
+    const { container } = render(<Harness onAddAddress={() => {}} />);
+
+    fireEvent.focus(screen.getByTestId('destination'));
+
+    const list = screen.getByTestId('destination-list');
+    expect(list.getAttribute('data-slot')).toBe('popover-content');
+    expect(list.getAttribute('role')).toBeNull();
+    expect(container.contains(list)).toBe(true);
+    expect(screen.getAllByRole('option')).toHaveLength(2);
+    expect(screen.getByTestId('destination-add')).toBeDefined();
+  });
+
+  it('picks a suggestion with a click', () => {
+    render(<Harness />);
+
+    fireEvent.focus(screen.getByTestId('destination'));
+    fireEvent.click(screen.getAllByRole('option')[1]);
+
+    expect(screen.getByTestId('destination-selected').textContent).toContain('Bob');
+    expect(screen.queryByRole('listbox')).toBeNull();
+  });
+
+  it('closes the list with Escape and does not close the dialog', () => {
+    const onOpenChange = vi.fn();
+    render(
+      <Dialog open onOpenChange={onOpenChange}>
+        <DialogContent>
+          <DialogTitle>Send</DialogTitle>
+          <DialogDescription>Send ICP</DialogDescription>
+          <Harness />
+        </DialogContent>
+      </Dialog>,
+    );
+    const input = screen.getByTestId('destination');
+
+    fireEvent.focus(input);
+    expect(screen.queryByRole('listbox')).not.toBeNull();
+
+    fireEvent.keyDown(input, { key: 'Escape' });
+
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('keeps the list open on a press on the input and closes it on a press outside', async () => {
+    render(<Harness />);
+    const input = screen.getByTestId('destination');
+
+    fireEvent.focus(input);
+    await waitForOutsideListeners();
+
+    fireEvent.pointerDown(input);
+    expect(screen.queryByRole('listbox')).not.toBeNull();
+
+    fireEvent.pointerDown(document.body);
+    expect(screen.queryByRole('listbox')).toBeNull();
+  });
+
+  it('keeps the list open while the focus moves between the input and the add button', () => {
+    render(<Harness onAddAddress={() => {}} />);
+    const input = screen.getByTestId('destination');
+
+    act(() => input.focus());
+    act(() => screen.getByTestId('destination-add').focus());
+    expect(screen.queryByRole('listbox')).not.toBeNull();
+
+    act(() => input.focus());
+    expect(screen.queryByRole('listbox')).not.toBeNull();
   });
 });
