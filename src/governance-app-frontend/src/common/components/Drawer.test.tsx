@@ -66,17 +66,30 @@ describe('DrawerContent', () => {
     expect(content.style.getPropertyValue('--drawer-visible-height')).toBe('449px');
   });
 
+  it('ends at the visible bottom on iOS when it opens with the keyboard already open', async () => {
+    viewport.height = 449;
+    viewport.offsetTop = 288;
+
+    const content = await renderDrawer(IPHONE_UA);
+
+    expect(content.style.getPropertyValue('--drawer-keyboard-inset')).toBe('59px');
+    expect(content.style.getPropertyValue('--drawer-visible-height')).toBe('449px');
+  });
+
   it('returns to the layout bottom on iOS when the keyboard closes', async () => {
     const content = await renderDrawer(IPHONE_UA);
 
     act(() => {
       viewport.set(449, 288, 'resize');
       vi.advanceTimersByTime(100);
-      viewport.set(LAYOUT_HEIGHT, 0, 'resize');
-      vi.advanceTimersByTime(100);
     });
+    expect(content.style.getPropertyValue('--drawer-keyboard-inset')).toBe('59px');
+
+    // The drawer moves down without the settle delay.
+    act(() => viewport.set(LAYOUT_HEIGHT, 0, 'resize'));
 
     expect(content.style.getPropertyValue('--drawer-keyboard-inset')).toBe('0px');
+    expect(content.style.getPropertyValue('--drawer-visible-height')).toBe(`${LAYOUT_HEIGHT}px`);
   });
 
   it('leaves the keyboard handling to vaul outside iOS', async () => {

@@ -24,26 +24,46 @@ type VisibleArea = {
   keyboardInset: number;
 };
 
+const getIosViewport = () => (isIos ? (window.visualViewport ?? null) : null);
+
+const readVisibleArea = (viewport: VisualViewport): VisibleArea => ({
+  height: Math.round(viewport.height),
+  keyboardInset: Math.max(
+    0,
+    Math.round(document.documentElement.clientHeight - viewport.offsetTop - viewport.height),
+  ),
+});
+
 const useVisibleArea = (): VisibleArea | null => {
-  const [area, setArea] = React.useState<VisibleArea | null>(null);
+  // A drawer can open while the keyboard is already open, so the first render
+  // reads the viewport.
+  const [area, setArea] = React.useState<VisibleArea | null>(() => {
+    const viewport = getIosViewport();
+    return viewport ? readVisibleArea(viewport) : null;
+  });
 
   React.useEffect(() => {
-    const viewport = isIos ? window.visualViewport : null;
+    const viewport = getIosViewport();
     if (!viewport) return;
+
+    let shown = readVisibleArea(viewport);
+    const show = (next: VisibleArea) => {
+      if (next.height === shown.height && next.keyboardInset === shown.keyboardInset) return;
+      shown = next;
+      setArea(next);
+    };
 
     let timer: ReturnType<typeof setTimeout> | undefined;
     const onChange = () => {
       clearTimeout(timer);
-      timer = setTimeout(() => {
-        const layoutHeight = document.documentElement.clientHeight;
-        setArea({
-          height: viewport.height,
-          keyboardInset: Math.max(
-            0,
-            Math.round(layoutHeight - viewport.offsetTop - viewport.height),
-          ),
-        });
-      }, VIEWPORT_SETTLE_MS);
+      const next = readVisibleArea(viewport);
+      // A drawer that only moves down or gets taller cannot go off the screen,
+      // so it follows the keyboard close at once.
+      if (next.keyboardInset <= shown.keyboardInset && next.height >= shown.height) {
+        show(next);
+      } else {
+        timer = setTimeout(() => show(readVisibleArea(viewport)), VIEWPORT_SETTLE_MS);
+      }
     };
 
     viewport.addEventListener('resize', onChange);
