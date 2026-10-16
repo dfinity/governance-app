@@ -36,8 +36,8 @@ export const BottomNav = () => {
     <nav
       className={cn(
         'pointer-events-none absolute inset-x-0 bottom-0 z-50 px-5 pb-(--bottom-nav-gap) lg:hidden',
-        // Blurs the content that scrolls behind and below the capsule.
-        'before:absolute before:inset-x-0 before:-top-6 before:bottom-0 before:bg-main-content/30 before:[mask-image:linear-gradient(to_top,black_55%,transparent)] before:backdrop-blur-[6px]',
+        // Fades the content below the capsule into the page, like the iOS scroll edge effect.
+        'before:absolute before:inset-0 before:bg-linear-to-t before:from-main-content/85 before:to-transparent before:[mask-image:linear-gradient(to_top,black_40%,transparent)] before:backdrop-blur-[2px]',
       )}
     >
       <div
