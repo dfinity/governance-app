@@ -158,10 +158,16 @@ export class LedgerIdentity extends SignIdentity {
   public static async connect(): Promise<{ app: LedgerApp; transport: Transport }> {
     try {
       await ensureBuffer();
-      const transport = await this.getTransport();
+      // The app module loads before the transport opens, so a failed import leaves no open device.
       const { default: InternetComputerApp } = await import('@zondax/ledger-icp');
+      const transport = await this.getTransport();
 
-      return { app: new InternetComputerApp(transport), transport };
+      try {
+        return { app: new InternetComputerApp(transport), transport };
+      } catch (error: unknown) {
+        await transport.close().catch(() => undefined);
+        throw error;
+      }
     } catch (error: unknown) {
       throw LedgerIdentity.mapTransportError(error);
     }

@@ -19,6 +19,9 @@ import { LedgerErrorCode } from './errors';
 import { LedgerIdentity } from './ledgerIdentity';
 import { getRequestId } from './ledgerUtils';
 
+const mockAppConstructor = vi.hoisted(() => vi.fn());
+vi.mock('@zondax/ledger-icp', () => ({ default: mockAppConstructor }));
+
 type MockApp = {
   getAddressAndPubKey: Mock;
   getVersion: Mock;
@@ -301,16 +304,45 @@ describe('LedgerIdentity', () => {
     });
   });
 
-  describe('connect errors', () => {
-    const connectWith = async (error: unknown) => {
+  describe('connect', () => {
+    const getTransportSpy = () => {
       vi.mocked(LedgerIdentity.connect).mockRestore();
-      vi.spyOn(
+
+      return vi.spyOn(
         LedgerIdentity as unknown as { getTransport: () => Promise<unknown> },
         'getTransport',
-      ).mockRejectedValue(error);
+      );
+    };
+
+    const connectWith = async (error: unknown) => {
+      getTransportSpy().mockRejectedValue(error);
 
       return LedgerIdentity.connect();
     };
+
+    it('returns the app and the open transport', async () => {
+      getTransportSpy().mockResolvedValue(transport);
+      mockAppConstructor.mockImplementation(function () {
+        return app;
+      });
+
+      await expect(LedgerIdentity.connect()).resolves.toEqual({ app, transport });
+      expect(mockAppConstructor).toHaveBeenCalledWith(transport);
+      expect(transport.close).not.toHaveBeenCalled();
+    });
+
+    it('closes the transport when the app cannot be built', async () => {
+      getTransportSpy().mockResolvedValue(transport);
+      mockAppConstructor.mockImplementation(function () {
+        throw new Error('no app');
+      });
+
+      await expect(LedgerIdentity.connect()).rejects.toMatchObject({
+        code: LedgerErrorCode.ConnectFailed,
+        details: { error: 'Error: no app' },
+      });
+      expect(transport.close).toHaveBeenCalledTimes(1);
+    });
 
     it.each([
       [{ name: 'TransportOpenUserCancelled', message: 'cancelled' }, LedgerErrorCode.AccessDenied],
