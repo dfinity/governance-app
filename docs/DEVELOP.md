@@ -39,7 +39,7 @@ If the network is already running, the script only upgrades `governance-app-back
   - SNS Aggregator: http://3r4gx-wqaaa-aaaaq-aaaia-cai.localhost:8080
   - Internet Identity: http://uqzsh-gqaaa-aaaaq-qaada-cai.localhost:8080
 
-To start a network without the delay (the e2e tests in CI use it), run `npm run start:ic -- --environment e2e`.
+To start a network with a 1-second delay (the e2e tests in CI use it), run `npm run start:ic -- --environment e2e`.
 To stop the network, press Ctrl+C, or run `npx icp network stop` if the network is running in the background.
 
 Note: The network uses port 8080. If a dfx replica is still running, stop it first with `dfx stop`.

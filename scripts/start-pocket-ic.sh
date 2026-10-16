@@ -10,7 +10,7 @@ source "$DIR/clap.sh"
 
 # Define options
 clap.define short=b long=background desc="Run the network in the background" variable=BACKGROUND nargs=0
-clap.define short=e long=environment desc="icp environment: local (2s delay on update calls) or e2e (no delay)" variable=ENVIRONMENT default="local"
+clap.define short=e long=environment desc="icp environment: local (2s delay on update calls) or e2e (1s delay)" variable=ENVIRONMENT default="local"
 
 # Source the output file
 source "$(clap.build)"
