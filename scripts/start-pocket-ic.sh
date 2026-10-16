@@ -50,11 +50,16 @@ else
   done
   icp network start "$NETWORK" --background
 
+  # A later run reuses a running network, so stop the network if its setup fails.
+  trap 'icp network stop "$NETWORK" >/dev/null 2>&1 || true' ERR
+
   # Create governance-app-backend with the same ID as production.
   node "$DIR/create-local-canister.mjs" "$NETWORK" "$CANISTER_ID_SELF" "$(icp identity principal)"
   # The IDs from an earlier run belong to a network that no longer exists.
   rm -f "$ROOT_DIR/.icp/cache/mappings/$ENVIRONMENT.ids.json"
   icp canister link governance-app-backend "$CANISTER_ID_SELF" --environment "$ENVIRONMENT"
+
+  trap - ERR
 fi
 
 icp deploy governance-app-backend --environment "$ENVIRONMENT" --yes
