@@ -1,3 +1,4 @@
+import type { ReadRequest, RequestId } from '@icp-sdk/core/agent';
 import { Principal } from '@icp-sdk/core/principal';
 import { hexStringToUint8Array } from '@dfinity/utils';
 import type { ResponseAddress, ResponseSign, ResponseSignUpdateCall } from '@zondax/ledger-icp';
@@ -10,7 +11,13 @@ import {
 } from '../../../tests/mocks/ledgerIdentity';
 import { LEDGER_SIGNATURE_LENGTH, LedgerReturnCode } from './constants';
 import { LedgerErrorCode } from './errors';
-import { decodePublicKey, decodeSignature, decodeUpdateSignatures } from './ledgerUtils';
+import {
+  createReadStatePaths,
+  decodePublicKey,
+  decodeSignature,
+  decodeUpdateSignatures,
+  getRequestId,
+} from './ledgerUtils';
 
 const rawPublicKey = Buffer.from(hexStringToUint8Array(rawPublicKeyHex));
 const principalText = Principal.selfAuthenticating(mockLedgerPublicKey.toDer()).toText();
@@ -134,5 +141,23 @@ describe('decodeUpdateSignatures', () => {
         RequestSignatureRS: Buffer.alloc(LEDGER_SIGNATURE_LENGTH),
       } as ResponseSignUpdateCall),
     ).toThrow(expect.objectContaining({ code: LedgerErrorCode.SignatureUnexpected }));
+  });
+});
+
+describe('getRequestId', () => {
+  const requestId = Uint8Array.from([1, 2, 3]) as RequestId;
+  const readRequest = (paths: Uint8Array[][]): ReadRequest =>
+    ({ request_type: 'read_state', paths }) as unknown as ReadRequest;
+
+  it('returns the id of a call status path', () => {
+    expect(getRequestId(readRequest(createReadStatePaths(requestId)))).toEqual(requestId);
+  });
+
+  it('returns undefined when there is no path', () => {
+    expect(getRequestId(readRequest([]))).toBeUndefined();
+  });
+
+  it('returns undefined for another path', () => {
+    expect(getRequestId(readRequest([[new TextEncoder().encode('time')]]))).toBeUndefined();
   });
 });

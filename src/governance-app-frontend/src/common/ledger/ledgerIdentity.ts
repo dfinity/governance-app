@@ -100,18 +100,23 @@ export class LedgerIdentity extends SignIdentity {
   }
 
   public override async sign(blob: Uint8Array): Promise<Signature> {
+    const txType = this.consumeStakeFlag();
     await this.raiseIfVersionIsDeprecated();
 
     return this.executeWithApp(async (app) => {
-      const response = await app.sign(
-        this.derivePath,
-        Buffer.from(blob),
-        this.neuronStakeFlag ? 1 : 0,
-      );
-      this.neuronStakeFlag = false;
+      const response = await app.sign(this.derivePath, Buffer.from(blob), txType);
 
       return decodeSignature(response);
     });
+  }
+
+  // The flag is one-shot. It is cleared before any asynchronous work, so a failed attempt
+  // does not leak the stake mode into the next transaction.
+  private consumeStakeFlag(): 0 | 1 {
+    const txType = this.neuronStakeFlag ? 1 : 0;
+    this.neuronStakeFlag = false;
+
+    return txType;
   }
 
   /**
@@ -236,6 +241,7 @@ export class LedgerIdentity extends SignIdentity {
     callBlob: Uint8Array,
     readStateBlob: Uint8Array,
   ): Promise<RequestSignatures> {
+    const txType = this.consumeStakeFlag();
     await this.raiseIfVersionIsDeprecated();
 
     return this.executeWithApp(async (app) => {
@@ -243,9 +249,8 @@ export class LedgerIdentity extends SignIdentity {
         this.derivePath,
         Buffer.from(callBlob),
         Buffer.from(readStateBlob),
-        this.neuronStakeFlag ? 1 : 0,
+        txType,
       );
-      this.neuronStakeFlag = false;
 
       return decodeUpdateSignatures(response);
     });
@@ -297,7 +302,12 @@ export class LedgerIdentity extends SignIdentity {
     request: HttpAgentReadStateRequest,
   ): Record<string, unknown> | undefined {
     const { body, ...fields } = request;
-    const requestIdHex = uint8ArrayToHexString(getRequestId(body));
+    const requestId = getRequestId(body);
+    // Only a call status request has a cached signature. Any other `read_state` request
+    // (for example the `time` path) is signed on the device.
+    if (isNullish(requestId)) return undefined;
+
+    const requestIdHex = uint8ArrayToHexString(requestId);
     const cached = this.readStateMap.get(requestIdHex);
 
     if (isNullish(cached)) {

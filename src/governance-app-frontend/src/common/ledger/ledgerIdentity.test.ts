@@ -201,6 +201,42 @@ describe('LedgerIdentity', () => {
     expect(getRequestId(bodyOf(readRequest1))).toEqual(requestId);
   });
 
+  it('clears the stake flag when a flagged attempt fails', async () => {
+    app.getVersion.mockResolvedValueOnce(version({ major: 2, minor: 4, patch: 8 }));
+    const identity = await LedgerIdentity.create();
+
+    identity.flagUpcomingStakeNeuron();
+    await expect(identity.transformRequest(callRequest)).rejects.toMatchObject({
+      code: LedgerErrorCode.AppVersionNotSupported,
+    });
+
+    await identity.transformRequest(callRequest);
+    expect(app.signUpdateCall).toHaveBeenCalledTimes(1);
+    expect(app.signUpdateCall).toHaveBeenLastCalledWith(
+      expect.any(String),
+      expect.any(Buffer),
+      expect.any(Buffer),
+      0,
+    );
+  });
+
+  it.each([
+    ['no path', []],
+    ['the time path', [[new TextEncoder().encode('time')]]],
+  ])('signs a read state request with %s on the device', async (_, paths) => {
+    const identity = await LedgerIdentity.create();
+    const request = {
+      ...readStateRequest,
+      body: { ...readStateRequest.body, paths },
+    } as HttpAgentRequest;
+
+    const readRequest = await identity.transformRequest(request);
+
+    expect(app.sign).toHaveBeenCalledTimes(1);
+    expect(app.signUpdateCall).not.toHaveBeenCalled();
+    expect(readRequest.endpoint).toBe('read_state');
+  });
+
   it('signs a read state request that was never cached', async () => {
     const identity = await LedgerIdentity.create();
 

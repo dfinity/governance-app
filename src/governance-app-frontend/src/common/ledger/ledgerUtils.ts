@@ -104,13 +104,24 @@ export const decodeUpdateSignatures = ({
   };
 };
 
+const REQUEST_STATUS_LABEL = 'request_status';
+
 /**
- * The request id of a `read_state` request for a call status.
+ * The request id of a `read_state` request for a call status, or `undefined` for any other path.
  * The interface spec requires every `/request_status/<request_id>` path to carry the same id.
  * https://internetcomputer.org/docs/current/references/ic-interface-spec/#http-read-state
  */
-export const getRequestId = (body: ReadRequest): RequestId => body.paths[0][1] as RequestId;
+export const getRequestId = (body: ReadRequest): RequestId | undefined => {
+  const [path] = (body.paths ?? []) as Uint8Array[][];
+  if (isNullish(path) || path.length !== 2) return undefined;
+
+  const [label, requestId] = path;
+
+  return new TextDecoder().decode(label) === REQUEST_STATUS_LABEL
+    ? (requestId as RequestId)
+    : undefined;
+};
 
 export const createReadStatePaths = (requestId: RequestId): Uint8Array[][] => [
-  [new TextEncoder().encode('request_status'), requestId],
+  [new TextEncoder().encode(REQUEST_STATUS_LABEL), requestId],
 ];
