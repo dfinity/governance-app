@@ -130,6 +130,31 @@ describe('LedgerIdentity', () => {
     expect(app.signUpdateCall).toHaveBeenCalledTimes(1);
     expect(app.sign).not.toHaveBeenCalled();
     expect(readRequest.endpoint).toBe('read_state');
+
+    // Each envelope carries its own signature and the device public key.
+    const envelopeOf = (transformed: Record<string, unknown>) =>
+      transformed.body as {
+        content: { ingress_expiry: Expiry };
+        sender_pubkey: Uint8Array;
+        sender_sig: Uint8Array;
+      };
+    const callEnvelope = envelopeOf(request);
+    const readStateEnvelope = envelopeOf(readRequest);
+    expect(callEnvelope.content).toBe(callBody);
+    expect(Array.from(callEnvelope.sender_sig)).toEqual(
+      Array.from(Buffer.alloc(LEDGER_SIGNATURE_LENGTH, 1)),
+    );
+    expect(Array.from(readStateEnvelope.sender_sig)).toEqual(
+      Array.from(Buffer.alloc(LEDGER_SIGNATURE_LENGTH, 2)),
+    );
+    expect(Array.from(callEnvelope.sender_pubkey)).toEqual(Array.from(mockLedgerPublicKey.toDer()));
+    expect(Array.from(readStateEnvelope.sender_pubkey)).toEqual(
+      Array.from(mockLedgerPublicKey.toDer()),
+    );
+
+    // The polling request keeps the expiry the device signed, not the newer one from agent-js.
+    expect(readStateEnvelope.content.ingress_expiry).toBe(callBody.ingress_expiry);
+    expect(readStateEnvelope.content.ingress_expiry).not.toBe(readStateRequest.body.ingress_expiry);
   });
 
   it('passes the stake flag once and clears it', async () => {
