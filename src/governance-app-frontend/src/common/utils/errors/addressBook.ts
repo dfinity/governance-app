@@ -1,4 +1,4 @@
-import type { SetAddressBookResponse } from '@declarations/governance-app-backend/governance-app-backend.did';
+import type { SetAddressBookResponse } from '@declarations/governance-app-backend/backend.did';
 
 import i18n from '@/i18n/config';
 

@@ -2,10 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
-import type {
-  AddressBook,
-  NamedAddress,
-} from '@declarations/governance-app-backend/governance-app-backend.did';
+import type { AddressBook, NamedAddress } from '@declarations/governance-app-backend/backend.did';
 
 import { AnalyticsEvent } from '@features/analytics/events';
 import { getErrorReason } from '@features/analytics/properties';
