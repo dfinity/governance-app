@@ -39,11 +39,12 @@ echo ""
 # icp-cli starts every network from a clean state, so a running network is the only way to keep
 # neurons, balances and canister data.
 if icp network status "$NETWORK" >/dev/null 2>&1; then
-  echo "♻️  The '$NETWORK' network already runs. Upgrading governance-app-backend and keeping the network state..."
+  echo "♻️ The '$NETWORK' network is running already. Upgrading governance-app-backend and keeping the network state..."
 else
   echo "🚀 Starting the local network with system canisters (NNS, SNS, II)..."
 
-  # Stop a network that still runs on the port.
+  # Both the local and e2e networks use the same port (set in icp.yaml),
+  # so they both need to be down before we try to start the requested network.
   for network in local e2e; do
     icp network stop "$network" >/dev/null 2>&1 || true
   done

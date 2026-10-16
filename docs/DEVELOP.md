@@ -33,16 +33,16 @@ The script uses [icp-cli](https://github.com/dfinity/icp-cli) to start the netwo
 
 The network has the system canisters (NNS, SNS, II). Update calls get a 2-second delay to simulate mainnet. A new network begins with a clean state and gets `governance-app-backend` with its mainnet canister ID.
 
-If the network already runs, the script only upgrades `governance-app-backend`. Neurons, balances and canister data stay. A stopped network loses its state, because icp-cli always starts from a clean state.
+If the network is already running, the script only upgrades `governance-app-backend`. Neurons, balances and canister data stay. A stopped network loses its state, because icp-cli always starts from a clean state.
   - Governance app: http://mc7vh-sqaaa-aaaai-q33na-cai.localhost:8080
   - NNS dapp: http://qoctq-giaaa-aaaaa-aaaea-cai.localhost:8080
   - SNS Aggregator: http://3r4gx-wqaaa-aaaaq-aaaia-cai.localhost:8080
   - Internet Identity: http://uqzsh-gqaaa-aaaaq-qaada-cai.localhost:8080
 
 To start a network without the delay (the e2e tests in CI use it), run `npm run start:ic -- --environment e2e`.
-To stop the network, press Ctrl+C, or run `npx icp network stop` if the network runs in the background.
+To stop the network, press Ctrl+C, or run `npx icp network stop` if the network is running in the background.
 
-Note: The network uses port 8080. If a dfx replica still runs, stop it first with `dfx stop`.
+Note: The network uses port 8080. If a dfx replica is still running, stop it first with `dfx stop`.
 
 2. **Start the frontend:**
 

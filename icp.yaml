@@ -28,7 +28,7 @@ canisters:
                 exit 1
               fi
             - ./scripts/config.sh -n local
-            - npm run generate:bindings
+            - npm run generate:candid-bindings
             - npm run build
             - cargo build --target wasm32-unknown-unknown --release -p governance-app-backend --locked --features testnet
             - gzip --no-name --stdout target/wasm32-unknown-unknown/release/governance_app_backend.wasm > "$ICP_WASM_OUTPUT_PATH"

@@ -14,7 +14,7 @@
     "lint": "npm run lint --workspaces --if-present",
     "lint:lockfile": "lockfile-lint",
     "check:i18n": "npm run check:i18n --workspaces --if-present",
-    "generate:bindings": "npm run generate:bindings --workspaces --if-present",
+    "generate:candid-bindings": "npm run generate:candid-bindings --workspaces --if-present",
     "start": "npm start --workspaces --if-present",
     "start:ic": "./scripts/start-pocket-ic.sh",
     "start:local": "./scripts/config.sh -n local && npm run start",

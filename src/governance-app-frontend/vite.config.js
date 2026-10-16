@@ -152,7 +152,7 @@ export default defineConfig({
     exclude: ['./node_modules', './dist', './tests/e2e/**'],
     // Run before each test file
     setupFiles: ['vitest.setup.ts'],
-    // The governance-app-backend declarations come from `npm run generate:bindings` and are not
+    // The governance-app-backend declarations come from `npm run generate:candid-bindings` and are not
     // committed to git.
     // Redirect to a minimal mock so tests that transitively import the IDL factory still run.
     alias: [

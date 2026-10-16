@@ -115,7 +115,13 @@ check_dfx_orbit_identity() {
 has_asset_permission() {
   principal="$1"
   permission="$2"
-  icp canister call "$ASSET_CANISTER_ID" list_permitted "(record { permission = variant { $permission } })" --identity anonymous --network ic | grep -qF "\"$principal\""
+  icp canister call \
+      "$ASSET_CANISTER_ID" \
+      list_permitted \
+      "(record { permission = variant { $permission } })" \
+      --identity anonymous \
+      --network ic \
+    | grep -qF "\"$principal\""
 }
 
 require_asset_permission() {
@@ -247,7 +253,14 @@ REPO_URL="https://github.com/dfinity/governance-app"
 
 echo
 echo "Querying deployed canister for current build info..."
-if DEPLOYED_COMMIT="$(icp canister metadata "$CANISTER_ID" git_commit_id --network ic --identity anonymous 2>/dev/null)"; then
+if DEPLOYED_COMMIT="$(
+  icp canister metadata \
+      "$CANISTER_ID" \
+      git_commit_id \
+      --network ic \
+      --identity anonymous \
+      2>/dev/null
+)"; then
   DEPLOYED_COMMIT="$(echo "$DEPLOYED_COMMIT" | xargs)"
 fi
 
