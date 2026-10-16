@@ -1,8 +1,7 @@
-import { ERROR_USER_INTERRUPT } from '@icp-sdk/auth/client';
 import { ParsedLocation, redirect } from '@tanstack/react-router';
-import { ensureInitialized } from 'ic-use-internet-identity';
 
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
+import { ensureInitialized } from '@common/auth/internetIdentity';
 
 import i18n from '@/i18n/config';
 
@@ -24,14 +23,7 @@ export const isSafeInternalRedirect = (value: unknown): value is string =>
   !value.startsWith('/\\');
 
 export const requireIdentity = async ({ location }: { location: ParsedLocation }) => {
-  let identity;
-
-  try {
-    identity = await ensureInitialized();
-  } catch (err) {
-    // If user interrupts the login flow by closing the InternetIdentiy page, we just swallow the error (the user is just not authenticated, it is not an error in our app)
-    if (!(err instanceof Error && err.message === ERROR_USER_INTERRUPT)) throw err;
-  }
+  const identity = await ensureInitialized();
 
   if (!identity) {
     console.log('[🔐 Protected Route]: identity not found, redirecting to login page.');
