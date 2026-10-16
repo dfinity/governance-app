@@ -31,6 +31,10 @@ export enum LedgerErrorCode {
   SignatureLength = 'signatureLength',
   /** The app on the device is older than `LEDGER_MIN_APP_VERSION`. `details.version` has the device version. */
   AppVersionNotSupported = 'appVersionNotSupported',
+  /** The device was unplugged or stopped answering during an action. */
+  Disconnected = 'disconnected',
+  /** Any other failure during a device action. `details.error` has the message. */
+  Unexpected = 'unexpected',
 }
 
 export class LedgerDeviceError extends Error {

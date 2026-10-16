@@ -71,6 +71,8 @@ export class LedgerIdentity extends SignIdentity {
       const publicKey = await this.fetchPublicKeyFromDevice({ app, derivePath });
 
       return new this(derivePath, publicKey);
+    } catch (error: unknown) {
+      throw LedgerIdentity.normalizeError(error);
     } finally {
       await transport.close();
     }
@@ -221,9 +223,23 @@ export class LedgerIdentity extends SignIdentity {
       }
 
       return await callback(app);
+    } catch (error: unknown) {
+      throw LedgerIdentity.normalizeError(error);
     } finally {
       await transport.close();
     }
+  }
+
+  // Every failure of a device action leaves the module as a `LedgerDeviceError`.
+  private static normalizeError(error: unknown): LedgerDeviceError {
+    if (error instanceof LedgerDeviceError) return error;
+
+    const { name } = (error ?? {}) as LedgerTransportError;
+    if (name === 'DisconnectedDevice' || name === 'DisconnectedDeviceDuringOperation') {
+      return new LedgerDeviceError(LedgerErrorCode.Disconnected);
+    }
+
+    return new LedgerDeviceError(LedgerErrorCode.Unexpected, { error: `${error}` });
   }
 
   private async raiseIfVersionIsDeprecated(): Promise<void> {

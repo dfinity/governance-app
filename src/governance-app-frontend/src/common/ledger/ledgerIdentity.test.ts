@@ -15,7 +15,7 @@ import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vite
 
 import { mockLedgerPublicKey } from '../../../tests/mocks/ledgerIdentity';
 import { LEDGER_SIGNATURE_LENGTH, LedgerReturnCode } from './constants';
-import { LedgerErrorCode } from './errors';
+import { LedgerDeviceError, LedgerErrorCode } from './errors';
 import { LedgerIdentity } from './ledgerIdentity';
 import { getRequestId } from './ledgerUtils';
 
@@ -273,6 +273,46 @@ describe('LedgerIdentity', () => {
     expect(app.sign).toHaveBeenCalledTimes(1);
     expect(app.signUpdateCall).not.toHaveBeenCalled();
     expect(readRequest.endpoint).toBe('read_state');
+  });
+
+  describe('error normalization', () => {
+    it('wraps a raw error from the public key exchange in create', async () => {
+      vi.spyOn(LedgerIdentity, 'fetchPublicKeyFromDevice').mockRejectedValue(new Error('usb'));
+
+      await expect(LedgerIdentity.create()).rejects.toMatchObject({
+        code: LedgerErrorCode.Unexpected,
+        details: { error: 'Error: usb' },
+      });
+      expect(transport.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('wraps a raw error from a device callback', async () => {
+      const identity = await LedgerIdentity.create();
+      app.getVersion.mockRejectedValue(new Error('apdu'));
+
+      await expect(identity.getVersion()).rejects.toMatchObject({
+        code: LedgerErrorCode.Unexpected,
+        details: { error: 'Error: apdu' },
+      });
+      expect(transport.close).toHaveBeenCalledTimes(2);
+    });
+
+    it('maps a disconnected device', async () => {
+      const identity = await LedgerIdentity.create();
+      app.getVersion.mockRejectedValue({ name: 'DisconnectedDeviceDuringOperation' });
+
+      await expect(identity.getVersion()).rejects.toMatchObject({
+        code: LedgerErrorCode.Disconnected,
+      });
+    });
+
+    it('keeps an already decoded error', async () => {
+      const identity = await LedgerIdentity.create();
+      app.getVersion.mockRejectedValue(new LedgerDeviceError(LedgerErrorCode.Locked));
+
+      await expect(identity.getVersion()).rejects.toMatchObject({ code: LedgerErrorCode.Locked });
+      expect(app.getVersion).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('rejects a device with another public key', async () => {
