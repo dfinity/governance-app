@@ -19,7 +19,7 @@ jobs:
     # This fixes Playwright connectivity issues found in GitHub Actions default containers
     env:
       BASE_URL: http://mc7vh-sqaaa-aaaai-q33na-cai.localhost:8080
-      CONTAINER_IMAGE: ghcr.io/dfinity/governance-app/builder-base:0.0.10
+      CONTAINER_IMAGE: ghcr.io/dfinity/governance-app/builder-base:0.0.11
       # Cache dirs live inside the workspace so they are visible both to actions/cache on the
       # host and to the tooling running inside the mounted container.
       NPM_CACHE_DIR: .ci-cache/npm
@@ -94,8 +94,6 @@ jobs:
               echo ""
 
               echo "=== Installing dependencies ==="
-              # The icp binary links against libdbus, which builder-base:0.0.10 does not ship.
-              apt-get update -qq && apt-get install -y -qq --no-install-recommends libdbus-1-3 > /dev/null
               npm ci
               echo "icp: $(npx icp --version)"
 
