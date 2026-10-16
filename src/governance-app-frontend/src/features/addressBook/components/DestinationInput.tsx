@@ -296,6 +296,12 @@ export function DestinationInput({
           )}
           onClick={addAddress}
           onKeyDown={(event) => {
+            // The popover's focus scope loops Tab inside the list. Tab and
+            // Shift+Tab leave the list to the next and the previous control.
+            if (event.key === 'Tab') {
+              event.stopPropagation();
+              return;
+            }
             if (event.key === 'Escape') {
               event.preventDefault();
               event.stopPropagation();

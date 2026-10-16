@@ -1,6 +1,7 @@
 import '@/i18n/config';
 
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -384,15 +385,28 @@ describe('DestinationInput on desktop', () => {
     expect(screen.queryByRole('listbox')).toBeNull();
   });
 
-  it('keeps the list open while the focus moves between the input and the add button', () => {
-    render(<Harness onAddAddress={() => {}} />);
+  it('moves the focus with Tab and Shift+Tab through the add button', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <Harness onAddAddress={() => {}} />
+        <button type="button">Next</button>
+      </>,
+    );
     const input = screen.getByTestId('destination');
 
-    act(() => input.focus());
-    act(() => screen.getByTestId('destination-add').focus());
+    await user.click(input);
+    await user.tab();
+    expect(document.activeElement).toBe(screen.getByTestId('destination-add'));
     expect(screen.queryByRole('listbox')).not.toBeNull();
 
-    act(() => input.focus());
+    await user.tab({ shift: true });
+    expect(document.activeElement).toBe(input);
     expect(screen.queryByRole('listbox')).not.toBeNull();
+
+    await user.tab();
+    await user.tab();
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.queryByRole('listbox')).toBeNull();
   });
 });
