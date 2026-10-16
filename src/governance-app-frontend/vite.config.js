@@ -63,12 +63,11 @@ export default defineConfig({
             if (id.includes('node_modules/jsqr/')) return 'vendor-jsqr';
 
             // Loaded on demand by the Ledger device module. Keep it out of the shared vendor chunk.
-            if (
-              id.includes('@zondax') ||
-              id.includes('@ledgerhq') ||
-              id.includes('node_modules/buffer/')
-            )
-              return 'vendor-ledger';
+            if (id.includes('@zondax') || id.includes('@ledgerhq')) return 'vendor-ledger';
+
+            // The Ledger libraries read `Buffer` from the global scope when their chunk
+            // evaluates, so the polyfill must load and run in its own chunk first.
+            if (id.includes('node_modules/buffer/')) return 'vendor-buffer';
 
             // Everything else (Lucide, Radix, Motion)
             return 'vendor-libs';
