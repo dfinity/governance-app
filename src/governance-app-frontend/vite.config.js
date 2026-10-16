@@ -62,6 +62,14 @@ export default defineConfig({
             // Loaded on demand by the QR scanner. Keep it out of the shared vendor chunk.
             if (id.includes('node_modules/jsqr/')) return 'vendor-jsqr';
 
+            // Loaded on demand by the Ledger device module. Keep it out of the shared vendor chunk.
+            if (
+              id.includes('@zondax') ||
+              id.includes('@ledgerhq') ||
+              id.includes('node_modules/buffer/')
+            )
+              return 'vendor-ledger';
+
             // Everything else (Lucide, Radix, Motion)
             return 'vendor-libs';
           }
