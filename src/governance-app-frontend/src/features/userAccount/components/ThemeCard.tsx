@@ -27,7 +27,7 @@ export const ThemeCard = () => {
           className="w-full rounded-md border lg:w-auto"
         >
           <ToggleGroupItem
-            className="shrink-0 grow-1"
+            className="shrink grow-1 px-1 @min-[17rem]:shrink-0 @min-[17rem]:px-3"
             value={Theme.Light}
             aria-label={t(($) => $.userAccount.aria.toggleLight)}
           >
@@ -37,7 +37,7 @@ export const ThemeCard = () => {
             </span>
           </ToggleGroupItem>
           <ToggleGroupItem
-            className="shrink-0 grow-1"
+            className="shrink grow-1 px-1 @min-[17rem]:shrink-0 @min-[17rem]:px-3"
             value={Theme.Dark}
             aria-label={t(($) => $.userAccount.aria.toggleDark)}
           >
@@ -45,7 +45,7 @@ export const ThemeCard = () => {
             <span className="hidden @min-[17rem]:inline">{t(($) => $.userAccount.modes.dark)}</span>
           </ToggleGroupItem>
           <ToggleGroupItem
-            className="shrink-0 grow-1"
+            className="shrink grow-1 px-1 @min-[17rem]:shrink-0 @min-[17rem]:px-3"
             value={Theme.System}
             aria-label={t(($) => $.userAccount.aria.toggleSystem)}
           >

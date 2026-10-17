@@ -123,7 +123,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
       </CardContent>
 
       {(canVote || hasVoted) && (
-        <CardFooter className="py-2">
+        <CardFooter className="@container py-2">
           {hasVoted ? (
             <div
               className={cn(
@@ -165,7 +165,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
               )}
             </div>
           ) : (
-            <div className="flex w-full items-center gap-2">
+            <div className="flex w-full flex-col gap-2 @min-[14.5rem]:flex-row @min-[14.5rem]:items-center">
               <Button
                 aria-busy={isVoting}
                 aria-label={t(($) => $.proposal.ariaLabelVote, {
