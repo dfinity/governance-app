@@ -101,7 +101,7 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
                   size="sm"
                   onClick={() => onMaxSelect(Math.max(0, maxAmount).toString())}
                   disabled={disabled}
-                  className="h-auto px-1.5 py-0.5 text-xs font-semibold text-primary uppercase"
+                  className="h-auto min-h-0 px-1.5 py-0.5 text-xs font-semibold text-primary uppercase"
                 >
                   {t(($) => $.common.max)}
                 </Button>
