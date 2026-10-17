@@ -29,12 +29,12 @@ export const AddressBookCard: React.FC<Props> = ({ isOpen, onOpenChange }) => {
       >
         <div className="flex flex-1 basis-32 items-center gap-3">
           <BookUser className="size-5 text-muted-foreground" />
-          <div className="space-y-0.5">
+          <div className="space-y-0.5 wrap-anywhere">
             <p className="font-medium">{t(($) => $.addressBook.title)}</p>
             <p className="text-sm text-muted-foreground">{t(($) => $.addressBook.description)}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {isLoading ? (
             <Skeleton className="h-5 w-12" />
           ) : (

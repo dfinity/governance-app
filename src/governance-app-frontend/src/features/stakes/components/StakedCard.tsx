@@ -80,7 +80,7 @@ export function StakedCard() {
     <Card className="h-full pt-4 pb-6" data-testid="staked-card">
       <CardHeader className="flex flex-col gap-0">
         <div className="flex min-h-9 w-full flex-wrap items-center justify-between gap-x-3">
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <p className="text-sm tracking-wide text-muted-foreground uppercase">
               <span className="sm:hidden">{t(($) => $.common.stakedShort)}</span>
               <span className="hidden sm:inline">{t(($) => $.common.staked)}</span>
@@ -134,7 +134,7 @@ export function StakedCard() {
       </CardHeader>
 
       <CardContent className="@container flex flex-1 flex-col justify-between gap-6">
-        <div className="mt-auto grid grid-cols-1 gap-6 border-t pt-4 text-right @min-[16rem]:grid-cols-2">
+        <div className="mt-auto grid grid-cols-1 gap-6 border-t pt-4 text-right wrap-anywhere @min-[16rem]:grid-cols-2">
           <div className="flex flex-col gap-1">
             {isNullish(neuronsQuery.data) ? (
               <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">

@@ -322,7 +322,7 @@ type InfoRowProps = {
 function InfoRow({ label, children, isLast = false, dataTestId }: InfoRowProps) {
   return (
     <div
-      className={`flex items-center justify-between px-4 py-3 ${!isLast ? 'border-b border-border/50' : ''}`}
+      className={`flex flex-wrap items-center justify-between gap-x-4 px-4 py-3 ${!isLast ? 'border-b border-border/50' : ''}`}
     >
       <span className="text-[13px] text-muted-foreground">{label}</span>
       <div className="text-[15px]" data-testid={dataTestId}>

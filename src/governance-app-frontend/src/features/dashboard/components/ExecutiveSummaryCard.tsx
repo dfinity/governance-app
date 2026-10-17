@@ -112,7 +112,7 @@ export const ExecutiveSummaryCard = () => {
   return (
     <Card>
       <CardHeader className="flex flex-wrap items-start justify-between gap-x-2 gap-y-3">
-        <div className="flex flex-1 flex-col gap-2 pb-2">
+        <div className="flex flex-1 flex-col gap-2 pb-2 wrap-anywhere">
           <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
             {t(($) => $.home.executiveSummary.title)}
           </p>

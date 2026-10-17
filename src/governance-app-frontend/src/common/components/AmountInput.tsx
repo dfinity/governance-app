@@ -56,7 +56,7 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
         <div className="relative">
           <Input
             className={cn(
-              'h-14 [appearance:textfield] border-2 pr-28 !text-lg font-semibold focus-visible:ring-0',
+              'h-14 [appearance:textfield] border-2 pr-24 !text-lg font-semibold focus-visible:ring-0',
               '[&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
               error && 'border-destructive text-destructive',
             )}
