@@ -88,8 +88,10 @@ function ProposalDetailsRouteComponent() {
 
   // A history move back returns the list to its scroll position. A new
   // navigation (deep link, command palette) starts the list at the top.
+  // A modified click (new tab, new window) follows the link as usual.
   const handleBack = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (!canGoBack || !fromProposalList) return;
+    const modified = event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+    if (event.button !== 0 || modified || !canGoBack || !fromProposalList) return;
     event.preventDefault();
     router.history.back();
   };

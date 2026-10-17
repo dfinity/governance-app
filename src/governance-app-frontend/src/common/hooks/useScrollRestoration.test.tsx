@@ -34,6 +34,15 @@ const detailsRoute = createRoute({
 
 const scrollTo = vi.fn();
 
+/** The tallest position the content allows, as the browser would clamp it. */
+let maxScrollTop = Infinity;
+
+const resizeCallbacks: ResizeObserverCallback[] = [];
+const contentGrew = () => {
+  maxScrollTop = Infinity;
+  resizeCallbacks.at(-1)!([], {} as ResizeObserver);
+};
+
 const setup = async () => {
   const history = createMemoryHistory({ initialEntries: ['/list'] });
   const router = createRouter({
@@ -56,17 +65,32 @@ const setup = async () => {
 
 describe('useScrollRestoration', () => {
   beforeEach(() => {
-    // jsdom has no Element.scrollTo. Mirror the position so a restore can read it back.
+    // jsdom has no Element.scrollTo. Mirror the clamped position so a restore can read it back.
     HTMLElement.prototype.scrollTo = scrollTo.mockImplementation(function (
       this: HTMLElement,
       options?: ScrollToOptions | number,
     ) {
-      if (typeof options === 'object' && options.top !== undefined) this.scrollTop = options.top;
+      if (typeof options === 'object' && options.top !== undefined) {
+        this.scrollTop = Math.min(options.top, maxScrollTop);
+      }
     });
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: ResizeObserverCallback) {
+          resizeCallbacks.push(callback);
+        }
+        observe() {}
+        disconnect() {}
+      },
+    );
   });
 
   afterEach(() => {
     scrollTo.mockReset();
+    vi.unstubAllGlobals();
+    maxScrollTop = Infinity;
+    resizeCallbacks.length = 0;
   });
 
   it('starts a new page at the top', async () => {
@@ -99,6 +123,32 @@ describe('useScrollRestoration', () => {
     await go(() => history.push('/list'), '/list');
 
     expect(scrollTo).toHaveBeenLastCalledWith({ top: 0, left: 0 });
+  });
+
+  it('restores the position once late content makes room for it', async () => {
+    const { history, main, go } = await setup();
+    main.scrollTop = 300;
+    await go(() => history.push('/details'), '/details');
+
+    maxScrollTop = 100;
+    await go(() => history.back(), '/list');
+    expect(main.scrollTop).toBe(100);
+
+    act(contentGrew);
+    expect(main.scrollTop).toBe(300);
+  });
+
+  it('leaves the position alone once the user scrolls during a restore', async () => {
+    const { history, main, go } = await setup();
+    main.scrollTop = 300;
+    await go(() => history.push('/details'), '/details');
+
+    maxScrollTop = 100;
+    await go(() => history.back(), '/list');
+    main.scrollTop = 40;
+
+    act(contentGrew);
+    expect(main.scrollTop).toBe(40);
   });
 
   it('keeps the position when only the search params change', async () => {
