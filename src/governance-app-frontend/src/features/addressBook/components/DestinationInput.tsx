@@ -1,11 +1,11 @@
 import { nonNullish } from '@dfinity/utils';
+import { autoUpdate, flip, offset, size, useFloating } from '@floating-ui/react-dom';
 import { BookPlus, X } from 'lucide-react';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@components/badge';
 import { Input } from '@components/Input';
-import { Popover, PopoverAnchor, PopoverContent } from '@components/Popover';
 import { useMediaQuery } from '@hooks/useMediaQuery';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
 import { shortenId } from '@utils/id';
@@ -77,8 +77,7 @@ export function DestinationInput({
   const { t } = useTranslation();
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
-  // State, not a ref: the floating list mounts into this element.
-  const [container, setContainer] = useState<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const chipRef = useRef<HTMLOutputElement>(null);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -134,7 +133,7 @@ export function DestinationInput({
 
   // The list stays open while the focus moves between the input and the add button.
   const handleBlur = (event: React.FocusEvent<HTMLDivElement>) => {
-    if (!container?.contains(event.relatedTarget)) close();
+    if (!containerRef.current?.contains(event.relatedTarget)) close();
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -156,15 +155,53 @@ export function DestinationInput({
     if (event.key === 'Enter' && showList && activeMatch >= 0) {
       event.preventDefault();
       pick(matches[activeMatch]);
-      return;
-    }
-    if (event.key === 'Escape' && showList) {
-      // Close the list only. The dialog stays open.
-      event.preventDefault();
-      event.stopPropagation();
-      close();
     }
   };
+
+  // Escape closes the list only. The dialog listens for Escape on the document
+  // in the capture phase, so the list takes the key on the window before it.
+  const handleEscape = useEffectEvent((event: KeyboardEvent) => {
+    if (event.key !== 'Escape' || event.isComposing || event.keyCode === 229) return;
+    if (!containerRef.current?.contains(event.target as Node)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    // The focus opens the list, so the close comes after it.
+    inputRef.current?.focus();
+    close();
+  });
+
+  useEffect(() => {
+    if (!showList) return;
+    const listener = (event: KeyboardEvent) => handleEscape(event);
+    window.addEventListener('keydown', listener, { capture: true });
+    return () => window.removeEventListener('keydown', listener, { capture: true });
+  }, [showList]);
+
+  // Fixed positioning takes the desktop list out of the dialog body's scroll
+  // area, so the dialog keeps its size. The list stays next to the input in the
+  // DOM, inside the dialog's focus trap and Tab order.
+  const [fieldElement, setFieldElement] = useState<HTMLDivElement | null>(null);
+  const [listElement, setListElement] = useState<HTMLDivElement | null>(null);
+  const { floatingStyles } = useFloating({
+    elements: { reference: fieldElement, floating: listElement },
+    strategy: 'fixed',
+    placement: 'bottom-start',
+    whileElementsMounted: autoUpdate,
+    middleware: [
+      offset(4),
+      flip({ padding: 8 }),
+      size({
+        padding: 8,
+        // On a short window the list shrinks and scrolls, and the add button stays visible.
+        apply({ availableHeight, rects, elements }) {
+          Object.assign(elements.floating.style, {
+            width: `${rects.reference.width}px`,
+            maxHeight: `${Math.max(0, availableHeight)}px`,
+          });
+        },
+      }),
+    ],
+  });
 
   const optionId = (index: number) => `${listId}-option-${index}`;
 
@@ -223,7 +260,7 @@ export function DestinationInput({
   }
 
   const field = (
-    <div className="relative">
+    <div ref={setFieldElement} className="relative">
       <Input
         ref={inputRef}
         id={id}
@@ -295,21 +332,6 @@ export function DestinationInput({
             matches.length > 0 && 'mt-1 border-t pt-2',
           )}
           onClick={addAddress}
-          onKeyDown={(event) => {
-            // The popover's focus scope loops Tab inside the list. Tab and
-            // Shift+Tab leave the list to the next and the previous control.
-            if (event.key === 'Tab') {
-              event.stopPropagation();
-              return;
-            }
-            if (event.key === 'Escape') {
-              event.preventDefault();
-              event.stopPropagation();
-              // The focus opens the list, so the close comes after it.
-              inputRef.current?.focus();
-              close();
-            }
-          }}
           data-testid={testId ? `${testId}-add` : undefined}
         >
           <BookPlus className="size-4 text-muted-foreground" />
@@ -319,55 +341,26 @@ export function DestinationInput({
     </>
   );
 
+  const listClassName = 'rounded-md border bg-popover p-1 text-popover-foreground shadow-md';
+
   return (
-    <div ref={setContainer} className="flex flex-col gap-1" onBlur={handleBlur}>
-      {isDesktop ? (
-        <Popover
-          open={showList}
-          onOpenChange={(nextOpen) => {
-            if (!nextOpen) close();
-          }}
-        >
-          <PopoverAnchor asChild>{field}</PopoverAnchor>
-          {/* No exit animation: a closing popover stays the top layer and takes
-              the next Escape, so the dialog would not close. */}
-          {showList && (
-            <PopoverContent
-              // Inside the field: the list stays in the dialog, so the dialog's
-              // scroll lock lets it scroll and the Tab order follows the input.
-              container={container}
-              // The list and the add button carry their own roles.
-              role={undefined}
-              align="start"
-              collisionPadding={8}
-              // On a short window the list shrinks and scrolls, and the add button stays visible.
-              className="flex max-h-(--radix-popover-content-available-height) w-(--radix-popover-trigger-width) flex-col p-1"
-              // The focus stays on the input while the list is open.
-              onOpenAutoFocus={(event) => event.preventDefault()}
-              onCloseAutoFocus={(event) => event.preventDefault()}
-              // A press on the input is not a dismiss. The input reopens the list itself.
-              onInteractOutside={(event) => {
-                if (container?.contains(event.target as Node)) event.preventDefault();
-              }}
-              data-testid={testId ? `${testId}-list` : undefined}
-            >
-              {listItems}
-            </PopoverContent>
-          )}
-        </Popover>
-      ) : (
-        <>
-          {field}
-          {showList && (
-            <div
-              className="rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
-              data-testid={testId ? `${testId}-list` : undefined}
-            >
-              {listItems}
-            </div>
-          )}
-        </>
-      )}
+    <div ref={containerRef} className="flex flex-col gap-1" onBlur={handleBlur}>
+      {field}
+      {showList &&
+        (isDesktop ? (
+          <div
+            ref={setListElement}
+            style={floatingStyles}
+            className={cn(listClassName, 'z-50 flex flex-col')}
+            data-testid={testId ? `${testId}-list` : undefined}
+          >
+            {listItems}
+          </div>
+        ) : (
+          <div className={listClassName} data-testid={testId ? `${testId}-list` : undefined}>
+            {listItems}
+          </div>
+        ))}
     </div>
   );
 }

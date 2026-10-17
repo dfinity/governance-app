@@ -1,6 +1,6 @@
 import '@/i18n/config';
 
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -47,6 +47,24 @@ const Harness = ({
     />
   );
 };
+
+// The field first in a real dialog, as in the send form with subaccounts off.
+const InDialog = ({
+  onOpenChange,
+  onAddAddress,
+}: {
+  onOpenChange: (open: boolean) => void;
+  onAddAddress?: () => void;
+}) => (
+  <Dialog open onOpenChange={onOpenChange}>
+    <DialogContent>
+      <DialogTitle>Send</DialogTitle>
+      <DialogDescription>Send ICP</DialogDescription>
+      <Harness onAddAddress={onAddAddress} />
+      <button type="button">Next</button>
+    </DialogContent>
+  </Dialog>
+);
 
 describe('DestinationInput', () => {
   it('lists all suggestions on focus and filters them by name or address', () => {
@@ -180,22 +198,20 @@ describe('DestinationInput', () => {
     expect(onChange).toHaveBeenLastCalledWith(ICRC1_ADDRESS, '');
   });
 
-  it('closes the list with Escape and does not close the dialog', () => {
-    const onEscape = vi.fn();
-    render(
-      <div onKeyDown={(event) => event.key === 'Escape' && onEscape()}>
-        <Harness />
-      </div>,
-    );
+  it('closes the list with Escape and the dialog with the next Escape', () => {
+    const onOpenChange = vi.fn();
+    render(<InDialog onOpenChange={onOpenChange} />);
     const input = screen.getByTestId('destination');
 
     fireEvent.focus(input);
     expect(screen.queryByRole('listbox')).not.toBeNull();
 
     fireEvent.keyDown(input, { key: 'Escape' });
-
     expect(screen.queryByRole('listbox')).toBeNull();
-    expect(onEscape).not.toHaveBeenCalled();
+    expect(onOpenChange).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
   it('reopens the list with a click after Escape closed it', () => {
@@ -296,7 +312,7 @@ describe('DestinationInput', () => {
 
 describe('DestinationInput on desktop', () => {
   beforeEach(() => {
-    // Radix positions the popover with ResizeObserver, which jsdom does not have.
+    // Floating UI tracks the field size with ResizeObserver, which jsdom does not have.
     vi.stubGlobal(
       'ResizeObserver',
       class {
@@ -323,16 +339,13 @@ describe('DestinationInput on desktop', () => {
     vi.unstubAllGlobals();
   });
 
-  // Radix listens for a press outside the popover one tick after it opens.
-  const waitForOutsideListeners = () => act(() => new Promise((resolve) => setTimeout(resolve)));
-
-  it('floats the list in a popover inside the field', () => {
+  it('floats the list next to the input', () => {
     const { container } = render(<Harness onAddAddress={() => {}} />);
 
     fireEvent.focus(screen.getByTestId('destination'));
 
     const list = screen.getByTestId('destination-list');
-    expect(list.getAttribute('data-slot')).toBe('popover-content');
+    expect(list.style.position).toBe('fixed');
     expect(list.getAttribute('role')).toBeNull();
     expect(container.contains(list)).toBe(true);
     expect(screen.getAllByRole('option')).toHaveLength(2);
@@ -349,40 +362,37 @@ describe('DestinationInput on desktop', () => {
     expect(screen.queryByRole('listbox')).toBeNull();
   });
 
-  it('closes the list with Escape and does not close the dialog', () => {
+  it('closes the list with Escape and the dialog with the next Escape', () => {
     const onOpenChange = vi.fn();
-    render(
-      <Dialog open onOpenChange={onOpenChange}>
-        <DialogContent>
-          <DialogTitle>Send</DialogTitle>
-          <DialogDescription>Send ICP</DialogDescription>
-          <Harness />
-        </DialogContent>
-      </Dialog>,
-    );
+    render(<InDialog onOpenChange={onOpenChange} />);
     const input = screen.getByTestId('destination');
 
     fireEvent.focus(input);
     expect(screen.queryByRole('listbox')).not.toBeNull();
 
     fireEvent.keyDown(input, { key: 'Escape' });
-
     expect(screen.queryByRole('listbox')).toBeNull();
     expect(onOpenChange).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it('keeps the list open on a press on the input and closes it on a press outside', async () => {
-    render(<Harness />);
+  it('closes the list with Escape on the add button and keeps the dialog open', async () => {
+    const user = userEvent.setup();
+    const onOpenChange = vi.fn();
+    render(<InDialog onOpenChange={onOpenChange} onAddAddress={() => {}} />);
     const input = screen.getByTestId('destination');
 
-    fireEvent.focus(input);
-    await waitForOutsideListeners();
+    await user.click(input);
+    await user.tab();
+    expect(document.activeElement).toBe(screen.getByTestId('destination-add'));
 
-    fireEvent.pointerDown(input);
-    expect(screen.queryByRole('listbox')).not.toBeNull();
+    await user.keyboard('{Escape}');
 
-    fireEvent.pointerDown(document.body);
-    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(document.activeElement).toBe(input);
+    expect(screen.queryByTestId('destination-add')).toBeNull();
+    expect(onOpenChange).not.toHaveBeenCalled();
   });
 
   it('moves the focus with Tab and Shift+Tab through the add button', async () => {
@@ -408,5 +418,19 @@ describe('DestinationInput on desktop', () => {
     await user.tab();
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Next' }));
     expect(screen.queryByRole('listbox')).toBeNull();
+  });
+
+  it('keeps the focus in the dialog on Shift+Tab from the first field', async () => {
+    const user = userEvent.setup();
+    render(<InDialog onOpenChange={() => {}} />);
+    const input = screen.getByTestId('destination');
+
+    await user.click(input);
+    expect(screen.queryByRole('listbox')).not.toBeNull();
+
+    await user.tab({ shift: true });
+
+    expect(screen.getByRole('dialog').contains(document.activeElement)).toBe(true);
+    expect(document.activeElement).not.toBe(input);
   });
 });
