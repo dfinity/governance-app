@@ -49,6 +49,15 @@ const addCustomNeurons = async (user: ReturnType<typeof userEvent.setup>, neuron
 };
 
 describe('FolloweePicker', () => {
+  it('turns off keyboard capitalization, autocorrect, and spell check in the neuron ID field', () => {
+    renderPicker();
+    const input = screen.getByTestId('picker-custom-id-input');
+
+    expect(input.getAttribute('autocapitalize')).toBe('none');
+    expect(input.getAttribute('autocorrect')).toBe('off');
+    expect(input.getAttribute('spellcheck')).toBe('false');
+  });
+
   it('blocks Next above the followee limit', async () => {
     const user = userEvent.setup();
     renderPicker();

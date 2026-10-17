@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@components/badge';
 import { Input } from '@components/Input';
+import { IDENTIFIER_INPUT_PROPS } from '@constants/input';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
 import { shortenId } from '@utils/id';
 import { cn } from '@utils/shadcn';
@@ -238,7 +239,7 @@ export function DestinationInput({
           onClick={() => setOpen(true)}
           onKeyDown={handleKeyDown}
           className={cn('font-mono placeholder:font-sans', endAdornment && 'pr-10', inputClassName)}
-          autoComplete="off"
+          {...IDENTIFIER_INPUT_PROPS}
           data-1p-ignore
           data-lpignore="true"
           required
