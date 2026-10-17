@@ -169,8 +169,16 @@ function Voting() {
     });
   };
 
+  // Scrolls to the proposals when the user shows them or changes the filter.
+  // Not on mount: a page reached with the back button keeps its scroll position.
+  const scrollTrigger = useRef({ showProposals, proposalFilter });
   useEffect(() => {
+    const previous = scrollTrigger.current;
+    scrollTrigger.current = { showProposals, proposalFilter };
     if (!showProposals) return;
+    if (previous.showProposals === showProposals && previous.proposalFilter === proposalFilter) {
+      return;
+    }
 
     const id = setTimeout(() => {
       proposalsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -284,6 +292,7 @@ function Voting() {
                               showProposals,
                               proposalFilter,
                             }}
+                            state={{ fromProposalList: true }}
                             className="w-full"
                             onClick={() =>
                               analytics.event(AnalyticsEvent.VotingOpenProposalDetail, {
