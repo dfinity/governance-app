@@ -141,11 +141,11 @@ describe('AutomaticVotingCard', () => {
 
   it('shows the due date, the window left, and "Confirm" when all neurons are healthy', async () => {
     const user = userEvent.setup();
-    renderCard([neuron({ id: 1n, refreshedDaysAgo: 90 }), neuron({ id: 2n })]);
+    renderCard([neuron({ id: 1n, refreshedDaysAgo: 45 }), neuron({ id: 2n })]);
 
     expect(card().dataset.phase).toBe('active');
-    expect(card().textContent).toContain('Due in 90 days');
-    expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('50');
+    expect(card().textContent).toContain('Due in 135 days');
+    expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('75');
 
     await user.click(byTestId('automatic-voting-confirm-btn')!);
 
