@@ -4,7 +4,7 @@ import type { ComponentType } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
-import { Card, CardAction, CardContent, CardHeader } from '@components/Card';
+import { Card, CardAction, CardContent, CardFooter, CardHeader } from '@components/Card';
 import { Separator } from '@components/Separator';
 import { cn } from '@utils/shadcn';
 
@@ -55,7 +55,7 @@ function OutcomePill({
   count: number;
 }) {
   return (
-    <span className="flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-foreground dark:bg-neutral-800">
+    <span className="flex items-center gap-1.5 rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold text-foreground sm:px-3 dark:bg-neutral-800">
       <span className={`inline-block size-1 rounded-full ${outcomeColorMap[status]}`} />
       <span>{label}</span>
       <span className="text-muted-foreground">{count}</span>
@@ -67,21 +67,19 @@ function TopChangeItem({ change }: { change: TopChange }) {
   const Icon = topChangeIconMap[change.icon];
 
   return (
-    <div className="flex gap-3">
-      <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
+    <div className="grid grid-cols-[auto_1fr] items-start gap-x-2 gap-y-1 sm:gap-x-3">
+      <div className="flex h-6 w-4 shrink-0 items-center justify-center sm:row-span-3 sm:mt-0.5 sm:size-9 sm:rounded-lg sm:bg-muted">
         <Icon className="size-4 text-muted-foreground" />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <p className="text-base font-semibold text-foreground">{change.title}</p>
-        <p className="text-sm text-muted-foreground">{change.description}</p>
-        <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5">
-          {change.highlights.map((h) => (
-            <span key={h.label} className="text-sm text-muted-foreground">
-              <span className="font-semibold text-foreground">{h.value}</span> {h.label}
-            </span>
-          ))}
-        </div>
+      <p className="text-base font-semibold text-foreground">{change.title}</p>
+      <p className="col-start-2 text-sm text-muted-foreground">{change.description}</p>
+      <div className="col-start-2 mt-0.5 flex flex-col gap-y-0.5 sm:flex-row sm:flex-wrap sm:gap-x-3">
+        {change.highlights.map((h) => (
+          <span key={h.label} className="text-sm text-muted-foreground">
+            <span className="font-semibold text-foreground">{h.value}</span> {h.label}
+          </span>
+        ))}
       </div>
     </div>
   );
@@ -120,7 +118,7 @@ export const ExecutiveSummaryCard = () => {
             {month} {year}
           </h2>
         </div>
-        <CardAction>
+        <CardAction className="max-sm:hidden">
           <Button variant="outline" size="sm" asChild>
             <Link to="/voting" preload="intent">
               {t(($) => $.home.executiveSummary.goToVoting)}
@@ -129,7 +127,7 @@ export const ExecutiveSummaryCard = () => {
         </CardAction>
       </CardHeader>
 
-      <div className="flex flex-wrap items-center gap-2 px-6">
+      <div className="flex flex-wrap items-center gap-1.5 px-6 sm:gap-2">
         {outcomes.map((o) => (
           <OutcomePill
             key={o.status}
@@ -167,6 +165,15 @@ export const ExecutiveSummaryCard = () => {
           </div>
         </div>
       </CardContent>
+
+      {/* Phones show the action below the content. */}
+      <CardFooter className="sm:hidden">
+        <Button variant="outline" className="w-full" asChild>
+          <Link to="/voting" preload="intent">
+            {t(($) => $.home.executiveSummary.goToVoting)}
+          </Link>
+        </Button>
+      </CardFooter>
     </Card>
   );
 };
