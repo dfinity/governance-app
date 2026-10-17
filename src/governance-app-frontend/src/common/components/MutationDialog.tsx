@@ -153,13 +153,13 @@ export function MutationDialog({
             )}
 
             {phase === Phase.Error && (
-              <PhaseContainer key="error" className="items-center justify-between">
+              <PhaseContainer key="error" className="@container items-center justify-between">
                 <ResponsiveDialogTitle className="sr-only">{errorMessage}</ResponsiveDialogTitle>
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                   <AnimatedErrorIcon />
                   <FadeInText delay={0.3}>{errorMessage}</FadeInText>
                 </div>
-                <div className="flex w-full gap-3 pt-4">
+                <div className="flex w-full flex-col gap-3 pt-4 @min-[14.5rem]:flex-row">
                   <Button variant="outline" size="xl" className="flex-1" onClick={close}>
                     {t(($) => $.common.close)}
                   </Button>

@@ -37,7 +37,7 @@ export function EarningsCard({ neurons }: EarningsCardProps) {
     : null;
 
   return (
-    <Card className="gap-3 py-4" data-testid="stakes-summary-earnings-card">
+    <Card className="gap-3 py-4 wrap-anywhere" data-testid="stakes-summary-earnings-card">
       <CardContent>
         <Tooltip>
           <TooltipTrigger asChild>

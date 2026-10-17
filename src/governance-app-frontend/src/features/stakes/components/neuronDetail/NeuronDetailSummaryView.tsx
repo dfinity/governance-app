@@ -104,7 +104,7 @@ export function NeuronDetailSummaryView({
       <FollowingStatusAlert neuron={neuron} isHotkey={isHotkey} />
 
       {/* Staked Amount - Prominent Display */}
-      <div className="flex flex-col items-center gap-1 pb-2">
+      <div className="flex flex-col items-center gap-1 pb-2 wrap-anywhere">
         <p className="text-3xl font-bold md:text-4xl" data-testid="neuron-detail-staked-amount">
           <SensitiveValue>
             {formatNumber(stakedAmount)} {t(($) => $.common.icp)}

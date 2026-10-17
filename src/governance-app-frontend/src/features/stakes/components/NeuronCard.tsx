@@ -89,8 +89,8 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
         className="flex h-full flex-col gap-3 transition-colors hover:border-foreground"
         data-testid="neuron-card"
       >
-        <CardHeader className="flex flex-row items-start justify-between space-y-0">
-          <div className="flex flex-col gap-1">
+        <CardHeader className="flex flex-row flex-wrap items-start justify-between space-y-0">
+          <div className="flex flex-1 basis-40 flex-col gap-1 wrap-anywhere">
             <p className="text-3xl font-bold" data-testid="neuron-card-staked-amount">
               <SensitiveValue>
                 {formatNumber(stakedAmount)} {t(($) => $.common.icp)}

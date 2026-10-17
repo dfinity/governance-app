@@ -23,7 +23,7 @@ export function CapitalCard({ neurons }: CapitalCardProps) {
   const fiatValue = nonNullish(icpPrice) ? totalStaked * icpPrice : null;
 
   return (
-    <Card className="gap-3 py-4" data-testid="stakes-summary-capital-card">
+    <Card className="gap-3 py-4 wrap-anywhere" data-testid="stakes-summary-capital-card">
       <CardContent>
         <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {t(($) => $.neuron.summary.capital)}
