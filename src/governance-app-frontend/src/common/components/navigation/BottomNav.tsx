@@ -37,9 +37,9 @@ export const BottomNav = () => {
       <div
         className={cn(
           'pointer-events-auto relative mx-auto flex h-(--bottom-nav-height) max-w-md rounded-full p-1',
-          'border border-white/60 bg-background/30 ring-1 ring-black/5 backdrop-blur-[10px] backdrop-brightness-110 backdrop-saturate-180',
+          'border border-white/60 bg-background/65 ring-1 ring-black/5 backdrop-blur-[12px] backdrop-brightness-110 backdrop-saturate-120',
           'shadow-[0_10px_28px_-10px_rgb(0_0_0/0.22),0_1px_3px_rgb(0_0_0/0.06),inset_0_1px_0_0_rgb(255_255_255/0.9),inset_0_-1px_0_0_rgb(255_255_255/0.35),inset_0_0_14px_rgb(255_255_255/0.35)]',
-          'dark:border-white/15 dark:bg-background/35 dark:shadow-[0_10px_28px_-10px_rgb(0_0_0/0.7),inset_0_1px_0_0_rgb(255_255_255/0.14),inset_0_0_14px_rgb(255_255_255/0.05)] dark:ring-black/40 dark:backdrop-brightness-90',
+          'dark:border-white/15 dark:bg-background/50 dark:shadow-[0_10px_28px_-10px_rgb(0_0_0/0.7),inset_0_1px_0_0_rgb(255_255_255/0.14),inset_0_0_14px_rgb(255_255_255/0.05)] dark:ring-black/40 dark:backdrop-brightness-90',
           'contrast-more:border-border contrast-more:bg-background',
         )}
       >
@@ -48,8 +48,8 @@ export const BottomNav = () => {
             aria-hidden={true}
             className={cn(
               'absolute inset-y-1 left-1 rounded-full transition-[translate] duration-500 ease-[cubic-bezier(0.32,1.25,0.5,1)] motion-reduce:transition-none',
-              'bg-black/6 shadow-[inset_0_0_0_1px_rgb(0_0_0/0.05),inset_0_1px_0_0_rgb(255_255_255/0.9),0_1px_3px_rgb(0_0_0/0.08)]',
-              'dark:bg-white/6 dark:shadow-[inset_0_0_0_1px_rgb(255_255_255/0.07),inset_0_1px_0_0_rgb(255_255_255/0.18),0_1px_2px_rgb(0_0_0/0.3)]',
+              'bg-card shadow-[inset_0_0_0_1px_rgb(0_0_0/0.05),0_1px_3px_rgb(0_0_0/0.12),0_4px_10px_-4px_rgb(0_0_0/0.1)]',
+              'dark:shadow-[inset_0_0_0_1px_rgb(255_255_255/0.1),inset_0_1px_0_0_rgb(255_255_255/0.12),0_1px_3px_rgb(0_0_0/0.4)]',
               lensMoves > 0 &&
                 (lensMoves % 2 === 0 ? 'animate-lens-stretch-a' : 'animate-lens-stretch-b'),
             )}
