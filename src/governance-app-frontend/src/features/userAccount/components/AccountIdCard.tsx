@@ -21,7 +21,7 @@ export const AccountIdCard = () => {
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="flex min-w-0 flex-col gap-1.5">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <p className="font-medium text-foreground">{t(($) => $.userAccount.accountId)}</p>
           <Badge variant="info" className="h-[18px] px-1.5 py-0 text-[10px] font-normal">
             {t(($) => $.userAccount.accountIdExchangeBadge)}

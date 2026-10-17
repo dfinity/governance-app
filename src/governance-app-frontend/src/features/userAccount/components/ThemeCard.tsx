@@ -10,7 +10,7 @@ export const ThemeCard = () => {
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col gap-y-4 md:flex-row md:items-center md:justify-between md:gap-y-0">
+    <div className="@container flex flex-col gap-y-4 md:flex-row md:items-center md:justify-between md:gap-y-0">
       <div className="space-y-1">
         <p className="leading-none font-medium">{t(($) => $.userAccount.theme)}</p>
         <p className="text-sm text-muted-foreground">{t(($) => $.userAccount.themeDescription)}</p>
@@ -28,24 +28,28 @@ export const ThemeCard = () => {
           value={Theme.Light}
           aria-label={t(($) => $.userAccount.aria.toggleLight)}
         >
-          <Sun className="mr-2 size-4" />
-          <span className="hidden xs:inline">{t(($) => $.userAccount.modes.light)}</span>
+          <Sun className="size-4 @min-[17.5rem]:mr-2" />
+          <span className="hidden @min-[17.5rem]:inline">
+            {t(($) => $.userAccount.modes.light)}
+          </span>
         </ToggleGroupItem>
         <ToggleGroupItem
           className="shrink-0 grow-1"
           value={Theme.Dark}
           aria-label={t(($) => $.userAccount.aria.toggleDark)}
         >
-          <Moon className="mr-2 size-4" />
-          <span className="hidden xs:inline">{t(($) => $.userAccount.modes.dark)}</span>
+          <Moon className="size-4 @min-[17.5rem]:mr-2" />
+          <span className="hidden @min-[17.5rem]:inline">{t(($) => $.userAccount.modes.dark)}</span>
         </ToggleGroupItem>
         <ToggleGroupItem
           className="shrink-0 grow-1"
           value={Theme.System}
           aria-label={t(($) => $.userAccount.aria.toggleSystem)}
         >
-          <Monitor className="mr-2 size-4" />
-          <span className="hidden xs:inline">{t(($) => $.userAccount.modes.system)}</span>
+          <Monitor className="size-4 @min-[17.5rem]:mr-2" />
+          <span className="hidden @min-[17.5rem]:inline">
+            {t(($) => $.userAccount.modes.system)}
+          </span>
         </ToggleGroupItem>
       </ToggleGroup>
     </div>

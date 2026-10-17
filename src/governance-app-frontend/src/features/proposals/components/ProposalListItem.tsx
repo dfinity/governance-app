@@ -110,12 +110,14 @@ export function ProposalListItem({
             {timeLeft.length > 0 && (
               <Badge variant="secondary" className="gap-1.5 font-normal">
                 <Clock className="size-3.5" />
-                {t(($) => $.proposal.timeLeft, { timeLeft })}
+                <span className="truncate">{t(($) => $.proposal.timeLeft, { timeLeft })}</span>
               </Badge>
             )}
             <Badge variant="secondary" className="gap-1.5 font-normal">
               <Tag className="size-3.5" />
-              {Topic[proposal.topic] ?? t(($) => $.proposal.unknownTopic, { id: proposal.topic })}
+              <span className="truncate">
+                {Topic[proposal.topic] ?? t(($) => $.proposal.unknownTopic, { id: proposal.topic })}
+              </span>
             </Badge>
             {nonNullish(proposal.proposer) && (
               <ProposerBadge proposer={proposal.proposer} knownNeuronNames={knownNeuronNames} />

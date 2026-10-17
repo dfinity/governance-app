@@ -23,8 +23,11 @@ export const AddressBookCard: React.FC<Props> = ({ isOpen, onOpenChange }) => {
 
   return (
     <>
-      <div className="flex items-center justify-between" data-testid="address-book-card">
-        <div className="flex items-center gap-3">
+      <div
+        className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3"
+        data-testid="address-book-card"
+      >
+        <div className="flex flex-1 basis-32 items-center gap-3">
           <BookUser className="size-5 text-muted-foreground" />
           <div className="space-y-0.5">
             <p className="font-medium">{t(($) => $.addressBook.title)}</p>
