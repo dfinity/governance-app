@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "setup": "npm i && dfx canister create governance-app-backend && dfx generate governance-app-backend && dfx deploy",
     "start": "vite",
+    "generate:candid-bindings": "icp-bindgen --did-file ../governance-app-backend/backend.did --out-dir ../declarations/governance-app-backend --actor-disabled --declarations-flat --force",
     "generate:known-neurons": "node scripts/convert-known-neurons.ts && npm run format:fix",
     "build": "tsc && vite build",
     "format": "prettier --check .",
@@ -68,6 +68,7 @@
     "@babel/core": "7.29.7",
     "@eslint/css": "0.14.1",
     "@eslint/js": "9.39.4",
+    "@icp-sdk/bindgen": "0.4.1",
     "@playwright/test": "1.58.2",
     "@rolldown/plugin-babel": "0.2.3",
     "@tailwindcss/typography": "0.5.19",

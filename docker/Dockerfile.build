@@ -1,5 +1,5 @@
 # Use the base image previously created and published.
-FROM ghcr.io/dfinity/governance-app/builder-base:0.0.10
+FROM ghcr.io/dfinity/governance-app/builder-base:0.0.11
 
 WORKDIR /app
 COPY . .
@@ -11,7 +11,7 @@ RUN ./scripts/config.sh -n ic
 
 # Run the build chain.
 RUN npm ci
-RUN dfx generate
+RUN npm run generate:candid-bindings
 ENV GIT_COMMIT=$GIT_COMMIT
 RUN npm run build
 RUN cargo build --target wasm32-unknown-unknown --release -p governance-app-backend --locked
