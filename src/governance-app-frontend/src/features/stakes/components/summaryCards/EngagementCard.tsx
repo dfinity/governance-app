@@ -11,6 +11,14 @@ import { Card, CardContent } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { formatNumber } from '@utils/numbers';
+import { cn } from '@utils/shadcn';
+
+import {
+  CARD_ACTION_CHEVRON_CLASS,
+  CARD_ACTION_CLASS,
+  CLICKABLE_CARD_CLASS,
+  CLICKABLE_CARD_HOVER_CLASS,
+} from './clickableCard';
 
 type EngagementCardProps = {
   neurons: NeuronInfo[];
@@ -25,13 +33,16 @@ export function EngagementCard({ neurons }: EngagementCardProps) {
     : null;
 
   return (
-    <Card className="gap-3 py-4" data-testid="stakes-summary-engagement-card">
+    <Card
+      className={cn('gap-3 py-4', !isLoading && [CLICKABLE_CARD_CLASS, CLICKABLE_CARD_HOVER_CLASS])}
+      data-testid="stakes-summary-engagement-card"
+    >
       <CardContent>
         <Tooltip>
           <TooltipTrigger asChild>
             <button
               type="button"
-              className="mb-2 block w-fit cursor-default text-xs font-medium tracking-wide text-muted-foreground uppercase"
+              className="relative z-10 mb-2 block w-fit cursor-default text-left text-xs font-medium tracking-wide text-muted-foreground uppercase"
             >
               {t(($) => $.neuron.summary.engagement)}{' '}
               <span className="sr-only">{t(($) => $.neuron.summary.engagementTooltip)}</span>
@@ -59,14 +70,16 @@ export function EngagementCard({ neurons }: EngagementCardProps) {
             <Link
               to="/voting"
               search={{ showProposals: true, proposalFilter: ProposalFilter.All }}
-              className="mt-1 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              className={cn(CARD_ACTION_CLASS, 'mt-1 block w-fit text-muted-foreground')}
+              data-card-action
             >
               {t(($) =>
                 engagement?.rate === 1
                   ? $.neuron.summary.engagementActionComplete
                   : $.neuron.summary.engagementAction,
               )}
-              <ChevronRight className="size-3.5" />
+              &nbsp;
+              <ChevronRight className={CARD_ACTION_CHEVRON_CLASS} />
             </Link>
           </>
         )}
