@@ -53,10 +53,10 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
 
     return (
       <div className="space-y-2">
-        <div className="relative">
+        <div className="@container relative">
           <Input
             className={cn(
-              'h-14 [appearance:textfield] border-2 pr-24 !text-lg font-semibold focus-visible:ring-0',
+              'h-14 [appearance:textfield] border-2 pr-24 !text-lg font-semibold focus-visible:ring-0 @max-[12rem]:pr-10',
               '[&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
               error && 'border-destructive text-destructive',
             )}
@@ -75,7 +75,7 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
           />
           <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-1.5">
             <img src="/icp-token.svg" alt="" aria-hidden={true} className="size-6" />
-            <span className="text-sm font-semibold text-muted-foreground">
+            <span className="text-sm font-semibold text-muted-foreground @max-[12rem]:hidden">
               {t(($) => $.common.icp)}
             </span>
           </div>

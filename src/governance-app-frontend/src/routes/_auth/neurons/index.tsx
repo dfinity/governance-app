@@ -130,7 +130,7 @@ function NeuronsComponent() {
         {(neurons) => (
           <>
             <div className="@container">
-              <div className="grid grid-cols-1 gap-4 xl:grid-cols-4 @min-[20rem]:max-xl:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 @min-[20rem]:grid-cols-2 xl:@min-[50rem]:grid-cols-4">
                 <CapitalCard neurons={neurons.response} />
                 <EarningsCard neurons={neurons.response} />
                 <EngagementCard neurons={neurons.response} />
