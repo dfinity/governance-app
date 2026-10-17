@@ -72,7 +72,7 @@ describe('getAutomaticVotingStatus', () => {
     expect(status.confirmableNeuronIds).toEqual([2n]);
   });
 
-  it('returns LosingRewards with the nearest clear deadline', () => {
+  it('returns LosingRewards with the nearest clear deadline and the voting power left', () => {
     const status = statusOf([
       neuron({ id: 1n, refreshedDaysAgo: 185n }),
       neuron({ id: 2n, refreshedDaysAgo: 200n }),
@@ -81,9 +81,10 @@ describe('getAutomaticVotingStatus', () => {
 
     expect(status.phase).toBe(AutomaticVotingPhase.LosingRewards);
     expect(status.secondsLeft).toBe(10n * DAY);
+    expect(status.remainingFraction).toBeCloseTo(10 / 30);
   });
 
-  it('returns ConfirmSoon with the nearest decay start', () => {
+  it('returns ConfirmSoon with the nearest decay start and the part of the window left', () => {
     const status = statusOf([
       neuron({ id: 1n, refreshedDaysAgo: 10n }),
       neuron({ id: 2n, refreshedDaysAgo: 163n }),
@@ -92,6 +93,7 @@ describe('getAutomaticVotingStatus', () => {
 
     expect(status.phase).toBe(AutomaticVotingPhase.ConfirmSoon);
     expect(status.secondsLeft).toBe(17n * DAY);
+    expect(status.remainingFraction).toBeCloseTo(17 / 180);
   });
 
   it('returns ConfirmSoon before Partial', () => {
@@ -106,7 +108,7 @@ describe('getAutomaticVotingStatus', () => {
     expect(status.phase).toBe(AutomaticVotingPhase.Partial);
   });
 
-  it('returns Active with the nearest decay start and the used part of the window', () => {
+  it('returns Active with the nearest decay start and the part of the window left', () => {
     const status = statusOf([
       neuron({ id: 1n, refreshedDaysAgo: 45n }),
       neuron({ id: 2n, refreshedDaysAgo: 90n }),
@@ -116,7 +118,7 @@ describe('getAutomaticVotingStatus', () => {
       phase: AutomaticVotingPhase.Active,
       confirmableNeuronIds: [1n, 2n],
       secondsLeft: 90n * DAY,
-      windowProgress: 0.5,
+      remainingFraction: 0.5,
     });
   });
 
@@ -152,7 +154,7 @@ describe('getAutomaticVotingStatus', () => {
       phase: AutomaticVotingPhase.Active,
       confirmableNeuronIds: [],
       secondsLeft: undefined,
-      windowProgress: undefined,
+      remainingFraction: undefined,
     });
   });
 });
