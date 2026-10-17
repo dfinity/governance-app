@@ -165,7 +165,7 @@ export function AutomaticVotingCard({ neurons }: AutomaticVotingCardProps) {
 
   return (
     <Card
-      className={cn('gap-3 py-4', !isLoading && CARD_TINT[tone])}
+      className={cn('gap-3 py-4 wrap-anywhere', !isLoading && CARD_TINT[tone])}
       data-testid="stakes-summary-automatic-voting-card"
       data-phase={isLoading ? undefined : status.phase}
     >

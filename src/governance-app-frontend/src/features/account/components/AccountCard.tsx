@@ -69,7 +69,7 @@ export function AccountCard() {
             {balanceQuery.isLoading ? (
               <Skeleton className="h-8 w-32" />
             ) : (
-              <p className="text-2xl font-semibold">
+              <p className="text-2xl font-semibold wrap-anywhere">
                 <SensitiveValue>
                   {t(($) => $.common.inIcp, { value: formatNumber(balanceICP) })}
                 </SensitiveValue>

@@ -72,7 +72,7 @@ function TopChangeItem({ change }: { change: TopChange }) {
         <Icon className="size-4 text-muted-foreground" />
       </div>
 
-      <div className="flex flex-col gap-1">
+      <div className="flex min-w-0 flex-col gap-1 wrap-anywhere">
         <p className="text-base font-semibold text-foreground">{change.title}</p>
         <p className="text-sm text-muted-foreground">{change.description}</p>
         <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5">
@@ -97,7 +97,7 @@ function CommunityVoteItem({ vote }: { vote: CommunityVoteHighlight }) {
       >
         <Icon className={cn('size-3', iconClassName)} />
       </div>
-      <div className="flex flex-col">
+      <div className="flex min-w-0 flex-col wrap-anywhere">
         <p className="text-sm font-medium text-foreground">{vote.title}</p>
         <p className="text-xs text-muted-foreground">{vote.label}</p>
       </div>
@@ -111,8 +111,8 @@ export const ExecutiveSummaryCard = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex flex-col gap-2">
+      <CardHeader className="flex flex-wrap items-start justify-between gap-x-2 gap-y-3">
+        <div className="flex flex-1 flex-col gap-2 pb-2">
           <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
             {t(($) => $.home.executiveSummary.title)}
           </p>

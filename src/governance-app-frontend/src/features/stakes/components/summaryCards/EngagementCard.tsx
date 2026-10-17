@@ -25,7 +25,7 @@ export function EngagementCard({ neurons }: EngagementCardProps) {
     : null;
 
   return (
-    <Card className="gap-3 py-4" data-testid="stakes-summary-engagement-card">
+    <Card className="gap-3 py-4 wrap-anywhere" data-testid="stakes-summary-engagement-card">
       <CardContent>
         <Tooltip>
           <TooltipTrigger asChild>

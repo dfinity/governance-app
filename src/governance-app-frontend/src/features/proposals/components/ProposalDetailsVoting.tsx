@@ -59,7 +59,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
       <CardHeader>
         <CardTitle>{t(($) => $.proposal.votingStatus)}</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-6">
+      <CardContent className="@container flex flex-col gap-6">
         <div className="flex flex-col gap-1">
           <div className="flex justify-between text-sm font-medium">
             <span className="text-emerald-800 dark:text-emerald-400">
@@ -89,7 +89,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-2 xs:grid-cols-2">
+        <div className="grid grid-cols-1 gap-2 @min-[16rem]:grid-cols-2">
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">
               {t(($) => $.proposal.totalVotingPower)}
@@ -123,7 +123,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
       </CardContent>
 
       {(canVote || hasVoted) && (
-        <CardFooter className="py-2">
+        <CardFooter className="@container py-2">
           {hasVoted ? (
             <div
               className={cn(
@@ -165,7 +165,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
               )}
             </div>
           ) : (
-            <div className="flex w-full items-center gap-2">
+            <div className="flex w-full flex-col gap-2 @min-[14.5rem]:flex-row @min-[14.5rem]:items-center">
               <Button
                 aria-busy={isVoting}
                 aria-label={t(($) => $.proposal.ariaLabelVote, {

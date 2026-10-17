@@ -35,7 +35,7 @@ export const TotalStakedCard = () => {
         {isTvlLoading ? (
           <Skeleton className="h-8 w-40" />
         ) : (
-          <p className="text-2xl font-semibold text-foreground">
+          <p className="text-2xl font-semibold wrap-anywhere text-foreground">
             {nonNullish(tvl) ? <AnimatedNumber value={tvl} formatter={formatTvl} /> : '—'}
           </p>
         )}
