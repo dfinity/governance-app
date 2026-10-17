@@ -1,4 +1,4 @@
-import { useRouter, useRouterState } from '@tanstack/react-router';
+import { AnyRouter, useRouter, useRouterState } from '@tanstack/react-router';
 import { useEffect, useLayoutEffect, useRef } from 'react';
 
 /** How long a restore holds the saved position while the page content still loads. */
@@ -24,11 +24,23 @@ export const restoresScrollPosition = (key: string | undefined): boolean =>
   key !== undefined && key === traversedKey && savedScrollTops.has(key);
 
 /**
- * Scrolls `main` to `top` and does it again each time the content resizes, because lists can
- * load after the route resolves. Stops after a timeout or when the user scrolls.
- * Returns the function that stops the restore.
+ * Saves `top` for the page on screen. While a navigation is pending, the page can change
+ * under the old entry (a pending component, a clamped scroll), so nothing is saved then.
  */
-const restoreScrollTop = (main: HTMLElement, key: string, top: number) => {
+const saveScrollTop = (router: AnyRouter, top: number) => {
+  const { location, resolvedLocation } = router.state;
+  const key = resolvedLocation?.state.__TSR_key;
+  if (!key || key !== location.state.__TSR_key || key === restoringKey) return;
+
+  savedScrollTops.set(key, top);
+};
+
+/**
+ * Scrolls `main` to `top` and does it again each time the content resizes, because lists can
+ * load after the route resolves. Stops after a timeout or when the user scrolls, and then saves
+ * the position on screen. Returns the function that stops the restore without a save.
+ */
+const restoreScrollTop = (router: AnyRouter, main: HTMLElement, key: string, top: number) => {
   const apply = () => {
     main.scrollTop = top;
   };
@@ -36,16 +48,21 @@ const restoreScrollTop = (main: HTMLElement, key: string, top: number) => {
   const stop = () => {
     observer.disconnect();
     clearTimeout(timeout);
-    USER_SCROLL_EVENTS.forEach((type) => window.removeEventListener(type, stop, true));
+    USER_SCROLL_EVENTS.forEach((type) => window.removeEventListener(type, finish, true));
     if (restoringKey === key) restoringKey = undefined;
   };
-  const timeout = setTimeout(stop, SCROLL_RESTORE_TIMEOUT_MS);
+  // The content can still be too short for `top`, so the user can see a lower position.
+  const finish = () => {
+    stop();
+    saveScrollTop(router, main.scrollTop);
+  };
+  const timeout = setTimeout(finish, SCROLL_RESTORE_TIMEOUT_MS);
 
   restoringKey = key;
   apply();
   if (main.firstElementChild) observer.observe(main.firstElementChild);
   USER_SCROLL_EVENTS.forEach((type) =>
-    window.addEventListener(type, stop, { capture: true, passive: true }),
+    window.addEventListener(type, finish, { capture: true, passive: true }),
   );
 
   return stop;
@@ -83,17 +100,10 @@ export const useScrollResetOnNavigation = () => {
     [router],
   );
 
-  // Saves the position of the page on screen. While a navigation is pending, the page can
-  // change under the old entry (a pending component, a clamped scroll), so those events are ignored.
   useEffect(() => {
     const onScroll = (event: Event) => {
       if (!(event.target instanceof HTMLElement) || event.target.tagName !== 'MAIN') return;
-
-      const { location, resolvedLocation } = router.state;
-      const key = resolvedLocation?.state.__TSR_key;
-      if (!key || key !== location.state.__TSR_key || key === restoringKey) return;
-
-      savedScrollTops.set(key, event.target.scrollTop);
+      saveScrollTop(router, event.target.scrollTop);
     };
 
     document.addEventListener('scroll', onScroll, { capture: true, passive: true });
@@ -113,10 +123,10 @@ export const useScrollResetOnNavigation = () => {
 
     const savedTop = savedScrollTops.get(resolvedKey);
     if (savedTop !== undefined && resolvedKey === traversedKey) {
-      return restoreScrollTop(main, resolvedKey, savedTop);
+      return restoreScrollTop(router, main, resolvedKey, savedTop);
     }
 
     main.scrollTop = 0;
     savedScrollTops.set(resolvedKey, 0);
-  }, [resolvedPathname, resolvedKey]);
+  }, [router, resolvedPathname, resolvedKey]);
 };

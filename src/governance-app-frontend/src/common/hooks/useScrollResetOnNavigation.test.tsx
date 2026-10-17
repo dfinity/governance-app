@@ -206,6 +206,23 @@ describe('useScrollResetOnNavigation', () => {
     expect(main.scrollTop).toBe(100);
   });
 
+  it('Saves the position on screen when the user stops the restore.', async () => {
+    const { router, main } = await renderRouter();
+    userScroll(main, 800);
+    await openDetail(router);
+    maxScrollTop = 300;
+    await goBack(router, '/list');
+
+    // A tap with no scroll after it, then the list data loads.
+    window.dispatchEvent(new Event('pointerdown'));
+    maxScrollTop = 1000;
+    resizeContent();
+    await openDetail(router);
+    await goBack(router, '/list');
+
+    expect(main.scrollTop).toBe(300);
+  });
+
   it('Stops the restore after the timeout.', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const { router, main } = await renderRouter();
@@ -217,7 +234,10 @@ describe('useScrollResetOnNavigation', () => {
     act(() => vi.advanceTimersByTime(SCROLL_RESTORE_TIMEOUT_MS));
     maxScrollTop = 1000;
     resizeContent();
+    expect(main.scrollTop).toBe(300);
 
+    await openDetail(router);
+    await goBack(router, '/list');
     expect(main.scrollTop).toBe(300);
   });
 
