@@ -167,17 +167,17 @@ function LoginPage() {
           {/* Header Section */}
           <div className="relative flex flex-col gap-6 md:mb-12 md:gap-0">
             <div className="relative flex items-start justify-between gap-4">
-              <div className="flex w-fit items-center gap-4">
+              <div className="flex w-fit min-w-0 items-center gap-4">
                 <img
                   src="/infinity-mark.png"
                   alt=""
                   aria-hidden={true}
-                  className="h-7 w-auto lg:h-8"
+                  className="h-7 w-auto shrink-0 lg:h-8"
                 />
-                <NnsWordmark className="h-[1.625rem] w-auto text-foreground lg:h-7" />
+                <NnsWordmark className="h-[1.625rem] w-auto min-w-0 shrink text-foreground lg:h-7" />
               </div>
             </div>
-            <h1 className="animate-fade-up text-hero-responsive mt-4 mb-6 max-w-xl font-serif font-normal tracking-tight md:mt-12 md:mb-0 md:max-w-3xl 2xl:mt-30 2xl:max-w-4xl">
+            <h1 className="animate-fade-up text-hero-responsive mt-4 mb-6 max-w-xl font-serif font-normal tracking-tight wrap-anywhere md:mt-12 md:mb-0 md:max-w-3xl 2xl:mt-30 2xl:max-w-4xl">
               <Trans
                 i18nKey={($) => $.login.headerTitle}
                 components={{ em: <em className="text-primary italic" /> }}
@@ -185,9 +185,9 @@ function LoginPage() {
             </h1>
           </div>
 
-          <div className="flex flex-1 flex-col gap-6 md:flex-col md:items-stretch md:gap-8">
+          <div className="@container flex flex-1 flex-col gap-6 md:flex-col md:items-stretch md:gap-8">
             {/* Stats Section (Desktop: Bottom / Mobile: Below Title) */}
-            <dl className="animate-fade-up animate-delay-400 order-1 mt-auto mb-4 flex flex-col gap-8 md:order-2 md:mb-6 md:h-13 md:flex-row md:gap-16">
+            <dl className="animate-fade-up animate-delay-400 order-1 mt-auto mb-4 flex flex-col gap-8 wrap-anywhere md:order-2 md:mb-6 md:@min-[44rem]:h-13 md:@min-[44rem]:flex-row md:@min-[44rem]:gap-16 md:@min-[44rem]:wrap-normal">
               <div className="flex flex-col-reverse gap-1">
                 <dt className="font-sans text-sm font-light tracking-wider text-muted-foreground">
                   {t(($) => $.login.totalProposals)}
@@ -208,7 +208,7 @@ function LoginPage() {
 
               <Separator
                 orientation="vertical"
-                className="hidden bg-muted-foreground/25 md:block dark:bg-muted-foreground/50"
+                className="hidden bg-muted-foreground/25 md:@min-[44rem]:block dark:bg-muted-foreground/50"
                 aria-hidden={true}
               />
 
@@ -230,7 +230,7 @@ function LoginPage() {
 
               <Separator
                 orientation="vertical"
-                className="hidden bg-muted-foreground/25 md:block dark:bg-muted-foreground/50"
+                className="hidden bg-muted-foreground/25 md:@min-[44rem]:block dark:bg-muted-foreground/50"
                 aria-hidden={true}
               />
 
@@ -251,8 +251,8 @@ function LoginPage() {
             </dl>
 
             {/* Login Card Section  */}
-            <div className="animate-fade-up animate-delay-200 order-2 flex w-full flex-col gap-6 rounded-[6px] border border-border bg-card/95 p-5 text-card-foreground sm:p-7 md:order-1 md:my-auto md:max-w-lg md:min-w-lg">
-              <p className="login-card-responsive font-light text-pretty">
+            <div className="animate-fade-up animate-delay-200 order-2 flex w-full flex-col gap-6 rounded-[6px] border border-border bg-card/95 p-5 text-card-foreground sm:p-7 md:order-1 md:my-auto md:max-w-lg md:min-w-[min(var(--container-lg),100%)]">
+              <p className="login-card-responsive font-light text-pretty wrap-anywhere">
                 {t(($) => $.login.accessText)}
               </p>
 
