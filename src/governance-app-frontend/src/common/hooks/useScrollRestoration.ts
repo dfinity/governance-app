@@ -9,6 +9,9 @@ const RESTORE_WINDOW_MS = 5000;
 
 const getMain = () => document.querySelector('main');
 
+/** Input that means the user scrolls, or wants to. A retry must not fight it. */
+const USER_INPUT_EVENTS = ['wheel', 'touchmove', 'keydown', 'pointerdown'] as const;
+
 const noop = () => {};
 
 /**
@@ -16,31 +19,31 @@ const noop = () => {};
  *
  * If the content is still shorter than that (a list that loads again after its
  * cache expired), the browser clamps the position. The restore then retries as
- * the content grows, until the position fits, the user scrolls, or the window
- * ends. Returns a function that stops the retries.
+ * the content grows, until the position fits, the user gives input, or the
+ * window ends. Returns a function that stops the retries.
+ *
+ * A changed scroll position is no sign of the user: loading content can shrink
+ * and clamp the position again. Only input events stop the retries.
  */
 const restorePosition = (main: HTMLElement, top: number): (() => void) => {
   main.scrollTo({ top, left: 0 });
   const content = main.firstElementChild;
   if (main.scrollTop >= top || !content) return noop;
 
-  let lastSet = main.scrollTop;
   const stop = () => {
     observer.disconnect();
     clearTimeout(timer);
+    USER_INPUT_EVENTS.forEach((type) => window.removeEventListener(type, stop, true));
   };
   const observer = new ResizeObserver(() => {
-    // A position we did not set means the user scrolled. Leave it.
-    if (main.scrollTop !== lastSet) {
-      stop();
-      return;
-    }
     main.scrollTo({ top, left: 0 });
-    lastSet = main.scrollTop;
-    if (lastSet >= top) stop();
+    if (main.scrollTop >= top) stop();
   });
   observer.observe(content);
   const timer = setTimeout(stop, RESTORE_WINDOW_MS);
+  USER_INPUT_EVENTS.forEach((type) =>
+    window.addEventListener(type, stop, { capture: true, passive: true }),
+  );
   return stop;
 };
 

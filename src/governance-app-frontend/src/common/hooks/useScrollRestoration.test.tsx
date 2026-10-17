@@ -37,10 +37,13 @@ const scrollTo = vi.fn();
 /** The tallest position the content allows, as the browser would clamp it. */
 let maxScrollTop = Infinity;
 
-const resizeCallbacks: ResizeObserverCallback[] = [];
+/** Observers the hook made, in order. A stopped restore disconnects its observer. */
+const observers: { callback: ResizeObserverCallback; active: boolean }[] = [];
+const contentResized = () =>
+  observers.filter((o) => o.active).forEach((o) => o.callback([], {} as ResizeObserver));
 const contentGrew = () => {
   maxScrollTop = Infinity;
-  resizeCallbacks.at(-1)!([], {} as ResizeObserver);
+  contentResized();
 };
 
 const setup = async () => {
@@ -77,11 +80,15 @@ describe('useScrollRestoration', () => {
     vi.stubGlobal(
       'ResizeObserver',
       class {
+        private readonly entry: (typeof observers)[number];
         constructor(callback: ResizeObserverCallback) {
-          resizeCallbacks.push(callback);
+          this.entry = { callback, active: true };
+          observers.push(this.entry);
         }
         observe() {}
-        disconnect() {}
+        disconnect() {
+          this.entry.active = false;
+        }
       },
     );
   });
@@ -90,7 +97,7 @@ describe('useScrollRestoration', () => {
     scrollTo.mockReset();
     vi.unstubAllGlobals();
     maxScrollTop = Infinity;
-    resizeCallbacks.length = 0;
+    observers.length = 0;
   });
 
   it('starts a new page at the top', async () => {
@@ -138,13 +145,32 @@ describe('useScrollRestoration', () => {
     expect(main.scrollTop).toBe(300);
   });
 
-  it('leaves the position alone once the user scrolls during a restore', async () => {
+  it('keeps retrying when the content shrinks before it grows', async () => {
     const { history, main, go } = await setup();
     main.scrollTop = 300;
     await go(() => history.push('/details'), '/details');
 
     maxScrollTop = 100;
     await go(() => history.back(), '/list');
+
+    // A loading section ends, and the browser clamps the position again.
+    maxScrollTop = 60;
+    main.scrollTop = 60;
+    act(contentResized);
+    expect(main.scrollTop).toBe(60);
+
+    act(contentGrew);
+    expect(main.scrollTop).toBe(300);
+  });
+
+  it('stops retrying once the user gives input during a restore', async () => {
+    const { history, main, go } = await setup();
+    main.scrollTop = 300;
+    await go(() => history.push('/details'), '/details');
+
+    maxScrollTop = 100;
+    await go(() => history.back(), '/list');
+    main.dispatchEvent(new WheelEvent('wheel', { bubbles: true }));
     main.scrollTop = 40;
 
     act(contentGrew);
