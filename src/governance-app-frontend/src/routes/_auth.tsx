@@ -13,7 +13,7 @@ import { TransactionPollingWatcher } from '@components/TransactionPollingWatcher
 import { useHideBalancesShortcut } from '@hooks/useHideBalancesShortcut';
 import { useLogoutShortcut } from '@hooks/useLogoutShortcut';
 import { useNewFeatureCheck } from '@hooks/useNewFeatureCheck';
-import { useScrollResetOnNavigation } from '@hooks/useScrollResetOnNavigation';
+import { useScrollRestoration } from '@hooks/useScrollRestoration';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
 import { requireIdentity } from '@utils/router';
 
@@ -33,7 +33,7 @@ function AuthLayout() {
   useThemeShortcut();
   useLogoutShortcut();
   useHideBalancesShortcut();
-  useScrollResetOnNavigation();
+  useScrollRestoration();
   useNewFeatureCheck();
   useAnalyticsProperties();
 

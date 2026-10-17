@@ -1,7 +1,15 @@
 import { ProposalInfo, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
-import { createFileRoute, Link, redirect } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  Link,
+  redirect,
+  useCanGoBack,
+  useLocation,
+  useRouter,
+} from '@tanstack/react-router';
 import { ArrowLeft, Clock, Link as LinkIcon, Tag } from 'lucide-react';
+import { MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalDetailsVoting } from '@features/proposals/components/ProposalDetailsVoting';
@@ -74,6 +82,18 @@ function ProposalDetailsRouteComponent() {
   const spamCheckResult = useSpamCheck(id).data?.response;
   const knownNeuronNames = getKnownNeuronNames(useGovernanceKnownNeurons().data?.response);
 
+  const router = useRouter();
+  const canGoBack = useCanGoBack();
+  const fromProposalList = useLocation({ select: (location) => location.state.fromProposalList });
+
+  // A history move back returns the list to its scroll position. A new
+  // navigation (deep link, command palette) starts the list at the top.
+  const handleBack = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (!canGoBack || !fromProposalList) return;
+    event.preventDefault();
+    router.history.back();
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -81,6 +101,7 @@ function ProposalDetailsRouteComponent() {
           <Link
             to="/voting"
             search={{ showProposals: search.showProposals, proposalFilter: search.proposalFilter }}
+            onClick={handleBack}
           >
             <ArrowLeft className="size-5" />
             {t(($) => $.proposal.backToProposals)}
