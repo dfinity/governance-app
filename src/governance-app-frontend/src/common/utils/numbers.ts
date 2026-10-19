@@ -63,6 +63,12 @@ export const formatFiat = (
 };
 
 /**
+ * Default format: 168123456 -> "168.1M", 30000000 -> "30M", 950 -> "950"
+ */
+export const formatCompactNumber = (value: number): string =>
+  new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(value);
+
+/**
  * Default format: 0.150123 -> "15.01%"
  */
 export const formatPercentage = (
