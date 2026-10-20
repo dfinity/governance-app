@@ -277,10 +277,7 @@ fn test_render_page_sets_the_link_preview_tags() {
         ("description", description),
         ("og:description", description),
         ("twitter:description", description),
-        (
-            "og:url",
-            "https://nns.internetcomputer.org/voting/proposals/139000",
-        ),
+        ("og:url", "https://nns.icp.net/voting/proposals/139000"),
     ] {
         assert_eq!(meta_content(&page, key).as_deref(), Some(value), "{key}");
     }
