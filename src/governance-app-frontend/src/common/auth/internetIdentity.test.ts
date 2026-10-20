@@ -9,11 +9,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { II_AUTHORIZE_URL, NETWORK } from '@constants/extra';
 
-const { AuthClient, syncTime, getTimeDiffMsecs } = vi.hoisted(() => ({
+const { AuthClient, syncTime, getTimeDiffMsecs, reloadPage } = vi.hoisted(() => ({
   AuthClient: vi.fn(),
   syncTime: vi.fn(async () => undefined),
   getTimeDiffMsecs: vi.fn(() => 0),
+  reloadPage: vi.fn(),
 }));
+
+vi.mock('@utils/page', () => ({ reloadPage }));
 
 vi.mock('@icp-sdk/auth/client', () => ({ AuthClient }));
 
@@ -92,6 +95,7 @@ describe('internetIdentity', () => {
   beforeEach(() => {
     vi.resetModules();
     AuthClient.mockReset();
+    reloadPage.mockClear();
     syncTime.mockClear();
     getTimeDiffMsecs.mockReturnValue(0);
   });
@@ -397,21 +401,83 @@ describe('internetIdentity', () => {
     expect(auth.consumeLogoutRedirect()).toBe(false);
   });
 
-  it('waits for an account switch from another tab before it returns the identity.', async () => {
-    const older = Ed25519KeyIdentity.generate();
-    const client = mockAuthClient({ identity: older, expiresAtMs: Date.now() + ONE_HOUR_MS });
+  it('waits for a session change from another tab before it returns the identity.', async () => {
+    const identity = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
     const auth = await loadModule();
     await auth.ensureInitialized();
 
-    const newer = Ed25519KeyIdentity.generate();
-    const newerRead = deferred<Identity>();
-    client.getIdentity.mockReturnValueOnce(newerRead.promise);
-    client.change(newer, signedIn(newer, Date.now() + ONE_HOUR_MS));
+    // The same account, signed in again in another tab.
+    const again = Ed25519KeyIdentity.fromSecretKey(identity.getKeyPair().secretKey);
+    const againRead = deferred<Identity>();
+    client.getIdentity.mockReturnValueOnce(againRead.promise);
+    client.change(again, signedIn(again, Date.now() + 2 * ONE_HOUR_MS));
 
     const guard = auth.ensureInitialized();
-    newerRead.resolve(newer);
+    againRead.resolve(again);
 
-    await expect(guard).resolves.toBe(newer);
+    await expect(guard).resolves.toBe(again);
+  });
+
+  it('loads the page again when another tab switches the account.', async () => {
+    const identity = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    const other = Ed25519KeyIdentity.generate();
+    client.change(other, signedIn(other, Date.now() + ONE_HOUR_MS));
+
+    await vi.waitFor(() => expect(reloadPage).toHaveBeenCalledTimes(1));
+    // The other account never reaches the page that is about to load again.
+    expect(auth.getAuthState()).toMatchObject({ identity });
+  });
+
+  it('reads the session again when it changes during the read after a login.', async () => {
+    const client = mockAuthClient();
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    const signedInHere = Ed25519KeyIdentity.generate();
+    const signIn = deferred<Identity>();
+    client.signIn.mockReturnValueOnce(signIn.promise);
+    auth.login();
+
+    const staleRead = deferred<Identity>();
+    client.getIdentity.mockReturnValueOnce(staleRead.promise);
+    client.identity = signedInHere;
+    client.status = signedIn(signedInHere, Date.now() + ONE_HOUR_MS);
+    signIn.resolve(signedInHere);
+    await vi.waitFor(() => expect(client.getIdentity).toHaveBeenCalled());
+
+    // Another tab signs in with another account before the read ends.
+    const other = Ed25519KeyIdentity.generate();
+    client.change(other, signedIn(other, Date.now() + 2 * ONE_HOUR_MS));
+    staleRead.resolve(signedInHere);
+
+    await vi.waitFor(() =>
+      expect(auth.getAuthState()).toMatchObject({ status: 'authenticated', identity: other }),
+    );
+  });
+
+  it('keeps a login from another tab when the logout fails.', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const identity = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    const signOut = deferred<void>();
+    client.signOut.mockReturnValueOnce(signOut.promise);
+    auth.logout();
+
+    const other = Ed25519KeyIdentity.generate();
+    client.change(other, signedIn(other, Date.now() + 2 * ONE_HOUR_MS));
+    signOut.reject(new Error('network error'));
+
+    await vi.waitFor(() =>
+      expect(auth.getAuthState()).toMatchObject({ status: 'authenticated', identity: other }),
+    );
   });
 
   it('releases a waiting route guard on logout.', async () => {
@@ -499,12 +565,14 @@ describe('internetIdentity', () => {
   it('keeps a newer session from another tab when the old one expires during its read.', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
     const expiresAtMs = Date.now() + ONE_HOUR_MS;
-    const client = mockAuthClient({ identity: Ed25519KeyIdentity.generate(), expiresAtMs });
+    const older = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity: older, expiresAtMs });
     const auth = await loadModule();
     await auth.ensureInitialized();
     await vi.advanceTimersByTimeAsync(0);
 
-    const newer = Ed25519KeyIdentity.generate();
+    // The same account, signed in again in another tab.
+    const newer = Ed25519KeyIdentity.fromSecretKey(older.getKeyPair().secretKey);
     const newerRead = deferred<Identity>();
     client.getIdentity.mockReturnValueOnce(newerRead.promise);
     client.change(newer, signedIn(newer, expiresAtMs + ONE_HOUR_MS));
@@ -521,13 +589,14 @@ describe('internetIdentity', () => {
   it('returns a newer session from another tab when the late expiry check runs.', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
     const expiresAtMs = Date.now() + ONE_HOUR_MS;
-    const client = mockAuthClient({ identity: Ed25519KeyIdentity.generate(), expiresAtMs });
+    const older = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity: older, expiresAtMs });
     const auth = await loadModule();
     await auth.ensureInitialized();
     await vi.advanceTimersByTimeAsync(0);
 
-    // Another tab installed a newer session, and this tab has not heard of it yet.
-    const newer = Ed25519KeyIdentity.generate();
+    // Another tab signed the same account in again, and this tab has not heard of it yet.
+    const newer = Ed25519KeyIdentity.fromSecretKey(older.getKeyPair().secretKey);
     client.identity = newer;
     client.status = signedIn(newer, expiresAtMs + ONE_HOUR_MS);
     vi.setSystemTime(expiresAtMs);

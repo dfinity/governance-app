@@ -9,6 +9,7 @@ import {
   IS_LOCAL,
   NETWORK,
 } from '@constants/extra';
+import { reloadPage } from '@utils/page';
 import { getAnonymousAgent } from '@common/canisters/agents';
 
 /**
@@ -143,6 +144,11 @@ const syncSession = (client: AuthClient): Promise<void> => {
   return sessionSettled;
 };
 
+const isOtherAccount = (identity: Identity): boolean =>
+  state.status === 'authenticated' &&
+  nonNullish(state.identity) &&
+  state.identity.getPrincipal().toText() !== identity.getPrincipal().toText();
+
 const readSession = async (client: AuthClient, revision: number) => {
   let identity: Identity | undefined;
 
@@ -158,6 +164,13 @@ const readSession = async (client: AuthClient, revision: number) => {
   const status = client.getStatus();
 
   if (nonNullish(identity) && status.state === 'signed-in') {
+    // Another tab switched the account. A new page drops all the state of the account before:
+    // agents, queries and open dialogs.
+    if (isOtherAccount(identity)) {
+      reloadPage();
+      return;
+    }
+
     authenticate(identity, status.expiresAtMs);
     return;
   }
@@ -190,7 +203,9 @@ const expireSession = async (expiresAtMs: number) => {
 
 // A login or a logout in this tab sets the state when it ends.
 const onSessionChange = () => {
-  if (authClient && ['initializing', 'idle', 'authenticated'].includes(state.status)) {
+  // A waiting read is stale once the session changes, also the read after a login or a logout.
+  const reading = nonNullish(settleSession);
+  if (authClient && (reading || ['initializing', 'idle', 'authenticated'].includes(state.status))) {
     void syncSession(authClient);
   }
 };
@@ -265,12 +280,20 @@ export const login = () => {
     .then(() => syncSession(client));
 };
 
-const endSession = async (client: AuthClient) => {
+const endSession = async (client: AuthClient, expiresAtMs: number | undefined) => {
   try {
     await client.signOut();
   } catch (err) {
-    // The session is cleared here even when Internet Identity cannot end it.
     console.error('Internet Identity: failed to log out.', err);
+
+    // A newer session that another tab installed stays. The session that failed to end is
+    // cleared here even when Internet Identity still holds it.
+    const status = client.getStatus();
+    if (status.state === 'signed-in' && status.expiresAtMs !== expiresAtMs) {
+      await syncSession(client);
+      return;
+    }
+
     clearSession('logout');
     return;
   }
@@ -287,9 +310,10 @@ export const logout = () => {
   const client = authClient;
   if (!client || state.status !== 'authenticated') return;
 
+  const expiresAtMs = sessionExpiresAtMs;
   supersedeReads();
   clearTimeout(expiryTimeout);
   logoutRedirectPending = true;
   setState({ status: 'logging-out', sessionEnd: 'logout' });
-  void endSession(client);
+  void endSession(client, expiresAtMs);
 };
