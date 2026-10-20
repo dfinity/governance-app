@@ -10,7 +10,7 @@ mod governance_client;
 mod tests;
 
 use regex::{Captures, NoExpand, Regex};
-use std::sync::LazyLock;
+use std::{borrow::Cow, sync::LazyLock};
 
 const PROPOSAL_PATH_PREFIX: &str = "/voting/proposals/";
 const APP_NAME: &str = "Network Nervous System";
@@ -28,9 +28,17 @@ static META_CONTENT_ATTR: LazyLock<Regex> =
 static MARKDOWN_IMAGE_OR_LINK: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"!?\[([^\]]*)\]\([^)]*\)").unwrap());
 static HTML_TAG: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"</?[a-zA-Z][^>]*>").unwrap());
-/// Code fences, horizontal rules, and setext heading underlines.
-static MARKDOWN_MARKER_LINE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"(?m)^[ \t]*(?:(?:```|~~~).*|(?:[-=*_][ \t]*){3,})$").unwrap());
+/// Horizontal rules and setext heading underlines.
+static MARKDOWN_RULE_LINE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?m)^[ \t]*(?:[-=*_][ \t]*){3,}$").unwrap());
+static MARKDOWN_FENCE_LINE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?m)^[ \t]*(?:```|~~~).*$").unwrap());
+/// Code blocks and code spans. Their text is literal, so their entities stay as text.
+static MARKDOWN_CODE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?s)```.*?```|~~~.*?~~~|`[^`]*`").unwrap());
+static HTML_ENTITY: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"&(?:#([0-9]{1,7})|#[xX]([0-9a-fA-F]{1,6})|([a-zA-Z]+));").unwrap()
+});
 /// Heading, quote, and list markers at the start of a line.
 static MARKDOWN_LINE_PREFIX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?m)^[ \t]*(?:#{1,6}[ \t]+|>[ \t]?|[-*+][ \t]+|\d+[.)][ \t]+)").unwrap()
@@ -180,8 +188,10 @@ fn strip_prefix_ignore_ascii_case<'a>(text: &'a str, prefix: &str) -> Option<&'a
 fn strip_markdown(markdown: &str) -> String {
     let text = MARKDOWN_IMAGE_OR_LINK.replace_all(markdown, "$1");
     let text = HTML_TAG.replace_all(&text, " ");
-    let text = MARKDOWN_MARKER_LINE.replace_all(&text, "");
+    let text = MARKDOWN_RULE_LINE.replace_all(&text, "");
     let text = MARKDOWN_LINE_PREFIX.replace_all(&text, "");
+    let text = decode_entities_outside_code(&text);
+    let text = MARKDOWN_FENCE_LINE.replace_all(&text, "");
     let text = MARKDOWN_EMPHASIS.replace_all(&text, |caps: &Captures| {
         if caps[1].is_empty() {
             String::new()
@@ -191,6 +201,44 @@ fn strip_markdown(markdown: &str) -> String {
     });
     let text = MARKDOWN_ESCAPE.replace_all(&text, "$1");
     WHITESPACE.replace_all(&text, " ").trim().to_string()
+}
+
+fn decode_entities_outside_code(text: &str) -> String {
+    let mut decoded = String::with_capacity(text.len());
+    let mut end = 0;
+    for code in MARKDOWN_CODE.find_iter(text) {
+        decoded.push_str(&decode_entities(&text[end..code.start()]));
+        decoded.push_str(code.as_str());
+        end = code.end();
+    }
+    decoded.push_str(&decode_entities(&text[end..]));
+    decoded
+}
+
+/// Decodes numeric entities and the common named entities. Other entities stay as text.
+fn decode_entities(text: &str) -> Cow<'_, str> {
+    HTML_ENTITY.replace_all(text, |caps: &Captures| {
+        let decoded = if let Some(decimal) = caps.get(1) {
+            decimal.as_str().parse().ok().and_then(char::from_u32)
+        } else if let Some(hex) = caps.get(2) {
+            u32::from_str_radix(hex.as_str(), 16)
+                .ok()
+                .and_then(char::from_u32)
+        } else {
+            match &caps[3] {
+                "amp" => Some('&'),
+                "lt" => Some('<'),
+                "gt" => Some('>'),
+                "quot" => Some('"'),
+                "apos" => Some('\''),
+                "nbsp" => Some(' '),
+                _ => None,
+            }
+        };
+        decoded
+            .filter(|c| *c != '\0')
+            .map_or_else(|| caps[0].to_string(), String::from)
+    })
 }
 
 /// Cuts `text` to at most `max_chars` characters, at a word boundary if one is close.

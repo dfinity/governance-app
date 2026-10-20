@@ -81,6 +81,39 @@ fn test_strip_markdown_keeps_comparisons() {
 }
 
 #[test]
+fn test_strip_markdown_decodes_entities() {
+    assert_eq!(
+        strip_markdown(
+            "Budget &lt; 10 ICP &amp; retain&nbsp;reserves &#169; &#x1F600; &copy; &#0;"
+        ),
+        "Budget < 10 ICP & retain reserves © 😀 &copy; &#0;"
+    );
+}
+
+#[test]
+fn test_strip_markdown_keeps_entities_in_code() {
+    assert_eq!(
+        strip_markdown("Use `&lt;br&gt;` &amp;\n```\n&amp; in a block\n```\nend &gt;"),
+        "Use &lt;br&gt; & &amp; in a block end >"
+    );
+}
+
+#[test]
+fn test_render_page_escapes_decoded_entities_once() {
+    let page = render_page(
+        INDEX_HTML,
+        3,
+        None,
+        "Budget &lt; 10 ICP &amp; retain reserves.",
+    );
+
+    assert_eq!(
+        meta_content(&page, "og:description").as_deref(),
+        Some("Budget &lt; 10 ICP &amp; retain reserves.")
+    );
+}
+
+#[test]
 fn test_truncate_keeps_short_text() {
     assert_eq!(truncate("Short text", 160), "Short text");
 }
