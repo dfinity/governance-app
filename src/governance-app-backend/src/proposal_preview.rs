@@ -61,6 +61,7 @@ pub async fn render_proposal_page(index_html: &str, proposal_id: u64) -> Option<
     let proposal = match governance_client::get_proposal_info(proposal_id).await {
         Ok(Some(governance_client::ProposalInfo {
             proposal: Some(proposal),
+            ..
         })) => proposal,
         Ok(_) => {
             ic_cdk::println!("No link preview for proposal {proposal_id}: proposal not found");
@@ -154,12 +155,15 @@ fn meta_content(html: &str, key: &str) -> Option<String> {
 
 /// Returns the summary as plain text, cut to `MAX_DESCRIPTION_CHARS`.
 /// Many summaries start with the title, so a leading copy of the title is removed.
+/// The copy must end at a word boundary.
 fn summary_excerpt(title: Option<&str>, summary: &str) -> String {
     let text = strip_markdown(summary);
     let title = title.map(strip_markdown);
     let text = title
         .as_deref()
+        .filter(|title| !title.is_empty())
         .and_then(|title| strip_prefix_ignore_ascii_case(&text, title))
+        .filter(|rest| rest.chars().next().is_none_or(|c| !c.is_alphanumeric()))
         .map(|rest| rest.trim_start_matches(|c: char| c.is_whitespace() || ":.-".contains(c)))
         .filter(|rest| !rest.is_empty())
         .unwrap_or(&text);

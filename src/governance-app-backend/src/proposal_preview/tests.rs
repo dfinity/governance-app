@@ -1,17 +1,24 @@
-use super::governance_client::{testing, Proposal, ProposalInfo};
+use super::governance_client::{
+    testing, ListProposalInfoRequest, ListProposalInfoResponse, Proposal, ProposalId, ProposalInfo,
+};
 use super::*;
 
 /// The source of the served `index.html`, so the tests fail if its head tags change shape.
 const INDEX_HTML: &str = include_str!("../../../governance-app-frontend/index.html");
 const GENERIC_DESCRIPTION: &str = "Participate in decentralized governance on the Internet Computer. Lock ICP, vote on proposals, and mint rewards.";
 
-fn proposal_info(title: Option<&str>, summary: &str) -> ProposalInfo {
+fn proposal_info(id: u64, title: Option<&str>, summary: &str) -> ProposalInfo {
     ProposalInfo {
+        id: Some(ProposalId { id }),
         proposal: Some(Proposal {
             title: title.map(str::to_string),
             summary: summary.to_string(),
         }),
     }
+}
+
+fn list_proposals_response(proposal_info: Vec<ProposalInfo>) -> ListProposalInfoResponse {
+    ListProposalInfoResponse { proposal_info }
 }
 
 #[test]
@@ -115,6 +122,17 @@ fn test_summary_excerpt_removes_a_leading_title_with_markup() {
             "# Test `<tags>` & more\n\nThis motion asks a question."
         ),
         "This motion asks a question."
+    );
+}
+
+#[test]
+fn test_summary_excerpt_keeps_a_title_that_ends_inside_a_word() {
+    assert_eq!(
+        summary_excerpt(
+            Some("Increase stake"),
+            "Increase stakes to improve network security."
+        ),
+        "Increase stakes to improve network security."
     );
 }
 
@@ -226,11 +244,24 @@ fn test_render_page_without_title_and_summary() {
 
 #[tokio::test]
 async fn test_render_proposal_page_fetches_the_proposal() {
-    testing::add_proposal_info_response(Ok(Some(proposal_info(Some("Title"), "Summary"))));
+    testing::add_list_proposals_response(Ok(list_proposals_response(vec![proposal_info(
+        5,
+        Some("Title"),
+        "Summary",
+    )])));
 
     let page = render_proposal_page(INDEX_HTML, 5).await.unwrap();
 
-    assert_eq!(testing::drain_requests(), vec![5]);
+    assert_eq!(
+        testing::drain_requests(),
+        vec![ListProposalInfoRequest {
+            before_proposal: Some(ProposalId { id: 6 }),
+            limit: 1,
+            omit_large_fields: Some(true),
+            include_all_manage_neuron_proposals: Some(true),
+            ..Default::default()
+        }]
+    );
     assert_eq!(
         meta_content(&page, "og:title").as_deref(),
         Some("Proposal #5: Title")
@@ -239,18 +270,40 @@ async fn test_render_proposal_page_fetches_the_proposal() {
 
 #[tokio::test]
 async fn test_render_proposal_page_returns_none_for_an_unknown_proposal() {
-    testing::add_proposal_info_response(Ok(None));
-    testing::add_proposal_info_response(Ok(Some(ProposalInfo { proposal: None })));
+    // Without proposal 5, `list_proposals` returns the next older proposal.
+    testing::add_list_proposals_response(Ok(list_proposals_response(vec![proposal_info(
+        4,
+        Some("Title"),
+        "Summary",
+    )])));
+    testing::add_list_proposals_response(Ok(list_proposals_response(vec![])));
+    testing::add_list_proposals_response(Ok(list_proposals_response(vec![ProposalInfo {
+        id: Some(ProposalId { id: 7 }),
+        proposal: None,
+    }])));
 
     assert_eq!(render_proposal_page(INDEX_HTML, 5).await, None);
     assert_eq!(render_proposal_page(INDEX_HTML, 6).await, None);
-    assert_eq!(testing::drain_requests(), vec![5, 6]);
+    assert_eq!(render_proposal_page(INDEX_HTML, 7).await, None);
+    assert_eq!(testing::drain_requests().len(), 3);
+}
+
+#[tokio::test]
+async fn test_render_proposal_page_for_the_largest_id_lists_the_latest_proposal() {
+    testing::add_list_proposals_response(Ok(list_proposals_response(vec![proposal_info(
+        10,
+        Some("Title"),
+        "Summary",
+    )])));
+
+    assert_eq!(render_proposal_page(INDEX_HTML, u64::MAX).await, None);
+    assert_eq!(testing::drain_requests()[0].before_proposal, None);
 }
 
 #[tokio::test]
 async fn test_render_proposal_page_returns_none_on_a_call_error() {
-    testing::add_proposal_info_response(Err("canister is stopped".to_string()));
+    testing::add_list_proposals_response(Err("canister is stopped".to_string()));
 
     assert_eq!(render_proposal_page(INDEX_HTML, 5).await, None);
-    assert_eq!(testing::drain_requests(), vec![5]);
+    assert_eq!(testing::drain_requests().len(), 1);
 }
