@@ -70,7 +70,6 @@ export const EIGHT_YEAR_GANG_BONUS_RATE = 0.1;
 export const EIGHT_YEAR_GANG_BONUS_EXPIRY_SECONDS = 1_924_991_999; // 2030-12-31T23:59:59Z
 
 // Local Storage Keys
-export const MANUAL_LOGOUT_KEY = 'nns-manual-logout';
 export const WELCOME_MODAL_STORAGE_KEY = 'nns-welcome-modal-seen';
 export const SHORTCUTS_SETTINGS_KEY = 'nns-shortcuts-settings';
 export const COMMAND_PALETTE_SETTINGS_KEY = 'nns-command-palette-settings';

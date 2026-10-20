@@ -5,28 +5,30 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { MANUAL_LOGOUT_KEY } from '@constants/extra';
+import type { SessionEnd } from '@common/auth/internetIdentity';
 
 const { invalidate, infoNotification, session } = vi.hoisted(() => ({
   invalidate: vi.fn(async () => undefined),
   infoNotification: vi.fn(),
-  session: { identity: undefined as Identity | undefined },
+  session: {
+    identity: undefined as Identity | undefined,
+    sessionEnd: undefined as SessionEnd | undefined,
+  },
 }));
 
 vi.mock('@tanstack/react-router', () => ({ useRouter: () => ({ invalidate }) }));
 
 vi.mock('@hooks/useInternetIdentity', () => ({
-  useInternetIdentity: () => ({ identity: session.identity }),
+  useInternetIdentity: () => ({ identity: session.identity, sessionEnd: session.sessionEnd }),
 }));
 
 vi.mock('@utils/notification', () => ({ infoNotification }));
 
 const { useSessionChange } = await import('./useSessionChange');
 
-const storage = new Map<string, string>();
-
 const renderSessionChange = (identity: Identity | undefined) => {
   session.identity = identity;
+  session.sessionEnd = undefined;
   const queryClient = new QueryClient();
   const resetQueries = vi.spyOn(queryClient, 'resetQueries');
   const wrapper = ({ children }: { children: ReactNode }) => (
@@ -34,8 +36,9 @@ const renderSessionChange = (identity: Identity | undefined) => {
   );
   const { rerender } = renderHook(() => useSessionChange(), { wrapper });
 
-  const switchTo = (next: Identity | undefined) => {
+  const switchTo = (next: Identity | undefined, sessionEnd?: SessionEnd) => {
     session.identity = next;
+    session.sessionEnd = sessionEnd;
     rerender();
   };
 
@@ -46,12 +49,6 @@ describe('useSessionChange', () => {
   beforeEach(() => {
     invalidate.mockClear();
     infoNotification.mockClear();
-    storage.clear();
-    vi.stubGlobal('localStorage', {
-      getItem: (key: string) => storage.get(key) ?? null,
-      setItem: (key: string, value: string) => storage.set(key, value),
-      removeItem: (key: string) => storage.delete(key),
-    });
   });
 
   it('resets the cached queries when another tab switches the account.', async () => {
@@ -66,7 +63,7 @@ describe('useSessionChange', () => {
   it('resets the cached queries and tells the user when the session expires.', async () => {
     const { resetQueries, switchTo } = renderSessionChange(Ed25519KeyIdentity.generate());
 
-    switchTo(undefined);
+    switchTo(undefined, 'expiry');
 
     await waitFor(() => expect(infoNotification).toHaveBeenCalledTimes(1));
     expect(resetQueries).toHaveBeenCalledTimes(1);
@@ -75,12 +72,24 @@ describe('useSessionChange', () => {
   it('resets the cached queries without a notice on a manual logout.', async () => {
     const { resetQueries, switchTo } = renderSessionChange(Ed25519KeyIdentity.generate());
 
-    storage.set(MANUAL_LOGOUT_KEY, 'true');
-    switchTo(undefined);
+    switchTo(undefined, 'logout');
 
     await waitFor(() => expect(resetQueries).toHaveBeenCalledTimes(1));
     expect(infoNotification).not.toHaveBeenCalled();
-    expect(storage.has(MANUAL_LOGOUT_KEY)).toBe(false);
+  });
+
+  it('shows no notice in any tab on a manual logout.', async () => {
+    const identity = Ed25519KeyIdentity.generate();
+    const firstTab = renderSessionChange(identity);
+    const secondTab = renderSessionChange(identity);
+
+    // The logout in one tab ends the session in both.
+    firstTab.switchTo(undefined, 'logout');
+    secondTab.switchTo(undefined, 'logout');
+
+    await waitFor(() => expect(firstTab.resetQueries).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(secondTab.resetQueries).toHaveBeenCalledTimes(1));
+    expect(infoNotification).not.toHaveBeenCalled();
   });
 
   it('keeps the cached queries when the same account gets a new identity object.', async () => {

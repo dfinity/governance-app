@@ -222,7 +222,9 @@ describe('internetIdentity', () => {
     await vi.waitFor(() => expect(auth.getAuthState()).toMatchObject({ identity }));
 
     client.change(undefined, { state: 'signed-out' });
-    await vi.waitFor(() => expect(auth.getAuthState()).toEqual({ status: 'idle' }));
+    await vi.waitFor(() =>
+      expect(auth.getAuthState()).toEqual({ status: 'idle', sessionEnd: 'logout' }),
+    );
     expect(client.signOut).not.toHaveBeenCalled();
   });
 
@@ -325,7 +327,9 @@ describe('internetIdentity', () => {
     expect(auth.getAuthState()).toEqual({ status: 'logging-out' });
 
     signOut.resolve();
-    await vi.waitFor(() => expect(auth.getAuthState()).toEqual({ status: 'idle' }));
+    await vi.waitFor(() =>
+      expect(auth.getAuthState()).toEqual({ status: 'idle', sessionEnd: 'logout' }),
+    );
   });
 
   it('keeps a login from another tab that arrives during the logout.', async () => {
@@ -382,7 +386,9 @@ describe('internetIdentity', () => {
     auth.login();
     expect(client.signIn).not.toHaveBeenCalled();
 
-    await vi.waitFor(() => expect(auth.getAuthState()).toEqual({ status: 'idle' }));
+    await vi.waitFor(() =>
+      expect(auth.getAuthState()).toEqual({ status: 'idle', sessionEnd: 'logout' }),
+    );
     expect(client.signOut).toHaveBeenCalled();
     expect(listener).toHaveBeenCalled();
     await expect(auth.ensureInitialized()).resolves.toBeUndefined();
@@ -402,7 +408,9 @@ describe('internetIdentity', () => {
     await auth.ensureInitialized();
 
     auth.logout();
-    await vi.waitFor(() => expect(auth.getAuthState()).toEqual({ status: 'idle' }));
+    await vi.waitFor(() =>
+      expect(auth.getAuthState()).toEqual({ status: 'idle', sessionEnd: 'logout' }),
+    );
 
     auth.login();
     expect(client.signIn).toHaveBeenCalled();
@@ -424,8 +432,62 @@ describe('internetIdentity', () => {
     vi.setSystemTime(Date.now() + ONE_HOUR_MS - 10_000);
 
     await expect(auth.ensureInitialized()).resolves.toBeUndefined();
-    await vi.waitFor(() => expect(auth.getAuthState()).toEqual({ status: 'idle' }));
-    expect(client.signOut).toHaveBeenCalled();
+    expect(auth.getAuthState()).toEqual({ status: 'idle', sessionEnd: 'expiry' });
+    expect(client.signOut).not.toHaveBeenCalled();
+  });
+
+  it('keeps a newer session from another tab when the old one expires during its read.', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
+    const expiresAtMs = Date.now() + ONE_HOUR_MS;
+    const client = mockAuthClient({ identity: Ed25519KeyIdentity.generate(), expiresAtMs });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+    await vi.advanceTimersByTimeAsync(0);
+
+    const newer = Ed25519KeyIdentity.generate();
+    const newerRead = deferred<Identity>();
+    client.getIdentity.mockReturnValueOnce(newerRead.promise);
+    client.change(newer, signedIn(newer, expiresAtMs + ONE_HOUR_MS));
+
+    // The old session ends while the read of the newer one waits.
+    await vi.advanceTimersByTimeAsync(ONE_HOUR_MS);
+    newerRead.resolve(newer);
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(auth.getAuthState()).toMatchObject({ status: 'authenticated', identity: newer });
+    expect(client.signOut).not.toHaveBeenCalled();
+  });
+
+  it('returns a newer session from another tab when the late expiry check runs.', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
+    const expiresAtMs = Date.now() + ONE_HOUR_MS;
+    const client = mockAuthClient({ identity: Ed25519KeyIdentity.generate(), expiresAtMs });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+    await vi.advanceTimersByTimeAsync(0);
+
+    // Another tab installed a newer session, and this tab has not heard of it yet.
+    const newer = Ed25519KeyIdentity.generate();
+    client.identity = newer;
+    client.status = signedIn(newer, expiresAtMs + ONE_HOUR_MS);
+    vi.setSystemTime(expiresAtMs);
+
+    await expect(auth.ensureInitialized()).resolves.toBe(newer);
+    expect(client.signOut).not.toHaveBeenCalled();
+  });
+
+  it('marks a session that expired in another tab.', async () => {
+    const identity = Ed25519KeyIdentity.generate();
+    const expiresAtMs = Date.now() + ONE_HOUR_MS;
+    const client = mockAuthClient({ identity, expiresAtMs });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    client.change(undefined, { state: 'expired', principal: identity.getPrincipal(), expiresAtMs });
+
+    await vi.waitFor(() =>
+      expect(auth.getAuthState()).toEqual({ status: 'idle', sessionEnd: 'expiry' }),
+    );
   });
 
   it('keeps a session that ends early by a fast local clock until the clock sync ends.', async () => {
@@ -469,7 +531,8 @@ describe('internetIdentity', () => {
     expect(auth.getAuthState().sessionEndsAtMs).toBe(expiresAtMs - 10_000);
 
     await vi.advanceTimersByTimeAsync(ONE_HOUR_MS);
-    expect(client.signOut).toHaveBeenCalled();
+    expect(auth.getAuthState()).toEqual({ status: 'idle', sessionEnd: 'expiry' });
+    expect(client.signOut).not.toHaveBeenCalled();
   });
 
   it('keeps the expiry delay in the range of setTimeout when the clock sync fails.', async () => {
@@ -506,10 +569,11 @@ describe('internetIdentity', () => {
     expect(auth.getAuthState().sessionEndsAtMs).toBe(expiresAtMs - 15_000);
 
     await vi.advanceTimersByTimeAsync(ONE_HOUR_MS - 15_001);
-    expect(client.signOut).not.toHaveBeenCalled();
+    expect(auth.getAuthState().status).toBe('authenticated');
 
     await vi.advanceTimersByTimeAsync(1);
-    expect(client.signOut).toHaveBeenCalled();
-    await vi.waitFor(() => expect(auth.getAuthState()).toEqual({ status: 'idle' }));
+    expect(auth.getAuthState()).toEqual({ status: 'idle', sessionEnd: 'expiry' });
+    // Internet Identity ends the session on its own, so other tabs keep a newer one.
+    expect(client.signOut).not.toHaveBeenCalled();
   });
 });

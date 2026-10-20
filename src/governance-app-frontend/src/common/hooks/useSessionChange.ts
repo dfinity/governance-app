@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next';
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
 
-import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { infoNotification } from '@utils/notification';
 
@@ -16,7 +15,7 @@ import { infoNotification } from '@utils/notification';
  * or another tab that switches the account.
  */
 export const useSessionChange = () => {
-  const { identity } = useInternetIdentity();
+  const { identity, sessionEnd } = useInternetIdentity();
   const { invalidate } = useRouter();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
@@ -36,12 +35,11 @@ export const useSessionChange = () => {
       // Another tab switched to a different account.
       if (nonNullish(principal)) return;
 
-      const isManualLogout = localStorage.getItem(MANUAL_LOGOUT_KEY) === 'true';
-      localStorage.removeItem(MANUAL_LOGOUT_KEY);
-      if (isManualLogout) return;
+      // A logout in any tab ends the session in all of them, so each tab reads it on its own.
+      if (sessionEnd === 'logout') return;
 
       analytics.event(AnalyticsEvent.SessionExpired, undefined, { interactive: false });
       infoNotification({ description: t(($) => $.common.autoExpirationLogout) });
     });
-  }, [principal, invalidate, queryClient, t]);
+  }, [principal, sessionEnd, invalidate, queryClient, t]);
 };

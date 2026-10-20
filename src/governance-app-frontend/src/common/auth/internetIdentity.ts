@@ -1,6 +1,6 @@
 import { AuthClient } from '@icp-sdk/auth/client';
 import type { Identity } from '@icp-sdk/core/agent';
-import { isNullish, nonNullish } from '@dfinity/utils';
+import { nonNullish } from '@dfinity/utils';
 
 import {
   II_AUTHORIZE_URL,
@@ -28,11 +28,15 @@ const CLOCK_SYNC_TIMEOUT_MS = 10_000;
 
 export type AuthStatus = 'initializing' | 'idle' | 'logging-in' | 'authenticated' | 'logging-out';
 
+export type SessionEnd = 'logout' | 'expiry';
+
 export type AuthState = {
   status: AuthStatus;
   identity?: Identity;
   /** When the session ends, by the local clock. Unset until the clock sync ends. */
   sessionEndsAtMs?: number;
+  /** Why the session that this tab held ended: a logout in any tab, or the end of its time. */
+  sessionEnd?: SessionEnd;
 };
 
 let state: AuthState = { status: 'initializing' };
@@ -47,6 +51,8 @@ const setState = (next: AuthState) => {
 let authClient: AuthClient | undefined;
 let initialization: Promise<void> | undefined;
 let expiryTimeout: ReturnType<typeof setTimeout> | undefined;
+// Tells the session of the current identity apart from a newer one that another tab installs.
+let sessionExpiresAtMs: number | undefined;
 
 const createAuthClient = (): AuthClient =>
   new AuthClient({
@@ -87,11 +93,12 @@ const startSession = (identity: Identity, expiresAtMs: number, timeDiffMs: numbe
   setState({ status: 'authenticated', identity, sessionEndsAtMs });
 
   const delayMs = Math.min(Math.max(0, sessionEndsAtMs - Date.now()), MAX_TIMEOUT_MS);
-  expiryTimeout = setTimeout(logout, delayMs);
+  expiryTimeout = setTimeout(() => void expireSession(expiresAtMs), delayMs);
 };
 
 const authenticate = (identity: Identity, expiresAtMs: number) => {
   clearTimeout(expiryTimeout);
+  sessionExpiresAtMs = expiresAtMs;
   setState({ status: 'authenticated', identity });
 
   void icTimeDiffMs().then((timeDiffMs) => {
@@ -100,9 +107,10 @@ const authenticate = (identity: Identity, expiresAtMs: number) => {
   });
 };
 
-const clearSession = () => {
+const clearSession = (sessionEnd?: SessionEnd) => {
   clearTimeout(expiryTimeout);
-  setState({ status: 'idle' });
+  sessionExpiresAtMs = undefined;
+  setState({ status: 'idle', ...(nonNullish(sessionEnd) && { sessionEnd }) });
 };
 
 // Only the latest session read sets the state. A login or a logout also makes older reads stale.
@@ -142,9 +150,30 @@ const readSession = async (client: AuthClient, revision: number) => {
 
   if (nonNullish(identity) && status.state === 'signed-in') {
     authenticate(identity, status.expiresAtMs);
-  } else {
-    clearSession();
+    return;
   }
+
+  // Only a session that this tab held can end.
+  const held = state.status === 'authenticated' || state.status === 'logging-out';
+  clearSession(held ? (status.state === 'signed-out' ? 'logout' : 'expiry') : undefined);
+};
+
+/**
+ * Ends the session whose time is up, in this tab only: Internet Identity ends it on its own. A
+ * newer session that another tab installed stays.
+ */
+const expireSession = async (expiresAtMs: number) => {
+  const client = authClient;
+  if (!client || state.status !== 'authenticated') return;
+
+  const status = client.getStatus();
+  if (status.state === 'signed-in' && status.expiresAtMs !== expiresAtMs) {
+    await syncSession(client);
+    return;
+  }
+
+  syncRevision++;
+  clearSession('expiry');
 };
 
 // A login or a logout in this tab sets the state when it ends.
@@ -177,12 +206,17 @@ const initialize = (): Promise<void> => (initialization ??= restoreSession());
 export const ensureInitialized = async (): Promise<Identity | undefined> => {
   await initialize();
 
-  const { identity, sessionEndsAtMs } = state;
-  if (isNullish(sessionEndsAtMs) || Date.now() < sessionEndsAtMs) return identity;
-
   // A background tab can run the expiry timer late.
-  logout();
-  return undefined;
+  const { sessionEndsAtMs } = state;
+  if (
+    nonNullish(sessionEndsAtMs) &&
+    nonNullish(sessionExpiresAtMs) &&
+    Date.now() >= sessionEndsAtMs
+  ) {
+    await expireSession(sessionExpiresAtMs);
+  }
+
+  return state.status === 'authenticated' ? state.identity : undefined;
 };
 
 export const getAuthState = (): AuthState => state;
@@ -216,7 +250,7 @@ const endSession = async (client: AuthClient) => {
   } catch (err) {
     // The session is cleared here even when Internet Identity cannot end it.
     console.error('Internet Identity: failed to log out.', err);
-    setState({ status: 'idle' });
+    clearSession('logout');
     return;
   }
 
