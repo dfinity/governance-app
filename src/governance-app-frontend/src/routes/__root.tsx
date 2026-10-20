@@ -142,6 +142,11 @@ function RootComponent() {
 
   const hadIdentity = useRef(!!identity);
 
+  // `HeadContent` renders the title and description now, so drop the static ones from index.html.
+  useEffect(() => {
+    document.head.querySelectorAll('[data-static-head]').forEach((node) => node.remove());
+  }, []);
+
   // Global identity change handler: login, logout, and auto-expiration
   useEffect(() => {
     // Revalidate/re-check route guards on any identity change

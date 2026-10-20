@@ -8,9 +8,11 @@
     <!--
       Link preview tags. Crawlers do not run JavaScript, so these must be static.
       Keep the text in sync with `common.head.appName` and `common.head.login.*`.
+      `RootComponent` removes the `data-static-head` tags once `HeadContent` renders its own.
     -->
-    <title>ICP governance &amp; voting | Network Nervous System</title>
+    <title data-static-head>ICP governance &amp; voting | Network Nervous System</title>
     <meta
+      data-static-head
       name="description"
       content="Participate in decentralized governance on the Internet Computer. Lock ICP, vote on proposals, and mint rewards."
     />
