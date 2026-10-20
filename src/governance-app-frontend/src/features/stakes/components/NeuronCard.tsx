@@ -1,6 +1,5 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { AlertTriangle, CircleAlert, Coins, Hourglass, Key, PackagePlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -13,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { E8Sn } from '@constants/extra';
 import { useIcpPrice } from '@hooks/tickers';
 import { useApyColor } from '@hooks/useApyColor';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatTimestampToLocalDate } from '@utils/date';
 import {
@@ -86,12 +86,16 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
   return (
     <>
       <Card
-        className="flex h-full flex-col gap-3 transition-colors hover:border-foreground"
+        className="@container/neuron-card flex h-full flex-col gap-3 transition-colors hover:border-foreground"
         data-testid="neuron-card"
       >
-        <CardHeader className="flex flex-row items-start justify-between space-y-0">
-          <div className="flex flex-col gap-1">
-            <p className="text-3xl font-bold" data-testid="neuron-card-staked-amount">
+        {/* Narrow cards show the fiat value and compact tags on one line below the amount. */}
+        <CardHeader className="flex flex-wrap items-center justify-between space-y-0 gap-x-3 gap-y-1 @md/neuron-card:items-start @md/neuron-card:gap-y-3">
+          <div className="contents @md/neuron-card:flex @md/neuron-card:flex-col @md/neuron-card:gap-1">
+            <p
+              className="basis-full text-3xl font-bold whitespace-nowrap @md/neuron-card:basis-auto"
+              data-testid="neuron-card-staked-amount"
+            >
               <SensitiveValue>
                 {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
               </SensitiveValue>
@@ -111,14 +115,14 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
           {nonNullish(apy) && apyColor.ready && (
             <div className="flex items-center gap-1.5">
               {isEightYearGang && (
-                <div className="rounded-sm border border-foreground/20 bg-foreground/5 p-2">
-                  <p className="text-[13px] font-bold text-foreground uppercase">
+                <div className="rounded-sm border border-foreground/20 bg-foreground/5 px-1.5 py-0.5 @md/neuron-card:p-2">
+                  <p className="text-[11px] font-bold whitespace-nowrap text-foreground uppercase @md/neuron-card:text-[13px]">
                     {t(($) => $.neuron.eightYearGang)}
                   </p>
                 </div>
               )}
               <div
-                className="flex items-center gap-2 rounded-sm border p-2"
+                className="flex items-center gap-1.5 rounded-sm border px-1.5 py-0.5 @md/neuron-card:gap-2 @md/neuron-card:p-2"
                 style={{
                   backgroundColor: apyColor.bgColor,
                   borderColor: apyColor.borderColor,
@@ -128,13 +132,15 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
                 tabIndex={0}
                 aria-label="Optimize neuron APY"
               >
-                <p className="text-[13px] font-semibold">{formatPercentage(apy.cur)}</p>
+                <p className="text-xs font-semibold @md/neuron-card:text-[13px]">
+                  {formatPercentage(apy.cur)}
+                </p>
                 {apyColor.isMax ? (
-                  <span className="rounded bg-green-600 px-1 py-0.5 text-[10px] font-bold text-white uppercase">
+                  <span className="rounded bg-green-600 px-1 text-[10px] font-bold text-white uppercase @md/neuron-card:py-0.5">
                     {t(($) => $.common.max)}
                   </span>
                 ) : (
-                  <CircleAlert className="hidden size-4 sm:block" />
+                  <CircleAlert className="hidden size-3.5 sm:block @md/neuron-card:size-4" />
                 )}
               </div>
             </div>

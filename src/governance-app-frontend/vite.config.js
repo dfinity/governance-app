@@ -45,12 +45,7 @@ export default defineConfig({
             if (id.includes('@tanstack')) return 'vendor-tanstack';
 
             // Isolate the ICP SDKs as they are heavy
-            if (
-              id.includes('@dfinity') ||
-              id.includes('@icp-sdk') ||
-              id.includes('@noble') ||
-              id.includes('ic-use-internet-identity')
-            )
+            if (id.includes('@dfinity') || id.includes('@icp-sdk') || id.includes('@noble'))
               return 'vendor-icp';
 
             if (id.includes('markdown') || id.includes('remark') || id.includes('micromark'))
@@ -61,6 +56,13 @@ export default defineConfig({
 
             // Loaded on demand by the QR scanner. Keep it out of the shared vendor chunk.
             if (id.includes('node_modules/jsqr/')) return 'vendor-jsqr';
+
+            // Loaded on demand by the Ledger device module. Keep it out of the shared vendor chunk.
+            if (id.includes('@zondax') || id.includes('@ledgerhq')) return 'vendor-ledger';
+
+            // The Ledger libraries read `Buffer` from the global scope when their chunk
+            // evaluates, so the polyfill must load and run in its own chunk first.
+            if (id.includes('node_modules/buffer/')) return 'vendor-buffer';
 
             // Everything else (Lucide, Radix, Motion)
             return 'vendor-libs';
@@ -152,11 +154,12 @@ export default defineConfig({
     exclude: ['./node_modules', './dist', './tests/e2e/**'],
     // Run before each test file
     setupFiles: ['vitest.setup.ts'],
-    // The governance-app-backend declarations are DFX-generated and not committed to git.
+    // The governance-app-backend declarations come from `npm run generate:candid-bindings` and are not
+    // committed to git.
     // Redirect to a minimal mock so tests that transitively import the IDL factory still run.
     alias: [
       {
-        find: '@declarations/governance-app-backend/governance-app-backend.did.js',
+        find: '@declarations/governance-app-backend/backend.did.js',
         replacement: fileURLToPath(
           new URL('./tests/mocks/governance-app-backend.did.js', import.meta.url),
         ),

@@ -1,6 +1,5 @@
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute, redirect } from '@tanstack/react-router';
-import { ensureInitialized, useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
@@ -12,8 +11,10 @@ import { NnsWordmark } from '@components/icons/NnsWordmark';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { useGovernanceProposal } from '@hooks/governance';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useTvlValue } from '@hooks/useTvlValue';
 import { isSafeInternalRedirect } from '@utils/router';
+import { ensureInitialized } from '@common/auth/internetIdentity';
 
 import i18n from '@/i18n/config';
 
@@ -59,7 +60,7 @@ export const Route = createFileRoute('/')({
 });
 
 function LoginPage() {
-  const { login, isLoggingIn, isLoginSuccess } = useInternetIdentity();
+  const { identity, canLogin, login, isLoggingIn } = useInternetIdentity();
   const { t } = useTranslation();
 
   const [isVideoReady, setIsVideoReady] = useState(false);
@@ -94,10 +95,10 @@ function LoginPage() {
 
   return (
     <>
-      <div className="login-page relative isolate min-h-dvh w-full font-sans text-foreground standalone:min-h-screen">
+      <div className="login-page relative isolate min-h-dvh w-full font-sans text-foreground">
         {/* Loading Overlay */}
-        {(isLoggingIn || isLoginSuccess) && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm standalone:bottom-[calc(100dvh-100vh)]">
+        {(isLoggingIn || nonNullish(identity)) && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
             <div
               className="flex flex-col items-center gap-6 text-foreground"
               role="status"
@@ -163,7 +164,7 @@ function LoginPage() {
         <div className="absolute inset-0 z-[1] bg-background/20 md:hidden" />
 
         {/* Content */}
-        <div className="relative z-10 flex min-h-dvh w-full flex-col justify-between px-4 pt-[calc(2.5rem+env(safe-area-inset-top))] pb-[calc(2.5rem+env(safe-area-inset-bottom))] 3xl:mx-auto 3xl:max-w-[2000px] sm:p-12 standalone:min-h-screen">
+        <div className="relative z-10 flex min-h-dvh w-full flex-col justify-between px-4 pt-[calc(2.5rem+env(safe-area-inset-top))] pb-[calc(2.5rem+env(safe-area-inset-bottom))] 3xl:mx-auto 3xl:max-w-[2000px] sm:p-12">
           {/* Header Section */}
           <div className="relative flex flex-col gap-6 md:mb-12 md:gap-0">
             <div className="relative flex items-start justify-between gap-4">
@@ -259,7 +260,7 @@ function LoginPage() {
               <div className="flex flex-col gap-4">
                 <Button
                   onClick={login}
-                  disabled={isLoggingIn}
+                  disabled={!canLogin}
                   className="w-full text-base"
                   variant="default"
                   size="xxl"

@@ -1,8 +1,8 @@
 import { Actor, ActorSubclass } from '@icp-sdk/core/agent';
 import { Principal } from '@icp-sdk/core/principal';
 
-import type { _SERVICE } from '@declarations/governance-app-backend/governance-app-backend.did';
-import { idlFactory } from '@declarations/governance-app-backend/governance-app-backend.did.js';
+import type { _SERVICE } from '@declarations/governance-app-backend/backend.did';
+import { idlFactory } from '@declarations/governance-app-backend/backend.did.js';
 
 import { CANISTER_ID_SELF } from '@constants/canisterIds';
 import { useAgentPool } from '@hooks/useAgentPool';

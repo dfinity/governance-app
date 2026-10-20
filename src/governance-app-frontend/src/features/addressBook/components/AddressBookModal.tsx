@@ -3,10 +3,7 @@ import { BookUser, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type {
-  AddressBook,
-  NamedAddress,
-} from '@declarations/governance-app-backend/governance-app-backend.did';
+import type { AddressBook, NamedAddress } from '@declarations/governance-app-backend/backend.did';
 
 import { SendICPDialog } from '@features/account/components/SendICPButton';
 import { useAccounts } from '@features/accounts/hooks/useAccounts';

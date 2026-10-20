@@ -3,10 +3,7 @@ import { AlertTriangle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
-import type {
-  AddressType,
-  NamedAddress,
-} from '@declarations/governance-app-backend/governance-app-backend.did';
+import type { AddressType, NamedAddress } from '@declarations/governance-app-backend/backend.did';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
@@ -264,12 +261,14 @@ export const AddAddressModal: React.FC<Props> = ({
                   <Alert variant="warning" data-testid="add-address-duplicate-warning">
                     <AlertTriangle className="size-4 text-destructive" />
                     <AlertDescription className="flex flex-col items-start gap-2">
-                      <Trans
-                        i18nKey={($) => $.addressBook.validation.addressAlreadySaved}
-                        t={t}
-                        values={{ name: duplicateEntry.name }}
-                        components={{ strong: <strong /> }}
-                      />
+                      <p>
+                        <Trans
+                          i18nKey={($) => $.addressBook.validation.addressAlreadySaved}
+                          t={t}
+                          values={{ name: duplicateEntry.name }}
+                          components={{ strong: <strong /> }}
+                        />
+                      </p>
                       <Button
                         type="button"
                         variant="outline"

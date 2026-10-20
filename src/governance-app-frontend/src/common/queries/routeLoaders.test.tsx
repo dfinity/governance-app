@@ -26,8 +26,11 @@ vi.mock('@common/canisters', () => ({
   getIcpLedgerCanister: async () => ({ accountBalance }),
 }));
 
-vi.mock('ic-use-internet-identity', () => ({
+vi.mock('@common/auth/internetIdentity', () => ({
   ensureInitialized: async () => IDENTITY,
+}));
+
+vi.mock('@hooks/useInternetIdentity', () => ({
   useInternetIdentity: () => ({ identity: IDENTITY }),
 }));
 

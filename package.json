@@ -14,6 +14,7 @@
     "lint": "npm run lint --workspaces --if-present",
     "lint:lockfile": "lockfile-lint",
     "check:i18n": "npm run check:i18n --workspaces --if-present",
+    "generate:candid-bindings": "npm run generate:candid-bindings --workspaces --if-present",
     "start": "npm start --workspaces --if-present",
     "start:ic": "./scripts/start-pocket-ic.sh",
     "start:local": "./scripts/config.sh -n local && npm run start",
@@ -27,6 +28,7 @@
     "src/governance-app-frontend"
   ],
   "devDependencies": {
+    "@icp-sdk/icp-cli": "1.6.0",
     "eslint": "10.0.0"
   }
 }
