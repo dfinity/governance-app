@@ -146,11 +146,14 @@ function UnauthenticatedNotFound() {
 
 function RootComponent() {
   const { identity } = useInternetIdentity();
-  const { invalidate } = useRouter();
+  const { invalidate, subscribe } = useRouter();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
 
   const hadIdentity = useRef(!!identity);
+
+  // Sends a pageview after each navigation, redirects included, once a page starts the tracker.
+  useEffect(() => subscribe('onResolved', () => analytics.pageview()), [subscribe]);
 
   // Global identity change handler: login, logout, and auto-expiration
   useEffect(() => {
