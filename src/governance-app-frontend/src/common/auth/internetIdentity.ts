@@ -56,7 +56,8 @@ let expiryTimeout: ReturnType<typeof setTimeout> | undefined;
 let sessionExpiresAtMs: number | undefined;
 // Set when a logout ends the session, for the route guard that runs on that change.
 let logoutRedirectPending = false;
-// A session that this tab logged out of while Internet Identity failed to end it.
+// A session that ended in this tab while the auth client can still hold it: a logout that failed,
+// or the last seconds before the expiry.
 let endedSessionExpiresAtMs: number | undefined;
 
 const createAuthClient = (): AuthClient =>
@@ -205,6 +206,7 @@ const expireSession = async (expiresAtMs: number) => {
   }
 
   supersedeReads();
+  endedSessionExpiresAtMs = expiresAtMs;
   clearSession('expiry');
 };
 

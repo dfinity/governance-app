@@ -467,7 +467,8 @@ describe('internetIdentity', () => {
     const auth = await loadModule();
     await auth.ensureInitialized();
 
-    // Internet Identity fails to end the session, so the client still holds it.
+    // The auth client clears the session before it raises a failed revoke. Here the clear fails
+    // too, so the client still holds the session.
     client.signOut.mockRejectedValueOnce(new Error('network error'));
     auth.logout();
     await vi.waitFor(() => expect(auth.getAuthState().status).toBe('idle'));
@@ -478,6 +479,25 @@ describe('internetIdentity', () => {
 
     // The read after the cancelled login ends the login.
     await vi.waitFor(() => expect(auth.getAuthState().status).not.toBe('logging-in'));
+    expect(auth.getAuthState()).toEqual({ status: 'idle' });
+  });
+
+  it('stays logged out after the expiry and a cancelled login.', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
+    const expiresAtMs = Date.now() + ONE_HOUR_MS;
+    const client = mockAuthClient({ identity: Ed25519KeyIdentity.generate(), expiresAtMs });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+    await vi.advanceTimersByTimeAsync(0);
+
+    // The session ends 10 seconds before the auth client lets it go.
+    await vi.advanceTimersByTimeAsync(ONE_HOUR_MS - 10_000);
+    expect(auth.getAuthState()).toEqual({ status: 'idle', sessionEnd: 'expiry' });
+
+    client.signIn.mockRejectedValueOnce(new Error('UserInterrupt'));
+    auth.login();
+    await vi.advanceTimersByTimeAsync(0);
+
     expect(auth.getAuthState()).toEqual({ status: 'idle' });
   });
 
