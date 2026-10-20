@@ -14,7 +14,7 @@ import { NeuronStandaloneAction } from './neuronDetail';
 
 const CONTROLLER = 'controller-principal';
 
-vi.mock('ic-use-internet-identity', () => ({
+vi.mock('@hooks/useInternetIdentity', () => ({
   useInternetIdentity: () => ({
     identity: {
       getPrincipal: () => ({ toText: () => CONTROLLER }),

@@ -1,6 +1,5 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { isNullish, nonNullish } from '@dfinity/utils';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { AlertTriangle, CheckCircle, Clock, TrendingDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -8,6 +7,7 @@ import { Skeleton } from '@components/Skeleton';
 import { Spinner } from '@components/Spinner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { useGovernanceEconomics } from '@hooks/governance/useGovernanceEconomics';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { secondsToDate } from '@utils/date';
 import { mapCanisterError } from '@utils/errors';
 import {

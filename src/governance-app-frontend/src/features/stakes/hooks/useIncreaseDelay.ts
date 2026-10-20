@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
@@ -8,6 +7,7 @@ import { analytics } from '@features/analytics/service';
 import { STAKING_WIZARD_DISSOLVE_DELAY_OPTIONS } from '@features/stakes/components/stakingWizard/constants';
 
 import { useNnsGovernance } from '@hooks/governance';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 
 type IncreaseDelayParams = {

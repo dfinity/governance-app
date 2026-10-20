@@ -1,5 +1,4 @@
-import { useInternetIdentity } from 'ic-use-internet-identity';
-
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useQueryThenUpdateCall } from '@hooks/useQueryThenUpdateCall';
 import { governanceNeuronsQuery, NeuronsRequest, neuronsRequest } from '@common/queries/governance';
 
