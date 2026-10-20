@@ -53,6 +53,8 @@ let initialization: Promise<void> | undefined;
 let expiryTimeout: ReturnType<typeof setTimeout> | undefined;
 // Tells the session of the current identity apart from a newer one that another tab installs.
 let sessionExpiresAtMs: number | undefined;
+// Set when a logout ends the session, for the route guard that runs on that change.
+let logoutRedirectPending = false;
 
 const createAuthClient = (): AuthClient =>
   new AuthClient({
@@ -119,6 +121,13 @@ let syncRevision = 0;
 let sessionSettled: Promise<void> = Promise.resolve();
 let settleSession: (() => void) | undefined;
 
+// A login, a logout or an expiry decides the state, so older reads no longer count.
+const supersedeReads = () => {
+  syncRevision++;
+  settleSession?.();
+  settleSession = undefined;
+};
+
 /** Sets the state from the session that the auth client holds. */
 const syncSession = (client: AuthClient): Promise<void> => {
   const revision = ++syncRevision;
@@ -155,7 +164,10 @@ const readSession = async (client: AuthClient, revision: number) => {
 
   // Only a session that this tab held can end.
   const held = state.status === 'authenticated' || state.status === 'logging-out';
-  clearSession(held ? (status.state === 'signed-out' ? 'logout' : 'expiry') : undefined);
+  const sessionEnd = held ? (status.state === 'signed-out' ? 'logout' : 'expiry') : undefined;
+  // A logout in this tab set it already.
+  if (state.status === 'authenticated' && sessionEnd === 'logout') logoutRedirectPending = true;
+  clearSession(sessionEnd);
 };
 
 /**
@@ -172,7 +184,7 @@ const expireSession = async (expiresAtMs: number) => {
     return;
   }
 
-  syncRevision++;
+  supersedeReads();
   clearSession('expiry');
 };
 
@@ -205,6 +217,8 @@ const initialize = (): Promise<void> => (initialization ??= restoreSession());
  */
 export const ensureInitialized = async (): Promise<Identity | undefined> => {
   await initialize();
+  // Another tab can have changed the session, and its read can still wait.
+  await sessionSettled;
 
   // A background tab can run the expiry timer late.
   const { sessionEndsAtMs } = state;
@@ -221,6 +235,13 @@ export const ensureInitialized = async (): Promise<Identity | undefined> => {
 
 export const getAuthState = (): AuthState => state;
 
+/** Whether the route guard runs for a logout, which needs no notice. It answers `true` once. */
+export const consumeLogoutRedirect = (): boolean => {
+  const pending = logoutRedirectPending;
+  logoutRedirectPending = false;
+  return pending;
+};
+
 /** Also starts reading the stored session, so any subscriber gets it without a route guard. */
 export const subscribeAuthState = (listener: () => void): (() => void) => {
   initialize().catch(() => undefined);
@@ -234,7 +255,7 @@ export const login = () => {
   const client = authClient;
   if (!client || state.status !== 'idle') return;
 
-  syncRevision++;
+  supersedeReads();
   setState({ status: 'logging-in' });
 
   void client
@@ -266,8 +287,9 @@ export const logout = () => {
   const client = authClient;
   if (!client || state.status !== 'authenticated') return;
 
-  syncRevision++;
+  supersedeReads();
   clearTimeout(expiryTimeout);
+  logoutRedirectPending = true;
   setState({ status: 'logging-out', sessionEnd: 'logout' });
   void endSession(client);
 };

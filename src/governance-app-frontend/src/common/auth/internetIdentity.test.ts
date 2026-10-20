@@ -370,6 +370,66 @@ describe('internetIdentity', () => {
     expect(auth.getAuthState()).toEqual({ status: 'idle' });
   });
 
+  it('gives the logout to one route guard.', async () => {
+    const identity = Ed25519KeyIdentity.generate();
+    mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+    expect(auth.consumeLogoutRedirect()).toBe(false);
+
+    auth.logout();
+    await vi.waitFor(() => expect(auth.getAuthState().status).toBe('idle'));
+
+    expect(auth.consumeLogoutRedirect()).toBe(true);
+    expect(auth.consumeLogoutRedirect()).toBe(false);
+  });
+
+  it('gives a logout from another tab to one route guard.', async () => {
+    const identity = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    client.change(undefined, { state: 'signed-out' });
+    await vi.waitFor(() => expect(auth.getAuthState().status).toBe('idle'));
+
+    expect(auth.consumeLogoutRedirect()).toBe(true);
+    expect(auth.consumeLogoutRedirect()).toBe(false);
+  });
+
+  it('waits for an account switch from another tab before it returns the identity.', async () => {
+    const older = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity: older, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    const newer = Ed25519KeyIdentity.generate();
+    const newerRead = deferred<Identity>();
+    client.getIdentity.mockReturnValueOnce(newerRead.promise);
+    client.change(newer, signedIn(newer, Date.now() + ONE_HOUR_MS));
+
+    const guard = auth.ensureInitialized();
+    newerRead.resolve(newer);
+
+    await expect(guard).resolves.toBe(newer);
+  });
+
+  it('releases a waiting route guard on logout.', async () => {
+    const identity = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    // A read that never settles, as a stalled mint.
+    client.getIdentity.mockReturnValueOnce(new Promise<Identity>(() => undefined));
+    client.change(identity, signedIn(identity, Date.now() + ONE_HOUR_MS));
+
+    const guard = auth.ensureInitialized();
+    auth.logout();
+
+    await expect(guard).resolves.toBeUndefined();
+  });
+
   it('clears the identity at once on logout, then allows a new login.', async () => {
     const client = mockAuthClient({
       identity: Ed25519KeyIdentity.generate(),

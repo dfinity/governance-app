@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
 
+import { AccountBoundary } from '@components/AccountBoundary';
 import { Button } from '@components/button';
 import { MainLayout } from '@components/MainLayout';
 import { SessionCountdownToast } from '@components/SessionCountdownToast';
@@ -148,7 +149,9 @@ function RootComponent() {
   return (
     <>
       <HeadContent />
-      <Outlet />
+      <AccountBoundary>
+        <Outlet />
+      </AccountBoundary>
       <Scripts />
       {!isE2E && <TanStackRouterDevtools />}
     </>

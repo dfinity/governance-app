@@ -1,18 +1,21 @@
+import type { Identity } from '@icp-sdk/core/agent';
 import type { ParsedLocation } from '@tanstack/react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { AuthState } from '@common/auth/internetIdentity';
-
 import { isSafeInternalRedirect, requireIdentity } from './router';
 
-const { authState, warningNotification } = vi.hoisted(() => ({
-  authState: { current: { status: 'idle' } as AuthState },
+const { session, warningNotification } = vi.hoisted(() => ({
+  session: { identity: undefined as Identity | undefined, logoutRedirectPending: false },
   warningNotification: vi.fn(),
 }));
 
 vi.mock('@common/auth/internetIdentity', () => ({
-  ensureInitialized: async () => authState.current.identity,
-  getAuthState: () => authState.current,
+  ensureInitialized: async () => session.identity,
+  consumeLogoutRedirect: () => {
+    const pending = session.logoutRedirectPending;
+    session.logoutRedirectPending = false;
+    return pending;
+  },
 }));
 
 vi.mock('./notification', () => ({ warningNotification }));
@@ -51,20 +54,20 @@ describe('isSafeInternalRedirect', () => {
 
 describe('requireIdentity', () => {
   beforeEach(() => {
+    session.identity = undefined;
+    session.logoutRedirectPending = false;
     warningNotification.mockClear();
   });
 
   it('sends a visitor without a session to the login page with the route and a notice.', async () => {
-    authState.current = { status: 'idle' };
-
     await expect(guard('/dashboard')).resolves.toEqual(
       expect.objectContaining({ to: '/', search: { redirect: '/dashboard' } }),
     );
     expect(warningNotification).toHaveBeenCalledTimes(1);
   });
 
-  it('sends the user to the login page without a notice while a manual logout runs.', async () => {
-    authState.current = { status: 'logging-out', sessionEnd: 'logout' };
+  it('sends the user to the login page without a notice on a logout.', async () => {
+    session.logoutRedirectPending = true;
 
     const redirect = await guard('/dashboard');
 
@@ -73,9 +76,11 @@ describe('requireIdentity', () => {
     expect(warningNotification).not.toHaveBeenCalled();
   });
 
-  it('sends the user to the login page with a notice after the session expires.', async () => {
-    authState.current = { status: 'idle', sessionEnd: 'expiry' };
+  it('keeps the route and the notice for navigation after the logout.', async () => {
+    session.logoutRedirectPending = true;
+    await guard('/dashboard');
 
+    // For example, browser Back to a protected page.
     await expect(guard('/neurons')).resolves.toEqual(
       expect.objectContaining({ to: '/', search: { redirect: '/neurons' } }),
     );
