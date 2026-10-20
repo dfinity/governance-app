@@ -3,8 +3,49 @@ import { Drawer as DrawerPrimitive } from 'vaul';
 
 import { cn } from '@utils/shadcn';
 
+let documentScrollLocks = 0;
+let restoreDocumentScroll: (() => void) | undefined;
+
+/**
+ * Freezes the document at its scroll position while a drawer is open. On mobile the document
+ * scrolls, and vaul does not start a drag while the document is scrolled.
+ */
+const lockDocumentScroll = () => {
+  documentScrollLocks += 1;
+  if (documentScrollLocks === 1 && window.scrollY > 0) {
+    const { scrollY } = window;
+    const { pathname } = window.location;
+    const { style } = document.body;
+    // `important` beats the `position: relative !important` of the Radix scroll lock.
+    style.setProperty('position', 'fixed', 'important');
+    Object.assign(style, { top: `${-scrollY}px`, left: '0px', right: '0px' });
+    restoreDocumentScroll = () => {
+      style.removeProperty('position');
+      Object.assign(style, { top: '', left: '', right: '' });
+      // The drawer can close because the page changed. The new page keeps its own position.
+      if (window.location.pathname === pathname) {
+        window.scrollTo({ top: scrollY, behavior: 'instant' });
+      }
+    };
+  }
+
+  return () => {
+    documentScrollLocks -= 1;
+    if (documentScrollLocks === 0) {
+      restoreDocumentScroll?.();
+      restoreDocumentScroll = undefined;
+    }
+  };
+};
+
+const DocumentScrollLock = () => {
+  React.useLayoutEffect(lockDocumentScroll, []);
+  return null;
+};
+
 function Drawer({ ...props }: React.ComponentProps<typeof DrawerPrimitive.Root>) {
-  return <DrawerPrimitive.Root data-slot="drawer" {...props} />;
+  // `DocumentScrollLock` replaces the body styles of vaul, which only apply in Safari.
+  return <DrawerPrimitive.Root data-slot="drawer" noBodyStyles {...props} />;
 }
 
 function DrawerTrigger({ ...props }: React.ComponentProps<typeof DrawerPrimitive.Trigger>) {
@@ -76,6 +117,7 @@ function DrawerContent({
         }}
         {...props}
       >
+        <DocumentScrollLock />
         <div className="mx-auto mt-4 hidden h-2 w-[100px] shrink-0 rounded-full bg-muted group-data-[vaul-drawer-direction=bottom]/drawer-content:block" />
         {children}
       </DrawerPrimitive.Content>
