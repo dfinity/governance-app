@@ -58,9 +58,11 @@ const proposal = {
   ballots: [],
 } as unknown as ProposalInfo;
 
-const renderInMain = () => {
+// `main` scrolls on desktop. On mobile the document scrolls.
+const renderInMain = ({ mainScrolls = true } = {}) => {
   const main = document.createElement('main');
   main.style.paddingBottom = '8px';
+  main.style.overflowY = mainScrolls ? 'auto' : 'visible';
   document.body.appendChild(main);
   render(<ProposalDetailsVoting proposal={proposal} />, { container: main });
   return main;
@@ -74,11 +76,12 @@ const reportSentinelTop = (top: number) =>
     ),
   );
 
-const footerState = () =>
+const footer = () =>
   screen
     .getByRole('button', { name: 'Vote Yes on proposal 1' })
-    .closest('[data-state]')
-    ?.getAttribute('data-state');
+    .closest<HTMLElement>('[data-state]')!;
+
+const footerState = () => footer().getAttribute('data-state');
 
 // ─── Tests ───────────────────────────────────────────────────────
 
@@ -109,7 +112,7 @@ describe('ProposalDetailsVoting', () => {
     expect(footerState()).toBe('docked');
   });
 
-  it('ends the observed area at the bottom padding of main', () => {
+  it('ends the observed area at the bottom padding of main when main scrolls', () => {
     const main = renderInMain();
 
     expect(mocks.observer?.options).toMatchObject({ root: main, rootMargin: '0px 0px -8px 0px' });
@@ -122,6 +125,24 @@ describe('ProposalDetailsVoting', () => {
     act(() => mocks.resize!());
 
     expect(mocks.observer?.options).toMatchObject({ root: main, rootMargin: '0px 0px -32px 0px' });
+  });
+
+  it('ends the observed viewport at the sticky offset when the document scrolls', () => {
+    renderInMain({ mainScrolls: false });
+
+    footer().style.bottom = '98px';
+    act(() => mocks.resize!());
+
+    expect(mocks.observer?.options).toMatchObject({ root: null, rootMargin: '0px 0px -98px 0px' });
+  });
+
+  it('follows the scroll container when the breakpoint changes', () => {
+    const main = renderInMain({ mainScrolls: false });
+
+    main.style.overflowY = 'auto';
+    act(() => mocks.resize!());
+
+    expect(mocks.observer?.options).toMatchObject({ root: main, rootMargin: '0px 0px -8px 0px' });
   });
 
   it('shows no vote buttons when the user cannot vote', () => {

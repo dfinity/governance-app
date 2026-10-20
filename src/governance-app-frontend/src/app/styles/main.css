@@ -513,9 +513,11 @@ html.route-dashboard {
   }
 }
 
-/* Prevents overscroll outside the main wrapper. */
-body {
-  overflow: hidden;
+/* On desktop `main` is the scroller, so the document must not scroll. */
+@media (width >= 64rem) {
+  body {
+    overflow: hidden;
+  }
 }
 
 /* Login page is the document scroller so iOS Safari can collapse its toolbar on scroll. */

@@ -2,7 +2,8 @@ import { useRouterState } from '@tanstack/react-router';
 import { useLayoutEffect, useRef } from 'react';
 
 /**
- * Resets the scroll position of the main element when the page changes.
+ * Resets the scroll position when the page changes. The document scrolls on mobile and the main
+ * element scrolls on desktop, so both reset.
  * Query params and hash/fragment changes are ignored, since we are in the same page.
  * Replaces the scrollRestoration prop from TanStack Router, because it didn't work consistently:
  * sometimes didn't reset the scroll position on page change.
@@ -22,6 +23,7 @@ export const useScrollResetOnNavigation = () => {
   useLayoutEffect(() => {
     if (previousPathname.current !== resolvedPathname) {
       document.querySelector('main')?.scrollTo({ top: 0, left: 0 });
+      window.scrollTo({ top: 0, left: 0 });
       previousPathname.current = resolvedPathname;
     }
   }, [resolvedPathname]);
