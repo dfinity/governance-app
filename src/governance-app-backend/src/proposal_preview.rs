@@ -25,9 +25,15 @@ static META_KEY_ATTR: LazyLock<Regex> =
 static META_CONTENT_ATTR: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"\bcontent="([^"]*)""#).unwrap());
 
-/// Code blocks (without the info string) and code spans. Their text is literal.
+/// Code blocks (without the fence lines) and code spans of one to three backticks.
+/// Their text is literal.
 static MARKDOWN_CODE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?s)```[^\n]*\n?(.*?)```|~~~[^\n]*\n?(.*?)~~~|`([^`\n]*)`").unwrap()
+    Regex::new(concat!(
+        r"(?m)^[ \t]*```[^\n]*\n((?s:.*?))^[ \t]*```[ \t]*$",
+        r"|^[ \t]*~~~[^\n]*\n((?s:.*?))^[ \t]*~~~[ \t]*$",
+        r"|```([^\n]+?)```|``([^\n]+?)``|`([^`\n]*)`",
+    ))
+    .unwrap()
 });
 /// Stands for the code at an index while the other passes run.
 const CODE_START: char = '\u{E000}';
@@ -194,7 +200,7 @@ fn strip_prefix_ignore_ascii_case<'a>(text: &'a str, prefix: &str) -> Option<&'a
 fn strip_markdown(markdown: &str) -> String {
     let mut code_texts = Vec::new();
     let text = MARKDOWN_CODE.replace_all(markdown, |caps: &Captures| {
-        let code = (1..=3)
+        let code = (1..=5)
             .find_map(|group| caps.get(group))
             .map_or("", |m| m.as_str());
         code_texts.push(code.to_string());
@@ -205,7 +211,6 @@ fn strip_markdown(markdown: &str) -> String {
     let text = HTML_TAG.replace_all(&text, " ");
     let text = MARKDOWN_RULE_LINE.replace_all(&text, "");
     let text = MARKDOWN_LINE_PREFIX.replace_all(&text, "");
-    let text = decode_entities(&text);
     let text = MARKDOWN_EMPHASIS.replace_all(&text, |caps: &Captures| {
         if caps[1].is_empty() {
             String::new()
@@ -214,6 +219,8 @@ fn strip_markdown(markdown: &str) -> String {
         }
     });
     let text = MARKDOWN_ESCAPE.replace_all(&text, "$1");
+    // After the markdown passes, so that a decoded character stays as text.
+    let text = decode_entities(&text);
     let text = CODE_PLACEHOLDER.replace_all(&text, |caps: &Captures| {
         caps[1]
             .parse::<usize>()

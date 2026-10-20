@@ -111,6 +111,22 @@ fn test_strip_markdown_keeps_code_text() {
 }
 
 #[test]
+fn test_strip_markdown_keeps_inline_code_with_three_backticks() {
+    assert_eq!(
+        strip_markdown("Use ```Vec<T>``` or ``a`b`` for this API."),
+        "Use Vec<T> or a`b for this API."
+    );
+}
+
+#[test]
+fn test_strip_markdown_keeps_encoded_markdown_markers() {
+    assert_eq!(
+        strip_markdown("Fee multiplier: 2 &#42; 3 ICP.\n&gt; 5 &#35; and &#96;x&#96;"),
+        "Fee multiplier: 2 * 3 ICP. > 5 # and `x`"
+    );
+}
+
+#[test]
 fn test_strip_markdown_keeps_autolink_text() {
     assert_eq!(
         strip_markdown("See <https://example.com/a?b=1>."),
