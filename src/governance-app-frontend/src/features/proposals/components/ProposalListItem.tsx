@@ -214,7 +214,7 @@ export function ProposalListItem({
                   vote: t(($) => $.proposal.yes),
                   proposalId: proposal.id?.toString(),
                 })}
-                className="flex-1 text-emerald-800 hover:border-emerald-700 hover:bg-emerald-100/10 hover:text-emerald-700 dark:text-emerald-400 dark:hover:border-emerald-300 dark:hover:bg-emerald-50/10 dark:hover:text-emerald-300"
+                className="flex-1 text-emerald-800 hover:border-emerald-700 hover:bg-emerald-100/10 hover:text-emerald-700 dark:text-emerald-400 dark:hover:border-emerald-300 dark:hover:bg-emerald-900/10 dark:hover:text-emerald-300"
                 disabled={isVoting}
                 onClick={(e) => voteHandler(Vote.Yes, e)}
                 size="xl"
