@@ -232,6 +232,18 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             )]),
             encodings: text_encodings.clone(),
         },
+        // robots.txt: no caching (the path is not content-hashed). Must come before `**/*.txt`.
+        AssetConfig::File {
+            path: "robots.txt".to_string(),
+            content_type: Some("text/plain".to_string()),
+            headers: get_asset_headers(vec![(
+                CACHE_CONTROL_HEADER.to_string(),
+                NO_CACHE_ASSET_CACHE_CONTROL.to_string(),
+            )]),
+            fallback_for: vec![],
+            aliased_by: vec![],
+            encodings: text_encodings.clone(),
+        },
         AssetConfig::Pattern {
             pattern: "**/*.txt".to_string(),
             content_type: Some("text/plain".to_string()),
@@ -244,6 +256,15 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
         AssetConfig::Pattern {
             pattern: "**/*.png".to_string(),
             content_type: Some("image/png".to_string()),
+            headers: get_asset_headers(vec![(
+                CACHE_CONTROL_HEADER.to_string(),
+                DEV_ASSET_CACHE_CONTROL.to_string(),
+            )]),
+            encodings: vec![],
+        },
+        AssetConfig::Pattern {
+            pattern: "**/*.jpg".to_string(),
+            content_type: Some("image/jpeg".to_string()),
             headers: get_asset_headers(vec![(
                 CACHE_CONTROL_HEADER.to_string(),
                 DEV_ASSET_CACHE_CONTROL.to_string(),
