@@ -99,6 +99,36 @@ fn test_strip_markdown_keeps_entities_in_code() {
 }
 
 #[test]
+fn test_strip_markdown_keeps_code_text() {
+    assert_eq!(
+        strip_markdown("Use `Vec<T>` for this API. Match `a*b` and `\\_x` literally."),
+        "Use Vec<T> for this API. Match a*b and \\_x literally."
+    );
+    assert_eq!(
+        strip_markdown("Run:\n```sh\nmake <target> **all**\n```"),
+        "Run: make <target> **all**"
+    );
+}
+
+#[test]
+fn test_strip_markdown_keeps_autolink_text() {
+    assert_eq!(
+        strip_markdown("See <https://example.com/a?b=1>."),
+        "See https://example.com/a?b=1."
+    );
+}
+
+#[test]
+fn test_render_page_with_an_autolink_summary() {
+    let page = render_page(INDEX_HTML, 8, None, "<https://forum.dfinity.org/t/1>");
+
+    assert_eq!(
+        meta_content(&page, "og:description").as_deref(),
+        Some("https://forum.dfinity.org/t/1")
+    );
+}
+
+#[test]
 fn test_render_page_escapes_decoded_entities_once() {
     let page = render_page(
         INDEX_HTML,

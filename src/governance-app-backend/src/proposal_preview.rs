@@ -25,17 +25,23 @@ static META_KEY_ATTR: LazyLock<Regex> =
 static META_CONTENT_ATTR: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"\bcontent="([^"]*)""#).unwrap());
 
+/// Code blocks (without the info string) and code spans. Their text is literal.
+static MARKDOWN_CODE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?s)```[^\n]*\n?(.*?)```|~~~[^\n]*\n?(.*?)~~~|`([^`\n]*)`").unwrap()
+});
+/// Stands for the code at an index while the other passes run.
+const CODE_START: char = '\u{E000}';
+const CODE_END: char = '\u{E001}';
+static CODE_PLACEHOLDER: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"\x{E000}(\d+)\x{E001}").unwrap());
 static MARKDOWN_IMAGE_OR_LINK: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"!?\[([^\]]*)\]\([^)]*\)").unwrap());
+static MARKDOWN_AUTOLINK: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"<((?:https?|ftp|mailto):[^<>\s]*)>").unwrap());
 static HTML_TAG: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"</?[a-zA-Z][^>]*>").unwrap());
 /// Horizontal rules and setext heading underlines.
 static MARKDOWN_RULE_LINE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?m)^[ \t]*(?:[-=*_][ \t]*){3,}$").unwrap());
-static MARKDOWN_FENCE_LINE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"(?m)^[ \t]*(?:```|~~~).*$").unwrap());
-/// Code blocks and code spans. Their text is literal, so their entities stay as text.
-static MARKDOWN_CODE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"(?s)```.*?```|~~~.*?~~~|`[^`]*`").unwrap());
 static HTML_ENTITY: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"&(?:#([0-9]{1,7})|#[xX]([0-9a-fA-F]{1,6})|([a-zA-Z]+));").unwrap()
 });
@@ -43,7 +49,7 @@ static HTML_ENTITY: LazyLock<Regex> = LazyLock::new(|| {
 static MARKDOWN_LINE_PREFIX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?m)^[ \t]*(?:#{1,6}[ \t]+|>[ \t]?|[-*+][ \t]+|\d+[.)][ \t]+)").unwrap()
 });
-/// Emphasis and code markers. A backslash before a marker keeps the marker as text.
+/// Emphasis markers and unmatched backticks. A backslash before a marker keeps the marker as text.
 static MARKDOWN_EMPHASIS: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(\\?)(\*\*|__|~~|\*|`)").unwrap());
 static MARKDOWN_ESCAPE: LazyLock<Regex> =
@@ -184,14 +190,22 @@ fn strip_prefix_ignore_ascii_case<'a>(text: &'a str, prefix: &str) -> Option<&'a
         .then(|| &text[prefix.len()..])
 }
 
-/// Converts markdown to plain text on one line. Keeps the text of links and images.
+/// Converts markdown to plain text on one line. Keeps the text of code, links, and images.
 fn strip_markdown(markdown: &str) -> String {
-    let text = MARKDOWN_IMAGE_OR_LINK.replace_all(markdown, "$1");
+    let mut code_texts = Vec::new();
+    let text = MARKDOWN_CODE.replace_all(markdown, |caps: &Captures| {
+        let code = (1..=3)
+            .find_map(|group| caps.get(group))
+            .map_or("", |m| m.as_str());
+        code_texts.push(code.to_string());
+        format!("{CODE_START}{}{CODE_END}", code_texts.len() - 1)
+    });
+    let text = MARKDOWN_IMAGE_OR_LINK.replace_all(&text, "$1");
+    let text = MARKDOWN_AUTOLINK.replace_all(&text, "$1");
     let text = HTML_TAG.replace_all(&text, " ");
     let text = MARKDOWN_RULE_LINE.replace_all(&text, "");
     let text = MARKDOWN_LINE_PREFIX.replace_all(&text, "");
-    let text = decode_entities_outside_code(&text);
-    let text = MARKDOWN_FENCE_LINE.replace_all(&text, "");
+    let text = decode_entities(&text);
     let text = MARKDOWN_EMPHASIS.replace_all(&text, |caps: &Captures| {
         if caps[1].is_empty() {
             String::new()
@@ -200,19 +214,15 @@ fn strip_markdown(markdown: &str) -> String {
         }
     });
     let text = MARKDOWN_ESCAPE.replace_all(&text, "$1");
+    let text = CODE_PLACEHOLDER.replace_all(&text, |caps: &Captures| {
+        caps[1]
+            .parse::<usize>()
+            .ok()
+            .and_then(|index| code_texts.get(index))
+            .cloned()
+            .unwrap_or_default()
+    });
     WHITESPACE.replace_all(&text, " ").trim().to_string()
-}
-
-fn decode_entities_outside_code(text: &str) -> String {
-    let mut decoded = String::with_capacity(text.len());
-    let mut end = 0;
-    for code in MARKDOWN_CODE.find_iter(text) {
-        decoded.push_str(&decode_entities(&text[end..code.start()]));
-        decoded.push_str(code.as_str());
-        end = code.end();
-    }
-    decoded.push_str(&decode_entities(&text[end..]));
-    decoded
 }
 
 /// Decodes numeric entities and the common named entities. Other entities stay as text.
