@@ -55,7 +55,8 @@ static HTML_ENTITY: LazyLock<Regex> = LazyLock::new(|| {
 static MARKDOWN_LINE_PREFIX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?m)^[ \t]*(?:#{1,6}[ \t]+|>[ \t]?|[-*+][ \t]+|\d+[.)][ \t]+)").unwrap()
 });
-/// Emphasis markers and unmatched backticks. A backslash before a marker keeps the marker as text.
+/// Emphasis markers and unmatched backticks. A backslash before a marker, or whitespace on both
+/// sides of it, keeps the marker as text.
 static MARKDOWN_EMPHASIS: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(\\?)(\*\*|__|~~|\*|`)").unwrap());
 static MARKDOWN_ESCAPE: LazyLock<Regex> =
@@ -211,8 +212,13 @@ fn strip_markdown(markdown: &str) -> String {
     let text = HTML_TAG.replace_all(&text, " ");
     let text = MARKDOWN_RULE_LINE.replace_all(&text, "");
     let text = MARKDOWN_LINE_PREFIX.replace_all(&text, "");
-    let text = MARKDOWN_EMPHASIS.replace_all(&text, |caps: &Captures| {
-        if caps[1].is_empty() {
+    let haystack: &str = &text;
+    let text = MARKDOWN_EMPHASIS.replace_all(haystack, |caps: &Captures| {
+        let whole = caps.get(0).unwrap();
+        let is_space = |c: Option<char>| c.is_none_or(char::is_whitespace);
+        let is_literal = is_space(haystack[..whole.start()].chars().next_back())
+            && is_space(haystack[whole.end()..].chars().next());
+        if caps[1].is_empty() && !is_literal {
             String::new()
         } else {
             caps[2].to_string()

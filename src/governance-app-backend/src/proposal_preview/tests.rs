@@ -119,6 +119,14 @@ fn test_strip_markdown_keeps_inline_code_with_three_backticks() {
 }
 
 #[test]
+fn test_strip_markdown_keeps_markers_between_spaces() {
+    assert_eq!(
+        strip_markdown("Fee multiplier: 2 * 3 ICP, a ** b, and *bold* text."),
+        "Fee multiplier: 2 * 3 ICP, a ** b, and bold text."
+    );
+}
+
+#[test]
 fn test_strip_markdown_keeps_encoded_markdown_markers() {
     assert_eq!(
         strip_markdown("Fee multiplier: 2 &#42; 3 ICP.\n&gt; 5 &#35; and &#96;x&#96;"),
