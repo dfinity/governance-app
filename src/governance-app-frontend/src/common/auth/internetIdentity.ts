@@ -56,6 +56,8 @@ let expiryTimeout: ReturnType<typeof setTimeout> | undefined;
 let sessionExpiresAtMs: number | undefined;
 // Set when a logout ends the session, for the route guard that runs on that change.
 let logoutRedirectPending = false;
+// A session that this tab logged out of while Internet Identity failed to end it.
+let endedSessionExpiresAtMs: number | undefined;
 
 const createAuthClient = (): AuthClient =>
   new AuthClient({
@@ -102,6 +104,7 @@ const startSession = (identity: Identity, expiresAtMs: number, timeDiffMs: numbe
 const authenticate = (identity: Identity, expiresAtMs: number) => {
   clearTimeout(expiryTimeout);
   sessionExpiresAtMs = expiresAtMs;
+  logoutRedirectPending = false;
   setState({ status: 'authenticated', identity });
 
   void icTimeDiffMs().then((timeDiffMs) => {
@@ -163,7 +166,11 @@ const readSession = async (client: AuthClient, revision: number) => {
   // Read after the wait, because another tab can log in or out meanwhile.
   const status = client.getStatus();
 
-  if (nonNullish(identity) && status.state === 'signed-in') {
+  if (
+    nonNullish(identity) &&
+    status.state === 'signed-in' &&
+    status.expiresAtMs !== endedSessionExpiresAtMs
+  ) {
     // Another tab switched the account. A new page drops all the state of the account before:
     // agents, queries and open dialogs.
     if (isOtherAccount(identity)) {
@@ -294,6 +301,7 @@ const endSession = async (client: AuthClient, expiresAtMs: number | undefined) =
       return;
     }
 
+    endedSessionExpiresAtMs = expiresAtMs;
     clearSession('logout');
     return;
   }

@@ -7,9 +7,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { SessionEnd } from '@common/auth/internetIdentity';
 
-const { invalidate, infoNotification, session } = vi.hoisted(() => ({
+const { invalidate, infoNotification, consumeLogoutRedirect, session } = vi.hoisted(() => ({
   invalidate: vi.fn(async () => undefined),
   infoNotification: vi.fn(),
+  consumeLogoutRedirect: vi.fn(() => false),
   session: {
     identity: undefined as Identity | undefined,
     sessionEnd: undefined as SessionEnd | undefined,
@@ -23,6 +24,8 @@ vi.mock('@hooks/useInternetIdentity', () => ({
 }));
 
 vi.mock('@utils/notification', () => ({ infoNotification }));
+
+vi.mock('@common/auth/internetIdentity', () => ({ consumeLogoutRedirect }));
 
 const { useSessionChange } = await import('./useSessionChange');
 
@@ -90,6 +93,15 @@ describe('useSessionChange', () => {
     await waitFor(() => expect(firstTab.resetQueries).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(secondTab.resetQueries).toHaveBeenCalledTimes(1));
     expect(infoNotification).not.toHaveBeenCalled();
+  });
+
+  it('leaves the logout redirect to the route guard.', async () => {
+    const { resetQueries, switchTo } = renderSessionChange(Ed25519KeyIdentity.generate());
+
+    switchTo(undefined, 'logout');
+
+    await waitFor(() => expect(resetQueries).toHaveBeenCalledTimes(1));
+    expect(consumeLogoutRedirect).not.toHaveBeenCalled();
   });
 
   it('keeps the cached queries when the same account gets a new identity object.', async () => {

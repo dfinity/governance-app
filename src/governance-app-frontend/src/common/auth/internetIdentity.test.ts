@@ -460,6 +460,44 @@ describe('internetIdentity', () => {
     );
   });
 
+  it('stays logged out after a failed logout and a cancelled login.', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const identity = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    // Internet Identity fails to end the session, so the client still holds it.
+    client.signOut.mockRejectedValueOnce(new Error('network error'));
+    auth.logout();
+    await vi.waitFor(() => expect(auth.getAuthState().status).toBe('idle'));
+
+    client.signIn.mockRejectedValueOnce(new Error('UserInterrupt'));
+    auth.login();
+    expect(auth.getAuthState().status).toBe('logging-in');
+
+    // The read after the cancelled login ends the login.
+    await vi.waitFor(() => expect(auth.getAuthState().status).not.toBe('logging-in'));
+    expect(auth.getAuthState()).toEqual({ status: 'idle' });
+  });
+
+  it('drops the logout redirect when a new session starts.', async () => {
+    const identity = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    auth.logout();
+    await vi.waitFor(() => expect(auth.getAuthState().status).toBe('idle'));
+
+    // No route guard ran for the logout, for example on a page without one.
+    const again = Ed25519KeyIdentity.generate();
+    client.change(again, signedIn(again, Date.now() + ONE_HOUR_MS));
+    await vi.waitFor(() => expect(auth.getAuthState()).toMatchObject({ identity: again }));
+
+    expect(auth.consumeLogoutRedirect()).toBe(false);
+  });
+
   it('keeps a login from another tab when the logout fails.', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const identity = Ed25519KeyIdentity.generate();
