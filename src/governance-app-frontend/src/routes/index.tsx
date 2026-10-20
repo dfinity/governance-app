@@ -3,6 +3,7 @@ import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { useLoginAnalytics } from '@features/analytics/useLoginAnalytics';
 import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGovernanceLogo';
 
 import { AnimatedNumber } from '@components/AnimatedNumber';
@@ -62,6 +63,8 @@ export const Route = createFileRoute('/')({
 function LoginPage() {
   const { identity, canLogin, login, isLoggingIn } = useInternetIdentity();
   const { t } = useTranslation();
+
+  useLoginAnalytics();
 
   const [isVideoReady, setIsVideoReady] = useState(false);
   const baseVideoRef = useRef<HTMLVideoElement>(null);

@@ -69,6 +69,8 @@ export enum AnalyticsEvent {
   AccountQrScanError = 'account_qr_scan_error',
 
   // Session
+  LoginSuccess = 'login_success',
+  LoginError = 'login_error',
   SessionLogout = 'session_logout',
   SessionExpired = 'session_expired',
 
@@ -79,5 +81,4 @@ export enum AnalyticsEvent {
   NotFound = 'not_found',
 }
 // @TODO:
-//  - successful login
 //  - click on the navigation items
