@@ -313,7 +313,11 @@ describe('internetIdentity', () => {
 
     // Internet Identity has not ended the session yet.
     const signOut = deferred<void>();
-    client.signOut.mockReturnValueOnce(signOut.promise);
+    client.signOut.mockImplementationOnce(async () => {
+      await signOut.promise;
+      client.identity = undefined;
+      client.status = { state: 'signed-out' };
+    });
     auth.logout();
 
     staleRead.resolve(identity);
@@ -322,6 +326,44 @@ describe('internetIdentity', () => {
 
     signOut.resolve();
     await vi.waitFor(() => expect(auth.getAuthState()).toEqual({ status: 'idle' }));
+  });
+
+  it('keeps a login from another tab that arrives during the logout.', async () => {
+    const identity = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    const signOut = deferred<void>();
+    client.signOut.mockImplementationOnce(async () => {
+      client.identity = undefined;
+      client.status = { state: 'signed-out' };
+      await signOut.promise;
+    });
+    auth.logout();
+
+    const other = Ed25519KeyIdentity.generate();
+    client.change(other, signedIn(other, Date.now() + ONE_HOUR_MS));
+    signOut.resolve();
+
+    await vi.waitFor(() =>
+      expect(auth.getAuthState()).toMatchObject({ status: 'authenticated', identity: other }),
+    );
+  });
+
+  it('ends startup with the latest session while an older read still waits.', async () => {
+    const older = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity: older, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    // Never settles, as a stalled mint.
+    client.getIdentity.mockReturnValueOnce(new Promise<Identity>(() => undefined));
+    const auth = await loadModule();
+
+    const restored = auth.ensureInitialized();
+    await vi.waitFor(() => expect(client.getIdentity).toHaveBeenCalled());
+    client.change(undefined, { state: 'signed-out' });
+
+    await expect(restored).resolves.toBeUndefined();
+    expect(auth.getAuthState()).toEqual({ status: 'idle' });
   });
 
   it('clears the identity at once on logout, then allows a new login.', async () => {

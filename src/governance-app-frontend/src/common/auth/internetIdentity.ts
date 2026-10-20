@@ -107,13 +107,26 @@ const clearSession = () => {
 
 // Only the latest session read sets the state. A login or a logout also makes older reads stale.
 let syncRevision = 0;
-let latestSync: Promise<void> = Promise.resolve();
+// Resolves when the latest read has set the state, even while an older read still waits.
+let sessionSettled: Promise<void> = Promise.resolve();
+let settleSession: (() => void) | undefined;
 
 /** Sets the state from the session that the auth client holds. */
-const syncSession = (client: AuthClient): Promise<void> => (latestSync = readSession(client));
-
-const readSession = async (client: AuthClient) => {
+const syncSession = (client: AuthClient): Promise<void> => {
   const revision = ++syncRevision;
+  if (!settleSession) sessionSettled = new Promise((resolve) => (settleSession = resolve));
+
+  const settle = () => {
+    if (revision !== syncRevision) return;
+    settleSession?.();
+    settleSession = undefined;
+  };
+  void readSession(client, revision).then(settle, settle);
+
+  return sessionSettled;
+};
+
+const readSession = async (client: AuthClient, revision: number) => {
   let identity: Identity | undefined;
 
   try {
@@ -141,15 +154,6 @@ const onSessionChange = () => {
   }
 };
 
-// Another tab can change the session while a read waits, which starts a newer read.
-const settleSession = async () => {
-  let current: Promise<void>;
-  do {
-    current = latestSync;
-    await current;
-  } while (current !== latestSync);
-};
-
 const restoreSession = async () => {
   try {
     authClient = createAuthClient();
@@ -158,10 +162,10 @@ const restoreSession = async () => {
     throw err;
   }
 
-  // Other tabs share the session, so their logins and logouts arrive here.
+  // Other tabs share the session, so their logins and logouts arrive here. A change during the
+  // first read starts a newer one, and the wait ends with the latest.
   authClient.subscribe(onSessionChange);
-  void syncSession(authClient);
-  await settleSession();
+  await syncSession(authClient);
 };
 
 const initialize = (): Promise<void> => (initialization ??= restoreSession());
@@ -212,9 +216,12 @@ const endSession = async (client: AuthClient) => {
   } catch (err) {
     // The session is cleared here even when Internet Identity cannot end it.
     console.error('Internet Identity: failed to log out.', err);
+    setState({ status: 'idle' });
+    return;
   }
 
-  setState({ status: 'idle' });
+  // Another tab can log in while the logout runs.
+  await syncSession(client);
 };
 
 /**
