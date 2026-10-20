@@ -43,8 +43,15 @@ static LITERAL_PLACEHOLDER: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"\x{E000}(\d+)\x{E001}").unwrap());
 static MARKDOWN_IMAGE_OR_LINK: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"!?\[([^\]]*)\]\([^)]*\)").unwrap());
-static MARKDOWN_AUTOLINK: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"<((?:https?|ftp|mailto):[^<>\s]*)>").unwrap());
+/// URI and email autolinks, as CommonMark defines them.
+static MARKDOWN_AUTOLINK: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(concat!(
+        r"<([a-zA-Z][a-zA-Z0-9+.\-]{1,31}:[^<>\s]*",
+        r"|[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~\-]+@[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?",
+        r"(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*)>",
+    ))
+    .unwrap()
+});
 static HTML_TAG: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"</?[a-zA-Z][^>]*>").unwrap());
 /// Horizontal rules and setext heading underlines.
 static MARKDOWN_RULE_LINE: LazyLock<Regex> =
