@@ -324,7 +324,7 @@ describe('internetIdentity', () => {
 
     staleRead.resolve(identity);
     await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(auth.getAuthState()).toEqual({ status: 'logging-out' });
+    expect(auth.getAuthState()).toEqual({ status: 'logging-out', sessionEnd: 'logout' });
 
     signOut.resolve();
     await vi.waitFor(() =>
@@ -382,7 +382,7 @@ describe('internetIdentity', () => {
     auth.subscribeAuthState(listener);
     auth.logout();
 
-    expect(auth.getAuthState()).toEqual({ status: 'logging-out' });
+    expect(auth.getAuthState()).toEqual({ status: 'logging-out', sessionEnd: 'logout' });
     auth.login();
     expect(client.signIn).not.toHaveBeenCalled();
 

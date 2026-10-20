@@ -268,6 +268,6 @@ export const logout = () => {
 
   syncRevision++;
   clearTimeout(expiryTimeout);
-  setState({ status: 'logging-out' });
+  setState({ status: 'logging-out', sessionEnd: 'logout' });
   void endSession(client);
 };
