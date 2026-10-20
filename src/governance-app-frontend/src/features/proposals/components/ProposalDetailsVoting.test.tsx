@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => ({
   resize: undefined as (() => void) | undefined,
 }));
 
-vi.mock('ic-use-internet-identity', () => ({
+vi.mock('@hooks/useInternetIdentity', () => ({
   useInternetIdentity: () => ({ identity: {} }),
 }));
 
