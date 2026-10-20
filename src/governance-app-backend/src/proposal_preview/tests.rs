@@ -131,6 +131,7 @@ fn test_strip_markdown_keeps_unmatched_markers() {
     for text in [
         "Raise the limit to 2*3 ICP.",
         "Keep snake__case__name as is.",
+        "Keep snake_case_name and get_proposal_info as is.",
         "Keep * a and b * with spaces inside.",
     ] {
         assert_eq!(strip_markdown(text), text);
@@ -141,8 +142,8 @@ fn test_strip_markdown_keeps_unmatched_markers() {
 #[test]
 fn test_strip_markdown_removes_nested_emphasis() {
     assert_eq!(
-        strip_markdown("***Both*** and ~~old~~ and __strong__ and *`code`*"),
-        "Both and old and strong and code"
+        strip_markdown("***Both*** and ~~old~~ and __strong__ and _em_ and *`code`*"),
+        "Both and old and strong and em and code"
     );
 }
 
@@ -233,6 +234,17 @@ fn test_summary_excerpt_removes_a_leading_title_with_markup() {
             "# Test `<tags>` & more\n\nThis motion asks a question."
         ),
         "This motion asks a question."
+    );
+}
+
+#[test]
+fn test_summary_excerpt_removes_a_leading_title_in_underscores() {
+    assert_eq!(
+        summary_excerpt(
+            Some("Upgrade governance"),
+            "_Upgrade governance_\n\nDetails."
+        ),
+        "Details."
     );
 }
 

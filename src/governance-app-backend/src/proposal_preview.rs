@@ -67,7 +67,7 @@ static MARKDOWN_LINE_PREFIX: LazyLock<Regex> = LazyLock::new(|| {
 static MARKDOWN_EMPHASIS: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(concat!(
         r"\*\*(\S(?:[^\n]*?\S)?)\*\*|__(\S(?:[^\n]*?\S)?)__",
-        r"|~~(\S(?:[^\n]*?\S)?)~~|\*(\S(?:[^*\n]*?\S)?)\*",
+        r"|~~(\S(?:[^\n]*?\S)?)~~|\*(\S(?:[^*\n]*?\S)?)\*|_(\S(?:[^_\n]*?\S)?)_",
     ))
     .unwrap()
 });
@@ -243,18 +243,18 @@ fn strip_markdown(markdown: &str) -> String {
     WHITESPACE.replace_all(&text, " ").trim().to_string()
 }
 
-/// Removes one level of emphasis delimiters. Like markdown, `__` inside a word stays as text.
+/// Removes one level of emphasis delimiters. Like markdown, `_` and `__` inside a word stay as text.
 fn strip_emphasis(text: &str) -> Cow<'_, str> {
     MARKDOWN_EMPHASIS.replace_all(text, |caps: &Captures| {
         let whole = caps.get(0).unwrap();
         let is_alphanumeric = |c: Option<char>| c.is_some_and(char::is_alphanumeric);
-        let is_intraword_underscore = caps.get(2).is_some()
+        let is_intraword_underscore = (caps.get(2).is_some() || caps.get(5).is_some())
             && (is_alphanumeric(text[..whole.start()].chars().next_back())
                 || is_alphanumeric(text[whole.end()..].chars().next()));
         if is_intraword_underscore {
             return whole.as_str().to_string();
         }
-        (1..=4)
+        (1..=5)
             .find_map(|group| caps.get(group))
             .map_or("", |m| m.as_str())
             .to_string()
