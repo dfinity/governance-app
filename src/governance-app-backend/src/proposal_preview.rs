@@ -25,20 +25,21 @@ static META_KEY_ATTR: LazyLock<Regex> =
 static META_CONTENT_ATTR: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"\bcontent="([^"]*)""#).unwrap());
 
-/// Code blocks (without the fence lines) and code spans of one to three backticks.
-/// Their text is literal.
-static MARKDOWN_CODE: LazyLock<Regex> = LazyLock::new(|| {
+/// Code blocks (without the fence lines), code spans of one to three backticks, and escaped
+/// characters. Their text is literal.
+static MARKDOWN_LITERAL: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(concat!(
         r"(?m)^[ \t]*```[^\n]*\n((?s:.*?))^[ \t]*```[ \t]*$",
         r"|^[ \t]*~~~[^\n]*\n((?s:.*?))^[ \t]*~~~[ \t]*$",
         r"|```([^\n]+?)```|``([^\n]+?)``|`([^`\n]*)`",
+        r"|\\([\\`*_{}\[\]()#+\-.!|<>~])",
     ))
     .unwrap()
 });
-/// Stands for the code at an index while the other passes run.
-const CODE_START: char = '\u{E000}';
-const CODE_END: char = '\u{E001}';
-static CODE_PLACEHOLDER: LazyLock<Regex> =
+/// Stands for the literal text at an index while the other passes run.
+const LITERAL_START: char = '\u{E000}';
+const LITERAL_END: char = '\u{E001}';
+static LITERAL_PLACEHOLDER: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"\x{E000}(\d+)\x{E001}").unwrap());
 static MARKDOWN_IMAGE_OR_LINK: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"!?\[([^\]]*)\]\([^)]*\)").unwrap());
@@ -55,12 +56,16 @@ static HTML_ENTITY: LazyLock<Regex> = LazyLock::new(|| {
 static MARKDOWN_LINE_PREFIX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?m)^[ \t]*(?:#{1,6}[ \t]+|>[ \t]?|[-*+][ \t]+|\d+[.)][ \t]+)").unwrap()
 });
-/// Emphasis markers and unmatched backticks. A backslash before a marker, or whitespace on both
-/// sides of it, keeps the marker as text.
-static MARKDOWN_EMPHASIS: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"(\\?)(\*\*|__|~~|\*|`)").unwrap());
-static MARKDOWN_ESCAPE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"\\([\\`*_{}\[\]()#+\-.!|<>~])").unwrap());
+/// Emphasis with a pair of delimiters next to text. Other delimiters stay as text.
+static MARKDOWN_EMPHASIS: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(concat!(
+        r"\*\*(\S(?:[^\n]*?\S)?)\*\*|__(\S(?:[^\n]*?\S)?)__",
+        r"|~~(\S(?:[^\n]*?\S)?)~~|\*(\S(?:[^*\n]*?\S)?)\*",
+    ))
+    .unwrap()
+});
+/// Nested emphasis such as `***text***` needs one pass for each level.
+const MAX_EMPHASIS_PASSES: usize = 3;
 static WHITESPACE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\s+").unwrap());
 
 /// Returns the proposal ID of a `/voting/proposals/<id>` path.
@@ -199,43 +204,54 @@ fn strip_prefix_ignore_ascii_case<'a>(text: &'a str, prefix: &str) -> Option<&'a
 
 /// Converts markdown to plain text on one line. Keeps the text of code, links, and images.
 fn strip_markdown(markdown: &str) -> String {
-    let mut code_texts = Vec::new();
-    let text = MARKDOWN_CODE.replace_all(markdown, |caps: &Captures| {
-        let code = (1..=5)
+    let mut literal_texts = Vec::new();
+    let text = MARKDOWN_LITERAL.replace_all(markdown, |caps: &Captures| {
+        let literal = (1..=6)
             .find_map(|group| caps.get(group))
             .map_or("", |m| m.as_str());
-        code_texts.push(code.to_string());
-        format!("{CODE_START}{}{CODE_END}", code_texts.len() - 1)
+        literal_texts.push(literal.to_string());
+        format!("{LITERAL_START}{}{LITERAL_END}", literal_texts.len() - 1)
     });
     let text = MARKDOWN_IMAGE_OR_LINK.replace_all(&text, "$1");
     let text = MARKDOWN_AUTOLINK.replace_all(&text, "$1");
     let text = HTML_TAG.replace_all(&text, " ");
     let text = MARKDOWN_RULE_LINE.replace_all(&text, "");
-    let text = MARKDOWN_LINE_PREFIX.replace_all(&text, "");
-    let haystack: &str = &text;
-    let text = MARKDOWN_EMPHASIS.replace_all(haystack, |caps: &Captures| {
-        let whole = caps.get(0).unwrap();
-        let is_space = |c: Option<char>| c.is_none_or(char::is_whitespace);
-        let is_literal = is_space(haystack[..whole.start()].chars().next_back())
-            && is_space(haystack[whole.end()..].chars().next());
-        if caps[1].is_empty() && !is_literal {
-            String::new()
-        } else {
-            caps[2].to_string()
+    let mut text = MARKDOWN_LINE_PREFIX.replace_all(&text, "").into_owned();
+    for _ in 0..MAX_EMPHASIS_PASSES {
+        match strip_emphasis(&text) {
+            Cow::Borrowed(_) => break,
+            Cow::Owned(stripped) => text = stripped,
         }
-    });
-    let text = MARKDOWN_ESCAPE.replace_all(&text, "$1");
+    }
     // After the markdown passes, so that a decoded character stays as text.
     let text = decode_entities(&text);
-    let text = CODE_PLACEHOLDER.replace_all(&text, |caps: &Captures| {
+    let text = LITERAL_PLACEHOLDER.replace_all(&text, |caps: &Captures| {
         caps[1]
             .parse::<usize>()
             .ok()
-            .and_then(|index| code_texts.get(index))
+            .and_then(|index| literal_texts.get(index))
             .cloned()
             .unwrap_or_default()
     });
     WHITESPACE.replace_all(&text, " ").trim().to_string()
+}
+
+/// Removes one level of emphasis delimiters. Like markdown, `__` inside a word stays as text.
+fn strip_emphasis(text: &str) -> Cow<'_, str> {
+    MARKDOWN_EMPHASIS.replace_all(text, |caps: &Captures| {
+        let whole = caps.get(0).unwrap();
+        let is_alphanumeric = |c: Option<char>| c.is_some_and(char::is_alphanumeric);
+        let is_intraword_underscore = caps.get(2).is_some()
+            && (is_alphanumeric(text[..whole.start()].chars().next_back())
+                || is_alphanumeric(text[whole.end()..].chars().next()));
+        if is_intraword_underscore {
+            return whole.as_str().to_string();
+        }
+        (1..=4)
+            .find_map(|group| caps.get(group))
+            .map_or("", |m| m.as_str())
+            .to_string()
+    })
 }
 
 /// Decodes numeric entities and the common named entities. Other entities stay as text.

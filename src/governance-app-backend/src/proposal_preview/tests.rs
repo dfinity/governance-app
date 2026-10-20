@@ -127,6 +127,26 @@ fn test_strip_markdown_keeps_markers_between_spaces() {
 }
 
 #[test]
+fn test_strip_markdown_keeps_unmatched_markers() {
+    for text in [
+        "Raise the limit to 2*3 ICP.",
+        "Keep snake__case__name as is.",
+        "Keep * a and b * with spaces inside.",
+    ] {
+        assert_eq!(strip_markdown(text), text);
+    }
+    assert_eq!(strip_markdown("Keep \\*a* as is."), "Keep *a* as is.");
+}
+
+#[test]
+fn test_strip_markdown_removes_nested_emphasis() {
+    assert_eq!(
+        strip_markdown("***Both*** and ~~old~~ and __strong__ and *`code`*"),
+        "Both and old and strong and code"
+    );
+}
+
+#[test]
 fn test_strip_markdown_keeps_encoded_markdown_markers() {
     assert_eq!(
         strip_markdown("Fee multiplier: 2 &#42; 3 ICP.\n&gt; 5 &#35; and &#96;x&#96;"),
