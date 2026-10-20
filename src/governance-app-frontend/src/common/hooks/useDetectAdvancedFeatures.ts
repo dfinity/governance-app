@@ -6,6 +6,7 @@ import { useGovernanceNeurons } from '@hooks/governance';
 import { useNnsDappAccount } from '@hooks/nnsDapp/useNnsDappAccount';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { AdvancedFeature, type AdvancedFeaturesSettings } from '@typings/advancedFeatures';
+import { isWebHidSupported } from '@common/ledger/webhid';
 
 type DetectionResult = {
   isDetecting: boolean;
@@ -27,23 +28,33 @@ export const useDetectAdvancedFeatures = (enabled = true): DetectionResult => {
   const shouldCheckAdvancedFollowing = missingFeatureKeys.includes(
     AdvancedFeature.AdvancedFollowing,
   );
+  // A device account is only useful where WebHID can reach the device.
+  const shouldCheckLedgerDevice =
+    missingFeatureKeys.includes(AdvancedFeature.LedgerDevice) && isWebHidSupported();
+  const shouldCheckNnsDappAccount = shouldCheckSubaccounts || shouldCheckLedgerDevice;
 
-  const nnsDappAccount = useNnsDappAccount(hasFeaturesToCheck && shouldCheckSubaccounts);
+  const nnsDappAccount = useNnsDappAccount(hasFeaturesToCheck && shouldCheckNnsDappAccount);
   const neuronsQuery = useGovernanceNeurons({
     enabled: hasFeaturesToCheck && shouldCheckAdvancedFollowing,
   });
 
   const isPending =
-    (shouldCheckSubaccounts && nnsDappAccount.isLoading) ||
+    (shouldCheckNnsDappAccount && nnsDappAccount.isLoading) ||
     (shouldCheckAdvancedFollowing && neuronsQuery.isLoading);
 
   const detectedFeatures: Partial<AdvancedFeaturesSettings> = {};
   if (hasFeaturesToCheck && !isPending) {
+    const accountData = nnsDappAccount.data?.response;
     if (shouldCheckSubaccounts) {
-      const accountData = nnsDappAccount.data?.response;
       detectedFeatures[AdvancedFeature.Subaccounts] = isNullish(accountData)
         ? false
-        : accountData?.sub_accounts.length > 0;
+        : accountData.sub_accounts.length > 0;
+    }
+
+    if (shouldCheckLedgerDevice) {
+      detectedFeatures[AdvancedFeature.LedgerDevice] = isNullish(accountData)
+        ? false
+        : accountData.hardware_wallet_accounts.length > 0;
     }
 
     if (shouldCheckAdvancedFollowing) {
