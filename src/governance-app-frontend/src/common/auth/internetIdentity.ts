@@ -105,8 +105,12 @@ const clearSession = () => {
   setState({ status: 'idle' });
 };
 
+// Only the latest session read sets the state. A login or a logout also makes older reads stale.
+let syncRevision = 0;
+
 /** Sets the state from the session that the auth client holds. */
 const syncSession = async (client: AuthClient) => {
+  const revision = ++syncRevision;
   let identity: Identity | undefined;
 
   try {
@@ -114,6 +118,8 @@ const syncSession = async (client: AuthClient) => {
   } catch (err) {
     console.error('Internet Identity: failed to read the session.', err);
   }
+
+  if (revision !== syncRevision) return;
 
   // Read after the wait, because another tab can log in or out meanwhile.
   const status = client.getStatus();
@@ -177,6 +183,7 @@ export const login = () => {
   const client = authClient;
   if (!client || state.status !== 'idle') return;
 
+  syncRevision++;
   setState({ status: 'logging-in' });
 
   void client
@@ -205,6 +212,7 @@ export const logout = () => {
   const client = authClient;
   if (!client || state.status !== 'authenticated') return;
 
+  syncRevision++;
   clearTimeout(expiryTimeout);
   setState({ status: 'logging-out' });
   void endSession(client);

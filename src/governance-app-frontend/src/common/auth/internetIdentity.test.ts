@@ -226,6 +226,69 @@ describe('internetIdentity', () => {
     expect(client.signOut).not.toHaveBeenCalled();
   });
 
+  it('keeps the newer session when an older session read resolves last.', async () => {
+    const client = mockAuthClient();
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    const older = Ed25519KeyIdentity.generate();
+    const newer = Ed25519KeyIdentity.generate();
+    const olderRead = deferred<Identity>();
+    client.getIdentity.mockReturnValueOnce(olderRead.promise);
+
+    client.change(older, signedIn(older, Date.now() + ONE_HOUR_MS));
+    client.change(newer, signedIn(newer, Date.now() + 2 * ONE_HOUR_MS));
+    await vi.waitFor(() => expect(auth.getAuthState()).toMatchObject({ identity: newer }));
+
+    olderRead.resolve(older);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(auth.getAuthState()).toMatchObject({ status: 'authenticated', identity: newer });
+  });
+
+  it('keeps the newer session when an older session read fails last.', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const client = mockAuthClient();
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    const older = Ed25519KeyIdentity.generate();
+    const newer = Ed25519KeyIdentity.generate();
+    const olderRead = deferred<Identity>();
+    client.getIdentity.mockReturnValueOnce(olderRead.promise);
+
+    client.change(older, signedIn(older, Date.now() + ONE_HOUR_MS));
+    client.change(newer, signedIn(newer, Date.now() + ONE_HOUR_MS));
+    await vi.waitFor(() => expect(auth.getAuthState()).toMatchObject({ identity: newer }));
+
+    olderRead.reject(new Error('IndexedDB closed'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(auth.getAuthState()).toMatchObject({ status: 'authenticated', identity: newer });
+  });
+
+  it('ignores a session read that started before a logout.', async () => {
+    const identity = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+    await vi.waitFor(() => expect(auth.getAuthState().sessionEndsAtMs).toBeDefined());
+
+    const staleRead = deferred<Identity>();
+    client.getIdentity.mockReturnValueOnce(staleRead.promise);
+    client.change(identity, signedIn(identity, Date.now() + ONE_HOUR_MS));
+
+    // Internet Identity has not ended the session yet.
+    const signOut = deferred<void>();
+    client.signOut.mockReturnValueOnce(signOut.promise);
+    auth.logout();
+
+    staleRead.resolve(identity);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(auth.getAuthState()).toEqual({ status: 'logging-out' });
+
+    signOut.resolve();
+    await vi.waitFor(() => expect(auth.getAuthState()).toEqual({ status: 'idle' }));
+  });
+
   it('clears the identity at once on logout, then allows a new login.', async () => {
     const client = mockAuthClient({
       identity: Ed25519KeyIdentity.generate(),
