@@ -23,28 +23,37 @@ type Props = {
  * It must be a direct child of the page column: the negative margins cancel the column's `gap-6`.
  */
 const DockingFooter = ({ children }: { children: ReactNode }) => {
+  const footerRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [isDocked, setIsDocked] = useState(true);
 
   useEffect(() => {
     const main = document.querySelector('main');
+    const footer = footerRef.current;
     const sentinel = sentinelRef.current;
-    if (!main || !sentinel) return;
+    if (!main || !footer || !sentinel) return;
 
     let observer: IntersectionObserver | undefined;
-    let paddingBottom: number | undefined;
+    let observedRoot: Element | null | undefined;
+    let observedInset: number | undefined;
 
-    // The sticky footer stops at the bottom padding of `main`, so the root ends there too.
-    // The padding changes with the breakpoint, so the observer follows the size of `main`.
+    // `main` scrolls on desktop and the document scrolls on mobile. The footer sticks at its
+    // `bottom` offset, above the bottom padding of `main` when `main` is the scroller.
+    // Both change with the breakpoint, so the observer follows the size of `main`.
     const observe = () => {
-      const nextPaddingBottom = parseFloat(getComputedStyle(main).paddingBottom) || 0;
-      if (nextPaddingBottom === paddingBottom) return;
+      const mainStyle = getComputedStyle(main);
+      const root = mainStyle.overflowY === 'visible' ? null : main;
+      const inset =
+        (parseFloat(getComputedStyle(footer).bottom) || 0) +
+        (root ? parseFloat(mainStyle.paddingBottom) || 0 : 0);
+      if (root === observedRoot && inset === observedInset) return;
 
-      paddingBottom = nextPaddingBottom;
+      observedRoot = root;
+      observedInset = inset;
       observer?.disconnect();
       observer = new IntersectionObserver(
         ([entry]) => setIsDocked(entry.boundingClientRect.top < (entry.rootBounds?.bottom ?? 0)),
-        { root: main, rootMargin: `0px 0px -${paddingBottom}px 0px` },
+        { root, rootMargin: `0px 0px -${inset}px 0px` },
       );
       observer.observe(sentinel);
     };
@@ -63,9 +72,10 @@ const DockingFooter = ({ children }: { children: ReactNode }) => {
     <>
       {/* Inset shadows draw the outline, so the docked footer joins the card without a seam. */}
       <div
+        ref={footerRef}
         data-state={isDocked ? 'docked' : 'floating'}
         className={cn(
-          'sticky bottom-0 z-10 -mt-6 bg-card px-6 py-5 transition-[border-radius,box-shadow] duration-200 ease-out motion-reduce:transition-none',
+          'sticky bottom-[calc(var(--bottom-nav-space)+1rem)] z-10 -mt-6 bg-card px-6 py-5 transition-[border-radius,box-shadow] duration-200 ease-out motion-reduce:transition-none lg:bottom-0',
           isDocked
             ? 'rounded-t-none rounded-b-[6px] shadow-[inset_1px_0_var(--color-border),inset_-1px_0_var(--color-border),inset_0_-1px_var(--color-border),inset_0_1px_transparent,0_8px_30px_transparent]'
             : 'rounded-xl shadow-[inset_1px_0_var(--color-border),inset_-1px_0_var(--color-border),inset_0_-1px_var(--color-border),inset_0_1px_var(--color-border),0_8px_30px_rgb(0_0_0/0.12)]',

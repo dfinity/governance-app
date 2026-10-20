@@ -33,7 +33,7 @@ export const BottomNav = () => {
   }
 
   return (
-    <nav className="pointer-events-none absolute inset-x-0 bottom-0 z-50 px-5 pb-(--bottom-nav-gap) lg:hidden">
+    <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-5 pb-(--bottom-nav-gap) lg:hidden">
       <div
         className={cn(
           'pointer-events-auto relative mx-auto flex h-(--bottom-nav-height) max-w-md rounded-full p-1',
