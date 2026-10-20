@@ -226,6 +226,41 @@ describe('internetIdentity', () => {
     expect(client.signOut).not.toHaveBeenCalled();
   });
 
+  it('restores the newer session when another tab changes it during the first read.', async () => {
+    const older = Ed25519KeyIdentity.generate();
+    const newer = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity: older, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const olderRead = deferred<Identity>();
+    client.getIdentity.mockReturnValueOnce(olderRead.promise);
+    const auth = await loadModule();
+
+    const restored = auth.ensureInitialized();
+    await vi.waitFor(() => expect(client.getIdentity).toHaveBeenCalled());
+    client.change(newer, signedIn(newer, Date.now() + 2 * ONE_HOUR_MS));
+
+    olderRead.resolve(older);
+    await expect(restored).resolves.toBe(newer);
+    expect(auth.getAuthState()).toMatchObject({ status: 'authenticated', identity: newer });
+  });
+
+  it('restores the newer session when the first read fails after another tab changes it.', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const older = Ed25519KeyIdentity.generate();
+    const newer = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity: older, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const olderRead = deferred<Identity>();
+    client.getIdentity.mockReturnValueOnce(olderRead.promise);
+    const auth = await loadModule();
+
+    const restored = auth.ensureInitialized();
+    await vi.waitFor(() => expect(client.getIdentity).toHaveBeenCalled());
+    client.change(newer, signedIn(newer, Date.now() + ONE_HOUR_MS));
+
+    olderRead.reject(new Error('IndexedDB closed'));
+    await expect(restored).resolves.toBe(newer);
+    expect(auth.getAuthState()).toMatchObject({ status: 'authenticated', identity: newer });
+  });
+
   it('keeps the newer session when an older session read resolves last.', async () => {
     const client = mockAuthClient();
     const auth = await loadModule();

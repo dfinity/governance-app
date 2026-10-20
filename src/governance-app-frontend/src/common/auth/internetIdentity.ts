@@ -107,9 +107,12 @@ const clearSession = () => {
 
 // Only the latest session read sets the state. A login or a logout also makes older reads stale.
 let syncRevision = 0;
+let latestSync: Promise<void> = Promise.resolve();
 
 /** Sets the state from the session that the auth client holds. */
-const syncSession = async (client: AuthClient) => {
+const syncSession = (client: AuthClient): Promise<void> => (latestSync = readSession(client));
+
+const readSession = async (client: AuthClient) => {
   const revision = ++syncRevision;
   let identity: Identity | undefined;
 
@@ -133,9 +136,18 @@ const syncSession = async (client: AuthClient) => {
 
 // A login or a logout in this tab sets the state when it ends.
 const onSessionChange = () => {
-  if (authClient && (state.status === 'idle' || state.status === 'authenticated')) {
+  if (authClient && ['initializing', 'idle', 'authenticated'].includes(state.status)) {
     void syncSession(authClient);
   }
+};
+
+// Another tab can change the session while a read waits, which starts a newer read.
+const settleSession = async () => {
+  let current: Promise<void>;
+  do {
+    current = latestSync;
+    await current;
+  } while (current !== latestSync);
 };
 
 const restoreSession = async () => {
@@ -148,7 +160,8 @@ const restoreSession = async () => {
 
   // Other tabs share the session, so their logins and logouts arrive here.
   authClient.subscribe(onSessionChange);
-  await syncSession(authClient);
+  void syncSession(authClient);
+  await settleSession();
 };
 
 const initialize = (): Promise<void> => (initialization ??= restoreSession());
