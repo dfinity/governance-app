@@ -12,6 +12,14 @@ import { mockNeuron } from '@fixtures/neuron';
 
 import { EarningsCard } from './EarningsCard';
 
+const USER = 'user-principal';
+
+vi.mock('ic-use-internet-identity', () => ({
+  useInternetIdentity: () => ({
+    identity: { getPrincipal: () => ({ toText: () => USER }) },
+  }),
+}));
+
 vi.mock('@hooks/useStakingRewards', () => ({
   useStakingRewards: () => ({
     loading: false,
@@ -71,6 +79,22 @@ describe('EarningsCard', () => {
     render(
       <EarningsCard
         neurons={[optimizedNeuron(), mockNeuron({ neuronId: 2n, state: NeuronState.Dissolved })]}
+      />,
+    );
+
+    expect(screen.queryByRole('button', { name: 'Increase' })).toBeNull();
+  });
+
+  it('leaves hotkey neurons out of the check', () => {
+    render(
+      <EarningsCard
+        neurons={[
+          optimizedNeuron(),
+          mockNeuron({
+            neuronId: 2n,
+            fullNeuron: { controller: 'other-principal', hotKeys: [USER] },
+          }),
+        ]}
       />,
     );
 

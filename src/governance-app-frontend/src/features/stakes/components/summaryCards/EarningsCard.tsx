@@ -1,4 +1,5 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
+import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -9,7 +10,7 @@ import { Card, CardContent } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { Skeleton } from '@components/Skeleton';
 import { useStakingRewards } from '@hooks/useStakingRewards';
-import { getNeuronIsDissolved, getNeuronsAggregatedData } from '@utils/neuron';
+import { getNeuronIsDissolved, getNeuronsAggregatedData, isUserHotkey } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 import {
@@ -30,13 +31,16 @@ type EarningsCardProps = {
 };
 
 /**
- * Shows the maturity and the forecast for the next year. If a neuron that is
- * not dissolved can get a higher maturity rate, the whole card opens the
- * optimization modal. Dissolved neurons are left out: the capital card offers
- * to disburse them.
+ * Shows the maturity and the forecast for the next year. If a neuron that the
+ * user can change can get a higher maturity rate, the whole card opens the
+ * optimization modal. Dissolved neurons are left out, because the capital card
+ * offers to disburse them. Hotkey neurons are left out, because a hotkey cannot
+ * change their settings.
  */
 export function EarningsCard({ neurons }: EarningsCardProps) {
   const { t } = useTranslation();
+  const { identity } = useInternetIdentity();
+  const principalId = identity?.getPrincipal().toText();
 
   const stakingRewards = useStakingRewards();
 
@@ -49,7 +53,10 @@ export function EarningsCard({ neurons }: EarningsCardProps) {
     : null;
 
   const canIncrease = neurons.some(
-    (neuron) => !getNeuronIsDissolved(neuron) && getNeuronOptimizationIssues(neuron).length > 0,
+    (neuron) =>
+      !getNeuronIsDissolved(neuron) &&
+      !isUserHotkey({ neuron, principalId }) &&
+      getNeuronOptimizationIssues(neuron).length > 0,
   );
 
   return (

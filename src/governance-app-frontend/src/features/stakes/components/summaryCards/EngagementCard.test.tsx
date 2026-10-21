@@ -92,7 +92,7 @@ describe('EngagementCard', () => {
     render(<EngagementCard neurons={[mockNeuron()]} />);
 
     expect(screen.getByRole('link', { name: '1 to vote' }).getAttribute('href')).toBe(
-      '/voting/proposals/2?',
+      '/voting/proposals/2?showProposals=true&proposalFilter=all',
     );
   });
 

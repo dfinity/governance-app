@@ -24,10 +24,9 @@ type EngagementCardProps = {
   neurons: NeuronInfo[];
 };
 
-const PROPOSALS_LINK: LinkProps = {
-  to: '/voting',
-  search: { showProposals: true, proposalFilter: ProposalFilter.All },
-};
+const PROPOSALS_SEARCH = { showProposals: true, proposalFilter: ProposalFilter.All };
+
+const PROPOSALS_LINK: LinkProps = { to: '/voting', search: PROPOSALS_SEARCH };
 
 /**
  * Shows how many ballots of the user's neurons have a vote, on the decided
@@ -58,6 +57,7 @@ export function EngagementCard({ neurons }: EngagementCardProps) {
                 ? {
                     to: '/voting/proposals/$id',
                     params: { id: toVote[0].proposalId },
+                    search: PROPOSALS_SEARCH,
                   }
                 : PROPOSALS_LINK,
           };

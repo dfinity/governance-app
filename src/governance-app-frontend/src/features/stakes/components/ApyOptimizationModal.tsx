@@ -171,6 +171,7 @@ export function ApyOptimizationModal({ trigger }: ApyOptimizationModalProps) {
                     neuron={neuron}
                     isOptimized={isOptimized}
                     issues={issues}
+                    onMaximize={() => setOpen(false)}
                   />
                 ))}
               </div>
@@ -203,9 +204,16 @@ type NeuronOptimizationItemProps = {
   neuron: NeuronInfo;
   isOptimized: boolean;
   issues: string[];
+  /** Closes the modal, which stays mounted when the link stays on `/neurons`. */
+  onMaximize: () => void;
 };
 
-function NeuronOptimizationItem({ neuron, isOptimized, issues }: NeuronOptimizationItemProps) {
+function NeuronOptimizationItem({
+  neuron,
+  isOptimized,
+  issues,
+  onMaximize,
+}: NeuronOptimizationItemProps) {
   const { t } = useTranslation();
   const neuronId = getNeuronId(neuron);
 
@@ -244,7 +252,11 @@ function NeuronOptimizationItem({ neuron, isOptimized, issues }: NeuronOptimizat
           className="transition-colors hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0"
           asChild
         >
-          <Link to="/neurons" search={{ neuronId: neuron.neuronId.toString() }}>
+          <Link
+            to="/neurons"
+            search={{ neuronId: neuron.neuronId.toString() }}
+            onClick={onMaximize}
+          >
             {t(($) => $.apyOptimizationModal.maximize)}
           </Link>
         </Button>
