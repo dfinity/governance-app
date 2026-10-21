@@ -63,6 +63,7 @@ const mockAuthClient = (session?: { identity: Identity; expiresAtMs: number }) =
       if (!client.identity) throw new Error('No identity');
       return client.identity;
     }),
+    dispose: vi.fn(),
     subscribe: vi.fn((listener: () => void) => {
       sessionListeners.add(listener);
       return () => sessionListeners.delete(listener);
@@ -201,6 +202,51 @@ describe('internetIdentity', () => {
       }),
     );
     await expect(auth.ensureInitialized()).resolves.toBe(identity);
+  });
+
+  it('starts the login again on a second click, on a new auth client.', async () => {
+    const client = mockAuthClient();
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    // The first popup closed before it loaded, so its sign-in waits.
+    auth.login();
+    const nextClient = mockAuthClient();
+    auth.login();
+
+    expect(client.dispose).toHaveBeenCalled();
+    expect(nextClient.signIn).toHaveBeenCalledTimes(1);
+    expect(nextClient.subscribe).toHaveBeenCalled();
+    expect(auth.getAuthState()).toEqual({ status: 'logging-in' });
+  });
+
+  it('ignores the end of a login that a second click replaced.', async () => {
+    const client = mockAuthClient();
+    const firstSignIn = deferred<Identity>();
+    client.signIn.mockReturnValueOnce(firstSignIn.promise);
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    auth.login();
+    const nextClient = mockAuthClient();
+    const identity = Ed25519KeyIdentity.generate();
+    nextClient.signIn.mockImplementationOnce(async () => {
+      nextClient.identity = identity;
+      nextClient.status = signedIn(identity, Date.now() + ONE_HOUR_MS);
+      return identity;
+    });
+    auth.login();
+    await vi.waitFor(() => expect(auth.getAuthState()).toMatchObject({ identity }));
+
+    // The replaced sign-in ends late, and its client still names another account.
+    const replaced = Ed25519KeyIdentity.generate();
+    client.identity = replaced;
+    client.status = signedIn(replaced, Date.now() + ONE_HOUR_MS);
+    firstSignIn.reject(new Error('This client was disposed while signing in'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(client.getIdentity).not.toHaveBeenCalled();
+    expect(auth.getAuthState()).toMatchObject({ status: 'authenticated', identity });
   });
 
   it('allows a new login after a failed one.', async () => {

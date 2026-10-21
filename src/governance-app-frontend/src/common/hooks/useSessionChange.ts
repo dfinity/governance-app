@@ -9,6 +9,7 @@ import { analytics } from '@features/analytics/service';
 
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { infoNotification } from '@utils/notification';
+
 /**
  * Runs the route guards again when the account changes: on a login, a logout, an expired session,
  * or another tab that switches the account.

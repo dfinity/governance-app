@@ -59,6 +59,24 @@ test('Protects routes and recovers from a closed Internet Identity window', asyn
     await expectLoginPage(page);
     await expect(page.getByText('Authenticating with Internet Identity')).not.toBeVisible();
   });
+
+  await test.step('Opens Internet Identity again after its window closes before it loads.', async () => {
+    const [firstWindow] = await Promise.all([
+      page.waitForEvent('popup'),
+      page.getByTestId('login-btn').click(),
+    ]);
+    await firstWindow.close();
+
+    const [secondWindow] = await Promise.all([
+      page.waitForEvent('popup'),
+      page.getByTestId('login-restart-btn').click(),
+    ]);
+    await secondWindow.getByRole('button', { name: 'Create', exact: true }).waitFor();
+    await secondWindow.close();
+
+    await expectLoginPage(page);
+    await expect(page.getByText('Authenticating with Internet Identity')).not.toBeVisible();
+  });
 });
 
 test('Keeps the session on reload, logs out, and logs in again', async ({ page }) => {

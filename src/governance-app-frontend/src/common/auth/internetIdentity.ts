@@ -274,19 +274,45 @@ export const subscribeAuthState = (listener: () => void): (() => void) => {
   return () => listeners.delete(listener);
 };
 
-/** Opens the Internet Identity popup. Call it from a user interaction, or the browser blocks it. */
-export const login = () => {
-  const client = authClient;
-  if (!client || state.status !== 'idle') return;
+// Only the latest login sets the state, so a login that a second click replaced has no effect.
+let loginAttempt = 0;
 
-  supersedeReads();
-  setState({ status: 'logging-in' });
+const signIn = (client: AuthClient) => {
+  const attempt = ++loginAttempt;
 
   void client
     .signIn({ maxTimeToLive: SESSION_TTL_NS })
     // A failed login syncs too, because another tab can log in meanwhile.
     .catch(() => undefined)
-    .then(() => syncSession(client));
+    .then(() => {
+      if (attempt === loginAttempt) return syncSession(client);
+    });
+};
+
+/**
+ * Opens the Internet Identity popup. Call it from a user interaction, or the browser blocks it.
+ *
+ * A second call during the login starts it again. A popup closed before it loads keeps the
+ * sign-in waiting for 2 minutes (`@icp-sdk/signer` 6.0.0). A new client takes the signer channel,
+ * which ends the sign-in that waits.
+ */
+export const login = () => {
+  const client = authClient;
+  if (!client) return;
+
+  if (state.status === 'logging-in') {
+    client.dispose();
+    authClient = createAuthClient();
+    authClient.subscribe(onSessionChange);
+    signIn(authClient);
+    return;
+  }
+
+  if (state.status !== 'idle') return;
+
+  supersedeReads();
+  setState({ status: 'logging-in' });
+  signIn(client);
 };
 
 const endSession = async (client: AuthClient, expiresAtMs: number | undefined) => {
