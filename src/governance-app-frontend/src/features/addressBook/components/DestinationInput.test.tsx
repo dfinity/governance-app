@@ -1,6 +1,6 @@
 import '@/i18n/config';
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -274,6 +274,25 @@ describe('DestinationInput', () => {
 
     expect(screen.getByTestId('destination-add')).toBeDefined();
     expect(screen.queryByRole('listbox')).not.toBeNull();
+  });
+
+  it('opens the add modal from a tap that leaves the focus on the input', () => {
+    // Safari does not focus a tapped button, so the input keeps the focus until the click.
+    const onAddAddress = vi.fn();
+    render(<Harness onAddAddress={onAddAddress} />);
+    const input = screen.getByTestId('destination');
+
+    act(() => input.focus());
+    const add = screen.getByTestId('destination-add');
+
+    // A prevented mousedown keeps the focus on the input, so the list stays open.
+    expect(fireEvent.mouseDown(add)).toBe(false);
+    fireEvent.click(add);
+
+    expect(onAddAddress).toHaveBeenCalledOnce();
+    // The input gives up the focus and the keyboard to the add modal.
+    expect(document.activeElement).not.toBe(input);
+    expect(screen.queryByTestId('destination-add')).toBeNull();
   });
 
   it('marks the input as required', () => {
