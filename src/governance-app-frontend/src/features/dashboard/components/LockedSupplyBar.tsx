@@ -90,12 +90,12 @@ export const LockedSupplyBar = ({ breakdown }: Props) => {
           <span className="sr-only">{description}</span>
         </button>
       </TooltipTrigger>
-      <TooltipContent className="max-w-none px-3 py-2">
-        <div className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-x-2 gap-y-0.5">
+      <TooltipContent className="max-w-[var(--radix-tooltip-content-available-width,100vw)] px-3 py-2">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-x-2 gap-y-0.5">
           {ALL_PARTS.map((part) => (
             <Fragment key={part}>
               <span className={cn('size-2 rounded-[2px]', PART_COLORS[part])} />
-              <span>{labels[part]}</span>
+              <span className="break-words">{labels[part]}</span>
               <span className="text-right tabular-nums">
                 {formatCompactNumber(breakdown[part])}
               </span>
@@ -103,7 +103,7 @@ export const LockedSupplyBar = ({ breakdown }: Props) => {
             </Fragment>
           ))}
         </div>
-        <div className="mt-1.5 flex justify-between gap-4 border-t border-background/20 pt-1.5 text-background/75">
+        <div className="mt-1.5 flex flex-wrap justify-between gap-x-4 border-t border-background/20 pt-1.5 text-background/75">
           <span>{totalSupplyLabel}</span>
           <span className="tabular-nums">
             {t(($) => $.home.lockedSupply.amount, { amount: totalSupplyAmount })}
