@@ -1,6 +1,7 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 
 import { useStakingRewards } from '@hooks/useStakingRewards';
+import { isFromPortal } from '@utils/events';
 import { getNeuronId } from '@utils/neuron';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
@@ -55,11 +56,14 @@ export const NeuronsList = ({
           return (
             <div
               key={String(neuron.neuronId)}
-              onClick={() => handleCardClick(neuron.neuronId)}
+              onClick={(e) => {
+                if (!isFromPortal(e)) handleCardClick(neuron.neuronId);
+              }}
               className="h-full cursor-pointer"
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
+                if (isFromPortal(e)) return;
                 if (e.key === 'Enter' || e.key === ' ') {
                   handleCardClick(neuron.neuronId);
                 }
