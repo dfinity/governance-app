@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatFiat, getFiatFractionDigits } from './numbers';
+import { formatCompactNumber, formatFiat, getFiatFractionDigits } from './numbers';
 
 describe('formatFiat', () => {
   it('Puts the currency symbol before the number.', () => {
@@ -26,5 +26,17 @@ describe('getFiatFractionDigits', () => {
   it('Returns the decimals of the smallest unit of the currency.', () => {
     expect(getFiatFractionDigits('EUR')).toBe(2);
     expect(getFiatFractionDigits('JPY')).toBe(0);
+  });
+});
+
+describe('formatCompactNumber', () => {
+  it('Shortens large numbers with one decimal at most.', () => {
+    expect(formatCompactNumber(168_123_456)).toBe('168.1M');
+    expect(formatCompactNumber(30_000_000)).toBe('30M');
+    expect(formatCompactNumber(1_250)).toBe('1.3K');
+  });
+
+  it('Keeps small numbers as they are.', () => {
+    expect(formatCompactNumber(950)).toBe('950');
   });
 });

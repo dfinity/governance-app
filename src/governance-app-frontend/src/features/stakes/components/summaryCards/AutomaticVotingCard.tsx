@@ -1,7 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import {
   AlertTriangle,
   CheckCheck,
@@ -25,6 +24,7 @@ import { SkeletonScreen } from '@components/skeletons/SkeletonScreen';
 import { Spinner } from '@components/Spinner';
 import { MILLISECONDS_IN_SECOND } from '@constants/extra';
 import { useGovernanceEconomics } from '@hooks/governance/useGovernanceEconomics';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useNowInSeconds } from '@hooks/useNowInSeconds';
 import { mapCanisterError } from '@utils/errors';
 import { formatRemainingTime } from '@utils/neuron';

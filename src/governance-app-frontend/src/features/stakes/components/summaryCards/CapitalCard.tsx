@@ -1,7 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +12,7 @@ import { Card, CardContent } from '@components/Card';
 import { SensitiveValue } from '@components/SensitiveValue';
 import { Skeleton } from '@components/Skeleton';
 import { useIcpPrice } from '@hooks/tickers';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import {
   getNeuronIsDissolved,
   getNeuronsAggregatedData,

@@ -14,7 +14,7 @@ import { CapitalCard } from './CapitalCard';
 
 const USER = 'user-principal';
 
-vi.mock('ic-use-internet-identity', () => ({
+vi.mock('@hooks/useInternetIdentity', () => ({
   useInternetIdentity: () => ({
     identity: { getPrincipal: () => ({ toText: () => USER }) },
   }),

@@ -1,16 +1,13 @@
 import '@/app/styles/main.css';
 import '@/i18n/config';
 
-import { nonNullish } from '@dfinity/utils';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { RouterProvider } from '@tanstack/react-router';
-import { InternetIdentityProvider } from 'ic-use-internet-identity';
 import { StrictMode } from 'react';
 import { createPortal } from 'react-dom';
 
 import { Sonner } from '@components/Sonner';
-import { II_DERIVATION_ORIGIN, II_LOGIN_URL } from '@constants/extra';
 import { AgentPoolProvider } from '@contexts/agentPoolProvider';
 import { StakingRewardsProvider } from '@contexts/stakingRewardsProvider';
 import { usePreventAttributeChange } from '@hooks/usePreventAttributeChange';
@@ -26,26 +23,19 @@ export const App = () => {
 
   return (
     <StrictMode>
-      <InternetIdentityProvider
-        loginOptions={{
-          identityProvider: II_LOGIN_URL,
-          ...(nonNullish(II_DERIVATION_ORIGIN) && { derivationOrigin: II_DERIVATION_ORIGIN }),
-        }}
-      >
-        <QueryClientProvider client={queryClientConfig}>
-          <AgentPoolProvider>
-            <StakingRewardsProvider>
-              <RouterProvider router={routerConfig} />
-              {!isE2E && <ReactQueryDevtools initialIsOpen={false} />}
-              {notificationsContainer &&
-                createPortal(
-                  <Sonner position="top-center" visibleToasts={9} />,
-                  notificationsContainer,
-                )}
-            </StakingRewardsProvider>
-          </AgentPoolProvider>
-        </QueryClientProvider>
-      </InternetIdentityProvider>
+      <QueryClientProvider client={queryClientConfig}>
+        <AgentPoolProvider>
+          <StakingRewardsProvider>
+            <RouterProvider router={routerConfig} />
+            {!isE2E && <ReactQueryDevtools initialIsOpen={false} />}
+            {notificationsContainer &&
+              createPortal(
+                <Sonner position="top-center" visibleToasts={9} />,
+                notificationsContainer,
+              )}
+          </StakingRewardsProvider>
+        </AgentPoolProvider>
+      </QueryClientProvider>
     </StrictMode>
   );
 };

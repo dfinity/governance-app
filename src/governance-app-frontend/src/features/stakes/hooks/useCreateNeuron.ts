@@ -1,6 +1,5 @@
 import { nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -12,6 +11,7 @@ import {
 import { E8Sn, ICP_TRANSACTION_FEE_E8Sn, SECONDS_IN_DAY } from '@constants/extra';
 import { useNnsGovernance } from '@hooks/governance';
 import { useIcpLedger } from '@hooks/icpLedger';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { bigIntMul } from '@utils/bigInt';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 

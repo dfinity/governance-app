@@ -1,5 +1,4 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -9,6 +8,7 @@ import { getNeuronOptimizationIssues } from '@features/stakes/utils/getNeuronOpt
 import { Card, CardContent } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { Skeleton } from '@components/Skeleton';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { getNeuronIsDissolved, getNeuronsAggregatedData, isUserHotkey } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
