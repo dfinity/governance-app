@@ -249,6 +249,32 @@ describe('internetIdentity', () => {
     expect(auth.getAuthState()).toMatchObject({ status: 'authenticated', identity });
   });
 
+  it('ignores the read of a sign-in that a second click replaced.', async () => {
+    const client = mockAuthClient();
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    // The first sign-in ends, and the read of its session waits.
+    const replaced = Ed25519KeyIdentity.generate();
+    client.signIn.mockImplementationOnce(async () => {
+      client.identity = replaced;
+      client.status = signedIn(replaced, Date.now() + ONE_HOUR_MS);
+      return replaced;
+    });
+    const staleRead = deferred<Identity>();
+    client.getIdentity.mockReturnValueOnce(staleRead.promise);
+    auth.login();
+    await vi.waitFor(() => expect(client.getIdentity).toHaveBeenCalled());
+
+    const nextClient = mockAuthClient();
+    auth.login();
+    staleRead.resolve(replaced);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(nextClient.signIn).toHaveBeenCalledTimes(1);
+    expect(auth.getAuthState()).toEqual({ status: 'logging-in' });
+  });
+
   it('allows a new login after a failed one.', async () => {
     const client = mockAuthClient();
     client.signIn.mockRejectedValueOnce(new Error('UserInterrupt'));

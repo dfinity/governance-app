@@ -301,6 +301,8 @@ export const login = () => {
   if (!client) return;
 
   if (state.status === 'logging-in') {
+    // The read after the first sign-in can still wait.
+    supersedeReads();
     client.dispose();
     authClient = createAuthClient();
     authClient.subscribe(onSessionChange);

@@ -61,6 +61,14 @@ test('Protects routes and recovers from a closed Internet Identity window', asyn
   });
 
   await test.step('Opens Internet Identity again after its window closes before it loads.', async () => {
+    // A page without the scripts of Internet Identity, so the first window never answers.
+    await page.context().route(
+      (url) => url.pathname === '/authorize',
+      (route) =>
+        route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>II</title>' }),
+      { times: 1 },
+    );
+
     const [firstWindow] = await Promise.all([
       page.waitForEvent('popup'),
       page.getByTestId('login-btn').click(),
