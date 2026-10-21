@@ -37,9 +37,21 @@ export type AutomaticVotingStatus = {
    * `Active`, following cleared for `LosingRewards`.
    */
   secondsLeft?: bigint;
-  /** Used part (0 to 1) of the full voting power window, for `Active` only. */
-  windowProgress?: number;
+  /**
+   * Part (0 to 1) of the countdown that is left: the voting power window for
+   * `Active` and `ConfirmSoon`, and the voting power decay for `LosingRewards`.
+   * During the decay, it is also the part of the voting power that is left.
+   */
+  remainingFraction?: number;
 };
+
+const fractionOf = (
+  secondsLeft: bigint | undefined,
+  totalSeconds: bigint | undefined | null,
+): number | undefined =>
+  secondsLeft !== undefined && !!totalSeconds
+    ? Math.min(1, Math.max(0, Number(secondsLeft) / Number(totalSeconds)))
+    : undefined;
 
 const minOf = (values: (bigint | undefined)[]): bigint | undefined =>
   values.reduce<bigint | undefined>(
@@ -86,23 +98,27 @@ export function getAutomaticVotingStatus({
 
   const decaying = withHealth('decaying');
   if (decaying.length > 0) {
+    const secondsLeft = minOf(
+      decaying.map((neuron) => getSecondsUntilFollowingCleared(neuron, economics, now)),
+    );
     return {
       phase: AutomaticVotingPhase.LosingRewards,
       confirmableNeuronIds,
-      secondsLeft: minOf(
-        decaying.map((neuron) => getSecondsUntilFollowingCleared(neuron, economics, now)),
-      ),
+      secondsLeft,
+      remainingFraction: fractionOf(secondsLeft, economics?.clearFollowingAfterSeconds),
     };
   }
 
   const warning = withHealth('warning');
   if (warning.length > 0) {
+    const secondsLeft = minOf(
+      warning.map((neuron) => getSecondsUntilDecayStarts(neuron, economics, now)),
+    );
     return {
       phase: AutomaticVotingPhase.ConfirmSoon,
       confirmableNeuronIds,
-      secondsLeft: minOf(
-        warning.map((neuron) => getSecondsUntilDecayStarts(neuron, economics, now)),
-      ),
+      secondsLeft,
+      remainingFraction: fractionOf(secondsLeft, economics?.startReducingVotingPowerAfterSeconds),
     };
   }
 
@@ -113,9 +129,11 @@ export function getAutomaticVotingStatus({
   const secondsLeft = minOf(
     confirmable.map(({ neuron }) => getSecondsUntilDecayStarts(neuron, economics, now)),
   );
-  const window = economics?.startReducingVotingPowerAfterSeconds;
-  const windowProgress =
-    secondsLeft !== undefined && !!window ? 1 - Number(secondsLeft) / Number(window) : undefined;
 
-  return { phase: AutomaticVotingPhase.Active, confirmableNeuronIds, secondsLeft, windowProgress };
+  return {
+    phase: AutomaticVotingPhase.Active,
+    confirmableNeuronIds,
+    secondsLeft,
+    remainingFraction: fractionOf(secondsLeft, economics?.startReducingVotingPowerAfterSeconds),
+  };
 }
