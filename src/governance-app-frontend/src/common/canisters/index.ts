@@ -2,10 +2,10 @@ import { IcpLedgerCanister } from '@icp-sdk/canisters/ledger/icp';
 import { NnsGovernanceCanister } from '@icp-sdk/canisters/nns';
 import { HttpAgent } from '@icp-sdk/core/agent';
 import { Principal } from '@icp-sdk/core/principal';
-import { ensureInitialized } from 'ic-use-internet-identity';
 
 import { CANISTER_ID_ICP_LEDGER, CANISTER_ID_NNS_GOVERNANCE } from '@constants/canisterIds';
 import { errorMessage } from '@utils/error';
+import { ensureInitialized } from '@common/auth/internetIdentity';
 
 import { getAnonymousAgent, getAuthenticatedAgent } from './agents';
 

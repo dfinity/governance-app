@@ -1,10 +1,12 @@
 import { nonNullish } from '@dfinity/utils';
+import { autoUpdate, flip, offset, size, useFloating } from '@floating-ui/react-dom';
 import { BookPlus, X } from 'lucide-react';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@components/badge';
 import { Input } from '@components/Input';
+import { useMediaQuery } from '@hooks/useMediaQuery';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
 import { shortenId } from '@utils/id';
 import { cn } from '@utils/shadcn';
@@ -53,6 +55,10 @@ const isCompleteAddress = (text: string): boolean =>
  * One field for a destination account. The user types a name to filter the
  * suggestions, pastes an address, or picks a suggestion from the list. A
  * picked suggestion shows as a chip with a clear button.
+ *
+ * On desktop the list floats over the content below the field, so the dialog
+ * keeps its size. On mobile the list pushes the content down, because the
+ * on-screen keyboard leaves no room for a floating list.
  */
 export function DestinationInput({
   id,
@@ -75,6 +81,7 @@ export function DestinationInput({
   const chipRef = useRef<HTMLOutputElement>(null);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
   const selected = suggestions.find(
     (suggestion) => suggestion.name === selectedName && suggestion.address === value,
@@ -145,18 +152,62 @@ export function DestinationInput({
       });
       return;
     }
-    if (event.key === 'Enter' && showList && activeMatch >= 0) {
-      event.preventDefault();
-      pick(matches[activeMatch]);
-      return;
-    }
-    if (event.key === 'Escape' && showList) {
-      // Close the list only. The dialog stays open.
-      event.preventDefault();
-      event.stopPropagation();
+    if (event.key === 'Enter') {
+      if (showList && activeMatch >= 0) {
+        event.preventDefault();
+        pick(matches[activeMatch]);
+        return;
+      }
+      // The form submits the typed text. The list closes, so it does not
+      // cover the validation message below the field.
       close();
     }
   };
+
+  // Escape closes the list only. The dialog listens for Escape on the document
+  // in the capture phase, so the list takes the key on the window before it.
+  const handleEscape = useEffectEvent((event: KeyboardEvent) => {
+    if (event.key !== 'Escape' || event.isComposing || event.keyCode === 229) return;
+    if (!containerRef.current?.contains(event.target as Node)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    // The focus opens the list, so the close comes after it.
+    inputRef.current?.focus();
+    close();
+  });
+
+  useEffect(() => {
+    if (!showList) return;
+    const listener = (event: KeyboardEvent) => handleEscape(event);
+    window.addEventListener('keydown', listener, { capture: true });
+    return () => window.removeEventListener('keydown', listener, { capture: true });
+  }, [showList]);
+
+  // Fixed positioning takes the desktop list out of the dialog body's scroll
+  // area, so the dialog keeps its size. The list stays next to the input in the
+  // DOM, inside the dialog's focus trap and Tab order.
+  const [fieldElement, setFieldElement] = useState<HTMLDivElement | null>(null);
+  const [listElement, setListElement] = useState<HTMLDivElement | null>(null);
+  const { floatingStyles } = useFloating({
+    elements: { reference: fieldElement, floating: listElement },
+    strategy: 'fixed',
+    placement: 'bottom-start',
+    whileElementsMounted: autoUpdate,
+    middleware: [
+      offset(4),
+      flip({ padding: 8 }),
+      size({
+        padding: 8,
+        // On a short window the list shrinks and scrolls, and the add button stays visible.
+        apply({ availableHeight, rects, elements }) {
+          Object.assign(elements.floating.style, {
+            width: `${rects.reference.width}px`,
+            maxHeight: `${Math.max(0, availableHeight)}px`,
+          });
+        },
+      }),
+    ],
+  });
 
   const optionId = (index: number) => `${listId}-option-${index}`;
 
@@ -214,98 +265,108 @@ export function DestinationInput({
     );
   }
 
+  const field = (
+    <div ref={setFieldElement} className="relative">
+      <Input
+        ref={inputRef}
+        id={id}
+        role="combobox"
+        aria-expanded={showList}
+        aria-controls={showList && itemCount > 0 ? listId : undefined}
+        aria-autocomplete="list"
+        aria-activedescendant={showList && activeMatch >= 0 ? optionId(activeMatch) : undefined}
+        aria-invalid={invalid}
+        value={value}
+        placeholder={placeholder}
+        onChange={(event) => {
+          onChange(event.target.value, '');
+          setOpen(true);
+          setActiveIndex(firstMatchIndex(event.target.value));
+        }}
+        onFocus={() => setOpen(true)}
+        // A click on the focused input gives no focus event, for example after Escape.
+        onClick={() => setOpen(true)}
+        onKeyDown={handleKeyDown}
+        className={cn('font-mono placeholder:font-sans', endAdornment && 'pr-10', inputClassName)}
+        autoComplete="off"
+        data-1p-ignore
+        data-lpignore="true"
+        required
+        data-testid={testId}
+      />
+      {endAdornment}
+    </div>
+  );
+
+  const listItems = (
+    <>
+      {matches.length > 0 && (
+        <ul id={listId} role="listbox" className="max-h-56 min-h-0 overflow-y-auto">
+          {matches.map((suggestion, index) => (
+            <li
+              key={`${suggestion.kind}:${suggestion.name}:${suggestion.address}`}
+              id={optionId(index)}
+              role="option"
+              aria-selected={index === activeMatch}
+              className={cn(
+                'flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm',
+                index === activeMatch && 'bg-accent text-accent-foreground',
+              )}
+              // The input keeps the focus, so the blur handler does not close the list first.
+              onMouseDown={(event) => event.preventDefault()}
+              onMouseEnter={() => setActiveIndex(index)}
+              onClick={() => pick(suggestion)}
+              data-testid={testId ? `${testId}-option` : undefined}
+            >
+              <span className="min-w-0 shrink truncate font-medium">{suggestion.name}</span>
+              <span className="min-w-0 shrink truncate font-mono text-xs text-muted-foreground">
+                {shortenId(suggestion.address, SHORT_ADDRESS_CHARS)}
+              </span>
+              <Badge variant="outline" className="ml-auto shrink-0 text-[10px]">
+                {t(($) => $.addressBook[kindLabelKey[suggestion.kind]])}
+              </Badge>
+            </li>
+          ))}
+        </ul>
+      )}
+      {onAddAddress && (
+        // A command, not an option: it opens the add modal and picks nothing.
+        <button
+          type="button"
+          className={cn(
+            'flex w-full shrink-0 cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground',
+            matches.length > 0 && 'mt-1 border-t pt-2',
+          )}
+          onClick={addAddress}
+          data-testid={testId ? `${testId}-add` : undefined}
+        >
+          <BookPlus className="size-4 text-muted-foreground" />
+          <span>{t(($) => $.addressBook.destination.addNew)}</span>
+        </button>
+      )}
+    </>
+  );
+
+  const listClassName = 'rounded-md border bg-popover p-1 text-popover-foreground shadow-md';
+
   return (
     <div ref={containerRef} className="flex flex-col gap-1" onBlur={handleBlur}>
-      <div className="relative">
-        <Input
-          ref={inputRef}
-          id={id}
-          role="combobox"
-          aria-expanded={showList}
-          aria-controls={showList && itemCount > 0 ? listId : undefined}
-          aria-autocomplete="list"
-          aria-activedescendant={showList && activeMatch >= 0 ? optionId(activeMatch) : undefined}
-          aria-invalid={invalid}
-          value={value}
-          placeholder={placeholder}
-          onChange={(event) => {
-            onChange(event.target.value, '');
-            setOpen(true);
-            setActiveIndex(firstMatchIndex(event.target.value));
-          }}
-          onFocus={() => setOpen(true)}
-          // A click on the focused input gives no focus event, for example after Escape.
-          onClick={() => setOpen(true)}
-          onKeyDown={handleKeyDown}
-          className={cn('font-mono placeholder:font-sans', endAdornment && 'pr-10', inputClassName)}
-          autoComplete="off"
-          data-1p-ignore
-          data-lpignore="true"
-          required
-          data-testid={testId}
-        />
-        {endAdornment}
-      </div>
-      {showList && (
-        <div
-          className="rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
-          data-testid={testId ? `${testId}-list` : undefined}
-        >
-          {matches.length > 0 && (
-            <ul id={listId} role="listbox" className="max-h-56 overflow-y-auto">
-              {matches.map((suggestion, index) => (
-                <li
-                  key={`${suggestion.kind}:${suggestion.name}:${suggestion.address}`}
-                  id={optionId(index)}
-                  role="option"
-                  aria-selected={index === activeMatch}
-                  className={cn(
-                    'flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm',
-                    index === activeMatch && 'bg-accent text-accent-foreground',
-                  )}
-                  // The input keeps the focus, so the blur handler does not close the list first.
-                  onMouseDown={(event) => event.preventDefault()}
-                  onMouseEnter={() => setActiveIndex(index)}
-                  onClick={() => pick(suggestion)}
-                  data-testid={testId ? `${testId}-option` : undefined}
-                >
-                  <span className="min-w-0 shrink truncate font-medium">{suggestion.name}</span>
-                  <span className="min-w-0 shrink truncate font-mono text-xs text-muted-foreground">
-                    {shortenId(suggestion.address, SHORT_ADDRESS_CHARS)}
-                  </span>
-                  <Badge variant="outline" className="ml-auto shrink-0 text-[10px]">
-                    {t(($) => $.addressBook[kindLabelKey[suggestion.kind]])}
-                  </Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-          {onAddAddress && (
-            // A command, not an option: it opens the add modal and picks nothing.
-            <button
-              type="button"
-              className={cn(
-                'flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground',
-                matches.length > 0 && 'mt-1 border-t pt-2',
-              )}
-              onClick={addAddress}
-              onKeyDown={(event) => {
-                if (event.key === 'Escape') {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  // The focus opens the list, so the close comes after it.
-                  inputRef.current?.focus();
-                  close();
-                }
-              }}
-              data-testid={testId ? `${testId}-add` : undefined}
-            >
-              <BookPlus className="size-4 text-muted-foreground" />
-              <span>{t(($) => $.addressBook.destination.addNew)}</span>
-            </button>
-          )}
-        </div>
-      )}
+      {field}
+      {showList &&
+        (isDesktop ? (
+          <div
+            ref={setListElement}
+            style={floatingStyles}
+            className={cn(listClassName, 'z-50 flex flex-col')}
+            data-testid={testId ? `${testId}-list` : undefined}
+          >
+            {listItems}
+          </div>
+        ) : (
+          <div className={listClassName} data-testid={testId ? `${testId}-list` : undefined}>
+            {listItems}
+          </div>
+        ))}
     </div>
   );
 }
