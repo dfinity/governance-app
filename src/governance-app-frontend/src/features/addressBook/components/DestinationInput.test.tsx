@@ -1,6 +1,6 @@
 import '@/i18n/config';
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -196,6 +196,27 @@ describe('DestinationInput', () => {
     fireEvent.keyDown(input, { key: 'Enter' });
 
     expect(onChange).toHaveBeenLastCalledWith(ICRC1_ADDRESS, '');
+  });
+
+  it('closes the list and submits the form on Enter without an active match', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn((event: { preventDefault: () => void }) => event.preventDefault());
+    render(
+      <form onSubmit={onSubmit}>
+        <Harness onAddAddress={() => {}} />
+        <button type="submit">Next</button>
+      </form>,
+    );
+    const input = screen.getByTestId('destination');
+
+    act(() => input.focus());
+    fireEvent.change(input, { target: { value: 'foo' } });
+    expect(screen.queryByTestId('destination-list')).not.toBeNull();
+
+    await user.keyboard('{Enter}');
+
+    expect(onSubmit).toHaveBeenCalledOnce();
+    expect(screen.queryByTestId('destination-list')).toBeNull();
   });
 
   it('closes the list with Escape and the dialog with the next Escape', () => {

@@ -152,9 +152,15 @@ export function DestinationInput({
       });
       return;
     }
-    if (event.key === 'Enter' && showList && activeMatch >= 0) {
-      event.preventDefault();
-      pick(matches[activeMatch]);
+    if (event.key === 'Enter') {
+      if (showList && activeMatch >= 0) {
+        event.preventDefault();
+        pick(matches[activeMatch]);
+        return;
+      }
+      // The form submits the typed text. The list closes, so it does not
+      // cover the validation message below the field.
+      close();
     }
   };
 
