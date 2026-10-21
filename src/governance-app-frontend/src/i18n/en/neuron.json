@@ -61,13 +61,16 @@
   "eightYearGang": "8Y Gang",
   "summary": {
     "capital": "Locked in neurons",
+    "unlocked": "{{value}} unlocked",
     "engagement": "Participation rate",
-    "engagementTooltip": "Based on the last 50 proposals",
+    "engagementTooltip": "Based on recent proposals that still accept votes",
     "engagementAction": "View proposals",
     "engagementActionComplete": "All caught up",
+    "engagementActionToVote": "{{count}} to vote",
     "earnings": "Maturity",
     "maturityTooltip": "Locked: {{locked}}. Available: {{available}}.",
-    "earningsForecast": "1y forecast",
+    "earningsPerYear": "+{{value}} per year",
+    "increase": "Increase",
     "automaticVoting": {
       "label": "Automatic voting",
       "knownNeuronSelected": "Enabled",
