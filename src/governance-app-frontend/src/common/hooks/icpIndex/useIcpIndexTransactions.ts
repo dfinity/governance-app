@@ -1,10 +1,10 @@
 import { AccountIdentifier, IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { Option } from '@icp-sdk/canisters/nns';
 import { AnonymousIdentity } from '@icp-sdk/core/agent';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 
 import { PAGINATION_LIMIT_TRANSACTIONS } from '@constants/extra';
 import { useInfiniteQueryThenUpdateCall } from '@hooks/useInfiniteQueryThenUpdateCall';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { QUERY_KEYS } from '@utils/query';
 
 import { useIcpIndex } from './useIcpIndex';

@@ -81,6 +81,9 @@ export const useVoting = (proposal: ProposalInfo) => {
           queryClient.invalidateQueries({
             queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL, proposal.id?.toString()],
           }),
+          queryClient.invalidateQueries({
+            queryKey: [QUERY_KEYS.NNS_GOVERNANCE.ENGAGEMENT],
+          }),
         ]).catch(failedRefresh);
         return res;
       });

@@ -26,7 +26,7 @@ const { USER, ECONOMICS, refreshVotingPower } = vi.hoisted(() => ({
   refreshVotingPower: vi.fn(),
 }));
 
-vi.mock('ic-use-internet-identity', () => ({
+vi.mock('@hooks/useInternetIdentity', () => ({
   useInternetIdentity: () => ({
     identity: { getPrincipal: () => ({ toText: () => USER }) },
   }),
