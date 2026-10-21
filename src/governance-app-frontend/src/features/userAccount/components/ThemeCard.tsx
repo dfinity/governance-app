@@ -27,30 +27,30 @@ export const ThemeCard = () => {
           className="w-full rounded-md border lg:w-auto"
         >
           <ToggleGroupItem
-            className="shrink grow-1 px-1 @min-[17rem]:shrink-0 @min-[17rem]:px-3"
+            className="shrink grow-1 px-1 @min-[18rem]:shrink-0 @min-[18rem]:px-3"
             value={Theme.Light}
             aria-label={t(($) => $.userAccount.aria.toggleLight)}
           >
-            <Sun className="size-4 @min-[17rem]:mr-2" />
-            <span className="hidden @min-[17rem]:inline">
+            <Sun className="size-4 @min-[18rem]:mr-2" />
+            <span className="hidden @min-[18rem]:inline">
               {t(($) => $.userAccount.modes.light)}
             </span>
           </ToggleGroupItem>
           <ToggleGroupItem
-            className="shrink grow-1 px-1 @min-[17rem]:shrink-0 @min-[17rem]:px-3"
+            className="shrink grow-1 px-1 @min-[18rem]:shrink-0 @min-[18rem]:px-3"
             value={Theme.Dark}
             aria-label={t(($) => $.userAccount.aria.toggleDark)}
           >
-            <Moon className="size-4 @min-[17rem]:mr-2" />
-            <span className="hidden @min-[17rem]:inline">{t(($) => $.userAccount.modes.dark)}</span>
+            <Moon className="size-4 @min-[18rem]:mr-2" />
+            <span className="hidden @min-[18rem]:inline">{t(($) => $.userAccount.modes.dark)}</span>
           </ToggleGroupItem>
           <ToggleGroupItem
-            className="shrink grow-1 px-1 @min-[17rem]:shrink-0 @min-[17rem]:px-3"
+            className="shrink grow-1 px-1 @min-[18rem]:shrink-0 @min-[18rem]:px-3"
             value={Theme.System}
             aria-label={t(($) => $.userAccount.aria.toggleSystem)}
           >
-            <Monitor className="size-4 @min-[17rem]:mr-2" />
-            <span className="hidden @min-[17rem]:inline">
+            <Monitor className="size-4 @min-[18rem]:mr-2" />
+            <span className="hidden @min-[18rem]:inline">
               {t(($) => $.userAccount.modes.system)}
             </span>
           </ToggleGroupItem>
