@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@dfinity/utils": "4.1.0",
+    "@floating-ui/react-dom": "2.1.7",
     "@icp-sdk/auth": "5.0.0",
     "@icp-sdk/canisters": "3.5.2-next-2026-04-21.1",
     "@icp-sdk/core": "5.0.0",
