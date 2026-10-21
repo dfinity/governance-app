@@ -127,6 +127,9 @@ export function DestinationInput({
   };
 
   const addAddress = () => {
+    // A tap leaves the focus on the input. Without the blur, the input keeps the
+    // keyboard under the add modal and gets the typed text.
+    inputRef.current?.blur();
     onAddAddress?.();
     close();
   };
@@ -337,6 +340,9 @@ export function DestinationInput({
             'flex w-full shrink-0 cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground',
             matches.length > 0 && 'mt-1 border-t pt-2',
           )}
+          // Safari does not focus a tapped button. The input keeps the focus, so the blur
+          // handler does not close the list before the click.
+          onMouseDown={(event) => event.preventDefault()}
           onClick={addAddress}
           data-testid={testId ? `${testId}-add` : undefined}
         >
