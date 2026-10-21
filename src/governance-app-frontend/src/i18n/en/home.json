@@ -20,6 +20,7 @@
   "icpPrice24h": "24h",
   "icpPrice24hChart": "ICP price over the last 24 hours",
   "maxApy": "Current max minting",
+  "maxApyTooltip": "Estimated yearly minting for a neuron created today with the max dissolve delay and auto-stake on. Older neurons mint more from the age bonus.",
   "yourApy": "Maturity",
   "maturity": "Maturity",
   "forecast": {
