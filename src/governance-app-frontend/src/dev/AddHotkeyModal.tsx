@@ -17,6 +17,7 @@ import {
 } from '@components/MutationDialog';
 import { ResponsiveDialogDescription, ResponsiveDialogTitle } from '@components/ResponsiveDialog';
 import { DIALOG_RESET_DELAY_MS, IS_TESTNET } from '@constants/extra';
+import { IDENTIFIER_INPUT_PROPS } from '@constants/input';
 import { errorMessage } from '@utils/error';
 import { getPrincipalFromString } from '@utils/principal';
 
@@ -104,6 +105,7 @@ export const AddHotkeyModal = ({ neuron }: Props) => {
                   ref={inputRef}
                   value={principalId}
                   type="text"
+                  {...IDENTIFIER_INPUT_PROPS}
                 />
               </div>
 
