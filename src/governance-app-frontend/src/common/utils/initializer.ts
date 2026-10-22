@@ -15,6 +15,13 @@ declare module '@tanstack/react-router' {
   }
 }
 
+declare module '@tanstack/history' {
+  interface HistoryState {
+    /** Set by the proposal list on its links, so "Back to proposals" can go back in history. */
+    fromProposalList?: boolean;
+  }
+}
+
 export const queryClientConfig = new QueryClient({
   defaultOptions: {
     queries: {
