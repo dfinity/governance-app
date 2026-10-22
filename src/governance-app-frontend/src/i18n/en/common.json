@@ -63,7 +63,9 @@
     "icpLogo": "Internet Computer (ICP) Logo"
   },
   "aria": {
-    "hiddenValue": "Hidden value"
+    "hiddenValue": "Hidden value",
+    "hideBalances": "Hide balances",
+    "showBalances": "Show balances"
   },
   "max": "Max",
   "leave": "Leave",

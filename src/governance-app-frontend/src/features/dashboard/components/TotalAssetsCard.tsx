@@ -7,6 +7,7 @@ import { StakingRatioModal } from '@features/stakes/components/StakingRatioModal
 
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { type ChartConfig, ChartContainer } from '@components/Chart';
+import { HideBalancesToggle } from '@components/HideBalancesToggle';
 import { SensitiveValue } from '@components/SensitiveValue';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
@@ -57,10 +58,11 @@ export const TotalAssetsCard = () => {
   return (
     <Card className="pt-4 pb-6">
       <CardHeader className="flex flex-col items-center gap-0">
-        <div className="flex min-h-9 items-center">
+        <div className="flex min-h-9 items-center gap-1.5">
           <p className="text-sm tracking-wide text-muted-foreground uppercase">
             {t(($) => $.home.totalAssets)}
           </p>
+          <HideBalancesToggle />
         </div>
 
         <div>
