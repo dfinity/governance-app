@@ -1,5 +1,5 @@
 import { ProposalStatus } from '@icp-sdk/canisters/nns';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, Link, useRouter } from '@tanstack/react-router';
 import { Eye, EyeOff } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -35,6 +35,7 @@ import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/governance'
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import { useNonConstructiveProposalIds } from '@hooks/spamFilter';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { restoresScrollPosition } from '@hooks/useScrollResetOnNavigation';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { warningNotification } from '@utils/notification';
 import { PrefetchedProposals, prefetchVotingRoute } from '@common/queries/routeLoaders';
@@ -96,6 +97,7 @@ function VotingPending() {
 function Voting() {
   const { t } = useTranslation();
 
+  const router = useRouter();
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
   const showProposals = search.showProposals;
@@ -171,12 +173,14 @@ function Voting() {
 
   useEffect(() => {
     if (!showProposals) return;
+    // Back and Forward restore the position that the user left.
+    if (restoresScrollPosition(router.state.location.state.__TSR_key)) return;
 
     const id = setTimeout(() => {
       proposalsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, DIALOG_RESET_DELAY_MS);
     return () => clearTimeout(id);
-  }, [showProposals, proposalFilter]);
+  }, [router, showProposals, proposalFilter]);
 
   return (
     <div className="flex flex-col gap-6 lg:gap-8">
@@ -284,6 +288,7 @@ function Voting() {
                               showProposals,
                               proposalFilter,
                             }}
+                            state={{ fromProposalList: true }}
                             className="w-full"
                             onClick={() =>
                               analytics.event(AnalyticsEvent.VotingOpenProposalDetail, {
