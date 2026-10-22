@@ -69,7 +69,7 @@ export function CapitalCard({ neurons }: CapitalCardProps) {
   return (
     <Card
       className={cn(
-        'gap-3 py-4',
+        'gap-3 py-4 wrap-anywhere',
         hasUnlocked && [CLICKABLE_CARD_CLASS, CLICKABLE_CARD_HOVER_CLASS],
       )}
       data-testid="stakes-summary-capital-card"

@@ -115,7 +115,7 @@ export const AddressBookModal: React.FC<Props> = ({ isOpen, onOpenChange }) => {
                   <div className="rounded-full bg-muted p-4">
                     <BookUser className="size-10 text-muted-foreground" />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 wrap-anywhere">
                     <p className="max-w-md font-medium">{t(($) => $.addressBook.emptyTitle)}</p>
                     <p className="max-w-md text-sm text-muted-foreground">
                       {t(($) => $.addressBook.emptyDescription)}

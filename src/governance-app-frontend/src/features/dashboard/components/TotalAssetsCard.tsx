@@ -69,7 +69,7 @@ export const TotalAssetsCard = () => {
           {isLoading || isIcpPriceLoading ? (
             <Skeleton className="h-8 w-40" />
           ) : (
-            <p className="text-2xl font-semibold text-foreground">
+            <p className="text-2xl font-semibold wrap-anywhere text-foreground">
               {nonNullish(totalAssetsFiat) ? (
                 <SensitiveValue>{totalAssetsFiat}</SensitiveValue>
               ) : (

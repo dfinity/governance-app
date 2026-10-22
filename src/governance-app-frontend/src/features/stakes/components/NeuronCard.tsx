@@ -93,7 +93,7 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
         <CardHeader className="flex flex-wrap items-center justify-between space-y-0 gap-x-3 gap-y-1 @md/neuron-card:items-start @md/neuron-card:gap-y-3">
           <div className="contents @md/neuron-card:flex @md/neuron-card:flex-col @md/neuron-card:gap-1">
             <p
-              className="basis-full text-3xl font-bold whitespace-nowrap @md/neuron-card:basis-auto"
+              className="basis-full text-3xl font-bold whitespace-nowrap @max-md/neuron-card:wrap-anywhere @max-md/neuron-card:whitespace-normal @md/neuron-card:basis-auto"
               data-testid="neuron-card-staked-amount"
             >
               <SensitiveValue>

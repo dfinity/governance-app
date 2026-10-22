@@ -62,7 +62,7 @@ export function EarningsCard({ neurons }: EarningsCardProps) {
   return (
     <Card
       className={cn(
-        'gap-3 py-4',
+        'gap-3 py-4 wrap-anywhere',
         canIncrease && [CLICKABLE_CARD_CLASS, CLICKABLE_CARD_HOVER_CLASS],
       )}
       data-testid="stakes-summary-earnings-card"
