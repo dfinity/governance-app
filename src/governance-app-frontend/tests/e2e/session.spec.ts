@@ -52,7 +52,35 @@ test('Protects routes and recovers from a closed Internet Identity window', asyn
     ]);
     await expect(page.getByTestId('login-btn')).toBeDisabled();
 
+    // The auth client sees the window close only after Internet Identity answers it.
+    await identityProvider.getByRole('button', { name: 'Create', exact: true }).waitFor();
     await identityProvider.close();
+
+    await expectLoginPage(page);
+    await expect(page.getByText('Authenticating with Internet Identity')).not.toBeVisible();
+  });
+
+  await test.step('Opens Internet Identity again after its window closes before it loads.', async () => {
+    // A page without the scripts of Internet Identity, so the first window never answers.
+    await page.context().route(
+      (url) => url.pathname === '/authorize',
+      (route) =>
+        route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>II</title>' }),
+      { times: 1 },
+    );
+
+    const [firstWindow] = await Promise.all([
+      page.waitForEvent('popup'),
+      page.getByTestId('login-btn').click(),
+    ]);
+    await firstWindow.close();
+
+    const [secondWindow] = await Promise.all([
+      page.waitForEvent('popup'),
+      page.getByTestId('login-restart-btn').click(),
+    ]);
+    await secondWindow.getByRole('button', { name: 'Create', exact: true }).waitFor();
+    await secondWindow.close();
 
     await expectLoginPage(page);
     await expect(page.getByText('Authenticating with Internet Identity')).not.toBeVisible();
