@@ -33,24 +33,14 @@ export type RouterContext = {
 };
 
 export const Route = createRootRouteWithContext<RouterContext>()({
+  // Open Graph and Twitter Card tags are static in index.html, because link crawlers do not run
+  // JavaScript.
   head: () => {
     const appName = i18n.t(($) => $.common.head.appName);
     const description = i18n.t(($) => $.common.head.defaultDescription);
 
     return {
-      meta: [
-        { title: appName },
-        { name: 'description', content: description },
-        // Open Graph
-        { property: 'og:type', content: 'website' },
-        { property: 'og:site_name', content: appName },
-        { property: 'og:title', content: appName },
-        { property: 'og:description', content: description },
-        // Twitter Card
-        { name: 'twitter:card', content: 'summary' },
-        { name: 'twitter:title', content: appName },
-        { name: 'twitter:description', content: description },
-      ],
+      meta: [{ title: appName }, { name: 'description', content: description }],
     };
   },
   component: RootComponent,
@@ -151,6 +141,11 @@ function RootComponent() {
   const { t } = useTranslation();
 
   const hadIdentity = useRef(!!identity);
+
+  // `HeadContent` renders the title and description now, so drop the static ones from index.html.
+  useEffect(() => {
+    document.head.querySelectorAll('[data-static-head]').forEach((node) => node.remove());
+  }, []);
 
   // Global identity change handler: login, logout, and auto-expiration
   useEffect(() => {
