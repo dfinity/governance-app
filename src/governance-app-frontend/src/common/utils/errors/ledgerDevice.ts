@@ -29,9 +29,11 @@ export const mapLedgerDeviceError = (error: Error): string | undefined => {
     case LedgerErrorCode.PrincipalMismatch:
       return t(($) => $.errors.ledgerDeviceErrors.principalMismatch);
     case LedgerErrorCode.UnexpectedDevice:
-      return t(($) => $.errors.ledgerDeviceErrors.unexpectedDevice, {
-        expected: error.details.expected,
-      });
+      return error.details.expected
+        ? t(($) => $.errors.ledgerDeviceErrors.unexpectedDevice, {
+            expected: error.details.expected,
+          })
+        : t(($) => $.errors.ledgerDeviceErrors.unexpectedDeviceUnknown);
     case LedgerErrorCode.UserRejected:
       return t(($) => $.errors.ledgerDeviceErrors.userRejected);
     case LedgerErrorCode.SignatureUnexpected:

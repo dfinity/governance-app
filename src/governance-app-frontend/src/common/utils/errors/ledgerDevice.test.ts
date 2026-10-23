@@ -25,6 +25,14 @@ describe('mapLedgerDeviceError', () => {
     expect(message).toContain('aaaaa-aa');
   });
 
+  it('has a text for an unexpected device without details', () => {
+    const message = mapLedgerDeviceError(new LedgerDeviceError(LedgerErrorCode.UnexpectedDevice));
+
+    expect(message).toBe(
+      'This is not the device of this account. Connect the registered device and try again.',
+    );
+  });
+
   it('ignores other errors', () => {
     expect(mapLedgerDeviceError(new Error('userRejected'))).toBeUndefined();
   });

@@ -27,6 +27,7 @@
     "fetchPublicKey": "Could not read the public key from the device.",
     "principalMismatch": "The device principal does not match its public key.",
     "unexpectedDevice": "This is not the device of this account. Connect the device with the principal {{expected}}.",
+    "unexpectedDeviceUnknown": "This is not the device of this account. Connect the registered device and try again.",
     "userRejected": "You rejected the request on the device.",
     "signatureUnexpected": "The device returned no signature.",
     "signatureLength": "The device returned an invalid signature.",

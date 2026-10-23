@@ -150,6 +150,42 @@ describe('LedgerNeuronsDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
 
     await waitFor(() => expect(screen.queryByTestId('device-approval-dialog')).toBeNull());
+    // The device call is still pending, so the button waits for it.
+    expect(screen.getByTestId('ledger-neuron-add-hotkey').hasAttribute('disabled')).toBe(true);
+  });
+
+  it('keeps the result of a cancelled attempt but reports nothing', async () => {
+    mocks.listNeurons.mockResolvedValue([deviceNeuron(1n)]);
+    let settle: () => void = () => {};
+    mocks.addHotkey.mockReturnValue(new Promise<void>((resolve) => (settle = resolve)));
+    const user = userEvent.setup();
+
+    renderDialog();
+
+    await user.click(await screen.findByTestId('ledger-neuron-add-hotkey'));
+    await user.click(await screen.findByRole('button', { name: 'Cancel' }));
+    settle();
+
+    expect(await screen.findByTestId('ledger-neuron-hotkey-added')).toBeTruthy();
+    expect(mocks.successNotification).not.toHaveBeenCalled();
+  });
+
+  it('asks the device again on each open', async () => {
+    mocks.listNeurons.mockResolvedValue([deviceNeuron(1n)]);
+    const queryClient = new QueryClient();
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+    const { rerender } = render(
+      <LedgerNeuronsDialog account={account} open onOpenChange={vi.fn()} />,
+      { wrapper },
+    );
+    await screen.findByTestId('ledger-neurons-list');
+
+    rerender(<LedgerNeuronsDialog account={account} open={false} onOpenChange={vi.fn()} />);
+    rerender(<LedgerNeuronsDialog account={account} open onOpenChange={vi.fn()} />);
+
+    await waitFor(() => expect(mocks.listNeurons).toHaveBeenCalledTimes(2));
   });
 
   it('reports a device error for the hotkey and keeps the button', async () => {

@@ -1,6 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { AlertTriangle, Check, Key, Usb } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { DeviceApprovalDialog } from '@features/ledger/components/DeviceApprovalDialog';
@@ -54,7 +54,16 @@ type Props = {
 export const LedgerNeuronsDialog = ({ account, open, onOpenChange }: Props) => {
   const { t } = useTranslation();
   const principal = account.principal ?? '';
-  const neuronsQuery = useLedgerDeviceNeurons({ principal, enabled: open });
+
+  // Each open gets its own query, so the device is asked again for a fresh list.
+  const [session, setSession] = useState(0);
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setSession((current) => current + 1);
+  }
+
+  const neuronsQuery = useLedgerDeviceNeurons({ principal, session, enabled: open });
 
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
@@ -115,6 +124,7 @@ export const LedgerNeuronsDialog = ({ account, open, onOpenChange }: Props) => {
                   key={String(neuron.neuronId)}
                   neuron={neuron}
                   principal={principal}
+                  session={session}
                 />
               ))}
             </ul>
@@ -150,12 +160,24 @@ function StateMessage({
   );
 }
 
-function LedgerNeuronRow({ neuron, principal }: { neuron: NeuronInfo; principal: string }) {
+function LedgerNeuronRow({
+  neuron,
+  principal,
+  session,
+}: {
+  neuron: NeuronInfo;
+  principal: string;
+  session: number;
+}) {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
   const addHotkey = useAddHotkey();
-  const updateNeuron = useUpdateLedgerDeviceNeuron(principal);
+  const updateNeuron = useUpdateLedgerDeviceNeuron({ principal, session });
+  // The device call stays pending after a cancel. The button waits for it to settle, and
+  // the approval dialog follows the user: a cancelled attempt reports nothing.
+  const [isPending, setIsPending] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
+  const cancelled = useRef(false);
 
   const iiPrincipal = identity?.getPrincipal().toText();
   const hasHotkey = !!iiPrincipal && (neuron.fullNeuron?.hotKeys.includes(iiPrincipal) ?? false);
@@ -173,7 +195,9 @@ function LedgerNeuronRow({ neuron, principal }: { neuron: NeuronInfo; principal:
   const neuronIdText = shortenNeuronId(neuron.neuronId);
 
   const handleAddHotkey = async () => {
-    if (!iiPrincipal) return;
+    if (!iiPrincipal || isPending) return;
+    cancelled.current = false;
+    setIsPending(true);
     setIsApproving(true);
 
     try {
@@ -182,6 +206,7 @@ function LedgerNeuronRow({ neuron, principal }: { neuron: NeuronInfo; principal:
         principal: iiPrincipal,
         signer: { kind: 'ledger', principal },
       });
+      // The device signed the call even when the user cancelled the dialog: keep the list true.
       updateNeuron(neuron.neuronId, (cached) =>
         cached.fullNeuron
           ? {
@@ -193,6 +218,7 @@ function LedgerNeuronRow({ neuron, principal }: { neuron: NeuronInfo; principal:
             }
           : cached,
       );
+      if (cancelled.current) return;
       successNotification({
         title: t(($) => $.accounts.ledgerNeurons.hotkeyAddedTitle),
         description: t(($) => $.accounts.ledgerNeurons.hotkeyAddedDescription, {
@@ -200,11 +226,13 @@ function LedgerNeuronRow({ neuron, principal }: { neuron: NeuronInfo; principal:
         }),
       });
     } catch (error) {
+      if (cancelled.current) return;
       errorNotification({
         title: t(($) => $.accounts.ledgerNeurons.hotkeyFailedTitle),
         description: error instanceof Error ? mapCanisterError(error) : undefined,
       });
     } finally {
+      setIsPending(false);
       setIsApproving(false);
     }
   };
@@ -240,10 +268,10 @@ function LedgerNeuronRow({ neuron, principal }: { neuron: NeuronInfo; principal:
           size="sm"
           className="shrink-0"
           onClick={handleAddHotkey}
-          disabled={isApproving || !iiPrincipal}
+          disabled={isPending || !iiPrincipal}
           data-testid="ledger-neuron-add-hotkey"
         >
-          {isApproving ? <Spinner /> : <Key aria-hidden="true" />}
+          {isPending ? <Spinner /> : <Key aria-hidden="true" />}
           {t(($) => $.accounts.ledgerNeurons.addHotkey)}
         </Button>
       )}
@@ -251,7 +279,10 @@ function LedgerNeuronRow({ neuron, principal }: { neuron: NeuronInfo; principal:
       <DeviceApprovalDialog
         open={isApproving}
         description={t(($) => $.accounts.ledgerNeurons.approveDescription)}
-        onCancel={() => setIsApproving(false)}
+        onCancel={() => {
+          cancelled.current = true;
+          setIsApproving(false);
+        }}
       />
     </li>
   );
