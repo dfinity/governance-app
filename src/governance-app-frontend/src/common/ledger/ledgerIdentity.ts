@@ -211,7 +211,8 @@ export class LedgerIdentity extends SignIdentity {
 
   // Public so tests can stub the kit.
   public static async getDeviceManagementKit(): Promise<DeviceManagementKit> {
-    // The promise is cached, so two overlapping first calls build one kit.
+    // The promise is cached, so two overlapping first calls build one kit. A failed build is
+    // forgotten, so the next call tries again.
     deviceManagementKit ??= (async () => {
       const [{ DeviceManagementKitBuilder }, { webHidTransportFactory }] = await Promise.all([
         import('@ledgerhq/device-management-kit'),
@@ -219,7 +220,10 @@ export class LedgerIdentity extends SignIdentity {
       ]);
 
       return new DeviceManagementKitBuilder().addTransport(webHidTransportFactory).build();
-    })();
+    })().catch((error: unknown) => {
+      deviceManagementKit = undefined;
+      throw error;
+    });
 
     return deviceManagementKit;
   }
