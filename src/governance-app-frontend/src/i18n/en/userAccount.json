@@ -26,6 +26,7 @@
     "empty": "No Ledger device is registered yet.",
     "add": "Add Ledger device",
     "verify": "Verify on device",
+    "verifyDescription": "Check that the principal and the address on the device screen match this account, then approve on the device.",
     "verified": "The Ledger device showed the principal and the address.",
     "errors": {
       "alreadyRegistered": "This Ledger device is already registered.",

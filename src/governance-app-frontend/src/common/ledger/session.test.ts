@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, type MockInstance, vi } fr
 import { MockLedgerIdentity } from '../../../tests/mocks/ledgerIdentity';
 import { LedgerDeviceError, LedgerErrorCode } from './errors';
 import { LedgerIdentity } from './ledgerIdentity';
-import { clearLedgerIdentities, getLedgerIdentity } from './session';
+import { clearLedgerIdentities, connectLedgerIdentity, getLedgerIdentity } from './session';
 
 const DEVICE_PRINCIPAL = new MockLedgerIdentity().getPrincipal().toText();
 const OTHER_PRINCIPAL = 'rrkah-fqaaa-aaaaa-aaaaq-cai';
@@ -101,5 +101,33 @@ describe('getLedgerIdentity', () => {
 
     expect(second).not.toBe(first);
     expect(create).toHaveBeenCalledTimes(2);
+  });
+
+  describe('connectLedgerIdentity', () => {
+    it('caches the connected device under its principal', async () => {
+      const identity = await connectLedgerIdentity();
+
+      await expect(getLedgerIdentity(DEVICE_PRINCIPAL)).resolves.toBe(identity);
+      expect(create).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not seed the cache when a logout happens during the connection', async () => {
+      let finish!: () => void;
+      create.mockImplementationOnce(
+        () =>
+          new Promise<MockLedgerIdentity>((resolve) => {
+            finish = () => resolve(new MockLedgerIdentity());
+          }),
+      );
+
+      const connecting = connectLedgerIdentity();
+      await vi.waitFor(() => expect(create).toHaveBeenCalled());
+      clearLedgerIdentities();
+      finish();
+      await connecting;
+
+      await getLedgerIdentity(DEVICE_PRINCIPAL);
+      expect(create).toHaveBeenCalledTimes(2);
+    });
   });
 });

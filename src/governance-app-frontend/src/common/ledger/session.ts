@@ -13,6 +13,10 @@ import type { LedgerIdentity } from './ledgerIdentity';
  */
 const identities = new Map<string, Promise<LedgerIdentity>>();
 
+// Bumped by `clearLedgerIdentities`, so a connection that started before a logout does not
+// seed the cache of the next session.
+let generation = 0;
+
 const connect = async (principal: string): Promise<LedgerIdentity> => {
   const { LedgerIdentity } = await import('./ledgerIdentity');
   const identity = await LedgerIdentity.create();
@@ -54,15 +58,19 @@ export const getLedgerIdentity = (principal: string): Promise<LedgerIdentity> =>
  * principal, so a later `getLedgerIdentity(principal)` reuses the connection.
  */
 export const connectLedgerIdentity = async (): Promise<LedgerIdentity> => {
+  const startedIn = generation;
   const { LedgerIdentity } = await import('./ledgerIdentity');
   const identity = await LedgerIdentity.create();
 
-  identities.set(identity.getPrincipal().toText(), Promise.resolve(identity));
+  if (startedIn === generation) {
+    identities.set(identity.getPrincipal().toText(), Promise.resolve(identity));
+  }
 
   return identity;
 };
 
 /** Drops every cached identity. Call it on logout. */
 export const clearLedgerIdentities = (): void => {
+  generation += 1;
   identities.clear();
 };

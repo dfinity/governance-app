@@ -1,12 +1,14 @@
 import '@/i18n/config';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, renderHook, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AccountType } from '@features/accounts/types';
 
+import { usePendingDeviceAction } from '@hooks/useDeviceAction';
+import { clearDeviceQueues } from '@common/ledger/deviceQueue';
 import { LedgerDeviceError, LedgerErrorCode } from '@common/ledger/errors';
 
 import { MockLedgerIdentity } from '../../../../tests/mocks/ledgerIdentity';
@@ -26,9 +28,6 @@ vi.mock('@features/accounts/hooks/useHardwareWalletsMetadata', () => ({
 vi.mock('@common/ledger/session', () => ({
   getLedgerIdentity: mocks.getLedgerIdentity,
   connectLedgerIdentity: vi.fn(),
-}));
-vi.mock('@common/ledger/deviceQueue', () => ({
-  runOnDevice: (_principal: string, call: () => Promise<unknown>) => call(),
 }));
 vi.mock('@utils/notification', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@utils/notification')>()),
@@ -59,6 +58,7 @@ const renderCard = () =>
 describe('LedgerDevicesCard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    clearDeviceQueues();
     mocks.hardwareWallets.mockReturnValue({ data: [DEVICE], isLoading: false });
   });
 
@@ -117,5 +117,39 @@ describe('LedgerDevicesCard', () => {
     expect(mocks.analyticsEvent).toHaveBeenCalledWith('ledger_device_verify_error', {
       reason: 'ledger_unexpected_device',
     });
+  });
+
+  it('queues a retry after a cancel until the pending device call settles', async () => {
+    const identity = new MockLedgerIdentity();
+    let finish!: () => void;
+    const show = vi
+      .spyOn(identity, 'showAddressAndPubKeyOnDevice')
+      .mockImplementation(
+        () => new Promise((resolve) => (finish = () => resolve(undefined as never))),
+      );
+    mocks.getLedgerIdentity.mockResolvedValue(identity);
+    const user = userEvent.setup({ delay: null });
+    const { result: pending } = renderHook(() => usePendingDeviceAction());
+    renderCard();
+
+    await user.click(screen.getByRole('button', { name: 'Verify on device' }));
+    await waitFor(() => expect(show).toHaveBeenCalledTimes(1));
+
+    act(() => pending.current?.cancel());
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Verify on device' })).toHaveProperty(
+        'disabled',
+        false,
+      ),
+    );
+    await user.click(screen.getByRole('button', { name: 'Verify on device' }));
+
+    // The first call still holds the device. The retry waits in the queue.
+    await waitFor(() => expect(pending.current).not.toBeNull());
+    expect(show).toHaveBeenCalledTimes(1);
+
+    finish();
+    await waitFor(() => expect(show).toHaveBeenCalledTimes(2));
+    expect(mocks.errorNotification).not.toHaveBeenCalled();
   });
 });
