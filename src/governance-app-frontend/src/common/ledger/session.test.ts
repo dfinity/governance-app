@@ -175,6 +175,59 @@ describe('getLedgerIdentity', () => {
       expect(create).not.toHaveBeenCalled();
     });
 
+    it('rejects at once on an abort after the creation started, and keeps the reservation', async () => {
+      let finishCreate!: () => void;
+      create.mockImplementationOnce(
+        () =>
+          new Promise<MockLedgerIdentity>((resolve) => {
+            finishCreate = () => resolve(new MockLedgerIdentity());
+          }),
+      );
+      const controller = new AbortController();
+      const reason = new Error('closed');
+
+      const connecting = connectLedgerIdentity(controller.signal);
+      await vi.waitFor(() => expect(create).toHaveBeenCalledTimes(1));
+      let queued = false;
+      void runOnDevice(DEVICE_PRINCIPAL, async () => {
+        queued = true;
+      });
+
+      controller.abort(reason);
+      await expect(connecting).rejects.toBe(reason);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(queued).toBe(false);
+
+      finishCreate();
+      await vi.waitFor(() => expect(queued).toBe(true));
+
+      // The late identity is dropped, so the next call connects again.
+      await getLedgerIdentity(DEVICE_PRINCIPAL);
+      expect(create).toHaveBeenCalledTimes(2);
+    });
+
+    it('drops a late failure after an abort', async () => {
+      let failCreate!: (error: Error) => void;
+      create.mockImplementationOnce(
+        () =>
+          new Promise<MockLedgerIdentity>((_, reject) => {
+            failCreate = reject;
+          }),
+      );
+      const controller = new AbortController();
+      const reason = new Error('closed');
+
+      const connecting = connectLedgerIdentity(controller.signal);
+      await vi.waitFor(() => expect(create).toHaveBeenCalledTimes(1));
+      controller.abort(reason);
+      await expect(connecting).rejects.toBe(reason);
+
+      failCreate(new LedgerDeviceError(LedgerErrorCode.NoDevice));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      await expect(getLedgerIdentity(DEVICE_PRINCIPAL)).resolves.toBeInstanceOf(MockLedgerIdentity);
+    });
+
     it('does not seed the cache when a logout happens during the connection', async () => {
       let finish!: () => void;
       create.mockImplementationOnce(

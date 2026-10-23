@@ -58,26 +58,41 @@ export const getLedgerIdentity = (principal: string): Promise<LedgerIdentity> =>
  * Connects to the Ledger device the user picks and caches its identity under the device
  * principal, so a later `getLedgerIdentity(principal)` reuses the connection.
  *
- * An aborted `signal` rejects with its reason, and a connection that still waits for the
- * device does not start at all.
+ * An aborted `signal` rejects with its reason at once. A connection that still waits for
+ * the device does not start; one that already started keeps the device reservation until
+ * it settles, and its late result is dropped.
  */
-export const connectLedgerIdentity = async (signal?: AbortSignal): Promise<LedgerIdentity> => {
-  const startedIn = generation;
-  // A pending call holds the device. A second transport on it fails, so the connection
-  // reserves the device before anything else, the module import included.
-  const identity = await runExclusiveDeviceCall(async () => {
-    signal?.throwIfAborted();
-    const { LedgerIdentity } = await import('./ledgerIdentity');
-    signal?.throwIfAborted();
-    return LedgerIdentity.create();
+export const connectLedgerIdentity = (signal?: AbortSignal): Promise<LedgerIdentity> =>
+  new Promise<LedgerIdentity>((resolve, reject) => {
+    const startedIn = generation;
+    const onAbort = () => reject(signal?.reason);
+    signal?.addEventListener('abort', onAbort, { once: true });
+
+    // A pending call holds the device. A second transport on it fails, so the connection
+    // reserves the device before anything else, the module import included.
+    runExclusiveDeviceCall(async () => {
+      signal?.throwIfAborted();
+      const { LedgerIdentity } = await import('./ledgerIdentity');
+      signal?.throwIfAborted();
+      return LedgerIdentity.create();
+    }).then(
+      (identity) => {
+        signal?.removeEventListener('abort', onAbort);
+        if (signal?.aborted) return;
+
+        if (startedIn === generation) {
+          identities.set(identity.getPrincipal().toText(), Promise.resolve(identity));
+        }
+        resolve(identity);
+      },
+      (error: unknown) => {
+        signal?.removeEventListener('abort', onAbort);
+        if (signal?.aborted) return;
+
+        reject(error);
+      },
+    );
   });
-
-  if (startedIn === generation) {
-    identities.set(identity.getPrincipal().toText(), Promise.resolve(identity));
-  }
-
-  return identity;
-};
 
 /** Drops every cached identity. Call it on logout. */
 export const clearLedgerIdentities = (): void => {
