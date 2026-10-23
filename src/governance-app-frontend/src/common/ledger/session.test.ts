@@ -126,6 +126,37 @@ describe('getLedgerIdentity', () => {
       expect(create).toHaveBeenCalledTimes(1);
     });
 
+    it('holds a device call queued during the connection until the connection settles', async () => {
+      let finishCall!: () => void;
+      let finishCreate!: () => void;
+      void runOnDevice(
+        DEVICE_PRINCIPAL,
+        () => new Promise<void>((resolve) => (finishCall = resolve)),
+      );
+      create.mockImplementationOnce(
+        () =>
+          new Promise<MockLedgerIdentity>((resolve) => {
+            finishCreate = () => resolve(new MockLedgerIdentity());
+          }),
+      );
+
+      await vi.waitFor(() => expect(finishCall).toBeDefined());
+      const connecting = connectLedgerIdentity();
+      let retried = false;
+      void runOnDevice(DEVICE_PRINCIPAL, async () => {
+        retried = true;
+      });
+
+      finishCall();
+      await vi.waitFor(() => expect(create).toHaveBeenCalledTimes(1));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(retried).toBe(false);
+
+      finishCreate();
+      await connecting;
+      await vi.waitFor(() => expect(retried).toBe(true));
+    });
+
     it('does not seed the cache when a logout happens during the connection', async () => {
       let finish!: () => void;
       create.mockImplementationOnce(

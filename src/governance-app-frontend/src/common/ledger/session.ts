@@ -1,4 +1,4 @@
-import { waitForDevices } from './deviceQueue';
+import { runExclusiveDeviceCall } from './deviceQueue';
 import { LedgerDeviceError, LedgerErrorCode } from './errors';
 import type { LedgerIdentity } from './ledgerIdentity';
 
@@ -60,10 +60,12 @@ export const getLedgerIdentity = (principal: string): Promise<LedgerIdentity> =>
  */
 export const connectLedgerIdentity = async (): Promise<LedgerIdentity> => {
   const startedIn = generation;
-  const { LedgerIdentity } = await import('./ledgerIdentity');
-  // A pending call holds the device. A second transport on it fails.
-  await waitForDevices();
-  const identity = await LedgerIdentity.create();
+  // A pending call holds the device. A second transport on it fails, so the connection
+  // reserves the device before anything else, the module import included.
+  const identity = await runExclusiveDeviceCall(async () => {
+    const { LedgerIdentity } = await import('./ledgerIdentity');
+    return LedgerIdentity.create();
+  });
 
   if (startedIn === generation) {
     identities.set(identity.getPrincipal().toText(), Promise.resolve(identity));
