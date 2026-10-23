@@ -49,6 +49,19 @@ export const getLedgerIdentity = (principal: string): Promise<LedgerIdentity> =>
   return pending;
 };
 
+/**
+ * Connects to the Ledger device the user picks and caches its identity under the device
+ * principal, so a later `getLedgerIdentity(principal)` reuses the connection.
+ */
+export const connectLedgerIdentity = async (): Promise<LedgerIdentity> => {
+  const { LedgerIdentity } = await import('./ledgerIdentity');
+  const identity = await LedgerIdentity.create();
+
+  identities.set(identity.getPrincipal().toText(), Promise.resolve(identity));
+
+  return identity;
+};
+
 /** Drops every cached identity. Call it on logout. */
 export const clearLedgerIdentities = (): void => {
   identities.clear();
