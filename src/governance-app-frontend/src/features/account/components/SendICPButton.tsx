@@ -348,7 +348,8 @@ export const SendICPDialog: React.FC<DialogProps> = ({
     !destinationSuggestions.some(
       (suggestion) =>
         suggestion.name === initialDestination.name &&
-        suggestion.address === initialDestination.address,
+        suggestion.address === initialDestination.address &&
+        suggestion.kind === addressKind(initialDestination.address),
     )
   ) {
     destinationSuggestions.push({
