@@ -257,8 +257,9 @@ export class LedgerIdentity extends SignIdentity {
     return firstValueFrom(dmk.startDiscovering({}));
   }
 
-  // Waits for the running action, then holds the lock until the returned function runs.
-  private static async lockActions(): Promise<() => void> {
+  // Waits for the running action, then holds the lock until `unlock` runs. The generation
+  // is the one the lock was granted under; the caller checks it after each later await.
+  private static async lockActions(): Promise<{ unlock: () => void; generation: number }> {
     for (;;) {
       const generation = lockGeneration;
       const previous = actionLock;
@@ -268,7 +269,7 @@ export class LedgerIdentity extends SignIdentity {
       });
       await previous;
 
-      if (generation === lockGeneration) return unlock;
+      if (generation === lockGeneration) return { unlock, generation };
 
       // The session closed while this action waited: give the stale turn up and queue again.
       unlock();
@@ -362,8 +363,7 @@ export class LedgerIdentity extends SignIdentity {
 
   // Public so tests can stub the device.
   public static async connect(preferredDeviceId?: string): Promise<Connection> {
-    const unlock = await LedgerIdentity.lockActions();
-    const generation = lockGeneration;
+    const { unlock, generation } = await LedgerIdentity.lockActions();
 
     try {
       // The Ledger app packages read `Buffer` from the global scope.

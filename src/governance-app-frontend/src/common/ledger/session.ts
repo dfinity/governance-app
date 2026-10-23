@@ -13,8 +13,14 @@ import type { LedgerIdentity } from './ledgerIdentity';
  */
 const identities = new Map<string, Promise<LedgerIdentity>>();
 
+// Loaded on the first device action only, so a logout without one loads nothing.
+let ledgerModule: Promise<typeof import('./ledgerIdentity')> | undefined;
+
+const loadLedgerModule = (): Promise<typeof import('./ledgerIdentity')> =>
+  (ledgerModule ??= import('./ledgerIdentity'));
+
 const connect = async (principal: string): Promise<LedgerIdentity> => {
-  const { LedgerIdentity } = await import('./ledgerIdentity');
+  const { LedgerIdentity } = await loadLedgerModule();
   const identity = await LedgerIdentity.create();
 
   if (identity.getPrincipal().toText() !== principal) {
@@ -49,7 +55,14 @@ export const getLedgerIdentity = (principal: string): Promise<LedgerIdentity> =>
   return pending;
 };
 
-/** Drops every cached identity. Call it on logout. */
+/**
+ * Drops every cached identity and closes the device session. Call it on logout.
+ * A device action that still waits for an approval loses its turn.
+ */
 export const clearLedgerIdentities = (): void => {
   identities.clear();
+
+  void ledgerModule
+    ?.then(({ LedgerIdentity }) => LedgerIdentity.closeSession())
+    .catch((error: unknown) => console.warn('Failed to close the Ledger device session.', error));
 };

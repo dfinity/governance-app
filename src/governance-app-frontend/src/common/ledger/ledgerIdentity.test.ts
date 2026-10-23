@@ -574,6 +574,22 @@ describe('LedgerIdentity', () => {
       connection.release();
     });
 
+    it('cancels an action granted the lock right before the session closed', async () => {
+      const active = await LedgerIdentity.connect();
+      const queued = LedgerIdentity.connect();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // The grant and the close land in the same microtask run, before the action continues.
+      active.release();
+      await Promise.resolve();
+      void LedgerIdentity.closeSession();
+      const fresh = await LedgerIdentity.connect();
+
+      await expect(queued).rejects.toMatchObject({ code: LedgerErrorCode.SessionClosed });
+      expect(fresh.deviceId).toBe('device-id');
+      fresh.release();
+    });
+
     it('waits for the running action before a second action starts', async () => {
       const identity = await LedgerIdentity.create();
       let finishSignature: (value: unknown) => void = () => undefined;
