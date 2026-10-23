@@ -11,7 +11,7 @@ import { Principal } from '@icp-sdk/core/principal';
 import type { DiscoveredDevice } from '@ledgerhq/device-management-kit';
 import type InternetComputerApp from '@zondax/ledger-icp';
 import type { ResponseVersion } from '@zondax/ledger-icp';
-import { NEVER, of, throwError } from 'rxjs';
+import { NEVER, of, Subject, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 
 import { mockLedgerPublicKey } from '../../../tests/mocks/ledgerIdentity';
@@ -451,7 +451,7 @@ describe('LedgerIdentity', () => {
       Object.values(mockDmk).forEach((fn) => fn.mockReset());
       mockAppConstructor.mockReset();
       mockDmk.isEnvironmentSupported.mockReturnValue(true);
-      mockDmk.listenToAvailableDevices.mockReturnValue(of([device]));
+      mockDmk.listenToAvailableDevices.mockReturnValue(of([], [device]));
       mockDmk.listConnectedDevices.mockReturnValue([{ sessionId }]);
       mockDmk.startDiscovering.mockReturnValue(of(device));
       mockDmk.connect.mockResolvedValue(sessionId);
@@ -493,7 +493,7 @@ describe('LedgerIdentity', () => {
 
     it('closes an idle session before it opens one on another device', async () => {
       const other = { id: 'other-device' } as DiscoveredDevice;
-      mockDmk.listenToAvailableDevices.mockReturnValue(of([device, other]));
+      mockDmk.listenToAvailableDevices.mockReturnValue(of([], [device, other]));
       mockDmk.startDiscovering.mockReturnValue(of(device));
       const first = await LedgerIdentity.connect();
       first.release();
@@ -610,7 +610,7 @@ describe('LedgerIdentity', () => {
       const other = { id: 'other-device' } as DiscoveredDevice;
       const first = await LedgerIdentity.connect();
       first.release();
-      mockDmk.listenToAvailableDevices.mockReturnValue(of([device, other]));
+      mockDmk.listenToAvailableDevices.mockReturnValue(of([], [device, other]));
       mockDmk.startDiscovering.mockReturnValue(
         throwError(() => ({ _tag: 'NoAccessibleDeviceError' })),
       );
@@ -627,7 +627,7 @@ describe('LedgerIdentity', () => {
       const other = { id: 'other-device' } as DiscoveredDevice;
       const first = await LedgerIdentity.connect();
       first.release();
-      mockDmk.listenToAvailableDevices.mockReturnValue(of([device, other]));
+      mockDmk.listenToAvailableDevices.mockReturnValue(of([], [device, other]));
       mockDmk.startDiscovering.mockReturnValue(of(other));
       mockDmk.connect.mockResolvedValue('session-2');
 
@@ -642,7 +642,7 @@ describe('LedgerIdentity', () => {
       const other = { id: 'other-device' } as DiscoveredDevice;
       const first = await LedgerIdentity.connect();
       first.release();
-      mockDmk.listenToAvailableDevices.mockReturnValue(of([device, other]));
+      mockDmk.listenToAvailableDevices.mockReturnValue(of([], [device, other]));
       mockDmk.startDiscovering.mockReturnValue(of(device));
 
       const second = await LedgerIdentity.connect();
@@ -669,7 +669,7 @@ describe('LedgerIdentity', () => {
 
     it('reconnects to the device of the identity when several are allowed', async () => {
       const other = { id: 'other-device' } as DiscoveredDevice;
-      mockDmk.listenToAvailableDevices.mockReturnValue(of([other, device]));
+      mockDmk.listenToAvailableDevices.mockReturnValue(of([], [other, device]));
       const identity = await LedgerIdentity.create();
       await LedgerIdentity.closeSession();
       mockDmk.connect.mockClear();
@@ -683,13 +683,80 @@ describe('LedgerIdentity', () => {
 
     it('asks the user to choose when several devices are allowed and none is preferred', async () => {
       const other = { id: 'other-device' } as DiscoveredDevice;
-      mockDmk.listenToAvailableDevices.mockReturnValue(of([device, other]));
+      mockDmk.listenToAvailableDevices.mockReturnValue(of([], [device, other]));
       mockDmk.startDiscovering.mockReturnValue(of(other));
 
       const connection = await LedgerIdentity.connect();
 
       expect(mockDmk.startDiscovering).toHaveBeenCalledTimes(1);
       expect(connection.deviceId).toBe('other-device');
+    });
+
+    it('ignores the cached device list and uses the refreshed one', async () => {
+      const other = { id: 'other-device' } as DiscoveredDevice;
+      mockDmk.listenToAvailableDevices.mockReturnValue(of([device], [device, other]));
+
+      const connection = await LedgerIdentity.connect('other-device');
+
+      expect(mockDmk.startDiscovering).not.toHaveBeenCalled();
+      expect(connection.deviceId).toBe('other-device');
+      connection.release();
+    });
+
+    it('asks the user to choose when only the refreshed list has several devices', async () => {
+      const other = { id: 'other-device' } as DiscoveredDevice;
+      mockDmk.listenToAvailableDevices.mockReturnValue(of([device], [device, other]));
+      mockDmk.startDiscovering.mockReturnValue(of(other));
+
+      const connection = await LedgerIdentity.connect();
+
+      expect(mockDmk.startDiscovering).toHaveBeenCalledTimes(1);
+      expect(connection.deviceId).toBe('other-device');
+      connection.release();
+    });
+
+    it('cancels a connection when the session closes during the device choice', async () => {
+      vi.useFakeTimers();
+      mockDmk.listenToAvailableDevices.mockReturnValue(NEVER);
+      const discovery = new Subject<DiscoveredDevice>();
+      mockDmk.startDiscovering.mockReturnValueOnce(discovery).mockReturnValue(of(device));
+
+      const stale = LedgerIdentity.connect();
+      await vi.advanceTimersByTimeAsync(500);
+      await LedgerIdentity.closeSession();
+      const fresh = LedgerIdentity.connect();
+      await vi.advanceTimersByTimeAsync(500);
+      const freshConnection = await fresh;
+
+      discovery.next(device);
+      discovery.complete();
+
+      await expect(stale).rejects.toMatchObject({ code: LedgerErrorCode.SessionClosed });
+      expect(mockDmk.connect).toHaveBeenCalledTimes(1);
+      expect(mockDmk.disconnect).not.toHaveBeenCalled();
+      freshConnection.release();
+    });
+
+    it('closes a session opened after the session closed during the connection', async () => {
+      let finishConnect: (sessionId: string) => void = () => undefined;
+      mockDmk.connect.mockImplementationOnce(
+        () =>
+          new Promise<string>((resolve) => {
+            finishConnect = resolve;
+          }),
+      );
+
+      const stale = LedgerIdentity.connect();
+      await vi.waitFor(() => expect(mockDmk.connect).toHaveBeenCalledTimes(1));
+      await LedgerIdentity.closeSession();
+      const fresh = await LedgerIdentity.connect();
+
+      finishConnect('stale-session');
+
+      await expect(stale).rejects.toMatchObject({ code: LedgerErrorCode.SessionClosed });
+      expect(mockDmk.disconnect).toHaveBeenCalledWith({ sessionId: 'stale-session' });
+      expect(fresh.deviceId).toBe('device-id');
+      fresh.release();
     });
 
     it('asks the browser for a device when the user allowed none', async () => {

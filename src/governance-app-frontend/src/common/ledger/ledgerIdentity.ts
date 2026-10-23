@@ -230,15 +230,17 @@ export class LedgerIdentity extends SignIdentity {
     dmk: DeviceManagementKit,
     preferredDeviceId?: string,
   ): Promise<DiscoveredDevice> {
-    const { filter, firstValueFrom, timeout, TimeoutError } = await import('rxjs');
+    const { firstValueFrom, skip, take, timeout, TimeoutError } = await import('rxjs');
 
     let devices: DiscoveredDevice[] = [];
     try {
+      // The kit emits the devices it knows at once, then the devices the browser lists.
+      // Only the second list is current.
       devices = await firstValueFrom(
-        dmk.listenToAvailableDevices({}).pipe(
-          filter((available) => available.length > 0),
-          timeout({ first: KNOWN_DEVICE_TIMEOUT_MS }),
-        ),
+        dmk
+          .listenToAvailableDevices({})
+          .pipe(skip(1), take(1), timeout({ first: KNOWN_DEVICE_TIMEOUT_MS })),
+        { defaultValue: [] },
       );
     } catch (error: unknown) {
       if (!(error instanceof TimeoutError)) throw error;
@@ -272,12 +274,14 @@ export class LedgerIdentity extends SignIdentity {
   // Reuses the shared session when it is alive and on the chosen device, else opens one.
   private static async openSession(
     dmk: DeviceManagementKit,
+    generation: number,
     preferredDeviceId?: string,
   ): Promise<Session> {
     // The device choice comes first, so a warm session on another device is not reused by
     // mistake when several devices are allowed. The idle timer of the shared session keeps
     // running until the choice succeeds, so a cancelled chooser leaves no open session behind.
     const device = await this.findDevice(dmk, preferredDeviceId);
+    LedgerIdentity.assertSessionOpen(generation);
 
     const current = session;
     if (nonNullish(current)) {
@@ -289,6 +293,7 @@ export class LedgerIdentity extends SignIdentity {
 
       session = undefined;
       if (alive) await LedgerIdentity.disconnectSession(dmk, current.id);
+      LedgerIdentity.assertSessionOpen(generation);
     }
 
     const id = await dmk.connect({
@@ -296,9 +301,22 @@ export class LedgerIdentity extends SignIdentity {
       // The refresher polls the device between the APDUs of a multi-chunk signature.
       sessionRefresherOptions: { isRefresherDisabled: true },
     });
+
+    // The session closed during the connection: the new session is not published.
+    if (generation !== lockGeneration) {
+      await LedgerIdentity.disconnectSession(dmk, id);
+      throw new LedgerDeviceError(LedgerErrorCode.SessionClosed);
+    }
     session = { id, deviceId: device.id };
 
     return session;
+  }
+
+  // An action set up before the session closed must not touch a session opened after it.
+  private static assertSessionOpen(generation: number): void {
+    if (generation !== lockGeneration) {
+      throw new LedgerDeviceError(LedgerErrorCode.SessionClosed);
+    }
   }
 
   // The session stays open for a while, so the next action does not reopen a closing device.
@@ -341,6 +359,7 @@ export class LedgerIdentity extends SignIdentity {
   // Public so tests can stub the device.
   public static async connect(preferredDeviceId?: string): Promise<Connection> {
     const unlock = await LedgerIdentity.lockActions();
+    const generation = lockGeneration;
 
     try {
       // The Ledger app packages read `Buffer` from the global scope.
@@ -356,7 +375,7 @@ export class LedgerIdentity extends SignIdentity {
         throw new LedgerDeviceError(LedgerErrorCode.BrowserNotSupported);
       }
 
-      const opened = await this.openSession(dmk, preferredDeviceId);
+      const opened = await this.openSession(dmk, generation, preferredDeviceId);
 
       try {
         const transport = new DMKTransport(dmk, opened.id);

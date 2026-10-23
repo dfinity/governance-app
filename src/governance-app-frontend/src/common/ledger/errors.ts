@@ -31,6 +31,8 @@ export enum LedgerErrorCode {
   SignatureLength = 'signatureLength',
   /** The app on the device is older than `LEDGER_MIN_APP_VERSION`. `details.version` has the device version. */
   AppVersionNotSupported = 'appVersionNotSupported',
+  /** The session closed, for example on logout, while the action was being set up. */
+  SessionClosed = 'sessionClosed',
   /** The device was unplugged or stopped answering during an action. */
   Disconnected = 'disconnected',
   /** Any other failure during a device action. `details.error` has the message. */

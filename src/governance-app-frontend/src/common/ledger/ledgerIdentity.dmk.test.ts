@@ -33,7 +33,7 @@ describe('LedgerIdentity with the real Zondax adapter', () => {
     ['DeviceLockedError', LedgerErrorCode.Locked],
   ])('reports a %s from the kit as %s', async (tag, code) => {
     const { of } = await import('rxjs');
-    mockDmk.listenToAvailableDevices.mockReturnValue(of([{ id: 'device-id' }]));
+    mockDmk.listenToAvailableDevices.mockReturnValue(of([], [{ id: 'device-id' }]));
     mockDmk.sendApdu.mockRejectedValue({ _tag: tag });
 
     await expect(LedgerIdentity.create()).rejects.toMatchObject({ code });
