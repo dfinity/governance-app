@@ -157,6 +157,16 @@ describe('getLedgerIdentity', () => {
       await vi.waitFor(() => expect(retried).toBe(true));
     });
 
+    it('rejects at once with an already aborted signal', async () => {
+      const controller = new AbortController();
+      const reason = new Error('closed');
+      controller.abort(reason);
+
+      await expect(connectLedgerIdentity(controller.signal)).rejects.toBe(reason);
+      expect(create).not.toHaveBeenCalled();
+      await expect(runOnDevice(DEVICE_PRINCIPAL, async () => 'free')).resolves.toBe('free');
+    });
+
     it('does not start a queued connection after its signal aborts', async () => {
       let finishCall!: () => void;
       void runOnDevice(

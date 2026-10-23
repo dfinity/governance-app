@@ -64,6 +64,12 @@ export const getLedgerIdentity = (principal: string): Promise<LedgerIdentity> =>
  */
 export const connectLedgerIdentity = (signal?: AbortSignal): Promise<LedgerIdentity> =>
   new Promise<LedgerIdentity>((resolve, reject) => {
+    // The abort listener does not replay an earlier abort.
+    if (signal?.aborted) {
+      reject(signal.reason);
+      return;
+    }
+
     const startedIn = generation;
     const onAbort = () => reject(signal?.reason);
     signal?.addEventListener('abort', onAbort, { once: true });
