@@ -146,4 +146,21 @@ describe('AddLedgerDeviceDialog', () => {
     });
     expect(screen.getByRole('button', { name: 'Connect' })).toBeTruthy();
   });
+
+  it('ignores a connection from a closed opening of the dialog', async () => {
+    let finish!: () => void;
+    mocks.connectLedgerIdentity.mockImplementationOnce(
+      () => new Promise((resolve) => (finish = () => resolve(identity))),
+    );
+    const user = userEvent.setup({ delay: null });
+    renderDialog();
+
+    await openAndConnect(user);
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    await user.click(screen.getByText('Add'));
+
+    finish();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Connect' })).toBeTruthy());
+    expect(screen.queryByTestId('ledger-device-details')).toBeNull();
+  });
 });

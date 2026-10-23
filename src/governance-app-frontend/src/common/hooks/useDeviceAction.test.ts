@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import {
+  cancelPendingDeviceAction,
   DeviceActionCancelledError,
   isDeviceActionCancelled,
   runDeviceAction,
@@ -79,5 +80,45 @@ describe('runDeviceAction', () => {
   it('recognizes the cancel error', () => {
     expect(isDeviceActionCancelled(new DeviceActionCancelledError())).toBe(true);
     expect(isDeviceActionCancelled(new Error('x'))).toBe(false);
+  });
+
+  it('closes the dialog when the action throws before it returns a promise', async () => {
+    const { result } = renderHook(() => usePendingDeviceAction());
+
+    let run!: Promise<void>;
+    act(() => {
+      run = runDeviceAction(() => {
+        throw new Error('sync');
+      }, OPTIONS);
+    });
+
+    await expect(run).rejects.toThrow('sync');
+    expect(result.current).toBeNull();
+  });
+
+  it('aborts the signal on cancel so a queued call can skip the device', async () => {
+    const { result } = renderHook(() => usePendingDeviceAction());
+    const action = deferred<void>();
+    let signal!: AbortSignal;
+
+    let run!: Promise<void>;
+    act(() => {
+      run = runDeviceAction((s) => {
+        signal = s;
+        return action.promise;
+      }, OPTIONS);
+    });
+    expect(signal.aborted).toBe(false);
+
+    await act(async () => {
+      cancelPendingDeviceAction();
+      await expect(run).rejects.toBeInstanceOf(DeviceActionCancelledError);
+    });
+    expect(signal.aborted).toBe(true);
+    expect(result.current).toBeNull();
+  });
+
+  it('does nothing on cancelPendingDeviceAction without an action', () => {
+    expect(() => cancelPendingDeviceAction()).not.toThrow();
   });
 });

@@ -1,6 +1,6 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { Check, Usb } from 'lucide-react';
-import { type FormEvent, type ReactNode, useEffect, useState } from 'react';
+import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@components/badge';
@@ -45,6 +45,8 @@ export const AddLedgerDeviceDialog = ({ trigger }: Props) => {
   const [name, setName] = useState('');
   const connect = useConnectLedgerDevice();
   const register = useRegisterHardwareWallet();
+  // Counts the openings, so a connection from a closed opening does not fill the next one.
+  const opening = useRef(0);
 
   const trimmedName = name.trim();
   const isNameValid =
@@ -53,6 +55,7 @@ export const AddLedgerDeviceDialog = ({ trigger }: Props) => {
 
   useEffect(() => {
     if (open) {
+      opening.current += 1;
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setStep(Step.Connect);
       setIdentity(undefined);
@@ -60,7 +63,14 @@ export const AddLedgerDeviceDialog = ({ trigger }: Props) => {
     }
   }, [open]);
 
-  const handleConnect = () => connect.mutate(undefined, { onSuccess: setIdentity });
+  const handleConnect = () => {
+    const startedIn = opening.current;
+    connect.mutate(undefined, {
+      onSuccess: (connected) => {
+        if (opening.current === startedIn) setIdentity(connected);
+      },
+    });
+  };
 
   const handleSubmit = (execute: (fn: () => Promise<unknown>) => void) => (e: FormEvent) => {
     e.preventDefault();

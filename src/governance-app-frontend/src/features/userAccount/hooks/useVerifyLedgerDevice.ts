@@ -22,9 +22,12 @@ export function useVerifyLedgerDevice() {
   return useMutation({
     mutationFn: (principal: string) =>
       runDeviceAction(
-        () =>
+        (signal) =>
           runOnDevice(principal, async () => {
+            // A cancelled call that waited in the queue must not prompt the device.
+            if (signal.aborted) return;
             const identity = await getLedgerIdentity(principal);
+            if (signal.aborted) return;
             await identity.showAddressAndPubKeyOnDevice();
           }),
         { description: t(($) => $.userAccount.ledgerDevices.verifyDescription) },

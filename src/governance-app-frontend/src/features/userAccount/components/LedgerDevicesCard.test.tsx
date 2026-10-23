@@ -152,4 +152,38 @@ describe('LedgerDevicesCard', () => {
     await waitFor(() => expect(show).toHaveBeenCalledTimes(2));
     expect(mocks.errorNotification).not.toHaveBeenCalled();
   });
+
+  it('skips the device when a queued retry is cancelled before it starts', async () => {
+    const identity = new MockLedgerIdentity();
+    let finish!: () => void;
+    const show = vi
+      .spyOn(identity, 'showAddressAndPubKeyOnDevice')
+      .mockImplementation(
+        () => new Promise((resolve) => (finish = () => resolve(undefined as never))),
+      );
+    mocks.getLedgerIdentity.mockResolvedValue(identity);
+    const user = userEvent.setup({ delay: null });
+    const { result: pending } = renderHook(() => usePendingDeviceAction());
+    renderCard();
+
+    await user.click(screen.getByRole('button', { name: 'Verify on device' }));
+    await waitFor(() => expect(show).toHaveBeenCalledTimes(1));
+    act(() => pending.current?.cancel());
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Verify on device' })).toHaveProperty(
+        'disabled',
+        false,
+      ),
+    );
+    await user.click(screen.getByRole('button', { name: 'Verify on device' }));
+    await waitFor(() => expect(pending.current).not.toBeNull());
+    act(() => pending.current?.cancel());
+
+    finish();
+    await waitFor(() => expect(mocks.getLedgerIdentity).toHaveBeenCalledTimes(1));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(show).toHaveBeenCalledTimes(1);
+    expect(mocks.errorNotification).not.toHaveBeenCalled();
+  });
 });

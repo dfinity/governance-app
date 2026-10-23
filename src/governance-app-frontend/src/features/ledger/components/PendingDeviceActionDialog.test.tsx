@@ -55,4 +55,20 @@ describe('PendingDeviceActionDialog', () => {
     await rejection;
     expect(screen.queryByTestId('device-approval-dialog')).toBeNull();
   });
+
+  it('cancels the action when it unmounts and stays closed after a remount', async () => {
+    const { unmount } = render(<PendingDeviceActionDialog />);
+
+    let run!: Promise<void>;
+    act(() => {
+      run = runDeviceAction(() => new Promise<void>(() => {}), OPTIONS);
+    });
+    expect(screen.getByTestId('device-approval-dialog')).toBeTruthy();
+
+    unmount();
+    await expect(run).rejects.toBeInstanceOf(DeviceActionCancelledError);
+
+    render(<PendingDeviceActionDialog />);
+    expect(screen.queryByTestId('device-approval-dialog')).toBeNull();
+  });
 });

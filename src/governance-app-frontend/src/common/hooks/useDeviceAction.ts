@@ -44,16 +44,19 @@ const getPending = () => pending;
  * Runs a device action behind the "Approve on your Ledger device" dialog.
  *
  * The dialog opens before the action starts and closes when the action settles. A cancel
- * from the dialog rejects the returned promise with `DeviceActionCancelledError`; the
- * device call itself cannot be aborted, so its late result is dropped. Wrap the call in
- * `runOnDevice` so the calls to one device stay in order.
+ * from the dialog rejects the returned promise with `DeviceActionCancelledError` and
+ * aborts `signal`; the device call itself cannot be aborted, so its late result is
+ * dropped. Wrap the call in `runOnDevice` so the calls to one device stay in order, and
+ * check `signal.aborted` before the device access so a cancelled call that waits in the
+ * queue does not prompt the device.
  */
 export const runDeviceAction = <T>(
-  action: () => Promise<T>,
+  action: (signal: AbortSignal) => Promise<T>,
   { description }: DeviceActionOptions,
 ): Promise<T> =>
   new Promise<T>((resolve, reject) => {
     const id = ++nextId;
+    const controller = new AbortController();
 
     const settle = () => {
       if (pending?.id !== id) return;
@@ -66,12 +69,22 @@ export const runDeviceAction = <T>(
       description,
       cancel: () => {
         settle();
+        controller.abort();
         reject(new DeviceActionCancelledError());
       },
     };
     emit();
 
-    action().then(
+    let result: Promise<T>;
+    try {
+      result = action(controller.signal);
+    } catch (error: unknown) {
+      settle();
+      reject(error);
+      return;
+    }
+
+    result.then(
       (value) => {
         settle();
         resolve(value);
@@ -82,6 +95,11 @@ export const runDeviceAction = <T>(
       },
     );
   });
+
+/** Cancels the device action in progress, if any. The dialog calls it when it unmounts. */
+export const cancelPendingDeviceAction = (): void => {
+  pending?.cancel();
+};
 
 /** Wraps a promise in the "Approve on your Ledger device" dialog. */
 export const useDeviceAction = () => runDeviceAction;
