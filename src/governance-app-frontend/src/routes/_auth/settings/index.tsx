@@ -10,6 +10,7 @@ import { CommandPaletteCard } from '@features/userAccount/components/CommandPale
 import { FiatCurrencyCard } from '@features/userAccount/components/FiatCurrencyCard';
 import { GovernanceAccessCard } from '@features/userAccount/components/GovernanceAccessCard';
 import { HideBalancesCard } from '@features/userAccount/components/HideBalancesCard';
+import { LedgerDevicesCard } from '@features/userAccount/components/LedgerDevicesCard';
 import { ManageIICard } from '@features/userAccount/components/ManageIICard';
 import { PrincipalCard } from '@features/userAccount/components/PrincipalCard';
 import { ShortcutsCard } from '@features/userAccount/components/ShortcutsCard';
@@ -21,10 +22,12 @@ import { Card } from '@components/Card';
 import { PageHeader } from '@components/PageHeader';
 import { SettingsSkeleton } from '@components/skeletons/SettingsSkeleton';
 import { BUILD_DATE, GIT_COMMIT } from '@constants/extra';
+import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useLogout } from '@hooks/useLogout';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
 import { getSessionTimeLeftForUi } from '@utils/date';
+import { isWebHidSupported } from '@common/ledger/webhid';
 
 import i18n from '@/i18n/config';
 
@@ -58,6 +61,8 @@ function Settings() {
   const navigate = useNavigate({ from: Route.fullPath });
   const { openAddressBook } = Route.useSearch();
   const logout = useLogout('settings');
+  const { features } = useAdvancedFeatures();
+  const showLedgerDevices = features.ledgerDevice && isWebHidSupported();
 
   const handleAddressBookOpenChange = (open: boolean) => {
     navigate({ search: open ? { openAddressBook: true } : {}, replace: true });
@@ -90,6 +95,11 @@ function Settings() {
             <div className="px-6 py-5">
               <ManageIICard />
             </div>
+            {showLedgerDevices && (
+              <div className="px-6 py-5">
+                <LedgerDevicesCard />
+              </div>
+            )}
           </div>
         </Card>
       </section>

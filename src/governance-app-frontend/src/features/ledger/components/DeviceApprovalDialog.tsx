@@ -1,5 +1,6 @@
 import { Usb } from 'lucide-react';
 import { motion } from 'motion/react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
@@ -13,7 +14,7 @@ import {
 type Props = {
   open: boolean;
   /** What the user checks on the device screen. */
-  description: string;
+  description: ReactNode;
   /** The user closes the dialog and the app ignores the result of the device call. */
   onCancel: () => void;
 };
