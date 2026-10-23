@@ -27,6 +27,9 @@ vi.mock('@common/ledger/session', () => ({
   getLedgerIdentity: mocks.getLedgerIdentity,
   connectLedgerIdentity: vi.fn(),
 }));
+vi.mock('@common/ledger/deviceQueue', () => ({
+  runOnDevice: (_principal: string, call: () => Promise<unknown>) => call(),
+}));
 vi.mock('@utils/notification', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@utils/notification')>()),
   successNotification: mocks.successNotification,
@@ -110,7 +113,7 @@ describe('LedgerDevicesCard', () => {
     await user.click(screen.getByRole('button', { name: 'Verify on device' }));
 
     await waitFor(() => expect(mocks.errorNotification).toHaveBeenCalled());
-    expect(mocks.errorNotification.mock.calls[0][0].description).toContain('aaaaa-aa');
+    expect(mocks.errorNotification.mock.calls[0][0].description).toContain(DEVICE.principal);
     expect(mocks.analyticsEvent).toHaveBeenCalledWith('ledger_device_verify_error', {
       reason: 'ledger_unexpected_device',
     });

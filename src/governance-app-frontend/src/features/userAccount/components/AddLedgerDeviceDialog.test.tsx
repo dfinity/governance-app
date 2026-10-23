@@ -138,7 +138,7 @@ describe('AddLedgerDeviceDialog', () => {
     await waitFor(() =>
       expect(mocks.errorNotification).toHaveBeenCalledWith({
         title: 'Ledger device',
-        description: 'Open the Internet Computer app on the Ledger device and try again.',
+        description: 'Open the Internet Computer app on the device.',
       }),
     );
     expect(mocks.analyticsEvent).toHaveBeenCalledWith('ledger_device_connect_error', {

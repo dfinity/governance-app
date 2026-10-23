@@ -11,15 +11,19 @@ export class DeviceActionCancelledError extends Error {
 export const isDeviceActionCancelled = (error: unknown): error is DeviceActionCancelledError =>
   error instanceof DeviceActionCancelledError;
 
-type PendingDeviceAction = {
+type DeviceActionOptions = {
+  /** What the user checks on the device screen. Shown in the approval dialog. */
+  description: string;
+};
+
+type PendingDeviceAction = DeviceActionOptions & {
   id: number;
   cancel: () => void;
 };
 
 /**
- * The device action in progress, read by `DeviceApprovalDialog`.
- * One action runs at a time: the device accepts one transport, and each action is a
- * manual approval on the device.
+ * The device action in progress, read by `PendingDeviceActionDialog`.
+ * One action shows at a time: each one is a manual approval on the device screen.
  */
 let pending: PendingDeviceAction | null = null;
 let nextId = 0;
@@ -37,13 +41,17 @@ const subscribe = (listener: () => void) => {
 const getPending = () => pending;
 
 /**
- * Runs a device action behind the approval dialog.
+ * Runs a device action behind the "Approve on your Ledger device" dialog.
  *
  * The dialog opens before the action starts and closes when the action settles. A cancel
  * from the dialog rejects the returned promise with `DeviceActionCancelledError`; the
- * device call itself cannot be aborted, so its late result is dropped.
+ * device call itself cannot be aborted, so its late result is dropped. Wrap the call in
+ * `runOnDevice` so the calls to one device stay in order.
  */
-export const runDeviceAction = <T>(action: () => Promise<T>): Promise<T> =>
+export const runDeviceAction = <T>(
+  action: () => Promise<T>,
+  { description }: DeviceActionOptions,
+): Promise<T> =>
   new Promise<T>((resolve, reject) => {
     const id = ++nextId;
 
@@ -55,6 +63,7 @@ export const runDeviceAction = <T>(action: () => Promise<T>): Promise<T> =>
 
     pending = {
       id,
+      description,
       cancel: () => {
         settle();
         reject(new DeviceActionCancelledError());

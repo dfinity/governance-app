@@ -4,9 +4,9 @@ import { useEffect } from 'react';
 
 import { analytics } from '@features/analytics/service';
 import { useAnalyticsProperties } from '@features/analytics/useAnalyticsProperties';
+import { PendingDeviceActionDialog } from '@features/ledger/components/PendingDeviceActionDialog';
 
 import { CommandPalette } from '@components/CommandPalette';
-import { DeviceApprovalDialog } from '@components/DeviceApprovalDialog';
 import { MainLayout } from '@components/MainLayout';
 import { SessionCountdownToast } from '@components/SessionCountdownToast';
 import { TransactionPollingWatcher } from '@components/TransactionPollingWatcher';
@@ -53,7 +53,7 @@ function AuthLayout() {
       <CommandPalette />
       <SessionCountdownToast />
       <TransactionPollingWatcher />
-      <DeviceApprovalDialog />
+      <PendingDeviceActionDialog />
     </MainLayout>
   );
 }

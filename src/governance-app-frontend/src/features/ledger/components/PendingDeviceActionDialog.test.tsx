@@ -6,28 +6,31 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { DeviceActionCancelledError, runDeviceAction } from '@hooks/useDeviceAction';
 
-import { DeviceApprovalDialog } from './DeviceApprovalDialog';
+import { PendingDeviceActionDialog } from './PendingDeviceActionDialog';
 
 vi.mock('@hooks/useMediaQuery', () => ({ useMediaQuery: () => true }));
 
-describe('DeviceApprovalDialog', () => {
+const OPTIONS = { description: 'Check the address on the device.' };
+
+describe('PendingDeviceActionDialog', () => {
   it('stays closed without a device action', () => {
-    render(<DeviceApprovalDialog />);
+    render(<PendingDeviceActionDialog />);
 
     expect(screen.queryByTestId('device-approval-dialog')).toBeNull();
   });
 
-  it('opens while a device action runs and closes when it settles', async () => {
-    render(<DeviceApprovalDialog />);
+  it('opens with the description while a device action runs and closes when it settles', async () => {
+    render(<PendingDeviceActionDialog />);
     let resolve!: () => void;
 
     let run!: Promise<void>;
     act(() => {
-      run = runDeviceAction(() => new Promise<void>((res) => (resolve = res)));
+      run = runDeviceAction(() => new Promise<void>((res) => (resolve = res)), OPTIONS);
     });
 
     expect(screen.getByTestId('device-approval-dialog')).toBeTruthy();
     expect(screen.getByText('Approve on your Ledger device')).toBeTruthy();
+    expect(screen.getByText(OPTIONS.description)).toBeTruthy();
 
     await act(async () => {
       resolve();
@@ -39,11 +42,11 @@ describe('DeviceApprovalDialog', () => {
 
   it('rejects the action when the user cancels', async () => {
     const user = userEvent.setup({ delay: null });
-    render(<DeviceApprovalDialog />);
+    render(<PendingDeviceActionDialog />);
 
     let run!: Promise<void>;
     act(() => {
-      run = runDeviceAction(() => new Promise<void>(() => {}));
+      run = runDeviceAction(() => new Promise<void>(() => {}), OPTIONS);
     });
     const rejection = expect(run).rejects.toBeInstanceOf(DeviceActionCancelledError);
 

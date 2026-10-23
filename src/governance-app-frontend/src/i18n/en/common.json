@@ -113,13 +113,7 @@
     "transactionMemo": "Transaction memo",
     "ledgerDevice": "Ledger device"
   },
-<<<<<<< HEAD
   "ledgerApproval": {
     "title": "Approve on your Ledger device"
-=======
-  "deviceApproval": {
-    "title": "Approve on your Ledger device",
-    "description": "Check the details on the device screen and approve the action. The dialog closes when the device answers."
->>>>>>> df32fb7d (feat(ledger): add the Ledger device settings card with the connect, register and verify flows)
   }
 }

@@ -8,6 +8,7 @@ import { analytics } from '@features/analytics/service';
 import { isDeviceActionCancelled, useDeviceAction } from '@hooks/useDeviceAction';
 import { mapCanisterError } from '@utils/errors';
 import { errorNotification, successNotification } from '@utils/notification';
+import { runOnDevice } from '@common/ledger/deviceQueue';
 import { getLedgerIdentity } from '@common/ledger/session';
 
 /**
@@ -20,10 +21,14 @@ export function useVerifyLedgerDevice() {
 
   return useMutation({
     mutationFn: (principal: string) =>
-      runDeviceAction(async () => {
-        const identity = await getLedgerIdentity(principal);
-        await identity.showAddressAndPubKeyOnDevice();
-      }),
+      runDeviceAction(
+        () =>
+          runOnDevice(principal, async () => {
+            const identity = await getLedgerIdentity(principal);
+            await identity.showAddressAndPubKeyOnDevice();
+          }),
+        { description: t(($) => $.userAccount.ledgerDevices.verifyDescription) },
+      ),
     onSuccess: () => {
       analytics.event(AnalyticsEvent.LedgerDeviceVerify);
       successNotification({

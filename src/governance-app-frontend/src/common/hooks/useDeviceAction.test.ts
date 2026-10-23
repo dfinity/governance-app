@@ -8,6 +8,8 @@ import {
   usePendingDeviceAction,
 } from './useDeviceAction';
 
+const OPTIONS = { description: 'Check the address on the device.' };
+
 const deferred = <T>() => {
   let resolve!: (value: T) => void;
   let reject!: (error: unknown) => void;
@@ -25,7 +27,7 @@ describe('runDeviceAction', () => {
 
     let run!: Promise<string>;
     act(() => {
-      run = runDeviceAction(() => action.promise);
+      run = runDeviceAction(() => action.promise, OPTIONS);
     });
     expect(result.current).not.toBeNull();
 
@@ -42,7 +44,7 @@ describe('runDeviceAction', () => {
 
     let run!: Promise<void>;
     act(() => {
-      run = runDeviceAction(() => action.promise);
+      run = runDeviceAction(() => action.promise, OPTIONS);
     });
 
     await act(async () => {
@@ -58,7 +60,7 @@ describe('runDeviceAction', () => {
 
     let run!: Promise<string>;
     act(() => {
-      run = runDeviceAction(() => action.promise);
+      run = runDeviceAction(() => action.promise, OPTIONS);
     });
 
     await act(async () => {
