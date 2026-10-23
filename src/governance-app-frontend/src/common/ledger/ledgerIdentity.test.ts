@@ -749,6 +749,19 @@ describe('LedgerIdentity', () => {
       expect(mockDmk.startDiscovering).not.toHaveBeenCalled();
     });
 
+    it('cancels a connection when the session closes during the device lookup', async () => {
+      vi.useFakeTimers();
+      mockDmk.listenToAvailableDevices.mockReturnValue(NEVER);
+
+      const stale = LedgerIdentity.connect().catch((error: unknown) => error);
+      await vi.advanceTimersByTimeAsync(250);
+      await LedgerIdentity.closeSession();
+      await vi.advanceTimersByTimeAsync(500);
+
+      expect(await stale).toMatchObject({ code: LedgerErrorCode.SessionClosed });
+      expect(mockDmk.startDiscovering).not.toHaveBeenCalled();
+    });
+
     it('cancels a connection when the session closes during the device choice', async () => {
       vi.useFakeTimers();
       mockDmk.listenToAvailableDevices.mockReturnValue(NEVER);

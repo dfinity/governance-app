@@ -232,6 +232,7 @@ export class LedgerIdentity extends SignIdentity {
   // With several allowed devices and no preferred one, the browser asks the user to choose.
   private static async findDevice(
     dmk: DeviceManagementKit,
+    generation: number,
     preferredDeviceId?: string,
   ): Promise<DiscoveredDevice> {
     const { firstValueFrom, skip, take, timeout, TimeoutError } = await import('rxjs');
@@ -253,6 +254,9 @@ export class LedgerIdentity extends SignIdentity {
     const preferred = devices.find(({ id }) => id === preferredDeviceId);
     if (nonNullish(preferred)) return preferred;
     if (devices.length === 1) return devices[0];
+
+    // A session closed during the lookup must not open the browser device picker.
+    LedgerIdentity.assertSessionOpen(generation);
 
     return firstValueFrom(dmk.startDiscovering({}));
   }
@@ -288,7 +292,7 @@ export class LedgerIdentity extends SignIdentity {
     // The device choice comes first, so a warm session on another device is not reused by
     // mistake when several devices are allowed. The idle timer of the shared session keeps
     // running until the choice succeeds, so a cancelled chooser leaves no open session behind.
-    const device = await this.findDevice(dmk, preferredDeviceId);
+    const device = await this.findDevice(dmk, generation, preferredDeviceId);
     LedgerIdentity.assertSessionOpen(generation);
 
     const current = session;
