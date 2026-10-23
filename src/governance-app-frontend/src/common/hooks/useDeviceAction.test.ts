@@ -118,6 +118,41 @@ describe('runDeviceAction', () => {
     expect(result.current).toBeNull();
   });
 
+  it('cancels the previous wrapper when a second action starts', async () => {
+    const { result } = renderHook(() => usePendingDeviceAction());
+    const first = deferred<string>();
+    const second = deferred<string>();
+    let firstSignal!: AbortSignal;
+
+    let firstRun!: Promise<string>;
+    let secondRun!: Promise<string>;
+    act(() => {
+      firstRun = runDeviceAction((s) => {
+        firstSignal = s;
+        return first.promise;
+      }, OPTIONS);
+    });
+    act(() => {
+      secondRun = runDeviceAction(() => second.promise, { description: 'second' });
+    });
+
+    await expect(firstRun).rejects.toBeInstanceOf(DeviceActionCancelledError);
+    expect(firstSignal.aborted).toBe(true);
+    expect(result.current?.description).toBe('second');
+
+    await act(async () => {
+      first.resolve('late');
+      await first.promise;
+    });
+    expect(result.current?.description).toBe('second');
+
+    await act(async () => {
+      result.current?.cancel();
+      await expect(secondRun).rejects.toBeInstanceOf(DeviceActionCancelledError);
+    });
+    expect(result.current).toBeNull();
+  });
+
   it('does nothing on cancelPendingDeviceAction without an action', () => {
     expect(() => cancelPendingDeviceAction()).not.toThrow();
   });

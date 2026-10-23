@@ -5,6 +5,7 @@ import { useHardwareWalletsMetadata } from '@features/accounts/hooks/useHardware
 
 import { Button } from '@components/button';
 import { Skeleton } from '@components/Skeleton';
+import { SkeletonScreen } from '@components/skeletons/SkeletonScreen';
 import { WarningMessage } from '@components/WarningMessage';
 
 import { useVerifyLedgerDevice } from '../hooks/useVerifyLedgerDevice';
@@ -38,7 +39,9 @@ export const LedgerDevicesCard = () => {
       </div>
 
       {isLoading ? (
-        <Skeleton className="h-14 w-full" />
+        <SkeletonScreen>
+          <Skeleton className="h-14 w-full" />
+        </SkeletonScreen>
       ) : isError ? (
         <div className="flex flex-wrap items-center justify-between gap-4">
           <WarningMessage message={t(($) => $.userAccount.ledgerDevices.loadError)} />

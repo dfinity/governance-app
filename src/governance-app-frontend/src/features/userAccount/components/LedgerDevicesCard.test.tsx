@@ -85,6 +85,14 @@ describe('LedgerDevicesCard', () => {
     expect(screen.getByRole('button', { name: 'Add Ledger device' })).toBeTruthy();
   });
 
+  it('announces the loading state to screen readers', () => {
+    mocks.hardwareWallets.mockReturnValue({ data: [], isLoading: true, isError: false });
+    renderCard();
+
+    expect(screen.getByRole('status')).toBeTruthy();
+    expect(screen.queryByText('No Ledger device is registered yet.')).toBeNull();
+  });
+
   it('shows the empty state without a device', () => {
     mocks.hardwareWallets.mockReturnValue({ data: [], isLoading: false, isError: false });
     renderCard();

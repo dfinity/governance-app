@@ -23,7 +23,8 @@ type PendingDeviceAction = DeviceActionOptions & {
 
 /**
  * The device action in progress, read by `PendingDeviceActionDialog`.
- * One action shows at a time: each one is a manual approval on the device screen.
+ * One action shows at a time: each one is a manual approval on the device screen. A new
+ * action cancels the previous wrapper, so no caller loses its cancel handle.
  */
 let pending: PendingDeviceAction | null = null;
 let nextId = 0;
@@ -63,6 +64,9 @@ export const runDeviceAction = <T>(
       pending = null;
       emit();
     };
+
+    // The dialog can show one action. The previous caller is told that its wait ended.
+    pending?.cancel();
 
     pending = {
       id,
