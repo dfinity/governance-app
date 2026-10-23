@@ -23,6 +23,8 @@ type Props = {
   value: string;
   /** The name of the picked suggestion. Empty when the user typed the value. */
   selectedName: string;
+  /** The kind of the picked suggestion, when two suggestions share a name and an address. */
+  selectedKind?: DestinationSuggestion['kind'];
   suggestions: DestinationSuggestion[];
   /** The suggestion is set when the user picked one from the list. */
   onChange: (value: string, selectedName: string, suggestion?: DestinationSuggestion) => void;
@@ -65,6 +67,7 @@ export function DestinationInput({
   id,
   value,
   selectedName,
+  selectedKind,
   suggestions,
   onChange,
   onAddAddress,
@@ -85,7 +88,10 @@ export function DestinationInput({
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   const selected = suggestions.find(
-    (suggestion) => suggestion.name === selectedName && suggestion.address === value,
+    (suggestion) =>
+      suggestion.name === selectedName &&
+      suggestion.address === value &&
+      (selectedKind === undefined || suggestion.kind === selectedKind),
   );
 
   const query = value.trim().toLowerCase();

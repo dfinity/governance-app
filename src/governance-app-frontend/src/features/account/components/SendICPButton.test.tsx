@@ -19,8 +19,8 @@ const ids = vi.hoisted(() => ({
 
 const state = vi.hoisted(() => ({
   subaccounts: false,
-  // A contact that points at the savings account under another name.
-  savingsContact: false,
+  // A contact that points at the savings account, under another name or under the same name.
+  savingsContact: false as false | 'Wallet' | 'Savings',
 }));
 
 const accounts = vi.hoisted(() => [
@@ -66,7 +66,7 @@ vi.mock('@hooks/addressBook/useAddressBook', () => ({
         named_addresses: [
           { name: 'Bob', address: { Icrc1: ids.CONTACT_ADDRESS } },
           ...(state.savingsContact
-            ? [{ name: 'Wallet', address: { Icp: ids.SAVINGS_ACCOUNT_ID } }]
+            ? [{ name: state.savingsContact, address: { Icp: ids.SAVINGS_ACCOUNT_ID } }]
             : []),
         ],
       },
@@ -162,7 +162,7 @@ describe('SendICPDialog destination suggestions', () => {
 
   it('keeps the name of a picked own account over a contact with the same address', async () => {
     state.subaccounts = true;
-    state.savingsContact = true;
+    state.savingsContact = 'Wallet';
     renderDialog();
 
     const options = await openDestinationList();
@@ -177,5 +177,20 @@ describe('SendICPDialog destination suggestions', () => {
 
     const name = await screen.findByTestId('send-icp-destination-name');
     expect(name.textContent).toBe('Savings');
+  });
+
+  it('shows the kind of a picked contact that shares the name and address of an own account', async () => {
+    state.subaccounts = true;
+    state.savingsContact = 'Savings';
+    renderDialog();
+
+    const options = await openDestinationList();
+    expect(options).toHaveLength(3);
+    expect(options[2].textContent).toContain('ICP');
+    await userEvent.click(options[2]);
+
+    const chip = screen.getByTestId('send-icp-destination-input-selected');
+    expect(chip.textContent).toContain('ICP');
+    expect(chip.textContent).not.toContain('Account');
   });
 });

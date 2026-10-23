@@ -383,6 +383,7 @@ export const SendICPDialog: React.FC<DialogProps> = ({
                 toAccount={toAccount}
                 toAccountError={toAccountError}
                 selectedName={selectedName}
+                selectedKind={selectedKind}
                 destinationSuggestions={destinationSuggestions}
                 addressBookLoading={addressBookLoading}
                 onDestinationChange={(value, name, suggestion) => {
@@ -448,6 +449,7 @@ type SendFormStepProps = {
   toAccount: string;
   toAccountError: string;
   selectedName: string;
+  selectedKind?: DestinationSuggestion['kind'];
   destinationSuggestions: DestinationSuggestion[];
   addressBookLoading: boolean;
   onDestinationChange: (
@@ -480,6 +482,7 @@ function SendFormStep({
   toAccount,
   toAccountError,
   selectedName,
+  selectedKind,
   destinationSuggestions,
   addressBookLoading,
   onDestinationChange,
@@ -554,6 +557,7 @@ function SendFormStep({
               data-testid="send-icp-destination-input"
               value={toAccount}
               selectedName={selectedName}
+              selectedKind={selectedKind}
               suggestions={destinationSuggestions}
               onChange={onDestinationChange}
               onAddAddress={onAddAddress}
