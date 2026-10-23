@@ -69,7 +69,10 @@ export const LedgerDevicesCard = () => {
                 size="sm"
                 className="shrink-0"
                 disabled={verify.isPending}
-                onClick={() => device.principal && verify.mutate(device.principal)}
+                onClick={() =>
+                  device.principal &&
+                  verify.mutate({ principal: device.principal, accountId: device.accountId })
+                }
               >
                 {t(($) => $.userAccount.ledgerDevices.verify)}
               </Button>

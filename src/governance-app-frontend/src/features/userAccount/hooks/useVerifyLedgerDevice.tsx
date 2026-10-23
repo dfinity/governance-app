@@ -11,16 +11,22 @@ import { errorNotification, successNotification } from '@utils/notification';
 import { runOnDevice } from '@common/ledger/deviceQueue';
 import { getLedgerIdentity } from '@common/ledger/session';
 
+type VerifyLedgerDeviceParams = {
+  principal: string;
+  accountId: string;
+};
+
 /**
  * Shows the principal and the address of a registered device on its screen.
- * The approval dialog stays open until the user confirms on the device.
+ * The approval dialog shows the expected values and stays open until the user confirms on
+ * the device.
  */
 export function useVerifyLedgerDevice() {
   const { t } = useTranslation();
   const runDeviceAction = useDeviceAction();
 
   return useMutation({
-    mutationFn: (principal: string) =>
+    mutationFn: ({ principal, accountId }: VerifyLedgerDeviceParams) =>
       runDeviceAction(
         (signal) =>
           runOnDevice(principal, async () => {
@@ -30,7 +36,15 @@ export function useVerifyLedgerDevice() {
             if (signal.aborted) return;
             await identity.showAddressAndPubKeyOnDevice();
           }),
-        { description: t(($) => $.userAccount.ledgerDevices.verifyDescription) },
+        {
+          description: (
+            <span className="flex flex-col gap-2">
+              <span>{t(($) => $.userAccount.ledgerDevices.verifyDescription)}</span>
+              <span className="font-mono text-xs break-all text-foreground">{principal}</span>
+              <span className="font-mono text-xs break-all text-foreground">{accountId}</span>
+            </span>
+          ),
+        },
       ),
     onSuccess: () => {
       analytics.event(AnalyticsEvent.LedgerDeviceVerify);

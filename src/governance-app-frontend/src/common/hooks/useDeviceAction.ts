@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { type ReactNode, useSyncExternalStore } from 'react';
 
 /** Thrown to the caller of `runDeviceAction` when the user cancels the approval dialog. */
 export class DeviceActionCancelledError extends Error {
@@ -13,7 +13,7 @@ export const isDeviceActionCancelled = (error: unknown): error is DeviceActionCa
 
 type DeviceActionOptions = {
   /** What the user checks on the device screen. Shown in the approval dialog. */
-  description: string;
+  description: ReactNode;
 };
 
 type PendingDeviceAction = DeviceActionOptions & {

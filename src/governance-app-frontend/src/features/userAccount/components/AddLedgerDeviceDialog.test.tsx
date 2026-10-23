@@ -109,6 +109,22 @@ describe('AddLedgerDeviceDialog', () => {
     expect(screen.getByRole('button', { name: 'Register' })).toHaveProperty('disabled', true);
   });
 
+  it('rejects a name above 24 UTF-8 bytes', async () => {
+    const user = userEvent.setup({ delay: null });
+    renderDialog();
+
+    await openAndConnect(user);
+    await user.click(await screen.findByRole('button', { name: 'Next' }));
+    await user.type(screen.getByLabelText('Device name'), 'é'.repeat(13));
+
+    expect(screen.getByTestId('ledger-device-name-error')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Register' })).toHaveProperty('disabled', true);
+
+    await user.type(screen.getByLabelText('Device name'), '{Backspace}');
+    expect(screen.queryByTestId('ledger-device-name-error')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Register' })).toHaveProperty('disabled', false);
+  });
+
   it('shows the mapped error of the canister response', async () => {
     mocks.registerHardwareWallet.mockResolvedValue({ HardwareWalletAlreadyRegistered: null });
     const user = userEvent.setup({ delay: null });

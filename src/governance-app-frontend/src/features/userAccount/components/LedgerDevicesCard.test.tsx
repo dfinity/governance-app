@@ -6,6 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AccountType } from '@features/accounts/types';
+import { PendingDeviceActionDialog } from '@features/ledger/components/PendingDeviceActionDialog';
 
 import { usePendingDeviceAction } from '@hooks/useDeviceAction';
 import { clearDeviceQueues } from '@common/ledger/deviceQueue';
@@ -52,6 +53,7 @@ const renderCard = () =>
   render(
     <QueryClientProvider client={new QueryClient()}>
       <LedgerDevicesCard />
+      <PendingDeviceActionDialog />
     </QueryClientProvider>,
   );
 
@@ -109,6 +111,7 @@ describe('LedgerDevicesCard', () => {
 
     await waitFor(() => expect(mocks.successNotification).toHaveBeenCalled());
     expect(mocks.getLedgerIdentity).toHaveBeenCalledWith(DEVICE.principal);
+    expect(screen.queryByTestId('device-approval-dialog')).toBeNull();
     expect(show).toHaveBeenCalledTimes(1);
     expect(mocks.analyticsEvent).toHaveBeenCalledWith('ledger_device_verify');
   });
@@ -147,6 +150,7 @@ describe('LedgerDevicesCard', () => {
 
     await user.click(screen.getByRole('button', { name: 'Verify on device' }));
     await waitFor(() => expect(show).toHaveBeenCalledTimes(1));
+    expect(screen.getByText(DEVICE.accountId)).toBeTruthy();
 
     act(() => pending.current?.cancel());
     await waitFor(() =>

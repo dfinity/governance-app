@@ -20,9 +20,11 @@ import type { LedgerIdentity } from '@common/ledger/ledgerIdentity';
 import { useConnectLedgerDevice } from '../hooks/useConnectLedgerDevice';
 import { useRegisterHardwareWallet } from '../hooks/useRegisterHardwareWallet';
 
-/** Same limits as the NNS dapp (`HARDWARE_WALLET_NAME_MIN_LENGTH`, backend max). */
+/** Same limits as the NNS dapp: `HARDWARE_WALLET_NAME_MIN_LENGTH` characters, and the backend maximum in UTF-8 bytes. */
 export const LEDGER_DEVICE_NAME_MIN_LENGTH = 2;
-export const LEDGER_DEVICE_NAME_MAX_LENGTH = 24;
+export const LEDGER_DEVICE_NAME_MAX_BYTES = 24;
+
+const utf8Length = (value: string): number => new TextEncoder().encode(value).length;
 
 enum Step {
   Connect = 'connect',
@@ -49,9 +51,8 @@ export const AddLedgerDeviceDialog = ({ trigger }: Props) => {
   const opening = useRef(0);
 
   const trimmedName = name.trim();
-  const isNameValid =
-    trimmedName.length >= LEDGER_DEVICE_NAME_MIN_LENGTH &&
-    trimmedName.length <= LEDGER_DEVICE_NAME_MAX_LENGTH;
+  const isNameTooLong = utf8Length(trimmedName) > LEDGER_DEVICE_NAME_MAX_BYTES;
+  const isNameValid = trimmedName.length >= LEDGER_DEVICE_NAME_MIN_LENGTH && !isNameTooLong;
 
   useEffect(() => {
     if (open) {
@@ -126,16 +127,23 @@ export const AddLedgerDeviceDialog = ({ trigger }: Props) => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   minLength={LEDGER_DEVICE_NAME_MIN_LENGTH}
-                  maxLength={LEDGER_DEVICE_NAME_MAX_LENGTH}
+                  maxLength={LEDGER_DEVICE_NAME_MAX_BYTES}
+                  aria-invalid={isNameTooLong || undefined}
                   autoFocus
                   autoComplete="off"
                 />
-                <p className="text-xs text-muted-foreground">
-                  {t(($) => $.userAccount.ledgerDevices.addDialog.nameHint, {
-                    min: LEDGER_DEVICE_NAME_MIN_LENGTH,
-                    max: LEDGER_DEVICE_NAME_MAX_LENGTH,
-                  })}
-                </p>
+                {isNameTooLong ? (
+                  <p className="text-xs text-destructive" data-testid="ledger-device-name-error">
+                    {t(($) => $.accounts.errors.nameTooLong)}
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    {t(($) => $.userAccount.ledgerDevices.addDialog.nameHint, {
+                      min: LEDGER_DEVICE_NAME_MIN_LENGTH,
+                      max: LEDGER_DEVICE_NAME_MAX_BYTES,
+                    })}
+                  </p>
+                )}
               </MutationDialogBody>
 
               <MutationDialogFooter className="md:justify-end">

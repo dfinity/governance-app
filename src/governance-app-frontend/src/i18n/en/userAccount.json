@@ -27,7 +27,7 @@
     "loadError": "The Ledger devices could not be loaded.",
     "add": "Add Ledger device",
     "verify": "Verify on device",
-    "verifyDescription": "Check that the principal and the address on the device screen match this account, then approve on the device.",
+    "verifyDescription": "Check that the device shows this principal and this address, then approve on the device.",
     "verified": "The Ledger device showed the principal and the address.",
     "errors": {
       "alreadyRegistered": "This Ledger device is already registered.",
@@ -46,7 +46,7 @@
       "nameTitle": "Name the device",
       "nameDescription": "The name shows in the accounts list of this app and of the NNS dapp.",
       "nameLabel": "Device name",
-      "nameHint": "{{min}} to {{max}} characters.",
+      "nameHint": "{{min}} to {{max}} characters. An accented character or a symbol counts as 2 or more.",
       "register": "Register",
       "registering": "Registering \"{{name}}\"…",
       "success": "\"{{name}}\" registered.",
