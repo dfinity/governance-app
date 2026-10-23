@@ -26,6 +26,7 @@ vi.mock('@zondax/ledger-icp', () => ({ default: mockAppConstructor }));
 const mockDmk = vi.hoisted(() => ({
   isEnvironmentSupported: vi.fn(),
   listenToAvailableDevices: vi.fn(),
+  listConnectedDevices: vi.fn(),
   startDiscovering: vi.fn(),
   connect: vi.fn(),
   disconnect: vi.fn(),
@@ -95,7 +96,7 @@ describe('LedgerIdentity', () => {
   };
 
   let app: MockApp;
-  let disconnect: Mock;
+  let release: Mock;
 
   beforeEach(() => {
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
@@ -116,12 +117,12 @@ describe('LedgerIdentity', () => {
       }),
       showAddressAndPubKey: vi.fn(),
     };
-    disconnect = vi.fn().mockResolvedValue(undefined);
+    release = vi.fn();
 
     vi.spyOn(LedgerIdentity, 'connect').mockResolvedValue({
       app: app as unknown as InternetComputerApp,
       deviceId: 'device-id',
-      disconnect,
+      release,
       transportError: () => undefined,
     });
     vi.spyOn(LedgerIdentity, 'fetchPublicKeyFromDevice').mockResolvedValue(mockLedgerPublicKey);
@@ -137,7 +138,7 @@ describe('LedgerIdentity', () => {
     expect(identity.getPrincipal().toText()).toBe(
       Principal.selfAuthenticating(mockLedgerPublicKey.toDer()).toText(),
     );
-    expect(disconnect).toHaveBeenCalledTimes(1);
+    expect(release).toHaveBeenCalledTimes(1);
   });
 
   it('signs the call and the read state together, then reuses the read state signature', async () => {
@@ -209,13 +210,14 @@ describe('LedgerIdentity', () => {
     expect(app.signUpdateCall).toHaveBeenCalledTimes(2);
   });
 
-  it('disconnects after each device call', async () => {
+  it('releases the device after each action', async () => {
     const identity = await LedgerIdentity.create();
 
     await identity.transformRequest(callRequest);
 
-    // create, getVersion, signUpdateCall
-    expect(disconnect).toHaveBeenCalledTimes(3);
+    // create, then the version check and the signature on one connection
+    expect(release).toHaveBeenCalledTimes(2);
+    expect(LedgerIdentity.connect).toHaveBeenCalledTimes(2);
   });
 
   it('finds the cached read state regardless of the order of the calls', async () => {
@@ -351,7 +353,7 @@ describe('LedgerIdentity', () => {
         code: LedgerErrorCode.Unexpected,
         details: { error: 'Error: usb' },
       });
-      expect(disconnect).toHaveBeenCalledTimes(1);
+      expect(release).toHaveBeenCalledTimes(1);
     });
 
     it('wraps a raw error from a device callback', async () => {
@@ -362,7 +364,7 @@ describe('LedgerIdentity', () => {
         code: LedgerErrorCode.Unexpected,
         details: { error: 'Error: apdu' },
       });
-      expect(disconnect).toHaveBeenCalledTimes(2);
+      expect(release).toHaveBeenCalledTimes(2);
     });
 
     it('maps a disconnected device', async () => {
@@ -372,25 +374,6 @@ describe('LedgerIdentity', () => {
       await expect(identity.getVersion()).rejects.toMatchObject({
         code: LedgerErrorCode.Disconnected,
       });
-    });
-
-    it('ignores a failed disconnect after a successful action', async () => {
-      const identity = await LedgerIdentity.create();
-      disconnect.mockRejectedValue(new Error('already closed'));
-
-      await expect(identity.getVersion()).resolves.toEqual(version());
-      expect(console.warn).toHaveBeenCalledWith(
-        'Failed to disconnect the Ledger device.',
-        expect.any(Error),
-      );
-    });
-
-    it('keeps the action error when the disconnect fails too', async () => {
-      const identity = await LedgerIdentity.create();
-      app.getVersion.mockRejectedValue(new LedgerDeviceError(LedgerErrorCode.Locked));
-      disconnect.mockRejectedValue(new Error('already closed'));
-
-      await expect(identity.getVersion()).rejects.toMatchObject({ code: LedgerErrorCode.Locked });
     });
 
     it('keeps an already decoded error', async () => {
@@ -410,7 +393,7 @@ describe('LedgerIdentity', () => {
     await expect(identity.getVersion()).rejects.toMatchObject({
       code: LedgerErrorCode.UnexpectedDevice,
     });
-    expect(disconnect).toHaveBeenCalled();
+    expect(release).toHaveBeenCalled();
   });
 
   describe('app version', () => {
@@ -460,12 +443,14 @@ describe('LedgerIdentity', () => {
     const sessionId = 'session-id';
     const device = { id: 'device-id' } as DiscoveredDevice;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       vi.mocked(LedgerIdentity.connect).mockRestore();
+      await LedgerIdentity.closeSession();
       Object.values(mockDmk).forEach((fn) => fn.mockReset());
       mockAppConstructor.mockReset();
       mockDmk.isEnvironmentSupported.mockReturnValue(true);
       mockDmk.listenToAvailableDevices.mockReturnValue(of([device]));
+      mockDmk.listConnectedDevices.mockReturnValue([{ sessionId }]);
       mockDmk.startDiscovering.mockReturnValue(of(device));
       mockDmk.connect.mockResolvedValue(sessionId);
       mockDmk.disconnect.mockResolvedValue(undefined);
@@ -474,8 +459,63 @@ describe('LedgerIdentity', () => {
       });
     });
 
-    afterEach(() => {
+    afterEach(async () => {
       vi.useRealTimers();
+      await LedgerIdentity.closeSession();
+    });
+
+    it('reuses the session for the version check and the signature', async () => {
+      vi.useFakeTimers();
+      const identity = await LedgerIdentity.create();
+
+      await identity.transformRequest(callRequest);
+
+      expect(mockDmk.connect).toHaveBeenCalledTimes(1);
+      expect(mockDmk.disconnect).not.toHaveBeenCalled();
+
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(mockDmk.disconnect).toHaveBeenCalledTimes(1);
+      expect(mockDmk.disconnect).toHaveBeenCalledWith({ sessionId });
+    });
+
+    it('opens a new session when the device left', async () => {
+      const first = await LedgerIdentity.connect();
+      first.release();
+      mockDmk.listConnectedDevices.mockReturnValue([]);
+
+      await LedgerIdentity.connect();
+
+      expect(mockDmk.connect).toHaveBeenCalledTimes(2);
+      expect(mockDmk.disconnect).not.toHaveBeenCalled();
+    });
+
+    it('closes an idle session before it opens one on another device', async () => {
+      const other = { id: 'other-device' } as DiscoveredDevice;
+      mockDmk.listenToAvailableDevices.mockReturnValue(of([device, other]));
+      mockDmk.startDiscovering.mockReturnValue(of(device));
+      const first = await LedgerIdentity.connect();
+      first.release();
+      mockDmk.connect.mockResolvedValue('session-2');
+
+      const second = await LedgerIdentity.connect('other-device');
+
+      expect(mockDmk.disconnect).toHaveBeenCalledWith({ sessionId });
+      expect(mockDmk.startDiscovering).toHaveBeenCalledTimes(1);
+      expect(second.deviceId).toBe('other-device');
+    });
+
+    it('logs a failed idle disconnect', async () => {
+      vi.useFakeTimers();
+      mockDmk.disconnect.mockRejectedValue(new Error('gone'));
+      const connection = await LedgerIdentity.connect();
+      connection.release();
+
+      await vi.advanceTimersByTimeAsync(5_000);
+
+      expect(console.warn).toHaveBeenCalledWith(
+        'Failed to disconnect the Ledger device.',
+        expect.any(Error),
+      );
     });
 
     it('connects to a device the user already allowed', async () => {
@@ -496,6 +536,7 @@ describe('LedgerIdentity', () => {
       const other = { id: 'other-device' } as DiscoveredDevice;
       mockDmk.listenToAvailableDevices.mockReturnValue(of([other, device]));
       const identity = await LedgerIdentity.create();
+      await LedgerIdentity.closeSession();
       mockDmk.connect.mockClear();
       mockDmk.startDiscovering.mockClear();
 
@@ -531,15 +572,19 @@ describe('LedgerIdentity', () => {
       });
     });
 
-    it('disconnects the session', async () => {
+    it('disconnects the session after the idle timeout', async () => {
+      vi.useFakeTimers();
       const connection = await LedgerIdentity.connect();
 
-      await connection.disconnect();
+      connection.release();
+      expect(mockDmk.disconnect).not.toHaveBeenCalled();
 
+      await vi.advanceTimersByTimeAsync(5_000);
       expect(mockDmk.disconnect).toHaveBeenCalledWith({ sessionId });
     });
 
-    it('disconnects when the app cannot be built', async () => {
+    it('releases the session when the app cannot be built', async () => {
+      vi.useFakeTimers();
       mockAppConstructor.mockImplementation(function () {
         throw new Error('no app');
       });
@@ -548,6 +593,7 @@ describe('LedgerIdentity', () => {
         code: LedgerErrorCode.ConnectFailed,
         details: { error: 'Error: no app' },
       });
+      await vi.advanceTimersByTimeAsync(5_000);
       expect(mockDmk.disconnect).toHaveBeenCalledWith({ sessionId });
     });
 

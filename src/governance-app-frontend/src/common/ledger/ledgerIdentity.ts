@@ -13,7 +13,11 @@ import {
   SignIdentity,
 } from '@icp-sdk/core/agent';
 import { isNullish, nonNullish, smallerVersion, uint8ArrayToHexString } from '@dfinity/utils';
-import type { DeviceManagementKit, DiscoveredDevice } from '@ledgerhq/device-management-kit';
+import type {
+  DeviceManagementKit,
+  DeviceSessionId,
+  DiscoveredDevice,
+} from '@ledgerhq/device-management-kit';
 import type LedgerApp from '@zondax/ledger-icp';
 import type { ResponseAddress, ResponseVersion } from '@zondax/ledger-icp';
 
@@ -34,17 +38,36 @@ import { ensureBuffer } from './webhid';
 /** How long to wait for a device the user already allowed before the browser asks for one. */
 const KNOWN_DEVICE_TIMEOUT_MS = 500;
 
+/**
+ * How long the device session stays open after the last action.
+ * Actions that follow each other reuse the session. The kit does not wait for the device to
+ * close, so a reconnect right after a disconnect can hit a device that is still closing.
+ */
+const SESSION_IDLE_TIMEOUT_MS = 5_000;
+
 type Connection = {
   app: LedgerApp;
   /** The id of the connected device, to reconnect to the same one later. */
   deviceId: string;
-  disconnect: () => Promise<void>;
+  /** Gives the device session back. The session closes after the idle timeout. */
+  release: () => void;
   /** The last Device Management Kit error the transport saw, if any. */
   transportError: () => DmkErrorLike | undefined;
 };
 
+type Session = {
+  id: DeviceSessionId;
+  deviceId: string;
+  /** The number of actions that use the session. */
+  users: number;
+  idleTimer?: ReturnType<typeof setTimeout>;
+};
+
 // One Device Management Kit per page. It owns the WebHID transport and the device sessions.
 let deviceManagementKit: DeviceManagementKit | undefined;
+
+// The device session that actions share while one follows the other.
+let session: Session | undefined;
 
 type ReadStateData = {
   signature: Signature;
@@ -54,8 +77,9 @@ type ReadStateData = {
 /**
  * An identity whose private key lives on a Ledger device.
  *
- * Every device interaction opens its own device session and closes it after the call, so no
- * other application is locked out between two actions. agent-js calls `transformRequest`
+ * Every device interaction takes the shared device session and gives it back after the call.
+ * The session closes a few seconds after the last action, so no other application is locked
+ * out for long. agent-js calls `transformRequest`
  * for every request; a `call` request is signed together with its `read_state` request in
  * one device approval, and the `read_state` signature is cached for the status polling.
  *
@@ -84,7 +108,7 @@ export class LedgerIdentity extends SignIdentity {
   public static async create(
     derivePath: string = LEDGER_DEFAULT_DERIVE_PATH,
   ): Promise<LedgerIdentity> {
-    const { app, deviceId, disconnect, transportError } = await this.connect();
+    const { app, deviceId, release, transportError } = await this.connect();
 
     try {
       const publicKey = await this.fetchPublicKeyFromDevice({ app, derivePath });
@@ -93,7 +117,7 @@ export class LedgerIdentity extends SignIdentity {
     } catch (error: unknown) {
       throw LedgerIdentity.normalizeError(transportError() ?? error);
     } finally {
-      await LedgerIdentity.disconnectQuietly(disconnect);
+      release();
     }
   }
 
@@ -132,9 +156,9 @@ export class LedgerIdentity extends SignIdentity {
 
   public override async sign(blob: Uint8Array): Promise<Signature> {
     const txType = this.consumeStakeFlag();
-    await this.raiseIfVersionIsDeprecated();
 
     return this.executeWithApp(async (app) => {
+      await LedgerIdentity.assertAppVersion(app);
       const response = await app.sign(this.derivePath, Buffer.from(blob), txType);
 
       return decodeSignature(response);
@@ -221,6 +245,81 @@ export class LedgerIdentity extends SignIdentity {
     return firstValueFrom(dmk.startDiscovering({}));
   }
 
+  // Reuses the shared session when it is alive and on the right device, else opens one.
+  private static async openSession(
+    dmk: DeviceManagementKit,
+    preferredDeviceId?: string,
+  ): Promise<Session> {
+    const current = session;
+    if (nonNullish(current)) {
+      clearTimeout(current.idleTimer);
+      // The kit ends the session when the device disconnects.
+      const alive = dmk.listConnectedDevices().some(({ sessionId }) => sessionId === current.id);
+      const sameDevice = isNullish(preferredDeviceId) || preferredDeviceId === current.deviceId;
+
+      if (alive && sameDevice) {
+        current.users += 1;
+
+        return current;
+      }
+
+      if (!alive || current.users === 0) {
+        session = undefined;
+        if (alive) await LedgerIdentity.disconnectSession(dmk, current.id);
+      }
+    }
+
+    const device = await this.findDevice(dmk, preferredDeviceId);
+    const id = await dmk.connect({
+      device,
+      // The refresher polls the device between the APDUs of a multi-chunk signature.
+      sessionRefresherOptions: { isRefresherDisabled: true },
+    });
+    const opened: Session = { id, deviceId: device.id, users: 1 };
+    // A session on another device, while the shared one is in use, is not shared.
+    if (isNullish(session)) session = opened;
+
+    return opened;
+  }
+
+  private static releaseSession(dmk: DeviceManagementKit, released: Session): void {
+    released.users -= 1;
+    if (released.users > 0) return;
+
+    if (released !== session) {
+      void LedgerIdentity.disconnectSession(dmk, released.id);
+
+      return;
+    }
+
+    released.idleTimer = setTimeout(() => {
+      if (session === released) session = undefined;
+      void LedgerIdentity.disconnectSession(dmk, released.id);
+    }, SESSION_IDLE_TIMEOUT_MS);
+  }
+
+  // A failed disconnect must not replace the result or the error of the action itself.
+  private static async disconnectSession(
+    dmk: DeviceManagementKit,
+    sessionId: DeviceSessionId,
+  ): Promise<void> {
+    try {
+      await dmk.disconnect({ sessionId });
+    } catch (error: unknown) {
+      console.warn('Failed to disconnect the Ledger device.', error);
+    }
+  }
+
+  /** Closes the shared device session now, for example on logout. */
+  public static async closeSession(): Promise<void> {
+    const current = session;
+    if (isNullish(current) || isNullish(deviceManagementKit)) return;
+
+    clearTimeout(current.idleTimer);
+    session = undefined;
+    await LedgerIdentity.disconnectSession(deviceManagementKit, current.id);
+  }
+
   // Public so tests can stub the device.
   public static async connect(preferredDeviceId?: string): Promise<Connection> {
     try {
@@ -237,18 +336,13 @@ export class LedgerIdentity extends SignIdentity {
         throw new LedgerDeviceError(LedgerErrorCode.BrowserNotSupported);
       }
 
-      const device = await this.findDevice(dmk, preferredDeviceId);
-      const sessionId = await dmk.connect({
-        device,
-        // The refresher polls the device between the APDUs of a multi-chunk signature.
-        sessionRefresherOptions: { isRefresherDisabled: true },
-      });
-      const disconnect = () => dmk.disconnect({ sessionId });
+      const opened = await this.openSession(dmk, preferredDeviceId);
+      const release = () => LedgerIdentity.releaseSession(dmk, opened);
 
       try {
-        const transport = new DMKTransport(dmk, sessionId);
-        // The adapter wraps a DMK failure in a response error, and the app then answers with a
-        // generic error response. The DMK error is kept here so the action can report its code.
+        const transport = new DMKTransport(dmk, opened.id);
+        // The adapter wraps a kit failure in a response error, and the app then answers with a
+        // generic error response. The kit error is kept here so the action can report its code.
         let lastDmkError: DmkErrorLike | undefined;
         const send = transport.send;
         transport.send = async (...args) => {
@@ -263,12 +357,12 @@ export class LedgerIdentity extends SignIdentity {
 
         return {
           app: new InternetComputerApp(transport),
-          deviceId: device.id,
-          disconnect,
+          deviceId: opened.deviceId,
+          release,
           transportError: () => lastDmkError,
         };
       } catch (error: unknown) {
-        await disconnect().catch(() => undefined);
+        release();
         throw error;
       }
     } catch (error: unknown) {
@@ -314,9 +408,7 @@ export class LedgerIdentity extends SignIdentity {
   }
 
   private async executeWithApp<T>(callback: (app: LedgerApp) => Promise<T>): Promise<T> {
-    const { app, deviceId, disconnect, transportError } = await LedgerIdentity.connect(
-      this.deviceId,
-    );
+    const { app, deviceId, release, transportError } = await LedgerIdentity.connect(this.deviceId);
 
     try {
       const devicePublicKey = await LedgerIdentity.fetchPublicKeyFromDevice({
@@ -336,16 +428,7 @@ export class LedgerIdentity extends SignIdentity {
     } catch (error: unknown) {
       throw LedgerIdentity.normalizeError(transportError() ?? error);
     } finally {
-      await LedgerIdentity.disconnectQuietly(disconnect);
-    }
-  }
-
-  // A failed disconnect must not replace the result or the error of the action itself.
-  private static async disconnectQuietly(disconnect: () => Promise<void>): Promise<void> {
-    try {
-      await disconnect();
-    } catch (error: unknown) {
-      console.warn('Failed to disconnect the Ledger device.', error);
+      release();
     }
   }
 
@@ -365,8 +448,12 @@ export class LedgerIdentity extends SignIdentity {
     return new LedgerDeviceError(LedgerErrorCode.Unexpected, { error: `${error}` });
   }
 
-  private async raiseIfVersionIsDeprecated(): Promise<void> {
-    const { major, minor, patch } = await this.getVersion();
+  // Runs on the open session, so the check and the signature share one device connection.
+  private static async assertAppVersion(app: LedgerApp): Promise<void> {
+    const response = await app.getVersion();
+    assertResponseOk(response, LedgerErrorCode.Locked);
+
+    const { major, minor, patch } = response;
     const currentVersion = `${major}.${minor}.${patch}`;
 
     if (
@@ -387,9 +474,9 @@ export class LedgerIdentity extends SignIdentity {
     readStateBlob: Uint8Array,
   ): Promise<RequestSignatures> {
     const txType = this.consumeStakeFlag();
-    await this.raiseIfVersionIsDeprecated();
 
     return this.executeWithApp(async (app) => {
+      await LedgerIdentity.assertAppVersion(app);
       const response = await app.signUpdateCall(
         this.derivePath,
         Buffer.from(callBlob),
