@@ -15,6 +15,7 @@ import {
 } from '@components/MutationDialog';
 import { ResponsiveDialogDescription, ResponsiveDialogTitle } from '@components/ResponsiveDialog';
 import { Spinner } from '@components/Spinner';
+import { DeviceActionCancelledError } from '@hooks/useDeviceAction';
 import type { LedgerIdentity } from '@common/ledger/ledgerIdentity';
 
 import { useConnectLedgerDevice } from '../hooks/useConnectLedgerDevice';
@@ -49,24 +50,29 @@ export const AddLedgerDeviceDialog = ({ trigger }: Props) => {
   const register = useRegisterHardwareWallet();
   // Counts the openings, so a connection from a closed opening does not fill the next one.
   const opening = useRef(0);
+  // Aborted when the opening ends, so a connection that still waits for the device stops.
+  const abort = useRef<AbortController>(null);
 
   const trimmedName = name.trim();
   const isNameTooLong = utf8Length(trimmedName) > LEDGER_DEVICE_NAME_MAX_BYTES;
   const isNameValid = trimmedName.length >= LEDGER_DEVICE_NAME_MIN_LENGTH && !isNameTooLong;
 
   useEffect(() => {
-    if (open) {
-      opening.current += 1;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setStep(Step.Connect);
-      setIdentity(undefined);
-      setName('');
-    }
+    if (!open) return;
+    opening.current += 1;
+    const controller = new AbortController();
+    abort.current = controller;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setStep(Step.Connect);
+    setIdentity(undefined);
+    setName('');
+
+    return () => controller.abort(new DeviceActionCancelledError());
   }, [open]);
 
   const handleConnect = () => {
     const startedIn = opening.current;
-    connect.mutate(undefined, {
+    connect.mutate(abort.current?.signal, {
       onSuccess: (connected) => {
         if (opening.current === startedIn) setIdentity(connected);
       },

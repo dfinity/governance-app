@@ -157,6 +157,24 @@ describe('getLedgerIdentity', () => {
       await vi.waitFor(() => expect(retried).toBe(true));
     });
 
+    it('does not start a queued connection after its signal aborts', async () => {
+      let finishCall!: () => void;
+      void runOnDevice(
+        DEVICE_PRINCIPAL,
+        () => new Promise<void>((resolve) => (finishCall = resolve)),
+      );
+      await vi.waitFor(() => expect(finishCall).toBeDefined());
+      const controller = new AbortController();
+      const reason = new Error('closed');
+
+      const connecting = connectLedgerIdentity(controller.signal);
+      controller.abort(reason);
+      finishCall();
+
+      await expect(connecting).rejects.toBe(reason);
+      expect(create).not.toHaveBeenCalled();
+    });
+
     it('does not seed the cache when a logout happens during the connection', async () => {
       let finish!: () => void;
       create.mockImplementationOnce(

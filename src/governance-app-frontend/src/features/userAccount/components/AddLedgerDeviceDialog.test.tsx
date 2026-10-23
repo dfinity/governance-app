@@ -179,4 +179,30 @@ describe('AddLedgerDeviceDialog', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Connect' })).toBeTruthy());
     expect(screen.queryByTestId('ledger-device-details')).toBeNull();
   });
+
+  it('aborts a pending connection when the dialog closes, without a toast', async () => {
+    let signal!: AbortSignal;
+    mocks.connectLedgerIdentity.mockImplementationOnce(
+      (s: AbortSignal) =>
+        new Promise((_, reject) => {
+          signal = s;
+          s.addEventListener('abort', () => reject(s.reason));
+        }),
+    );
+    const user = userEvent.setup({ delay: null });
+    renderDialog();
+
+    await openAndConnect(user);
+    expect(signal.aborted).toBe(false);
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(signal.aborted).toBe(true);
+    await waitFor(() =>
+      expect(mocks.analyticsEvent).toHaveBeenCalledWith('ledger_device_connect_error', {
+        reason: 'cancelled',
+      }),
+    );
+    expect(mocks.errorNotification).not.toHaveBeenCalled();
+  });
 });

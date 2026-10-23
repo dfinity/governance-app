@@ -57,13 +57,18 @@ export const getLedgerIdentity = (principal: string): Promise<LedgerIdentity> =>
 /**
  * Connects to the Ledger device the user picks and caches its identity under the device
  * principal, so a later `getLedgerIdentity(principal)` reuses the connection.
+ *
+ * An aborted `signal` rejects with its reason, and a connection that still waits for the
+ * device does not start at all.
  */
-export const connectLedgerIdentity = async (): Promise<LedgerIdentity> => {
+export const connectLedgerIdentity = async (signal?: AbortSignal): Promise<LedgerIdentity> => {
   const startedIn = generation;
   // A pending call holds the device. A second transport on it fails, so the connection
   // reserves the device before anything else, the module import included.
   const identity = await runExclusiveDeviceCall(async () => {
+    signal?.throwIfAborted();
     const { LedgerIdentity } = await import('./ledgerIdentity');
+    signal?.throwIfAborted();
     return LedgerIdentity.create();
   });
 
