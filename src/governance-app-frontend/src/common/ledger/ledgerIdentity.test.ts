@@ -23,6 +23,7 @@ import { getRequestId } from './ledgerUtils';
 const mockAppConstructor = vi.hoisted(() => vi.fn());
 vi.mock('@zondax/ledger-icp', () => ({ default: mockAppConstructor }));
 
+const mockBuildKit = vi.hoisted(() => vi.fn());
 const mockDmk = vi.hoisted(() => ({
   isEnvironmentSupported: vi.fn(),
   listenToAvailableDevices: vi.fn(),
@@ -37,6 +38,7 @@ vi.mock('@ledgerhq/device-management-kit', () => ({
       return this;
     }
     build() {
+      mockBuildKit();
       return mockDmk;
     }
   },
@@ -516,6 +518,42 @@ describe('LedgerIdentity', () => {
         'Failed to disconnect the Ledger device.',
         expect.any(Error),
       );
+    });
+
+    it('builds one kit for overlapping first calls', async () => {
+      await Promise.all([LedgerIdentity.connect(), LedgerIdentity.connect()]);
+
+      expect(mockBuildKit).toHaveBeenCalledTimes(1);
+    });
+
+    it('asks the user to choose before it reuses a warm session on another device', async () => {
+      const other = { id: 'other-device' } as DiscoveredDevice;
+      const first = await LedgerIdentity.connect();
+      first.release();
+      mockDmk.listenToAvailableDevices.mockReturnValue(of([device, other]));
+      mockDmk.startDiscovering.mockReturnValue(of(other));
+      mockDmk.connect.mockResolvedValue('session-2');
+
+      const second = await LedgerIdentity.connect();
+
+      expect(mockDmk.startDiscovering).toHaveBeenCalledTimes(1);
+      expect(second.deviceId).toBe('other-device');
+      expect(mockDmk.disconnect).toHaveBeenCalledWith({ sessionId });
+    });
+
+    it('keeps the warm session when the user chooses its device again', async () => {
+      const other = { id: 'other-device' } as DiscoveredDevice;
+      const first = await LedgerIdentity.connect();
+      first.release();
+      mockDmk.listenToAvailableDevices.mockReturnValue(of([device, other]));
+      mockDmk.startDiscovering.mockReturnValue(of(device));
+
+      const second = await LedgerIdentity.connect();
+
+      expect(mockDmk.startDiscovering).toHaveBeenCalledTimes(1);
+      expect(second.deviceId).toBe('device-id');
+      expect(mockDmk.connect).toHaveBeenCalledTimes(1);
+      expect(mockDmk.disconnect).not.toHaveBeenCalled();
     });
 
     it('connects to a device the user already allowed', async () => {

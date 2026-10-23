@@ -64,7 +64,7 @@ type Session = {
 };
 
 // One Device Management Kit per page. It owns the WebHID transport and the device sessions.
-let deviceManagementKit: DeviceManagementKit | undefined;
+let deviceManagementKit: Promise<DeviceManagementKit> | undefined;
 
 // The device session that actions share while one follows the other.
 let session: Session | undefined;
@@ -205,15 +205,15 @@ export class LedgerIdentity extends SignIdentity {
 
   // Public so tests can stub the kit.
   public static async getDeviceManagementKit(): Promise<DeviceManagementKit> {
-    if (isNullish(deviceManagementKit)) {
+    // The promise is cached, so two overlapping first calls build one kit.
+    deviceManagementKit ??= (async () => {
       const [{ DeviceManagementKitBuilder }, { webHidTransportFactory }] = await Promise.all([
         import('@ledgerhq/device-management-kit'),
         import('@ledgerhq/device-transport-kit-web-hid'),
       ]);
-      deviceManagementKit = new DeviceManagementKitBuilder()
-        .addTransport(webHidTransportFactory)
-        .build();
-    }
+
+      return new DeviceManagementKitBuilder().addTransport(webHidTransportFactory).build();
+    })();
 
     return deviceManagementKit;
   }
@@ -251,13 +251,17 @@ export class LedgerIdentity extends SignIdentity {
     preferredDeviceId?: string,
   ): Promise<Session> {
     const current = session;
+    if (nonNullish(current)) clearTimeout(current.idleTimer);
+
+    // The device choice comes first, so a warm session on another device is not reused by
+    // mistake when several devices are allowed.
+    const device = await this.findDevice(dmk, preferredDeviceId);
+
     if (nonNullish(current)) {
-      clearTimeout(current.idleTimer);
       // The kit ends the session when the device disconnects.
       const alive = dmk.listConnectedDevices().some(({ sessionId }) => sessionId === current.id);
-      const sameDevice = isNullish(preferredDeviceId) || preferredDeviceId === current.deviceId;
 
-      if (alive && sameDevice) {
+      if (alive && device.id === current.deviceId) {
         current.users += 1;
 
         return current;
@@ -269,7 +273,6 @@ export class LedgerIdentity extends SignIdentity {
       }
     }
 
-    const device = await this.findDevice(dmk, preferredDeviceId);
     const id = await dmk.connect({
       device,
       // The refresher polls the device between the APDUs of a multi-chunk signature.
@@ -317,7 +320,7 @@ export class LedgerIdentity extends SignIdentity {
 
     clearTimeout(current.idleTimer);
     session = undefined;
-    await LedgerIdentity.disconnectSession(deviceManagementKit, current.id);
+    await LedgerIdentity.disconnectSession(await deviceManagementKit, current.id);
   }
 
   // Public so tests can stub the device.
