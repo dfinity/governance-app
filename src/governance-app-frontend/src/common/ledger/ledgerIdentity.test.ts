@@ -520,10 +520,42 @@ describe('LedgerIdentity', () => {
       );
     });
 
-    it('builds one kit for overlapping first calls', async () => {
-      await Promise.all([LedgerIdentity.connect(), LedgerIdentity.connect()]);
+    it('builds one kit and one session for overlapping first calls', async () => {
+      vi.useFakeTimers();
+
+      const [first, second] = await Promise.all([
+        LedgerIdentity.connect(),
+        LedgerIdentity.connect(),
+      ]);
 
       expect(mockBuildKit).toHaveBeenCalledTimes(1);
+      expect(mockDmk.connect).toHaveBeenCalledTimes(1);
+
+      first.release();
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(mockDmk.disconnect).not.toHaveBeenCalled();
+
+      second.release();
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(mockDmk.disconnect).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the idle cleanup when the user cancels the chooser', async () => {
+      vi.useFakeTimers();
+      const other = { id: 'other-device' } as DiscoveredDevice;
+      const first = await LedgerIdentity.connect();
+      first.release();
+      mockDmk.listenToAvailableDevices.mockReturnValue(of([device, other]));
+      mockDmk.startDiscovering.mockReturnValue(
+        throwError(() => ({ _tag: 'NoAccessibleDeviceError' })),
+      );
+
+      await expect(LedgerIdentity.connect()).rejects.toMatchObject({
+        code: LedgerErrorCode.AccessDenied,
+      });
+
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(mockDmk.disconnect).toHaveBeenCalledWith({ sessionId });
     });
 
     it('asks the user to choose before it reuses a warm session on another device', async () => {

@@ -69,6 +69,9 @@ let deviceManagementKit: Promise<DeviceManagementKit> | undefined;
 // The device session that actions share while one follows the other.
 let session: Session | undefined;
 
+// Session acquisitions run one after the other, so overlapping calls share one session.
+let openQueue: Promise<unknown> = Promise.resolve();
+
 type ReadStateData = {
   signature: Signature;
   body: ReadStateRequest;
@@ -246,18 +249,28 @@ export class LedgerIdentity extends SignIdentity {
   }
 
   // Reuses the shared session when it is alive and on the right device, else opens one.
-  private static async openSession(
+  private static openSession(
     dmk: DeviceManagementKit,
     preferredDeviceId?: string,
   ): Promise<Session> {
-    const current = session;
-    if (nonNullish(current)) clearTimeout(current.idleTimer);
+    const acquisition = openQueue.then(() => this.acquireSession(dmk, preferredDeviceId));
+    openQueue = acquisition.catch(() => undefined);
 
+    return acquisition;
+  }
+
+  private static async acquireSession(
+    dmk: DeviceManagementKit,
+    preferredDeviceId?: string,
+  ): Promise<Session> {
     // The device choice comes first, so a warm session on another device is not reused by
-    // mistake when several devices are allowed.
+    // mistake when several devices are allowed. The idle timer of the shared session keeps
+    // running until the choice succeeds, so a cancelled chooser leaves no open session behind.
     const device = await this.findDevice(dmk, preferredDeviceId);
 
+    const current = session;
     if (nonNullish(current)) {
+      clearTimeout(current.idleTimer);
       // The kit ends the session when the device disconnects.
       const alive = dmk.listConnectedDevices().some(({ sessionId }) => sessionId === current.id);
 
