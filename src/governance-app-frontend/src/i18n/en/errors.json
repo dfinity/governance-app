@@ -15,5 +15,24 @@
     "InvalidAccountIDError": "The destination account is invalid.",
     "InvalidSenderError": "The sender account is invalid.",
     "TransferError": "An error occurred during the transfer."
+  },
+  "ledgerDeviceErrors": {
+    "browserNotSupported": "This browser does not support Ledger devices. Use Chrome, Edge, or Brave on a desktop computer.",
+    "accessDenied": "No device was selected.",
+    "noDevice": "No Ledger device found. Connect the device and try again.",
+    "otherAppOpen": "Another application uses the device. Close Ledger Live and try again.",
+    "connectFailed": "Could not connect to the Ledger device.",
+    "appNotOpen": "Open the Internet Computer app on the device.",
+    "locked": "The device is locked. Unlock it and try again.",
+    "fetchPublicKey": "Could not read the public key from the device.",
+    "principalMismatch": "The device principal does not match its public key.",
+    "unexpectedDevice": "This is not the device of this account. Connect the device with the principal {{expected}}.",
+    "unexpectedDeviceUnknown": "This is not the device of this account. Connect the registered device and try again.",
+    "userRejected": "You rejected the request on the device.",
+    "signatureUnexpected": "The device returned no signature.",
+    "signatureLength": "The device returned an invalid signature.",
+    "appVersionNotSupported": "The Internet Computer app on the device is too old. Update it in Ledger Live.",
+    "disconnected": "The device was disconnected. Connect it again and try again.",
+    "unexpected": "The device action failed. Try again."
   }
 }
