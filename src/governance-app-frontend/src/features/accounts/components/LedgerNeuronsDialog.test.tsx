@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { E8S } from '@constants/extra';
 import { mockNeuron } from '@fixtures/neuron';
+import { clearDeviceQueues } from '@common/ledger/deviceQueue';
 import { LedgerDeviceError, LedgerErrorCode } from '@common/ledger/errors';
 
 import { type Account, AccountType } from '../types';
@@ -74,6 +75,7 @@ const renderDialog = () => {
 describe('LedgerNeuronsDialog', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    clearDeviceQueues();
     mocks.getNnsGovernanceCanister.mockResolvedValue({
       listNeurons: mocks.listNeurons,
       addHotkey: mocks.addHotkey,
@@ -168,6 +170,59 @@ describe('LedgerNeuronsDialog', () => {
 
     expect(await screen.findByTestId('ledger-neuron-hotkey-added')).toBeTruthy();
     expect(mocks.successNotification).not.toHaveBeenCalled();
+  });
+
+  it('holds the hotkey of another neuron until the cancelled call settles', async () => {
+    mocks.listNeurons.mockResolvedValue([deviceNeuron(1n), deviceNeuron(2n)]);
+    let settleFirst: () => void = () => {};
+    mocks.addHotkey
+      .mockReturnValueOnce(new Promise<void>((resolve) => (settleFirst = resolve)))
+      .mockResolvedValueOnce(undefined);
+    const user = userEvent.setup();
+
+    renderDialog();
+
+    const buttons = await screen.findAllByTestId('ledger-neuron-add-hotkey');
+    await user.click(buttons[0]);
+    await user.click(await screen.findByRole('button', { name: 'Cancel' }));
+    await user.click(buttons[1]);
+    await waitFor(() => expect(buttons[1].hasAttribute('disabled')).toBe(true));
+
+    expect(mocks.addHotkey).toHaveBeenCalledTimes(1);
+
+    settleFirst();
+
+    await waitFor(() => expect(mocks.addHotkey).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(screen.getAllByTestId('ledger-neuron-hotkey-added')).toHaveLength(2),
+    );
+  });
+
+  it('holds a reopen until the pending list_neurons settles', async () => {
+    let settleFirst: (neurons: unknown[]) => void = () => {};
+    mocks.listNeurons
+      .mockReturnValueOnce(new Promise<unknown[]>((resolve) => (settleFirst = resolve)))
+      .mockResolvedValueOnce([deviceNeuron(1n)]);
+    const queryClient = new QueryClient();
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+    const { rerender } = render(
+      <LedgerNeuronsDialog account={account} open onOpenChange={vi.fn()} />,
+      { wrapper },
+    );
+    await waitFor(() => expect(mocks.listNeurons).toHaveBeenCalledTimes(1));
+
+    rerender(<LedgerNeuronsDialog account={account} open={false} onOpenChange={vi.fn()} />);
+    rerender(<LedgerNeuronsDialog account={account} open onOpenChange={vi.fn()} />);
+    await screen.findByTestId('ledger-neurons-connecting');
+
+    expect(mocks.listNeurons).toHaveBeenCalledTimes(1);
+
+    settleFirst([]);
+
+    await waitFor(() => expect(mocks.listNeurons).toHaveBeenCalledTimes(2));
+    expect(await screen.findByTestId('ledger-neurons-list')).toBeTruthy();
   });
 
   it('asks the device again on each open', async () => {

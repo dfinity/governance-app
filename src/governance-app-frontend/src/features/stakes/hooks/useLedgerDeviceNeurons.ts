@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { QUERY_KEYS } from '@utils/query';
 import { getNnsGovernanceCanister } from '@common/canisters';
+import { runOnDevice } from '@common/ledger/deviceQueue';
 
 type DeviceNeuronsKey = {
   principal: string;
@@ -25,7 +26,8 @@ const queryKey = ({ principal, session }: DeviceNeuronsKey) => [
  * device is only a hotkey are dropped: the hotkey action needs the controller.
  *
  * Every fetch prompts the device once, so the result never goes stale by itself. The cache
- * drops it when the last observer leaves, and a new `session` starts a fresh fetch.
+ * drops it when the last observer leaves, and a new `session` starts a fresh fetch. The
+ * device queue holds a new fetch until a pending call to the same device settles.
  */
 export const useLedgerDeviceNeurons = ({
   principal,
@@ -34,15 +36,16 @@ export const useLedgerDeviceNeurons = ({
 }: DeviceNeuronsKey & { enabled: boolean }) =>
   useQuery({
     queryKey: queryKey({ principal, session }),
-    queryFn: async () => {
-      const canister = await getNnsGovernanceCanister({ signer: { kind: 'ledger', principal } });
-      const neurons = await canister.listNeurons({
-        certified: true,
-        includeEmptyNeurons: undefined,
-      });
+    queryFn: () =>
+      runOnDevice(principal, async () => {
+        const canister = await getNnsGovernanceCanister({ signer: { kind: 'ledger', principal } });
+        const neurons = await canister.listNeurons({
+          certified: true,
+          includeEmptyNeurons: undefined,
+        });
 
-      return neurons.filter((neuron) => neuron.fullNeuron?.controller === principal);
-    },
+        return neurons.filter((neuron) => neuron.fullNeuron?.controller === principal);
+      }),
     enabled,
     retry: false,
     staleTime: Infinity,

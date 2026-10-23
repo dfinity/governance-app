@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 import { getNnsGovernanceCanister } from '@common/canisters';
+import { runOnDevice } from '@common/ledger/deviceQueue';
 import { II_SIGNER, type Signer } from '@common/ledger/signer';
 
 type AddHotkeyParams = {
@@ -16,16 +17,21 @@ type AddHotkeyParams = {
 /**
  * Adds a hotkey to a neuron.
  * Hotkeys can vote, set followees, refresh voting power, and manage Neurons' Fund participation.
- * A Ledger signer prompts the device for one approval.
+ * A Ledger signer prompts the device for one approval, after the pending device calls settle.
  */
 export function useAddHotkey() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ neuronId, principal, signer = II_SIGNER }: AddHotkeyParams) => {
-      const canister = await getNnsGovernanceCanister({ signer });
+      const call = async () => {
+        const canister = await getNnsGovernanceCanister({ signer });
 
-      await canister.addHotkey({ neuronId, principal: Principal.fromText(principal) });
+        await canister.addHotkey({ neuronId, principal: Principal.fromText(principal) });
+      };
+
+      if (signer.kind === 'ledger') await runOnDevice(signer.principal, call);
+      else await call();
 
       await queryClient
         .invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] })
