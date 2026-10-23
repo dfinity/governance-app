@@ -24,7 +24,8 @@ type Props = {
   /** The name of the picked suggestion. Empty when the user typed the value. */
   selectedName: string;
   suggestions: DestinationSuggestion[];
-  onChange: (value: string, selectedName: string) => void;
+  /** The suggestion is set when the user picked one from the list. */
+  onChange: (value: string, selectedName: string, suggestion?: DestinationSuggestion) => void;
   /** Adds the "Add a new address" item to the list. */
   onAddAddress?: () => void;
   /** Keeps the picked suggestion. The chip is read-only and has no clear action. */
@@ -114,7 +115,7 @@ export function DestinationInput({
   };
 
   const pick = (suggestion: DestinationSuggestion) => {
-    onChange(suggestion.address, suggestion.name);
+    onChange(suggestion.address, suggestion.name, suggestion);
     close();
     // The chip replaces the input on the next render and takes the focus.
     requestAnimationFrame(() => chipRef.current?.focus());

@@ -17,7 +17,11 @@ const ids = vi.hoisted(() => ({
   CONTACT_ADDRESS: 'h4a5i-5vcfo-5rusv-fmb6m-vrkia-mjnkc-jpoow-h5mam-nthnm-ldqlr-bqe',
 }));
 
-const state = vi.hoisted(() => ({ subaccounts: false }));
+const state = vi.hoisted(() => ({
+  subaccounts: false,
+  // A contact that points at the savings account under another name.
+  savingsContact: false,
+}));
 
 const accounts = vi.hoisted(() => [
   {
@@ -59,7 +63,12 @@ vi.mock('@hooks/addressBook/useAddressBook', () => ({
   useAddressBook: () => ({
     data: {
       response: {
-        named_addresses: [{ name: 'Bob', address: { Icrc1: ids.CONTACT_ADDRESS } }],
+        named_addresses: [
+          { name: 'Bob', address: { Icrc1: ids.CONTACT_ADDRESS } },
+          ...(state.savingsContact
+            ? [{ name: 'Wallet', address: { Icp: ids.SAVINGS_ACCOUNT_ID } }]
+            : []),
+        ],
       },
     },
     isLoading: false,
@@ -95,6 +104,7 @@ const openDestinationList = async () => {
 describe('SendICPDialog destination suggestions', () => {
   beforeEach(() => {
     state.subaccounts = false;
+    state.savingsContact = false;
   });
 
   it('offers only the address book while subaccounts are off', async () => {
@@ -144,7 +154,28 @@ describe('SendICPDialog destination suggestions', () => {
     await userEvent.type(screen.getByTestId('send-icp-amount-input'), '1');
     await userEvent.click(screen.getByTestId('send-icp-next-btn'));
 
-    expect(screen.getByTestId('send-icp-destination-name').textContent).toBe('Savings');
+    // The confirmation step mounts after the exit animation of the form.
+    const name = await screen.findByTestId('send-icp-destination-name');
+    expect(name.textContent).toBe('Savings');
     expect(screen.queryByTestId('send-icp-save-address-btn')).toBeNull();
+  });
+
+  it('keeps the name of a picked own account over a contact with the same address', async () => {
+    state.subaccounts = true;
+    state.savingsContact = true;
+    renderDialog();
+
+    const options = await openDestinationList();
+    expect(options.map((option) => option.textContent)).toEqual([
+      expect.stringContaining('Savings'),
+      expect.stringContaining('Bob'),
+      expect.stringContaining('Wallet'),
+    ]);
+    await userEvent.click(options[0]);
+    await userEvent.type(screen.getByTestId('send-icp-amount-input'), '1');
+    await userEvent.click(screen.getByTestId('send-icp-next-btn'));
+
+    const name = await screen.findByTestId('send-icp-destination-name');
+    expect(name.textContent).toBe('Savings');
   });
 });
