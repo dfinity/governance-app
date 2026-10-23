@@ -8,9 +8,10 @@ import {
   type SubmitRequestType,
 } from '@icp-sdk/core/agent';
 import { Principal } from '@icp-sdk/core/principal';
-import type TransportWebHID from '@ledgerhq/hw-transport-webhid';
+import type { DiscoveredDevice } from '@ledgerhq/device-management-kit';
 import type InternetComputerApp from '@zondax/ledger-icp';
 import type { ResponseVersion } from '@zondax/ledger-icp';
+import { NEVER, of, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 
 import { mockLedgerPublicKey } from '../../../tests/mocks/ledgerIdentity';
@@ -21,6 +22,25 @@ import { getRequestId } from './ledgerUtils';
 
 const mockAppConstructor = vi.hoisted(() => vi.fn());
 vi.mock('@zondax/ledger-icp', () => ({ default: mockAppConstructor }));
+
+const mockDmk = vi.hoisted(() => ({
+  isEnvironmentSupported: vi.fn(),
+  listenToAvailableDevices: vi.fn(),
+  startDiscovering: vi.fn(),
+  connect: vi.fn(),
+  disconnect: vi.fn(),
+}));
+vi.mock('@ledgerhq/device-management-kit', () => ({
+  DeviceManagementKitBuilder: class {
+    addTransport() {
+      return this;
+    }
+    build() {
+      return mockDmk;
+    }
+  },
+}));
+vi.mock('@ledgerhq/device-transport-kit-web-hid', () => ({ webHidTransportFactory: vi.fn() }));
 
 type MockApp = {
   getAddressAndPubKey: Mock;
@@ -75,7 +95,7 @@ describe('LedgerIdentity', () => {
   };
 
   let app: MockApp;
-  let transport: { close: Mock };
+  let disconnect: Mock;
 
   beforeEach(() => {
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
@@ -96,11 +116,11 @@ describe('LedgerIdentity', () => {
       }),
       showAddressAndPubKey: vi.fn(),
     };
-    transport = { close: vi.fn().mockResolvedValue(undefined) };
+    disconnect = vi.fn().mockResolvedValue(undefined);
 
     vi.spyOn(LedgerIdentity, 'connect').mockResolvedValue({
       app: app as unknown as InternetComputerApp,
-      transport: transport as unknown as Awaited<ReturnType<typeof TransportWebHID.create>>,
+      disconnect,
     });
     vi.spyOn(LedgerIdentity, 'fetchPublicKeyFromDevice').mockResolvedValue(mockLedgerPublicKey);
   });
@@ -115,7 +135,7 @@ describe('LedgerIdentity', () => {
     expect(identity.getPrincipal().toText()).toBe(
       Principal.selfAuthenticating(mockLedgerPublicKey.toDer()).toText(),
     );
-    expect(transport.close).toHaveBeenCalledTimes(1);
+    expect(disconnect).toHaveBeenCalledTimes(1);
   });
 
   it('signs the call and the read state together, then reuses the read state signature', async () => {
@@ -187,13 +207,13 @@ describe('LedgerIdentity', () => {
     expect(app.signUpdateCall).toHaveBeenCalledTimes(2);
   });
 
-  it('closes the transport after each device call', async () => {
+  it('disconnects after each device call', async () => {
     const identity = await LedgerIdentity.create();
 
     await identity.transformRequest(callRequest);
 
     // create, getVersion, signUpdateCall
-    expect(transport.close).toHaveBeenCalledTimes(3);
+    expect(disconnect).toHaveBeenCalledTimes(3);
   });
 
   it('finds the cached read state regardless of the order of the calls', async () => {
@@ -329,7 +349,7 @@ describe('LedgerIdentity', () => {
         code: LedgerErrorCode.Unexpected,
         details: { error: 'Error: usb' },
       });
-      expect(transport.close).toHaveBeenCalledTimes(1);
+      expect(disconnect).toHaveBeenCalledTimes(1);
     });
 
     it('wraps a raw error from a device callback', async () => {
@@ -340,33 +360,33 @@ describe('LedgerIdentity', () => {
         code: LedgerErrorCode.Unexpected,
         details: { error: 'Error: apdu' },
       });
-      expect(transport.close).toHaveBeenCalledTimes(2);
+      expect(disconnect).toHaveBeenCalledTimes(2);
     });
 
     it('maps a disconnected device', async () => {
       const identity = await LedgerIdentity.create();
-      app.getVersion.mockRejectedValue({ name: 'DisconnectedDeviceDuringOperation' });
+      app.getVersion.mockRejectedValue({ _tag: 'DeviceDisconnectedWhileSendingError' });
 
       await expect(identity.getVersion()).rejects.toMatchObject({
         code: LedgerErrorCode.Disconnected,
       });
     });
 
-    it('ignores a failed transport close after a successful action', async () => {
+    it('ignores a failed disconnect after a successful action', async () => {
       const identity = await LedgerIdentity.create();
-      transport.close.mockRejectedValue(new Error('already closed'));
+      disconnect.mockRejectedValue(new Error('already closed'));
 
       await expect(identity.getVersion()).resolves.toEqual(version());
       expect(console.warn).toHaveBeenCalledWith(
-        'Failed to close the Ledger transport.',
+        'Failed to disconnect the Ledger device.',
         expect.any(Error),
       );
     });
 
-    it('keeps the action error when the transport close fails too', async () => {
+    it('keeps the action error when the disconnect fails too', async () => {
       const identity = await LedgerIdentity.create();
       app.getVersion.mockRejectedValue(new LedgerDeviceError(LedgerErrorCode.Locked));
-      transport.close.mockRejectedValue(new Error('already closed'));
+      disconnect.mockRejectedValue(new Error('already closed'));
 
       await expect(identity.getVersion()).rejects.toMatchObject({ code: LedgerErrorCode.Locked });
     });
@@ -388,7 +408,7 @@ describe('LedgerIdentity', () => {
     await expect(identity.getVersion()).rejects.toMatchObject({
       code: LedgerErrorCode.UnexpectedDevice,
     });
-    expect(transport.close).toHaveBeenCalled();
+    expect(disconnect).toHaveBeenCalled();
   });
 
   describe('app version', () => {
@@ -435,34 +455,65 @@ describe('LedgerIdentity', () => {
   });
 
   describe('connect', () => {
-    const getTransportSpy = () => {
+    const sessionId = 'session-id';
+    const device = { id: 'device-id' } as DiscoveredDevice;
+
+    beforeEach(() => {
       vi.mocked(LedgerIdentity.connect).mockRestore();
-
-      return vi.spyOn(
-        LedgerIdentity as unknown as { getTransport: () => Promise<unknown> },
-        'getTransport',
-      );
-    };
-
-    const connectWith = async (error: unknown) => {
-      getTransportSpy().mockRejectedValue(error);
-
-      return LedgerIdentity.connect();
-    };
-
-    it('returns the app and the open transport', async () => {
-      getTransportSpy().mockResolvedValue(transport);
+      Object.values(mockDmk).forEach((fn) => fn.mockReset());
+      mockAppConstructor.mockReset();
+      mockDmk.isEnvironmentSupported.mockReturnValue(true);
+      mockDmk.listenToAvailableDevices.mockReturnValue(of([device]));
+      mockDmk.startDiscovering.mockReturnValue(of(device));
+      mockDmk.connect.mockResolvedValue(sessionId);
+      mockDmk.disconnect.mockResolvedValue(undefined);
       mockAppConstructor.mockImplementation(function () {
         return app;
       });
-
-      await expect(LedgerIdentity.connect()).resolves.toEqual({ app, transport });
-      expect(mockAppConstructor).toHaveBeenCalledWith(transport);
-      expect(transport.close).not.toHaveBeenCalled();
     });
 
-    it('closes the transport when the app cannot be built', async () => {
-      getTransportSpy().mockResolvedValue(transport);
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('connects to a device the user already allowed', async () => {
+      const connection = await LedgerIdentity.connect();
+
+      expect(connection.app).toBe(app);
+      expect(mockDmk.startDiscovering).not.toHaveBeenCalled();
+      expect(mockDmk.connect).toHaveBeenCalledWith({
+        device,
+        sessionRefresherOptions: { isRefresherDisabled: true },
+      });
+      expect(mockAppConstructor).toHaveBeenCalledWith(
+        expect.objectContaining({ send: expect.any(Function) }),
+      );
+    });
+
+    it('asks the browser for a device when the user allowed none', async () => {
+      vi.useFakeTimers();
+      mockDmk.listenToAvailableDevices.mockReturnValue(NEVER);
+
+      const result = LedgerIdentity.connect();
+      await vi.advanceTimersByTimeAsync(500);
+      await result;
+
+      expect(mockDmk.startDiscovering).toHaveBeenCalledTimes(1);
+      expect(mockDmk.connect).toHaveBeenCalledWith({
+        device,
+        sessionRefresherOptions: { isRefresherDisabled: true },
+      });
+    });
+
+    it('disconnects the session', async () => {
+      const connection = await LedgerIdentity.connect();
+
+      await connection.disconnect();
+
+      expect(mockDmk.disconnect).toHaveBeenCalledWith({ sessionId });
+    });
+
+    it('disconnects when the app cannot be built', async () => {
       mockAppConstructor.mockImplementation(function () {
         throw new Error('no app');
       });
@@ -471,20 +522,42 @@ describe('LedgerIdentity', () => {
         code: LedgerErrorCode.ConnectFailed,
         details: { error: 'Error: no app' },
       });
-      expect(transport.close).toHaveBeenCalledTimes(1);
+      expect(mockDmk.disconnect).toHaveBeenCalledWith({ sessionId });
+    });
+
+    it('fails when the browser has no WebHID', async () => {
+      mockDmk.isEnvironmentSupported.mockReturnValue(false);
+
+      await expect(LedgerIdentity.connect()).rejects.toMatchObject({
+        code: LedgerErrorCode.BrowserNotSupported,
+      });
+      expect(mockDmk.connect).not.toHaveBeenCalled();
+    });
+
+    it('maps a closed device picker to AccessDenied', async () => {
+      vi.useFakeTimers();
+      mockDmk.listenToAvailableDevices.mockReturnValue(NEVER);
+      mockDmk.startDiscovering.mockReturnValue(
+        throwError(() => ({ _tag: 'NoAccessibleDeviceError' })),
+      );
+
+      const result = LedgerIdentity.connect();
+      const assertion = expect(result).rejects.toMatchObject({
+        code: LedgerErrorCode.AccessDenied,
+      });
+      await vi.advanceTimersByTimeAsync(500);
+      await assertion;
     });
 
     it.each([
-      [{ name: 'TransportOpenUserCancelled', message: 'cancelled' }, LedgerErrorCode.AccessDenied],
-      [
-        { name: 'TransportOpenUserCancelled', message: 'WebHID not supported' },
-        LedgerErrorCode.BrowserNotSupported,
-      ],
-      [{ id: 'NoDeviceFound', message: '' }, LedgerErrorCode.NoDevice],
-      [{ message: 'cannot open device with path 1' }, LedgerErrorCode.OtherAppOpen],
+      [{ _tag: 'UnknownDeviceError' }, LedgerErrorCode.NoDevice],
+      [{ _tag: 'OpeningConnectionError' }, LedgerErrorCode.OtherAppOpen],
+      [{ _tag: 'WebHidTransportNotSupportedError' }, LedgerErrorCode.BrowserNotSupported],
       [new Error('boom'), LedgerErrorCode.ConnectFailed],
-    ])('maps %o to %s', async (error, code) => {
-      await expect(connectWith(error)).rejects.toMatchObject({ code });
+    ])('maps a connect failure %o to %s', async (error, code) => {
+      mockDmk.connect.mockRejectedValue(error);
+
+      await expect(LedgerIdentity.connect()).rejects.toMatchObject({ code });
     });
   });
 });

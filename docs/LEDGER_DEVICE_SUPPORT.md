@@ -106,6 +106,10 @@ Key behaviors of `LedgerIdentity`:
   `global: "globalThis"`. The `buffer` package is a dependency.
 - Dependencies: `@zondax/ledger-icp` 4.0.0, `@zondax/ledger-js` 2.1,
   `@ledgerhq/hw-transport-webhid` 6.30, `@ledgerhq/hw-transport` (types only).
+  nns-dapp PR #8116 replaces the legacy transport with the Ledger Device
+  Management Kit (`@ledgerhq/device-management-kit`,
+  `@ledgerhq/device-transport-kit-web-hid`, `rxjs`) wrapped in `DMKTransport`
+  from `@zondax/ledger-js`. The signing code does not change.
 
 ## 3. What the governance app has today
 
@@ -156,10 +160,11 @@ parser (Zondax `nns_parser.c`, app 4.2.16) handles the command.
    feature must be hidden when `navigator.hid` is undefined. The mobile PWA
    gets no device support. Web Bluetooth (`@ledgerhq/hw-transport-web-ble`)
    adds Android Chrome and desktop Chromium for Nano X, Stax, Flex, but not
-   iOS. Ledger marks the LedgerJS transports as no longer maintained and
-   points to the Device Management Kit; `@zondax/ledger-icp` 4 accepts a DMK
-   transport. Recommendation: WebHID first, same as nns-dapp. Evaluate DMK
-   and Bluetooth in a later phase.
+   iOS. Ledger ended support for the LedgerJS transports and points to the
+   Device Management Kit (DMK). This app opens the device through the DMK
+   over WebHID from day one, so the browser limit is the same, but the
+   integration is the supported one. Evaluate Bluetooth through the DMK in a
+   later phase.
 2. **Ledger app command set.** The device parser handles Configure
    (dissolve, hotkeys, auto-stake, visibility, neurons' fund), Disburse,
    DisburseMaturity, StakeMaturity, Spawn, Split, Merge, Follow, RegisterVote,
@@ -197,17 +202,18 @@ parser (Zondax `nns_parser.c`, app 4.2.16) handles the command.
    out of the first iteration.
 9. **Bundle.** `@zondax/ledger-icp` uses `Buffer`. The app needs the `buffer`
    package and a dynamic import boundary so the main bundle does not grow.
-10. **Dependencies.** Three new packages (`@zondax/ledger-icp`,
-    `@ledgerhq/hw-transport-webhid`, `buffer`). `@zondax/ledger-js` and
-    `@ledgerhq/hw-transport` arrive as transitive dependencies.
-    `min-release-age=7` applies.
+10. **Dependencies.** Six new packages (`@zondax/ledger-icp`,
+    `@zondax/ledger-js`, `@ledgerhq/device-management-kit`,
+    `@ledgerhq/device-transport-kit-web-hid`, `rxjs`, `buffer`). The DMK
+    brings `xstate`, `inversify`, `purify-ts`, and `reflect-metadata` into the
+    lazy chunk. `min-release-age=7` applies.
 
 ## 6. Design decisions (recommended)
 
 | Decision | Recommendation | Reason |
 | --- | --- | --- |
 | Registry | nns-dapp canister | Already read for sub-accounts, same principal, zero backend work, one device list for both apps. |
-| Transport | WebHID only, feature-detected | Parity with nns-dapp. Bluetooth and DMK later. |
+| Transport | Device Management Kit over WebHID, feature-detected | The supported Ledger integration; same as nns-dapp PR #8116. Bluetooth later. |
 | Feature gate | New advanced feature `ledgerDevice`, visible only when `navigator.hid` exists | Matches the existing opt-in pattern; keeps mobile untouched. |
 | Signer model | A `Signer` value (`{ kind: 'ii' } \| { kind: 'ledger', principal }`) resolved per neuron or account; canister factories take a signer | Keeps hooks small. Avoids a global mutable identity. |
 | Hotkey policy | Prefer II hotkey for vote, follow, refresh; device only for controller-only actions | Fewest device prompts. Same as nns-dapp. |
@@ -224,11 +230,13 @@ workspace, plus e2e where noted.
 ### Phase 0: Decisions and dependencies (needs your approval)
 
 - Confirm the decisions in section 6.
-- Add `@zondax/ledger-icp`, `@ledgerhq/hw-transport-webhid`, `buffer`. Update
-  the lock incrementally.
+- Add `@zondax/ledger-icp`, `@zondax/ledger-js`,
+  `@ledgerhq/device-management-kit`, `@ledgerhq/device-transport-kit-web-hid`,
+  `rxjs`, `buffer`. Update the lock incrementally.
 - `vite.config.js`: a `vendor-ledger` manual chunk for `@zondax`, `@ledgerhq`,
-  `buffer`. The module sets `globalThis.Buffer` from the `buffer` package before
-  it loads the Ledger libraries, so no bundler plugin is needed.
+  and the DMK dependencies; `buffer` in its own `vendor-buffer` chunk. The
+  module sets `globalThis.Buffer` from the `buffer` package before it loads
+  the Ledger libraries, so no bundler plugin is needed.
 
 ### Phase 1: Core identity module (no UI)
 
@@ -347,7 +355,7 @@ account.
   signs locally) for the register, add-hotkey, and one controller action.
 - `docs/FE.md` section on the Ledger module.
 - Release notes and in-app feature announcement.
-- Optional: Bluetooth / DMK transport spike for Android Chrome.
+- Optional: Bluetooth transport through the DMK for Android Chrome.
 
 ## 8. Open questions
 

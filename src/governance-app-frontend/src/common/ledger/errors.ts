@@ -51,11 +51,10 @@ export const isLedgerDeviceError = (error: unknown): error is LedgerDeviceError 
   error instanceof LedgerDeviceError;
 
 /**
- * Shape of the errors thrown by `@ledgerhq/hw-transport-webhid`.
- * The package exports them as functions, not as types, so the shape is declared here.
+ * Shape of the errors thrown by the Ledger Device Management Kit.
+ * Every DMK error carries a `_tag` with its class name.
  */
-export interface LedgerTransportError {
-  name?: string;
+export interface DmkErrorLike {
+  _tag?: string;
   message?: string;
-  id?: string;
 }

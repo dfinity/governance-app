@@ -57,8 +57,22 @@ export default defineConfig({
             // Loaded on demand by the QR scanner. Keep it out of the shared vendor chunk.
             if (id.includes('node_modules/jsqr/')) return 'vendor-jsqr';
 
-            // Loaded on demand by the Ledger device module. Keep it out of the shared vendor chunk.
-            if (id.includes('@zondax') || id.includes('@ledgerhq')) return 'vendor-ledger';
+            // Loaded on demand by the Ledger device module. Keep it and the dependencies of the
+            // Device Management Kit out of the shared vendor chunk.
+            if (
+              [
+                '@zondax',
+                '@ledgerhq',
+                'node_modules/rxjs/',
+                'node_modules/xstate/',
+                'node_modules/inversify/',
+                'node_modules/purify-ts/',
+                'node_modules/reflect-metadata/',
+                'node_modules/@sentry/',
+                'node_modules/isomorphic-ws/',
+              ].some((lib) => id.includes(lib))
+            )
+              return 'vendor-ledger';
 
             // The Ledger libraries read `Buffer` from the global scope when their chunk
             // evaluates, so the polyfill must load and run in its own chunk first.
