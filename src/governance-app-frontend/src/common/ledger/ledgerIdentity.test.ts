@@ -8,7 +8,7 @@ import {
   type SubmitRequestType,
 } from '@icp-sdk/core/agent';
 import { Principal } from '@icp-sdk/core/principal';
-import type { DiscoveredDevice } from '@ledgerhq/device-management-kit';
+import type { DeviceManagementKit, DiscoveredDevice } from '@ledgerhq/device-management-kit';
 import type InternetComputerApp from '@zondax/ledger-icp';
 import type { ResponseVersion } from '@zondax/ledger-icp';
 import { NEVER, of, Subject, throwError } from 'rxjs';
@@ -729,6 +729,24 @@ describe('LedgerIdentity', () => {
       expect(mockDmk.startDiscovering).toHaveBeenCalledTimes(1);
       expect(connection.deviceId).toBe('other-device');
       connection.release();
+    });
+
+    it('cancels a connection when the session closes during the module loads', async () => {
+      let finishLoad: (kit: DeviceManagementKit) => void = () => undefined;
+      vi.spyOn(LedgerIdentity, 'getDeviceManagementKit').mockReturnValueOnce(
+        new Promise<DeviceManagementKit>((resolve) => {
+          finishLoad = resolve;
+        }),
+      );
+
+      const stale = LedgerIdentity.connect().catch((error: unknown) => error);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await LedgerIdentity.closeSession();
+      finishLoad(mockDmk as unknown as DeviceManagementKit);
+
+      expect(await stale).toMatchObject({ code: LedgerErrorCode.SessionClosed });
+      expect(mockDmk.listenToAvailableDevices).not.toHaveBeenCalled();
+      expect(mockDmk.startDiscovering).not.toHaveBeenCalled();
     });
 
     it('cancels a connection when the session closes during the device choice', async () => {

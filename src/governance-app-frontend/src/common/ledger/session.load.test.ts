@@ -5,7 +5,27 @@ import { describe, expect, it, vi } from 'vitest';
 const PRINCIPAL = 'rrkah-fqaaa-aaaaa-aaaaq-cai';
 
 describe('getLedgerIdentity module load', () => {
+  it('stops a connection whose module load was pending when the identities cleared', async () => {
+    let finishLoad: (module: unknown) => void = () => undefined;
+    const create = vi.fn();
+    const load = new Promise<unknown>((resolve) => {
+      finishLoad = resolve;
+    });
+    vi.doMock('./ledgerIdentity', () => load as Promise<Record<string, unknown>>);
+    const { clearLedgerIdentities, getLedgerIdentity } = await import('./session');
+
+    const pending = getLedgerIdentity(PRINCIPAL).catch((error: unknown) => error);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    clearLedgerIdentities();
+    finishLoad({ LedgerIdentity: { create, closeSession: vi.fn() } });
+
+    expect(await pending).toMatchObject({ code: 'sessionClosed' });
+    expect(create).not.toHaveBeenCalled();
+    vi.doUnmock('./ledgerIdentity');
+  });
+
   it('forgets a failed load and succeeds on the next call', async () => {
+    vi.resetModules();
     vi.doMock('./ledgerIdentity', () => {
       throw new Error('load failed');
     });

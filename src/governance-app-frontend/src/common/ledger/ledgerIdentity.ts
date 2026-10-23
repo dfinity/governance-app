@@ -282,6 +282,9 @@ export class LedgerIdentity extends SignIdentity {
     generation: number,
     preferredDeviceId?: string,
   ): Promise<Session> {
+    // A session closed during the module loads must not open the browser device picker.
+    LedgerIdentity.assertSessionOpen(generation);
+
     // The device choice comes first, so a warm session on another device is not reused by
     // mistake when several devices are allowed. The idle timer of the shared session keeps
     // running until the choice succeeds, so a cancelled chooser leaves no open session behind.
