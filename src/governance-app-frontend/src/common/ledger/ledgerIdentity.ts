@@ -71,6 +71,10 @@ let session: Session | undefined;
 // so no command of a second action lands between the APDUs of a signature.
 let actionLock: Promise<void> = Promise.resolve();
 
+// Bumped when the session closes. An action queued before the close waits its turn again on
+// the new queue, so it cannot overlap an action that started after the close.
+let lockGeneration = 0;
+
 type ReadStateData = {
   signature: Signature;
   body: ReadStateRequest;
@@ -249,14 +253,20 @@ export class LedgerIdentity extends SignIdentity {
 
   // Waits for the running action, then holds the lock until the returned function runs.
   private static async lockActions(): Promise<() => void> {
-    const previous = actionLock;
-    let unlock: () => void = () => undefined;
-    actionLock = new Promise<void>((resolve) => {
-      unlock = resolve;
-    });
-    await previous;
+    for (;;) {
+      const generation = lockGeneration;
+      const previous = actionLock;
+      let unlock: () => void = () => undefined;
+      actionLock = new Promise<void>((resolve) => {
+        unlock = resolve;
+      });
+      await previous;
 
-    return unlock;
+      if (generation === lockGeneration) return unlock;
+
+      // The session closed while this action waited: give the stale turn up and queue again.
+      unlock();
+    }
   }
 
   // Reuses the shared session when it is alive and on the chosen device, else opens one.
@@ -313,9 +323,11 @@ export class LedgerIdentity extends SignIdentity {
 
   /**
    * Closes the shared device session now, for example on logout.
-   * An action that is still running loses its turn: the next action starts at once.
+   * An action that is still running loses its turn: the next action starts at once. Actions
+   * that were queued behind it wait their turn again on the new queue.
    */
   public static async closeSession(): Promise<void> {
+    lockGeneration += 1;
     actionLock = Promise.resolve();
 
     const current = session;

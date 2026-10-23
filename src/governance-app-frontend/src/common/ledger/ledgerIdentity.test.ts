@@ -550,6 +550,30 @@ describe('LedgerIdentity', () => {
       expect(mockDmk.disconnect).toHaveBeenCalledTimes(1);
     });
 
+    it('queues a waiting action behind a new one after the session closed', async () => {
+      vi.useFakeTimers();
+      const active = await LedgerIdentity.connect();
+      let queuedSettled = false;
+      const queued = LedgerIdentity.connect().then((connection) => {
+        queuedSettled = true;
+        return connection;
+      });
+      await vi.advanceTimersByTimeAsync(0);
+
+      await LedgerIdentity.closeSession();
+      const fresh = await LedgerIdentity.connect();
+
+      // The active action ends, but the queued one now waits for the fresh one.
+      active.release();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(queuedSettled).toBe(false);
+
+      fresh.release();
+      const connection = await queued;
+      expect(queuedSettled).toBe(true);
+      connection.release();
+    });
+
     it('waits for the running action before a second action starts', async () => {
       const identity = await LedgerIdentity.create();
       let finishSignature: (value: unknown) => void = () => undefined;
