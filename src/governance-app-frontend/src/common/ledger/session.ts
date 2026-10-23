@@ -14,10 +14,14 @@ import type { LedgerIdentity } from './ledgerIdentity';
 const identities = new Map<string, Promise<LedgerIdentity>>();
 
 // Loaded on the first device action only, so a logout without one loads nothing.
+// A failed load is forgotten, so the next action tries again.
 let ledgerModule: Promise<typeof import('./ledgerIdentity')> | undefined;
 
 const loadLedgerModule = (): Promise<typeof import('./ledgerIdentity')> =>
-  (ledgerModule ??= import('./ledgerIdentity'));
+  (ledgerModule ??= import('./ledgerIdentity').catch((error: unknown) => {
+    ledgerModule = undefined;
+    throw error;
+  }));
 
 const connect = async (principal: string): Promise<LedgerIdentity> => {
   const { LedgerIdentity } = await loadLedgerModule();
