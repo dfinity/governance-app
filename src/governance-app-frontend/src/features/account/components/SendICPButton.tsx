@@ -85,6 +85,9 @@ enum Step {
   Confirmation = 'confirmation',
 }
 
+const addressKind = (address: string): DestinationSuggestion['kind'] =>
+  isValidIcpAddress(address) ? 'icp' : 'icrc1';
+
 const variantConfig = {
   simple: { Icon: Send, className: '', label: 'withdraw' },
   advanced: { Icon: ArrowUpRight, className: 'flex-1', label: 'send' },
@@ -104,8 +107,9 @@ export const SendICPDialog: React.FC<DialogProps> = ({
 
   const { icpPrice, formatFiat } = useIcpPrice();
 
-  const { selectedAccountId, setSelectedAccountId, subaccountsEnabled } =
+  const { selectedAccountId, setSelectedAccountId, resolvedAccountId, subaccountsEnabled } =
     useAccountSelection(fromAccountId);
+  const { data: accountsState } = useAccounts();
 
   const { features } = useAdvancedFeatures();
   const memoEnabled = features[AdvancedFeature.TransactionMemo];
@@ -124,6 +128,10 @@ export const SendICPDialog: React.FC<DialogProps> = ({
   const [memo, setMemo] = useState('');
   const [memoError, setMemoError] = useState('');
   const [selectedName, setSelectedName] = useState(initialDestination?.name ?? '');
+  // The kind of the picked suggestion. An own account and a contact can share a name and an address.
+  const [selectedKind, setSelectedKind] = useState<DestinationSuggestion['kind'] | undefined>(
+    initialDestination ? addressKind(initialDestination.address) : undefined,
+  );
   const [saveAddressOpen, setSaveAddressOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
   const amountInputRef = useRef<HTMLInputElement>(null);
@@ -137,10 +145,28 @@ export const SendICPDialog: React.FC<DialogProps> = ({
       : balance;
   const effectiveSubAccount = subaccountsEnabled ? selectedAccount?.subAccount : undefined;
 
+  // The name comes from the address book, whether the user picked the entry or
+  // saved the destination from the confirmation step. Several entries can share
+  // one address, so the picked entry wins over the first address match.
+  const matchesDestination = (entry: NamedAddress) =>
+    addressBookMatchesAddress(entry.address, toAccount);
+  const isAccountPick = selectedKind === 'account';
+  const pickedEntry = isAccountPick
+    ? undefined
+    : addressBookEntries.find((entry) => entry.name === selectedName && matchesDestination(entry));
+  const addressBookName = pickedEntry?.name ?? addressBookEntries.find(matchesDestination)?.name;
+  const ownAccountName = accountsState?.accounts.find(
+    (account) => account.accountId === toAccount,
+  )?.name;
+  // A picked own account keeps its name, even when a contact shares the address.
+  const destinationName = isAccountPick
+    ? (ownAccountName ?? addressBookName)
+    : (addressBookName ?? ownAccountName);
+
   const getSendProperties = () => ({
     variant,
     destination: isValidIcpAddress(toAccount) ? 'icp' : 'icrc1',
-    address_book: selectedName !== '' ? 'yes' : 'no',
+    address_book: nonNullish(pickedEntry) ? 'yes' : 'no',
   });
 
   const transferMutation = useMutation({
@@ -195,6 +221,7 @@ export const SendICPDialog: React.FC<DialogProps> = ({
     setStep(Step.Form);
     setToAccount(initialDestination?.address ?? '');
     setSelectedName(initialDestination?.name ?? '');
+    setSelectedKind(initialDestination ? addressKind(initialDestination.address) : undefined);
     setAmount('');
     setAmountError('');
     setToAccountError('');
@@ -295,22 +322,25 @@ export const SendICPDialog: React.FC<DialogProps> = ({
     ? selectedAccount.name
     : t(($) => $.accounts.mainAccount);
 
-  // The name comes from the address book, whether the user picked the entry or
-  // saved the destination from the confirmation step. Several entries can share
-  // one address, so the picked entry wins over the first address match.
-  const matchesDestination = (entry: NamedAddress) =>
-    addressBookMatchesAddress(entry.address, toAccount);
-  const addressBookName =
-    addressBookEntries.find((entry) => entry.name === selectedName && matchesDestination(entry))
-      ?.name ?? addressBookEntries.find(matchesDestination)?.name;
   // A failed read leaves `data` empty. Saving on top of it would wipe the stored entries.
   const canSaveAddress =
     nonNullish(addressBookQuery.data) && addressBookEntries.length < ADDRESS_BOOK_MAX_ENTRIES;
-  const destinationSuggestions: DestinationSuggestion[] = addressBookEntries.map((entry) => ({
-    name: entry.name,
-    address: addressBookGetAddressString(entry.address),
-    kind: addressBookIsIcpAddress(entry.address) ? 'icp' : 'icrc1',
-  }));
+  // The own accounts come first. The source account is not a destination.
+  const ownAccounts = subaccountsEnabled
+    ? (accountsState?.accounts ?? []).filter((account) => account.accountId !== resolvedAccountId)
+    : [];
+  const destinationSuggestions: DestinationSuggestion[] = [
+    ...ownAccounts.map((account) => ({
+      name: account.name,
+      address: account.accountId,
+      kind: 'account' as const,
+    })),
+    ...addressBookEntries.map((entry) => ({
+      name: entry.name,
+      address: addressBookGetAddressString(entry.address),
+      kind: addressBookIsIcpAddress(entry.address) ? ('icp' as const) : ('icrc1' as const),
+    })),
+  ];
   // The locked destination stays a known suggestion even when the book no
   // longer holds the entry, so the chip stays in place.
   if (
@@ -318,19 +348,20 @@ export const SendICPDialog: React.FC<DialogProps> = ({
     !destinationSuggestions.some(
       (suggestion) =>
         suggestion.name === initialDestination.name &&
-        suggestion.address === initialDestination.address,
+        suggestion.address === initialDestination.address &&
+        suggestion.kind === addressKind(initialDestination.address),
     )
   ) {
     destinationSuggestions.push({
       name: initialDestination.name,
       address: initialDestination.address,
-      kind: isValidIcpAddress(initialDestination.address) ? 'icp' : 'icrc1',
+      kind: addressKind(initialDestination.address),
     });
   }
 
   // Status messages only need to identify the destination, not let the user verify it
   // character by character — the confirmation step already shows the full address.
-  const destination = addressBookName ?? shortenId(toAccount, 8);
+  const destination = destinationName ?? shortenId(toAccount, 8);
 
   return (
     <>
@@ -353,10 +384,12 @@ export const SendICPDialog: React.FC<DialogProps> = ({
                 toAccount={toAccount}
                 toAccountError={toAccountError}
                 selectedName={selectedName}
+                selectedKind={selectedKind}
                 destinationSuggestions={destinationSuggestions}
                 addressBookLoading={addressBookLoading}
-                onDestinationChange={(value, name) => {
+                onDestinationChange={(value, name, suggestion) => {
                   setSelectedName(name);
+                  setSelectedKind(suggestion?.kind);
                   handleAccountChange(value);
                 }}
                 onAddAddress={canSaveAddress ? () => setSaveAddressOpen(true) : undefined}
@@ -381,7 +414,7 @@ export const SendICPDialog: React.FC<DialogProps> = ({
               <SendConfirmationStep
                 fromAccountName={fromAccountName}
                 toAccount={toAccount}
-                addressBookName={addressBookName}
+                destinationName={destinationName}
                 onSaveAddress={canSaveAddress ? () => setSaveAddressOpen(true) : undefined}
                 amount={amount}
                 approxFiat={approxFiat}
@@ -401,6 +434,7 @@ export const SendICPDialog: React.FC<DialogProps> = ({
         existingAddresses={addressBookEntries}
         onSaved={(entry) => {
           setSelectedName(entry.name);
+          setSelectedKind(addressBookIsIcpAddress(entry.address) ? 'icp' : 'icrc1');
           handleAccountChange(addressBookGetAddressString(entry.address));
         }}
       />
@@ -416,9 +450,14 @@ type SendFormStepProps = {
   toAccount: string;
   toAccountError: string;
   selectedName: string;
+  selectedKind?: DestinationSuggestion['kind'];
   destinationSuggestions: DestinationSuggestion[];
   addressBookLoading: boolean;
-  onDestinationChange: (value: string, selectedName: string) => void;
+  onDestinationChange: (
+    value: string,
+    selectedName: string,
+    suggestion?: DestinationSuggestion,
+  ) => void;
   onAddAddress?: () => void;
   destinationLocked: boolean;
   amount: string;
@@ -444,6 +483,7 @@ function SendFormStep({
   toAccount,
   toAccountError,
   selectedName,
+  selectedKind,
   destinationSuggestions,
   addressBookLoading,
   onDestinationChange,
@@ -518,6 +558,7 @@ function SendFormStep({
               data-testid="send-icp-destination-input"
               value={toAccount}
               selectedName={selectedName}
+              selectedKind={selectedKind}
               suggestions={destinationSuggestions}
               onChange={onDestinationChange}
               onAddAddress={onAddAddress}
@@ -609,7 +650,8 @@ function SendFormStep({
 type SendConfirmationStepProps = {
   fromAccountName: string;
   toAccount: string;
-  addressBookName?: string;
+  /** The name of a known destination: an address book entry or an own account. */
+  destinationName?: string;
   onSaveAddress?: () => void;
   amount: string;
   approxFiat?: string;
@@ -621,7 +663,7 @@ type SendConfirmationStepProps = {
 function SendConfirmationStep({
   fromAccountName,
   toAccount,
-  addressBookName,
+  destinationName,
   onSaveAddress,
   amount,
   approxFiat,
@@ -630,7 +672,6 @@ function SendConfirmationStep({
   onConfirm,
 }: SendConfirmationStepProps) {
   const { t } = useTranslation();
-  const { data: accountsState } = useAccounts();
   const { icpPrice, currency, formatFiat } = useIcpPrice();
 
   // The fee can be smaller than the smallest unit of the currency, for example "< $0.01".
@@ -641,12 +682,8 @@ function SendConfirmationStep({
       : `≈ ${formatFiat(fiatValue)}`;
   };
 
-  const ownAccountName = accountsState?.accounts.find((a) => a.accountId === toAccount)?.name;
-  const isDestinationKnown = nonNullish(addressBookName) || nonNullish(ownAccountName);
-
-  const destinationName = isDestinationKnown
-    ? (addressBookName ?? ownAccountName ?? toAccount)
-    : t(($) => $.account.unknownAddress);
+  const isDestinationKnown = nonNullish(destinationName);
+  const destinationLabel = destinationName ?? t(($) => $.account.unknownAddress);
 
   return (
     <motion.div
@@ -696,7 +733,7 @@ function SendConfirmationStep({
                     className="truncate text-sm font-medium"
                     data-testid="send-icp-destination-name"
                   >
-                    {destinationName}
+                    {destinationLabel}
                   </span>
                 </div>
                 <p className="mt-1 text-right font-mono text-sm break-all text-muted-foreground">
