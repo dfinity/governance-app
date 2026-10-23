@@ -576,7 +576,7 @@ describe('LedgerIdentity', () => {
 
     it('cancels an action granted the lock right before the session closed', async () => {
       const active = await LedgerIdentity.connect();
-      const queued = LedgerIdentity.connect();
+      const queued = LedgerIdentity.connect().catch((error: unknown) => error);
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       // The grant and the close land in the same microtask run, before the action continues.
@@ -585,7 +585,7 @@ describe('LedgerIdentity', () => {
       void LedgerIdentity.closeSession();
       const fresh = await LedgerIdentity.connect();
 
-      await expect(queued).rejects.toMatchObject({ code: LedgerErrorCode.SessionClosed });
+      expect(await queued).toMatchObject({ code: LedgerErrorCode.SessionClosed });
       expect(fresh.deviceId).toBe('device-id');
       fresh.release();
     });
@@ -737,7 +737,8 @@ describe('LedgerIdentity', () => {
       const discovery = new Subject<DiscoveredDevice>();
       mockDmk.startDiscovering.mockReturnValueOnce(discovery).mockReturnValue(of(device));
 
-      const stale = LedgerIdentity.connect();
+      // The handler is attached at once: the rejection lands before the assertion runs.
+      const stale = LedgerIdentity.connect().catch((error: unknown) => error);
       await vi.advanceTimersByTimeAsync(500);
       await LedgerIdentity.closeSession();
       const fresh = LedgerIdentity.connect();
@@ -747,7 +748,7 @@ describe('LedgerIdentity', () => {
       discovery.next(device);
       discovery.complete();
 
-      await expect(stale).rejects.toMatchObject({ code: LedgerErrorCode.SessionClosed });
+      expect(await stale).toMatchObject({ code: LedgerErrorCode.SessionClosed });
       expect(mockDmk.connect).toHaveBeenCalledTimes(1);
       expect(mockDmk.disconnect).not.toHaveBeenCalled();
       freshConnection.release();
@@ -762,14 +763,14 @@ describe('LedgerIdentity', () => {
           }),
       );
 
-      const stale = LedgerIdentity.connect();
+      const stale = LedgerIdentity.connect().catch((error: unknown) => error);
       await vi.waitFor(() => expect(mockDmk.connect).toHaveBeenCalledTimes(1));
       await LedgerIdentity.closeSession();
       const fresh = await LedgerIdentity.connect();
 
       finishConnect('stale-session');
 
-      await expect(stale).rejects.toMatchObject({ code: LedgerErrorCode.SessionClosed });
+      expect(await stale).toMatchObject({ code: LedgerErrorCode.SessionClosed });
       expect(mockDmk.disconnect).toHaveBeenCalledWith({ sessionId: 'stale-session' });
       expect(fresh.deviceId).toBe('device-id');
       fresh.release();
