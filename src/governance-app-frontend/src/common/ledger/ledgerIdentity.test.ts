@@ -520,24 +520,65 @@ describe('LedgerIdentity', () => {
       );
     });
 
-    it('builds one kit and one session for overlapping first calls', async () => {
-      vi.useFakeTimers();
-
-      const [first, second] = await Promise.all([
-        LedgerIdentity.connect(),
-        LedgerIdentity.connect(),
+    it('builds one kit for overlapping first calls', async () => {
+      await Promise.all([
+        LedgerIdentity.getDeviceManagementKit(),
+        LedgerIdentity.getDeviceManagementKit(),
       ]);
 
       expect(mockBuildKit).toHaveBeenCalledTimes(1);
-      expect(mockDmk.connect).toHaveBeenCalledTimes(1);
+    });
+
+    it('runs overlapping connections one after the other on one session', async () => {
+      vi.useFakeTimers();
+      const first = await LedgerIdentity.connect();
+      let secondSettled = false;
+      const second = LedgerIdentity.connect().then((connection) => {
+        secondSettled = true;
+        return connection;
+      });
+
+      await vi.advanceTimersByTimeAsync(0);
+      expect(secondSettled).toBe(false);
 
       first.release();
-      await vi.advanceTimersByTimeAsync(5_000);
-      expect(mockDmk.disconnect).not.toHaveBeenCalled();
+      const connection = await second;
+      expect(mockDmk.connect).toHaveBeenCalledTimes(1);
 
-      second.release();
+      connection.release();
       await vi.advanceTimersByTimeAsync(5_000);
       expect(mockDmk.disconnect).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits for the running action before a second action starts', async () => {
+      const identity = await LedgerIdentity.create();
+      let finishSignature: (value: unknown) => void = () => undefined;
+      app.signUpdateCall.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            finishSignature = resolve;
+          }),
+      );
+
+      const signing = identity.transformRequest(callRequest);
+      await vi.waitFor(() => expect(app.signUpdateCall).toHaveBeenCalledTimes(1));
+      const versionCall = identity.getVersion();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Only the version check of the signature ran so far.
+      expect(app.getVersion).toHaveBeenCalledTimes(1);
+
+      finishSignature({
+        errorMessage: 'No errors',
+        returnCode: LedgerReturnCode.NoErrors,
+        RequestSignatureRS: Buffer.alloc(LEDGER_SIGNATURE_LENGTH, 1),
+        StatusReadSignatureRS: Buffer.alloc(LEDGER_SIGNATURE_LENGTH, 2),
+      });
+      await signing;
+      await versionCall;
+
+      expect(app.getVersion).toHaveBeenCalledTimes(2);
+      expect(mockDmk.connect).toHaveBeenCalledTimes(1);
     });
 
     it('keeps the idle cleanup when the user cancels the chooser', async () => {

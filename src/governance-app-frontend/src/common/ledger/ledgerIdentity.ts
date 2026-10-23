@@ -58,8 +58,6 @@ type Connection = {
 type Session = {
   id: DeviceSessionId;
   deviceId: string;
-  /** The number of actions that use the session. */
-  users: number;
   idleTimer?: ReturnType<typeof setTimeout>;
 };
 
@@ -69,8 +67,9 @@ let deviceManagementKit: Promise<DeviceManagementKit> | undefined;
 // The device session that actions share while one follows the other.
 let session: Session | undefined;
 
-// Session acquisitions run one after the other, so overlapping calls share one session.
-let openQueue: Promise<unknown> = Promise.resolve();
+// Device actions run one after the other. The lock is held from the connection to its release,
+// so no command of a second action lands between the APDUs of a signature.
+let actionLock: Promise<void> = Promise.resolve();
 
 type ReadStateData = {
   signature: Signature;
@@ -248,18 +247,20 @@ export class LedgerIdentity extends SignIdentity {
     return firstValueFrom(dmk.startDiscovering({}));
   }
 
-  // Reuses the shared session when it is alive and on the right device, else opens one.
-  private static openSession(
-    dmk: DeviceManagementKit,
-    preferredDeviceId?: string,
-  ): Promise<Session> {
-    const acquisition = openQueue.then(() => this.acquireSession(dmk, preferredDeviceId));
-    openQueue = acquisition.catch(() => undefined);
+  // Waits for the running action, then holds the lock until the returned function runs.
+  private static async lockActions(): Promise<() => void> {
+    const previous = actionLock;
+    let unlock: () => void = () => undefined;
+    actionLock = new Promise<void>((resolve) => {
+      unlock = resolve;
+    });
+    await previous;
 
-    return acquisition;
+    return unlock;
   }
 
-  private static async acquireSession(
+  // Reuses the shared session when it is alive and on the chosen device, else opens one.
+  private static async openSession(
     dmk: DeviceManagementKit,
     preferredDeviceId?: string,
   ): Promise<Session> {
@@ -274,16 +275,10 @@ export class LedgerIdentity extends SignIdentity {
       // The kit ends the session when the device disconnects.
       const alive = dmk.listConnectedDevices().some(({ sessionId }) => sessionId === current.id);
 
-      if (alive && device.id === current.deviceId) {
-        current.users += 1;
+      if (alive && device.id === current.deviceId) return current;
 
-        return current;
-      }
-
-      if (!alive || current.users === 0) {
-        session = undefined;
-        if (alive) await LedgerIdentity.disconnectSession(dmk, current.id);
-      }
+      session = undefined;
+      if (alive) await LedgerIdentity.disconnectSession(dmk, current.id);
     }
 
     const id = await dmk.connect({
@@ -291,23 +286,13 @@ export class LedgerIdentity extends SignIdentity {
       // The refresher polls the device between the APDUs of a multi-chunk signature.
       sessionRefresherOptions: { isRefresherDisabled: true },
     });
-    const opened: Session = { id, deviceId: device.id, users: 1 };
-    // A session on another device, while the shared one is in use, is not shared.
-    if (isNullish(session)) session = opened;
+    session = { id, deviceId: device.id };
 
-    return opened;
+    return session;
   }
 
+  // The session stays open for a while, so the next action does not reopen a closing device.
   private static releaseSession(dmk: DeviceManagementKit, released: Session): void {
-    released.users -= 1;
-    if (released.users > 0) return;
-
-    if (released !== session) {
-      void LedgerIdentity.disconnectSession(dmk, released.id);
-
-      return;
-    }
-
     released.idleTimer = setTimeout(() => {
       if (session === released) session = undefined;
       void LedgerIdentity.disconnectSession(dmk, released.id);
@@ -326,8 +311,13 @@ export class LedgerIdentity extends SignIdentity {
     }
   }
 
-  /** Closes the shared device session now, for example on logout. */
+  /**
+   * Closes the shared device session now, for example on logout.
+   * An action that is still running loses its turn: the next action starts at once.
+   */
   public static async closeSession(): Promise<void> {
+    actionLock = Promise.resolve();
+
     const current = session;
     if (isNullish(current) || isNullish(deviceManagementKit)) return;
 
@@ -338,6 +328,8 @@ export class LedgerIdentity extends SignIdentity {
 
   // Public so tests can stub the device.
   public static async connect(preferredDeviceId?: string): Promise<Connection> {
+    const unlock = await LedgerIdentity.lockActions();
+
     try {
       // The Ledger app packages read `Buffer` from the global scope.
       await ensureBuffer();
@@ -353,7 +345,6 @@ export class LedgerIdentity extends SignIdentity {
       }
 
       const opened = await this.openSession(dmk, preferredDeviceId);
-      const release = () => LedgerIdentity.releaseSession(dmk, opened);
 
       try {
         const transport = new DMKTransport(dmk, opened.id);
@@ -374,14 +365,18 @@ export class LedgerIdentity extends SignIdentity {
         return {
           app: new InternetComputerApp(transport),
           deviceId: opened.deviceId,
-          release,
+          release: () => {
+            LedgerIdentity.releaseSession(dmk, opened);
+            unlock();
+          },
           transportError: () => lastDmkError,
         };
       } catch (error: unknown) {
-        release();
+        LedgerIdentity.releaseSession(dmk, opened);
         throw error;
       }
     } catch (error: unknown) {
+      unlock();
       throw LedgerIdentity.mapConnectError(error);
     }
   }
