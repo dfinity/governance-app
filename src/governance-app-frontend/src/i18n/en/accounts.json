@@ -51,5 +51,18 @@
     "renaming": "Renaming to \"{{name}}\"…",
     "success": "Renamed to \"{{name}}\" successfully.",
     "error": "Failed to rename account."
+  },
+  "ledgerNeurons": {
+    "button": "Show neurons",
+    "title": "Neurons on device",
+    "description": "The neurons that {{name}} controls. Add this app as a hotkey to see a neuron in your neurons list.",
+    "connecting": "Connect your Ledger device, open the Internet Computer app, and approve the request.",
+    "empty": "This device controls no neurons.",
+    "addHotkey": "Add hotkey",
+    "hotkeyAdded": "Hotkey added",
+    "approveDescription": "Check the hotkey principal on the device screen and approve.",
+    "hotkeyAddedTitle": "Hotkey added",
+    "hotkeyAddedDescription": "Neuron {{neuronId}} now shows in your neurons list.",
+    "hotkeyFailedTitle": "Could not add the hotkey"
   }
 }

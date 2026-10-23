@@ -1,8 +1,9 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
-import { AlertTriangle, CircleAlert, Coins, Hourglass, Key, PackagePlus } from 'lucide-react';
+import { AlertTriangle, CircleAlert, Coins, Hourglass, Key, PackagePlus, Usb } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
@@ -35,6 +36,7 @@ import {
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { APY } from '@utils/staking-rewards';
 
+import { useNeuronLedgerDevice } from '../hooks/useNeuronLedgerDevice';
 import { FollowingStatusBadge } from './FollowingStatusBadge';
 import type { NeuronAction } from './neuronDetail';
 import { NeuronStandaloneAction } from './neuronDetail';
@@ -51,6 +53,7 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
   const { identity } = useInternetIdentity();
   const apyColor = useApyColor(apy?.cur ?? 0);
   const { icpPrice, formatFiat, isLoading: isIcpPriceLoading } = useIcpPrice();
+  const ledgerDevice = useNeuronLedgerDevice(neuron);
 
   const isDissolved = getNeuronIsDissolved(neuron);
   const isDissolving = getNeuronIsDissolving(neuron);
@@ -153,6 +156,16 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
               <p className="text-[13px] text-muted-foreground">{t(($) => $.neuron.stakeId)}</p>
               <div className="flex items-center gap-2">
                 <FollowingStatusBadge neuron={neuron} />
+                {ledgerDevice && (
+                  <Badge
+                    variant="outline"
+                    title={ledgerDevice.name}
+                    data-testid="neuron-ledger-device-badge"
+                  >
+                    <Usb aria-hidden="true" />
+                    {t(($) => $.neuron.ledgerDevice)}
+                  </Badge>
+                )}
                 {isHotkey && (
                   <Tooltip>
                     <TooltipTrigger asChild>
