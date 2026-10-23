@@ -66,6 +66,8 @@ export default defineConfig({
                 'node_modules/rxjs/',
                 'node_modules/xstate/',
                 'node_modules/inversify/',
+                '@inversifyjs/',
+                'node_modules/uuid/',
                 'node_modules/purify-ts/',
                 'node_modules/reflect-metadata/',
                 'node_modules/@sentry/',

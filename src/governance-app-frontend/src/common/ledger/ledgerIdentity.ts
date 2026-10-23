@@ -36,7 +36,11 @@ const KNOWN_DEVICE_TIMEOUT_MS = 500;
 
 type Connection = {
   app: LedgerApp;
+  /** The id of the connected device, to reconnect to the same one later. */
+  deviceId: string;
   disconnect: () => Promise<void>;
+  /** The last Device Management Kit error the transport saw, if any. */
+  transportError: () => DmkErrorLike | undefined;
 };
 
 // One Device Management Kit per page. It owns the WebHID transport and the device sessions.
@@ -65,24 +69,29 @@ export class LedgerIdentity extends SignIdentity {
   // Entries are never removed. Each one costs a manual approval, so the map stays small.
   private readonly readStateMap = new Map<string, ReadStateData>();
 
+  // The device this identity last answered from. Preferred when several devices are allowed.
+  private deviceId: string | undefined;
+
   protected constructor(
     private readonly derivePath: string,
     private readonly publicKey: Secp256k1PublicKey,
+    deviceId?: string,
   ) {
     super();
+    this.deviceId = deviceId;
   }
 
   public static async create(
     derivePath: string = LEDGER_DEFAULT_DERIVE_PATH,
   ): Promise<LedgerIdentity> {
-    const { app, disconnect } = await this.connect();
+    const { app, deviceId, disconnect, transportError } = await this.connect();
 
     try {
       const publicKey = await this.fetchPublicKeyFromDevice({ app, derivePath });
 
-      return new this(derivePath, publicKey);
+      return new this(derivePath, publicKey, deviceId);
     } catch (error: unknown) {
-      throw LedgerIdentity.normalizeError(error);
+      throw LedgerIdentity.normalizeError(transportError() ?? error);
     } finally {
       await LedgerIdentity.disconnectQuietly(disconnect);
     }
@@ -186,27 +195,34 @@ export class LedgerIdentity extends SignIdentity {
   }
 
   // A device the user already allowed is reused, so the browser asks for a device only once.
-  private static async findDevice(dmk: DeviceManagementKit): Promise<DiscoveredDevice> {
+  // With several allowed devices and no preferred one, the browser asks the user to choose.
+  private static async findDevice(
+    dmk: DeviceManagementKit,
+    preferredDeviceId?: string,
+  ): Promise<DiscoveredDevice> {
     const { filter, firstValueFrom, timeout, TimeoutError } = await import('rxjs');
 
+    let devices: DiscoveredDevice[] = [];
     try {
-      const [device] = await firstValueFrom(
+      devices = await firstValueFrom(
         dmk.listenToAvailableDevices({}).pipe(
-          filter((devices) => devices.length > 0),
+          filter((available) => available.length > 0),
           timeout({ first: KNOWN_DEVICE_TIMEOUT_MS }),
         ),
       );
-
-      return device;
     } catch (error: unknown) {
       if (!(error instanceof TimeoutError)) throw error;
     }
+
+    const preferred = devices.find(({ id }) => id === preferredDeviceId);
+    if (nonNullish(preferred)) return preferred;
+    if (devices.length === 1) return devices[0];
 
     return firstValueFrom(dmk.startDiscovering({}));
   }
 
   // Public so tests can stub the device.
-  public static async connect(): Promise<Connection> {
+  public static async connect(preferredDeviceId?: string): Promise<Connection> {
     try {
       // The Ledger app packages read `Buffer` from the global scope.
       await ensureBuffer();
@@ -221,7 +237,7 @@ export class LedgerIdentity extends SignIdentity {
         throw new LedgerDeviceError(LedgerErrorCode.BrowserNotSupported);
       }
 
-      const device = await this.findDevice(dmk);
+      const device = await this.findDevice(dmk, preferredDeviceId);
       const sessionId = await dmk.connect({
         device,
         // The refresher polls the device between the APDUs of a multi-chunk signature.
@@ -230,7 +246,27 @@ export class LedgerIdentity extends SignIdentity {
       const disconnect = () => dmk.disconnect({ sessionId });
 
       try {
-        return { app: new InternetComputerApp(new DMKTransport(dmk, sessionId)), disconnect };
+        const transport = new DMKTransport(dmk, sessionId);
+        // The adapter wraps a DMK failure in a response error, and the app then answers with a
+        // generic error response. The DMK error is kept here so the action can report its code.
+        let lastDmkError: DmkErrorLike | undefined;
+        const send = transport.send;
+        transport.send = async (...args) => {
+          try {
+            return await send(...args);
+          } catch (error: unknown) {
+            const { cause } = (error ?? {}) as { cause?: DmkErrorLike };
+            if (nonNullish(cause?._tag)) lastDmkError = cause;
+            throw error;
+          }
+        };
+
+        return {
+          app: new InternetComputerApp(transport),
+          deviceId: device.id,
+          disconnect,
+          transportError: () => lastDmkError,
+        };
       } catch (error: unknown) {
         await disconnect().catch(() => undefined);
         throw error;
@@ -278,7 +314,9 @@ export class LedgerIdentity extends SignIdentity {
   }
 
   private async executeWithApp<T>(callback: (app: LedgerApp) => Promise<T>): Promise<T> {
-    const { app, disconnect } = await LedgerIdentity.connect();
+    const { app, deviceId, disconnect, transportError } = await LedgerIdentity.connect(
+      this.deviceId,
+    );
 
     try {
       const devicePublicKey = await LedgerIdentity.fetchPublicKeyFromDevice({
@@ -292,10 +330,11 @@ export class LedgerIdentity extends SignIdentity {
       ) {
         throw new LedgerDeviceError(LedgerErrorCode.UnexpectedDevice);
       }
+      this.deviceId = deviceId;
 
       return await callback(app);
     } catch (error: unknown) {
-      throw LedgerIdentity.normalizeError(error);
+      throw LedgerIdentity.normalizeError(transportError() ?? error);
     } finally {
       await LedgerIdentity.disconnectQuietly(disconnect);
     }

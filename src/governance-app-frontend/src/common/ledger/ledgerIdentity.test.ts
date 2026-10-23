@@ -120,7 +120,9 @@ describe('LedgerIdentity', () => {
 
     vi.spyOn(LedgerIdentity, 'connect').mockResolvedValue({
       app: app as unknown as InternetComputerApp,
+      deviceId: 'device-id',
       disconnect,
+      transportError: () => undefined,
     });
     vi.spyOn(LedgerIdentity, 'fetchPublicKeyFromDevice').mockResolvedValue(mockLedgerPublicKey);
   });
@@ -488,6 +490,30 @@ describe('LedgerIdentity', () => {
       expect(mockAppConstructor).toHaveBeenCalledWith(
         expect.objectContaining({ send: expect.any(Function) }),
       );
+    });
+
+    it('reconnects to the device of the identity when several are allowed', async () => {
+      const other = { id: 'other-device' } as DiscoveredDevice;
+      mockDmk.listenToAvailableDevices.mockReturnValue(of([other, device]));
+      const identity = await LedgerIdentity.create();
+      mockDmk.connect.mockClear();
+      mockDmk.startDiscovering.mockClear();
+
+      await identity.getVersion();
+
+      expect(mockDmk.startDiscovering).not.toHaveBeenCalled();
+      expect(mockDmk.connect).toHaveBeenCalledWith(expect.objectContaining({ device }));
+    });
+
+    it('asks the user to choose when several devices are allowed and none is preferred', async () => {
+      const other = { id: 'other-device' } as DiscoveredDevice;
+      mockDmk.listenToAvailableDevices.mockReturnValue(of([device, other]));
+      mockDmk.startDiscovering.mockReturnValue(of(other));
+
+      const connection = await LedgerIdentity.connect();
+
+      expect(mockDmk.startDiscovering).toHaveBeenCalledTimes(1);
+      expect(connection.deviceId).toBe('other-device');
     });
 
     it('asks the browser for a device when the user allowed none', async () => {
