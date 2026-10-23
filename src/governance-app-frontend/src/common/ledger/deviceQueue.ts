@@ -24,6 +24,13 @@ export const runOnDevice = <T>(principal: string, call: () => Promise<T>): Promi
   return next;
 };
 
+/**
+ * Resolves when no device has a pending call. A connection to a device whose principal is
+ * not known yet waits here, so it does not open a second transport on a busy device.
+ */
+export const waitForDevices = (): Promise<void> =>
+  Promise.all(queues.values()).then(() => undefined);
+
 /** True while a call to the device is pending. */
 export const isDeviceBusy = (principal: string): boolean => queues.has(principal);
 

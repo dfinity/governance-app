@@ -5,6 +5,7 @@ import { useHardwareWalletsMetadata } from '@features/accounts/hooks/useHardware
 
 import { Button } from '@components/button';
 import { Skeleton } from '@components/Skeleton';
+import { WarningMessage } from '@components/WarningMessage';
 
 import { useVerifyLedgerDevice } from '../hooks/useVerifyLedgerDevice';
 import { AddLedgerDeviceDialog } from './AddLedgerDeviceDialog';
@@ -12,7 +13,7 @@ import { AddLedgerDeviceDialog } from './AddLedgerDeviceDialog';
 /** The Ledger devices registered in the NNS dapp, with the add and verify actions. */
 export const LedgerDevicesCard = () => {
   const { t } = useTranslation();
-  const { data: devices, isLoading } = useHardwareWalletsMetadata();
+  const { data: devices, isLoading, isError, refetch } = useHardwareWalletsMetadata();
   const verify = useVerifyLedgerDevice();
 
   return (
@@ -38,6 +39,13 @@ export const LedgerDevicesCard = () => {
 
       {isLoading ? (
         <Skeleton className="h-14 w-full" />
+      ) : isError ? (
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <WarningMessage message={t(($) => $.userAccount.ledgerDevices.loadError)} />
+          <Button variant="outline" size="sm" onClick={() => refetch()}>
+            {t(($) => $.common.retry)}
+          </Button>
+        </div>
       ) : devices.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           {t(($) => $.userAccount.ledgerDevices.empty)}

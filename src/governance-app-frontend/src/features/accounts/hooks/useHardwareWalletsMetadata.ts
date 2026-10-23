@@ -23,5 +23,10 @@ export const useHardwareWalletsMetadata = () => {
     principal: hw.principal.toText(),
   }));
 
-  return { data, isLoading: enabled && nnsDappAccount.isLoading };
+  return {
+    data,
+    isLoading: enabled && nnsDappAccount.isLoading,
+    isError: enabled && nnsDappAccount.isError,
+    refetch: nnsDappAccount.refetch,
+  };
 };

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { clearDeviceQueues, isDeviceBusy, runOnDevice } from './deviceQueue';
+import { clearDeviceQueues, isDeviceBusy, runOnDevice, waitForDevices } from './deviceQueue';
 
 const DEVICE = 'aaaaa-aa';
 const OTHER = 'rrkah-fqaaa-aaaaa-aaaaq-cai';
@@ -74,5 +74,26 @@ describe('runOnDevice', () => {
     expect(await other).toBe('other');
     expect(order).toEqual(['a', 'other']);
     first.resolve('a');
+  });
+
+  it('waitForDevices resolves at once when no device is busy', async () => {
+    await expect(waitForDevices()).resolves.toBeUndefined();
+  });
+
+  it('waitForDevices waits for every pending call', async () => {
+    const first = deferred<void>();
+    const second = deferred<void>();
+    void runOnDevice(DEVICE, () => first.promise);
+    void runOnDevice(OTHER, () => second.promise).catch(() => undefined);
+    let idle = false;
+    void waitForDevices().then(() => (idle = true));
+
+    first.resolve();
+    await tick();
+    expect(idle).toBe(false);
+
+    second.reject(new Error('device'));
+    await tick();
+    expect(idle).toBe(true);
   });
 });

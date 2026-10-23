@@ -24,6 +24,7 @@
     "title": "Ledger devices",
     "description": "Devices registered in the NNS dapp. Both apps share this list.",
     "empty": "No Ledger device is registered yet.",
+    "loadError": "The Ledger devices could not be loaded.",
     "add": "Add Ledger device",
     "verify": "Verify on device",
     "verifyDescription": "Check that the principal and the address on the device screen match this account, then approve on the device.",

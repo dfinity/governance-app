@@ -2,6 +2,7 @@ import { Principal } from '@icp-sdk/core/principal';
 import { afterEach, beforeEach, describe, expect, it, type MockInstance, vi } from 'vitest';
 
 import { MockLedgerIdentity } from '../../../tests/mocks/ledgerIdentity';
+import { clearDeviceQueues, runOnDevice } from './deviceQueue';
 import { LedgerDeviceError, LedgerErrorCode } from './errors';
 import { LedgerIdentity } from './ledgerIdentity';
 import { clearLedgerIdentities, connectLedgerIdentity, getLedgerIdentity } from './session';
@@ -20,6 +21,7 @@ describe('getLedgerIdentity', () => {
 
   afterEach(() => {
     clearLedgerIdentities();
+    clearDeviceQueues();
     vi.restoreAllMocks();
   });
 
@@ -108,6 +110,19 @@ describe('getLedgerIdentity', () => {
       const identity = await connectLedgerIdentity();
 
       await expect(getLedgerIdentity(DEVICE_PRINCIPAL)).resolves.toBe(identity);
+      expect(create).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits for the pending device calls before it connects', async () => {
+      let finish!: () => void;
+      void runOnDevice(DEVICE_PRINCIPAL, () => new Promise<void>((resolve) => (finish = resolve)));
+
+      const connecting = connectLedgerIdentity();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(create).not.toHaveBeenCalled();
+
+      finish();
+      await expect(connecting).resolves.toBeInstanceOf(MockLedgerIdentity);
       expect(create).toHaveBeenCalledTimes(1);
     });
 

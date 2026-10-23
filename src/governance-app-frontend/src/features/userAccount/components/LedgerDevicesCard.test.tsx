@@ -59,7 +59,20 @@ describe('LedgerDevicesCard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     clearDeviceQueues();
-    mocks.hardwareWallets.mockReturnValue({ data: [DEVICE], isLoading: false });
+    mocks.hardwareWallets.mockReturnValue({ data: [DEVICE], isLoading: false, isError: false });
+  });
+
+  it('shows a load error with a retry instead of the empty state', async () => {
+    const refetch = vi.fn();
+    mocks.hardwareWallets.mockReturnValue({ data: [], isLoading: false, isError: true, refetch });
+    const user = userEvent.setup({ delay: null });
+    renderCard();
+
+    expect(screen.getByText('The Ledger devices could not be loaded.')).toBeTruthy();
+    expect(screen.queryByText('No Ledger device is registered yet.')).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: 'Retry' }));
+    expect(refetch).toHaveBeenCalledTimes(1);
   });
 
   it('lists the registered devices with their principal', () => {
@@ -71,7 +84,7 @@ describe('LedgerDevicesCard', () => {
   });
 
   it('shows the empty state without a device', () => {
-    mocks.hardwareWallets.mockReturnValue({ data: [], isLoading: false });
+    mocks.hardwareWallets.mockReturnValue({ data: [], isLoading: false, isError: false });
     renderCard();
 
     expect(screen.getByText('No Ledger device is registered yet.')).toBeTruthy();

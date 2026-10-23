@@ -1,3 +1,4 @@
+import { waitForDevices } from './deviceQueue';
 import { LedgerDeviceError, LedgerErrorCode } from './errors';
 import type { LedgerIdentity } from './ledgerIdentity';
 
@@ -60,6 +61,8 @@ export const getLedgerIdentity = (principal: string): Promise<LedgerIdentity> =>
 export const connectLedgerIdentity = async (): Promise<LedgerIdentity> => {
   const startedIn = generation;
   const { LedgerIdentity } = await import('./ledgerIdentity');
+  // A pending call holds the device. A second transport on it fails.
+  await waitForDevices();
   const identity = await LedgerIdentity.create();
 
   if (startedIn === generation) {
