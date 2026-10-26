@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { NnsWordmark } from '@components/icons/NnsWordmark';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { isAccountsAreaEnabled } from '@utils/advancedFeatures';
 import { cn } from '@utils/shadcn';
 
 import { getNavigationItems } from './NavigationItems';
@@ -12,15 +13,15 @@ import { UserMenu } from './UserMenu';
 export const Sidebar = () => {
   const { t } = useTranslation();
   const { features } = useAdvancedFeatures();
-  const subaccountsEnabled = features.subaccounts;
-  const navigationItems = getNavigationItems({ subaccountsEnabled });
+  const accountsEnabled = isAccountsAreaEnabled(features);
+  const navigationItems = getNavigationItems({ accountsEnabled });
 
-  const [prevEnabled, setPrevEnabled] = useState(subaccountsEnabled);
+  const [prevEnabled, setPrevEnabled] = useState(accountsEnabled);
   const [shouldAnimate, setShouldAnimate] = useState(false);
 
-  if (subaccountsEnabled !== prevEnabled) {
-    setPrevEnabled(subaccountsEnabled);
-    if (subaccountsEnabled) {
+  if (accountsEnabled !== prevEnabled) {
+    setPrevEnabled(accountsEnabled);
+    if (accountsEnabled) {
       setShouldAnimate(true);
     }
   }

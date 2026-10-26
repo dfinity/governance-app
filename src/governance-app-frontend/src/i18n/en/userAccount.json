@@ -133,6 +133,17 @@
         "enabledDescription": "You can now add a memo when sending ICP.",
         "disabled": "Transaction memo disabled",
         "disabledDescription": "The memo field is now hidden from the send form."
+      },
+      "ledgerDevice": {
+        "label": "Ledger device",
+        "description": "Show the accounts of a Ledger hardware wallet registered in the NNS dapp.",
+        "aria": {
+          "toggle": "Toggle Ledger device feature"
+        },
+        "enabled": "Ledger device enabled",
+        "enabledDescription": "Ledger device accounts are now visible.",
+        "disabled": "Ledger device disabled",
+        "disabledDescription": "Ledger device accounts are now hidden."
       }
     }
   },

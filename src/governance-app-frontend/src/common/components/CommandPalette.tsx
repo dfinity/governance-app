@@ -31,7 +31,7 @@ import {
 } from '@components/Command';
 import { Kbd } from '@components/Kbd';
 import { getNavigationItems } from '@components/navigation/NavigationItems';
-import { ADVANCED_FEATURES } from '@constants/advancedFeatures';
+import { getSupportedAdvancedFeatures } from '@constants/advancedFeatures';
 import { Theme } from '@constants/theme';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useCommandPaletteShortcut } from '@hooks/useCommandPaletteShortcut';
@@ -40,7 +40,7 @@ import { useLogout } from '@hooks/useLogout';
 import { useShortcutSettings } from '@hooks/useShortcutSettings';
 import { useTheme } from '@hooks/useTheme';
 import { AdvancedFeature } from '@typings/advancedFeatures';
-import { notifyAdvancedFeatureChange } from '@utils/advancedFeatures';
+import { isAccountsAreaEnabled, notifyAdvancedFeatureChange } from '@utils/advancedFeatures';
 
 const NAVIGATION_KEYWORDS: Record<string, string[]> = {
   '/dashboard': ['home', 'overview'],
@@ -59,6 +59,7 @@ const FEATURE_KEYWORDS: Record<AdvancedFeature, string[]> = {
     'non-constructive',
   ],
   [AdvancedFeature.TransactionMemo]: ['memo', 'send', 'transaction'],
+  [AdvancedFeature.LedgerDevice]: ['ledger', 'hardware wallet', 'device', 'nano'],
 };
 
 const TOGGLE_BALANCES_VALUE = 'toggle-balances';
@@ -143,7 +144,7 @@ export const CommandPalette = () => {
     handleOpenChange(false);
   };
 
-  const navigationItems = getNavigationItems({ subaccountsEnabled: features.subaccounts });
+  const navigationItems = getNavigationItems({ accountsEnabled: isAccountsAreaEnabled(features) });
 
   const trimmedSearch = search.trim();
   const proposalIdMatch = parseProposalId(trimmedSearch);
@@ -268,7 +269,7 @@ export const CommandPalette = () => {
         </CommandGroup>
 
         <CommandGroup heading={t(($) => $.commandPalette.groups.advancedFeatures)}>
-          {ADVANCED_FEATURES.map(({ key, icon: Icon }) => (
+          {getSupportedAdvancedFeatures().map(({ key, icon: Icon }) => (
             <TrackedCommandItem
               key={key}
               value={featureValue(key)}
