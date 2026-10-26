@@ -10,6 +10,7 @@ export enum SubAccountDialogMode {
 export enum AccountType {
   Main = 'main',
   Subaccount = 'subaccount',
+  HardwareWallet = 'hardwareWallet',
 }
 
 export interface AccountMetadata {
@@ -17,6 +18,8 @@ export interface AccountMetadata {
   accountId: string;
   type: AccountType;
   subAccount?: Uint8Array | number[];
+  /** The principal that controls the account. Set for hardware wallet accounts. */
+  principal?: string;
 }
 
 export type AccountReady = AccountMetadata & {
@@ -37,6 +40,14 @@ export type Account = AccountReady | AccountLoading | AccountError;
 
 export function isAccountReady(account: Account): account is AccountReady {
   return account.status === 'ready';
+}
+
+/**
+ * True when the app can sign a transaction from the account.
+ * Hardware wallet accounts need the device to sign, which the send and stake flows do not support yet.
+ */
+export function canSignFromAccount(account: Pick<AccountMetadata, 'type'>): boolean {
+  return account.type !== AccountType.HardwareWallet;
 }
 
 export interface AccountsState {
