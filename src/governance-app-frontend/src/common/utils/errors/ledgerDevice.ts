@@ -42,6 +42,8 @@ export const mapLedgerDeviceError = (error: Error): string | undefined => {
       return t(($) => $.errors.ledgerDeviceErrors.signatureLength);
     case LedgerErrorCode.AppVersionNotSupported:
       return t(($) => $.errors.ledgerDeviceErrors.appVersionNotSupported);
+    case LedgerErrorCode.SessionClosed:
+      return t(($) => $.errors.ledgerDeviceErrors.sessionClosed);
     case LedgerErrorCode.Disconnected:
       return t(($) => $.errors.ledgerDeviceErrors.disconnected);
     case LedgerErrorCode.Unexpected:

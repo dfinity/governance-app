@@ -31,6 +31,8 @@ export enum LedgerErrorCode {
   SignatureLength = 'signatureLength',
   /** The app on the device is older than `LEDGER_MIN_APP_VERSION`. `details.version` has the device version. */
   AppVersionNotSupported = 'appVersionNotSupported',
+  /** The session closed, for example on logout, while the action was being set up. */
+  SessionClosed = 'sessionClosed',
   /** The device was unplugged or stopped answering during an action. */
   Disconnected = 'disconnected',
   /** Any other failure during a device action. `details.error` has the message. */
@@ -51,11 +53,10 @@ export const isLedgerDeviceError = (error: unknown): error is LedgerDeviceError 
   error instanceof LedgerDeviceError;
 
 /**
- * Shape of the errors thrown by `@ledgerhq/hw-transport-webhid`.
- * The package exports them as functions, not as types, so the shape is declared here.
+ * Shape of the errors thrown by the Ledger Device Management Kit.
+ * Every DMK error carries a `_tag` with its class name.
  */
-export interface LedgerTransportError {
-  name?: string;
+export interface DmkErrorLike {
+  _tag?: string;
   message?: string;
-  id?: string;
 }
