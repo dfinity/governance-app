@@ -1,4 +1,4 @@
-import { runExclusiveDeviceCall } from './deviceQueue';
+import { clearDeviceQueues, runExclusiveDeviceCall } from './deviceQueue';
 import { LedgerDeviceError, LedgerErrorCode } from './errors';
 import type { LedgerIdentity } from './ledgerIdentity';
 
@@ -14,12 +14,26 @@ import type { LedgerIdentity } from './ledgerIdentity';
  */
 const identities = new Map<string, Promise<LedgerIdentity>>();
 
-// Bumped by `clearLedgerIdentities`, so a connection that started before a logout does not
-// seed the cache of the next session.
-let generation = 0;
+// Bumped on every clear. A connection started before a clear stops before it reaches the device,
+// and one that already reached it does not seed the cache of the next session.
+let clearGeneration = 0;
+
+// Loaded on the first device action only, so a logout without one loads nothing.
+// A failed load is forgotten, so the next action tries again.
+let ledgerModule: Promise<typeof import('./ledgerIdentity')> | undefined;
+
+const loadLedgerModule = (): Promise<typeof import('./ledgerIdentity')> =>
+  (ledgerModule ??= import('./ledgerIdentity').catch((error: unknown) => {
+    ledgerModule = undefined;
+    throw error;
+  }));
 
 const connect = async (principal: string): Promise<LedgerIdentity> => {
-  const { LedgerIdentity } = await import('./ledgerIdentity');
+  const generation = clearGeneration;
+  const { LedgerIdentity } = await loadLedgerModule();
+  if (generation !== clearGeneration) {
+    throw new LedgerDeviceError(LedgerErrorCode.SessionClosed);
+  }
   const identity = await LedgerIdentity.create();
 
   if (identity.getPrincipal().toText() !== principal) {
@@ -70,23 +84,27 @@ export const connectLedgerIdentity = (signal?: AbortSignal): Promise<LedgerIdent
       return;
     }
 
-    const startedIn = generation;
+    const generation = clearGeneration;
     const onAbort = () => reject(signal?.reason);
     signal?.addEventListener('abort', onAbort, { once: true });
 
     // A pending call holds the device. A second transport on it fails, so the connection
-    // reserves the device before anything else, the module import included.
+    // reserves the device before anything else, the module load included.
     runExclusiveDeviceCall(async () => {
       signal?.throwIfAborted();
-      const { LedgerIdentity } = await import('./ledgerIdentity');
+      const { LedgerIdentity } = await loadLedgerModule();
       signal?.throwIfAborted();
+      if (generation !== clearGeneration) {
+        throw new LedgerDeviceError(LedgerErrorCode.SessionClosed);
+      }
+
       return LedgerIdentity.create();
     }).then(
       (identity) => {
         signal?.removeEventListener('abort', onAbort);
         if (signal?.aborted) return;
 
-        if (startedIn === generation) {
+        if (generation === clearGeneration) {
           identities.set(identity.getPrincipal().toText(), Promise.resolve(identity));
         }
         resolve(identity);
@@ -100,8 +118,16 @@ export const connectLedgerIdentity = (signal?: AbortSignal): Promise<LedgerIdent
     );
   });
 
-/** Drops every cached identity. Call it on logout. */
+/**
+ * Drops every cached identity, closes the device session, and stops the queued device
+ * calls. Call it on logout. A device action that still waits for an approval loses its turn.
+ */
 export const clearLedgerIdentities = (): void => {
-  generation += 1;
+  clearGeneration += 1;
   identities.clear();
+  clearDeviceQueues();
+
+  void ledgerModule
+    ?.then(({ LedgerIdentity }) => LedgerIdentity.closeSession())
+    .catch((error: unknown) => console.warn('Failed to close the Ledger device session.', error));
 };

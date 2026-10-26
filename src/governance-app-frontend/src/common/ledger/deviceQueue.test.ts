@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   clearDeviceQueues,
@@ -6,6 +6,7 @@ import {
   runExclusiveDeviceCall,
   runOnDevice,
 } from './deviceQueue';
+import { LedgerDeviceError, LedgerErrorCode } from './errors';
 
 const DEVICE = 'aaaaa-aa';
 const OTHER = 'rrkah-fqaaa-aaaaa-aaaaq-cai';
@@ -61,6 +62,36 @@ describe('runOnDevice', () => {
 
     await expect(a).rejects.toThrow('rejected');
     expect(await b).toBe('b');
+  });
+
+  it('does not run a queued call after a clear', async () => {
+    const first = deferred<string>();
+    const second = vi.fn(async () => 'b');
+
+    const a = runOnDevice(DEVICE, () => first.promise);
+    const b = runOnDevice(DEVICE, second);
+    await tick();
+
+    const rejected = expect(b).rejects.toEqual(
+      new LedgerDeviceError(LedgerErrorCode.SessionClosed),
+    );
+    clearDeviceQueues();
+    first.resolve('a');
+
+    expect(await a).toBe('a');
+    await rejected;
+    expect(second).not.toHaveBeenCalled();
+  });
+
+  it('runs a call queued after a clear', async () => {
+    const first = deferred<string>();
+
+    void runOnDevice(DEVICE, () => first.promise);
+    clearDeviceQueues();
+    const b = runOnDevice(DEVICE, async () => 'b');
+
+    expect(await b).toBe('b');
+    first.resolve('a');
   });
 
   it('keeps the devices apart', async () => {

@@ -8,6 +8,7 @@ import { AccountIdCard } from '@features/userAccount/components/AccountIdCard';
 import { AdvancedFeaturesCard } from '@features/userAccount/components/AdvancedFeaturesCard';
 import { CommandPaletteCard } from '@features/userAccount/components/CommandPaletteCard';
 import { FiatCurrencyCard } from '@features/userAccount/components/FiatCurrencyCard';
+import { ForecastPeriodCard } from '@features/userAccount/components/ForecastPeriodCard';
 import { GovernanceAccessCard } from '@features/userAccount/components/GovernanceAccessCard';
 import { HideBalancesCard } from '@features/userAccount/components/HideBalancesCard';
 import { LedgerDevicesCard } from '@features/userAccount/components/LedgerDevicesCard';
@@ -155,6 +156,9 @@ function Settings() {
             </div>
             <div className="px-6 py-5">
               <HideBalancesCard />
+            </div>
+            <div className="px-6 py-5">
+              <ForecastPeriodCard />
             </div>
             <div className="px-6 py-5">
               <ShortcutsCard />

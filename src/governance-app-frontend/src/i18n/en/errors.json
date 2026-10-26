@@ -32,6 +32,7 @@
     "signatureUnexpected": "The device returned no signature.",
     "signatureLength": "The device returned an invalid signature.",
     "appVersionNotSupported": "The Internet Computer app on the device is too old. Update it in Ledger Live.",
+    "sessionClosed": "The session closed before the device action started. Log in and try again.",
     "disconnected": "The device was disconnected. Connect it again and try again.",
     "unexpected": "The device action failed. Try again."
   }

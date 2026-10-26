@@ -104,6 +104,15 @@
       "toggle": "Toggle balance visibility"
     }
   },
+  "forecastPeriod": {
+    "title": "Forecast period",
+    "description": "Choose the period of the maturity forecast. On the Overview page, a tap on the forecast also changes it.",
+    "options": {
+      "week": "Week",
+      "month": "Month",
+      "year": "Year"
+    }
+  },
   "commandPalette": {
     "title": "Command palette",
     "description": "Quickly navigate the app and toggle preferences with a searchable menu.",
