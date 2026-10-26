@@ -18,6 +18,7 @@ export const PendingDeviceActionDialog = () => {
     <DeviceApprovalDialog
       open={pending !== null}
       description={pending?.description ?? ''}
+      detail={pending?.detail}
       onCancel={() => pending?.cancel()}
     />
   );

@@ -37,11 +37,11 @@ export function useVerifyLedgerDevice() {
             await identity.showAddressAndPubKeyOnDevice();
           }),
         {
-          description: (
-            <span className="flex flex-col gap-2">
-              <span>{t(($) => $.userAccount.ledgerDevices.verifyDescription)}</span>
-              <span className="font-mono text-xs break-all text-foreground">{principal}</span>
-              <span className="font-mono text-xs break-all text-foreground">{accountId}</span>
+          description: t(($) => $.userAccount.ledgerDevices.verifyDescription),
+          detail: (
+            <span className="flex flex-col gap-1">
+              <span>{principal}</span>
+              <span>{accountId}</span>
             </span>
           ),
         },

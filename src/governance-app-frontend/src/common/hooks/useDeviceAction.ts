@@ -14,6 +14,8 @@ export const isDeviceActionCancelled = (error: unknown): error is DeviceActionCa
 type DeviceActionOptions = {
   /** What the user checks on the device screen. Shown in the approval dialog. */
   description: ReactNode;
+  /** The values to compare with the device screen, for example a principal. */
+  detail?: ReactNode;
 };
 
 type PendingDeviceAction = DeviceActionOptions & {
@@ -53,7 +55,7 @@ const getPending = () => pending;
  */
 export const runDeviceAction = <T>(
   action: (signal: AbortSignal) => Promise<T>,
-  { description }: DeviceActionOptions,
+  { description, detail }: DeviceActionOptions,
 ): Promise<T> =>
   new Promise<T>((resolve, reject) => {
     const id = ++nextId;
@@ -71,6 +73,7 @@ export const runDeviceAction = <T>(
     pending = {
       id,
       description,
+      detail,
       cancel: () => {
         settle();
         controller.abort();

@@ -15,6 +15,8 @@ type Props = {
   open: boolean;
   /** What the user checks on the device screen. */
   description: ReactNode;
+  /** The values to compare with the device screen, for example a principal. */
+  detail?: ReactNode;
   /** The user closes the dialog and the app ignores the result of the device call. */
   onCancel: () => void;
 };
@@ -26,7 +28,7 @@ type Props = {
  * Cancel button does: the device keeps the request on its screen until the user answers
  * there, so a silent close would leave the device and the app out of step.
  */
-export const DeviceApprovalDialog = ({ open, description, onCancel }: Props) => {
+export const DeviceApprovalDialog = ({ open, description, detail, onCancel }: Props) => {
   const { t } = useTranslation();
 
   return (
@@ -47,6 +49,14 @@ export const DeviceApprovalDialog = ({ open, description, onCancel }: Props) => 
           </motion.div>
           <ResponsiveDialogTitle>{t(($) => $.common.ledgerApproval.title)}</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>{description}</ResponsiveDialogDescription>
+          {detail && (
+            <p
+              className="rounded-md bg-muted px-3 py-2 font-mono text-xs wrap-anywhere text-foreground"
+              data-testid="device-approval-detail"
+            >
+              {detail}
+            </p>
+          )}
           <Button variant="outline" onClick={onCancel}>
             {t(($) => $.common.cancel)}
           </Button>
