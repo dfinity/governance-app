@@ -94,6 +94,14 @@ describe('getLedgerIdentity', () => {
     expect(create).toHaveBeenCalledTimes(2);
   });
 
+  it('closes the device session on clearLedgerIdentities', async () => {
+    const closeSession = vi.spyOn(LedgerIdentity, 'closeSession').mockResolvedValue(undefined);
+    await getLedgerIdentity(DEVICE_PRINCIPAL);
+
+    clearLedgerIdentities();
+    await vi.waitFor(() => expect(closeSession).toHaveBeenCalledTimes(1));
+  });
+
   it('connects again after clearLedgerIdentities', async () => {
     const first = await getLedgerIdentity(DEVICE_PRINCIPAL);
     clearLedgerIdentities();

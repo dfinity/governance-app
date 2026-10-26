@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts';
 
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
+import { getStakingRingArc } from '@features/dashboard/utils/stakingRing';
 import { StakingRatioModal } from '@features/stakes/components/StakingRatioModal';
 
 import { Card, CardContent, CardHeader } from '@components/Card';
@@ -51,8 +52,10 @@ export const TotalAssetsCard = () => {
 
   const stakingRatioPercent = stakingRewardsReady ? stakingRewards.stakingRatio * 100 : 0;
 
+  const stakingArc = getStakingRingArc(stakingRatioPercent);
+
   const chartData = [
-    { name: 'staking', value: stakingRatioPercent, fill: 'var(--color-stakingRatio)' },
+    { name: 'staking', value: stakingArc.value, fill: 'var(--color-stakingRatio)' },
   ];
 
   return (
@@ -95,7 +98,7 @@ export const TotalAssetsCard = () => {
               outerRadius="100%"
             >
               <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-              <RadialBar dataKey="value" background cornerRadius={10} />
+              <RadialBar dataKey="value" background cornerRadius={stakingArc.cornerRadius} />
             </RadialBarChart>
           </ChartContainer>
 

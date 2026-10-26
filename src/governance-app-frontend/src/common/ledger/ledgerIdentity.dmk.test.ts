@@ -8,6 +8,7 @@ import { LedgerIdentity } from './ledgerIdentity';
 const mockDmk = vi.hoisted(() => ({
   isEnvironmentSupported: vi.fn(() => true),
   listenToAvailableDevices: vi.fn(),
+  listConnectedDevices: vi.fn(() => []),
   startDiscovering: vi.fn(),
   connect: vi.fn(async () => 'session-id'),
   disconnect: vi.fn(async () => undefined),
@@ -32,10 +33,12 @@ describe('LedgerIdentity with the real Zondax adapter', () => {
     ['DeviceLockedError', LedgerErrorCode.Locked],
   ])('reports a %s from the kit as %s', async (tag, code) => {
     const { of } = await import('rxjs');
-    mockDmk.listenToAvailableDevices.mockReturnValue(of([{ id: 'device-id' }]));
+    mockDmk.listenToAvailableDevices.mockReturnValue(of([], [{ id: 'device-id' }]));
     mockDmk.sendApdu.mockRejectedValue({ _tag: tag });
 
     await expect(LedgerIdentity.create()).rejects.toMatchObject({ code });
+
+    await LedgerIdentity.closeSession();
     expect(mockDmk.disconnect).toHaveBeenCalledWith({ sessionId: 'session-id' });
   });
 });
