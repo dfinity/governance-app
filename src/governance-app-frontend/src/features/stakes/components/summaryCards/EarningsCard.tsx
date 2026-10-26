@@ -8,16 +8,14 @@ import { getNeuronOptimizationIssues } from '@features/stakes/utils/getNeuronOpt
 import { Card, CardContent } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { Skeleton } from '@components/Skeleton';
+import { ForecastPeriod } from '@constants/forecast';
+import { FORECAST_ESTIMATE_PERIOD, useForecastPeriod } from '@hooks/useForecastPeriod';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { getNeuronIsDissolved, getNeuronsAggregatedData, isUserHotkey } from '@utils/neuron';
-import { formatNumber } from '@utils/numbers';
+import { formatNumber, formatSmallAmount } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
-import {
-  isStakingRewardDataError,
-  isStakingRewardDataReady,
-  MaturityEstimatePeriod,
-} from '@utils/staking-rewards';
+import { isStakingRewardDataError, isStakingRewardDataReady } from '@utils/staking-rewards';
 
 import {
   CARD_ACTION_CHEVRON_CLASS,
@@ -31,7 +29,7 @@ type EarningsCardProps = {
 };
 
 /**
- * Shows the maturity and the forecast for the next year. If a neuron that the
+ * Shows the maturity and the forecast for the period that the user picked. If a neuron that the
  * user can change can get a higher maturity rate, the whole card opens the
  * optimization modal. Dissolved neurons are left out, because the capital card
  * offers to disburse them. Hotkey neurons are left out, because a hotkey cannot
@@ -43,14 +41,27 @@ export function EarningsCard({ neurons }: EarningsCardProps) {
   const principalId = identity?.getPrincipal().toText();
 
   const stakingRewards = useStakingRewards();
+  const { forecastPeriod } = useForecastPeriod();
 
   const { totalMaturity } = getNeuronsAggregatedData(neurons);
 
   const stakingRewardsReady = isStakingRewardDataReady(stakingRewards);
   const stakingRewardsError = isStakingRewardDataError(stakingRewards);
   const forecastValue = stakingRewardsReady
-    ? (stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0)
+    ? (stakingRewards.rewardEstimates.get(FORECAST_ESTIMATE_PERIOD[forecastPeriod]) ?? 0)
     : null;
+
+  const getForecastText = (value: number) => {
+    const formatted = formatSmallAmount(value);
+    switch (forecastPeriod) {
+      case ForecastPeriod.Week:
+        return t(($) => $.neuron.summary.earningsPerWeek, { value: formatted });
+      case ForecastPeriod.Month:
+        return t(($) => $.neuron.summary.earningsPerMonth, { value: formatted });
+      case ForecastPeriod.Year:
+        return t(($) => $.neuron.summary.earningsPerYear, { value: formatted });
+    }
+  };
 
   const canIncrease = neurons.some(
     (neuron) =>
@@ -80,11 +91,7 @@ export function EarningsCard({ neurons }: EarningsCardProps) {
         </div>
         <div className="mt-1 flex flex-wrap items-center justify-between gap-x-3 text-sm text-muted-foreground">
           {stakingRewardsReady && forecastValue !== null ? (
-            <p>
-              {t(($) => $.neuron.summary.earningsPerYear, {
-                value: formatNumber(forecastValue),
-              })}
-            </p>
+            <p>{getForecastText(forecastValue)}</p>
           ) : stakingRewardsError ? (
             <p>—</p>
           ) : (

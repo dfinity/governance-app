@@ -77,6 +77,9 @@ export enum AnalyticsEvent {
   CommandPaletteSelect = 'command_palette_select',
   ShortcutUsed = 'shortcut_used',
   NotFound = 'not_found',
+
+  // Preferences
+  ForecastPeriodChange = 'forecast_period_change',
 }
 // @TODO:
 //  - successful login
