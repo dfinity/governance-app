@@ -279,6 +279,7 @@ function LedgerNeuronRow({
       <DeviceApprovalDialog
         open={isApproving}
         description={t(($) => $.accounts.ledgerNeurons.approveDescription)}
+        detail={iiPrincipal}
         onCancel={() => {
           cancelled.current = true;
           setIsApproving(false);

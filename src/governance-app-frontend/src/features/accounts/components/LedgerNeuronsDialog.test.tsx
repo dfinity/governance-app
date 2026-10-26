@@ -148,6 +148,7 @@ describe('LedgerNeuronsDialog', () => {
     await user.click(await screen.findByTestId('ledger-neuron-add-hotkey'));
 
     expect(await screen.findByTestId('device-approval-dialog')).toBeTruthy();
+    expect(screen.getByTestId('device-approval-detail').textContent).toBe(II_PRINCIPAL);
 
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
 
