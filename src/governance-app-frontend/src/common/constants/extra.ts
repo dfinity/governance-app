@@ -78,6 +78,7 @@ export const ADVANCED_FEATURES_STORAGE_KEY = 'nns-advanced-features';
 export const THEME_STORAGE_KEY = 'nns-theme';
 export const HIDE_BALANCES_KEY = 'nns-hide-balances';
 export const FIAT_CURRENCY_STORAGE_KEY = 'nns-fiat-currency';
+export const FORECAST_PERIOD_STORAGE_KEY = 'nns-forecast-period';
 
 // External Links
 export const DASHBOARD_URL = `https://dashboard.internetcomputer.org/neuron`;
