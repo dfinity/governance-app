@@ -184,12 +184,13 @@ export function StakedCard() {
 
           <div className="relative flex flex-col gap-1 border-l pl-6">
             <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              {/* The button covers the whole cell, so a tap anywhere on it changes the period. */}
+              {/* The button covers the whole cell, number included, so a tap anywhere on it changes
+                  the period. */}
               <button
                 type="button"
                 onClick={handleForecastPeriodClick}
                 aria-label={t(($) => $.home.forecast.aria.change, { label: forecastLabel })}
-                className="cursor-pointer tracking-wide uppercase outline-none after:absolute after:inset-0 after:rounded-sm focus-visible:after:ring-[3px] focus-visible:after:ring-ring/50"
+                className="cursor-pointer tracking-wide uppercase outline-none after:absolute after:inset-0 after:z-[1] after:rounded-sm focus-visible:after:ring-[3px] focus-visible:after:ring-ring/50"
                 data-testid="forecast-period-toggle"
               >
                 {forecastLabel}
