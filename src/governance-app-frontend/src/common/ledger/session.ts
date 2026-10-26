@@ -1,3 +1,4 @@
+import { clearDeviceQueues } from './deviceQueue';
 import { LedgerDeviceError, LedgerErrorCode } from './errors';
 import type { LedgerIdentity } from './ledgerIdentity';
 
@@ -67,12 +68,13 @@ export const getLedgerIdentity = (principal: string): Promise<LedgerIdentity> =>
 };
 
 /**
- * Drops every cached identity and closes the device session. Call it on logout.
- * A device action that still waits for an approval loses its turn.
+ * Drops every cached identity, closes the device session, and stops the queued device
+ * calls. Call it on logout. A device action that still waits for an approval loses its turn.
  */
 export const clearLedgerIdentities = (): void => {
   clearGeneration += 1;
   identities.clear();
+  clearDeviceQueues();
 
   void ledgerModule
     ?.then(({ LedgerIdentity }) => LedgerIdentity.closeSession())
