@@ -24,7 +24,12 @@
   "yourApy": "Maturity",
   "maturity": "Maturity",
   "forecast": {
-    "oneYear": "1y forecast"
+    "week": "1w forecast",
+    "month": "1m forecast",
+    "year": "1y forecast",
+    "aria": {
+      "change": "{{label}}. Change the forecast period"
+    }
   },
   "executiveSummary": {
     "title": "Monthly governance overview",
