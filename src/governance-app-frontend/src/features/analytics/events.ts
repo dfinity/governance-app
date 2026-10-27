@@ -77,6 +77,8 @@ export enum AnalyticsEvent {
   LedgerDeviceVerifyError = 'ledger_device_verify_error',
 
   // Session
+  LoginSuccess = 'login_success',
+  LoginError = 'login_error',
   SessionLogout = 'session_logout',
   SessionExpired = 'session_expired',
 
@@ -90,5 +92,4 @@ export enum AnalyticsEvent {
   ForecastPeriodChange = 'forecast_period_change',
 }
 // @TODO:
-//  - successful login
 //  - click on the navigation items
