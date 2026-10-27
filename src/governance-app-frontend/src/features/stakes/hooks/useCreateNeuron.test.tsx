@@ -9,8 +9,8 @@ import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ICP_TRANSACTION_FEE_E8Sn, SECONDS_IN_DAY } from '@constants/extra';
-import { mockNeuron } from '@fixtures/neuron';
 import { DeviceActionCancelledError } from '@hooks/useDeviceAction';
+import { mockNeuron } from '@fixtures/neuron';
 import { II_SIGNER } from '@common/ledger/signer';
 
 import { StakingWizardCreateNeuronStep } from '../components/stakingWizard/types';

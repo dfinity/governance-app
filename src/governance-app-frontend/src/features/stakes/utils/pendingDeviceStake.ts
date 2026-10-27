@@ -45,6 +45,7 @@ export const writePendingDeviceStake = (principal: string, pending: PendingDevic
   writeStore({ ...readStore(), [principal]: pending });
 
 export const clearPendingDeviceStake = (principal: string): void => {
-  const { [principal]: _cleared, ...rest } = readStore();
-  writeStore(rest);
+  const store = readStore();
+  delete store[principal];
+  writeStore(store);
 };
