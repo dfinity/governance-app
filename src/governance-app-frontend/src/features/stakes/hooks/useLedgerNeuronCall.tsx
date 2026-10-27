@@ -11,7 +11,8 @@ import {
   useDeviceAction,
 } from '@hooks/useDeviceAction';
 import { getNnsGovernanceCanister } from '@common/canisters';
-import { runOnDevice } from '@common/ledger/deviceQueue';
+import { getDeviceSessionGeneration, runOnDevice } from '@common/ledger/deviceQueue';
+import { LedgerDeviceError, LedgerErrorCode } from '@common/ledger/errors';
 
 /** The `action` property of the `ledger_device_action` analytics events. */
 export type LedgerNeuronAction =
@@ -104,7 +105,15 @@ export const useLedgerNeuronCall = () => {
     };
 
     return runOnDevice(principal, () => {
-      const turn = approvals.then(approve);
+      // The queue checked the session before this turn. The wait for the approval in progress
+      // can span a logout, so the check runs again before the dialog opens.
+      const generation = getDeviceSessionGeneration();
+      const turn = approvals.then(() => {
+        if (generation !== getDeviceSessionGeneration()) {
+          throw new LedgerDeviceError(LedgerErrorCode.SessionClosed);
+        }
+        return approve();
+      });
       approvals = turn.then(
         () => undefined,
         () => undefined,

@@ -210,6 +210,39 @@ describe('useLedgerNeuronCall', () => {
     expect(result.current.pending).toBeNull();
   });
 
+  it('rejects a request that waited behind another device when a logout came in between', async () => {
+    const queue = await vi.importActual<typeof import('@common/ledger/deviceQueue')>(
+      '@common/ledger/deviceQueue',
+    );
+    mocks.runOnDevice.mockImplementation(queue.runOnDevice);
+    const { result } = renderCall();
+    const signing = deferred<void>();
+    const first = vi.fn().mockReturnValue(signing.promise);
+    const second = vi.fn().mockResolvedValue(undefined);
+
+    let firstRun!: Promise<void>;
+    let secondRun!: Promise<void>;
+    act(() => {
+      firstRun = result.current.run(first, OPTIONS);
+    });
+    await flush();
+    act(() => cancelPendingDeviceAction());
+    act(() => {
+      secondRun = result.current.run(second, { ...OPTIONS, principal: 'other-device' });
+    });
+    await flush();
+    queue.clearDeviceQueues();
+
+    await act(async () => {
+      signing.resolve();
+      await expect(firstRun).rejects.toBeInstanceOf(DeviceActionCancelledError);
+      await expect(secondRun).rejects.toMatchObject({ code: LedgerErrorCode.SessionClosed });
+    });
+    expect(mocks.getNnsGovernanceCanister).toHaveBeenCalledTimes(1);
+    expect(second).not.toHaveBeenCalled();
+    expect(result.current.pending).toBeNull();
+  });
+
   it('never starts the signing call when the cancel comes during the connection', async () => {
     const { result } = renderCall();
     const connection = deferred<{ stakeMaturity: () => Promise<void> }>();
