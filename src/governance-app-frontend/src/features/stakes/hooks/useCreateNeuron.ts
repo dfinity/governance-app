@@ -1,7 +1,11 @@
-import { TxDuplicateError } from '@icp-sdk/canisters/ledger/icp';
-import { CouldNotClaimNeuronError, type NnsGovernanceCanister } from '@icp-sdk/canisters/nns';
+import {
+  CouldNotClaimNeuronError,
+  type NeuronInfo,
+  NeuronState,
+  type NnsGovernanceCanister,
+} from '@icp-sdk/canisters/nns';
 import { Principal } from '@icp-sdk/core/principal';
-import { isNullish, nowInBigIntNanoSeconds } from '@dfinity/utils';
+import { isNullish, nonNullish, nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +24,7 @@ import { useIcpLedger } from '@hooks/icpLedger';
 import { useDeviceAction } from '@hooks/useDeviceAction';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { bigIntMul } from '@utils/bigInt';
+import { duplicateTransferOf } from '@utils/errors/duplicateTransfer';
 import { formatDissolveDelay } from '@utils/neuron';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 import {
@@ -33,6 +38,11 @@ import { II_SIGNER, type Signer } from '@common/ledger/signer';
 
 import { StakingWizardCreateNeuronStep } from '../components/stakingWizard/types';
 import { createStakeMemo, getStakeAccountIdentifier } from '../utils/ledgerStake';
+import {
+  clearPendingDeviceStake,
+  readPendingDeviceStake,
+  writePendingDeviceStake,
+} from '../utils/pendingDeviceStake';
 
 type Props = {
   amount: string;
@@ -47,6 +57,9 @@ type Props = {
 
 type DeviceActionOptions = { description: ReactNode; detail?: ReactNode };
 
+// New neurons start with this dissolve delay.
+const DEFAULT_DISSOLVE_DELAY_SECONDS = SECONDS_IN_DAY * 7;
+
 /**
  * Hook to manage the neuron creation process
  * Handles multi-step creation with retry capability from failed step
@@ -57,11 +70,16 @@ type DeviceActionOptions = { description: ReactNode; detail?: ReactNode };
  * controller-only steps (dissolve delay, auto-stake, dissolving). Following keeps the hotkey.
  * Each device call runs behind the approval dialog and in the device queue.
  *
+ * A device call that the user cancelled in the dialog can still succeed on the device. Every
+ * step is safe to run again: a duplicate transfer counts as done, and the controller steps
+ * read the neuron first and apply only what is missing.
+ *
  * @param params Props - configuration for the new neuron
  * @returns
  *   - mutation properties (mutate, mutateAsync, isPending, error, reset, etc.)
  *   - currentStep: StakingWizardCreateNeuronStep - current/failed step for progress display
  *   - isTransferDone: true once the device transfer went through and the claim is still pending
+ *   - stakedAmount: the amount in ICP, the one of a recovered device stake when there is one
  *   - reset: function to reset both mutation and step state
  */
 export function useCreateNeuron(params: Props) {
@@ -82,11 +100,14 @@ export function useCreateNeuron(params: Props) {
   // Device stake: the memo names the sub-account. A retry after a failed claim reuses it.
   const [storedMemo, setStoredMemo] = useState<bigint | null>(null);
   const [isTransferDone, setIsTransferDone] = useState(false);
+  // Device stake: the amount of an unclaimed transfer from an earlier wizard session.
+  const [recoveredAmount, setRecoveredAmount] = useState<string | null>(null);
+  const stakedAmount = recoveredAmount ?? params.amount;
 
   /** Runs a device call behind the approval dialog, in the queue of the device. */
   const onDevice = <T>(
     principal: string,
-    call: () => Promise<T>,
+    call: (signal: AbortSignal) => Promise<T>,
     options: DeviceActionOptions,
   ): Promise<T | undefined> =>
     runDeviceAction(
@@ -94,7 +115,7 @@ export function useCreateNeuron(params: Props) {
         runOnDevice(principal, async () => {
           // A cancelled call that waited in the queue must not prompt the device.
           if (signal.aborted) return undefined;
-          return call();
+          return call(signal);
         }),
       options,
     );
@@ -108,7 +129,12 @@ export function useCreateNeuron(params: Props) {
     signer.kind === 'ledger'
       ? onDevice(
           signer.principal,
-          async () => call(await getNnsGovernanceCanister({ signer })),
+          async (signal) => {
+            const deviceCanister = await getNnsGovernanceCanister({ signer });
+            // A cancel during the device connection must not ask for a signature.
+            if (signal.aborted) return;
+            await call(deviceCanister);
+          },
           options,
         )
       : call(canister);
@@ -121,7 +147,10 @@ export function useCreateNeuron(params: Props) {
 
       let neuronId = createdNeuronId;
       let step = currentStep;
-      const amountText = t(($) => $.common.inIcp, { value: params.amount });
+
+      // The session is controller or hotkey from the second step on, so it can read the neuron.
+      const readNeuron = (id: bigint): Promise<NeuronInfo | undefined> =>
+        governanceCanister.getNeuron({ certified: true, neuronId: id });
 
       // Step 1: Create neuron
       // This is special step: the stakeNeuron call abstracts both the transfer and the claim_or_refresh_neuron.
@@ -129,7 +158,6 @@ export function useCreateNeuron(params: Props) {
       // At the moment we have not way to detect this and the user would need to manually claim the neuron.
       // Future ICRC2 support should fix this potential issue.
       if (step === StakingWizardCreateNeuronStep.CreateNeuron) {
-        const stake = bigIntMul(E8Sn, Number(params.amount));
         const createdAt = storedCreatedAt ?? nowInBigIntNanoSeconds();
         setStoredCreatedAt(createdAt);
 
@@ -137,51 +165,73 @@ export function useCreateNeuron(params: Props) {
           // The device signs the transfer and cannot sign the claim. The two calls are
           // separate, so a failed claim keeps the memo and retries without a second transfer.
           const controller = Principal.fromText(signer.principal);
-          const memo = storedMemo ?? createStakeMemo();
-          setStoredMemo(memo);
+          const anonymousGovernance = await getAnonymousNnsGovernanceCanister();
+          const claim = (memo: bigint) =>
+            anonymousGovernance.claimOrRefreshNeuronFromAccount({ controller, memo });
 
-          if (!isTransferDone) {
-            await onDevice(
-              signer.principal,
-              async () => {
-                const deviceIdentity = await getLedgerIdentity(signer.principal);
-                const deviceLedger = await getIcpLedgerCanister({ signer });
-                // Set right before the call, so a failure before the signature does not leak
-                // the stake screen into the next transfer.
-                deviceIdentity.flagUpcomingStakeNeuron();
-                try {
-                  await deviceLedger.transfer({
-                    memo,
-                    amount: stake,
-                    to: getStakeAccountIdentifier({ controller, memo }),
-                    createdAt,
-                    fee: ICP_TRANSACTION_FEE_E8Sn,
-                  });
-                } catch (error: unknown) {
-                  // The device signed an earlier attempt after its dialog was cancelled.
-                  if (!(error instanceof TxDuplicateError)) throw error;
-                }
-              },
-              {
-                description: t(($) => $.stakeWizardModal.ledgerDevice.approve.transfer),
-                detail: amountText,
-              },
-            );
-            setIsTransferDone(true);
+          // An earlier wizard session signed a transfer and did not claim it. Claim it first:
+          // the ICP already sits in its sub-account.
+          const pending =
+            storedMemo === null ? readPendingDeviceStake(signer.principal) : undefined;
+          if (nonNullish(pending)) {
+            const recoveredId = await claim(BigInt(pending.memo));
+            clearPendingDeviceStake(signer.principal);
+            if (nonNullish(recoveredId)) {
+              neuronId = recoveredId;
+              setRecoveredAmount(pending.amount);
+            }
           }
 
-          const anonymousGovernance = await getAnonymousNnsGovernanceCanister();
-          neuronId =
-            (await anonymousGovernance.claimOrRefreshNeuronFromAccount({
-              controller,
-              memo,
-            })) ?? null;
-          if (isNullish(neuronId)) throw new CouldNotClaimNeuronError();
-          setIsTransferDone(false);
+          if (isNullish(neuronId)) {
+            const memo = storedMemo ?? createStakeMemo();
+            setStoredMemo(memo);
+
+            if (!isTransferDone) {
+              await onDevice(
+                signer.principal,
+                async (signal) => {
+                  const deviceIdentity = await getLedgerIdentity(signer.principal);
+                  const deviceLedger = await getIcpLedgerCanister({ signer });
+                  // A cancel during the device connection must not ask for a signature.
+                  if (signal.aborted) return;
+                  // Set right before the call, so a failure before the signature does not
+                  // leak the stake screen into the next transfer.
+                  deviceIdentity.flagUpcomingStakeNeuron();
+                  try {
+                    await deviceLedger.transfer({
+                      memo,
+                      amount: bigIntMul(E8Sn, Number(params.amount)),
+                      to: getStakeAccountIdentifier({ controller, memo }),
+                      createdAt,
+                      fee: ICP_TRANSACTION_FEE_E8Sn,
+                    });
+                  } catch (error: unknown) {
+                    // The device signed an earlier attempt after its dialog was cancelled.
+                    if (duplicateTransferOf(error) === undefined) throw error;
+                  }
+                },
+                {
+                  description: t(($) => $.stakeWizardModal.ledgerDevice.approve.transfer),
+                  detail: t(($) => $.common.inIcp, { value: params.amount }),
+                },
+              );
+              // Kept until the claim succeeds, so a closed wizard or a reload can still claim.
+              writePendingDeviceStake(signer.principal, {
+                memo: memo.toString(),
+                amount: params.amount,
+              });
+              setIsTransferDone(true);
+            }
+
+            neuronId = (await claim(memo)) ?? null;
+            if (isNullish(neuronId)) throw new CouldNotClaimNeuronError();
+            clearPendingDeviceStake(signer.principal);
+            setIsTransferDone(false);
+          }
           step = StakingWizardCreateNeuronStep.AddHotkey;
         } else {
           neuronId = await governanceCanister.stakeNeuron({
-            stake,
+            stake: bigIntMul(E8Sn, Number(params.amount)),
             principal: identity.getPrincipal(),
             fromSubAccount: params.fromSubAccount,
             ledgerCanister,
@@ -216,23 +266,30 @@ export function useCreateNeuron(params: Props) {
       }
 
       // Step 2: Set dissolve delay
-      // New neurons start with a default 7-day dissolve delay, so subtract it
+      // The increase is additive, so read the current delay first: a new neuron starts with
+      // 7 days, and a retry after a cancelled device call may find the target already set.
       if (step === StakingWizardCreateNeuronStep.SetDissolveDelay) {
-        const defaultDelay = SECONDS_IN_DAY * 7;
-        const targetDelay = params.dissolveDelaySeconds;
-        const additionalDissolveDelaySeconds = Math.max(targetDelay - defaultDelay, 0);
-        await asController(
-          governanceCanister,
-          (canister) =>
-            canister.increaseDissolveDelay({ neuronId: id, additionalDissolveDelaySeconds }),
-          {
-            description: t(($) => $.stakeWizardModal.ledgerDevice.approve.dissolveDelay),
-            detail: formatDissolveDelay({
-              seconds: BigInt(additionalDissolveDelaySeconds),
-              i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
-            }),
-          },
+        const currentDelay = Number(
+          (await readNeuron(id))?.dissolveDelaySeconds ?? DEFAULT_DISSOLVE_DELAY_SECONDS,
         );
+        const additionalDissolveDelaySeconds = Math.max(
+          params.dissolveDelaySeconds - currentDelay,
+          0,
+        );
+        if (additionalDissolveDelaySeconds > 0) {
+          await asController(
+            governanceCanister,
+            (canister) =>
+              canister.increaseDissolveDelay({ neuronId: id, additionalDissolveDelaySeconds }),
+            {
+              description: t(($) => $.stakeWizardModal.ledgerDevice.approve.dissolveDelay),
+              detail: formatDissolveDelay({
+                seconds: BigInt(additionalDissolveDelaySeconds),
+                i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
+              }),
+            },
+          );
+        }
         step = StakingWizardCreateNeuronStep.SetAutoStakeMaturity;
         setCurrentStep(step);
       }
@@ -250,12 +307,15 @@ export function useCreateNeuron(params: Props) {
         setCurrentStep(step);
       }
 
-      // Step 4: Start dissolving (if enabled)
+      // Step 4: Start dissolving (if enabled). A neuron that already dissolves rejects the call.
       if (step === StakingWizardCreateNeuronStep.StartDissolving) {
         if (params.startDissolving) {
-          await asController(governanceCanister, (canister) => canister.startDissolving(id), {
-            description: t(($) => $.stakeWizardModal.ledgerDevice.approve.startDissolving),
-          });
+          const isDissolving = (await readNeuron(id))?.state === NeuronState.Dissolving;
+          if (!isDissolving) {
+            await asController(governanceCanister, (canister) => canister.startDissolving(id), {
+              description: t(($) => $.stakeWizardModal.ledgerDevice.approve.startDissolving),
+            });
+          }
         }
         step = StakingWizardCreateNeuronStep.SetFollowing;
         setCurrentStep(step);
@@ -294,7 +354,7 @@ export function useCreateNeuron(params: Props) {
     onSuccess: () => {
       if (signer.kind !== 'ledger') return;
       analytics.event(AnalyticsEvent.LedgerDeviceStake, {
-        amount_range: getAmountRange(Number(params.amount)),
+        amount_range: getAmountRange(Number(stakedAmount)),
       });
     },
     onError: (error) => {
@@ -310,12 +370,14 @@ export function useCreateNeuron(params: Props) {
     setStoredCreatedAt(null);
     setStoredMemo(null);
     setIsTransferDone(false);
+    setRecoveredAmount(null);
   };
 
   return {
     ...mutation,
     currentStep,
     isTransferDone,
+    stakedAmount,
     reset,
   };
 }

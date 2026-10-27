@@ -20,6 +20,7 @@ import { useDeviceAction } from '@hooks/useDeviceAction';
 import { isValidIcpAddress } from '@utils/address';
 import { bigIntMul } from '@utils/bigInt';
 import { isCertifiedRejectError } from '@utils/errors';
+import { duplicateTransferOf } from '@utils/errors/duplicateTransfer';
 import { getIcpLedgerCanister } from '@common/canisters';
 import { runOnDevice } from '@common/ledger/deviceQueue';
 import { II_SIGNER, type Signer } from '@common/ledger/signer';
@@ -105,7 +106,15 @@ export function useSendIcp() {
             if (signal.aborted) return;
             const deviceLedger = await getIcpLedgerCanister({ signer });
             if (signal.aborted) return;
-            return transfer(deviceLedger);
+            try {
+              return await transfer(deviceLedger);
+            } catch (error: unknown) {
+              // The device signed an earlier attempt after its dialog was cancelled. The ledger
+              // holds that transfer, so this attempt is the same payment, done.
+              const duplicateOf = duplicateTransferOf(error);
+              if (duplicateOf === undefined) throw error;
+              return duplicateOf;
+            }
           }),
         {
           description: t(($) => $.account.ledgerDevice.approveTransfer),

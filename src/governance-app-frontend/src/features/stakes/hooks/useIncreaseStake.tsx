@@ -1,4 +1,4 @@
-import { AccountIdentifier, TxDuplicateError } from '@icp-sdk/canisters/ledger/icp';
+import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef } from 'react';
@@ -14,6 +14,7 @@ import { useIcpLedger } from '@hooks/icpLedger';
 import { useDeviceAction } from '@hooks/useDeviceAction';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { bigIntMul } from '@utils/bigInt';
+import { duplicateTransferOf } from '@utils/errors/duplicateTransfer';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 import { getAnonymousNnsGovernanceCanister, getIcpLedgerCanister } from '@common/canisters';
 import { runOnDevice } from '@common/ledger/deviceQueue';
@@ -83,7 +84,7 @@ export function useIncreaseStake() {
               } catch (error: unknown) {
                 // The device signed an earlier attempt after its dialog was cancelled. The ICP
                 // is on the neuron account, so the refresh below picks it up.
-                if (!(error instanceof TxDuplicateError)) throw error;
+                if (duplicateTransferOf(error) === undefined) throw error;
               }
             }),
           {

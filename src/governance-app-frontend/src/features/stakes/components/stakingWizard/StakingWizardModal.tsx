@@ -372,7 +372,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
 
             {step === StakingWizardStep.Confirmation && (
               <StakingWizardStepConfirmation
-                formState={formState}
+                formState={{ ...formState, amount: createNeuron.stakedAmount }}
                 isProcessing={createNeuron.isPending}
                 currentStep={createNeuron.currentStep}
                 error={createNeuron.error ? mapCanisterError(createNeuron.error) : null}

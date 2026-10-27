@@ -1,7 +1,7 @@
 import '@/i18n/config';
 
 import { TxDuplicateError } from '@icp-sdk/canisters/ledger/icp';
-import { CouldNotClaimNeuronError } from '@icp-sdk/canisters/nns';
+import { CouldNotClaimNeuronError, NeuronState } from '@icp-sdk/canisters/nns';
 import { Principal } from '@icp-sdk/core/principal';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
@@ -9,6 +9,7 @@ import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ICP_TRANSACTION_FEE_E8Sn, SECONDS_IN_DAY } from '@constants/extra';
+import { mockNeuron } from '@fixtures/neuron';
 import { DeviceActionCancelledError } from '@hooks/useDeviceAction';
 import { II_SIGNER } from '@common/ledger/signer';
 
@@ -30,6 +31,7 @@ const mocks = vi.hoisted(() => ({
     startDissolving: vi.fn(),
     listNeurons: vi.fn(),
     setFollowing: vi.fn(),
+    getNeuron: vi.fn(),
   },
   iiLedger: { transfer: vi.fn() },
   // Device canisters (the factories with a signer).
@@ -48,6 +50,9 @@ const mocks = vi.hoisted(() => ({
   runOnDevice: vi.fn(),
   runDeviceAction: vi.fn(),
   analyticsEvent: vi.fn(),
+  readPendingDeviceStake: vi.fn(),
+  writePendingDeviceStake: vi.fn(),
+  clearPendingDeviceStake: vi.fn(),
 }));
 
 vi.mock('@common/canisters', () => ({
@@ -75,6 +80,11 @@ vi.mock('@hooks/useInternetIdentity', () => ({
   }),
 }));
 vi.mock('@features/analytics/service', () => ({ analytics: { event: mocks.analyticsEvent } }));
+vi.mock('../utils/pendingDeviceStake', () => ({
+  readPendingDeviceStake: mocks.readPendingDeviceStake,
+  writePendingDeviceStake: mocks.writePendingDeviceStake,
+  clearPendingDeviceStake: mocks.clearPendingDeviceStake,
+}));
 
 type Options = {
   signer?: typeof DEVICE_SIGNER | typeof II_SIGNER;
@@ -120,6 +130,11 @@ describe('useCreateNeuron', () => {
     );
     mocks.iiGovernance.stakeNeuron.mockResolvedValue(42n);
     mocks.iiGovernance.listNeurons.mockResolvedValue([]);
+    // A new neuron: the default 7-day delay, not dissolving.
+    mocks.iiGovernance.getNeuron.mockResolvedValue(
+      mockNeuron({ neuronId: 42n, dissolveDelaySeconds: BigInt(SECONDS_IN_DAY * 7) }),
+    );
+    mocks.readPendingDeviceStake.mockReturnValue(undefined);
     mocks.deviceLedger.transfer.mockResolvedValue(1n);
     mocks.anonymousGovernance.claimOrRefreshNeuronFromAccount.mockResolvedValue(42n);
   });
@@ -243,10 +258,16 @@ describe('useCreateNeuron', () => {
     await waitFor(() => expect(result.current.isTransferDone).toBe(true));
     expect(result.current.currentStep).toBe(StakingWizardCreateNeuronStep.CreateNeuron);
     expect(result.current.error?.message).toBe('connection dropped');
+    const memo = mocks.deviceLedger.transfer.mock.calls[0][0].memo;
+    // The unclaimed transfer is recorded until the claim succeeds.
+    expect(mocks.writePendingDeviceStake).toHaveBeenCalledWith(DEVICE_PRINCIPAL, {
+      memo: memo.toString(),
+      amount: '10',
+    });
+    expect(mocks.clearPendingDeviceStake).not.toHaveBeenCalled();
     expect(mocks.analyticsEvent).toHaveBeenCalledWith('ledger_device_stake_error', {
       reason: 'unknown',
     });
-    const memo = mocks.deviceLedger.transfer.mock.calls[0][0].memo;
 
     await act(() => result.current.mutateAsync());
 
@@ -257,7 +278,104 @@ describe('useCreateNeuron', () => {
       memo,
     });
     expect(result.current.isTransferDone).toBe(false);
+    expect(mocks.clearPendingDeviceStake).toHaveBeenCalledWith(DEVICE_PRINCIPAL);
     expect(result.current.currentStep).toBe(StakingWizardCreateNeuronStep.Done);
+  });
+
+  it('claims the unclaimed transfer of an earlier wizard session before any new transfer', async () => {
+    mocks.readPendingDeviceStake.mockReturnValue({ memo: '77', amount: '25' });
+    mocks.anonymousGovernance.claimOrRefreshNeuronFromAccount.mockResolvedValueOnce(99n);
+    const { result } = renderCreateNeuron({ signer: DEVICE_SIGNER });
+
+    await act(() => result.current.mutateAsync());
+
+    expect(mocks.anonymousGovernance.claimOrRefreshNeuronFromAccount).toHaveBeenCalledTimes(1);
+    expect(mocks.anonymousGovernance.claimOrRefreshNeuronFromAccount).toHaveBeenCalledWith({
+      controller: Principal.fromText(DEVICE_PRINCIPAL),
+      memo: 77n,
+    });
+    expect(mocks.deviceLedger.transfer).not.toHaveBeenCalled();
+    expect(mocks.clearPendingDeviceStake).toHaveBeenCalledWith(DEVICE_PRINCIPAL);
+    expect(mocks.deviceGovernance.addHotkey).toHaveBeenCalledWith(
+      expect.objectContaining({ neuronId: 99n }),
+    );
+    expect(result.current.stakedAmount).toBe('25');
+    expect(mocks.analyticsEvent).toHaveBeenCalledWith('ledger_device_stake', {
+      amount_range: '10-100',
+    });
+  });
+
+  it('forgets a recorded transfer that funds no neuron and stakes the typed amount', async () => {
+    mocks.readPendingDeviceStake.mockReturnValue({ memo: '77', amount: '25' });
+    mocks.anonymousGovernance.claimOrRefreshNeuronFromAccount
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(42n);
+    const { result } = renderCreateNeuron({ signer: DEVICE_SIGNER });
+
+    await act(() => result.current.mutateAsync());
+
+    expect(mocks.clearPendingDeviceStake).toHaveBeenCalled();
+    expect(mocks.deviceLedger.transfer).toHaveBeenCalledTimes(1);
+    expect(mocks.deviceLedger.transfer.mock.calls[0][0].memo).not.toBe(77n);
+    expect(result.current.stakedAmount).toBe('10');
+  });
+
+  it('applies only the missing dissolve delay and skips a dissolving start that already happened', async () => {
+    // A cancelled device call still ran: the delay is set and the neuron dissolves.
+    mocks.iiGovernance.getNeuron.mockResolvedValue(
+      mockNeuron({
+        neuronId: 42n,
+        dissolveDelaySeconds: BigInt(SECONDS_IN_DAY * 30),
+        state: NeuronState.Dissolving,
+      }),
+    );
+    const { result } = renderCreateNeuron({
+      signer: DEVICE_SIGNER,
+      autoStake: false,
+      dissolving: true,
+    });
+
+    await act(() => result.current.mutateAsync());
+
+    expect(mocks.deviceGovernance.increaseDissolveDelay).not.toHaveBeenCalled();
+    expect(mocks.deviceGovernance.startDissolving).not.toHaveBeenCalled();
+    expect(result.current.currentStep).toBe(StakingWizardCreateNeuronStep.Done);
+  });
+
+  it('increases the delay by the difference with the current one', async () => {
+    mocks.iiGovernance.getNeuron.mockResolvedValue(
+      mockNeuron({ neuronId: 42n, dissolveDelaySeconds: BigInt(SECONDS_IN_DAY * 20) }),
+    );
+    const { result } = renderCreateNeuron({ signer: II_SIGNER });
+
+    await act(() => result.current.mutateAsync());
+
+    expect(mocks.iiGovernance.increaseDissolveDelay).toHaveBeenCalledWith({
+      neuronId: 42n,
+      additionalDissolveDelaySeconds: SECONDS_IN_DAY * 10,
+    });
+  });
+
+  it('does not ask for a signature when the dialog was cancelled during the device connection', async () => {
+    const controller = new AbortController();
+    mocks.runDeviceAction.mockImplementationOnce(
+      async (action: (signal: AbortSignal) => Promise<unknown>) => {
+        await action(controller.signal);
+        throw new DeviceActionCancelledError();
+      },
+    );
+    mocks.getIcpLedgerCanister.mockImplementationOnce(async () => {
+      controller.abort();
+      return mocks.deviceLedger;
+    });
+    const { result } = renderCreateNeuron({ signer: DEVICE_SIGNER });
+
+    await expect(act(() => result.current.mutateAsync())).rejects.toBeInstanceOf(
+      DeviceActionCancelledError,
+    );
+
+    expect(mocks.deviceIdentity.flagUpcomingStakeNeuron).not.toHaveBeenCalled();
+    expect(mocks.deviceLedger.transfer).not.toHaveBeenCalled();
   });
 
   it('treats a duplicate transfer as done, so a retry after a late device signature claims the neuron', async () => {

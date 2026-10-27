@@ -1,6 +1,7 @@
 import '@/i18n/config';
 
-import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
+import { AccountIdentifier, TxDuplicateError } from '@icp-sdk/canisters/ledger/icp';
+import { IcrcTransferError } from '@icp-sdk/canisters/ledger/icrc';
 import { Principal } from '@icp-sdk/core/principal';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, renderHook, screen } from '@testing-library/react';
@@ -177,6 +178,38 @@ describe('useSendIcp', () => {
     expect(createdAts).toHaveLength(2);
     // The retry reuses the createdAt of the cancelled attempt; a success starts a new one.
     expect(createdAts[0]).not.toBe(createdAts[1]);
+  });
+
+  it('counts a duplicate device transfer as the done payment, with no new createdAt', async () => {
+    mocks.deviceLedger.transfer.mockRejectedValueOnce(new TxDuplicateError(7n));
+    mocks.deviceLedger.icrc1Transfer.mockRejectedValueOnce(
+      new IcrcTransferError({ errorType: { Duplicate: { duplicate_of: 8n } } }),
+    );
+    const { result } = renderSendIcp();
+
+    const icp = await act(() =>
+      result.current.mutateAsync({
+        toAccount: ICP_ADDRESS,
+        amount: '1',
+        signer: DEVICE_SIGNER,
+        analytics: analyticsParams,
+      }),
+    );
+    const icrc = await act(() =>
+      result.current.mutateAsync({
+        toAccount: ICRC_ADDRESS,
+        amount: '1',
+        signer: DEVICE_SIGNER,
+        analytics: analyticsParams,
+      }),
+    );
+
+    expect(icp).toBe(7n);
+    expect(icrc).toBe(8n);
+    expect(mocks.analyticsEvent).not.toHaveBeenCalledWith(
+      'ledger_device_send_error',
+      expect.anything(),
+    );
   });
 
   it('does not prompt the device for a call that was cancelled while it waited in the queue', async () => {
