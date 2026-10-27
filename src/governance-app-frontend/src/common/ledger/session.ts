@@ -1,4 +1,4 @@
-import { clearDeviceQueues } from './deviceQueue';
+import { clearDeviceQueues, runExclusiveDeviceCall } from './deviceQueue';
 import { LedgerDeviceError, LedgerErrorCode } from './errors';
 import type { LedgerIdentity } from './ledgerIdentity';
 
@@ -14,7 +14,8 @@ import type { LedgerIdentity } from './ledgerIdentity';
  */
 const identities = new Map<string, Promise<LedgerIdentity>>();
 
-// Bumped on every clear. A connection started before a clear stops before it reaches the device.
+// Bumped on every clear. A connection started before a clear stops before it reaches the device,
+// and one that already reached it does not seed the cache of the next session.
 let clearGeneration = 0;
 
 // Loaded on the first device action only, so a logout without one loads nothing.
@@ -66,6 +67,56 @@ export const getLedgerIdentity = (principal: string): Promise<LedgerIdentity> =>
 
   return pending;
 };
+
+/**
+ * Connects to the Ledger device the user picks and caches its identity under the device
+ * principal, so a later `getLedgerIdentity(principal)` reuses the connection.
+ *
+ * An aborted `signal` rejects with its reason at once. A connection that still waits for
+ * the device does not start; one that already started keeps the device reservation until
+ * it settles, and its late result is dropped.
+ */
+export const connectLedgerIdentity = (signal?: AbortSignal): Promise<LedgerIdentity> =>
+  new Promise<LedgerIdentity>((resolve, reject) => {
+    // The abort listener does not replay an earlier abort.
+    if (signal?.aborted) {
+      reject(signal.reason);
+      return;
+    }
+
+    const generation = clearGeneration;
+    const onAbort = () => reject(signal?.reason);
+    signal?.addEventListener('abort', onAbort, { once: true });
+
+    // A pending call holds the device. A second transport on it fails, so the connection
+    // reserves the device before anything else, the module load included.
+    runExclusiveDeviceCall(async () => {
+      signal?.throwIfAborted();
+      const { LedgerIdentity } = await loadLedgerModule();
+      signal?.throwIfAborted();
+      if (generation !== clearGeneration) {
+        throw new LedgerDeviceError(LedgerErrorCode.SessionClosed);
+      }
+
+      return LedgerIdentity.create();
+    }).then(
+      (identity) => {
+        signal?.removeEventListener('abort', onAbort);
+        if (signal?.aborted) return;
+
+        if (generation === clearGeneration) {
+          identities.set(identity.getPrincipal().toText(), Promise.resolve(identity));
+        }
+        resolve(identity);
+      },
+      (error: unknown) => {
+        signal?.removeEventListener('abort', onAbort);
+        if (signal?.aborted) return;
+
+        reject(error);
+      },
+    );
+  });
 
 /**
  * Drops every cached identity, closes the device session, and stops the queued device

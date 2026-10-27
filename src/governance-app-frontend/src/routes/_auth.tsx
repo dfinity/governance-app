@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 
 import { analytics } from '@features/analytics/service';
 import { useAnalyticsProperties } from '@features/analytics/useAnalyticsProperties';
+import { PendingDeviceActionDialog } from '@features/ledger/components/PendingDeviceActionDialog';
 
 import { CommandPalette } from '@components/CommandPalette';
 import { MainLayout } from '@components/MainLayout';
@@ -52,6 +53,7 @@ function AuthLayout() {
       <CommandPalette />
       <SessionCountdownToast />
       <TransactionPollingWatcher />
+      <PendingDeviceActionDialog />
     </MainLayout>
   );
 }

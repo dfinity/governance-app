@@ -67,6 +67,25 @@ describe('useHardwareWalletsMetadata', () => {
     expect(mocks.nnsDappAccount).toHaveBeenCalledWith(true);
   });
 
+  it('reports an error only while the ledgerDevice feature is on', () => {
+    const refetch = vi.fn();
+    mocks.nnsDappAccount.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      refetch,
+    });
+
+    mockFeatures({ ledgerDevice: true });
+    const { result } = renderHook(() => useHardwareWalletsMetadata());
+    expect(result.current.isError).toBe(true);
+    expect(result.current.data).toEqual([]);
+    expect(result.current.refetch).toBe(refetch);
+
+    mockFeatures({ subaccounts: true });
+    expect(renderHook(() => useHardwareWalletsMetadata()).result.current.isError).toBe(false);
+  });
+
   it('reports loading only while the ledgerDevice feature is on', () => {
     mocks.nnsDappAccount.mockReturnValue({ data: undefined, isLoading: true });
 

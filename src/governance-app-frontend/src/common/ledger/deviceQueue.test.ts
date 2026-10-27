@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { clearDeviceQueues, isDeviceBusy, runOnDevice } from './deviceQueue';
+import {
+  clearDeviceQueues,
+  isDeviceBusy,
+  runExclusiveDeviceCall,
+  runOnDevice,
+} from './deviceQueue';
 import { LedgerDeviceError, LedgerErrorCode } from './errors';
 
 const DEVICE = 'aaaaa-aa';
@@ -105,5 +110,69 @@ describe('runOnDevice', () => {
     expect(await other).toBe('other');
     expect(order).toEqual(['a', 'other']);
     first.resolve('a');
+  });
+
+  it('runs an exclusive call at once when no device is busy', async () => {
+    await expect(runExclusiveDeviceCall(async () => 'connected')).resolves.toBe('connected');
+  });
+
+  it('starts an exclusive call after every pending call settles', async () => {
+    const first = deferred<void>();
+    const second = deferred<void>();
+    void runOnDevice(DEVICE, () => first.promise);
+    void runOnDevice(OTHER, () => second.promise).catch(() => undefined);
+    let started = false;
+    void runExclusiveDeviceCall(async () => {
+      started = true;
+    });
+
+    first.resolve();
+    await tick();
+    expect(started).toBe(false);
+
+    second.reject(new Error('device'));
+    await tick();
+    expect(started).toBe(true);
+  });
+
+  it('holds the device calls queued after an exclusive call until it settles', async () => {
+    const pending = deferred<void>();
+    const connection = deferred<void>();
+    void runOnDevice(DEVICE, () => pending.promise);
+    void runExclusiveDeviceCall(() => connection.promise).catch(() => undefined);
+    const order: string[] = [];
+    void runOnDevice(DEVICE, async () => {
+      order.push('retry');
+    });
+    void runOnDevice(OTHER, async () => {
+      order.push('other');
+    });
+
+    pending.resolve();
+    await tick();
+    expect(order).toEqual([]);
+
+    connection.reject(new Error('cancelled'));
+    await tick();
+    expect(order).toEqual(['retry', 'other']);
+  });
+
+  it('runs the exclusive calls in order', async () => {
+    const first = deferred<void>();
+    const order: string[] = [];
+    void runExclusiveDeviceCall(() => {
+      order.push('a');
+      return first.promise;
+    });
+    void runExclusiveDeviceCall(async () => {
+      order.push('b');
+    });
+
+    await tick();
+    expect(order).toEqual(['a']);
+
+    first.resolve();
+    await tick();
+    expect(order).toEqual(['a', 'b']);
   });
 });
