@@ -36,11 +36,22 @@ export type LedgerNeuronCallOptions = {
 };
 
 /**
+ * The approval in progress, across every device. The transport serves one request at a
+ * time, so a dialog must not open while a request to any device is outstanding.
+ */
+let approvals: Promise<unknown> = Promise.resolve();
+
+/** Forgets the approval in progress, so the next call does not wait for it. For tests. */
+export const clearLedgerApprovals = (): void => {
+  approvals = Promise.resolve();
+};
+
+/**
  * Runs one governance call that a Ledger device signs.
  *
- * The call waits for the pending calls to the same device. The "Approve on your Ledger
- * device" dialog opens when its turn starts, so it never shows the values of a request
- * that the device does not show yet. A cancel on the dialog rejects with
+ * The call waits for the pending calls to the same device and for the approval in progress
+ * on any device. The "Approve on your Ledger device" dialog opens when its turn starts, so
+ * it never shows the values of a request that the device does not show yet. A cancel on the dialog rejects with
  * `DeviceActionCancelledError`; the turn still waits for the device to answer, so the
  * caller stays pending, no second request starts, and a late approval runs the whole call
  * (`call` must include the refresh that follows the governance update). One analytics
@@ -52,8 +63,8 @@ export const useLedgerNeuronCall = () => {
   return <T,>(
     call: (canister: NnsGovernanceCanister) => Promise<T>,
     { principal, action, description, detail }: LedgerNeuronCallOptions,
-  ): Promise<T> =>
-    runOnDevice(principal, async () => {
+  ): Promise<T> => {
+    const approve = async (): Promise<T> => {
       let signing: Promise<T> | undefined;
       const start = (signal: AbortSignal) => {
         signing = (async () => {
@@ -90,5 +101,15 @@ export const useLedgerNeuronCall = () => {
         }
         throw error;
       }
+    };
+
+    return runOnDevice(principal, () => {
+      const turn = approvals.then(approve);
+      approvals = turn.then(
+        () => undefined,
+        () => undefined,
+      );
+      return turn;
     });
+  };
 };

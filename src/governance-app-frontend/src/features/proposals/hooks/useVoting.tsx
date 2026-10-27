@@ -118,13 +118,16 @@ export const useVoting = (proposal: ProposalInfo) => {
           },
         );
 
-      // The device votes start after the session votes and run one by one. A cancel or a
-      // device error stops the ones left.
-      const votingPromise = Promise.all(promises).then(async (results) => {
+      // Every session vote settles before the outcome is known, so the refresh below shows
+      // each vote that went through. The device votes start after them and run one by one.
+      // A cancel or a device error stops the ones left.
+      const votingPromise = Promise.allSettled(promises).then(async (outcomes) => {
+        const failed = outcomes.find((outcome) => outcome.status === 'rejected');
+        if (failed) throw failed.reason;
         for (const deviceVote of deviceVotes) {
           await voteWithDevice(deviceVote);
         }
-        return results;
+        return outcomes.map(() => undefined);
       });
 
       const successAction =

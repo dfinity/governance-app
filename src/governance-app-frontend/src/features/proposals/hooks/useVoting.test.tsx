@@ -262,6 +262,34 @@ describe('useVoting', () => {
     );
   });
 
+  it('waits for every session vote before it reports a failed one', async () => {
+    mocks.neurons.mockReturnValue([sessionNeuron(1n), sessionNeuron(2n)]);
+    const slow = deferred<void>();
+    mocks.registerVote
+      .mockRejectedValueOnce(new Error('rejected'))
+      .mockImplementationOnce(() => slow.promise);
+    const { result, invalidateQueries } = renderVoting(proposalWith([1n, 2n]));
+
+    act(() => result.current.voting.vote(Vote.Yes));
+
+    await waitFor(() => expect(mocks.registerVote).toHaveBeenCalledTimes(2));
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(result.current.voting.isVoting).toBe(true);
+    expect(invalidateQueries).not.toHaveBeenCalled();
+
+    await act(async () => {
+      slow.resolve();
+      await slow.promise;
+    });
+    await waitFor(() => expect(result.current.voting.isVoting).toBe(false));
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS],
+    });
+    await expect(mocks.toastPromise.mock.calls[0][0]).rejects.toThrow('rejected');
+  });
+
   it('refreshes the votes already cast when a device vote fails', async () => {
     mocks.neurons.mockReturnValue([sessionNeuron(1n), deviceNeuron(2n), deviceNeuron(3n)]);
     mocks.ledgerPrincipals.mockReturnValue([DEVICE]);

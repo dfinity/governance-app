@@ -324,7 +324,7 @@ describe.each(CASES)('$name', ({ setup, method, args, action, detail }) => {
       run = mutate(DEVICE_SIGNER);
     });
     await act(async () => {
-      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
     act(() => cancelPendingDeviceAction());
     expect(invalidateQueries).not.toHaveBeenCalled();

@@ -13,7 +13,7 @@ import {
 } from '@hooks/useDeviceAction';
 import { LedgerDeviceError, LedgerErrorCode } from '@common/ledger/errors';
 
-import { useLedgerNeuronCall } from './useLedgerNeuronCall';
+import { clearLedgerApprovals, useLedgerNeuronCall } from './useLedgerNeuronCall';
 
 const mocks = vi.hoisted(() => ({
   getNnsGovernanceCanister: vi.fn(),
@@ -55,11 +55,18 @@ const OPTIONS = {
 const renderCall = () =>
   renderHook(() => ({ run: useLedgerNeuronCall(), pending: usePendingDeviceAction() }));
 
+// The dialog opens one tick after the call starts: after the queue turn and the approval chain.
+const flush = () =>
+  act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+
 describe('useLedgerNeuronCall', () => {
   beforeEach(() => {
     mocks.getNnsGovernanceCanister.mockReset().mockResolvedValue({ stakeMaturity: vi.fn() });
     mocks.runOnDevice.mockReset().mockImplementation((_principal, call) => call());
     mocks.event.mockReset();
+    clearLedgerApprovals();
   });
 
   it('runs the call with the device canister inside the device queue', async () => {
@@ -90,6 +97,7 @@ describe('useLedgerNeuronCall', () => {
     act(() => {
       run = result.current.run(() => signing.promise, OPTIONS);
     });
+    await flush();
 
     expect(result.current.pending?.description).toBe(OPTIONS.description);
     render(<>{result.current.pending?.detail}</>);
@@ -149,16 +157,12 @@ describe('useLedgerNeuronCall', () => {
     act(() => {
       firstRun = result.current.run(first, OPTIONS);
     });
-    await act(async () => {
-      await Promise.resolve();
-    });
+    await flush();
     act(() => cancelPendingDeviceAction());
     act(() => {
       secondRun = result.current.run(second, { ...OPTIONS, description: 'Second request' });
     });
-    await act(async () => {
-      await Promise.resolve();
-    });
+    await flush();
     expect(result.current.pending).toBeNull();
     expect(second).not.toHaveBeenCalled();
 
@@ -167,6 +171,39 @@ describe('useLedgerNeuronCall', () => {
       await expect(firstRun).rejects.toBeInstanceOf(DeviceActionCancelledError);
     });
     await act(async () => {
+      await secondRun;
+    });
+    expect(second).toHaveBeenCalledTimes(1);
+    expect(result.current.pending).toBeNull();
+  });
+
+  it('holds the dialog of another device until the cancelled request settles', async () => {
+    const { result } = renderCall();
+    const signing = deferred<void>();
+    const first = vi.fn().mockReturnValue(signing.promise);
+    const second = vi.fn().mockResolvedValue(undefined);
+
+    let firstRun!: Promise<void>;
+    let secondRun!: Promise<void>;
+    act(() => {
+      firstRun = result.current.run(first, OPTIONS);
+    });
+    await flush();
+    act(() => cancelPendingDeviceAction());
+    act(() => {
+      secondRun = result.current.run(second, {
+        ...OPTIONS,
+        principal: 'other-device',
+        description: 'Second device',
+      });
+    });
+    await flush();
+    expect(result.current.pending).toBeNull();
+    expect(second).not.toHaveBeenCalled();
+
+    await act(async () => {
+      signing.resolve();
+      await expect(firstRun).rejects.toBeInstanceOf(DeviceActionCancelledError);
       await secondRun;
     });
     expect(second).toHaveBeenCalledTimes(1);
@@ -183,6 +220,7 @@ describe('useLedgerNeuronCall', () => {
     act(() => {
       run = result.current.run(call, OPTIONS);
     });
+    await flush();
     act(() => cancelPendingDeviceAction());
 
     await act(async () => {
@@ -202,9 +240,7 @@ describe('useLedgerNeuronCall', () => {
     act(() => {
       run = result.current.run(call, OPTIONS);
     });
-    await act(async () => {
-      await Promise.resolve();
-    });
+    await flush();
     act(() => cancelPendingDeviceAction());
     expect(result.current.pending).toBeNull();
 
@@ -240,9 +276,7 @@ describe('useLedgerNeuronCall', () => {
     act(() => {
       run = result.current.run(call, OPTIONS);
     });
-    await act(async () => {
-      await Promise.resolve();
-    });
+    await flush();
     act(() => cancelPendingDeviceAction());
 
     await act(async () => {
