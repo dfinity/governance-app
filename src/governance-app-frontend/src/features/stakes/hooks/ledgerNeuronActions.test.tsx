@@ -61,6 +61,7 @@ vi.mock('@common/canisters', () => ({
 
 vi.mock('@common/ledger/deviceQueue', () => ({
   runOnDevice: mocks.runOnDevice,
+  getDeviceSessionGeneration: () => 0,
 }));
 
 vi.mock('@features/analytics/service', () => ({

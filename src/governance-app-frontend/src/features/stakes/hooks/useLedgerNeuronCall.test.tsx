@@ -18,6 +18,7 @@ import { clearLedgerApprovals, useLedgerNeuronCall } from './useLedgerNeuronCall
 const mocks = vi.hoisted(() => ({
   getNnsGovernanceCanister: vi.fn(),
   runOnDevice: vi.fn(),
+  generation: vi.fn(() => 0),
   event: vi.fn(),
 }));
 
@@ -27,6 +28,7 @@ vi.mock('@common/canisters', () => ({
 
 vi.mock('@common/ledger/deviceQueue', () => ({
   runOnDevice: mocks.runOnDevice,
+  getDeviceSessionGeneration: () => mocks.generation(),
 }));
 
 vi.mock('@features/analytics/service', () => ({
@@ -66,6 +68,7 @@ describe('useLedgerNeuronCall', () => {
     mocks.getNnsGovernanceCanister.mockReset().mockResolvedValue({ stakeMaturity: vi.fn() });
     mocks.runOnDevice.mockReset().mockImplementation((_principal, call) => call());
     mocks.event.mockReset();
+    mocks.generation.mockReset().mockReturnValue(0);
     clearLedgerApprovals();
   });
 
@@ -215,6 +218,7 @@ describe('useLedgerNeuronCall', () => {
       '@common/ledger/deviceQueue',
     );
     mocks.runOnDevice.mockImplementation(queue.runOnDevice);
+    mocks.generation.mockImplementation(queue.getDeviceSessionGeneration);
     const { result } = renderCall();
     const signing = deferred<void>();
     const first = vi.fn().mockReturnValue(signing.promise);
