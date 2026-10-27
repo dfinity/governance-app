@@ -30,13 +30,14 @@ import {
   getNeuronMaturityDisbursementsInProgressE8s,
   getNeuronStakeAfterFeesE8s,
   getNeuronStakedMaturityE8s,
-  isUserHotkey,
+  isUserHotkeyOnly,
   shortenNeuronId,
 } from '@utils/neuron';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { APY } from '@utils/staking-rewards';
 
 import { useNeuronLedgerDevice } from '../hooks/useNeuronLedgerDevice';
+import { useLedgerSignerPrincipals } from '../hooks/useNeuronSigner';
 import { FollowingStatusBadge } from './FollowingStatusBadge';
 import type { NeuronAction } from './neuronDetail';
 import { NeuronStandaloneAction } from './neuronDetail';
@@ -54,6 +55,7 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
   const apyColor = useApyColor(apy?.cur ?? 0);
   const { icpPrice, formatFiat, isLoading: isIcpPriceLoading } = useIcpPrice();
   const ledgerDevice = useNeuronLedgerDevice(neuron);
+  const ledgerPrincipals = useLedgerSignerPrincipals();
 
   const isDissolved = getNeuronIsDissolved(neuron);
   const isDissolving = getNeuronIsDissolving(neuron);
@@ -62,9 +64,11 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
   const hasUnstakedMaturity = getNeuronFreeMaturityE8s(neuron) > 0n;
   const hasStakeToDisburse = getNeuronStakeAfterFeesE8s(neuron) > 0n;
   const isEightYearGang = getEightYearGangBonusE8s(neuron, new Date()) > 0n;
-  const isHotkey = isUserHotkey({
+  // Hotkey access only: a neuron that a usable Ledger device controls keeps its actions.
+  const isHotkey = isUserHotkeyOnly({
     neuron,
     principalId: identity?.getPrincipal().toText(),
+    ledgerPrincipals,
   });
 
   const dissolveDelaySeconds = isDissolving

@@ -13,6 +13,7 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { DIALOG_RESET_DELAY_MS, SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
+import { isDeviceActionCancelled } from '@hooks/useDeviceAction';
 import { mapCanisterError } from '@utils/errors';
 import { cn } from '@utils/shadcn';
 
@@ -70,6 +71,11 @@ export function MutationDialog({
       await fn();
       setPhase(Phase.Success);
     } catch (err) {
+      // A cancel on the Ledger approval dialog is not an error: the form shows again.
+      if (isDeviceActionCancelled(err)) {
+        setPhase(Phase.Idle);
+        return;
+      }
       setErrorMessage(
         err instanceof Error
           ? mapCanisterError(err)

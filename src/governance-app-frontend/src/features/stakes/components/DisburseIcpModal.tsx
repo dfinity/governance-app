@@ -30,6 +30,7 @@ import { getNeuronStakeAfterFeesE8s } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
 
 import { useDisburseNeuron } from '../hooks/useDisburseNeuron';
+import { useNeuronSigner } from '../hooks/useNeuronSigner';
 
 type Props = {
   neuron: NeuronInfo | null;
@@ -40,6 +41,7 @@ type Props = {
 export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation();
   const { mutateAsync } = useDisburseNeuron();
+  const signer = useNeuronSigner(neuron);
   const { features } = useAdvancedFeatures();
   const subaccountsEnabled = features.subaccounts;
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -103,7 +105,7 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
       return;
     }
 
-    execute(() => mutateAsync({ neuronId: neuron.neuronId, toAccountId }));
+    execute(() => mutateAsync({ neuronId: neuron.neuronId, toAccountId, signer }));
   };
 
   return (

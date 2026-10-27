@@ -36,6 +36,7 @@ import {
   type DisburseMaturityDestination,
   useDisburseMaturity,
 } from '../hooks/useDisburseMaturity';
+import { useNeuronSigner } from '../hooks/useNeuronSigner';
 
 const PRESET_PERCENTAGES = [25, 50, 75, 100] as const;
 const DEFAULT_PERCENTAGE = 100;
@@ -49,6 +50,7 @@ type Props = {
 export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation();
   const { mutateAsync } = useDisburseMaturity();
+  const signer = useNeuronSigner(neuron);
   const { features } = useAdvancedFeatures();
   const subaccountsEnabled = features.subaccounts;
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -153,6 +155,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
         neuronId: neuron.neuronId,
         destination: target,
         percentageToDisburse: percentage,
+        signer,
       }),
     );
   };

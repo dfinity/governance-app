@@ -16,6 +16,7 @@ import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronFreeMaturityE8s } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
 
+import { useNeuronSigner } from '../hooks/useNeuronSigner';
 import { useStakeMaturity } from '../hooks/useStakeMaturity';
 
 type Props = {
@@ -27,6 +28,7 @@ type Props = {
 export function StakeMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation();
   const { mutateAsync } = useStakeMaturity();
+  const signer = useNeuronSigner(neuron);
 
   const unstakedMaturity = neuron ? bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn) : 0;
 
@@ -73,7 +75,9 @@ export function StakeMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
             <Button
               size="xl"
               className="md:flex-1"
-              onClick={() => neuron && execute(() => mutateAsync({ neuronId: neuron.neuronId }))}
+              onClick={() =>
+                neuron && execute(() => mutateAsync({ neuronId: neuron.neuronId, signer }))
+              }
             >
               {t(($) => $.neuronDetailModal.stakeMaturity.confirm)}
             </Button>
