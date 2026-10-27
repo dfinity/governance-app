@@ -112,5 +112,8 @@
     "showNonConstructiveProposals": "Show all proposals",
     "transactionMemo": "Transaction memo",
     "ledgerDevice": "Ledger device"
+  },
+  "ledgerApproval": {
+    "title": "Approve on your Ledger device"
   }
 }
