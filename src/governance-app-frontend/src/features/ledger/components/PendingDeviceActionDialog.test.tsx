@@ -1,0 +1,74 @@
+import '@/i18n/config';
+
+import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
+
+import { DeviceActionCancelledError, runDeviceAction } from '@hooks/useDeviceAction';
+
+import { PendingDeviceActionDialog } from './PendingDeviceActionDialog';
+
+vi.mock('@hooks/useMediaQuery', () => ({ useMediaQuery: () => true }));
+
+const OPTIONS = { description: 'Check the address on the device.' };
+
+describe('PendingDeviceActionDialog', () => {
+  it('stays closed without a device action', () => {
+    render(<PendingDeviceActionDialog />);
+
+    expect(screen.queryByTestId('device-approval-dialog')).toBeNull();
+  });
+
+  it('opens with the description while a device action runs and closes when it settles', async () => {
+    render(<PendingDeviceActionDialog />);
+    let resolve!: () => void;
+
+    let run!: Promise<void>;
+    act(() => {
+      run = runDeviceAction(() => new Promise<void>((res) => (resolve = res)), OPTIONS);
+    });
+
+    expect(screen.getByTestId('device-approval-dialog')).toBeTruthy();
+    expect(screen.getByText('Approve on your Ledger device')).toBeTruthy();
+    expect(screen.getByText(OPTIONS.description)).toBeTruthy();
+
+    await act(async () => {
+      resolve();
+      await run;
+    });
+
+    expect(screen.queryByTestId('device-approval-dialog')).toBeNull();
+  });
+
+  it('rejects the action when the user cancels', async () => {
+    const user = userEvent.setup({ delay: null });
+    render(<PendingDeviceActionDialog />);
+
+    let run!: Promise<void>;
+    act(() => {
+      run = runDeviceAction(() => new Promise<void>(() => {}), OPTIONS);
+    });
+    const rejection = expect(run).rejects.toBeInstanceOf(DeviceActionCancelledError);
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    await rejection;
+    expect(screen.queryByTestId('device-approval-dialog')).toBeNull();
+  });
+
+  it('cancels the action when it unmounts and stays closed after a remount', async () => {
+    const { unmount } = render(<PendingDeviceActionDialog />);
+
+    let run!: Promise<void>;
+    act(() => {
+      run = runDeviceAction(() => new Promise<void>(() => {}), OPTIONS);
+    });
+    expect(screen.getByTestId('device-approval-dialog')).toBeTruthy();
+
+    unmount();
+    await expect(run).rejects.toBeInstanceOf(DeviceActionCancelledError);
+
+    render(<PendingDeviceActionDialog />);
+    expect(screen.queryByTestId('device-approval-dialog')).toBeNull();
+  });
+});

@@ -68,7 +68,17 @@ export enum AnalyticsEvent {
   AccountQrScanSuccess = 'account_qr_scan_success',
   AccountQrScanError = 'account_qr_scan_error',
 
+  // Ledger device
+  LedgerDeviceConnect = 'ledger_device_connect',
+  LedgerDeviceConnectError = 'ledger_device_connect_error',
+  LedgerDeviceRegister = 'ledger_device_register',
+  LedgerDeviceRegisterError = 'ledger_device_register_error',
+  LedgerDeviceVerify = 'ledger_device_verify',
+  LedgerDeviceVerifyError = 'ledger_device_verify_error',
+
   // Session
+  LoginSuccess = 'login_success',
+  LoginError = 'login_error',
   SessionLogout = 'session_logout',
   SessionExpired = 'session_expired',
 
@@ -82,5 +92,4 @@ export enum AnalyticsEvent {
   ForecastPeriodChange = 'forecast_period_change',
 }
 // @TODO:
-//  - successful login
 //  - click on the navigation items

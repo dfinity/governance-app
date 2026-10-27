@@ -20,6 +20,39 @@
   "theme": "Theme",
   "themeDescription": "Choose a light, dark, or system theme for the application.",
   "manageII": "Manage your Internet Identity",
+  "ledgerDevices": {
+    "title": "Ledger devices",
+    "description": "Devices registered in the NNS dapp. Both apps share this list.",
+    "empty": "No Ledger device is registered yet.",
+    "loadError": "The Ledger devices could not be loaded.",
+    "add": "Add Ledger device",
+    "verify": "Verify on device",
+    "verifyDescription": "Check that the device shows this principal and this address, then approve on the device.",
+    "verified": "The Ledger device showed the principal and the address.",
+    "errors": {
+      "alreadyRegistered": "This Ledger device is already registered.",
+      "limitExceeded": "You reached the maximum number of Ledger devices."
+    },
+    "addDialog": {
+      "title": "Add Ledger device",
+      "connectDescription": "Connect the device to the computer and open the Internet Computer app on it.",
+      "connectHint": "The browser shows a list of devices. Pick the Ledger device to continue.",
+      "connect": "Connect",
+      "connecting": "Connecting…",
+      "connected": "Device connected",
+      "connectedDescription": "Check that the values match the device.",
+      "principal": "Principal",
+      "accountIdentifier": "Account identifier",
+      "nameTitle": "Name the device",
+      "nameDescription": "The name shows in the accounts list of this app and of the NNS dapp.",
+      "nameLabel": "Device name",
+      "nameHint": "{{min}} to {{max}} characters. An accented character or a symbol counts as 2 or more.",
+      "register": "Register",
+      "registering": "Registering \"{{name}}\"…",
+      "success": "\"{{name}}\" registered.",
+      "error": "Failed to register the Ledger device."
+    }
+  },
   "governance": {
     "title": "Governance",
     "access": {
@@ -133,6 +166,17 @@
         "enabledDescription": "You can now add a memo when sending ICP.",
         "disabled": "Transaction memo disabled",
         "disabledDescription": "The memo field is now hidden from the send form."
+      },
+      "ledgerDevice": {
+        "label": "Ledger device",
+        "description": "Show the accounts of a Ledger hardware wallet registered in the NNS dapp.",
+        "aria": {
+          "toggle": "Toggle Ledger device feature"
+        },
+        "enabled": "Ledger device enabled",
+        "enabledDescription": "Ledger device accounts are now visible.",
+        "disabled": "Ledger device disabled",
+        "disabledDescription": "Ledger device accounts are now hidden."
       }
     }
   },

@@ -6,6 +6,7 @@ import {
   Link,
   Outlet,
   Scripts,
+  useRouter,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { ArrowLeft, LogIn } from 'lucide-react';
@@ -143,7 +144,12 @@ function UnauthenticatedNotFound() {
 }
 
 function RootComponent() {
+  const { subscribe } = useRouter();
+
   useSessionChange();
+
+  // Sends a pageview after each navigation, redirects included, once a page starts the tracker.
+  useEffect(() => subscribe('onResolved', () => analytics.pageview()), [subscribe]);
 
   return (
     <>
