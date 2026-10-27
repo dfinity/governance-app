@@ -64,6 +64,20 @@ describe('pendingDeviceStake', () => {
     expect(readPendingDeviceStake(DEVICE)).toBeUndefined();
   });
 
+  it('sees a newer record that another tab wrote after a successful write', () => {
+    writePendingDeviceStake(DEVICE, { memo: '7', amount: '10' });
+    clearPendingDeviceStake(DEVICE, '7');
+
+    // Another tab records a stake and completes another one.
+    storage.setItem(
+      PENDING_DEVICE_STAKE_STORAGE_KEY,
+      JSON.stringify({ [DEVICE]: { memo: '8', amount: '4' } }),
+    );
+
+    expect(readPendingDeviceStake(DEVICE)).toEqual({ memo: '8', amount: '4' });
+    expect(readPendingDeviceStake(OTHER)).toBeUndefined();
+  });
+
   it('ignores a broken value', () => {
     storage.setItem(PENDING_DEVICE_STAKE_STORAGE_KEY, '{not json');
 

@@ -24,6 +24,11 @@ const readStorage = (): Store => {
   }
 };
 
+// The records written in this page session that the storage did not take. `localStorage` can
+// be full or blocked; the session copy still protects against a second transfer until the page
+// closes. A successful write empties it, so a newer record from another tab is not hidden.
+const session = new Map<string, PendingDeviceStake | null>();
+
 const writeStore = (store: Store): void => {
   try {
     if (Object.keys(store).length === 0) {
@@ -31,14 +36,11 @@ const writeStore = (store: Store): void => {
     } else {
       localStorage.setItem(PENDING_DEVICE_STAKE_STORAGE_KEY, JSON.stringify(store));
     }
+    session.clear();
   } catch {
     // Storage can be full or blocked. The session copy keeps the record until the page closes.
   }
 };
-
-// The records written in this page session. `localStorage` can be full or blocked; the
-// session copy still protects against a second transfer until the page closes.
-const session = new Map<string, PendingDeviceStake | null>();
 
 const readStore = (): Store => {
   const store = readStorage();

@@ -109,6 +109,32 @@ describe('pendingDeviceTopUp', () => {
     expect(readPendingDeviceTopUp(DEVICE)).toBeUndefined();
   });
 
+  it('sees a newer record that another tab wrote after a successful write', () => {
+    writePendingDeviceTopUp(DEVICE, {
+      neuronId: '7',
+      amount: '10',
+      createdAt: '1',
+      transferred: false,
+    });
+    clearPendingDeviceTopUp(DEVICE, '1');
+
+    // Another tab confirms a top-up with the same key and completes another one.
+    storage.setItem(
+      PENDING_DEVICE_TOP_UP_STORAGE_KEY,
+      JSON.stringify({
+        [DEVICE]: { neuronId: '7', amount: '10', createdAt: '2', transferred: true },
+      }),
+    );
+
+    expect(readPendingDeviceTopUp(DEVICE)).toEqual({
+      neuronId: '7',
+      amount: '10',
+      createdAt: '2',
+      transferred: true,
+    });
+    expect(readPendingDeviceTopUp(OTHER)).toBeUndefined();
+  });
+
   it('ignores a broken value', () => {
     storage.setItem(PENDING_DEVICE_TOP_UP_STORAGE_KEY, '{not json');
 
