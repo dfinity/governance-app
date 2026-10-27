@@ -3,9 +3,9 @@ import type { Principal } from '@icp-sdk/core/principal';
 
 import { getAnonymousNnsGovernanceCanister } from '@common/canisters';
 
-// `GovernanceError.error_type` of an empty stake sub-account (`ErrorType::InsufficientFunds`
-// in the governance canister).
-const INSUFFICIENT_FUNDS_ERROR_TYPE = 10;
+// `GovernanceError.error_type` of an empty stake sub-account: `ErrorType::InsufficientFunds`
+// in the governance proto (`rs/nns/governance/proto/ic_nns_governance/pb/v1/governance.proto`).
+const INSUFFICIENT_FUNDS_ERROR_TYPE = 14;
 
 // The SDK reports a governance error answer as `UnrecognizedTypeError` with the response
 // JSON in the message.

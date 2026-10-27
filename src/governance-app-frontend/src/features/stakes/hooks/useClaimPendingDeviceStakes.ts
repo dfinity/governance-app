@@ -1,8 +1,10 @@
 import { Principal } from '@icp-sdk/core/principal';
+import { nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { NANOSECONDS_IN_SECOND, SECONDS_IN_DAY } from '@constants/extra';
 import { successNotification } from '@utils/notification';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 import { getAnonymousNnsGovernanceCanister } from '@common/canisters';
@@ -29,6 +31,10 @@ export type RecoveredDeviceStakes = {
 
 // One pass at a time, shared by every mount.
 let pass: Promise<RecoveredDeviceStakes> | undefined;
+
+// The ledger accepts a `created_at_time` of the last 24 hours. An older unconfirmed transfer
+// cannot be a duplicate any more, so its record protects nothing.
+const LEDGER_TRANSACTION_WINDOW_NANOS = BigInt(SECONDS_IN_DAY) * BigInt(NANOSECONDS_IN_SECOND);
 
 /**
  * Claims the stake transfers that a Ledger device signed and that no wizard claimed yet, and
@@ -59,6 +65,12 @@ export const claimPendingDeviceStakes = (): Promise<RecoveredDeviceStakes> =>
     }
 
     for (const [key, pending] of Object.entries(readAllPendingDeviceTopUps())) {
+      if (!pending.transferred) {
+        // Unconfirmed: the device may still sign it. Keep the record while it can dedupe.
+        const age = nowInBigIntNanoSeconds() - BigInt(pending.createdAt);
+        if (age > LEDGER_TRANSACTION_WINDOW_NANOS) clearPendingDeviceTopUp(key);
+        continue;
+      }
       try {
         const governance = await getAnonymousNnsGovernanceCanister();
         await governance.claimOrRefreshNeuron({

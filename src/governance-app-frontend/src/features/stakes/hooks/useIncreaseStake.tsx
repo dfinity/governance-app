@@ -37,11 +37,8 @@ type IncreaseStakeParams = {
   signer?: Signer;
 };
 
-// The `createdAt` of each unsettled device top-up, by its parameters. A view unmount does not
-// forget it: the device can sign a cancelled transfer late, and the same top-up sent again
-// must be the same ledger transaction, not a second one.
-const deviceCreatedAt = new Map<string, bigint>();
-
+// The device top-ups are keyed by their parameters, so the same top-up sent again from any
+// view or session is the same ledger transaction, not a second one.
 const deviceTopUpKey = ({ signer, accountIdentifier, amount }: IncreaseStakeParams) =>
   [
     signer?.kind === 'ledger' ? signer.principal : '',
@@ -82,15 +79,22 @@ export function useIncreaseStake() {
 
       // Use stored createdAt for retry deduplication, or generate a new one
       const key = deviceTopUpKey(params);
-      const stored = signer.kind === 'ledger' ? deviceCreatedAt.get(key) : createdAtRef.current;
-      const createdAt = stored ?? nowInBigIntNanoSeconds();
-      if (signer.kind === 'ledger') deviceCreatedAt.set(key, createdAt);
-      else createdAtRef.current = createdAt;
+      const record = signer.kind === 'ledger' ? readPendingDeviceTopUp(key) : undefined;
+      const createdAt =
+        (record ? BigInt(record.createdAt) : createdAtRef.current) ?? nowInBigIntNanoSeconds();
+      if (signer.kind !== 'ledger') createdAtRef.current = createdAt;
 
       if (signer.kind === 'ledger') {
+        const pending = {
+          neuronId: params.neuronId.toString(),
+          amount: params.amount.toString(),
+          createdAt: createdAt.toString(),
+        };
         // Step 1: the device signs the transfer to the neuron's account identifier. A top-up
         // whose transfer went through retries the refresh only, from any view or session.
-        if (readPendingDeviceTopUp(key) === undefined) {
+        if (!record?.transferred) {
+          // Written before the signature: the device can sign after a cancelled dialog.
+          writePendingDeviceTopUp(key, { ...pending, transferred: false });
           await runDeviceAction(
             (signal) =>
               runOnDevice(signer.principal, async () => {
@@ -127,14 +131,11 @@ export function useIncreaseStake() {
               (error instanceof Error && isCertifiedRejectError(error)) ||
               error instanceof TransferError
             ) {
-              deviceCreatedAt.delete(key);
+              clearPendingDeviceTopUp(key);
             }
             throw error;
           });
-          writePendingDeviceTopUp(key, {
-            neuronId: params.neuronId.toString(),
-            amount: params.amount.toString(),
-          });
+          writePendingDeviceTopUp(key, { ...pending, transferred: true });
         }
 
         // Step 2: the device cannot sign `claim_or_refresh`. Anyone can refresh a neuron by id.
@@ -163,7 +164,6 @@ export function useIncreaseStake() {
 
       // Reset createdAt only after the full flow succeeds
       createdAtRef.current = null;
-      deviceCreatedAt.delete(key);
 
       await Promise.all([
         queryClient.invalidateQueries({

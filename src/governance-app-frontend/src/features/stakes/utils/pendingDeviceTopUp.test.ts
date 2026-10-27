@@ -35,20 +35,55 @@ describe('pendingDeviceTopUp', () => {
   });
 
   it('keeps one pending refresh per transfer key', () => {
-    writePendingDeviceTopUp(DEVICE, { neuronId: '7', amount: '10' });
-    writePendingDeviceTopUp(OTHER, { neuronId: '8', amount: '2' });
+    writePendingDeviceTopUp(DEVICE, {
+      neuronId: '7',
+      amount: '10',
+      createdAt: '1',
+      transferred: false,
+    });
+    writePendingDeviceTopUp(OTHER, {
+      neuronId: '8',
+      amount: '2',
+      createdAt: '2',
+      transferred: true,
+    });
 
-    expect(readPendingDeviceTopUp(DEVICE)).toEqual({ neuronId: '7', amount: '10' });
-    expect(readPendingDeviceTopUp(OTHER)).toEqual({ neuronId: '8', amount: '2' });
+    expect(readPendingDeviceTopUp(DEVICE)).toEqual({
+      neuronId: '7',
+      amount: '10',
+      createdAt: '1',
+      transferred: false,
+    });
+    expect(readPendingDeviceTopUp(OTHER)).toEqual({
+      neuronId: '8',
+      amount: '2',
+      createdAt: '2',
+      transferred: true,
+    });
   });
 
   it('clears one top-up and removes the key with the last one', () => {
-    writePendingDeviceTopUp(DEVICE, { neuronId: '7', amount: '10' });
-    writePendingDeviceTopUp(OTHER, { neuronId: '8', amount: '2' });
+    writePendingDeviceTopUp(DEVICE, {
+      neuronId: '7',
+      amount: '10',
+      createdAt: '1',
+      transferred: false,
+    });
+    writePendingDeviceTopUp(OTHER, {
+      neuronId: '8',
+      amount: '2',
+      createdAt: '2',
+      transferred: true,
+    });
 
     clearPendingDeviceTopUp(DEVICE);
     expect(readPendingDeviceTopUp(DEVICE)).toBeUndefined();
-    expect(readPendingDeviceTopUp(OTHER)).toEqual({ neuronId: '8', amount: '2' });
+    expect(readPendingDeviceTopUp(OTHER)).toEqual({
+      neuronId: '8',
+      amount: '2',
+      createdAt: '2',
+      transferred: true,
+    });
 
     clearPendingDeviceTopUp(OTHER);
     expect(storage.items.has(PENDING_DEVICE_TOP_UP_STORAGE_KEY)).toBe(false);
@@ -70,7 +105,14 @@ describe('pendingDeviceTopUp', () => {
       },
     });
 
-    expect(() => writePendingDeviceTopUp(DEVICE, { neuronId: '7', amount: '10' })).not.toThrow();
+    expect(() =>
+      writePendingDeviceTopUp(DEVICE, {
+        neuronId: '7',
+        amount: '10',
+        createdAt: '1',
+        transferred: false,
+      }),
+    ).not.toThrow();
     expect(readPendingDeviceTopUp(DEVICE)).toBeUndefined();
   });
 });

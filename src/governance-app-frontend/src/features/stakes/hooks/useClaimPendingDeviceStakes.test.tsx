@@ -105,7 +105,7 @@ describe('useClaimPendingDeviceStakes', () => {
     mocks.readAllPendingDeviceStakes.mockReturnValue({ [DEVICE]: { memo: '7', amount: '25' } });
     mocks.claimOrRefreshNeuronFromAccount.mockRejectedValue(
       new UnrecognizedTypeError(
-        'Unrecognized ClaimOrRefresh error in {"command":[{"Error":{"error_message":"not enough funds","error_type":10}}]}',
+        'Unrecognized ClaimOrRefresh error in {"command":[{"Error":{"error_message":"not enough funds","error_type":14}}]}',
       ),
     );
     renderClaim();
@@ -118,7 +118,7 @@ describe('useClaimPendingDeviceStakes', () => {
     mocks.readAllPendingDeviceStakes.mockReturnValue({ [DEVICE]: { memo: '7', amount: '25' } });
     mocks.claimOrRefreshNeuronFromAccount.mockRejectedValue(
       new UnrecognizedTypeError(
-        'Unrecognized ClaimOrRefresh error in {"command":[{"Error":{"error_type":5}}]}',
+        'Unrecognized ClaimOrRefresh error in {"command":[{"Error":{"error_type":10}}]}',
       ),
     );
     renderClaim();
@@ -129,8 +129,8 @@ describe('useClaimPendingDeviceStakes', () => {
 
   it('refreshes the neurons of the top-ups that no view refreshed, and forgets them', async () => {
     mocks.readAllPendingDeviceTopUps.mockReturnValue({
-      'key-a': { neuronId: '42', amount: '5' },
-      'key-b': { neuronId: '43', amount: '6' },
+      'key-a': { neuronId: '42', amount: '5', createdAt: '1', transferred: true },
+      'key-b': { neuronId: '43', amount: '6', createdAt: '1', transferred: true },
     });
     mocks.claimOrRefreshNeuron.mockResolvedValueOnce(42n).mockRejectedValueOnce(new Error('x'));
     const { invalidateQueries } = renderClaim();
@@ -155,6 +155,26 @@ describe('useClaimPendingDeviceStakes', () => {
     await waitFor(() => expect(mocks.claimOrRefreshNeuronFromAccount).toHaveBeenCalled());
     await waitFor(() => expect(console.warn).toHaveBeenCalled());
     expect(mocks.clearPendingDeviceStake).not.toHaveBeenCalled();
+    expect(mocks.successNotification).not.toHaveBeenCalled();
+  });
+
+  it('keeps a young unconfirmed top-up and drops one older than the ledger window', async () => {
+    const now = BigInt(Date.now()) * 1_000_000n;
+    const twoDays = 2n * 24n * 60n * 60n * 1_000_000_000n;
+    mocks.readAllPendingDeviceTopUps.mockReturnValue({
+      young: { neuronId: '42', amount: '5', createdAt: now.toString(), transferred: false },
+      old: {
+        neuronId: '43',
+        amount: '6',
+        createdAt: (now - twoDays).toString(),
+        transferred: false,
+      },
+    });
+    renderClaim();
+
+    await waitFor(() => expect(mocks.clearPendingDeviceTopUp).toHaveBeenCalledWith('old'));
+    expect(mocks.clearPendingDeviceTopUp).not.toHaveBeenCalledWith('young');
+    expect(mocks.claimOrRefreshNeuron).not.toHaveBeenCalled();
     expect(mocks.successNotification).not.toHaveBeenCalled();
   });
 

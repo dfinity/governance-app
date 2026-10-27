@@ -1,6 +1,6 @@
 import '@/i18n/config';
 
-import { TxDuplicateError } from '@icp-sdk/canisters/ledger/icp';
+import { TxDuplicateError, TxTooOldError } from '@icp-sdk/canisters/ledger/icp';
 import {
   CouldNotClaimNeuronError,
   NeuronState,
@@ -84,6 +84,13 @@ vi.mock('@hooks/useInternetIdentity', () => ({
   }),
 }));
 vi.mock('@features/analytics/service', () => ({ analytics: { event: mocks.analyticsEvent } }));
+
+// A clock that moves on every call, so two attempts never share a createdAt by accident.
+let clock = 0;
+vi.mock('@dfinity/utils', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@dfinity/utils')>()),
+  nowInBigIntNanoSeconds: () => BigInt(++clock),
+}));
 vi.mock('../utils/pendingDeviceStake', () => ({
   readPendingDeviceStake: mocks.readPendingDeviceStake,
   writePendingDeviceStake: mocks.writePendingDeviceStake,
@@ -316,7 +323,7 @@ describe('useCreateNeuron', () => {
     mocks.anonymousGovernance.claimOrRefreshNeuronFromAccount
       .mockRejectedValueOnce(
         new UnrecognizedTypeError(
-          'Unrecognized ClaimOrRefresh error in {"command":[{"Error":{"error_message":"not enough funds","error_type":10}}]}',
+          'Unrecognized ClaimOrRefresh error in {"command":[{"Error":{"error_message":"not enough funds","error_type":14}}]}',
         ),
       )
       .mockResolvedValueOnce(42n);
@@ -454,6 +461,34 @@ describe('useCreateNeuron', () => {
       expect.anything(),
       expect.objectContaining({ detail: '10 ICP' }),
     );
+  });
+
+  it('starts over with a new memo and createdAt after the ledger rejected the transfer', async () => {
+    mocks.deviceLedger.transfer.mockRejectedValueOnce(new TxTooOldError(0));
+    const { result } = renderCreateNeuron({ signer: DEVICE_SIGNER });
+
+    await expect(act(() => result.current.mutateAsync())).rejects.toBeInstanceOf(TxTooOldError);
+    const first = mocks.deviceLedger.transfer.mock.calls[0][0];
+    // The retry finds the record of the rejected attempt and claims it first.
+    mocks.readPendingDeviceStake.mockReturnValue({ memo: first.memo.toString(), amount: '10' });
+    mocks.anonymousGovernance.claimOrRefreshNeuronFromAccount
+      .mockRejectedValueOnce(
+        new UnrecognizedTypeError(
+          'Unrecognized ClaimOrRefresh error in {"command":[{"Error":{"error_type":14}}]}',
+        ),
+      )
+      .mockResolvedValueOnce(42n);
+
+    await act(() => result.current.mutateAsync());
+
+    const second = mocks.deviceLedger.transfer.mock.calls[1][0];
+    expect(second.memo).not.toBe(first.memo);
+    expect(second.createdAt).not.toBe(first.createdAt);
+    expect(mocks.anonymousGovernance.claimOrRefreshNeuronFromAccount).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ memo: first.memo }),
+    );
+    expect(result.current.currentStep).toBe(StakingWizardCreateNeuronStep.Done);
   });
 
   it('treats a duplicate transfer as done, so a retry after a late device signature claims the neuron', async () => {

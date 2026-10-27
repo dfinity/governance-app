@@ -1,3 +1,4 @@
+import { TransferError } from '@icp-sdk/canisters/ledger/icp';
 import {
   CouldNotClaimNeuronError,
   type NeuronInfo,
@@ -24,6 +25,7 @@ import { useIcpLedger } from '@hooks/icpLedger';
 import { useDeviceAction } from '@hooks/useDeviceAction';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { bigIntMul } from '@utils/bigInt';
+import { isCertifiedRejectError } from '@utils/errors';
 import { duplicateTransferOf } from '@utils/errors/duplicateTransfer';
 import { formatDissolveDelay } from '@utils/neuron';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
@@ -225,7 +227,19 @@ export function useCreateNeuron(params: Props) {
                   description: t(($) => $.stakeWizardModal.ledgerDevice.approve.transfer),
                   detail: t(($) => $.common.inIcp, { value: params.amount }),
                 },
-              );
+              ).catch((error: unknown) => {
+                // The ledger rejected this transfer, for example as too old. The retry starts
+                // over: it claims the recorded memo first, in case an earlier attempt was
+                // signed late, then transfers with a new memo and a new createdAt.
+                if (
+                  (error instanceof Error && isCertifiedRejectError(error)) ||
+                  error instanceof TransferError
+                ) {
+                  setStoredCreatedAt(null);
+                  setStoredMemo(null);
+                }
+                throw error;
+              });
               setIsTransferDone(true);
             }
 

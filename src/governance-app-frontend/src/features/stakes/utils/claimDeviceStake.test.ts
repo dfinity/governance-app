@@ -33,17 +33,17 @@ describe('claimDeviceStake', () => {
   it('answers no neuron when the sub-account holds not enough funds', async () => {
     mocks.claimOrRefreshNeuronFromAccount.mockRejectedValue(
       new UnrecognizedTypeError(
-        'Unrecognized ClaimOrRefresh error in {"command":[{"Error":{"error_message":"not enough funds","error_type":10}}]}',
+        'Unrecognized ClaimOrRefresh error in {"command":[{"Error":{"error_message":"not enough funds","error_type":14}}]}',
       ),
     );
 
     await expect(claimDeviceStake({ controller, memo: 7n })).resolves.toBeUndefined();
   });
 
-  it('throws on another governance error: the sub-account may still hold the ICP', async () => {
+  it('throws on another governance error, resources exhausted included: the sub-account may still hold the ICP', async () => {
     mocks.claimOrRefreshNeuronFromAccount.mockRejectedValue(
       new UnrecognizedTypeError(
-        'Unrecognized ClaimOrRefresh error in {"command":[{"Error":{"error_message":"unavailable","error_type":5}}]}',
+        'Unrecognized ClaimOrRefresh error in {"command":[{"Error":{"error_message":"resources exhausted","error_type":10}}]}',
       ),
     );
 

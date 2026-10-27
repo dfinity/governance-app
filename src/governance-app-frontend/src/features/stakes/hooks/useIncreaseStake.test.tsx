@@ -35,11 +35,11 @@ vi.mock('@common/canisters', () => ({
 vi.mock('@common/ledger/deviceQueue', () => ({ runOnDevice: mocks.runOnDevice }));
 
 // An in-memory record of the top-ups whose refresh is pending (the storage of the app).
-const pendingTopUps = new Map<string, { neuronId: string; amount: string }>();
+type Pending = { neuronId: string; amount: string; createdAt: string; transferred: boolean };
+const pendingTopUps = new Map<string, Pending>();
 vi.mock('../utils/pendingDeviceTopUp', () => ({
   readPendingDeviceTopUp: (key: string) => pendingTopUps.get(key),
-  writePendingDeviceTopUp: (key: string, pending: { neuronId: string; amount: string }) =>
-    pendingTopUps.set(key, pending),
+  writePendingDeviceTopUp: (key: string, pending: Pending) => pendingTopUps.set(key, pending),
   clearPendingDeviceTopUp: (key: string) => pendingTopUps.delete(key),
 }));
 // A clock that moves on every call, so two attempts never share a createdAt by accident.
@@ -206,8 +206,17 @@ describe('useIncreaseStake', () => {
       act(() => result.current.mutateAsync({ ...params, amount: 13, signer: DEVICE_SIGNER })),
     ).rejects.toThrow('dropped');
 
-    expect([...pendingTopUps.values()]).toEqual([{ neuronId: '42', amount: '13' }]);
+    expect([...pendingTopUps.values()]).toEqual([
+      { neuronId: '42', amount: '13', createdAt: expect.any(String), transferred: true },
+    ]);
+
+    // The recovery pass refreshed the neuron and forgot the record: the same top-up is a new
+    // transfer, not a duplicate of the done one.
+    const first = mocks.deviceLedger.transfer.mock.calls[0][0].createdAt;
     pendingTopUps.clear();
+    await act(() => result.current.mutateAsync({ ...params, amount: 13, signer: DEVICE_SIGNER }));
+    expect(mocks.deviceLedger.transfer).toHaveBeenCalledTimes(2);
+    expect(mocks.deviceLedger.transfer.mock.calls[1][0].createdAt).not.toBe(first);
   });
 
   it('forgets the createdAt of a device transfer that the ledger rejected', async () => {

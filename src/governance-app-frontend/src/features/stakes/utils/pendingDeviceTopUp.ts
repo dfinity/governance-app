@@ -1,14 +1,21 @@
 import { PENDING_DEVICE_TOP_UP_STORAGE_KEY } from '@constants/extra';
 
 /**
- * A top-up transfer that a Ledger device signed and whose neuron refresh did not succeed yet.
- * The refresh is anonymous and needs the neuron id only, so a later pass can run it.
+ * A top-up that a Ledger device was asked to sign. Until the transfer is confirmed, the record
+ * keeps the `createdAt` of the transaction: the device can sign a cancelled transfer late, and
+ * the same top-up sent again must be the same ledger transaction. Once the transfer went
+ * through, the record waits for the neuron refresh, which is anonymous and needs the neuron id
+ * only, so a later pass can run it.
  */
 export type PendingDeviceTopUp = {
   /** The neuron id, as a decimal string. */
   neuronId: string;
   /** The amount in ICP, as typed. */
   amount: string;
+  /** The `created_at_time` of the transfer, in nanoseconds, as a decimal string. */
+  createdAt: string;
+  /** True once the ledger confirmed the transfer. The refresh is still pending. */
+  transferred: boolean;
 };
 
 type Store = Record<string, PendingDeviceTopUp>;
