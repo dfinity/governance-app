@@ -55,6 +55,8 @@ export const useLedgerNeuronCall = () => {
             const canister = await getNnsGovernanceCanister({
               signer: { kind: 'ledger', principal },
             });
+            // A cancel during the connection must not start a signing request.
+            if (signal.aborted) throw new DeviceActionCancelledError();
             return call(canister);
           }),
         { description, detail },

@@ -133,6 +133,29 @@ describe('useLedgerNeuronCall', () => {
     });
   });
 
+  it('never starts the signing call when the cancel comes during the connection', async () => {
+    const { result } = renderCall();
+    const connection = deferred<{ stakeMaturity: () => Promise<void> }>();
+    mocks.getNnsGovernanceCanister.mockReturnValue(connection.promise);
+    const call = vi.fn();
+
+    let run!: Promise<void>;
+    act(() => {
+      run = result.current.run(call, OPTIONS);
+    });
+    await act(async () => {
+      cancelPendingDeviceAction();
+      await expect(run).rejects.toBeInstanceOf(DeviceActionCancelledError);
+    });
+
+    await act(async () => {
+      connection.resolve({ stakeMaturity: vi.fn() });
+      await connection.promise;
+    });
+    expect(mocks.getNnsGovernanceCanister).toHaveBeenCalledTimes(1);
+    expect(call).not.toHaveBeenCalled();
+  });
+
   it('forwards a device error and reports its code', async () => {
     const { result } = renderCall();
     const call = vi.fn().mockRejectedValue(new LedgerDeviceError(LedgerErrorCode.UserRejected));
