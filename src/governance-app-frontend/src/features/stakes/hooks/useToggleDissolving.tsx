@@ -45,30 +45,38 @@ export function useToggleDissolving() {
           ? canister.startDissolving(params.neuronId)
           : canister.stopDissolving(params.neuronId);
 
+      const refresh = () =>
+        queryClient
+          .invalidateQueries({
+            queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
+          })
+          .catch(failedRefresh);
+
       if (signer.kind === 'ledger') {
-        await runLedgerCall(toggleDissolving, {
-          principal: signer.principal,
-          action: params.startDissolving ? 'start_dissolving' : 'stop_dissolving',
-          description: params.startDissolving
-            ? t(($) => $.common.ledgerApproval.startDissolving)
-            : t(($) => $.common.ledgerApproval.stopDissolving),
-          detail: (
-            <DeviceActionDetail
-              lines={[
-                t(($) => $.common.ledgerApproval.neuron, { neuronId: String(params.neuronId) }),
-              ]}
-            />
-          ),
-        });
+        await runLedgerCall(
+          async (canister) => {
+            await toggleDissolving(canister);
+            await refresh();
+          },
+          {
+            principal: signer.principal,
+            action: params.startDissolving ? 'start_dissolving' : 'stop_dissolving',
+            description: params.startDissolving
+              ? t(($) => $.common.ledgerApproval.startDissolving)
+              : t(($) => $.common.ledgerApproval.stopDissolving),
+            detail: (
+              <DeviceActionDetail
+                lines={[
+                  t(($) => $.common.ledgerApproval.neuron, { neuronId: String(params.neuronId) }),
+                ]}
+              />
+            ),
+          },
+        );
       } else {
         await toggleDissolving(governanceCanister);
+        await refresh();
       }
-
-      await queryClient
-        .invalidateQueries({
-          queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
-        })
-        .catch(failedRefresh);
     },
     onSuccess: (_, params) => {
       analytics.event(AnalyticsEvent.NeuronToggleDissolving, {

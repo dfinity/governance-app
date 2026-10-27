@@ -52,34 +52,42 @@ export function useIncreaseDelay() {
           additionalDissolveDelaySeconds: additional,
         });
 
+      const refresh = () =>
+        queryClient
+          .invalidateQueries({
+            queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
+          })
+          .catch(failedRefresh);
+
       if (signer.kind === 'ledger') {
-        await runLedgerCall(increaseDelay, {
-          principal: signer.principal,
-          action: 'increase_delay',
-          description: t(($) => $.common.ledgerApproval.increaseDelay),
-          detail: (
-            <DeviceActionDetail
-              lines={[
-                t(($) => $.common.ledgerApproval.neuron, { neuronId: String(params.neuronId) }),
-                t(($) => $.common.ledgerApproval.additionalDelay, {
-                  delay: formatDissolveDelay({
-                    seconds: BigInt(additional),
-                    i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
+        await runLedgerCall(
+          async (canister) => {
+            await increaseDelay(canister);
+            await refresh();
+          },
+          {
+            principal: signer.principal,
+            action: 'increase_delay',
+            description: t(($) => $.common.ledgerApproval.increaseDelay),
+            detail: (
+              <DeviceActionDetail
+                lines={[
+                  t(($) => $.common.ledgerApproval.neuron, { neuronId: String(params.neuronId) }),
+                  t(($) => $.common.ledgerApproval.additionalDelay, {
+                    delay: formatDissolveDelay({
+                      seconds: BigInt(additional),
+                      i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
+                    }),
                   }),
-                }),
-              ]}
-            />
-          ),
-        });
+                ]}
+              />
+            ),
+          },
+        );
       } else {
         await increaseDelay(governanceCanister);
+        await refresh();
       }
-
-      await queryClient
-        .invalidateQueries({
-          queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
-        })
-        .catch(failedRefresh);
     },
     onSuccess: (_, params) => {
       analytics.event(AnalyticsEvent.NeuronIncreaseDelay, {

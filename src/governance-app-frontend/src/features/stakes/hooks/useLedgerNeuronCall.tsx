@@ -5,7 +5,11 @@ import { AnalyticsEvent } from '@features/analytics/events';
 import { getErrorReason } from '@features/analytics/properties';
 import { analytics } from '@features/analytics/service';
 
-import { DeviceActionCancelledError, useDeviceAction } from '@hooks/useDeviceAction';
+import {
+  DeviceActionCancelledError,
+  isDeviceActionCancelled,
+  useDeviceAction,
+} from '@hooks/useDeviceAction';
 import { getNnsGovernanceCanister } from '@common/canisters';
 import { runOnDevice } from '@common/ledger/deviceQueue';
 
@@ -35,9 +39,11 @@ export type LedgerNeuronCallOptions = {
  * Runs one governance call that a Ledger device signs.
  *
  * The call waits for the pending calls to the same device, then runs behind the "Approve on
- * your Ledger device" dialog. A cancel on the dialog rejects with `DeviceActionCancelledError`
- * before the device is asked; a cancel while the device shows the request drops the late
- * result. One analytics event reports the outcome.
+ * your Ledger device" dialog. A cancel on the dialog rejects with `DeviceActionCancelledError`.
+ * When the device already shows the request, the rejection waits for the call to settle: the
+ * caller stays pending, so no second request starts, and a late approval still runs the whole
+ * call (`call` must include the refresh that follows the governance update). One analytics
+ * event reports the outcome.
  */
 export const useLedgerNeuronCall = () => {
   const runDeviceAction = useDeviceAction();
@@ -46,28 +52,42 @@ export const useLedgerNeuronCall = () => {
     call: (canister: NnsGovernanceCanister) => Promise<T>,
     { principal, action, description, detail }: LedgerNeuronCallOptions,
   ): Promise<T> => {
+    let queued: Promise<T> | undefined;
+    const start = (signal: AbortSignal) => {
+      queued = runOnDevice(principal, async () => {
+        // A cancelled call that waited in the queue must not prompt the device.
+        if (signal.aborted) throw new DeviceActionCancelledError();
+        const canister = await getNnsGovernanceCanister({
+          signer: { kind: 'ledger', principal },
+        });
+        // A cancel during the connection must not start a signing request.
+        if (signal.aborted) throw new DeviceActionCancelledError();
+        return call(canister);
+      });
+      return queued;
+    };
+
     try {
-      const result = await runDeviceAction(
-        (signal) =>
-          runOnDevice(principal, async () => {
-            // A cancelled call that waited in the queue must not prompt the device.
-            if (signal.aborted) throw new DeviceActionCancelledError();
-            const canister = await getNnsGovernanceCanister({
-              signer: { kind: 'ledger', principal },
-            });
-            // A cancel during the connection must not start a signing request.
-            if (signal.aborted) throw new DeviceActionCancelledError();
-            return call(canister);
-          }),
-        { description, detail },
-      );
+      const result = await runDeviceAction(start, { description, detail });
       analytics.event(AnalyticsEvent.LedgerDeviceAction, { action });
       return result;
     } catch (error) {
-      analytics.event(AnalyticsEvent.LedgerDeviceActionError, {
-        action,
-        reason: getErrorReason(error),
-      });
+      // The dialog is closed, but the device may still sign the request.
+      const signedLate =
+        isDeviceActionCancelled(error) && queued
+          ? await queued.then(
+              () => true,
+              () => false,
+            )
+          : false;
+      if (signedLate) {
+        analytics.event(AnalyticsEvent.LedgerDeviceAction, { action });
+      } else {
+        analytics.event(AnalyticsEvent.LedgerDeviceActionError, {
+          action,
+          reason: getErrorReason(error),
+        });
+      }
       throw error;
     }
   };

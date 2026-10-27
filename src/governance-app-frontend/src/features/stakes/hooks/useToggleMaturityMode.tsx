@@ -46,31 +46,39 @@ export function useToggleMaturityMode() {
           autoStake: params.autoStake,
         });
 
+      const refresh = () =>
+        queryClient
+          .invalidateQueries({
+            queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
+          })
+          .catch(failedRefresh);
+
       if (signer.kind === 'ledger') {
-        await runLedgerCall(setMaturityMode, {
-          principal: signer.principal,
-          action: 'set_maturity_mode',
-          description: t(($) => $.common.ledgerApproval.maturityMode),
-          detail: (
-            <DeviceActionDetail
-              lines={[
-                t(($) => $.common.ledgerApproval.neuron, { neuronId: String(params.neuronId) }),
-                params.autoStake
-                  ? t(($) => $.common.ledgerApproval.autoStakeOn)
-                  : t(($) => $.common.ledgerApproval.autoStakeOff),
-              ]}
-            />
-          ),
-        });
+        await runLedgerCall(
+          async (canister) => {
+            await setMaturityMode(canister);
+            await refresh();
+          },
+          {
+            principal: signer.principal,
+            action: 'set_maturity_mode',
+            description: t(($) => $.common.ledgerApproval.maturityMode),
+            detail: (
+              <DeviceActionDetail
+                lines={[
+                  t(($) => $.common.ledgerApproval.neuron, { neuronId: String(params.neuronId) }),
+                  params.autoStake
+                    ? t(($) => $.common.ledgerApproval.autoStakeOn)
+                    : t(($) => $.common.ledgerApproval.autoStakeOff),
+                ]}
+              />
+            ),
+          },
+        );
       } else {
         await setMaturityMode(governanceCanister);
+        await refresh();
       }
-
-      await queryClient
-        .invalidateQueries({
-          queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
-        })
-        .catch(failedRefresh);
     },
     onSuccess: (_, params) => {
       analytics.event(AnalyticsEvent.NeuronSetMaturityMode, {

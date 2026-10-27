@@ -118,8 +118,8 @@ export const useVoting = (proposal: ProposalInfo) => {
           },
         );
 
-      // The device votes start after the session votes and run one by one. A cancel stops
-      // the ones left; the refresh below still shows the votes already cast.
+      // The device votes start after the session votes and run one by one. A cancel or a
+      // device error stops the ones left.
       const votingPromise = Promise.all(promises).then(async (results) => {
         for (const deviceVote of deviceVotes) {
           await voteWithDevice(deviceVote);
@@ -155,8 +155,8 @@ export const useVoting = (proposal: ProposalInfo) => {
           return res;
         },
         async (error: unknown) => {
-          // A cancelled device vote leaves the votes cast before it in place.
-          if (isDeviceActionCancelled(error)) await refresh();
+          // The votes cast before the failure stay in place, so the ballots refresh too.
+          await refresh();
           throw error;
         },
       );

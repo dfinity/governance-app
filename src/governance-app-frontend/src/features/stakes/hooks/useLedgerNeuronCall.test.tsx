@@ -116,14 +116,12 @@ describe('useLedgerNeuronCall', () => {
     act(() => {
       run = result.current.run(call, OPTIONS);
     });
-    await act(async () => {
-      cancelPendingDeviceAction();
-      await expect(run).rejects.toBeInstanceOf(DeviceActionCancelledError);
-    });
+    act(() => cancelPendingDeviceAction());
+    expect(result.current.pending).toBeNull();
 
     await act(async () => {
       turn.resolve();
-      await turn.promise;
+      await expect(run).rejects.toBeInstanceOf(DeviceActionCancelledError);
     });
     expect(mocks.getNnsGovernanceCanister).not.toHaveBeenCalled();
     expect(call).not.toHaveBeenCalled();
@@ -143,17 +141,76 @@ describe('useLedgerNeuronCall', () => {
     act(() => {
       run = result.current.run(call, OPTIONS);
     });
-    await act(async () => {
-      cancelPendingDeviceAction();
-      await expect(run).rejects.toBeInstanceOf(DeviceActionCancelledError);
-    });
+    act(() => cancelPendingDeviceAction());
 
     await act(async () => {
       connection.resolve({ stakeMaturity: vi.fn() });
-      await connection.promise;
+      await expect(run).rejects.toBeInstanceOf(DeviceActionCancelledError);
     });
     expect(mocks.getNnsGovernanceCanister).toHaveBeenCalledTimes(1);
     expect(call).not.toHaveBeenCalled();
+  });
+
+  it('stays pending after a cancel until the device answers, and reports a late approval', async () => {
+    const { result } = renderCall();
+    const signing = deferred<void>();
+    const call = vi.fn().mockReturnValue(signing.promise);
+
+    let run!: Promise<void>;
+    act(() => {
+      run = result.current.run(call, OPTIONS);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    act(() => cancelPendingDeviceAction());
+    expect(result.current.pending).toBeNull();
+
+    // The caller waits for the device call, so no second request can start.
+    const settled = await Promise.race([
+      run.then(
+        () => true,
+        () => true,
+      ),
+      Promise.resolve(false),
+    ]);
+    expect(settled).toBe(false);
+
+    await act(async () => {
+      signing.resolve();
+      await expect(run).rejects.toBeInstanceOf(DeviceActionCancelledError);
+    });
+    expect(mocks.event).toHaveBeenCalledWith(AnalyticsEvent.LedgerDeviceAction, {
+      action: 'stake_maturity',
+    });
+    expect(mocks.event).not.toHaveBeenCalledWith(
+      AnalyticsEvent.LedgerDeviceActionError,
+      expect.anything(),
+    );
+  });
+
+  it('reports the cancel when the device rejects the request after the cancel', async () => {
+    const { result } = renderCall();
+    const signing = deferred<void>();
+    const call = vi.fn().mockReturnValue(signing.promise);
+
+    let run!: Promise<void>;
+    act(() => {
+      run = result.current.run(call, OPTIONS);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    act(() => cancelPendingDeviceAction());
+
+    await act(async () => {
+      signing.reject(new LedgerDeviceError(LedgerErrorCode.UserRejected));
+      await expect(run).rejects.toBeInstanceOf(DeviceActionCancelledError);
+    });
+    expect(mocks.event).toHaveBeenCalledWith(AnalyticsEvent.LedgerDeviceActionError, {
+      action: 'stake_maturity',
+      reason: 'cancelled',
+    });
   });
 
   it('forwards a device error and reports its code', async () => {

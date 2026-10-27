@@ -240,6 +240,14 @@ describe('useVoting', () => {
 
     await waitFor(() => expect(mocks.deviceRegisterVote).toHaveBeenCalledTimes(1));
     act(() => cancelPendingDeviceAction());
+    expect(result.current.pending).toBeNull();
+
+    // The vote stays pending until the device answers the request it still shows.
+    expect(result.current.voting.isVoting).toBe(true);
+    await act(async () => {
+      first.resolve();
+      await first.promise;
+    });
 
     await waitFor(() => expect(result.current.voting.isVoting).toBe(false));
     expect(mocks.registerVote).toHaveBeenCalledTimes(1);
@@ -252,12 +260,22 @@ describe('useVoting', () => {
     await expect(mocks.toastPromise.mock.calls[0][0]).rejects.toThrow(
       'The device action was cancelled.',
     );
+  });
 
-    // The late device result changes nothing.
-    await act(async () => {
-      first.resolve();
-      await first.promise;
-    });
+  it('refreshes the votes already cast when a device vote fails', async () => {
+    mocks.neurons.mockReturnValue([sessionNeuron(1n), deviceNeuron(2n), deviceNeuron(3n)]);
+    mocks.ledgerPrincipals.mockReturnValue([DEVICE]);
+    mocks.deviceRegisterVote.mockRejectedValueOnce(new Error('rejected on the device'));
+    const { result, invalidateQueries } = renderVoting(proposalWith([1n, 2n, 3n]));
+
+    act(() => result.current.voting.vote(Vote.Yes));
+
+    await waitFor(() => expect(result.current.voting.isVoting).toBe(false));
+    expect(mocks.registerVote).toHaveBeenCalledTimes(1);
     expect(mocks.deviceRegisterVote).toHaveBeenCalledTimes(1);
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS],
+    });
+    await expect(mocks.toastPromise.mock.calls[0][0]).rejects.toThrow('rejected on the device');
   });
 });

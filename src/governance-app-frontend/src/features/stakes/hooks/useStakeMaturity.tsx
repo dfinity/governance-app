@@ -48,29 +48,37 @@ export function useStakeMaturity() {
           percentageToStake: PERCENTAGE_TO_STAKE,
         });
 
+      const refresh = () =>
+        queryClient
+          .invalidateQueries({
+            queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
+          })
+          .catch(failedRefresh);
+
       if (signer.kind === 'ledger') {
-        await runLedgerCall(stakeMaturity, {
-          principal: signer.principal,
-          action: 'stake_maturity',
-          description: t(($) => $.common.ledgerApproval.stakeMaturity),
-          detail: (
-            <DeviceActionDetail
-              lines={[
-                t(($) => $.common.ledgerApproval.neuron, { neuronId: String(params.neuronId) }),
-                t(($) => $.common.ledgerApproval.percentage, { value: PERCENTAGE_TO_STAKE }),
-              ]}
-            />
-          ),
-        });
+        await runLedgerCall(
+          async (canister) => {
+            await stakeMaturity(canister);
+            await refresh();
+          },
+          {
+            principal: signer.principal,
+            action: 'stake_maturity',
+            description: t(($) => $.common.ledgerApproval.stakeMaturity),
+            detail: (
+              <DeviceActionDetail
+                lines={[
+                  t(($) => $.common.ledgerApproval.neuron, { neuronId: String(params.neuronId) }),
+                  t(($) => $.common.ledgerApproval.percentage, { value: PERCENTAGE_TO_STAKE }),
+                ]}
+              />
+            ),
+          },
+        );
       } else {
         await stakeMaturity(governanceCanister);
+        await refresh();
       }
-
-      await queryClient
-        .invalidateQueries({
-          queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
-        })
-        .catch(failedRefresh);
     },
     onSuccess: () => {
       analytics.event(AnalyticsEvent.NeuronStakeMaturity);

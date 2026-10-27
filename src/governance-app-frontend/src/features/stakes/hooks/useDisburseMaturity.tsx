@@ -1,4 +1,5 @@
 import { AccountIdentifier, SubAccount } from '@icp-sdk/canisters/ledger/icp';
+import { encodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
 import type { NnsGovernanceCanister } from '@icp-sdk/canisters/nns';
 import { Principal } from '@icp-sdk/core/principal';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -41,9 +42,14 @@ const resolveDestinationAccountId = (destination: DisburseMaturityDestination): 
   return AccountIdentifier.fromPrincipal({ principal: destination.owner, subAccount }).toHex();
 };
 
-// The destination as the device shows it: the account identifier, or the ICRC-1 owner.
+// The destination as the device shows it: the account identifier, or the ICRC-1 account.
 const formatDestination = (destination: DisburseMaturityDestination): string =>
-  destination.kind === 'icp' ? destination.accountIdentifier : destination.owner.toText();
+  destination.kind === 'icp'
+    ? destination.accountIdentifier
+    : encodeIcrcAccount({
+        owner: destination.owner,
+        subaccount: normalizeIcrcSubaccount(destination.subaccount),
+      });
 
 /**
  * Hook to disburse maturity from a neuron.
@@ -91,35 +97,44 @@ export function useDisburseMaturity() {
         });
       };
 
+      const refresh = () =>
+        Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: [
+              QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE,
+              resolveDestinationAccountId(destination),
+            ],
+          }),
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] }),
+        ]).catch(failedRefresh);
+
       if (signer.kind === 'ledger') {
-        await runLedgerCall(disburseMaturity, {
-          principal: signer.principal,
-          action: 'disburse_maturity',
-          description: t(($) => $.common.ledgerApproval.disburseMaturity),
-          detail: (
-            <DeviceActionDetail
-              lines={[
-                t(($) => $.common.ledgerApproval.neuron, { neuronId: String(params.neuronId) }),
-                t(($) => $.common.ledgerApproval.percentage, { value: percentageToDisburse }),
-                t(($) => $.common.ledgerApproval.destination, {
-                  destination: formatDestination(destination),
-                }),
-              ]}
-            />
-          ),
-        });
+        await runLedgerCall(
+          async (canister) => {
+            await disburseMaturity(canister);
+            await refresh();
+          },
+          {
+            principal: signer.principal,
+            action: 'disburse_maturity',
+            description: t(($) => $.common.ledgerApproval.disburseMaturity),
+            detail: (
+              <DeviceActionDetail
+                lines={[
+                  t(($) => $.common.ledgerApproval.neuron, { neuronId: String(params.neuronId) }),
+                  t(($) => $.common.ledgerApproval.percentage, { value: percentageToDisburse }),
+                  t(($) => $.common.ledgerApproval.destination, {
+                    destination: formatDestination(destination),
+                  }),
+                ]}
+              />
+            ),
+          },
+        );
       } else {
         await disburseMaturity(governanceCanister);
+        await refresh();
       }
-
-      const destinationAccountId = resolveDestinationAccountId(destination);
-
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE, destinationAccountId],
-        }),
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] }),
-      ]).catch(failedRefresh);
     },
     onSuccess: (_, params) => {
       analytics.event(AnalyticsEvent.NeuronDisburseMaturity, {

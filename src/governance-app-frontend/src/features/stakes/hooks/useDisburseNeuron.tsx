@@ -45,30 +45,40 @@ export function useDisburseNeuron() {
           toAccountId: params.toAccountId,
         });
 
+      const refresh = () =>
+        Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE, params.toAccountId],
+          }),
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] }),
+        ]).catch(failedRefresh);
+
       if (signer.kind === 'ledger') {
-        await runLedgerCall(disburse, {
-          principal: signer.principal,
-          action: 'disburse',
-          description: t(($) => $.common.ledgerApproval.disburse),
-          detail: (
-            <DeviceActionDetail
-              lines={[
-                t(($) => $.common.ledgerApproval.neuron, { neuronId: String(params.neuronId) }),
-                t(($) => $.common.ledgerApproval.destination, { destination: params.toAccountId }),
-              ]}
-            />
-          ),
-        });
+        await runLedgerCall(
+          async (canister) => {
+            await disburse(canister);
+            await refresh();
+          },
+          {
+            principal: signer.principal,
+            action: 'disburse',
+            description: t(($) => $.common.ledgerApproval.disburse),
+            detail: (
+              <DeviceActionDetail
+                lines={[
+                  t(($) => $.common.ledgerApproval.neuron, { neuronId: String(params.neuronId) }),
+                  t(($) => $.common.ledgerApproval.destination, {
+                    destination: params.toAccountId,
+                  }),
+                ]}
+              />
+            ),
+          },
+        );
       } else {
         await disburse(governanceCanister);
+        await refresh();
       }
-
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.ICP_LEDGER.ACCOUNT_BALANCE, params.toAccountId],
-        }),
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS] }),
-      ]).catch(failedRefresh);
     },
     onSuccess: () => {
       analytics.event(AnalyticsEvent.NeuronDisburse);

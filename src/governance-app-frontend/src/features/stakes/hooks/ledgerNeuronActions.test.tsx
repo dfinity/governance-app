@@ -1,5 +1,6 @@
 import '@/i18n/config';
 
+import { encodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
 import { Principal } from '@icp-sdk/core/principal';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, renderHook, screen } from '@testing-library/react';
@@ -8,7 +9,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AnalyticsEvent } from '@features/analytics/events';
 
-import { usePendingDeviceAction } from '@hooks/useDeviceAction';
+import { cancelPendingDeviceAction, usePendingDeviceAction } from '@hooks/useDeviceAction';
 import { QUERY_KEYS } from '@utils/query';
 import type { Signer } from '@common/ledger/signer';
 
@@ -71,6 +72,7 @@ const DEVICE_SIGNER: Signer = { kind: 'ledger', principal: DEVICE };
 const NEURON_ID = 7n;
 const ACCOUNT = 'd3e13d4777e22367532053190b6c6ccf57444a61337e996242b1abfb52cf92c8';
 const OWNER = Principal.fromText('rrkah-fqaaa-aaaaa-aaaaq-cai');
+const SUBACCOUNT = Uint8Array.from({ length: 32 }, (_, i) => (i === 31 ? 7 : 0));
 
 type Method = keyof typeof mocks.sessionCanister;
 
@@ -233,6 +235,31 @@ const CASES: Case[] = [
     action: 'disburse_maturity',
     detail: ['Neuron 7', 'Percentage: 100%', `To: ${OWNER.toText()}`],
   },
+  {
+    name: 'useDisburseMaturity (ICRC-1 subaccount)',
+    setup: () => {
+      const result = renderWithClient(useDisburseMaturity);
+      return (signer) =>
+        result.current.mutateAsync({
+          neuronId: NEURON_ID,
+          destination: { kind: 'icrc1', owner: OWNER, subaccount: SUBACCOUNT },
+          percentageToDisburse: 25,
+          signer,
+        });
+    },
+    method: 'disburseMaturity',
+    args: {
+      neuronId: NEURON_ID,
+      percentageToDisburse: 25,
+      toAccount: { owner: OWNER, subaccount: Array.from(SUBACCOUNT) },
+    },
+    action: 'disburse_maturity',
+    detail: [
+      'Neuron 7',
+      'Percentage: 25%',
+      `To: ${encodeIcrcAccount({ owner: OWNER, subaccount: SUBACCOUNT })}`,
+    ],
+  },
 ];
 
 describe.each(CASES)('$name', ({ setup, method, args, action, detail }) => {
@@ -280,6 +307,35 @@ describe.each(CASES)('$name', ({ setup, method, args, action, detail }) => {
     expect(dialog).not.toBeNull();
     render(<>{dialog!.detail}</>);
     for (const line of detail) expect(screen.getByText(line)).toBeTruthy();
+  });
+
+  it('stays pending after a cancel and refreshes on a late approval', async () => {
+    const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries');
+    let approve!: () => void;
+    mocks.deviceCanister[method].mockReturnValue(
+      new Promise<void>((resolve) => {
+        approve = resolve;
+      }),
+    );
+    const mutate = setup();
+
+    let run!: Promise<unknown>;
+    act(() => {
+      run = mutate(DEVICE_SIGNER);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    act(() => cancelPendingDeviceAction());
+    expect(invalidateQueries).not.toHaveBeenCalled();
+
+    await act(async () => {
+      approve();
+      await expect(run).rejects.toThrow('The device action was cancelled.');
+    });
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
+    });
   });
 
   it('rejects when the device call fails and refreshes nothing', async () => {
