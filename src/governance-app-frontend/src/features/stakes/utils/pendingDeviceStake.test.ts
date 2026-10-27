@@ -46,12 +46,20 @@ describe('pendingDeviceStake', () => {
     writePendingDeviceStake(DEVICE, { memo: '7', amount: '10' });
     writePendingDeviceStake(OTHER, { memo: '8', amount: '2' });
 
-    clearPendingDeviceStake(DEVICE);
+    clearPendingDeviceStake(DEVICE, '7');
     expect(readPendingDeviceStake(DEVICE)).toBeUndefined();
     expect(readPendingDeviceStake(OTHER)).toEqual({ memo: '8', amount: '2' });
 
-    clearPendingDeviceStake(OTHER);
+    clearPendingDeviceStake(OTHER, '8');
     expect(storage.items.has(PENDING_DEVICE_STAKE_STORAGE_KEY)).toBe(false);
+  });
+
+  it('keeps a newer record of the device when the cleared memo is another one', () => {
+    writePendingDeviceStake(DEVICE, { memo: '9', amount: '3' });
+
+    clearPendingDeviceStake(DEVICE, '7');
+
+    expect(readPendingDeviceStake(DEVICE)).toEqual({ memo: '9', amount: '3' });
   });
 
   it('ignores a broken value', () => {

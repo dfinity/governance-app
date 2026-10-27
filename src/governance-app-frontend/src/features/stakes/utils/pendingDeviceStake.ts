@@ -47,8 +47,10 @@ export const readPendingDeviceStake = (principal: string): PendingDeviceStake | 
 export const writePendingDeviceStake = (principal: string, pending: PendingDeviceStake): void =>
   writeStore({ ...readStore(), [principal]: pending });
 
-export const clearPendingDeviceStake = (principal: string): void => {
+/** Forgets the record of the device when it holds this memo. A newer record stays. */
+export const clearPendingDeviceStake = (principal: string, memo: string): void => {
   const store = readStore();
+  if (store[principal]?.memo !== memo) return;
   delete store[principal];
   writeStore(store);
 };

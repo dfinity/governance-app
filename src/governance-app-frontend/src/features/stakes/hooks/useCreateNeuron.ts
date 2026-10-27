@@ -180,7 +180,7 @@ export function useCreateNeuron(params: Props) {
             const recoveredId = await runOnDevice(signer.principal, () =>
               claim(BigInt(pending.memo)),
             );
-            clearPendingDeviceStake(signer.principal);
+            clearPendingDeviceStake(signer.principal, pending.memo);
             if (nonNullish(recoveredId)) {
               neuronId = recoveredId;
               setRecoveredAmount(pending.amount);
@@ -231,7 +231,7 @@ export function useCreateNeuron(params: Props) {
 
             neuronId = (await claim(memo)) ?? null;
             if (isNullish(neuronId)) throw new CouldNotClaimNeuronError();
-            clearPendingDeviceStake(signer.principal);
+            clearPendingDeviceStake(signer.principal, memo.toString());
             setIsTransferDone(false);
           }
           step = StakingWizardCreateNeuronStep.AddHotkey;

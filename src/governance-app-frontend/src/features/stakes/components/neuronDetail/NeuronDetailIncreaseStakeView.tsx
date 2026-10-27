@@ -28,6 +28,7 @@ import { getNeuronStakeAfterFeesE8s } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
 import { roundToE8sPrecision } from '@utils/numbers';
 
+import { useClaimPendingDeviceStakes } from '../../hooks/useClaimPendingDeviceStakes';
 import { useIncreaseStake } from '../../hooks/useIncreaseStake';
 
 type Props = {
@@ -66,6 +67,8 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
   const accountIdentifier = neuron.fullNeuron?.accountIdentifier;
 
   const { mutateAsync, isPending } = useIncreaseStake();
+  // A device top-up whose refresh failed in an earlier view: refresh it now, no balance needed.
+  useClaimPendingDeviceStakes();
 
   const handleAccountChange = (accountId: string) => {
     setSelectedAccountId(accountId);

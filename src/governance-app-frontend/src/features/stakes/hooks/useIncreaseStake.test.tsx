@@ -33,6 +33,15 @@ vi.mock('@common/canisters', () => ({
   getAnonymousNnsGovernanceCanister: mocks.getAnonymousNnsGovernanceCanister,
 }));
 vi.mock('@common/ledger/deviceQueue', () => ({ runOnDevice: mocks.runOnDevice }));
+
+// An in-memory record of the top-ups whose refresh is pending (the storage of the app).
+const pendingTopUps = new Map<string, { neuronId: string; amount: string }>();
+vi.mock('../utils/pendingDeviceTopUp', () => ({
+  readPendingDeviceTopUp: (key: string) => pendingTopUps.get(key),
+  writePendingDeviceTopUp: (key: string, pending: { neuronId: string; amount: string }) =>
+    pendingTopUps.set(key, pending),
+  clearPendingDeviceTopUp: (key: string) => pendingTopUps.delete(key),
+}));
 // A clock that moves on every call, so two attempts never share a createdAt by accident.
 let clock = 0;
 vi.mock('@dfinity/utils', async (importOriginal) => ({
@@ -186,6 +195,19 @@ describe('useIncreaseStake', () => {
 
     expect(mocks.deviceLedger.transfer).toHaveBeenCalledTimes(1);
     expect(mocks.anonymousGovernance.claimOrRefreshNeuron).toHaveBeenCalledTimes(2);
+    expect(pendingTopUps.size).toBe(0);
+  });
+
+  it('records a done device transfer until its refresh, for a pass from another view', async () => {
+    mocks.anonymousGovernance.claimOrRefreshNeuron.mockRejectedValueOnce(new Error('dropped'));
+    const { result } = renderIncreaseStake();
+
+    await expect(
+      act(() => result.current.mutateAsync({ ...params, amount: 13, signer: DEVICE_SIGNER })),
+    ).rejects.toThrow('dropped');
+
+    expect([...pendingTopUps.values()]).toEqual([{ neuronId: '42', amount: '13' }]);
+    pendingTopUps.clear();
   });
 
   it('forgets the createdAt of a device transfer that the ledger rejected', async () => {

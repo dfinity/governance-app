@@ -44,15 +44,15 @@ export type SendIcpParams = {
 // payment sent again must be the same ledger transaction, not a second one.
 const deviceCreatedAt = new Map<string, bigint>();
 
-// The key holds the values the ledger sees, so "1" and "1.0" or the memos "7" and "007" are
-// one payment.
+// The key holds the values the ledger sees, so "1" and "1.0", the memos "7" and "007", an
+// absent ICP memo and "0", or a hex account in two cases are one payment.
 const deviceTransferKey = ({ toAccount, amount, fromSubAccount, memo, signer }: SendIcpParams) => {
   const isIcp = isValidIcpAddress(toAccount);
-  const memoKey = memo === undefined ? '' : isIcp ? encodeMemoToIcp(memo).toString() : memo;
+  const memoKey = isIcp ? encodeMemoToIcp(memo ?? '0').toString() : (memo ?? '');
 
   return [
     signer?.kind === 'ledger' ? signer.principal : '',
-    toAccount,
+    isIcp ? toAccount.toLowerCase() : toAccount,
     bigIntMul(E8Sn, Number(amount)).toString(),
     memoKey,
     fromSubAccount?.join(',') ?? '',

@@ -283,7 +283,7 @@ describe('useCreateNeuron', () => {
       memo,
     });
     expect(result.current.isTransferDone).toBe(false);
-    expect(mocks.clearPendingDeviceStake).toHaveBeenCalledWith(DEVICE_PRINCIPAL);
+    expect(mocks.clearPendingDeviceStake).toHaveBeenCalledWith(DEVICE_PRINCIPAL, memo.toString());
     expect(result.current.currentStep).toBe(StakingWizardCreateNeuronStep.Done);
   });
 
@@ -300,7 +300,7 @@ describe('useCreateNeuron', () => {
       memo: 77n,
     });
     expect(mocks.deviceLedger.transfer).not.toHaveBeenCalled();
-    expect(mocks.clearPendingDeviceStake).toHaveBeenCalledWith(DEVICE_PRINCIPAL);
+    expect(mocks.clearPendingDeviceStake).toHaveBeenCalledWith(DEVICE_PRINCIPAL, '77');
     expect(mocks.deviceGovernance.addHotkey).toHaveBeenCalledWith(
       expect.objectContaining({ neuronId: 99n }),
     );
@@ -314,7 +314,11 @@ describe('useCreateNeuron', () => {
     mocks.readPendingDeviceStake.mockReturnValue({ memo: '77', amount: '25' });
     // An empty sub-account answers with a governance error, not with an id.
     mocks.anonymousGovernance.claimOrRefreshNeuronFromAccount
-      .mockRejectedValueOnce(new UnrecognizedTypeError('Unrecognized ClaimOrRefresh error'))
+      .mockRejectedValueOnce(
+        new UnrecognizedTypeError(
+          'Unrecognized ClaimOrRefresh error in {"command":[{"Error":{"error_message":"not enough funds","error_type":10}}]}',
+        ),
+      )
       .mockResolvedValueOnce(42n);
     const { result } = renderCreateNeuron({ signer: DEVICE_SIGNER });
 

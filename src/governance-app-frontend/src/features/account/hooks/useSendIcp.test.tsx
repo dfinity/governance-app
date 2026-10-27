@@ -271,6 +271,28 @@ describe('useSendIcp', () => {
     expect(createdAts[0]).toBe(createdAts[1]);
   });
 
+  it('keys an ICP payment the same with the account in upper case and with no memo or "0"', async () => {
+    mocks.runDeviceAction.mockImplementationOnce(
+      async (action: (signal: AbortSignal) => Promise<unknown>) => {
+        await action(new AbortController().signal);
+        throw new DeviceActionCancelledError();
+      },
+    );
+    const { result } = renderSendIcp();
+    const base = { amount: '6', signer: DEVICE_SIGNER, analytics: analyticsParams };
+
+    await expect(
+      act(() => result.current.mutateAsync({ ...base, toAccount: ICP_ADDRESS })),
+    ).rejects.toBeInstanceOf(DeviceActionCancelledError);
+    await act(() =>
+      result.current.mutateAsync({ ...base, toAccount: ICP_ADDRESS.toUpperCase(), memo: '0' }),
+    );
+
+    const createdAts = mocks.deviceLedger.transfer.mock.calls.map(([args]) => args.createdAt);
+    expect(createdAts).toHaveLength(2);
+    expect(createdAts[0]).toBe(createdAts[1]);
+  });
+
   it('forgets the createdAt of a device transfer that the ICRC-1 ledger rejected', async () => {
     mocks.deviceLedger.icrc1Transfer.mockRejectedValueOnce(
       new IcrcTransferError({ errorType: { TooOld: null } }),

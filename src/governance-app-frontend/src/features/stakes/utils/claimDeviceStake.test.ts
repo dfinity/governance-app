@@ -30,12 +30,26 @@ describe('claimDeviceStake', () => {
     expect(mocks.claimOrRefreshNeuronFromAccount).toHaveBeenCalledWith({ controller, memo: 7n });
   });
 
-  it('answers no neuron when the canister answered with a governance error', async () => {
+  it('answers no neuron when the sub-account holds not enough funds', async () => {
     mocks.claimOrRefreshNeuronFromAccount.mockRejectedValue(
-      new UnrecognizedTypeError('Unrecognized ClaimOrRefresh error in {"command":[{"Error":{}}]}'),
+      new UnrecognizedTypeError(
+        'Unrecognized ClaimOrRefresh error in {"command":[{"Error":{"error_message":"not enough funds","error_type":10}}]}',
+      ),
     );
 
     await expect(claimDeviceStake({ controller, memo: 7n })).resolves.toBeUndefined();
+  });
+
+  it('throws on another governance error: the sub-account may still hold the ICP', async () => {
+    mocks.claimOrRefreshNeuronFromAccount.mockRejectedValue(
+      new UnrecognizedTypeError(
+        'Unrecognized ClaimOrRefresh error in {"command":[{"Error":{"error_message":"unavailable","error_type":5}}]}',
+      ),
+    );
+
+    await expect(claimDeviceStake({ controller, memo: 7n })).rejects.toBeInstanceOf(
+      UnrecognizedTypeError,
+    );
   });
 
   it('throws when the call failed', async () => {

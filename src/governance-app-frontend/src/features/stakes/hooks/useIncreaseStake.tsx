@@ -21,6 +21,12 @@ import { getAnonymousNnsGovernanceCanister, getIcpLedgerCanister } from '@common
 import { runOnDevice } from '@common/ledger/deviceQueue';
 import { II_SIGNER, type Signer } from '@common/ledger/signer';
 
+import {
+  clearPendingDeviceTopUp,
+  readPendingDeviceTopUp,
+  writePendingDeviceTopUp,
+} from '../utils/pendingDeviceTopUp';
+
 type IncreaseStakeParams = {
   neuronId: bigint;
   accountIdentifier: string;
@@ -35,9 +41,6 @@ type IncreaseStakeParams = {
 // forget it: the device can sign a cancelled transfer late, and the same top-up sent again
 // must be the same ledger transaction, not a second one.
 const deviceCreatedAt = new Map<string, bigint>();
-// The device top-ups whose transfer went through and whose refresh did not yet. A retry only
-// refreshes: the transfer must not run again once its createdAt is too old to be a duplicate.
-const deviceTransferDone = new Set<string>();
 
 const deviceTopUpKey = ({ signer, accountIdentifier, amount }: IncreaseStakeParams) =>
   [
@@ -85,8 +88,9 @@ export function useIncreaseStake() {
       else createdAtRef.current = createdAt;
 
       if (signer.kind === 'ledger') {
-        // Step 1: the device signs the transfer to the neuron's account identifier.
-        if (!deviceTransferDone.has(key)) {
+        // Step 1: the device signs the transfer to the neuron's account identifier. A top-up
+        // whose transfer went through retries the refresh only, from any view or session.
+        if (readPendingDeviceTopUp(key) === undefined) {
           await runDeviceAction(
             (signal) =>
               runOnDevice(signer.principal, async () => {
@@ -127,7 +131,10 @@ export function useIncreaseStake() {
             }
             throw error;
           });
-          deviceTransferDone.add(key);
+          writePendingDeviceTopUp(key, {
+            neuronId: params.neuronId.toString(),
+            amount: params.amount.toString(),
+          });
         }
 
         // Step 2: the device cannot sign `claim_or_refresh`. Anyone can refresh a neuron by id.
@@ -136,7 +143,7 @@ export function useIncreaseStake() {
           neuronId: params.neuronId,
           by: { NeuronIdOrSubaccount: {} },
         });
-        deviceTransferDone.delete(key);
+        clearPendingDeviceTopUp(key);
       } else {
         // Step 1: Transfer ICP to the neuron's account identifier
         await ledgerCanister.transfer({
