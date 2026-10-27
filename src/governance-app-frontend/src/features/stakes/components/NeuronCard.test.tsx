@@ -4,6 +4,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
+import { AccountType } from '@features/accounts/types';
+
 import { E8S } from '@constants/extra';
 import { mockDisbursement, mockNeuron as baseMockNeuron } from '@fixtures/neuron';
 
@@ -13,8 +15,15 @@ import { NeuronStandaloneAction } from './neuronDetail';
 // ─── Module mocks ────────────────────────────────────────────────
 
 const CONTROLLER = 'controller-principal';
+const DEVICE_PRINCIPAL = 'device-principal';
 
-vi.mock('ic-use-internet-identity', () => ({
+const { hardwareWallets } = vi.hoisted(() => ({ hardwareWallets: vi.fn(() => [] as unknown[]) }));
+
+vi.mock('@features/accounts/hooks/useHardwareWalletsMetadata', () => ({
+  useHardwareWalletsMetadata: () => ({ data: hardwareWallets(), isLoading: false }),
+}));
+
+vi.mock('@hooks/useInternetIdentity', () => ({
   useInternetIdentity: () => ({
     identity: {
       getPrincipal: () => ({ toText: () => CONTROLLER }),
@@ -62,6 +71,46 @@ const queryTestId = (id: string) => screen.queryByTestId(id);
 const getTestId = (id: string) => screen.getByTestId(id);
 
 describe('NeuronCard', () => {
+  describe('Ledger device badge', () => {
+    const device = {
+      name: 'Nano X',
+      accountId: 'device-account',
+      type: AccountType.HardwareWallet,
+      principal: DEVICE_PRINCIPAL,
+    };
+
+    it('shows the badge with the device name when a registered device controls the neuron', () => {
+      hardwareWallets.mockReturnValue([device]);
+
+      render(
+        <NeuronCard
+          neuron={mockNeuron({
+            fullNeuron: { controller: DEVICE_PRINCIPAL, hotKeys: [CONTROLLER] },
+          })}
+        />,
+      );
+
+      expect(getTestId('neuron-ledger-device-badge').getAttribute('title')).toBe('Nano X');
+      expect(getTestId('neuron-ledger-device-badge').textContent).toContain('Ledger device');
+    });
+
+    it('hides the badge when the controller is not a registered device', () => {
+      hardwareWallets.mockReturnValue([device]);
+
+      render(<NeuronCard neuron={mockNeuron()} />);
+
+      expect(queryTestId('neuron-ledger-device-badge')).toBeNull();
+    });
+
+    it('hides the badge when no device is registered', () => {
+      hardwareWallets.mockReturnValue([]);
+
+      render(<NeuronCard neuron={mockNeuron({ fullNeuron: { controller: DEVICE_PRINCIPAL } })} />);
+
+      expect(queryTestId('neuron-ledger-device-badge')).toBeNull();
+    });
+  });
+
   describe('maturity mode', () => {
     it('shows "keep liquid" when auto-stake maturity is off', () => {
       render(<NeuronCard neuron={mockNeuron({ fullNeuron: { autoStakeMaturity: false } })} />);

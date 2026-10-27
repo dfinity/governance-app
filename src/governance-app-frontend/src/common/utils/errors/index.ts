@@ -3,6 +3,7 @@ import { t } from 'i18next';
 import { isCertifiedRejectError } from './certified';
 import { mapGovernanceCanisterError } from './governance';
 import { mapLedgerCanisterError } from './ledger';
+import { mapLedgerDeviceError } from './ledgerDevice';
 
 export { isCertifiedRejectError };
 
@@ -20,6 +21,9 @@ export const mapCanisterError = (error: Error): string => {
 
   const ledgerMessage = mapLedgerCanisterError(error);
   if (ledgerMessage) return ledgerMessage;
+
+  const ledgerDeviceMessage = mapLedgerDeviceError(error);
+  if (ledgerDeviceMessage) return ledgerDeviceMessage;
 
   if (error.message && error.message.length <= MAX_FRIENDLY_MESSAGE_LENGTH) {
     return error.message;
