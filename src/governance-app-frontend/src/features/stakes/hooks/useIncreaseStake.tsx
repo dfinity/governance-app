@@ -30,6 +30,14 @@ type IncreaseStakeParams = {
   signer?: Signer;
 };
 
+// The `createdAt` of each unsettled device top-up, by its parameters. A view unmount does not
+// forget it: the device can sign a cancelled transfer late, and the same top-up sent again
+// must be the same ledger transaction, not a second one.
+const deviceCreatedAt = new Map<string, bigint>();
+
+const deviceTopUpKey = ({ signer, accountIdentifier, amount }: IncreaseStakeParams) =>
+  [signer?.kind === 'ledger' ? signer.principal : '', accountIdentifier, amount].join('|');
+
 /**
  * Hook to increase stake on an existing neuron.
  * Following the nns-dapp pattern:
@@ -62,8 +70,13 @@ export function useIncreaseStake() {
       const to = AccountIdentifier.fromHex(params.accountIdentifier);
 
       // Use stored createdAt for retry deduplication, or generate a new one
-      const createdAt = createdAtRef.current ?? nowInBigIntNanoSeconds();
-      createdAtRef.current = createdAt;
+      const stored =
+        signer.kind === 'ledger'
+          ? deviceCreatedAt.get(deviceTopUpKey(params))
+          : createdAtRef.current;
+      const createdAt = stored ?? nowInBigIntNanoSeconds();
+      if (signer.kind === 'ledger') deviceCreatedAt.set(deviceTopUpKey(params), createdAt);
+      else createdAtRef.current = createdAt;
 
       if (signer.kind === 'ledger') {
         // Step 1: the device signs the transfer to the neuron's account identifier.
@@ -123,6 +136,7 @@ export function useIncreaseStake() {
 
       // Reset createdAt only after the full flow succeeds
       createdAtRef.current = null;
+      deviceCreatedAt.delete(deviceTopUpKey(params));
 
       await Promise.all([
         queryClient.invalidateQueries({

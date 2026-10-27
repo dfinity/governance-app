@@ -410,6 +410,43 @@ describe('useCreateNeuron', () => {
     expect(mocks.writePendingDeviceStake).toHaveBeenCalledTimes(1);
   });
 
+  it('does not ask for a signature when the dialog was cancelled during the neuron read', async () => {
+    const controller = new AbortController();
+    mocks.runDeviceAction
+      .mockImplementationOnce((action: (signal: AbortSignal) => Promise<unknown>) =>
+        action(new AbortController().signal),
+      )
+      .mockImplementationOnce(async (action: (signal: AbortSignal) => Promise<unknown>) => {
+        await action(controller.signal);
+        throw new DeviceActionCancelledError();
+      });
+    mocks.iiGovernance.getNeuron.mockImplementationOnce(async () => {
+      controller.abort();
+      return mockNeuron({ neuronId: 42n });
+    });
+    const { result } = renderCreateNeuron({ signer: DEVICE_SIGNER });
+
+    await expect(act(() => result.current.mutateAsync())).rejects.toBeInstanceOf(
+      DeviceActionCancelledError,
+    );
+
+    expect(mocks.deviceGovernance.addHotkey).not.toHaveBeenCalled();
+  });
+
+  it('claims a recorded transfer inside the device queue, after a transfer the device may still sign', async () => {
+    mocks.readPendingDeviceStake.mockReturnValue({ memo: '77', amount: '25' });
+    mocks.anonymousGovernance.claimOrRefreshNeuronFromAccount.mockResolvedValueOnce(99n);
+    const { result } = renderCreateNeuron({ signer: DEVICE_SIGNER });
+
+    await act(() => result.current.mutateAsync());
+
+    expect(mocks.runOnDevice.mock.calls[0][0]).toBe(DEVICE_PRINCIPAL);
+    expect(mocks.runDeviceAction).not.toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ detail: '10 ICP' }),
+    );
+  });
+
   it('treats a duplicate transfer as done, so a retry after a late device signature claims the neuron', async () => {
     mocks.deviceLedger.transfer.mockRejectedValueOnce(new TxDuplicateError(7n));
     const { result } = renderCreateNeuron({ signer: DEVICE_SIGNER });

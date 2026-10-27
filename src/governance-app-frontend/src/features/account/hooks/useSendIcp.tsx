@@ -39,6 +39,20 @@ export type SendIcpParams = {
   analytics: { variant: string; address_book: 'yes' | 'no' };
 };
 
+// The `createdAt` of each unsettled device transfer, by its parameters. A dialog reset or a
+// remount does not forget it: the device can sign a cancelled transfer late, and the same
+// payment sent again must be the same ledger transaction, not a second one.
+const deviceCreatedAt = new Map<string, bigint>();
+
+const deviceTransferKey = ({ toAccount, amount, fromSubAccount, memo, signer }: SendIcpParams) =>
+  [
+    signer?.kind === 'ledger' ? signer.principal : '',
+    toAccount,
+    amount,
+    memo ?? '',
+    fromSubAccount?.join(',') ?? '',
+  ].join('|');
+
 /**
  * Sends ICP to an ICP or ICRC-1 account.
  *
@@ -63,16 +77,16 @@ export function useSendIcp() {
   });
 
   const mutation = useMutation({
-    mutationFn: ({
-      toAccount,
-      amount,
-      fromSubAccount,
-      memo,
-      signer = II_SIGNER,
-    }: SendIcpParams) => {
+    mutationFn: (params: SendIcpParams) => {
+      const { toAccount, amount, fromSubAccount, memo, signer = II_SIGNER } = params;
       // Use stored createdAt for retry deduplication, or generate a new one
-      const createdAt = createdAtRef.current ?? nowInBigIntNanoSeconds();
-      createdAtRef.current = createdAt;
+      const stored =
+        signer.kind === 'ledger'
+          ? deviceCreatedAt.get(deviceTransferKey(params))
+          : createdAtRef.current;
+      const createdAt = stored ?? nowInBigIntNanoSeconds();
+      if (signer.kind === 'ledger') deviceCreatedAt.set(deviceTransferKey(params), createdAt);
+      else createdAtRef.current = createdAt;
       const transferAmount = bigIntMul(E8Sn, Number(amount));
       const subAccountArr = fromSubAccount ? Array.from(fromSubAccount) : undefined;
 
@@ -129,6 +143,7 @@ export function useSendIcp() {
     },
     onSuccess: (_, params) => {
       resetCreatedAt();
+      deviceCreatedAt.delete(deviceTransferKey(params));
       const properties = {
         ...sendProperties(params),
         amount_range: getAmountRange(Number(params.amount)),
@@ -139,7 +154,12 @@ export function useSendIcp() {
       }
     },
     onError: (error, params) => {
-      if (isCertifiedRejectError(error) || error instanceof TransferError) resetCreatedAt();
+      // A rejected transfer never reached the ledger: the next attempt is a new transaction.
+      // A cancelled approval keeps its createdAt, the device can still sign it.
+      if (isCertifiedRejectError(error) || error instanceof TransferError) {
+        resetCreatedAt();
+        deviceCreatedAt.delete(deviceTransferKey(params));
+      }
       const properties = { ...sendProperties(params), reason: getErrorReason(error) };
       analytics.event(AnalyticsEvent.AccountSendIcpError, properties);
       if (params.signer?.kind === 'ledger') {

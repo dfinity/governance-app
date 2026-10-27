@@ -120,10 +120,13 @@ export function useCreateNeuron(params: Props) {
       options,
     );
 
-  /** Runs a controller-only call: on the device for a Ledger signer, with the session otherwise. */
+  /**
+   * Runs a controller-only call: on the device for a Ledger signer, with the session otherwise.
+   * The call checks `signal.aborted` after every await, right before the signature.
+   */
   const asController = (
     canister: NnsGovernanceCanister,
-    call: (canister: NnsGovernanceCanister) => Promise<void>,
+    call: (canister: NnsGovernanceCanister, signal: AbortSignal) => Promise<void>,
     options: DeviceActionOptions,
   ): Promise<void | undefined> =>
     signer.kind === 'ledger'
@@ -133,11 +136,11 @@ export function useCreateNeuron(params: Props) {
             const deviceCanister = await getNnsGovernanceCanister({ signer });
             // A cancel during the device connection must not ask for a signature.
             if (signal.aborted) return;
-            await call(deviceCanister);
+            await call(deviceCanister, signal);
           },
           options,
         )
-      : call(canister);
+      : call(canister, new AbortController().signal);
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -174,11 +177,14 @@ export function useCreateNeuron(params: Props) {
             anonymousGovernance.claimOrRefreshNeuronFromAccount({ controller, memo });
 
           // An earlier wizard session signed a transfer and did not claim it. Claim it first:
-          // the ICP already sits in its sub-account.
+          // the ICP already sits in its sub-account. The claim waits in the device queue, so a
+          // cancelled transfer that the device still signs lands before the claim reads it.
           const pending =
             storedMemo === null ? readPendingDeviceStake(signer.principal) : undefined;
           if (nonNullish(pending)) {
-            const recoveredId = await claim(BigInt(pending.memo));
+            const recoveredId = await runOnDevice(signer.principal, () =>
+              claim(BigInt(pending.memo)),
+            );
             clearPendingDeviceStake(signer.principal);
             if (nonNullish(recoveredId)) {
               neuronId = recoveredId;
@@ -260,9 +266,9 @@ export function useCreateNeuron(params: Props) {
         const hotkey = identity.getPrincipal();
         await asController(
           governanceCanister,
-          async (canister) => {
+          async (canister, signal) => {
             const hotKeys = (await readNeuron(id))?.fullNeuron?.hotKeys ?? [];
-            if (hotKeys.includes(hotkey.toText())) return;
+            if (hotKeys.includes(hotkey.toText()) || signal.aborted) return;
             await canister.addHotkey({ neuronId: id, principal: hotkey });
           },
           {
@@ -280,12 +286,12 @@ export function useCreateNeuron(params: Props) {
       if (step === StakingWizardCreateNeuronStep.SetDissolveDelay) {
         await asController(
           governanceCanister,
-          async (canister) => {
+          async (canister, signal) => {
             const currentDelay = Number(
               (await readNeuron(id))?.dissolveDelaySeconds ?? DEFAULT_DISSOLVE_DELAY_SECONDS,
             );
             const additionalDissolveDelaySeconds = params.dissolveDelaySeconds - currentDelay;
-            if (additionalDissolveDelaySeconds <= 0) return;
+            if (additionalDissolveDelaySeconds <= 0 || signal.aborted) return;
             await canister.increaseDissolveDelay({ neuronId: id, additionalDissolveDelaySeconds });
           },
           {
@@ -305,8 +311,8 @@ export function useCreateNeuron(params: Props) {
         if (params.autoStakeMaturity) {
           await asController(
             governanceCanister,
-            async (canister) => {
-              if ((await readNeuron(id))?.fullNeuron?.autoStakeMaturity) return;
+            async (canister, signal) => {
+              if ((await readNeuron(id))?.fullNeuron?.autoStakeMaturity || signal.aborted) return;
               await canister.autoStakeMaturity({ neuronId: id, autoStake: true });
             },
             { description: t(($) => $.stakeWizardModal.ledgerDevice.approve.autoStake) },
@@ -321,8 +327,9 @@ export function useCreateNeuron(params: Props) {
         if (params.startDissolving) {
           await asController(
             governanceCanister,
-            async (canister) => {
-              if ((await readNeuron(id))?.state === NeuronState.Dissolving) return;
+            async (canister, signal) => {
+              if ((await readNeuron(id))?.state === NeuronState.Dissolving || signal.aborted)
+                return;
               await canister.startDissolving(id);
             },
             { description: t(($) => $.stakeWizardModal.ledgerDevice.approve.startDissolving) },

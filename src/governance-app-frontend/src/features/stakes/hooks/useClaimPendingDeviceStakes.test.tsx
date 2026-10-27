@@ -19,6 +19,7 @@ const mocks = vi.hoisted(() => ({
   readAllPendingDeviceStakes: vi.fn(),
   clearPendingDeviceStake: vi.fn(),
   successNotification: vi.fn(),
+  runOnDevice: vi.fn(),
 }));
 
 vi.mock('@common/canisters', () => ({
@@ -29,6 +30,7 @@ vi.mock('../utils/pendingDeviceStake', () => ({
   clearPendingDeviceStake: mocks.clearPendingDeviceStake,
 }));
 vi.mock('@utils/notification', () => ({ successNotification: mocks.successNotification }));
+vi.mock('@common/ledger/deviceQueue', () => ({ runOnDevice: mocks.runOnDevice }));
 
 const renderClaim = (enabled = true) => {
   const queryClient = new QueryClient();
@@ -51,6 +53,9 @@ describe('useClaimPendingDeviceStakes', () => {
       claimOrRefreshNeuronFromAccount: mocks.claimOrRefreshNeuronFromAccount,
     });
     mocks.readAllPendingDeviceStakes.mockReturnValue({});
+    mocks.runOnDevice.mockImplementation((_principal: string, call: () => Promise<unknown>) =>
+      call(),
+    );
   });
 
   it('does nothing without a record', async () => {
@@ -71,6 +76,9 @@ describe('useClaimPendingDeviceStakes', () => {
     const { invalidateQueries } = renderClaim();
 
     await waitFor(() => expect(mocks.clearPendingDeviceStake).toHaveBeenCalledTimes(2));
+    // Each claim waits in the queue of its device, behind a transfer the device may still sign.
+    expect(mocks.runOnDevice).toHaveBeenCalledWith(DEVICE, expect.any(Function));
+    expect(mocks.runOnDevice).toHaveBeenCalledWith(OTHER, expect.any(Function));
     expect(mocks.claimOrRefreshNeuronFromAccount).toHaveBeenCalledWith({
       controller: Principal.fromText(DEVICE),
       memo: 7n,

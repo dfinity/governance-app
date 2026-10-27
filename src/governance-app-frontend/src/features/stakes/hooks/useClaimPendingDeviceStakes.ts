@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { successNotification } from '@utils/notification';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 import { getAnonymousNnsGovernanceCanister } from '@common/canisters';
+import { runOnDevice } from '@common/ledger/deviceQueue';
 
 import {
   clearPendingDeviceStake,
@@ -21,8 +22,10 @@ let pass: Promise<ClaimedDeviceStake[]> | undefined;
 /**
  * Claims the stake transfers that a Ledger device signed and that no wizard claimed yet.
  *
- * The claim is anonymous, so it needs no device and no balance. A record whose sub-account
- * holds no neuron is forgotten. A failed claim stays for the next pass.
+ * The claim is anonymous, so it needs no device and no balance. It waits in the queue of the
+ * device, so a cancelled transfer that the device still signs lands before the claim reads the
+ * sub-account. A record whose sub-account holds no neuron is forgotten. A failed claim stays
+ * for the next pass.
  */
 export const claimPendingDeviceStakes = (): Promise<ClaimedDeviceStake[]> =>
   (pass ??= (async () => {
@@ -33,10 +36,12 @@ export const claimPendingDeviceStakes = (): Promise<ClaimedDeviceStake[]> =>
     const governance = await getAnonymousNnsGovernanceCanister();
     for (const [principal, pending] of entries) {
       try {
-        const neuronId = await governance.claimOrRefreshNeuronFromAccount({
-          controller: Principal.fromText(principal),
-          memo: BigInt(pending.memo),
-        });
+        const neuronId = await runOnDevice(principal, () =>
+          governance.claimOrRefreshNeuronFromAccount({
+            controller: Principal.fromText(principal),
+            memo: BigInt(pending.memo),
+          }),
+        );
         clearPendingDeviceStake(principal);
         if (neuronId !== undefined) claimed.push({ principal, pending, neuronId });
       } catch (error: unknown) {

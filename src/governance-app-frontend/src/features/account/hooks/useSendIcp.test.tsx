@@ -212,6 +212,39 @@ describe('useSendIcp', () => {
     );
   });
 
+  it('keeps the createdAt of a cancelled device transfer across a dialog reset or a remount', async () => {
+    mocks.runDeviceAction.mockImplementationOnce(
+      async (action: (signal: AbortSignal) => Promise<unknown>) => {
+        // The user cancels the dialog, the device signs anyway.
+        await action(new AbortController().signal);
+        throw new DeviceActionCancelledError();
+      },
+    );
+    const params = {
+      toAccount: ICP_ADDRESS,
+      amount: '3',
+      signer: DEVICE_SIGNER,
+      analytics: analyticsParams,
+    };
+    const first = renderSendIcp();
+    await expect(act(() => first.result.current.mutateAsync(params))).rejects.toBeInstanceOf(
+      DeviceActionCancelledError,
+    );
+    first.result.current.resetCreatedAt();
+    first.unmount();
+
+    // The same payment from a new dialog is the same ledger transaction.
+    const second = renderSendIcp();
+    await act(() => second.result.current.mutateAsync(params));
+    const createdAts = mocks.deviceLedger.transfer.mock.calls.map(([args]) => args.createdAt);
+    expect(createdAts).toHaveLength(2);
+    expect(createdAts[0]).toBe(createdAts[1]);
+
+    // A done payment starts a new transaction next time.
+    await act(() => second.result.current.mutateAsync(params));
+    expect(mocks.deviceLedger.transfer.mock.calls[2][0].createdAt).not.toBe(createdAts[0]);
+  });
+
   it('does not prompt the device for a call that was cancelled while it waited in the queue', async () => {
     const controller = new AbortController();
     controller.abort();
