@@ -89,6 +89,7 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
   const stakedAmount = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
 
   const fiatValue = nonNullish(icpPrice) ? formatFiat(stakedAmount * icpPrice) : undefined;
+  const showApy = nonNullish(apy) && apyColor.ready;
 
   return (
     <>
@@ -96,7 +97,8 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
         className="@container/neuron-card flex h-full flex-col gap-3 transition-colors hover:border-foreground"
         data-testid="neuron-card"
       >
-        {/* Narrow cards show the fiat value and compact tags on one line below the amount. */}
+        {/* The tags (device, hotkey, 8-year gang, APY) share one cluster. Narrow cards show
+            the fiat value and the tags on one line below the amount. */}
         <CardHeader className="flex flex-wrap items-center justify-between space-y-0 gap-x-3 gap-y-1 @md/neuron-card:items-start @md/neuron-card:gap-y-3">
           <div className="contents @md/neuron-card:flex @md/neuron-card:flex-col @md/neuron-card:gap-1">
             <p
@@ -119,37 +121,63 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
               )
             )}
           </div>
-          {nonNullish(apy) && apyColor.ready && (
-            <div className="flex items-center gap-1.5">
-              {isEightYearGang && (
+          {(ledgerDevice || isHotkey || showApy) && (
+            <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-1.5">
+              {ledgerDevice && (
+                <Badge
+                  variant="outline"
+                  title={ledgerDevice.name}
+                  data-testid="neuron-ledger-device-badge"
+                >
+                  <Usb aria-hidden="true" />
+                  {t(($) => $.neuron.ledgerDevice)}
+                </Badge>
+              )}
+              {isHotkey && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div
+                      className="flex cursor-help items-center gap-1 rounded-sm border border-blue-200 bg-blue-100 px-2 py-0.5 text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+                      data-testid="neuron-hotkey-badge"
+                    >
+                      <Key className="size-3" aria-hidden="true" />
+                      <span className="text-[11px] font-medium">{t(($) => $.neuron.hotkey)}</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>{t(($) => $.neuron.hotkeyTooltip)}</TooltipContent>
+                </Tooltip>
+              )}
+              {showApy && isEightYearGang && (
                 <div className="rounded-sm border border-foreground/20 bg-foreground/5 px-1.5 py-0.5 @md/neuron-card:p-2">
                   <p className="text-[11px] font-bold whitespace-nowrap text-foreground uppercase @md/neuron-card:text-[13px]">
                     {t(($) => $.neuron.eightYearGang)}
                   </p>
                 </div>
               )}
-              <div
-                className="flex items-center gap-1.5 rounded-sm border px-1.5 py-0.5 @md/neuron-card:gap-2 @md/neuron-card:p-2"
-                style={{
-                  backgroundColor: apyColor.bgColor,
-                  borderColor: apyColor.borderColor,
-                  color: apyColor.textColor,
-                }}
-                role="button"
-                tabIndex={0}
-                aria-label="Optimize neuron APY"
-              >
-                <p className="text-xs font-semibold @md/neuron-card:text-[13px]">
-                  {formatPercentage(apy.cur)}
-                </p>
-                {apyColor.isMax ? (
-                  <span className="rounded bg-green-600 px-1 text-[10px] font-bold text-white uppercase @md/neuron-card:py-0.5">
-                    {t(($) => $.common.max)}
-                  </span>
-                ) : (
-                  <CircleAlert className="hidden size-3.5 sm:block @md/neuron-card:size-4" />
-                )}
-              </div>
+              {showApy && (
+                <div
+                  className="flex items-center gap-1.5 rounded-sm border px-1.5 py-0.5 @md/neuron-card:gap-2 @md/neuron-card:p-2"
+                  style={{
+                    backgroundColor: apyColor.bgColor,
+                    borderColor: apyColor.borderColor,
+                    color: apyColor.textColor,
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Optimize neuron APY"
+                >
+                  <p className="text-xs font-semibold @md/neuron-card:text-[13px]">
+                    {formatPercentage(apy.cur)}
+                  </p>
+                  {apyColor.isMax ? (
+                    <span className="rounded bg-green-600 px-1 text-[10px] font-bold text-white uppercase @md/neuron-card:py-0.5">
+                      {t(($) => $.common.max)}
+                    </span>
+                  ) : (
+                    <CircleAlert className="hidden size-3.5 sm:block @md/neuron-card:size-4" />
+                  )}
+                </div>
+              )}
             </div>
           )}
         </CardHeader>
@@ -160,30 +188,6 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
               <p className="text-[13px] text-muted-foreground">{t(($) => $.neuron.stakeId)}</p>
               <div className="flex items-center gap-2">
                 <FollowingStatusBadge neuron={neuron} />
-                {ledgerDevice && (
-                  <Badge
-                    variant="outline"
-                    title={ledgerDevice.name}
-                    data-testid="neuron-ledger-device-badge"
-                  >
-                    <Usb aria-hidden="true" />
-                    {t(($) => $.neuron.ledgerDevice)}
-                  </Badge>
-                )}
-                {isHotkey && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div
-                        className="flex cursor-help items-center gap-1 rounded-sm border border-blue-200 bg-blue-100 px-2 py-0.5 text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
-                        data-testid="neuron-hotkey-badge"
-                      >
-                        <Key className="size-3" aria-hidden="true" />
-                        <span className="text-[11px] font-medium">{t(($) => $.neuron.hotkey)}</span>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>{t(($) => $.neuron.hotkeyTooltip)}</TooltipContent>
-                  </Tooltip>
-                )}
                 <p className="text-[15px] font-semibold">{shortenNeuronId(neuron.neuronId)}</p>
               </div>
             </div>
