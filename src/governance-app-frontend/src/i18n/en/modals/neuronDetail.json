@@ -21,6 +21,9 @@
       "amountTooLow": "Enter an amount greater than zero.",
       "insufficientBalance": "Insufficient balance.",
       "failed": "Failed to top up neuron. Please try again."
+    },
+    "ledgerDevice": {
+      "approveTransfer": "Check the amount and the neuron account on the device screen and approve the transfer."
     }
   },
   "increaseDelay": {

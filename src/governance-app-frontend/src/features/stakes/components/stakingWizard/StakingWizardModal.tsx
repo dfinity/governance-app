@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
-import { AccountType } from '@features/accounts/types';
+import { AccountType, getAccountSigner } from '@features/accounts/types';
 import { AnalyticsEvent } from '@features/analytics/events';
 import { getAmountRange, getErrorReason } from '@features/analytics/properties';
 import { analytics } from '@features/analytics/service';
@@ -84,6 +84,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
     startDissolving: formState.initialState === StakingWizardInitialState.Dissolving,
     fromSubAccount,
     selectedAccountId,
+    signer: getAccountSigner(selectedAccount),
   });
 
   const contentRef = useRef<HTMLDivElement>(null);
