@@ -140,8 +140,8 @@ describe('useClaimPendingDeviceStakes', () => {
       neuronId: 42n,
       by: { NeuronIdOrSubaccount: {} },
     });
-    await waitFor(() => expect(mocks.clearPendingDeviceTopUp).toHaveBeenCalledWith('key-a'));
-    expect(mocks.clearPendingDeviceTopUp).not.toHaveBeenCalledWith('key-b');
+    await waitFor(() => expect(mocks.clearPendingDeviceTopUp).toHaveBeenCalledWith('key-a', '1'));
+    expect(mocks.clearPendingDeviceTopUp).not.toHaveBeenCalledWith('key-b', '1');
     await waitFor(() => expect(mocks.successNotification).toHaveBeenCalledTimes(1));
     expect(mocks.successNotification.mock.calls[0][0].description).toContain('5 ICP');
     expect(invalidateQueries).toHaveBeenCalled();
@@ -172,8 +172,10 @@ describe('useClaimPendingDeviceStakes', () => {
     });
     renderClaim();
 
-    await waitFor(() => expect(mocks.clearPendingDeviceTopUp).toHaveBeenCalledWith('old'));
-    expect(mocks.clearPendingDeviceTopUp).not.toHaveBeenCalledWith('young');
+    await waitFor(() =>
+      expect(mocks.clearPendingDeviceTopUp).toHaveBeenCalledWith('old', (now - twoDays).toString()),
+    );
+    expect(mocks.clearPendingDeviceTopUp).not.toHaveBeenCalledWith('young', expect.anything());
     expect(mocks.claimOrRefreshNeuron).not.toHaveBeenCalled();
     expect(mocks.successNotification).not.toHaveBeenCalled();
   });

@@ -76,7 +76,7 @@ describe('pendingDeviceTopUp', () => {
       transferred: true,
     });
 
-    clearPendingDeviceTopUp(DEVICE);
+    clearPendingDeviceTopUp(DEVICE, '1');
     expect(readPendingDeviceTopUp(DEVICE)).toBeUndefined();
     expect(readPendingDeviceTopUp(OTHER)).toEqual({
       neuronId: '8',
@@ -85,8 +85,28 @@ describe('pendingDeviceTopUp', () => {
       transferred: true,
     });
 
-    clearPendingDeviceTopUp(OTHER);
+    clearPendingDeviceTopUp(OTHER, '2');
     expect(storage.items.has(PENDING_DEVICE_TOP_UP_STORAGE_KEY)).toBe(false);
+  });
+
+  it('keeps a newer record of the key when the cleared createdAt is another one', () => {
+    writePendingDeviceTopUp(DEVICE, {
+      neuronId: '9',
+      amount: '3',
+      createdAt: '9',
+      transferred: false,
+    });
+
+    clearPendingDeviceTopUp(DEVICE, '1');
+    expect(readPendingDeviceTopUp(DEVICE)).toEqual({
+      neuronId: '9',
+      amount: '3',
+      createdAt: '9',
+      transferred: false,
+    });
+
+    clearPendingDeviceTopUp(DEVICE, '9');
+    expect(readPendingDeviceTopUp(DEVICE)).toBeUndefined();
   });
 
   it('ignores a broken value', () => {
@@ -95,7 +115,7 @@ describe('pendingDeviceTopUp', () => {
     expect(readPendingDeviceTopUp(DEVICE)).toBeUndefined();
   });
 
-  it('survives a blocked storage', () => {
+  it('keeps the record in the session when the storage is blocked', () => {
     vi.stubGlobal('localStorage', {
       getItem: () => {
         throw new Error('blocked');
@@ -113,6 +133,14 @@ describe('pendingDeviceTopUp', () => {
         transferred: false,
       }),
     ).not.toThrow();
+    expect(readPendingDeviceTopUp(DEVICE)).toEqual({
+      neuronId: '7',
+      amount: '10',
+      createdAt: '1',
+      transferred: false,
+    });
+
+    clearPendingDeviceTopUp(DEVICE, '1');
     expect(readPendingDeviceTopUp(DEVICE)).toBeUndefined();
   });
 });

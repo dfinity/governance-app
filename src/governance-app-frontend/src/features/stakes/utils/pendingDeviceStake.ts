@@ -13,7 +13,7 @@ export type PendingDeviceStake = {
 
 type Store = Record<string, PendingDeviceStake>;
 
-const readStore = (): Store => {
+const readStorage = (): Store => {
   try {
     const value = localStorage.getItem(PENDING_DEVICE_STAKE_STORAGE_KEY);
     const parsed: unknown = value === null ? {} : JSON.parse(value);
@@ -32,8 +32,22 @@ const writeStore = (store: Store): void => {
       localStorage.setItem(PENDING_DEVICE_STAKE_STORAGE_KEY, JSON.stringify(store));
     }
   } catch {
-    // Storage can be full or blocked. The claim still works in this wizard session.
+    // Storage can be full or blocked. The session copy keeps the record until the page closes.
   }
+};
+
+// The records written in this page session. `localStorage` can be full or blocked; the
+// session copy still protects against a second transfer until the page closes.
+const session = new Map<string, PendingDeviceStake | null>();
+
+const readStore = (): Store => {
+  const store = readStorage();
+  session.forEach((pending, key) => {
+    if (pending === null) delete store[key];
+    else store[key] = pending;
+  });
+
+  return store;
 };
 
 /** Every unclaimed stake, by device principal. */
@@ -43,14 +57,17 @@ export const readAllPendingDeviceStakes = (): Record<string, PendingDeviceStake>
 export const readPendingDeviceStake = (principal: string): PendingDeviceStake | undefined =>
   readStore()[principal];
 
-/** Records a signed stake transfer until its claim succeeds. One per device. */
-export const writePendingDeviceStake = (principal: string, pending: PendingDeviceStake): void =>
+/** Records a stake transfer until its claim succeeds. One per device. */
+export const writePendingDeviceStake = (principal: string, pending: PendingDeviceStake): void => {
+  session.set(principal, pending);
   writeStore({ ...readStore(), [principal]: pending });
+};
 
 /** Forgets the record of the device when it holds this memo. A newer record stays. */
 export const clearPendingDeviceStake = (principal: string, memo: string): void => {
   const store = readStore();
   if (store[principal]?.memo !== memo) return;
+  session.set(principal, null);
   delete store[principal];
   writeStore(store);
 };

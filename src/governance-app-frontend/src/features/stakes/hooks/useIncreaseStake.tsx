@@ -114,6 +114,9 @@ export function useIncreaseStake() {
                   // is on the neuron account, so the refresh below picks it up.
                   if (duplicateTransferOf(error) === undefined) throw error;
                 }
+                // Confirmed here, not after the dialog: a cancelled dialog does not stop the
+                // device, and the recovery pass must refresh a transfer that landed late.
+                writePendingDeviceTopUp(key, { ...pending, transferred: true });
               }),
             {
               description: t(($) => $.neuronDetailModal.increaseStake.ledgerDevice.approveTransfer),
@@ -131,11 +134,10 @@ export function useIncreaseStake() {
               (error instanceof Error && isCertifiedRejectError(error)) ||
               error instanceof TransferError
             ) {
-              clearPendingDeviceTopUp(key);
+              clearPendingDeviceTopUp(key, pending.createdAt);
             }
             throw error;
           });
-          writePendingDeviceTopUp(key, { ...pending, transferred: true });
         }
 
         // Step 2: the device cannot sign `claim_or_refresh`. Anyone can refresh a neuron by id.
@@ -144,7 +146,7 @@ export function useIncreaseStake() {
           neuronId: params.neuronId,
           by: { NeuronIdOrSubaccount: {} },
         });
-        clearPendingDeviceTopUp(key);
+        clearPendingDeviceTopUp(key, pending.createdAt);
       } else {
         // Step 1: Transfer ICP to the neuron's account identifier
         await ledgerCanister.transfer({

@@ -40,7 +40,9 @@ const pendingTopUps = new Map<string, Pending>();
 vi.mock('../utils/pendingDeviceTopUp', () => ({
   readPendingDeviceTopUp: (key: string) => pendingTopUps.get(key),
   writePendingDeviceTopUp: (key: string, pending: Pending) => pendingTopUps.set(key, pending),
-  clearPendingDeviceTopUp: (key: string) => pendingTopUps.delete(key),
+  clearPendingDeviceTopUp: (key: string, createdAt: string) => {
+    if (pendingTopUps.get(key)?.createdAt === createdAt) pendingTopUps.delete(key);
+  },
 }));
 // A clock that moves on every call, so two attempts never share a createdAt by accident.
 let clock = 0;
@@ -159,6 +161,38 @@ describe('useIncreaseStake', () => {
   });
 
   it('keeps the createdAt of a cancelled device top-up across a view unmount', async () => {
+    // The dialog is cancelled before the device answers; the transfer never ran.
+    mocks.runDeviceAction.mockImplementationOnce(() =>
+      Promise.reject(new DeviceActionCancelledError()),
+    );
+    const topUp = { ...params, amount: 9, signer: DEVICE_SIGNER };
+    const first = renderIncreaseStake();
+    await expect(act(() => first.result.current.mutateAsync(topUp))).rejects.toBeInstanceOf(
+      DeviceActionCancelledError,
+    );
+    const recorded = [...pendingTopUps.values()][0];
+    expect(recorded).toEqual({
+      neuronId: '42',
+      amount: '9',
+      createdAt: expect.any(String),
+      transferred: false,
+    });
+    first.unmount();
+
+    // The same top-up from a new view is the same ledger transaction.
+    const second = renderIncreaseStake();
+    await act(() => second.result.current.mutateAsync(topUp));
+    expect(mocks.deviceLedger.transfer).toHaveBeenCalledTimes(1);
+    expect(mocks.deviceLedger.transfer.mock.calls[0][0].createdAt).toBe(BigInt(recorded.createdAt));
+
+    // A done top-up starts a new transaction next time.
+    await act(() => second.result.current.mutateAsync(topUp));
+    expect(mocks.deviceLedger.transfer.mock.calls[1][0].createdAt).not.toBe(
+      BigInt(recorded.createdAt),
+    );
+  });
+
+  it('retries only the refresh after the device signed a cancelled top-up late', async () => {
     mocks.runDeviceAction.mockImplementationOnce(
       async (action: (signal: AbortSignal) => Promise<unknown>) => {
         // The user cancels the dialog, the device signs anyway.
@@ -175,12 +209,9 @@ describe('useIncreaseStake', () => {
 
     const second = renderIncreaseStake();
     await act(() => second.result.current.mutateAsync(topUp));
-    const createdAts = mocks.deviceLedger.transfer.mock.calls.map(([args]) => args.createdAt);
-    expect(createdAts).toHaveLength(2);
-    expect(createdAts[0]).toBe(createdAts[1]);
-
-    await act(() => second.result.current.mutateAsync(topUp));
-    expect(mocks.deviceLedger.transfer.mock.calls[2][0].createdAt).not.toBe(createdAts[0]);
+    expect(mocks.deviceLedger.transfer).toHaveBeenCalledTimes(1);
+    expect(mocks.anonymousGovernance.claimOrRefreshNeuron).toHaveBeenCalledTimes(1);
+    expect(pendingTopUps.size).toBe(0);
   });
 
   it('retries only the refresh once the device transfer went through', async () => {
@@ -232,6 +263,27 @@ describe('useIncreaseStake', () => {
     const createdAts = mocks.deviceLedger.transfer.mock.calls.map(([args]) => args.createdAt);
     expect(createdAts).toHaveLength(2);
     expect(createdAts[0]).not.toBe(createdAts[1]);
+  });
+
+  it('confirms the transfer in the record even when the dialog was cancelled', async () => {
+    mocks.runDeviceAction.mockImplementationOnce(
+      async (action: (signal: AbortSignal) => Promise<unknown>) => {
+        // The user cancels the dialog, the device signs anyway.
+        await action(new AbortController().signal);
+        throw new DeviceActionCancelledError();
+      },
+    );
+    const { result } = renderIncreaseStake();
+
+    await expect(
+      act(() => result.current.mutateAsync({ ...params, amount: 14, signer: DEVICE_SIGNER })),
+    ).rejects.toBeInstanceOf(DeviceActionCancelledError);
+
+    // The recovery pass can refresh the neuron: the record says the transfer went through.
+    expect([...pendingTopUps.values()]).toEqual([
+      { neuronId: '42', amount: '14', createdAt: expect.any(String), transferred: true },
+    ]);
+    pendingTopUps.clear();
   });
 
   it('reports a cancelled approval and refreshes nothing', async () => {

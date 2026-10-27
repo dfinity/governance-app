@@ -20,7 +20,7 @@ export type PendingDeviceTopUp = {
 
 type Store = Record<string, PendingDeviceTopUp>;
 
-const readStore = (): Store => {
+const readStorage = (): Store => {
   try {
     const value = localStorage.getItem(PENDING_DEVICE_TOP_UP_STORAGE_KEY);
     const parsed: unknown = value === null ? {} : JSON.parse(value);
@@ -39,8 +39,22 @@ const writeStore = (store: Store): void => {
       localStorage.setItem(PENDING_DEVICE_TOP_UP_STORAGE_KEY, JSON.stringify(store));
     }
   } catch {
-    // Storage can be full or blocked. The refresh still works in this view.
+    // Storage can be full or blocked. The session copy keeps the record until the page closes.
   }
+};
+
+// The records written in this page session. `localStorage` can be full or blocked; the
+// session copy still protects against a second transfer until the page closes.
+const session = new Map<string, PendingDeviceTopUp | null>();
+
+const readStore = (): Store => {
+  const store = readStorage();
+  session.forEach((pending, key) => {
+    if (pending === null) delete store[key];
+    else store[key] = pending;
+  });
+
+  return store;
 };
 
 /** Every top-up that waits for its refresh, by the key of the transfer. */
@@ -49,12 +63,17 @@ export const readAllPendingDeviceTopUps = (): Record<string, PendingDeviceTopUp>
 export const readPendingDeviceTopUp = (key: string): PendingDeviceTopUp | undefined =>
   readStore()[key];
 
-/** Records a signed top-up transfer until its refresh succeeds. */
-export const writePendingDeviceTopUp = (key: string, pending: PendingDeviceTopUp): void =>
+/** Records a top-up transfer until its refresh succeeds. */
+export const writePendingDeviceTopUp = (key: string, pending: PendingDeviceTopUp): void => {
+  session.set(key, pending);
   writeStore({ ...readStore(), [key]: pending });
+};
 
-export const clearPendingDeviceTopUp = (key: string): void => {
+/** Forgets the record of the key when it holds this `createdAt`. A newer record stays. */
+export const clearPendingDeviceTopUp = (key: string, createdAt: string): void => {
   const store = readStore();
+  if (store[key]?.createdAt !== createdAt) return;
+  session.set(key, null);
   delete store[key];
   writeStore(store);
 };

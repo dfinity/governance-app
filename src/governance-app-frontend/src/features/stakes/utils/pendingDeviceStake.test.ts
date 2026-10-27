@@ -58,8 +58,10 @@ describe('pendingDeviceStake', () => {
     writePendingDeviceStake(DEVICE, { memo: '9', amount: '3' });
 
     clearPendingDeviceStake(DEVICE, '7');
-
     expect(readPendingDeviceStake(DEVICE)).toEqual({ memo: '9', amount: '3' });
+
+    clearPendingDeviceStake(DEVICE, '9');
+    expect(readPendingDeviceStake(DEVICE)).toBeUndefined();
   });
 
   it('ignores a broken value', () => {
@@ -68,7 +70,7 @@ describe('pendingDeviceStake', () => {
     expect(readPendingDeviceStake(DEVICE)).toBeUndefined();
   });
 
-  it('survives a blocked storage', () => {
+  it('keeps the record in the session when the storage is blocked', () => {
     vi.stubGlobal('localStorage', {
       getItem: () => {
         throw new Error('blocked');
@@ -79,6 +81,9 @@ describe('pendingDeviceStake', () => {
     });
 
     expect(() => writePendingDeviceStake(DEVICE, { memo: '7', amount: '10' })).not.toThrow();
+    expect(readPendingDeviceStake(DEVICE)).toEqual({ memo: '7', amount: '10' });
+
+    clearPendingDeviceStake(DEVICE, '7');
     expect(readPendingDeviceStake(DEVICE)).toBeUndefined();
   });
 });

@@ -68,7 +68,7 @@ export const claimPendingDeviceStakes = (): Promise<RecoveredDeviceStakes> =>
       if (!pending.transferred) {
         // Unconfirmed: the device may still sign it. Keep the record while it can dedupe.
         const age = nowInBigIntNanoSeconds() - BigInt(pending.createdAt);
-        if (age > LEDGER_TRANSACTION_WINDOW_NANOS) clearPendingDeviceTopUp(key);
+        if (age > LEDGER_TRANSACTION_WINDOW_NANOS) clearPendingDeviceTopUp(key, pending.createdAt);
         continue;
       }
       try {
@@ -77,7 +77,7 @@ export const claimPendingDeviceStakes = (): Promise<RecoveredDeviceStakes> =>
           neuronId: BigInt(pending.neuronId),
           by: { NeuronIdOrSubaccount: {} },
         });
-        clearPendingDeviceTopUp(key);
+        clearPendingDeviceTopUp(key, pending.createdAt);
         result.refreshed.push(pending);
       } catch (error: unknown) {
         console.warn('Failed to refresh a pending Ledger device top-up.', error);
