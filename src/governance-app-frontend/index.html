@@ -9,6 +9,8 @@
       Link preview tags. Crawlers do not run JavaScript, so these must be static.
       Keep the text in sync with `common.head.appName` and `common.head.login.*`.
       `RootComponent` removes the `data-static-head` tags once `HeadContent` renders its own.
+      On `/voting/proposals/<id>`, the backend writes the proposal into the title, description,
+      og:title, og:description, og:url, twitter:title, and twitter:description tags.
     -->
     <title data-static-head>ICP governance &amp; voting | Network Nervous System</title>
     <meta
