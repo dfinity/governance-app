@@ -5,9 +5,9 @@ import { useTranslation } from 'react-i18next';
 
 import { successNotification } from '@utils/notification';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
-import { getAnonymousNnsGovernanceCanister } from '@common/canisters';
 import { runOnDevice } from '@common/ledger/deviceQueue';
 
+import { claimDeviceStake } from '../utils/claimDeviceStake';
 import {
   clearPendingDeviceStake,
   type PendingDeviceStake,
@@ -33,11 +33,10 @@ export const claimPendingDeviceStakes = (): Promise<ClaimedDeviceStake[]> =>
     const entries = Object.entries(readAllPendingDeviceStakes());
     if (entries.length === 0) return claimed;
 
-    const governance = await getAnonymousNnsGovernanceCanister();
     for (const [principal, pending] of entries) {
       try {
         const neuronId = await runOnDevice(principal, () =>
-          governance.claimOrRefreshNeuronFromAccount({
+          claimDeviceStake({
             controller: Principal.fromText(principal),
             memo: BigInt(pending.memo),
           }),

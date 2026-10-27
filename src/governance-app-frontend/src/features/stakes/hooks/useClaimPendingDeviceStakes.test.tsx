@@ -1,5 +1,6 @@
 import '@/i18n/config';
 
+import { UnrecognizedTypeError } from '@icp-sdk/canisters/nns';
 import { Principal } from '@icp-sdk/core/principal';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
@@ -88,6 +89,17 @@ describe('useClaimPendingDeviceStakes', () => {
     expect(invalidateQueries).toHaveBeenCalledWith({
       queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
     });
+  });
+
+  it('forgets a record whose sub-account holds no ICP', async () => {
+    mocks.readAllPendingDeviceStakes.mockReturnValue({ [DEVICE]: { memo: '7', amount: '25' } });
+    mocks.claimOrRefreshNeuronFromAccount.mockRejectedValue(
+      new UnrecognizedTypeError('Unrecognized ClaimOrRefresh error'),
+    );
+    renderClaim();
+
+    await waitFor(() => expect(mocks.clearPendingDeviceStake).toHaveBeenCalledWith(DEVICE));
+    expect(mocks.successNotification).not.toHaveBeenCalled();
   });
 
   it('keeps a record whose claim failed', async () => {

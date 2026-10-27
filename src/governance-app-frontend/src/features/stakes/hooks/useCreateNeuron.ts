@@ -27,16 +27,13 @@ import { bigIntMul } from '@utils/bigInt';
 import { duplicateTransferOf } from '@utils/errors/duplicateTransfer';
 import { formatDissolveDelay } from '@utils/neuron';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
-import {
-  getAnonymousNnsGovernanceCanister,
-  getIcpLedgerCanister,
-  getNnsGovernanceCanister,
-} from '@common/canisters';
+import { getIcpLedgerCanister, getNnsGovernanceCanister } from '@common/canisters';
 import { runOnDevice } from '@common/ledger/deviceQueue';
 import { getLedgerIdentity } from '@common/ledger/session';
 import { II_SIGNER, type Signer } from '@common/ledger/signer';
 
 import { StakingWizardCreateNeuronStep } from '../components/stakingWizard/types';
+import { claimDeviceStake } from '../utils/claimDeviceStake';
 import { createStakeMemo, getStakeAccountIdentifier } from '../utils/ledgerStake';
 import {
   clearPendingDeviceStake,
@@ -172,9 +169,7 @@ export function useCreateNeuron(params: Props) {
           // The device signs the transfer and cannot sign the claim. The two calls are
           // separate, so a failed claim keeps the memo and retries without a second transfer.
           const controller = Principal.fromText(signer.principal);
-          const anonymousGovernance = await getAnonymousNnsGovernanceCanister();
-          const claim = (memo: bigint) =>
-            anonymousGovernance.claimOrRefreshNeuronFromAccount({ controller, memo });
+          const claim = (memo: bigint) => claimDeviceStake({ controller, memo });
 
           // An earlier wizard session signed a transfer and did not claim it. Claim it first:
           // the ICP already sits in its sub-account. The claim waits in the device queue, so a

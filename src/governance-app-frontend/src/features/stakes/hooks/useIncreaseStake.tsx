@@ -1,4 +1,4 @@
-import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
+import { AccountIdentifier, TransferError } from '@icp-sdk/canisters/ledger/icp';
 import { nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef } from 'react';
@@ -14,6 +14,7 @@ import { useIcpLedger } from '@hooks/icpLedger';
 import { useDeviceAction } from '@hooks/useDeviceAction';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { bigIntMul } from '@utils/bigInt';
+import { isCertifiedRejectError } from '@utils/errors';
 import { duplicateTransferOf } from '@utils/errors/duplicateTransfer';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 import { getAnonymousNnsGovernanceCanister, getIcpLedgerCanister } from '@common/canisters';
@@ -34,9 +35,16 @@ type IncreaseStakeParams = {
 // forget it: the device can sign a cancelled transfer late, and the same top-up sent again
 // must be the same ledger transaction, not a second one.
 const deviceCreatedAt = new Map<string, bigint>();
+// The device top-ups whose transfer went through and whose refresh did not yet. A retry only
+// refreshes: the transfer must not run again once its createdAt is too old to be a duplicate.
+const deviceTransferDone = new Set<string>();
 
 const deviceTopUpKey = ({ signer, accountIdentifier, amount }: IncreaseStakeParams) =>
-  [signer?.kind === 'ledger' ? signer.principal : '', accountIdentifier, amount].join('|');
+  [
+    signer?.kind === 'ledger' ? signer.principal : '',
+    accountIdentifier,
+    bigIntMul(E8Sn, amount).toString(),
+  ].join('|');
 
 /**
  * Hook to increase stake on an existing neuron.
@@ -70,46 +78,57 @@ export function useIncreaseStake() {
       const to = AccountIdentifier.fromHex(params.accountIdentifier);
 
       // Use stored createdAt for retry deduplication, or generate a new one
-      const stored =
-        signer.kind === 'ledger'
-          ? deviceCreatedAt.get(deviceTopUpKey(params))
-          : createdAtRef.current;
+      const key = deviceTopUpKey(params);
+      const stored = signer.kind === 'ledger' ? deviceCreatedAt.get(key) : createdAtRef.current;
       const createdAt = stored ?? nowInBigIntNanoSeconds();
-      if (signer.kind === 'ledger') deviceCreatedAt.set(deviceTopUpKey(params), createdAt);
+      if (signer.kind === 'ledger') deviceCreatedAt.set(key, createdAt);
       else createdAtRef.current = createdAt;
 
       if (signer.kind === 'ledger') {
         // Step 1: the device signs the transfer to the neuron's account identifier.
-        await runDeviceAction(
-          (signal) =>
-            runOnDevice(signer.principal, async () => {
-              // A cancelled call that waited in the queue must not prompt the device.
-              if (signal.aborted) return;
-              const deviceLedger = await getIcpLedgerCanister({ signer });
-              if (signal.aborted) return;
-              try {
-                await deviceLedger.transfer({
-                  to,
-                  amount: amountE8s,
-                  fee: ICP_TRANSACTION_FEE_E8Sn,
-                  createdAt,
-                });
-              } catch (error: unknown) {
-                // The device signed an earlier attempt after its dialog was cancelled. The ICP
-                // is on the neuron account, so the refresh below picks it up.
-                if (duplicateTransferOf(error) === undefined) throw error;
-              }
-            }),
-          {
-            description: t(($) => $.neuronDetailModal.increaseStake.ledgerDevice.approveTransfer),
-            detail: (
-              <span className="flex flex-col gap-1">
-                <span>{t(($) => $.common.inIcp, { value: params.amount })}</span>
-                <span>{params.accountIdentifier}</span>
-              </span>
-            ),
-          },
-        );
+        if (!deviceTransferDone.has(key)) {
+          await runDeviceAction(
+            (signal) =>
+              runOnDevice(signer.principal, async () => {
+                // A cancelled call that waited in the queue must not prompt the device.
+                if (signal.aborted) return;
+                const deviceLedger = await getIcpLedgerCanister({ signer });
+                if (signal.aborted) return;
+                try {
+                  await deviceLedger.transfer({
+                    to,
+                    amount: amountE8s,
+                    fee: ICP_TRANSACTION_FEE_E8Sn,
+                    createdAt,
+                  });
+                } catch (error: unknown) {
+                  // The device signed an earlier attempt after its dialog was cancelled. The ICP
+                  // is on the neuron account, so the refresh below picks it up.
+                  if (duplicateTransferOf(error) === undefined) throw error;
+                }
+              }),
+            {
+              description: t(($) => $.neuronDetailModal.increaseStake.ledgerDevice.approveTransfer),
+              detail: (
+                <span className="flex flex-col gap-1">
+                  <span>{t(($) => $.common.inIcp, { value: params.amount })}</span>
+                  <span>{params.accountIdentifier}</span>
+                </span>
+              ),
+            },
+          ).catch((error: unknown) => {
+            // The ledger rejected this transfer: the next attempt is a new transaction. A
+            // cancelled approval keeps its createdAt, the device can still sign it.
+            if (
+              (error instanceof Error && isCertifiedRejectError(error)) ||
+              error instanceof TransferError
+            ) {
+              deviceCreatedAt.delete(key);
+            }
+            throw error;
+          });
+          deviceTransferDone.add(key);
+        }
 
         // Step 2: the device cannot sign `claim_or_refresh`. Anyone can refresh a neuron by id.
         const anonymousGovernance = await getAnonymousNnsGovernanceCanister();
@@ -117,6 +136,7 @@ export function useIncreaseStake() {
           neuronId: params.neuronId,
           by: { NeuronIdOrSubaccount: {} },
         });
+        deviceTransferDone.delete(key);
       } else {
         // Step 1: Transfer ICP to the neuron's account identifier
         await ledgerCanister.transfer({
@@ -136,7 +156,7 @@ export function useIncreaseStake() {
 
       // Reset createdAt only after the full flow succeeds
       createdAtRef.current = null;
-      deviceCreatedAt.delete(deviceTopUpKey(params));
+      deviceCreatedAt.delete(key);
 
       await Promise.all([
         queryClient.invalidateQueries({

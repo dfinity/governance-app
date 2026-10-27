@@ -1,7 +1,11 @@
 import '@/i18n/config';
 
 import { TxDuplicateError } from '@icp-sdk/canisters/ledger/icp';
-import { CouldNotClaimNeuronError, NeuronState } from '@icp-sdk/canisters/nns';
+import {
+  CouldNotClaimNeuronError,
+  NeuronState,
+  UnrecognizedTypeError,
+} from '@icp-sdk/canisters/nns';
 import { Principal } from '@icp-sdk/core/principal';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
@@ -308,8 +312,9 @@ describe('useCreateNeuron', () => {
 
   it('forgets a recorded transfer that funds no neuron and stakes the typed amount', async () => {
     mocks.readPendingDeviceStake.mockReturnValue({ memo: '77', amount: '25' });
+    // An empty sub-account answers with a governance error, not with an id.
     mocks.anonymousGovernance.claimOrRefreshNeuronFromAccount
-      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new UnrecognizedTypeError('Unrecognized ClaimOrRefresh error'))
       .mockResolvedValueOnce(42n);
     const { result } = renderCreateNeuron({ signer: DEVICE_SIGNER });
 

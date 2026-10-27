@@ -27,6 +27,12 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@common/canisters', () => ({ getIcpLedgerCanister: mocks.getIcpLedgerCanister }));
+// A clock that moves on every call, so two attempts never share a createdAt by accident.
+let clock = 0;
+vi.mock('@dfinity/utils', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@dfinity/utils')>()),
+  nowInBigIntNanoSeconds: () => BigInt(++clock),
+}));
 vi.mock('@common/ledger/deviceQueue', () => ({ runOnDevice: mocks.runOnDevice }));
 vi.mock('@hooks/useDeviceAction', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@hooks/useDeviceAction')>()),
@@ -243,6 +249,47 @@ describe('useSendIcp', () => {
     // A done payment starts a new transaction next time.
     await act(() => second.result.current.mutateAsync(params));
     expect(mocks.deviceLedger.transfer.mock.calls[2][0].createdAt).not.toBe(createdAts[0]);
+  });
+
+  it('keys a device transfer by the values the ledger sees, not by the typed text', async () => {
+    mocks.runDeviceAction.mockImplementationOnce(
+      async (action: (signal: AbortSignal) => Promise<unknown>) => {
+        await action(new AbortController().signal);
+        throw new DeviceActionCancelledError();
+      },
+    );
+    const { result } = renderSendIcp();
+    const base = { toAccount: ICP_ADDRESS, signer: DEVICE_SIGNER, analytics: analyticsParams };
+
+    await expect(
+      act(() => result.current.mutateAsync({ ...base, amount: '4', memo: '7' })),
+    ).rejects.toBeInstanceOf(DeviceActionCancelledError);
+    await act(() => result.current.mutateAsync({ ...base, amount: '4.0', memo: '007' }));
+
+    const createdAts = mocks.deviceLedger.transfer.mock.calls.map(([args]) => args.createdAt);
+    expect(createdAts).toHaveLength(2);
+    expect(createdAts[0]).toBe(createdAts[1]);
+  });
+
+  it('forgets the createdAt of a device transfer that the ICRC-1 ledger rejected', async () => {
+    mocks.deviceLedger.icrc1Transfer.mockRejectedValueOnce(
+      new IcrcTransferError({ errorType: { TooOld: null } }),
+    );
+    const { result } = renderSendIcp();
+    const params = {
+      toAccount: ICRC_ADDRESS,
+      amount: '5',
+      signer: DEVICE_SIGNER,
+      analytics: analyticsParams,
+    };
+
+    await expect(act(() => result.current.mutateAsync(params))).rejects.toBeInstanceOf(
+      IcrcTransferError,
+    );
+    await act(() => result.current.mutateAsync(params));
+
+    const createdAts = mocks.deviceLedger.icrc1Transfer.mock.calls.map(([args]) => args.createdAt);
+    expect(createdAts[0]).not.toBe(createdAts[1]);
   });
 
   it('does not prompt the device for a call that was cancelled while it waited in the queue', async () => {

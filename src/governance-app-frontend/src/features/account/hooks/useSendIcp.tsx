@@ -3,7 +3,7 @@ import {
   type IcpLedgerCanister,
   TransferError,
 } from '@icp-sdk/canisters/ledger/icp';
-import { decodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
+import { decodeIcrcAccount, IcrcTransferError } from '@icp-sdk/canisters/ledger/icrc';
 import { nowInBigIntNanoSeconds, toNullable } from '@dfinity/utils';
 import { useMutation } from '@tanstack/react-query';
 import { useRef } from 'react';
@@ -44,14 +44,20 @@ export type SendIcpParams = {
 // payment sent again must be the same ledger transaction, not a second one.
 const deviceCreatedAt = new Map<string, bigint>();
 
-const deviceTransferKey = ({ toAccount, amount, fromSubAccount, memo, signer }: SendIcpParams) =>
-  [
+// The key holds the values the ledger sees, so "1" and "1.0" or the memos "7" and "007" are
+// one payment.
+const deviceTransferKey = ({ toAccount, amount, fromSubAccount, memo, signer }: SendIcpParams) => {
+  const isIcp = isValidIcpAddress(toAccount);
+  const memoKey = memo === undefined ? '' : isIcp ? encodeMemoToIcp(memo).toString() : memo;
+
+  return [
     signer?.kind === 'ledger' ? signer.principal : '',
     toAccount,
-    amount,
-    memo ?? '',
+    bigIntMul(E8Sn, Number(amount)).toString(),
+    memoKey,
     fromSubAccount?.join(',') ?? '',
   ].join('|');
+};
 
 /**
  * Sends ICP to an ICP or ICRC-1 account.
@@ -156,7 +162,11 @@ export function useSendIcp() {
     onError: (error, params) => {
       // A rejected transfer never reached the ledger: the next attempt is a new transaction.
       // A cancelled approval keeps its createdAt, the device can still sign it.
-      if (isCertifiedRejectError(error) || error instanceof TransferError) {
+      if (
+        isCertifiedRejectError(error) ||
+        error instanceof TransferError ||
+        error instanceof IcrcTransferError
+      ) {
         resetCreatedAt();
         deviceCreatedAt.delete(deviceTransferKey(params));
       }

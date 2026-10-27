@@ -1,6 +1,6 @@
 import '@/i18n/config';
 
-import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
+import { AccountIdentifier, TxTooOldError } from '@icp-sdk/canisters/ledger/icp';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
@@ -33,6 +33,12 @@ vi.mock('@common/canisters', () => ({
   getAnonymousNnsGovernanceCanister: mocks.getAnonymousNnsGovernanceCanister,
 }));
 vi.mock('@common/ledger/deviceQueue', () => ({ runOnDevice: mocks.runOnDevice }));
+// A clock that moves on every call, so two attempts never share a createdAt by accident.
+let clock = 0;
+vi.mock('@dfinity/utils', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@dfinity/utils')>()),
+  nowInBigIntNanoSeconds: () => BigInt(++clock),
+}));
 vi.mock('@hooks/useDeviceAction', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@hooks/useDeviceAction')>()),
   useDeviceAction: () => mocks.runDeviceAction,
@@ -166,6 +172,35 @@ describe('useIncreaseStake', () => {
 
     await act(() => second.result.current.mutateAsync(topUp));
     expect(mocks.deviceLedger.transfer.mock.calls[2][0].createdAt).not.toBe(createdAts[0]);
+  });
+
+  it('retries only the refresh once the device transfer went through', async () => {
+    mocks.anonymousGovernance.claimOrRefreshNeuron.mockRejectedValueOnce(new Error('dropped'));
+    const topUp = { ...params, amount: 11, signer: DEVICE_SIGNER };
+    const first = renderIncreaseStake();
+    await expect(act(() => first.result.current.mutateAsync(topUp))).rejects.toThrow('dropped');
+    first.unmount();
+
+    const second = renderIncreaseStake();
+    await act(() => second.result.current.mutateAsync(topUp));
+
+    expect(mocks.deviceLedger.transfer).toHaveBeenCalledTimes(1);
+    expect(mocks.anonymousGovernance.claimOrRefreshNeuron).toHaveBeenCalledTimes(2);
+  });
+
+  it('forgets the createdAt of a device transfer that the ledger rejected', async () => {
+    mocks.deviceLedger.transfer.mockRejectedValueOnce(new TxTooOldError(0));
+    const topUp = { ...params, amount: 12, signer: DEVICE_SIGNER };
+    const { result } = renderIncreaseStake();
+
+    await expect(act(() => result.current.mutateAsync(topUp))).rejects.toBeInstanceOf(
+      TxTooOldError,
+    );
+    await act(() => result.current.mutateAsync(topUp));
+
+    const createdAts = mocks.deviceLedger.transfer.mock.calls.map(([args]) => args.createdAt);
+    expect(createdAts).toHaveLength(2);
+    expect(createdAts[0]).not.toBe(createdAts[1]);
   });
 
   it('reports a cancelled approval and refreshes nothing', async () => {
