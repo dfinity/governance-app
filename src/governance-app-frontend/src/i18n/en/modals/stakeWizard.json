@@ -95,9 +95,11 @@
     "approve": {
       "transfer": "Check the amount on the device screen and approve the transfer.",
       "hotkey": "Check the hotkey principal on the device screen and approve.",
-      "dissolveDelay": "Check the additional lock period on the device screen and approve.",
+      "dissolveDelay": "Approve the lock period on the device screen. The device shows the time to add.",
       "autoStake": "Approve the auto-lock of rewards on the device screen.",
       "startDissolving": "Approve the start of the unlocking on the device screen."
-    }
+    },
+    "recoveredTitle": "Neuron claimed",
+    "recovered": "An earlier stake of {{amount}} ICP from a Ledger device account is claimed. Open the device account and add this app as hotkey to see the neuron."
   }
 }

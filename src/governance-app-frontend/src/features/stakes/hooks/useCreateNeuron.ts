@@ -148,9 +148,13 @@ export function useCreateNeuron(params: Props) {
       let neuronId = createdNeuronId;
       let step = currentStep;
 
-      // The session is controller or hotkey from the second step on, so it can read the neuron.
+      // Device only: a cancelled device call can still succeed, so each controller step reads
+      // the neuron inside the device queue, after the pending call settled, and applies only
+      // what is missing. The session reads as hotkey or controller.
       const readNeuron = (id: bigint): Promise<NeuronInfo | undefined> =>
-        governanceCanister.getNeuron({ certified: true, neuronId: id });
+        signer.kind === 'ledger'
+          ? governanceCanister.getNeuron({ certified: true, neuronId: id })
+          : Promise.resolve(undefined);
 
       // Step 1: Create neuron
       // This is special step: the stakeNeuron call abstracts both the transfer and the claim_or_refresh_neuron.
@@ -187,6 +191,12 @@ export function useCreateNeuron(params: Props) {
             setStoredMemo(memo);
 
             if (!isTransferDone) {
+              // Kept until the claim succeeds, so a closed wizard or a reload can still claim.
+              // Written before the signature: the device can sign after a cancelled dialog.
+              writePendingDeviceStake(signer.principal, {
+                memo: memo.toString(),
+                amount: params.amount,
+              });
               await onDevice(
                 signer.principal,
                 async (signal) => {
@@ -215,11 +225,6 @@ export function useCreateNeuron(params: Props) {
                   detail: t(($) => $.common.inIcp, { value: params.amount }),
                 },
               );
-              // Kept until the claim succeeds, so a closed wizard or a reload can still claim.
-              writePendingDeviceStake(signer.principal, {
-                memo: memo.toString(),
-                amount: params.amount,
-              });
               setIsTransferDone(true);
             }
 
@@ -255,7 +260,11 @@ export function useCreateNeuron(params: Props) {
         const hotkey = identity.getPrincipal();
         await asController(
           governanceCanister,
-          (canister) => canister.addHotkey({ neuronId: id, principal: hotkey }),
+          async (canister) => {
+            const hotKeys = (await readNeuron(id))?.fullNeuron?.hotKeys ?? [];
+            if (hotKeys.includes(hotkey.toText())) return;
+            await canister.addHotkey({ neuronId: id, principal: hotkey });
+          },
           {
             description: t(($) => $.stakeWizardModal.ledgerDevice.approve.hotkey),
             detail: hotkey.toText(),
@@ -269,27 +278,24 @@ export function useCreateNeuron(params: Props) {
       // The increase is additive, so read the current delay first: a new neuron starts with
       // 7 days, and a retry after a cancelled device call may find the target already set.
       if (step === StakingWizardCreateNeuronStep.SetDissolveDelay) {
-        const currentDelay = Number(
-          (await readNeuron(id))?.dissolveDelaySeconds ?? DEFAULT_DISSOLVE_DELAY_SECONDS,
+        await asController(
+          governanceCanister,
+          async (canister) => {
+            const currentDelay = Number(
+              (await readNeuron(id))?.dissolveDelaySeconds ?? DEFAULT_DISSOLVE_DELAY_SECONDS,
+            );
+            const additionalDissolveDelaySeconds = params.dissolveDelaySeconds - currentDelay;
+            if (additionalDissolveDelaySeconds <= 0) return;
+            await canister.increaseDissolveDelay({ neuronId: id, additionalDissolveDelaySeconds });
+          },
+          {
+            description: t(($) => $.stakeWizardModal.ledgerDevice.approve.dissolveDelay),
+            detail: formatDissolveDelay({
+              seconds: BigInt(params.dissolveDelaySeconds),
+              i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
+            }),
+          },
         );
-        const additionalDissolveDelaySeconds = Math.max(
-          params.dissolveDelaySeconds - currentDelay,
-          0,
-        );
-        if (additionalDissolveDelaySeconds > 0) {
-          await asController(
-            governanceCanister,
-            (canister) =>
-              canister.increaseDissolveDelay({ neuronId: id, additionalDissolveDelaySeconds }),
-            {
-              description: t(($) => $.stakeWizardModal.ledgerDevice.approve.dissolveDelay),
-              detail: formatDissolveDelay({
-                seconds: BigInt(additionalDissolveDelaySeconds),
-                i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
-              }),
-            },
-          );
-        }
         step = StakingWizardCreateNeuronStep.SetAutoStakeMaturity;
         setCurrentStep(step);
       }
@@ -299,7 +305,10 @@ export function useCreateNeuron(params: Props) {
         if (params.autoStakeMaturity) {
           await asController(
             governanceCanister,
-            (canister) => canister.autoStakeMaturity({ neuronId: id, autoStake: true }),
+            async (canister) => {
+              if ((await readNeuron(id))?.fullNeuron?.autoStakeMaturity) return;
+              await canister.autoStakeMaturity({ neuronId: id, autoStake: true });
+            },
             { description: t(($) => $.stakeWizardModal.ledgerDevice.approve.autoStake) },
           );
         }
@@ -310,12 +319,14 @@ export function useCreateNeuron(params: Props) {
       // Step 4: Start dissolving (if enabled). A neuron that already dissolves rejects the call.
       if (step === StakingWizardCreateNeuronStep.StartDissolving) {
         if (params.startDissolving) {
-          const isDissolving = (await readNeuron(id))?.state === NeuronState.Dissolving;
-          if (!isDissolving) {
-            await asController(governanceCanister, (canister) => canister.startDissolving(id), {
-              description: t(($) => $.stakeWizardModal.ledgerDevice.approve.startDissolving),
-            });
-          }
+          await asController(
+            governanceCanister,
+            async (canister) => {
+              if ((await readNeuron(id))?.state === NeuronState.Dissolving) return;
+              await canister.startDissolving(id);
+            },
+            { description: t(($) => $.stakeWizardModal.ledgerDevice.approve.startDissolving) },
+          );
         }
         step = StakingWizardCreateNeuronStep.SetFollowing;
         setCurrentStep(step);

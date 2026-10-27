@@ -36,6 +36,9 @@ const writeStore = (store: Store): void => {
   }
 };
 
+/** Every unclaimed stake, by device principal. */
+export const readAllPendingDeviceStakes = (): Record<string, PendingDeviceStake> => readStore();
+
 /** The unclaimed stake of the device, if any. */
 export const readPendingDeviceStake = (principal: string): PendingDeviceStake | undefined =>
   readStore()[principal];

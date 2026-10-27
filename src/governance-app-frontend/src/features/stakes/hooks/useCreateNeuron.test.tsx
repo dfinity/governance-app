@@ -164,6 +164,7 @@ describe('useCreateNeuron', () => {
     expect(mocks.iiGovernance.addHotkey).not.toHaveBeenCalled();
     expect(mocks.runDeviceAction).not.toHaveBeenCalled();
     expect(mocks.getAnonymousNnsGovernanceCanister).not.toHaveBeenCalled();
+    expect(mocks.iiGovernance.getNeuron).not.toHaveBeenCalled();
     expect(mocks.analyticsEvent).not.toHaveBeenCalled();
     expect(result.current.currentStep).toBe(StakingWizardCreateNeuronStep.Done);
   });
@@ -218,12 +219,12 @@ describe('useCreateNeuron', () => {
     expect(approvalDescriptions()).toEqual([
       'Check the amount on the device screen and approve the transfer.',
       'Check the hotkey principal on the device screen and approve.',
-      'Check the additional lock period on the device screen and approve.',
+      'Approve the lock period on the device screen. The device shows the time to add.',
       'Approve the auto-lock of rewards on the device screen.',
     ]);
     expect(mocks.runDeviceAction.mock.calls[0][1].detail).toBe('10 ICP');
     expect(mocks.runDeviceAction.mock.calls[1][1].detail).toBe(II_PRINCIPAL);
-    expect(mocks.runDeviceAction.mock.calls[2][1].detail).toBe('23 days');
+    expect(mocks.runDeviceAction.mock.calls[2][1].detail).toBe('30 days');
 
     expect(mocks.analyticsEvent).toHaveBeenCalledWith('ledger_device_stake', {
       amount_range: '10-100',
@@ -342,18 +343,47 @@ describe('useCreateNeuron', () => {
     expect(result.current.currentStep).toBe(StakingWizardCreateNeuronStep.Done);
   });
 
-  it('increases the delay by the difference with the current one', async () => {
+  it('increases the delay by the difference with the current one, read inside the device queue', async () => {
     mocks.iiGovernance.getNeuron.mockResolvedValue(
       mockNeuron({ neuronId: 42n, dissolveDelaySeconds: BigInt(SECONDS_IN_DAY * 20) }),
     );
-    const { result } = renderCreateNeuron({ signer: II_SIGNER });
+    const order: string[] = [];
+    mocks.runOnDevice.mockImplementation(async (_p: string, call: () => Promise<unknown>) => {
+      order.push('queue');
+      return call();
+    });
+    mocks.iiGovernance.getNeuron.mockImplementation(async () => {
+      order.push('read');
+      return mockNeuron({ neuronId: 42n, dissolveDelaySeconds: BigInt(SECONDS_IN_DAY * 20) });
+    });
+    const { result } = renderCreateNeuron({ signer: DEVICE_SIGNER, autoStake: false });
 
     await act(() => result.current.mutateAsync());
 
-    expect(mocks.iiGovernance.increaseDissolveDelay).toHaveBeenCalledWith({
+    expect(mocks.deviceGovernance.increaseDissolveDelay).toHaveBeenCalledWith({
       neuronId: 42n,
       additionalDissolveDelaySeconds: SECONDS_IN_DAY * 10,
     });
+    // transfer, hotkey (read), delay (read): every read follows its queue slot.
+    expect(order).toEqual(['queue', 'queue', 'read', 'queue', 'read']);
+  });
+
+  it('skips the hotkey and the auto-stake that a cancelled device call already applied', async () => {
+    mocks.iiGovernance.getNeuron.mockResolvedValue(
+      mockNeuron({
+        neuronId: 42n,
+        dissolveDelaySeconds: BigInt(SECONDS_IN_DAY * 7),
+        fullNeuron: { hotKeys: [II_PRINCIPAL], autoStakeMaturity: true },
+      }),
+    );
+    const { result } = renderCreateNeuron({ signer: DEVICE_SIGNER });
+
+    await act(() => result.current.mutateAsync());
+
+    expect(mocks.deviceGovernance.addHotkey).not.toHaveBeenCalled();
+    expect(mocks.deviceGovernance.autoStakeMaturity).not.toHaveBeenCalled();
+    expect(mocks.deviceGovernance.increaseDissolveDelay).toHaveBeenCalledTimes(1);
+    expect(result.current.currentStep).toBe(StakingWizardCreateNeuronStep.Done);
   });
 
   it('does not ask for a signature when the dialog was cancelled during the device connection', async () => {
@@ -376,6 +406,8 @@ describe('useCreateNeuron', () => {
 
     expect(mocks.deviceIdentity.flagUpcomingStakeNeuron).not.toHaveBeenCalled();
     expect(mocks.deviceLedger.transfer).not.toHaveBeenCalled();
+    // The record is written before the signature: the device can still sign after a cancel.
+    expect(mocks.writePendingDeviceStake).toHaveBeenCalledTimes(1);
   });
 
   it('treats a duplicate transfer as done, so a retry after a late device signature claims the neuron', async () => {

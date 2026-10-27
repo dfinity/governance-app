@@ -34,6 +34,7 @@ import { mapCanisterError } from '@utils/errors';
 import { formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
+import { useClaimPendingDeviceStakes } from '../../hooks/useClaimPendingDeviceStakes';
 import { useCreateNeuron } from '../../hooks/useCreateNeuron';
 import { getDeviceApprovalSteps } from '../../utils/ledgerStake';
 import { STAKING_WIZARD_DEFAULT_FORM_STATE } from './constants';
@@ -93,6 +94,9 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
     selectedAccountId,
     signer,
   });
+
+  // An unclaimed device stake from a closed wizard: claim it on open, before a new stake.
+  useClaimPendingDeviceStakes(isOpen);
 
   const contentRef = useRef<HTMLDivElement>(null);
 
