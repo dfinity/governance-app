@@ -35,6 +35,7 @@ import { formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 import { useCreateNeuron } from '../../hooks/useCreateNeuron';
+import { getDeviceApprovalSteps } from '../../utils/ledgerStake';
 import { STAKING_WIZARD_DEFAULT_FORM_STATE } from './constants';
 import { StakingWizardAnimatedApyBadge } from './StakingWizardAnimatedApyBadge';
 import { StakingWizardStepAmount } from './StakingWizardStepAmount';
@@ -77,14 +78,20 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
   // Falls back to main account id, derived synchronously from the identity.
   const selectedAccountId = formState.selectedAccountId ?? mainAccountMetadata.data!.accountId;
 
+  const signer = getAccountSigner(selectedAccount);
+  const autoStakeMaturity = formState.maturityMode === StakingWizardMaturityMode.Auto;
+  const startDissolving = formState.initialState === StakingWizardInitialState.Dissolving;
+  const deviceApprovalSteps =
+    signer.kind === 'ledger' ? getDeviceApprovalSteps({ autoStakeMaturity, startDissolving }) : [];
+
   const createNeuron = useCreateNeuron({
     amount: formState.amount,
     dissolveDelaySeconds: formState.dissolveDelaySeconds,
-    autoStakeMaturity: formState.maturityMode === StakingWizardMaturityMode.Auto,
-    startDissolving: formState.initialState === StakingWizardInitialState.Dissolving,
+    autoStakeMaturity,
+    startDissolving,
     fromSubAccount,
     selectedAccountId,
-    signer: getAccountSigner(selectedAccount),
+    signer,
   });
 
   const contentRef = useRef<HTMLDivElement>(null);
@@ -359,6 +366,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
                 onMaturityModeChange={updateMaturityMode}
                 onInitialStateChange={updateInitialState}
                 onConfirm={goNext}
+                deviceApprovalSteps={deviceApprovalSteps}
               />
             )}
 
@@ -368,6 +376,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
                 isProcessing={createNeuron.isPending}
                 currentStep={createNeuron.currentStep}
                 error={createNeuron.error ? mapCanisterError(createNeuron.error) : null}
+                isTransferDone={createNeuron.isTransferDone}
                 expectedApy={getCurrentApyFormatted()}
                 onDone={() => handleOpenChange(false)}
                 onRetry={() => createNeuron.mutateAsync()}
