@@ -103,32 +103,74 @@ describe('useLedgerNeuronCall', () => {
     expect(result.current.pending).toBeNull();
   });
 
-  it('rejects with a cancel error and never asks the device when the call waits in the queue', async () => {
+  it('opens the approval dialog only when the queue turn starts', async () => {
     const { result } = renderCall();
     const turn = deferred<void>();
     mocks.runOnDevice.mockImplementation(async (_principal, call) => {
       await turn.promise;
       return call();
     });
-    const call = vi.fn();
+    const signing = deferred<void>();
+    const call = vi.fn().mockReturnValue(signing.promise);
 
     let run!: Promise<void>;
     act(() => {
       run = result.current.run(call, OPTIONS);
     });
-    act(() => cancelPendingDeviceAction());
     expect(result.current.pending).toBeNull();
+    expect(mocks.getNnsGovernanceCanister).not.toHaveBeenCalled();
 
     await act(async () => {
       turn.resolve();
-      await expect(run).rejects.toBeInstanceOf(DeviceActionCancelledError);
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
-    expect(mocks.getNnsGovernanceCanister).not.toHaveBeenCalled();
-    expect(call).not.toHaveBeenCalled();
-    expect(mocks.event).toHaveBeenCalledWith(AnalyticsEvent.LedgerDeviceActionError, {
-      action: 'stake_maturity',
-      reason: 'cancelled',
+    expect(result.current.pending?.description).toBe(OPTIONS.description);
+    expect(call).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      signing.resolve();
+      await run;
     });
+    expect(result.current.pending).toBeNull();
+  });
+
+  it('holds the next action, and its dialog, until the cancelled request settles', async () => {
+    const { runOnDevice } = await vi.importActual<typeof import('@common/ledger/deviceQueue')>(
+      '@common/ledger/deviceQueue',
+    );
+    mocks.runOnDevice.mockImplementation(runOnDevice);
+    const { result } = renderCall();
+    const signing = deferred<void>();
+    const first = vi.fn().mockReturnValue(signing.promise);
+    const second = vi.fn().mockResolvedValue(undefined);
+
+    let firstRun!: Promise<void>;
+    let secondRun!: Promise<void>;
+    act(() => {
+      firstRun = result.current.run(first, OPTIONS);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    act(() => cancelPendingDeviceAction());
+    act(() => {
+      secondRun = result.current.run(second, { ...OPTIONS, description: 'Second request' });
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(result.current.pending).toBeNull();
+    expect(second).not.toHaveBeenCalled();
+
+    await act(async () => {
+      signing.resolve();
+      await expect(firstRun).rejects.toBeInstanceOf(DeviceActionCancelledError);
+    });
+    await act(async () => {
+      await secondRun;
+    });
+    expect(second).toHaveBeenCalledTimes(1);
+    expect(result.current.pending).toBeNull();
   });
 
   it('never starts the signing call when the cancel comes during the connection', async () => {
