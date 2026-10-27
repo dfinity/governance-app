@@ -41,10 +41,19 @@ export type LedgerNeuronCallOptions = {
  * time, so a dialog must not open while a request to any device is outstanding.
  */
 let approvals: Promise<unknown> = Promise.resolve();
+// The session of the chain. A logout leaves a request without an answer behind, so the next
+// session starts a new chain instead of a wait for it.
+let approvalsGeneration = getDeviceSessionGeneration();
 
 /** Forgets the approval in progress, so the next call does not wait for it. For tests. */
 export const clearLedgerApprovals = (): void => {
   approvals = Promise.resolve();
+  approvalsGeneration = getDeviceSessionGeneration();
+};
+
+const approvalsOfThisSession = (): Promise<unknown> => {
+  if (approvalsGeneration !== getDeviceSessionGeneration()) clearLedgerApprovals();
+  return approvals;
 };
 
 /**
@@ -53,10 +62,10 @@ export const clearLedgerApprovals = (): void => {
  * The call waits for the pending calls to the same device and for the approval in progress
  * on any device. The "Approve on your Ledger device" dialog opens when its turn starts, so
  * it never shows the values of a request that the device does not show yet. A cancel on the dialog rejects with
- * `DeviceActionCancelledError`; the turn still waits for the device to answer, so the
- * caller stays pending, no second request starts, and a late approval runs the whole call
- * (`call` must include the refresh that follows the governance update). One analytics
- * event reports the outcome.
+ * `DeviceActionCancelledError` when the device does not sign. The turn still waits for the
+ * device to answer, so the caller stays pending and no second request starts. When the
+ * device signs after the cancel, the call resolves with its result as if approved, so the
+ * caller reports what happened. One analytics event reports the outcome.
  */
 export const useLedgerNeuronCall = () => {
   const runDeviceAction = useDeviceAction();
@@ -85,21 +94,21 @@ export const useLedgerNeuronCall = () => {
         return result;
       } catch (error) {
         // The dialog is closed, but the device may still sign the request.
-        const signedLate =
+        const late =
           isDeviceActionCancelled(error) && signing
             ? await signing.then(
-                () => true,
-                () => false,
+                (value) => ({ signed: true as const, value }),
+                () => ({ signed: false as const }),
               )
-            : false;
-        if (signedLate) {
+            : { signed: false as const };
+        if (late.signed) {
           analytics.event(AnalyticsEvent.LedgerDeviceAction, { action });
-        } else {
-          analytics.event(AnalyticsEvent.LedgerDeviceActionError, {
-            action,
-            reason: getErrorReason(error),
-          });
+          return late.value;
         }
+        analytics.event(AnalyticsEvent.LedgerDeviceActionError, {
+          action,
+          reason: getErrorReason(error),
+        });
         throw error;
       }
     };
@@ -108,7 +117,7 @@ export const useLedgerNeuronCall = () => {
       // The queue checked the session before this turn. The wait for the approval in progress
       // can span a logout, so the check runs again before the dialog opens.
       const generation = getDeviceSessionGeneration();
-      const turn = approvals.then(() => {
+      const turn = approvalsOfThisSession().then(() => {
         if (generation !== getDeviceSessionGeneration()) {
           throw new LedgerDeviceError(LedgerErrorCode.SessionClosed);
         }

@@ -171,7 +171,7 @@ describe('useLedgerNeuronCall', () => {
 
     await act(async () => {
       signing.resolve();
-      await expect(firstRun).rejects.toBeInstanceOf(DeviceActionCancelledError);
+      await firstRun;
     });
     await act(async () => {
       await secondRun;
@@ -206,7 +206,7 @@ describe('useLedgerNeuronCall', () => {
 
     await act(async () => {
       signing.resolve();
-      await expect(firstRun).rejects.toBeInstanceOf(DeviceActionCancelledError);
+      await firstRun;
       await secondRun;
     });
     expect(second).toHaveBeenCalledTimes(1);
@@ -239,11 +239,44 @@ describe('useLedgerNeuronCall', () => {
 
     await act(async () => {
       signing.resolve();
-      await expect(firstRun).rejects.toBeInstanceOf(DeviceActionCancelledError);
+      await firstRun;
       await expect(secondRun).rejects.toMatchObject({ code: LedgerErrorCode.SessionClosed });
     });
     expect(mocks.getNnsGovernanceCanister).toHaveBeenCalledTimes(1);
     expect(second).not.toHaveBeenCalled();
+    expect(result.current.pending).toBeNull();
+  });
+
+  it('starts a new approval chain after a logout, so a request without answer does not block', async () => {
+    const queue = await vi.importActual<typeof import('@common/ledger/deviceQueue')>(
+      '@common/ledger/deviceQueue',
+    );
+    mocks.generation.mockImplementation(queue.getDeviceSessionGeneration);
+    const { result } = renderCall();
+    const unanswered = deferred<void>();
+    const first = vi.fn().mockReturnValue(unanswered.promise);
+    const signing = deferred<void>();
+    const second = vi.fn().mockReturnValue(signing.promise);
+
+    act(() => {
+      void result.current.run(first, OPTIONS).catch(() => undefined);
+    });
+    await flush();
+    act(() => cancelPendingDeviceAction());
+    queue.clearDeviceQueues();
+
+    let secondRun!: Promise<void>;
+    act(() => {
+      secondRun = result.current.run(second, { ...OPTIONS, description: 'Next session' });
+    });
+    await flush();
+    expect(result.current.pending?.description).toBe('Next session');
+    expect(second).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      signing.resolve();
+      await secondRun;
+    });
     expect(result.current.pending).toBeNull();
   });
 
@@ -268,12 +301,12 @@ describe('useLedgerNeuronCall', () => {
     expect(call).not.toHaveBeenCalled();
   });
 
-  it('stays pending after a cancel until the device answers, and reports a late approval', async () => {
+  it('stays pending after a cancel until the device answers, and resolves on a late approval', async () => {
     const { result } = renderCall();
-    const signing = deferred<void>();
+    const signing = deferred<string>();
     const call = vi.fn().mockReturnValue(signing.promise);
 
-    let run!: Promise<void>;
+    let run!: Promise<string>;
     act(() => {
       run = result.current.run(call, OPTIONS);
     });
@@ -292,8 +325,8 @@ describe('useLedgerNeuronCall', () => {
     expect(settled).toBe(false);
 
     await act(async () => {
-      signing.resolve();
-      await expect(run).rejects.toBeInstanceOf(DeviceActionCancelledError);
+      signing.resolve('signed');
+      await expect(run).resolves.toBe('signed');
     });
     expect(mocks.event).toHaveBeenCalledWith(AnalyticsEvent.LedgerDeviceAction, {
       action: 'stake_maturity',

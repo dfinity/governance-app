@@ -310,7 +310,7 @@ describe.each(CASES)('$name', ({ setup, method, args, action, detail }) => {
     for (const line of detail) expect(screen.getByText(line)).toBeTruthy();
   });
 
-  it('stays pending after a cancel and refreshes on a late approval', async () => {
+  it('stays pending after a cancel and resolves with a refresh on a late approval', async () => {
     const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries');
     let approve!: () => void;
     mocks.deviceCanister[method].mockReturnValue(
@@ -332,7 +332,7 @@ describe.each(CASES)('$name', ({ setup, method, args, action, detail }) => {
 
     await act(async () => {
       approve();
-      await expect(run).rejects.toThrow('The device action was cancelled.');
+      await run;
     });
     expect(invalidateQueries).toHaveBeenCalledWith({
       queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],

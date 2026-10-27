@@ -92,10 +92,12 @@ const deviceNeuron = (neuronId: bigint) =>
 
 const deferred = <T,>() => {
   let resolve!: (value: T) => void;
-  const promise = new Promise<T>((res) => {
+  let reject!: (error: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
     resolve = res;
+    reject = rej;
   });
-  return { promise, resolve };
+  return { promise, resolve, reject };
 };
 
 const renderVoting = (proposal: ProposalInfo) => {
@@ -246,8 +248,8 @@ describe('useVoting', () => {
     // The vote stays pending until the device answers the request it still shows.
     expect(result.current.voting.isVoting).toBe(true);
     await act(async () => {
-      first.resolve();
-      await first.promise;
+      first.reject(new Error('rejected on the device'));
+      await first.promise.catch(() => undefined);
     });
 
     await waitFor(() => expect(result.current.voting.isVoting).toBe(false));
@@ -289,6 +291,30 @@ describe('useVoting', () => {
       queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS],
     });
     await expect(mocks.toastPromise.mock.calls[0][0]).rejects.toThrow('rejected');
+  });
+
+  it('goes on with the next device vote when the device approves after a cancel', async () => {
+    mocks.neurons.mockReturnValue([deviceNeuron(2n), deviceNeuron(3n)]);
+    mocks.ledgerPrincipals.mockReturnValue([DEVICE]);
+    const first = deferred<void>();
+    mocks.deviceRegisterVote.mockImplementationOnce(() => first.promise);
+    const { result, invalidateQueries } = renderVoting(proposalWith([2n, 3n]));
+
+    act(() => result.current.voting.vote(Vote.Yes));
+
+    await waitFor(() => expect(mocks.deviceRegisterVote).toHaveBeenCalledTimes(1));
+    act(() => cancelPendingDeviceAction());
+    await act(async () => {
+      first.resolve();
+      await first.promise;
+    });
+
+    await waitFor(() => expect(result.current.voting.isVoting).toBe(false));
+    expect(mocks.deviceRegisterVote).toHaveBeenCalledTimes(2);
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS],
+    });
+    await expect(mocks.toastPromise.mock.calls[0][0]).resolves.toBeDefined();
   });
 
   it('refreshes the votes already cast when a device vote fails', async () => {
