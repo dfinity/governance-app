@@ -65,20 +65,23 @@ export const claimPendingDeviceStakes = (): Promise<RecoveredDeviceStakes> =>
     }
 
     for (const [key, pending] of Object.entries(readAllPendingDeviceTopUps())) {
-      if (!pending.transferred) {
-        // Unconfirmed: the device may still sign it. Keep the record while it can dedupe.
-        const age = nowInBigIntNanoSeconds() - BigInt(pending.createdAt);
-        if (age > LEDGER_TRANSACTION_WINDOW_NANOS) clearPendingDeviceTopUp(key, pending.createdAt);
-        continue;
-      }
       try {
+        // The refresh is harmless when nothing landed. An unconfirmed transfer may have
+        // reached the ledger right before a reload, so its neuron is refreshed too.
         const governance = await getAnonymousNnsGovernanceCanister();
         await governance.claimOrRefreshNeuron({
           neuronId: BigInt(pending.neuronId),
           by: { NeuronIdOrSubaccount: {} },
         });
-        clearPendingDeviceTopUp(key, pending.createdAt);
-        result.refreshed.push(pending);
+        if (pending.transferred) {
+          clearPendingDeviceTopUp(key, pending.createdAt);
+          result.refreshed.push(pending);
+          continue;
+        }
+        // Unconfirmed: the device may still sign it. The record dedupes while the ledger
+        // accepts its createdAt; after that window it protects nothing.
+        const age = nowInBigIntNanoSeconds() - BigInt(pending.createdAt);
+        if (age > LEDGER_TRANSACTION_WINDOW_NANOS) clearPendingDeviceTopUp(key, pending.createdAt);
       } catch (error: unknown) {
         console.warn('Failed to refresh a pending Ledger device top-up.', error);
       }

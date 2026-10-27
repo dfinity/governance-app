@@ -158,7 +158,7 @@ describe('useClaimPendingDeviceStakes', () => {
     expect(mocks.successNotification).not.toHaveBeenCalled();
   });
 
-  it('keeps a young unconfirmed top-up and drops one older than the ledger window', async () => {
+  it('refreshes the neuron of an unconfirmed top-up, keeps a young record and drops an old one', async () => {
     const now = BigInt(Date.now()) * 1_000_000n;
     const twoDays = 2n * 24n * 60n * 60n * 1_000_000_000n;
     mocks.readAllPendingDeviceTopUps.mockReturnValue({
@@ -176,7 +176,12 @@ describe('useClaimPendingDeviceStakes', () => {
       expect(mocks.clearPendingDeviceTopUp).toHaveBeenCalledWith('old', (now - twoDays).toString()),
     );
     expect(mocks.clearPendingDeviceTopUp).not.toHaveBeenCalledWith('young', expect.anything());
-    expect(mocks.claimOrRefreshNeuron).not.toHaveBeenCalled();
+    // A transfer that landed right before a reload is in the neuron after the refresh.
+    expect(mocks.claimOrRefreshNeuron).toHaveBeenCalledTimes(2);
+    expect(mocks.claimOrRefreshNeuron).toHaveBeenCalledWith({
+      neuronId: 42n,
+      by: { NeuronIdOrSubaccount: {} },
+    });
     expect(mocks.successNotification).not.toHaveBeenCalled();
   });
 
