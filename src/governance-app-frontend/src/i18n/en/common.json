@@ -110,6 +110,10 @@
     "subaccounts": "Multiple accounts",
     "advancedFollowing": "Advanced following",
     "showNonConstructiveProposals": "Show all proposals",
-    "transactionMemo": "Transaction memo"
+    "transactionMemo": "Transaction memo",
+    "ledgerDevice": "Ledger device"
+  },
+  "ledgerApproval": {
+    "title": "Approve on your Ledger device"
   }
 }

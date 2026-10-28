@@ -2,9 +2,10 @@ import { Principal } from '@icp-sdk/core/principal';
 import { afterEach, beforeEach, describe, expect, it, type MockInstance, vi } from 'vitest';
 
 import { MockLedgerIdentity } from '../../../tests/mocks/ledgerIdentity';
+import { clearDeviceQueues, runOnDevice } from './deviceQueue';
 import { LedgerDeviceError, LedgerErrorCode } from './errors';
 import { LedgerIdentity } from './ledgerIdentity';
-import { clearLedgerIdentities, getLedgerIdentity } from './session';
+import { clearLedgerIdentities, connectLedgerIdentity, getLedgerIdentity } from './session';
 
 const DEVICE_PRINCIPAL = new MockLedgerIdentity().getPrincipal().toText();
 const OTHER_PRINCIPAL = 'rrkah-fqaaa-aaaaa-aaaaq-cai';
@@ -20,6 +21,7 @@ describe('getLedgerIdentity', () => {
 
   afterEach(() => {
     clearLedgerIdentities();
+    clearDeviceQueues();
     vi.restoreAllMocks();
   });
 
@@ -94,6 +96,14 @@ describe('getLedgerIdentity', () => {
     expect(create).toHaveBeenCalledTimes(2);
   });
 
+  it('closes the device session on clearLedgerIdentities', async () => {
+    const closeSession = vi.spyOn(LedgerIdentity, 'closeSession').mockResolvedValue(undefined);
+    await getLedgerIdentity(DEVICE_PRINCIPAL);
+
+    clearLedgerIdentities();
+    await vi.waitFor(() => expect(closeSession).toHaveBeenCalledTimes(1));
+  });
+
   it('connects again after clearLedgerIdentities', async () => {
     const first = await getLedgerIdentity(DEVICE_PRINCIPAL);
     clearLedgerIdentities();
@@ -101,5 +111,158 @@ describe('getLedgerIdentity', () => {
 
     expect(second).not.toBe(first);
     expect(create).toHaveBeenCalledTimes(2);
+  });
+
+  describe('connectLedgerIdentity', () => {
+    it('caches the connected device under its principal', async () => {
+      const identity = await connectLedgerIdentity();
+
+      await expect(getLedgerIdentity(DEVICE_PRINCIPAL)).resolves.toBe(identity);
+      expect(create).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits for the pending device calls before it connects', async () => {
+      let finish!: () => void;
+      void runOnDevice(DEVICE_PRINCIPAL, () => new Promise<void>((resolve) => (finish = resolve)));
+
+      const connecting = connectLedgerIdentity();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(create).not.toHaveBeenCalled();
+
+      finish();
+      await expect(connecting).resolves.toBeInstanceOf(MockLedgerIdentity);
+      expect(create).toHaveBeenCalledTimes(1);
+    });
+
+    it('holds a device call queued during the connection until the connection settles', async () => {
+      let finishCall!: () => void;
+      let finishCreate!: () => void;
+      void runOnDevice(
+        DEVICE_PRINCIPAL,
+        () => new Promise<void>((resolve) => (finishCall = resolve)),
+      );
+      create.mockImplementationOnce(
+        () =>
+          new Promise<MockLedgerIdentity>((resolve) => {
+            finishCreate = () => resolve(new MockLedgerIdentity());
+          }),
+      );
+
+      await vi.waitFor(() => expect(finishCall).toBeDefined());
+      const connecting = connectLedgerIdentity();
+      let retried = false;
+      void runOnDevice(DEVICE_PRINCIPAL, async () => {
+        retried = true;
+      });
+
+      finishCall();
+      await vi.waitFor(() => expect(create).toHaveBeenCalledTimes(1));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(retried).toBe(false);
+
+      finishCreate();
+      await connecting;
+      await vi.waitFor(() => expect(retried).toBe(true));
+    });
+
+    it('rejects at once with an already aborted signal', async () => {
+      const controller = new AbortController();
+      const reason = new Error('closed');
+      controller.abort(reason);
+
+      await expect(connectLedgerIdentity(controller.signal)).rejects.toBe(reason);
+      expect(create).not.toHaveBeenCalled();
+      await expect(runOnDevice(DEVICE_PRINCIPAL, async () => 'free')).resolves.toBe('free');
+    });
+
+    it('does not start a queued connection after its signal aborts', async () => {
+      let finishCall!: () => void;
+      void runOnDevice(
+        DEVICE_PRINCIPAL,
+        () => new Promise<void>((resolve) => (finishCall = resolve)),
+      );
+      await vi.waitFor(() => expect(finishCall).toBeDefined());
+      const controller = new AbortController();
+      const reason = new Error('closed');
+
+      const connecting = connectLedgerIdentity(controller.signal);
+      controller.abort(reason);
+      finishCall();
+
+      await expect(connecting).rejects.toBe(reason);
+      expect(create).not.toHaveBeenCalled();
+    });
+
+    it('rejects at once on an abort after the creation started, and keeps the reservation', async () => {
+      let finishCreate!: () => void;
+      create.mockImplementationOnce(
+        () =>
+          new Promise<MockLedgerIdentity>((resolve) => {
+            finishCreate = () => resolve(new MockLedgerIdentity());
+          }),
+      );
+      const controller = new AbortController();
+      const reason = new Error('closed');
+
+      const connecting = connectLedgerIdentity(controller.signal);
+      await vi.waitFor(() => expect(create).toHaveBeenCalledTimes(1));
+      let queued = false;
+      void runOnDevice(DEVICE_PRINCIPAL, async () => {
+        queued = true;
+      });
+
+      controller.abort(reason);
+      await expect(connecting).rejects.toBe(reason);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(queued).toBe(false);
+
+      finishCreate();
+      await vi.waitFor(() => expect(queued).toBe(true));
+
+      // The late identity is dropped, so the next call connects again.
+      await getLedgerIdentity(DEVICE_PRINCIPAL);
+      expect(create).toHaveBeenCalledTimes(2);
+    });
+
+    it('drops a late failure after an abort', async () => {
+      let failCreate!: (error: Error) => void;
+      create.mockImplementationOnce(
+        () =>
+          new Promise<MockLedgerIdentity>((_, reject) => {
+            failCreate = reject;
+          }),
+      );
+      const controller = new AbortController();
+      const reason = new Error('closed');
+
+      const connecting = connectLedgerIdentity(controller.signal);
+      await vi.waitFor(() => expect(create).toHaveBeenCalledTimes(1));
+      controller.abort(reason);
+      await expect(connecting).rejects.toBe(reason);
+
+      failCreate(new LedgerDeviceError(LedgerErrorCode.NoDevice));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      await expect(getLedgerIdentity(DEVICE_PRINCIPAL)).resolves.toBeInstanceOf(MockLedgerIdentity);
+    });
+
+    it('does not seed the cache when a logout happens during the connection', async () => {
+      let finish!: () => void;
+      create.mockImplementationOnce(
+        () =>
+          new Promise<MockLedgerIdentity>((resolve) => {
+            finish = () => resolve(new MockLedgerIdentity());
+          }),
+      );
+
+      const connecting = connectLedgerIdentity();
+      await vi.waitFor(() => expect(create).toHaveBeenCalled());
+      clearLedgerIdentities();
+      finish();
+      await connecting;
+
+      await getLedgerIdentity(DEVICE_PRINCIPAL);
+      expect(create).toHaveBeenCalledTimes(2);
+    });
   });
 });

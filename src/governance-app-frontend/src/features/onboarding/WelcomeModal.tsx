@@ -34,6 +34,7 @@ export function WelcomeModal() {
   const featureLabels: Record<string, string> = {
     [AdvancedFeature.Subaccounts]: t(($) => $.welcomeModal.subaccountsDetected),
     [AdvancedFeature.AdvancedFollowing]: t(($) => $.welcomeModal.advancedFollowingDetected),
+    [AdvancedFeature.LedgerDevice]: t(($) => $.welcomeModal.ledgerDeviceDetected),
   };
 
   const enabledFeatures: Array<{ label: string }> = Object.entries(detectedFeatures)

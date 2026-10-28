@@ -22,6 +22,10 @@ vi.mock('@hooks/governance/useGovernanceEconomics', () => ({
   useGovernanceEconomics: () => ({ data: undefined, isLoading: false }),
 }));
 
+vi.mock('@features/accounts/hooks/useHardwareWalletsMetadata', () => ({
+  useHardwareWalletsMetadata: () => ({ data: [], isLoading: false }),
+}));
+
 vi.mock('./neuronDetail', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./neuronDetail')>()),
   NeuronDetailModal: () => null,
