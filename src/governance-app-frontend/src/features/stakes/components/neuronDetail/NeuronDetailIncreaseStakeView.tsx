@@ -67,7 +67,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
 
   const accountIdentifier = neuron.fullNeuron?.accountIdentifier;
 
-  const { mutateAsync, isPending } = useIncreaseStake();
+  const { mutateAsync, isPending, variables } = useIncreaseStake();
   // A device top-up whose refresh failed in an earlier view: refresh it now, no balance needed.
   useClaimPendingDeviceStakes();
 
@@ -223,7 +223,11 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
           t(($) => $.neuronDetailModal.increaseStake.confirm)
         )}
       </Button>
-      <DeviceAnswerHint signer={getAccountSigner(selectedAccount)} className="mt-3 text-center" />
+      {/* The signer of the submitted top-up: the picker can change while the device still asks. */}
+      <DeviceAnswerHint
+        signer={isPending ? variables?.signer : undefined}
+        className="mt-3 text-center"
+      />
     </form>
   );
 }
