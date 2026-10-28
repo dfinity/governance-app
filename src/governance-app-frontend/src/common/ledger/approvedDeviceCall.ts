@@ -48,7 +48,7 @@ const subscribe = (listener: () => void) => {
 };
 
 const isAnswerPending = () =>
-  unanswered.values().some(({ generation }) => generation === getDeviceSessionGeneration());
+  [...unanswered].some(({ generation }) => generation === getDeviceSessionGeneration());
 
 /** Whether a cancelled request still waits for the answer of the device. */
 export const useDeviceAnswerPending = (): boolean =>
