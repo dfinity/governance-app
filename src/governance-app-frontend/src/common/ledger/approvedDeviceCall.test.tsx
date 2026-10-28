@@ -381,6 +381,26 @@ describe('runApprovedDeviceCall', () => {
     expect(result.current).toBe(false);
   });
 
+  it('does not count a request that the logout itself cancels, after the session changed', async () => {
+    const queue = await actualQueue();
+    mocks.generation.mockImplementation(queue.getDeviceSessionGeneration);
+    mocks.clearDeviceQueues.mockImplementation(queue.clearDeviceQueues);
+    const { result } = renderAnswerPending();
+    const unanswered = deferred<void>();
+    const call = vi.fn().mockReturnValue(unanswered.promise);
+
+    act(() => {
+      void runApprovedDeviceCall(DEVICE, call, OPTIONS).catch(() => undefined);
+    });
+    await flush();
+    // The logout clears the session first; the approval dialog unmounts and cancels after it.
+    act(() => clearLedgerIdentities());
+    act(() => cancelPendingDeviceAction());
+    await flush();
+
+    expect(result.current).toBe(false);
+  });
+
   it('reports the cancel when the device rejects the request after the cancel', async () => {
     const signing = deferred<void>();
     const call = vi.fn().mockReturnValue(signing.promise);

@@ -83,7 +83,9 @@ export const runApprovedDeviceCall = <T>(
   call: (signal: AbortSignal) => Promise<T>,
   options: ApprovedDeviceCallOptions,
 ): Promise<T> => {
-  const approve = async (): Promise<T> => {
+  // `generation` is the session of the turn. A logout bumps the session before the dialog
+  // unmounts and cancels, so the cancel must not read the session of its own moment.
+  const approve = async (generation: number): Promise<T> => {
     let signing: Promise<T> | undefined;
     const start = (signal: AbortSignal) => (signing = call(signal));
 
@@ -92,7 +94,7 @@ export const runApprovedDeviceCall = <T>(
     } catch (error) {
       // The dialog is closed, but the device may still sign the request.
       if (!isDeviceActionCancelled(error) || !signing) throw error;
-      const request = { generation: getDeviceSessionGeneration() };
+      const request = { generation };
       unanswered.add(request);
       emit();
       const late = await signing
@@ -119,7 +121,7 @@ export const runApprovedDeviceCall = <T>(
     const sessionClosed = () => generation !== getDeviceSessionGeneration();
     const turn = approvalsOfThisSession().then(async () => {
       if (sessionClosed()) throw new LedgerDeviceError(LedgerErrorCode.SessionClosed);
-      const result = await approve();
+      const result = await approve(generation);
       // The device can answer after a logout. The result belongs to the closed session: the
       // caller must not go on with its next step in the next one.
       if (sessionClosed()) throw new LedgerDeviceError(LedgerErrorCode.SessionClosed);
