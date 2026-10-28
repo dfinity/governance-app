@@ -13,15 +13,19 @@ import {
   useDeviceAnswerPending,
 } from './approvedDeviceCall';
 import { LedgerDeviceError, LedgerErrorCode } from './errors';
+import { clearLedgerIdentities } from './session';
 
 const mocks = vi.hoisted(() => ({
   runOnDevice: vi.fn(),
   generation: vi.fn(() => 0),
+  clearDeviceQueues: vi.fn(),
 }));
 
 vi.mock('./deviceQueue', () => ({
   runOnDevice: mocks.runOnDevice,
   getDeviceSessionGeneration: () => mocks.generation(),
+  clearDeviceQueues: () => mocks.clearDeviceQueues(),
+  runExclusiveDeviceCall: vi.fn(),
 }));
 
 const DEVICE = 'aaaaa-aa';
@@ -62,6 +66,7 @@ describe('runApprovedDeviceCall', () => {
   beforeEach(() => {
     mocks.runOnDevice.mockReset().mockImplementation((_principal, call) => call());
     mocks.generation.mockReset().mockReturnValue(0);
+    mocks.clearDeviceQueues.mockReset();
     clearDeviceApprovals();
   });
 
@@ -352,6 +357,27 @@ describe('runApprovedDeviceCall', () => {
       signing.resolve();
       await run;
     });
+    expect(result.current).toBe(false);
+  });
+
+  it('drops the pending device answer on a logout, before any call of the next session', async () => {
+    const queue = await actualQueue();
+    mocks.generation.mockImplementation(queue.getDeviceSessionGeneration);
+    mocks.clearDeviceQueues.mockImplementation(queue.clearDeviceQueues);
+    const { result } = renderAnswerPending();
+    const unanswered = deferred<void>();
+    const call = vi.fn().mockReturnValue(unanswered.promise);
+
+    act(() => {
+      void runApprovedDeviceCall(DEVICE, call, OPTIONS).catch(() => undefined);
+    });
+    await flush();
+    act(() => cancelPendingDeviceAction());
+    await flush();
+    expect(result.current).toBe(true);
+
+    act(() => clearLedgerIdentities());
+
     expect(result.current).toBe(false);
   });
 

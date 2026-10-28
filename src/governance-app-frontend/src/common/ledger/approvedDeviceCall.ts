@@ -22,15 +22,16 @@ let approvals: Promise<unknown> = Promise.resolve();
 let approvalsGeneration = getDeviceSessionGeneration();
 
 // The cancelled requests that still wait for the device answer. The processing screens
-// tell the user that the device must answer before the flow goes on.
-let unanswered = new Set<object>();
+// tell the user that the device must answer before the flow goes on. A request of a closed
+// session does not count: its answer belongs to that session.
+let unanswered = new Set<{ generation: number }>();
 let listeners: Array<() => void> = [];
 
 const emit = () => listeners.forEach((listener) => listener());
 
 /**
  * Forgets the approval in progress, so the next call does not wait for it, and the requests
- * that wait for the device answer. For tests, and for the first call of a new session.
+ * that wait for the device answer. `clearLedgerIdentities` calls it on logout.
  */
 export const clearDeviceApprovals = (): void => {
   approvals = Promise.resolve();
@@ -46,7 +47,8 @@ const subscribe = (listener: () => void) => {
   };
 };
 
-const isAnswerPending = () => unanswered.size > 0;
+const isAnswerPending = () =>
+  unanswered.values().some(({ generation }) => generation === getDeviceSessionGeneration());
 
 /** Whether a cancelled request still waits for the answer of the device. */
 export const useDeviceAnswerPending = (): boolean =>
@@ -90,7 +92,7 @@ export const runApprovedDeviceCall = <T>(
     } catch (error) {
       // The dialog is closed, but the device may still sign the request.
       if (!isDeviceActionCancelled(error) || !signing) throw error;
-      const request = {};
+      const request = { generation: getDeviceSessionGeneration() };
       unanswered.add(request);
       emit();
       const late = await signing
