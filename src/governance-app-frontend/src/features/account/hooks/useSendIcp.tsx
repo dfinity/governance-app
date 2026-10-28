@@ -16,13 +16,13 @@ import { analytics } from '@features/analytics/service';
 
 import { E8Sn } from '@constants/extra';
 import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
-import { useDeviceAction } from '@hooks/useDeviceAction';
+import { DeviceActionCancelledError } from '@hooks/useDeviceAction';
 import { isValidIcpAddress } from '@utils/address';
 import { bigIntMul } from '@utils/bigInt';
 import { isCertifiedRejectError } from '@utils/errors';
 import { duplicateTransferOf } from '@utils/errors/duplicateTransfer';
 import { getIcpLedgerCanister } from '@common/canisters';
-import { runOnDevice } from '@common/ledger/deviceQueue';
+import { runApprovedDeviceCall } from '@common/ledger/approvedDeviceCall';
 import { II_SIGNER, type Signer } from '@common/ledger/signer';
 
 export type SendIcpParams = {
@@ -69,7 +69,6 @@ const deviceTransferKey = ({ toAccount, amount, fromSubAccount, memo, signer }: 
 export function useSendIcp() {
   const { t } = useTranslation();
   const { canister: ledgerCanister } = useIcpLedger();
-  const runDeviceAction = useDeviceAction();
 
   // Keep the createdAt value for retry purposes (used for deduplication at the ledger level)
   const createdAtRef = useRef<bigint | null>(null);
@@ -119,23 +118,22 @@ export function useSendIcp() {
 
       if (signer.kind !== 'ledger') return transfer(ledgerCanister!);
 
-      return runDeviceAction(
-        (signal) =>
-          runOnDevice(signer.principal, async () => {
-            // A cancelled call that waited in the queue must not prompt the device.
-            if (signal.aborted) return;
-            const deviceLedger = await getIcpLedgerCanister({ signer });
-            if (signal.aborted) return;
-            try {
-              return await transfer(deviceLedger);
-            } catch (error: unknown) {
-              // The device signed an earlier attempt after its dialog was cancelled. The ledger
-              // holds that transfer, so this attempt is the same payment, done.
-              const duplicateOf = duplicateTransferOf(error);
-              if (duplicateOf === undefined) throw error;
-              return duplicateOf;
-            }
-          }),
+      return runApprovedDeviceCall(
+        signer.principal,
+        async (signal) => {
+          const deviceLedger = await getIcpLedgerCanister({ signer });
+          // A cancel during the device connection must not ask for a signature.
+          if (signal.aborted) throw new DeviceActionCancelledError();
+          try {
+            return await transfer(deviceLedger);
+          } catch (error: unknown) {
+            // The device signed an earlier attempt after its dialog was cancelled. The ledger
+            // holds that transfer, so this attempt is the same payment, done.
+            const duplicateOf = duplicateTransferOf(error);
+            if (duplicateOf === undefined) throw error;
+            return duplicateOf;
+          }
+        },
         {
           description: t(($) => $.account.ledgerDevice.approveTransfer),
           detail: (

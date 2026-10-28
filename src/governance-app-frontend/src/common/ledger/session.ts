@@ -1,3 +1,4 @@
+import { clearDeviceApprovals } from './approvedDeviceCall';
 import { clearDeviceQueues, runExclusiveDeviceCall } from './deviceQueue';
 import { LedgerDeviceError, LedgerErrorCode } from './errors';
 import type { LedgerIdentity } from './ledgerIdentity';
@@ -120,12 +121,14 @@ export const connectLedgerIdentity = (signal?: AbortSignal): Promise<LedgerIdent
 
 /**
  * Drops every cached identity, closes the device session, and stops the queued device
- * calls. Call it on logout. A device action that still waits for an approval loses its turn.
+ * calls. Call it on logout. A device action that still waits for an approval loses its turn,
+ * and a cancelled request that still waits for the device answer no longer counts.
  */
 export const clearLedgerIdentities = (): void => {
   clearGeneration += 1;
   identities.clear();
   clearDeviceQueues();
+  clearDeviceApprovals();
 
   void ledgerModule
     ?.then(({ LedgerIdentity }) => LedgerIdentity.closeSession())

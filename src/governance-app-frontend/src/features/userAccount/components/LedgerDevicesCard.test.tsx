@@ -9,6 +9,7 @@ import { AccountType } from '@features/accounts/types';
 import { PendingDeviceActionDialog } from '@features/ledger/components/PendingDeviceActionDialog';
 
 import { usePendingDeviceAction } from '@hooks/useDeviceAction';
+import { clearDeviceApprovals } from '@common/ledger/approvedDeviceCall';
 import { clearDeviceQueues } from '@common/ledger/deviceQueue';
 import { LedgerDeviceError, LedgerErrorCode } from '@common/ledger/errors';
 
@@ -61,6 +62,7 @@ describe('LedgerDevicesCard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     clearDeviceQueues();
+    clearDeviceApprovals();
     mocks.hardwareWallets.mockReturnValue({ data: [DEVICE], isLoading: false, isError: false });
   });
 
@@ -143,7 +145,7 @@ describe('LedgerDevicesCard', () => {
     });
   });
 
-  it('queues a retry after a cancel until the pending device call settles', async () => {
+  it('keeps the verify pending after a cancel until the device answers, and confirms a late approval', async () => {
     const identity = new MockLedgerIdentity();
     let finish!: () => void;
     const show = vi
@@ -161,30 +163,36 @@ describe('LedgerDevicesCard', () => {
     expect(screen.getByText(DEVICE.accountId)).toBeTruthy();
 
     act(() => pending.current?.cancel());
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Verify on device' })).toHaveProperty(
-        'disabled',
-        false,
-      ),
+    expect(screen.queryByTestId('device-approval-dialog')).toBeNull();
+    // The device still asks for the confirmation: the action stays pending, no second request.
+    expect(screen.getByRole('button', { name: 'Verify on device' })).toHaveProperty(
+      'disabled',
+      true,
     );
-    await user.click(screen.getByRole('button', { name: 'Verify on device' }));
-
-    // The first call still holds the device. The retry waits in the queue.
-    await waitFor(() => expect(pending.current).not.toBeNull());
-    expect(show).toHaveBeenCalledTimes(1);
+    expect(mocks.successNotification).not.toHaveBeenCalled();
 
     finish();
-    await waitFor(() => expect(show).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(mocks.successNotification).toHaveBeenCalledTimes(1));
+    expect(screen.getByRole('button', { name: 'Verify on device' })).toHaveProperty(
+      'disabled',
+      false,
+    );
+    expect(show).toHaveBeenCalledTimes(1);
     expect(mocks.errorNotification).not.toHaveBeenCalled();
+    expect(mocks.analyticsEvent).toHaveBeenCalledWith('ledger_device_verify');
   });
 
-  it('skips the device when a queued retry is cancelled before it starts', async () => {
+  it('reports the cancel without a toast when the device rejects the request after it', async () => {
     const identity = new MockLedgerIdentity();
-    let finish!: () => void;
+    let fail!: () => void;
     const show = vi
       .spyOn(identity, 'showAddressAndPubKeyOnDevice')
       .mockImplementation(
-        () => new Promise((resolve) => (finish = () => resolve(undefined as never))),
+        () =>
+          new Promise(
+            (_, reject) =>
+              (fail = () => reject(new LedgerDeviceError(LedgerErrorCode.UserRejected))),
+          ),
       );
     mocks.getLedgerIdentity.mockResolvedValue(identity);
     const user = userEvent.setup({ delay: null });
@@ -195,20 +203,17 @@ describe('LedgerDevicesCard', () => {
     await waitFor(() => expect(show).toHaveBeenCalledTimes(1));
     act(() => pending.current?.cancel());
 
+    fail();
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Verify on device' })).toHaveProperty(
         'disabled',
         false,
       ),
     );
-    await user.click(screen.getByRole('button', { name: 'Verify on device' }));
-    await waitFor(() => expect(pending.current).not.toBeNull());
-    act(() => pending.current?.cancel());
-
-    finish();
-    await waitFor(() => expect(mocks.getLedgerIdentity).toHaveBeenCalledTimes(1));
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(show).toHaveBeenCalledTimes(1);
+    expect(mocks.successNotification).not.toHaveBeenCalled();
     expect(mocks.errorNotification).not.toHaveBeenCalled();
+    expect(mocks.analyticsEvent).toHaveBeenCalledWith('ledger_device_verify_error', {
+      reason: 'cancelled',
+    });
   });
 });
