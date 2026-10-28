@@ -197,6 +197,29 @@ describe('useLedgerNeuronCall', () => {
     });
   });
 
+  it('reports the governance error, not the cancel, when the call fails after a late signature', async () => {
+    const { result } = renderCall();
+    const signing = deferred<void>();
+    const call = vi.fn().mockReturnValue(signing.promise);
+
+    let run!: Promise<void>;
+    act(() => {
+      run = result.current.run(call, OPTIONS);
+    });
+    await flush();
+    act(() => cancelPendingDeviceAction());
+
+    const governanceError = new Error('Neuron not found');
+    await act(async () => {
+      signing.reject(governanceError);
+      await expect(run).rejects.toBe(governanceError);
+    });
+    expect(mocks.event).toHaveBeenCalledWith(AnalyticsEvent.LedgerDeviceActionError, {
+      action: 'stake_maturity',
+      reason: 'unknown',
+    });
+  });
+
   it('forwards a device error and reports its code', async () => {
     const { result } = renderCall();
     const call = vi.fn().mockRejectedValue(new LedgerDeviceError(LedgerErrorCode.UserRejected));

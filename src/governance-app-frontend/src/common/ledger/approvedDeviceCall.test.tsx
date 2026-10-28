@@ -344,6 +344,24 @@ describe('runApprovedDeviceCall', () => {
     });
   });
 
+  it('reports the error of the call, not the cancel, when the call fails after the signature', async () => {
+    const signing = deferred<void>();
+    const call = vi.fn().mockReturnValue(signing.promise);
+
+    let run!: Promise<void>;
+    act(() => {
+      run = runApprovedDeviceCall(DEVICE, call, OPTIONS);
+    });
+    await flush();
+    act(() => cancelPendingDeviceAction());
+
+    const canisterError = new Error('Neuron not found');
+    await act(async () => {
+      signing.reject(canisterError);
+      await expect(run).rejects.toBe(canisterError);
+    });
+  });
+
   it('forwards a device error and closes the dialog', async () => {
     const { result } = renderPending();
     const call = vi.fn().mockRejectedValue(new LedgerDeviceError(LedgerErrorCode.UserRejected));

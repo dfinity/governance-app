@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { isDeviceActionCancelled, runDeviceAction } from '@hooks/useDeviceAction';
 
 import { getDeviceSessionGeneration, runOnDevice } from './deviceQueue';
-import { LedgerDeviceError, LedgerErrorCode } from './errors';
+import { isLedgerDeviceError, LedgerDeviceError, LedgerErrorCode } from './errors';
 
 export type ApprovedDeviceCallOptions = {
   /** What the user checks on the device screen. Shown in the approval dialog. */
@@ -46,8 +46,10 @@ const approvalsOfThisSession = (): Promise<unknown> => {
  * with `DeviceActionCancelledError` when the device does not sign. The turn still waits
  * for the device to answer, so the caller stays pending and no second request starts.
  * When the device signs after the cancel, the call resolves with its result as if approved,
- * so the caller reports what happened. A result that arrives after a logout rejects with
- * `SessionClosed`, so a flow of the closed session does not go on in the next one.
+ * so the caller reports what happened. When the call fails after the signature, for example
+ * in the canister, it rejects with that error, not with the cancel. A result that arrives
+ * after a logout rejects with `SessionClosed`, so a flow of the closed session does not go
+ * on in the next one.
  */
 export const runApprovedDeviceCall = <T>(
   principal: string,
@@ -65,10 +67,13 @@ export const runApprovedDeviceCall = <T>(
       if (!isDeviceActionCancelled(error) || !signing) throw error;
       const late = await signing.then(
         (value) => ({ signed: true as const, value }),
-        () => ({ signed: false as const }),
+        (reason: unknown) => ({ signed: false as const, reason }),
       );
       if (late.signed) return late.value;
-      throw error;
+      // The device module reports every failure before the signature as a device error. Any
+      // other failure came after the signature, so the cancel is not the outcome.
+      if (isLedgerDeviceError(late.reason) || isDeviceActionCancelled(late.reason)) throw error;
+      throw late.reason;
     }
   };
 

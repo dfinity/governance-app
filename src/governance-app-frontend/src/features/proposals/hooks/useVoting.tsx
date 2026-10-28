@@ -24,7 +24,8 @@ import { isNeuronControlledByLedger } from '@common/ledger/signer';
  * The neurons that the Internet Identity session can vote for (controller or hotkey) vote in
  * parallel. The eligible neurons that a registered Ledger device controls, and that have no
  * Internet Identity access, vote with the device after them, one approval at a time. A cancel
- * on the approval dialog stops the remaining device votes and keeps the votes already cast.
+ * on the approval dialog stops the remaining device votes when the device does not sign, and
+ * keeps the votes already cast. When the device signs after the cancel, the next vote starts.
  *
  * @param proposal ProposalInfo
  * @returns
@@ -120,7 +121,7 @@ export const useVoting = (proposal: ProposalInfo) => {
 
       // Every session vote settles before the outcome is known, so the refresh below shows
       // each vote that went through. The device votes start after them and run one by one.
-      // A cancel or a device error stops the ones left.
+      // A device error, or a cancel that the device does not sign late, stops the ones left.
       const votingPromise = Promise.allSettled(promises).then(async (outcomes) => {
         const failed = outcomes.find((outcome) => outcome.status === 'rejected');
         if (failed) throw failed.reason;
