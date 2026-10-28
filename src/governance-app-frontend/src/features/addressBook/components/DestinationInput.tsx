@@ -139,8 +139,20 @@ export function DestinationInput({
 
   const clear = () => {
     onChange('', '');
+    // The list can stay open. Enter on the empty input picks nothing.
+    setActiveIndex(-1);
     // The input mounts on the next render.
     requestAnimationFrame(() => inputRef.current?.focus());
+  };
+
+  // Safari does not focus a clicked button. The focus keeps the open list
+  // inside the field, so Escape and a click outside close it. The press keeps
+  // the focus where it is, so the blur does not close the list before the
+  // click toggles it.
+  const handleChipClick = () => {
+    chipRef.current?.focus();
+    if (open) close();
+    else openFromChip();
   };
 
   const addAddress = () => {
@@ -305,7 +317,8 @@ export function DestinationInput({
             chipClassName,
             'cursor-pointer pr-10 transition-colors hover:border-ring hover:bg-accent hover:text-accent-foreground dark:hover:bg-input/50',
           )}
-          onClick={() => (open ? close() : openFromChip())}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={handleChipClick}
           onKeyDown={handleChipKeyDown}
           data-testid={testId ? `${testId}-selected` : undefined}
         >

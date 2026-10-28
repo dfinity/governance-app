@@ -155,6 +155,9 @@ describe('DestinationInput', () => {
     fireEvent.click(chip);
 
     expect(chip.getAttribute('aria-expanded')).toBe('true');
+    // Safari does not focus a clicked button. The field focuses it, so Escape
+    // and the blur reach the open list.
+    expect(document.activeElement).toBe(chip);
     // The picked address is not a filter: both suggestions show.
     expect(screen.getAllByRole('option')).toHaveLength(2);
     // The current pick is the active option.
@@ -270,7 +273,34 @@ describe('DestinationInput', () => {
     fireEvent.click(screen.getByTestId('destination-clear'));
 
     expect(onChange).toHaveBeenLastCalledWith('', '');
-    expect(screen.getByTestId<HTMLInputElement>('destination').value).toBe('');
+    const input = screen.getByTestId<HTMLInputElement>('destination');
+    expect(input.value).toBe('');
+
+    // The cleared pick is not active any more: Enter picks nothing.
+    onChange.mockClear();
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('clears the pick with Backspace while the list is open', () => {
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} />);
+
+    fireEvent.focus(screen.getByTestId('destination'));
+    fireEvent.click(screen.getByText('Bob'));
+    const chip = screen.getByTestId('destination-selected');
+    fireEvent.click(chip);
+    onChange.mockClear();
+
+    fireEvent.keyDown(chip, { key: 'Backspace' });
+
+    expect(onChange).toHaveBeenLastCalledWith('', '');
+    const input = screen.getByTestId<HTMLInputElement>('destination');
+    expect(input.value).toBe('');
+
+    onChange.mockClear();
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   it('keeps the locked chip inert', () => {
