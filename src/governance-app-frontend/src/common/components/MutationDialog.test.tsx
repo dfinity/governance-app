@@ -6,14 +6,19 @@ import { cancelPendingDeviceAction, DeviceActionCancelledError } from '@hooks/us
 import { tapOverlay, waitForOutsideListeners } from '@utils/unitTest';
 import { clearDeviceApprovals, runApprovedDeviceCall } from '@common/ledger/approvedDeviceCall';
 import { clearDeviceQueues } from '@common/ledger/deviceQueue';
+import type { Signer } from '@common/ledger/signer';
 
 const media = vi.hoisted(() => ({ isDesktop: false }));
 vi.mock('@hooks/useMediaQuery', () => ({ useMediaQuery: () => media.isDesktop }));
 vi.mock('@components/NavigationBlockerDialog', () => ({ NavigationBlockerDialog: () => null }));
 
+const DEVICE: Signer = { kind: 'ledger', principal: 'aaaaa-aa' };
+const HINT = 'Approve or reject on your Ledger device to continue.';
+
 const renderDialog = (
   onOpenChange: (open: boolean) => void,
   mutation: () => Promise<unknown> = () => new Promise(() => undefined),
+  signer?: Signer,
 ) =>
   render(
     <MutationDialog
@@ -22,6 +27,7 @@ const renderDialog = (
       processingMessage="Processing"
       successMessage="Done"
       navBlockerDescription="Blocked"
+      signer={signer}
     >
       {({ execute }) => <button onClick={() => execute(mutation)}>Run</button>}
     </MutationDialog>,
@@ -73,46 +79,73 @@ describe.each([
 
   it('tells the user to answer on the device after a cancel, until the device answers', async () => {
     let approve!: () => void;
-    renderDialog(vi.fn(), () =>
-      runApprovedDeviceCall(
-        'aaaaa-aa',
-        () =>
-          new Promise<void>((resolve) => {
-            approve = resolve;
-          }),
-        { description: 'Check the amount on the device screen and approve.' },
-      ),
+    renderDialog(
+      vi.fn(),
+      () =>
+        runApprovedDeviceCall(
+          DEVICE.principal,
+          () =>
+            new Promise<void>((resolve) => {
+              approve = resolve;
+            }),
+          { description: 'Check the amount on the device screen and approve.' },
+        ),
+      DEVICE,
     );
     fireEvent.click(screen.getByRole('button', { name: 'Run' }));
     expect(await screen.findAllByText('Processing')).not.toHaveLength(0);
-    const hint = 'Approve or reject on your Ledger device to continue.';
-    expect(screen.queryByText(hint)).toBeNull();
+    expect(screen.queryByText(HINT)).toBeNull();
 
     await act(async () => cancelPendingDeviceAction());
 
-    expect(await screen.findByText(hint)).toBeTruthy();
+    expect(await screen.findByText(HINT)).toBeTruthy();
     expect(screen.getAllByText('Processing')).not.toHaveLength(0);
 
     approve();
 
     expect(await screen.findAllByText('Done')).not.toHaveLength(0);
-    expect(screen.queryByText(hint)).toBeNull();
+    expect(screen.queryByText(HINT)).toBeNull();
   });
 
-  it('does not show the device hint for a mutation that did not ask the device', async () => {
-    // A cancelled request of another flow still waits for the device answer.
-    void runApprovedDeviceCall('aaaaa-aa', () => new Promise<void>(() => undefined), {
+  it('tells the user to answer on the device while the cancelled request of another flow holds the device call', async () => {
+    // Another flow cancelled its approval; the device still shows that request.
+    void runApprovedDeviceCall(DEVICE.principal, () => new Promise<void>(() => undefined), {
       description: 'Check the proposal ID on the device screen and approve.',
     }).catch(() => undefined);
     await act(async () => undefined);
     await act(async () => cancelPendingDeviceAction());
 
+    renderDialog(
+      vi.fn(),
+      () =>
+        runApprovedDeviceCall(DEVICE.principal, () => Promise.resolve(), {
+          description: 'Check the amount on the device screen and approve.',
+        }),
+      DEVICE,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Run' }));
+
+    expect(await screen.findByText(HINT)).toBeTruthy();
+    expect(screen.getAllByText('Processing')).not.toHaveLength(0);
+  });
+
+  it('does not show the device hint in an Internet Identity dialog when another flow cancels its approval', async () => {
     renderDialog(vi.fn());
     fireEvent.click(screen.getByRole('button', { name: 'Run' }));
     expect(await screen.findAllByText('Processing')).not.toHaveLength(0);
-    await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(screen.queryByText('Approve or reject on your Ledger device to continue.')).toBeNull();
+    // A background device vote opens its approval after this mutation started.
+    void runApprovedDeviceCall(DEVICE.principal, () => new Promise<void>(() => undefined), {
+      description: 'Check the proposal ID on the device screen and approve.',
+    }).catch(() => undefined);
+    await act(async () => undefined);
+    await act(async () => cancelPendingDeviceAction());
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(screen.queryByText(HINT)).toBeNull();
+    expect(screen.getAllByText('Processing')).not.toHaveLength(0);
   });
 
   it('shows the success when the mutation resolves, also after a late device approval', async () => {

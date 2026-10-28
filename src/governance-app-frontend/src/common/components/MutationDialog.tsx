@@ -13,10 +13,11 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { DIALOG_RESET_DELAY_MS, SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
-import { isDeviceActionCancelled, usePendingDeviceAction } from '@hooks/useDeviceAction';
+import { isDeviceActionCancelled } from '@hooks/useDeviceAction';
 import { mapCanisterError } from '@utils/errors';
 import { cn } from '@utils/shadcn';
 import { useDeviceAnswerPending } from '@common/ledger/approvedDeviceCall';
+import type { Signer } from '@common/ledger/signer';
 
 import { AnimatedCheckmark } from './AnimatedCheckmark';
 
@@ -28,6 +29,11 @@ type MutationDialogProps = {
   successMessage: string;
   navBlockerDescription: string;
   errorFallbackMessage?: string;
+  /**
+   * Who signs the mutation. A Ledger device signer waits for the device, so after a cancel
+   * the processing phase tells the user to answer on it.
+   */
+  signer?: Signer;
 
   className?: string;
   'data-testid'?: string;
@@ -52,6 +58,7 @@ export function MutationDialog({
   successMessage,
   navBlockerDescription,
   errorFallbackMessage,
+  signer,
   className,
   'data-testid': dataTestId,
   children,
@@ -60,21 +67,17 @@ export function MutationDialog({
   const [phase, setPhase] = useState(Phase.Idle);
   const [errorMessage, setErrorMessage] = useState('');
   const [lastMutation, setLastMutation] = useState<{ fn: () => Promise<unknown> } | null>(null);
-  // Whether the mutation in progress opened the Ledger approval dialog. Only then does a
-  // pending device answer belong to this dialog.
-  const [askedDevice, setAskedDevice] = useState(false);
-  const pendingDeviceAction = usePendingDeviceAction();
   const deviceAnswerPending = useDeviceAnswerPending();
 
   const isProcessing = phase === Phase.Processing;
-  if (isProcessing && pendingDeviceAction && !askedDevice) setAskedDevice(true);
-  const waitsForDevice = askedDevice && deviceAnswerPending;
+  // A device call waits for the answer to every cancelled request, its own or another
+  // flow's, before the device takes it. An Internet Identity call never waits for it.
+  const waitsForDevice = signer?.kind === 'ledger' && deviceAnswerPending;
 
   const close = useCallback(() => onOpenChange(false), [onOpenChange]);
 
   const execute = async (fn: () => Promise<unknown>) => {
     setLastMutation({ fn });
-    setAskedDevice(false);
     setPhase(Phase.Processing);
     try {
       await fn();

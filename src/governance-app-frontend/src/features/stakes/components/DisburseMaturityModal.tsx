@@ -165,6 +165,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
       open={isOpen}
       onOpenChange={onOpenChange}
       processingMessage={t(($) => $.neuronDetailModal.disburseMaturity.confirming)}
+      signer={signer}
       successMessage={t(($) =>
         isToSelectedAccount
           ? $.neuronDetailModal.disburseMaturity.successToAccount

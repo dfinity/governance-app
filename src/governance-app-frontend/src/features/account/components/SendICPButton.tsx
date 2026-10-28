@@ -331,6 +331,7 @@ export const SendICPDialog: React.FC<DialogProps> = ({
         successMessage={t(($) => $.account.transferSuccess, { amount, destination })}
         navBlockerDescription={t(($) => $.account.confirmNavigation)}
         className="md:max-w-2xl"
+        signer={signer}
       >
         {({ execute, close }) => (
           <AnimatePresence mode="wait" initial={false}>

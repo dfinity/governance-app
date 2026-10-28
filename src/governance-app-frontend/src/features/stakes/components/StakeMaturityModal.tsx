@@ -37,6 +37,7 @@ export function StakeMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
       open={isOpen}
       onOpenChange={onOpenChange}
       processingMessage={t(($) => $.neuronDetailModal.stakeMaturity.confirming)}
+      signer={signer}
       successMessage={t(($) => $.neuronDetailModal.stakeMaturity.success)}
       navBlockerDescription={t(($) => $.neuronDetailModal.confirmNavigation)}
       data-testid="stake-maturity-modal"
