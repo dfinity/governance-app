@@ -1,5 +1,8 @@
 import { TransactionType } from '@features/account/types';
 
+import { II_SIGNER, type Signer } from '@common/ledger/signer';
+import { isWebHidSupported } from '@common/ledger/webhid';
+
 export { TransactionType };
 
 export enum SubAccountDialogMode {
@@ -44,10 +47,20 @@ export function isAccountReady(account: Account): account is AccountReady {
 
 /**
  * True when the app can sign a transaction from the account.
- * Hardware wallet accounts need the device to sign, which the send and stake flows do not support yet.
+ * A Ledger device account signs with the device over WebHID, so it needs a browser with
+ * WebHID. The account list holds device accounts only while the `ledgerDevice` feature is on.
  */
 export function canSignFromAccount(account: Pick<AccountMetadata, 'type'>): boolean {
-  return account.type !== AccountType.HardwareWallet;
+  return account.type !== AccountType.HardwareWallet || isWebHidSupported();
+}
+
+/** Who signs a transfer from the account: the Ledger device of a device account, else the session. */
+export function getAccountSigner(account?: Pick<AccountMetadata, 'type' | 'principal'>): Signer {
+  if (account?.type === AccountType.HardwareWallet && account.principal) {
+    return { kind: 'ledger', principal: account.principal };
+  }
+
+  return II_SIGNER;
 }
 
 export interface AccountsState {

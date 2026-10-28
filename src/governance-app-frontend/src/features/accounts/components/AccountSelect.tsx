@@ -27,7 +27,7 @@ export function AccountSelect({
   const { t } = useTranslation();
 
   const { data: accountsState } = useAccounts();
-  // Ledger device accounts stay out until the send and stake flows can sign with the device.
+  // A Ledger device account is listed only in a browser that can sign with the device.
   const accounts = (accountsState?.accounts ?? []).filter(canSignFromAccount);
 
   const selectedAccount =

@@ -1,7 +1,9 @@
 import { useState } from 'react';
 
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { isAccountPickerEnabled } from '@utils/advancedFeatures';
 
+import { canSignFromAccount } from '../types';
 import { useHardwareWalletsMetadata } from './useHardwareWalletsMetadata';
 import { useMainAccountMetadata } from './useMainAccountMetadata';
 
@@ -11,21 +13,22 @@ export function useAccountSelection(initialAccountId?: string) {
   const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>(initialAccountId);
 
   const { features } = useAdvancedFeatures();
-  const subaccountsEnabled = features.subaccounts;
+  const accountPickerEnabled = isAccountPickerEnabled(features);
 
-  // The app cannot sign with a Ledger device yet, so a Ledger account is never the source.
-  const isHardwareWallet = hardwareWalletsMetadata.data.some(
+  // A Ledger device account is a source only in a browser that can sign with the device.
+  const selectedDevice = hardwareWalletsMetadata.data.find(
     (account) => account.accountId === selectedAccountId,
   );
+  const canSign = selectedDevice === undefined || canSignFromAccount(selectedDevice);
 
   // Falls back to main account id, derived synchronously from the identity.
   const resolvedAccountId =
-    (isHardwareWallet ? undefined : selectedAccountId) ?? mainAccountMetadata.data!.accountId;
+    (canSign ? selectedAccountId : undefined) ?? mainAccountMetadata.data!.accountId;
 
   return {
     selectedAccountId,
     setSelectedAccountId,
     resolvedAccountId,
-    subaccountsEnabled,
+    accountPickerEnabled,
   };
 }

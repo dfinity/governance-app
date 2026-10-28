@@ -1,7 +1,4 @@
-import { AccountIdentifier, TransferError } from '@icp-sdk/canisters/ledger/icp';
-import { decodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
-import { nonNullish, nowInBigIntNanoSeconds, toNullable } from '@dfinity/utils';
-import { useMutation } from '@tanstack/react-query';
+import { nonNullish } from '@dfinity/utils';
 import { AlertTriangle, ArrowUpRight, BookPlus, BookUser, Send } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import React, { useEffect, useEffectEvent, useRef, useState } from 'react';
@@ -10,22 +7,23 @@ import { useTranslation } from 'react-i18next';
 import type { NamedAddress } from '@declarations/governance-app-backend/backend.did';
 
 import { ScanAddressButton } from '@features/account/components/ScanAddressButton';
-import {
-  encodeMemoToIcp,
-  encodeMemoToIcrc1,
-  validateTransactionMemo,
-} from '@features/account/utils/transactionMemo';
+import { useSendIcp } from '@features/account/hooks/useSendIcp';
+import { validateTransactionMemo } from '@features/account/utils/transactionMemo';
 import { AccountSelect } from '@features/accounts/components/AccountSelect';
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { useAccountSelection } from '@features/accounts/hooks/useAccountSelection';
-import { type Account, isAccountReady } from '@features/accounts/types';
+import {
+  type Account,
+  AccountType,
+  getAccountSigner,
+  isAccountReady,
+} from '@features/accounts/types';
 import { AddAddressModal } from '@features/addressBook/components/AddAddressModal';
 import {
   DestinationInput,
   type DestinationSuggestion,
 } from '@features/addressBook/components/DestinationInput';
 import { AnalyticsEvent } from '@features/analytics/events';
-import { getAmountRange, getErrorReason } from '@features/analytics/properties';
 import { analytics } from '@features/analytics/service';
 
 import { Alert, AlertDescription } from '@components/Alert';
@@ -53,8 +51,7 @@ import {
   addressBookIsIcpAddress,
   addressBookMatchesAddress,
 } from '@utils/addressBook';
-import { bigIntDiv, bigIntMul } from '@utils/bigInt';
-import { isCertifiedRejectError } from '@utils/errors';
+import { bigIntDiv } from '@utils/bigInt';
 import { shortenId } from '@utils/id';
 import { getFiatFractionDigits, roundToE8sPrecision } from '@utils/numbers';
 import { isCameraSupported } from '@utils/qrScanner';
@@ -100,12 +97,12 @@ export const SendICPDialog: React.FC<DialogProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  const { canister: ledgerCanister } = useIcpLedger();
-
   const { icpPrice, formatFiat } = useIcpPrice();
 
-  const { selectedAccountId, setSelectedAccountId, subaccountsEnabled } =
+  const { selectedAccountId, setSelectedAccountId, accountPickerEnabled } =
     useAccountSelection(fromAccountId);
+  const { data: accountsState } = useAccounts();
+  const sendIcp = useSendIcp();
 
   const { features } = useAdvancedFeatures();
   const memoEnabled = features[AdvancedFeature.TransactionMemo];
@@ -128,66 +125,29 @@ export const SendICPDialog: React.FC<DialogProps> = ({
   const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
   const amountInputRef = useRef<HTMLInputElement>(null);
 
-  // Keep the createdAt value for retry purposes (used for deduplication at the ledger level)
-  const createdAtRef = useRef<bigint | null>(null);
-
+  // The picker reports the source account when it shows. Without it, the entry point decides:
+  // the main account, or the account whose card opened the dialog.
+  const sourceAccount = accountPickerEnabled
+    ? selectedAccount
+    : accountsState?.accounts.find((account) => account.accountId === selectedAccountId);
   const effectiveBalance =
-    subaccountsEnabled && nonNullish(selectedAccount) && isAccountReady(selectedAccount)
-      ? bigIntDiv(selectedAccount.balanceE8s, E8Sn)
+    nonNullish(sourceAccount) && isAccountReady(sourceAccount)
+      ? bigIntDiv(sourceAccount.balanceE8s, E8Sn)
       : balance;
-  const effectiveSubAccount = subaccountsEnabled ? selectedAccount?.subAccount : undefined;
+  const effectiveSubAccount =
+    sourceAccount?.type === AccountType.Subaccount ? sourceAccount.subAccount : undefined;
+  // A Ledger device account signs on the device, behind the approval dialog.
+  const signer = getAccountSigner(sourceAccount);
 
-  const getSendProperties = () => ({
-    variant,
-    destination: isValidIcpAddress(toAccount) ? 'icp' : 'icrc1',
-    address_book: selectedName !== '' ? 'yes' : 'no',
-  });
-
-  const transferMutation = useMutation({
-    mutationFn: () => {
-      // Use stored createdAt for retry deduplication, or generate a new one
-      const createdAt = createdAtRef.current ?? nowInBigIntNanoSeconds();
-      createdAtRef.current = createdAt;
-      const transferAmount = bigIntMul(E8Sn, Number(amount));
-      const subAccountArr = effectiveSubAccount ? Array.from(effectiveSubAccount) : undefined;
-      const memoValue = memoEnabled && memo !== '' ? memo : undefined;
-
-      if (isValidIcpAddress(toAccount)) {
-        return ledgerCanister!.transfer({
-          to: AccountIdentifier.fromHex(toAccount),
-          amount: transferAmount,
-          fromSubAccount: subAccountArr,
-          memo: memoValue !== undefined ? encodeMemoToIcp(memoValue) : undefined,
-          createdAt,
-        });
-      }
-
-      const { owner, subaccount } = decodeIcrcAccount(toAccount);
-      return ledgerCanister!.icrc1Transfer({
-        to: { owner, subaccount: toNullable(subaccount) },
-        fromSubAccount: subAccountArr ? Uint8Array.from(subAccountArr) : undefined,
-        amount: transferAmount,
-        icrc1Memo: memoValue !== undefined ? encodeMemoToIcrc1(memoValue) : undefined,
-        createdAt,
-      });
-    },
-    onSuccess: () => {
-      createdAtRef.current = null;
-      analytics.event(AnalyticsEvent.AccountSendIcp, {
-        ...getSendProperties(),
-        amount_range: getAmountRange(Number(amount)),
-      });
-    },
-    onError: (error) => {
-      if (isCertifiedRejectError(error) || error instanceof TransferError) {
-        createdAtRef.current = null;
-      }
-      analytics.event(AnalyticsEvent.AccountSendIcpError, {
-        ...getSendProperties(),
-        reason: getErrorReason(error),
-      });
-    },
-  });
+  const send = () =>
+    sendIcp.mutateAsync({
+      toAccount,
+      amount,
+      fromSubAccount: effectiveSubAccount,
+      memo: memoEnabled && memo !== '' ? memo : undefined,
+      signer,
+      analytics: { variant, address_book: selectedName !== '' ? 'yes' : 'no' },
+    });
 
   const max = roundToE8sPrecision(effectiveBalance - ICP_TRANSACTION_FEE);
 
@@ -200,7 +160,7 @@ export const SendICPDialog: React.FC<DialogProps> = ({
     setToAccountError('');
     setMemo('');
     setMemoError('');
-    createdAtRef.current = null;
+    sendIcp.resetCreatedAt();
   };
 
   // The account picker notifies only when its resolved id changes, so the
@@ -291,8 +251,8 @@ export const SendICPDialog: React.FC<DialogProps> = ({
       ? t(($) => $.account.approxFiat, { value: formatFiat(numericAmount * icpPrice) })
       : undefined;
 
-  const fromAccountName = nonNullish(selectedAccount)
-    ? selectedAccount.name
+  const fromAccountName = nonNullish(sourceAccount)
+    ? sourceAccount.name
     : t(($) => $.accounts.mainAccount);
 
   // The name comes from the address book, whether the user picked the entry or
@@ -346,7 +306,7 @@ export const SendICPDialog: React.FC<DialogProps> = ({
           <AnimatePresence mode="wait" initial={false}>
             {step === Step.Form && (
               <SendFormStep
-                subaccountsEnabled={subaccountsEnabled}
+                accountPickerEnabled={accountPickerEnabled}
                 selectedAccountId={selectedAccountId}
                 onSelectedAccountIdChange={setSelectedAccountId}
                 onSelectedAccountChange={setSelectedAccount}
@@ -387,7 +347,7 @@ export const SendICPDialog: React.FC<DialogProps> = ({
                 approxFiat={approxFiat}
                 memo={memoEnabled && memo !== '' ? memo : undefined}
                 onBack={() => setStep(Step.Form)}
-                onConfirm={() => execute(() => transferMutation.mutateAsync())}
+                onConfirm={() => execute(send)}
               />
             )}
           </AnimatePresence>
@@ -409,7 +369,7 @@ export const SendICPDialog: React.FC<DialogProps> = ({
 };
 
 type SendFormStepProps = {
-  subaccountsEnabled: boolean;
+  accountPickerEnabled: boolean;
   selectedAccountId?: string;
   onSelectedAccountIdChange: (id: string) => void;
   onSelectedAccountChange: (account: Account | undefined) => void;
@@ -437,7 +397,7 @@ type SendFormStepProps = {
 };
 
 function SendFormStep({
-  subaccountsEnabled,
+  accountPickerEnabled,
   selectedAccountId,
   onSelectedAccountIdChange,
   onSelectedAccountChange,
@@ -485,7 +445,7 @@ function SendFormStep({
 
       <MutationDialogBody className="-mx-1 px-5 pt-6 pb-4 md:px-1">
         <div className="flex flex-col gap-6">
-          {subaccountsEnabled && (
+          {accountPickerEnabled && (
             <div className="flex flex-col gap-2">
               <Label htmlFor="send-from-account">
                 {t(($) => $.stakeWizardModal.steps.amount.fromAccount)}
