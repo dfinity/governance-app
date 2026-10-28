@@ -8,7 +8,7 @@ import {
 import { Principal } from '@icp-sdk/core/principal';
 import { isNullish, nonNullish, nowInBigIntNanoSeconds } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { type ReactNode, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
@@ -22,7 +22,7 @@ import {
 import { E8Sn, ICP_TRANSACTION_FEE_E8Sn, SECONDS_IN_DAY } from '@constants/extra';
 import { useNnsGovernance } from '@hooks/governance';
 import { useIcpLedger } from '@hooks/icpLedger';
-import { useDeviceAction } from '@hooks/useDeviceAction';
+import { DeviceActionCancelledError } from '@hooks/useDeviceAction';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { bigIntMul } from '@utils/bigInt';
 import { isCertifiedRejectError } from '@utils/errors';
@@ -30,6 +30,10 @@ import { duplicateTransferOf } from '@utils/errors/duplicateTransfer';
 import { formatDissolveDelay } from '@utils/neuron';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 import { getIcpLedgerCanister, getNnsGovernanceCanister } from '@common/canisters';
+import {
+  type ApprovedDeviceCallOptions,
+  runApprovedDeviceCall,
+} from '@common/ledger/approvedDeviceCall';
 import { runOnDevice } from '@common/ledger/deviceQueue';
 import { getLedgerIdentity } from '@common/ledger/session';
 import { II_SIGNER, type Signer } from '@common/ledger/signer';
@@ -54,8 +58,6 @@ type Props = {
   signer?: Signer;
 };
 
-type DeviceActionOptions = { description: ReactNode; detail?: ReactNode };
-
 // New neurons start with this dissolve delay.
 const DEFAULT_DISSOLVE_DELAY_SECONDS = SECONDS_IN_DAY * 7;
 
@@ -67,7 +69,8 @@ const DEFAULT_DISSOLVE_DELAY_SECONDS = SECONDS_IN_DAY * 7;
  * device shows a stake screen), the anonymous governance canister claims the neuron, the
  * device adds the Internet Identity principal as hotkey, and the device signs the
  * controller-only steps (dissolve delay, auto-stake, dissolving). Following keeps the hotkey.
- * Each device call runs behind the approval dialog and in the device queue.
+ * Each device call runs through `runApprovedDeviceCall`: in the device queue, behind the
+ * approval dialog that opens at its turn.
  *
  * A device call that the user cancelled in the dialog can still succeed on the device. Every
  * step is safe to run again: a duplicate transfer counts as done, and the controller steps
@@ -87,7 +90,6 @@ export function useCreateNeuron(params: Props) {
   const { identity } = useInternetIdentity();
   const { canister: governanceCanister } = useNnsGovernance();
   const { canister: ledgerCanister } = useIcpLedger();
-  const runDeviceAction = useDeviceAction();
   const signer = params.signer ?? II_SIGNER;
 
   const [currentStep, setCurrentStep] = useState<StakingWizardCreateNeuronStep>(
@@ -103,22 +105,6 @@ export function useCreateNeuron(params: Props) {
   const [recoveredAmount, setRecoveredAmount] = useState<string | null>(null);
   const stakedAmount = recoveredAmount ?? params.amount;
 
-  /** Runs a device call behind the approval dialog, in the queue of the device. */
-  const onDevice = <T>(
-    principal: string,
-    call: (signal: AbortSignal) => Promise<T>,
-    options: DeviceActionOptions,
-  ): Promise<T | undefined> =>
-    runDeviceAction(
-      (signal) =>
-        runOnDevice(principal, async () => {
-          // A cancelled call that waited in the queue must not prompt the device.
-          if (signal.aborted) return undefined;
-          return call(signal);
-        }),
-      options,
-    );
-
   /**
    * Runs a controller-only call: on the device for a Ledger signer, with the session otherwise.
    * The call checks `signal.aborted` after every await, right before the signature.
@@ -126,15 +112,15 @@ export function useCreateNeuron(params: Props) {
   const asController = (
     canister: NnsGovernanceCanister,
     call: (canister: NnsGovernanceCanister, signal: AbortSignal) => Promise<void>,
-    options: DeviceActionOptions,
-  ): Promise<void | undefined> =>
+    options: ApprovedDeviceCallOptions,
+  ): Promise<void> =>
     signer.kind === 'ledger'
-      ? onDevice(
+      ? runApprovedDeviceCall(
           signer.principal,
           async (signal) => {
             const deviceCanister = await getNnsGovernanceCanister({ signer });
             // A cancel during the device connection must not ask for a signature.
-            if (signal.aborted) return;
+            if (signal.aborted) throw new DeviceActionCancelledError();
             await call(deviceCanister, signal);
           },
           options,
@@ -200,13 +186,13 @@ export function useCreateNeuron(params: Props) {
                 memo: memo.toString(),
                 amount: params.amount,
               });
-              await onDevice(
+              await runApprovedDeviceCall(
                 signer.principal,
                 async (signal) => {
                   const deviceIdentity = await getLedgerIdentity(signer.principal);
                   const deviceLedger = await getIcpLedgerCanister({ signer });
                   // A cancel during the device connection must not ask for a signature.
-                  if (signal.aborted) return;
+                  if (signal.aborted) throw new DeviceActionCancelledError();
                   // Set right before the call, so a failure before the signature does not
                   // leak the stake screen into the next transfer.
                   deviceIdentity.flagUpcomingStakeNeuron();
@@ -277,7 +263,9 @@ export function useCreateNeuron(params: Props) {
           governanceCanister,
           async (canister, signal) => {
             const hotKeys = (await readNeuron(id))?.fullNeuron?.hotKeys ?? [];
-            if (hotKeys.includes(hotkey.toText()) || signal.aborted) return;
+            // A cancel during the read must not ask for a signature.
+            if (signal.aborted) throw new DeviceActionCancelledError();
+            if (hotKeys.includes(hotkey.toText())) return;
             await canister.addHotkey({ neuronId: id, principal: hotkey });
           },
           {
@@ -300,7 +288,8 @@ export function useCreateNeuron(params: Props) {
               (await readNeuron(id))?.dissolveDelaySeconds ?? DEFAULT_DISSOLVE_DELAY_SECONDS,
             );
             const additionalDissolveDelaySeconds = params.dissolveDelaySeconds - currentDelay;
-            if (additionalDissolveDelaySeconds <= 0 || signal.aborted) return;
+            if (signal.aborted) throw new DeviceActionCancelledError();
+            if (additionalDissolveDelaySeconds <= 0) return;
             await canister.increaseDissolveDelay({ neuronId: id, additionalDissolveDelaySeconds });
           },
           {
@@ -321,7 +310,9 @@ export function useCreateNeuron(params: Props) {
           await asController(
             governanceCanister,
             async (canister, signal) => {
-              if ((await readNeuron(id))?.fullNeuron?.autoStakeMaturity || signal.aborted) return;
+              const applied = (await readNeuron(id))?.fullNeuron?.autoStakeMaturity;
+              if (signal.aborted) throw new DeviceActionCancelledError();
+              if (applied) return;
               await canister.autoStakeMaturity({ neuronId: id, autoStake: true });
             },
             { description: t(($) => $.stakeWizardModal.ledgerDevice.approve.autoStake) },
@@ -337,8 +328,9 @@ export function useCreateNeuron(params: Props) {
           await asController(
             governanceCanister,
             async (canister, signal) => {
-              if ((await readNeuron(id))?.state === NeuronState.Dissolving || signal.aborted)
-                return;
+              const state = (await readNeuron(id))?.state;
+              if (signal.aborted) throw new DeviceActionCancelledError();
+              if (state === NeuronState.Dissolving) return;
               await canister.startDissolving(id);
             },
             { description: t(($) => $.stakeWizardModal.ledgerDevice.approve.startDissolving) },

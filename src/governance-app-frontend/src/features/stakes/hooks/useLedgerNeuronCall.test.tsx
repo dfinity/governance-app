@@ -1,6 +1,6 @@
 import '@/i18n/config';
 
-import { act, render, renderHook, screen } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AnalyticsEvent } from '@features/analytics/events';
@@ -11,14 +11,14 @@ import {
   DeviceActionCancelledError,
   usePendingDeviceAction,
 } from '@hooks/useDeviceAction';
+import { clearDeviceApprovals } from '@common/ledger/approvedDeviceCall';
 import { LedgerDeviceError, LedgerErrorCode } from '@common/ledger/errors';
 
-import { clearLedgerApprovals, useLedgerNeuronCall } from './useLedgerNeuronCall';
+import { useLedgerNeuronCall } from './useLedgerNeuronCall';
 
 const mocks = vi.hoisted(() => ({
   getNnsGovernanceCanister: vi.fn(),
   runOnDevice: vi.fn(),
-  generation: vi.fn(() => 0),
   event: vi.fn(),
 }));
 
@@ -28,7 +28,7 @@ vi.mock('@common/canisters', () => ({
 
 vi.mock('@common/ledger/deviceQueue', () => ({
   runOnDevice: mocks.runOnDevice,
-  getDeviceSessionGeneration: () => mocks.generation(),
+  getDeviceSessionGeneration: () => 0,
 }));
 
 vi.mock('@features/analytics/service', () => ({
@@ -68,8 +68,7 @@ describe('useLedgerNeuronCall', () => {
     mocks.getNnsGovernanceCanister.mockReset().mockResolvedValue({ stakeMaturity: vi.fn() });
     mocks.runOnDevice.mockReset().mockImplementation((_principal, call) => call());
     mocks.event.mockReset();
-    mocks.generation.mockReset().mockReturnValue(0);
-    clearLedgerApprovals();
+    clearDeviceApprovals();
   });
 
   it('runs the call with the device canister inside the device queue', async () => {
@@ -92,29 +91,7 @@ describe('useLedgerNeuronCall', () => {
     });
   });
 
-  it('shows the approval dialog with the description and the detail while the call runs', async () => {
-    const { result } = renderCall();
-    const signing = deferred<void>();
-
-    let run!: Promise<void>;
-    act(() => {
-      run = result.current.run(() => signing.promise, OPTIONS);
-    });
-    await flush();
-
-    expect(result.current.pending?.description).toBe(OPTIONS.description);
-    render(<>{result.current.pending?.detail}</>);
-    expect(screen.getByText('Neuron 7')).toBeTruthy();
-    expect(screen.getByText('Percentage: 100%')).toBeTruthy();
-
-    await act(async () => {
-      signing.resolve();
-      await run;
-    });
-    expect(result.current.pending).toBeNull();
-  });
-
-  it('opens the approval dialog only when the queue turn starts', async () => {
+  it('opens the approval dialog with the description and the detail at the queue turn', async () => {
     const { result } = renderCall();
     const turn = deferred<void>();
     mocks.runOnDevice.mockImplementation(async (_principal, call) => {
@@ -128,154 +105,21 @@ describe('useLedgerNeuronCall', () => {
     act(() => {
       run = result.current.run(call, OPTIONS);
     });
+    await flush();
     expect(result.current.pending).toBeNull();
     expect(mocks.getNnsGovernanceCanister).not.toHaveBeenCalled();
 
     await act(async () => {
       turn.resolve();
-      await new Promise((resolve) => setTimeout(resolve, 0));
     });
+    await flush();
     expect(result.current.pending?.description).toBe(OPTIONS.description);
+    expect(result.current.pending?.detail).toBe(OPTIONS.detail);
     expect(call).toHaveBeenCalledTimes(1);
 
     await act(async () => {
       signing.resolve();
       await run;
-    });
-    expect(result.current.pending).toBeNull();
-  });
-
-  it('holds the next action, and its dialog, until the cancelled request settles', async () => {
-    const { runOnDevice } = await vi.importActual<typeof import('@common/ledger/deviceQueue')>(
-      '@common/ledger/deviceQueue',
-    );
-    mocks.runOnDevice.mockImplementation(runOnDevice);
-    const { result } = renderCall();
-    const signing = deferred<void>();
-    const first = vi.fn().mockReturnValue(signing.promise);
-    const second = vi.fn().mockResolvedValue(undefined);
-
-    let firstRun!: Promise<void>;
-    let secondRun!: Promise<void>;
-    act(() => {
-      firstRun = result.current.run(first, OPTIONS);
-    });
-    await flush();
-    act(() => cancelPendingDeviceAction());
-    act(() => {
-      secondRun = result.current.run(second, { ...OPTIONS, description: 'Second request' });
-    });
-    await flush();
-    expect(result.current.pending).toBeNull();
-    expect(second).not.toHaveBeenCalled();
-
-    await act(async () => {
-      signing.resolve();
-      await firstRun;
-    });
-    await act(async () => {
-      await secondRun;
-    });
-    expect(second).toHaveBeenCalledTimes(1);
-    expect(result.current.pending).toBeNull();
-  });
-
-  it('holds the dialog of another device until the cancelled request settles', async () => {
-    const { result } = renderCall();
-    const signing = deferred<void>();
-    const first = vi.fn().mockReturnValue(signing.promise);
-    const second = vi.fn().mockResolvedValue(undefined);
-
-    let firstRun!: Promise<void>;
-    let secondRun!: Promise<void>;
-    act(() => {
-      firstRun = result.current.run(first, OPTIONS);
-    });
-    await flush();
-    act(() => cancelPendingDeviceAction());
-    act(() => {
-      secondRun = result.current.run(second, {
-        ...OPTIONS,
-        principal: 'other-device',
-        description: 'Second device',
-      });
-    });
-    await flush();
-    expect(result.current.pending).toBeNull();
-    expect(second).not.toHaveBeenCalled();
-
-    await act(async () => {
-      signing.resolve();
-      await firstRun;
-      await secondRun;
-    });
-    expect(second).toHaveBeenCalledTimes(1);
-    expect(result.current.pending).toBeNull();
-  });
-
-  it('rejects a request that waited behind another device when a logout came in between', async () => {
-    const queue = await vi.importActual<typeof import('@common/ledger/deviceQueue')>(
-      '@common/ledger/deviceQueue',
-    );
-    mocks.runOnDevice.mockImplementation(queue.runOnDevice);
-    mocks.generation.mockImplementation(queue.getDeviceSessionGeneration);
-    const { result } = renderCall();
-    const signing = deferred<void>();
-    const first = vi.fn().mockReturnValue(signing.promise);
-    const second = vi.fn().mockResolvedValue(undefined);
-
-    let firstRun!: Promise<void>;
-    let secondRun!: Promise<void>;
-    act(() => {
-      firstRun = result.current.run(first, OPTIONS);
-    });
-    await flush();
-    act(() => cancelPendingDeviceAction());
-    act(() => {
-      secondRun = result.current.run(second, { ...OPTIONS, principal: 'other-device' });
-    });
-    await flush();
-    queue.clearDeviceQueues();
-
-    await act(async () => {
-      signing.resolve();
-      await firstRun;
-      await expect(secondRun).rejects.toMatchObject({ code: LedgerErrorCode.SessionClosed });
-    });
-    expect(mocks.getNnsGovernanceCanister).toHaveBeenCalledTimes(1);
-    expect(second).not.toHaveBeenCalled();
-    expect(result.current.pending).toBeNull();
-  });
-
-  it('starts a new approval chain after a logout, so a request without answer does not block', async () => {
-    const queue = await vi.importActual<typeof import('@common/ledger/deviceQueue')>(
-      '@common/ledger/deviceQueue',
-    );
-    mocks.generation.mockImplementation(queue.getDeviceSessionGeneration);
-    const { result } = renderCall();
-    const unanswered = deferred<void>();
-    const first = vi.fn().mockReturnValue(unanswered.promise);
-    const signing = deferred<void>();
-    const second = vi.fn().mockReturnValue(signing.promise);
-
-    act(() => {
-      void result.current.run(first, OPTIONS).catch(() => undefined);
-    });
-    await flush();
-    act(() => cancelPendingDeviceAction());
-    queue.clearDeviceQueues();
-
-    let secondRun!: Promise<void>;
-    act(() => {
-      secondRun = result.current.run(second, { ...OPTIONS, description: 'Next session' });
-    });
-    await flush();
-    expect(result.current.pending?.description).toBe('Next session');
-    expect(second).toHaveBeenCalledTimes(1);
-
-    await act(async () => {
-      signing.resolve();
-      await secondRun;
     });
     expect(result.current.pending).toBeNull();
   });
@@ -299,9 +143,13 @@ describe('useLedgerNeuronCall', () => {
     });
     expect(mocks.getNnsGovernanceCanister).toHaveBeenCalledTimes(1);
     expect(call).not.toHaveBeenCalled();
+    expect(mocks.event).toHaveBeenCalledWith(AnalyticsEvent.LedgerDeviceActionError, {
+      action: 'stake_maturity',
+      reason: 'cancelled',
+    });
   });
 
-  it('stays pending after a cancel until the device answers, and resolves on a late approval', async () => {
+  it('reports a late approval after a cancel as the action, not as an error', async () => {
     const { result } = renderCall();
     const signing = deferred<string>();
     const call = vi.fn().mockReturnValue(signing.promise);
@@ -313,16 +161,6 @@ describe('useLedgerNeuronCall', () => {
     await flush();
     act(() => cancelPendingDeviceAction());
     expect(result.current.pending).toBeNull();
-
-    // The caller waits for the device call, so no second request can start.
-    const settled = await Promise.race([
-      run.then(
-        () => true,
-        () => true,
-      ),
-      Promise.resolve(false),
-    ]);
-    expect(settled).toBe(false);
 
     await act(async () => {
       signing.resolve('signed');

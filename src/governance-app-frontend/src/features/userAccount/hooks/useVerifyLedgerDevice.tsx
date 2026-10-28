@@ -5,10 +5,10 @@ import { AnalyticsEvent } from '@features/analytics/events';
 import { getErrorReason } from '@features/analytics/properties';
 import { analytics } from '@features/analytics/service';
 
-import { isDeviceActionCancelled, useDeviceAction } from '@hooks/useDeviceAction';
+import { DeviceActionCancelledError, isDeviceActionCancelled } from '@hooks/useDeviceAction';
 import { mapCanisterError } from '@utils/errors';
 import { errorNotification, successNotification } from '@utils/notification';
-import { runOnDevice } from '@common/ledger/deviceQueue';
+import { runApprovedDeviceCall } from '@common/ledger/approvedDeviceCall';
 import { getLedgerIdentity } from '@common/ledger/session';
 
 type VerifyLedgerDeviceParams = {
@@ -23,19 +23,17 @@ type VerifyLedgerDeviceParams = {
  */
 export function useVerifyLedgerDevice() {
   const { t } = useTranslation();
-  const runDeviceAction = useDeviceAction();
 
   return useMutation({
     mutationFn: ({ principal, accountId }: VerifyLedgerDeviceParams) =>
-      runDeviceAction(
-        (signal) =>
-          runOnDevice(principal, async () => {
-            // A cancelled call that waited in the queue must not prompt the device.
-            if (signal.aborted) return;
-            const identity = await getLedgerIdentity(principal);
-            if (signal.aborted) return;
-            await identity.showAddressAndPubKeyOnDevice();
-          }),
+      runApprovedDeviceCall(
+        principal,
+        async (signal) => {
+          const identity = await getLedgerIdentity(principal);
+          // A cancel during the device connection must not ask for a confirmation.
+          if (signal.aborted) throw new DeviceActionCancelledError();
+          await identity.showAddressAndPubKeyOnDevice();
+        },
         {
           description: t(($) => $.userAccount.ledgerDevices.verifyDescription),
           detail: (

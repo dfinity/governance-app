@@ -11,14 +11,14 @@ import { analytics } from '@features/analytics/service';
 import { E8Sn, ICP_TRANSACTION_FEE_E8Sn } from '@constants/extra';
 import { useNnsGovernance } from '@hooks/governance';
 import { useIcpLedger } from '@hooks/icpLedger';
-import { useDeviceAction } from '@hooks/useDeviceAction';
+import { DeviceActionCancelledError } from '@hooks/useDeviceAction';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { bigIntMul } from '@utils/bigInt';
 import { isCertifiedRejectError } from '@utils/errors';
 import { duplicateTransferOf } from '@utils/errors/duplicateTransfer';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 import { getAnonymousNnsGovernanceCanister, getIcpLedgerCanister } from '@common/canisters';
-import { runOnDevice } from '@common/ledger/deviceQueue';
+import { runApprovedDeviceCall } from '@common/ledger/approvedDeviceCall';
 import { II_SIGNER, type Signer } from '@common/ledger/signer';
 
 import {
@@ -62,7 +62,6 @@ export function useIncreaseStake() {
   const { identity } = useInternetIdentity();
   const { canister: governanceCanister } = useNnsGovernance();
   const { canister: ledgerCanister } = useIcpLedger();
-  const runDeviceAction = useDeviceAction();
 
   // Keep the createdAt value for retry purposes (used for deduplication at the ledger level)
   const createdAtRef = useRef<bigint | null>(null);
@@ -95,29 +94,28 @@ export function useIncreaseStake() {
         if (!record?.transferred) {
           // Written before the signature: the device can sign after a cancelled dialog.
           writePendingDeviceTopUp(key, { ...pending, transferred: false });
-          await runDeviceAction(
-            (signal) =>
-              runOnDevice(signer.principal, async () => {
-                // A cancelled call that waited in the queue must not prompt the device.
-                if (signal.aborted) return;
-                const deviceLedger = await getIcpLedgerCanister({ signer });
-                if (signal.aborted) return;
-                try {
-                  await deviceLedger.transfer({
-                    to,
-                    amount: amountE8s,
-                    fee: ICP_TRANSACTION_FEE_E8Sn,
-                    createdAt,
-                  });
-                } catch (error: unknown) {
-                  // The device signed an earlier attempt after its dialog was cancelled. The ICP
-                  // is on the neuron account, so the refresh below picks it up.
-                  if (duplicateTransferOf(error) === undefined) throw error;
-                }
-                // Confirmed here, not after the dialog: a cancelled dialog does not stop the
-                // device, and the recovery pass must refresh a transfer that landed late.
-                writePendingDeviceTopUp(key, { ...pending, transferred: true });
-              }),
+          await runApprovedDeviceCall(
+            signer.principal,
+            async (signal) => {
+              const deviceLedger = await getIcpLedgerCanister({ signer });
+              // A cancel during the device connection must not ask for a signature.
+              if (signal.aborted) throw new DeviceActionCancelledError();
+              try {
+                await deviceLedger.transfer({
+                  to,
+                  amount: amountE8s,
+                  fee: ICP_TRANSACTION_FEE_E8Sn,
+                  createdAt,
+                });
+              } catch (error: unknown) {
+                // The device signed an earlier attempt after its dialog was cancelled. The ICP
+                // is on the neuron account, so the refresh below picks it up.
+                if (duplicateTransferOf(error) === undefined) throw error;
+              }
+              // Confirmed here, not after the dialog: a cancelled dialog does not stop the
+              // device, and the recovery pass must refresh a transfer that landed late.
+              writePendingDeviceTopUp(key, { ...pending, transferred: true });
+            },
             {
               description: t(($) => $.neuronDetailModal.increaseStake.ledgerDevice.approveTransfer),
               detail: (

@@ -7,8 +7,13 @@ import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ICP_TRANSACTION_FEE_E8Sn } from '@constants/extra';
-import { DeviceActionCancelledError } from '@hooks/useDeviceAction';
+import {
+  cancelPendingDeviceAction,
+  DeviceActionCancelledError,
+  usePendingDeviceAction,
+} from '@hooks/useDeviceAction';
 import { QUERY_KEYS } from '@utils/query';
+import { clearDeviceApprovals } from '@common/ledger/approvedDeviceCall';
 
 import { useIncreaseStake } from './useIncreaseStake';
 
@@ -24,7 +29,7 @@ const mocks = vi.hoisted(() => ({
   getIcpLedgerCanister: vi.fn(),
   getAnonymousNnsGovernanceCanister: vi.fn(),
   runOnDevice: vi.fn(),
-  runDeviceAction: vi.fn(),
+  runApprovedDeviceCall: vi.fn(),
   analyticsEvent: vi.fn(),
 }));
 
@@ -32,7 +37,15 @@ vi.mock('@common/canisters', () => ({
   getIcpLedgerCanister: mocks.getIcpLedgerCanister,
   getAnonymousNnsGovernanceCanister: mocks.getAnonymousNnsGovernanceCanister,
 }));
-vi.mock('@common/ledger/deviceQueue', () => ({ runOnDevice: mocks.runOnDevice }));
+vi.mock('@common/ledger/deviceQueue', () => ({
+  runOnDevice: mocks.runOnDevice,
+  getDeviceSessionGeneration: () => 0,
+}));
+// A spy on the shared helper: the tests read the dialog options and force a cancel through it.
+vi.mock('@common/ledger/approvedDeviceCall', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@common/ledger/approvedDeviceCall')>()),
+  runApprovedDeviceCall: mocks.runApprovedDeviceCall,
+}));
 
 // An in-memory record of the top-ups whose refresh is pending (the storage of the app).
 type Pending = { neuronId: string; amount: string; createdAt: string; transferred: boolean };
@@ -49,10 +62,6 @@ let clock = 0;
 vi.mock('@dfinity/utils', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@dfinity/utils')>()),
   nowInBigIntNanoSeconds: () => BigInt(++clock),
-}));
-vi.mock('@hooks/useDeviceAction', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@hooks/useDeviceAction')>()),
-  useDeviceAction: () => mocks.runDeviceAction,
 }));
 vi.mock('@hooks/governance', () => ({
   useNnsGovernance: () => ({ canister: mocks.iiGovernance, ready: true, authenticated: true }),
@@ -72,7 +81,12 @@ const renderIncreaseStake = () => {
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 
-  return { ...renderHook(() => useIncreaseStake(), { wrapper }), invalidateQueries };
+  return {
+    ...renderHook(() => ({ ...useIncreaseStake(), pending: usePendingDeviceAction() }), {
+      wrapper,
+    }),
+    invalidateQueries,
+  };
 };
 
 const params = {
@@ -82,17 +96,33 @@ const params = {
   selectedAccountId: 'source-account',
 };
 
+const deferred = <T,>() => {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((res) => {
+    resolve = res;
+  });
+  return { promise, resolve };
+};
+
+// The dialog opens one tick after the call starts: after the queue turn and the approval chain.
+const flush = () =>
+  act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+
 describe('useIncreaseStake', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+    clearDeviceApprovals();
     mocks.getIcpLedgerCanister.mockResolvedValue(mocks.deviceLedger);
     mocks.getAnonymousNnsGovernanceCanister.mockResolvedValue(mocks.anonymousGovernance);
     mocks.runOnDevice.mockImplementation((_principal: string, call: () => Promise<unknown>) =>
       call(),
     );
-    mocks.runDeviceAction.mockImplementation((action: (signal: AbortSignal) => Promise<unknown>) =>
-      action(new AbortController().signal),
-    );
+    const { runApprovedDeviceCall } = await vi.importActual<
+      typeof import('@common/ledger/approvedDeviceCall')
+    >('@common/ledger/approvedDeviceCall');
+    mocks.runApprovedDeviceCall.mockImplementation(runApprovedDeviceCall);
     mocks.iiLedger.transfer.mockResolvedValue(1n);
     mocks.deviceLedger.transfer.mockResolvedValue(2n);
     mocks.iiGovernance.claimOrRefreshNeuron.mockResolvedValue(42n);
@@ -116,7 +146,7 @@ describe('useIncreaseStake', () => {
       neuronId: 42n,
       by: { NeuronIdOrSubaccount: {} },
     });
-    expect(mocks.runDeviceAction).not.toHaveBeenCalled();
+    expect(mocks.runApprovedDeviceCall).not.toHaveBeenCalled();
     expect(mocks.getAnonymousNnsGovernanceCanister).not.toHaveBeenCalled();
     expect(invalidateQueries).toHaveBeenCalledWith({
       queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
@@ -143,7 +173,8 @@ describe('useIncreaseStake', () => {
     expect(mocks.deviceLedger.transfer.mock.calls[0][0].fromSubAccount).toBeUndefined();
     expect(mocks.iiLedger.transfer).not.toHaveBeenCalled();
     expect(mocks.runOnDevice).toHaveBeenCalledWith(DEVICE_PRINCIPAL, expect.any(Function));
-    expect(mocks.runDeviceAction.mock.calls[0][1].description).toBe(
+    expect(mocks.runApprovedDeviceCall.mock.calls[0][0]).toBe(DEVICE_PRINCIPAL);
+    expect(mocks.runApprovedDeviceCall.mock.calls[0][2].description).toBe(
       'Check the amount and the neuron account on the device screen and approve the transfer.',
     );
 
@@ -162,9 +193,7 @@ describe('useIncreaseStake', () => {
 
   it('keeps the createdAt of a cancelled device top-up across a view unmount', async () => {
     // The dialog is cancelled before the device answers; the transfer never ran.
-    mocks.runDeviceAction.mockImplementationOnce(() =>
-      Promise.reject(new DeviceActionCancelledError()),
-    );
+    mocks.runApprovedDeviceCall.mockRejectedValueOnce(new DeviceActionCancelledError());
     const topUp = { ...params, amount: 9, signer: DEVICE_SIGNER };
     const first = renderIncreaseStake();
     await expect(act(() => first.result.current.mutateAsync(topUp))).rejects.toBeInstanceOf(
@@ -192,26 +221,31 @@ describe('useIncreaseStake', () => {
     );
   });
 
-  it('retries only the refresh after the device signed a cancelled top-up late', async () => {
-    mocks.runDeviceAction.mockImplementationOnce(
-      async (action: (signal: AbortSignal) => Promise<unknown>) => {
-        // The user cancels the dialog, the device signs anyway.
-        await action(new AbortController().signal);
-        throw new DeviceActionCancelledError();
-      },
-    );
-    const topUp = { ...params, amount: 9, signer: DEVICE_SIGNER };
-    const first = renderIncreaseStake();
-    await expect(act(() => first.result.current.mutateAsync(topUp))).rejects.toBeInstanceOf(
-      DeviceActionCancelledError,
-    );
-    first.unmount();
+  it('refreshes the neuron when the device signs a cancelled top-up late', async () => {
+    const signing = deferred<bigint>();
+    mocks.deviceLedger.transfer.mockReturnValueOnce(signing.promise);
+    const { result } = renderIncreaseStake();
 
-    const second = renderIncreaseStake();
-    await act(() => second.result.current.mutateAsync(topUp));
+    let topUp!: Promise<void>;
+    act(() => {
+      topUp = result.current.mutateAsync({ ...params, amount: 9, signer: DEVICE_SIGNER });
+    });
+    await flush();
+    act(() => cancelPendingDeviceAction());
+    expect(result.current.pending).toBeNull();
+    // The top-up stays pending: the device still asks for the transfer.
+    expect(mocks.anonymousGovernance.claimOrRefreshNeuron).not.toHaveBeenCalled();
+
+    await act(async () => {
+      signing.resolve(2n);
+      await topUp;
+    });
     expect(mocks.deviceLedger.transfer).toHaveBeenCalledTimes(1);
     expect(mocks.anonymousGovernance.claimOrRefreshNeuron).toHaveBeenCalledTimes(1);
     expect(pendingTopUps.size).toBe(0);
+    expect(mocks.analyticsEvent).toHaveBeenCalledWith('ledger_device_top_up', {
+      amount_range: '1-10',
+    });
   });
 
   it('retries only the refresh once the device transfer went through', async () => {
@@ -266,28 +300,93 @@ describe('useIncreaseStake', () => {
   });
 
   it('confirms the transfer in the record even when the dialog was cancelled', async () => {
-    mocks.runDeviceAction.mockImplementationOnce(
-      async (action: (signal: AbortSignal) => Promise<unknown>) => {
-        // The user cancels the dialog, the device signs anyway.
-        await action(new AbortController().signal);
-        throw new DeviceActionCancelledError();
-      },
-    );
+    const signing = deferred<bigint>();
+    mocks.deviceLedger.transfer.mockReturnValueOnce(signing.promise);
+    mocks.anonymousGovernance.claimOrRefreshNeuron.mockRejectedValueOnce(new Error('dropped'));
     const { result } = renderIncreaseStake();
 
-    await expect(
-      act(() => result.current.mutateAsync({ ...params, amount: 14, signer: DEVICE_SIGNER })),
-    ).rejects.toBeInstanceOf(DeviceActionCancelledError);
+    let topUp!: Promise<void>;
+    act(() => {
+      topUp = result.current.mutateAsync({ ...params, amount: 14, signer: DEVICE_SIGNER });
+    });
+    await flush();
+    act(() => cancelPendingDeviceAction());
+    expect([...pendingTopUps.values()]).toEqual([
+      { neuronId: '42', amount: '14', createdAt: expect.any(String), transferred: false },
+    ]);
 
-    // The recovery pass can refresh the neuron: the record says the transfer went through.
+    // The device signs after the cancel and the refresh fails. The recovery pass can refresh
+    // the neuron: the record says the transfer went through.
+    await act(async () => {
+      signing.resolve(2n);
+      await expect(topUp).rejects.toThrow('dropped');
+    });
     expect([...pendingTopUps.values()]).toEqual([
       { neuronId: '42', amount: '14', createdAt: expect.any(String), transferred: true },
     ]);
     pendingTopUps.clear();
   });
 
+  it('opens the approval dialog only at the queue turn of the device', async () => {
+    const turn = deferred<void>();
+    mocks.runOnDevice.mockImplementationOnce(
+      async (_principal: string, call: () => Promise<unknown>) => {
+        await turn.promise;
+        return call();
+      },
+    );
+    const { result } = renderIncreaseStake();
+
+    let topUp!: Promise<void>;
+    act(() => {
+      topUp = result.current.mutateAsync({ ...params, signer: DEVICE_SIGNER });
+    });
+    await flush();
+    // Another device request is outstanding: no dialog, no device access.
+    expect(result.current.pending).toBeNull();
+    expect(mocks.getIcpLedgerCanister).not.toHaveBeenCalled();
+
+    const signing = deferred<bigint>();
+    mocks.deviceLedger.transfer.mockReturnValueOnce(signing.promise);
+    await act(async () => {
+      turn.resolve();
+    });
+    await flush();
+    expect(result.current.pending?.description).toBe(
+      'Check the amount and the neuron account on the device screen and approve the transfer.',
+    );
+    expect(mocks.deviceLedger.transfer).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      signing.resolve(2n);
+      await topUp;
+    });
+    expect(result.current.pending).toBeNull();
+    expect(mocks.anonymousGovernance.claimOrRefreshNeuron).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not ask for a signature when the dialog was cancelled during the device connection', async () => {
+    mocks.getIcpLedgerCanister.mockImplementationOnce(async () => {
+      cancelPendingDeviceAction();
+      return mocks.deviceLedger;
+    });
+    const { result } = renderIncreaseStake();
+
+    await expect(
+      act(() => result.current.mutateAsync({ ...params, signer: DEVICE_SIGNER })),
+    ).rejects.toBeInstanceOf(DeviceActionCancelledError);
+
+    expect(mocks.deviceLedger.transfer).not.toHaveBeenCalled();
+    expect(mocks.anonymousGovernance.claimOrRefreshNeuron).not.toHaveBeenCalled();
+    // The record is written before the signature: the device can still sign after a cancel.
+    expect([...pendingTopUps.values()]).toEqual([
+      { neuronId: '42', amount: '5', createdAt: expect.any(String), transferred: false },
+    ]);
+    pendingTopUps.clear();
+  });
+
   it('reports a cancelled approval and refreshes nothing', async () => {
-    mocks.runDeviceAction.mockRejectedValue(new DeviceActionCancelledError());
+    mocks.runApprovedDeviceCall.mockRejectedValueOnce(new DeviceActionCancelledError());
     const { result, invalidateQueries } = renderIncreaseStake();
 
     await expect(

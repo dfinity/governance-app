@@ -13,8 +13,13 @@ import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ICP_TRANSACTION_FEE_E8Sn, SECONDS_IN_DAY } from '@constants/extra';
-import { DeviceActionCancelledError } from '@hooks/useDeviceAction';
+import {
+  cancelPendingDeviceAction,
+  DeviceActionCancelledError,
+  usePendingDeviceAction,
+} from '@hooks/useDeviceAction';
 import { mockNeuron } from '@fixtures/neuron';
+import { clearDeviceApprovals } from '@common/ledger/approvedDeviceCall';
 import { II_SIGNER } from '@common/ledger/signer';
 
 import { StakingWizardCreateNeuronStep } from '../components/stakingWizard/types';
@@ -52,7 +57,7 @@ const mocks = vi.hoisted(() => ({
   getAnonymousNnsGovernanceCanister: vi.fn(),
   deviceIdentity: { flagUpcomingStakeNeuron: vi.fn() },
   runOnDevice: vi.fn(),
-  runDeviceAction: vi.fn(),
+  runApprovedDeviceCall: vi.fn(),
   analyticsEvent: vi.fn(),
   readPendingDeviceStake: vi.fn(),
   writePendingDeviceStake: vi.fn(),
@@ -67,10 +72,14 @@ vi.mock('@common/canisters', () => ({
 vi.mock('@common/ledger/session', () => ({
   getLedgerIdentity: () => Promise.resolve(mocks.deviceIdentity),
 }));
-vi.mock('@common/ledger/deviceQueue', () => ({ runOnDevice: mocks.runOnDevice }));
-vi.mock('@hooks/useDeviceAction', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@hooks/useDeviceAction')>()),
-  useDeviceAction: () => mocks.runDeviceAction,
+vi.mock('@common/ledger/deviceQueue', () => ({
+  runOnDevice: mocks.runOnDevice,
+  getDeviceSessionGeneration: () => 0,
+}));
+// A spy on the shared helper: the tests read the dialog options and force a cancel through it.
+vi.mock('@common/ledger/approvedDeviceCall', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@common/ledger/approvedDeviceCall')>()),
+  runApprovedDeviceCall: mocks.runApprovedDeviceCall,
 }));
 vi.mock('@hooks/governance', () => ({
   useNnsGovernance: () => ({ canister: mocks.iiGovernance, ready: true, authenticated: true }),
@@ -110,8 +119,8 @@ const renderCreateNeuron = ({ signer, autoStake = true, dissolving = false }: Op
   );
 
   return renderHook(
-    () =>
-      useCreateNeuron({
+    () => ({
+      ...useCreateNeuron({
         amount: '10',
         dissolveDelaySeconds: SECONDS_IN_DAY * 30,
         autoStakeMaturity: autoStake,
@@ -119,25 +128,45 @@ const renderCreateNeuron = ({ signer, autoStake = true, dissolving = false }: Op
         selectedAccountId: 'source-account',
         signer,
       }),
+      pending: usePendingDeviceAction(),
+    }),
     { wrapper },
   );
 };
 
 /** The description of every device approval, in the order the hook asked for them. */
 const approvalDescriptions = () =>
-  mocks.runDeviceAction.mock.calls.map(([, options]) => options.description);
+  mocks.runApprovedDeviceCall.mock.calls.map(([, , options]) => options.description);
+
+const deferred = <T,>() => {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((res) => {
+    resolve = res;
+  });
+  return { promise, resolve };
+};
+
+// The dialog opens one tick after the call starts: after the queue turn and the approval chain.
+const flush = () =>
+  act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+
+let runApprovedDeviceCall: typeof import('@common/ledger/approvedDeviceCall').runApprovedDeviceCall;
 
 describe('useCreateNeuron', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+    clearDeviceApprovals();
+    ({ runApprovedDeviceCall } = await vi.importActual<
+      typeof import('@common/ledger/approvedDeviceCall')
+    >('@common/ledger/approvedDeviceCall'));
+    mocks.runApprovedDeviceCall.mockImplementation(runApprovedDeviceCall);
     mocks.getNnsGovernanceCanister.mockResolvedValue(mocks.deviceGovernance);
     mocks.getIcpLedgerCanister.mockResolvedValue(mocks.deviceLedger);
     mocks.getAnonymousNnsGovernanceCanister.mockResolvedValue(mocks.anonymousGovernance);
     mocks.runOnDevice.mockImplementation((_principal: string, call: () => Promise<unknown>) =>
       call(),
-    );
-    mocks.runDeviceAction.mockImplementation((action: (signal: AbortSignal) => Promise<unknown>) =>
-      action(new AbortController().signal),
     );
     mocks.iiGovernance.stakeNeuron.mockResolvedValue(42n);
     mocks.iiGovernance.listNeurons.mockResolvedValue([]);
@@ -173,7 +202,7 @@ describe('useCreateNeuron', () => {
     });
     expect(mocks.iiGovernance.startDissolving).toHaveBeenCalledWith(42n);
     expect(mocks.iiGovernance.addHotkey).not.toHaveBeenCalled();
-    expect(mocks.runDeviceAction).not.toHaveBeenCalled();
+    expect(mocks.runApprovedDeviceCall).not.toHaveBeenCalled();
     expect(mocks.getAnonymousNnsGovernanceCanister).not.toHaveBeenCalled();
     expect(mocks.iiGovernance.getNeuron).not.toHaveBeenCalled();
     expect(mocks.analyticsEvent).not.toHaveBeenCalled();
@@ -227,15 +256,18 @@ describe('useCreateNeuron', () => {
     // Every device call ran in the queue of the device, behind the approval dialog.
     expect(mocks.runOnDevice).toHaveBeenCalledTimes(4);
     mocks.runOnDevice.mock.calls.forEach(([principal]) => expect(principal).toBe(DEVICE_PRINCIPAL));
+    mocks.runApprovedDeviceCall.mock.calls.forEach(([principal]) =>
+      expect(principal).toBe(DEVICE_PRINCIPAL),
+    );
     expect(approvalDescriptions()).toEqual([
       'Check the amount on the device screen and approve the transfer.',
       'Check the hotkey principal on the device screen and approve.',
       'Approve the lock period on the device screen. The device shows the time to add.',
       'Approve the auto-lock of rewards on the device screen.',
     ]);
-    expect(mocks.runDeviceAction.mock.calls[0][1].detail).toBe('10 ICP');
-    expect(mocks.runDeviceAction.mock.calls[1][1].detail).toBe(II_PRINCIPAL);
-    expect(mocks.runDeviceAction.mock.calls[2][1].detail).toBe('30 days');
+    expect(mocks.runApprovedDeviceCall.mock.calls[0][2].detail).toBe('10 ICP');
+    expect(mocks.runApprovedDeviceCall.mock.calls[1][2].detail).toBe(II_PRINCIPAL);
+    expect(mocks.runApprovedDeviceCall.mock.calls[2][2].detail).toBe('30 days');
 
     expect(mocks.analyticsEvent).toHaveBeenCalledWith('ledger_device_stake', {
       amount_range: '10-100',
@@ -403,15 +435,8 @@ describe('useCreateNeuron', () => {
   });
 
   it('does not ask for a signature when the dialog was cancelled during the device connection', async () => {
-    const controller = new AbortController();
-    mocks.runDeviceAction.mockImplementationOnce(
-      async (action: (signal: AbortSignal) => Promise<unknown>) => {
-        await action(controller.signal);
-        throw new DeviceActionCancelledError();
-      },
-    );
     mocks.getIcpLedgerCanister.mockImplementationOnce(async () => {
-      controller.abort();
+      cancelPendingDeviceAction();
       return mocks.deviceLedger;
     });
     const { result } = renderCreateNeuron({ signer: DEVICE_SIGNER });
@@ -427,17 +452,8 @@ describe('useCreateNeuron', () => {
   });
 
   it('does not ask for a signature when the dialog was cancelled during the neuron read', async () => {
-    const controller = new AbortController();
-    mocks.runDeviceAction
-      .mockImplementationOnce((action: (signal: AbortSignal) => Promise<unknown>) =>
-        action(new AbortController().signal),
-      )
-      .mockImplementationOnce(async (action: (signal: AbortSignal) => Promise<unknown>) => {
-        await action(controller.signal);
-        throw new DeviceActionCancelledError();
-      });
     mocks.iiGovernance.getNeuron.mockImplementationOnce(async () => {
-      controller.abort();
+      cancelPendingDeviceAction();
       return mockNeuron({ neuronId: 42n });
     });
     const { result } = renderCreateNeuron({ signer: DEVICE_SIGNER });
@@ -457,7 +473,8 @@ describe('useCreateNeuron', () => {
     await act(() => result.current.mutateAsync());
 
     expect(mocks.runOnDevice.mock.calls[0][0]).toBe(DEVICE_PRINCIPAL);
-    expect(mocks.runDeviceAction).not.toHaveBeenCalledWith(
+    expect(mocks.runApprovedDeviceCall).not.toHaveBeenCalledWith(
+      expect.anything(),
       expect.anything(),
       expect.objectContaining({ detail: '10 ICP' }),
     );
@@ -468,6 +485,7 @@ describe('useCreateNeuron', () => {
     const { result } = renderCreateNeuron({ signer: DEVICE_SIGNER });
 
     await expect(act(() => result.current.mutateAsync())).rejects.toBeInstanceOf(TxTooOldError);
+    await waitFor(() => expect(result.current.error).toBeInstanceOf(TxTooOldError));
     const first = mocks.deviceLedger.transfer.mock.calls[0][0];
     // The retry finds the record of the rejected attempt and claims it first.
     mocks.readPendingDeviceStake.mockReturnValue({ memo: first.memo.toString(), amount: '10' });
@@ -512,11 +530,9 @@ describe('useCreateNeuron', () => {
   });
 
   it('stops at the failed step when the user cancels the approval dialog', async () => {
-    mocks.runDeviceAction
-      .mockImplementationOnce((action: (signal: AbortSignal) => Promise<unknown>) =>
-        action(new AbortController().signal),
-      )
-      .mockImplementationOnce(() => Promise.reject(new DeviceActionCancelledError()));
+    mocks.runApprovedDeviceCall
+      .mockImplementationOnce(runApprovedDeviceCall)
+      .mockRejectedValueOnce(new DeviceActionCancelledError());
     const { result } = renderCreateNeuron({ signer: DEVICE_SIGNER });
 
     await expect(act(() => result.current.mutateAsync())).rejects.toBeInstanceOf(
@@ -532,23 +548,71 @@ describe('useCreateNeuron', () => {
     });
   });
 
-  it('does not prompt the device for a call that was cancelled while it waited in the queue', async () => {
-    const controller = new AbortController();
-    controller.abort();
-    mocks.runDeviceAction.mockImplementationOnce(
-      async (action: (signal: AbortSignal) => Promise<unknown>) => {
-        await action(controller.signal);
-        throw new DeviceActionCancelledError();
+  it('opens the approval dialog only at the queue turn of the device', async () => {
+    const turn = deferred<void>();
+    mocks.runOnDevice.mockImplementationOnce(
+      async (_principal: string, call: () => Promise<unknown>) => {
+        await turn.promise;
+        return call();
       },
     );
     const { result } = renderCreateNeuron({ signer: DEVICE_SIGNER });
 
-    await expect(act(() => result.current.mutateAsync())).rejects.toBeInstanceOf(
-      DeviceActionCancelledError,
-    );
+    let stake!: Promise<void>;
+    act(() => {
+      stake = result.current.mutateAsync();
+    });
+    await flush();
+    // Another device request is outstanding: no dialog, no device access.
+    expect(result.current.pending).toBeNull();
+    expect(mocks.getIcpLedgerCanister).not.toHaveBeenCalled();
+    expect(mocks.deviceIdentity.flagUpcomingStakeNeuron).not.toHaveBeenCalled();
 
-    expect(mocks.deviceLedger.transfer).not.toHaveBeenCalled();
-    expect(result.current.isTransferDone).toBe(false);
+    const signing = deferred<bigint>();
+    mocks.deviceLedger.transfer.mockReturnValueOnce(signing.promise);
+    await act(async () => {
+      turn.resolve();
+    });
+    await flush();
+    expect(result.current.pending?.description).toBe(
+      'Check the amount on the device screen and approve the transfer.',
+    );
+    expect(mocks.deviceLedger.transfer).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      signing.resolve(1n);
+      await stake;
+    });
+    expect(result.current.pending).toBeNull();
+    expect(result.current.currentStep).toBe(StakingWizardCreateNeuronStep.Done);
+  });
+
+  it('goes on with the next step when the device signs a cancelled approval late', async () => {
+    const signing = deferred<void>();
+    mocks.deviceGovernance.addHotkey.mockReturnValueOnce(signing.promise);
+    const { result } = renderCreateNeuron({ signer: DEVICE_SIGNER });
+
+    let stake!: Promise<void>;
+    act(() => {
+      stake = result.current.mutateAsync();
+    });
+    await act(async () => {
+      await waitFor(() => expect(mocks.deviceGovernance.addHotkey).toHaveBeenCalledTimes(1));
+    });
+    act(() => cancelPendingDeviceAction());
+    expect(result.current.pending).toBeNull();
+    // The stake stays pending: the device still asks for the hotkey.
+    expect(mocks.deviceGovernance.increaseDissolveDelay).not.toHaveBeenCalled();
+
+    await act(async () => {
+      signing.resolve();
+      await stake;
+    });
+    expect(mocks.deviceGovernance.increaseDissolveDelay).toHaveBeenCalledTimes(1);
+    expect(result.current.currentStep).toBe(StakingWizardCreateNeuronStep.Done);
+    expect(mocks.analyticsEvent).toHaveBeenCalledWith('ledger_device_stake', {
+      amount_range: '10-100',
+    });
   });
 
   it('reset clears the device stake state', async () => {
