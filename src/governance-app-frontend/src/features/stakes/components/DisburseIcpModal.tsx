@@ -160,9 +160,6 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
                 placeholder={t(($) => $.addressBook.destination.placeholderWithAccounts)}
                 invalid={validationError !== null}
               />
-              <p className="text-xs text-muted-foreground">
-                {t(($) => $.neuronDetailModal.disburseIcp.toAccountHint)}
-              </p>
             </div>
 
             <Alert variant="info">

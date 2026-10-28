@@ -79,7 +79,6 @@
   "disburseIcp": {
     "title": "Disburse neuron",
     "toAccount": "To account",
-    "toAccountHint": "The account that receives the ICP.",
     "info": "<strong>Disburse {{amount}} ICP.</strong> They will be returned to your available balance, and can be relocked at any time after disbursement.",
     "infoToAccount": "<strong>Disburse {{amount}} ICP.</strong> They will be sent to the selected account.",
     "cancel": "Cancel",
