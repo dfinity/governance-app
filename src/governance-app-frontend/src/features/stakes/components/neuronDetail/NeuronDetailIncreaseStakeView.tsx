@@ -12,6 +12,7 @@ import {
   getAccountSigner,
   isAccountReady,
 } from '@features/accounts/types';
+import { DeviceAnswerHint } from '@features/ledger/components/DeviceAnswerHint';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { AmountInput } from '@components/AmountInput';
@@ -222,6 +223,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
           t(($) => $.neuronDetailModal.increaseStake.confirm)
         )}
       </Button>
+      <DeviceAnswerHint signer={getAccountSigner(selectedAccount)} className="mt-3 text-center" />
     </form>
   );
 }

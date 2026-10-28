@@ -6,8 +6,11 @@ import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { PendingDeviceActionDialog } from '@features/ledger/components/PendingDeviceActionDialog';
+
 import { E8S } from '@constants/extra';
 import { mockNeuron } from '@fixtures/neuron';
+import { clearDeviceApprovals } from '@common/ledger/approvedDeviceCall';
 import { clearDeviceQueues } from '@common/ledger/deviceQueue';
 import { LedgerDeviceError, LedgerErrorCode } from '@common/ledger/errors';
 
@@ -63,8 +66,12 @@ const deviceNeuron = (neuronId: bigint, hotKeys: string[] = []) =>
 
 const renderDialog = () => {
   const queryClient = new QueryClient();
+  // The approval dialog is mounted once in the authenticated layout.
   const wrapper = ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      {children}
+      <PendingDeviceActionDialog />
+    </QueryClientProvider>
   );
 
   return render(<LedgerNeuronsDialog account={account} open onOpenChange={vi.fn()} />, {
@@ -76,6 +83,7 @@ describe('LedgerNeuronsDialog', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     clearDeviceQueues();
+    clearDeviceApprovals();
     mocks.getNnsGovernanceCanister.mockResolvedValue({
       listNeurons: mocks.listNeurons,
       addHotkey: mocks.addHotkey,
@@ -157,7 +165,7 @@ describe('LedgerNeuronsDialog', () => {
     expect(screen.getByTestId('ledger-neuron-add-hotkey').hasAttribute('disabled')).toBe(true);
   });
 
-  it('keeps the result of a cancelled attempt but reports nothing', async () => {
+  it('keeps the result and reports the success when the device signs after a cancel', async () => {
     mocks.listNeurons.mockResolvedValue([deviceNeuron(1n)]);
     let settle: () => void = () => {};
     mocks.addHotkey.mockReturnValue(new Promise<void>((resolve) => (settle = resolve)));
@@ -170,6 +178,25 @@ describe('LedgerNeuronsDialog', () => {
     settle();
 
     expect(await screen.findByTestId('ledger-neuron-hotkey-added')).toBeTruthy();
+    expect(mocks.successNotification).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports nothing when the device rejects the request after a cancel', async () => {
+    mocks.listNeurons.mockResolvedValue([deviceNeuron(1n)]);
+    let reject: (error: unknown) => void = () => {};
+    mocks.addHotkey.mockReturnValue(new Promise<void>((_, rej) => (reject = rej)));
+    const user = userEvent.setup();
+
+    renderDialog();
+
+    await user.click(await screen.findByTestId('ledger-neuron-add-hotkey'));
+    await user.click(await screen.findByRole('button', { name: 'Cancel' }));
+    reject(new LedgerDeviceError(LedgerErrorCode.UserRejected));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('ledger-neuron-add-hotkey').hasAttribute('disabled')).toBe(false),
+    );
+    expect(mocks.errorNotification).not.toHaveBeenCalled();
     expect(mocks.successNotification).not.toHaveBeenCalled();
   });
 

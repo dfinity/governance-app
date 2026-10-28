@@ -2,6 +2,8 @@ import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { AlertTriangle, Info, Key } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { DeviceAnswerHint } from '@features/ledger/components/DeviceAnswerHint';
+
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { Spinner } from '@components/Spinner';
@@ -141,6 +143,7 @@ export function NeuronDetailDissolveView({
           t(($) => $.neuronDetailModal.dissolve.confirmStart)
         )}
       </Button>
+      <DeviceAnswerHint signer={signer} className="mt-3 text-center" />
     </form>
   );
 }

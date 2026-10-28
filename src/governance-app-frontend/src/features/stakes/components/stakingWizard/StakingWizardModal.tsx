@@ -382,6 +382,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
                 error={createNeuron.error ? mapCanisterError(createNeuron.error) : null}
                 isTransferDone={createNeuron.isTransferDone}
                 expectedApy={getCurrentApyFormatted()}
+                signer={signer}
                 onDone={() => handleOpenChange(false)}
                 onRetry={() => createNeuron.mutateAsync()}
               />

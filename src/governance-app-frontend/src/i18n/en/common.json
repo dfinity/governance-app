@@ -133,6 +133,7 @@
     "vote": "Check the proposal ID, the vote, and the neuron ID on the device screen and approve.",
     "proposal": "Proposal {{proposalId}}",
     "voteYes": "Vote: Yes",
-    "voteNo": "Vote: No"
+    "voteNo": "Vote: No",
+    "addHotkey": "Check the hotkey principal on the device screen and approve."
   }
 }

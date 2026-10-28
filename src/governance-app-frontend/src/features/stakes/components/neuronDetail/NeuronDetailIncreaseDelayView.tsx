@@ -3,6 +3,8 @@ import { AlertTriangle, Key } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { DeviceAnswerHint } from '@features/ledger/components/DeviceAnswerHint';
+
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { MaxRewardsBadge } from '@components/MaxRewardsBadge';
@@ -182,6 +184,7 @@ export function NeuronDetailIncreaseDelayView({
           t(($) => $.neuronDetailModal.increaseDelay.confirm)
         )}
       </Button>
+      <DeviceAnswerHint signer={signer} className="mt-3 text-center" />
     </form>
   );
 }
