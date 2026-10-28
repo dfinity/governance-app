@@ -152,9 +152,9 @@ export function MutationDialog({
                   {processingMessage}
                 </ResponsiveDialogTitle>
                 <ProcessingSpinner />
-                <div className="flex flex-col items-center gap-2">
+                <div className="flex flex-col items-center">
                   <FadeInText delay={0.2}>{processingMessage}</FadeInText>
-                  <DeviceAnswerHint signer={signer} className="max-w-xs wrap-anywhere" />
+                  <DeviceAnswerHint signer={signer} className="mt-2 max-w-xs wrap-anywhere" />
                 </div>
               </PhaseContainer>
             )}

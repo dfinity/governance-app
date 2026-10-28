@@ -36,10 +36,20 @@ describe('DeviceAnswerHint', () => {
     expect(screen.getByText(HINT)).toBeTruthy();
   });
 
-  it('shows nothing while no cancelled request waits', () => {
+  it('keeps an empty status region while no cancelled request waits', () => {
     render(<DeviceAnswerHint signer={DEVICE} />);
 
     expect(screen.queryByText(HINT)).toBeNull();
+    expect(screen.getByRole('status').textContent).toBe('');
+  });
+
+  it('announces the hint in the status region when it appears', async () => {
+    render(<DeviceAnswerHint signer={DEVICE} />);
+    expect(screen.getByRole('status').textContent).toBe('');
+
+    await cancelledRequest();
+
+    expect(screen.getByRole('status').textContent).toBe(HINT);
   });
 
   it('shows nothing for an Internet Identity signer', async () => {
