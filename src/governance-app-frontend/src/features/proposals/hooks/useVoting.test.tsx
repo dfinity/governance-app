@@ -10,6 +10,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { cancelPendingDeviceAction, usePendingDeviceAction } from '@hooks/useDeviceAction';
 import { QUERY_KEYS } from '@utils/query';
 import { mockNeuron } from '@fixtures/neuron';
+import { LedgerDeviceError, LedgerErrorCode } from '@common/ledger/errors';
 
 import { useVoting } from './useVoting';
 
@@ -248,7 +249,7 @@ describe('useVoting', () => {
     // The vote stays pending until the device answers the request it still shows.
     expect(result.current.voting.isVoting).toBe(true);
     await act(async () => {
-      first.reject(new Error('rejected on the device'));
+      first.reject(new LedgerDeviceError(LedgerErrorCode.UserRejected));
       await first.promise.catch(() => undefined);
     });
 

@@ -16,6 +16,7 @@ import { DIALOG_RESET_DELAY_MS, SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
 import { isDeviceActionCancelled } from '@hooks/useDeviceAction';
 import { mapCanisterError } from '@utils/errors';
 import { cn } from '@utils/shadcn';
+import { useDeviceAnswerPending } from '@common/ledger/approvedDeviceCall';
 
 import { AnimatedCheckmark } from './AnimatedCheckmark';
 
@@ -56,6 +57,7 @@ export function MutationDialog({
   children,
 }: MutationDialogProps) {
   const { t } = useTranslation();
+  const deviceAnswerPending = useDeviceAnswerPending();
   const [phase, setPhase] = useState(Phase.Idle);
   const [errorMessage, setErrorMessage] = useState('');
   const [lastMutation, setLastMutation] = useState<{ fn: () => Promise<unknown> } | null>(null);
@@ -146,7 +148,14 @@ export function MutationDialog({
                   {processingMessage}
                 </ResponsiveDialogTitle>
                 <ProcessingSpinner />
-                <FadeInText delay={0.2}>{processingMessage}</FadeInText>
+                <div className="flex flex-col items-center gap-2">
+                  <FadeInText delay={0.2}>{processingMessage}</FadeInText>
+                  {deviceAnswerPending && (
+                    <FadeInText delay={0} className="text-xs font-normal">
+                      {t(($) => $.common.ledgerApproval.answerPending)}
+                    </FadeInText>
+                  )}
+                </div>
               </PhaseContainer>
             )}
 

@@ -7,7 +7,11 @@ import {
   usePendingDeviceAction,
 } from '@hooks/useDeviceAction';
 
-import { clearDeviceApprovals, runApprovedDeviceCall } from './approvedDeviceCall';
+import {
+  clearDeviceApprovals,
+  runApprovedDeviceCall,
+  useDeviceAnswerPending,
+} from './approvedDeviceCall';
 import { LedgerDeviceError, LedgerErrorCode } from './errors';
 
 const mocks = vi.hoisted(() => ({
@@ -44,6 +48,7 @@ const OPTIONS = {
 };
 
 const renderPending = () => renderHook(() => usePendingDeviceAction());
+const renderAnswerPending = () => renderHook(() => useDeviceAnswerPending());
 
 // The dialog opens one tick after the call starts: after the queue turn and the approval chain.
 const flush = () =>
@@ -325,6 +330,29 @@ describe('runApprovedDeviceCall', () => {
       signing.resolve('signed');
       await expect(run).resolves.toBe('signed');
     });
+  });
+
+  it('reports a pending device answer from the cancel until the device answers', async () => {
+    const { result } = renderAnswerPending();
+    const signing = deferred<void>();
+    const call = vi.fn().mockReturnValue(signing.promise);
+
+    let run!: Promise<void>;
+    act(() => {
+      run = runApprovedDeviceCall(DEVICE, call, OPTIONS);
+    });
+    await flush();
+    expect(result.current).toBe(false);
+
+    act(() => cancelPendingDeviceAction());
+    await flush();
+    expect(result.current).toBe(true);
+
+    await act(async () => {
+      signing.resolve();
+      await run;
+    });
+    expect(result.current).toBe(false);
   });
 
   it('reports the cancel when the device rejects the request after the cancel', async () => {

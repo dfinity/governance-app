@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useSyncExternalStore } from 'react';
 
 import { isDeviceActionCancelled, runDeviceAction } from '@hooks/useDeviceAction';
 
@@ -21,11 +21,36 @@ let approvals: Promise<unknown> = Promise.resolve();
 // session starts a new chain instead of a wait for it.
 let approvalsGeneration = getDeviceSessionGeneration();
 
-/** Forgets the approval in progress, so the next call does not wait for it. For tests. */
+// The cancelled requests that still wait for the device answer. The processing screens
+// tell the user that the device must answer before the flow goes on.
+let unanswered = new Set<object>();
+let listeners: Array<() => void> = [];
+
+const emit = () => listeners.forEach((listener) => listener());
+
+/**
+ * Forgets the approval in progress, so the next call does not wait for it, and the requests
+ * that wait for the device answer. For tests, and for the first call of a new session.
+ */
 export const clearDeviceApprovals = (): void => {
   approvals = Promise.resolve();
   approvalsGeneration = getDeviceSessionGeneration();
+  unanswered = new Set();
+  emit();
 };
+
+const subscribe = (listener: () => void) => {
+  listeners = [...listeners, listener];
+  return () => {
+    listeners = listeners.filter((l) => l !== listener);
+  };
+};
+
+const isAnswerPending = () => unanswered.size > 0;
+
+/** Whether a cancelled request still waits for the answer of the device. */
+export const useDeviceAnswerPending = (): boolean =>
+  useSyncExternalStore(subscribe, isAnswerPending);
 
 const approvalsOfThisSession = (): Promise<unknown> => {
   if (approvalsGeneration !== getDeviceSessionGeneration()) clearDeviceApprovals();
@@ -65,10 +90,18 @@ export const runApprovedDeviceCall = <T>(
     } catch (error) {
       // The dialog is closed, but the device may still sign the request.
       if (!isDeviceActionCancelled(error) || !signing) throw error;
-      const late = await signing.then(
-        (value) => ({ signed: true as const, value }),
-        (reason: unknown) => ({ signed: false as const, reason }),
-      );
+      const request = {};
+      unanswered.add(request);
+      emit();
+      const late = await signing
+        .then(
+          (value) => ({ signed: true as const, value }),
+          (reason: unknown) => ({ signed: false as const, reason }),
+        )
+        .finally(() => {
+          unanswered.delete(request);
+          emit();
+        });
       if (late.signed) return late.value;
       // The device module reports every failure before the signature as a device error. Any
       // other failure came after the signature, so the cancel is not the outcome.

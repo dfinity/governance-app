@@ -1,9 +1,10 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MutationDialog } from '@components/MutationDialog';
-import { DeviceActionCancelledError } from '@hooks/useDeviceAction';
+import { cancelPendingDeviceAction, DeviceActionCancelledError } from '@hooks/useDeviceAction';
 import { tapOverlay, waitForOutsideListeners } from '@utils/unitTest';
+import { runApprovedDeviceCall } from '@common/ledger/approvedDeviceCall';
 
 const media = vi.hoisted(() => ({ isDesktop: false }));
 vi.mock('@hooks/useMediaQuery', () => ({ useMediaQuery: () => media.isDesktop }));
@@ -65,6 +66,34 @@ describe.each([
 
     expect(await screen.findByRole('button', { name: 'Run' })).toBeTruthy();
     expect(screen.queryByText('Done')).toBeNull();
+  });
+
+  it('tells the user to answer on the device after a cancel, until the device answers', async () => {
+    let approve!: () => void;
+    renderDialog(vi.fn(), () =>
+      runApprovedDeviceCall(
+        'aaaaa-aa',
+        () =>
+          new Promise<void>((resolve) => {
+            approve = resolve;
+          }),
+        { description: 'Check the amount on the device screen and approve.' },
+      ),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Run' }));
+    expect(await screen.findAllByText('Processing')).not.toHaveLength(0);
+    const hint = 'Approve or reject on your Ledger device to continue.';
+    expect(screen.queryByText(hint)).toBeNull();
+
+    await act(async () => cancelPendingDeviceAction());
+
+    expect(await screen.findByText(hint)).toBeTruthy();
+    expect(screen.getAllByText('Processing')).not.toHaveLength(0);
+
+    approve();
+
+    expect(await screen.findAllByText('Done')).not.toHaveLength(0);
+    expect(screen.queryByText(hint)).toBeNull();
   });
 
   it('shows the success when the mutation resolves, also after a late device approval', async () => {
