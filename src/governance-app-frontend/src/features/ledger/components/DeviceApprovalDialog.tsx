@@ -1,14 +1,16 @@
-import { Usb } from 'lucide-react';
+import { Usb, XIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { DrawerClose } from '@components/Drawer';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
   ResponsiveDialogDescription,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
+import { useMediaQuery } from '@hooks/useMediaQuery';
 
 type Props = {
   open: boolean;
@@ -26,9 +28,13 @@ type Props = {
  * Every device action shows it. A close (the X, the Escape key, the overlay, or a drag of
  * the drawer) cancels the wait in the app only: the device keeps the request on its screen
  * until the user answers there, and the dialog says so.
+ *
+ * The drawer has no X of its own, so the phone layout adds one: a drag or an overlay tap
+ * is not an option for a screen reader or a switch.
  */
 export const DeviceApprovalDialog = ({ open, description, detail, onCancel }: Props) => {
   const { t } = useTranslation();
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
   return (
     <ResponsiveDialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
@@ -36,6 +42,15 @@ export const DeviceApprovalDialog = ({ open, description, detail, onCancel }: Pr
         className="flex flex-col focus:outline-none md:max-w-sm"
         data-testid="device-approval-dialog"
       >
+        {!isDesktop && (
+          <DrawerClose
+            className="absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden [&_svg]:size-4"
+            data-testid="device-approval-drawer-close"
+          >
+            <XIcon aria-hidden="true" />
+            <span className="sr-only">{t(($) => $.common.close)}</span>
+          </DrawerClose>
+        )}
         <div className="flex flex-col items-center gap-4 px-4 pb-4 text-center md:px-0 md:pb-0">
           <motion.div
             className="relative flex size-16 items-center justify-center rounded-full bg-primary/10"
