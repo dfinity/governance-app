@@ -213,10 +213,34 @@ describe('runApprovedDeviceCall', () => {
 
     await act(async () => {
       signing.resolve();
-      await firstRun;
+      // The late signature belongs to the closed session, and the waiting call never starts.
+      await expect(firstRun).rejects.toMatchObject({ code: LedgerErrorCode.SessionClosed });
       await expect(secondRun).rejects.toMatchObject({ code: LedgerErrorCode.SessionClosed });
     });
     expect(second).not.toHaveBeenCalled();
+    expect(result.current).toBeNull();
+  });
+
+  it('rejects a late signature that arrives after a logout, so the flow does not go on in the next session', async () => {
+    const queue = await actualQueue();
+    mocks.generation.mockImplementation(queue.getDeviceSessionGeneration);
+    const { result } = renderPending();
+    const signing = deferred<string>();
+    const call = vi.fn().mockReturnValue(signing.promise);
+
+    let run!: Promise<string>;
+    act(() => {
+      run = runApprovedDeviceCall(DEVICE, call, OPTIONS);
+    });
+    await flush();
+    // The logout closes the dialog and starts a new session while the device still asks.
+    act(() => cancelPendingDeviceAction());
+    queue.clearDeviceQueues();
+
+    await act(async () => {
+      signing.resolve('signed');
+      await expect(run).rejects.toMatchObject({ code: LedgerErrorCode.SessionClosed });
+    });
     expect(result.current).toBeNull();
   });
 

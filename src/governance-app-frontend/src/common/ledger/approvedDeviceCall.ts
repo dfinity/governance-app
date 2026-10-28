@@ -46,7 +46,8 @@ const approvalsOfThisSession = (): Promise<unknown> => {
  * with `DeviceActionCancelledError` when the device does not sign. The turn still waits
  * for the device to answer, so the caller stays pending and no second request starts.
  * When the device signs after the cancel, the call resolves with its result as if approved,
- * so the caller reports what happened.
+ * so the caller reports what happened. A result that arrives after a logout rejects with
+ * `SessionClosed`, so a flow of the closed session does not go on in the next one.
  */
 export const runApprovedDeviceCall = <T>(
   principal: string,
@@ -75,11 +76,14 @@ export const runApprovedDeviceCall = <T>(
     // The queue checked the session before this turn. The wait for the approval in progress
     // can span a logout, so the check runs again before the dialog opens.
     const generation = getDeviceSessionGeneration();
-    const turn = approvalsOfThisSession().then(() => {
-      if (generation !== getDeviceSessionGeneration()) {
-        throw new LedgerDeviceError(LedgerErrorCode.SessionClosed);
-      }
-      return approve();
+    const sessionClosed = () => generation !== getDeviceSessionGeneration();
+    const turn = approvalsOfThisSession().then(async () => {
+      if (sessionClosed()) throw new LedgerDeviceError(LedgerErrorCode.SessionClosed);
+      const result = await approve();
+      // The device can answer after a logout. The result belongs to the closed session: the
+      // caller must not go on with its next step in the next one.
+      if (sessionClosed()) throw new LedgerDeviceError(LedgerErrorCode.SessionClosed);
+      return result;
     });
     approvals = turn.then(
       () => undefined,
