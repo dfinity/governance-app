@@ -1,6 +1,6 @@
 import '@/i18n/config';
 
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { cancelPendingDeviceAction } from '@hooks/useDeviceAction';
@@ -37,7 +37,7 @@ describe('StakingWizardStepConfiguration with a Ledger device account', () => {
       />,
     );
 
-  it('counts the device approvals and lists the steps in order', () => {
+  it('counts the device approvals and lists the steps in order with their purpose', () => {
     renderStep([
       DeviceApprovalStep.Transfer,
       DeviceApprovalStep.Hotkey,
@@ -48,9 +48,17 @@ describe('StakingWizardStepConfiguration with a Ledger device account', () => {
 
     const box = screen.getByTestId('staking-wizard-device-approvals');
     expect(box.textContent).toContain('5 approvals on your Ledger device');
-    expect(box.textContent).toContain(
-      'Transfer, Hotkey, Lock period, Auto-lock, Unlocking. One approval per step, in this order.',
-    );
+    expect(
+      within(box)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent),
+    ).toEqual([
+      '1.Transfer Moves the ICP to the neuron.',
+      '2.Hotkey Lets this app show and vote with the neuron.',
+      '3.Lock period Sets the lock period of the neuron.',
+      '4.Auto-lock Locks the rewards into the neuron.',
+      '5.Unlocking Starts the unlocking of the neuron.',
+    ]);
   });
 
   it('shows nothing for a session account', () => {

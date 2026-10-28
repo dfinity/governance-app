@@ -31,6 +31,12 @@ describe('PendingDeviceActionDialog', () => {
     expect(screen.getByTestId('device-approval-dialog')).toBeTruthy();
     expect(screen.getByText('Approve on your Ledger device')).toBeTruthy();
     expect(screen.getByText(OPTIONS.description)).toBeTruthy();
+    expect(screen.getByRole('status').textContent).toBe(
+      'Waiting for your answer on the device. The request takes a few seconds to appear.',
+    );
+    expect(screen.getByTestId('device-approval-close-hint').textContent).toBe(
+      'If you close this dialog, the app stops the wait, but the device keeps the request. Approve or reject on your Ledger device to continue.',
+    );
 
     await act(async () => {
       resolve();
@@ -40,7 +46,7 @@ describe('PendingDeviceActionDialog', () => {
     expect(screen.queryByTestId('device-approval-dialog')).toBeNull();
   });
 
-  it('rejects the action when the user cancels', async () => {
+  it('rejects the action when the user closes the dialog with the X', async () => {
     const user = userEvent.setup({ delay: null });
     render(<PendingDeviceActionDialog />);
 
@@ -50,7 +56,24 @@ describe('PendingDeviceActionDialog', () => {
     });
     const rejection = expect(run).rejects.toBeInstanceOf(DeviceActionCancelledError);
 
-    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+
+    await rejection;
+    expect(screen.queryByTestId('device-approval-dialog')).toBeNull();
+  });
+
+  it('rejects the action when the user presses Escape', async () => {
+    const user = userEvent.setup({ delay: null });
+    render(<PendingDeviceActionDialog />);
+
+    let run!: Promise<void>;
+    act(() => {
+      run = runDeviceAction(() => new Promise<void>(() => {}), OPTIONS);
+    });
+    const rejection = expect(run).rejects.toBeInstanceOf(DeviceActionCancelledError);
+
+    await user.keyboard('{Escape}');
 
     await rejection;
     expect(screen.queryByTestId('device-approval-dialog')).toBeNull();

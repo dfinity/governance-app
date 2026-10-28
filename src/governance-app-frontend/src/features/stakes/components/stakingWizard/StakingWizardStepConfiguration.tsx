@@ -6,7 +6,7 @@ import { Button } from '@components/button';
 import { MaxRewardsBadge } from '@components/MaxRewardsBadge';
 import { SegmentedToggle } from '@components/SegmentedToggle';
 
-import type { DeviceApprovalStep } from '../../utils/ledgerStake';
+import { DeviceApprovalStep } from '../../utils/ledgerStake';
 import { StakingWizardInitialState, StakingWizardMaturityMode } from './types';
 
 interface Props {
@@ -18,6 +18,39 @@ interface Props {
   /** The approvals the stake asks on the Ledger device. Empty for a session account. */
   deviceApprovalSteps?: DeviceApprovalStep[];
 }
+
+type Translate = ReturnType<typeof useTranslation>['t'];
+
+const getApprovalStepName = (step: DeviceApprovalStep, t: Translate): string => {
+  switch (step) {
+    case DeviceApprovalStep.Transfer:
+      return t(($) => $.stakeWizardModal.ledgerDevice.approvalSteps.transfer);
+    case DeviceApprovalStep.Hotkey:
+      return t(($) => $.stakeWizardModal.ledgerDevice.approvalSteps.hotkey);
+    case DeviceApprovalStep.DissolveDelay:
+      return t(($) => $.stakeWizardModal.ledgerDevice.approvalSteps.dissolveDelay);
+    case DeviceApprovalStep.AutoStake:
+      return t(($) => $.stakeWizardModal.ledgerDevice.approvalSteps.autoStake);
+    case DeviceApprovalStep.StartDissolving:
+      return t(($) => $.stakeWizardModal.ledgerDevice.approvalSteps.startDissolving);
+  }
+};
+
+/** What the step does, one short line under the step name. */
+const getApprovalPurpose = (step: DeviceApprovalStep, t: Translate): string => {
+  switch (step) {
+    case DeviceApprovalStep.Transfer:
+      return t(($) => $.stakeWizardModal.ledgerDevice.approvalPurposes.transfer);
+    case DeviceApprovalStep.Hotkey:
+      return t(($) => $.stakeWizardModal.ledgerDevice.approvalPurposes.hotkey);
+    case DeviceApprovalStep.DissolveDelay:
+      return t(($) => $.stakeWizardModal.ledgerDevice.approvalPurposes.dissolveDelay);
+    case DeviceApprovalStep.AutoStake:
+      return t(($) => $.stakeWizardModal.ledgerDevice.approvalPurposes.autoStake);
+    case DeviceApprovalStep.StartDissolving:
+      return t(($) => $.stakeWizardModal.ledgerDevice.approvalPurposes.startDissolving);
+  }
+};
 
 export function StakingWizardStepConfiguration({
   maturityMode,
@@ -125,13 +158,17 @@ export function StakingWizardStepConfiguration({
               count: deviceApprovalSteps.length,
             })}
           </p>
-          <p className="col-start-2 text-[13px] text-muted-foreground">
-            {t(($) => $.stakeWizardModal.ledgerDevice.approvalsHint, {
-              steps: deviceApprovalSteps
-                .map((step) => t(($) => $.stakeWizardModal.ledgerDevice.approvalSteps[step]))
-                .join(', '),
-            })}
-          </p>
+          <ol className="col-start-2 flex flex-col gap-0.5 text-[13px]">
+            {deviceApprovalSteps.map((step, index) => (
+              <li key={step} className="flex gap-1.5">
+                <span className="shrink-0 text-muted-foreground tabular-nums">{index + 1}.</span>
+                <span>
+                  <span className="font-medium">{getApprovalStepName(step, t)}</span>{' '}
+                  <span className="text-muted-foreground">{getApprovalPurpose(step, t)}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
         </div>
       )}
 

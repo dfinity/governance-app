@@ -84,13 +84,19 @@
   "confirmNavigationUnsaved": "Your progress will not be saved. Are you sure you want to leave?",
   "ledgerDevice": {
     "approvals": "{{count}} approvals on your Ledger device",
-    "approvalsHint": "{{steps}}. One approval per step, in this order.",
     "approvalSteps": {
       "transfer": "Transfer",
       "hotkey": "Hotkey",
       "dissolveDelay": "Lock period",
       "autoStake": "Auto-lock",
       "startDissolving": "Unlocking"
+    },
+    "approvalPurposes": {
+      "transfer": "Moves the ICP to the neuron.",
+      "hotkey": "Lets this app show and vote with the neuron.",
+      "dissolveDelay": "Sets the lock period of the neuron.",
+      "autoStake": "Locks the rewards into the neuron.",
+      "startDissolving": "Starts the unlocking of the neuron."
     },
     "approve": {
       "transfer": "Check the amount on the device screen and approve the transfer.",
