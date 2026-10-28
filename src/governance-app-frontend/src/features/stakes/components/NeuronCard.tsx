@@ -278,11 +278,11 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
 
         {/* Disburse buttons */}
         {!isHotkey && ((isDissolved && hasStakeToDisburse) || hasUnstakedMaturity) && (
-          <CardFooter className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:gap-4">
+          <CardFooter className="flex flex-col gap-3 border-t pt-4 @md/neuron-card:flex-row @md/neuron-card:gap-4">
             {isDissolved && hasStakeToDisburse && (
               <Button
                 variant="outline"
-                className="w-full sm:flex-1"
+                className="w-full @md/neuron-card:flex-1"
                 onClick={(e) => {
                   e.stopPropagation();
                   onAction?.(NeuronStandaloneAction.DisburseIcp);
@@ -296,7 +296,7 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
             {hasUnstakedMaturity && (
               <Button
                 variant="outline"
-                className="w-full sm:flex-1"
+                className="w-full @md/neuron-card:flex-1"
                 onClick={(e) => {
                   e.stopPropagation();
                   onAction?.(NeuronStandaloneAction.DisburseMaturity);
@@ -310,7 +310,7 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
             {hasUnstakedMaturity && !isDissolved && (
               <Button
                 variant="outline"
-                className="w-full sm:flex-1"
+                className="w-full @md/neuron-card:flex-1"
                 onClick={(e) => {
                   e.stopPropagation();
                   onAction?.(NeuronStandaloneAction.StakeMaturity);
