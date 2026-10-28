@@ -1,4 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { usePresence } from 'motion/react';
+import { useEffect } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MutationDialog } from '@components/MutationDialog';
@@ -11,9 +13,31 @@ import type { Signer } from '@common/ledger/signer';
 const media = vi.hoisted(() => ({ isDesktop: false }));
 vi.mock('@hooks/useMediaQuery', () => ({ useMediaQuery: () => media.isDesktop }));
 vi.mock('@components/NavigationBlockerDialog', () => ({ NavigationBlockerDialog: () => null }));
+// Shorter than the swap from the form to the success, so an early timer closes first.
+vi.mock('@constants/extra', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@constants/extra')>()),
+  SUCCESS_AUTO_CLOSE_MS: 100,
+}));
 
 const DEVICE: Signer = { kind: 'ledger', principal: 'aaaaa-aa' };
 const HINT = 'Approve or reject on your Ledger device to continue.';
+
+// Holds the form after its fade-out, then ends the mutation in the same task as the form
+// leaves. So the result comes in the same update as the swap to the processing content.
+const EndOnFormExit = ({ end, children }: { end: () => void; children: React.ReactNode }) => {
+  const [isPresent, safeToRemove] = usePresence();
+
+  useEffect(() => {
+    if (isPresent) return;
+    const timer = setTimeout(() => {
+      end();
+      safeToRemove();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [isPresent, safeToRemove, end]);
+
+  return children;
+};
 
 const renderDialog = (
   onOpenChange: (open: boolean) => void,
@@ -163,5 +187,48 @@ describe.each([
     approve();
 
     expect(await screen.findAllByText('Done')).not.toHaveLength(0);
+  });
+
+  it.each([
+    { outcome: 'success', text: 'Done' },
+    { outcome: 'error', text: 'Rejected' },
+  ])(
+    'shows the $outcome when the mutation ends as the form fades out',
+    async ({ outcome, text }) => {
+      let settle!: () => void;
+      const mutation = () =>
+        new Promise<void>((resolve, reject) => {
+          settle = outcome === 'success' ? resolve : () => reject(new Error(text));
+        });
+      render(
+        <MutationDialog
+          open
+          onOpenChange={vi.fn()}
+          processingMessage="Processing"
+          successMessage="Done"
+          navBlockerDescription="Blocked"
+        >
+          {({ execute }) => (
+            <EndOnFormExit end={() => settle()}>
+              <button onClick={() => execute(mutation)}>Run</button>
+            </EndOnFormExit>
+          )}
+        </MutationDialog>,
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Run' }));
+
+      expect(await screen.findAllByText(text)).not.toHaveLength(0);
+      expect(screen.queryByText('Processing')).toBeNull();
+    },
+  );
+
+  it('starts the auto close when the success content mounts', async () => {
+    const onOpenChange = vi.fn();
+    renderDialog(onOpenChange, () => Promise.resolve());
+    fireEvent.click(screen.getByRole('button', { name: 'Run' }));
+
+    expect(await screen.findAllByText('Done')).not.toHaveLength(0);
+    expect(onOpenChange).not.toHaveBeenCalled();
+    await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(false));
   });
 });
