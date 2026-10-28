@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
-import { AccountType } from '@features/accounts/types';
+import { AccountType, getAccountSigner } from '@features/accounts/types';
 import { AnalyticsEvent } from '@features/analytics/events';
 import { getAmountRange, getErrorReason } from '@features/analytics/properties';
 import { analytics } from '@features/analytics/service';
@@ -34,7 +34,9 @@ import { mapCanisterError } from '@utils/errors';
 import { formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
+import { useClaimPendingDeviceStakes } from '../../hooks/useClaimPendingDeviceStakes';
 import { useCreateNeuron } from '../../hooks/useCreateNeuron';
+import { getDeviceApprovalSteps } from '../../utils/ledgerStake';
 import { STAKING_WIZARD_DEFAULT_FORM_STATE } from './constants';
 import { StakingWizardAnimatedApyBadge } from './StakingWizardAnimatedApyBadge';
 import { StakingWizardStepAmount } from './StakingWizardStepAmount';
@@ -77,14 +79,24 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
   // Falls back to main account id, derived synchronously from the identity.
   const selectedAccountId = formState.selectedAccountId ?? mainAccountMetadata.data!.accountId;
 
+  const signer = getAccountSigner(selectedAccount);
+  const autoStakeMaturity = formState.maturityMode === StakingWizardMaturityMode.Auto;
+  const startDissolving = formState.initialState === StakingWizardInitialState.Dissolving;
+  const deviceApprovalSteps =
+    signer.kind === 'ledger' ? getDeviceApprovalSteps({ autoStakeMaturity, startDissolving }) : [];
+
   const createNeuron = useCreateNeuron({
     amount: formState.amount,
     dissolveDelaySeconds: formState.dissolveDelaySeconds,
-    autoStakeMaturity: formState.maturityMode === StakingWizardMaturityMode.Auto,
-    startDissolving: formState.initialState === StakingWizardInitialState.Dissolving,
+    autoStakeMaturity,
+    startDissolving,
     fromSubAccount,
     selectedAccountId,
+    signer,
   });
+
+  // An unclaimed device stake from a closed wizard: claim it on open, before a new stake.
+  useClaimPendingDeviceStakes(isOpen);
 
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -358,15 +370,17 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
                 onMaturityModeChange={updateMaturityMode}
                 onInitialStateChange={updateInitialState}
                 onConfirm={goNext}
+                deviceApprovalSteps={deviceApprovalSteps}
               />
             )}
 
             {step === StakingWizardStep.Confirmation && (
               <StakingWizardStepConfirmation
-                formState={formState}
+                formState={{ ...formState, amount: createNeuron.stakedAmount }}
                 isProcessing={createNeuron.isPending}
                 currentStep={createNeuron.currentStep}
                 error={createNeuron.error ? mapCanisterError(createNeuron.error) : null}
+                isTransferDone={createNeuron.isTransferDone}
                 expectedApy={getCurrentApyFormatted()}
                 onDone={() => handleOpenChange(false)}
                 onRetry={() => createNeuron.mutateAsync()}

@@ -8,10 +8,12 @@ import { Button } from '@components/button';
 import { MaxRewardsBadge } from '@components/MaxRewardsBadge';
 import { SegmentedToggle, type SegmentedToggleValue } from '@components/SegmentedToggle';
 import { Spinner } from '@components/Spinner';
+import { isDeviceActionCancelled } from '@hooks/useDeviceAction';
 import { mapCanisterError } from '@utils/errors';
 import { getNeuronIsAutoStakingMaturity } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
 
+import { useNeuronSigner } from '../../hooks/useNeuronSigner';
 import { useToggleMaturityMode } from '../../hooks/useToggleMaturityMode';
 
 type Props = {
@@ -35,6 +37,7 @@ export function NeuronDetailMaturityModeView({
   const [selectedMode, setSelectedMode] = useState<SegmentedToggleValue>(currentMode);
 
   const { mutateAsync, isPending } = useToggleMaturityMode();
+  const signer = useNeuronSigner(neuron);
 
   const handleConfirm = async () => {
     if (selectedMode === currentMode) {
@@ -47,6 +50,7 @@ export function NeuronDetailMaturityModeView({
       await mutateAsync({
         neuronId: neuron.neuronId,
         autoStake: selectedMode === 'left',
+        signer,
       });
 
       successNotification({
@@ -56,6 +60,7 @@ export function NeuronDetailMaturityModeView({
       // The parent defers the actual navigation until the blocker has been released.
       onSuccess();
     } catch (err) {
+      if (isDeviceActionCancelled(err)) return;
       errorNotification({
         description: mapCanisterError(err as Error),
       });

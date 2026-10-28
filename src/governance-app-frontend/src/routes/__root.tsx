@@ -9,7 +9,6 @@ import {
   useRouter,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ArrowLeft, LogIn } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +20,7 @@ import { Button } from '@components/button';
 import { MainLayout } from '@components/MainLayout';
 import { SessionCountdownToast } from '@components/SessionCountdownToast';
 import { MANUAL_LOGOUT_KEY } from '@constants/extra';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
 import { isE2E } from '@utils/e2e';
 import { infoNotification } from '@utils/notification';
@@ -146,11 +146,14 @@ function UnauthenticatedNotFound() {
 
 function RootComponent() {
   const { identity } = useInternetIdentity();
-  const { invalidate } = useRouter();
+  const { invalidate, subscribe } = useRouter();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
 
   const hadIdentity = useRef(!!identity);
+
+  // Sends a pageview after each navigation, redirects included, once a page starts the tracker.
+  useEffect(() => subscribe('onResolved', () => analytics.pageview()), [subscribe]);
 
   // Global identity change handler: login, logout, and auto-expiration
   useEffect(() => {

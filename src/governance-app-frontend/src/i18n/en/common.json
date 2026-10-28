@@ -63,7 +63,9 @@
     "icpLogo": "Internet Computer (ICP) Logo"
   },
   "aria": {
-    "hiddenValue": "Hidden value"
+    "hiddenValue": "Hidden value",
+    "hideBalances": "Hide balances",
+    "showBalances": "Show balances"
   },
   "max": "Max",
   "leave": "Leave",
@@ -108,6 +110,29 @@
     "subaccounts": "Multiple accounts",
     "advancedFollowing": "Advanced following",
     "showNonConstructiveProposals": "Show all proposals",
-    "transactionMemo": "Transaction memo"
+    "transactionMemo": "Transaction memo",
+    "ledgerDevice": "Ledger device"
+  },
+  "ledgerApproval": {
+    "title": "Approve on your Ledger device",
+    "answerPending": "Approve or reject on your Ledger device to continue.",
+    "neuron": "Neuron {{neuronId}}",
+    "increaseDelay": "Check the neuron ID and the additional dissolve delay on the device screen and approve.",
+    "additionalDelay": "Additional delay: {{delay}}",
+    "startDissolving": "Check the neuron ID and the start dissolving command on the device screen and approve.",
+    "stopDissolving": "Check the neuron ID and the stop dissolving command on the device screen and approve.",
+    "maturityMode": "Check the neuron ID and the auto-stake setting on the device screen and approve.",
+    "autoStakeOn": "Auto-stake maturity: on",
+    "autoStakeOff": "Auto-stake maturity: off",
+    "stakeMaturity": "Check the neuron ID and the percentage on the device screen and approve.",
+    "percentage": "Percentage: {{value}}%",
+    "disburse": "Check the neuron ID, the amount, and the destination on the device screen and approve.",
+    "amount": "Amount: {{value}} ICP",
+    "destination": "To: {{destination}}",
+    "disburseMaturity": "Check the neuron ID, the percentage, and the destination on the device screen and approve.",
+    "vote": "Check the proposal ID, the vote, and the neuron ID on the device screen and approve.",
+    "proposal": "Proposal {{proposalId}}",
+    "voteYes": "Vote: Yes",
+    "voteNo": "Vote: No"
   }
 }

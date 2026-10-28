@@ -7,7 +7,7 @@ import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber } from '@utils/numbers';
 
 import { useAccounts } from '../hooks/useAccounts';
-import { type Account, isAccountReady } from '../types';
+import { type Account, canSignFromAccount, isAccountReady } from '../types';
 
 type Props = {
   id: string;
@@ -27,7 +27,8 @@ export function AccountSelect({
   const { t } = useTranslation();
 
   const { data: accountsState } = useAccounts();
-  const accounts = accountsState?.accounts ?? [];
+  // A Ledger device account is listed only in a browser that can sign with the device.
+  const accounts = (accountsState?.accounts ?? []).filter(canSignFromAccount);
 
   const selectedAccount =
     accounts.find((a) => a.accountId === value) ??

@@ -42,6 +42,7 @@
         "warning": "Please don't close this page. This process may take a few seconds.",
         "steps": {
           "createNeuron": "Reserving amount...",
+          "addHotkey": "Adding this app as hotkey...",
           "setDissolveDelay": "Setting lock period...",
           "setAutoStake": "Configuring rewards...",
           "startDissolving": "Starting countdown...",
@@ -59,7 +60,8 @@
       "error": {
         "title": "Something went wrong",
         "failedAt": "Failed at: {{step}}",
-        "retry": "Try again"
+        "retry": "Try again",
+        "transferDone": "The transfer is done. Your ICP is in the neuron sub-account, not lost. Try again to claim the neuron. The app makes no second transfer."
       }
     }
   },
@@ -79,5 +81,25 @@
     "cannotStake": "You need ICP to lock. Please buy or deposit ICP first."
   },
   "confirmNavigation": "Your neuron is being created, leaving this page may cause unexpected results. Are you sure you want to leave?",
-  "confirmNavigationUnsaved": "Your progress will not be saved. Are you sure you want to leave?"
+  "confirmNavigationUnsaved": "Your progress will not be saved. Are you sure you want to leave?",
+  "ledgerDevice": {
+    "approvals": "{{count}} approvals on your Ledger device",
+    "approvalsHint": "{{steps}}. One approval per step, in this order.",
+    "approvalSteps": {
+      "transfer": "Transfer",
+      "hotkey": "Hotkey",
+      "dissolveDelay": "Lock period",
+      "autoStake": "Auto-lock",
+      "startDissolving": "Unlocking"
+    },
+    "approve": {
+      "transfer": "Check the amount on the device screen and approve the transfer.",
+      "hotkey": "Check the hotkey principal on the device screen and approve.",
+      "dissolveDelay": "Approve the lock period on the device screen. The device shows the time to add.",
+      "autoStake": "Approve the auto-lock of rewards on the device screen.",
+      "startDissolving": "Approve the start of the unlocking on the device screen."
+    },
+    "recoveredTitle": "Neuron claimed",
+    "recovered": "An earlier stake of {{amount}} ICP from a Ledger device account is claimed. Open the device account and add this app as hotkey to see the neuron."
+  }
 }

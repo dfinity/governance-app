@@ -13,8 +13,11 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { DIALOG_RESET_DELAY_MS, SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
+import { isDeviceActionCancelled } from '@hooks/useDeviceAction';
 import { mapCanisterError } from '@utils/errors';
 import { cn } from '@utils/shadcn';
+import { useDeviceAnswerPending } from '@common/ledger/approvedDeviceCall';
+import type { Signer } from '@common/ledger/signer';
 
 import { AnimatedCheckmark } from './AnimatedCheckmark';
 
@@ -26,6 +29,11 @@ type MutationDialogProps = {
   successMessage: string;
   navBlockerDescription: string;
   errorFallbackMessage?: string;
+  /**
+   * Who signs the mutation. A Ledger device signer waits for the device, so after a cancel
+   * the processing phase tells the user to answer on it.
+   */
+  signer?: Signer;
 
   className?: string;
   'data-testid'?: string;
@@ -50,34 +58,45 @@ export function MutationDialog({
   successMessage,
   navBlockerDescription,
   errorFallbackMessage,
+  signer,
   className,
   'data-testid': dataTestId,
   children,
 }: MutationDialogProps) {
   const { t } = useTranslation();
   const [phase, setPhase] = useState(Phase.Idle);
-  // Each flag turns on when the content of its phase mounts.
-  const [processingMounted, setProcessingMounted] = useState(false);
+  // On from `execute` until the processing content mounts.
+  const [processingPending, setProcessingPending] = useState(false);
+  // On when the success content mounts.
   const [successMounted, setSuccessMounted] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [lastMutation, setLastMutation] = useState<{ fn: () => Promise<unknown> } | null>(null);
+  const deviceAnswerPending = useDeviceAnswerPending();
 
-  // If the result comes while the body still fades out, AnimatePresence ("wait" mode)
-  // never shows the result. So the result waits for the processing content.
-  const visiblePhase = phase === Phase.Idle || processingMounted ? phase : Phase.Processing;
+  // If the mutation ends while the body still fades out, AnimatePresence ("wait" mode)
+  // never shows the next content. So the end waits for the processing content.
+  const visiblePhase = processingPending ? Phase.Processing : phase;
   const isProcessing = visiblePhase === Phase.Processing;
+  // A device call waits for the answer to every cancelled request, its own or another
+  // flow's, before the device takes it. An Internet Identity call never waits for it.
+  const waitsForDevice = signer?.kind === 'ledger' && deviceAnswerPending;
 
   const close = useCallback(() => onOpenChange(false), [onOpenChange]);
 
   const execute = async (fn: () => Promise<unknown>) => {
     setLastMutation({ fn });
-    setProcessingMounted(false);
+    setProcessingPending(true);
     setSuccessMounted(false);
     setPhase(Phase.Processing);
     try {
       await fn();
       setPhase(Phase.Success);
     } catch (err) {
+      // A cancel on the Ledger approval dialog is not an error: the form shows again.
+      if (isDeviceActionCancelled(err)) {
+        setPhase(Phase.Idle);
+        return;
+      }
       setErrorMessage(
         err instanceof Error
           ? mapCanisterError(err)
@@ -100,7 +119,7 @@ export function MutationDialog({
 
   const resetPhase = useEffectEvent(() => {
     setPhase(Phase.Idle);
-    setProcessingMounted(false);
+    setProcessingPending(false);
     setSuccessMounted(false);
     setErrorMessage('');
     setLastMutation(null);
@@ -148,13 +167,20 @@ export function MutationDialog({
               <PhaseContainer
                 key="processing"
                 className="items-center justify-center gap-5"
-                onMount={() => setProcessingMounted(true)}
+                onMount={() => setProcessingPending(false)}
               >
                 <ResponsiveDialogTitle className="sr-only">
                   {processingMessage}
                 </ResponsiveDialogTitle>
                 <ProcessingSpinner />
-                <FadeInText delay={0.2}>{processingMessage}</FadeInText>
+                <div className="flex flex-col items-center gap-2">
+                  <FadeInText delay={0.2}>{processingMessage}</FadeInText>
+                  {waitsForDevice && (
+                    <FadeInText delay={0} className="text-xs font-normal">
+                      {t(($) => $.common.ledgerApproval.answerPending)}
+                    </FadeInText>
+                  )}
+                </div>
               </PhaseContainer>
             )}
 

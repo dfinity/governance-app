@@ -45,12 +45,7 @@ export default defineConfig({
             if (id.includes('@tanstack')) return 'vendor-tanstack';
 
             // Isolate the ICP SDKs as they are heavy
-            if (
-              id.includes('@dfinity') ||
-              id.includes('@icp-sdk') ||
-              id.includes('@noble') ||
-              id.includes('ic-use-internet-identity')
-            )
+            if (id.includes('@dfinity') || id.includes('@icp-sdk') || id.includes('@noble'))
               return 'vendor-icp';
 
             if (id.includes('markdown') || id.includes('remark') || id.includes('micromark'))
@@ -61,6 +56,29 @@ export default defineConfig({
 
             // Loaded on demand by the QR scanner. Keep it out of the shared vendor chunk.
             if (id.includes('node_modules/jsqr/')) return 'vendor-jsqr';
+
+            // Loaded on demand by the Ledger device module. Keep it and the dependencies of the
+            // Device Management Kit out of the shared vendor chunk.
+            if (
+              [
+                '@zondax',
+                '@ledgerhq',
+                'node_modules/rxjs/',
+                'node_modules/xstate/',
+                'node_modules/inversify/',
+                '@inversifyjs/',
+                'node_modules/uuid/',
+                'node_modules/purify-ts/',
+                'node_modules/reflect-metadata/',
+                'node_modules/@sentry/',
+                'node_modules/isomorphic-ws/',
+              ].some((lib) => id.includes(lib))
+            )
+              return 'vendor-ledger';
+
+            // The Ledger libraries read `Buffer` from the global scope when their chunk
+            // evaluates, so the polyfill must load and run in its own chunk first.
+            if (id.includes('node_modules/buffer/')) return 'vendor-buffer';
 
             // Everything else (Lucide, Radix, Motion)
             return 'vendor-libs';
@@ -168,6 +186,11 @@ export default defineConfig({
       {
         find: '@features/analytics/service',
         replacement: fileURLToPath(new URL('./tests/mocks/analytics-service.ts', import.meta.url)),
+      },
+      // The service tests import the real service, so the tracker needs a stub too.
+      {
+        find: '@plausible-analytics/tracker',
+        replacement: fileURLToPath(new URL('./tests/mocks/plausible-tracker.ts', import.meta.url)),
       },
     ],
   },

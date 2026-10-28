@@ -28,6 +28,15 @@ export const formatNumber = (
     .replace(',', '.');
 };
 
+/**
+ * Formats an amount with two decimals, or with three significant digits below 0.1,
+ * so that a small amount does not round to 0.01 or 0.00: 0.0145 -> "0.0145".
+ */
+export const formatSmallAmount = (value: number): string =>
+  value > 0 && value < 0.1
+    ? formatNumber(value, { minFraction: 2, maxFraction: 2, maximumSignificantDigits: 3 })
+    : formatNumber(value);
+
 export type FormatFiatOptions = { minFraction: number; maxFraction: number };
 
 /**
@@ -61,6 +70,12 @@ export const formatFiat = (
 
   return `${symbol}${formatNumber(value, { minFraction, maxFraction })}`;
 };
+
+/**
+ * Default format: 168123456 -> "168.1M", 30000000 -> "30M", 950 -> "950"
+ */
+export const formatCompactNumber = (value: number): string =>
+  new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(value);
 
 /**
  * Default format: 0.150123 -> "15.01%"

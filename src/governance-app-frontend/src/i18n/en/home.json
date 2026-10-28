@@ -3,17 +3,33 @@
   "totalAssets": "Total assets",
   "governanceOverview": "ICP governance overview",
   "totalStaked": "Total locked",
-  "ofTotalSupply": "{{value}}% of total supply",
+  "ofSupply": "{{value}}% of supply",
+  "lockedSupply": {
+    "maxLock": "Max 2-year lock",
+    "shorterLock": "Shorter lock",
+    "dissolving": "Dissolving",
+    "notLocked": "Not locked",
+    "totalSupply": "Total supply",
+    "amount": "{{amount}} ICP",
+    "part": "{{label}}: {{amount}} ICP ({{share}}).",
+    "total": "{{label}}: {{amount}} ICP."
+  },
   "dailyRewards": "Daily rewards",
   "lastRewardEvent": "Last distribution {{date}}",
   "icpPrice": "ICP price",
   "icpPrice24h": "24h",
   "icpPrice24hChart": "ICP price over the last 24 hours",
   "maxApy": "Current max minting",
+  "maxApyTooltip": "Estimated yearly minting for a neuron created today with the max dissolve delay and auto-stake on. Older neurons mint more from the age bonus.",
   "yourApy": "Maturity",
   "maturity": "Maturity",
   "forecast": {
-    "oneYear": "1y forecast"
+    "week": "1w forecast",
+    "month": "1m forecast",
+    "year": "1y forecast",
+    "aria": {
+      "change": "{{label}}. Change the forecast period"
+    }
   },
   "executiveSummary": {
     "title": "Monthly governance overview",

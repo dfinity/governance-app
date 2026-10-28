@@ -1,9 +1,9 @@
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute, redirect } from '@tanstack/react-router';
-import { ensureInitialized, useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { useLoginAnalytics } from '@features/analytics/useLoginAnalytics';
 import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGovernanceLogo';
 
 import { AnimatedNumber } from '@components/AnimatedNumber';
@@ -12,8 +12,10 @@ import { NnsWordmark } from '@components/icons/NnsWordmark';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { useGovernanceProposal } from '@hooks/governance';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useTvlValue } from '@hooks/useTvlValue';
 import { isSafeInternalRedirect } from '@utils/router';
+import { ensureInitialized } from '@common/auth/internetIdentity';
 
 import i18n from '@/i18n/config';
 
@@ -59,8 +61,10 @@ export const Route = createFileRoute('/')({
 });
 
 function LoginPage() {
-  const { login, isLoggingIn, isLoginSuccess } = useInternetIdentity();
+  const { identity, canLogin, login, isLoggingIn } = useInternetIdentity();
   const { t } = useTranslation();
+
+  useLoginAnalytics();
 
   const [isVideoReady, setIsVideoReady] = useState(false);
   const baseVideoRef = useRef<HTMLVideoElement>(null);
@@ -96,7 +100,7 @@ function LoginPage() {
     <>
       <div className="login-page relative isolate min-h-dvh w-full font-sans text-foreground">
         {/* Loading Overlay */}
-        {(isLoggingIn || isLoginSuccess) && (
+        {(isLoggingIn || nonNullish(identity)) && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
             <div
               className="flex flex-col items-center gap-6 text-foreground"
@@ -259,7 +263,7 @@ function LoginPage() {
               <div className="flex flex-col gap-4">
                 <Button
                   onClick={login}
-                  disabled={isLoggingIn}
+                  disabled={!canLogin}
                   className="w-full text-base"
                   variant="default"
                   size="xxl"
