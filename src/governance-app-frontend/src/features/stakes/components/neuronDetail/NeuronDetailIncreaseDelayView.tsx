@@ -7,11 +7,13 @@ import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { MaxRewardsBadge } from '@components/MaxRewardsBadge';
 import { Spinner } from '@components/Spinner';
+import { isDeviceActionCancelled } from '@hooks/useDeviceAction';
 import { mapCanisterError } from '@utils/errors';
 import { getNeuronDissolveDelaySeconds, getNeuronIsMaxDissolveDelay } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
 
 import { useIncreaseDelay } from '../../hooks/useIncreaseDelay';
+import { useNeuronSigner } from '../../hooks/useNeuronSigner';
 import { STAKING_WIZARD_DISSOLVE_DELAY_OPTIONS } from '../stakingWizard/constants';
 import { StakingWizardDissolveDelayPreset } from '../stakingWizard/types';
 
@@ -32,6 +34,7 @@ export function NeuronDetailIncreaseDelayView({
   const [selectedSeconds, setSelectedSeconds] = useState<number | null>(null);
 
   const { mutateAsync, isPending } = useIncreaseDelay();
+  const signer = useNeuronSigner(neuron);
 
   const currentDelaySeconds = Number(getNeuronDissolveDelaySeconds(neuron));
   const isMaxDelay = getNeuronIsMaxDissolveDelay(neuron);
@@ -46,6 +49,7 @@ export function NeuronDetailIncreaseDelayView({
         neuronId: neuron.neuronId,
         dissolveDelaySeconds: selectedSeconds,
         currentDissolveDelaySeconds: currentDelaySeconds,
+        signer,
       });
 
       successNotification({
@@ -55,6 +59,7 @@ export function NeuronDetailIncreaseDelayView({
       // The parent defers the actual navigation until the blocker has been released.
       onSuccess();
     } catch (err) {
+      if (isDeviceActionCancelled(err)) return;
       errorNotification({
         description: mapCanisterError(err as Error),
       });

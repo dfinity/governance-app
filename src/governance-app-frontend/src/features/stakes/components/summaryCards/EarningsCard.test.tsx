@@ -14,6 +14,13 @@ import { mockNeuron } from '@fixtures/neuron';
 import { EarningsCard } from './EarningsCard';
 
 const USER = 'user-principal';
+const DEVICE = 'device-principal';
+
+const { ledgerPrincipals } = vi.hoisted(() => ({ ledgerPrincipals: vi.fn(() => [] as string[]) }));
+
+vi.mock('@features/stakes/hooks/useNeuronSigner', () => ({
+  useLedgerSignerPrincipals: () => ledgerPrincipals(),
+}));
 
 const forecast = vi.hoisted(() => ({ period: 'year' }));
 
@@ -129,5 +136,19 @@ describe('EarningsCard', () => {
     );
 
     expect(screen.queryByRole('button', { name: 'Increase' })).toBeNull();
+  });
+
+  it('keeps a neuron that a usable Ledger device controls in the check', () => {
+    ledgerPrincipals.mockReturnValue([DEVICE]);
+    render(
+      <EarningsCard
+        neurons={[
+          optimizedNeuron(),
+          mockNeuron({ neuronId: 2n, fullNeuron: { controller: DEVICE, hotKeys: [USER] } }),
+        ]}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Increase' })).toBeTruthy();
   });
 });

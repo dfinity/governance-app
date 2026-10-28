@@ -75,6 +75,8 @@ export enum AnalyticsEvent {
   LedgerDeviceRegisterError = 'ledger_device_register_error',
   LedgerDeviceVerify = 'ledger_device_verify',
   LedgerDeviceVerifyError = 'ledger_device_verify_error',
+  LedgerDeviceAction = 'ledger_device_action',
+  LedgerDeviceActionError = 'ledger_device_action_error',
   LedgerDeviceStake = 'ledger_device_stake',
   LedgerDeviceStakeError = 'ledger_device_stake_error',
   LedgerDeviceTopUp = 'ledger_device_top_up',

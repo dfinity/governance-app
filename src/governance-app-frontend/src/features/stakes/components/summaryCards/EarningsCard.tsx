@@ -3,6 +3,7 @@ import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { ApyOptimizationModal } from '@features/stakes/components/ApyOptimizationModal';
+import { useLedgerSignerPrincipals } from '@features/stakes/hooks/useNeuronSigner';
 import { getNeuronOptimizationIssues } from '@features/stakes/utils/getNeuronOptimizationIssues';
 
 import { Card, CardContent } from '@components/Card';
@@ -12,7 +13,7 @@ import { ForecastPeriod } from '@constants/forecast';
 import { FORECAST_ESTIMATE_PERIOD, useForecastPeriod } from '@hooks/useForecastPeriod';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useStakingRewards } from '@hooks/useStakingRewards';
-import { getNeuronIsDissolved, getNeuronsAggregatedData, isUserHotkey } from '@utils/neuron';
+import { getNeuronIsDissolved, getNeuronsAggregatedData, isUserHotkeyOnly } from '@utils/neuron';
 import { formatNumber, formatSmallAmount } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 import { isStakingRewardDataError, isStakingRewardDataReady } from '@utils/staking-rewards';
@@ -32,13 +33,14 @@ type EarningsCardProps = {
  * Shows the maturity and the forecast for the period that the user picked. If a neuron that the
  * user can change can get a higher maturity rate, the whole card opens the
  * optimization modal. Dissolved neurons are left out, because the capital card
- * offers to disburse them. Hotkey neurons are left out, because a hotkey cannot
- * change their settings.
+ * offers to disburse them. Hotkey-only neurons are left out, because a hotkey cannot
+ * change their settings; a neuron that a usable Ledger device controls stays in.
  */
 export function EarningsCard({ neurons }: EarningsCardProps) {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
   const principalId = identity?.getPrincipal().toText();
+  const ledgerPrincipals = useLedgerSignerPrincipals();
 
   const stakingRewards = useStakingRewards();
   const { forecastPeriod } = useForecastPeriod();
@@ -66,7 +68,7 @@ export function EarningsCard({ neurons }: EarningsCardProps) {
   const canIncrease = neurons.some(
     (neuron) =>
       !getNeuronIsDissolved(neuron) &&
-      !isUserHotkey({ neuron, principalId }) &&
+      !isUserHotkeyOnly({ neuron, principalId, ledgerPrincipals }) &&
       getNeuronOptimizationIssues(neuron).length > 0,
   );
 

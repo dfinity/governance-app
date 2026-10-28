@@ -5,9 +5,11 @@ import { Trans, useTranslation } from 'react-i18next';
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { Spinner } from '@components/Spinner';
+import { isDeviceActionCancelled } from '@hooks/useDeviceAction';
 import { mapCanisterError } from '@utils/errors';
 import { errorNotification, successNotification } from '@utils/notification';
 
+import { useNeuronSigner } from '../../hooks/useNeuronSigner';
 import { useToggleDissolving } from '../../hooks/useToggleDissolving';
 
 type Props = {
@@ -30,6 +32,7 @@ export function NeuronDetailDissolveView({
   const { t } = useTranslation();
 
   const { mutateAsync, isPending } = useToggleDissolving();
+  const signer = useNeuronSigner(neuron);
 
   const handleConfirm = async () => {
     onProcessingChange(true);
@@ -38,6 +41,7 @@ export function NeuronDetailDissolveView({
       await mutateAsync({
         neuronId: neuron.neuronId,
         startDissolving: !isDissolving,
+        signer,
       });
 
       successNotification({
@@ -49,6 +53,7 @@ export function NeuronDetailDissolveView({
       // The parent defers the actual navigation until the blocker has been released.
       onSuccess();
     } catch (err) {
+      if (isDeviceActionCancelled(err)) return;
       errorNotification({
         description: mapCanisterError(err as Error),
       });
