@@ -13,7 +13,7 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { DIALOG_RESET_DELAY_MS, SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
-import { isDeviceActionCancelled } from '@hooks/useDeviceAction';
+import { isDeviceActionCancelled, usePendingDeviceAction } from '@hooks/useDeviceAction';
 import { mapCanisterError } from '@utils/errors';
 import { cn } from '@utils/shadcn';
 import { useDeviceAnswerPending } from '@common/ledger/approvedDeviceCall';
@@ -57,17 +57,24 @@ export function MutationDialog({
   children,
 }: MutationDialogProps) {
   const { t } = useTranslation();
-  const deviceAnswerPending = useDeviceAnswerPending();
   const [phase, setPhase] = useState(Phase.Idle);
   const [errorMessage, setErrorMessage] = useState('');
   const [lastMutation, setLastMutation] = useState<{ fn: () => Promise<unknown> } | null>(null);
+  // Whether the mutation in progress opened the Ledger approval dialog. Only then does a
+  // pending device answer belong to this dialog.
+  const [askedDevice, setAskedDevice] = useState(false);
+  const pendingDeviceAction = usePendingDeviceAction();
+  const deviceAnswerPending = useDeviceAnswerPending();
 
   const isProcessing = phase === Phase.Processing;
+  if (isProcessing && pendingDeviceAction && !askedDevice) setAskedDevice(true);
+  const waitsForDevice = askedDevice && deviceAnswerPending;
 
   const close = useCallback(() => onOpenChange(false), [onOpenChange]);
 
   const execute = async (fn: () => Promise<unknown>) => {
     setLastMutation({ fn });
+    setAskedDevice(false);
     setPhase(Phase.Processing);
     try {
       await fn();
@@ -150,7 +157,7 @@ export function MutationDialog({
                 <ProcessingSpinner />
                 <div className="flex flex-col items-center gap-2">
                   <FadeInText delay={0.2}>{processingMessage}</FadeInText>
-                  {deviceAnswerPending && (
+                  {waitsForDevice && (
                     <FadeInText delay={0} className="text-xs font-normal">
                       {t(($) => $.common.ledgerApproval.answerPending)}
                     </FadeInText>

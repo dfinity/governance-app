@@ -4,7 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MutationDialog } from '@components/MutationDialog';
 import { cancelPendingDeviceAction, DeviceActionCancelledError } from '@hooks/useDeviceAction';
 import { tapOverlay, waitForOutsideListeners } from '@utils/unitTest';
-import { runApprovedDeviceCall } from '@common/ledger/approvedDeviceCall';
+import { clearDeviceApprovals, runApprovedDeviceCall } from '@common/ledger/approvedDeviceCall';
+import { clearDeviceQueues } from '@common/ledger/deviceQueue';
 
 const media = vi.hoisted(() => ({ isDesktop: false }));
 vi.mock('@hooks/useMediaQuery', () => ({ useMediaQuery: () => media.isDesktop }));
@@ -32,6 +33,8 @@ describe.each([
 ])('MutationDialog as a $variant', ({ isDesktop }) => {
   beforeEach(() => {
     media.isDesktop = isDesktop;
+    clearDeviceQueues();
+    clearDeviceApprovals();
   });
 
   it('closes on a touch tap on the overlay when idle', async () => {
@@ -94,6 +97,22 @@ describe.each([
 
     expect(await screen.findAllByText('Done')).not.toHaveLength(0);
     expect(screen.queryByText(hint)).toBeNull();
+  });
+
+  it('does not show the device hint for a mutation that did not ask the device', async () => {
+    // A cancelled request of another flow still waits for the device answer.
+    void runApprovedDeviceCall('aaaaa-aa', () => new Promise<void>(() => undefined), {
+      description: 'Check the proposal ID on the device screen and approve.',
+    }).catch(() => undefined);
+    await act(async () => undefined);
+    await act(async () => cancelPendingDeviceAction());
+
+    renderDialog(vi.fn());
+    fireEvent.click(screen.getByRole('button', { name: 'Run' }));
+    expect(await screen.findAllByText('Processing')).not.toHaveLength(0);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(screen.queryByText('Approve or reject on your Ledger device to continue.')).toBeNull();
   });
 
   it('shows the success when the mutation resolves, also after a late device approval', async () => {
