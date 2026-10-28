@@ -77,8 +77,16 @@ export enum AnalyticsEvent {
   LedgerDeviceVerifyError = 'ledger_device_verify_error',
   LedgerDeviceAction = 'ledger_device_action',
   LedgerDeviceActionError = 'ledger_device_action_error',
+  LedgerDeviceStake = 'ledger_device_stake',
+  LedgerDeviceStakeError = 'ledger_device_stake_error',
+  LedgerDeviceTopUp = 'ledger_device_top_up',
+  LedgerDeviceTopUpError = 'ledger_device_top_up_error',
+  LedgerDeviceSend = 'ledger_device_send',
+  LedgerDeviceSendError = 'ledger_device_send_error',
 
   // Session
+  LoginSuccess = 'login_success',
+  LoginError = 'login_error',
   SessionLogout = 'session_logout',
   SessionExpired = 'session_expired',
 
@@ -92,5 +100,4 @@ export enum AnalyticsEvent {
   ForecastPeriodChange = 'forecast_period_change',
 }
 // @TODO:
-//  - successful login
 //  - click on the navigation items
