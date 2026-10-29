@@ -31,6 +31,7 @@ import {
   decodeUpdateSignatures,
   getRequestId,
   type RequestSignatures,
+  unwrapDefaultExport,
 } from './ledgerUtils';
 import type { Secp256k1PublicKey } from './secp256k1';
 import { ensureBuffer } from './webhid';
@@ -376,11 +377,12 @@ export class LedgerIdentity extends SignIdentity {
       // The Ledger app packages read `Buffer` from the global scope.
       await ensureBuffer();
       // Every module loads before the session opens, so a failed import leaves no open device.
-      const [dmk, { default: InternetComputerApp }, { DMKTransport }] = await Promise.all([
+      const [dmk, ledgerIcp, { DMKTransport }] = await Promise.all([
         this.getDeviceManagementKit(),
         import('@zondax/ledger-icp'),
         import('@zondax/ledger-js'),
       ]);
+      const InternetComputerApp = unwrapDefaultExport(ledgerIcp);
 
       if (!dmk.isEnvironmentSupported()) {
         throw new LedgerDeviceError(LedgerErrorCode.BrowserNotSupported);

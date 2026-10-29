@@ -1,7 +1,12 @@
 import '@/i18n/config';
 
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { act, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { cancelPendingDeviceAction } from '@hooks/useDeviceAction';
+import { clearDeviceApprovals, runApprovedDeviceCall } from '@common/ledger/approvedDeviceCall';
+import { clearDeviceQueues } from '@common/ledger/deviceQueue';
 
 import { DeviceApprovalStep } from '../../utils/ledgerStake';
 import { StakingWizardStepConfiguration } from './StakingWizardStepConfiguration';
@@ -33,7 +38,8 @@ describe('StakingWizardStepConfiguration with a Ledger device account', () => {
       />,
     );
 
-  it('counts the device approvals and lists the steps in order', () => {
+  it('counts the device approvals and lists the steps with their purpose on demand', async () => {
+    const user = userEvent.setup();
     renderStep([
       DeviceApprovalStep.Transfer,
       DeviceApprovalStep.Hotkey,
@@ -44,9 +50,24 @@ describe('StakingWizardStepConfiguration with a Ledger device account', () => {
 
     const box = screen.getByTestId('staking-wizard-device-approvals');
     expect(box.textContent).toContain('5 approvals on your Ledger device');
-    expect(box.textContent).toContain(
-      'Transfer, Hotkey, Lock period, Auto-lock, Unlocking. One approval per step, in this order.',
-    );
+    // The list is folded by default.
+    const toggle = within(box).getByRole('button', { expanded: false });
+    expect(within(box).queryByRole('list')).toBeNull();
+
+    await user.click(toggle);
+
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(
+      within(box)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent),
+    ).toEqual([
+      '1.Transfer Moves the ICP to the neuron.',
+      '2.Hotkey Lets this app show and vote with the neuron.',
+      '3.Lock period Sets the lock period of the neuron.',
+      '4.Auto-lock Locks the rewards into the neuron.',
+      '5.Unlocking Starts the unlocking of the neuron.',
+    ]);
   });
 
   it('shows nothing for a session account', () => {
@@ -102,5 +123,53 @@ describe('StakingWizardStepConfirmation after a device transfer whose claim fail
     );
 
     expect(screen.getByText('Adding this app as hotkey...')).toBeTruthy();
+  });
+});
+
+describe('StakingWizardStepConfirmation while the device answers a cancelled request', () => {
+  const DEVICE = 'aaaaa-aa';
+  const HINT = 'Approve or reject on your Ledger device to continue.';
+
+  beforeEach(() => {
+    clearDeviceQueues();
+    clearDeviceApprovals();
+  });
+
+  const renderProcessing = (signer?: { kind: 'ledger'; principal: string }) =>
+    render(
+      <StakingWizardStepConfirmation
+        formState={formState}
+        isProcessing
+        currentStep={StakingWizardCreateNeuronStep.CreateNeuron}
+        error={null}
+        expectedApy="~10%"
+        signer={signer}
+        onDone={vi.fn()}
+        onRetry={vi.fn()}
+      />,
+    );
+
+  it('tells the user to answer on the device for a Ledger device account', async () => {
+    void runApprovedDeviceCall(DEVICE, () => new Promise<void>(() => undefined), {
+      description: 'Check the amount on the device screen and approve.',
+    }).catch(() => undefined);
+    await act(async () => undefined);
+    await act(async () => cancelPendingDeviceAction());
+
+    renderProcessing({ kind: 'ledger', principal: DEVICE });
+
+    expect(screen.getByText(HINT)).toBeTruthy();
+  });
+
+  it('shows no hint for a session account', async () => {
+    void runApprovedDeviceCall(DEVICE, () => new Promise<void>(() => undefined), {
+      description: 'Check the amount on the device screen and approve.',
+    }).catch(() => undefined);
+    await act(async () => undefined);
+    await act(async () => cancelPendingDeviceAction());
+
+    renderProcessing();
+
+    expect(screen.queryByText(HINT)).toBeNull();
   });
 });
