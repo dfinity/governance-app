@@ -60,7 +60,6 @@
     "empty": "This device controls no neurons.",
     "addHotkey": "Add hotkey",
     "hotkeyAdded": "Hotkey added",
-    "approveDescription": "Check the hotkey principal on the device screen and approve.",
     "hotkeyAddedTitle": "Hotkey added",
     "hotkeyAddedDescription": "Neuron {{neuronId}} now shows in your neurons list.",
     "hotkeyFailedTitle": "Could not add the hotkey"

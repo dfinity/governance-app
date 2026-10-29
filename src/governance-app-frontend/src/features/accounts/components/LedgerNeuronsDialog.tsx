@@ -1,9 +1,8 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { AlertTriangle, Check, Key, Usb } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { DeviceApprovalDialog } from '@features/ledger/components/DeviceApprovalDialog';
 import { NeuronStateBadge } from '@features/stakes/components/NeuronStateBadge';
 import { useAddHotkey } from '@features/stakes/hooks/useAddHotkey';
 import {
@@ -22,6 +21,7 @@ import {
 import { SensitiveValue } from '@components/SensitiveValue';
 import { Spinner } from '@components/Spinner';
 import { E8Sn } from '@constants/extra';
+import { isDeviceActionCancelled } from '@hooks/useDeviceAction';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { bigIntDiv } from '@utils/bigInt';
 import { mapCanisterError } from '@utils/errors';
@@ -173,11 +173,8 @@ function LedgerNeuronRow({
   const { identity } = useInternetIdentity();
   const addHotkey = useAddHotkey();
   const updateNeuron = useUpdateLedgerDeviceNeuron({ principal, session });
-  // The device call stays pending after a cancel. The button waits for it to settle, and
-  // the approval dialog follows the user: a cancelled attempt reports nothing.
+  // The device call stays pending after a cancel, so the button waits for it to settle.
   const [isPending, setIsPending] = useState(false);
-  const [isApproving, setIsApproving] = useState(false);
-  const cancelled = useRef(false);
 
   const iiPrincipal = identity?.getPrincipal().toText();
   const hasHotkey = !!iiPrincipal && (neuron.fullNeuron?.hotKeys.includes(iiPrincipal) ?? false);
@@ -196,9 +193,7 @@ function LedgerNeuronRow({
 
   const handleAddHotkey = async () => {
     if (!iiPrincipal || isPending) return;
-    cancelled.current = false;
     setIsPending(true);
-    setIsApproving(true);
 
     try {
       await addHotkey.mutateAsync({
@@ -206,7 +201,7 @@ function LedgerNeuronRow({
         principal: iiPrincipal,
         signer: { kind: 'ledger', principal },
       });
-      // The device signed the call even when the user cancelled the dialog: keep the list true.
+      // The device signed the call, also after a cancelled dialog: keep the list true.
       updateNeuron(neuron.neuronId, (cached) =>
         cached.fullNeuron
           ? {
@@ -218,7 +213,6 @@ function LedgerNeuronRow({
             }
           : cached,
       );
-      if (cancelled.current) return;
       successNotification({
         title: t(($) => $.accounts.ledgerNeurons.hotkeyAddedTitle),
         description: t(($) => $.accounts.ledgerNeurons.hotkeyAddedDescription, {
@@ -226,14 +220,14 @@ function LedgerNeuronRow({
         }),
       });
     } catch (error) {
-      if (cancelled.current) return;
+      // The device rejected the request after a cancel on the dialog: nothing to report.
+      if (isDeviceActionCancelled(error)) return;
       errorNotification({
         title: t(($) => $.accounts.ledgerNeurons.hotkeyFailedTitle),
         description: error instanceof Error ? mapCanisterError(error) : undefined,
       });
     } finally {
       setIsPending(false);
-      setIsApproving(false);
     }
   };
 
@@ -275,16 +269,6 @@ function LedgerNeuronRow({
           {t(($) => $.accounts.ledgerNeurons.addHotkey)}
         </Button>
       )}
-
-      <DeviceApprovalDialog
-        open={isApproving}
-        description={t(($) => $.accounts.ledgerNeurons.approveDescription)}
-        detail={iiPrincipal}
-        onCancel={() => {
-          cancelled.current = true;
-          setIsApproving(false);
-        }}
-      />
     </li>
   );
 }
