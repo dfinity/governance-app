@@ -18,7 +18,7 @@ type Props = {
   description: ReactNode;
   /** The values to compare with the device screen, for example a principal. */
   detail?: ReactNode;
-  /** The user closes the dialog and the app ignores the result of the device call. */
+  /** The user closed the dialog. The flow still waits for the device answer. */
   onCancel: () => void;
 };
 
@@ -26,8 +26,8 @@ type Props = {
  * A dialog shown while a Ledger device waits for the user to approve a call.
  *
  * Every device action shows it. A close (the X, the Escape key, the overlay, or a drag of
- * the drawer) cancels the wait in the app only: the device keeps the request on its screen
- * until the user answers there, and the dialog says so.
+ * the drawer) hides the dialog only: the device keeps the request on its screen until the
+ * user answers there, the flow waits for that answer, and the dialog says so.
  *
  * The drawer has no X of its own, so the phone layout adds one: a drag or an overlay tap
  * is not an option for a screen reader or a switch.

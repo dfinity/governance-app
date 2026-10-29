@@ -13,7 +13,8 @@ import type { Signer } from '@common/ledger/signer';
  * Identity call never waits for the device.
  *
  * The status region stays mounted, so a screen reader announces the line when it appears.
- * The region is empty until then and takes no space; `className` styles the line.
+ * The region has no box of its own (`display: contents`), so an empty region adds no gap in
+ * a flex column, and the line is the flex item when it appears. `className` styles the line.
  */
 export const DeviceAnswerHint = ({
   signer,
@@ -26,7 +27,7 @@ export const DeviceAnswerHint = ({
   const answerPending = useDeviceAnswerPending();
 
   return (
-    <div role="status">
+    <div role="status" className="contents">
       {signer?.kind === 'ledger' && answerPending && (
         <motion.p
           className={cn('text-xs text-muted-foreground', className)}
