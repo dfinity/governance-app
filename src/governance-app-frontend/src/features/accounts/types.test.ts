@@ -40,6 +40,10 @@ describe('canSignFromAccount', () => {
 describe('isAccountOffered', () => {
   const NONE = { subaccounts: false, ledgerDevice: false };
 
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it('always offers the main account', () => {
     expect(isAccountOffered({ type: AccountType.Main }, NONE)).toBe(true);
   });

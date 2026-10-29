@@ -58,7 +58,7 @@ export function canSignFromAccount(account: Pick<AccountMetadata, 'type'>): bool
 /**
  * True when a destination list offers the account. The main account is always offered.
  * A sub-account needs the `subaccounts` feature. A Ledger device account needs the
- * `ledgerDevice` feature, and no WebHID, because a destination signs nothing.
+ * `ledgerDevice` feature and does not need WebHID, because a destination signs nothing.
  */
 export function isAccountOffered(
   account: Pick<AccountMetadata, 'type'>,

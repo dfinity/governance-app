@@ -2,7 +2,7 @@ import '@/i18n/config';
 
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { renderWithProviders } from '@utils/unitTest';
 import { mockNeuron } from '@fixtures/neuron';
@@ -56,8 +56,10 @@ vi.mock('@features/accounts/hooks/useAccounts', () => ({
 vi.mock('@hooks/addressBook/useAddressBook', () => ({
   useAddressBook: () => ({ data: { response: { named_addresses: [] } }, isLoading: false }),
 }));
+const mutateAsync = vi.hoisted(() => vi.fn(() => Promise.resolve()));
+
 vi.mock('@features/stakes/hooks/useDisburseNeuron', () => ({
-  useDisburseNeuron: () => ({ mutateAsync: vi.fn() }),
+  useDisburseNeuron: () => ({ mutateAsync }),
 }));
 vi.mock('@features/stakes/hooks/useNeuronSigner', () => ({
   useNeuronSigner: () => II_SIGNER,
@@ -65,18 +67,43 @@ vi.mock('@features/stakes/hooks/useNeuronSigner', () => ({
 vi.mock('@components/NavigationBlockerDialog', () => ({ NavigationBlockerDialog: () => null }));
 vi.mock('@hooks/useMediaQuery', () => ({ useMediaQuery: () => true }));
 
-describe('DisburseIcpModal destination suggestions', () => {
-  it('offers a Ledger device account when only the Ledger feature is on', async () => {
-    renderWithProviders(<DisburseIcpModal neuron={mockNeuron()} isOpen onOpenChange={() => {}} />);
+const renderDialog = () =>
+  renderWithProviders(<DisburseIcpModal neuron={mockNeuron()} isOpen onOpenChange={() => {}} />);
 
-    // The main account is the default destination, so the list starts with it cleared.
-    await userEvent.click(screen.getByTestId('disburse-icp-destination-input-clear'));
-    await userEvent.click(screen.getByTestId('disburse-icp-destination-input'));
-    const options = screen.getAllByTestId('disburse-icp-destination-input-option');
+// The main account is the default destination, so the list opens after a clear.
+const openDestinationList = async () => {
+  await userEvent.click(screen.getByTestId('disburse-icp-destination-input-clear'));
+  await userEvent.click(screen.getByTestId('disburse-icp-destination-input'));
+  return screen.getAllByTestId('disburse-icp-destination-input-option');
+};
+
+describe('DisburseIcpModal destination suggestions', () => {
+  beforeEach(() => {
+    mutateAsync.mockClear();
+  });
+
+  it('offers a Ledger device account when only the Ledger feature is on', async () => {
+    renderDialog();
+
+    const options = await openDestinationList();
 
     expect(options.map((option) => option.textContent)).toEqual([
       expect.stringContaining('Main'),
       expect.stringContaining('Nano X'),
     ]);
+  });
+
+  it('disburses to the picked Ledger device account', async () => {
+    renderDialog();
+
+    const options = await openDestinationList();
+    await userEvent.click(options[1]);
+    await userEvent.click(screen.getByRole('button', { name: 'Disburse' }));
+
+    expect(mutateAsync).toHaveBeenCalledWith({
+      neuronId: 1n,
+      toAccountId: ids.DEVICE_ACCOUNT_ID,
+      signer: II_SIGNER,
+    });
   });
 });
