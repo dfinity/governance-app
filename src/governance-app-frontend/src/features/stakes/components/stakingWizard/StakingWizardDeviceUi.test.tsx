@@ -1,7 +1,11 @@
 import '@/i18n/config';
 
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { act, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { cancelPendingDeviceAction } from '@hooks/useDeviceAction';
+import { clearDeviceApprovals, runApprovedDeviceCall } from '@common/ledger/approvedDeviceCall';
+import { clearDeviceQueues } from '@common/ledger/deviceQueue';
 
 import { DeviceApprovalStep } from '../../utils/ledgerStake';
 import { StakingWizardStepConfiguration } from './StakingWizardStepConfiguration';
@@ -102,5 +106,53 @@ describe('StakingWizardStepConfirmation after a device transfer whose claim fail
     );
 
     expect(screen.getByText('Adding this app as hotkey...')).toBeTruthy();
+  });
+});
+
+describe('StakingWizardStepConfirmation while the device answers a cancelled request', () => {
+  const DEVICE = 'aaaaa-aa';
+  const HINT = 'Approve or reject on your Ledger device to continue.';
+
+  beforeEach(() => {
+    clearDeviceQueues();
+    clearDeviceApprovals();
+  });
+
+  const renderProcessing = (signer?: { kind: 'ledger'; principal: string }) =>
+    render(
+      <StakingWizardStepConfirmation
+        formState={formState}
+        isProcessing
+        currentStep={StakingWizardCreateNeuronStep.CreateNeuron}
+        error={null}
+        expectedApy="~10%"
+        signer={signer}
+        onDone={vi.fn()}
+        onRetry={vi.fn()}
+      />,
+    );
+
+  it('tells the user to answer on the device for a Ledger device account', async () => {
+    void runApprovedDeviceCall(DEVICE, () => new Promise<void>(() => undefined), {
+      description: 'Check the amount on the device screen and approve.',
+    }).catch(() => undefined);
+    await act(async () => undefined);
+    await act(async () => cancelPendingDeviceAction());
+
+    renderProcessing({ kind: 'ledger', principal: DEVICE });
+
+    expect(screen.getByText(HINT)).toBeTruthy();
+  });
+
+  it('shows no hint for a session account', async () => {
+    void runApprovedDeviceCall(DEVICE, () => new Promise<void>(() => undefined), {
+      description: 'Check the amount on the device screen and approve.',
+    }).catch(() => undefined);
+    await act(async () => undefined);
+    await act(async () => cancelPendingDeviceAction());
+
+    renderProcessing();
+
+    expect(screen.queryByText(HINT)).toBeNull();
   });
 });

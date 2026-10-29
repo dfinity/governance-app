@@ -2,10 +2,13 @@ import { AlertTriangle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 
+import { DeviceAnswerHint } from '@features/ledger/components/DeviceAnswerHint';
+
 import { Alert, AlertDescription } from '@components/Alert';
 import { AnimatedCheckmark } from '@components/AnimatedCheckmark';
 import { Button } from '@components/button';
 import { ProcessingSpinner } from '@components/ProcessingSpinner';
+import type { Signer } from '@common/ledger/signer';
 
 import { STAKING_WIZARD_DISSOLVE_DELAY_OPTIONS } from './constants';
 import { StakingWizardCreateNeuronStep, StakingWizardFormState } from './types';
@@ -18,6 +21,8 @@ interface Props {
   /** The device transfer went through and the claim failed. The retry claims, no second transfer. */
   isTransferDone?: boolean;
   expectedApy: string;
+  /** Who signs the steps. For a Ledger device signer, the processing screen shows the device hint. */
+  signer?: Signer;
   onDone: () => void;
   onRetry: () => void;
 }
@@ -29,6 +34,7 @@ export function StakingWizardStepConfirmation({
   error,
   isTransferDone = false,
   expectedApy,
+  signer,
   onDone,
   onRetry,
 }: Props) {
@@ -69,6 +75,7 @@ export function StakingWizardStepConfirmation({
           <span className="rounded-md bg-muted px-3 py-1.5 text-sm text-muted-foreground">
             {getStepLabel(currentStep)}
           </span>
+          <DeviceAnswerHint signer={signer} className="mt-3" />
         </div>
         <p className="text-sm text-muted-foreground">
           {t(($) => $.stakeWizardModal.steps.confirmation.processing.warning)}

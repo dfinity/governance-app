@@ -1,6 +1,6 @@
 import { nonNullish } from '@dfinity/utils';
 import { autoUpdate, flip, offset, size, useFloating } from '@floating-ui/react-dom';
-import { BookPlus, X } from 'lucide-react';
+import { BookPlus, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { useEffect, useEffectEvent, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -30,7 +30,7 @@ type Props = {
   onChange: (value: string, selectedName: string, suggestion?: DestinationSuggestion) => void;
   /** Adds the "Add a new address" item to the list. */
   onAddAddress?: () => void;
-  /** Keeps the picked suggestion. The chip is read-only and has no clear action. */
+  /** Keeps the picked suggestion. The chip is read-only: it opens no list and has no clear action. */
   locked?: boolean;
   invalid?: boolean;
   placeholder?: string;
@@ -57,7 +57,8 @@ const isCompleteAddress = (text: string): boolean =>
 /**
  * One field for a destination account. The user types a name to filter the
  * suggestions, pastes an address, or picks a suggestion from the list. A
- * picked suggestion shows as a chip with a clear button.
+ * picked suggestion shows as a chip with a clear button. A click on the chip
+ * opens the full list again, so the user can pick another destination.
  *
  * On desktop the list floats over the content below the field, so the dialog
  * keeps its size. On mobile the list pushes the content down, because the
@@ -82,7 +83,7 @@ export function DestinationInput({
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const chipRef = useRef<HTMLOutputElement>(null);
+  const chipRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -94,7 +95,8 @@ export function DestinationInput({
       (selectedKind === undefined || suggestion.kind === selectedKind),
   );
 
-  const query = value.trim().toLowerCase();
+  // The chip opens the full list: the picked address is not a filter.
+  const query = selected ? '' : value.trim().toLowerCase();
   const matches =
     query === ''
       ? suggestions
@@ -102,7 +104,9 @@ export function DestinationInput({
   // The arrow keys move through the matches only. The add command is a
   // separate button that the Tab key reaches.
   const itemCount = matches.length;
-  const showList = open && (itemCount > 0 || nonNullish(onAddAddress));
+  // The read-only chip opens no list.
+  const showList =
+    open && !(locked && nonNullish(selected)) && (itemCount > 0 || nonNullish(onAddAddress));
   // The suggestions can shrink while the list is open, for example after a refetch.
   const activeMatch = activeIndex < itemCount ? activeIndex : -1;
 
@@ -127,10 +131,28 @@ export function DestinationInput({
     requestAnimationFrame(() => chipRef.current?.focus());
   };
 
+  // The list opens on the current pick, so the arrow keys move from it.
+  const openFromChip = () => {
+    setOpen(true);
+    setActiveIndex(selected ? matches.indexOf(selected) : -1);
+  };
+
   const clear = () => {
     onChange('', '');
+    // The list can stay open. Enter on the empty input picks nothing.
+    setActiveIndex(-1);
     // The input mounts on the next render.
     requestAnimationFrame(() => inputRef.current?.focus());
+  };
+
+  // Safari does not focus a clicked button. The focus keeps the open list
+  // inside the field, so Escape and a click outside close it. The press keeps
+  // the focus where it is, so the blur does not close the list before the
+  // click toggles it.
+  const handleChipClick = () => {
+    chipRef.current?.focus();
+    if (open) close();
+    else openFromChip();
   };
 
   const addAddress = () => {
@@ -146,22 +168,28 @@ export function DestinationInput({
     if (!containerRef.current?.contains(event.relatedTarget)) close();
   };
 
+  // The keys of an input method editor (IME) composition belong to the IME.
+  // Safari sends the Enter that confirms a composition with key code 229.
+  const isImeKey = (event: React.KeyboardEvent<HTMLElement>): boolean =>
+    event.nativeEvent.isComposing || event.keyCode === 229;
+
+  // The arrow keys open the list and move the active match. True when the key was one.
+  const handleArrowKey = (event: React.KeyboardEvent<HTMLElement>): boolean => {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return false;
+    event.preventDefault();
+    if (itemCount === 0) return true;
+    setOpen(true);
+    const step = event.key === 'ArrowDown' ? 1 : -1;
+    setActiveIndex((current) => {
+      // No active item: ArrowDown starts at the first item, ArrowUp at the last.
+      if (current < 0) return step > 0 ? 0 : itemCount - 1;
+      return (current + step + itemCount) % itemCount;
+    });
+    return true;
+  };
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    // The keys of an input method editor (IME) composition belong to the IME.
-    // Safari sends the Enter that confirms a composition with key code 229.
-    if (event.nativeEvent.isComposing || event.keyCode === 229) return;
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-      event.preventDefault();
-      if (itemCount === 0) return;
-      setOpen(true);
-      const step = event.key === 'ArrowDown' ? 1 : -1;
-      setActiveIndex((current) => {
-        // No active item: ArrowDown starts at the first item, ArrowUp at the last.
-        if (current < 0) return step > 0 ? 0 : itemCount - 1;
-        return (current + step + itemCount) % itemCount;
-      });
-      return;
-    }
+    if (isImeKey(event) || handleArrowKey(event)) return;
     if (event.key === 'Enter') {
       if (showList && activeMatch >= 0) {
         event.preventDefault();
@@ -174,6 +202,22 @@ export function DestinationInput({
     }
   };
 
+  const handleChipKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (isImeKey(event)) return;
+    if (event.key === 'Backspace' || event.key === 'Delete') {
+      event.preventDefault();
+      clear();
+      return;
+    }
+    if (handleArrowKey(event)) return;
+    // Enter on an active match picks it. Any other Enter, and Space, click the
+    // chip, which opens or closes the list.
+    if (event.key === 'Enter' && showList && activeMatch >= 0) {
+      event.preventDefault();
+      pick(matches[activeMatch]);
+    }
+  };
+
   // Escape closes the list only. The dialog listens for Escape on the document
   // in the capture phase, so the list takes the key on the window before it.
   const handleEscape = useEffectEvent((event: KeyboardEvent) => {
@@ -182,7 +226,7 @@ export function DestinationInput({
     event.preventDefault();
     event.stopPropagation();
     // The focus opens the list, so the close comes after it.
-    inputRef.current?.focus();
+    (inputRef.current ?? chipRef.current)?.focus();
     close();
   });
 
@@ -229,53 +273,76 @@ export function DestinationInput({
       ?.scrollIntoView({ block: 'nearest' });
   }, [activeMatch, listId]);
 
-  if (selected) {
-    // An output element is labelable and, with a tab index, focusable, so the
-    // label names the chip and the focus stays on the field. A click on the
-    // label does nothing. Only the clear button and Backspace clear the pick.
-    return (
-      <div className="relative">
+  const chipClassName =
+    'flex h-9 w-full min-w-0 items-center gap-2 rounded-md border border-input py-1 pl-3 text-left text-sm outline-none focus-visible:border-ring dark:bg-input/30';
+
+  const chipContent = selected && (
+    <>
+      <span className="min-w-0 shrink truncate font-medium">{selected.name}</span>
+      <span className="hidden min-w-0 shrink truncate font-mono text-xs text-muted-foreground sm:inline">
+        {shortenId(selected.address, SHORT_ADDRESS_CHARS)}
+      </span>
+      <Badge variant="outline" className="shrink-0 text-[10px]">
+        {t(($) => $.addressBook[kindLabelKey[selected.kind]])}
+      </Badge>
+    </>
+  );
+
+  // The chip and the input share the id, so the label names whichever is shown.
+  const field = selected ? (
+    <div ref={setFieldElement} className="relative">
+      {locked ? (
+        // An output element is labelable, so the label names the read-only chip.
         <output
-          ref={chipRef}
           id={id}
-          tabIndex={locked ? undefined : 0}
-          className={cn(
-            'flex h-9 w-full min-w-0 items-center gap-2 rounded-md border border-input py-1 pl-3 text-sm outline-none focus-visible:border-ring dark:bg-input/30',
-            locked ? 'pr-3' : 'pr-10',
-          )}
-          onKeyDown={(event) => {
-            if (locked) return;
-            if (event.key === 'Backspace' || event.key === 'Delete') {
-              event.preventDefault();
-              clear();
-            }
-          }}
+          className={cn(chipClassName, 'pr-3')}
           data-testid={testId ? `${testId}-selected` : undefined}
         >
-          <span className="min-w-0 shrink truncate font-medium">{selected.name}</span>
-          <span className="hidden min-w-0 shrink truncate font-mono text-xs text-muted-foreground sm:inline">
-            {shortenId(selected.address, SHORT_ADDRESS_CHARS)}
-          </span>
-          <Badge variant="outline" className="shrink-0 text-[10px]">
-            {t(($) => $.addressBook[kindLabelKey[selected.kind]])}
-          </Badge>
+          {chipContent}
         </output>
-        {!locked && (
-          <button
-            type="button"
-            className="absolute top-1/2 right-1.5 flex size-7 -translate-y-1/2 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground"
-            aria-label={t(($) => $.addressBook.destination.clear)}
-            onClick={clear}
-            data-testid={testId ? `${testId}-clear` : undefined}
-          >
-            <X className="size-4" aria-hidden />
-          </button>
-        )}
-      </div>
-    );
-  }
-
-  const field = (
+      ) : (
+        // A button is labelable too. A click, Enter or Space opens the list, so
+        // the user can pick another destination. The clear button and
+        // Backspace clear the pick.
+        <button
+          ref={chipRef}
+          type="button"
+          id={id}
+          role="combobox"
+          aria-expanded={showList}
+          aria-controls={showList && itemCount > 0 ? listId : undefined}
+          aria-activedescendant={showList && activeMatch >= 0 ? optionId(activeMatch) : undefined}
+          title={t(($) => $.addressBook.destination.change)}
+          className={cn(
+            chipClassName,
+            'cursor-pointer pr-10 transition-colors hover:border-ring hover:bg-accent hover:text-accent-foreground dark:hover:bg-input/50',
+          )}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={handleChipClick}
+          onKeyDown={handleChipKeyDown}
+          data-testid={testId ? `${testId}-selected` : undefined}
+        >
+          {chipContent}
+          {showList ? (
+            <ChevronUp className="ml-auto size-4 shrink-0 text-muted-foreground" aria-hidden />
+          ) : (
+            <ChevronDown className="ml-auto size-4 shrink-0 text-muted-foreground" aria-hidden />
+          )}
+        </button>
+      )}
+      {!locked && (
+        <button
+          type="button"
+          className="absolute top-1/2 right-1.5 flex size-7 -translate-y-1/2 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground"
+          aria-label={t(($) => $.addressBook.destination.clear)}
+          onClick={clear}
+          data-testid={testId ? `${testId}-clear` : undefined}
+        >
+          <X className="size-4" aria-hidden />
+        </button>
+      )}
+    </div>
+  ) : (
     <div ref={setFieldElement} className="relative">
       <Input
         ref={inputRef}
