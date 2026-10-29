@@ -1,6 +1,7 @@
 import '@/i18n/config';
 
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { cancelPendingDeviceAction } from '@hooks/useDeviceAction';
@@ -37,7 +38,8 @@ describe('StakingWizardStepConfiguration with a Ledger device account', () => {
       />,
     );
 
-  it('counts the device approvals and lists the steps in order', () => {
+  it('counts the device approvals and lists the steps with their purpose on demand', async () => {
+    const user = userEvent.setup();
     renderStep([
       DeviceApprovalStep.Transfer,
       DeviceApprovalStep.Hotkey,
@@ -48,9 +50,24 @@ describe('StakingWizardStepConfiguration with a Ledger device account', () => {
 
     const box = screen.getByTestId('staking-wizard-device-approvals');
     expect(box.textContent).toContain('5 approvals on your Ledger device');
-    expect(box.textContent).toContain(
-      'Transfer, Hotkey, Lock period, Auto-lock, Unlocking. One approval per step, in this order.',
-    );
+    // The list is folded by default.
+    const toggle = within(box).getByRole('button', { expanded: false });
+    expect(within(box).queryByRole('list')).toBeNull();
+
+    await user.click(toggle);
+
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(
+      within(box)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent),
+    ).toEqual([
+      '1.Transfer Moves the ICP to the neuron.',
+      '2.Hotkey Lets this app show and vote with the neuron.',
+      '3.Lock period Sets the lock period of the neuron.',
+      '4.Auto-lock Locks the rewards into the neuron.',
+      '5.Unlocking Starts the unlocking of the neuron.',
+    ]);
   });
 
   it('shows nothing for a session account', () => {

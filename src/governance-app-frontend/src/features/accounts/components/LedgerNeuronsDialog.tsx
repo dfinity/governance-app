@@ -1,5 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { AlertTriangle, Check, Key, Usb } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
+import { AlertTriangle, Check, ChevronRight, Key, Usb } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -250,13 +251,24 @@ function LedgerNeuronRow({
       </div>
 
       {hasHotkey ? (
-        <span
-          className="flex shrink-0 items-center gap-1 text-sm font-medium text-green-600 dark:text-green-400"
-          data-testid="ledger-neuron-hotkey-added"
-        >
-          <Check className="size-4" aria-hidden="true" />
-          {t(($) => $.accounts.ledgerNeurons.hotkeyAdded)}
-        </span>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <span
+            className="flex items-center gap-1 text-sm font-medium text-green-600 dark:text-green-400"
+            data-testid="ledger-neuron-hotkey-added"
+          >
+            <Check className="size-4" aria-hidden="true" />
+            {t(($) => $.accounts.ledgerNeurons.hotkeyAdded)}
+          </span>
+          <Link
+            to="/neurons"
+            search={{ neuronId: neuron.neuronId.toString() }}
+            className="flex items-center gap-0.5 text-sm font-medium text-primary hover:underline"
+            data-testid="ledger-neuron-view"
+          >
+            {t(($) => $.accounts.ledgerNeurons.viewNeuron)}
+            <ChevronRight className="size-4" aria-hidden="true" />
+          </Link>
+        </div>
       ) : (
         <Button
           size="sm"

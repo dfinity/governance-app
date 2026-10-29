@@ -1,9 +1,9 @@
 import '@/i18n/config';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ReactNode } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PendingDeviceActionDialog } from '@features/ledger/components/PendingDeviceActionDialog';
@@ -37,6 +37,11 @@ vi.mock('@hooks/useInternetIdentity', () => ({
   }),
 }));
 vi.mock('@hooks/useMediaQuery', () => ({ useMediaQuery: () => true }));
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({ to, search, ...props }: ComponentProps<'a'> & { to: string; search: object }) => (
+    <a href={`${to}?${new URLSearchParams(search as Record<string, string>)}`} {...props} />
+  ),
+}));
 vi.mock('@utils/notification', () => ({
   successNotification: mocks.successNotification,
   errorNotification: mocks.errorNotification,
@@ -62,6 +67,14 @@ const deviceNeuron = (neuronId: bigint, hotKeys: string[] = []) =>
       cachedNeuronStake: BigInt(1000 * E8S),
       dissolveState: { DissolveDelaySeconds: 15_778_800n },
     },
+  });
+
+// The X of the approval dialog cancels the wait in the app.
+const closeApprovalDialog = () =>
+  within(screen.getByTestId('device-approval-dialog')).getByRole('button', { name: 'Close' });
+const findCloseApprovalDialog = async () =>
+  within(await screen.findByTestId('device-approval-dialog')).getByRole('button', {
+    name: 'Close',
   });
 
 const renderDialog = () => {
@@ -116,6 +129,19 @@ describe('LedgerNeuronsDialog', () => {
     expect(screen.getAllByTestId('ledger-neuron-hotkey-added')).toHaveLength(1);
   });
 
+  it('links a neuron with the hotkey to its detail', async () => {
+    mocks.listNeurons.mockResolvedValue([deviceNeuron(1n), deviceNeuron(2n, [II_PRINCIPAL])]);
+
+    renderDialog();
+
+    const links = await screen.findAllByRole('link', { name: 'View neuron' });
+    expect(links).toHaveLength(1);
+    expect(links[0].getAttribute('href')).toBe('/neurons?neuronId=2');
+    expect(links[0].closest('[data-testid=ledger-neuron-row]')?.textContent).toContain(
+      'Hotkey added',
+    );
+  });
+
   it('shows the empty state when the device controls no neurons', async () => {
     mocks.listNeurons.mockResolvedValue([]);
 
@@ -158,7 +184,7 @@ describe('LedgerNeuronsDialog', () => {
     expect(await screen.findByTestId('device-approval-dialog')).toBeTruthy();
     expect(screen.getByTestId('device-approval-detail').textContent).toBe(II_PRINCIPAL);
 
-    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    await user.click(closeApprovalDialog());
 
     await waitFor(() => expect(screen.queryByTestId('device-approval-dialog')).toBeNull());
     // The device call is still pending, so the button waits for it.
@@ -174,7 +200,7 @@ describe('LedgerNeuronsDialog', () => {
     renderDialog();
 
     await user.click(await screen.findByTestId('ledger-neuron-add-hotkey'));
-    await user.click(await screen.findByRole('button', { name: 'Cancel' }));
+    await user.click(await findCloseApprovalDialog());
     settle();
 
     expect(await screen.findByTestId('ledger-neuron-hotkey-added')).toBeTruthy();
@@ -190,7 +216,7 @@ describe('LedgerNeuronsDialog', () => {
     renderDialog();
 
     await user.click(await screen.findByTestId('ledger-neuron-add-hotkey'));
-    await user.click(await screen.findByRole('button', { name: 'Cancel' }));
+    await user.click(await findCloseApprovalDialog());
     reject(new LedgerDeviceError(LedgerErrorCode.UserRejected));
 
     await waitFor(() =>
@@ -212,7 +238,7 @@ describe('LedgerNeuronsDialog', () => {
 
     const buttons = await screen.findAllByTestId('ledger-neuron-add-hotkey');
     await user.click(buttons[0]);
-    await user.click(await screen.findByRole('button', { name: 'Cancel' }));
+    await user.click(await findCloseApprovalDialog());
     await user.click(buttons[1]);
     await waitFor(() => expect(buttons[1].hasAttribute('disabled')).toBe(true));
 

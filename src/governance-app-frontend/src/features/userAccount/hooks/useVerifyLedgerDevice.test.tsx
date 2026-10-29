@@ -106,8 +106,11 @@ describe('useVerifyLedgerDevice', () => {
       'Check that the device shows this principal and this address, then approve on the device.',
     );
     render(<>{result.current.pending?.detail}</>);
-    expect(screen.getByText(DEVICE_PRINCIPAL)).toBeTruthy();
-    expect(screen.getByText(ACCOUNT_ID)).toBeTruthy();
+    // The device shows the address first, then the principal.
+    const terms = screen.getAllByRole('term').map((term) => term.textContent);
+    expect(terms).toEqual(['Account identifier', 'Principal']);
+    const values = screen.getAllByRole('definition').map((value) => value.textContent);
+    expect(values).toEqual([ACCOUNT_ID, DEVICE_PRINCIPAL]);
     expect(mocks.identity.showAddressAndPubKeyOnDevice).toHaveBeenCalledTimes(1);
 
     await act(async () => {
