@@ -117,7 +117,7 @@
     "title": "Approve on your Ledger device",
     "answerPending": "Approve or reject on your Ledger device to continue.",
     "waiting": "Waiting for your answer on the device. The request takes a few seconds to appear.",
-    "closeHint": "If you close this dialog, the app stops the wait, but the device keeps the request.",
+    "closeHint": "If you close this dialog, the device still shows the request.",
     "neuron": "Neuron {{neuronId}}",
     "increaseDelay": "Check the neuron ID and the additional dissolve delay on the device screen and approve.",
     "additionalDelay": "Additional delay: {{delay}}",

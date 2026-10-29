@@ -69,7 +69,7 @@ const deviceNeuron = (neuronId: bigint, hotKeys: string[] = []) =>
     },
   });
 
-// The X of the approval dialog cancels the wait in the app.
+// The X of the approval dialog hides it. The flow still waits for the device answer.
 const closeApprovalDialog = () =>
   within(screen.getByTestId('device-approval-dialog')).getByRole('button', { name: 'Close' });
 const findCloseApprovalDialog = async () =>

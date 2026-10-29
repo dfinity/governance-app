@@ -41,7 +41,7 @@ describe('PendingDeviceActionDialog', () => {
       'Waiting for your answer on the device. The request takes a few seconds to appear.',
     );
     expect(screen.getByTestId('device-approval-close-hint').textContent).toBe(
-      'If you close this dialog, the app stops the wait, but the device keeps the request. Approve or reject on your Ledger device to continue.',
+      'If you close this dialog, the device still shows the request. Approve or reject on your Ledger device to continue.',
     );
 
     await act(async () => {
