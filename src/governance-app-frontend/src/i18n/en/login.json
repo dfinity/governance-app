@@ -6,5 +6,7 @@
   "accessText": "Access ICP token vault and voting neuron functionality",
   "loginWithII": "Login with Internet Identity",
   "authenticating": "Authenticating with Internet Identity ...",
+  "closedWindow": "Closed the window?",
+  "openAgain": "Open Internet Identity again",
   "legacyNnsDapp": "Go to the legacy NNS Dapp"
 }

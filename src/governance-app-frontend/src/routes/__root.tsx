@@ -1,5 +1,5 @@
 import { nonNullish } from '@dfinity/utils';
-import { QueryClient, useQueryClient } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query';
 import {
   createRootRouteWithContext,
   HeadContent,
@@ -10,7 +10,7 @@ import {
 } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { ArrowLeft, LogIn } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
@@ -19,11 +19,10 @@ import { analytics } from '@features/analytics/service';
 import { Button } from '@components/button';
 import { MainLayout } from '@components/MainLayout';
 import { SessionCountdownToast } from '@components/SessionCountdownToast';
-import { MANUAL_LOGOUT_KEY } from '@constants/extra';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
+import { useSessionChange } from '@hooks/useSessionChange';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
 import { isE2E } from '@utils/e2e';
-import { infoNotification } from '@utils/notification';
 
 import i18n from '@/i18n/config';
 
@@ -145,41 +144,12 @@ function UnauthenticatedNotFound() {
 }
 
 function RootComponent() {
-  const { identity } = useInternetIdentity();
-  const { invalidate, subscribe } = useRouter();
-  const queryClient = useQueryClient();
-  const { t } = useTranslation();
+  const { subscribe } = useRouter();
 
-  const hadIdentity = useRef(!!identity);
+  useSessionChange();
 
   // Sends a pageview after each navigation, redirects included, once a page starts the tracker.
   useEffect(() => subscribe('onResolved', () => analytics.pageview()), [subscribe]);
-
-  // Global identity change handler: login, logout, and auto-expiration
-  useEffect(() => {
-    // Revalidate/re-check route guards on any identity change
-    invalidate().finally(() => {
-      // Handle logout or session expiration
-      if (hadIdentity.current && !identity) {
-        // Reset queries after identity is removed
-        queryClient.resetQueries();
-
-        // Check if this was a manual logout or auto-expiration
-        const isManualLogout = localStorage.getItem(MANUAL_LOGOUT_KEY) === 'true';
-        localStorage.removeItem(MANUAL_LOGOUT_KEY);
-
-        if (isManualLogout) return;
-
-        analytics.event(AnalyticsEvent.SessionExpired, undefined, { interactive: false });
-
-        // Notify user only on auto-expiration
-        infoNotification({ description: t(($) => $.common.autoExpirationLogout) });
-      }
-
-      // Remember last identity state.
-      hadIdentity.current = !!identity;
-    });
-  }, [identity, invalidate, queryClient, t]);
 
   return (
     <>

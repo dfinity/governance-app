@@ -3,7 +3,7 @@ import { useSyncExternalStore } from 'react';
 import { getAuthState, login, logout, subscribeAuthState } from '@common/auth/internetIdentity';
 
 export const useInternetIdentity = () => {
-  const { status, identity, sessionEndsAtMs } = useSyncExternalStore(
+  const { status, identity, sessionEndsAtMs, sessionEnd } = useSyncExternalStore(
     subscribeAuthState,
     getAuthState,
   );
@@ -11,6 +11,7 @@ export const useInternetIdentity = () => {
   return {
     identity,
     sessionEndsAtMs,
+    sessionEnd,
     canLogin: status === 'idle',
     isLoggingIn: status === 'logging-in',
     login,
