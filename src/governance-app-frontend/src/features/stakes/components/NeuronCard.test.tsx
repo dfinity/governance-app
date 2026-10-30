@@ -134,6 +134,19 @@ describe('NeuronCard', () => {
     });
   });
 
+  describe('creation date', () => {
+    it('shows the month as a word', () => {
+      // 2023-11-15 12:00 UTC: the same day in every time zone from UTC-11 to UTC+11.
+      render(
+        <NeuronCard
+          neuron={mockNeuron({ fullNeuron: { createdTimestampSeconds: 1_700_049_600n } })}
+        />,
+      );
+
+      expect(screen.getByText('Nov 15, 2023')).toBeTruthy();
+    });
+  });
+
   describe('disbursing maturity row', () => {
     it('shows the row with the total when disbursements are in progress', () => {
       render(

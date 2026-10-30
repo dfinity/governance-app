@@ -15,7 +15,7 @@ import { useIcpPrice } from '@hooks/tickers';
 import { useApyColor } from '@hooks/useApyColor';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { bigIntDiv } from '@utils/bigInt';
-import { formatTimestampToLocalDate } from '@utils/date';
+import { secondsToDate } from '@utils/date';
 import {
   formatDissolveDelay,
   getDissolvingTimeInSeconds,
@@ -80,7 +80,8 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
     i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
   });
 
-  const creationDate = formatTimestampToLocalDate(neuron.fullNeuron?.createdTimestampSeconds);
+  const createdSeconds = neuron.fullNeuron?.createdTimestampSeconds;
+  const creationDate = nonNullish(createdSeconds) ? secondsToDate(Number(createdSeconds)) : '-';
 
   const stakedMaturity = bigIntDiv(getNeuronStakedMaturityE8s(neuron), E8Sn);
   const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
