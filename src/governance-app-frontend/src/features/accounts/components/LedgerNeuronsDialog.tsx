@@ -238,9 +238,24 @@ function LedgerNeuronRow({
       data-testid="ledger-neuron-row"
     >
       <div className="flex min-w-0 flex-col gap-1">
-        <p className="text-[15px] font-semibold">
-          {t(($) => $.neuron.neuronId, { neuronId: neuronIdText })}
-        </p>
+        {hasHotkey ? (
+          <Link
+            to="/neurons"
+            search={{ neuronId: neuron.neuronId.toString() }}
+            className="group flex w-fit items-center gap-0.5 text-[15px] font-semibold transition-colors hover:text-primary"
+            data-testid="ledger-neuron-view"
+          >
+            {t(($) => $.neuron.neuronId, { neuronId: neuronIdText })}
+            <ChevronRight
+              className="size-4 text-muted-foreground transition-[color,transform] group-hover:translate-x-0.5 group-hover:text-primary"
+              aria-hidden="true"
+            />
+          </Link>
+        ) : (
+          <p className="text-[15px] font-semibold">
+            {t(($) => $.neuron.neuronId, { neuronId: neuronIdText })}
+          </p>
+        )}
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-muted-foreground">
           <SensitiveValue size="sm">
             {t(($) => $.common.inIcp, { value: formatNumber(stake) })}
@@ -251,24 +266,13 @@ function LedgerNeuronRow({
       </div>
 
       {hasHotkey ? (
-        <div className="flex shrink-0 flex-col items-end gap-1">
-          <span
-            className="flex items-center gap-1 text-sm font-medium text-green-600 dark:text-green-400"
-            data-testid="ledger-neuron-hotkey-added"
-          >
-            <Check className="size-4" aria-hidden="true" />
-            {t(($) => $.accounts.ledgerNeurons.hotkeyAdded)}
-          </span>
-          <Link
-            to="/neurons"
-            search={{ neuronId: neuron.neuronId.toString() }}
-            className="flex items-center gap-0.5 text-sm font-medium text-primary hover:underline"
-            data-testid="ledger-neuron-view"
-          >
-            {t(($) => $.accounts.ledgerNeurons.viewNeuron)}
-            <ChevronRight className="size-4" aria-hidden="true" />
-          </Link>
-        </div>
+        <span
+          className="flex shrink-0 items-center gap-1 text-sm font-medium text-green-600 dark:text-green-400"
+          data-testid="ledger-neuron-hotkey-added"
+        >
+          <Check className="size-4" aria-hidden="true" />
+          {t(($) => $.accounts.ledgerNeurons.hotkeyAdded)}
+        </span>
       ) : (
         <Button
           size="sm"
