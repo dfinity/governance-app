@@ -65,7 +65,7 @@ export function EngagementCard({ neurons }: EngagementCardProps) {
   return (
     <Card
       className={cn(
-        'gap-3 overflow-hidden py-4',
+        'gap-3 overflow-hidden py-4 wrap-anywhere',
         !isLoading && [CLICKABLE_CARD_CLASS, CLICKABLE_CARD_HOVER_CLASS],
       )}
       data-testid="stakes-summary-engagement-card"

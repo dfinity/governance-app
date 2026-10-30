@@ -10,11 +10,11 @@ export const AdvancedFeaturesCard = () => {
   const { features, setFeature } = useAdvancedFeatures();
 
   return (
-    <div className="flex flex-col divide-y">
+    <div className="@container flex flex-col divide-y">
       {getSupportedAdvancedFeatures().map(({ key, icon: Icon }) => (
         <div key={key} className="flex items-start justify-between gap-4 px-6 py-5">
-          <div className="flex items-center gap-3">
-            <Icon className="size-5 shrink-0 text-muted-foreground" />
+          <div className="flex items-center gap-3 wrap-anywhere">
+            <Icon className="size-5 shrink-0 text-muted-foreground @max-[16rem]:hidden" />
             <div className="space-y-0.5">
               <p className="font-medium">
                 {t(($) => $.userAccount.advancedFeatures.items[key].label)}

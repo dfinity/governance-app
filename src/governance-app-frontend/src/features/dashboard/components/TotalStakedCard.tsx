@@ -34,7 +34,7 @@ export const TotalStakedCard = () => {
 
   return (
     <Card className="gap-3 py-4">
-      <CardContent>
+      <CardContent className="@container">
         <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {t(($) => $.home.totalStaked)}
         </p>
@@ -42,9 +42,9 @@ export const TotalStakedCard = () => {
           <Skeleton className="h-8 w-40" />
         ) : (
           // The line has a fixed height, so the percentage wraps out of sight when it does not
-          // fit next to the value.
-          <div className="flex h-8 flex-wrap items-baseline gap-x-2 overflow-y-clip">
-            <p className="text-2xl font-semibold text-foreground">
+          // fit next to the value. Below 11rem the value alone does not fit, so the line grows.
+          <div className="flex h-8 flex-wrap items-baseline gap-x-2 overflow-y-clip @max-[11rem]:h-auto">
+            <p className="text-2xl font-semibold text-foreground @max-[11rem]:wrap-anywhere">
               {nonNullish(tvl) ? (
                 // The hidden final value sizes the slot, so the percentage does not move while
                 // the number counts up.

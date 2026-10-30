@@ -22,7 +22,7 @@ export const ShortcutsCard = () => {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
+        <div className="space-y-1 wrap-anywhere">
           <p className="leading-none font-medium">{t(($) => $.userAccount.shortcuts.title)}</p>
           <p className="text-sm text-muted-foreground">
             {t(($) => $.userAccount.shortcuts.description)}

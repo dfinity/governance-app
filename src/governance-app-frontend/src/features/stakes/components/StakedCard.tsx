@@ -98,8 +98,8 @@ export function StakedCard() {
   return (
     <Card className="h-full pt-4 pb-6" data-testid="staked-card">
       <CardHeader className="flex flex-col gap-0">
-        <div className="flex min-h-9 w-full items-center justify-between">
-          <div className="flex shrink-0 items-center gap-2">
+        <div className="flex min-h-9 w-full flex-wrap items-center justify-between gap-x-3">
+          <div className="flex flex-wrap items-center gap-2">
             <p className="text-sm tracking-wide text-muted-foreground uppercase">
               <span className="sm:hidden">{t(($) => $.common.stakedShort)}</span>
               <span className="hidden sm:inline">{t(($) => $.common.staked)}</span>
@@ -133,7 +133,7 @@ export function StakedCard() {
           {neuronsQuery.isLoading ? (
             <Skeleton className="h-8 w-32" />
           ) : (
-            <p className="text-2xl font-semibold">
+            <p className="text-2xl font-semibold wrap-anywhere">
               <SensitiveValue>
                 {t(($) => $.common.inIcp, { value: formatNumber(totalStaked) })}
               </SensitiveValue>
@@ -152,8 +152,8 @@ export function StakedCard() {
         </div>
       </CardHeader>
 
-      <CardContent className="flex flex-1 flex-col justify-between gap-6">
-        <div className="mt-auto grid grid-cols-2 gap-6 border-t pt-4 text-right">
+      <CardContent className="@container flex flex-1 flex-col justify-between gap-6">
+        <div className="mt-auto grid grid-cols-1 gap-6 border-t pt-4 text-right wrap-anywhere @min-[16rem]:grid-cols-2">
           <div className="flex flex-col gap-1">
             {isNullish(neuronsQuery.data) ? (
               <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
@@ -182,7 +182,7 @@ export function StakedCard() {
             </div>
           </div>
 
-          <div className="relative flex flex-col gap-1 border-l pl-6">
+          <div className="relative flex flex-col gap-1 @min-[16rem]:border-l @min-[16rem]:pl-6">
             <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
               {/* The button covers the whole cell, number included, so a tap anywhere on it changes
                   the period. */}

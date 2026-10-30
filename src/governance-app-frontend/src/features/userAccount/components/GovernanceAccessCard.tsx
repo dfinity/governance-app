@@ -73,7 +73,7 @@ export const GovernanceAccessCard = () => {
             <ResponsiveDialogTrigger asChild>
               <Button
                 variant="ghost"
-                className="group h-auto justify-start p-0 text-sm text-muted-foreground hover:bg-transparent hover:text-foreground"
+                className="group h-auto min-h-0 justify-start p-0 text-left text-sm wrap-anywhere text-muted-foreground hover:bg-transparent hover:text-foreground"
               >
                 {t(($) => $.userAccount.governance.access.links.learnHow)}
                 <Info className="ml-1.5 size-3.5 opacity-50 transition-transform group-hover:opacity-100" />

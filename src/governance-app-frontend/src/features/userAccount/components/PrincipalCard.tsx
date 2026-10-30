@@ -12,7 +12,7 @@ export const PrincipalCard = () => {
 
   return (
     <div className="flex items-center justify-between gap-4">
-      <div className="flex min-w-0 flex-col gap-1.5">
+      <div className="flex min-w-0 flex-col gap-1.5 wrap-anywhere">
         <p className="font-medium text-foreground">{t(($) => $.userAccount.principalId)}</p>
         <p className="font-mono text-sm break-words text-muted-foreground">
           {identity.getPrincipal().toText()}
