@@ -133,6 +133,16 @@ describe('NeuronCard', () => {
     });
   });
 
+  describe('creation date', () => {
+    it('shows the month as a word', () => {
+      // Local noon, so the day does not depend on the host time zone.
+      const createdTimestampSeconds = BigInt(new Date(2023, 10, 15, 12).getTime() / 1000);
+      render(<NeuronCard neuron={mockNeuron({ fullNeuron: { createdTimestampSeconds } })} />);
+
+      expect(screen.getByText('Nov 15, 2023')).toBeTruthy();
+    });
+  });
+
   describe('disbursing maturity row', () => {
     it('shows the row with the total when disbursements are in progress', () => {
       render(
