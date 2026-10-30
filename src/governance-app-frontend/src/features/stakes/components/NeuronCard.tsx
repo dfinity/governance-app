@@ -95,11 +95,15 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
   return (
     <>
       <Card
-        className="@container/neuron-card flex h-full flex-col gap-3 transition-colors hover:border-foreground"
+        className="@container/neuron-card relative flex h-full flex-col gap-3 transition-colors hover:border-foreground"
         data-testid="neuron-card"
       >
+        {/* The tab hangs in the top padding, so the rows line up with cards without it. */}
         {ledgerDevice && (
-          <LedgerDeviceBand name={ledgerDevice.name} className="-mt-6 mb-3 rounded-t-[5px] px-6" />
+          <LedgerDeviceBand
+            name={ledgerDevice.name}
+            className="absolute top-0 left-6 max-w-[calc(100%-3rem)] gap-1 rounded-b-[5px] border-x px-2 py-0.5 text-[11px] leading-4"
+          />
         )}
         {/* The tags (hotkey, 8-year gang, APY) share one cluster. Narrow cards show
             the fiat value and the tags on one line below the amount. */}
