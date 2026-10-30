@@ -52,6 +52,7 @@ import { cn } from '@utils/shadcn';
 import { useNeuronLedgerDevice } from '../../hooks/useNeuronLedgerDevice';
 import { FollowingStatusAlert } from '../FollowingStatusAlert';
 import { FollowingStatusInline } from '../FollowingStatusInline';
+import { LedgerDeviceBand } from '../LedgerDeviceBand';
 import { NeuronStateBadge } from '../NeuronStateBadge';
 import { NeuronDetailView } from './types';
 
@@ -138,15 +139,10 @@ export function NeuronDetailSummaryView({
       </div>
 
       {/* Neuron Info Section */}
-      <div className="flex flex-col rounded-lg border bg-muted/30">
+      <div className="flex flex-col overflow-hidden rounded-lg border bg-muted/30">
+        {ledgerDevice && <LedgerDeviceBand name={ledgerDevice.name} className="px-4" />}
         <InfoRow label={t(($) => $.neuron.stakeId)} dataTestId="neuron-detail-stake-id">
           <div className="flex items-center gap-2">
-            {ledgerDevice && (
-              <Badge variant="outline" data-testid="neuron-ledger-device-badge">
-                <Usb aria-hidden="true" />
-                {t(($) => $.neuron.ledgerDevice)}
-              </Badge>
-            )}
             {isHotkey && (
               <Tooltip>
                 <TooltipTrigger asChild>

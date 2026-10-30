@@ -100,6 +100,6 @@
       "zeroBalance": "You need ICP to lock. Please buy or deposit ICP first."
     }
   },
-  "ledgerDevice": "Ledger device",
+  "ledgerDeviceBand": "Ledger · {{name}}",
   "controller": "Controller"
 }
