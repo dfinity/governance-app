@@ -1,9 +1,8 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
-import { AlertTriangle, CircleAlert, Coins, Hourglass, Key, PackagePlus, Usb } from 'lucide-react';
+import { AlertTriangle, CircleAlert, Coins, Hourglass, Key, PackagePlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
@@ -39,6 +38,7 @@ import { APY } from '@utils/staking-rewards';
 import { useNeuronLedgerDevice } from '../hooks/useNeuronLedgerDevice';
 import { useLedgerSignerPrincipals } from '../hooks/useNeuronSigner';
 import { FollowingStatusBadge } from './FollowingStatusBadge';
+import { LedgerDeviceBand } from './LedgerDeviceBand';
 import type { NeuronAction } from './neuronDetail';
 import { NeuronStandaloneAction } from './neuronDetail';
 import { NeuronStateBadge } from './NeuronStateBadge';
@@ -97,7 +97,10 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
         className="@container/neuron-card flex h-full flex-col gap-3 transition-colors hover:border-foreground"
         data-testid="neuron-card"
       >
-        {/* The tags (device, hotkey, 8-year gang, APY) share one cluster. Narrow cards show
+        {ledgerDevice && (
+          <LedgerDeviceBand name={ledgerDevice.name} className="-mt-6 mb-3 rounded-t-[5px] px-6" />
+        )}
+        {/* The tags (hotkey, 8-year gang, APY) share one cluster. Narrow cards show
             the fiat value and the tags on one line below the amount. */}
         <CardHeader className="flex flex-wrap items-center justify-between space-y-0 gap-x-3 gap-y-1 @md/neuron-card:items-start @md/neuron-card:gap-y-3">
           <div className="contents @md/neuron-card:flex @md/neuron-card:flex-col @md/neuron-card:gap-1">
@@ -121,18 +124,8 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
               )
             )}
           </div>
-          {(ledgerDevice || isHotkey || showApy) && (
+          {(isHotkey || showApy) && (
             <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-1.5">
-              {ledgerDevice && (
-                <Badge
-                  variant="outline"
-                  title={ledgerDevice.name}
-                  data-testid="neuron-ledger-device-badge"
-                >
-                  <Usb aria-hidden="true" />
-                  {t(($) => $.neuron.ledgerDevice)}
-                </Badge>
-              )}
               {isHotkey && (
                 <Tooltip>
                   <TooltipTrigger asChild>
