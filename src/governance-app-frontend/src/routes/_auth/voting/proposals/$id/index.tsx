@@ -1,7 +1,8 @@
 import { ProposalInfo, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
-import { createFileRoute, Link, redirect } from '@tanstack/react-router';
+import { createFileRoute, Link, redirect, useLocation, useRouter } from '@tanstack/react-router';
 import { ArrowLeft, Clock, Link as LinkIcon, Tag } from 'lucide-react';
+import { MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalDetailsVoting } from '@features/proposals/components/ProposalDetailsVoting';
@@ -65,8 +66,22 @@ export const Route = createFileRoute('/_auth/voting/proposals/$id/')({
 
 function ProposalDetailsRouteComponent() {
   const { t } = useTranslation();
+  const router = useRouter();
   const { id } = Route.useParams();
   const search = Route.useSearch();
+  const fromProposalList = useLocation({
+    select: (location) => location.state.fromProposalList === true,
+  });
+
+  // The list is the previous history entry, so go back to it. A push would make the system
+  // Back gesture return to this page.
+  const handleBackToProposals = (event: MouseEvent) => {
+    if (!fromProposalList || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return;
+    }
+    event.preventDefault();
+    router.history.back();
+  };
 
   const proposalQuery = useGovernanceProposal({
     proposalId: id!,
@@ -81,6 +96,7 @@ function ProposalDetailsRouteComponent() {
           <Link
             to="/voting"
             search={{ showProposals: search.showProposals, proposalFilter: search.proposalFilter }}
+            onClick={handleBackToProposals}
           >
             <ArrowLeft className="size-5" />
             {t(($) => $.proposal.backToProposals)}
