@@ -27,8 +27,9 @@ const DEV_ASSET_CACHE_CONTROL: &str = "public, max-age=3600"; // 1 hour cache fo
 const ACCESS_CONTROL_ALLOW_ORIGIN_HEADER: &str = "access-control-allow-origin";
 
 // Well-known paths for Internet Identity alternative origins configuration.
+// Asset paths are relative to `dist` and have no leading slash.
 // See: https://internetcomputer.org/docs/current/developer-docs/identity/internet-identity/alternative-origins
-const WELL_KNOWN_PATH: &str = "/.well-known";
+const WELL_KNOWN_PATH: &str = ".well-known";
 const II_ALTERNATIVE_ORIGINS_FILE_NAME: &str = "ii-alternative-origins";
 
 /// Content Security Policy directives. Each entry is joined with "; " to form the header value.
@@ -171,6 +172,27 @@ fn well_known_asset_headers() -> Vec<HeaderField> {
     ])
 }
 
+/// Returns the configs for the well-known files for Internet Identity alternative origins.
+/// The first matching config applies, so the File config comes before the Pattern config.
+fn well_known_asset_configs() -> Vec<AssetConfig> {
+    vec![
+        AssetConfig::File {
+            path: format!("{WELL_KNOWN_PATH}/{II_ALTERNATIVE_ORIGINS_FILE_NAME}"),
+            content_type: Some("application/json".to_string()),
+            headers: well_known_asset_headers(),
+            fallback_for: vec![],
+            aliased_by: vec![],
+            encodings: vec![],
+        },
+        AssetConfig::Pattern {
+            pattern: format!("{WELL_KNOWN_PATH}/*"),
+            content_type: None,
+            headers: well_known_asset_headers(),
+            encodings: vec![],
+        },
+    ]
+}
+
 /// Generates asset configurations defining content-type, caching, and encoding rules per file type.
 fn generate_default_asset_configs() -> Vec<AssetConfig> {
     // Text-based assets benefit from compression
@@ -185,7 +207,7 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
         format!("canisterId={}", ic_cdk::api::canister_self().to_text()),
     );
 
-    vec![
+    let mut asset_configs = vec![
         // index.html: No caching (content changes on deploys), serves as SPA fallback for all routes
         AssetConfig::File {
             path: "index.html".to_string(),
@@ -305,20 +327,67 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             )]),
             encodings: vec![],
         },
-        // Well-known files for Internet Identity alternative origins
-        AssetConfig::Pattern {
-            pattern: format!("{WELL_KNOWN_PATH}/*"),
-            content_type: None,
-            headers: well_known_asset_headers(),
-            encodings: vec![],
-        },
-        AssetConfig::File {
-            path: format!("{WELL_KNOWN_PATH}/{II_ALTERNATIVE_ORIGINS_FILE_NAME}"),
-            content_type: Some("application/json".to_string()),
-            headers: well_known_asset_headers(),
-            fallback_for: vec![],
-            aliased_by: vec![],
-            encodings: vec![],
-        },
-    ]
+    ];
+    asset_configs.extend(well_known_asset_configs());
+    asset_configs
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn serve_well_known_asset(url: &str) -> HttpResponse<'static> {
+        // Same path format as `collect_files_recursive` gives from `include_dir`.
+        let assets = vec![
+            Asset::new(
+                ".well-known/ic-domains",
+                b"nns.internetcomputer.org".as_slice(),
+            ),
+            Asset::new(".well-known/ii-alternative-origins", b"{}".as_slice()),
+        ];
+        let mut router = AssetRouter::default();
+        router
+            .certify_assets(assets, well_known_asset_configs())
+            .unwrap();
+        router
+            .serve_asset(&[], &HttpRequest::get(url).build())
+            .unwrap()
+    }
+
+    fn header<'a>(response: &'a HttpResponse, name: &str) -> Option<&'a str> {
+        response
+            .headers()
+            .iter()
+            .find(|(key, _)| key.eq_ignore_ascii_case(name))
+            .map(|(_, value)| value.as_str())
+    }
+
+    #[test]
+    fn well_known_assets_get_no_cache_and_cors_headers() {
+        for url in [
+            "/.well-known/ic-domains",
+            "/.well-known/ii-alternative-origins",
+        ] {
+            let response = serve_well_known_asset(url);
+
+            assert_eq!(response.status_code(), StatusCode::OK, "{url}");
+            assert_eq!(
+                header(&response, CACHE_CONTROL_HEADER),
+                Some(NO_CACHE_ASSET_CACHE_CONTROL),
+                "{url}"
+            );
+            assert_eq!(
+                header(&response, ACCESS_CONTROL_ALLOW_ORIGIN_HEADER),
+                Some("*"),
+                "{url}"
+            );
+        }
+    }
+
+    #[test]
+    fn ii_alternative_origins_is_json() {
+        let response = serve_well_known_asset("/.well-known/ii-alternative-origins");
+
+        assert_eq!(header(&response, "content-type"), Some("application/json"));
+    }
 }
