@@ -32,6 +32,7 @@ import {
 import { ResponsiveDialogDescription, ResponsiveDialogTitle } from '@components/ResponsiveDialog';
 import { SkeletonPickerRows } from '@components/skeletons/SkeletonListRows';
 import { DIALOG_RESET_DELAY_MS } from '@constants/extra';
+import { IDENTIFIER_INPUT_PROPS } from '@constants/input';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import { stringToBigInt } from '@utils/bigInt';
@@ -395,6 +396,7 @@ function StepSelectNeurons({
           onChange={(e) => onCustomIdChange(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && onAddCustom()}
           className={cn('focus-visible:ring-0', customIdError && 'border-destructive')}
+          {...IDENTIFIER_INPUT_PROPS}
           data-testid="picker-custom-id-input"
         />
         <Button

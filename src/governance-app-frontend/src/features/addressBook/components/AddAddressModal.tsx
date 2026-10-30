@@ -17,6 +17,7 @@ import {
 } from '@components/MutationDialog';
 import { ResponsiveDialogDescription, ResponsiveDialogTitle } from '@components/ResponsiveDialog';
 import { ADDRESS_BOOK_MAX_NAME_LENGTH, ADDRESS_BOOK_MIN_NAME_LENGTH } from '@constants/addressBook';
+import { IDENTIFIER_INPUT_PROPS } from '@constants/input';
 import { useSaveAddressBook } from '@hooks/addressBook/useSaveAddressBook';
 import { isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
 import { addressBookGetAddressString } from '@utils/addressBook';
@@ -246,7 +247,7 @@ export const AddAddressModal: React.FC<Props> = ({
                     addressError && 'border-destructive',
                   )}
                   aria-invalid={!!addressError}
-                  autoComplete="off"
+                  {...IDENTIFIER_INPUT_PROPS}
                   data-1p-ignore
                   data-lpignore="true"
                   data-testid="add-address-address-input"
