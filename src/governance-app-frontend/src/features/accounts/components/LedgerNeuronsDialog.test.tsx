@@ -134,7 +134,7 @@ describe('LedgerNeuronsDialog', () => {
 
     renderDialog();
 
-    const links = await screen.findAllByRole('link', { name: 'View neuron' });
+    const links = await screen.findAllByRole('link', { name: 'Neuron #2' });
     expect(links).toHaveLength(1);
     expect(links[0].getAttribute('href')).toBe('/neurons?neuronId=2');
     expect(links[0].closest('[data-testid=ledger-neuron-row]')?.textContent).toContain(
