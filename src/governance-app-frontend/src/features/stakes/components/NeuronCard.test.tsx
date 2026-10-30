@@ -136,12 +136,9 @@ describe('NeuronCard', () => {
 
   describe('creation date', () => {
     it('shows the month as a word', () => {
-      // 2023-11-15 12:00 UTC: the same day in every time zone from UTC-11 to UTC+11.
-      render(
-        <NeuronCard
-          neuron={mockNeuron({ fullNeuron: { createdTimestampSeconds: 1_700_049_600n } })}
-        />,
-      );
+      // Local noon, so the day does not depend on the host time zone.
+      const createdTimestampSeconds = BigInt(new Date(2023, 10, 15, 12).getTime() / 1000);
+      render(<NeuronCard neuron={mockNeuron({ fullNeuron: { createdTimestampSeconds } })} />);
 
       expect(screen.getByText('Nov 15, 2023')).toBeTruthy();
     });
