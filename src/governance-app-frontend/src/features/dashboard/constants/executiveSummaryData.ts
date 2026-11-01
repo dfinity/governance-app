@@ -82,69 +82,75 @@ import type { MonthlyGovernanceSummary } from '../types/executiveSummary';
  * ▲▲▲ END PROMPT ▲▲▲
  */
 
-const SEPTEMBER_2026: MonthlyGovernanceSummary = {
-  month: 'September',
+const OCTOBER_2026: MonthlyGovernanceSummary = {
+  month: 'October',
   year: 2026,
 
   outcomes: [
-    { status: 'approved', count: 423 },
-    { status: 'rejected', count: 2 },
-    { status: 'failed', count: 3 },
+    { status: 'approved', count: 474 },
+    { status: 'rejected', count: 3 },
+    { status: 'failed', count: 0 },
   ],
 
   topChanges: [
     {
       icon: 'network',
       title: 'Network operations & infrastructure',
-      description: 'Cloud engines received 5 releases in staged waves; 3 nodes removed',
+      description: 'P-256 signing key created and reshared; subnet x4jtx recovered',
       highlights: [
-        { value: 318, label: 'rollouts completed' },
-        { value: 7, label: 'GuestOS versions' },
+        { value: 350, label: 'rollouts completed' },
+        { value: 6, label: 'GuestOS versions' },
         { value: 4, label: 'HostOS versions' },
-        { value: 6, label: 'nodes replaced' },
+        { value: 3, label: 'nodes replaced' },
       ],
     },
     {
       icon: 'protocol',
       title: 'Core protocol & app upgrades',
-      description: 'Internet Identity added remote sign-out; chain-key canister limits raised',
+      description: 'ckSOL canisters installed; Internet Identity added app notifications',
       highlights: [
-        { value: 9, label: 'protocol upgrades' },
-        { value: 9, label: 'II upgrades' },
-        { value: 2, label: 'NNS Dapp upgrades' },
-        { value: 58, label: 'canister settings updated' },
+        { value: 11, label: 'protocol upgrades' },
+        { value: 6, label: 'II upgrades' },
+        { value: 1, label: 'NNS Dapp upgrade' },
+        { value: 3, label: 'ckSOL canisters installed' },
       ],
     },
     {
       icon: 'community',
       title: 'Community governance',
-      description: 'Menese Protocol SNS launched; ckDOGE wind-down motion opened for vote',
+      description: 'Two SNS proposals rejected; Swiss Subnet AG added as a node provider',
       highlights: [
-        { value: 1, label: 'SNS launched' },
-        { value: 1, label: 'motion rejected' },
-        { value: 1, label: 'node provider rejected' },
+        { value: 2, label: 'SNS proposals rejected' },
+        { value: 1, label: 'node provider added' },
+        { value: 1, label: 'node provider removed' },
       ],
     },
   ],
 
   communityHighlights: [
     {
-      title: 'Create an SNS DAO for Menese Protocol',
+      title: 'Create an SNS DAO for the AUCTION platform',
+      outcome: 'rejected',
+      label: 'Rejected',
+    },
+    {
+      title:
+        'Donate the funnAI application to the onicai SNS and seed an ONICAI/ICP liquidity pool',
+      outcome: 'rejected',
+      label: 'Rejected',
+    },
+    {
+      title: 'Add Swiss Subnet AG as a node provider',
       outcome: 'passed',
-      label: 'Launch Approved',
+      label: 'Passed',
     },
     {
-      title: 'Delulu.game: a 100% On Chain MMORPG running on the IC',
-      outcome: 'rejected',
-      label: 'Rejected',
-    },
-    {
-      title: 'Add Validator Solutions LLC as a Node Provider',
-      outcome: 'rejected',
-      label: 'Rejected',
+      title: 'Remove Decentralized as a node provider',
+      outcome: 'passed',
+      label: 'Passed',
     },
   ],
 };
 
 /** The currently displayed summary — update this reference each month */
-export const currentSummary: MonthlyGovernanceSummary = SEPTEMBER_2026;
+export const currentSummary: MonthlyGovernanceSummary = OCTOBER_2026;
