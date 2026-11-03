@@ -111,6 +111,19 @@ describe('useSessionChange', () => {
     );
   });
 
+  it('runs the route guards once when a later session read drops the end marker.', async () => {
+    const { switchTo } = renderSessionChange(Ed25519KeyIdentity.generate());
+
+    switchTo(undefined, 'logout');
+    await waitFor(() => expect(invalidate).toHaveBeenCalledTimes(2));
+
+    // For example, the auth client writes its own expired record after a failed logout.
+    switchTo(undefined, undefined);
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(invalidate).toHaveBeenCalledTimes(2);
+  });
+
   it('keeps the cached queries when the same account gets a new identity object.', async () => {
     const identity = Ed25519KeyIdentity.generate();
     const { resetQueries, switchTo } = renderSessionChange(identity);
