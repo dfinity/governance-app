@@ -52,6 +52,7 @@ describe('useSessionChange', () => {
   beforeEach(() => {
     invalidate.mockClear();
     infoNotification.mockClear();
+    consumeLogoutRedirect.mockClear();
   });
 
   it('resets the cached queries when another tab switches the account.', async () => {
@@ -95,13 +96,19 @@ describe('useSessionChange', () => {
     expect(infoNotification).not.toHaveBeenCalled();
   });
 
-  it('leaves the logout redirect to the route guard.', async () => {
+  it('drops a logout that no route guard consumed, once the guards ran.', async () => {
     const { resetQueries, switchTo } = renderSessionChange(Ed25519KeyIdentity.generate());
+    await waitFor(() => expect(consumeLogoutRedirect).toHaveBeenCalledTimes(1));
 
+    // For example, a logout in another tab while this tab shows a page without a guard.
     switchTo(undefined, 'logout');
 
     await waitFor(() => expect(resetQueries).toHaveBeenCalledTimes(1));
-    expect(consumeLogoutRedirect).not.toHaveBeenCalled();
+    expect(consumeLogoutRedirect).toHaveBeenCalledTimes(2);
+    // The guards run first, so a logout reaches the one that redirects.
+    expect(invalidate.mock.invocationCallOrder[1]).toBeLessThan(
+      consumeLogoutRedirect.mock.invocationCallOrder[1],
+    );
   });
 
   it('keeps the cached queries when the same account gets a new identity object.', async () => {

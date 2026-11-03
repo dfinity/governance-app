@@ -9,6 +9,7 @@ import { analytics } from '@features/analytics/service';
 
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { infoNotification } from '@utils/notification';
+import { consumeLogoutRedirect } from '@common/auth/internetIdentity';
 
 /**
  * Runs the route guards again when the account changes: on a login, a logout, an expired session,
@@ -25,6 +26,10 @@ export const useSessionChange = () => {
 
   useEffect(() => {
     invalidate().finally(() => {
+      // The route guards ran. A logout that none of them consumed must not reach a later one,
+      // for example on a page without a guard.
+      consumeLogoutRedirect();
+
       const previous = previousPrincipal.current;
       previousPrincipal.current = principal;
       if (isNullish(previous) || previous === principal) return;

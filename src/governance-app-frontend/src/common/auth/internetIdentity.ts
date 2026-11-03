@@ -59,6 +59,8 @@ let logoutRedirectPending = false;
 // A session that ended in this tab while the auth client can still hold it: a logout that failed,
 // or the last seconds before the expiry.
 let endedSessionExpiresAtMs: number | undefined;
+// A session that the auth client could not hand out, so a new client read it one time.
+let unreadableExpiresAtMs: number | undefined;
 
 const createAuthClient = (): AuthClient =>
   new AuthClient({
@@ -166,12 +168,9 @@ const readSession = async (client: AuthClient, revision: number) => {
 
   // Read after the wait, because another tab can log in or out meanwhile.
   const status = client.getStatus();
+  const live = status.state === 'signed-in' && status.expiresAtMs !== endedSessionExpiresAtMs;
 
-  if (
-    nonNullish(identity) &&
-    status.state === 'signed-in' &&
-    status.expiresAtMs !== endedSessionExpiresAtMs
-  ) {
+  if (live && nonNullish(identity)) {
     // Another tab switched the account. A new page drops all the state of the account before:
     // agents, queries and open dialogs.
     if (isOtherAccount(identity)) {
@@ -183,9 +182,25 @@ const readSession = async (client: AuthClient, revision: number) => {
     return;
   }
 
-  // Only a session that this tab held can end.
+  // The client holds no identity for the session that the record names: it skips the restore
+  // for a change that arrives during its own sign-in or restore. A new client reads the stored
+  // session. One time, so a session that cannot be read does not start a new client again.
+  if (live && status.expiresAtMs !== unreadableExpiresAtMs) {
+    unreadableExpiresAtMs = status.expiresAtMs;
+    void syncSession(replaceAuthClient());
+    return;
+  }
+
+  // Only a session that this tab held can end, and only one that Internet Identity no longer
+  // holds has a reason: a logout, or the end of its time.
   const held = state.status === 'authenticated' || state.status === 'logging-out';
-  const sessionEnd = held ? (status.state === 'signed-out' ? 'logout' : 'expiry') : undefined;
+  const sessionEnd = !held
+    ? undefined
+    : status.state === 'signed-out'
+      ? 'logout'
+      : status.state === 'expired'
+        ? 'expiry'
+        : undefined;
   // A logout in this tab set it already.
   if (state.status === 'authenticated' && sessionEnd === 'logout') logoutRedirectPending = true;
   clearSession(sessionEnd);
@@ -217,6 +232,16 @@ const onSessionChange = () => {
   if (authClient && (reading || ['initializing', 'idle', 'authenticated'].includes(state.status))) {
     void syncSession(authClient);
   }
+};
+
+// The client gives way to a new one: it waits for a popup that closed before it loaded, or it
+// holds no identity for the session that the record names. Disposal ends what the client hooked,
+// not the session.
+const replaceAuthClient = (): AuthClient => {
+  authClient?.dispose();
+  authClient = createAuthClient();
+  authClient.subscribe(onSessionChange);
+  return authClient;
 };
 
 const restoreSession = async () => {
@@ -259,7 +284,10 @@ export const ensureInitialized = async (): Promise<Identity | undefined> => {
 
 export const getAuthState = (): AuthState => state;
 
-/** Whether the route guard runs for a logout, which needs no notice. It answers `true` once. */
+/**
+ * Whether the route guard runs for a logout, which needs no notice. It answers `true` once.
+ * `useSessionChange` drops a logout that no guard consumed, once the guards ran.
+ */
 export const consumeLogoutRedirect = (): boolean => {
   const pending = logoutRedirectPending;
   logoutRedirectPending = false;
@@ -303,10 +331,7 @@ export const login = () => {
   if (state.status === 'logging-in') {
     // The read after the first sign-in can still wait.
     supersedeReads();
-    client.dispose();
-    authClient = createAuthClient();
-    authClient.subscribe(onSessionChange);
-    signIn(authClient);
+    signIn(replaceAuthClient());
     return;
   }
 

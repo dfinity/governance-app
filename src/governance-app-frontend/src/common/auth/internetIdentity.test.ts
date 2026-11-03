@@ -143,17 +143,81 @@ describe('internetIdentity', () => {
     expect(auth.getAuthState()).toEqual({ status: 'idle' });
   });
 
-  it('resolves without an identity when the stored session cannot be read.', async () => {
+  it('reads the stored session with a new auth client when the first one cannot hand it out.', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    const client = mockAuthClient({
-      identity: Ed25519KeyIdentity.generate(),
-      expiresAtMs: Date.now() + ONE_HOUR_MS,
-    });
+    const identity = Ed25519KeyIdentity.generate();
+    const expiresAtMs = Date.now() + ONE_HOUR_MS;
+    const client = mockAuthClient({ identity, expiresAtMs });
+    client.getIdentity.mockRejectedValueOnce(new Error('SessionNotHeldError'));
+    const nextClient = mockAuthClient({ identity, expiresAtMs });
+    const auth = await loadModule();
+
+    await expect(auth.ensureInitialized()).resolves.toBe(identity);
+    expect(auth.getAuthState()).toMatchObject({ status: 'authenticated', identity });
+    expect(client.dispose).toHaveBeenCalled();
+    expect(nextClient.subscribe).toHaveBeenCalled();
+  });
+
+  it('resolves without an identity when no auth client can read the stored session.', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const identity = Ed25519KeyIdentity.generate();
+    const expiresAtMs = Date.now() + ONE_HOUR_MS;
+    const client = mockAuthClient({ identity, expiresAtMs });
     client.getIdentity.mockRejectedValueOnce(new Error('Failed to mint'));
+    const nextClient = mockAuthClient({ identity, expiresAtMs });
+    nextClient.getIdentity.mockRejectedValueOnce(new Error('Failed to mint'));
     const auth = await loadModule();
 
     await expect(auth.ensureInitialized()).resolves.toBeUndefined();
     expect(auth.getAuthState()).toEqual({ status: 'idle' });
+    // One new client for the session, not one for each failed read.
+    expect(AuthClient).toHaveBeenCalledTimes(2);
+  });
+
+  it('follows a login in another tab that the client skipped during a failed login.', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const client = mockAuthClient();
+    const signIn = deferred<Identity>();
+    client.signIn.mockReturnValueOnce(signIn.promise);
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    auth.login();
+    // The other tab logs in while the popup is open. The client skips the restore during its
+    // own sign-in, so it holds no identity for the session that the record names.
+    const identity = Ed25519KeyIdentity.generate();
+    const expiresAtMs = Date.now() + ONE_HOUR_MS;
+    client.change(identity, signedIn(identity, expiresAtMs));
+    client.getIdentity.mockRejectedValueOnce(new Error('SessionNotHeldError'));
+    const nextClient = mockAuthClient({ identity, expiresAtMs });
+
+    // The user closes the popup.
+    signIn.reject(new Error('UserInterrupt'));
+    await vi.waitFor(() =>
+      expect(auth.getAuthState()).toMatchObject({ status: 'authenticated', identity }),
+    );
+    expect(client.dispose).toHaveBeenCalled();
+    expect(nextClient.signIn).not.toHaveBeenCalled();
+  });
+
+  it('ends a held session without a reason when the client cannot hand it out.', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const identity = Ed25519KeyIdentity.generate();
+    const expiresAtMs = Date.now() + ONE_HOUR_MS;
+    const client = mockAuthClient({ identity, expiresAtMs });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    // The other tab logs in again as the same account.
+    const renewed = Ed25519KeyIdentity.fromSecretKey(identity.getKeyPair().secretKey);
+    const renewedExpiresAtMs = expiresAtMs + ONE_HOUR_MS;
+    client.getIdentity.mockRejectedValueOnce(new Error('SessionNotHeldError'));
+    const nextClient = mockAuthClient({ identity: renewed, expiresAtMs: renewedExpiresAtMs });
+    nextClient.getIdentity.mockRejectedValueOnce(new Error('SessionNotHeldError'));
+    client.change(renewed, signedIn(renewed, renewedExpiresAtMs));
+
+    // Not an expiry: Internet Identity still holds the session.
+    await vi.waitFor(() => expect(auth.getAuthState()).toEqual({ status: 'idle' }));
   });
 
   it('creates one auth client for all callers.', async () => {
