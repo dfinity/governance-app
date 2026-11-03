@@ -1,10 +1,10 @@
 import type { HttpAgent, Identity } from '@icp-sdk/core/agent';
 import { Ed25519KeyIdentity } from '@icp-sdk/core/identity';
-import { act, render, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { useContext } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { AgentPool, AgentPoolContext } from './agentPoolContext';
+import { AgentPoolContext } from './agentPoolContext';
 
 const { session, pendingAgents } = vi.hoisted(() => ({
   session: { identity: undefined as Identity | undefined },
@@ -27,11 +27,11 @@ vi.mock('@common/ledger/session', () => ({ clearLedgerIdentities: vi.fn() }));
 
 const { AgentPoolProvider } = await import('./agentPoolProvider');
 
-let latest: AgentPool | undefined;
-
 const Probe = () => {
-  latest = useContext(AgentPoolContext)?.agentPool;
-  return null;
+  const agent = useContext(AgentPoolContext)?.agentPool.authenticated.agent as
+    | { name?: string }
+    | undefined;
+  return <span data-testid="agent">{agent?.name ?? ''}</span>;
 };
 
 const renderPool = () =>
@@ -62,6 +62,6 @@ describe('AgentPoolProvider', () => {
     await act(async () => pendingAgents.get(renewed)?.(renewedAgent));
     await act(async () => pendingAgents.get(before)?.({ name: 'before' } as unknown as HttpAgent));
 
-    expect(latest?.authenticated.agent).toBe(renewedAgent);
+    expect(screen.getByTestId('agent').textContent).toBe('renewed');
   });
 });
