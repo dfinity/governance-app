@@ -22,6 +22,9 @@ const { hardwareWallets, webHid } = vi.hoisted(() => ({
   webHid: vi.fn(() => false),
 }));
 
+vi.mock('@hooks/governance/useGovernanceMaturityModulation', () => ({
+  useGovernanceMaturityModulation: () => ({ data: undefined, isLoading: false }),
+}));
 vi.mock('@features/accounts/hooks/useHardwareWalletsMetadata', () => ({
   useHardwareWalletsMetadata: () => ({ data: hardwareWallets(), isLoading: false }),
 }));

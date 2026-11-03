@@ -18,6 +18,9 @@ const DEVICE = 'device-principal';
 
 const { ledgerPrincipals } = vi.hoisted(() => ({ ledgerPrincipals: vi.fn(() => [] as string[]) }));
 
+vi.mock('@hooks/governance/useGovernanceMaturityModulation', () => ({
+  useGovernanceMaturityModulation: () => ({ data: undefined, isLoading: false }),
+}));
 vi.mock('@features/stakes/hooks/useNeuronSigner', () => ({
   useLedgerSignerPrincipals: () => ledgerPrincipals(),
 }));

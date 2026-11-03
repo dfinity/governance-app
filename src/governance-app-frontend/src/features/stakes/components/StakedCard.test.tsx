@@ -31,6 +31,7 @@ vi.mock('@tanstack/react-router', () => ({
 
 vi.mock('@hooks/governance', () => ({
   useGovernanceNeurons: () => ({ data: { response: [] }, isLoading: false }),
+  useGovernanceMaturityModulation: () => ({ data: undefined, isLoading: false }),
 }));
 
 vi.mock('@hooks/icpLedger', () => ({

@@ -65,6 +65,11 @@ vi.mock('@features/stakes/hooks/useDisburseMaturity', () => ({
 vi.mock('@features/stakes/hooks/useNeuronSigner', () => ({
   useNeuronSigner: () => II_SIGNER,
 }));
+const maturityModulation = vi.hoisted(() => vi.fn());
+
+vi.mock('@hooks/governance/useGovernanceMaturityModulation', () => ({
+  useGovernanceMaturityModulation: maturityModulation,
+}));
 vi.mock('@components/NavigationBlockerDialog', () => ({ NavigationBlockerDialog: () => null }));
 vi.mock('@hooks/useMediaQuery', () => ({ useMediaQuery: () => true }));
 
@@ -87,6 +92,7 @@ const openDestinationList = async () => {
 describe('DisburseMaturityModal destination suggestions', () => {
   beforeEach(() => {
     mutateAsync.mockClear();
+    maturityModulation.mockReturnValue({ data: undefined, isLoading: false });
   });
 
   it('offers a Ledger device account when only the Ledger feature is on', async () => {
@@ -113,5 +119,42 @@ describe('DisburseMaturityModal destination suggestions', () => {
       percentageToDisburse: 100,
       signer: II_SIGNER,
     });
+  });
+});
+
+describe('DisburseMaturityModal maturity modulation estimate', () => {
+  const mockModulation = (currentValuePermyriad: number | undefined) =>
+    maturityModulation.mockReturnValue({
+      data: {
+        certified: false,
+        response: { currentValuePermyriad, updatedAtTimestampSeconds: 1_793_404_800n },
+      },
+      isLoading: false,
+    });
+
+  it('shows the ICP estimate at the current modulation', () => {
+    mockModulation(-195);
+    renderDialog();
+
+    const estimate = screen.getByTestId('disburse-maturity-estimate');
+    expect(estimate.textContent).toContain('You get about');
+    expect(estimate.textContent).toContain('1.96 ICP');
+    expect(estimate.textContent).toContain('Maturity modulation today: −1.95%');
+  });
+
+  it('updates the estimate with the selected portion', async () => {
+    mockModulation(200);
+    renderDialog();
+
+    await userEvent.click(screen.getByTestId('disburse-maturity-preset-50'));
+
+    expect(screen.getByTestId('disburse-maturity-estimate').textContent).toContain('1.02 ICP');
+  });
+
+  it('hides the estimate when the modulation is unknown', () => {
+    mockModulation(undefined);
+    renderDialog();
+
+    expect(screen.queryByTestId('disburse-maturity-estimate')).toBeNull();
   });
 });
