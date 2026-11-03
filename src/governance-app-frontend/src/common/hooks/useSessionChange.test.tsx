@@ -82,6 +82,16 @@ describe('useSessionChange', () => {
     expect(infoNotification).not.toHaveBeenCalled();
   });
 
+  it('resets the cached queries without a notice when the session ends without a reason.', async () => {
+    const { resetQueries, switchTo } = renderSessionChange(Ed25519KeyIdentity.generate());
+
+    // For example, a live session that no auth client can hand out.
+    switchTo(undefined);
+
+    await waitFor(() => expect(resetQueries).toHaveBeenCalledTimes(1));
+    expect(infoNotification).not.toHaveBeenCalled();
+  });
+
   it('shows no notice in any tab on a manual logout.', async () => {
     const identity = Ed25519KeyIdentity.generate();
     const firstTab = renderSessionChange(identity);

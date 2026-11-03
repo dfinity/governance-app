@@ -40,8 +40,10 @@ export const useSessionChange = () => {
       // Another tab switched to a different account.
       if (nonNullish(principal)) return;
 
-      // A logout in any tab ends the session in all of them, so each tab reads it on its own.
-      if (sessionEnd === 'logout') return;
+      // Only the end of the session time needs a notice. A logout in any tab ends the session in
+      // all of them, so each tab reads it on its own. A session that no auth client can hand out
+      // has no reason.
+      if (sessionEnd !== 'expiry') return;
 
       analytics.event(AnalyticsEvent.SessionExpired, undefined, { interactive: false });
       infoNotification({ description: t(($) => $.common.autoExpirationLogout) });

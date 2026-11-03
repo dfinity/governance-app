@@ -208,14 +208,14 @@ const readSession = async (client: AuthClient, revision: number) => {
 
 /**
  * Ends the session whose time is up, in this tab only: Internet Identity ends it on its own. A
- * newer session that another tab installed stays.
+ * newer session or a logout that another tab made is read instead.
  */
 const expireSession = async (expiresAtMs: number) => {
   const client = authClient;
   if (!client || state.status !== 'authenticated') return;
 
   const status = client.getStatus();
-  if (status.state === 'signed-in' && status.expiresAtMs !== expiresAtMs) {
+  if (status.state !== 'signed-in' || status.expiresAtMs !== expiresAtMs) {
     await syncSession(client);
     return;
   }
