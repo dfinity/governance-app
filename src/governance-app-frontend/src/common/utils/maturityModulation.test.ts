@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  applyMaturityModulation,
   formatMaturityModulation,
   formatMaturityModulationRate,
   maturityModulationRate,
@@ -12,11 +11,6 @@ describe('maturityModulation', () => {
     expect(maturityModulationRate(-195)).toBeCloseTo(0.9805);
     expect(maturityModulationRate(0)).toBe(1);
     expect(maturityModulationRate(200)).toBeCloseTo(1.02);
-  });
-
-  it('applies the modulation to a maturity amount', () => {
-    expect(applyMaturityModulation(1_000, -195)).toBeCloseTo(980.5);
-    expect(applyMaturityModulation(10, 200)).toBeCloseTo(10.2);
   });
 
   it('formats the modulation with a sign', () => {

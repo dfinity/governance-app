@@ -1,6 +1,5 @@
 import { decodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { nonNullish } from '@dfinity/utils';
 import { AlertTriangle, BookUser, Info } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -26,12 +25,10 @@ import {
 import { ResponsiveDialogTitle } from '@components/ResponsiveDialog';
 import { E8Sn, ICP_MIN_DISBURSE_MATURITY_AMOUNT } from '@constants/extra';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
-import { useGovernanceMaturityModulation } from '@hooks/governance';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { addressToAccountIdentifier, isValidIcpAddress, isValidIcrcAddress } from '@utils/address';
 import { addressBookGetAddressString, addressBookIsIcpAddress } from '@utils/addressBook';
 import { bigIntDiv } from '@utils/bigInt';
-import { applyMaturityModulation, formatMaturityModulation } from '@utils/maturityModulation';
 import { getNeuronFreeMaturityE8s } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
@@ -109,8 +106,6 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   // Compute the portion in e8s to avoid rounding drift, then convert once for display.
   const selectedMaturityE8s = (freeMaturityE8s * BigInt(percentage)) / 100n;
   const selectedMaturity = bigIntDiv(selectedMaturityE8s, E8Sn);
-  const modulationPermyriad =
-    useGovernanceMaturityModulation().data?.response?.currentValuePermyriad;
 
   // "Your balance" only holds for the main account. Any other destination is
   // "the selected account".
@@ -270,31 +265,6 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
                 </span>
               </div>
             </div>
-
-            {nonNullish(modulationPermyriad) && (
-              <div
-                className="rounded-md border border-input px-3 py-2"
-                data-testid="disburse-maturity-estimate"
-              >
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-sm font-medium">
-                    {t(($) => $.neuronDetailModal.disburseMaturity.estimate)}
-                  </span>
-                  <span className="text-base font-semibold">
-                    {t(($) => $.neuronDetailModal.disburseMaturity.estimateAmount, {
-                      amount: formatNumber(
-                        applyMaturityModulation(selectedMaturity, modulationPermyriad),
-                      ),
-                    })}
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t(($) => $.neuronDetailModal.disburseMaturity.modulationToday, {
-                    value: formatMaturityModulation(modulationPermyriad),
-                  })}
-                </p>
-              </div>
-            )}
 
             <Alert variant="info">
               <Info className="h-4 w-4" />
