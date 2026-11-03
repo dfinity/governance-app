@@ -6,6 +6,7 @@ import { Trans, useTranslation } from 'react-i18next';
 
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
+import { isAccountOffered } from '@features/accounts/types';
 import {
   DestinationInput,
   type DestinationSuggestion,
@@ -36,6 +37,7 @@ import {
   type DisburseMaturityDestination,
   useDisburseMaturity,
 } from '../hooks/useDisburseMaturity';
+import { useNeuronSigner } from '../hooks/useNeuronSigner';
 
 const PRESET_PERCENTAGES = [25, 50, 75, 100] as const;
 const DEFAULT_PERCENTAGE = 100;
@@ -49,8 +51,8 @@ type Props = {
 export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation();
   const { mutateAsync } = useDisburseMaturity();
+  const signer = useNeuronSigner(neuron);
   const { features } = useAdvancedFeatures();
-  const subaccountsEnabled = features.subaccounts;
   const [validationError, setValidationError] = useState<string | null>(null);
   // The destination field is marked invalid only for its own errors, not for an amount error.
   const [destinationInvalid, setDestinationInvalid] = useState(false);
@@ -63,8 +65,8 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
   const mainAccountId = useMainAccountMetadata().data!.accountId;
   const mainAccountName = t(($) => $.accounts.mainAccount);
   const { data: accountsState } = useAccounts();
-  const ownAccounts = (accountsState?.accounts ?? []).filter(
-    (account) => subaccountsEnabled || account.accountId === mainAccountId,
+  const ownAccounts = (accountsState?.accounts ?? []).filter((account) =>
+    isAccountOffered(account, features),
   );
   const destinationSuggestions: DestinationSuggestion[] = [
     ...ownAccounts.map((account) => ({
@@ -153,6 +155,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
         neuronId: neuron.neuronId,
         destination: target,
         percentageToDisburse: percentage,
+        signer,
       }),
     );
   };
@@ -162,6 +165,7 @@ export function DisburseMaturityModal({ neuron, isOpen, onOpenChange }: Props) {
       open={isOpen}
       onOpenChange={onOpenChange}
       processingMessage={t(($) => $.neuronDetailModal.disburseMaturity.confirming)}
+      signer={signer}
       successMessage={t(($) =>
         isToSelectedAccount
           ? $.neuronDetailModal.disburseMaturity.successToAccount

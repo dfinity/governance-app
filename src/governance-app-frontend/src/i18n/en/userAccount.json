@@ -39,7 +39,6 @@
       "connectHint": "The browser shows a list of devices. Pick the Ledger device to continue.",
       "connect": "Connect",
       "connecting": "Connecting…",
-      "connected": "Device connected",
       "connectedDescription": "Check that the values match the device.",
       "principal": "Principal",
       "accountIdentifier": "Account identifier",

@@ -36,6 +36,8 @@ export enum StakingWizardInitialState {
 
 export enum StakingWizardCreateNeuronStep {
   CreateNeuron,
+  /** Ledger device accounts only: the device adds the Internet Identity principal as hotkey. */
+  AddHotkey,
   SetDissolveDelay,
   SetAutoStakeMaturity,
   StartDissolving,

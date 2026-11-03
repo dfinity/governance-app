@@ -67,6 +67,12 @@ export const runExclusiveDeviceCall = <T>(call: () => Promise<T>): Promise<T> =>
   return next;
 };
 
+/**
+ * The generation of the device session. `clearDeviceQueues` starts a new one, so a call that
+ * waits outside the queue can compare its generation before it asks the device.
+ */
+export const getDeviceSessionGeneration = (): number => clearGeneration;
+
 /** True while a call to the device is pending. */
 export const isDeviceBusy = (principal: string): boolean => queues.has(principal);
 

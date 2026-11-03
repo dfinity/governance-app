@@ -24,10 +24,12 @@ const Harness = ({
   suggestions = SUGGESTIONS,
   onAddAddress,
   onChange = () => {},
+  locked,
 }: {
   suggestions?: DestinationSuggestion[];
   onAddAddress?: () => void;
   onChange?: (value: string, name: string) => void;
+  locked?: boolean;
 }) => {
   const [value, setValue] = useState('');
   const [name, setName] = useState('');
@@ -39,6 +41,7 @@ const Harness = ({
       selectedName={name}
       suggestions={suggestions}
       onAddAddress={onAddAddress}
+      locked={locked}
       onChange={(nextValue, nextName) => {
         setValue(nextValue);
         setName(nextName);
@@ -122,7 +125,7 @@ describe('DestinationInput', () => {
     expect(onChange).toHaveBeenLastCalledWith(ICRC1_ADDRESS, 'Bob');
   });
 
-  it('renders the chip as a labelable element that a click does not clear', () => {
+  it('renders the chip as a labelable button that Backspace clears', () => {
     const onChange = vi.fn();
     render(<Harness onChange={onChange} />);
 
@@ -131,14 +134,194 @@ describe('DestinationInput', () => {
     onChange.mockClear();
 
     const chip = screen.getByTestId('destination-selected');
-    expect(chip.tagName).toBe('OUTPUT');
+    expect(chip.tagName).toBe('BUTTON');
     expect(chip.id).toBe('destination');
-
-    fireEvent.click(chip);
-    expect(onChange).not.toHaveBeenCalled();
+    expect(chip.getAttribute('title')).toBe('Change the destination');
 
     fireEvent.keyDown(chip, { key: 'Backspace' });
     expect(onChange).toHaveBeenLastCalledWith('', '');
+  });
+
+  it('opens the full list with a click on the chip and keeps the pick', () => {
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} />);
+
+    fireEvent.focus(screen.getByTestId('destination'));
+    fireEvent.click(screen.getByText('Alice'));
+    onChange.mockClear();
+    expect(screen.queryByRole('listbox')).toBeNull();
+
+    const chip = screen.getByTestId('destination-selected');
+    fireEvent.click(chip);
+
+    expect(chip.getAttribute('aria-expanded')).toBe('true');
+    // Safari does not focus a clicked button. The field focuses it, so Escape
+    // and the blur reach the open list.
+    expect(document.activeElement).toBe(chip);
+    // The picked address is not a filter: both suggestions show.
+    expect(screen.getAllByRole('option')).toHaveLength(2);
+    // The current pick is the active option.
+    expect(chip.getAttribute('aria-activedescendant')).toBe(screen.getAllByRole('option')[0].id);
+    expect(onChange).not.toHaveBeenCalled();
+    expect(chip.textContent).toContain('Alice');
+
+    // A second click closes the list.
+    fireEvent.click(chip);
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(chip.textContent).toContain('Alice');
+  });
+
+  it('opens the list with Enter on the chip and picks another suggestion with the arrow keys', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} />);
+
+    fireEvent.focus(screen.getByTestId('destination'));
+    fireEvent.click(screen.getByText('Alice'));
+    onChange.mockClear();
+
+    const chip = screen.getByTestId('destination-selected');
+    act(() => chip.focus());
+    await user.keyboard('{Enter}');
+    expect(screen.getAllByRole('option')).toHaveLength(2);
+
+    await user.keyboard('{ArrowDown}{Enter}');
+
+    expect(onChange).toHaveBeenLastCalledWith(ICRC1_ADDRESS, 'Bob');
+    expect(screen.getByTestId('destination-selected').textContent).toContain('Bob');
+    expect(screen.queryByRole('listbox')).toBeNull();
+  });
+
+  it('opens the list with Space on the chip', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+
+    fireEvent.focus(screen.getByTestId('destination'));
+    fireEvent.click(screen.getByText('Alice'));
+
+    act(() => screen.getByTestId('destination-selected').focus());
+    await user.keyboard(' ');
+
+    expect(screen.getAllByRole('option')).toHaveLength(2);
+  });
+
+  it('replaces the chip with the suggestion clicked in the list', () => {
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} />);
+
+    fireEvent.focus(screen.getByTestId('destination'));
+    fireEvent.click(screen.getByText('Alice'));
+    onChange.mockClear();
+
+    fireEvent.click(screen.getByTestId('destination-selected'));
+    fireEvent.click(screen.getByText('Bob'));
+
+    expect(onChange).toHaveBeenLastCalledWith(ICRC1_ADDRESS, 'Bob');
+    expect(screen.getByTestId('destination-selected').textContent).toContain('Bob');
+    expect(screen.queryByTestId('destination')).toBeNull();
+    expect(screen.queryByRole('listbox')).toBeNull();
+  });
+
+  it('closes the list opened from the chip with Escape and keeps the chip', () => {
+    const onOpenChange = vi.fn();
+    render(<InDialog onOpenChange={onOpenChange} />);
+
+    fireEvent.focus(screen.getByTestId('destination'));
+    fireEvent.click(screen.getByText('Alice'));
+
+    const chip = screen.getByTestId('destination-selected');
+    fireEvent.click(chip);
+    expect(screen.queryByRole('listbox')).not.toBeNull();
+
+    fireEvent.keyDown(chip, { key: 'Escape' });
+
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(screen.getByTestId('destination-selected').textContent).toContain('Alice');
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('closes the list opened from the chip when the focus leaves the field', () => {
+    render(
+      <>
+        <Harness />
+        <button type="button">Next</button>
+      </>,
+    );
+
+    fireEvent.focus(screen.getByTestId('destination'));
+    fireEvent.click(screen.getByText('Alice'));
+
+    const chip = screen.getByTestId('destination-selected');
+    fireEvent.click(chip);
+    expect(screen.queryByRole('listbox')).not.toBeNull();
+
+    fireEvent.blur(chip, { relatedTarget: screen.getByRole('button', { name: 'Next' }) });
+
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(screen.getByTestId('destination-selected').textContent).toContain('Alice');
+  });
+
+  it('clears the pick with the clear button while the list is open', () => {
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} />);
+
+    fireEvent.focus(screen.getByTestId('destination'));
+    fireEvent.click(screen.getByText('Alice'));
+    fireEvent.click(screen.getByTestId('destination-selected'));
+    onChange.mockClear();
+
+    fireEvent.click(screen.getByTestId('destination-clear'));
+
+    expect(onChange).toHaveBeenLastCalledWith('', '');
+    const input = screen.getByTestId<HTMLInputElement>('destination');
+    expect(input.value).toBe('');
+
+    // The cleared pick is not active any more: Enter picks nothing.
+    onChange.mockClear();
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('clears the pick with Backspace while the list is open', () => {
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} />);
+
+    fireEvent.focus(screen.getByTestId('destination'));
+    fireEvent.click(screen.getByText('Bob'));
+    const chip = screen.getByTestId('destination-selected');
+    fireEvent.click(chip);
+    onChange.mockClear();
+
+    fireEvent.keyDown(chip, { key: 'Backspace' });
+
+    expect(onChange).toHaveBeenLastCalledWith('', '');
+    const input = screen.getByTestId<HTMLInputElement>('destination');
+    expect(input.value).toBe('');
+
+    onChange.mockClear();
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('keeps the locked chip inert', () => {
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} locked />);
+
+    fireEvent.focus(screen.getByTestId('destination'));
+    fireEvent.click(screen.getByText('Alice'));
+    onChange.mockClear();
+
+    const chip = screen.getByTestId('destination-selected');
+    expect(chip.tagName).toBe('OUTPUT');
+    expect(chip.id).toBe('destination');
+    expect(screen.queryByTestId('destination-clear')).toBeNull();
+
+    fireEvent.click(chip);
+    fireEvent.keyDown(chip, { key: 'Enter' });
+    fireEvent.keyDown(chip, { key: 'Backspace' });
+
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   it('picks a suggestion with the keyboard', () => {

@@ -13,6 +13,13 @@ import { mockNeuron } from '@fixtures/neuron';
 import { CapitalCard } from './CapitalCard';
 
 const USER = 'user-principal';
+const DEVICE = 'device-principal';
+
+const { ledgerPrincipals } = vi.hoisted(() => ({ ledgerPrincipals: vi.fn(() => [] as string[]) }));
+
+vi.mock('@features/stakes/hooks/useNeuronSigner', () => ({
+  useLedgerSignerPrincipals: () => ledgerPrincipals(),
+}));
 
 vi.mock('@hooks/useInternetIdentity', () => ({
   useInternetIdentity: () => ({
@@ -128,5 +135,15 @@ describe('CapitalCard', () => {
 
     expect(screen.queryByTestId('capital-card-disburse-action')).toBeNull();
     expect(screen.getByText('≈ CHF 30.00')).toBeTruthy();
+  });
+
+  it('offers to disburse a dissolved neuron that a usable Ledger device controls', () => {
+    ledgerPrincipals.mockReturnValue([DEVICE]);
+    const neuron = dissolvedNeuron(3n, 5n, [USER]);
+    neuron.fullNeuron!.controller = DEVICE;
+
+    render(<CapitalCard neurons={[neuron]} />);
+
+    expect(screen.getByTestId('capital-card-disburse-action')).toBeTruthy();
   });
 });

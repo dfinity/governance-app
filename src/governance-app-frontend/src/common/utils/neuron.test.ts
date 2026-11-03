@@ -26,6 +26,7 @@ import {
   hasValueAboveTransactionFee,
   isNonEmptyNeuron,
   isUserControllerOrHotkey,
+  isUserHotkeyOnly,
 } from './neuron';
 
 // Reuse the shared month constant (SECONDS_IN_YEAR / 12) rather than a local
@@ -499,6 +500,31 @@ describe('getFollowingHealth', () => {
   it('returns undefined when thresholds are missing', () => {
     const neuron = mockNeuron({ votingPowerRefreshedTimestampSeconds: NOW_SECONDS });
     expect(getFollowingHealth(neuron, undefined, NOW)).toBeUndefined();
+  });
+});
+
+describe('isUserHotkeyOnly', () => {
+  const USER = 'user-principal';
+  const DEVICE = 'device-principal';
+
+  it('returns true when the user is a hotkey of a neuron that no registered device controls', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: 'other', hotKeys: [USER] } });
+    expect(isUserHotkeyOnly({ neuron, principalId: USER, ledgerPrincipals: [DEVICE] })).toBe(true);
+  });
+
+  it('returns false when a registered device controls the neuron', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: DEVICE, hotKeys: [USER] } });
+    expect(isUserHotkeyOnly({ neuron, principalId: USER, ledgerPrincipals: [DEVICE] })).toBe(false);
+  });
+
+  it('returns true when the device that controls the neuron is not usable', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: DEVICE, hotKeys: [USER] } });
+    expect(isUserHotkeyOnly({ neuron, principalId: USER, ledgerPrincipals: [] })).toBe(true);
+  });
+
+  it('returns false when the user is the controller', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: USER, hotKeys: [USER] } });
+    expect(isUserHotkeyOnly({ neuron, principalId: USER, ledgerPrincipals: [] })).toBe(false);
   });
 });
 

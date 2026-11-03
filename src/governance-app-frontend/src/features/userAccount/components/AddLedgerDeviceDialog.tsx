@@ -1,9 +1,8 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
-import { Check, Usb } from 'lucide-react';
+import { Usb } from 'lucide-react';
 import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Input } from '@components/Input';
 import { Label } from '@components/Label';
@@ -199,10 +198,6 @@ const ConnectStep = ({ identity, isConnecting, onConnect, onNext, onCancel }: Co
       <MutationDialogBody className="px-4 py-4 md:px-0">
         {principal ? (
           <div className="flex flex-col gap-3" data-testid="ledger-device-details">
-            <Badge className="border-transparent bg-green-600/10 text-green-700 dark:text-green-400">
-              <Check aria-hidden="true" />
-              {t(($) => $.userAccount.ledgerDevices.addDialog.connected)}
-            </Badge>
             <div>
               <p className="text-xs text-muted-foreground">
                 {t(($) => $.userAccount.ledgerDevices.addDialog.principal)}

@@ -49,9 +49,9 @@ const getPending = () => pending;
  * The dialog opens before the action starts and closes when the action settles. A cancel
  * from the dialog rejects the returned promise with `DeviceActionCancelledError` and
  * aborts `signal`; the device call itself cannot be aborted, so its late result is
- * dropped. Wrap the call in `runOnDevice` so the calls to one device stay in order, and
- * check `signal.aborted` before the device access so a cancelled call that waits in the
- * queue does not prompt the device.
+ * dropped. The device flows do not call it directly: `runApprovedDeviceCall` in
+ * `@common/ledger/approvedDeviceCall` opens the dialog at the queue turn of the device and
+ * keeps the caller pending after a cancel until the device answers.
  */
 export const runDeviceAction = <T>(
   action: (signal: AbortSignal) => Promise<T>,
@@ -107,9 +107,6 @@ export const runDeviceAction = <T>(
 export const cancelPendingDeviceAction = (): void => {
   pending?.cancel();
 };
-
-/** Wraps a promise in the "Approve on your Ledger device" dialog. */
-export const useDeviceAction = () => runDeviceAction;
 
 /** The device action in progress, or `null`. For the approval dialog. */
 export const usePendingDeviceAction = () => useSyncExternalStore(subscribe, getPending);
