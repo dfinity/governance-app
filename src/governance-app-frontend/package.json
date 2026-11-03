@@ -23,7 +23,7 @@
     "@dfinity/utils": "5.0.0",
     "@floating-ui/react-dom": "2.1.7",
     "@icp-sdk/auth": "10.0.1",
-    "@icp-sdk/canisters": "4.0.0",
+    "@icp-sdk/canisters": "4.1.0",
     "@icp-sdk/core": "6.1.0",
     "@ledgerhq/device-management-kit": "1.11.0",
     "@ledgerhq/device-transport-kit-web-hid": "1.2.4",
