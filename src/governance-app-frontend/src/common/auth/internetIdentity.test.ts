@@ -895,6 +895,24 @@ describe('internetIdentity', () => {
     expect(client.signOut).not.toHaveBeenCalled();
   });
 
+  it('reads a logout from another tab when the late expiry check runs.', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
+    const expiresAtMs = Date.now() + ONE_HOUR_MS;
+    const client = mockAuthClient({ identity: Ed25519KeyIdentity.generate(), expiresAtMs });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+    await vi.advanceTimersByTimeAsync(0);
+
+    // Another tab logged out, and this tab has not heard of it yet.
+    client.identity = undefined;
+    client.status = { state: 'signed-out' };
+    vi.setSystemTime(expiresAtMs);
+
+    await expect(auth.ensureInitialized()).resolves.toBeUndefined();
+    expect(auth.getAuthState()).toEqual({ status: 'idle', sessionEnd: 'logout' });
+    expect(auth.consumeLogoutRedirect()).toBe(true);
+  });
+
   it('marks a session that expired in another tab.', async () => {
     const identity = Ed25519KeyIdentity.generate();
     const expiresAtMs = Date.now() + ONE_HOUR_MS;

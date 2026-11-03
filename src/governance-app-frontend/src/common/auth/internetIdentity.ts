@@ -224,7 +224,7 @@ const readSession = async (client: AuthClient, revision: number) => {
 
 /**
  * Ends the session that this tab held, even when the auth client still holds it. A newer session
- * that another tab installed stays.
+ * that another tab installed is read instead.
  */
 const endHeldSession = async (
   client: AuthClient,
@@ -243,10 +243,18 @@ const endHeldSession = async (
   clearSession(sessionEnd);
 };
 
-// Ends the session whose time is up, in this tab only: Internet Identity ends it on its own.
+/**
+ * Ends the session whose time is up, in this tab only: Internet Identity ends it on its own. A
+ * logout that another tab made is read instead, for its reason.
+ */
 const expireSession = async (expiresAtMs: number) => {
   const client = authClient;
   if (!client || state.status !== 'authenticated') return;
+
+  if (client.getStatus().state !== 'signed-in') {
+    await syncSession(client);
+    return;
+  }
 
   await endHeldSession(client, expiresAtMs, 'expiry');
 };
