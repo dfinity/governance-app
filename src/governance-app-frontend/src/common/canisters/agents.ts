@@ -21,14 +21,13 @@ let anonymousAgent: Promise<HttpAgent> | undefined;
 export const getAnonymousAgent = (): Promise<HttpAgent> =>
   (anonymousAgent ??= create(new AnonymousIdentity()));
 
-let authenticatedAgent: { principal: string; agent: Promise<HttpAgent> } | undefined;
+let authenticatedAgent: { identity: Identity; agent: Promise<HttpAgent> } | undefined;
 
 export const getAuthenticatedAgent = (identity: Identity): Promise<HttpAgent> => {
-  const principal = identity.getPrincipal().toText();
-
-  // A new identity (login, or a re-login as somebody else) needs its own agent.
-  if (authenticatedAgent?.principal !== principal) {
-    authenticatedAgent = { principal, agent: create(identity) };
+  // The agent follows the identity instance: a login, another account, or a session that another
+  // tab renewed for the same account.
+  if (authenticatedAgent?.identity !== identity) {
+    authenticatedAgent = { identity, agent: create(identity) };
   }
 
   return authenticatedAgent.agent;
