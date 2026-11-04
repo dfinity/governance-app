@@ -42,7 +42,7 @@ const LITERAL_END: char = '\u{E001}';
 static LITERAL_PLACEHOLDER: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"\x{E000}(\d+)\x{E001}").unwrap());
 static MARKDOWN_IMAGE_OR_LINK: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"!?\[([^\]]*)\]\([^)]*\)").unwrap());
+    LazyLock::new(|| Regex::new(r"!?\[([^\]]*)\]\((?:[^()]|\([^()]*\))*\)").unwrap());
 /// URI and email autolinks, as CommonMark defines them.
 static MARKDOWN_AUTOLINK: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(concat!(

@@ -156,6 +156,14 @@ fn test_strip_markdown_keeps_encoded_markdown_markers() {
 }
 
 #[test]
+fn test_strip_markdown_removes_a_link_url_with_parentheses() {
+    assert_eq!(
+        strip_markdown("Read [spec](https://example.org/spec_(v2)/details)."),
+        "Read spec."
+    );
+}
+
+#[test]
 fn test_strip_markdown_keeps_autolink_text() {
     assert_eq!(
         strip_markdown("See <https://example.com/a?b=1>."),
