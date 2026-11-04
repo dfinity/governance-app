@@ -1026,6 +1026,24 @@ describe('internetIdentity', () => {
     await vi.waitFor(() => expect(syncTime).toHaveBeenCalledTimes(2));
   });
 
+  it('syncs the clock again for the next session when the local clock jumps.', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date', 'performance'] });
+    const identity = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(auth.getAuthState().sessionEndsAtMs).toBeDefined();
+
+    // The OS corrects the local clock by one minute. The monotonic clock does not move.
+    vi.setSystemTime(Date.now() + 60_000);
+    const again = Ed25519KeyIdentity.fromSecretKey(identity.getKeyPair().secretKey);
+    client.change(again, signedIn(again, Date.now() + 2 * ONE_HOUR_MS));
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(syncTime).toHaveBeenCalledTimes(2);
+  });
+
   it('syncs the clock again for the next session when the sync stalls.', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
     syncTime.mockImplementationOnce(() => new Promise<undefined>(() => undefined));

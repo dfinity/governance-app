@@ -26,6 +26,8 @@ const EXPIRY_BUFFER_MS = 10_000;
 const MAX_TIMEOUT_MS = 2 ** 31 - 1;
 // After this, the session ends by the local clock.
 const CLOCK_SYNC_TIMEOUT_MS = 10_000;
+// A larger jump of the local clock since the sync makes the clock offset stale.
+const CLOCK_JUMP_MS = 1_000;
 // Where `@icp-sdk/auth` 5 and the versions before it kept the session. Version 10 keeps its own
 // in the same store, under other keys.
 const AUTH_DB_NAME = 'auth-client-db';
@@ -81,8 +83,12 @@ const syncedTimeDiffMs = async (): Promise<number> => {
   return agent.getTimeDiffMsecs();
 };
 
-// Synced one time per page, so each later session gets its end at once.
-let clockOffset: Promise<number> | undefined;
+// Synced one time per page, so each later session gets its end at once. The clocks at the sync
+// tell a later jump of the local clock, for example a correction after a sleep.
+let clockSync: { offset: Promise<number>; wallMs: number; monotonicMs: number } | undefined;
+
+const localClockJumped = ({ wallMs, monotonicMs }: NonNullable<typeof clockSync>): boolean =>
+  Math.abs(Date.now() - wallMs - (performance.now() - monotonicMs)) > CLOCK_JUMP_MS;
 
 const syncClock = async (): Promise<number> => {
   let timeout: ReturnType<typeof setTimeout> | undefined;
@@ -100,14 +106,17 @@ const syncClock = async (): Promise<number> => {
   }
 
   // The next session syncs the clock again.
-  clockOffset = undefined;
+  clockSync = undefined;
   return 0;
 };
 
 // The session expires by the IC clock, which can drift from the local one.
 const icTimeDiffMs = (): Promise<number> => {
   if (IS_LOCAL) return Promise.resolve(0);
-  return (clockOffset ??= syncClock());
+
+  if (clockSync && localClockJumped(clockSync)) clockSync = undefined;
+  clockSync ??= { offset: syncClock(), wallMs: Date.now(), monotonicMs: performance.now() };
+  return clockSync.offset;
 };
 
 const startSession = (identity: Identity, expiresAtMs: number, timeDiffMs: number) => {
