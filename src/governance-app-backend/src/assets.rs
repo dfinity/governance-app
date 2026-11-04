@@ -1,12 +1,19 @@
+use crate::proposal_preview;
 use ic_asset_certification::{
-    Asset, AssetCertificationError, AssetConfig, AssetEncoding, AssetFallbackConfig, AssetRouter,
+    Asset, AssetCertificationError, AssetConfig, AssetEncoding, AssetFallbackConfig, AssetMap,
+    AssetRouter,
 };
-use ic_http_certification::{Hash, HeaderField, HttpRequest, HttpResponse, StatusCode};
+use ic_http_certification::{
+    Hash, HeaderField, HttpRequest, HttpResponse, HttpUpdateRequest, HttpUpdateResponse, Method,
+    StatusCode,
+};
 use include_dir::{include_dir, Dir};
-use std::cell::RefCell;
+use std::{cell::RefCell, collections::VecDeque};
 
 thread_local! {
     static ASSET_ROUTER: RefCell<AssetRouter<'static>> = RefCell::new(AssetRouter::default());
+    /// IDs of the proposals with a certified page in `ASSET_ROUTER`, oldest first.
+    static PROPOSAL_PAGE_IDS: RefCell<VecDeque<u64>> = RefCell::default();
 }
 
 // =================================================================================================
@@ -22,6 +29,12 @@ const IMMUTABLE_ASSET_CACHE_CONTROL: &str = "public, max-age=31536000, immutable
 const NO_CACHE_ASSET_CACHE_CONTROL: &str = "public, no-cache, no-store";
 // TODO: Switch to IMMUTABLE_ASSET_CACHE_CONTROL once images/videos are finalized
 const DEV_ASSET_CACHE_CONTROL: &str = "public, max-age=3600"; // 1 hour cache for development
+
+/// The maximum number of certified proposal pages. Each page is about 5 KB.
+/// When the cache is full, a new page replaces the oldest one.
+const MAX_PROPOSAL_PAGES: usize = 1_000;
+
+const INDEX_HTML_PATH: &str = "index.html";
 
 // CORS header
 const ACCESS_CONTROL_ALLOW_ORIGIN_HEADER: &str = "access-control-allow-origin";
@@ -79,8 +92,41 @@ pub fn certify_assets_hook() {
 }
 
 /// Handles HTTP requests for static assets. Call this from the canister's `http_request` query.
+///
+/// A query cannot call NNS governance. For a proposal page that is not certified yet, the response
+/// asks the HTTP gateway to send the request again to `http_request_update`.
 pub fn http_request_handler(req: &HttpRequest<'static>) -> HttpResponse<'static> {
+    if needs_proposal_page(req) {
+        return HttpResponse::builder().with_upgrade(true).build();
+    }
     serve_asset(req)
+}
+
+/// Handles the HTTP requests that `http_request_handler` upgrades.
+/// Call this from the canister's `http_request_update` update.
+///
+/// For a proposal page, it certifies `index.html` with the proposal's link preview tags.
+/// In all other cases, and if the proposal cannot be fetched, it returns `index.html`.
+pub async fn http_request_update_handler(
+    req: &HttpUpdateRequest<'_>,
+) -> HttpUpdateResponse<'static> {
+    let proposal_id = req
+        .get_path()
+        .ok()
+        .and_then(|path| proposal_preview::parse_proposal_id(&path));
+    if let Some(proposal_id) = proposal_id {
+        if let Some(response) = proposal_page_response(proposal_id) {
+            return response.into();
+        }
+        if let Some(page) = proposal_preview::render_proposal_page(index_html(), proposal_id).await
+        {
+            certify_proposal_page(proposal_id, page);
+            if let Some(response) = proposal_page_response(proposal_id) {
+                return response.into();
+            }
+        }
+    }
+    index_html_response().into()
 }
 
 // =================================================================================================
@@ -110,6 +156,86 @@ fn serve_asset(req: &HttpRequest<'static>) -> HttpResponse<'static> {
             .serve_asset(&data_certificate, req)
             .expect("Failed to serve asset")
     })
+}
+
+/// Returns true for a GET request of a proposal page that is not certified yet.
+fn needs_proposal_page(req: &HttpRequest) -> bool {
+    req.method() == Method::GET
+        && req
+            .get_path()
+            .ok()
+            .and_then(|path| proposal_preview::parse_proposal_id(&path))
+            .is_some_and(|proposal_id| proposal_page_response(proposal_id).is_none())
+}
+
+fn proposal_page_response(proposal_id: u64) -> Option<HttpResponse<'static>> {
+    let path = proposal_preview::proposal_path(proposal_id);
+    ASSET_ROUTER.with_borrow(|router| router.get_assets().get(path, None, None).cloned())
+}
+
+fn index_html() -> &'static str {
+    ASSETS_DIR
+        .get_file(INDEX_HTML_PATH)
+        .and_then(|file| file.contents_utf8())
+        .expect("index.html must be embedded")
+}
+
+fn index_html_response() -> HttpResponse<'static> {
+    ASSET_ROUTER.with_borrow(|router| {
+        router
+            .get_assets()
+            .get(format!("/{INDEX_HTML_PATH}"), None, None)
+            .cloned()
+            .expect("index.html must be certified")
+    })
+}
+
+/// Certifies `page` on the proposal's path and updates the certified data.
+fn certify_proposal_page(proposal_id: u64, page: String) {
+    let headers = index_html_headers();
+
+    ASSET_ROUTER.with_borrow_mut(|router| {
+        PROPOSAL_PAGE_IDS.with_borrow_mut(|proposal_ids| {
+            if let Err(err) = insert_proposal_page(router, proposal_ids, proposal_id, page, headers)
+            {
+                ic_cdk::println!("Failed to certify the page of proposal {proposal_id}: {err}");
+            }
+        });
+        ic_cdk::api::certified_data_set(router.root_hash());
+    });
+}
+
+/// Adds `page` to `router` on the proposal's path.
+/// If the cache is full, it first removes the oldest proposal page.
+fn insert_proposal_page(
+    router: &mut AssetRouter<'static>,
+    proposal_ids: &mut VecDeque<u64>,
+    proposal_id: u64,
+    page: String,
+    headers: Vec<HeaderField>,
+) -> Result<(), AssetCertificationError> {
+    if proposal_ids.contains(&proposal_id) {
+        return Ok(());
+    }
+    if proposal_ids.len() >= MAX_PROPOSAL_PAGES {
+        if let Some(oldest_id) = proposal_ids.pop_front() {
+            let oldest_path = proposal_preview::proposal_path(oldest_id);
+            router.delete_assets_by_path([oldest_path.as_str()]);
+        }
+    }
+
+    let path = proposal_preview::proposal_path(proposal_id);
+    let config = AssetConfig::File {
+        path: path.clone(),
+        content_type: Some("text/html".to_string()),
+        headers,
+        fallback_for: vec![],
+        aliased_by: vec![],
+        encodings: vec![],
+    };
+    router.certify_assets([Asset::new(path, page.into_bytes())], [config])?;
+    proposal_ids.push_back(proposal_id);
+    Ok(())
 }
 
 /// Recursively collects all files from an embedded directory into `Asset` objects.
@@ -172,6 +298,23 @@ fn well_known_asset_headers() -> Vec<HeaderField> {
     ])
 }
 
+/// Returns the headers of `index.html` and of the proposal pages.
+fn index_html_headers() -> Vec<HeaderField> {
+    // Sets a cookie so the frontend can identify which canister it's talking to
+    let canister_id_cookie_header: HeaderField = (
+        "set-cookie".to_string(),
+        format!("canisterId={}", ic_cdk::api::canister_self().to_text()),
+    );
+
+    get_asset_headers(vec![
+        (
+            CACHE_CONTROL_HEADER.to_string(),
+            NO_CACHE_ASSET_CACHE_CONTROL.to_string(),
+        ),
+        canister_id_cookie_header,
+    ])
+}
+
 /// Returns the configs for the well-known files for Internet Identity alternative origins.
 /// The first matching config applies, so the File config comes before the Pattern config.
 fn well_known_asset_configs() -> Vec<AssetConfig> {
@@ -201,24 +344,12 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
         AssetEncoding::Gzip.default_config(),
     ];
 
-    // Sets a cookie so the frontend can identify which canister it's talking to
-    let canister_id_cookie_header: HeaderField = (
-        "set-cookie".to_string(),
-        format!("canisterId={}", ic_cdk::api::canister_self().to_text()),
-    );
-
     let mut asset_configs = vec![
         // index.html: No caching (content changes on deploys), serves as SPA fallback for all routes
         AssetConfig::File {
-            path: "index.html".to_string(),
+            path: INDEX_HTML_PATH.to_string(),
             content_type: Some("text/html".to_string()),
-            headers: get_asset_headers(vec![
-                (
-                    CACHE_CONTROL_HEADER.to_string(),
-                    NO_CACHE_ASSET_CACHE_CONTROL.to_string(),
-                ),
-                canister_id_cookie_header.clone(),
-            ]),
+            headers: index_html_headers(),
             fallback_for: vec![AssetFallbackConfig {
                 scope: "/".to_string(),
                 status_code: Some(StatusCode::OK),
@@ -410,5 +541,114 @@ mod tests {
         let response = serve_well_known_asset("/.well-known/ii-alternative-origins");
 
         assert_eq!(header(&response, "content-type"), Some("application/json"));
+    }
+
+    const INDEX_HTML_BODY: &[u8] = b"index";
+    /// One more page than the cache keeps.
+    const NEWEST_PROPOSAL_ID: u64 = MAX_PROPOSAL_PAGES as u64 + 1;
+
+    /// Certifies `index.html` as the fallback for all paths, as `generate_default_asset_configs` does.
+    fn certify_index_html() {
+        let config = AssetConfig::File {
+            path: INDEX_HTML_PATH.to_string(),
+            content_type: Some("text/html".to_string()),
+            headers: vec![],
+            fallback_for: vec![AssetFallbackConfig {
+                scope: "/".to_string(),
+                status_code: Some(StatusCode::OK),
+            }],
+            aliased_by: vec![],
+            encodings: vec![],
+        };
+        ASSET_ROUTER.with_borrow_mut(|router| {
+            router
+                .certify_assets([Asset::new(INDEX_HTML_PATH, INDEX_HTML_BODY)], [config])
+                .unwrap();
+        });
+    }
+
+    fn add_proposal_pages(proposal_ids: impl IntoIterator<Item = u64>) {
+        ASSET_ROUTER.with_borrow_mut(|router| {
+            PROPOSAL_PAGE_IDS.with_borrow_mut(|cached_ids| {
+                for proposal_id in proposal_ids {
+                    let page = format!("page {proposal_id}");
+                    insert_proposal_page(router, cached_ids, proposal_id, page, vec![]).unwrap();
+                }
+            });
+        });
+    }
+
+    fn proposal_request(proposal_id: u64) -> HttpRequest<'static> {
+        HttpRequest::get(proposal_preview::proposal_path(proposal_id)).build()
+    }
+
+    /// `serve_asset` fails if the page has no entry in the certification tree.
+    fn serve_proposal_page(proposal_id: u64) -> HttpResponse<'static> {
+        let response = ASSET_ROUTER.with_borrow(|router| {
+            router
+                .serve_asset(&[], &proposal_request(proposal_id))
+                .unwrap()
+        });
+        assert!(header(&response, "ic-certificate").is_some_and(|proof| proof.contains("tree=")));
+        response
+    }
+
+    fn assert_serves_the_proposal_page(proposal_id: u64) {
+        assert!(!needs_proposal_page(&proposal_request(proposal_id)));
+        assert_eq!(
+            serve_proposal_page(proposal_id).body(),
+            format!("page {proposal_id}").as_bytes()
+        );
+    }
+
+    fn assert_serves_index_html(proposal_id: u64) {
+        assert!(needs_proposal_page(&proposal_request(proposal_id)));
+        assert_eq!(serve_proposal_page(proposal_id).body(), INDEX_HTML_BODY);
+    }
+
+    #[test]
+    fn a_full_cache_replaces_the_oldest_proposal_page() {
+        certify_index_html();
+
+        add_proposal_pages(1..=NEWEST_PROPOSAL_ID);
+
+        PROPOSAL_PAGE_IDS.with_borrow(|proposal_ids| {
+            assert_eq!(proposal_ids.len(), MAX_PROPOSAL_PAGES);
+            assert_eq!(proposal_ids.front(), Some(&2));
+        });
+        assert_serves_index_html(1);
+        assert_serves_the_proposal_page(2);
+        assert_serves_the_proposal_page(NEWEST_PROPOSAL_ID);
+    }
+
+    #[test]
+    fn a_removed_proposal_page_can_come_back() {
+        certify_index_html();
+        add_proposal_pages(1..=NEWEST_PROPOSAL_ID);
+
+        add_proposal_pages([1]);
+
+        PROPOSAL_PAGE_IDS.with_borrow(|proposal_ids| {
+            assert_eq!(proposal_ids.len(), MAX_PROPOSAL_PAGES);
+        });
+        assert_serves_the_proposal_page(1);
+        assert_serves_index_html(2);
+    }
+
+    #[test]
+    fn a_certified_proposal_page_is_not_added_twice() {
+        certify_index_html();
+
+        add_proposal_pages([1, 1]);
+
+        PROPOSAL_PAGE_IDS.with_borrow(|proposal_ids| assert_eq!(proposal_ids.len(), 1));
+        assert_serves_the_proposal_page(1);
+    }
+
+    #[test]
+    fn a_post_request_never_needs_a_proposal_page() {
+        let request = HttpRequest::post(proposal_preview::proposal_path(1)).build();
+
+        assert!(!needs_proposal_page(&request));
     }
 }

@@ -12,6 +12,21 @@ type HttpRequest = record {
 type HttpResponse = record {
     status_code : nat16;
     headers : vec HeaderField;
+    body : blob;
+    // If true, the HTTP gateway sends the request again to `http_request_update`.
+    upgrade : opt bool
+};
+
+type HttpUpdateRequest = record {
+    method : text;
+    url : text;
+    headers : vec HeaderField;
+    body : blob
+};
+
+type HttpUpdateResponse = record {
+    status_code : nat16;
+    headers : vec HeaderField;
     body : blob
 };
 // End HTTP
@@ -74,6 +89,9 @@ type FiatExchangeRate = record {
 service : {
     // HTTP
     http_request : (request : HttpRequest) -> (HttpResponse) query;
+    // Serves the proposal pages with link preview tags. The HTTP gateway calls it if
+    // `http_request` returns `upgrade = opt true`.
+    http_request_update : (request : HttpUpdateRequest) -> (HttpUpdateResponse);
     // End HTTP
 
     // Address Book
