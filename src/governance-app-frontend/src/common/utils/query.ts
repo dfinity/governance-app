@@ -13,6 +13,7 @@ const NNS_GOVERNANCE = {
   ENGAGEMENT: 'nnsGovernanceEngagement',
   KNOWN_NEURONS: 'nnsGovernanceKnownNeurons',
   LATEST_REWARD_EVENT: 'nnsGovernanceLatestRewardEvent',
+  MATURITY_MODULATION: 'nnsGovernanceMaturityModulation',
   METRICS: 'nnsGovernanceMetrics',
   NEURONS: 'nnsGovernanceNeurons',
   DEVICE_NEURONS: 'nnsGovernanceDeviceNeurons',

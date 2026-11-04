@@ -6,6 +6,9 @@ import { mockNeuron } from '@fixtures/neuron';
 
 import { NeuronsList } from './NeuronsList';
 
+vi.mock('@hooks/governance/useGovernanceMaturityModulation', () => ({
+  useGovernanceMaturityModulation: () => ({ data: undefined, isLoading: false }),
+}));
 vi.mock('@hooks/useInternetIdentity', () => ({
   useInternetIdentity: () => ({ identity: undefined }),
 }));
