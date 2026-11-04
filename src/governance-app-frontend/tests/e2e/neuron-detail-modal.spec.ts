@@ -15,6 +15,13 @@ const closeModal = async (page: Page) => {
   await expect(page.getByTestId('neuron-detail-modal')).not.toBeVisible();
 };
 
+// On CI, the session restore and the neurons query can take longer than the default timeout.
+// Wait for the neurons list, then check the modal state that the URL restores.
+const reloadNeuronsPage = async (page: Page) => {
+  await page.reload();
+  await expect(page.getByTestId('neuron-card').first()).toBeVisible({ timeout: 30000 });
+};
+
 // Serial: tests share the same page/identity and neuron, so they must run in order.
 // We do this to avoid re-staking the neuron between tests, that takes time.
 test.describe.serial('Neuron Detail Modal', () => {
@@ -56,7 +63,7 @@ test.describe.serial('Neuron Detail Modal', () => {
       await openNeuronDetailModal(page);
       const url = page.url();
       expect(url).toContain('neuronId=');
-      await page.reload();
+      await reloadNeuronsPage(page);
       await expect(page.getByTestId('neuron-detail-modal')).toBeVisible();
       await expect(page.getByTestId('neuron-detail-staked-amount')).toHaveText(/5\.00.*ICP/i);
       await closeModal(page);
@@ -76,7 +83,8 @@ test.describe.serial('Neuron Detail Modal', () => {
       await expect(page.getByTestId('increase-stake-amount-input')).not.toBeVisible();
       await expect(page.getByTestId('neuron-detail-action-top-up-neuron')).toBeVisible();
       await page.getByTestId('neuron-detail-action-top-up-neuron').click();
-      await page.reload();
+      await expect(page).toHaveURL(/action=increaseStake/);
+      await reloadNeuronsPage(page);
       await expect(page.getByTestId('increase-stake-amount-input')).toBeVisible();
       await closeModal(page);
     });
@@ -118,7 +126,8 @@ test.describe.serial('Neuron Detail Modal', () => {
       await page.getByTestId('neuron-detail-back-btn').click();
       await expect(page.getByTestId('neuron-detail-action-increase-delay')).toBeVisible();
       await page.getByTestId('neuron-detail-action-increase-delay').click();
-      await page.reload();
+      await expect(page).toHaveURL(/action=increaseDelay/);
+      await reloadNeuronsPage(page);
       await expect(page.getByTestId('increase-delay-option-2years')).toBeVisible();
       await closeModal(page);
     });
@@ -147,7 +156,8 @@ test.describe.serial('Neuron Detail Modal', () => {
       await page.getByTestId('neuron-detail-back-btn').click();
       await expect(page.getByTestId('neuron-detail-action-new-maturity')).toBeVisible();
       await page.getByTestId('neuron-detail-action-new-maturity').click();
-      await page.reload();
+      await expect(page).toHaveURL(/action=maturityMode/);
+      await reloadNeuronsPage(page);
       await expect(page.getByTestId('segmented-toggle')).toBeVisible();
       await closeModal(page);
     });
@@ -182,7 +192,7 @@ test.describe.serial('Neuron Detail Modal', () => {
       const url = page.url();
       expect(url).toContain('action=dissolve');
       await expect(page.getByTestId('dissolve-confirm-btn')).toBeVisible();
-      await page.reload();
+      await reloadNeuronsPage(page);
       await expect(page.getByTestId('dissolve-confirm-btn')).toBeVisible();
       await closeModal(page);
     });

@@ -1,15 +1,19 @@
-import type { PlausibleEventOptions } from '@plausible-analytics/tracker';
+import type { PlausibleEventOptions, PlausibleRequestPayload } from '@plausible-analytics/tracker';
 import { init, track } from '@plausible-analytics/tracker';
 
 import { PLAUSIBLE_DOMAIN_URL } from '@constants/externalServices';
 import { IS_LOCAL } from '@constants/extra';
 
 import { AnalyticsEvent } from './events';
-import { groupProposalPages } from './transformRequest';
+import { addCampaignParams, getCampaignParams, groupProposalPages } from './transformRequest';
 
 class AnalyticsService {
   private isInitialized = false;
   private properties: Record<string, string> = {};
+  // Read when the module loads, before a router redirect can drop the query.
+  private landingCampaign = getCampaignParams(window.location.search);
+  private lastPageviewPath?: string;
+  private isWaitingForVisibility = false;
 
   init(): void {
     // Local builds can run on a LAN address, which the tracker does not treat as localhost.
@@ -20,16 +24,53 @@ class AnalyticsService {
       domain: PLAUSIBLE_DOMAIN_URL,
       // Track outbound links clicks
       outboundLinks: true,
-      // Auto-capture page views on route changes
-      autoCapturePageviews: true,
+      // The tracker captures only `pushState`, but a router redirect uses `replaceState`.
+      // `pageview()` runs after each router navigation instead.
+      autoCapturePageviews: false,
       // https://plausible.io/docs/hash-based-routing
       hashBasedRouting: false,
       captureOnLocalhost: false,
       customProperties: () => this.properties,
-      transformRequest: groupProposalPages,
+      transformRequest: (payload) => this.transformRequest(payload),
+    });
+
+    // A page restored from the back/forward cache is a new pageview.
+    window.addEventListener('pageshow', (event) => {
+      if (!event.persisted) return;
+      this.lastPageviewPath = undefined;
+      this.pageview();
     });
 
     this.isInitialized = true;
+    this.pageview();
+  }
+
+  /**
+   * Sends a pageview, unless the last pageview has the same path.
+   * A change of the query only, for example to open a modal, is not a new pageview.
+   */
+  pageview(): void {
+    if (!this.isInitialized) return;
+
+    // A prerendered page or a page in a background tab waits until the user sees it.
+    if (document.visibilityState === 'hidden') {
+      if (this.isWaitingForVisibility) return;
+      this.isWaitingForVisibility = true;
+      document.addEventListener(
+        'visibilitychange',
+        () => {
+          this.isWaitingForVisibility = false;
+          this.pageview();
+        },
+        { once: true },
+      );
+      return;
+    }
+
+    if (window.location.pathname === this.lastPageviewPath) return;
+    this.lastPageviewPath = window.location.pathname;
+
+    this.track('pageview');
   }
 
   /**
@@ -46,11 +87,7 @@ class AnalyticsService {
     // Local builds never initialize the tracker.
     if (!this.isInitialized) return;
 
-    try {
-      track(event as string, { props, ...options });
-    } catch {
-      // Tracking must never break the app.
-    }
+    this.track(event as string, { props, ...options });
   }
 
   /**
@@ -63,6 +100,23 @@ class AnalyticsService {
 
   get initialized(): boolean {
     return this.isInitialized;
+  }
+
+  private track(name: string, options: PlausibleEventOptions = {}): void {
+    try {
+      track(name, options);
+    } catch {
+      // Tracking must never break the app.
+    }
+  }
+
+  private transformRequest(payload: PlausibleRequestPayload): PlausibleRequestPayload {
+    if (payload.n !== 'pageview') return groupProposalPages(payload);
+
+    // The first pageview of a visit sets its source.
+    const campaign = this.landingCampaign;
+    this.landingCampaign = [];
+    return groupProposalPages(addCampaignParams(payload, campaign));
   }
 }
 

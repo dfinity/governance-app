@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
 
 import type { AddressBook, NamedAddress } from '@declarations/governance-app-backend/backend.did';
@@ -8,6 +7,7 @@ import { AnalyticsEvent } from '@features/analytics/events';
 import { getErrorReason } from '@features/analytics/properties';
 import { analytics } from '@features/analytics/service';
 
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { CertifiedData } from '@typings/queries';
 import { mapSetAddressBookError } from '@utils/errors/addressBook';
 import { CanisterResponseError, getResponseVariant } from '@utils/errors/response';

@@ -1,11 +1,11 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish } from '@dfinity/utils';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@components/badge';
 import { CopyButton } from '@components/CopyButton';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 
 export const AccountIdCard = () => {
   const { identity } = useInternetIdentity();

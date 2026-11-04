@@ -15,6 +15,7 @@ const NNS_GOVERNANCE = {
   LATEST_REWARD_EVENT: 'nnsGovernanceLatestRewardEvent',
   METRICS: 'nnsGovernanceMetrics',
   NEURONS: 'nnsGovernanceNeurons',
+  DEVICE_NEURONS: 'nnsGovernanceDeviceNeurons',
   PROPOSAL: 'nnsGovernanceProposal',
   PROPOSALS: 'nnsGovernanceProposals',
 };

@@ -1,7 +1,8 @@
 import { expect, type Page, test } from '@playwright/test';
 
-export const login = async ({ page }: { page: Page }) => {
-  await test.step('Can log in.', async () => {
+/** Logs in with a new Internet Identity and returns the origin of the Internet Identity app. */
+export const login = async ({ page }: { page: Page }): Promise<string> =>
+  test.step('Can log in.', async () => {
     await expect(page.getByTestId('login-btn')).toBeVisible();
     await expect(page.getByTestId('login-btn')).toBeEnabled();
 
@@ -14,6 +15,7 @@ export const login = async ({ page }: { page: Page }) => {
     // Ensures all assets loaded.
     await newTab.waitForLoadState('networkidle');
     await expect(newTab).toHaveTitle(/Internet Identity/);
+    const identityProviderOrigin = new URL(newTab.url()).origin;
 
     // Create new identity. The local II uses dummy auth: instead of a passkey, it prompts for a
     // seed index. A random seed gives each login its own identity.
@@ -48,5 +50,6 @@ export const login = async ({ page }: { page: Page }) => {
     } catch {
       // Modal didn't appear, continue
     }
+
+    return identityProviderOrigin;
   });
-};

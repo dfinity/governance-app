@@ -1,7 +1,7 @@
 import { ListProposalsRequest, ProposalInfo } from '@icp-sdk/canisters/nns';
 import { isNullish } from '@dfinity/utils';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useQueryThenUpdateCall } from '@hooks/useQueryThenUpdateCall';
 import { QUERY_KEYS } from '@utils/query';
 

@@ -1,6 +1,5 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { nonNullish } from '@dfinity/utils';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { AlertCircle } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +14,7 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { Separator } from '@components/Separator';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 
 // Aspect ratio (width / height) of the ICP logo image embedded in the QR code.
 const QR_CODE_LOGO_ASPECT_RATIO = 195 / 92;

@@ -37,8 +37,7 @@
     "confirming": "Adding hotkey...",
     "success": "Hotkey added successfully.",
     "errors": {
-      "invalidPrincipal": "Please enter a valid principal ID.",
-      "failed": "Failed to add hotkey. Please try again."
+      "invalidPrincipal": "Please enter a valid principal ID."
     }
   },
   "common": {

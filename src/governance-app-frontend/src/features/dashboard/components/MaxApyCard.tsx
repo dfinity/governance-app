@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { ICP_MAX_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { formatPercentage } from '@utils/numbers';
@@ -18,13 +19,22 @@ export const MaxApyCard = () => {
     : undefined;
 
   const isLoading = !isStakingRewardDataReady(stakingRewards) && !('error' in stakingRewards);
+  const tooltip = t(($) => $.home.maxApyTooltip);
 
   return (
     <Card className="gap-3 py-4">
       <CardContent>
-        <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-          {t(($) => $.home.maxApy)}
-        </p>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              className="mb-2 block w-fit cursor-default text-xs font-medium tracking-wide text-muted-foreground uppercase"
+            >
+              {t(($) => $.home.maxApy)} <span className="sr-only">{tooltip}</span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>{tooltip}</TooltipContent>
+        </Tooltip>
         {isLoading ? (
           <Skeleton className="h-8 w-24" />
         ) : (

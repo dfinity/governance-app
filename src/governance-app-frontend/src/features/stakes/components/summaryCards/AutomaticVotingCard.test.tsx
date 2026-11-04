@@ -31,7 +31,7 @@ const { USER, ECONOMICS, economicsState, refreshVotingPower } = vi.hoisted(() =>
   refreshVotingPower: vi.fn(),
 }));
 
-vi.mock('ic-use-internet-identity', () => ({
+vi.mock('@hooks/useInternetIdentity', () => ({
   useInternetIdentity: () => ({
     identity: { getPrincipal: () => ({ toText: () => USER }) },
   }),
@@ -139,15 +139,15 @@ describe('AutomaticVotingCard', () => {
     expect(card().dataset.phase).toBe('confirmSoon');
   });
 
-  it('shows the due date and a quiet "Confirm now" when all neurons are healthy', async () => {
+  it('shows the due date, the window left, and "Confirm" when all neurons are healthy', async () => {
     const user = userEvent.setup();
-    renderCard([neuron({ id: 1n, refreshedDaysAgo: 90 }), neuron({ id: 2n })]);
+    renderCard([neuron({ id: 1n, refreshedDaysAgo: 45 }), neuron({ id: 2n })]);
 
     expect(card().dataset.phase).toBe('active');
-    expect(card().textContent).toContain('Due in 90 days');
-    expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('50');
+    expect(card().textContent).toContain('Due in 135 days');
+    expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('75');
 
-    await user.click(byTestId('automatic-voting-confirm-now-btn')!);
+    await user.click(byTestId('automatic-voting-confirm-btn')!);
 
     expect(refreshVotingPower).toHaveBeenCalledTimes(2);
     expect(successNotification).toHaveBeenCalledExactlyOnceWith({
@@ -165,7 +165,9 @@ describe('AutomaticVotingCard', () => {
     ]);
 
     expect(card().dataset.phase).toBe('losingRewards');
-    expect(card().textContent).toContain('Following is cleared in 20 days.');
+    expect(card().textContent).toContain('Overdue');
+    expect(card().textContent).toContain('Stops in 20 days');
+    expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('67');
 
     await user.click(byTestId('automatic-voting-confirm-btn')!);
 
@@ -178,12 +180,23 @@ describe('AutomaticVotingCard', () => {
     expect(errorNotification).not.toHaveBeenCalled();
   });
 
-  it('shows the confirm button when a neuron is close to decay', () => {
+  it('shows "Confirm" when a neuron is close to decay', () => {
     renderCard([neuron({ id: 1n, refreshedDaysAgo: 163 })]);
 
     expect(card().dataset.phase).toBe('confirmSoon');
-    expect(card().textContent).toContain('Rewards start to drop in 17 days.');
+    expect(card().textContent).toContain('Due soon');
+    expect(card().textContent).toContain('Rewards drop in 17 days');
+    expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('9');
     expect(byTestId('automatic-voting-confirm-btn')).toBeTruthy();
+  });
+
+  it('shows no action and no countdown when the user cannot confirm any neuron', () => {
+    renderCard([neuron({ id: 1n, fullNeuron: { controller: 'other-principal' } })]);
+
+    expect(card().dataset.phase).toBe('active');
+    expect(card().textContent).toContain('Enabled');
+    expect(byTestId('automatic-voting-confirm-btn')).toBeNull();
+    expect(screen.queryByRole('progressbar')).toBeNull();
   });
 
   it('shows one error toast with the count when some calls fail', async () => {
@@ -218,15 +231,18 @@ describe('AutomaticVotingCard', () => {
   });
 
   it.each([
-    { phase: 'notSetUp', neurons: () => [neuron({ id: 1n, topics: [] })] },
+    { phase: 'notSetUp', title: 'Not set up', neurons: () => [neuron({ id: 1n, topics: [] })] },
     {
       phase: 'followingCleared',
+      title: 'Stopped',
       neurons: () => [neuron({ id: 1n, refreshedDaysAgo: 215 }), neuron({ id: 2n })],
     },
-  ])('links "Set up" to the following setup in the $phase phase', ({ phase, neurons }) => {
+  ])('links "Set up" to the following setup in the $phase phase', ({ phase, title, neurons }) => {
     renderCard(neurons());
 
     expect(card().dataset.phase).toBe(phase);
+    expect(card().textContent).toContain(title);
+    expect(screen.queryByRole('progressbar')).toBeNull();
     expect(byTestId('automatic-voting-set-up-btn')?.getAttribute('href')).toBe(
       '/voting?manageFollowing=true',
     );

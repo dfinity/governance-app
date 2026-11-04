@@ -2,6 +2,7 @@ import { nonNullish } from '@dfinity/utils';
 import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent, CardHeader } from '@components/Card';
+import { HideBalancesToggle } from '@components/HideBalancesToggle';
 import { SensitiveValue } from '@components/SensitiveValue';
 import { Skeleton } from '@components/Skeleton';
 import { useIcpPrice } from '@hooks/tickers';
@@ -50,9 +51,12 @@ export const AccountsTotalCard = () => {
   return (
     <Card>
       <CardHeader className="flex flex-col gap-0">
-        <p className="text-sm tracking-wide text-muted-foreground uppercase">
-          {t(($) => $.accounts.totalAcrossAll)}
-        </p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-sm tracking-wide text-muted-foreground uppercase">
+            {t(($) => $.accounts.totalAcrossAll)}
+          </p>
+          <HideBalancesToggle />
+        </div>
         <div className="flex flex-col gap-0.5">
           {isLoading ? (
             <Skeleton className="h-8 w-32" />

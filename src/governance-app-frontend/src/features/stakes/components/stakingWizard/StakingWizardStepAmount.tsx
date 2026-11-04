@@ -16,6 +16,7 @@ import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useIcpPrice } from '@hooks/tickers';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useStakingRewards } from '@hooks/useStakingRewards';
+import { isAccountPickerEnabled } from '@utils/advancedFeatures';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatPercentage, roundToE8sPrecision } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
@@ -42,15 +43,15 @@ export function StakingWizardStepAmount({
   const { icpPrice, formatFiat } = useIcpPrice();
 
   const { features } = useAdvancedFeatures();
-  const subaccountsEnabled = features.subaccounts;
+  const accountPickerEnabled = isAccountPickerEnabled(features);
 
-  // Default balance from main account ledger (used when subaccounts FF is off)
+  // Default balance from main account ledger (used when the account picker is off)
   const { data: balanceValue } = useIcpLedgerAccountBalance();
   const defaultBalance = nonNullish(balanceValue?.response)
     ? bigIntDiv(balanceValue.response, E8Sn)
     : 0;
 
-  // When subaccounts are enabled, AccountSelect reports the selected account
+  // When the account picker shows, AccountSelect reports the selected account
   const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
 
   const accountBalance =
@@ -59,7 +60,7 @@ export function StakingWizardStepAmount({
       : null;
 
   const balance =
-    subaccountsEnabled && nonNullish(accountBalance) ? accountBalance : defaultBalance;
+    accountPickerEnabled && nonNullish(accountBalance) ? accountBalance : defaultBalance;
   const maxStake = Math.max(0, roundToE8sPrecision(balance - ICP_TRANSACTION_FEE));
 
   const stakingRewards = useStakingRewards();
@@ -115,7 +116,7 @@ export function StakingWizardStepAmount({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      {subaccountsEnabled && (
+      {accountPickerEnabled && (
         <div className="space-y-1">
           <Label htmlFor="stake-from-account">
             {t(($) => $.stakeWizardModal.steps.amount.fromAccount)}

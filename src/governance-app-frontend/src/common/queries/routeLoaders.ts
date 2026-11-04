@@ -2,7 +2,8 @@ import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { ProposalStatus } from '@icp-sdk/canisters/nns';
 import { Identity } from '@icp-sdk/core/agent';
 import { QueryClient } from '@tanstack/react-query';
-import { ensureInitialized } from 'ic-use-internet-identity';
+
+import { ensureInitialized } from '@common/auth/internetIdentity';
 
 import {
   governanceMetricsQuery,
