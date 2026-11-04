@@ -83,31 +83,46 @@ const syncedTimeDiffMs = async (): Promise<number> => {
   return agent.getTimeDiffMsecs();
 };
 
-// Synced one time per page, so each later session gets its end at once. The clocks at the sync
-// tell a later jump of the local clock, for example a correction after a sleep.
-let clockSync: { offset: Promise<number>; wallMs: number; monotonicMs: number } | undefined;
+// The clock offset, synced one time per page, so each later session gets its end at once. The
+// clocks at the sync tell a later jump of the local clock, for example a correction after a sleep.
+type ClockSync = { offset: Promise<number>; wallMs: number; monotonicMs: number };
 
-const localClockJumped = ({ wallMs, monotonicMs }: NonNullable<typeof clockSync>): boolean =>
+let clockSync: ClockSync | undefined;
+
+const localClockJumped = ({ wallMs, monotonicMs }: ClockSync): boolean =>
   Math.abs(Date.now() - wallMs - (performance.now() - monotonicMs)) > CLOCK_JUMP_MS;
 
-const syncClock = async (): Promise<number> => {
+// Resolves with `undefined` when the sync fails or stalls.
+const syncClock = async (): Promise<number | undefined> => {
   let timeout: ReturnType<typeof setTimeout> | undefined;
   const fallback = new Promise<undefined>((resolve) => {
     timeout = setTimeout(() => resolve(undefined), CLOCK_SYNC_TIMEOUT_MS);
   });
 
   try {
-    const timeDiffMs = await Promise.race([syncedTimeDiffMs(), fallback]);
-    if (nonNullish(timeDiffMs)) return timeDiffMs;
+    return await Promise.race([syncedTimeDiffMs(), fallback]);
   } catch {
-    // The local clock bounds the session.
+    return undefined;
   } finally {
     clearTimeout(timeout);
   }
+};
 
-  // The next session syncs the clock again.
-  clockSync = undefined;
-  return 0;
+const startClockSync = (): ClockSync => {
+  const sync: ClockSync = {
+    wallMs: Date.now(),
+    monotonicMs: performance.now(),
+    offset: syncClock().then((timeDiffMs) => {
+      if (nonNullish(timeDiffMs)) return timeDiffMs;
+
+      // The local clock bounds the session, and the next session syncs the clock again. A newer
+      // sync that a clock jump started stays.
+      if (clockSync === sync) clockSync = undefined;
+      return 0;
+    }),
+  };
+
+  return sync;
 };
 
 // The session expires by the IC clock, which can drift from the local one.
@@ -115,7 +130,7 @@ const icTimeDiffMs = (): Promise<number> => {
   if (IS_LOCAL) return Promise.resolve(0);
 
   if (clockSync && localClockJumped(clockSync)) clockSync = undefined;
-  clockSync ??= { offset: syncClock(), wallMs: Date.now(), monotonicMs: performance.now() };
+  clockSync ??= startClockSync();
   return clockSync.offset;
 };
 

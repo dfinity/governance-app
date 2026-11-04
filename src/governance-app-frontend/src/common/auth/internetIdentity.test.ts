@@ -1045,7 +1045,7 @@ describe('internetIdentity', () => {
   });
 
   it('syncs the clock again for the next session when the sync stalls.', async () => {
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date', 'performance'] });
     syncTime.mockImplementationOnce(() => new Promise<undefined>(() => undefined));
     const identity = Ed25519KeyIdentity.generate();
     const client = mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
@@ -1056,6 +1056,30 @@ describe('internetIdentity', () => {
 
     const again = Ed25519KeyIdentity.fromSecretKey(identity.getKeyPair().secretKey);
     client.change(again, signedIn(again, Date.now() + 2 * ONE_HOUR_MS));
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(syncTime).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps a newer clock sync when the older one stalls after a jump of the local clock.', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date', 'performance'] });
+    syncTime.mockImplementationOnce(() => new Promise<undefined>(() => undefined));
+    const identity = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    // The local clock jumps while the first sync waits, and the next session syncs again.
+    vi.setSystemTime(Date.now() + 60_000);
+    const again = Ed25519KeyIdentity.fromSecretKey(identity.getKeyPair().secretKey);
+    client.change(again, signedIn(again, Date.now() + 2 * ONE_HOUR_MS));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(syncTime).toHaveBeenCalledTimes(2);
+
+    // The first sync stalls past its timeout. The second one stays.
+    await vi.advanceTimersByTimeAsync(10_000);
+    const once = Ed25519KeyIdentity.fromSecretKey(identity.getKeyPair().secretKey);
+    client.change(once, signedIn(once, Date.now() + 3 * ONE_HOUR_MS));
     await vi.advanceTimersByTimeAsync(0);
 
     expect(syncTime).toHaveBeenCalledTimes(2);
