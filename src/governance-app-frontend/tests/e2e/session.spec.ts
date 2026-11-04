@@ -117,6 +117,27 @@ test('Keeps the session on reload, logs out, and logs in again', async ({ page }
   });
 });
 
+test('Follows a login and a logout in another tab', async ({ page }) => {
+  await openApp({ page });
+  const otherTab = await page.context().newPage();
+  await openApp({ page: otherTab });
+
+  await test.step('Follows a login in the other tab.', async () => {
+    await login({ page });
+    await expectDashboard(page);
+    await expectDashboard(otherTab);
+  });
+
+  await test.step('Follows a logout in the other tab, with no notice.', async () => {
+    await page.goto('/settings');
+    await page.getByTestId('logout-btn').click();
+    await expectLoginPage(page);
+
+    await expectLoginPage(otherTab);
+    await expect(otherTab.getByText(SESSION_EXPIRED)).not.toBeVisible();
+  });
+});
+
 test('Logs out when the session expires', async ({ page }) => {
   // The fake clock runs in real time until the test moves it.
   await page.clock.install();
