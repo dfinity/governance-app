@@ -9,8 +9,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { II_AUTHORIZE_URL, NETWORK } from '@constants/extra';
 
-const { AuthClient, syncTime, getTimeDiffMsecs, reloadPage } = vi.hoisted(() => ({
+const { AuthClient, SupersededError, syncTime, getTimeDiffMsecs, reloadPage } = vi.hoisted(() => ({
   AuthClient: vi.fn(),
+  SupersededError: class SupersededError extends Error {},
   syncTime: vi.fn(async () => undefined),
   getTimeDiffMsecs: vi.fn(() => 0),
   reloadPage: vi.fn(),
@@ -18,7 +19,7 @@ const { AuthClient, syncTime, getTimeDiffMsecs, reloadPage } = vi.hoisted(() => 
 
 vi.mock('@utils/page', () => ({ reloadPage }));
 
-vi.mock('@icp-sdk/auth/client', () => ({ AuthClient }));
+vi.mock('@icp-sdk/auth/client', () => ({ AuthClient, SupersededError }));
 
 vi.mock('@common/canisters/agents', () => ({
   getAnonymousAgent: async () => ({ syncTime, getTimeDiffMsecs }),
@@ -90,6 +91,39 @@ const mockAuthClient = (session?: { identity: Identity; expiresAtMs: number }) =
   return client;
 };
 
+/** A fake IndexedDB with the auth client database. `open` settles when a test says so. */
+const mockIndexedDB = ({ exists = true }: { exists?: boolean } = {}) => {
+  const deleted: string[] = [];
+  const db = {
+    objectStoreNames: { contains: (name: string) => name === 'ic-keyval' },
+    transaction: vi.fn(() => ({
+      objectStore: () => ({ delete: (key: string) => deleted.push(key) }),
+    })),
+    close: vi.fn(),
+  };
+  const request = {
+    result: db,
+    transaction: { abort: vi.fn() },
+    onupgradeneeded: null as (() => void) | null,
+    onerror: null as (() => void) | null,
+    onsuccess: null as (() => void) | null,
+  };
+  const open = vi.fn(() => request);
+  vi.stubGlobal('indexedDB', { open });
+
+  const settle = () => {
+    // The browser creates a database that does not exist, and the abort undoes that.
+    if (!exists) {
+      request.onupgradeneeded?.();
+      request.onerror?.();
+      return;
+    }
+    request.onsuccess?.();
+  };
+
+  return { deleted, db, request, open, settle };
+};
+
 const loadModule = () => import('./internetIdentity');
 
 describe('internetIdentity', () => {
@@ -103,6 +137,7 @@ describe('internetIdentity', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
   it('restores a stored session.', async () => {
@@ -220,6 +255,59 @@ describe('internetIdentity', () => {
     await vi.waitFor(() => expect(auth.getAuthState()).toEqual({ status: 'idle' }));
   });
 
+  it('removes the session of the previous auth client version at startup.', async () => {
+    const identity = Ed25519KeyIdentity.generate();
+    mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const idb = mockIndexedDB();
+    const auth = await loadModule();
+
+    // The first read does not wait for the cleanup.
+    await expect(auth.ensureInitialized()).resolves.toBe(identity);
+    expect(idb.open).toHaveBeenCalledWith('auth-client-db');
+    expect(idb.deleted).toEqual([]);
+
+    idb.settle();
+    expect(idb.db.transaction).toHaveBeenCalledWith('ic-keyval', 'readwrite');
+    expect(idb.deleted).toEqual(['identity', 'delegation', 'iv']);
+    expect(idb.db.close).toHaveBeenCalled();
+  });
+
+  it('leaves the auth client database to the auth client when there is none.', async () => {
+    mockAuthClient();
+    const idb = mockIndexedDB({ exists: false });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    idb.settle();
+    expect(idb.request.transaction.abort).toHaveBeenCalled();
+    expect(idb.db.transaction).not.toHaveBeenCalled();
+  });
+
+  it('reads the stored session when the cleanup of the previous version fails.', async () => {
+    const identity = Ed25519KeyIdentity.generate();
+    mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const idb = mockIndexedDB();
+    idb.open.mockImplementationOnce(() => {
+      throw new Error('IndexedDB unavailable');
+    });
+    const auth = await loadModule();
+
+    await expect(auth.ensureInitialized()).resolves.toBe(identity);
+  });
+
+  it('closes the auth client database when the cleanup of the previous version fails.', async () => {
+    mockAuthClient();
+    const idb = mockIndexedDB();
+    idb.db.transaction.mockImplementationOnce(() => {
+      throw new Error('Transaction failed');
+    });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    idb.settle();
+    expect(idb.db.close).toHaveBeenCalled();
+  });
+
   it('creates one auth client for all callers.', async () => {
     mockAuthClient();
     const auth = await loadModule();
@@ -306,11 +394,15 @@ describe('internetIdentity', () => {
     const replaced = Ed25519KeyIdentity.generate();
     client.identity = replaced;
     client.status = signedIn(replaced, Date.now() + ONE_HOUR_MS);
-    firstSignIn.reject(new Error('This client was disposed while signing in'));
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    consoleError.mockClear();
+    firstSignIn.reject(new SupersededError('This client was disposed while signing in'));
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(client.getIdentity).not.toHaveBeenCalled();
     expect(auth.getAuthState()).toMatchObject({ status: 'authenticated', identity });
+    // The expected end of the replaced sign-in.
+    expect(consoleError).not.toHaveBeenCalled();
   });
 
   it('ignores the read of a sign-in that a second click replaced.', async () => {
@@ -340,13 +432,16 @@ describe('internetIdentity', () => {
   });
 
   it('allows a new login after a failed one.', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const client = mockAuthClient();
-    client.signIn.mockRejectedValueOnce(new Error('UserInterrupt'));
+    const failure = new Error('UserInterrupt');
+    client.signIn.mockRejectedValueOnce(failure);
     const auth = await loadModule();
     await auth.ensureInitialized();
 
     auth.login();
     await vi.waitFor(() => expect(auth.getAuthState()).toEqual({ status: 'idle' }));
+    expect(consoleError).toHaveBeenCalledWith('Internet Identity: failed to log in.', failure);
 
     auth.login();
     expect(client.signIn).toHaveBeenCalledTimes(2);
@@ -619,6 +714,7 @@ describe('internetIdentity', () => {
   });
 
   it('stays logged out after the expiry and a cancelled login.', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
     const expiresAtMs = Date.now() + ONE_HOUR_MS;
     const client = mockAuthClient({ identity: Ed25519KeyIdentity.generate(), expiresAtMs });
@@ -892,6 +988,101 @@ describe('internetIdentity', () => {
 
     auth.logout();
     setTimeoutSpy.mockRestore();
+  });
+
+  it('syncs the clock one time for all the sessions of a page.', async () => {
+    const identity = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+    await vi.waitFor(() => expect(auth.getAuthState().sessionEndsAtMs).toBeDefined());
+
+    // The same account, signed in again in another tab.
+    const again = Ed25519KeyIdentity.fromSecretKey(identity.getKeyPair().secretKey);
+    const expiresAtMs = Date.now() + 2 * ONE_HOUR_MS;
+    client.change(again, signedIn(again, expiresAtMs));
+
+    await vi.waitFor(() =>
+      expect(auth.getAuthState()).toEqual({
+        status: 'authenticated',
+        identity: again,
+        sessionEndsAtMs: expiresAtMs - 10_000,
+      }),
+    );
+    expect(syncTime).toHaveBeenCalledTimes(1);
+  });
+
+  it('syncs the clock again for the next session when the sync fails.', async () => {
+    syncTime.mockRejectedValueOnce(new Error('network error'));
+    const identity = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+    await vi.waitFor(() => expect(auth.getAuthState().sessionEndsAtMs).toBeDefined());
+
+    const again = Ed25519KeyIdentity.fromSecretKey(identity.getKeyPair().secretKey);
+    client.change(again, signedIn(again, Date.now() + 2 * ONE_HOUR_MS));
+
+    await vi.waitFor(() => expect(syncTime).toHaveBeenCalledTimes(2));
+  });
+
+  it('syncs the clock again for the next session when the local clock jumps.', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date', 'performance'] });
+    const identity = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(auth.getAuthState().sessionEndsAtMs).toBeDefined();
+
+    // The OS corrects the local clock by one minute. The monotonic clock does not move.
+    vi.setSystemTime(Date.now() + 60_000);
+    const again = Ed25519KeyIdentity.fromSecretKey(identity.getKeyPair().secretKey);
+    client.change(again, signedIn(again, Date.now() + 2 * ONE_HOUR_MS));
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(syncTime).toHaveBeenCalledTimes(2);
+  });
+
+  it('syncs the clock again for the next session when the sync stalls.', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date', 'performance'] });
+    syncTime.mockImplementationOnce(() => new Promise<undefined>(() => undefined));
+    const identity = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(auth.getAuthState().sessionEndsAtMs).toBeDefined();
+
+    const again = Ed25519KeyIdentity.fromSecretKey(identity.getKeyPair().secretKey);
+    client.change(again, signedIn(again, Date.now() + 2 * ONE_HOUR_MS));
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(syncTime).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps a newer clock sync when the older one stalls after a jump of the local clock.', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date', 'performance'] });
+    syncTime.mockImplementationOnce(() => new Promise<undefined>(() => undefined));
+    const identity = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    // The local clock jumps while the first sync waits, and the next session syncs again.
+    vi.setSystemTime(Date.now() + 60_000);
+    const again = Ed25519KeyIdentity.fromSecretKey(identity.getKeyPair().secretKey);
+    client.change(again, signedIn(again, Date.now() + 2 * ONE_HOUR_MS));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(syncTime).toHaveBeenCalledTimes(2);
+
+    // The first sync stalls past its timeout. The second one stays.
+    await vi.advanceTimersByTimeAsync(10_000);
+    const once = Ed25519KeyIdentity.fromSecretKey(identity.getKeyPair().secretKey);
+    client.change(once, signedIn(once, Date.now() + 3 * ONE_HOUR_MS));
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(syncTime).toHaveBeenCalledTimes(2);
   });
 
   it('ends the session 10 seconds before it expires by the IC clock.', async () => {

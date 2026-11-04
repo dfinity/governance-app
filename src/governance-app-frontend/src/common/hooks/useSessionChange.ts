@@ -24,7 +24,15 @@ export const useSessionChange = () => {
   const principal = identity?.getPrincipal().toText();
   const previousPrincipal = useRef(principal);
 
+  // Read when the account changes, not when a later session read drops the marker.
+  const sessionEndRef = useRef(sessionEnd);
   useEffect(() => {
+    sessionEndRef.current = sessionEnd;
+  }, [sessionEnd]);
+
+  useEffect(() => {
+    const sessionEnd = sessionEndRef.current;
+
     invalidate().finally(() => {
       // The route guards ran. A logout that none of them consumed must not reach a later one,
       // for example on a page without a guard.
@@ -48,5 +56,5 @@ export const useSessionChange = () => {
       analytics.event(AnalyticsEvent.SessionExpired, undefined, { interactive: false });
       infoNotification({ description: t(($) => $.common.autoExpirationLogout) });
     });
-  }, [principal, sessionEnd, invalidate, queryClient, t]);
+  }, [principal, invalidate, queryClient, t]);
 };

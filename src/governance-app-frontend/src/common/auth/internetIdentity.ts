@@ -1,4 +1,4 @@
-import { AuthClient } from '@icp-sdk/auth/client';
+import { AuthClient, SupersededError } from '@icp-sdk/auth/client';
 import type { Identity } from '@icp-sdk/core/agent';
 import { nonNullish } from '@dfinity/utils';
 
@@ -26,6 +26,13 @@ const EXPIRY_BUFFER_MS = 10_000;
 const MAX_TIMEOUT_MS = 2 ** 31 - 1;
 // After this, the session ends by the local clock.
 const CLOCK_SYNC_TIMEOUT_MS = 10_000;
+// A larger jump of the local clock since the sync makes the clock offset stale.
+const CLOCK_JUMP_MS = 1_000;
+// Where `@icp-sdk/auth` 5 and the versions before it kept the session. Version 10 keeps its own
+// in the same store, under other keys.
+const AUTH_DB_NAME = 'auth-client-db';
+const AUTH_STORE_NAME = 'ic-keyval';
+const LEGACY_SESSION_KEYS = ['identity', 'delegation', 'iv'];
 
 export type AuthStatus = 'initializing' | 'idle' | 'logging-in' | 'authenticated' | 'logging-out';
 
@@ -76,22 +83,55 @@ const syncedTimeDiffMs = async (): Promise<number> => {
   return agent.getTimeDiffMsecs();
 };
 
-// The session expires by the IC clock, which can drift from the local one.
-const icTimeDiffMs = async (): Promise<number> => {
-  if (IS_LOCAL) return 0;
+// The clock offset, synced one time per page, so each later session gets its end at once. The
+// clocks at the sync tell a later jump of the local clock, for example a correction after a sleep.
+type ClockSync = { offset: Promise<number>; wallMs: number; monotonicMs: number };
 
+let clockSync: ClockSync | undefined;
+
+const localClockJumped = ({ wallMs, monotonicMs }: ClockSync): boolean =>
+  Math.abs(Date.now() - wallMs - (performance.now() - monotonicMs)) > CLOCK_JUMP_MS;
+
+// Resolves with `undefined` when the sync fails or stalls.
+const syncClock = async (): Promise<number | undefined> => {
   let timeout: ReturnType<typeof setTimeout> | undefined;
-  const fallback = new Promise<number>((resolve) => {
-    timeout = setTimeout(() => resolve(0), CLOCK_SYNC_TIMEOUT_MS);
+  const fallback = new Promise<undefined>((resolve) => {
+    timeout = setTimeout(() => resolve(undefined), CLOCK_SYNC_TIMEOUT_MS);
   });
 
   try {
     return await Promise.race([syncedTimeDiffMs(), fallback]);
   } catch {
-    return 0;
+    return undefined;
   } finally {
     clearTimeout(timeout);
   }
+};
+
+const startClockSync = (): ClockSync => {
+  const sync: ClockSync = {
+    wallMs: Date.now(),
+    monotonicMs: performance.now(),
+    offset: syncClock().then((timeDiffMs) => {
+      if (nonNullish(timeDiffMs)) return timeDiffMs;
+
+      // The local clock bounds the session, and the next session syncs the clock again. A newer
+      // sync that a clock jump started stays.
+      if (clockSync === sync) clockSync = undefined;
+      return 0;
+    }),
+  };
+
+  return sync;
+};
+
+// The session expires by the IC clock, which can drift from the local one.
+const icTimeDiffMs = (): Promise<number> => {
+  if (IS_LOCAL) return Promise.resolve(0);
+
+  if (clockSync && localClockJumped(clockSync)) clockSync = undefined;
+  clockSync ??= startClockSync();
+  return clockSync.offset;
 };
 
 const startSession = (identity: Identity, expiresAtMs: number, timeDiffMs: number) => {
@@ -207,22 +247,40 @@ const readSession = async (client: AuthClient, revision: number) => {
 };
 
 /**
+ * Ends the session that this tab held, even when the auth client still holds it. A newer session
+ * that another tab installed is read instead.
+ */
+const endHeldSession = async (
+  client: AuthClient,
+  expiresAtMs: number | undefined,
+  sessionEnd: SessionEnd,
+) => {
+  const status = client.getStatus();
+  if (status.state === 'signed-in' && status.expiresAtMs !== expiresAtMs) {
+    await syncSession(client);
+    return;
+  }
+
+  // A read that still waits must not start the ended session again.
+  supersedeReads();
+  endedSessionExpiresAtMs = expiresAtMs;
+  clearSession(sessionEnd);
+};
+
+/**
  * Ends the session whose time is up, in this tab only: Internet Identity ends it on its own. A
- * newer session or a logout that another tab made is read instead.
+ * logout that another tab made is read instead, for its reason.
  */
 const expireSession = async (expiresAtMs: number) => {
   const client = authClient;
   if (!client || state.status !== 'authenticated') return;
 
-  const status = client.getStatus();
-  if (status.state !== 'signed-in' || status.expiresAtMs !== expiresAtMs) {
+  if (client.getStatus().state !== 'signed-in') {
     await syncSession(client);
     return;
   }
 
-  supersedeReads();
-  endedSessionExpiresAtMs = expiresAtMs;
-  clearSession('expiry');
+  await endHeldSession(client, expiresAtMs, 'expiry');
 };
 
 // A login or a logout in this tab sets the state when it ends.
@@ -244,6 +302,33 @@ const replaceAuthClient = (): AuthClient => {
   return authClient;
 };
 
+// Removes the session of `@icp-sdk/auth` 5, which the upgrade left in the store that version 10
+// shares. It never throws, and the first session read does not wait for it.
+const removeLegacySession = () => {
+  try {
+    const request = indexedDB.open(AUTH_DB_NAME);
+    // The database does not exist, so the open creates it. An abort undoes that, and the auth
+    // client creates the database with its own store.
+    request.onupgradeneeded = () => request.transaction?.abort();
+    request.onerror = () => undefined;
+    request.onsuccess = () => {
+      const db = request.result;
+      try {
+        if (db.objectStoreNames.contains(AUTH_STORE_NAME)) {
+          const store = db.transaction(AUTH_STORE_NAME, 'readwrite').objectStore(AUTH_STORE_NAME);
+          LEGACY_SESSION_KEYS.forEach((key) => store.delete(key));
+        }
+      } catch {
+        // The store is in use or read-only. The old session stays, and so does the new one.
+      } finally {
+        db.close();
+      }
+    };
+  } catch {
+    // No IndexedDB, or no access to it. The auth client reports that on its own.
+  }
+};
+
 const restoreSession = async () => {
   try {
     authClient = createAuthClient();
@@ -251,6 +336,8 @@ const restoreSession = async () => {
     console.error('Internet Identity: failed to create the auth client.', err);
     throw err;
   }
+
+  removeLegacySession();
 
   // Other tabs share the session, so their logins and logouts arrive here. A change during the
   // first read starts a newer one, and the wait ends with the latest.
@@ -310,8 +397,12 @@ const signIn = (client: AuthClient) => {
 
   void client
     .signIn({ maxTimeToLive: SESSION_TTL_NS })
+    .catch((err: unknown) => {
+      // `login` started the sign-in again on a new client, which ends this one.
+      if (err instanceof SupersededError) return;
+      console.error('Internet Identity: failed to log in.', err);
+    })
     // A failed login syncs too, because another tab can log in meanwhile.
-    .catch(() => undefined)
     .then(() => {
       if (attempt === loginAttempt) return syncSession(client);
     });
@@ -347,17 +438,8 @@ const endSession = async (client: AuthClient, expiresAtMs: number | undefined) =
     await client.signOut();
   } catch (err) {
     console.error('Internet Identity: failed to log out.', err);
-
-    // A newer session that another tab installed stays. The session that failed to end is
-    // cleared here even when Internet Identity still holds it.
-    const status = client.getStatus();
-    if (status.state === 'signed-in' && status.expiresAtMs !== expiresAtMs) {
-      await syncSession(client);
-      return;
-    }
-
-    endedSessionExpiresAtMs = expiresAtMs;
-    clearSession('logout');
+    // The session ends in this tab even when Internet Identity still holds it.
+    await endHeldSession(client, expiresAtMs, 'logout');
     return;
   }
 
