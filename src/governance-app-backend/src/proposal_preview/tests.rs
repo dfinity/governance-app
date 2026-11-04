@@ -164,6 +164,14 @@ fn test_strip_markdown_removes_a_link_url_with_parentheses() {
 }
 
 #[test]
+fn test_strip_markdown_reads_crlf_line_endings() {
+    assert_eq!(
+        strip_markdown("Run:\r\n```sh\r\nmake <target> **all**\r\n```\r\n---\r\nDone."),
+        "Run: make <target> **all** Done."
+    );
+}
+
+#[test]
 fn test_strip_markdown_keeps_autolink_text() {
     assert_eq!(
         strip_markdown("See <https://example.com/a?b=1>."),

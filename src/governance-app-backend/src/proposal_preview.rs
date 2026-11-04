@@ -211,8 +211,9 @@ fn strip_prefix_ignore_ascii_case<'a>(text: &'a str, prefix: &str) -> Option<&'a
 
 /// Converts markdown to plain text on one line. Keeps the text of code, links, and images.
 fn strip_markdown(markdown: &str) -> String {
+    let markdown = markdown.replace("\r\n", "\n");
     let mut literal_texts = Vec::new();
-    let text = MARKDOWN_LITERAL.replace_all(markdown, |caps: &Captures| {
+    let text = MARKDOWN_LITERAL.replace_all(&markdown, |caps: &Captures| {
         let literal = (1..=6)
             .find_map(|group| caps.get(group))
             .map_or("", |m| m.as_str());
