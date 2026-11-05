@@ -109,6 +109,14 @@ describe('ProposalDetailsVoting', () => {
     expect(footerState()).toBe('docked');
   });
 
+  it('docks the vote buttons when the card ends exactly at the scroll area', () => {
+    renderInMain();
+
+    reportSentinelTop(1200);
+    reportSentinelTop(800);
+    expect(footerState()).toBe('docked');
+  });
+
   it('ends the observed area at the bottom padding of main', () => {
     const main = renderInMain();
 

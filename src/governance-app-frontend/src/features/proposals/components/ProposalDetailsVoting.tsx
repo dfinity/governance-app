@@ -47,7 +47,7 @@ const DockingFooter = ({ children }: { children: ReactNode }) => {
       inset = nextInset;
       observer?.disconnect();
       observer = new IntersectionObserver(
-        ([entry]) => setIsDocked(entry.boundingClientRect.top < (entry.rootBounds?.bottom ?? 0)),
+        ([entry]) => setIsDocked(entry.boundingClientRect.top <= (entry.rootBounds?.bottom ?? 0)),
         { root: main, rootMargin: `0px 0px -${inset}px 0px` },
       );
       observer.observe(sentinel);
