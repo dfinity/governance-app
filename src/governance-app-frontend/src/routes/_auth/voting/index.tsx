@@ -173,10 +173,11 @@ function Voting() {
 
   useEffect(() => {
     if (!showProposals) return;
-    // Back and Forward restore the position that the user left.
-    if (restoresScrollPosition(router.state.location.state.__TSR_key)) return;
 
     const id = setTimeout(() => {
+      // Back and Forward restore the position that the user left.
+      if (restoresScrollPosition(router.state.location.state.__TSR_key)) return;
+
       proposalsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, DIALOG_RESET_DELAY_MS);
     return () => clearTimeout(id);
