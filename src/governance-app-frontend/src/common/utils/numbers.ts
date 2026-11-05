@@ -28,6 +28,15 @@ export const formatNumber = (
     .replace(',', '.');
 };
 
+/**
+ * Formats an amount with two decimals, or with three significant digits below 0.1,
+ * so that a small amount does not round to 0.01 or 0.00: 0.0145 -> "0.0145".
+ */
+export const formatSmallAmount = (value: number): string =>
+  value > 0 && value < 0.1
+    ? formatNumber(value, { minFraction: 2, maxFraction: 2, maximumSignificantDigits: 3 })
+    : formatNumber(value);
+
 export type FormatFiatOptions = { minFraction: number; maxFraction: number };
 
 /**

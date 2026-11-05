@@ -153,3 +153,17 @@ export const getRequestId = (body: ReadRequest): RequestId | undefined => {
 export const createReadStatePaths = (requestId: RequestId): Uint8Array[][] => [
   [new TextEncoder().encode(REQUEST_STATUS_LABEL), requestId],
 ];
+
+/**
+ * The value that a CommonJS package exports as `default`.
+ *
+ * Vite 8 and Node give `import()` of such a package a `default` that is the whole exports
+ * object, so the exported value sits one level deeper. Vite 6 and vitest give the value itself.
+ */
+export const unwrapDefaultExport = <T>(module: { default: T | { default: T } }): T => {
+  const { default: value } = module;
+  if (typeof value === 'object' && value !== null && 'default' in value) {
+    return (value as { default: T }).default;
+  }
+  return value as T;
+};

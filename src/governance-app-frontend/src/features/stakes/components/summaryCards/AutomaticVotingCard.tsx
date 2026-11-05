@@ -18,7 +18,6 @@ import {
   getAutomaticVotingStatus,
 } from '@features/stakes/utils/getAutomaticVotingStatus';
 
-import { Button } from '@components/button';
 import { Card, CardContent } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
 import { SkeletonScreen } from '@components/skeletons/SkeletonScreen';
@@ -32,6 +31,15 @@ import { formatRemainingTime } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
 import { cn } from '@utils/shadcn';
 
+import {
+  CARD_ACTION_CHECK_CLASS,
+  CARD_ACTION_CHEVRON_CLASS,
+  CARD_ACTION_CLASS,
+  CARD_ACTION_ICON_CLASS,
+  CLICKABLE_CARD_CLASS,
+  CLICKABLE_CARD_HOVER_CLASS,
+} from './clickableCard';
+
 type AutomaticVotingCardProps = {
   neurons: NeuronInfo[];
 };
@@ -40,26 +48,52 @@ type AutomaticVotingCardProps = {
 const CLOCK_INTERVAL_MS = 60 * MILLISECONDS_IN_SECOND;
 
 type Tone = 'ok' | 'neutral' | 'warning' | 'danger';
-type Action = 'confirm' | 'setUp' | 'selectNeuron' | 'confirmNow';
+type Action = 'confirm' | 'setUp' | 'selectNeuron';
 
-const ICON_COLOR: Record<Tone, string> = {
-  ok: 'text-emerald-600 dark:text-emerald-400',
-  neutral: 'text-amber-600 dark:text-amber-400',
-  warning: 'text-amber-600 dark:text-amber-400',
-  danger: 'text-red-600 dark:text-red-400',
-};
-
-const CARD_TINT: Record<Tone, string> = {
-  ok: '',
-  neutral: '',
-  warning: 'border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-900/20',
-  danger: 'border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-900/20',
+const TONE_STYLES: Record<
+  Tone,
+  { icon: string; card: string; hover: string; action: string; bar: string; track: string }
+> = {
+  ok: {
+    icon: 'text-emerald-600 dark:text-emerald-400',
+    card: '',
+    hover: CLICKABLE_CARD_HOVER_CLASS,
+    action: 'text-muted-foreground',
+    bar: 'bg-emerald-500',
+    track: 'bg-border',
+  },
+  neutral: {
+    icon: 'text-amber-600 dark:text-amber-400',
+    card: '',
+    hover: CLICKABLE_CARD_HOVER_CLASS,
+    action: 'text-muted-foreground',
+    bar: 'bg-amber-500',
+    track: 'bg-border',
+  },
+  warning: {
+    icon: 'text-amber-600 dark:text-amber-400',
+    card: 'border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-900/20',
+    hover: 'hover:border-amber-300 dark:hover:border-amber-800',
+    action: 'font-medium text-amber-700 dark:text-amber-400',
+    bar: 'bg-amber-500',
+    track: 'bg-amber-200 dark:bg-amber-900/50',
+  },
+  danger: {
+    icon: 'text-red-600 dark:text-red-400',
+    card: 'border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-900/20',
+    hover: 'hover:border-red-300 dark:hover:border-red-800',
+    action: 'font-medium text-red-700 dark:text-red-400',
+    bar: 'bg-red-500',
+    track: 'bg-red-200 dark:bg-red-900/50',
+  },
 };
 
 /**
  * Shows if the neurons vote automatically, and the main action for the current
- * phase. The card stays quiet while no action is due. It gets a tint and a
- * button when the user must act. See `getAutomaticVotingStatus` for the phases.
+ * phase. The whole card runs the action. The card stays quiet while no action
+ * is due, and gets a tint when the user must act. A strip on the bottom edge
+ * counts down the time that is left. See `getAutomaticVotingStatus` for the
+ * phases.
  */
 export function AutomaticVotingCard({ neurons }: AutomaticVotingCardProps) {
   const { t } = useTranslation();
@@ -96,11 +130,11 @@ export function AutomaticVotingCard({ neurons }: AutomaticVotingCardProps) {
     }
   };
 
-  const { tone, Icon, title, detail, action } = ((): {
+  const { tone, Icon, title, fact, action } = ((): {
     tone: Tone;
     Icon: typeof CheckCircle2;
     title: string;
-    detail?: string;
+    fact?: string;
     action?: Action;
   } => {
     switch (status.phase) {
@@ -109,7 +143,6 @@ export function AutomaticVotingCard({ neurons }: AutomaticVotingCardProps) {
           tone: 'warning',
           Icon: AlertTriangle,
           title: t(($) => $.neuron.summary.automaticVoting.notSetUp),
-          detail: t(($) => $.neuron.summary.automaticVoting.notSetUpDetail),
           action: 'setUp',
         };
       case AutomaticVotingPhase.FollowingCleared:
@@ -117,7 +150,6 @@ export function AutomaticVotingCard({ neurons }: AutomaticVotingCardProps) {
           tone: 'danger',
           Icon: AlertTriangle,
           title: t(($) => $.neuron.summary.automaticVoting.followingCleared),
-          detail: t(($) => $.neuron.summary.automaticVoting.followingClearedDetail),
           action: 'setUp',
         };
       case AutomaticVotingPhase.LosingRewards:
@@ -125,7 +157,9 @@ export function AutomaticVotingCard({ neurons }: AutomaticVotingCardProps) {
           tone: 'danger',
           Icon: TrendingDown,
           title: t(($) => $.neuron.summary.automaticVoting.losingRewards),
-          detail: t(($) => $.neuron.summary.automaticVoting.losingRewardsDetail, { duration }),
+          fact: duration
+            ? t(($) => $.neuron.summary.automaticVoting.stopsIn, { duration })
+            : undefined,
           action: 'confirm',
         };
       case AutomaticVotingPhase.ConfirmSoon:
@@ -133,7 +167,9 @@ export function AutomaticVotingCard({ neurons }: AutomaticVotingCardProps) {
           tone: 'warning',
           Icon: Clock,
           title: t(($) => $.neuron.summary.automaticVoting.confirmSoon),
-          detail: t(($) => $.neuron.summary.automaticVoting.confirmSoonDetail, { duration }),
+          fact: duration
+            ? t(($) => $.neuron.summary.automaticVoting.rewardsDropIn, { duration })
+            : undefined,
           action: 'confirm',
         };
       case AutomaticVotingPhase.Partial:
@@ -141,7 +177,6 @@ export function AutomaticVotingCard({ neurons }: AutomaticVotingCardProps) {
           tone: 'neutral',
           Icon: CircleDashed,
           title: t(($) => $.neuron.summary.automaticVoting.partial),
-          detail: t(($) => $.neuron.summary.automaticVoting.partialDetail),
           action: 'selectNeuron',
         };
       case AutomaticVotingPhase.Active:
@@ -149,10 +184,10 @@ export function AutomaticVotingCard({ neurons }: AutomaticVotingCardProps) {
           tone: 'ok',
           Icon: CheckCircle2,
           title: t(($) => $.neuron.summary.automaticVoting.knownNeuronSelected),
-          detail: duration
+          fact: duration
             ? t(($) => $.neuron.summary.automaticVoting.dueIn, { duration })
             : undefined,
-          action: status.confirmableNeuronIds.length > 0 ? 'confirmNow' : undefined,
+          action: status.confirmableNeuronIds.length > 0 ? 'confirm' : undefined,
         };
       default: {
         const exhaustive: never = status.phase;
@@ -162,10 +197,16 @@ export function AutomaticVotingCard({ neurons }: AutomaticVotingCardProps) {
   })();
 
   const isLoading = economicsQuery.isLoading;
+  const styles = TONE_STYLES[tone];
+  const actionClassName = cn(CARD_ACTION_CLASS, styles.action);
 
   return (
     <Card
-      className={cn('gap-3 py-4', !isLoading && CARD_TINT[tone])}
+      className={cn(
+        'gap-3 overflow-hidden py-4',
+        !isLoading && styles.card,
+        !isLoading && action && [CLICKABLE_CARD_CLASS, styles.hover],
+      )}
       data-testid="stakes-summary-automatic-voting-card"
       data-phase={isLoading ? undefined : status.phase}
     >
@@ -180,81 +221,72 @@ export function AutomaticVotingCard({ neurons }: AutomaticVotingCardProps) {
         ) : (
           <>
             <div className="flex items-center gap-2">
-              <Icon className={cn('size-5 shrink-0 md:size-6', ICON_COLOR[tone])} />
+              <Icon className={cn('size-5 shrink-0 md:size-6', styles.icon)} />
               <span className="text-lg font-semibold text-foreground md:text-2xl">{title}</span>
             </div>
-            {detail && <p className="mt-1 text-sm text-muted-foreground">{detail}</p>}
 
-            {status.phase === AutomaticVotingPhase.Active && nonNullish(status.windowProgress) && (
-              <div
-                role="progressbar"
-                aria-label={t(($) => $.neuron.summary.automaticVoting.dueIn, { duration })}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.round(status.windowProgress * 100)}
-                className="mt-2 h-1 overflow-hidden rounded-full bg-muted"
-              >
-                <div
-                  className="h-full rounded-full bg-emerald-500"
-                  style={{ width: `${status.windowProgress * 100}%` }}
-                />
+            {(fact || action) && (
+              <div className="mt-1 flex flex-wrap items-center justify-between gap-x-3 text-sm text-muted-foreground">
+                {fact && <p>{fact}</p>}
+
+                {action === 'confirm' && (
+                  <button
+                    type="button"
+                    className={actionClassName}
+                    onClick={handleConfirm}
+                    disabled={isPending}
+                    data-card-action
+                    data-testid="automatic-voting-confirm-btn"
+                  >
+                    {t(($) => $.neuron.summary.automaticVoting.confirm)}&nbsp;
+                    {isPending ? (
+                      <Spinner className={CARD_ACTION_ICON_CLASS} />
+                    ) : (
+                      <CheckCheck className={CARD_ACTION_CHECK_CLASS} />
+                    )}
+                  </button>
+                )}
+
+                {(action === 'setUp' || action === 'selectNeuron') && (
+                  <Link
+                    to="/voting"
+                    search={{ manageFollowing: true }}
+                    className={actionClassName}
+                    data-card-action
+                    data-testid={
+                      action === 'setUp'
+                        ? 'automatic-voting-set-up-btn'
+                        : 'automatic-voting-select-neuron-link'
+                    }
+                  >
+                    {action === 'setUp'
+                      ? t(($) => $.neuron.summary.automaticVoting.setUp)
+                      : t(($) => $.neuron.summary.automaticVoting.setupVoting)}
+                    &nbsp;
+                    <ChevronRight className={CARD_ACTION_CHEVRON_CLASS} />
+                  </Link>
+                )}
               </div>
-            )}
-
-            {action === 'confirm' && (
-              <Button
-                size="sm"
-                className="mt-3 w-full"
-                onClick={handleConfirm}
-                disabled={isPending}
-                data-testid="automatic-voting-confirm-btn"
-              >
-                {isPending ? <Spinner /> : <CheckCheck />}
-                {t(($) => $.neuron.summary.automaticVoting.confirm)}
-              </Button>
-            )}
-
-            {action === 'setUp' && (
-              <Button
-                asChild
-                size="sm"
-                variant="outline"
-                className="mt-3 w-full"
-                data-testid="automatic-voting-set-up-btn"
-              >
-                <Link to="/voting" search={{ manageFollowing: true }}>
-                  {t(($) => $.neuron.summary.automaticVoting.setUp)}
-                </Link>
-              </Button>
-            )}
-
-            {action === 'selectNeuron' && (
-              <Link
-                to="/voting"
-                search={{ manageFollowing: true }}
-                className="mt-1 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                data-testid="automatic-voting-select-neuron-link"
-              >
-                {t(($) => $.neuron.summary.automaticVoting.setupVoting)}
-                <ChevronRight className="size-3.5" />
-              </Link>
-            )}
-
-            {action === 'confirmNow' && (
-              <button
-                type="button"
-                className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
-                onClick={handleConfirm}
-                disabled={isPending}
-                data-testid="automatic-voting-confirm-now-btn"
-              >
-                {isPending && <Spinner className="size-3.5" />}
-                {t(($) => $.neuron.summary.automaticVoting.confirmNow)}
-              </button>
             )}
           </>
         )}
       </CardContent>
+
+      {!isLoading && nonNullish(status.remainingFraction) && (
+        <div
+          role="progressbar"
+          aria-label={fact ?? title}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(status.remainingFraction * 100)}
+          className={cn('pointer-events-none absolute inset-x-0 bottom-0 h-0.75', styles.track)}
+        >
+          <div
+            className={cn('h-full', styles.bar)}
+            style={{ width: `${status.remainingFraction * 100}%` }}
+          />
+        </div>
+      )}
     </Card>
   );
 }

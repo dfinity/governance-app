@@ -3,6 +3,7 @@ export enum AdvancedFeature {
   AdvancedFollowing = 'advancedFollowing',
   ShowNonConstructiveProposals = 'showNonConstructiveProposals',
   TransactionMemo = 'transactionMemo',
+  LedgerDevice = 'ledgerDevice',
 }
 
 export type AdvancedFeaturesSettings = {
@@ -10,6 +11,7 @@ export type AdvancedFeaturesSettings = {
   [AdvancedFeature.AdvancedFollowing]: boolean;
   [AdvancedFeature.ShowNonConstructiveProposals]: boolean;
   [AdvancedFeature.TransactionMemo]: boolean;
+  [AdvancedFeature.LedgerDevice]: boolean;
 };
 
 export const ADVANCED_FEATURES_DEFAULTS: AdvancedFeaturesSettings = {
@@ -17,4 +19,5 @@ export const ADVANCED_FEATURES_DEFAULTS: AdvancedFeaturesSettings = {
   [AdvancedFeature.AdvancedFollowing]: false,
   [AdvancedFeature.ShowNonConstructiveProposals]: false,
   [AdvancedFeature.TransactionMemo]: false,
+  [AdvancedFeature.LedgerDevice]: false,
 };

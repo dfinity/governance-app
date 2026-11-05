@@ -41,8 +41,8 @@ const accountsItem: NavigationItem = {
   icon: Wallet,
 };
 
-export const getNavigationItems = (options: { subaccountsEnabled: boolean }): NavigationItem[] => {
-  if (!options.subaccountsEnabled) return baseItems;
+export const getNavigationItems = (options: { accountsEnabled: boolean }): NavigationItem[] => {
+  if (!options.accountsEnabled) return baseItems;
 
   const items = [...baseItems];
   items.splice(1, 0, accountsItem);

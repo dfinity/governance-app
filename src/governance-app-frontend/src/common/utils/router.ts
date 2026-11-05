@@ -1,7 +1,6 @@
 import { ParsedLocation, redirect } from '@tanstack/react-router';
 
-import { MANUAL_LOGOUT_KEY } from '@constants/extra';
-import { ensureInitialized } from '@common/auth/internetIdentity';
+import { consumeLogoutRedirect, ensureInitialized } from '@common/auth/internetIdentity';
 
 import i18n from '@/i18n/config';
 
@@ -28,7 +27,7 @@ export const requireIdentity = async ({ location }: { location: ParsedLocation }
   if (!identity) {
     console.log('[🔐 Protected Route]: identity not found, redirecting to login page.');
 
-    const isManualLogout = localStorage.getItem(MANUAL_LOGOUT_KEY) === 'true';
+    const isManualLogout = consumeLogoutRedirect();
 
     // If the user logs out, we don't want to save their last location
     // and don't show warning if user intentionally logged out

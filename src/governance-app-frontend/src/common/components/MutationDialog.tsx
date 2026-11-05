@@ -3,6 +3,8 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useEffect, useEffectEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { DeviceAnswerHint } from '@features/ledger/components/DeviceAnswerHint';
+
 import { Button } from '@components/button';
 import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
 import { ProcessingSpinner } from '@components/ProcessingSpinner';
@@ -13,8 +15,10 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { DIALOG_RESET_DELAY_MS, SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
+import { isDeviceActionCancelled } from '@hooks/useDeviceAction';
 import { mapCanisterError } from '@utils/errors';
 import { cn } from '@utils/shadcn';
+import type { Signer } from '@common/ledger/signer';
 
 import { AnimatedCheckmark } from './AnimatedCheckmark';
 
@@ -26,6 +30,8 @@ type MutationDialogProps = {
   successMessage: string;
   navBlockerDescription: string;
   errorFallbackMessage?: string;
+  /** Who signs the mutation. For a Ledger device signer, the processing phase shows the device hint. */
+  signer?: Signer;
 
   className?: string;
   'data-testid'?: string;
@@ -50,6 +56,7 @@ export function MutationDialog({
   successMessage,
   navBlockerDescription,
   errorFallbackMessage,
+  signer,
   className,
   'data-testid': dataTestId,
   children,
@@ -70,6 +77,11 @@ export function MutationDialog({
       await fn();
       setPhase(Phase.Success);
     } catch (err) {
+      // A cancel on the Ledger approval dialog is not an error: the form shows again.
+      if (isDeviceActionCancelled(err)) {
+        setPhase(Phase.Idle);
+        return;
+      }
       setErrorMessage(
         err instanceof Error
           ? mapCanisterError(err)
@@ -140,7 +152,10 @@ export function MutationDialog({
                   {processingMessage}
                 </ResponsiveDialogTitle>
                 <ProcessingSpinner />
-                <FadeInText delay={0.2}>{processingMessage}</FadeInText>
+                <div className="flex flex-col items-center">
+                  <FadeInText delay={0.2}>{processingMessage}</FadeInText>
+                  <DeviceAnswerHint signer={signer} className="mt-2 max-w-xs wrap-anywhere" />
+                </div>
               </PhaseContainer>
             )}
 

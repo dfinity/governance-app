@@ -1,5 +1,5 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { isNullish, nonNullish } from '@dfinity/utils';
+import { nonNullish } from '@dfinity/utils';
 import { AlertTriangle, CheckCircle, Clock, TrendingDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -32,9 +32,10 @@ type Props = {
  * also surfaced as a full alert with a CTA at the top of the detail view; this
  * row stays as a quick at-a-glance reference.
  *
- * The 'ok' state has no alert, so the row itself shows the last confirmed date
- * and a "Confirm following" button. Hotkeys can call `refreshVotingPower`, so
- * the button shows for controllers and hotkeys.
+ * The 'ok' state has no alert, so the row itself shows a quiet "Confirm now"
+ * button on the same line, and the tooltip gives the last confirmed date.
+ * Hotkeys can call `refreshVotingPower`, so the button shows for controllers
+ * and hotkeys.
  *
  * The tooltip's duration text adapts per state:
  * - ok / warning: how long until voting power starts to decay
@@ -58,6 +59,7 @@ export function FollowingStatusInline({ neuron }: Props) {
   if (!health) return <span className="font-semibold text-muted-foreground">—</span>;
 
   const durationI18n = t(($) => $.common.durationUnits, { returnObjects: true });
+  const refreshedSeconds = getVotingPowerRefreshedTimestampSeconds(neuron);
 
   const { Icon, colorClasses, label, tooltip } = ((): {
     Icon: typeof CheckCircle;
@@ -75,7 +77,10 @@ export function FollowingStatusInline({ neuron }: Props) {
           Icon: CheckCircle,
           colorClasses: 'text-green-700 dark:text-green-400',
           label: t(($) => $.neuron.followingStatus.inlineOk),
-          tooltip: t(($) => $.neuron.followingStatus.tooltipOk, { duration }),
+          tooltip: t(($) => $.neuron.followingStatus.tooltipOk, {
+            date: nonNullish(refreshedSeconds) ? secondsToDate(Number(refreshedSeconds)) : '',
+            duration,
+          }),
         };
       }
       case 'warning': {
@@ -132,23 +137,15 @@ export function FollowingStatusInline({ neuron }: Props) {
     </Tooltip>
   );
 
-  const refreshedSeconds = getVotingPowerRefreshedTimestampSeconds(neuron);
-  if (health !== 'ok' || isNullish(refreshedSeconds)) return status;
+  if (health !== 'ok') return status;
 
   const principalId = identity?.getPrincipal().toText();
-  const canConfirm = isUserControllerOrHotkey({ neuron, principalId });
+  if (!isUserControllerOrHotkey({ neuron, principalId })) return status;
 
   return (
-    <div className="flex flex-col items-end gap-1">
-      <div className="flex items-center gap-3">
-        {status}
-        {canConfirm && <ConfirmFollowingButton neuronId={neuron.neuronId} />}
-      </div>
-      <span className="text-xs text-muted-foreground" data-testid="neuron-following-last-confirmed">
-        {t(($) => $.neuron.followingStatus.lastConfirmed, {
-          date: secondsToDate(Number(refreshedSeconds)),
-        })}
-      </span>
+    <div className="flex items-center gap-3">
+      {status}
+      <ConfirmFollowingButton neuronId={neuron.neuronId} />
     </div>
   );
 }
@@ -173,13 +170,13 @@ function ConfirmFollowingButton({ neuronId }: { neuronId: bigint }) {
   return (
     <button
       type="button"
-      className="flex items-center gap-1.5 font-semibold text-primary hover:underline disabled:pointer-events-none disabled:opacity-50"
+      className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
       onClick={handleConfirm}
       disabled={isPending}
       data-testid="confirm-following-inline-btn"
     >
       {isPending && <Spinner className="size-3.5" />}
-      {t(($) => $.neuron.followingStatus.cta)}
+      {t(($) => $.neuron.followingStatus.confirmNow)}
     </button>
   );
 }

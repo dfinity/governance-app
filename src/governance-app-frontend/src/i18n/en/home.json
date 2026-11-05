@@ -20,10 +20,18 @@
   "icpPrice24h": "24h",
   "icpPrice24hChart": "ICP price over the last 24 hours",
   "maxApy": "Current max minting",
+  "maxApyTooltip": "Estimated yearly minting for a neuron created today with the max dissolve delay and auto-stake on. Older neurons mint more from the age bonus.",
+  "maturityModulation": "Maturity modulation {{value}}",
+  "maturityModulationTooltip": "Today, 1 maturity converts to {{rate}} ICP. The rate changes each day, from −10% to +2%, based on the ICP price trend.",
   "yourApy": "Maturity",
   "maturity": "Maturity",
   "forecast": {
-    "oneYear": "1y forecast"
+    "week": "1w forecast",
+    "month": "1m forecast",
+    "year": "1y forecast",
+    "aria": {
+      "change": "{{label}}. Change the forecast period"
+    }
   },
   "executiveSummary": {
     "title": "Monthly governance overview",

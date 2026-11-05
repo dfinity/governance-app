@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { groupProposalPages } from './transformRequest';
+import { addCampaignParams, getCampaignParams, groupProposalPages } from './transformRequest';
 
 const payload = (u: string, p?: Record<string, string>) => ({
   n: 'pageview',
@@ -56,5 +56,60 @@ describe('groupProposalPages', () => {
       const input = payload(`https://nns.internetcomputer.org${path}`);
       expect(groupProposalPages(input)).toBe(input);
     }
+  });
+});
+
+describe('getCampaignParams', () => {
+  it('returns only the UTM parameters', () => {
+    expect(
+      getCampaignParams(
+        '?redirect=/voting&utm_source=nns-dapp&utm_medium=modal&utm_content=banner',
+      ),
+    ).toEqual([
+      ['utm_source', 'nns-dapp'],
+      ['utm_medium', 'modal'],
+      ['utm_content', 'banner'],
+    ]);
+  });
+
+  it('skips an empty value', () => {
+    expect(getCampaignParams('?utm_source=&utm_medium=modal')).toEqual([['utm_medium', 'modal']]);
+  });
+
+  it('returns nothing without UTM parameters', () => {
+    expect(getCampaignParams('')).toEqual([]);
+    expect(getCampaignParams('?redirect=/voting')).toEqual([]);
+  });
+});
+
+describe('addCampaignParams', () => {
+  const campaign: [string, string][] = [
+    ['utm_source', 'nns-dapp'],
+    ['utm_medium', 'modal'],
+  ];
+
+  it('adds the landing UTM parameters to a URL that lost them', () => {
+    expect(
+      addCampaignParams(payload('https://nns.internetcomputer.org/dashboard'), campaign).u,
+    ).toBe('https://nns.internetcomputer.org/dashboard?utm_source=nns-dapp&utm_medium=modal');
+  });
+
+  it('keeps the other query parameters', () => {
+    expect(
+      addCampaignParams(payload('https://nns.internetcomputer.org/?redirect=%2Fvoting'), campaign)
+        .u,
+    ).toBe(
+      'https://nns.internetcomputer.org/?redirect=%2Fvoting&utm_source=nns-dapp&utm_medium=modal',
+    );
+  });
+
+  it('does not change a URL with its own UTM parameters', () => {
+    const input = payload('https://nns.internetcomputer.org/?utm_source=forum');
+    expect(addCampaignParams(input, campaign)).toBe(input);
+  });
+
+  it('does not change the payload without a campaign', () => {
+    const input = payload('https://nns.internetcomputer.org/dashboard');
+    expect(addCampaignParams(input, [])).toBe(input);
   });
 });
