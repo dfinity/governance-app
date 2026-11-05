@@ -25,13 +25,26 @@ enum IcpPriceRange {
   Month = '30d',
 }
 
-const SECONDS_IN_WEEK = 7 * SECONDS_IN_DAY;
+const RANGE_SECONDS = {
+  [IcpPriceRange.Week]: 7 * SECONDS_IN_DAY,
+  [IcpPriceRange.Month]: 30 * SECONDS_IN_DAY,
+};
+// The backend keeps one rate every two hours, so this allows for one missing rate.
+const BASELINE_TOLERANCE_SECONDS = 4 * 60 * 60;
 
 const getLastWeekPoints = (points: IcpRatePoint[]) => {
   const newestTimestampSeconds = points[points.length - 1]?.timestampSeconds ?? 0;
-  return points.filter(
-    ({ timestampSeconds }) => timestampSeconds >= newestTimestampSeconds - SECONDS_IN_WEEK,
-  );
+  const oldestTimestampSeconds = newestTimestampSeconds - RANGE_SECONDS[IcpPriceRange.Week];
+  return points.filter(({ timestampSeconds }) => timestampSeconds >= oldestTimestampSeconds);
+};
+
+// Returns `undefined` if the history is shorter than the range, because the change would then
+// cover a shorter period than its label says.
+const getBaselineUsd = (points: IcpRatePoint[], rangeSeconds: number) => {
+  if (points.length < 2) return undefined;
+
+  const historySeconds = points[points.length - 1].timestampSeconds - points[0].timestampSeconds;
+  return historySeconds >= rangeSeconds - BASELINE_TOLERANCE_SECONDS ? points[0].usd : undefined;
 };
 
 const trendColor = (isPositive: boolean) =>
@@ -65,7 +78,10 @@ export const IcpPriceCard = () => {
   const historyData = historyQuery.data ?? [];
   const historyPoints = range === IcpPriceRange.Week ? getLastWeekPoints(historyData) : historyData;
 
-  const previousUsd = isDayRange ? icpPrice?.previousUsd : historyPoints[0]?.usd;
+  const previousUsd =
+    range === IcpPriceRange.Day
+      ? icpPrice?.previousUsd
+      : getBaselineUsd(historyPoints, RANGE_SECONDS[range]);
   // One exchange rate converts both prices, so the change is the same in each currency.
   const change =
     previousUsd && icpPrice?.usd ? (icpPrice.usd - previousUsd) / previousUsd : undefined;

@@ -116,6 +116,41 @@ describe('IcpPriceCard', () => {
     expect(chart.getAttribute('aria-label')).toBe('ICP price over the last 7 days');
   });
 
+  it('shows the chart without the change while the history is shorter than the range', async () => {
+    mockTickerPrices(TickerPricesSource.XRC);
+    mockRateHistory(POINTS);
+    mocks.rateMonthHistory.mockReturnValue({
+      data: [
+        { timestampSeconds: NEWEST_SECONDS - 8 * 86_400, usd: 2.7 },
+        { timestampSeconds: NEWEST_SECONDS, usd: 3.2 },
+      ],
+      isLoading: false,
+    });
+
+    render(<IcpPriceCard />);
+    await userEvent.click(screen.getByRole('radio', { name: '30d' }));
+
+    expect(screen.queryByText(/\(30d\)/)).toBeNull();
+    expect(screen.queryByTestId('icp-price-sparkline')).toBeTruthy();
+  });
+
+  it('accepts a history that misses the oldest rate of the range', async () => {
+    mockTickerPrices(TickerPricesSource.XRC);
+    mockRateHistory(POINTS);
+    mocks.rateMonthHistory.mockReturnValue({
+      data: [
+        { timestampSeconds: NEWEST_SECONDS - 7 * 86_400 + 2 * 3_600, usd: 2.7 },
+        { timestampSeconds: NEWEST_SECONDS, usd: 3.2 },
+      ],
+      isLoading: false,
+    });
+
+    render(<IcpPriceCard />);
+    await userEvent.click(screen.getByRole('radio', { name: '7d' }));
+
+    expect(screen.getByText(/\(7d\)/)).toBeTruthy();
+  });
+
   it('shows the whole month history for the 30d range', async () => {
     mockTickerPrices(TickerPricesSource.XRC);
     mockRateHistory(POINTS);
