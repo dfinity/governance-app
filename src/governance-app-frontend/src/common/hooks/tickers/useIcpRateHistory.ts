@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import type { CachedRate } from '@declarations/governance-app-backend/governance-app-backend.did';
+import type { CachedRate } from '@declarations/governance-app-backend/backend.did';
 
 import { E8S, EXCHANGE_RATE_REFRESH_MS } from '@constants/extra';
 import { useGovernanceAppCanister } from '@hooks/addressBook/useGovernanceAppCanister';

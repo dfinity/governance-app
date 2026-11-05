@@ -1,7 +1,7 @@
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { useQuery } from '@tanstack/react-query';
 
-import type { IcpExchangeRateResponse } from '@declarations/governance-app-backend/governance-app-backend.did';
+import type { IcpExchangeRateResponse } from '@declarations/governance-app-backend/backend.did';
 
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8S, EXCHANGE_RATE_REFRESH_MS } from '@constants/extra';

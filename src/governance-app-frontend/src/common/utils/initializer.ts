@@ -8,6 +8,8 @@ import { isE2E } from './e2e';
 declare module '@tanstack/react-router' {
   interface StaticDataRouteOption {
     title?: string;
+    /** The page is a detail view, so the bottom nav does not show. */
+    hidesBottomNav?: boolean;
   }
 
   interface Register {

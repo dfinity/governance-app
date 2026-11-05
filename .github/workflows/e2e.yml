@@ -5,6 +5,8 @@ on:
 jobs:
   tests:
     name: E2E Tests (${{ matrix.project }})
+    permissions:
+      contents: read
     timeout-minutes: 30
     runs-on: dind-small
     # Sharded per Playwright project: each project gets its own runner and its own replica, so
@@ -17,12 +19,14 @@ jobs:
     # This fixes Playwright connectivity issues found in GitHub Actions default containers
     env:
       BASE_URL: http://mc7vh-sqaaa-aaaai-q33na-cai.localhost:8080
-      CONTAINER_IMAGE: ghcr.io/dfinity/governance-app/builder-base:0.0.10
+      CONTAINER_IMAGE: ghcr.io/dfinity/governance-app/builder-base:0.0.11
       # Cache dirs live inside the workspace so they are visible both to actions/cache on the
       # host and to the tooling running inside the mounted container.
       NPM_CACHE_DIR: .ci-cache/npm
       CARGO_HOME_DIR: .ci-cache/cargo
       PLAYWRIGHT_BROWSERS_DIR: .ci-cache/playwright
+      # icp-cli home: holds the network launcher, which it downloads on first use.
+      ICP_HOME_DIR: .ci-cache/icp
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -53,10 +57,19 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           restore-keys: playwright-${{ runner.os }}-
 
+      - name: Restore icp-cli network launcher
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ${{ env.ICP_HOME_DIR }}
+          key: icp-${{ runner.os }}-${{ hashFiles('icp.yaml') }}
+          restore-keys: icp-${{ runner.os }}-
+
       - name: Pull container image
         run: docker pull $CONTAINER_IMAGE
 
       - name: Run E2E tests in Docker container
+        env:
+          ICP_CLI_GITHUB_TOKEN: ${{ github.token }}
         run: |
           docker run --rm \
             --network host \
@@ -68,6 +81,8 @@ jobs:
             -e npm_config_cache="/app/$NPM_CACHE_DIR" \
             -e CARGO_HOME="/app/$CARGO_HOME_DIR" \
             -e PLAYWRIGHT_BROWSERS_PATH="/app/$PLAYWRIGHT_BROWSERS_DIR" \
+            -e ICP_HOME="/app/$ICP_HOME_DIR" \
+            -e ICP_CLI_GITHUB_TOKEN \
             $CONTAINER_IMAGE \
             bash -c '
               set -e
@@ -75,18 +90,18 @@ jobs:
               echo "Hostname: $(hostname)"
               echo "User: $(whoami)"
               echo "Node: $(node -v)"
-              echo "DFX: $(dfx --version)"
               echo "Project: $PROJECT"
               echo ""
 
               echo "=== Installing dependencies ==="
               npm ci
+              echo "icp: $(npx icp --version)"
 
               echo "=== Generating .env file ==="
               ./scripts/config.sh -n local
 
-              echo "=== Starting local dfx replica ==="
-              ./scripts/start-pocket-ic.sh --background --delay 0
+              echo "=== Starting local network ==="
+              ./scripts/start-pocket-ic.sh --background --environment e2e
 
               echo "=== Waiting for server ==="
               max_attempts=30
@@ -113,8 +128,9 @@ jobs:
               npx playwright test --project="$PROJECT" --update-snapshots --reporter=list,html
 
               echo ""
-              echo "=== Stopping dfx ==="
-              dfx stop
+              echo "=== Stopping local network ==="
+              cd /app
+              npx icp network stop e2e
             '
 
       - name: Collect changed/new screenshots

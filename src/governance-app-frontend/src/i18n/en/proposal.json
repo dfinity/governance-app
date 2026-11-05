@@ -17,7 +17,8 @@
   "votingProgress": {
     "loading": "Voting on proposal {{id}}...",
     "success": "{{action}} proposal {{id}}",
-    "error": "Failed to vote on proposal {{id}}"
+    "error": "Failed to vote on proposal {{id}}",
+    "cancelled": "Voting on proposal {{id}} stopped at the Ledger device"
   },
   "voteCast": "Vote cast: <strong>{{vote}}</strong>",
   "yes": "Yes",
