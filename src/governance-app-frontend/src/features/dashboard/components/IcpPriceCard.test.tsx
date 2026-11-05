@@ -176,6 +176,21 @@ describe('IcpPriceCard', () => {
     expect(screen.getByText(/\(24h\)/)).toBeTruthy();
   });
 
+  it('goes back to the 24h change when the price source falls back to ICPSwap', async () => {
+    mockTickerPrices(TickerPricesSource.XRC);
+    mockRateHistory(POINTS);
+
+    const { rerender } = render(<IcpPriceCard />);
+    await userEvent.click(screen.getByRole('radio', { name: '7d' }));
+    expect(screen.getByText(/\(7d\)/)).toBeTruthy();
+
+    mockTickerPrices(TickerPricesSource.ICP_SWAP);
+    rerender(<IcpPriceCard />);
+
+    expect(screen.queryByText(/\(7d\)/)).toBeNull();
+    expect(screen.getByText(/5\.68%/).textContent).toContain('(24h)');
+  });
+
   it('does not show the range picker for the ICPSwap source', () => {
     mockTickerPrices(TickerPricesSource.ICP_SWAP);
     mockRateHistory(undefined);

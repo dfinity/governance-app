@@ -58,7 +58,9 @@ export const IcpPriceCard = () => {
   const hasHistorySource = tickerPricesSource === TickerPricesSource.XRC;
   const dayHistoryQuery = useIcpRateHistory({ enabled: hasHistorySource });
   const monthHistoryQuery = useIcpRateMonthHistory({ enabled: hasHistorySource });
-  const [range, setRange] = useState(IcpPriceRange.Day);
+  const [selectedRange, setSelectedRange] = useState(IcpPriceRange.Day);
+  // Without a history source, the card has no picker and only the 24h change is available.
+  const range = hasHistorySource ? selectedRange : IcpPriceRange.Day;
   const isDayRange = range === IcpPriceRange.Day;
   const historyQuery = isDayRange ? dayHistoryQuery : monthHistoryQuery;
 
@@ -113,7 +115,7 @@ export const IcpPriceCard = () => {
               size="sm"
               value={range}
               onValueChange={(value: IcpPriceRange) => {
-                if (value) setRange(value);
+                if (value) setSelectedRange(value);
               }}
               aria-label={t(($) => $.home.icpPriceRange)}
               className="-my-1 -mr-1.5"
