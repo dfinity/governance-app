@@ -82,7 +82,7 @@ function ProposalDetailsRouteComponent() {
         <Button variant="link" asChild className="p-0! font-normal">
           <Link
             to="/voting"
-            search={{ showProposals: search.showProposals, proposalFilter: search.proposalFilter }}
+            search={{ showProposals: true, proposalFilter: search.proposalFilter }}
           >
             <ArrowLeft className="size-5" />
             {t(($) => $.proposal.backToProposals)}
