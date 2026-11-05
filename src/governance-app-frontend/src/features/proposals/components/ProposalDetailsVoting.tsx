@@ -52,8 +52,9 @@ const DockingFooter = ({ children }: { children: ReactNode }) => {
       observedInset = inset;
       observer?.disconnect();
       observer = new IntersectionObserver(
-        ([entry]) => setIsDocked(entry.boundingClientRect.top < (entry.rootBounds?.bottom ?? 0)),
-        { root, rootMargin: `0px 0px -${inset}px 0px` },
+        ([entry]) => setIsDocked(entry.boundingClientRect.top <= (entry.rootBounds?.bottom ?? 0)),
+        // The large top margin leaves one boundary, so a scroll jump over the card still reports.
+        { root, rootMargin: `100000px 0px -${inset}px 0px` },
       );
       observer.observe(sentinel);
     };
