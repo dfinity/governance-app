@@ -13,10 +13,16 @@ import { useLedgerSignerPrincipals } from '@features/stakes/hooks/useNeuronSigne
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { isDeviceActionCancelled } from '@hooks/useDeviceAction';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
+import { isNeuronAlreadyVotedError } from '@utils/errors/governance';
 import { isUserControllerOrHotkey } from '@utils/neuron';
 import { ephemeralNotification } from '@utils/notification';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 import { isNeuronControlledByLedger } from '@common/ledger/signer';
+
+// A neuron can vote through following after the ballots load. Its vote is in place.
+const ignoreAlreadyVoted = (error: unknown) => {
+  if (!isNeuronAlreadyVotedError(error)) throw error;
+};
 
 /**
  * Hook to manage voting on a proposal
@@ -86,21 +92,25 @@ export const useVoting = (proposal: ProposalInfo) => {
 
       // Execute all session votes in parallel
       const promises = sessionNeuronIds.map((neuronId) =>
-        canister.registerVote({
-          proposalId: proposal.id!,
-          vote,
-          neuronId,
-        }),
+        canister
+          .registerVote({
+            proposalId: proposal.id!,
+            vote,
+            neuronId,
+          })
+          .catch(ignoreAlreadyVoted),
       );
 
       const voteWithDevice = async ({ neuronId, principal }: (typeof deviceVotes)[number]) =>
         runLedgerCall(
           (deviceCanister) =>
-            deviceCanister.registerVote({
-              proposalId: proposal.id!,
-              vote,
-              neuronId,
-            }),
+            deviceCanister
+              .registerVote({
+                proposalId: proposal.id!,
+                vote,
+                neuronId,
+              })
+              .catch(ignoreAlreadyVoted),
           {
             principal,
             action: 'vote',
