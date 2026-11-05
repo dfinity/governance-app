@@ -1,8 +1,9 @@
-import { Link, useMatches, useRouterState } from '@tanstack/react-router';
+import { Link, useRouterState } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { useHidesBottomNav } from '@hooks/useHidesBottomNav';
 import { isAccountsAreaEnabled } from '@utils/advancedFeatures';
 import { cn } from '@utils/shadcn';
 
@@ -13,9 +14,7 @@ export const BottomNav = () => {
   const { features } = useAdvancedFeatures();
   const accountsEnabled = isAccountsAreaEnabled(features);
   const navigationItems = getNavigationItems({ accountsEnabled });
-  const hidden = useMatches({
-    select: (matches) => matches.some((match) => match.staticData.hidesBottomNav),
-  });
+  const hidden = useHidesBottomNav();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const activeIndex = navigationItems.findIndex((item) => pathname.startsWith(item.href));
 

@@ -4,8 +4,12 @@ import { WelcomeModal } from '@features/onboarding/WelcomeModal';
 
 import { BottomNav } from '@components/navigation/BottomNav';
 import { Sidebar } from '@components/navigation/Sidebar';
+import { useHidesBottomNav } from '@hooks/useHidesBottomNav';
+import { cn } from '@utils/shadcn';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
+  const hidesBottomNav = useHidesBottomNav();
+
   return (
     <div className="relative z-10 flex h-dvh w-full" data-testid="main-layout">
       <WelcomeModal />
@@ -16,7 +20,12 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
       />
       <Sidebar />
       <div className="relative flex h-full w-full flex-col overflow-hidden">
-        <main className="relative flex-1 overflow-x-clip overflow-y-auto overscroll-y-contain bg-main-content px-4 pt-[calc(2rem+env(safe-area-inset-top))] pb-[calc(var(--bottom-nav-space)+1rem)] lg:px-8 lg:pt-8 lg:pb-8">
+        <main
+          className={cn(
+            'relative flex-1 overflow-x-clip overflow-y-auto overscroll-y-contain bg-main-content px-4 pt-[calc(2rem+env(safe-area-inset-top))] pb-[calc(var(--bottom-nav-space)+1rem)] lg:px-8 lg:pt-8 lg:pb-8',
+            hidesBottomNav && '[--bottom-nav-space:0px]',
+          )}
+        >
           <div className="mx-auto min-h-full w-full max-w-295">{children}</div>
         </main>
         <BottomNav />
