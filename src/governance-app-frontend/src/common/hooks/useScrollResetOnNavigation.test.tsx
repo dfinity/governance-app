@@ -175,6 +175,22 @@ describe('useScrollResetOnNavigation', () => {
     expect(main.scrollTop).toBe(500);
   });
 
+  it('Restores the position on Back and Forward between entries of the same page.', async () => {
+    const { router, main } = await renderRouter();
+    userScroll(main, 500);
+    act(() => router.history.push('/list?filter=all'));
+    await waitFor(() => expect(router.state.resolvedLocation?.search).toEqual({ filter: 'all' }));
+    // The new entry shows less content, so the page gets shorter.
+    userScroll(main, 100);
+
+    act(() => router.history.back());
+    await waitFor(() => expect(main.scrollTop).toBe(500));
+    expect(restoresScrollPosition(router.state.location.state.__TSR_key)).toBe(true);
+
+    act(() => router.history.forward());
+    await waitFor(() => expect(main.scrollTop).toBe(100));
+  });
+
   it('Restores the position when the content grows after the page resolves.', async () => {
     const { router, main } = await renderRouter();
     userScroll(main, 800);

@@ -72,7 +72,8 @@ const restoreScrollTop = (router: AnyRouter, main: HTMLElement, key: string, top
  * Sets the scroll position of the main element when the page changes.
  * - A new history entry (push or replace) starts at the top.
  * - Back and Forward restore the position that the entry had when the user left it.
- * Query params and hash/fragment changes are ignored, since we are in the same page.
+ * A new entry with only other query params or another hash/fragment keeps the position,
+ * since we are in the same page.
  * Replaces the scrollRestoration prop from TanStack Router, because it didn't work consistently:
  * sometimes didn't reset the scroll position on page change.
  *
@@ -114,11 +115,7 @@ export const useScrollResetOnNavigation = () => {
     const main = document.querySelector('main');
     if (!main || !resolvedKey) return;
 
-    // Same page, new entry (a search param change): the position stays.
-    if (previousPathname.current === resolvedPathname) {
-      savedScrollTops.set(resolvedKey, main.scrollTop);
-      return;
-    }
+    const pathnameChanged = previousPathname.current !== resolvedPathname;
     previousPathname.current = resolvedPathname;
 
     const savedTop = savedScrollTops.get(resolvedKey);
@@ -126,7 +123,8 @@ export const useScrollResetOnNavigation = () => {
       return restoreScrollTop(router, main, resolvedKey, savedTop);
     }
 
-    main.scrollTop = 0;
-    savedScrollTops.set(resolvedKey, 0);
+    // A new entry on the same page (a search param change) keeps the position.
+    if (pathnameChanged) main.scrollTop = 0;
+    savedScrollTops.set(resolvedKey, main.scrollTop);
   }, [router, resolvedPathname, resolvedKey]);
 };
