@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
@@ -10,6 +11,7 @@ import { IcpPriceCard } from './IcpPriceCard';
 const mocks = vi.hoisted(() => ({
   tickerPrices: vi.fn(),
   rateHistory: vi.fn(),
+  rateMonthHistory: vi.fn(),
   fiatExchangeRates: vi.fn(),
   fiatCurrency: vi.fn(),
 }));
@@ -24,6 +26,7 @@ vi.mock('@hooks/tickers/useTickerPrices', async (importOriginal) => ({
 vi.mock('@hooks/tickers/useIcpRateHistory', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@hooks/tickers/useIcpRateHistory')>()),
   useIcpRateHistory: mocks.rateHistory,
+  useIcpRateMonthHistory: mocks.rateMonthHistory,
 }));
 
 vi.mock('@hooks/tickers/useFiatExchangeRates', async (importOriginal) => ({
@@ -32,12 +35,21 @@ vi.mock('@hooks/tickers/useFiatExchangeRates', async (importOriginal) => ({
 }));
 
 vi.mock('./IcpPriceSparkline', () => ({
-  IcpPriceSparkline: () => <div data-testid="icp-price-sparkline" />,
+  IcpPriceSparkline: ({ points, label }: { points: unknown[]; label: string }) => (
+    <div data-testid="icp-price-sparkline" data-point-count={points.length} aria-label={label} />
+  ),
 }));
 
 const POINTS = [
   { timestampSeconds: 1_774_784_400, usd: 3.435 },
   { timestampSeconds: 1_774_870_800, usd: 3.24 },
+];
+
+const NEWEST_SECONDS = 1_774_870_800;
+const MONTH_POINTS = [
+  { timestampSeconds: NEWEST_SECONDS - 30 * 86_400, usd: 4.05 },
+  { timestampSeconds: NEWEST_SECONDS - 7 * 86_400, usd: 2.7 },
+  { timestampSeconds: NEWEST_SECONDS, usd: 3.2 },
 ];
 
 const mockTickerPrices = (source: TickerPricesSource, withChange = true) =>
@@ -61,6 +73,8 @@ describe('IcpPriceCard', () => {
   beforeEach(() => {
     mocks.tickerPrices.mockReset();
     mocks.rateHistory.mockReset();
+    mocks.rateMonthHistory.mockReset();
+    mocks.rateMonthHistory.mockReturnValue({ data: MONTH_POINTS, isLoading: false });
     mocks.fiatExchangeRates.mockReturnValue({ data: undefined, isLoading: false });
     mocks.fiatCurrency.mockReturnValue({ fiatCurrency: FiatCurrency.USD });
   });
@@ -83,8 +97,58 @@ describe('IcpPriceCard', () => {
 
     render(<IcpPriceCard />);
 
-    expect(screen.queryByText(/24h/)).toBeNull();
+    expect(screen.queryByText(/\(24h\)/)).toBeNull();
     expect(screen.queryByTestId('icp-price-sparkline')).toBeTruthy();
+  });
+
+  it('shows the last 7 days of the month history for the 7d range', async () => {
+    mockTickerPrices(TickerPricesSource.XRC);
+    mockRateHistory(POINTS);
+
+    render(<IcpPriceCard />);
+    await userEvent.click(screen.getByRole('radio', { name: '7d' }));
+
+    // From 2.70 to the live price of 3.24.
+    expect(screen.getByText(/20\.00%/).textContent).toContain('▲');
+    expect(screen.getByText(/\(7d\)/)).toBeTruthy();
+    const chart = screen.getByTestId('icp-price-sparkline');
+    expect(chart.getAttribute('data-point-count')).toBe('2');
+    expect(chart.getAttribute('aria-label')).toBe('ICP price over the last 7 days');
+  });
+
+  it('shows the whole month history for the 30d range', async () => {
+    mockTickerPrices(TickerPricesSource.XRC);
+    mockRateHistory(POINTS);
+
+    render(<IcpPriceCard />);
+    await userEvent.click(screen.getByRole('radio', { name: '30d' }));
+
+    // From 4.05 to the live price of 3.24.
+    expect(screen.getByText(/20\.00%/).textContent).toContain('▼');
+    expect(screen.getByText(/\(30d\)/)).toBeTruthy();
+    const chart = screen.getByTestId('icp-price-sparkline');
+    expect(chart.getAttribute('data-point-count')).toBe('3');
+    expect(chart.getAttribute('aria-label')).toBe('ICP price over the last 30 days');
+  });
+
+  it('keeps the range when the user presses the selected range again', async () => {
+    mockTickerPrices(TickerPricesSource.XRC);
+    mockRateHistory(POINTS);
+
+    render(<IcpPriceCard />);
+    await userEvent.click(screen.getByRole('radio', { name: '24h' }));
+
+    expect(screen.getByText(/\(24h\)/)).toBeTruthy();
+  });
+
+  it('does not show the range picker for the ICPSwap source', () => {
+    mockTickerPrices(TickerPricesSource.ICP_SWAP);
+    mockRateHistory(undefined);
+
+    render(<IcpPriceCard />);
+
+    expect(screen.queryByRole('radio')).toBeNull();
+    expect(mocks.rateMonthHistory).toHaveBeenCalledWith({ enabled: false });
   });
 
   it('does not show the chart for the ICPSwap source', () => {

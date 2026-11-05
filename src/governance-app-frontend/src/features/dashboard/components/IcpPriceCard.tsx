@@ -1,18 +1,38 @@
 import { nonNullish } from '@dfinity/utils';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
+import { ToggleGroup, ToggleGroupItem } from '@components/ToggleGroup';
 import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
+import { SECONDS_IN_DAY } from '@constants/extra';
 import {
+  type IcpRatePoint,
   TickerPricesSource,
   useIcpPrice,
   useIcpRateHistory,
+  useIcpRateMonthHistory,
   useTickerPrices,
 } from '@hooks/tickers';
 import { formatPercentage } from '@utils/numbers';
 
 import { IcpPriceSparkline } from './IcpPriceSparkline';
+
+enum IcpPriceRange {
+  Day = '24h',
+  Week = '7d',
+  Month = '30d',
+}
+
+const SECONDS_IN_WEEK = 7 * SECONDS_IN_DAY;
+
+const getLastWeekPoints = (points: IcpRatePoint[]) => {
+  const newestTimestampSeconds = points[points.length - 1]?.timestampSeconds ?? 0;
+  return points.filter(
+    ({ timestampSeconds }) => timestampSeconds >= newestTimestampSeconds - SECONDS_IN_WEEK,
+  );
+};
 
 const trendColor = (isPositive: boolean) =>
   isPositive ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400';
@@ -23,31 +43,78 @@ export const IcpPriceCard = () => {
   const { icpPrice: icpPriceFiat, toFiat, formatFiat, isLoading } = useIcpPrice();
   // Only the backend (XRC) source keeps a price history.
   const hasHistorySource = tickerPricesSource === TickerPricesSource.XRC;
-  const historyQuery = useIcpRateHistory({ enabled: hasHistorySource });
+  const dayHistoryQuery = useIcpRateHistory({ enabled: hasHistorySource });
+  const monthHistoryQuery = useIcpRateMonthHistory({ enabled: hasHistorySource });
+  const [range, setRange] = useState(IcpPriceRange.Day);
+  const isDayRange = range === IcpPriceRange.Day;
+  const historyQuery = isDayRange ? dayHistoryQuery : monthHistoryQuery;
+
+  const rangeLabels = {
+    [IcpPriceRange.Day]: t(($) => $.home.icpPrice24h),
+    [IcpPriceRange.Week]: t(($) => $.home.icpPrice7d),
+    [IcpPriceRange.Month]: t(($) => $.home.icpPrice30d),
+  };
+  const chartLabels = {
+    [IcpPriceRange.Day]: t(($) => $.home.icpPrice24hChart),
+    [IcpPriceRange.Week]: t(($) => $.home.icpPrice7dChart),
+    [IcpPriceRange.Month]: t(($) => $.home.icpPrice30dChart),
+  };
 
   const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
 
+  const historyData = historyQuery.data ?? [];
+  const historyPoints = range === IcpPriceRange.Week ? getLastWeekPoints(historyData) : historyData;
+
+  const previousUsd = isDayRange ? icpPrice?.previousUsd : historyPoints[0]?.usd;
   // One exchange rate converts both prices, so the change is the same in each currency.
   const change =
-    icpPrice?.previousUsd && icpPrice.usd
-      ? (icpPrice.usd - icpPrice.previousUsd) / icpPrice.previousUsd
-      : undefined;
+    previousUsd && icpPrice?.usd ? (icpPrice.usd - previousUsd) / previousUsd : undefined;
 
   const isPositive = nonNullish(change) && change >= 0;
 
-  const historyPoints = historyQuery.data ?? [];
   // The chart also waits for the price, so that its tooltip shows the picked currency.
   const isChartLoading = hasHistorySource && (historyQuery.isLoading || isLoading);
   const showChart = hasHistorySource && historyPoints.length >= 2;
+  // The month history ends at the last two-hour slot, so its trend uses the live price.
   const isChartPositive =
-    showChart && historyPoints[historyPoints.length - 1].usd >= historyPoints[0].usd;
+    showChart &&
+    (!isDayRange && nonNullish(change)
+      ? isPositive
+      : historyPoints[historyPoints.length - 1].usd >= historyPoints[0].usd);
 
   return (
     <Card className="gap-0 overflow-hidden py-4">
       <CardContent>
-        <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-          {t(($) => $.home.icpPrice)}
-        </p>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            {t(($) => $.home.icpPrice)}
+          </p>
+          {hasHistorySource && (
+            // The negative margins keep the 24px buttons inside the height of the label.
+            <ToggleGroup
+              type="single"
+              spacing={0.5}
+              size="sm"
+              value={range}
+              onValueChange={(value: IcpPriceRange) => {
+                if (value) setRange(value);
+              }}
+              aria-label={t(($) => $.home.icpPriceRange)}
+              className="-my-1 -mr-1.5"
+            >
+              {Object.values(IcpPriceRange).map((value) => (
+                <ToggleGroupItem
+                  key={value}
+                  value={value}
+                  // In dark mode, `bg-muted` is the same color as the card.
+                  className="h-6 min-w-0 px-1.5 text-xs text-muted-foreground data-[state=on]:bg-border data-[state=on]:text-foreground"
+                >
+                  {rangeLabels[value]}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+          )}
+        </div>
         {isLoading ? (
           <Skeleton className="h-8 w-40" />
         ) : (
@@ -60,7 +127,7 @@ export const IcpPriceCard = () => {
                 className={`flex items-center gap-1 text-sm font-medium ${trendColor(isPositive)}`}
               >
                 <span>{isPositive ? '▲' : '▼'}</span>
-                {formatPercentage(Math.abs(change))} ({t(($) => $.home.icpPrice24h)})
+                {formatPercentage(Math.abs(change))} ({rangeLabels[range]})
               </p>
             )}
           </div>
@@ -79,7 +146,7 @@ export const IcpPriceCard = () => {
             // Without it, the drawn SVG holds the old height.
             <IcpPriceSparkline
               points={historyPoints}
-              label={t(($) => $.home.icpPrice24hChart)}
+              label={chartLabels[range]}
               formatPrice={(usd) => formatFiat(toFiat(usd))}
               className={`min-h-0 flex-1 ${trendColor(isChartPositive)}`}
             />

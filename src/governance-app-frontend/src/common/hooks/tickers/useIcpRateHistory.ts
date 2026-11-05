@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import type { CachedRate } from '@declarations/governance-app-backend/backend.did';
+import type { CachedRate, PastMonthRate } from '@declarations/governance-app-backend/backend.did';
 
 import { E8S, EXCHANGE_RATE_REFRESH_MS } from '@constants/extra';
 import { useGovernanceAppCanister } from '@hooks/addressBook/useGovernanceAppCanister';
@@ -34,7 +34,26 @@ export const useIcpRateHistory = ({ enabled = true }: Props) => {
   });
 };
 
-export const parseRateHistoryResponse = (rates: CachedRate[]): IcpRatePoint[] =>
+export const useIcpRateMonthHistory = ({ enabled = true }: Props) => {
+  const canisterStatus = useGovernanceAppCanister();
+
+  return useQuery<IcpRatePoint[]>({
+    queryKey: [QUERY_KEYS.GOVERNANCE_APP_BACKEND.EXCHANGE_RATE_MONTH_HISTORY],
+    queryFn: async () => {
+      if (!canisterStatus.ready) {
+        throw new Error('Canister not ready');
+      }
+
+      const response = await canisterStatus.canister.service.list_icp_to_usd_past_month_rates();
+      return parseRateHistoryResponse(response);
+    },
+    enabled: enabled && canisterStatus.ready,
+    refetchInterval: EXCHANGE_RATE_REFRESH_MS,
+    retry: 1,
+  });
+};
+
+export const parseRateHistoryResponse = (rates: (CachedRate | PastMonthRate)[]): IcpRatePoint[] =>
   rates
     .map(({ rate_e8s, timestamp_seconds }) => ({
       timestampSeconds: Number(timestamp_seconds),
