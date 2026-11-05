@@ -42,6 +42,7 @@ vi.mock('@hooks/useStakingRewards', () => ({
   useStakingRewards: () => ({
     loading: false,
     rewardEstimates: new Map([
+      [MaturityEstimatePeriod.DAY, 0.00207],
       [MaturityEstimatePeriod.WEEK, 0.0145],
       [MaturityEstimatePeriod.MONTH, 1.86],
       [MaturityEstimatePeriod.YEAR, 22.68],
@@ -101,6 +102,13 @@ describe('EarningsCard', () => {
     render(<EarningsCard neurons={[optimizedNeuron()]} />);
 
     expect(screen.getByText('+0.0145 per week')).toBeTruthy();
+  });
+
+  it('keeps three significant digits of a small daily forecast', () => {
+    forecast.period = ForecastPeriod.Day;
+    render(<EarningsCard neurons={[optimizedNeuron()]} />);
+
+    expect(screen.getByText('+0.00207 per day')).toBeTruthy();
   });
 
   it('offers a higher rate when a neuron is not optimized', () => {

@@ -26,6 +26,7 @@
   "yourApy": "Maturity",
   "maturity": "Maturity",
   "forecast": {
+    "day": "1d forecast",
     "week": "1w forecast",
     "month": "1m forecast",
     "year": "1y forecast",

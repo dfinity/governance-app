@@ -56,6 +56,8 @@ export function EarningsCard({ neurons }: EarningsCardProps) {
   const getForecastText = (value: number) => {
     const formatted = formatSmallAmount(value);
     switch (forecastPeriod) {
+      case ForecastPeriod.Day:
+        return t(($) => $.neuron.summary.earningsPerDay, { value: formatted });
       case ForecastPeriod.Week:
         return t(($) => $.neuron.summary.earningsPerWeek, { value: formatted });
       case ForecastPeriod.Month:

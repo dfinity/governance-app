@@ -69,6 +69,7 @@
     "engagementActionToVote": "{{count}} to vote",
     "earnings": "Maturity",
     "maturityTooltip": "Locked: {{locked}}. Available: {{available}}.",
+    "earningsPerDay": "+{{value}} per day",
     "earningsPerWeek": "+{{value}} per week",
     "earningsPerMonth": "+{{value}} per month",
     "earningsPerYear": "+{{value}} per year",
