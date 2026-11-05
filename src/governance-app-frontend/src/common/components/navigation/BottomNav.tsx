@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router';
+import { Link, useMatches } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -13,6 +13,9 @@ export const BottomNav = () => {
   const { features } = useAdvancedFeatures();
   const accountsEnabled = isAccountsAreaEnabled(features);
   const navigationItems = getNavigationItems({ accountsEnabled });
+  const hidden = useMatches({
+    select: (matches) => matches.some((match) => match.staticData.hidesBottomNav),
+  });
 
   const [prevEnabled, setPrevEnabled] = useState(accountsEnabled);
   const [shouldAnimate, setShouldAnimate] = useState(false);
@@ -23,6 +26,8 @@ export const BottomNav = () => {
       setShouldAnimate(true);
     }
   }
+
+  if (hidden) return null;
 
   return (
     <nav className="z-50 shrink-0 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm lg:hidden">
