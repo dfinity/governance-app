@@ -2,7 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { CachedRate, PastMonthRate } from '@declarations/governance-app-backend/backend.did';
 
-import { E8S, EXCHANGE_RATE_REFRESH_MS } from '@constants/extra';
+import {
+  E8S,
+  EXCHANGE_RATE_MONTH_HISTORY_REFRESH_MS,
+  EXCHANGE_RATE_REFRESH_MS,
+} from '@constants/extra';
 import { useGovernanceAppCanister } from '@hooks/addressBook/useGovernanceAppCanister';
 import { QUERY_KEYS } from '@utils/query';
 
@@ -48,7 +52,7 @@ export const useIcpRateMonthHistory = ({ enabled = true }: Props) => {
       return parseRateHistoryResponse(response);
     },
     enabled: enabled && canisterStatus.ready,
-    refetchInterval: EXCHANGE_RATE_REFRESH_MS,
+    refetchInterval: EXCHANGE_RATE_MONTH_HISTORY_REFRESH_MS,
     retry: 1,
   });
 };

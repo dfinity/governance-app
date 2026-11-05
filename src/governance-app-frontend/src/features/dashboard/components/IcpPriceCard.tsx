@@ -56,12 +56,12 @@ export const IcpPriceCard = () => {
   const { icpPrice: icpPriceFiat, toFiat, formatFiat, isLoading } = useIcpPrice();
   // Only the backend (XRC) source keeps a price history.
   const hasHistorySource = tickerPricesSource === TickerPricesSource.XRC;
-  const dayHistoryQuery = useIcpRateHistory({ enabled: hasHistorySource });
-  const monthHistoryQuery = useIcpRateMonthHistory({ enabled: hasHistorySource });
   const [selectedRange, setSelectedRange] = useState(IcpPriceRange.Day);
   // Without a history source, the card has no picker and only the 24h change is available.
   const range = hasHistorySource ? selectedRange : IcpPriceRange.Day;
   const isDayRange = range === IcpPriceRange.Day;
+  const dayHistoryQuery = useIcpRateHistory({ enabled: hasHistorySource });
+  const monthHistoryQuery = useIcpRateMonthHistory({ enabled: !isDayRange });
   const historyQuery = isDayRange ? dayHistoryQuery : monthHistoryQuery;
 
   const rangeLabels = {
@@ -124,6 +124,7 @@ export const IcpPriceCard = () => {
                 <ToggleGroupItem
                   key={value}
                   value={value}
+                  aria-label={chartLabels[value]}
                   // In dark mode, `bg-muted` is the same color as the card.
                   className="h-6 min-w-0 px-1.5 text-xs text-muted-foreground data-[state=on]:bg-border data-[state=on]:text-foreground"
                 >

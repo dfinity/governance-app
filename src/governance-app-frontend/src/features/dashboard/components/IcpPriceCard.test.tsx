@@ -106,7 +106,7 @@ describe('IcpPriceCard', () => {
     mockRateHistory(POINTS);
 
     render(<IcpPriceCard />);
-    await userEvent.click(screen.getByRole('radio', { name: '7d' }));
+    await userEvent.click(screen.getByRole('radio', { name: /7 days/ }));
 
     // From 2.70 to the live price of 3.24.
     expect(screen.getByText(/20\.00%/).textContent).toContain('▲');
@@ -128,7 +128,7 @@ describe('IcpPriceCard', () => {
     });
 
     render(<IcpPriceCard />);
-    await userEvent.click(screen.getByRole('radio', { name: '30d' }));
+    await userEvent.click(screen.getByRole('radio', { name: /30 days/ }));
 
     expect(screen.queryByText(/\(30d\)/)).toBeNull();
     expect(screen.queryByTestId('icp-price-sparkline')).toBeTruthy();
@@ -146,7 +146,7 @@ describe('IcpPriceCard', () => {
     });
 
     render(<IcpPriceCard />);
-    await userEvent.click(screen.getByRole('radio', { name: '7d' }));
+    await userEvent.click(screen.getByRole('radio', { name: /7 days/ }));
 
     expect(screen.getByText(/\(7d\)/)).toBeTruthy();
   });
@@ -156,7 +156,7 @@ describe('IcpPriceCard', () => {
     mockRateHistory(POINTS);
 
     render(<IcpPriceCard />);
-    await userEvent.click(screen.getByRole('radio', { name: '30d' }));
+    await userEvent.click(screen.getByRole('radio', { name: /30 days/ }));
 
     // From 4.05 to the live price of 3.24.
     expect(screen.getByText(/20\.00%/).textContent).toContain('▼');
@@ -166,12 +166,23 @@ describe('IcpPriceCard', () => {
     expect(chart.getAttribute('aria-label')).toBe('ICP price over the last 30 days');
   });
 
+  it('fetches the month history only for the 7d and 30d ranges', async () => {
+    mockTickerPrices(TickerPricesSource.XRC);
+    mockRateHistory(POINTS);
+
+    render(<IcpPriceCard />);
+    expect(mocks.rateMonthHistory).toHaveBeenLastCalledWith({ enabled: false });
+
+    await userEvent.click(screen.getByRole('radio', { name: /7 days/ }));
+    expect(mocks.rateMonthHistory).toHaveBeenLastCalledWith({ enabled: true });
+  });
+
   it('keeps the range when the user presses the selected range again', async () => {
     mockTickerPrices(TickerPricesSource.XRC);
     mockRateHistory(POINTS);
 
     render(<IcpPriceCard />);
-    await userEvent.click(screen.getByRole('radio', { name: '24h' }));
+    await userEvent.click(screen.getByRole('radio', { name: /24 hours/ }));
 
     expect(screen.getByText(/\(24h\)/)).toBeTruthy();
   });
@@ -181,7 +192,7 @@ describe('IcpPriceCard', () => {
     mockRateHistory(POINTS);
 
     const { rerender } = render(<IcpPriceCard />);
-    await userEvent.click(screen.getByRole('radio', { name: '7d' }));
+    await userEvent.click(screen.getByRole('radio', { name: /7 days/ }));
     expect(screen.getByText(/\(7d\)/)).toBeTruthy();
 
     mockTickerPrices(TickerPricesSource.ICP_SWAP);
