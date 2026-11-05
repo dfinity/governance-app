@@ -69,6 +69,7 @@ export function StakedCard() {
   };
 
   const forecastLabel = {
+    [ForecastPeriod.Day]: t(($) => $.home.forecast.day),
     [ForecastPeriod.Week]: t(($) => $.home.forecast.week),
     [ForecastPeriod.Month]: t(($) => $.home.forecast.month),
     [ForecastPeriod.Year]: t(($) => $.home.forecast.year),
