@@ -109,10 +109,21 @@ describe('ProposalDetailsVoting', () => {
     expect(footerState()).toBe('docked');
   });
 
+  it('docks the vote buttons when the card ends exactly at the scroll area', () => {
+    renderInMain();
+
+    reportSentinelTop(1200);
+    reportSentinelTop(800);
+    expect(footerState()).toBe('docked');
+  });
+
   it('ends the observed area at the bottom padding of main', () => {
     const main = renderInMain();
 
-    expect(mocks.observer?.options).toMatchObject({ root: main, rootMargin: '0px 0px -8px 0px' });
+    expect(mocks.observer?.options).toMatchObject({
+      root: main,
+      rootMargin: '100000px 0px -8px 0px',
+    });
   });
 
   it('follows the bottom padding of main when it changes', () => {
@@ -121,7 +132,10 @@ describe('ProposalDetailsVoting', () => {
     main.style.paddingBottom = '32px';
     act(() => mocks.resize!());
 
-    expect(mocks.observer?.options).toMatchObject({ root: main, rootMargin: '0px 0px -32px 0px' });
+    expect(mocks.observer?.options).toMatchObject({
+      root: main,
+      rootMargin: '100000px 0px -32px 0px',
+    });
   });
 
   it('shows no vote buttons when the user cannot vote', () => {
