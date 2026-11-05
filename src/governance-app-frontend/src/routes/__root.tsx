@@ -1,5 +1,5 @@
 import { nonNullish } from '@dfinity/utils';
-import { QueryClient, useQueryClient } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query';
 import {
   createRootRouteWithContext,
   HeadContent,
@@ -9,9 +9,8 @@ import {
   useRouter,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ArrowLeft, LogIn } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
@@ -20,10 +19,10 @@ import { analytics } from '@features/analytics/service';
 import { Button } from '@components/button';
 import { MainLayout } from '@components/MainLayout';
 import { SessionCountdownToast } from '@components/SessionCountdownToast';
-import { MANUAL_LOGOUT_KEY } from '@constants/extra';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
+import { useSessionChange } from '@hooks/useSessionChange';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
 import { isE2E } from '@utils/e2e';
-import { infoNotification } from '@utils/notification';
 
 import i18n from '@/i18n/config';
 
@@ -33,24 +32,14 @@ export type RouterContext = {
 };
 
 export const Route = createRootRouteWithContext<RouterContext>()({
+  // Open Graph and Twitter Card tags are static in index.html, because link crawlers do not run
+  // JavaScript.
   head: () => {
     const appName = i18n.t(($) => $.common.head.appName);
     const description = i18n.t(($) => $.common.head.defaultDescription);
 
     return {
-      meta: [
-        { title: appName },
-        { name: 'description', content: description },
-        // Open Graph
-        { property: 'og:type', content: 'website' },
-        { property: 'og:site_name', content: appName },
-        { property: 'og:title', content: appName },
-        { property: 'og:description', content: description },
-        // Twitter Card
-        { name: 'twitter:card', content: 'summary' },
-        { name: 'twitter:title', content: appName },
-        { name: 'twitter:description', content: description },
-      ],
+      meta: [{ title: appName }, { name: 'description', content: description }],
     };
   },
   component: RootComponent,
@@ -145,38 +134,17 @@ function UnauthenticatedNotFound() {
 }
 
 function RootComponent() {
-  const { identity } = useInternetIdentity();
-  const { invalidate } = useRouter();
-  const queryClient = useQueryClient();
-  const { t } = useTranslation();
+  const { subscribe } = useRouter();
 
-  const hadIdentity = useRef(!!identity);
+  useSessionChange();
 
-  // Global identity change handler: login, logout, and auto-expiration
+  // `HeadContent` renders the title and description now, so drop the static ones from index.html.
   useEffect(() => {
-    // Revalidate/re-check route guards on any identity change
-    invalidate().finally(() => {
-      // Handle logout or session expiration
-      if (hadIdentity.current && !identity) {
-        // Reset queries after identity is removed
-        queryClient.resetQueries();
+    document.head.querySelectorAll('[data-static-head]').forEach((node) => node.remove());
+  }, []);
 
-        // Check if this was a manual logout or auto-expiration
-        const isManualLogout = localStorage.getItem(MANUAL_LOGOUT_KEY) === 'true';
-        localStorage.removeItem(MANUAL_LOGOUT_KEY);
-
-        if (isManualLogout) return;
-
-        analytics.event(AnalyticsEvent.SessionExpired, undefined, { interactive: false });
-
-        // Notify user only on auto-expiration
-        infoNotification({ description: t(($) => $.common.autoExpirationLogout) });
-      }
-
-      // Remember last identity state.
-      hadIdentity.current = !!identity;
-    });
-  }, [identity, invalidate, queryClient, t]);
+  // Sends a pageview after each navigation, redirects included, once a page starts the tracker.
+  useEffect(() => subscribe('onResolved', () => analytics.pageview()), [subscribe]);
 
   return (
     <>

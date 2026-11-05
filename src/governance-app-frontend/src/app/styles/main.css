@@ -6,11 +6,15 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Home Screen web app. After a cold start, iOS 26 can make dvh and fixed
- * elements shorter than the screen by the top safe-area inset. 100vh always
- * fills the screen here, because this mode has no browser toolbar.
+ * Home Screen web app. After a cold start, iOS 26 makes dvh and fixed elements
+ * shorter than the screen until the document is taller than them. A document of
+ * at least 100vh makes iOS correct the viewport before the first render.
  */
-@custom-variant standalone (@media (display-mode: standalone));
+@media (display-mode: standalone) {
+  html {
+    min-height: 100vh;
+  }
+}
 
 :root {
   --icp-serif:
@@ -510,6 +514,29 @@ html.route-dashboard {
 @media (prefers-reduced-motion: reduce) {
   .animate-logo-breathe {
     animation: none;
+  }
+}
+
+/* A gentle ring behind the device icon while the app waits for the device answer. */
+@keyframes approval-pulse {
+  0% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+.animate-approval-pulse {
+  animation: approval-pulse 2s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-approval-pulse {
+    animation: none;
+    opacity: 0;
   }
 }
 

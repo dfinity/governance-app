@@ -1,5 +1,4 @@
 import { ProposalInfo, Vote } from '@icp-sdk/canisters/nns';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { CheckCircle, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -8,6 +7,7 @@ import { Button } from '@components/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@components/Card';
 import { Spinner } from '@components/Spinner';
 import { E8S } from '@constants/extra';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
@@ -75,7 +75,7 @@ const DockingFooter = ({ children }: { children: ReactNode }) => {
         ref={footerRef}
         data-state={isDocked ? 'docked' : 'floating'}
         className={cn(
-          'sticky bottom-[calc(var(--bottom-nav-space)+1rem)] z-10 -mt-6 bg-card px-6 py-5 transition-[border-radius,box-shadow] duration-200 ease-out motion-reduce:transition-none lg:bottom-0',
+          'sticky bottom-[max(1rem,env(safe-area-inset-bottom))] z-10 -mt-6 bg-card px-6 py-5 transition-[border-radius,box-shadow] duration-200 ease-out motion-reduce:transition-none lg:bottom-0',
           isDocked
             ? 'rounded-t-none rounded-b-[6px] shadow-[inset_1px_0_var(--color-border),inset_-1px_0_var(--color-border),inset_0_-1px_var(--color-border),inset_0_1px_transparent,0_8px_30px_transparent]'
             : 'rounded-xl shadow-[inset_1px_0_var(--color-border),inset_-1px_0_var(--color-border),inset_0_-1px_var(--color-border),inset_0_1px_var(--color-border),0_8px_30px_rgb(0_0_0/0.12)]',
@@ -248,7 +248,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
                 vote: t(($) => $.proposal.yes),
                 proposalId: proposal.id?.toString(),
               })}
-              className="flex-1 text-emerald-800 hover:border-emerald-700 hover:bg-emerald-100/10 hover:text-emerald-700 dark:text-emerald-400 dark:hover:border-emerald-300 dark:hover:bg-emerald-50/10 dark:hover:text-emerald-300"
+              className="flex-1 text-emerald-800 hover:border-emerald-700 hover:bg-emerald-100/10 hover:text-emerald-700 dark:text-emerald-400 dark:hover:border-emerald-300 dark:hover:bg-emerald-900/10 dark:hover:text-emerald-300"
               disabled={isVoting}
               onClick={(e) => voteHandler(Vote.Yes, e)}
               size="xl"

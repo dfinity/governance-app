@@ -1,5 +1,4 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +12,7 @@ import {
 } from '@components/ResponsiveDialog';
 import { DIALOG_RESET_DELAY_MS, IS_TESTNET } from '@constants/extra';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import {
   getNeuronId,
@@ -20,9 +20,11 @@ import {
   getNeuronIsDissolved,
   getNeuronIsDissolving,
   isUserHotkey,
+  isUserHotkeyOnly,
 } from '@utils/neuron';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
+import { useLedgerSignerPrincipals } from '../../hooks/useNeuronSigner';
 import { NeuronDetailDevActionsView } from './NeuronDetailDevActionsView';
 import { NeuronDetailDisbursementsView } from './NeuronDetailDisbursementsView';
 import { NeuronDetailDissolveView } from './NeuronDetailDissolveView';
@@ -45,6 +47,7 @@ type Props = {
 export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewChange }: Props) {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
+  const ledgerPrincipals = useLedgerSignerPrincipals();
   const [isProcessing, setIsProcessing] = useState(false);
   const [followingDialogOpen, setFollowingDialogOpen] = useState(false);
 
@@ -114,10 +117,11 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
   const isDissolved = getNeuronIsDissolved(displayNeuron);
   const isDissolving = getNeuronIsDissolving(displayNeuron);
   const isAutoStake = getNeuronIsAutoStakingMaturity(displayNeuron);
-  const isHotkey = isUserHotkey({
-    neuron: displayNeuron,
-    principalId: identity?.getPrincipal().toText(),
-  });
+  const principalId = identity?.getPrincipal().toText();
+  // Hotkey access only: a neuron that a usable Ledger device controls keeps its actions.
+  const isHotkey = isUserHotkeyOnly({ neuron: displayNeuron, principalId, ledgerPrincipals });
+  // The dev actions sign with the Internet Identity session, so a device neuron keeps them hidden.
+  const isIiHotkey = isUserHotkey({ neuron: displayNeuron, principalId });
 
   const getTitle = (): string => {
     switch (displayView) {
@@ -225,7 +229,7 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
             )}
 
             {IS_TESTNET && displayView === NeuronDetailView.DevActions && (
-              <NeuronDetailDevActionsView neuron={displayNeuron} isHotkey={isHotkey} />
+              <NeuronDetailDevActionsView neuron={displayNeuron} isHotkey={isIiHotkey} />
             )}
           </div>
         </ResponsiveDialogContent>

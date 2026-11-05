@@ -21,6 +21,9 @@ import { NeuronDetailDisbursementsView } from './NeuronDetailDisbursementsView';
 const OWNER = Principal.fromText('aaaaa-aa');
 const MAIN_ACCOUNT_ID = AccountIdentifier.fromPrincipal({ principal: OWNER }).toHex();
 
+vi.mock('@hooks/governance/useGovernanceMaturityModulation', () => ({
+  useGovernanceMaturityModulation: () => ({ data: undefined, isLoading: false }),
+}));
 vi.mock('@features/accounts/hooks/useAccounts', () => ({
   useAccounts: () => ({
     data: {

@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { isSuspiciousAddress } from '@features/account/utils/addressPoisoning';
+import { useHardwareWalletsMetadata } from '@features/accounts/hooks/useHardwareWalletsMetadata';
 import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
 import { useSubaccountsMetadata } from '@features/accounts/hooks/useSubaccountsMetadata';
 
@@ -55,10 +56,12 @@ export const useIcpIndexTransactionsPolling = () => {
 
   const mainAccount = useMainAccountMetadata();
   const subaccounts = useSubaccountsMetadata();
+  const hardwareWallets = useHardwareWalletsMetadata();
   const addressBookQuery = useAddressBook();
   const accountIds = [
     ...(mainAccount.data ? [mainAccount.data.accountId] : []),
     ...subaccounts.data.map((a) => a.accountId),
+    ...hardwareWallets.data.map((a) => a.accountId),
   ];
 
   // accountId -> last seen transaction id per account.

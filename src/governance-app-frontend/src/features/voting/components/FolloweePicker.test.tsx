@@ -41,16 +41,15 @@ const renderPicker = (currentFolloweesMap = new Map<Topic, bigint[]>()) =>
     </QueryClientProvider>,
   );
 
+// One focus and one keyboard call for all IDs. A click per ID times out under full-suite load.
 const addCustomNeurons = async (user: ReturnType<typeof userEvent.setup>, neuronIds: bigint[]) => {
-  for (const id of neuronIds) {
-    await user.type(screen.getByTestId('picker-custom-id-input'), id.toString());
-    await user.click(screen.getByTestId('picker-custom-id-add'));
-  }
+  await user.click(screen.getByTestId('picker-custom-id-input'));
+  await user.keyboard(neuronIds.map((id) => `${id}{Enter}`).join(''));
 };
 
 describe('FolloweePicker', () => {
   it('blocks Next above the followee limit', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderPicker();
 
     await addCustomNeurons(user, ids(MAX_FOLLOWEES_PER_TOPIC + 1));
@@ -58,14 +57,17 @@ describe('FolloweePicker', () => {
     expect(screen.getByTestId('picker-too-many-neurons')).toBeTruthy();
     expect(screen.getByTestId('picker-next-btn')).toHaveProperty('disabled', true);
 
-    await user.click(screen.getByRole('checkbox', { name: String(MAX_FOLLOWEES_PER_TOPIC + 1) }));
+    // getByRole computes the name of each checkbox, topics included, and is slow under load.
+    await user.click(
+      screen.getByText(String(MAX_FOLLOWEES_PER_TOPIC + 1), { selector: '[role="checkbox"] span' }),
+    );
 
     expect(screen.queryByTestId('picker-too-many-neurons')).toBeNull();
     expect(screen.getByTestId('picker-next-btn')).toHaveProperty('disabled', false);
   });
 
   it('counts the existing followees of a topic together with the new ones', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderPicker(new Map([[Topic.Governance, ids(10)]]));
 
     await addCustomNeurons(user, ids(6, 100));

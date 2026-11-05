@@ -61,8 +61,17 @@ Before approving an Orbit request, verify the build:
 |----------|-----|---------|
 | Governance App | `mc7vh-sqaaa-aaaai-q33na-cai` | Main application canister |
 | Asset Canister | `p6zoc-uyaaa-aaaai-q5zja-cai` | Stores WASM chunks for Orbit deployments |
-| Orbit Station | `fv4dp-biaaa-aaaal-amrua-cai` | Multi-sig deployment approvals |
-| CycleOps | `cpbhu-5iaaa-aaaad-aalta-cai` | Automatic cycle top-ups |
+| Orbit Station | `fv4dp-biaaa-aaaal-amrua-cai` | Multi-sig deployment approvals and cycle top-ups |
+
+## Cycles
+
+Orbit keeps the governance-app canister funded:
+
+- The station monitors `mc7vh-sqaaa-aaaai-q33na-cai` and tops it up from the station's own cycles. The monitoring settings are in the "Monitor external canister" request in Orbit.
+- When the station runs low, it mints cycles from the ICP in its "Main" account (`450ce925baa3906fa458110941fe8e2e63526d8b4a2c94724a8007c452a5a342`).
+- Keep ICP in that account. If it is empty, the top-ups stop.
+
+An upgrade needs more cycles than normal operation. If the balance is too low, the Orbit request is approved but its execution fails with `out of cycles`, and the old version stays live. Before a release, check the cycles on the canister page in Orbit. If needed, click "Top up" there, then create a new upgrade request.
 
 ## Controllers
 

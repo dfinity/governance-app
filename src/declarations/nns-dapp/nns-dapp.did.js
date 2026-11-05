@@ -27,6 +27,17 @@ export const idlFactory = ({ IDL }) => {
     Ok: AccountDetails,
     AccountNotFound: IDL.Null,
   });
+  const RegisterHardwareWalletRequest = IDL.Record({
+    principal: IDL.Principal,
+    name: IDL.Text,
+  });
+  const RegisterHardwareWalletResponse = IDL.Variant({
+    Ok: IDL.Null,
+    AccountNotFound: IDL.Null,
+    HardwareWalletAlreadyRegistered: IDL.Null,
+    HardwareWalletLimitExceeded: IDL.Null,
+    NameTooLong: IDL.Null,
+  });
   const RenameSubAccountRequest = IDL.Record({
     new_name: IDL.Text,
     account_identifier: AccountIdentifier,
@@ -40,8 +51,17 @@ export const idlFactory = ({ IDL }) => {
   return IDL.Service({
     add_account: IDL.Func([], [AccountIdentifier], []),
     create_sub_account: IDL.Func([IDL.Text], [CreateSubAccountResponse], []),
-    get_account: IDL.Func([], [GetAccountResponse], ['query']),
-    rename_sub_account: IDL.Func([RenameSubAccountRequest], [RenameSubAccountResponse], []),
+    get_account: IDL.Func([], [GetAccountResponse], ["query"]),
+    register_hardware_wallet: IDL.Func(
+      [RegisterHardwareWalletRequest],
+      [RegisterHardwareWalletResponse],
+      [],
+    ),
+    rename_sub_account: IDL.Func(
+      [RenameSubAccountRequest],
+      [RenameSubAccountResponse],
+      [],
+    ),
   });
 };
 export const init = ({ IDL }) => {

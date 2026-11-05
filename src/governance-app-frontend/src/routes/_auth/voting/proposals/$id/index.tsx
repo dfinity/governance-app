@@ -60,6 +60,7 @@ export const Route = createFileRoute('/_auth/voting/proposals/$id/')({
   },
   staticData: {
     title: 'common.voting',
+    hidesBottomNav: true,
   },
 });
 
@@ -75,8 +76,8 @@ function ProposalDetailsRouteComponent() {
   const knownNeuronNames = getKnownNeuronNames(useGovernanceKnownNeurons().data?.response);
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
+    <div className="flex flex-col gap-6 pb-[env(safe-area-inset-bottom)] lg:pb-0">
+      <div className="sticky top-[env(safe-area-inset-top)] z-30 -mx-4 -my-2 bg-main-content/95 px-4 py-2 backdrop-blur-sm lg:static lg:m-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
         <Button variant="link" asChild className="p-0! font-normal">
           <Link
             to="/voting"
@@ -139,6 +140,7 @@ function ProposalDetailsRouteComponent() {
                       <ProposerBadge
                         proposer={proposal.proposer}
                         knownNeuronNames={knownNeuronNames}
+                        interactive
                       />
                     )}
                     {proposalUrl && (

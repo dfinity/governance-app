@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { useHidesBottomNav } from '@hooks/useHidesBottomNav';
+import { isAccountsAreaEnabled } from '@utils/advancedFeatures';
 import { cn } from '@utils/shadcn';
 
 import { getNavigationItems } from './NavigationItems';
@@ -10,19 +12,20 @@ import { getNavigationItems } from './NavigationItems';
 export const BottomNav = () => {
   const { t } = useTranslation();
   const { features } = useAdvancedFeatures();
-  const subaccountsEnabled = features.subaccounts;
-  const navigationItems = getNavigationItems({ subaccountsEnabled });
+  const accountsEnabled = isAccountsAreaEnabled(features);
+  const navigationItems = getNavigationItems({ accountsEnabled });
+  const hidden = useHidesBottomNav();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const activeIndex = navigationItems.findIndex((item) => pathname.startsWith(item.href));
 
-  const [prevEnabled, setPrevEnabled] = useState(subaccountsEnabled);
+  const [prevEnabled, setPrevEnabled] = useState(accountsEnabled);
   const [shouldAnimate, setShouldAnimate] = useState(false);
   const [prevIndex, setPrevIndex] = useState(activeIndex);
   const [lensMoves, setLensMoves] = useState(0);
 
-  if (subaccountsEnabled !== prevEnabled) {
-    setPrevEnabled(subaccountsEnabled);
-    if (subaccountsEnabled) {
+  if (accountsEnabled !== prevEnabled) {
+    setPrevEnabled(accountsEnabled);
+    if (accountsEnabled) {
       setShouldAnimate(true);
     }
   }
@@ -31,6 +34,8 @@ export const BottomNav = () => {
     setPrevIndex(activeIndex);
     setLensMoves((moves) => moves + 1);
   }
+
+  if (hidden) return null;
 
   return (
     <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-5 pb-(--bottom-nav-gap) lg:hidden">

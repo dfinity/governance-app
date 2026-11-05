@@ -1,7 +1,8 @@
 import { expect, type Page, test } from '@playwright/test';
 
-export const login = async ({ page }: { page: Page }) => {
-  await test.step('Can log in.', async () => {
+/** Logs in with a new Internet Identity and returns the origin of the Internet Identity app. */
+export const login = async ({ page }: { page: Page }): Promise<string> =>
+  test.step('Can log in.', async () => {
     await expect(page.getByTestId('login-btn')).toBeVisible();
     await expect(page.getByTestId('login-btn')).toBeEnabled();
 
@@ -14,11 +15,15 @@ export const login = async ({ page }: { page: Page }) => {
     // Ensures all assets loaded.
     await newTab.waitForLoadState('networkidle');
     await expect(newTab).toHaveTitle(/Internet Identity/);
+    const identityProviderOrigin = new URL(newTab.url()).origin;
 
-    // Create new identity.
-    await newTab.getByRole('button', { name: 'Continue with passkey' }).click();
-    await newTab.getByRole('button', { name: 'Create new identity' }).click();
-    await newTab.getByPlaceholder('Identity name').fill('E2E Test');
+    // Create new identity. The local II uses dummy auth: instead of a passkey, it prompts for a
+    // seed index. A random seed gives each login its own identity.
+    const seed = Math.floor(Math.random() * 1_000_000_000);
+    newTab.on('dialog', (dialog) => dialog.accept(String(seed)));
+    await newTab.getByRole('button', { name: 'Create', exact: true }).click();
+    await newTab.getByRole('button', { name: 'Create with passkey' }).click();
+    await newTab.getByRole('textbox', { name: 'Identity name' }).fill('E2E Test');
     await newTab.getByRole('button', { name: 'Create identity' }).click();
 
     const continueBtn = newTab.getByRole('button', { name: 'continue' }).first();
@@ -45,5 +50,6 @@ export const login = async ({ page }: { page: Page }) => {
     } catch {
       // Modal didn't appear, continue
     }
+
+    return identityProviderOrigin;
   });
-};
