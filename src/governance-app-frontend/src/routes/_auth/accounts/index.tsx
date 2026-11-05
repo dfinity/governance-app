@@ -8,7 +8,11 @@ import { RecentTransactions } from '@features/accounts/components/RecentTransact
 
 import { PageHeader } from '@components/PageHeader';
 import { AccountsSkeleton } from '@components/skeletons/AccountsSkeleton';
-import { readFromStorage as readAdvancedFeaturesFromStorage } from '@hooks/useAdvancedFeatures';
+import {
+  readFromStorage as readAdvancedFeaturesFromStorage,
+  useAdvancedFeatures,
+} from '@hooks/useAdvancedFeatures';
+import { isAccountsAreaEnabled } from '@utils/advancedFeatures';
 
 import i18n from '@/i18n/config';
 
@@ -18,7 +22,7 @@ export const Route = createFileRoute('/_auth/accounts/')({
   beforeLoad: () => {
     const features = readAdvancedFeaturesFromStorage();
 
-    if (!features.subaccounts) throw redirect({ to: '/dashboard', replace: true });
+    if (!isAccountsAreaEnabled(features)) throw redirect({ to: '/dashboard', replace: true });
   },
   head: () => {
     const title = i18n.t(($) => $.common.head.accounts.title);
@@ -34,13 +38,14 @@ export const Route = createFileRoute('/_auth/accounts/')({
 
 function AccountsPage() {
   const { t } = useTranslation();
+  const { features } = useAdvancedFeatures();
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title={t(($) => $.accounts.title)}
         description={t(($) => $.accounts.description)}
-        actions={<CreateSubAccountDialog />}
+        actions={features.subaccounts ? <CreateSubAccountDialog /> : undefined}
       />
 
       <AccountsTotalCard />

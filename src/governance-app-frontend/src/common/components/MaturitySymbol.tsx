@@ -1,3 +1,4 @@
+import { nonNullish } from '@dfinity/utils';
 import { Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,7 +12,9 @@ import {
   ResponsiveDialogTrigger,
 } from '@components/ResponsiveDialog';
 import { ICP_MAX_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
+import { useGovernanceMaturityModulation } from '@hooks/governance';
 import { useStakingRewards } from '@hooks/useStakingRewards';
+import { formatMaturityModulation, formatMaturityModulationRate } from '@utils/maturityModulation';
 import { formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
@@ -30,6 +33,8 @@ export function MaturitySymbol({ className = '' }: Props) {
         stakingRewards.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_SECONDS].autoStake.locked,
       )
     : '...';
+  const modulationPermyriad =
+    useGovernanceMaturityModulation().data?.response?.currentValuePermyriad;
 
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
@@ -80,6 +85,14 @@ export function MaturitySymbol({ className = '' }: Props) {
               {t(($) => $.maturityModal.modulation.title)}
             </h4>
             <p>{t(($) => $.maturityModal.modulation.description)}</p>
+            {nonNullish(modulationPermyriad) && (
+              <p className="mt-2 font-medium text-foreground">
+                {t(($) => $.maturityModal.modulation.today, {
+                  value: formatMaturityModulation(modulationPermyriad),
+                  rate: formatMaturityModulationRate(modulationPermyriad),
+                })}
+              </p>
+            )}
             <p className="mt-2">
               <a
                 href="https://wiki.internetcomputer.org/wiki/Maturity_modulation"

@@ -1,10 +1,11 @@
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute, redirect } from '@tanstack/react-router';
-import { ensureInitialized, useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { useLoginAnalytics } from '@features/analytics/useLoginAnalytics';
 import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGovernanceLogo';
+import { LoginRestart } from '@features/login/components/LoginRestart';
 
 import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Button } from '@components/button';
@@ -12,8 +13,10 @@ import { NnsWordmark } from '@components/icons/NnsWordmark';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { useGovernanceProposal } from '@hooks/governance';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useTvlValue } from '@hooks/useTvlValue';
 import { isSafeInternalRedirect } from '@utils/router';
+import { ensureInitialized } from '@common/auth/internetIdentity';
 
 import i18n from '@/i18n/config';
 
@@ -41,26 +44,16 @@ export const Route = createFileRoute('/')({
     const description = i18n.t(($) => $.common.head.login.description);
 
     return {
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        // Open Graph
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:image', content: '/og-image.webp' },
-        // Twitter Card
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: '/og-image.webp' },
-      ],
+      meta: [{ title }, { name: 'description', content: description }],
     };
   },
 });
 
 function LoginPage() {
-  const { login, isLoggingIn, isLoginSuccess } = useInternetIdentity();
+  const { identity, canLogin, login, isLoggingIn } = useInternetIdentity();
   const { t } = useTranslation();
+
+  useLoginAnalytics();
 
   const [isVideoReady, setIsVideoReady] = useState(false);
   const baseVideoRef = useRef<HTMLVideoElement>(null);
@@ -96,15 +89,18 @@ function LoginPage() {
     <>
       <div className="login-page relative isolate min-h-dvh w-full font-sans text-foreground">
         {/* Loading Overlay */}
-        {(isLoggingIn || isLoginSuccess) && (
+        {(isLoggingIn || nonNullish(identity)) && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-            <div
-              className="flex flex-col items-center gap-6 text-foreground"
-              role="status"
-              aria-live="polite"
-            >
-              <AnimatedGovernanceLogo />
-              <p className="text-lg font-medium">{t(($) => $.login.authenticating)}</p>
+            <div className="flex flex-col items-center gap-6">
+              <div
+                className="flex flex-col items-center gap-6 text-foreground"
+                role="status"
+                aria-live="polite"
+              >
+                <AnimatedGovernanceLogo />
+                <p className="text-lg font-medium">{t(($) => $.login.authenticating)}</p>
+              </div>
+              {isLoggingIn && <LoginRestart onRestart={login} />}
             </div>
           </div>
         )}
@@ -259,7 +255,7 @@ function LoginPage() {
               <div className="flex flex-col gap-4">
                 <Button
                   onClick={login}
-                  disabled={isLoggingIn}
+                  disabled={!canLogin}
                   className="w-full text-base"
                   variant="default"
                   size="xxl"

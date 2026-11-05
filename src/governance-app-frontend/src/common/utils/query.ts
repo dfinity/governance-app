@@ -13,8 +13,10 @@ const NNS_GOVERNANCE = {
   ENGAGEMENT: 'nnsGovernanceEngagement',
   KNOWN_NEURONS: 'nnsGovernanceKnownNeurons',
   LATEST_REWARD_EVENT: 'nnsGovernanceLatestRewardEvent',
+  MATURITY_MODULATION: 'nnsGovernanceMaturityModulation',
   METRICS: 'nnsGovernanceMetrics',
   NEURONS: 'nnsGovernanceNeurons',
+  DEVICE_NEURONS: 'nnsGovernanceDeviceNeurons',
   PROPOSAL: 'nnsGovernanceProposal',
   PROPOSALS: 'nnsGovernanceProposals',
 };
@@ -36,6 +38,7 @@ const GOVERNANCE_APP_BACKEND = {
   ADDRESS_BOOK: 'governanceAppBackendAddressBook',
   EXCHANGE_RATE: 'governanceAppBackendExchangeRate',
   EXCHANGE_RATE_HISTORY: 'governanceAppBackendExchangeRateHistory',
+  EXCHANGE_RATE_MONTH_HISTORY: 'governanceAppBackendExchangeRateMonthHistory',
   FIAT_EXCHANGE_RATES: 'governanceAppBackendFiatExchangeRates',
 };
 

@@ -29,6 +29,8 @@ export const SUCCESS_AUTO_CLOSE_MS = 2_400;
 export const DIALOG_RESET_DELAY_MS = 300;
 // The backend gets a new ICP/USD rate from the XRC at this interval.
 export const EXCHANGE_RATE_REFRESH_MS = 5 * 60 * 1_000;
+// The backend adds one rate to the month history every two hours.
+export const EXCHANGE_RATE_MONTH_HISTORY_REFRESH_MS = 60 * 60 * 1_000;
 // The backend gets new USD to fiat rates from the XRC at this interval.
 export const FIAT_EXCHANGE_RATES_REFRESH_MS = 60 * 60 * 1_000;
 // A response without every fiat rate is fetched again at this interval.
@@ -70,7 +72,6 @@ export const EIGHT_YEAR_GANG_BONUS_RATE = 0.1;
 export const EIGHT_YEAR_GANG_BONUS_EXPIRY_SECONDS = 1_924_991_999; // 2030-12-31T23:59:59Z
 
 // Local Storage Keys
-export const MANUAL_LOGOUT_KEY = 'nns-manual-logout';
 export const WELCOME_MODAL_STORAGE_KEY = 'nns-welcome-modal-seen';
 export const SHORTCUTS_SETTINGS_KEY = 'nns-shortcuts-settings';
 export const COMMAND_PALETTE_SETTINGS_KEY = 'nns-command-palette-settings';
@@ -78,11 +79,16 @@ export const ADVANCED_FEATURES_STORAGE_KEY = 'nns-advanced-features';
 export const THEME_STORAGE_KEY = 'nns-theme';
 export const HIDE_BALANCES_KEY = 'nns-hide-balances';
 export const FIAT_CURRENCY_STORAGE_KEY = 'nns-fiat-currency';
+export const FORECAST_PERIOD_STORAGE_KEY = 'nns-forecast-period';
+export const PENDING_DEVICE_STAKE_STORAGE_KEY = 'nns-ledger-pending-stake';
+export const PENDING_DEVICE_TOP_UP_STORAGE_KEY = 'nns-ledger-pending-top-up';
 
 // External Links
 export const DASHBOARD_URL = `https://dashboard.internetcomputer.org/neuron`;
 
 const II_DOMAIN = IS_LOCAL ? `http://${CANISTER_ID_INTERNET_IDENTITY}.${HOST}` : 'https://id.ai';
-export const II_LOGIN_URL = `${II_DOMAIN}/?feature_flag_min_guided_upgrade=true`;
+export const II_AUTHORIZE_URL = `${II_DOMAIN}/authorize?feature_flag_min_guided_upgrade=true`;
 export const II_MANAGE_URL = `${II_DOMAIN}/manage`;
 export const II_DERIVATION_ORIGIN = IS_LOCAL ? null : 'https://nns.ic0.app';
+// The Internet Identity backend, which mints the delegations. It has this ID locally too.
+export const II_BACKEND_CANISTER_ID = 'rdmx6-jaaaa-aaaaa-aaadq-cai';

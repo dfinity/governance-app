@@ -1,6 +1,7 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useTranslation } from 'react-i18next';
+
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 
 import { type AccountMetadata, AccountType } from '../types';
 

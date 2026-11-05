@@ -1,6 +1,5 @@
 import { AccountIdentifier, IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -22,6 +21,7 @@ import { SkeletonTransactionList } from '@components/skeletons/SkeletonTransacti
 import { ADDRESS_BOOK_MAX_ENTRIES } from '@constants/addressBook';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useIcpIndexTransactions } from '@hooks/icpIndex/useIcpIndexTransactions';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { CertifiedData } from '@typings/queries';
 import { addressBookGetAccountIdentifier, addressBookGetAddressKeys } from '@utils/addressBook';
 

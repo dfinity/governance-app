@@ -1,4 +1,4 @@
-// Subset of the nns-dapp canister interface for subaccount operations.
+// Subset of the nns-dapp canister interface for the sub-account and Ledger device operations.
 // Source: https://github.com/dfinity/nns-dapp/blob/main/rs/backend/nns-dapp.did
 
 type AccountIdentifier = text;
@@ -40,6 +40,21 @@ type CreateSubAccountResponse =
         NameTooLong;
     };
 
+type RegisterHardwareWalletRequest =
+    record {
+        name: text;
+        "principal": principal;
+    };
+
+type RegisterHardwareWalletResponse =
+    variant {
+        Ok;
+        AccountNotFound;
+        HardwareWalletAlreadyRegistered;
+        HardwareWalletLimitExceeded;
+        NameTooLong;
+    };
+
 type RenameSubAccountRequest =
     record {
         account_identifier: AccountIdentifier;
@@ -59,4 +74,5 @@ service : {
     add_account: () -> (AccountIdentifier);
     create_sub_account: (text) -> (CreateSubAccountResponse);
     rename_sub_account: (RenameSubAccountRequest) -> (RenameSubAccountResponse);
+    register_hardware_wallet: (RegisterHardwareWalletRequest) -> (RegisterHardwareWalletResponse);
 }

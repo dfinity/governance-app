@@ -1,7 +1,7 @@
 import { ListProposalsRequest, ListProposalsResponse } from '@icp-sdk/canisters/nns';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 
 import { useInfiniteQueryThenUpdateCall } from '@hooks/useInfiniteQueryThenUpdateCall';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import {
   governanceProposalsQuery,
   PROPOSALS_INITIAL_PAGE_PARAM,

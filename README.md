@@ -8,7 +8,7 @@
 <br/>
 <br/>
 
-[![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/dfinity/governance-app/build.yaml?logo=github&label=Build%20and%20test)](https://github.com/dfinity/governance-app/actions/workflows/build.yaml)
+[![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/dfinity/governance-app/pipeline_main.yaml?branch=main&logo=github&label=Build%20and%20test)](https://github.com/dfinity/governance-app/actions/workflows/pipeline_main.yaml)
 [![Chat on Discord](https://img.shields.io/badge/chat-Discord-lightgrey?logo=Discord&style=flat-square)](https://discord.internetcomputer.org)
 </div>
 
@@ -16,10 +16,12 @@
 
 [Governance App](https://nns.internetcomputer.org/) offers a user-friendly platform for participating in the governance of the [Internet Computer](https://internetcomputer.org/). With this application, you can:
 
-- Stake and manage ICPs
+- Stake and manage ICP
 - Browse and vote on Governance proposals
 - Delegate voting to Known Neurons
 - Track your account and rewards
+- Save your contacts in an address book
+- Use a Ledger device with your accounts and neurons
 
 ## Links
 
@@ -27,6 +29,9 @@ Some useful links:
 
 - [DEVELOP.md](/docs/DEVELOP.md) provides guidance for local development setup.
 - [FE.md](/docs/FE.md) covers frontend architecture and documentation.
+- [ERRORS.md](/docs/ERRORS.md) explains how to handle errors in the project.
+- [DEPLOY.md](/docs/DEPLOY.md) describes the deployment process.
+- [REPRODUCIBILITY.md](/docs/REPRODUCIBILITY.md) explains how to create reproducible builds.
 
 ## Getting Help
 
