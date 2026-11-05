@@ -207,6 +207,12 @@ parser (Zondax `nns_parser.c`, app 4.2.16) handles the command.
     `@ledgerhq/device-transport-kit-web-hid`, `rxjs`, `buffer`). The DMK
     brings `xstate`, `inversify`, `purify-ts`, and `reflect-metadata` into the
     lazy chunk. `min-release-age=7` applies.
+    The DMK packages pin `uuid` 11.0.3 (CVE-2026-41907). The root
+    `package.json` overrides `uuid` to 11.1.1. npm 11.13.0 (Arborist 9.4.3)
+    does not pass a root override through a workspace link, so it ignores
+    the override and `npm ls uuid` reports the entry as invalid. npm 11.19.0
+    or later (Arborist 9.9.1) applies it. To update the lock entry, run
+    `npx npm@11.21.1 update uuid --package-lock-only`.
 
 ## 6. Design decisions (recommended)
 

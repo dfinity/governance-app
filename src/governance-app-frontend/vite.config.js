@@ -187,6 +187,11 @@ export default defineConfig({
         find: '@features/analytics/service',
         replacement: fileURLToPath(new URL('./tests/mocks/analytics-service.ts', import.meta.url)),
       },
+      // The service tests import the real service, so the tracker needs a stub too.
+      {
+        find: '@plausible-analytics/tracker',
+        replacement: fileURLToPath(new URL('./tests/mocks/plausible-tracker.ts', import.meta.url)),
+      },
     ],
   },
 });

@@ -6,6 +6,9 @@ import { mockNeuron } from '@fixtures/neuron';
 
 import { NeuronsList } from './NeuronsList';
 
+vi.mock('@hooks/governance/useGovernanceMaturityModulation', () => ({
+  useGovernanceMaturityModulation: () => ({ data: undefined, isLoading: false }),
+}));
 vi.mock('@hooks/useInternetIdentity', () => ({
   useInternetIdentity: () => ({ identity: undefined }),
 }));
@@ -20,6 +23,10 @@ vi.mock('@hooks/useApyColor', () => ({
 
 vi.mock('@hooks/governance/useGovernanceEconomics', () => ({
   useGovernanceEconomics: () => ({ data: undefined, isLoading: false }),
+}));
+
+vi.mock('@features/accounts/hooks/useHardwareWalletsMetadata', () => ({
+  useHardwareWalletsMetadata: () => ({ data: [], isLoading: false }),
 }));
 
 vi.mock('./neuronDetail', async (importOriginal) => ({

@@ -31,6 +31,7 @@ vi.mock('@tanstack/react-router', () => ({
 
 vi.mock('@hooks/governance', () => ({
   useGovernanceNeurons: () => ({ data: { response: [] }, isLoading: false }),
+  useGovernanceMaturityModulation: () => ({ data: undefined, isLoading: false }),
 }));
 
 vi.mock('@hooks/icpLedger', () => ({
@@ -48,6 +49,7 @@ vi.mock('@hooks/useStakingRewards', () => ({
     loading: false,
     apy: { cur: 0.07, max: 0.07 },
     rewardEstimates: new Map([
+      [MaturityEstimatePeriod.DAY, 0.00207],
       [MaturityEstimatePeriod.WEEK, 0.0145],
       [MaturityEstimatePeriod.MONTH, 1.86],
       [MaturityEstimatePeriod.YEAR, 22.68],
@@ -75,6 +77,16 @@ describe('StakedCard', () => {
     expect(screen.getAllByText('+0.0145').length).toBeGreaterThan(0);
   });
 
+  it('shows the forecast for one day', () => {
+    forecast.period = ForecastPeriod.Day;
+    render(<StakedCard />);
+
+    expect(
+      screen.getByRole('button', { name: '1d forecast. Change the forecast period' }),
+    ).toBeTruthy();
+    expect(screen.getAllByText('+0.00207').length).toBeGreaterThan(0);
+  });
+
   it('changes to the next period on a tap and tracks it', () => {
     render(<StakedCard />);
 
@@ -82,9 +94,9 @@ describe('StakedCard', () => {
       screen.getByRole('button', { name: '1y forecast. Change the forecast period' }),
     );
 
-    expect(forecast.setForecastPeriod).toHaveBeenCalledWith(ForecastPeriod.Week);
+    expect(forecast.setForecastPeriod).toHaveBeenCalledWith(ForecastPeriod.Day);
     expect(analytics.event).toHaveBeenCalledWith(AnalyticsEvent.ForecastPeriodChange, {
-      period: ForecastPeriod.Week,
+      period: ForecastPeriod.Day,
       source: 'overview',
     });
   });

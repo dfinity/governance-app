@@ -1,7 +1,17 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
-import { Clock, Hourglass, Key, Lock, PlusCircle, Settings, Unlock, Wrench } from 'lucide-react';
+import {
+  Clock,
+  Hourglass,
+  Key,
+  Lock,
+  PlusCircle,
+  Settings,
+  Unlock,
+  Usb,
+  Wrench,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -10,6 +20,7 @@ import {
   resolveFolloweeNames,
 } from '@features/voting/utils/topicFollowing';
 
+import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { CopyButton } from '@components/CopyButton';
 import { MaturitySymbol } from '@components/MaturitySymbol';
@@ -23,7 +34,8 @@ import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useApyColor } from '@hooks/useApyColor';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { bigIntDiv } from '@utils/bigInt';
-import { formatTimestampToLocalDate } from '@utils/date';
+import { secondsToDate } from '@utils/date';
+import { shortenId } from '@utils/id';
 import {
   formatDissolveDelay,
   getEightYearGangBonusE8s,
@@ -37,8 +49,10 @@ import {
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
+import { useNeuronLedgerDevice } from '../../hooks/useNeuronLedgerDevice';
 import { FollowingStatusAlert } from '../FollowingStatusAlert';
 import { FollowingStatusInline } from '../FollowingStatusInline';
+import { LedgerDeviceBand } from '../LedgerDeviceBand';
 import { NeuronStateBadge } from '../NeuronStateBadge';
 import { NeuronDetailView } from './types';
 
@@ -68,6 +82,7 @@ export function NeuronDetailSummaryView({
   const { t } = useTranslation();
   const apyColor = useApyColor(apy?.cur ?? 0);
   const { icpPrice, formatFiat, isLoading: isIcpPriceLoading } = useIcpPrice();
+  const ledgerDevice = useNeuronLedgerDevice(neuron);
 
   const stakedAmount = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
   const stakedMaturity = bigIntDiv(getNeuronStakedMaturityE8s(neuron), E8Sn);
@@ -83,7 +98,8 @@ export function NeuronDetailSummaryView({
     i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
   });
 
-  const creationDate = formatTimestampToLocalDate(neuron.fullNeuron?.createdTimestampSeconds);
+  const createdSeconds = neuron.fullNeuron?.createdTimestampSeconds;
+  const creationDate = nonNullish(createdSeconds) ? secondsToDate(Number(createdSeconds)) : '-';
 
   const { features } = useAdvancedFeatures();
   const isAdvancedFollowing = features[AdvancedFeature.AdvancedFollowing];
@@ -124,7 +140,8 @@ export function NeuronDetailSummaryView({
       </div>
 
       {/* Neuron Info Section */}
-      <div className="flex flex-col rounded-lg border bg-muted/30">
+      <div className="flex flex-col overflow-hidden rounded-lg border bg-muted/30">
+        {ledgerDevice && <LedgerDeviceBand name={ledgerDevice.name} className="px-4" />}
         <InfoRow label={t(($) => $.neuron.stakeId)} dataTestId="neuron-detail-stake-id">
           <div className="flex items-center gap-2">
             {isHotkey && (
@@ -160,6 +177,25 @@ export function NeuronDetailSummaryView({
             <span className="font-semibold">{durationText}</span>
           </div>
         </InfoRow>
+
+        {ledgerDevice && (
+          <InfoRow label={t(($) => $.neuron.controller)} dataTestId="neuron-detail-controller">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">
+                <Usb aria-hidden="true" />
+                {ledgerDevice.name}
+              </Badge>
+              <span className="font-mono text-xs text-muted-foreground">
+                {shortenId(ledgerDevice.principal, 5)}
+              </span>
+              <CopyButton
+                value={ledgerDevice.principal}
+                label={t(($) => $.neuron.controller)}
+                className="size-6 border-0 p-0 hover:bg-transparent"
+              />
+            </div>
+          </InfoRow>
+        )}
 
         <InfoRow label={t(($) => $.common.apy)} dataTestId="neuron-detail-apy">
           {isApyLoading ? (

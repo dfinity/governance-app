@@ -5,6 +5,7 @@ import { Trans, useTranslation } from 'react-i18next';
 
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
+import { isAccountOffered } from '@features/accounts/types';
 import {
   DestinationInput,
   type DestinationSuggestion,
@@ -30,6 +31,7 @@ import { getNeuronStakeAfterFeesE8s } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
 
 import { useDisburseNeuron } from '../hooks/useDisburseNeuron';
+import { useNeuronSigner } from '../hooks/useNeuronSigner';
 
 type Props = {
   neuron: NeuronInfo | null;
@@ -40,8 +42,8 @@ type Props = {
 export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation();
   const { mutateAsync } = useDisburseNeuron();
+  const signer = useNeuronSigner(neuron);
   const { features } = useAdvancedFeatures();
-  const subaccountsEnabled = features.subaccounts;
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const addressBookQuery = useAddressBook();
@@ -52,8 +54,8 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
   const mainAccountId = useMainAccountMetadata().data!.accountId;
   const mainAccountName = t(($) => $.accounts.mainAccount);
   const { data: accountsState } = useAccounts();
-  const ownAccounts = (accountsState?.accounts ?? []).filter(
-    (account) => subaccountsEnabled || account.accountId === mainAccountId,
+  const ownAccounts = (accountsState?.accounts ?? []).filter((account) =>
+    isAccountOffered(account, features),
   );
   const destinationSuggestions: DestinationSuggestion[] = [
     ...ownAccounts.map((account) => ({
@@ -103,7 +105,7 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
       return;
     }
 
-    execute(() => mutateAsync({ neuronId: neuron.neuronId, toAccountId }));
+    execute(() => mutateAsync({ neuronId: neuron.neuronId, toAccountId, signer }));
   };
 
   return (
@@ -111,6 +113,7 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
       open={isOpen}
       onOpenChange={onOpenChange}
       processingMessage={t(($) => $.neuronDetailModal.disburseIcp.confirming)}
+      signer={signer}
       successMessage={t(($) =>
         isToSelectedAccount
           ? $.neuronDetailModal.disburseIcp.successToAccount

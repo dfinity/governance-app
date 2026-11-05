@@ -31,11 +31,13 @@ import { bigIntDiv } from '@utils/bigInt';
 import { secondsToDate } from '@utils/date';
 import { shortenId } from '@utils/id';
 import { formatNumber } from '@utils/numbers';
+import { isWebHidSupported } from '@common/ledger/webhid';
 
 import { GetTokens } from '@/dev/GetTokens';
 
 import { useAccounts } from '../hooks/useAccounts';
 import { type Account, AccountType, canSignFromAccount } from '../types';
+import { LedgerNeuronsDialog } from './LedgerNeuronsDialog';
 import { RenameSubAccountDialog } from './RenameSubAccountDialog';
 
 type Props = {
@@ -127,6 +129,8 @@ function AccountBalance({ account }: { account: Account }) {
   const { t } = useTranslation();
   const { icpPrice, formatFiat } = useIcpPrice();
   const [isDepositOpen, setIsDepositOpen] = useState(false);
+  const [isNeuronsOpen, setIsNeuronsOpen] = useState(false);
+  const showNeuronsOnDevice = account.type === AccountType.HardwareWallet && isWebHidSupported();
 
   if (account.status === 'loading') {
     return (
@@ -183,6 +187,25 @@ function AccountBalance({ account }: { account: Account }) {
           onOpenChange={setIsDepositOpen}
           accountId={account.accountId}
         />
+        {showNeuronsOnDevice && (
+          <>
+            <Button
+              variant="outline"
+              size="xl"
+              className="flex-1"
+              onClick={() => setIsNeuronsOpen(true)}
+              data-testid="ledger-show-neurons"
+            >
+              <Usb aria-hidden="true" />
+              {t(($) => $.accounts.ledgerNeurons.button)}
+            </Button>
+            <LedgerNeuronsDialog
+              account={account}
+              open={isNeuronsOpen}
+              onOpenChange={setIsNeuronsOpen}
+            />
+          </>
+        )}
       </div>
     </div>
   );

@@ -14,6 +14,16 @@ import { mockNeuron } from '@fixtures/neuron';
 import { EarningsCard } from './EarningsCard';
 
 const USER = 'user-principal';
+const DEVICE = 'device-principal';
+
+const { ledgerPrincipals } = vi.hoisted(() => ({ ledgerPrincipals: vi.fn(() => [] as string[]) }));
+
+vi.mock('@hooks/governance/useGovernanceMaturityModulation', () => ({
+  useGovernanceMaturityModulation: () => ({ data: undefined, isLoading: false }),
+}));
+vi.mock('@features/stakes/hooks/useNeuronSigner', () => ({
+  useLedgerSignerPrincipals: () => ledgerPrincipals(),
+}));
 
 const forecast = vi.hoisted(() => ({ period: 'year' }));
 
@@ -32,6 +42,7 @@ vi.mock('@hooks/useStakingRewards', () => ({
   useStakingRewards: () => ({
     loading: false,
     rewardEstimates: new Map([
+      [MaturityEstimatePeriod.DAY, 0.00207],
       [MaturityEstimatePeriod.WEEK, 0.0145],
       [MaturityEstimatePeriod.MONTH, 1.86],
       [MaturityEstimatePeriod.YEAR, 22.68],
@@ -93,6 +104,13 @@ describe('EarningsCard', () => {
     expect(screen.getByText('+0.0145 per week')).toBeTruthy();
   });
 
+  it('keeps three significant digits of a small daily forecast', () => {
+    forecast.period = ForecastPeriod.Day;
+    render(<EarningsCard neurons={[optimizedNeuron()]} />);
+
+    expect(screen.getByText('+0.00207 per day')).toBeTruthy();
+  });
+
   it('offers a higher rate when a neuron is not optimized', () => {
     render(<EarningsCard neurons={[optimizedNeuron(), mockNeuron({ neuronId: 2n })]} />);
 
@@ -129,5 +147,19 @@ describe('EarningsCard', () => {
     );
 
     expect(screen.queryByRole('button', { name: 'Increase' })).toBeNull();
+  });
+
+  it('keeps a neuron that a usable Ledger device controls in the check', () => {
+    ledgerPrincipals.mockReturnValue([DEVICE]);
+    render(
+      <EarningsCard
+        neurons={[
+          optimizedNeuron(),
+          mockNeuron({ neuronId: 2n, fullNeuron: { controller: DEVICE, hotKeys: [USER] } }),
+        ]}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Increase' })).toBeTruthy();
   });
 });

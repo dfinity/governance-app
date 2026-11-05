@@ -3,7 +3,9 @@ import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { useLoginAnalytics } from '@features/analytics/useLoginAnalytics';
 import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGovernanceLogo';
+import { LoginRestart } from '@features/login/components/LoginRestart';
 
 import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Button } from '@components/button';
@@ -42,19 +44,7 @@ export const Route = createFileRoute('/')({
     const description = i18n.t(($) => $.common.head.login.description);
 
     return {
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        // Open Graph
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:image', content: '/og-image.webp' },
-        // Twitter Card
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: '/og-image.webp' },
-      ],
+      meta: [{ title }, { name: 'description', content: description }],
     };
   },
 });
@@ -62,6 +52,8 @@ export const Route = createFileRoute('/')({
 function LoginPage() {
   const { identity, canLogin, login, isLoggingIn } = useInternetIdentity();
   const { t } = useTranslation();
+
+  useLoginAnalytics();
 
   const [isVideoReady, setIsVideoReady] = useState(false);
   const baseVideoRef = useRef<HTMLVideoElement>(null);
@@ -99,13 +91,16 @@ function LoginPage() {
         {/* Loading Overlay */}
         {(isLoggingIn || nonNullish(identity)) && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-            <div
-              className="flex flex-col items-center gap-6 text-foreground"
-              role="status"
-              aria-live="polite"
-            >
-              <AnimatedGovernanceLogo />
-              <p className="text-lg font-medium">{t(($) => $.login.authenticating)}</p>
+            <div className="flex flex-col items-center gap-6">
+              <div
+                className="flex flex-col items-center gap-6 text-foreground"
+                role="status"
+                aria-live="polite"
+              >
+                <AnimatedGovernanceLogo />
+                <p className="text-lg font-medium">{t(($) => $.login.authenticating)}</p>
+              </div>
+              {isLoggingIn && <LoginRestart onRestart={login} />}
             </div>
           </div>
         )}

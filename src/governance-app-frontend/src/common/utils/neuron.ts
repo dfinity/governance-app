@@ -17,6 +17,7 @@ import { ICP_MAX_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { bigIntDiv, bigIntMax } from '@utils/bigInt';
 import { nowInSeconds } from '@utils/date';
 import { shortenId } from '@utils/id';
+import { isNeuronControlledByLedger } from '@common/ledger/signer';
 
 export const getNeuronId = (neuron: NeuronInfo): string => {
   return String(neuron.neuronId);
@@ -514,6 +515,24 @@ export const isUserHotkey = ({
     neuron.fullNeuron.controller !== principalId
   );
 };
+
+/**
+ * Returns true if the current user has hotkey access only: the Internet Identity principal is a
+ * hotkey, not the controller, and no Ledger device in `ledgerPrincipals` controls the neuron.
+ * Every controller-only action in the UI hides or disables itself on this rule, so a neuron
+ * that a usable Ledger device controls keeps its actions.
+ */
+export const isUserHotkeyOnly = ({
+  neuron,
+  principalId,
+  ledgerPrincipals,
+}: {
+  neuron: NeuronInfo;
+  principalId?: string | null;
+  ledgerPrincipals: readonly string[];
+}): boolean =>
+  isUserHotkey({ neuron, principalId }) &&
+  !isNeuronControlledByLedger({ neuron, ledgerPrincipals });
 
 /**
  * Returns true if the current user is the controller or a hotkey of the neuron.

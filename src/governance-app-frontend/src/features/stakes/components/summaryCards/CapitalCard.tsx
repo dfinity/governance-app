@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 
 import { DisburseModal } from '@features/stakes/components/DisburseModal';
 import { NeuronStandaloneAction } from '@features/stakes/components/neuronDetail';
+import { useLedgerSignerPrincipals } from '@features/stakes/hooks/useNeuronSigner';
 
 import { Card, CardContent } from '@components/Card';
 import { SensitiveValue } from '@components/SensitiveValue';
@@ -17,7 +18,7 @@ import {
   getNeuronIsDissolved,
   getNeuronsAggregatedData,
   getNeuronStakeAfterFeesE8s,
-  isUserHotkey,
+  isUserHotkeyOnly,
 } from '@utils/neuron';
 import { formatNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
@@ -41,6 +42,7 @@ export function CapitalCard({ neurons }: CapitalCardProps) {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
   const principalId = identity?.getPrincipal().toText();
+  const ledgerPrincipals = useLedgerSignerPrincipals();
   const [isDisburseModalOpen, setIsDisburseModalOpen] = useState(false);
 
   const { icpPrice, formatFiat, isLoading: isIcpPriceLoading } = useIcpPrice();
@@ -53,7 +55,7 @@ export function CapitalCard({ neurons }: CapitalCardProps) {
     (neuron) =>
       getNeuronIsDissolved(neuron) &&
       getNeuronStakeAfterFeesE8s(neuron) > 0n &&
-      !isUserHotkey({ neuron, principalId }),
+      !isUserHotkeyOnly({ neuron, principalId, ledgerPrincipals }),
   );
   const { totalStakedAfterFees: totalUnlocked } = getNeuronsAggregatedData(disbursableNeurons);
   const hasUnlocked = disbursableNeurons.length > 0;

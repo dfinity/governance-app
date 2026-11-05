@@ -28,6 +28,7 @@ target/
 # frontend code
 node_modules/
 dist/
+*.tsbuildinfo
 .svelte-kit/
 
 ## i18n
