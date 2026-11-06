@@ -1,6 +1,10 @@
-import { ParsedLocation, redirect } from '@tanstack/react-router';
+import { AnyRouter, ParsedLocation, redirect } from '@tanstack/react-router';
 
-import { consumeLogoutRedirect, ensureInitialized } from '@common/auth/internetIdentity';
+import {
+  consumeLogoutRedirect,
+  ensureInitialized,
+  hasStoredSession,
+} from '@common/auth/internetIdentity';
 
 import i18n from '@/i18n/config';
 
@@ -40,4 +44,18 @@ export const requireIdentity = async ({ location }: { location: ParsedLocation }
 
     throw redirect({ to: '/', search: { redirect: location.pathname } });
   }
+};
+
+/**
+ * Starts the route code for a visitor with a stored session, so it downloads during the session
+ * read. It fetches no data: the loaders still run after the route guards.
+ */
+export const preloadSessionRouteChunks = (router: AnyRouter) => {
+  if (!hasStoredSession()) return;
+
+  // The login page sends a visitor with a session to the dashboard.
+  const { pathname } = router.latestLocation;
+  const [routes] = router.getMatchedRoutes(pathname === '/' ? '/dashboard' : pathname);
+
+  routes.forEach((route) => void router.loadRouteChunk(route));
 };

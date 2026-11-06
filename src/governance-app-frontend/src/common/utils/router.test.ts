@@ -1,16 +1,28 @@
 import type { Identity } from '@icp-sdk/core/agent';
-import type { ParsedLocation } from '@tanstack/react-router';
+import {
+  createMemoryHistory,
+  createRootRoute,
+  createRoute,
+  createRouter,
+  lazyRouteComponent,
+  type ParsedLocation,
+} from '@tanstack/react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { isSafeInternalRedirect, requireIdentity } from './router';
+import { isSafeInternalRedirect, preloadSessionRouteChunks, requireIdentity } from './router';
 
 const { session, warningNotification } = vi.hoisted(() => ({
-  session: { identity: undefined as Identity | undefined, logoutRedirectPending: false },
+  session: {
+    identity: undefined as Identity | undefined,
+    logoutRedirectPending: false,
+    stored: false,
+  },
   warningNotification: vi.fn(),
 }));
 
 vi.mock('@common/auth/internetIdentity', () => ({
   ensureInitialized: async () => session.identity,
+  hasStoredSession: () => session.stored,
   consumeLogoutRedirect: () => {
     const pending = session.logoutRedirectPending;
     session.logoutRedirectPending = false;
@@ -85,5 +97,114 @@ describe('requireIdentity', () => {
       expect.objectContaining({ to: '/', search: { redirect: '/neurons' } }),
     );
     expect(warningNotification).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('preloadSessionRouteChunks', () => {
+  const chunk = () => vi.fn(async () => ({ default: () => null }));
+
+  const setup = (path: string) => {
+    const chunks = { login: chunk(), auth: chunk(), dashboard: chunk(), neurons: chunk() };
+    const beforeLoad = vi.fn();
+    const loader = vi.fn();
+
+    const rootRoute = createRootRoute();
+    const loginRoute = createRoute({
+      getParentRoute: () => rootRoute,
+      path: '/',
+      component: lazyRouteComponent(chunks.login),
+    });
+    const authRoute = createRoute({
+      getParentRoute: () => rootRoute,
+      id: '_auth',
+      beforeLoad,
+      component: lazyRouteComponent(chunks.auth),
+    });
+    const dashboardRoute = createRoute({
+      getParentRoute: () => authRoute,
+      path: 'dashboard',
+      loader,
+      component: lazyRouteComponent(chunks.dashboard),
+    });
+    const neuronsRoute = createRoute({
+      getParentRoute: () => authRoute,
+      path: 'neurons',
+      loader,
+      component: lazyRouteComponent(chunks.neurons),
+    });
+
+    const router = createRouter({
+      routeTree: rootRoute.addChildren([
+        loginRoute,
+        authRoute.addChildren([dashboardRoute, neuronsRoute]),
+      ]),
+      history: createMemoryHistory({ initialEntries: [path] }),
+    });
+
+    return { router, chunks, beforeLoad, loader };
+  };
+
+  beforeEach(() => {
+    session.stored = true;
+  });
+
+  it('starts the chunks of the route and its parents, and nothing else.', () => {
+    const { router, chunks } = setup('/neurons');
+
+    preloadSessionRouteChunks(router);
+
+    expect(chunks.auth).toHaveBeenCalledTimes(1);
+    expect(chunks.neurons).toHaveBeenCalledTimes(1);
+    expect(chunks.dashboard).not.toHaveBeenCalled();
+    expect(chunks.login).not.toHaveBeenCalled();
+  });
+
+  it('starts the dashboard chunks on the login page, which redirects there.', () => {
+    const { router, chunks } = setup('/');
+
+    preloadSessionRouteChunks(router);
+
+    expect(chunks.auth).toHaveBeenCalledTimes(1);
+    expect(chunks.dashboard).toHaveBeenCalledTimes(1);
+    expect(chunks.login).not.toHaveBeenCalled();
+  });
+
+  it('starts nothing for a visitor without a stored session.', () => {
+    session.stored = false;
+    const { router, chunks } = setup('/dashboard');
+
+    preloadSessionRouteChunks(router);
+
+    Object.values(chunks).forEach((load) => expect(load).not.toHaveBeenCalled());
+  });
+
+  it('runs no route guard and no loader.', async () => {
+    const { router, chunks, beforeLoad, loader } = setup('/dashboard');
+
+    preloadSessionRouteChunks(router);
+    await vi.waitFor(() => expect(chunks.dashboard).toHaveBeenCalled());
+
+    expect(beforeLoad).not.toHaveBeenCalled();
+    expect(loader).not.toHaveBeenCalled();
+  });
+
+  it('ignores a path that matches no route.', () => {
+    const { router, chunks } = setup('/unknown');
+
+    expect(() => preloadSessionRouteChunks(router)).not.toThrow();
+
+    Object.values(chunks).forEach((load) => expect(load).not.toHaveBeenCalled());
+  });
+
+  it('loads a failed chunk again on the real navigation.', async () => {
+    const { router, chunks } = setup('/dashboard');
+    chunks.dashboard.mockRejectedValueOnce(new Error('network'));
+
+    preloadSessionRouteChunks(router);
+    await vi.waitFor(() => expect(chunks.dashboard).toHaveBeenCalledTimes(1));
+    await router.load();
+
+    expect(chunks.dashboard).toHaveBeenCalledTimes(2);
+    expect(router.state.matches.at(-1)?.status).toBe('success');
   });
 });
