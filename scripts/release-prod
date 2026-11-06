@@ -353,7 +353,7 @@ fi
 
 cat <<EOF
 
-New version of the nns-dapp:
+New version of the governance-app:
 
 * Proposal: ${ORBIT_REQUEST_URL:-not available}
 
