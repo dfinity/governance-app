@@ -250,6 +250,14 @@ fn test_truncate_ignores_an_early_sentence_end() {
 }
 
 #[test]
+fn test_truncate_ignores_an_abbreviation() {
+    assert_eq!(
+        truncate("This change adds a new fee, e.g. for the large subnets", 40),
+        "This change adds a new fee, e.g. for…"
+    );
+}
+
+#[test]
 fn test_truncate_ignores_a_period_inside_a_word() {
     assert_eq!(
         truncate(
@@ -370,6 +378,17 @@ fn test_summary_excerpt_keeps_a_wrapped_label_with_a_sentence() {
     assert_eq!(
         summary_excerpt(None, "Summary: Upgrade\nthe governance canister."),
         "Summary: Upgrade the governance canister."
+    );
+}
+
+#[test]
+fn test_summary_excerpt_keeps_the_text_before_a_lowercase_metadata_line() {
+    assert_eq!(
+        summary_excerpt(
+            None,
+            &format!("Upgrade governance\nwasm hash: {WASM_HASH}\nThis adds a feature.")
+        ),
+        "Upgrade governance. This adds a feature."
     );
 }
 

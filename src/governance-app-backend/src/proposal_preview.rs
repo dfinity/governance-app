@@ -18,6 +18,8 @@ const APP_NAME: &str = "Network Nervous System";
 const MAX_DESCRIPTION_CHARS: usize = 160;
 /// The length of a short commit hash.
 const SHORT_HASH_CHARS: usize = 7;
+/// A period in these does not end a sentence.
+const ABBREVIATIONS: [&str; 2] = ["e.g.", "i.e."];
 const SECONDS_PER_DAY: u64 = 86_400;
 const MONTHS: [&str; 12] = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
@@ -89,7 +91,7 @@ static PARENTHESIZED_HASH: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"[ \t]*\([0-9a-fA-F]{32,}\)").unwrap());
 /// A line with a short label and one value, for example `Git hash: 7cc1089`.
 static METADATA_LINE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"(?m)^(?:\S+[ \t]+){0,3}\S+:[ \t]+\S+$\n?").unwrap());
+    LazyLock::new(|| Regex::new(r"^(?:\S+[ \t]+){0,3}\S+:[ \t]+\S+$").unwrap());
 
 /// Returns the proposal ID of a `/voting/proposals/<id>` path.
 /// Returns `None` for other paths, for ID 0, and for IDs that are not in canonical form
@@ -294,23 +296,32 @@ fn summary_excerpt(title: Option<&str>, summary: &str) -> String {
         .map(|rest| rest.trim_start_matches(|c: char| c.is_whitespace() || ":.-".contains(c)))
         .filter(|rest| !rest.is_empty())
         .unwrap_or(&text);
-    let text = SOFT_WRAP.replace_all(text, " $1");
-    truncate(
-        &join_lines(&remove_hash_noise(&text)),
-        MAX_DESCRIPTION_CHARS,
-    )
+    let text = remove_metadata_lines(text);
+    let text = SOFT_WRAP.replace_all(&text, " $1");
+    let text = PARENTHESIZED_HASH.replace_all(&text, "");
+    truncate(&join_lines(&shorten_hashes(&text)), MAX_DESCRIPTION_CHARS)
 }
 
-/// Removes metadata lines and hashes in parentheses, and shortens the other hashes.
+/// Removes the metadata lines. A line that wraps to the next line is prose, not metadata.
 /// A summary with only metadata lines keeps them.
-fn remove_hash_noise(text: &str) -> String {
-    let without_metadata = METADATA_LINE.replace_all(text, "");
-    let text = if without_metadata.trim().is_empty() {
-        text
+fn remove_metadata_lines(text: &str) -> String {
+    let lines: Vec<&str> = text.lines().collect();
+    let kept: Vec<&str> = lines
+        .iter()
+        .enumerate()
+        .filter(|(index, line)| {
+            let wraps = lines
+                .get(index + 1)
+                .is_some_and(|next_line| next_line.starts_with(char::is_lowercase));
+            wraps || !METADATA_LINE.is_match(line)
+        })
+        .map(|(_, line)| *line)
+        .collect();
+    if kept.is_empty() {
+        text.to_string()
     } else {
-        &without_metadata
-    };
-    shorten_hashes(&PARENTHESIZED_HASH.replace_all(text, "")).into_owned()
+        kept.join("\n")
+    }
 }
 
 /// Cuts each hash to `SHORT_HASH_CHARS`. A hash in a URL stays complete.
@@ -456,7 +467,12 @@ fn truncate(text: &str, max_chars: usize) -> String {
     let sentence_end = sentences
         .rmatch_indices(['.', '!', '?'])
         .map(|(index, _)| index + 1)
-        .find(|end| sentences[*end..].starts_with(' '));
+        .find(|end| {
+            sentences[*end..].starts_with(' ')
+                && !ABBREVIATIONS
+                    .iter()
+                    .any(|abbreviation| sentences[..*end].ends_with(abbreviation))
+        });
     if let Some(end) = sentence_end.filter(|end| *end >= sentences.len() / 2) {
         return sentences[..end].to_string();
     }
