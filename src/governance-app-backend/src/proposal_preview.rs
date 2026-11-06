@@ -47,6 +47,8 @@ static MARKDOWN_LITERAL: LazyLock<Regex> = LazyLock::new(|| {
 /// Stands for the literal text at an index while the other passes run.
 const LITERAL_START: char = '\u{E000}';
 const LITERAL_END: char = '\u{E001}';
+/// Marks the start of a list item, so that a lowercase item does not read as a wrapped line.
+const LIST_ITEM_START: char = '\u{E002}';
 static LITERAL_PLACEHOLDER: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"\x{E000}(\d+)\x{E001}").unwrap());
 static MARKDOWN_IMAGE_OR_LINK: LazyLock<Regex> =
@@ -69,7 +71,7 @@ static HTML_ENTITY: LazyLock<Regex> = LazyLock::new(|| {
 });
 /// Heading, quote, and list markers at the start of a line.
 static MARKDOWN_LINE_PREFIX: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?m)^[ \t]*(?:#{1,6}[ \t]+|>[ \t]?|[-*+][ \t]+|\d+[.)][ \t]+)").unwrap()
+    Regex::new(r"(?m)^[ \t]*(?:#{1,6}[ \t]+|>[ \t]?|([-*+]|\d+[.)])[ \t]+)").unwrap()
 });
 /// Emphasis with a pair of delimiters next to text. Other delimiters stay as text.
 static MARKDOWN_EMPHASIS: LazyLock<Regex> = LazyLock::new(|| {
@@ -291,7 +293,9 @@ fn summary_excerpt(title: Option<&str>, summary: &str) -> String {
     let text = title
         .as_deref()
         .filter(|title| !title.is_empty())
-        .and_then(|title| strip_prefix_ignore_ascii_case(&text, title))
+        .and_then(|title| {
+            strip_prefix_ignore_ascii_case(text.trim_start_matches(LIST_ITEM_START), title)
+        })
         .filter(|rest| rest.chars().next().is_none_or(|c| !c.is_alphanumeric()))
         .map(|rest| rest.trim_start_matches(|c: char| c.is_whitespace() || ":.-".contains(c)))
         .filter(|rest| !rest.is_empty())
@@ -299,7 +303,8 @@ fn summary_excerpt(title: Option<&str>, summary: &str) -> String {
     let text = remove_metadata_lines(text);
     let text = SOFT_WRAP.replace_all(&text, " $1");
     let text = PARENTHESIZED_HASH.replace_all(&text, "");
-    truncate(&join_lines(&shorten_hashes(&text)), MAX_DESCRIPTION_CHARS)
+    let text = shorten_hashes(&text).replace(LIST_ITEM_START, "");
+    truncate(&join_lines(&text), MAX_DESCRIPTION_CHARS)
 }
 
 /// Removes the metadata lines. A line that wraps to the next line is prose, not metadata.
@@ -369,12 +374,12 @@ fn strip_prefix_ignore_ascii_case<'a>(text: &'a str, prefix: &str) -> Option<&'a
 
 /// Converts markdown to plain text on one line. Keeps the text of code, links, and images.
 fn strip_markdown(markdown: &str) -> String {
-    WHITESPACE
-        .replace_all(&plain_lines(markdown), " ")
-        .into_owned()
+    let text = plain_lines(markdown).replace(LIST_ITEM_START, "");
+    WHITESPACE.replace_all(text.trim(), " ").into_owned()
 }
 
 /// Converts markdown to plain text. Each line is trimmed and has text.
+/// A list item starts with `LIST_ITEM_START`.
 fn plain_lines(markdown: &str) -> String {
     let markdown = markdown.replace("\r\n", "\n");
     let mut literal_texts = Vec::new();
@@ -389,7 +394,12 @@ fn plain_lines(markdown: &str) -> String {
     let text = MARKDOWN_AUTOLINK.replace_all(&text, "$1");
     let text = HTML_TAG.replace_all(&text, " ");
     let text = MARKDOWN_RULE_LINE.replace_all(&text, "");
-    let mut text = MARKDOWN_LINE_PREFIX.replace_all(&text, "").into_owned();
+    let mut text = MARKDOWN_LINE_PREFIX
+        .replace_all(&text, |caps: &Captures| {
+            caps.get(1)
+                .map_or(String::new(), |_| LIST_ITEM_START.to_string())
+        })
+        .into_owned();
     for _ in 0..MAX_EMPHASIS_PASSES {
         match strip_emphasis(&text) {
             Cow::Borrowed(_) => break,

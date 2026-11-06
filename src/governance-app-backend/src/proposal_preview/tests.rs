@@ -404,6 +404,33 @@ fn test_summary_excerpt_removes_consecutive_lowercase_metadata_lines() {
 }
 
 #[test]
+fn test_summary_excerpt_keeps_lowercase_list_items_apart() {
+    assert_eq!(
+        summary_excerpt(
+            None,
+            "- feat: add a method\n- fix: remove a bug\n1. test the fix"
+        ),
+        "feat: add a method. fix: remove a bug. test the fix"
+    );
+}
+
+#[test]
+fn test_summary_excerpt_removes_a_leading_title_in_a_list_item() {
+    assert_eq!(
+        summary_excerpt(
+            Some("Upgrade governance"),
+            "- Upgrade governance\n- Add a method."
+        ),
+        "Add a method."
+    );
+}
+
+#[test]
+fn test_strip_markdown_removes_an_empty_list_item() {
+    assert_eq!(strip_markdown("Text\n- \n- More"), "Text More");
+}
+
+#[test]
 fn test_summary_excerpt_removes_a_wrapped_leading_title() {
     for summary in [
         "# Upgrade the governance\ncanister\n\nThis upgrade adds a feature.",
