@@ -14,6 +14,7 @@ class AnalyticsService {
   private landingCampaign = getCampaignParams(window.location.search);
   private lastPageviewPath?: string;
   private isWaitingForVisibility = false;
+  private isReportingWebVitals = false;
 
   init(): void {
     // Local builds can run on a LAN address, which the tracker does not treat as localhost.
@@ -71,6 +72,8 @@ class AnalyticsService {
     this.lastPageviewPath = window.location.pathname;
 
     this.track('pageview');
+    // After the pageview, so that a web vital never opens a visit.
+    this.startWebVitals();
   }
 
   /**
@@ -110,7 +113,28 @@ class AnalyticsService {
     }
   }
 
+  private startWebVitals(): void {
+    if (this.isReportingWebVitals) return;
+    this.isReportingWebVitals = true;
+
+    import('./webVitals')
+      .then(({ reportWebVitals }) =>
+        reportWebVitals((props) =>
+          this.event(AnalyticsEvent.WebVital, props, {
+            interactive: false,
+            // The page URL can hold an ID in the path or the query.
+            url: `${window.location.origin}${props.route}`,
+          }),
+        ),
+      )
+      .catch(() => {
+        // Tracking must never break the app.
+      });
+  }
+
   private transformRequest(payload: PlausibleRequestPayload): PlausibleRequestPayload {
+    // A referrer from the same site is a full URL. The first pageview already set the source.
+    if (payload.n === AnalyticsEvent.WebVital) return { ...payload, r: null };
     if (payload.n !== 'pageview') return groupProposalPages(payload);
 
     // The first pageview of a visit sets its source.
