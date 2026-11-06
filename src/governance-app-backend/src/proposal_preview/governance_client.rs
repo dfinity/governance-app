@@ -34,6 +34,8 @@ pub struct ListProposalInfoResponse {
 pub struct ProposalInfo {
     pub id: Option<ProposalId>,
     pub proposal: Option<Proposal>,
+    pub topic: i32,
+    pub proposal_timestamp_seconds: u64,
 }
 
 /// The fields of the NNS governance `Proposal` that the link preview uses.
