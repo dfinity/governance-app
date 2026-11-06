@@ -46,6 +46,13 @@ export const requireIdentity = async ({ location }: { location: ParsedLocation }
   }
 };
 
+// The login page sends a visitor with a session to its redirect target, or to the dashboard.
+const sessionDestination = ({ pathname, search }: ParsedLocation<{ redirect?: unknown }>) => {
+  if (pathname !== '/') return pathname;
+
+  return isSafeInternalRedirect(search.redirect) ? search.redirect.split(/[?#]/)[0] : '/dashboard';
+};
+
 /**
  * Starts the route code for a visitor with a stored session, so it downloads during the session
  * read. It fetches no data: the loaders still run after the route guards.
@@ -53,9 +60,7 @@ export const requireIdentity = async ({ location }: { location: ParsedLocation }
 export const preloadSessionRouteChunks = (router: AnyRouter) => {
   if (!hasStoredSession()) return;
 
-  // The login page sends a visitor with a session to the dashboard.
-  const { pathname } = router.latestLocation;
-  const [routes] = router.getMatchedRoutes(pathname === '/' ? '/dashboard' : pathname);
+  const [routes] = router.getMatchedRoutes(sessionDestination(router.latestLocation));
 
   routes.forEach((route) => void router.loadRouteChunk(route));
 };

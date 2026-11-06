@@ -169,6 +169,25 @@ describe('preloadSessionRouteChunks', () => {
     expect(chunks.login).not.toHaveBeenCalled();
   });
 
+  it('starts the chunks of the redirect target on the login page.', () => {
+    const { router, chunks } = setup('/?redirect=%2Fneurons%3Ftab%3Dstaked');
+
+    preloadSessionRouteChunks(router);
+
+    expect(chunks.auth).toHaveBeenCalledTimes(1);
+    expect(chunks.neurons).toHaveBeenCalledTimes(1);
+    expect(chunks.dashboard).not.toHaveBeenCalled();
+  });
+
+  it('starts the dashboard chunks for an unsafe redirect target.', () => {
+    const { router, chunks } = setup('/?redirect=%2F%2Fattacker.example');
+
+    preloadSessionRouteChunks(router);
+
+    expect(chunks.dashboard).toHaveBeenCalledTimes(1);
+    expect(chunks.neurons).not.toHaveBeenCalled();
+  });
+
   it('starts nothing for a visitor without a stored session.', () => {
     session.stored = false;
     const { router, chunks } = setup('/dashboard');
