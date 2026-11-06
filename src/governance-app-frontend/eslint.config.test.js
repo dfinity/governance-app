@@ -51,6 +51,9 @@ ruleTester.run('i18n-single-key', localRules['i18n-single-key'], {
     't(($) => (a ? $.common.one : b ? $.common.two : $.common.three));',
     't(($) => $.common.loading as never);',
     't(($) => $.common.loading!);',
+    't(($) => ($ as Keys).common.loading);',
+    't(($) => (isOpen ? $.common.hide : $.common.show) as never);',
+    't(($) => (isOpen ? $.common.hide : ($.common.show as never)));',
     'items.map((item) => item.label);',
   ],
   invalid: [
@@ -63,6 +66,9 @@ ruleTester.run('i18n-single-key', localRules['i18n-single-key'], {
     notOneKey('t(($) => (isOpen ? $.x : "fallback"));'),
     notOneKey('t(($) => { return $.x.a; });'),
     notOneKey('t(($) => $);'),
+    notOneKey('t(($) => $ as never);'),
+    notOneKey('t(($) => $!);'),
+    notOneKey('t(($) => (isOpen ? $ : $.x) as never);'),
     notOneKey('<Trans i18nKey={($) => ({ a: $.x.a, b: $.x.b })[key]} />;'),
   ],
 });

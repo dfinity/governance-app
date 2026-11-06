@@ -42,18 +42,27 @@ const routeLoaderStaleTime = {
   }),
 };
 
-const KEY_PATH_NODES = ['MemberExpression', 'TSAsExpression', 'TSNonNullExpression'];
+const WRAPPER_NODES = [
+  'ChainExpression',
+  'TSAsExpression',
+  'TSNonNullExpression',
+  'TSSatisfiesExpression',
+];
+
+const unwrap = (node) => (WRAPPER_NODES.includes(node.type) ? unwrap(node.expression) : node);
 
 const isKeyPath = (node) => {
-  let root = node.type === 'ChainExpression' ? node.expression : node;
-  while (KEY_PATH_NODES.includes(root.type)) root = root.object ?? root.expression;
+  let root = node;
+  while (root.type === 'MemberExpression') root = unwrap(root.object);
   return root !== node && root.type === 'Identifier' && root.name === '$';
 };
 
-const selectorBranches = (node) =>
-  node.type === 'ConditionalExpression'
-    ? [...selectorBranches(node.consequent), ...selectorBranches(node.alternate)]
-    : [node];
+const selectorBranches = (node) => {
+  const expression = unwrap(node);
+  return expression.type === 'ConditionalExpression'
+    ? [...selectorBranches(expression.consequent), ...selectorBranches(expression.alternate)]
+    : [expression];
+};
 
 // The repository names the i18next selector parameter `$` in each `t()` and `i18nKey`.
 // A ternary is valid: only one branch runs, so the selector reads one key.
