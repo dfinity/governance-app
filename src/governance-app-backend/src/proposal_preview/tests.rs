@@ -386,9 +386,29 @@ fn test_summary_excerpt_shortens_a_hash_in_a_sentence() {
 
 #[test]
 fn test_summary_excerpt_keeps_a_hash_in_a_url() {
-    let url = format!("https://example.org/release/{COMMIT}");
+    for url in [
+        format!("https://example.org/release/{COMMIT}"),
+        format!("https://example.org/?sha={COMMIT}"),
+        format!("https://example.org/page#{COMMIT}"),
+    ] {
+        assert_eq!(summary_excerpt(None, &url), url);
+    }
+}
 
-    assert_eq!(summary_excerpt(None, &url), url);
+#[test]
+fn test_summary_excerpt_ignores_a_line_with_only_a_hash() {
+    assert_eq!(
+        summary_excerpt(None, &format!("Intro\n(`{COMMIT}`)\nDetails")),
+        "Intro. Details"
+    );
+}
+
+#[test]
+fn test_summary_excerpt_joins_a_wrapped_sentence() {
+    assert_eq!(
+        summary_excerpt(None, "This proposal upgrades the\ngovernance canister."),
+        "This proposal upgrades the governance canister."
+    );
 }
 
 #[test]

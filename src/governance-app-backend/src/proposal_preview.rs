@@ -311,7 +311,11 @@ fn remove_hash_noise(text: &str) -> String {
 fn shorten_hashes(text: &str) -> Cow<'_, str> {
     LONG_HASH.replace_all(text, |caps: &Captures| {
         let hash = caps.get(0).unwrap();
-        if text[..hash.start()].ends_with('/') {
+        let word_start = text[..hash.start()]
+            .rsplit(char::is_whitespace)
+            .next()
+            .unwrap_or_default();
+        if word_start.contains("://") {
             hash.as_str().to_string()
         } else {
             hash.as_str()[..SHORT_HASH_CHARS].to_string()
@@ -319,14 +323,20 @@ fn shorten_hashes(text: &str) -> Cow<'_, str> {
     })
 }
 
-/// Joins the lines into one line. A line with no punctuation at its end gets a period.
+/// Joins the lines with text into one line. A line with no punctuation at its end gets a period,
+/// unless the next line starts in lowercase and so continues the sentence.
 fn join_lines(text: &str) -> String {
-    let mut lines = text.lines().peekable();
+    let mut lines = text
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .peekable();
     let mut joined = String::with_capacity(text.len());
     while let Some(line) = lines.next() {
         joined.push_str(line);
-        if lines.peek().is_some() {
-            if !line.ends_with(['.', ',', ':', ';', '!', '?', '…']) {
+        if let Some(next_line) = lines.peek() {
+            let ends_sentence = !next_line.starts_with(char::is_lowercase);
+            if ends_sentence && !line.ends_with(['.', ',', ':', ';', '!', '?', '…']) {
                 joined.push('.');
             }
             joined.push(' ');
