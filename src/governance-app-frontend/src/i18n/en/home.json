@@ -27,7 +27,7 @@
   "maxApy": "Current max minting",
   "maxApyTooltip": "Estimated yearly minting for a neuron created today with the max dissolve delay and auto-stake on. Older neurons mint more from the age bonus.",
   "maturityModulation": "Maturity modulation {{value}}",
-  "maturityModulationTooltip": "Today, 1 maturity converts to {{rate}} ICP. The rate changes each day, from −10% to +2%, based on the ICP price trend.",
+  "maturityModulationTooltip": "Today, 1 maturity converts to {{rate}} ICP. The rate changes each day, from −10% to +2%, based on the ICP price compared to its 1-year average.",
   "yourApy": "Maturity",
   "maturity": "Maturity",
   "forecast": {
