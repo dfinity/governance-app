@@ -25,10 +25,13 @@ static ASSETS_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/../governance-app
 
 // Cache control header values
 const CACHE_CONTROL_HEADER: &str = "cache-control";
+/// Only for files with a content hash in the name.
 const IMMUTABLE_ASSET_CACHE_CONTROL: &str = "public, max-age=31536000, immutable";
 const NO_CACHE_ASSET_CACHE_CONTROL: &str = "public, no-cache, no-store";
-// TODO: Switch to IMMUTABLE_ASSET_CACHE_CONTROL once images/videos are finalized
-const DEV_ASSET_CACHE_CONTROL: &str = "public, max-age=3600"; // 1 hour cache for development
+/// For fonts and media. Their names do not change between releases, so they cannot be immutable.
+/// A cache keeps a file fresh for 7 days. For 30 more days, it can use the old file and get the new
+/// file in the background.
+const STABLE_ASSET_CACHE_CONTROL: &str = "public, max-age=604800, stale-while-revalidate=2592000";
 
 /// The maximum number of certified proposal pages. Each page is about 5 KB.
 /// When the cache is full, a new page replaces the oldest one.
@@ -336,6 +339,38 @@ fn well_known_asset_configs() -> Vec<AssetConfig> {
     ]
 }
 
+fn stable_asset_config(
+    extension: &str,
+    content_type: &str,
+    encodings: Vec<(AssetEncoding, String)>,
+) -> AssetConfig {
+    AssetConfig::Pattern {
+        pattern: format!("**/*.{extension}"),
+        content_type: Some(content_type.to_string()),
+        headers: get_asset_headers(vec![(
+            CACHE_CONTROL_HEADER.to_string(),
+            STABLE_ASSET_CACHE_CONTROL.to_string(),
+        )]),
+        encodings,
+    }
+}
+
+/// Returns the configs for fonts and media, which come from `public` with a stable name.
+/// Only SVG is text. The other formats are already compressed.
+fn stable_asset_configs(text_encodings: Vec<(AssetEncoding, String)>) -> Vec<AssetConfig> {
+    vec![
+        stable_asset_config("woff2", "font/woff2", vec![]),
+        stable_asset_config("otf", "application/x-font-opentype", vec![]),
+        stable_asset_config("svg", "image/svg+xml", text_encodings),
+        stable_asset_config("png", "image/png", vec![]),
+        stable_asset_config("jpg", "image/jpeg", vec![]),
+        stable_asset_config("ico", "image/x-icon", vec![]),
+        stable_asset_config("webp", "image/webp", vec![]),
+        stable_asset_config("webm", "video/webm", vec![]),
+        stable_asset_config("mp4", "video/mp4", vec![]),
+    ]
+}
+
 /// Generates asset configurations defining content-type, caching, and encoding rules per file type.
 fn generate_default_asset_configs() -> Vec<AssetConfig> {
     // Text-based assets benefit from compression
@@ -357,7 +392,8 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             aliased_by: vec!["/".to_string()],
             encodings: text_encodings.clone(),
         },
-        // Text-based assets: immutable caching + compression
+        // Vite adds a content hash to the names of these text-based assets: immutable caching +
+        // compression
         AssetConfig::Pattern {
             pattern: "**/*.js".to_string(),
             content_type: Some("text/javascript".to_string()),
@@ -370,15 +406,6 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
         AssetConfig::Pattern {
             pattern: "**/*.css".to_string(),
             content_type: Some("text/css".to_string()),
-            headers: get_asset_headers(vec![(
-                CACHE_CONTROL_HEADER.to_string(),
-                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
-            )]),
-            encodings: text_encodings.clone(),
-        },
-        AssetConfig::Pattern {
-            pattern: "**/*.svg".to_string(),
-            content_type: Some("image/svg+xml".to_string()),
             headers: get_asset_headers(vec![(
                 CACHE_CONTROL_HEADER.to_string(),
                 IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
@@ -406,69 +433,6 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             )]),
             encodings: text_encodings.clone(),
         },
-        AssetConfig::Pattern {
-            pattern: "**/*.png".to_string(),
-            content_type: Some("image/png".to_string()),
-            headers: get_asset_headers(vec![(
-                CACHE_CONTROL_HEADER.to_string(),
-                DEV_ASSET_CACHE_CONTROL.to_string(),
-            )]),
-            encodings: vec![],
-        },
-        AssetConfig::Pattern {
-            pattern: "**/*.jpg".to_string(),
-            content_type: Some("image/jpeg".to_string()),
-            headers: get_asset_headers(vec![(
-                CACHE_CONTROL_HEADER.to_string(),
-                DEV_ASSET_CACHE_CONTROL.to_string(),
-            )]),
-            encodings: vec![],
-        },
-        AssetConfig::Pattern {
-            pattern: "**/*.ico".to_string(),
-            content_type: Some("image/x-icon".to_string()),
-            headers: get_asset_headers(vec![(
-                CACHE_CONTROL_HEADER.to_string(),
-                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
-            )]),
-            encodings: vec![],
-        },
-        AssetConfig::Pattern {
-            pattern: "**/*.otf".to_string(),
-            content_type: Some("application/x-font-opentype".to_string()),
-            headers: get_asset_headers(vec![(
-                CACHE_CONTROL_HEADER.to_string(),
-                IMMUTABLE_ASSET_CACHE_CONTROL.to_string(),
-            )]),
-            encodings: vec![],
-        },
-        AssetConfig::Pattern {
-            pattern: "**/*.webp".to_string(),
-            content_type: Some("image/webp".to_string()),
-            headers: get_asset_headers(vec![(
-                CACHE_CONTROL_HEADER.to_string(),
-                DEV_ASSET_CACHE_CONTROL.to_string(),
-            )]),
-            encodings: vec![],
-        },
-        AssetConfig::Pattern {
-            pattern: "**/*.webm".to_string(),
-            content_type: Some("video/webm".to_string()),
-            headers: get_asset_headers(vec![(
-                CACHE_CONTROL_HEADER.to_string(),
-                DEV_ASSET_CACHE_CONTROL.to_string(),
-            )]),
-            encodings: vec![],
-        },
-        AssetConfig::Pattern {
-            pattern: "**/*.mp4".to_string(),
-            content_type: Some("video/mp4".to_string()),
-            headers: get_asset_headers(vec![(
-                CACHE_CONTROL_HEADER.to_string(),
-                DEV_ASSET_CACHE_CONTROL.to_string(),
-            )]),
-            encodings: vec![],
-        },
         // PWA manifest: no caching (may change between deploys)
         AssetConfig::Pattern {
             pattern: "**/*.webmanifest".to_string(),
@@ -480,6 +444,7 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
             encodings: vec![],
         },
     ];
+    asset_configs.extend(stable_asset_configs(text_encodings));
     asset_configs.extend(well_known_asset_configs());
     asset_configs
 }
@@ -487,6 +452,7 @@ fn generate_default_asset_configs() -> Vec<AssetConfig> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ic_asset_certification::ASSET_CHUNK_SIZE;
 
     fn serve_well_known_asset(url: &str) -> HttpResponse<'static> {
         // Same path format as `collect_files_recursive` gives from `include_dir`.
@@ -541,6 +507,105 @@ mod tests {
         let response = serve_well_known_asset("/.well-known/ii-alternative-origins");
 
         assert_eq!(header(&response, "content-type"), Some("application/json"));
+    }
+
+    /// Paths in the same format as `collect_files_recursive` gives, with the expected content type.
+    const STABLE_ASSETS: &[(&str, &str)] = &[
+        ("fonts/inter-latin.woff2", "font/woff2"),
+        ("fonts/legacy.otf", "application/x-font-opentype"),
+        ("icp-logo.svg", "image/svg+xml"),
+        ("icon-192.png", "image/png"),
+        ("og-image.jpg", "image/jpeg"),
+        ("favicon.ico", "image/x-icon"),
+        ("core-bg.webp", "image/webp"),
+        ("core-bg-original.webm", "video/webm"),
+        ("core-bg-original.mp4", "video/mp4"),
+    ];
+
+    fn stable_asset_router(content: &'static [u8]) -> AssetRouter<'static> {
+        let assets = STABLE_ASSETS
+            .iter()
+            .map(|(path, _)| Asset::new(*path, content));
+        let mut router = AssetRouter::default();
+        router
+            .certify_assets(
+                assets,
+                stable_asset_configs(vec![
+                    AssetEncoding::Brotli.default_config(),
+                    AssetEncoding::Gzip.default_config(),
+                ]),
+            )
+            .unwrap();
+        router
+    }
+
+    fn assert_certified_stable_asset(response: &HttpResponse, url: &str) {
+        assert_eq!(
+            header(response, CACHE_CONTROL_HEADER),
+            Some(STABLE_ASSET_CACHE_CONTROL),
+            "{url}"
+        );
+        assert!(
+            header(response, "ic-certificate").is_some_and(|proof| proof.contains("tree=")),
+            "{url}"
+        );
+    }
+
+    #[test]
+    fn stable_assets_are_not_immutable() {
+        assert!(!STABLE_ASSET_CACHE_CONTROL.contains("immutable"));
+    }
+
+    #[test]
+    fn fonts_and_media_get_a_certified_response_with_the_stable_policy() {
+        let router = stable_asset_router(b"content");
+
+        for (path, content_type) in STABLE_ASSETS {
+            let url = format!("/{path}");
+            let response = router
+                .serve_asset(&[], &HttpRequest::get(url.as_str()).build())
+                .unwrap();
+
+            assert_eq!(response.status_code(), StatusCode::OK, "{url}");
+            assert_eq!(
+                header(&response, "content-type"),
+                Some(*content_type),
+                "{url}"
+            );
+            assert_eq!(
+                header(&response, "x-content-type-options"),
+                Some("nosniff"),
+                "{url}"
+            );
+            assert_certified_stable_asset(&response, &url);
+        }
+    }
+
+    #[test]
+    fn each_chunk_of_a_large_video_gets_a_certified_response_with_the_stable_policy() {
+        static LARGE_VIDEO: [u8; ASSET_CHUNK_SIZE + 1] = [0; ASSET_CHUNK_SIZE + 1];
+        let router = stable_asset_router(&LARGE_VIDEO);
+        let url = "/core-bg-original.mp4";
+
+        let first_chunk = router
+            .serve_asset(&[], &HttpRequest::get(url).build())
+            .unwrap();
+        let last_chunk = router
+            .serve_asset(
+                &[],
+                &HttpRequest::get(url)
+                    .with_headers(vec![(
+                        "range".to_string(),
+                        format!("bytes={ASSET_CHUNK_SIZE}-"),
+                    )])
+                    .build(),
+            )
+            .unwrap();
+
+        assert_eq!(first_chunk.body().len(), ASSET_CHUNK_SIZE);
+        assert_eq!(last_chunk.body().len(), 1);
+        assert_certified_stable_asset(&first_chunk, url);
+        assert_certified_stable_asset(&last_chunk, url);
     }
 
     const INDEX_HTML_BODY: &[u8] = b"index";
