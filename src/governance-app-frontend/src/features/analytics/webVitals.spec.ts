@@ -6,7 +6,7 @@ import { getBucket, reportWebVitals, toRoutePattern, toWebVitalProps } from './w
 const { onLCP, onINP, router } = vi.hoisted(() => ({
   onLCP: vi.fn(),
   onINP: vi.fn(),
-  router: { state: { matches: [] as { fullPath: string }[] } },
+  router: { getMatchedRoutes: vi.fn() },
 }));
 
 vi.mock('web-vitals', () => ({ onLCP, onINP }));
@@ -18,9 +18,7 @@ const lcp = (value: number, overrides: Partial<LCPMetric> = {}) =>
 const inp = (value: number, overrides: Partial<INPMetric> = {}) =>
   ({ name: 'INP', value, rating: 'good', navigationType: 'navigate', ...overrides }) as INPMetric;
 
-const setRoute = (...fullPaths: string[]) => {
-  router.state.matches = fullPaths.map((fullPath) => ({ fullPath }));
-};
+const navigate = (path: string) => window.history.replaceState(null, '', path);
 
 describe('getBucket', () => {
   it.each([
@@ -71,6 +69,11 @@ describe('toWebVitalProps', () => {
 });
 
 describe('reportWebVitals', () => {
+  const ROUTES: Record<string, string> = {
+    '/dashboard': '/dashboard/',
+    '/neurons': '/neurons/',
+    '/voting/proposals/7': '/voting/proposals/$id/',
+  };
   const send = vi.fn();
   const reportLcp = (metric: LCPMetric) => onLCP.mock.calls[0][0](metric);
   const reportInp = (metric: INPMetric) => onINP.mock.calls[0][0](metric);
@@ -79,12 +82,14 @@ describe('reportWebVitals', () => {
     send.mockReset();
     onLCP.mockReset();
     onINP.mockReset();
-    setRoute('/', '/dashboard/');
-    reportWebVitals(send);
+    router.getMatchedRoutes.mockImplementation((pathname: string) => [
+      [{ fullPath: '/' }, { fullPath: ROUTES[pathname] }],
+    ]);
+    navigate('/neurons');
+    reportWebVitals('/dashboard', send);
   });
 
   it('reports the LCP on the landing route, after a navigation too', () => {
-    setRoute('/', '/neurons/');
     reportLcp(lcp(1200));
 
     expect(send).toHaveBeenCalledExactlyOnceWith(
@@ -93,7 +98,7 @@ describe('reportWebVitals', () => {
   });
 
   it('reports the INP on the current route', () => {
-    setRoute('/', '/voting/proposals/$id/');
+    navigate('/voting/proposals/7');
     reportInp(inp(120));
 
     expect(send).toHaveBeenCalledExactlyOnceWith(

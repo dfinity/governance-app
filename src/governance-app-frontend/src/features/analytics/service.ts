@@ -116,10 +116,12 @@ class AnalyticsService {
   private startWebVitals(): void {
     if (this.isReportingWebVitals) return;
     this.isReportingWebVitals = true;
+    // A navigation can end while the module loads.
+    const landingPath = window.location.pathname;
 
     import('./webVitals')
       .then(({ reportWebVitals }) =>
-        reportWebVitals((props) =>
+        reportWebVitals(landingPath, (props) =>
           this.event(AnalyticsEvent.WebVital, props, {
             interactive: false,
             // The page URL can hold an ID in the path or the query.

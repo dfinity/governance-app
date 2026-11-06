@@ -35,8 +35,10 @@ export const getBucket = (name: ReportedMetric['name'], value: number): string =
 export const toRoutePattern = (fullPath: string): string =>
   fullPath.replace(/\$/g, ':').replace(/(.)\/$/, '$1');
 
-const getRoutePattern = (): string =>
-  toRoutePattern(routerConfig.state.matches.at(-1)?.fullPath ?? '/');
+const getRoutePattern = (pathname: string): string => {
+  const [matchedRoutes] = routerConfig.getMatchedRoutes(pathname);
+  return toRoutePattern(matchedRoutes.at(-1)?.fullPath ?? '/');
+};
 
 export const toWebVitalProps = (metric: ReportedMetric, route: string): WebVitalProps => ({
   metric: metric.name,
@@ -49,9 +51,12 @@ export const toWebVitalProps = (metric: ReportedMetric, route: string): WebVital
  * Sends the LCP and the INP of the page. The other web vitals are not sent, because each one
  * adds a Plausible event to each page load.
  */
-export const reportWebVitals = (send: (props: WebVitalProps) => void): void => {
+export const reportWebVitals = (
+  landingPath: string,
+  send: (props: WebVitalProps) => void,
+): void => {
   // The LCP belongs to the first route, but the library reports it after the first interaction.
-  const landingRoute = getRoutePattern();
+  const landingRoute = getRoutePattern(landingPath);
 
   onLCP((metric) => {
     // The LCP of a page from the back/forward cache is not a page load.
@@ -60,5 +65,5 @@ export const reportWebVitals = (send: (props: WebVitalProps) => void): void => {
   });
 
   // The library reports the INP when the page hides, and again if a later value is worse.
-  onINP((metric) => send(toWebVitalProps(metric, getRoutePattern())));
+  onINP((metric) => send(toWebVitalProps(metric, getRoutePattern(window.location.pathname))));
 };

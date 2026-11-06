@@ -182,6 +182,17 @@ describe('analytics service', () => {
       expect(pageviews()).toBe(2);
     });
 
+    it('keeps the landing path if a navigation ends while the module loads', async () => {
+      navigate('/dashboard');
+      const analytics = await loadService();
+
+      analytics.init();
+      navigate('/neurons');
+      await vi.waitFor(() => expect(reportWebVitals).toHaveBeenCalled());
+
+      expect(reportWebVitals).toHaveBeenCalledExactlyOnceWith('/dashboard', expect.any(Function));
+    });
+
     it('does not start in a local build', async () => {
       env.isLocal = true;
       const analytics = await loadService();
@@ -213,7 +224,7 @@ describe('analytics service', () => {
       analytics.init();
       await vi.waitFor(() => expect(reportWebVitals).toHaveBeenCalled());
 
-      reportWebVitals.mock.calls[0][0](webVital);
+      reportWebVitals.mock.calls[0][1](webVital);
 
       expect(track).toHaveBeenLastCalledWith('web_vital', {
         props: webVital,
