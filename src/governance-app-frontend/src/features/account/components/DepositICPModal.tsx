@@ -64,7 +64,7 @@ export const DepositICPModal = ({
           </Alert>
 
           <div className="flex justify-center p-4">
-            <div className="rounded-lg border p-4">
+            <div className="max-w-full rounded-lg border p-4 [&>svg]:h-auto [&>svg]:max-w-full">
               <QRCodeSVG
                 value={accountId.toHex()}
                 size={220}
