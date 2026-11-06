@@ -305,7 +305,9 @@ git fetch && git checkout \"$COMMIT\" && ./scripts/build.sh --keep-wasm && sha25
 
 echo
 echo "Creating Orbit request..."
-dfx-orbit --station "$STATION" --identity "$DFX_IDENTITY" request --title "$TITLE" --summary "$SUMMARY" canister install --mode "$INSTALL_MODE" --wasm "$WASM_PATH" "$CANISTER_ID" --asset-canister "$ASSET_CANISTER_ID"
+ORBIT_OUTPUT="$(dfx-orbit --station "$STATION" --identity "$DFX_IDENTITY" request --title "$TITLE" --summary "$SUMMARY" canister install --mode "$INSTALL_MODE" --wasm "$WASM_PATH" "$CANISTER_ID" --asset-canister "$ASSET_CANISTER_ID")"
+echo "$ORBIT_OUTPUT"
+ORBIT_REQUEST_URL="$(sed -n 's/^Request URL: //p' <<<"$ORBIT_OUTPUT")"
 
 echo
 echo "✅ Installation was requested. A team member now needs to approve the request in Orbit."
@@ -336,11 +338,25 @@ fi
 
 echo
 echo "Creating draft GitHub Release: $RELEASE_TAG..."
-# Suppress stdout: gh prints an internal "untagged-*" URL for draft releases.
-if gh release create "$RELEASE_TAG" "${RELEASE_FLAGS[@]}" "$WASM_PATH" > /dev/null; then
-  echo "📝 Draft release created: ${REPO_URL}/releases/tag/${RELEASE_TAG}"
+# gh prints the draft URL ("untagged-*"). The git tag does not exist until the release is published.
+if RELEASE_DRAFT_URL="$(gh release create "$RELEASE_TAG" "${RELEASE_FLAGS[@]}" "$WASM_PATH")"; then
+  echo "📝 Draft release created: $RELEASE_DRAFT_URL"
   echo "   After Orbit approval:  gh release edit \"$RELEASE_TAG\" --draft=false"
   echo "   If proposal rejected:  gh release delete \"$RELEASE_TAG\" --yes --cleanup-tag"
 else
   echo "⚠️  Failed to create draft release. You can create it manually after deployment."
 fi
+
+# -----------------------------------------------------------------------------
+# Release announcement
+# -----------------------------------------------------------------------------
+
+cat <<EOF
+
+New version of the nns-dapp:
+
+* Proposal: ${ORBIT_REQUEST_URL:-not available}
+
+* Release draft: ${RELEASE_DRAFT_URL:-not available}
+
+EOF
