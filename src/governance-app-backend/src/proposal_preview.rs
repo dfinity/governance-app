@@ -483,7 +483,8 @@ fn truncate(text: &str, max_chars: usize) -> String {
                     .iter()
                     .any(|abbreviation| sentences[..*end].ends_with(abbreviation))
         });
-    if let Some(end) = sentence_end.filter(|end| *end >= sentences.len() / 2) {
+    let is_close = |end: &usize| sentences[..*end].chars().count() * 2 >= max_chars;
+    if let Some(end) = sentence_end.filter(is_close) {
         return sentences[..end].to_string();
     }
     let cut: String = text.chars().take(max_chars - 1).collect();

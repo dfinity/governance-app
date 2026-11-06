@@ -250,6 +250,15 @@ fn test_truncate_ignores_an_early_sentence_end() {
 }
 
 #[test]
+fn test_truncate_counts_characters_for_an_early_sentence_end() {
+    let text = format!("{}. {}", "é".repeat(60), "word ".repeat(40));
+    let truncated = truncate(&text, 160);
+
+    assert!(truncated.chars().count() > 150, "{truncated}");
+    assert!(truncated.ends_with('…'));
+}
+
+#[test]
 fn test_truncate_ignores_an_abbreviation() {
     assert_eq!(
         truncate("This change adds a new fee, e.g. for the large subnets", 40),
