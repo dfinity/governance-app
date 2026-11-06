@@ -78,6 +78,25 @@
   --skeleton-base: rgba(26, 26, 26, 0.07);
   --skeleton-peak: rgba(26, 26, 26, 0.035);
   --skeleton-delay: 120ms;
+  /* The mobile bottom nav floats over the content, above the system
+     navigation bar (for example the Android gesture bar). */
+  --bottom-nav-height: 3.875rem;
+  --bottom-nav-gap: max(0.75rem, env(safe-area-inset-bottom));
+  /* Space that content and sticky footers keep clear of the bottom nav. */
+  --bottom-nav-space: calc(var(--bottom-nav-height) + var(--bottom-nav-gap));
+}
+
+/* iOS only: the gap is 22px above the home indicator, the same as the iOS 26 tab bar. */
+@supports (-webkit-touch-callout: none) {
+  :root {
+    --bottom-nav-gap: max(0.75rem, calc(env(safe-area-inset-bottom) - 0.75rem));
+  }
+}
+
+@media (width >= 64rem) {
+  :root {
+    --bottom-nav-space: 0px;
+  }
 }
 
 .dark {
@@ -447,6 +466,32 @@ html.route-dashboard {
 
 .animate-highlight-pulse {
   animation: highlight-pulse 1.5s ease-out;
+}
+
+/*
+ * The bottom nav lens stretches while it slides to the next tab. The two
+ * keyframes are the same, so a swap of the class restarts the animation.
+ */
+@keyframes lens-stretch-a {
+  35% {
+    scale: 1.16 0.9;
+  }
+}
+
+@keyframes lens-stretch-b {
+  35% {
+    scale: 1.16 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-lens-stretch-a {
+    animation: lens-stretch-a 500ms cubic-bezier(0.3, 0.7, 0.4, 1);
+  }
+
+  .animate-lens-stretch-b {
+    animation: lens-stretch-b 500ms cubic-bezier(0.3, 0.7, 0.4, 1);
+  }
 }
 
 /* Gentle breathing pulse for the brand mark while a background task is pending. */
