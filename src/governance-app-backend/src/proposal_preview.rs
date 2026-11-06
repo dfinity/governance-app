@@ -1,8 +1,8 @@
 //! Link preview tags for shared proposal links.
 //!
 //! Crawlers do not run JavaScript. For `/voting/proposals/<id>`, the canister writes the proposal
-//! title and the start of its summary into the head tags of `index.html`.
-//! Title and summary never change after submission, so a rendered page never goes stale.
+//! title, the start of its summary, its topic, and its submission date into the head tags of
+//! `index.html`. These values never change after submission, so a rendered page never goes stale.
 
 mod governance_client;
 
@@ -16,6 +16,12 @@ const PROPOSAL_PATH_PREFIX: &str = "/voting/proposals/";
 const APP_NAME: &str = "Network Nervous System";
 /// Link previews show about two lines of description.
 const MAX_DESCRIPTION_CHARS: usize = 160;
+/// The length of a short commit hash.
+const SHORT_HASH_CHARS: usize = 7;
+const SECONDS_PER_DAY: u64 = 86_400;
+const MONTHS: [&str; 12] = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
 
 static TITLE_TAG: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?s)(<title\b[^>]*>).*?(</title>)").unwrap());
@@ -74,6 +80,14 @@ static MARKDOWN_EMPHASIS: LazyLock<Regex> = LazyLock::new(|| {
 /// Nested emphasis such as `***text***` needs one pass for each level.
 const MAX_EMPHASIS_PASSES: usize = 3;
 static WHITESPACE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\s+").unwrap());
+/// A commit, wasm, or args hash.
+static LONG_HASH: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\b[0-9a-fA-F]{32,}\b").unwrap());
+/// A hash in parentheses, with the spaces before it.
+static PARENTHESIZED_HASH: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"[ \t]*\([0-9a-fA-F]{32,}\)").unwrap());
+/// A line with a short label and one value, for example `Git hash: 7cc1089`.
+static METADATA_LINE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?m)^(?:\S+[ \t]+){0,3}\S+:[ \t]+\S+$\n?").unwrap());
 
 /// Returns the proposal ID of a `/voting/proposals/<id>` path.
 /// Returns `None` for other paths, for ID 0, and for IDs that are not in canonical form
@@ -91,36 +105,41 @@ pub fn proposal_path(proposal_id: u64) -> String {
 /// Fetches the proposal from NNS governance and returns `index_html` with its link preview tags.
 /// Returns `None` and logs the reason if the proposal does not exist or the call fails.
 pub async fn render_proposal_page(index_html: &str, proposal_id: u64) -> Option<String> {
-    let proposal = match governance_client::get_proposal_info(proposal_id).await {
-        Ok(Some(governance_client::ProposalInfo {
-            proposal: Some(proposal),
-            ..
-        })) => proposal,
-        Ok(_) => {
-            ic_cdk::println!("No link preview for proposal {proposal_id}: proposal not found");
-            return None;
-        }
-        Err(err) => {
-            ic_cdk::println!("No link preview for proposal {proposal_id}: call error: {err}");
-            return None;
-        }
-    };
+    let (proposal, topic, proposal_timestamp_seconds) =
+        match governance_client::get_proposal_info(proposal_id).await {
+            Ok(Some(governance_client::ProposalInfo {
+                proposal: Some(proposal),
+                topic,
+                proposal_timestamp_seconds,
+                ..
+            })) => (proposal, topic, proposal_timestamp_seconds),
+            Ok(_) => {
+                ic_cdk::println!("No link preview for proposal {proposal_id}: proposal not found");
+                return None;
+            }
+            Err(err) => {
+                ic_cdk::println!("No link preview for proposal {proposal_id}: call error: {err}");
+                return None;
+            }
+        };
 
-    Some(render_page(
+    let page = render_page(
         index_html,
         proposal_id,
         proposal.title.as_deref(),
         &proposal.summary,
-    ))
+    );
+    Some(add_card_fields(&page, topic, proposal_timestamp_seconds))
 }
 
 /// Writes the proposal title and the start of its summary into the head tags of `index_html`.
 /// If the summary has no text, the generic description stays.
 fn render_page(index_html: &str, proposal_id: u64, title: Option<&str>, summary: &str) -> String {
     let title = title.map(str::trim).filter(|title| !title.is_empty());
+    // No `#` before the ID: Slack reads `#144740` as a color and adds a swatch.
     let card_title = match title {
-        Some(title) => format!("Proposal #{proposal_id}: {title}"),
-        None => format!("Proposal #{proposal_id}"),
+        Some(title) => format!("Proposal {proposal_id}: {}", shorten_hashes(title)),
+        None => format!("Proposal {proposal_id}"),
     };
     let page_title = format!("{card_title} | {APP_NAME}");
     let description = summary_excerpt(title, summary);
@@ -172,6 +191,79 @@ fn render_page(index_html: &str, proposal_id: u64, title: Option<&str>, summary:
         .into_owned()
 }
 
+/// Adds the topic and the submission date to `page` as the label and data tags that Slack shows
+/// below the description.
+fn add_card_fields(page: &str, topic: i32, proposal_timestamp_seconds: u64) -> String {
+    let date = format_date(proposal_timestamp_seconds);
+    let fields = topic_name(topic)
+        .map(|topic| ("Topic", topic))
+        .into_iter()
+        .chain([("Submitted", date.as_str())]);
+    let tags: String = fields
+        .enumerate()
+        .map(|(index, (label, data))| {
+            let number = index + 1;
+            format!(
+                "\n    <meta name=\"twitter:label{number}\" content=\"{}\" />\
+                 \n    <meta name=\"twitter:data{number}\" content=\"{}\" />",
+                escape_html(label),
+                escape_html(data),
+            )
+        })
+        .collect();
+
+    let last_twitter_tag = META_TAG.find_iter(page).find(|tag| {
+        META_KEY_ATTR
+            .captures(tag.as_str())
+            .is_some_and(|key| &key[1] == "twitter:image:alt")
+    });
+    match last_twitter_tag {
+        Some(tag) => format!("{}{tags}{}", &page[..tag.end()], &page[tag.end()..]),
+        None => page.to_string(),
+    }
+}
+
+/// Returns the name of an NNS governance topic, with the same text as `voting.topics.*`.
+fn topic_name(topic: i32) -> Option<&'static str> {
+    match topic {
+        1 => Some("Neuron Management"),
+        2 => Some("Exchange Rate"),
+        3 => Some("Network Economics"),
+        4 => Some("Governance"),
+        5 => Some("Node Admin"),
+        6 => Some("Participant Management"),
+        7 => Some("Subnet Management"),
+        8 => Some("Application Canister Management"),
+        9 => Some("KYC"),
+        10 => Some("Node Provider Rewards"),
+        11 => Some("SNS Decentralization Sale"),
+        12 => Some("IC OS Version Deployment"),
+        13 => Some("IC OS Version Election"),
+        14 => Some("SNS & Neurons' Fund"),
+        15 => Some("API Boundary Node Management"),
+        16 => Some("Subnet Rental"),
+        17 => Some("Protocol Canister Management"),
+        18 => Some("Service Nervous System Management"),
+        _ => None,
+    }
+}
+
+/// Formats a UTC timestamp as `6 Nov 2026`.
+fn format_date(timestamp_seconds: u64) -> String {
+    // The civil-from-days algorithm, with years that start on 1 March.
+    let days = timestamp_seconds / SECONDS_PER_DAY + 719_468;
+    let era = days / 146_097;
+    let day_of_era = days % 146_097;
+    let year_of_era =
+        (day_of_era - day_of_era / 1_460 + day_of_era / 36_524 - day_of_era / 146_096) / 365;
+    let day_of_year = day_of_era - (365 * year_of_era + year_of_era / 4 - year_of_era / 100);
+    let shifted_month = (5 * day_of_year + 2) / 153;
+    let day = day_of_year - (153 * shifted_month + 2) / 5 + 1;
+    let month_index = (shifted_month + 2) % 12;
+    let year = year_of_era + era * 400 + u64::from(month_index < 2);
+    format!("{day} {} {year}", MONTHS[month_index as usize])
+}
+
 /// Returns the `content` of the first meta tag with the given `name` or `property`.
 fn meta_content(html: &str, key: &str) -> Option<String> {
     META_TAG.find_iter(html).find_map(|tag| {
@@ -190,7 +282,7 @@ fn meta_content(html: &str, key: &str) -> Option<String> {
 /// Many summaries start with the title, so a leading copy of the title is removed.
 /// The copy must end at a word boundary.
 fn summary_excerpt(title: Option<&str>, summary: &str) -> String {
-    let text = strip_markdown(summary);
+    let text = plain_lines(summary);
     let title = title.map(strip_markdown);
     let text = title
         .as_deref()
@@ -200,7 +292,47 @@ fn summary_excerpt(title: Option<&str>, summary: &str) -> String {
         .map(|rest| rest.trim_start_matches(|c: char| c.is_whitespace() || ":.-".contains(c)))
         .filter(|rest| !rest.is_empty())
         .unwrap_or(&text);
-    truncate(text, MAX_DESCRIPTION_CHARS)
+    truncate(&join_lines(&remove_hash_noise(text)), MAX_DESCRIPTION_CHARS)
+}
+
+/// Removes metadata lines and hashes in parentheses, and shortens the other hashes.
+/// A summary with only metadata lines keeps them.
+fn remove_hash_noise(text: &str) -> String {
+    let without_metadata = METADATA_LINE.replace_all(text, "");
+    let text = if without_metadata.trim().is_empty() {
+        text
+    } else {
+        &without_metadata
+    };
+    shorten_hashes(&PARENTHESIZED_HASH.replace_all(text, "")).into_owned()
+}
+
+/// Cuts each hash to `SHORT_HASH_CHARS`. A hash in a URL stays complete.
+fn shorten_hashes(text: &str) -> Cow<'_, str> {
+    LONG_HASH.replace_all(text, |caps: &Captures| {
+        let hash = caps.get(0).unwrap();
+        if text[..hash.start()].ends_with('/') {
+            hash.as_str().to_string()
+        } else {
+            hash.as_str()[..SHORT_HASH_CHARS].to_string()
+        }
+    })
+}
+
+/// Joins the lines into one line. A line with no punctuation at its end gets a period.
+fn join_lines(text: &str) -> String {
+    let mut lines = text.lines().peekable();
+    let mut joined = String::with_capacity(text.len());
+    while let Some(line) = lines.next() {
+        joined.push_str(line);
+        if lines.peek().is_some() {
+            if !line.ends_with(['.', ',', ':', ';', '!', '?', '…']) {
+                joined.push('.');
+            }
+            joined.push(' ');
+        }
+    }
+    joined
 }
 
 fn strip_prefix_ignore_ascii_case<'a>(text: &'a str, prefix: &str) -> Option<&'a str> {
@@ -211,6 +343,13 @@ fn strip_prefix_ignore_ascii_case<'a>(text: &'a str, prefix: &str) -> Option<&'a
 
 /// Converts markdown to plain text on one line. Keeps the text of code, links, and images.
 fn strip_markdown(markdown: &str) -> String {
+    WHITESPACE
+        .replace_all(&plain_lines(markdown), " ")
+        .into_owned()
+}
+
+/// Converts markdown to plain text. Each line is trimmed and has text.
+fn plain_lines(markdown: &str) -> String {
     let markdown = markdown.replace("\r\n", "\n");
     let mut literal_texts = Vec::new();
     let text = MARKDOWN_LITERAL.replace_all(&markdown, |caps: &Captures| {
@@ -241,7 +380,11 @@ fn strip_markdown(markdown: &str) -> String {
             .cloned()
             .unwrap_or_default()
     });
-    WHITESPACE.replace_all(&text, " ").trim().to_string()
+    text.lines()
+        .map(|line| WHITESPACE.replace_all(line, " ").trim().to_string())
+        .filter(|line| !line.is_empty())
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 /// Removes one level of emphasis delimiters. Like markdown, `_` and `__` inside a word stay as text.
@@ -288,11 +431,19 @@ fn decode_entities(text: &str) -> Cow<'_, str> {
     })
 }
 
-/// Cuts `text` to at most `max_chars` characters, at a word boundary if one is close.
-/// Adds an ellipsis if it cuts the text.
+/// Cuts `text` to at most `max_chars` characters, at the end of a sentence if one is close.
+/// Otherwise cuts at a word boundary if one is close, and adds an ellipsis.
 fn truncate(text: &str, max_chars: usize) -> String {
     if text.chars().count() <= max_chars {
         return text.to_string();
+    }
+    let sentences: String = text.chars().take(max_chars + 1).collect();
+    let sentence_end = sentences
+        .rmatch_indices(['.', '!', '?'])
+        .map(|(index, _)| index + 1)
+        .find(|end| sentences[*end..].starts_with(' '));
+    if let Some(end) = sentence_end.filter(|end| *end >= sentences.len() / 2) {
+        return sentences[..end].to_string();
     }
     let cut: String = text.chars().take(max_chars - 1).collect();
     let cut = match cut.rfind(' ') {
