@@ -268,6 +268,53 @@ describe('analytics service', () => {
       ).toBe('https://nns.internetcomputer.org/voting');
     });
 
+    it('removes the query of every event', async () => {
+      const analytics = await loadService();
+      analytics.init();
+      const u =
+        'https://nns.internetcomputer.org/voting/proposals/7?neuronId=123&accountId=abc&proposalFilter=open';
+
+      for (const name of ['pageview', 'login_success', 'Outbound Link: Click']) {
+        expect(transformRequest(payload(name, u))?.u).toBe(
+          'https://nns.internetcomputer.org/voting/proposals/:id',
+        );
+      }
+    });
+
+    it('keeps only the UTM parameters on the first pageview', async () => {
+      navigate('/dashboard?neuronId=123&utm_source=forum');
+      const analytics = await loadService();
+      analytics.init();
+
+      expect(
+        transformRequest(
+          payload(
+            'pageview',
+            'https://nns.internetcomputer.org/dashboard?neuronId=123&utm_source=forum',
+          ),
+        )?.u,
+      ).toBe('https://nns.internetcomputer.org/dashboard?utm_source=forum');
+      expect(
+        transformRequest(
+          payload('pageview', 'https://nns.internetcomputer.org/dashboard?utm_source=forum'),
+        )?.u,
+      ).toBe('https://nns.internetcomputer.org/dashboard');
+    });
+
+    it('removes a same-site referrer and keeps an external referrer', async () => {
+      const analytics = await loadService();
+      analytics.init();
+      const page = payload('pageview', 'https://nns.internetcomputer.org/dashboard');
+      const event = payload('login_success', 'https://nns.internetcomputer.org/dashboard');
+      const sameSite = 'https://nns.internetcomputer.org/neurons?neuronId=999';
+      const external = 'https://forum.dfinity.org/';
+
+      expect(transformRequest({ ...page, r: sameSite })?.r).toBeNull();
+      expect(transformRequest({ ...event, r: sameSite })?.r).toBeNull();
+      expect(transformRequest({ ...page, r: external })?.r).toBe(external);
+      expect(transformRequest({ ...event, r: external })?.r).toBe(external);
+    });
+
     it('groups the proposal pages', async () => {
       const analytics = await loadService();
       analytics.init();
