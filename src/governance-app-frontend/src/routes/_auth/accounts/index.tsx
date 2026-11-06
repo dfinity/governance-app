@@ -13,6 +13,7 @@ import {
   useAdvancedFeatures,
 } from '@hooks/useAdvancedFeatures';
 import { isAccountsAreaEnabled } from '@utils/advancedFeatures';
+import { prefetchAccountsRoute } from '@common/queries/routeLoaders';
 
 import i18n from '@/i18n/config';
 
@@ -24,6 +25,10 @@ export const Route = createFileRoute('/_auth/accounts/')({
 
     if (!isAccountsAreaEnabled(features)) throw redirect({ to: '/dashboard', replace: true });
   },
+  loader: ({ context }) =>
+    prefetchAccountsRoute(context.queryClient, readAdvancedFeaturesFromStorage()),
+  // Entry only: a change of the search params must not rerun the loader.
+  staleTime: Infinity,
   head: () => {
     const title = i18n.t(($) => $.common.head.accounts.title);
 
