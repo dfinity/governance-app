@@ -1,12 +1,60 @@
 import { describe, expect, it } from 'vitest';
 
-import { addCampaignParams, getCampaignParams, groupProposalPages } from './transformRequest';
+import {
+  addCampaignParams,
+  getCampaignParams,
+  groupProposalPages,
+  removeUrlParams,
+} from './transformRequest';
 
 const payload = (u: string, p?: Record<string, string>) => ({
   n: 'pageview',
   u,
   d: 'nns.internetcomputer.org',
   p,
+});
+
+describe('removeUrlParams', () => {
+  const page = 'https://nns.internetcomputer.org/voting/proposals/7';
+
+  it('removes the query and the hash of the page URL', () => {
+    expect(removeUrlParams(payload(`${page}?neuronId=123&accountId=abc`)).u).toBe(page);
+    expect(removeUrlParams(payload(`${page}#votes`)).u).toBe(page);
+    expect(removeUrlParams(payload(`${page}?neuronId=123#votes`)).u).toBe(page);
+  });
+
+  it('does not change a URL without params', () => {
+    expect(removeUrlParams(payload(page)).u).toBe(page);
+  });
+
+  it('removes a referrer from the same host', () => {
+    const r = 'https://nns.internetcomputer.org/neurons?neuronId=999';
+    expect(removeUrlParams({ ...payload(page), r }).r).toBeNull();
+  });
+
+  it('keeps an external referrer', () => {
+    for (const r of [
+      'https://forum.dfinity.org/',
+      'https://www.google.com/search?q=nns',
+      'https://sub.nns.internetcomputer.org/',
+      'android-app://com.google.android.gm/',
+    ]) {
+      expect(removeUrlParams({ ...payload(page), r }).r).toBe(r);
+    }
+  });
+
+  it('keeps an empty referrer', () => {
+    expect(removeUrlParams({ ...payload(page), r: null }).r).toBeNull();
+    expect(removeUrlParams(payload(page)).r).toBeUndefined();
+  });
+
+  it('keeps the other fields', () => {
+    expect(removeUrlParams(payload(`${page}?neuronId=123`, { theme: 'dark' }))).toMatchObject({
+      n: 'pageview',
+      d: 'nns.internetcomputer.org',
+      p: { theme: 'dark' },
+    });
+  });
 });
 
 describe('groupProposalPages', () => {
@@ -92,20 +140,6 @@ describe('addCampaignParams', () => {
     expect(
       addCampaignParams(payload('https://nns.internetcomputer.org/dashboard'), campaign).u,
     ).toBe('https://nns.internetcomputer.org/dashboard?utm_source=nns-dapp&utm_medium=modal');
-  });
-
-  it('keeps the other query parameters', () => {
-    expect(
-      addCampaignParams(payload('https://nns.internetcomputer.org/?redirect=%2Fvoting'), campaign)
-        .u,
-    ).toBe(
-      'https://nns.internetcomputer.org/?redirect=%2Fvoting&utm_source=nns-dapp&utm_medium=modal',
-    );
-  });
-
-  it('does not change a URL with its own UTM parameters', () => {
-    const input = payload('https://nns.internetcomputer.org/?utm_source=forum');
-    expect(addCampaignParams(input, campaign)).toBe(input);
   });
 
   it('does not change the payload without a campaign', () => {

@@ -5,7 +5,12 @@ import { PLAUSIBLE_DOMAIN_URL } from '@constants/externalServices';
 import { IS_LOCAL } from '@constants/extra';
 
 import { AnalyticsEvent } from './events';
-import { addCampaignParams, getCampaignParams, groupProposalPages } from './transformRequest';
+import {
+  addCampaignParams,
+  getCampaignParams,
+  groupProposalPages,
+  removeUrlParams,
+} from './transformRequest';
 
 class AnalyticsService {
   private isInitialized = false;
@@ -137,12 +142,16 @@ class AnalyticsService {
   private transformRequest(payload: PlausibleRequestPayload): PlausibleRequestPayload {
     // A referrer from the same site is a full URL. The first pageview already set the source.
     if (payload.n === AnalyticsEvent.WebVital) return { ...payload, r: null };
-    if (payload.n !== 'pageview') return groupProposalPages(payload);
+
+    // The tracker sends `engagement` without this hook, but with the URL and the properties
+    // that this hook returned for the last pageview.
+    const cleanPayload = groupProposalPages(removeUrlParams(payload));
+    if (cleanPayload.n !== 'pageview') return cleanPayload;
 
     // The first pageview of a visit sets its source.
     const campaign = this.landingCampaign;
     this.landingCampaign = [];
-    return groupProposalPages(addCampaignParams(payload, campaign));
+    return addCampaignParams(cleanPayload, campaign);
   }
 }
 
