@@ -80,6 +80,8 @@ static MARKDOWN_EMPHASIS: LazyLock<Regex> = LazyLock::new(|| {
 /// Nested emphasis such as `***text***` needs one pass for each level.
 const MAX_EMPHASIS_PASSES: usize = 3;
 static WHITESPACE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\s+").unwrap());
+/// A line break inside a sentence: the next line starts in lowercase.
+static SOFT_WRAP: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\n(\p{Ll})").unwrap());
 /// A commit, wasm, or args hash.
 static LONG_HASH: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\b[0-9a-fA-F]{32,}\b").unwrap());
 /// A hash in parentheses, with the spaces before it.
@@ -292,7 +294,11 @@ fn summary_excerpt(title: Option<&str>, summary: &str) -> String {
         .map(|rest| rest.trim_start_matches(|c: char| c.is_whitespace() || ":.-".contains(c)))
         .filter(|rest| !rest.is_empty())
         .unwrap_or(&text);
-    truncate(&join_lines(&remove_hash_noise(text)), MAX_DESCRIPTION_CHARS)
+    let text = SOFT_WRAP.replace_all(text, " $1");
+    truncate(
+        &join_lines(&remove_hash_noise(&text)),
+        MAX_DESCRIPTION_CHARS,
+    )
 }
 
 /// Removes metadata lines and hashes in parentheses, and shortens the other hashes.
@@ -323,8 +329,7 @@ fn shorten_hashes(text: &str) -> Cow<'_, str> {
     })
 }
 
-/// Joins the lines with text into one line. A line with no punctuation at its end gets a period,
-/// unless the next line starts in lowercase and so continues the sentence.
+/// Joins the lines with text into one line. A line with no punctuation at its end gets a period.
 fn join_lines(text: &str) -> String {
     let mut lines = text
         .lines()
@@ -334,9 +339,8 @@ fn join_lines(text: &str) -> String {
     let mut joined = String::with_capacity(text.len());
     while let Some(line) = lines.next() {
         joined.push_str(line);
-        if let Some(next_line) = lines.peek() {
-            let ends_sentence = !next_line.starts_with(char::is_lowercase);
-            if ends_sentence && !line.ends_with(['.', ',', ':', ';', '!', '?', '…']) {
+        if lines.peek().is_some() {
+            if !line.ends_with(['.', ',', ':', ';', '!', '?', '…']) {
                 joined.push('.');
             }
             joined.push(' ');
@@ -345,8 +349,9 @@ fn join_lines(text: &str) -> String {
     joined
 }
 
+/// A line break in `text` matches a space in `prefix`, so a wrapped title still matches.
 fn strip_prefix_ignore_ascii_case<'a>(text: &'a str, prefix: &str) -> Option<&'a str> {
-    let head = text.get(..prefix.len())?;
+    let head = text.get(..prefix.len())?.replace('\n', " ");
     head.eq_ignore_ascii_case(prefix)
         .then(|| &text[prefix.len()..])
 }

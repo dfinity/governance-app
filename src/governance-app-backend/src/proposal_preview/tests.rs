@@ -366,6 +366,27 @@ fn test_summary_excerpt_keeps_a_label_with_a_sentence() {
 }
 
 #[test]
+fn test_summary_excerpt_keeps_a_wrapped_label_with_a_sentence() {
+    assert_eq!(
+        summary_excerpt(None, "Summary: Upgrade\nthe governance canister."),
+        "Summary: Upgrade the governance canister."
+    );
+}
+
+#[test]
+fn test_summary_excerpt_removes_a_wrapped_leading_title() {
+    for summary in [
+        "# Upgrade the governance\ncanister\n\nThis upgrade adds a feature.",
+        "# Upgrade the\nGovernance canister\n\nThis upgrade adds a feature.",
+    ] {
+        assert_eq!(
+            summary_excerpt(Some("Upgrade the governance canister"), summary),
+            "This upgrade adds a feature."
+        );
+    }
+}
+
+#[test]
 fn test_summary_excerpt_keeps_a_summary_with_only_metadata() {
     assert_eq!(
         summary_excerpt(None, &format!("Git hash: `{COMMIT}`")),
