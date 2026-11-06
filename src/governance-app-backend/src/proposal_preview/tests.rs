@@ -393,6 +393,17 @@ fn test_summary_excerpt_keeps_the_text_before_a_lowercase_metadata_line() {
 }
 
 #[test]
+fn test_summary_excerpt_removes_consecutive_lowercase_metadata_lines() {
+    assert_eq!(
+        summary_excerpt(
+            None,
+            &format!("git hash: {COMMIT}\nwasm hash: {WASM_HASH}\nThis upgrade adds a method.")
+        ),
+        "This upgrade adds a method."
+    );
+}
+
+#[test]
 fn test_summary_excerpt_removes_a_wrapped_leading_title() {
     for summary in [
         "# Upgrade the governance\ncanister\n\nThis upgrade adds a feature.",

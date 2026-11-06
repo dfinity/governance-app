@@ -310,9 +310,9 @@ fn remove_metadata_lines(text: &str) -> String {
         .iter()
         .enumerate()
         .filter(|(index, line)| {
-            let wraps = lines
-                .get(index + 1)
-                .is_some_and(|next_line| next_line.starts_with(char::is_lowercase));
+            let wraps = lines.get(index + 1).is_some_and(|next_line| {
+                next_line.starts_with(char::is_lowercase) && !METADATA_LINE.is_match(next_line)
+            });
             wraps || !METADATA_LINE.is_match(line)
         })
         .map(|(_, line)| *line)
