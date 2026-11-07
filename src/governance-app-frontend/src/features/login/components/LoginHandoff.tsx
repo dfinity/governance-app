@@ -1,6 +1,7 @@
 import { nonNullish } from '@dfinity/utils';
 import { useRouterState } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { AppFrame } from '@components/MainLayout';
 import { DashboardSkeleton } from '@components/skeletons/DashboardSkeleton';
@@ -33,12 +34,24 @@ export const LoginHandoff = () => {
   if (!isActive && isFinishingLogin && !isRouteReady) setIsActive(true);
   if (isActive && (isLoginFailed || isRouteReady)) setIsActive(false);
 
+  // The page under the frame keeps its controls, so the keyboard must not reach them.
+  useEffect(() => {
+    const root = document.getElementById('root');
+    if (!isActive || !root) return;
+
+    root.inert = true;
+    return () => {
+      root.inert = false;
+    };
+  }, [isActive]);
+
   if (!isActive) return null;
 
   const loginTarget = isSafeInternalRedirect(redirect) ? redirect : DASHBOARD_PATH;
   const target = pathname === '/' ? loginTarget : pathname;
 
-  return (
+  // Outside `#root`, which is inert while the frame covers it.
+  return createPortal(
     // `inert` stays off the backdrop: an inert element lets clicks through to the page below.
     <div className="fixed inset-0 z-60 bg-background" data-testid="login-handoff">
       <AppFrame inert activeHref={target}>
@@ -46,6 +59,7 @@ export const LoginHandoff = () => {
           <DashboardSkeleton subaccounts={isAccountsAreaEnabled(features)} />
         )}
       </AppFrame>
-    </div>
+    </div>,
+    document.body,
   );
 };

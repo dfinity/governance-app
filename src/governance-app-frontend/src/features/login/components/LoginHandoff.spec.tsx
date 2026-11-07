@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LoginHandoff } from './LoginHandoff';
 
@@ -37,6 +37,7 @@ vi.mock('@components/skeletons/DashboardSkeleton', () => ({
 }));
 
 const frame = () => screen.queryByTestId('frame');
+const appRoot = () => document.getElementById('root') as HTMLElement;
 
 describe('LoginHandoff', () => {
   beforeEach(() => {
@@ -44,6 +45,13 @@ describe('LoginHandoff', () => {
     auth.isFinishingLogin = false;
     router.location = { pathname: '/', search: {} };
     router.status = 'idle';
+    const root = document.createElement('div');
+    root.id = 'root';
+    document.body.append(root);
+  });
+
+  afterEach(() => {
+    appRoot().remove();
   });
 
   it('renders nothing before Internet Identity answers.', () => {
@@ -122,6 +130,17 @@ describe('LoginHandoff', () => {
     router.status = 'idle';
     rerender(<LoginHandoff />);
     expect(frame()).toBeNull();
+  });
+
+  it('makes the page under the frame inert while the frame shows.', () => {
+    auth.isFinishingLogin = true;
+    const { rerender } = render(<LoginHandoff />);
+    expect(appRoot().inert).toBe(true);
+
+    auth.isFinishingLogin = false;
+    rerender(<LoginHandoff />);
+
+    expect(appRoot().inert).toBe(false);
   });
 
   it('gives the login page back when the login fails.', () => {
