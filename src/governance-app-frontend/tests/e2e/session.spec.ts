@@ -112,10 +112,12 @@ test('Hides the reopen prompt once Internet Identity answers', async ({ page }) 
   // Longer than the delay of the prompt.
   await page.waitForTimeout(3_500);
   await expect(page.getByTestId('login-restart-btn')).toBeHidden();
+  await expect(page.getByTestId('login-handoff')).toBeVisible();
 
   releaseMint();
   await loggedIn;
   await expectDashboard(page);
+  await expect(page.getByTestId('login-handoff')).not.toBeVisible();
 });
 
 test('Keeps the session on reload, logs out, and logs in again', async ({ page }) => {
