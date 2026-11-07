@@ -10,7 +10,10 @@ import { cn } from '@utils/shadcn';
 import { getNavigationItems } from './NavigationItems';
 import { UserMenu } from './UserMenu';
 
-export const Sidebar = () => {
+const ACTIVE_ITEM_CLASS =
+  'before:absolute before:left-0 before:w-[3px] before:h-6 before:bg-primary before:rounded-full bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary';
+
+export const Sidebar = ({ activeHref }: { activeHref?: string }) => {
   const { t } = useTranslation();
   const { features } = useAdvancedFeatures();
   const accountsEnabled = isAccountsAreaEnabled(features);
@@ -40,12 +43,10 @@ export const Sidebar = () => {
             className={cn(
               'relative flex items-center gap-3 rounded-md px-4 py-3 text-foreground-secondary transition-colors hover:bg-accent hover:text-accent-foreground',
               shouldAnimate && item.href === '/accounts' && 'animate-highlight-pulse',
+              activeHref?.startsWith(item.href) && ACTIVE_ITEM_CLASS,
             )}
             onAnimationEnd={item.href === '/accounts' ? () => setShouldAnimate(false) : undefined}
-            activeProps={{
-              className:
-                'before:absolute before:left-0 before:w-[3px] before:h-6 before:bg-primary before:rounded-full bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary',
-            }}
+            activeProps={{ className: ACTIVE_ITEM_CLASS }}
           >
             <item.icon className="size-5" />
             <span>{t(item.label as never)}</span>
