@@ -18,8 +18,16 @@ vi.mock('@tanstack/react-router', () => ({
   useRouterState: ({ select }: { select: (state: typeof router) => unknown }) => select(router),
 }));
 vi.mock('@components/MainLayout', () => ({
-  AppFrame: ({ activeHref, children }: { activeHref: string; children: ReactNode }) => (
-    <div data-testid="frame" data-active={activeHref}>
+  AppFrame: ({
+    activeHref,
+    children,
+    inert,
+  }: {
+    activeHref: string;
+    children: ReactNode;
+    inert: boolean;
+  }) => (
+    <div data-testid="frame" data-active={activeHref} inert={inert}>
       {children}
     </div>
   ),
@@ -56,7 +64,8 @@ describe('LoginHandoff', () => {
     render(<LoginHandoff />);
 
     expect(frame()?.getAttribute('data-active')).toBe('/dashboard');
-    expect(screen.getByTestId('login-handoff').hasAttribute('inert')).toBe(true);
+    expect(frame()?.hasAttribute('inert')).toBe(true);
+    expect(screen.getByTestId('login-handoff').hasAttribute('inert')).toBe(false);
     expect(screen.queryByTestId('dashboard-skeleton')).not.toBeNull();
   });
 

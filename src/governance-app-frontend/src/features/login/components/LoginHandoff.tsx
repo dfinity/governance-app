@@ -39,8 +39,9 @@ export const LoginHandoff = () => {
   const target = pathname === '/' ? loginTarget : pathname;
 
   return (
-    <div inert className="fixed inset-0 z-60 bg-background" data-testid="login-handoff">
-      <AppFrame activeHref={target}>
+    // `inert` stays off the backdrop: an inert element lets clicks through to the page below.
+    <div className="fixed inset-0 z-60 bg-background" data-testid="login-handoff">
+      <AppFrame inert activeHref={target}>
         {target.startsWith(DASHBOARD_PATH) && (
           <DashboardSkeleton subaccounts={isAccountsAreaEnabled(features)} />
         )}
