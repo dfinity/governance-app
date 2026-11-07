@@ -3,6 +3,7 @@ import { expect, type Page, test } from '@playwright/test';
 import { openApp } from './utils/app';
 import { login } from './utils/login';
 
+const II_BACKEND_CANISTER_ID = 'rdmx6-jaaaa-aaaaa-aaadq-cai';
 const SESSION_EXPIRED = 'Session expired, you have been logged out. Please log in again.';
 
 const expectLoginPage = async (page: Page) => {
@@ -85,6 +86,36 @@ test('Protects routes and recovers from a closed Internet Identity window', asyn
     await expectLoginPage(page);
     await expect(page.getByText('Authenticating with Internet Identity')).not.toBeVisible();
   });
+});
+
+test('Hides the reopen prompt once Internet Identity answers', async ({ page }) => {
+  await openApp({ page });
+
+  // Holds the first delegation call of the app. The Internet Identity window is another page.
+  let releaseMint = () => {};
+  const mintHeld = new Promise<void>((resolve) => (releaseMint = resolve));
+  const mintCalled = new Promise<void>((resolve) => {
+    void page.route(
+      (url) => url.pathname.endsWith(`/canister/${II_BACKEND_CANISTER_ID}/call`),
+      async (route) => {
+        resolve();
+        await mintHeld;
+        await route.continue();
+      },
+    );
+  });
+
+  const loggedIn = login({ page });
+  await mintCalled;
+
+  await expect.poll(() => page.context().pages().length).toBe(1);
+  // Longer than the delay of the prompt.
+  await page.waitForTimeout(3_500);
+  await expect(page.getByTestId('login-restart-btn')).toBeHidden();
+
+  releaseMint();
+  await loggedIn;
+  await expectDashboard(page);
 });
 
 test('Keeps the session on reload, logs out, and logs in again', async ({ page }) => {
