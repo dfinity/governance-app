@@ -9,7 +9,7 @@ const auth = vi.hoisted(() => ({
   isFinishingLogin: false,
 }));
 const router = vi.hoisted(() => ({
-  location: { pathname: '/', search: {} as { redirect?: string } },
+  location: { pathname: '/', search: {} as { redirect?: unknown } },
   status: 'idle',
 }));
 
@@ -67,6 +67,33 @@ describe('LoginHandoff', () => {
 
     expect(frame()?.getAttribute('data-active')).toBe('/voting/proposals/1');
     expect(screen.queryByTestId('dashboard-skeleton')).toBeNull();
+  });
+
+  it('ignores a redirect that the login route rejects.', () => {
+    auth.isFinishingLogin = true;
+    router.location.search = { redirect: 42 };
+    render(<LoginHandoff />);
+
+    expect(frame()?.getAttribute('data-active')).toBe('/dashboard');
+  });
+
+  it('stays away from a route that is ready during the login.', () => {
+    auth.isFinishingLogin = true;
+    router.location = { pathname: '/settings', search: {} };
+    render(<LoginHandoff />);
+
+    expect(frame()).toBeNull();
+  });
+
+  it('leaves when a route becomes ready during the login.', () => {
+    auth.isFinishingLogin = true;
+    const { rerender } = render(<LoginHandoff />);
+    expect(frame()).not.toBeNull();
+
+    router.location = { pathname: '/settings', search: {} };
+    rerender(<LoginHandoff />);
+
+    expect(frame()).toBeNull();
   });
 
   it('stays until the first route is ready.', () => {

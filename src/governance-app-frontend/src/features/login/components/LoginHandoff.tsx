@@ -7,6 +7,7 @@ import { DashboardSkeleton } from '@components/skeletons/DashboardSkeleton';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { isAccountsAreaEnabled } from '@utils/advancedFeatures';
+import { isSafeInternalRedirect } from '@utils/router';
 
 const DASHBOARD_PATH = '/dashboard';
 
@@ -18,8 +19,9 @@ export const LoginHandoff = () => {
   const { identity, isFinishingLogin } = useInternetIdentity();
   const { features } = useAdvancedFeatures();
   const pathname = useRouterState({ select: ({ location }) => location.pathname });
+  // The raw query value, which the login route validates for itself.
   const redirect = useRouterState({
-    select: ({ location }) => (location.search as { redirect?: string }).redirect,
+    select: ({ location }) => (location.search as { redirect?: unknown }).redirect,
   });
   const isRouteLoading = useRouterState({ select: ({ status }) => status === 'pending' });
 
@@ -28,12 +30,13 @@ export const LoginHandoff = () => {
   const isLoginFailed = !isFinishingLogin && !nonNullish(identity);
   const isRouteReady = pathname !== '/' && !isRouteLoading;
 
-  if (!isActive && isFinishingLogin) setIsActive(true);
+  if (!isActive && isFinishingLogin && !isRouteReady) setIsActive(true);
   if (isActive && (isLoginFailed || isRouteReady)) setIsActive(false);
 
   if (!isActive) return null;
 
-  const target = pathname === '/' ? (redirect ?? DASHBOARD_PATH) : pathname;
+  const loginTarget = isSafeInternalRedirect(redirect) ? redirect : DASHBOARD_PATH;
+  const target = pathname === '/' ? loginTarget : pathname;
 
   return (
     <div inert className="fixed inset-0 z-60 bg-background" data-testid="login-handoff">
