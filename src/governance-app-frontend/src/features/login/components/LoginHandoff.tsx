@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 
 import { AppFrame } from '@components/MainLayout';
 import { DashboardSkeleton } from '@components/skeletons/DashboardSkeleton';
+import { SkeletonScreen } from '@components/skeletons/SkeletonScreen';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { isAccountsAreaEnabled } from '@utils/advancedFeatures';
@@ -54,6 +55,8 @@ export const LoginHandoff = () => {
   return createPortal(
     // `inert` stays off the backdrop: an inert element lets clicks through to the page below.
     <div className="fixed inset-0 z-60 bg-background" data-testid="login-handoff">
+      {/* The frame is inert, so screen readers hear the loading from here. */}
+      <SkeletonScreen className="sr-only" data-testid="login-handoff-status" />
       <AppFrame inert activeHref={target}>
         {target.startsWith(DASHBOARD_PATH) && (
           <DashboardSkeleton subaccounts={isAccountsAreaEnabled(features)} />

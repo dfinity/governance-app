@@ -74,6 +74,7 @@ describe('LoginHandoff', () => {
     expect(frame()?.getAttribute('data-active')).toBe('/dashboard');
     expect(frame()?.hasAttribute('inert')).toBe(true);
     expect(screen.getByTestId('login-handoff').hasAttribute('inert')).toBe(false);
+    expect(screen.getByTestId('login-handoff-status').getAttribute('role')).toBe('status');
     expect(screen.queryByTestId('dashboard-skeleton')).not.toBeNull();
   });
 
