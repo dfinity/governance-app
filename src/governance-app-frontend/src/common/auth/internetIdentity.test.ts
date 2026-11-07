@@ -217,6 +217,14 @@ describe('internetIdentity', () => {
     expect(auth.getAuthState()).toMatchObject({ status: 'logging-in' });
     expect(auth.getAuthState().iiAnswered).toBeUndefined();
 
+    // A late call of the replaced client says nothing about the new window.
+    await (options.agentOptions?.fetch as typeof fetch)('https://icp-api.io');
+    expect(auth.getAuthState().iiAnswered).toBeUndefined();
+
+    const nextOptions: AuthClientCreateOptions = AuthClient.mock.calls[1][0];
+    await (nextOptions.agentOptions?.fetch as typeof fetch)('https://icp-api.io');
+    expect(auth.getAuthState().iiAnswered).toBe(true);
+
     vi.unstubAllGlobals();
   });
 
