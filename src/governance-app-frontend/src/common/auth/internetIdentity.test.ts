@@ -198,6 +198,28 @@ describe('internetIdentity', () => {
     vi.unstubAllGlobals();
   });
 
+  it('forgets the answer of Internet Identity when the login starts again.', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response()));
+    const client = mockAuthClient();
+    client.signIn.mockReturnValueOnce(deferred<Identity>().promise);
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+    const options: AuthClientCreateOptions = AuthClient.mock.calls[0][0];
+
+    auth.login();
+    await (options.agentOptions?.fetch as typeof fetch)('https://icp-api.io');
+    expect(auth.getAuthState().iiAnswered).toBe(true);
+
+    const nextClient = mockAuthClient();
+    nextClient.signIn.mockReturnValueOnce(deferred<Identity>().promise);
+    auth.login();
+
+    expect(auth.getAuthState()).toMatchObject({ status: 'logging-in' });
+    expect(auth.getAuthState().iiAnswered).toBeUndefined();
+
+    vi.unstubAllGlobals();
+  });
+
   it('forgets the answer of Internet Identity when the login fails.', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response()));

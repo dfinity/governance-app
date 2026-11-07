@@ -430,6 +430,7 @@ export const login = () => {
   if (state.status === 'logging-in') {
     // The read after the first sign-in can still wait.
     supersedeReads();
+    setState({ status: 'logging-in' });
     signIn(replaceAuthClient());
     return;
   }
