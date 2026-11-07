@@ -12,7 +12,7 @@ import {
   Square,
   X,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
@@ -88,19 +88,25 @@ export function FolloweePicker({
   const [customIdInput, setCustomIdInput] = useState('');
   const [customIdError, setCustomIdError] = useState<string | null>(null);
 
+  const resetState = useEffectEvent(() => {
+    setStep(WizardStep.SelectNeurons);
+    setSelectedNeuronIds(new Set());
+    setCustomNeuronIds(new Set());
+    setSelectedTopics(new Set());
+    setSearchQuery('');
+    setCustomIdInput('');
+    setCustomIdError(null);
+  });
+
+  // The reset waits for the close animation. A reopen within that delay
+  // cancels the timer, so the open resets at once instead.
   useEffect(() => {
-    if (!open) {
-      const timer = setTimeout(() => {
-        setStep(WizardStep.SelectNeurons);
-        setSelectedNeuronIds(new Set());
-        setCustomNeuronIds(new Set());
-        setSelectedTopics(new Set());
-        setSearchQuery('');
-        setCustomIdInput('');
-        setCustomIdError(null);
-      }, DIALOG_RESET_DELAY_MS);
-      return () => clearTimeout(timer);
+    if (open) {
+      resetState();
+      return;
     }
+    const timer = setTimeout(resetState, DIALOG_RESET_DELAY_MS);
+    return () => clearTimeout(timer);
   }, [open]);
 
   const filteredNeurons = useMemo(() => {
