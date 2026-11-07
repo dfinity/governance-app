@@ -71,17 +71,29 @@ let endedSessionExpiresAtMs: number | undefined;
 // A session that the auth client could not hand out, so a new client read it one time.
 let unreadableExpiresAtMs: number | undefined;
 
+// Tells the current auth client apart from one that a restarted login replaced.
+let authClientGeneration = 0;
+
 // During a login, the agent of the auth client makes its first call after Internet Identity answers.
-const fetchForAuthClient: typeof fetch = (...args) => {
-  if (state.status === 'logging-in' && !state.iiAnswered) setState({ ...state, iiAnswered: true });
-  return fetch(...args);
-};
+const fetchForAuthClient =
+  (generation: number): typeof fetch =>
+  (...args) => {
+    const isCurrent = generation === authClientGeneration;
+    if (isCurrent && state.status === 'logging-in' && !state.iiAnswered) {
+      setState({ ...state, iiAnswered: true });
+    }
+    return fetch(...args);
+  };
 
 const createAuthClient = (): AuthClient =>
   new AuthClient({
     identityProvider: { authorizeUrl: II_AUTHORIZE_URL, canisterId: II_BACKEND_CANISTER_ID },
     // For the calls that mint the delegations. A local replica needs its root key.
-    agentOptions: { host: NETWORK, shouldFetchRootKey: IS_LOCAL, fetch: fetchForAuthClient },
+    agentOptions: {
+      host: NETWORK,
+      shouldFetchRootKey: IS_LOCAL,
+      fetch: fetchForAuthClient(++authClientGeneration),
+    },
     ...(nonNullish(II_DERIVATION_ORIGIN) && { derivationOrigin: II_DERIVATION_ORIGIN }),
   });
 
