@@ -9,17 +9,39 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { II_AUTHORIZE_URL, NETWORK } from '@constants/extra';
 
-const { AuthClient, SupersededError, syncTime, getTimeDiffMsecs, reloadPage } = vi.hoisted(() => ({
-  AuthClient: vi.fn(),
-  SupersededError: class SupersededError extends Error {},
-  syncTime: vi.fn(async () => undefined),
-  getTimeDiffMsecs: vi.fn(() => 0),
-  reloadPage: vi.fn(),
-}));
+const { AuthClient, MemoryStateStorage, SupersededError, syncTime, getTimeDiffMsecs, reloadPage } =
+  vi.hoisted(() => ({
+    AuthClient: vi.fn(),
+    MemoryStateStorage: class MemoryStateStorage {},
+    SupersededError: class SupersededError extends Error {},
+    syncTime: vi.fn(async () => undefined),
+    getTimeDiffMsecs: vi.fn(() => 0),
+    reloadPage: vi.fn(),
+  }));
+
+const { errorNotification } = vi.hoisted(() => ({ errorNotification: vi.fn() }));
 
 vi.mock('@utils/page', () => ({ reloadPage }));
 
-vi.mock('@icp-sdk/auth/client', () => ({ AuthClient, SupersededError }));
+vi.mock('@utils/notification', () => ({ errorNotification }));
+
+vi.mock('@icp-sdk/auth/client', () => ({ AuthClient, MemoryStateStorage, SupersededError }));
+
+// The browser denies `localStorage`, as Chrome does when the user blocks site data.
+const denyLocalStorage = () => {
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    get() {
+      throw new DOMException('Access is denied for this document.', 'SecurityError');
+    },
+  });
+
+  return () => {
+    if (descriptor) Object.defineProperty(globalThis, 'localStorage', descriptor);
+    else Reflect.deleteProperty(globalThis, 'localStorage');
+  };
+};
 
 vi.mock('@common/canisters/agents', () => ({
   getAnonymousAgent: async () => ({ syncTime, getTimeDiffMsecs }),
@@ -130,6 +152,7 @@ describe('internetIdentity', () => {
   beforeEach(() => {
     vi.resetModules();
     AuthClient.mockReset();
+    errorNotification.mockClear();
     reloadPage.mockClear();
     syncTime.mockClear();
     getTimeDiffMsecs.mockReturnValue(0);
@@ -168,6 +191,40 @@ describe('internetIdentity', () => {
     });
     expect(II_AUTHORIZE_URL).toMatch(/\/authorize\?/);
     expect(options.agentOptions).toEqual({ host: NETWORK, shouldFetchRootKey: false });
+    expect(options.stateStorage).toBeUndefined();
+  });
+
+  it('keeps the session record in memory when the browser denies localStorage.', async () => {
+    const restore = denyLocalStorage();
+
+    try {
+      mockAuthClient();
+      const auth = await loadModule();
+
+      await expect(auth.ensureInitialized()).resolves.toBeUndefined();
+      const options: AuthClientCreateOptions = AuthClient.mock.calls[0][0];
+      expect(options.stateStorage).toBeInstanceOf(MemoryStateStorage);
+    } finally {
+      restore();
+    }
+  });
+
+  it('refuses the login when the browser denies localStorage.', async () => {
+    const restore = denyLocalStorage();
+
+    try {
+      const client = mockAuthClient();
+      const auth = await loadModule();
+      await auth.ensureInitialized();
+
+      auth.login();
+
+      expect(errorNotification).toHaveBeenCalledTimes(1);
+      expect(client.signIn).not.toHaveBeenCalled();
+      expect(auth.getAuthState()).toEqual({ status: 'idle' });
+    } finally {
+      restore();
+    }
   });
 
   it('resolves without an identity when there is no stored session.', async () => {

@@ -12,6 +12,7 @@ import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useDetectAdvancedFeatures } from '@hooks/useDetectAdvancedFeatures';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { successNotification } from '@utils/notification';
+import { getStorageItem, setStorageItem } from '@utils/storage';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -23,7 +24,7 @@ import {
 export function WelcomeModal() {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(
-    () => typeof window !== 'undefined' && !localStorage.getItem(WELCOME_MODAL_STORAGE_KEY),
+    () => typeof window !== 'undefined' && !getStorageItem(WELCOME_MODAL_STORAGE_KEY),
   );
 
   const { isDetecting, detectedFeatures, error } = useDetectAdvancedFeatures();
@@ -46,7 +47,7 @@ export function WelcomeModal() {
       setFeature(key as keyof typeof detectedFeatures, detected ?? false);
     }
     setIsOpen(false);
-    localStorage.setItem(WELCOME_MODAL_STORAGE_KEY, 'true');
+    setStorageItem(WELCOME_MODAL_STORAGE_KEY, 'true');
     successNotification({
       description: t(($) => $.welcomeModal.toast),
     });
