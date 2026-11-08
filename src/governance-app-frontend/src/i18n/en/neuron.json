@@ -102,5 +102,19 @@
     }
   },
   "ledgerDeviceBand": "Ledger · {{name}}",
-  "controller": "Controller"
+  "controller": "Controller",
+  "ledgerNeurons": {
+    "sectionTitle": "Neurons on Ledger devices",
+    "sectionDescription": "See the neurons that your Ledger devices control.",
+    "showNeurons": "Show neurons",
+    "title": "Neurons on device",
+    "description": "The neurons that {{name}} controls. Add this app as a hotkey to see a neuron in your neurons list.",
+    "connecting": "Connect your Ledger device, open the Internet Computer app, and approve the request.",
+    "empty": "This device controls no neurons.",
+    "addHotkey": "Add hotkey",
+    "hotkeyAdded": "Hotkey added",
+    "hotkeyAddedTitle": "Hotkey added",
+    "hotkeyAddedDescription": "Neuron {{neuronId}} now shows in your neurons list.",
+    "hotkeyFailedTitle": "Could not add the hotkey"
+  }
 }

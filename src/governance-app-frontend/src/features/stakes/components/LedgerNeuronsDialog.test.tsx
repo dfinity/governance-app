@@ -14,7 +14,6 @@ import { clearDeviceApprovals } from '@common/ledger/approvedDeviceCall';
 import { clearDeviceQueues } from '@common/ledger/deviceQueue';
 import { LedgerDeviceError, LedgerErrorCode } from '@common/ledger/errors';
 
-import { type Account, AccountType } from '../types';
 import { LedgerNeuronsDialog } from './LedgerNeuronsDialog';
 
 const II_PRINCIPAL = 'rrkah-fqaaa-aaaaa-aaaaq-cai';
@@ -47,14 +46,7 @@ vi.mock('@utils/notification', () => ({
   errorNotification: mocks.errorNotification,
 }));
 
-const account: Account = {
-  name: 'Nano X',
-  accountId: 'device-account',
-  type: AccountType.HardwareWallet,
-  principal: DEVICE_PRINCIPAL,
-  status: 'ready',
-  balanceE8s: 0n,
-};
+const device = { name: 'Nano X', principal: DEVICE_PRINCIPAL };
 
 const deviceNeuron = (neuronId: bigint, hotKeys: string[] = []) =>
   mockNeuron({
@@ -87,7 +79,7 @@ const renderDialog = () => {
     </QueryClientProvider>
   );
 
-  return render(<LedgerNeuronsDialog account={account} open onOpenChange={vi.fn()} />, {
+  return render(<LedgerNeuronsDialog device={device} open onOpenChange={vi.fn()} />, {
     wrapper,
   });
 };
@@ -262,13 +254,13 @@ describe('LedgerNeuronsDialog', () => {
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     );
     const { rerender } = render(
-      <LedgerNeuronsDialog account={account} open onOpenChange={vi.fn()} />,
+      <LedgerNeuronsDialog device={device} open onOpenChange={vi.fn()} />,
       { wrapper },
     );
     await waitFor(() => expect(mocks.listNeurons).toHaveBeenCalledTimes(1));
 
-    rerender(<LedgerNeuronsDialog account={account} open={false} onOpenChange={vi.fn()} />);
-    rerender(<LedgerNeuronsDialog account={account} open onOpenChange={vi.fn()} />);
+    rerender(<LedgerNeuronsDialog device={device} open={false} onOpenChange={vi.fn()} />);
+    rerender(<LedgerNeuronsDialog device={device} open onOpenChange={vi.fn()} />);
     await screen.findByTestId('ledger-neurons-connecting');
 
     expect(mocks.listNeurons).toHaveBeenCalledTimes(1);
@@ -286,13 +278,13 @@ describe('LedgerNeuronsDialog', () => {
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     );
     const { rerender } = render(
-      <LedgerNeuronsDialog account={account} open onOpenChange={vi.fn()} />,
+      <LedgerNeuronsDialog device={device} open onOpenChange={vi.fn()} />,
       { wrapper },
     );
     await screen.findByTestId('ledger-neurons-list');
 
-    rerender(<LedgerNeuronsDialog account={account} open={false} onOpenChange={vi.fn()} />);
-    rerender(<LedgerNeuronsDialog account={account} open onOpenChange={vi.fn()} />);
+    rerender(<LedgerNeuronsDialog device={device} open={false} onOpenChange={vi.fn()} />);
+    rerender(<LedgerNeuronsDialog device={device} open onOpenChange={vi.fn()} />);
 
     await waitFor(() => expect(mocks.listNeurons).toHaveBeenCalledTimes(2));
   });

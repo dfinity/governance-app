@@ -4,12 +4,7 @@ import { AlertTriangle, Check, ChevronRight, Key, Usb } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { NeuronStateBadge } from '@features/stakes/components/NeuronStateBadge';
-import { useAddHotkey } from '@features/stakes/hooks/useAddHotkey';
-import {
-  useLedgerDeviceNeurons,
-  useUpdateLedgerDeviceNeuron,
-} from '@features/stakes/hooks/useLedgerDeviceNeurons';
+import type { AccountMetadata } from '@features/accounts/types';
 
 import { Button } from '@components/button';
 import {
@@ -38,10 +33,15 @@ import {
 import { errorNotification, successNotification } from '@utils/notification';
 import { formatNumber } from '@utils/numbers';
 
-import type { Account } from '../types';
+import { useAddHotkey } from '../hooks/useAddHotkey';
+import {
+  useLedgerDeviceNeurons,
+  useUpdateLedgerDeviceNeuron,
+} from '../hooks/useLedgerDeviceNeurons';
+import { NeuronStateBadge } from './NeuronStateBadge';
 
 type Props = {
-  account: Account;
+  device: Pick<AccountMetadata, 'name' | 'principal'>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
@@ -52,9 +52,9 @@ type Props = {
  * The device signs `list_neurons` when the dialog opens, and `AddHotkey` once per neuron.
  * A neuron with the Internet Identity principal as hotkey shows in the normal neurons list.
  */
-export const LedgerNeuronsDialog = ({ account, open, onOpenChange }: Props) => {
+export const LedgerNeuronsDialog = ({ device, open, onOpenChange }: Props) => {
   const { t } = useTranslation();
-  const principal = account.principal ?? '';
+  const principal = device.principal ?? '';
 
   // Each open gets its own query, so the device is asked again for a fresh list.
   const [session, setSession] = useState(0);
@@ -73,9 +73,9 @@ export const LedgerNeuronsDialog = ({ account, open, onOpenChange }: Props) => {
         data-testid="ledger-neurons-dialog"
       >
         <ResponsiveDialogHeader className="shrink-0">
-          <ResponsiveDialogTitle>{t(($) => $.accounts.ledgerNeurons.title)}</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle>{t(($) => $.neuron.ledgerNeurons.title)}</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            {t(($) => $.accounts.ledgerNeurons.description, { name: account.name })}
+            {t(($) => $.neuron.ledgerNeurons.description, { name: device.name })}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
@@ -83,7 +83,7 @@ export const LedgerNeuronsDialog = ({ account, open, onOpenChange }: Props) => {
           {neuronsQuery.isPending && (
             <StateMessage
               icon={<Spinner className="size-8 text-primary" />}
-              message={t(($) => $.accounts.ledgerNeurons.connecting)}
+              message={t(($) => $.neuron.ledgerNeurons.connecting)}
               dataTestId="ledger-neurons-connecting"
             />
           )}
@@ -113,7 +113,7 @@ export const LedgerNeuronsDialog = ({ account, open, onOpenChange }: Props) => {
           {neuronsQuery.isSuccess && neuronsQuery.data.length === 0 && (
             <StateMessage
               icon={<Usb className="size-8 text-muted-foreground" aria-hidden="true" />}
-              message={t(($) => $.accounts.ledgerNeurons.empty)}
+              message={t(($) => $.neuron.ledgerNeurons.empty)}
               dataTestId="ledger-neurons-empty"
             />
           )}
@@ -215,8 +215,8 @@ function LedgerNeuronRow({
           : cached,
       );
       successNotification({
-        title: t(($) => $.accounts.ledgerNeurons.hotkeyAddedTitle),
-        description: t(($) => $.accounts.ledgerNeurons.hotkeyAddedDescription, {
+        title: t(($) => $.neuron.ledgerNeurons.hotkeyAddedTitle),
+        description: t(($) => $.neuron.ledgerNeurons.hotkeyAddedDescription, {
           neuronId: neuronIdText,
         }),
       });
@@ -224,7 +224,7 @@ function LedgerNeuronRow({
       // The device rejected the request after a cancel on the dialog: nothing to report.
       if (isDeviceActionCancelled(error)) return;
       errorNotification({
-        title: t(($) => $.accounts.ledgerNeurons.hotkeyFailedTitle),
+        title: t(($) => $.neuron.ledgerNeurons.hotkeyFailedTitle),
         description: error instanceof Error ? mapCanisterError(error) : undefined,
       });
     } finally {
@@ -271,7 +271,7 @@ function LedgerNeuronRow({
           data-testid="ledger-neuron-hotkey-added"
         >
           <Check className="size-4" aria-hidden="true" />
-          {t(($) => $.accounts.ledgerNeurons.hotkeyAdded)}
+          {t(($) => $.neuron.ledgerNeurons.hotkeyAdded)}
         </span>
       ) : (
         <Button
@@ -282,7 +282,7 @@ function LedgerNeuronRow({
           data-testid="ledger-neuron-add-hotkey"
         >
           {isPending ? <Spinner /> : <Key aria-hidden="true" />}
-          {t(($) => $.accounts.ledgerNeurons.addHotkey)}
+          {t(($) => $.neuron.ledgerNeurons.addHotkey)}
         </Button>
       )}
     </li>

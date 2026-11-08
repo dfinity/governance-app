@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
 import { EmptyNeuronsState } from '@features/stakes/components/EmptyNeuronsState';
+import { LedgerNeuronsSection } from '@features/stakes/components/LedgerNeuronsSection';
 import { NeuronsList } from '@features/stakes/components/NeuronsList';
 import { StakingWizardModal } from '@features/stakes/components/stakingWizard/StakingWizardModal';
 import {
@@ -144,6 +145,8 @@ function NeuronsComponent() {
           </>
         )}
       </QueryStates>
+
+      {neuronsQuery.isSuccess && <LedgerNeuronsSection />}
 
       <StakingWizardModal isOpen={!!openWizard} setIsOpen={handleStakingWizardOpenChange} />
     </div>
