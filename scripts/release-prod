@@ -354,9 +354,7 @@ fi
 cat <<EOF
 
 New version of the governance-app:
-
 * Proposal: ${ORBIT_REQUEST_URL:-not available}
-
 * Release draft: ${RELEASE_DRAFT_URL:-not available}
 
 EOF
