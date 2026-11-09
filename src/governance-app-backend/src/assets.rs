@@ -36,6 +36,8 @@ const MAX_PROPOSAL_PAGES: usize = 1_000;
 
 const INDEX_HTML_PATH: &str = "index.html";
 
+const RANGE_HEADER: &str = "range";
+
 // CORS header
 const ACCESS_CONTROL_ALLOW_ORIGIN_HEADER: &str = "access-control-allow-origin";
 
@@ -153,9 +155,31 @@ fn serve_asset(req: &HttpRequest<'static>) -> HttpResponse<'static> {
     // TODO: Enhace error handling
     ASSET_ROUTER.with_borrow(|router| {
         router
-            .serve_asset(&data_certificate, req)
+            .serve_asset(&data_certificate, &without_unusable_range(router, req))
             .expect("Failed to serve asset")
     })
+}
+
+/// Removes the `Range` header unless the requested asset is chunked.
+///
+/// `AssetRouter` stores an asset under a byte range only if the asset is chunked. For any other
+/// asset, a `Range` header misses the exact entry and selects the wildcard fallback. The HTTP
+/// gateway rejects that response, because an exact entry exists for the path. The gateway also
+/// uses `Range` to fetch the later chunks of a chunked asset, so those requests keep the header.
+fn without_unusable_range(
+    router: &AssetRouter<'static>,
+    req: &HttpRequest<'static>,
+) -> HttpRequest<'static> {
+    let is_chunked = req
+        .get_path()
+        .is_ok_and(|path| router.get_assets().get(path, None, Some(0)).is_some());
+
+    let mut req = req.clone();
+    if !is_chunked {
+        req.headers_mut()
+            .retain(|(name, _)| !name.eq_ignore_ascii_case(RANGE_HEADER));
+    }
+    req
 }
 
 /// Returns true for a GET request of a proposal page that is not certified yet.
@@ -643,6 +667,58 @@ mod tests {
 
         PROPOSAL_PAGE_IDS.with_borrow(|proposal_ids| assert_eq!(proposal_ids.len(), 1));
         assert_serves_the_proposal_page(1);
+    }
+
+    fn range_request(path: impl Into<String>, range: &str) -> HttpRequest<'static> {
+        HttpRequest::get(path)
+            .with_headers(vec![("Range".to_string(), range.to_string())])
+            .build()
+    }
+
+    fn serve_range_request(request: &HttpRequest<'static>) -> HttpResponse<'static> {
+        ASSET_ROUTER.with_borrow(|router| {
+            router
+                .serve_asset(&[], &without_unusable_range(router, request))
+                .unwrap()
+        })
+    }
+
+    #[test]
+    fn a_range_request_gets_the_whole_proposal_page() {
+        certify_index_html();
+        add_proposal_pages([1]);
+        let request = range_request(proposal_preview::proposal_path(1), "bytes=0-32768");
+
+        let response = serve_range_request(&request);
+
+        assert_eq!(response.status_code(), StatusCode::OK);
+        assert_eq!(response.body(), b"page 1");
+    }
+
+    #[test]
+    fn a_range_request_gets_the_requested_chunk_of_a_chunked_asset() {
+        const CHUNK_SIZE: usize = 2_000_000;
+        let path = "video.mp4";
+        let config = AssetConfig::File {
+            path: path.to_string(),
+            content_type: Some("video/mp4".to_string()),
+            headers: vec![],
+            fallback_for: vec![],
+            aliased_by: vec![],
+            encodings: vec![],
+        };
+        let content = vec![0; CHUNK_SIZE + 1];
+        ASSET_ROUTER.with_borrow_mut(|router| {
+            router
+                .certify_assets([Asset::new(path, content)], [config])
+                .unwrap();
+        });
+        let request = range_request(format!("/{path}"), &format!("bytes={CHUNK_SIZE}-"));
+
+        let response = serve_range_request(&request);
+
+        assert_eq!(response.status_code(), StatusCode::PARTIAL_CONTENT);
+        assert_eq!(response.body().len(), 1);
     }
 
     #[test]
