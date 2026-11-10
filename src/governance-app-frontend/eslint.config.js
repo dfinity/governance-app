@@ -9,6 +9,92 @@ import globals from 'globals';
 import { tailwind4 } from 'tailwind-csstree';
 import tseslint from 'typescript-eslint';
 
+const hasKey = (property, name) =>
+  property.type === 'Property' &&
+  !property.computed &&
+  (property.key.name ?? property.key.value) === name;
+
+// A spread can hold `staleTime`, so the rule skips options that have one.
+const routeLoaderStaleTime = {
+  meta: {
+    type: 'problem',
+    docs: { description: 'Require `staleTime` on a file route that has a `loader`.' },
+    schema: [],
+    messages: {
+      missingStaleTime:
+        'A route with a `loader` must set `staleTime`, usually `Infinity`. Modal state lives in search params, and with the default of 0 each modal toggle reruns the loader.',
+    },
+  },
+  create: (context) => ({
+    'CallExpression[callee.callee.name="createFileRoute"]'(node) {
+      const [options] = node.arguments;
+      if (options?.type !== 'ObjectExpression') return;
+
+      const { properties } = options;
+      const loader = properties.find((property) => hasKey(property, 'loader'));
+      const isOpen = properties.some((property) => property.type === 'SpreadElement');
+      const hasStaleTime = properties.some((property) => hasKey(property, 'staleTime'));
+
+      if (loader && !isOpen && !hasStaleTime) {
+        context.report({ node: loader, messageId: 'missingStaleTime' });
+      }
+    },
+  }),
+};
+
+const WRAPPER_NODES = [
+  'ChainExpression',
+  'TSAsExpression',
+  'TSNonNullExpression',
+  'TSSatisfiesExpression',
+];
+
+const unwrap = (node) => (WRAPPER_NODES.includes(node.type) ? unwrap(node.expression) : node);
+
+const isKeyPath = (node) => {
+  let root = node;
+  while (root.type === 'MemberExpression') root = unwrap(root.object);
+  return root !== node && root.type === 'Identifier' && root.name === '$';
+};
+
+const selectorBranches = (node) => {
+  const expression = unwrap(node);
+  return expression.type === 'ConditionalExpression'
+    ? [...selectorBranches(expression.consequent), ...selectorBranches(expression.alternate)]
+    : [expression];
+};
+
+// The repository names the i18next selector parameter `$` in each `t()` and `i18nKey`.
+// A ternary is valid: only one branch runs, so the selector reads one key.
+const i18nSingleKey = {
+  meta: {
+    type: 'problem',
+    docs: { description: 'Require each i18n selector to read one key.' },
+    schema: [],
+    messages: {
+      notOneKey:
+        'An i18n selector must read one key: `$.a.b`, `$.a[key]`, or `condition ? $.a : $.b`. A second read of `$` throws a revoked-proxy error or gives a wrong key. Use one `t()` call for each key.',
+    },
+  },
+  create: (context) => ({
+    'ArrowFunctionExpression[params.0.name="$"]'(node) {
+      const branches = selectorBranches(node.body);
+      const [selectorParam] = context.sourceCode.getDeclaredVariables(node);
+
+      // Equal counts mean that the condition and the computed keys do not read `$`.
+      const readsOneKey =
+        branches.every(isKeyPath) && selectorParam.references.length === branches.length;
+
+      if (!readsOneKey) context.report({ node, messageId: 'notOneKey' });
+    },
+  }),
+};
+
+export const localRules = {
+  'i18n-single-key': i18nSingleKey,
+  'route-loader-stale-time': routeLoaderStaleTime,
+};
+
 const tsConfiguration = tseslint.config(
   // @TODO: Revisit and fix integration errors with tailwind&shadcn
   { ignores: ['dist', 'node_modules', 'src/routeTree.gen.ts', 'src/app/styles/main.css'] },
@@ -24,11 +110,15 @@ const tsConfiguration = tseslint.config(
       'react-refresh': reactRefresh,
       'simple-import-sort': simpleImportSort,
       import: plugingImport,
+      governance: { rules: localRules },
       prettier,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': ['error', { allowConstantExport: true }],
+
+      'governance/i18n-single-key': 'error',
+      'governance/route-loader-stale-time': 'error',
 
       'prettier/prettier': 'error',
       'eol-last': 'error',
