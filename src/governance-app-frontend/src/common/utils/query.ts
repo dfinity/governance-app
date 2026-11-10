@@ -47,6 +47,10 @@ const SPAM_FILTER = {
   SPAM_CHECK: 'spamFilterSpamCheck',
 };
 
+const DASHBOARD_COLLECTOR = {
+  TALLY_HISTORY: 'dashboardCollectorTallyHistory',
+};
+
 export const QUERY_KEYS = {
   ICP_LEDGER,
   NNS_GOVERNANCE,
@@ -55,6 +59,7 @@ export const QUERY_KEYS = {
   EXTERNAL_SERVICES,
   GOVERNANCE_APP_BACKEND,
   SPAM_FILTER,
+  DASHBOARD_COLLECTOR,
 };
 
 export const stringifyKeys = (keys: readonly unknown[]) => {

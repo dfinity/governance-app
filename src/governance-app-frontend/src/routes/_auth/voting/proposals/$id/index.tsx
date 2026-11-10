@@ -5,6 +5,7 @@ import { ArrowLeft, Clock, Link as LinkIcon, Tag } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalDetailsVoting } from '@features/proposals/components/ProposalDetailsVoting';
+import { ProposalVotingHistory } from '@features/proposals/components/ProposalVotingHistory';
 import { ProposerBadge } from '@features/proposals/components/ProposerBadge';
 import { SelfDescribingActionView } from '@features/proposals/components/SelfDescribingActionView';
 import {
@@ -195,6 +196,8 @@ function ProposalDetailsRouteComponent() {
               </Card>
 
               <ProposalDetailsVoting proposal={proposal} />
+
+              <ProposalVotingHistory proposal={proposal} />
 
               {nonNullish(proposal.proposal?.selfDescribingAction) && (
                 <Card>
