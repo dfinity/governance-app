@@ -23,7 +23,14 @@
   document.querySelector('meta[name="theme-color"]').content = dark ? '#14110d' : '#faf9f5';
 
   if (sessionExpiry > Date.now()) {
-    var path = location.pathname.split('/');
+    var pathname = location.pathname;
+    if (pathname === '/') {
+      // Same rules as `sessionDestination` in `router.ts`: the login page sends a session to a
+      // safe `redirect` target, or to the dashboard.
+      var target = new URLSearchParams(location.search).get('redirect') || '';
+      pathname = /^\/(?![/\\])/.test(target) ? target.split(/[?#]/)[0] : '/dashboard';
+    }
+    var path = pathname.split('/');
     html.dataset.session = '';
     html.dataset.nav = path[1] || 'dashboard';
     if (path[2] === 'proposals') html.dataset.detail = '';
