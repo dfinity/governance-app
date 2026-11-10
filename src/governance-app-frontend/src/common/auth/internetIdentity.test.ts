@@ -9,15 +9,23 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { II_AUTHORIZE_URL, NETWORK } from '@constants/extra';
 
-const { AuthClient, MemoryStateStorage, SupersededError, syncTime, getTimeDiffMsecs, reloadPage } =
-  vi.hoisted(() => ({
-    AuthClient: vi.fn(),
-    MemoryStateStorage: class MemoryStateStorage {},
-    SupersededError: class SupersededError extends Error {},
-    syncTime: vi.fn(async () => undefined),
-    getTimeDiffMsecs: vi.fn(() => 0),
-    reloadPage: vi.fn(),
-  }));
+const {
+  AuthClient,
+  MemoryCredentialStorage,
+  MemoryStateStorage,
+  SupersededError,
+  syncTime,
+  getTimeDiffMsecs,
+  reloadPage,
+} = vi.hoisted(() => ({
+  AuthClient: vi.fn(),
+  MemoryCredentialStorage: class MemoryCredentialStorage {},
+  MemoryStateStorage: class MemoryStateStorage {},
+  SupersededError: class SupersededError extends Error {},
+  syncTime: vi.fn(async () => undefined),
+  getTimeDiffMsecs: vi.fn(() => 0),
+  reloadPage: vi.fn(),
+}));
 
 const { errorNotification } = vi.hoisted(() => ({ errorNotification: vi.fn() }));
 
@@ -25,7 +33,12 @@ vi.mock('@utils/page', () => ({ reloadPage }));
 
 vi.mock('@utils/notification', () => ({ errorNotification }));
 
-vi.mock('@icp-sdk/auth/client', () => ({ AuthClient, MemoryStateStorage, SupersededError }));
+vi.mock('@icp-sdk/auth/client', () => ({
+  AuthClient,
+  MemoryCredentialStorage,
+  MemoryStateStorage,
+  SupersededError,
+}));
 
 // The browser denies `localStorage`, as Chrome does when the user blocks site data.
 const denyLocalStorage = () => {
@@ -192,9 +205,10 @@ describe('internetIdentity', () => {
     expect(II_AUTHORIZE_URL).toMatch(/\/authorize\?/);
     expect(options.agentOptions).toEqual({ host: NETWORK, shouldFetchRootKey: false });
     expect(options.stateStorage).toBeUndefined();
+    expect(options.credentialStorage).toBeUndefined();
   });
 
-  it('keeps the session record in memory when the browser denies localStorage.', async () => {
+  it('keeps the session record and the credential in memory when the browser denies localStorage.', async () => {
     const restore = denyLocalStorage();
 
     try {
@@ -204,6 +218,7 @@ describe('internetIdentity', () => {
       await expect(auth.ensureInitialized()).resolves.toBeUndefined();
       const options: AuthClientCreateOptions = AuthClient.mock.calls[0][0];
       expect(options.stateStorage).toBeInstanceOf(MemoryStateStorage);
+      expect(options.credentialStorage).toBeInstanceOf(MemoryCredentialStorage);
     } finally {
       restore();
     }

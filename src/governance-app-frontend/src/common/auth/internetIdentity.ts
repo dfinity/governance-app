@@ -1,4 +1,9 @@
-import { AuthClient, MemoryStateStorage, SupersededError } from '@icp-sdk/auth/client';
+import {
+  AuthClient,
+  MemoryCredentialStorage,
+  MemoryStateStorage,
+  SupersededError,
+} from '@icp-sdk/auth/client';
 import type { Identity } from '@icp-sdk/core/agent';
 import { nonNullish } from '@dfinity/utils';
 
@@ -76,10 +81,14 @@ let unreadableExpiresAtMs: number | undefined;
 const createAuthClient = (): AuthClient =>
   new AuthClient({
     identityProvider: { authorizeUrl: II_AUTHORIZE_URL, canisterId: II_BACKEND_CANISTER_ID },
-    // The client reads its session record from `localStorage` as it is created. A browser that
-    // denies the storage gets a record in memory, so the page loads with no session. A login
-    // cannot store its credential there either, so `login` refuses it.
-    ...(!canUseLocalStorage() && { stateStorage: new MemoryStateStorage() }),
+    // The client reads its session record from `localStorage` as it is created, and starts a
+    // credential restore from IndexedDB. A browser that denies the site data denies both, so the
+    // client keeps them in memory and the page loads with no session. A login cannot store its
+    // credential either, so `login` refuses it.
+    ...(!canUseLocalStorage() && {
+      stateStorage: new MemoryStateStorage(),
+      credentialStorage: new MemoryCredentialStorage(),
+    }),
     // For the calls that mint the delegations. A local replica needs its root key.
     agentOptions: { host: NETWORK, shouldFetchRootKey: IS_LOCAL },
     ...(nonNullish(II_DERIVATION_ORIGIN) && { derivationOrigin: II_DERIVATION_ORIGIN }),
