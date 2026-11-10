@@ -65,8 +65,36 @@ export const hasTallyHistory = (proposal: ProposalInfo): boolean =>
   proposal.topic !== Topic.NeuronManagement &&
   Number(proposal.deadlineTimestampSeconds ?? 0n) >= TALLY_RECORDING_SINCE_SECONDS;
 
-export const isTallyHistoryOpen = (history: TallyHistory | undefined): boolean =>
-  fromNullable(history?.track ?? [])?.closedAt === 0n;
+// A closed track never changes.
+export const isTallyHistoryClosed = (history: TallyHistory | undefined): boolean => {
+  const closedAt = fromNullable(history?.track ?? [])?.closedAt;
+  return nonNullish(closedAt) && closedAt !== 0n;
+};
+
+/**
+ * True while the track is open, and while a proposal with no track yet still takes votes: the
+ * collector opens a track at its first poll after the proposal appears.
+ */
+export const shouldPollTallyHistory = ({
+  history,
+  proposal,
+  nowSeconds,
+}: {
+  history: TallyHistory | undefined;
+  proposal: ProposalInfo;
+  nowSeconds: number;
+}): boolean => {
+  const track = fromNullable(history?.track ?? []);
+  if (nonNullish(track)) return track.closedAt === 0n;
+  return Number(proposal.deadlineTimestampSeconds ?? 0n) > nowSeconds;
+};
+
+// Wait for quiet can extend the deadline after the proposal was read, so take the latest one.
+const getDeadlineSeconds = (proposal: ProposalInfo, track: { deadlines: { deadline: bigint }[] }) =>
+  Math.max(
+    Number(proposal.deadlineTimestampSeconds ?? 0n),
+    ...track.deadlines.map(({ deadline }) => Number(deadline)),
+  );
 
 const toShares = ({ yes, no, total }: Pick<Tally, 'yes' | 'no' | 'total'>) => ({
   yes: Number(yes) / Number(total),
@@ -90,9 +118,7 @@ export const toTallyChart = ({
   if (isNullish(track) || track.total === 0n) return undefined;
 
   const startSeconds = Number(proposal.proposalTimestampSeconds);
-  const endSeconds = Number(
-    proposal.deadlineTimestampSeconds ?? track.deadlines.at(-1)?.deadline ?? 0n,
-  );
+  const endSeconds = getDeadlineSeconds(proposal, track);
   if (endSeconds <= startSeconds) return undefined;
 
   const tallies = track.readings.map(({ t, yes, no }) => ({

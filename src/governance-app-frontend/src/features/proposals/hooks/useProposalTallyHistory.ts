@@ -2,11 +2,13 @@ import { ProposalInfo } from '@icp-sdk/canisters/nns';
 import { useQuery } from '@tanstack/react-query';
 
 import { useDashboardCollectorCanister } from '@hooks/dashboardCollector';
+import { nowInSeconds } from '@utils/date';
 import { QUERY_KEYS } from '@utils/query';
 
 import {
   hasTallyHistory,
-  isTallyHistoryOpen,
+  isTallyHistoryClosed,
+  shouldPollTallyHistory,
   TALLY_POLL_INTERVAL_MS,
   TallyHistory,
 } from '../tallyHistory';
@@ -20,12 +22,11 @@ export const useProposalTallyHistory = (proposal: ProposalInfo) => {
     // One page holds a whole track: the collector caps a track at the page size.
     queryFn: () => canister!.service.getTallyHistory(proposal.id!, 0n),
     enabled: ready && hasTallyHistory(proposal),
-    // A closed track never changes.
     staleTime: ({ state }) =>
-      state.data === undefined || isTallyHistoryOpen(state.data)
-        ? TALLY_POLL_INTERVAL_MS
-        : Infinity,
+      isTallyHistoryClosed(state.data) ? Infinity : TALLY_POLL_INTERVAL_MS,
     refetchInterval: ({ state }) =>
-      isTallyHistoryOpen(state.data) ? TALLY_POLL_INTERVAL_MS : false,
+      shouldPollTallyHistory({ history: state.data, proposal, nowSeconds: nowInSeconds() })
+        ? TALLY_POLL_INTERVAL_MS
+        : false,
   });
 };

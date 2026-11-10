@@ -4,7 +4,8 @@ import { describe, expect, it } from 'vitest';
 import {
   getDayTicks,
   hasTallyHistory,
-  isTallyHistoryOpen,
+  isTallyHistoryClosed,
+  shouldPollTallyHistory,
   TALLY_RECORDING_SINCE_SECONDS,
   TallyHistory,
   toTallyChart,
@@ -28,10 +29,12 @@ const history = ({
   readings = [],
   closedAt = 0n,
   total = TOTAL,
+  deadlines = [DEADLINE],
 }: {
   readings?: [number, bigint, bigint][];
   closedAt?: bigint;
   total?: bigint;
+  deadlines?: number[];
 } = {}): TallyHistory => ({
   recordingSince: BigInt(TALLY_RECORDING_SINCE_SECONDS),
   outages: [],
@@ -42,7 +45,7 @@ const history = ({
       closedAt,
       finalRead: false,
       refused: 0n,
-      deadlines: [{ at: BigInt(CREATED), deadline: BigInt(DEADLINE) }],
+      deadlines: deadlines.map((deadline) => ({ at: BigInt(CREATED), deadline: BigInt(deadline) })),
       readings: readings.map(([t, yes, no]) => ({ t: BigInt(t), yes, no })),
       next: [],
     },
@@ -76,15 +79,52 @@ describe('hasTallyHistory', () => {
   });
 });
 
-describe('isTallyHistoryOpen', () => {
-  it('is true while the track is open', () => {
-    expect(isTallyHistoryOpen(history())).toBe(true);
+describe('isTallyHistoryClosed', () => {
+  it('is true once the track closed', () => {
+    expect(isTallyHistoryClosed(history({ closedAt: 5n }))).toBe(true);
   });
 
-  it('is false once the track closed, or with no track', () => {
-    expect(isTallyHistoryOpen(history({ closedAt: 5n }))).toBe(false);
-    expect(isTallyHistoryOpen({ ...history(), track: [] })).toBe(false);
-    expect(isTallyHistoryOpen(undefined)).toBe(false);
+  it('is false while the track is open, with no track, or before the read', () => {
+    expect(isTallyHistoryClosed(history())).toBe(false);
+    expect(isTallyHistoryClosed({ ...history(), track: [] })).toBe(false);
+    expect(isTallyHistoryClosed(undefined)).toBe(false);
+  });
+});
+
+describe('shouldPollTallyHistory', () => {
+  const beforeDeadline = DEADLINE - 60;
+  const afterDeadline = DEADLINE + 60;
+
+  it('polls an open track and stops once it closed', () => {
+    expect(
+      shouldPollTallyHistory({
+        history: history(),
+        proposal: proposal(),
+        nowSeconds: afterDeadline,
+      }),
+    ).toBe(true);
+    expect(
+      shouldPollTallyHistory({
+        history: history({ closedAt: 5n }),
+        proposal: proposal(),
+        nowSeconds: beforeDeadline,
+      }),
+    ).toBe(false);
+  });
+
+  it('polls a missing track until the deadline, since the collector can still open it', () => {
+    const noTrack = { ...history(), track: [] } as TallyHistory;
+
+    expect(
+      shouldPollTallyHistory({
+        history: noTrack,
+        proposal: proposal(),
+        nowSeconds: beforeDeadline,
+      }),
+    ).toBe(true);
+    expect(
+      shouldPollTallyHistory({ history: noTrack, proposal: proposal(), nowSeconds: afterDeadline }),
+    ).toBe(false);
   });
 });
 
@@ -195,10 +235,22 @@ describe('toTallyChart', () => {
     expect(toTallyChart({ history: history(), ...args })).toBeUndefined();
   });
 
+  it('ends on a later deadline that the collector recorded after the proposal was read', () => {
+    const extended = DEADLINE + 86_400;
+    const chart = toTallyChart({
+      history: history({ readings: [[CREATED + 60, 500n, 0n]], deadlines: [DEADLINE, extended] }),
+      proposal: proposal(),
+      nowSeconds: extended + 60,
+    });
+
+    expect(chart?.endSeconds).toBe(extended);
+    expect(chart?.points.at(-1)?.timestampSeconds).toBe(extended);
+  });
+
   it('returns undefined when the deadline is not after the creation', () => {
     expect(
       toTallyChart({
-        history: history({ readings: [[CREATED, 1n, 0n]] }),
+        history: history({ readings: [[CREATED, 1n, 0n]], deadlines: [] }),
         proposal: proposal({ deadlineTimestampSeconds: BigInt(CREATED) }),
         nowSeconds: CREATED,
       }),
