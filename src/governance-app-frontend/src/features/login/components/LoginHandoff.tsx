@@ -10,6 +10,7 @@ import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { isAccountsAreaEnabled } from '@utils/advancedFeatures';
 import { isSafeInternalRedirect } from '@utils/router';
+import { setLoginHandoffActive } from '@common/auth/loginHandoff';
 
 const DASHBOARD_PATH = '/dashboard';
 
@@ -36,13 +37,16 @@ export const LoginHandoff = () => {
   if (isActive && (isLoginFailed || isRouteReady)) setIsActive(false);
 
   // The page under the frame keeps its controls, so the keyboard must not reach them.
+  // Dialogs and shortcuts of that page wait for the frame too.
   useEffect(() => {
-    const root = document.getElementById('root');
-    if (!isActive || !root) return;
+    if (!isActive) return;
 
-    root.inert = true;
+    const root = document.getElementById('root');
+    if (root) root.inert = true;
+    setLoginHandoffActive(true);
     return () => {
-      root.inert = false;
+      if (root) root.inert = false;
+      setLoginHandoffActive(false);
     };
   }, [isActive]);
 

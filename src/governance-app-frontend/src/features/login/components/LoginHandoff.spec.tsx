@@ -2,6 +2,8 @@ import { render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { isLoginHandoffActive } from '@common/auth/loginHandoff';
+
 import { LoginHandoff } from './LoginHandoff';
 
 const auth = vi.hoisted(() => ({
@@ -137,11 +139,13 @@ describe('LoginHandoff', () => {
     auth.isFinishingLogin = true;
     const { rerender } = render(<LoginHandoff />);
     expect(appRoot().inert).toBe(true);
+    expect(isLoginHandoffActive()).toBe(true);
 
     auth.isFinishingLogin = false;
     rerender(<LoginHandoff />);
 
     expect(appRoot().inert).toBe(false);
+    expect(isLoginHandoffActive()).toBe(false);
   });
 
   it('gives the login page back when the login fails.', () => {
