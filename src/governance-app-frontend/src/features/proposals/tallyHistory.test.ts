@@ -140,7 +140,7 @@ describe('toTallyChart', () => {
         ],
       }),
       proposal: proposal(),
-      nowSeconds: afterDeadline,
+      readAtSeconds: afterDeadline,
     });
 
     expect(chart).toEqual({
@@ -158,7 +158,7 @@ describe('toTallyChart', () => {
     const chart = toTallyChart({
       history: history({ readings: [[CREATED + 60, 500n, 0n]] }),
       proposal: proposal(),
-      nowSeconds: CREATED + 7_200,
+      readAtSeconds: CREATED + 7_200,
     });
 
     expect(chart?.points.map(({ timestampSeconds }) => timestampSeconds)).toEqual([
@@ -178,7 +178,7 @@ describe('toTallyChart', () => {
           total: TOTAL,
         },
       }),
-      nowSeconds: CREATED + 600,
+      readAtSeconds: CREATED + 600,
     });
 
     expect(chart?.points).toEqual([
@@ -187,16 +187,31 @@ describe('toTallyChart', () => {
     ]);
   });
 
-  it('ignores a latest tally that is not newer than the last reading', () => {
+  it('ignores a latest tally with no more votes than the last reading, whatever its stamp', () => {
     const chart = toTallyChart({
       history: history({ readings: [[CREATED + 60, 500n, 0n]] }),
       proposal: proposal({
-        latestTally: { timestampSeconds: BigInt(CREATED + 60), yes: 1n, no: 0n, total: TOTAL },
+        latestTally: { timestampSeconds: BigInt(CREATED + 900), yes: 500n, no: 0n, total: TOTAL },
       }),
-      nowSeconds: CREATED + 60,
+      readAtSeconds: CREATED + 60,
     });
 
     expect(chart?.points).toEqual([{ timestampSeconds: CREATED + 60, yes: 0.5, no: 0 }]);
+  });
+
+  it('keeps a latest tally with more votes even when its stamp is older', () => {
+    const chart = toTallyChart({
+      history: history({ readings: [[CREATED + 600, 500n, 0n]] }),
+      proposal: proposal({
+        latestTally: { timestampSeconds: BigInt(CREATED + 300), yes: 600n, no: 0n, total: TOTAL },
+      }),
+      readAtSeconds: CREATED + 600,
+    });
+
+    expect(chart?.points).toEqual([
+      { timestampSeconds: CREATED + 600, yes: 0.5, no: 0 },
+      { timestampSeconds: CREATED + 600, yes: 0.6, no: 0 },
+    ]);
   });
 
   it('draws a reading with an older stamp at the time of the reading before it', () => {
@@ -208,7 +223,7 @@ describe('toTallyChart', () => {
         ],
       }),
       proposal: proposal(),
-      nowSeconds: CREATED + 600,
+      readAtSeconds: CREATED + 600,
     });
 
     expect(chart?.points.map(({ timestampSeconds }) => timestampSeconds)).toEqual([
@@ -221,14 +236,14 @@ describe('toTallyChart', () => {
     const chart = toTallyChart({
       history: history({ readings: [[afterDeadline, 900n, 10n]], closedAt: 1n }),
       proposal: proposal(),
-      nowSeconds: afterDeadline,
+      readAtSeconds: afterDeadline,
     });
 
     expect(chart?.points).toEqual([{ timestampSeconds: DEADLINE, yes: 0.9, no: 0.01 }]);
   });
 
   it('returns undefined without a track, a total, or a reading', () => {
-    const args = { proposal: proposal(), nowSeconds: CREATED };
+    const args = { proposal: proposal(), readAtSeconds: CREATED };
 
     expect(toTallyChart({ history: { ...history(), track: [] }, ...args })).toBeUndefined();
     expect(toTallyChart({ history: history({ total: 0n }), ...args })).toBeUndefined();
@@ -240,7 +255,7 @@ describe('toTallyChart', () => {
     const chart = toTallyChart({
       history: history({ readings: [[CREATED + 60, 500n, 0n]], deadlines: [DEADLINE, extended] }),
       proposal: proposal(),
-      nowSeconds: extended + 60,
+      readAtSeconds: extended + 60,
     });
 
     expect(chart?.endSeconds).toBe(extended);
@@ -252,7 +267,7 @@ describe('toTallyChart', () => {
       toTallyChart({
         history: history({ readings: [[CREATED, 1n, 0n]], deadlines: [] }),
         proposal: proposal({ deadlineTimestampSeconds: BigInt(CREATED) }),
-        nowSeconds: CREATED,
+        readAtSeconds: CREATED,
       }),
     ).toBeUndefined();
   });

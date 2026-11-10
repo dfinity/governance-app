@@ -102,17 +102,18 @@ const toShares = ({ yes, no, total }: Pick<Tally, 'yes' | 'no' | 'total'>) => ({
 });
 
 /**
- * The recorded readings, then the proposal's latest tally, which can be newer: the collector skips
- * changes under 0.1 point. The last value holds until now, or until the deadline once it passed.
+ * The recorded readings, then the proposal's latest tally when it holds more votes: the collector
+ * skips changes under 0.1 point. The last value holds until the history was read, and never past
+ * the deadline.
  */
 export const toTallyChart = ({
   history,
   proposal,
-  nowSeconds,
+  readAtSeconds,
 }: {
   history: TallyHistory;
   proposal: ProposalInfo;
-  nowSeconds: number;
+  readAtSeconds: number;
 }): TallyChart | undefined => {
   const track = fromNullable(history.track);
   if (isNullish(track) || track.total === 0n) return undefined;
@@ -127,14 +128,20 @@ export const toTallyChart = ({
     no,
     total: track.total,
   }));
+  // Stamps can move backwards, but Yes and No only rise, so the vote shares tell which is newer.
   const latestTally = proposal.latestTally;
-  const lastReadingSeconds = tallies.at(-1)?.timestampSeconds ?? 0n;
-  if (
-    nonNullish(latestTally) &&
-    latestTally.total > 0n &&
-    latestTally.timestampSeconds > lastReadingSeconds
-  ) {
-    tallies.push(latestTally);
+  const lastReading = tallies.at(-1);
+  if (nonNullish(latestTally) && latestTally.total > 0n) {
+    const latest = toShares(latestTally);
+    const last = nonNullish(lastReading) ? toShares(lastReading) : undefined;
+    if (
+      isNullish(last) ||
+      (latest.yes >= last.yes &&
+        latest.no >= last.no &&
+        (latest.yes > last.yes || latest.no > last.no))
+    ) {
+      tallies.push(latestTally);
+    }
   }
   if (tallies.length === 0) return undefined;
 
@@ -151,7 +158,7 @@ export const toTallyChart = ({
   });
 
   const last = points[points.length - 1];
-  const holdUntilSeconds = Math.min(nowSeconds, endSeconds);
+  const holdUntilSeconds = Math.min(readAtSeconds, endSeconds);
   if (holdUntilSeconds > last.timestampSeconds) {
     points.push({ ...last, timestampSeconds: holdUntilSeconds });
   }

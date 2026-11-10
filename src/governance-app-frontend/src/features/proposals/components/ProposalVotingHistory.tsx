@@ -12,7 +12,7 @@ import {
 } from '@components/Chart';
 import { Skeleton } from '@components/Skeleton';
 import { MILLISECONDS_IN_SECOND } from '@constants/extra';
-import { nowInSeconds, secondsToDate, secondsToTime } from '@utils/date';
+import { secondsToDate, secondsToTime } from '@utils/date';
 import { formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
@@ -55,7 +55,12 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
   if (!hasTallyHistory(proposal) || historyQuery.isError) return null;
 
   const chart = historyQuery.data
-    ? toTallyChart({ history: historyQuery.data, proposal, nowSeconds: nowInSeconds() })
+    ? toTallyChart({
+        history: historyQuery.data,
+        proposal,
+        // A poll with unchanged data still updates this, so the held line keeps up.
+        readAtSeconds: Math.floor(historyQuery.dataUpdatedAt / MILLISECONDS_IN_SECOND),
+      })
     : undefined;
   if (!historyQuery.isPending && chart === undefined) return null;
 
