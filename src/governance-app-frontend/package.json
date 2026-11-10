@@ -12,6 +12,7 @@
     "format:fix": "prettier --write 'src/**/*.{json,js,jsx,ts,tsx,css,scss}' 'eslint.config.js'",
     "lint": "eslint . --ext ts,tsx,css --report-unused-disable-directives --max-warnings 0",
     "check:i18n": "node scripts/check-unused-translations.ts",
+    "check:startup-budget": "node scripts/check-startup-budget.ts",
     "lint:fix": "eslint . --ext ts,tsx,css --fix",
     "test": "vitest run",
     "test:watch": "vitest",
