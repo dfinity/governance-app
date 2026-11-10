@@ -156,6 +156,39 @@ describe('internetIdentity', () => {
     );
   });
 
+  it('tells of a stored session before the session read ends.', async () => {
+    const identity = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const read = deferred<Identity>();
+    client.getIdentity.mockReturnValueOnce(read.promise);
+    const auth = await loadModule();
+
+    expect(auth.hasStoredSession()).toBe(true);
+    expect(auth.getAuthState().status).toBe('initializing');
+
+    read.resolve(identity);
+    await expect(auth.ensureInitialized()).resolves.toBe(identity);
+    expect(AuthClient).toHaveBeenCalledTimes(1);
+  });
+
+  it('tells of no stored session when the record names none.', async () => {
+    mockAuthClient();
+    const auth = await loadModule();
+
+    expect(auth.hasStoredSession()).toBe(false);
+    await expect(auth.ensureInitialized()).resolves.toBeUndefined();
+  });
+
+  it('tells of no stored session when the auth client cannot be created.', async () => {
+    AuthClient.mockImplementationOnce(function () {
+      throw new Error('IndexedDB unavailable');
+    });
+    const auth = await loadModule();
+
+    expect(auth.hasStoredSession()).toBe(false);
+    await expect(auth.ensureInitialized()).rejects.toThrow('IndexedDB unavailable');
+  });
+
   it('creates the auth client for the Internet Identity canister.', async () => {
     mockAuthClient();
     const auth = await loadModule();
