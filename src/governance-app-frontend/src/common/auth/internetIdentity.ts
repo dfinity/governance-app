@@ -71,29 +71,33 @@ let endedSessionExpiresAtMs: number | undefined;
 // A session that the auth client could not hand out, so a new client read it one time.
 let unreadableExpiresAtMs: number | undefined;
 
-// Tells the current auth client apart from one that a restarted login replaced.
-let authClientGeneration = 0;
+const II_ORIGIN = new URL(II_AUTHORIZE_URL).origin;
+// The Internet Identity windows that this page heard from, and the ones before the current login.
+const iiWindows = new Set<MessageEventSource>();
+let earlierIiWindows = new Set<MessageEventSource>();
 
-// During a login, the agent of the auth client makes its first call after Internet Identity answers.
-const fetchForAuthClient =
-  (generation: number): typeof fetch =>
-  (...args) => {
-    const isCurrent = generation === authClientGeneration;
-    if (isCurrent && state.status === 'logging-in' && !state.iiAnswered) {
-      setState({ ...state, iiAnswered: true });
-    }
-    return fetch(...args);
-  };
+// The session answer of Internet Identity, not one of its status messages.
+const isSessionAnswer = (data: unknown): boolean => {
+  if (typeof data !== 'object' || data === null || !('result' in data)) return false;
+  const { result } = data;
+  return typeof result === 'object' && result !== null && 'signerDelegation' in result;
+};
+
+// Internet Identity posts its answer to this page, then closes its window.
+const onIiMessage = ({ origin, source, data }: MessageEvent) => {
+  if (origin !== II_ORIGIN || source === null) return;
+  iiWindows.add(source);
+
+  // A window of an earlier login can still answer after a restart.
+  if (earlierIiWindows.has(source) || !isSessionAnswer(data)) return;
+  if (state.status === 'logging-in' && !state.iiAnswered) setState({ ...state, iiAnswered: true });
+};
 
 const createAuthClient = (): AuthClient =>
   new AuthClient({
     identityProvider: { authorizeUrl: II_AUTHORIZE_URL, canisterId: II_BACKEND_CANISTER_ID },
     // For the calls that mint the delegations. A local replica needs its root key.
-    agentOptions: {
-      host: NETWORK,
-      shouldFetchRootKey: IS_LOCAL,
-      fetch: fetchForAuthClient(++authClientGeneration),
-    },
+    agentOptions: { host: NETWORK, shouldFetchRootKey: IS_LOCAL },
     ...(nonNullish(II_DERIVATION_ORIGIN) && { derivationOrigin: II_DERIVATION_ORIGIN }),
   });
 
@@ -358,6 +362,7 @@ const restoreSession = async () => {
   }
 
   removeLegacySession();
+  window.addEventListener('message', onIiMessage);
 
   // Other tabs share the session, so their logins and logouts arrive here. A change during the
   // first read starts a newer one, and the wait ends with the latest.
@@ -442,6 +447,7 @@ export const login = () => {
   if (state.status === 'logging-in') {
     // The read after the first sign-in can still wait.
     supersedeReads();
+    earlierIiWindows = new Set(iiWindows);
     setState({ status: 'logging-in' });
     signIn(replaceAuthClient());
     return;
@@ -450,6 +456,7 @@ export const login = () => {
   if (state.status !== 'idle') return;
 
   supersedeReads();
+  earlierIiWindows = new Set(iiWindows);
   setState({ status: 'logging-in' });
   signIn(client);
 };
