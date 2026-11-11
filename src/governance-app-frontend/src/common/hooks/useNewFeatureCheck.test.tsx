@@ -9,6 +9,7 @@ import { AdvancedFeature } from '@typings/advancedFeatures';
 import { useNewFeatureCheck } from './useNewFeatureCheck';
 
 const mocks = vi.hoisted(() => ({
+  missingFeatureKeys: [] as string[],
   setFeature: vi.fn(),
   detect: vi.fn(),
   infoNotification: vi.fn(),
@@ -18,7 +19,7 @@ vi.mock('@common/ledger/webhid', () => ({ isWebHidSupported: () => true }));
 vi.mock('@hooks/useAdvancedFeatures', () => ({
   useAdvancedFeatures: () => ({
     setFeature: mocks.setFeature,
-    missingFeatureKeys: [AdvancedFeature.TransactionMemo, AdvancedFeature.LedgerDevice],
+    missingFeatureKeys: mocks.missingFeatureKeys,
   }),
 }));
 vi.mock('@hooks/useDetectAdvancedFeatures', () => ({ useDetectAdvancedFeatures: mocks.detect }));
@@ -27,6 +28,7 @@ vi.mock('@utils/notification', () => ({ infoNotification: mocks.infoNotification
 describe('useNewFeatureCheck', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.missingFeatureKeys = [AdvancedFeature.TransactionMemo, AdvancedFeature.LedgerDevice];
     const items = new Map([[WELCOME_MODAL_STORAGE_KEY, 'true']]);
     vi.stubGlobal('localStorage', {
       getItem: (key: string) => items.get(key) ?? null,
@@ -50,5 +52,23 @@ describe('useNewFeatureCheck', () => {
     expect(mocks.setFeature).toHaveBeenCalledTimes(1);
     expect(mocks.setFeature).toHaveBeenCalledWith(AdvancedFeature.TransactionMemo, false);
     expect(mocks.infoNotification).not.toHaveBeenCalled();
+  });
+
+  it('keeps the check when another feature is written during the detection', () => {
+    mocks.detect.mockReturnValue({ isDetecting: true, detectedFeatures: {}, error: undefined });
+    const { rerender } = renderHook(() => useNewFeatureCheck());
+
+    // The modal turns on a feature, which stores all of them.
+    mocks.missingFeatureKeys = [];
+    mocks.detect.mockReturnValue({
+      isDetecting: false,
+      detectedFeatures: { [AdvancedFeature.TransactionMemo]: true },
+      error: undefined,
+    });
+    rerender();
+
+    expect(mocks.detect).toHaveBeenLastCalledWith([AdvancedFeature.TransactionMemo]);
+    expect(mocks.infoNotification).toHaveBeenCalledTimes(1);
+    expect(mocks.setFeature).not.toHaveBeenCalled();
   });
 });
