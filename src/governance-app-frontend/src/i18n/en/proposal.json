@@ -10,6 +10,10 @@
   "yesVotes": "Yes votes",
   "noVotes": "No votes",
   "voteProgress": "Vote progress",
+  "votingHistory": {
+    "title": "Voting history",
+    "chartLabel": "Yes and No votes as a share of the total voting power, from the creation of the proposal to its deadline"
+  },
   "actions": {
     "adopted": "Adopted",
     "rejected": "Rejected"
