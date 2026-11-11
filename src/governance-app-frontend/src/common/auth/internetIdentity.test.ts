@@ -126,6 +126,24 @@ const mockIndexedDB = ({ exists = true }: { exists?: boolean } = {}) => {
 
 const loadModule = () => import('./internetIdentity');
 
+const SESSION_ANSWER = {
+  jsonrpc: '2.0',
+  id: '1',
+  result: { publicKey: 'AAAA', signerDelegation: [] },
+};
+const STATUS_ANSWER = { jsonrpc: '2.0', id: '0', result: 'ready' };
+
+/** A message that an Internet Identity window posts to the app. */
+const postFromIi = ({
+  source,
+  data,
+  origin = new URL(II_AUTHORIZE_URL).origin,
+}: {
+  source: MessagePort;
+  data: unknown;
+  origin?: string;
+}) => window.dispatchEvent(new MessageEvent('message', { origin, source, data }));
+
 describe('internetIdentity', () => {
   beforeEach(() => {
     vi.resetModules();
@@ -201,6 +219,83 @@ describe('internetIdentity', () => {
     });
     expect(II_AUTHORIZE_URL).toMatch(/\/authorize\?/);
     expect(options.agentOptions).toEqual({ host: NETWORK, shouldFetchRootKey: false });
+  });
+
+  it('tells that Internet Identity answered when its session answer arrives.', async () => {
+    const client = mockAuthClient();
+    client.signIn.mockReturnValueOnce(deferred<Identity>().promise);
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+    const iiWindow = new MessageChannel().port1;
+
+    postFromIi({ source: new MessageChannel().port1, data: SESSION_ANSWER });
+    expect(auth.getAuthState().iiAnswered).toBeUndefined();
+
+    auth.login();
+    postFromIi({ source: iiWindow, data: STATUS_ANSWER });
+    postFromIi({ source: iiWindow, data: SESSION_ANSWER, origin: 'https://example.com' });
+    expect(auth.getAuthState()).toMatchObject({ status: 'logging-in' });
+    expect(auth.getAuthState().iiAnswered).toBeUndefined();
+
+    postFromIi({ source: iiWindow, data: SESSION_ANSWER });
+    expect(auth.getAuthState()).toMatchObject({ status: 'logging-in', iiAnswered: true });
+  });
+
+  it('ignores the auth client calls of a session that ended before the login.', async () => {
+    const client = mockAuthClient();
+    client.signIn.mockReturnValueOnce(deferred<Identity>().promise);
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    auth.login();
+
+    // The signal comes from Internet Identity only, so a mint of an older session sets nothing.
+    const options: AuthClientCreateOptions = AuthClient.mock.calls[0][0];
+    expect(options.agentOptions?.fetch).toBeUndefined();
+    expect(auth.getAuthState().iiAnswered).toBeUndefined();
+  });
+
+  it('forgets the answer of Internet Identity when the login starts again.', async () => {
+    const client = mockAuthClient();
+    client.signIn.mockReturnValueOnce(deferred<Identity>().promise);
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+    const firstWindow = new MessageChannel().port1;
+
+    auth.login();
+    postFromIi({ source: firstWindow, data: STATUS_ANSWER });
+    postFromIi({ source: firstWindow, data: SESSION_ANSWER });
+    expect(auth.getAuthState().iiAnswered).toBe(true);
+
+    const nextClient = mockAuthClient();
+    nextClient.signIn.mockReturnValueOnce(deferred<Identity>().promise);
+    auth.login();
+
+    expect(auth.getAuthState()).toMatchObject({ status: 'logging-in' });
+    expect(auth.getAuthState().iiAnswered).toBeUndefined();
+
+    // A late answer of the first window says nothing about the new one.
+    postFromIi({ source: firstWindow, data: SESSION_ANSWER });
+    expect(auth.getAuthState().iiAnswered).toBeUndefined();
+
+    postFromIi({ source: new MessageChannel().port1, data: SESSION_ANSWER });
+    expect(auth.getAuthState().iiAnswered).toBe(true);
+  });
+
+  it('forgets the answer of Internet Identity when the login fails.', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const client = mockAuthClient();
+    const signIn = deferred<Identity>();
+    client.signIn.mockReturnValueOnce(signIn.promise);
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+
+    auth.login();
+    postFromIi({ source: new MessageChannel().port1, data: SESSION_ANSWER });
+    signIn.reject(new Error('Failed to mint'));
+
+    await vi.waitFor(() => expect(auth.getAuthState().status).toBe('idle'));
+    expect(auth.getAuthState().iiAnswered).toBeUndefined();
   });
 
   it('resolves without an identity when there is no stored session.', async () => {
