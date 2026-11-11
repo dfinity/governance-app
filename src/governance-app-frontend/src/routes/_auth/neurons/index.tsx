@@ -112,7 +112,7 @@ function NeuronsComponent() {
               <Button
                 onClick={() => handleOpenStakingWizard('neurons_header')}
                 data-testid="staking-wizard-trigger-btn"
-                className="w-full sm:w-auto"
+                className="flex-1 sm:flex-initial"
                 size="xl"
               >
                 <Plus />

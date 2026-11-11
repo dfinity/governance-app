@@ -52,7 +52,10 @@ export const LedgerDevicesMenu = ({ variant }: Props) => {
               data-testid="ledger-devices-menu-trigger"
             >
               <Usb aria-hidden="true" />
-              {t(($) => $.neuron.ledgerNeurons.menu)}
+              {/* Icon only on phones, so the Create neuron button keeps its width. */}
+              <span className="sr-only sm:not-sr-only">
+                {t(($) => $.neuron.ledgerNeurons.menu)}
+              </span>
               <ChevronDown aria-hidden="true" />
             </Button>
           ) : (
