@@ -11,6 +11,7 @@ import { WELCOME_MODAL_STORAGE_KEY } from '@constants/extra';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useDetectAdvancedFeatures } from '@hooks/useDetectAdvancedFeatures';
 import { AdvancedFeature } from '@typings/advancedFeatures';
+import { markAllAnnouncementsSeen } from '@utils/featureAnnouncements';
 import { successNotification } from '@utils/notification';
 import { getStorageItem, setStorageItem } from '@utils/storage';
 import { useIsLoginHandoffActive } from '@common/auth/loginHandoff';
@@ -31,8 +32,8 @@ export function WelcomeModal() {
   // Opens once the login hand-off frame leaves, so it does not take focus behind the frame.
   const isLoginHandoffActive = useIsLoginHandoffActive();
   const isShown = isOpen && !isLoginHandoffActive;
-  const { isDetecting, detectedFeatures, error } = useDetectAdvancedFeatures();
-  const { setFeature } = useAdvancedFeatures();
+  const { setFeature, missingFeatureKeys } = useAdvancedFeatures();
+  const { isDetecting, detectedFeatures, error } = useDetectAdvancedFeatures(missingFeatureKeys);
 
   const hasError = nonNullish(error);
 
@@ -52,6 +53,7 @@ export function WelcomeModal() {
     }
     setIsOpen(false);
     setStorageItem(WELCOME_MODAL_STORAGE_KEY, 'true');
+    markAllAnnouncementsSeen();
     successNotification({
       description: t(($) => $.welcomeModal.toast),
     });
