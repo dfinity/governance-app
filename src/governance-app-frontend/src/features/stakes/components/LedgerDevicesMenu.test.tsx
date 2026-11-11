@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { type AccountMetadata, AccountType } from '@features/accounts/types';
 
-import { LedgerNeuronsSection } from './LedgerNeuronsSection';
+import { LedgerDevicesMenu } from './LedgerDevicesMenu';
 
 const mocks = vi.hoisted(() => ({
   hardwareWallets: vi.fn(),
@@ -29,7 +29,7 @@ const device = (name: string, principal: string): AccountMetadata => ({
   type: AccountType.HardwareWallet,
 });
 
-describe('LedgerNeuronsSection', () => {
+describe('LedgerDevicesMenu', () => {
   beforeEach(() => {
     mocks.isWebHidSupported.mockReturnValue(true);
     mocks.hardwareWallets.mockReturnValue({
@@ -37,18 +37,21 @@ describe('LedgerNeuronsSection', () => {
     });
   });
 
-  it('shows one row for each Ledger device', () => {
-    render(<LedgerNeuronsSection />);
+  it('lists one item for each Ledger device', async () => {
+    render(<LedgerDevicesMenu variant="button" />);
 
-    const rows = screen.getAllByTestId('ledger-show-neurons');
-    expect(rows).toHaveLength(2);
-    expect(rows[0].textContent).toContain('Nano X');
-    expect(rows[1].textContent).toContain('Cold storage');
+    await userEvent.click(screen.getByTestId('ledger-devices-menu-trigger'));
+
+    const items = screen.getAllByTestId('ledger-show-neurons');
+    expect(items).toHaveLength(2);
+    expect(items[0].textContent).toContain('Nano X');
+    expect(items[1].textContent).toContain('Cold storage');
   });
 
-  it('opens the neurons dialog for the device of the row', async () => {
-    render(<LedgerNeuronsSection />);
+  it('opens the neurons dialog for the selected device', async () => {
+    render(<LedgerDevicesMenu variant="link" />);
 
+    await userEvent.click(screen.getByTestId('ledger-devices-menu-trigger'));
     await userEvent.click(screen.getAllByTestId('ledger-show-neurons')[1]);
 
     expect(screen.getByTestId('ledger-neurons-dialog').textContent).toContain('Cold storage');
@@ -57,16 +60,16 @@ describe('LedgerNeuronsSection', () => {
   it('shows nothing without a Ledger device', () => {
     mocks.hardwareWallets.mockReturnValue({ data: [] });
 
-    render(<LedgerNeuronsSection />);
+    render(<LedgerDevicesMenu variant="button" />);
 
-    expect(screen.queryByTestId('ledger-neurons-section')).toBeNull();
+    expect(screen.queryByTestId('ledger-devices-menu-trigger')).toBeNull();
   });
 
   it('shows nothing in a browser without WebHID', () => {
     mocks.isWebHidSupported.mockReturnValue(false);
 
-    render(<LedgerNeuronsSection />);
+    render(<LedgerDevicesMenu variant="button" />);
 
-    expect(screen.queryByTestId('ledger-neurons-section')).toBeNull();
+    expect(screen.queryByTestId('ledger-devices-menu-trigger')).toBeNull();
   });
 });

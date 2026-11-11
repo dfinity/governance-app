@@ -104,8 +104,8 @@
   "ledgerDeviceBand": "Ledger · {{name}}",
   "controller": "Controller",
   "ledgerNeurons": {
-    "sectionTitle": "Neurons on Ledger devices",
-    "sectionDescription": "See the neurons that your Ledger devices control.",
+    "menu": "Ledger devices",
+    "emptyLink": "Show neurons on a Ledger device",
     "showNeurons": "Show neurons",
     "title": "Neurons on device",
     "description": "The neurons that {{name}} controls. Add this app as a hotkey to see a neuron in your neurons list.",

@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
 import { EmptyNeuronsState } from '@features/stakes/components/EmptyNeuronsState';
-import { LedgerNeuronsSection } from '@features/stakes/components/LedgerNeuronsSection';
+import { LedgerDevicesMenu } from '@features/stakes/components/LedgerDevicesMenu';
 import { NeuronsList } from '@features/stakes/components/NeuronsList';
 import { StakingWizardModal } from '@features/stakes/components/stakingWizard/StakingWizardModal';
 import {
@@ -107,15 +107,18 @@ function NeuronsComponent() {
           title={t(($) => $.neuron.title)}
           description={t(($) => $.neuron.description)}
           actions={
-            <Button
-              onClick={() => handleOpenStakingWizard('neurons_header')}
-              data-testid="staking-wizard-trigger-btn"
-              className="w-full sm:w-auto"
-              size="xl"
-            >
-              <Plus />
-              {t(($) => $.stakeWizardModal.title)}
-            </Button>
+            <>
+              <LedgerDevicesMenu variant="button" />
+              <Button
+                onClick={() => handleOpenStakingWizard('neurons_header')}
+                data-testid="staking-wizard-trigger-btn"
+                className="w-full sm:w-auto"
+                size="xl"
+              >
+                <Plus />
+                {t(($) => $.stakeWizardModal.title)}
+              </Button>
+            </>
           }
         />
       )}
@@ -145,8 +148,6 @@ function NeuronsComponent() {
           </>
         )}
       </QueryStates>
-
-      {neuronsQuery.isSuccess && <LedgerNeuronsSection />}
 
       <StakingWizardModal isOpen={!!openWizard} setIsOpen={handleStakingWizardOpenChange} />
     </div>
