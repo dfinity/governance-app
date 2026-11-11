@@ -95,7 +95,7 @@ export function MaturitySymbol({ className = '' }: Props) {
             )}
             <p className="mt-2">
               <a
-                href="https://wiki.internetcomputer.org/wiki/Maturity_modulation"
+                href="https://internetcomputer.org/whitepapers/mission70.pdf#page=16"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium text-primary underline hover:text-primary/80"

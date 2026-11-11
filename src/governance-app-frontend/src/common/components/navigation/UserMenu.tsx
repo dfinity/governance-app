@@ -1,7 +1,8 @@
-import { nonNullish } from '@dfinity/utils';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { Skeleton } from '@components/Skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useLogout } from '@hooks/useLogout';
@@ -30,12 +31,19 @@ export const UserMenu = () => {
 
   const principal = identity?.getPrincipal().toText();
 
+  // The frame that a login shows before the identity arrives.
+  if (isNullish(principal)) {
+    return (
+      <div className="px-3 py-2.5">
+        <Skeleton className="h-5 w-32" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center gap-2 px-3 py-2.5">
       <div className="min-w-0 flex-1">
-        {nonNullish(principal) && (
-          <p className="truncate text-sm font-medium">{shortenId(principal, 7)}</p>
-        )}
+        <p className="truncate text-sm font-medium">{shortenId(principal, 7)}</p>
         <SessionTimeLeftLabel />
       </div>
       <Tooltip>

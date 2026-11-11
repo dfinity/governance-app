@@ -107,6 +107,7 @@
     "title": "Forecast period",
     "description": "Choose the period of the maturity forecast. On the Overview page, a tap on the forecast also changes it.",
     "options": {
+      "day": "Day",
       "week": "Week",
       "month": "Month",
       "year": "Year"

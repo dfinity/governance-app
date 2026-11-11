@@ -29,6 +29,8 @@ export const SUCCESS_AUTO_CLOSE_MS = 2_400;
 export const DIALOG_RESET_DELAY_MS = 300;
 // The backend gets a new ICP/USD rate from the XRC at this interval.
 export const EXCHANGE_RATE_REFRESH_MS = 5 * 60 * 1_000;
+// The backend adds one rate to the month history every two hours.
+export const EXCHANGE_RATE_MONTH_HISTORY_REFRESH_MS = 60 * 60 * 1_000;
 // The backend gets new USD to fiat rates from the XRC at this interval.
 export const FIAT_EXCHANGE_RATES_REFRESH_MS = 60 * 60 * 1_000;
 // A response without every fiat rate is fetched again at this interval.

@@ -9,6 +9,7 @@ export {
   type IcpRatePoint,
   parseRateHistoryResponse,
   useIcpRateHistory,
+  useIcpRateMonthHistory,
 } from './useIcpRateHistory';
 export { parseIcpSwapTickers, useIcpSwapPrices } from './useIcpSwapPrices';
 export { TickerPricesSource, useTickerPrices } from './useTickerPrices';

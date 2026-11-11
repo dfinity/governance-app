@@ -1,5 +1,5 @@
 import { useQueriesThenUpdateCalls } from '@hooks/useQueriesThenUpdateCalls';
-import { QUERY_KEYS } from '@utils/query';
+import { icpIndexAccountTransactionsQuery } from '@common/queries/icpIndex';
 
 import { useIcpIndex } from './useIcpIndex';
 
@@ -11,27 +11,17 @@ type Props = {
 
 export const useIcpIndexAccountsTransactions = ({
   accountIds,
-  maxResults = 5n,
+  maxResults,
   enabled = true,
 }: Props) => {
-  const { ready, authenticated, canister } = useIcpIndex();
+  const { ready, authenticated } = useIcpIndex();
 
   const calls = useQueriesThenUpdateCalls({
     items: accountIds,
     getItemKey: (accountId) => accountId,
-    getQueryKey: (accountId) => [QUERY_KEYS.ICP_INDEX.TRANSACTIONS, accountId, maxResults],
-    queryFn: (accountId) =>
-      canister!.getTransactions({
-        maxResults,
-        accountIdentifier: accountId,
-        certified: false,
-      }),
-    updateFn: (accountId) =>
-      canister!.getTransactions({
-        maxResults,
-        accountIdentifier: accountId,
-        certified: true,
-      }),
+    getQueryKey: (accountId) => icpIndexAccountTransactionsQuery(accountId, maxResults).queryKey,
+    queryFn: (accountId) => icpIndexAccountTransactionsQuery(accountId, maxResults).queryFn(),
+    updateFn: (accountId) => icpIndexAccountTransactionsQuery(accountId, maxResults).updateFn(),
     enabled: enabled && ready && authenticated,
   });
 

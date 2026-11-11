@@ -3,8 +3,10 @@ import { ProposalStatus } from '@icp-sdk/canisters/nns';
 import { Identity } from '@icp-sdk/core/agent';
 import { QueryClient } from '@tanstack/react-query';
 
+import type { AdvancedFeature, AdvancedFeaturesSettings } from '@typings/advancedFeatures';
 import { ensureInitialized } from '@common/auth/internetIdentity';
 
+import { addressBookQuery } from './addressBook';
 import {
   governanceMetricsQuery,
   governanceNeuronsQuery,
@@ -14,8 +16,14 @@ import {
   proposalsNextPageParam,
   proposalsRequest,
 } from './governance';
+import { icpIndexAccountTransactionsQuery } from './icpIndex';
 import { icpLedgerAccountBalanceQuery } from './icpLedger';
-import { prefetchCertifiedInfiniteQuery, prefetchCertifiedQuery } from './prefetch';
+import { nnsDappAccountQuery } from './nnsDapp';
+import {
+  fetchNonCertifiedQuery,
+  prefetchCertifiedInfiniteQuery,
+  prefetchCertifiedQuery,
+} from './prefetch';
 
 /**
  * Per-route warm-up, called from each route's `loader`.
@@ -57,6 +65,55 @@ export const prefetchNeuronsRoute = async (queryClient: QueryClient) => {
   if (!identity) return;
 
   prefetchNeuronsAndBalance(queryClient, identity);
+};
+
+type AccountFeatures = Pick<
+  AdvancedFeaturesSettings,
+  AdvancedFeature.Subaccounts | AdvancedFeature.LedgerDevice
+>;
+
+/** The ids of the sub-accounts and Ledger device accounts that the accounts page lists. */
+const fetchLinkedAccountIds = async (
+  queryClient: QueryClient,
+  features: AccountFeatures,
+): Promise<string[]> => {
+  const { response: account } = await fetchNonCertifiedQuery(queryClient, nnsDappAccountQuery());
+
+  return [
+    ...(features.subaccounts ? (account?.sub_accounts ?? []) : []),
+    ...(features.ledgerDevice ? (account?.hardware_wallet_accounts ?? []) : []),
+  ].map(({ account_identifier }) => account_identifier);
+};
+
+/**
+ * Warms what the accounts page shows. The transaction lists are the short ones on the page,
+ * not the paginated list of the transactions dialog, which stays closed on entry.
+ */
+export const prefetchAccountsRoute = async (
+  queryClient: QueryClient,
+  features: AccountFeatures,
+) => {
+  const identity = await sessionIdentity();
+  if (!identity) return;
+
+  prefetchCertifiedQuery(queryClient, nnsDappAccountQuery());
+  prefetchNeuronsAndBalance(queryClient, identity);
+  prefetchCertifiedQuery(
+    queryClient,
+    icpIndexAccountTransactionsQuery(accountIdentifierOf(identity)),
+  );
+  prefetchCertifiedQuery(queryClient, addressBookQuery(identity.getPrincipal().toText()));
+
+  // The linked accounts are known only after the NNS dapp account call, so this part is not
+  // awaited: it must not hold up the navigation. If the call fails, the page retries it.
+  void fetchLinkedAccountIds(queryClient, features)
+    .then((accountIds) =>
+      accountIds.forEach((accountId) => {
+        prefetchCertifiedQuery(queryClient, icpLedgerAccountBalanceQuery(accountId));
+        prefetchCertifiedQuery(queryClient, icpIndexAccountTransactionsQuery(accountId));
+      }),
+    )
+    .catch(() => undefined);
 };
 
 /** Which proposals list the page will render, if any. */

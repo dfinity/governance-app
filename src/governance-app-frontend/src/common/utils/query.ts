@@ -38,6 +38,7 @@ const GOVERNANCE_APP_BACKEND = {
   ADDRESS_BOOK: 'governanceAppBackendAddressBook',
   EXCHANGE_RATE: 'governanceAppBackendExchangeRate',
   EXCHANGE_RATE_HISTORY: 'governanceAppBackendExchangeRateHistory',
+  EXCHANGE_RATE_MONTH_HISTORY: 'governanceAppBackendExchangeRateMonthHistory',
   FIAT_EXCHANGE_RATES: 'governanceAppBackendFiatExchangeRates',
 };
 

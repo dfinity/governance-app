@@ -2,6 +2,9 @@ use super::cache::{
     add_history_rate, get_cached_rates, list_cached_fiat_rates, list_past_day_rates,
     set_one_day_ago_rate, CachedRate,
 };
+use super::month_history::{
+    add_rate, list_missing_slot_starts_seconds, list_past_month_rates, PastMonthRate, SLOT_SECS,
+};
 use super::time::testing::set_time_seconds;
 use super::xrc_client::testing;
 use super::*;
@@ -9,6 +12,8 @@ use ic_xrc_types::{Asset, AssetClass, ExchangeRate, ExchangeRateError, ExchangeR
 
 /// Monday, September 21, 2026 at 14:13:20 UTC.
 const NOW_SECONDS: u64 = 1_790_000_000;
+/// The start of the two-hour slot of `NOW_SECONDS`: Monday, September 21, 2026 at 14:00:00 UTC.
+const NOW_SLOT_START_SECONDS: u64 = 1_789_999_200;
 /// With 8 decimals, the `rate` of `make_exchange_rate` is in e8s.
 const E8S_DECIMALS: u32 = 8;
 /// Metadata of an XRC rate with 8 decimals, so the `rate` is in e8s.
@@ -469,4 +474,210 @@ async fn test_update_icp_to_usd_exchange_rate_does_not_touch_fiat_rates() {
     };
     assert_eq!(get_cached_rates().current, Some(expected_current));
     assert_eq!(list_cached_fiat_rates(), empty_fiat_rates());
+}
+
+#[test]
+fn test_month_history_keeps_first_rate_of_each_slot() {
+    // Step 1: Prepare the world.
+    set_time_seconds(NOW_SECONDS);
+    let next_slot_start_seconds = NOW_SLOT_START_SECONDS + SLOT_SECS;
+
+    // Step 2: Run the code under test.
+    add_rate(&CachedRate {
+        rate_e8s: 264_000_000,
+        timestamp_seconds: NOW_SLOT_START_SECONDS + 60,
+        updated_at_seconds: NOW_SECONDS,
+    });
+    add_rate(&CachedRate {
+        rate_e8s: 265_000_000,
+        timestamp_seconds: NOW_SLOT_START_SECONDS + 360,
+        updated_at_seconds: NOW_SECONDS,
+    });
+    set_time_seconds(next_slot_start_seconds);
+    add_rate(&CachedRate {
+        rate_e8s: 266_000_000,
+        timestamp_seconds: next_slot_start_seconds,
+        updated_at_seconds: next_slot_start_seconds,
+    });
+
+    // Step 3: Verify result(s).
+    assert_eq!(
+        list_past_month_rates(),
+        vec![
+            PastMonthRate {
+                rate_e8s: 264_000_000,
+                timestamp_seconds: NOW_SLOT_START_SECONDS,
+            },
+            PastMonthRate {
+                rate_e8s: 266_000_000,
+                timestamp_seconds: next_slot_start_seconds,
+            },
+        ]
+    );
+}
+
+#[test]
+fn test_month_history_drops_rates_older_than_30_days() {
+    // Step 1: Prepare the world.
+    set_time_seconds(NOW_SECONDS);
+    let expiring_rate = CachedRate {
+        rate_e8s: 264_000_000,
+        timestamp_seconds: NOW_SLOT_START_SECONDS,
+        updated_at_seconds: NOW_SECONDS,
+    };
+    let kept_rate = CachedRate {
+        rate_e8s: 265_000_000,
+        timestamp_seconds: NOW_SLOT_START_SECONDS + SLOT_SECS,
+        updated_at_seconds: NOW_SECONDS,
+    };
+    add_rate(&expiring_rate);
+    add_rate(&kept_rate);
+
+    // Step 2: Run the code under test.
+    let later_seconds = NOW_SLOT_START_SECONDS + 30 * ONE_DAY_SECS + SLOT_SECS;
+    set_time_seconds(later_seconds);
+    add_rate(&CachedRate {
+        rate_e8s: 266_000_000,
+        timestamp_seconds: later_seconds,
+        updated_at_seconds: later_seconds,
+    });
+
+    // Step 3: Verify result(s).
+    assert_eq!(
+        list_past_month_rates(),
+        vec![
+            PastMonthRate {
+                rate_e8s: 265_000_000,
+                timestamp_seconds: NOW_SLOT_START_SECONDS + SLOT_SECS,
+            },
+            PastMonthRate {
+                rate_e8s: 266_000_000,
+                timestamp_seconds: later_seconds,
+            },
+        ]
+    );
+    let expired_slot_start_seconds = NOW_SLOT_START_SECONDS;
+    assert!(
+        !list_missing_slot_starts_seconds().contains(&expired_slot_start_seconds),
+        "{expired_slot_start_seconds} is out of the 30-day range, so it must not be fetched."
+    );
+}
+
+#[test]
+fn test_month_history_lists_missing_slots_newest_first() {
+    // Step 1: Prepare the world.
+    set_time_seconds(NOW_SECONDS);
+    let stored_slot_start_seconds = NOW_SLOT_START_SECONDS - SLOT_SECS;
+    add_rate(&CachedRate {
+        rate_e8s: 264_000_000,
+        timestamp_seconds: stored_slot_start_seconds,
+        updated_at_seconds: NOW_SECONDS,
+    });
+
+    // Step 2: Run the code under test.
+    let missing_slot_starts_seconds = list_missing_slot_starts_seconds();
+
+    // Step 3: Verify result(s).
+    let slot_count = 30 * ONE_DAY_SECS / SLOT_SECS + 1;
+    let expected_missing_slot_starts_seconds = (0..slot_count)
+        .map(|slot_index| NOW_SLOT_START_SECONDS - slot_index * SLOT_SECS)
+        .filter(|&slot_start_seconds| slot_start_seconds != stored_slot_start_seconds)
+        .collect::<Vec<u64>>();
+    assert_eq!(
+        missing_slot_starts_seconds,
+        expected_missing_slot_starts_seconds
+    );
+}
+
+#[tokio::test]
+async fn test_fill_month_history_gaps_fetches_failed_slot_on_next_run() {
+    // Step 1: Prepare the world.
+    set_time_seconds(NOW_SECONDS);
+    let failed_slot_start_seconds = NOW_SLOT_START_SECONDS - SLOT_SECS;
+    let missing_slot_starts_seconds = list_missing_slot_starts_seconds();
+
+    let mut expected_rates = vec![];
+    for &slot_start_seconds in &missing_slot_starts_seconds {
+        if slot_start_seconds == failed_slot_start_seconds {
+            testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
+            continue;
+        }
+
+        let rate_e8s = 200_000_000 + slot_start_seconds % 1_000_000;
+        let response = make_exchange_rate(rate_e8s, E8S_DECIMALS, slot_start_seconds);
+        testing::add_exchange_rate_response(Ok(Ok(response)));
+
+        expected_rates.push(PastMonthRate {
+            rate_e8s,
+            timestamp_seconds: slot_start_seconds,
+        });
+    }
+
+    // Step 2: Run the code under test.
+    fill_month_history_gaps().await;
+
+    // Step 3: Verify result(s).
+    let request_timestamps = testing::drain_requests()
+        .iter()
+        .map(|request| request.timestamp)
+        .collect::<Vec<Option<u64>>>();
+    let expected_request_timestamps = missing_slot_starts_seconds
+        .iter()
+        .map(|&slot_start_seconds| Some(slot_start_seconds))
+        .collect::<Vec<Option<u64>>>();
+    assert_eq!(request_timestamps, expected_request_timestamps);
+
+    // Oldest first, without the failed slot.
+    expected_rates.reverse();
+    assert_eq!(list_past_month_rates(), expected_rates);
+    assert_eq!(
+        list_missing_slot_starts_seconds(),
+        vec![failed_slot_start_seconds]
+    );
+
+    // Step 4: Run the code under test again. Only the failed slot is fetched.
+    let retried_rate_e8s = 250_000_000;
+    let response = make_exchange_rate(retried_rate_e8s, E8S_DECIMALS, failed_slot_start_seconds);
+    testing::add_exchange_rate_response(Ok(Ok(response)));
+
+    fill_month_history_gaps().await;
+
+    // Step 5: Verify result(s).
+    let request_timestamps = testing::drain_requests()
+        .iter()
+        .map(|request| request.timestamp)
+        .collect::<Vec<Option<u64>>>();
+    assert_eq!(request_timestamps, vec![Some(failed_slot_start_seconds)]);
+    assert_eq!(list_missing_slot_starts_seconds(), Vec::<u64>::new());
+    assert!(
+        list_past_month_rates().contains(&PastMonthRate {
+            rate_e8s: retried_rate_e8s,
+            timestamp_seconds: failed_slot_start_seconds,
+        }),
+        "{:#?}",
+        list_past_month_rates()
+    );
+}
+
+#[tokio::test]
+async fn test_update_icp_to_usd_exchange_rate_adds_current_rate_to_month_history() {
+    // Step 1: Prepare the world.
+    set_time_seconds(NOW_SECONDS);
+    let current_rate = make_exchange_rate(264_000_000, E8S_DECIMALS, NOW_SECONDS - 10);
+    let one_day_ago_rate =
+        make_exchange_rate(255_000_000, E8S_DECIMALS, NOW_SECONDS - ONE_DAY_SECS);
+    testing::add_exchange_rate_response(Ok(Ok(current_rate)));
+    testing::add_exchange_rate_response(Ok(Ok(one_day_ago_rate)));
+
+    // Step 2: Run the code under test.
+    update_icp_to_usd_exchange_rate().await;
+
+    // Step 3: Verify result(s).
+    assert_eq!(
+        list_past_month_rates(),
+        vec![PastMonthRate {
+            rate_e8s: 264_000_000,
+            timestamp_seconds: NOW_SLOT_START_SECONDS,
+        }]
+    );
 }
