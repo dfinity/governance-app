@@ -1,36 +1,16 @@
-import type { ActorSubclass } from '@icp-sdk/core/agent';
-
-import type { _SERVICE, AddressBook } from '@declarations/governance-app-backend/backend.did';
-
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useQueryThenUpdateCall } from '@hooks/useQueryThenUpdateCall';
-import { errorMessage } from '@utils/error';
-import { QUERY_KEYS } from '@utils/query';
+import { addressBookQuery } from '@common/queries/addressBook';
 
 import { useGovernanceAppCanister } from './useGovernanceAppCanister';
-
-const unwrapResponse = async (actor: ActorSubclass<_SERVICE>): Promise<AddressBook> => {
-  const response = await actor.get_address_book();
-  if ('Ok' in response) {
-    return {
-      ...response.Ok,
-      named_addresses: [...response.Ok.named_addresses].sort((a, b) =>
-        a.name.localeCompare(b.name),
-      ),
-    };
-  }
-  throw errorMessage('useAddressBook', 'failed to get address book');
-};
 
 export const useAddressBook = () => {
   const { identity } = useInternetIdentity();
   const principal = identity?.getPrincipal().toText();
-  const { ready, authenticated, canister } = useGovernanceAppCanister();
+  const { ready, authenticated } = useGovernanceAppCanister();
 
-  return useQueryThenUpdateCall<AddressBook>({
-    queryKey: [QUERY_KEYS.GOVERNANCE_APP_BACKEND.ADDRESS_BOOK, principal],
-    queryFn: () => unwrapResponse(canister!.service),
-    updateFn: () => unwrapResponse(canister!.certifiedService),
+  return useQueryThenUpdateCall({
+    ...addressBookQuery(principal),
     options: {
       enabled: ready && authenticated,
     },

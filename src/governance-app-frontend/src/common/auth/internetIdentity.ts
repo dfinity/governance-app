@@ -397,6 +397,16 @@ export const ensureInitialized = async (): Promise<Identity | undefined> => {
 export const getAuthState = (): AuthState => state;
 
 /**
+ * Whether the local record names a live session. It answers at once and starts the session read,
+ * so it is only a hint: `ensureInitialized` decides who is signed in.
+ */
+export const hasStoredSession = (): boolean => {
+  initialize().catch(() => undefined);
+
+  return authClient?.isAuthenticated() ?? false;
+};
+
+/**
  * Whether the route guard runs for a logout, which needs no notice. It answers `true` once.
  * `useSessionChange` drops a logout that no guard consumed, once the guards ran.
  */

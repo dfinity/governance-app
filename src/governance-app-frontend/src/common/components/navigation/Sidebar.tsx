@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { NnsWordmark } from '@components/icons/NnsWordmark';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { useIconMotion } from '@hooks/useIconMotion';
 import { isAccountsAreaEnabled } from '@utils/advancedFeatures';
 import { cn } from '@utils/shadcn';
 
@@ -18,6 +19,7 @@ export const Sidebar = ({ activeHref }: { activeHref?: string }) => {
   const { features } = useAdvancedFeatures();
   const accountsEnabled = isAccountsAreaEnabled(features);
   const navigationItems = getNavigationItems({ accountsEnabled });
+  const iconMotion = useIconMotion();
 
   const [prevEnabled, setPrevEnabled] = useState(accountsEnabled);
   const [shouldAnimate, setShouldAnimate] = useState(false);
@@ -40,6 +42,7 @@ export const Sidebar = ({ activeHref }: { activeHref?: string }) => {
           <Link
             key={item.href}
             to={item.href}
+            {...iconMotion}
             className={cn(
               'relative flex items-center gap-3 rounded-md px-4 py-3 text-foreground-secondary transition-colors hover:bg-accent hover:text-accent-foreground',
               shouldAnimate && item.href === '/accounts' && 'animate-highlight-pulse',
