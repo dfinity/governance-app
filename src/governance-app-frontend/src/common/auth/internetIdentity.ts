@@ -54,6 +54,8 @@ export type AuthState = {
   sessionEndsAtMs?: number;
   /** Why the session that this tab held ended: a logout in any tab, or the end of its time. */
   sessionEnd?: SessionEnd;
+  /** Internet Identity answered the login, so only the first delegation is left. */
+  iiAnswered?: boolean;
 };
 
 let state: AuthState = { status: 'initializing' };
@@ -77,6 +79,28 @@ let logoutRedirectPending = false;
 let endedSessionExpiresAtMs: number | undefined;
 // A session that the auth client could not hand out, so a new client read it one time.
 let unreadableExpiresAtMs: number | undefined;
+
+const II_ORIGIN = new URL(II_AUTHORIZE_URL).origin;
+// The Internet Identity windows that this page heard from, and the ones before the current login.
+const iiWindows = new Set<MessageEventSource>();
+let earlierIiWindows = new Set<MessageEventSource>();
+
+// The session answer of Internet Identity, not one of its status messages.
+const isSessionAnswer = (data: unknown): boolean => {
+  if (typeof data !== 'object' || data === null || !('result' in data)) return false;
+  const { result } = data;
+  return typeof result === 'object' && result !== null && 'signerDelegation' in result;
+};
+
+// Internet Identity posts its answer to this page, then closes its window.
+const onIiMessage = ({ origin, source, data }: MessageEvent) => {
+  if (origin !== II_ORIGIN || source === null) return;
+  iiWindows.add(source);
+
+  // A window of an earlier login can still answer after a restart.
+  if (earlierIiWindows.has(source) || !isSessionAnswer(data)) return;
+  if (state.status === 'logging-in' && !state.iiAnswered) setState({ ...state, iiAnswered: true });
+};
 
 const createAuthClient = (): AuthClient =>
   new AuthClient({
@@ -355,6 +379,7 @@ const restoreSession = async () => {
   }
 
   removeLegacySession();
+  window.addEventListener('message', onIiMessage);
 
   // Other tabs share the session, so their logins and logouts arrive here. A change during the
   // first read starts a newer one, and the wait ends with the latest.
@@ -387,6 +412,16 @@ export const ensureInitialized = async (): Promise<Identity | undefined> => {
 };
 
 export const getAuthState = (): AuthState => state;
+
+/**
+ * Whether the local record names a live session. It answers at once and starts the session read,
+ * so it is only a hint: `ensureInitialized` decides who is signed in.
+ */
+export const hasStoredSession = (): boolean => {
+  initialize().catch(() => undefined);
+
+  return authClient?.isAuthenticated() ?? false;
+};
 
 /**
  * Whether the route guard runs for a logout, which needs no notice. It answers `true` once.
@@ -447,6 +482,8 @@ export const login = () => {
   if (state.status === 'logging-in') {
     // The read after the first sign-in can still wait.
     supersedeReads();
+    earlierIiWindows = new Set(iiWindows);
+    setState({ status: 'logging-in' });
     signIn(replaceAuthClient());
     return;
   }
@@ -454,6 +491,7 @@ export const login = () => {
   if (state.status !== 'idle') return;
 
   supersedeReads();
+  earlierIiWindows = new Set(iiWindows);
   setState({ status: 'logging-in' });
   signIn(client);
 };

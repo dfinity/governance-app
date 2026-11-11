@@ -1,9 +1,22 @@
-import { IcpLedgerCanister } from '@icp-sdk/canisters/ledger/icp';
+import { IcpIndexCanister, IcpLedgerCanister } from '@icp-sdk/canisters/ledger/icp';
 import { NnsGovernanceCanister } from '@icp-sdk/canisters/nns';
-import { HttpAgent } from '@icp-sdk/core/agent';
+import { Actor, ActorSubclass, HttpAgent } from '@icp-sdk/core/agent';
+import type { IDL } from '@icp-sdk/core/candid';
 import { Principal } from '@icp-sdk/core/principal';
 
-import { CANISTER_ID_ICP_LEDGER, CANISTER_ID_NNS_GOVERNANCE } from '@constants/canisterIds';
+import type { _SERVICE as GovernanceAppService } from '@declarations/governance-app-backend/backend.did';
+import { idlFactory as governanceAppIdlFactory } from '@declarations/governance-app-backend/backend.did.js';
+import type { _SERVICE as NnsDappService } from '@declarations/nns-dapp/nns-dapp.did';
+import { idlFactory as nnsDappIdlFactory } from '@declarations/nns-dapp/nns-dapp.did.js';
+
+import {
+  CANISTER_ID_ICP_INDEX,
+  CANISTER_ID_ICP_LEDGER,
+  CANISTER_ID_NNS_DAPP,
+  CANISTER_ID_NNS_GOVERNANCE,
+  CANISTER_ID_SELF,
+} from '@constants/canisterIds';
+import { toCertifiedIdlFactory } from '@utils/candid';
 import { errorMessage } from '@utils/error';
 import { ensureInitialized } from '@common/auth/internetIdentity';
 import { getLedgerIdentity } from '@common/ledger/session';
@@ -81,4 +94,48 @@ export const getIcpLedgerCanister = async ({
     agent: await resolveSignerAgent(signer),
     canisterId: Principal.fromText(CANISTER_ID_ICP_LEDGER),
   });
+};
+
+export const getIcpIndexCanister = async (): Promise<IcpIndexCanister> => {
+  if (!CANISTER_ID_ICP_INDEX) {
+    throw errorMessage('getIcpIndexCanister', 'the canister Id is not defined');
+  }
+
+  return IcpIndexCanister.create({
+    agent: await resolveAgent(),
+    canisterId: Principal.fromText(CANISTER_ID_ICP_INDEX),
+  });
+};
+
+type ActorOptions = {
+  /** Sends each method as an update call, so that the response goes through consensus. */
+  certified: boolean;
+};
+
+const createActor = async <T>(
+  idlFactory: IDL.InterfaceFactory,
+  canisterId: string,
+  { certified }: ActorOptions,
+): Promise<ActorSubclass<T>> =>
+  Actor.createActor<T>(certified ? toCertifiedIdlFactory(idlFactory) : idlFactory, {
+    agent: await resolveAgent(),
+    canisterId: Principal.fromText(canisterId),
+  });
+
+export const getNnsDappActor = (options: ActorOptions): Promise<ActorSubclass<NnsDappService>> => {
+  if (!CANISTER_ID_NNS_DAPP) {
+    throw errorMessage('getNnsDappActor', 'the canister Id is not defined');
+  }
+
+  return createActor<NnsDappService>(nnsDappIdlFactory, CANISTER_ID_NNS_DAPP, options);
+};
+
+export const getGovernanceAppActor = (
+  options: ActorOptions,
+): Promise<ActorSubclass<GovernanceAppService>> => {
+  if (!CANISTER_ID_SELF) {
+    throw errorMessage('getGovernanceAppActor', 'the canister Id is not defined');
+  }
+
+  return createActor<GovernanceAppService>(governanceAppIdlFactory, CANISTER_ID_SELF, options);
 };

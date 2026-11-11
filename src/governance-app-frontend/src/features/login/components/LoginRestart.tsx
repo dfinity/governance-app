@@ -6,8 +6,14 @@ import { Button } from '@components/button';
 // Long enough to stay out of the way while Internet Identity opens.
 const SHOW_AFTER_MS = 3_000;
 
+type Props = {
+  onRestart: () => void;
+  /** Internet Identity answered, so its window closed because the sign-in worked. */
+  isFinishing: boolean;
+};
+
 /** Opens Internet Identity again when its window closed before the login ended. */
-export const LoginRestart = ({ onRestart }: { onRestart: () => void }) => {
+export const LoginRestart = ({ onRestart, isFinishing }: Props) => {
   const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
 
@@ -18,7 +24,9 @@ export const LoginRestart = ({ onRestart }: { onRestart: () => void }) => {
 
   // Hidden, not absent, so the overlay content does not move when it appears.
   return (
-    <div className={`flex flex-col items-center gap-2 ${visible ? '' : 'invisible'}`}>
+    <div
+      className={`flex flex-col items-center gap-2 ${visible && !isFinishing ? '' : 'invisible'}`}
+    >
       <p className="text-sm text-muted-foreground">{t(($) => $.login.closedWindow)}</p>
       <Button variant="outline" size="sm" onClick={onRestart} data-testid="login-restart-btn">
         {t(($) => $.login.openAgain)}

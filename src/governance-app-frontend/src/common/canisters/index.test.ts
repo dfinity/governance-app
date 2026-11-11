@@ -1,3 +1,4 @@
+import { Actor } from '@icp-sdk/core/agent';
 import { Principal } from '@icp-sdk/core/principal';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -17,6 +18,7 @@ const getLedgerIdentity = vi.hoisted(() => vi.fn());
 const getLedgerAgent = vi.hoisted(() => vi.fn());
 const governanceCreate = vi.hoisted(() => vi.fn());
 const ledgerCreate = vi.hoisted(() => vi.fn());
+const indexCreate = vi.hoisted(() => vi.fn());
 
 vi.mock('@common/auth/internetIdentity', () => ({ ensureInitialized: async () => II_IDENTITY }));
 vi.mock('@common/ledger/session', () => ({ getLedgerIdentity }));
@@ -30,10 +32,16 @@ vi.mock('@icp-sdk/canisters/nns', () => ({
 }));
 vi.mock('@icp-sdk/canisters/ledger/icp', () => ({
   IcpLedgerCanister: { create: ledgerCreate },
+  IcpIndexCanister: { create: indexCreate },
 }));
 
-const { getAnonymousNnsGovernanceCanister, getIcpLedgerCanister, getNnsGovernanceCanister } =
-  await import('./index');
+const {
+  getAnonymousNnsGovernanceCanister,
+  getIcpIndexCanister,
+  getIcpLedgerCanister,
+  getNnsDappActor,
+  getNnsGovernanceCanister,
+} = await import('./index');
 
 const agentOf = (create: typeof governanceCreate) => create.mock.calls[0][0].agent;
 
@@ -77,6 +85,24 @@ describe('canister factories', () => {
 
     expect(agentOf(governanceCreate)).toBe(ANONYMOUS_AGENT);
     expect(getLedgerIdentity).not.toHaveBeenCalled();
+  });
+
+  it('binds the ICP index canister to the session agent', async () => {
+    await getIcpIndexCanister();
+
+    expect(agentOf(indexCreate)).toBe(AUTHENTICATED_AGENT);
+  });
+
+  it('sends a method of a certified actor as an update call', async () => {
+    const annotationsOf = async (certified: boolean) => {
+      const actor = await getNnsDappActor({ certified });
+      const methods = Object.fromEntries(Actor.interfaceOf(actor as Actor)._fields);
+
+      return methods.get_account.annotations;
+    };
+
+    expect(await annotationsOf(false)).toEqual(['query']);
+    expect(await annotationsOf(true)).toEqual([]);
   });
 
   it('does not create a canister when the device connection fails', async () => {
