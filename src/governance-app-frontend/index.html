@@ -102,7 +102,10 @@
       html[data-nav='settings'] [data-nav-item='settings'] {
         --startup-active-bar: var(--primary);
         --startup-active-row: color-mix(in oklab, var(--primary) 10%, transparent);
-        color: var(--primary);
+        --startup-active-lens: var(--card);
+        --startup-active-lens-shadow: var(--startup-lens-shadow);
+        --startup-active-weight: 600;
+        color: var(--startup-active-color, var(--primary));
       }
       aside [data-nav-item] {
         background: var(--startup-active-row);
@@ -115,6 +118,25 @@
         height: 1.5rem;
         border-radius: 9999px;
         background: var(--startup-active-bar);
+      }
+      /* The bottom nav lens sits on the active tab, the same box as in `BottomNav`. */
+      [data-startup-bottom] {
+        --startup-lens-shadow:
+          inset 0 0 0 1px rgb(0 0 0 / 0.05), 0 1px 3px rgb(0 0 0 / 0.12),
+          0 4px 10px -4px rgb(0 0 0 / 0.1);
+      }
+      .dark [data-startup-bottom] {
+        --startup-active-color: var(--accent-foreground);
+        --startup-lens-shadow:
+          inset 0 0 0 1px rgb(255 255 255 / 0.1), inset 0 1px 0 0 rgb(255 255 255 / 0.12),
+          0 1px 3px rgb(0 0 0 / 0.4);
+      }
+      [data-startup-bottom] [data-nav-item] {
+        background: var(--startup-active-lens);
+        box-shadow: var(--startup-active-lens-shadow);
+      }
+      [data-startup-bottom] [data-nav-item] span {
+        font-weight: var(--startup-active-weight, 500);
       }
       @media (max-width: 1023px) {
         html[data-detail] [data-startup-bottom] {
@@ -130,7 +152,8 @@
       first renders. `public/startup-v1.js` picks the frame with the `html` data attributes.
       - The login frame has only the background and the logo. `LoginPage` fades in the rest.
       - The app frame matches `MainLayout`, `Sidebar`, and `BottomNav`. Keep the classes, the nav
-        order, and the labels (`common.dashboard`, `common.accounts`, ...) in sync.
+        order, and the labels (`common.dashboard`, ... in the sidebar, `common.tabs.*` in the bottom
+        nav) in sync.
     -->
     <div id="startup-frame" aria-hidden="true">
       <svg width="0" height="0" class="absolute">
@@ -290,42 +313,49 @@
           </div>
           <div class="border-t p-3"><div class="h-12"></div></div>
         </aside>
-        <div class="flex h-full w-full flex-col overflow-hidden">
+        <div class="relative flex h-full w-full flex-col overflow-hidden">
           <div class="relative flex-1 bg-main-content"></div>
           <div
             data-startup-bottom
-            class="z-50 shrink-0 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm lg:hidden"
+            class="pointer-events-none absolute inset-x-0 bottom-0 z-50 px-5 pb-(--bottom-nav-gap) lg:hidden"
           >
-            <div class="flex h-13 w-full">
+            <div
+              class="relative mx-auto flex h-(--bottom-nav-height) max-w-md rounded-full border border-white/60 bg-background/65 p-1 shadow-[0_10px_28px_-10px_rgb(0_0_0/0.22),0_1px_3px_rgb(0_0_0/0.06),inset_0_1px_0_0_rgb(255_255_255/0.9),inset_0_-1px_0_0_rgb(255_255_255/0.35),inset_0_0_14px_rgb(255_255_255/0.35)] ring-1 ring-black/5 backdrop-blur-[12px] backdrop-brightness-110 backdrop-saturate-120 contrast-more:border-border contrast-more:bg-background dark:border-white/15 dark:bg-background/50 dark:shadow-[0_10px_28px_-10px_rgb(0_0_0/0.7),inset_0_1px_0_0_rgb(255_255_255/0.14),inset_0_0_14px_rgb(255_255_255/0.05)] dark:ring-black/40 dark:backdrop-brightness-90"
+            >
               <div
                 data-nav-item="dashboard"
-                class="flex w-full flex-col items-center justify-center text-foreground-secondary"
+                class="relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-full text-foreground-secondary"
               >
-                <svg class="size-6"><use href="#startup-dashboard" /></svg>
+                <svg class="size-5.5"><use href="#startup-dashboard" /></svg
+                ><span class="truncate text-[10px] leading-none">Dashboard</span>
               </div>
               <div
                 data-nav-item="accounts"
-                class="flex w-full flex-col items-center justify-center text-foreground-secondary"
+                class="relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-full text-foreground-secondary"
               >
-                <svg class="size-6"><use href="#startup-accounts" /></svg>
+                <svg class="size-5.5"><use href="#startup-accounts" /></svg
+                ><span class="truncate text-[10px] leading-none">Accounts</span>
               </div>
               <div
                 data-nav-item="neurons"
-                class="flex w-full flex-col items-center justify-center text-foreground-secondary"
+                class="relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-full text-foreground-secondary"
               >
-                <svg class="size-6"><use href="#startup-neurons" /></svg>
+                <svg class="size-5.5"><use href="#startup-neurons" /></svg
+                ><span class="truncate text-[10px] leading-none">Neurons</span>
               </div>
               <div
                 data-nav-item="voting"
-                class="flex w-full flex-col items-center justify-center text-foreground-secondary"
+                class="relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-full text-foreground-secondary"
               >
-                <svg class="size-6"><use href="#startup-voting" /></svg>
+                <svg class="size-5.5"><use href="#startup-voting" /></svg
+                ><span class="truncate text-[10px] leading-none">Vote</span>
               </div>
               <div
                 data-nav-item="settings"
-                class="flex w-full flex-col items-center justify-center text-foreground-secondary"
+                class="relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-full text-foreground-secondary"
               >
-                <svg class="size-6"><use href="#startup-settings" /></svg>
+                <svg class="size-5.5"><use href="#startup-settings" /></svg
+                ><span class="truncate text-[10px] leading-none">Settings</span>
               </div>
             </div>
           </div>
