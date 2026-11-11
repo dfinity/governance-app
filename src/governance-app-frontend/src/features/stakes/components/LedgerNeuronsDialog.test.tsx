@@ -69,7 +69,7 @@ const findCloseApprovalDialog = async () =>
     name: 'Close',
   });
 
-const renderDialog = () => {
+const renderDialog = (onOpenChange = vi.fn()) => {
   const queryClient = new QueryClient();
   // The approval dialog is mounted once in the authenticated layout.
   const wrapper = ({ children }: { children: ReactNode }) => (
@@ -79,7 +79,7 @@ const renderDialog = () => {
     </QueryClientProvider>
   );
 
-  return render(<LedgerNeuronsDialog device={device} open onOpenChange={vi.fn()} />, {
+  return render(<LedgerNeuronsDialog device={device} open onOpenChange={onOpenChange} />, {
     wrapper,
   });
 };
@@ -132,6 +132,16 @@ describe('LedgerNeuronsDialog', () => {
     expect(links[0].closest('[data-testid=ledger-neuron-row]')?.textContent).toContain(
       'Hotkey added',
     );
+  });
+
+  it('closes when the user opens a neuron detail', async () => {
+    mocks.listNeurons.mockResolvedValue([deviceNeuron(2n, [II_PRINCIPAL])]);
+    const onOpenChange = vi.fn();
+
+    renderDialog(onOpenChange);
+    await userEvent.click(await screen.findByTestId('ledger-neuron-view'));
+
+    expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
   it('shows the empty state when the device controls no neurons', async () => {

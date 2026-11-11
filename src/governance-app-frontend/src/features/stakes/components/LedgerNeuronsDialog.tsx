@@ -126,6 +126,7 @@ export const LedgerNeuronsDialog = ({ device, open, onOpenChange }: Props) => {
                   neuron={neuron}
                   principal={principal}
                   session={session}
+                  onViewNeuron={() => onOpenChange(false)}
                 />
               ))}
             </ul>
@@ -165,10 +166,13 @@ function LedgerNeuronRow({
   neuron,
   principal,
   session,
+  onViewNeuron,
 }: {
   neuron: NeuronInfo;
   principal: string;
   session: number;
+  /** The neuron opens on the Neurons page, under the dialog, so the dialog closes. */
+  onViewNeuron: () => void;
 }) {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
@@ -242,6 +246,7 @@ function LedgerNeuronRow({
           <Link
             to="/neurons"
             search={{ neuronId: neuron.neuronId.toString() }}
+            onClick={onViewNeuron}
             className="group flex w-fit items-center gap-0.5 text-[15px] font-semibold transition-colors hover:text-primary"
             data-testid="ledger-neuron-view"
           >

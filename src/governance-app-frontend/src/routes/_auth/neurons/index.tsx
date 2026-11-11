@@ -1,12 +1,15 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import type { AccountMetadata } from '@features/accounts/types';
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
 import { EmptyNeuronsState } from '@features/stakes/components/EmptyNeuronsState';
 import { LedgerDevicesMenu } from '@features/stakes/components/LedgerDevicesMenu';
+import { LedgerNeuronsDialog } from '@features/stakes/components/LedgerNeuronsDialog';
 import { NeuronsList } from '@features/stakes/components/NeuronsList';
 import { StakingWizardModal } from '@features/stakes/components/stakingWizard/StakingWizardModal';
 import {
@@ -98,6 +101,15 @@ function NeuronsComponent() {
     handleStakingWizardOpenChange(true);
   };
 
+  // One dialog for the header and the empty state: the first hotkey swaps the empty state for the
+  // list, and the dialog stays open. It keeps the last device while it closes.
+  const [ledgerDevice, setLedgerDevice] = useState<AccountMetadata | null>(null);
+  const [isLedgerDialogOpen, setIsLedgerDialogOpen] = useState(false);
+  const openLedgerDevice = (device: AccountMetadata) => {
+    setLedgerDevice(device);
+    setIsLedgerDialogOpen(true);
+  };
+
   const hasNeurons = neuronsQuery.isSuccess && (neuronsQuery.data?.response.length ?? 0) > 0;
 
   return (
@@ -108,7 +120,7 @@ function NeuronsComponent() {
           description={t(($) => $.neuron.description)}
           actions={
             <>
-              <LedgerDevicesMenu variant="button" />
+              <LedgerDevicesMenu variant="button" onSelectDevice={openLedgerDevice} />
               <Button
                 onClick={() => handleOpenStakingWizard('neurons_header')}
                 data-testid="staking-wizard-trigger-btn"
@@ -127,7 +139,10 @@ function NeuronsComponent() {
         query={neuronsQuery}
         isEmpty={(neurons) => neurons.response.length === 0}
         emptyComponent={
-          <EmptyNeuronsState openStakingWizard={() => handleOpenStakingWizard('neurons_empty')} />
+          <EmptyNeuronsState
+            openStakingWizard={() => handleOpenStakingWizard('neurons_empty')}
+            onSelectLedgerDevice={openLedgerDevice}
+          />
         }
         loadingComponent={<NeuronsContentSkeleton />}
       >
@@ -150,6 +165,13 @@ function NeuronsComponent() {
       </QueryStates>
 
       <StakingWizardModal isOpen={!!openWizard} setIsOpen={handleStakingWizardOpenChange} />
+      {ledgerDevice && (
+        <LedgerNeuronsDialog
+          device={ledgerDevice}
+          open={isLedgerDialogOpen}
+          onOpenChange={setIsLedgerDialogOpen}
+        />
+      )}
     </div>
   );
 }
