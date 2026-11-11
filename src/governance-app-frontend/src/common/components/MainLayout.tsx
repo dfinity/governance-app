@@ -17,17 +17,21 @@ export const AppFrame = ({ children, activeHref, ...props }: AppFrameProps) => {
   const hidesBottomNav = useHidesBottomNav();
 
   return (
-    <div className="relative z-10 flex h-dvh w-full" {...props}>
+    <div
+      className="standalone:min-h-screen lg:standalone:h-screen relative z-10 flex min-h-dvh w-full lg:h-dvh"
+      {...props}
+    >
       {/* Backdrop for the status bar, which overlays the page in the Home Screen web app. */}
       <div
         aria-hidden={true}
         className="pointer-events-none fixed inset-x-0 top-0 z-40 h-[env(safe-area-inset-top)] bg-background/95 backdrop-blur-sm"
       />
       <Sidebar activeHref={activeHref} />
-      <div className="relative flex h-full w-full flex-col overflow-hidden">
+      {/* Below `lg` the document scrolls, so mobile browsers can collapse their toolbars. */}
+      <div className="relative flex w-full flex-col lg:h-full lg:overflow-hidden">
         <main
           className={cn(
-            'relative flex-1 overflow-x-clip overflow-y-auto overscroll-y-contain bg-main-content px-4 pt-[calc(2rem+env(safe-area-inset-top))] pb-[calc(var(--bottom-nav-space)+1rem)] lg:px-8 lg:pt-8 lg:pb-8',
+            'relative flex-1 overflow-x-clip bg-main-content px-4 pt-[calc(2rem+env(safe-area-inset-top))] pb-[calc(var(--bottom-nav-space)+1rem)] lg:overflow-y-auto lg:overscroll-y-contain lg:px-8 lg:pt-8 lg:pb-8',
             hidesBottomNav && '[--bottom-nav-space:0px]',
           )}
         >
