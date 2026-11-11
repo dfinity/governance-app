@@ -1,4 +1,9 @@
-import { AuthClient, SupersededError } from '@icp-sdk/auth/client';
+import {
+  AuthClient,
+  MemoryCredentialStorage,
+  MemoryStateStorage,
+  SupersededError,
+} from '@icp-sdk/auth/client';
 import type { Identity } from '@icp-sdk/core/agent';
 import { nonNullish } from '@dfinity/utils';
 
@@ -9,8 +14,12 @@ import {
   IS_LOCAL,
   NETWORK,
 } from '@constants/extra';
+import { errorNotification } from '@utils/notification';
 import { reloadPage } from '@utils/page';
+import { canUseLocalStorage } from '@utils/storage';
 import { getAnonymousAgent } from '@common/canisters/agents';
+
+import i18n from '@/i18n/config';
 
 /**
  * The Internet Identity session, kept outside React so route guards and loaders can read it
@@ -96,6 +105,14 @@ const onIiMessage = ({ origin, source, data }: MessageEvent) => {
 const createAuthClient = (): AuthClient =>
   new AuthClient({
     identityProvider: { authorizeUrl: II_AUTHORIZE_URL, canisterId: II_BACKEND_CANISTER_ID },
+    // The client reads its session record from `localStorage` as it is created, and starts a
+    // credential restore from IndexedDB. A browser that denies the site data denies both, so the
+    // client keeps them in memory and the page loads with no session. A login cannot store its
+    // credential either, so `login` refuses it.
+    ...(!canUseLocalStorage() && {
+      stateStorage: new MemoryStateStorage(),
+      credentialStorage: new MemoryCredentialStorage(),
+    }),
     // For the calls that mint the delegations. A local replica needs its root key.
     agentOptions: { host: NETWORK, shouldFetchRootKey: IS_LOCAL },
     ...(nonNullish(II_DERIVATION_ORIGIN) && { derivationOrigin: II_DERIVATION_ORIGIN }),
@@ -453,6 +470,14 @@ const signIn = (client: AuthClient) => {
 export const login = () => {
   const client = authClient;
   if (!client) return;
+
+  if (!canUseLocalStorage()) {
+    errorNotification({
+      title: i18n.t(($) => $.login.storageDenied.title),
+      description: i18n.t(($) => $.login.storageDenied.description),
+    });
+    return;
+  }
 
   if (state.status === 'logging-in') {
     // The read after the first sign-in can still wait.

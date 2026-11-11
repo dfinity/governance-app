@@ -5,6 +5,7 @@ import { WELCOME_MODAL_STORAGE_KEY } from '@constants/extra';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useDetectAdvancedFeatures } from '@hooks/useDetectAdvancedFeatures';
 import { infoNotification } from '@utils/notification';
+import { getStorageItem } from '@utils/storage';
 
 /**
  * Runs on app start for returning users only.
@@ -17,7 +18,7 @@ import { infoNotification } from '@utils/notification';
 export const useNewFeatureCheck = () => {
   const { t } = useTranslation();
   const isReturningUser =
-    typeof window !== 'undefined' && !!localStorage.getItem(WELCOME_MODAL_STORAGE_KEY);
+    typeof window !== 'undefined' && !!getStorageItem(WELCOME_MODAL_STORAGE_KEY);
 
   const { setFeature, missingFeatureKeys } = useAdvancedFeatures();
   const { isDetecting, detectedFeatures } = useDetectAdvancedFeatures(isReturningUser);
