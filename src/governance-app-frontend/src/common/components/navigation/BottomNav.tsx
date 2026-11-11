@@ -9,14 +9,16 @@ import { cn } from '@utils/shadcn';
 
 import { getNavigationItems } from './NavigationItems';
 
-export const BottomNav = () => {
+export const BottomNav = ({ activeHref }: { activeHref?: string }) => {
   const { t } = useTranslation();
   const { features } = useAdvancedFeatures();
   const accountsEnabled = isAccountsAreaEnabled(features);
   const navigationItems = getNavigationItems({ accountsEnabled });
   const hidden = useHidesBottomNav();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const activeIndex = navigationItems.findIndex((item) => pathname.startsWith(item.href));
+  const activeIndex = navigationItems.findIndex((item) =>
+    (activeHref ?? pathname).startsWith(item.href),
+  );
 
   const [prevEnabled, setPrevEnabled] = useState(accountsEnabled);
   const [shouldAnimate, setShouldAnimate] = useState(false);
@@ -64,26 +66,38 @@ export const BottomNav = () => {
             }}
           />
         )}
-        {navigationItems.map((item) => (
-          <Link
-            key={item.href}
-            to={item.href}
-            className={cn(
-              'group relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-full text-foreground-secondary transition-[color,scale] duration-200 hover:text-accent-foreground active:scale-94',
-              shouldAnimate && item.href === '/accounts' && 'animate-highlight-pulse',
-            )}
-            onAnimationEnd={item.href === '/accounts' ? () => setShouldAnimate(false) : undefined}
-            activeProps={{
-              className: 'text-primary dark:text-accent-foreground',
-            }}
-            aria-label={t(item.label as never)}
-          >
-            <item.icon className="size-5.5 transition-[fill] group-data-[status=active]:fill-primary/15 dark:group-data-[status=active]:fill-accent-foreground/20" />
-            <span className="truncate text-[10px] leading-none font-medium group-data-[status=active]:font-semibold">
-              {t(item.tabLabel as never)}
-            </span>
-          </Link>
-        ))}
+        {navigationItems.map((item, index) => {
+          const isActive = index === activeIndex;
+
+          return (
+            <Link
+              key={item.href}
+              to={item.href}
+              className={cn(
+                'relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-full text-foreground-secondary transition-[color,scale] duration-200 hover:text-accent-foreground active:scale-94',
+                shouldAnimate && item.href === '/accounts' && 'animate-highlight-pulse',
+                isActive && 'text-primary dark:text-accent-foreground',
+              )}
+              onAnimationEnd={item.href === '/accounts' ? () => setShouldAnimate(false) : undefined}
+              aria-label={t(item.label as never)}
+            >
+              <item.icon
+                className={cn(
+                  'size-5.5 transition-[fill]',
+                  isActive && 'fill-primary/15 dark:fill-accent-foreground/20',
+                )}
+              />
+              <span
+                className={cn(
+                  'truncate text-[10px] leading-none font-medium',
+                  isActive && 'font-semibold',
+                )}
+              >
+                {t(item.tabLabel as never)}
+              </span>
+            </Link>
+          );
+        })}
       </div>
     </nav>
   );

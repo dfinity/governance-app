@@ -540,6 +540,179 @@ html.route-dashboard {
   }
 }
 
+/*
+ * A sidebar icon acts out its meaning once when the pointer rests on its row. `useIconMotion` sets
+ * `data-icon-play` on the row and clears it when the motion ends. The rules key on the icon class
+ * and the child order of each icon.
+ *
+ * Most parts take `icon-settle`: they wind up to the `--icon-wind-*` pose, then settle on a spring.
+ * `--icon-end-rotate` is an angle that lands the part on its own outline. Lengths are in the icon
+ * grid. The icon may draw outside its box while it plays, so a part that lifts is not cut off.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  [data-icon-play] svg {
+    --icon-motion: 1400ms;
+    overflow: visible;
+  }
+
+  [data-icon-play] svg :where(path, rect, circle) {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  [data-icon-play] .lucide-layout-dashboard > rect {
+    --icon-wind-scale: 0.8;
+    animation: icon-settle var(--icon-motion);
+  }
+
+  [data-icon-play] .lucide-layout-dashboard > rect:nth-child(2) {
+    animation-delay: 70ms;
+  }
+
+  [data-icon-play] .lucide-layout-dashboard > rect:nth-child(3) {
+    animation-delay: 140ms;
+  }
+
+  [data-icon-play] .lucide-layout-dashboard > rect:nth-child(4) {
+    animation-delay: 210ms;
+  }
+
+  [data-icon-play] .lucide-wallet > path:first-child {
+    --icon-wind-translate: 0 -3px;
+    animation: icon-settle var(--icon-motion);
+  }
+
+  [data-icon-play] .lucide-wallet > path:last-child {
+    animation: icon-take-weight var(--icon-motion);
+  }
+
+  [data-icon-play] .neuron-icon circle {
+    --icon-wind-scale: 0.6;
+    animation: icon-settle var(--icon-motion);
+  }
+
+  [data-icon-play] .neuron-icon circle:is(:nth-child(2), :nth-child(3)) {
+    animation-delay: 90ms;
+  }
+
+  [data-icon-play] .neuron-icon circle:is(:nth-child(4), :nth-child(5)) {
+    animation-delay: 180ms;
+  }
+
+  [data-icon-play] .neuron-icon path {
+    --icon-wind-opacity: 0.2;
+    animation: icon-settle var(--icon-motion);
+  }
+
+  [data-icon-play] .lucide-vote > path:nth-child(1) {
+    stroke-dasharray: 9;
+    animation: icon-redraw-stroke var(--icon-motion);
+  }
+
+  [data-icon-play] .lucide-vote > path:nth-child(2) {
+    --icon-wind-scale: 1.06 0.92;
+    transform-origin: center bottom;
+    animation: icon-settle var(--icon-motion);
+  }
+
+  [data-icon-play] .lucide-settings > path {
+    --icon-wind-rotate: -15deg;
+    /* Six teeth: a sixth of a turn. */
+    --icon-end-rotate: 60deg;
+    animation: icon-settle var(--icon-motion);
+  }
+}
+
+@keyframes icon-settle {
+  from {
+    animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1);
+  }
+  40% {
+    translate: var(--icon-wind-translate, 0 0);
+    rotate: var(--icon-wind-rotate, 0deg);
+    scale: var(--icon-wind-scale, 1);
+    opacity: var(--icon-wind-opacity, 1);
+    animation-timing-function: linear(
+      0,
+      0.1,
+      0.34,
+      0.61,
+      0.85,
+      1.02,
+      1.12,
+      1.16,
+      1.15,
+      1.12,
+      1.07,
+      1.03,
+      1,
+      0.98,
+      0.97,
+      0.97,
+      0.98,
+      0.99,
+      0.99 90%,
+      1
+    );
+  }
+  to {
+    rotate: var(--icon-end-rotate, 0deg);
+  }
+}
+
+/* The part dips when the part above it comes down. */
+@keyframes icon-take-weight {
+  45% {
+    translate: 0 0;
+    animation-timing-function: ease-out;
+  }
+  55% {
+    translate: 0 1px;
+    animation-timing-function: linear(
+      0,
+      0.1,
+      0.34,
+      0.61,
+      0.85,
+      1.02,
+      1.12,
+      1.16,
+      1.15,
+      1.12,
+      1.07,
+      1.03,
+      1,
+      0.98,
+      0.97,
+      0.97,
+      0.98,
+      0.99,
+      0.99 90%,
+      1
+    );
+  }
+}
+
+/* The check slides off its far end, then draws in again from its start. */
+@keyframes icon-redraw-stroke {
+  from {
+    stroke-dashoffset: 0;
+    animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1);
+  }
+  25% {
+    stroke-dashoffset: -9;
+    animation-timing-function: steps(1, end);
+  }
+  26% {
+    stroke-dashoffset: 9;
+    animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  80%,
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 /* Prevents overscroll outside the main wrapper. */
 body {
   overflow: hidden;

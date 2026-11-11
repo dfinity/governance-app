@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ComponentProps, ReactNode } from 'react';
 
 import { WelcomeModal } from '@features/onboarding/WelcomeModal';
 
@@ -7,18 +7,23 @@ import { Sidebar } from '@components/navigation/Sidebar';
 import { useHidesBottomNav } from '@hooks/useHidesBottomNav';
 import { cn } from '@utils/shadcn';
 
-export const MainLayout = ({ children }: { children: ReactNode }) => {
+type AppFrameProps = ComponentProps<'div'> & {
+  /** Marks the navigation item of this path, for a frame that renders before its route. */
+  activeHref?: string;
+};
+
+/** The sidebar, the bottom navigation, and the main area of the signed-in app. */
+export const AppFrame = ({ children, activeHref, ...props }: AppFrameProps) => {
   const hidesBottomNav = useHidesBottomNav();
 
   return (
-    <div className="relative z-10 flex h-dvh w-full" data-testid="main-layout">
-      <WelcomeModal />
+    <div className="relative z-10 flex h-dvh w-full" {...props}>
       {/* Backdrop for the status bar, which overlays the page in the Home Screen web app. */}
       <div
         aria-hidden={true}
         className="pointer-events-none fixed inset-x-0 top-0 z-40 h-[env(safe-area-inset-top)] bg-background/95 backdrop-blur-sm"
       />
-      <Sidebar />
+      <Sidebar activeHref={activeHref} />
       <div className="relative flex h-full w-full flex-col overflow-hidden">
         <main
           className={cn(
@@ -28,8 +33,15 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
         >
           <div className="mx-auto min-h-full w-full max-w-295">{children}</div>
         </main>
-        <BottomNav />
+        <BottomNav activeHref={activeHref} />
       </div>
     </div>
   );
 };
+
+export const MainLayout = ({ children }: { children: ReactNode }) => (
+  <AppFrame data-testid="main-layout">
+    <WelcomeModal />
+    {children}
+  </AppFrame>
+);

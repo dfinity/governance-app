@@ -36,6 +36,19 @@ export const prefetchCertifiedQuery = <TData>(
   });
 };
 
+/**
+ * Resolves with the fast leg of a certified query, for a prefetch that needs its result.
+ * It joins the call of `prefetchCertifiedQuery` if that call is in flight.
+ */
+export const fetchNonCertifiedQuery = <TData>(
+  queryClient: QueryClient,
+  { queryKey, queryFn }: CertifiedQuery<TData>,
+): Promise<CertifiedData<TData>> =>
+  queryClient.fetchQuery({
+    queryKey: nonCertifiedQueryKey(queryKey),
+    queryFn: () => withCertifiedFlag(queryFn(), false),
+  });
+
 export const prefetchCertifiedInfiniteQuery = <TData, TPageParam>(
   queryClient: QueryClient,
   { queryKey, queryFn, updateFn }: CertifiedQuery<TData, { pageParam: TPageParam }>,

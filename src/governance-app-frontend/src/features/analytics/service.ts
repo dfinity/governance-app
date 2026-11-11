@@ -5,7 +5,12 @@ import { PLAUSIBLE_DOMAIN_URL } from '@constants/externalServices';
 import { IS_LOCAL } from '@constants/extra';
 
 import { AnalyticsEvent } from './events';
-import { addCampaignParams, getCampaignParams, groupProposalPages } from './transformRequest';
+import {
+  addCampaignParams,
+  getCampaignParams,
+  groupProposalPages,
+  removeUrlParams,
+} from './transformRequest';
 
 class AnalyticsService {
   private isInitialized = false;
@@ -14,6 +19,7 @@ class AnalyticsService {
   private landingCampaign = getCampaignParams(window.location.search);
   private lastPageviewPath?: string;
   private isWaitingForVisibility = false;
+  private isReportingWebVitals = false;
 
   init(): void {
     // Local builds can run on a LAN address, which the tracker does not treat as localhost.
@@ -71,6 +77,8 @@ class AnalyticsService {
     this.lastPageviewPath = window.location.pathname;
 
     this.track('pageview');
+    // After the pageview, so that a web vital never opens a visit.
+    this.startWebVitals();
   }
 
   /**
@@ -110,13 +118,40 @@ class AnalyticsService {
     }
   }
 
+  private startWebVitals(): void {
+    if (this.isReportingWebVitals) return;
+    this.isReportingWebVitals = true;
+    // A navigation can end while the module loads.
+    const landingPath = window.location.pathname;
+
+    import('./webVitals')
+      .then(({ reportWebVitals }) =>
+        reportWebVitals(landingPath, (props) =>
+          this.event(AnalyticsEvent.WebVital, props, {
+            interactive: false,
+            // The page URL can hold an ID in the path or the query.
+            url: `${window.location.origin}${props.route}`,
+          }),
+        ),
+      )
+      .catch(() => {
+        // Tracking must never break the app.
+      });
+  }
+
   private transformRequest(payload: PlausibleRequestPayload): PlausibleRequestPayload {
-    if (payload.n !== 'pageview') return groupProposalPages(payload);
+    // A referrer from the same site is a full URL. The first pageview already set the source.
+    if (payload.n === AnalyticsEvent.WebVital) return { ...payload, r: null };
+
+    // The tracker sends `engagement` without this hook, but with the URL and the properties
+    // that this hook returned for the last pageview.
+    const cleanPayload = groupProposalPages(removeUrlParams(payload));
+    if (cleanPayload.n !== 'pageview') return cleanPayload;
 
     // The first pageview of a visit sets its source.
     const campaign = this.landingCampaign;
     this.landingCampaign = [];
-    return groupProposalPages(addCampaignParams(payload, campaign));
+    return addCampaignParams(cleanPayload, campaign);
   }
 }
 

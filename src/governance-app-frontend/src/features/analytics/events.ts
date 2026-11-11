@@ -98,6 +98,10 @@ export enum AnalyticsEvent {
 
   // Preferences
   ForecastPeriodChange = 'forecast_period_change',
+
+  // Performance
+  WebVital = 'web_vital',
 }
+
 // @TODO:
 //  - click on the navigation items
