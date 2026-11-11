@@ -195,10 +195,6 @@ function ProposalDetailsRouteComponent() {
                 </CardContent>
               </Card>
 
-              <ProposalDetailsVoting proposal={proposal} />
-
-              <ProposalVotingHistory proposal={proposal} />
-
               {nonNullish(proposal.proposal?.selfDescribingAction) && (
                 <Card>
                   <CardHeader>
@@ -217,6 +213,10 @@ function ProposalDetailsRouteComponent() {
                   </CardContent>
                 </Card>
               )}
+
+              <ProposalVotingHistory proposal={proposal} />
+
+              <ProposalDetailsVoting proposal={proposal} />
             </>
           );
         }}
