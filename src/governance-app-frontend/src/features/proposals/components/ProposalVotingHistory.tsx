@@ -11,6 +11,7 @@ import {
   ChartTooltipContent,
 } from '@components/Chart';
 import { Skeleton } from '@components/Skeleton';
+import { SkeletonScreen } from '@components/skeletons/SkeletonScreen';
 import { MILLISECONDS_IN_SECOND } from '@constants/extra';
 import { secondsToDate, secondsToTime } from '@utils/date';
 import { formatPercentage } from '@utils/numbers';
@@ -92,7 +93,9 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
       </CardHeader>
       <CardContent>
         {chart === undefined ? (
-          <Skeleton className={cn(CHART_HEIGHT, 'w-full')} />
+          <SkeletonScreen>
+            <Skeleton className={cn(CHART_HEIGHT, 'w-full')} />
+          </SkeletonScreen>
         ) : (
           <ChartContainer
             config={chartConfig}

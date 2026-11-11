@@ -69,6 +69,7 @@ describe('ProposalVotingHistory', () => {
 
     expect(screen.getByText('Voting history')).toBeTruthy();
     expect(screen.queryByTestId('proposal-voting-history-chart')).toBeNull();
+    expect(screen.getByRole('status')).toBeTruthy();
   });
 
   it('shows nothing when the collector has no track for the proposal', () => {
