@@ -1,5 +1,6 @@
 import { ComponentProps, ReactNode } from 'react';
 
+import { NewFeatureModal } from '@features/onboarding/NewFeatureModal';
 import { WelcomeModal } from '@features/onboarding/WelcomeModal';
 
 import { BottomNav } from '@components/navigation/BottomNav';
@@ -31,6 +32,7 @@ export const AppFrame = ({ children, activeHref, ...props }: AppFrameProps) => (
 export const MainLayout = ({ children }: { children: ReactNode }) => (
   <AppFrame data-testid="main-layout">
     <WelcomeModal />
+    <NewFeatureModal />
     {children}
   </AppFrame>
 );

@@ -1,0 +1,12 @@
+{
+  "eyebrow": "New feature",
+  "position": "{{position}} of {{total}}",
+  "turnOn": "Turn on",
+  "notNow": "Not now",
+  "hint": "You can change it in Settings.",
+  "detected": {
+    "subaccounts": "Your account has more than one ICP account.",
+    "advancedFollowing": "Your neurons follow different neurons on different topics.",
+    "ledgerDevice": "A Ledger device is registered on your account."
+  }
+}

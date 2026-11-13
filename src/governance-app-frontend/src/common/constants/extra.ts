@@ -76,6 +76,7 @@ export const WELCOME_MODAL_STORAGE_KEY = 'nns-welcome-modal-seen';
 export const SHORTCUTS_SETTINGS_KEY = 'nns-shortcuts-settings';
 export const COMMAND_PALETTE_SETTINGS_KEY = 'nns-command-palette-settings';
 export const ADVANCED_FEATURES_STORAGE_KEY = 'nns-advanced-features';
+export const SEEN_FEATURE_ANNOUNCEMENTS_STORAGE_KEY = 'nns-seen-feature-announcements';
 export const THEME_STORAGE_KEY = 'nns-theme';
 export const HIDE_BALANCES_KEY = 'nns-hide-balances';
 export const FIAT_CURRENCY_STORAGE_KEY = 'nns-fiat-currency';
