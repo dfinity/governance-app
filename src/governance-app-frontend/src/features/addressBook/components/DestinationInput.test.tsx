@@ -518,6 +518,15 @@ describe('DestinationInput', () => {
     expect(screen.queryByTestId('destination-add')).toBeNull();
   });
 
+  it('turns off keyboard capitalization, autocorrect, and spell check', () => {
+    render(<Harness />);
+    const input = screen.getByTestId('destination');
+
+    expect(input.getAttribute('autocapitalize')).toBe('none');
+    expect(input.getAttribute('autocorrect')).toBe('off');
+    expect(input.getAttribute('spellcheck')).toBe('false');
+  });
+
   it('marks the input as required', () => {
     render(<Harness />);
 
