@@ -12,12 +12,14 @@ const NNS_GOVERNANCE = {
   ECONOMICS: 'nnsGovernanceEconomics',
   ENGAGEMENT: 'nnsGovernanceEngagement',
   KNOWN_NEURONS: 'nnsGovernanceKnownNeurons',
+  KNOWN_NEURON_BALLOTS: 'nnsGovernanceKnownNeuronBallots',
   LATEST_REWARD_EVENT: 'nnsGovernanceLatestRewardEvent',
   MATURITY_MODULATION: 'nnsGovernanceMaturityModulation',
   METRICS: 'nnsGovernanceMetrics',
   NEURONS: 'nnsGovernanceNeurons',
   DEVICE_NEURONS: 'nnsGovernanceDeviceNeurons',
   PROPOSAL: 'nnsGovernanceProposal',
+  PROPOSAL_LIVE_TALLY: 'nnsGovernanceProposalLiveTally',
   PROPOSALS: 'nnsGovernanceProposals',
 };
 
