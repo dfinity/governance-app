@@ -14,6 +14,28 @@
     "title": "Voting history",
     "chartLabel": "Yes and No votes as a share of the total voting power, from the creation of the proposal to its deadline"
   },
+  "liveActivity": {
+    "title": "Live activity",
+    "closedTitle": "Known neuron votes",
+    "updatedAt": "Updated {{time}}",
+    "knownNeurons": "Known neurons",
+    "yesCount": "{{count}} Yes",
+    "noCount": "{{count}} No",
+    "notYetCount": "{{count}} not yet",
+    "didNotVoteCount": "{{count}} did not vote",
+    "unknownCount": "{{count}} unknown",
+    "votedYes": "{{name}} voted Yes",
+    "votedNo": "{{name}} voted No",
+    "notVoted": "{{name}} has not voted",
+    "unknownVote": "{{name}}: vote not known",
+    "voted": "voted",
+    "justNow": "Just now",
+    "new": "New",
+    "yesAdded": "Yes +{{amount}}",
+    "noAdded": "No +{{amount}}",
+    "showEarlier": "Show {{count}} more",
+    "showFewer": "Show fewer"
+  },
   "actions": {
     "adopted": "Adopted",
     "rejected": "Rejected"

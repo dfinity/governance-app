@@ -2,12 +2,15 @@ import { ProposalInfo, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
 import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { ArrowLeft, Clock, Link as LinkIcon, Tag } from 'lucide-react';
+import { type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ProposalDetailsVoting } from '@features/proposals/components/ProposalDetailsVoting';
+import { ProposalLiveActivity } from '@features/proposals/components/ProposalLiveActivity';
 import { ProposalVotingHistory } from '@features/proposals/components/ProposalVotingHistory';
 import { ProposerBadge } from '@features/proposals/components/ProposerBadge';
 import { SelfDescribingActionView } from '@features/proposals/components/SelfDescribingActionView';
+import { useLiveProposal } from '@features/proposals/hooks/useProposalLiveData';
 import {
   getKnownNeuronNames,
   getProposalStatusColor,
@@ -31,6 +34,7 @@ import {
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import { useGovernanceProposal } from '@hooks/governance/useGovernanceProposal';
 import { CheckResultKey, useSpamCheck } from '@hooks/spamFilter';
+import { useMediaQuery } from '@hooks/useMediaQuery';
 import { CertifiedData } from '@typings/queries';
 import { stringToBigInt } from '@utils/bigInt';
 import { safeParseUrl } from '@utils/urls';
@@ -110,7 +114,7 @@ function ProposalDetailsRouteComponent() {
           const proposalUrl = safeParseUrl(proposal.proposal?.url);
 
           return (
-            <>
+            <ProposalDetailsLayout proposal={proposal}>
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -213,14 +217,52 @@ function ProposalDetailsRouteComponent() {
                   </CardContent>
                 </Card>
               )}
-
-              <ProposalVotingHistory proposal={proposal} />
-
-              <ProposalDetailsVoting proposal={proposal} />
-            </>
+            </ProposalDetailsLayout>
           );
         }}
       </QueryStates>
+    </div>
+  );
+}
+
+/**
+ * From `xl`, Live activity takes a sticky rail beside the other cards.
+ * Below `xl`, it comes after Voting history.
+ */
+function ProposalDetailsLayout({
+  proposal,
+  children,
+}: {
+  proposal: ProposalInfo;
+  children: ReactNode;
+}) {
+  const isWide = useMediaQuery('(min-width: 80rem)');
+  const liveProposal = useLiveProposal(proposal);
+
+  const history = <ProposalVotingHistory proposal={liveProposal} />;
+  const liveActivity = <ProposalLiveActivity proposal={liveProposal} />;
+  // A direct child of a page column: its docking footer cancels the column gap.
+  const voting = <ProposalDetailsVoting proposal={liveProposal} />;
+
+  if (!isWide) {
+    return (
+      <>
+        {children}
+        {history}
+        {liveActivity}
+        {voting}
+      </>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-[minmax(0,1fr)_340px] items-start gap-6 2xl:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="flex min-w-0 flex-col gap-6">
+        {children}
+        {history}
+        {voting}
+      </div>
+      <div className="sticky top-0 min-w-0">{liveActivity}</div>
     </div>
   );
 }
