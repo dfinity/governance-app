@@ -71,13 +71,17 @@ describe('getKnownNeuronVotes', () => {
   });
 
   it('counts a full list that covers the proposal as not voted', () => {
+    // 100 ballots around the proposal, with none for it.
     const [vote] = getKnownNeuronVotes({
       knownNeurons: [knownNeuron(11n, 'Alpha')],
       proposalId: PROPOSAL_ID,
       neurons: [
         neuron(
           11n,
-          fullBallots(PROPOSAL_ID - 50n).filter(([id]) => id !== PROPOSAL_ID),
+          fullBallots(PROPOSAL_ID - 50n).map(([id, vote]): [bigint, Vote] => [
+            id < PROPOSAL_ID ? id : id + 1n,
+            vote,
+          ]),
         ),
       ],
     });

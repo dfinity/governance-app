@@ -243,11 +243,10 @@ function ProposalDetailsLayout({
 }) {
   const isWide = useMediaQuery('(min-width: 80rem)');
   const liveProposal = useLiveProposal(proposal);
-  // Kept above the layout switch: the card remounts when the window crosses `xl`.
+  // Kept above the layout switch: the activity card remounts when the window crosses `xl`.
   const knownNeuronVotes = useKnownNeuronVotes(liveProposal);
   const seenVotes = useSeenVotes(knownNeuronVotes.votes);
 
-  const history = <ProposalVotingHistory proposal={liveProposal} />;
   const liveActivity = (
     <ProposalLiveActivity
       proposal={liveProposal}
@@ -255,28 +254,25 @@ function ProposalDetailsLayout({
       seenVotes={seenVotes}
     />
   );
-  // A direct child of a page column: its docking footer cancels the column gap.
-  const voting = <ProposalDetailsVoting proposal={liveProposal} />;
 
-  if (!isWide) {
-    return (
-      <>
-        {children}
-        {history}
-        {liveActivity}
-        {voting}
-      </>
-    );
-  }
-
+  // The voting card keeps one place in the tree in both layouts, so a resize keeps a pending vote.
+  // Below `xl`, the wrappers are `contents`: the docking footer of the voting card must be a
+  // direct child of the page column, to cancel its gap.
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_340px] items-start gap-6 2xl:grid-cols-[minmax(0,1fr)_380px]">
-      <div className="flex min-w-0 flex-col gap-6">
+    <div
+      className={
+        isWide
+          ? 'grid grid-cols-[minmax(0,1fr)_340px] items-start gap-6 2xl:grid-cols-[minmax(0,1fr)_380px]'
+          : 'contents'
+      }
+    >
+      <div className={isWide ? 'flex min-w-0 flex-col gap-6' : 'contents'}>
         {children}
-        {history}
-        {voting}
+        <ProposalVotingHistory proposal={liveProposal} />
+        {!isWide && liveActivity}
+        <ProposalDetailsVoting proposal={liveProposal} />
       </div>
-      <div className="sticky top-0 min-w-0">{liveActivity}</div>
+      {isWide && <div className="sticky top-0 min-w-0">{liveActivity}</div>}
     </div>
   );
 }
