@@ -12,7 +12,7 @@ export const CommandPaletteCard = () => {
 
   return (
     <div className="flex items-start justify-between gap-4">
-      <div className="space-y-1">
+      <div className="space-y-1 wrap-anywhere">
         <p className="leading-none font-medium">{t(($) => $.userAccount.commandPalette.title)}</p>
         <p className="text-sm text-muted-foreground">
           {t(($) => $.userAccount.commandPalette.description)}

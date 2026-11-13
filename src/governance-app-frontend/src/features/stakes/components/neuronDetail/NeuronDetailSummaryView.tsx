@@ -120,7 +120,7 @@ export function NeuronDetailSummaryView({
       <FollowingStatusAlert neuron={neuron} isHotkey={isHotkey} />
 
       {/* Staked Amount - Prominent Display */}
-      <div className="flex flex-col items-center gap-1 pb-2">
+      <div className="flex flex-col items-center gap-1 pb-2 wrap-anywhere">
         <p className="text-3xl font-bold md:text-4xl" data-testid="neuron-detail-staked-amount">
           <SensitiveValue>
             {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
@@ -358,7 +358,7 @@ type InfoRowProps = {
 function InfoRow({ label, children, isLast = false, dataTestId }: InfoRowProps) {
   return (
     <div
-      className={`flex items-center justify-between px-4 py-3 ${!isLast ? 'border-b border-border/50' : ''}`}
+      className={`flex flex-wrap items-center justify-between gap-x-4 px-4 py-3 ${!isLast ? 'border-b border-border/50' : ''}`}
     >
       <span className="text-[13px] text-muted-foreground">{label}</span>
       <div className="text-[15px]" data-testid={dataTestId}>
