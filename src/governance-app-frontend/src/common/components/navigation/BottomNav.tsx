@@ -8,7 +8,7 @@ import { cn } from '@utils/shadcn';
 
 import { getNavigationItems } from './NavigationItems';
 
-export const BottomNav = () => {
+export const BottomNav = ({ activeHref }: { activeHref?: string }) => {
   const { t } = useTranslation();
   const { features } = useAdvancedFeatures();
   const accountsEnabled = isAccountsAreaEnabled(features);
@@ -39,6 +39,7 @@ export const BottomNav = () => {
             className={cn(
               'flex w-full flex-col items-center justify-center text-foreground-secondary transition-colors hover:text-accent-foreground',
               shouldAnimate && item.href === '/accounts' && 'animate-highlight-pulse',
+              activeHref?.startsWith(item.href) && 'text-primary',
             )}
             onAnimationEnd={item.href === '/accounts' ? () => setShouldAnimate(false) : undefined}
             activeProps={{

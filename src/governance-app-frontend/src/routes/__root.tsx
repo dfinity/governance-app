@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
+import { LoginHandoff } from '@features/login/components/LoginHandoff';
 
 import { Button } from '@components/button';
 import { MainLayout } from '@components/MainLayout';
@@ -150,6 +151,7 @@ function RootComponent() {
     <>
       <HeadContent />
       <Outlet />
+      <LoginHandoff />
       <Scripts />
       {!isE2E && <TanStackRouterDevtools />}
     </>

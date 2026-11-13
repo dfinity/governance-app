@@ -135,11 +135,13 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div
-                      className="flex cursor-help items-center gap-1 rounded-sm border border-blue-200 bg-blue-100 px-2 py-0.5 text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+                      className="flex cursor-help items-center gap-1 rounded-sm border border-blue-200 bg-blue-100 px-2 py-0.5 text-blue-700 @md/neuron-card:gap-1.5 @md/neuron-card:p-2 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
                       data-testid="neuron-hotkey-badge"
                     >
-                      <Key className="size-3" aria-hidden="true" />
-                      <span className="text-[11px] font-medium">{t(($) => $.neuron.hotkey)}</span>
+                      <Key className="size-3 @md/neuron-card:size-3.5" aria-hidden="true" />
+                      <span className="text-[11px] font-medium @md/neuron-card:text-[13px]">
+                        {t(($) => $.neuron.hotkey)}
+                      </span>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>{t(($) => $.neuron.hotkeyTooltip)}</TooltipContent>

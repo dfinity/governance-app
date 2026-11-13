@@ -1,0 +1,22 @@
+// A subset of the ICP Dashboard collector interface (canister gsmzf-bqaaa-aaaam-ajeyq-cai),
+// copied from dfinity/onchain-dashboard src/collector/collector.did.
+// Every method refuses update calls: call them as queries only.
+service : {
+  // One NNS proposal's tally over time. A reading is governance's latest_tally:
+  // t is its timestamp_seconds, yes and no are in e8s of the proposal's total voting power.
+  // closedAt is 0 while the track is open. A proposal with no track was never seen taking votes.
+  getTallyHistory : (nat64, nat) -> (record {
+    recordingSince : int;
+    outages : vec record { from : int; to : int };
+    track : opt record {
+      total : nat64;
+      firstReadAt : int;
+      closedAt : int;
+      finalRead : bool;
+      refused : nat;
+      deadlines : vec record { at : int; deadline : nat64 };
+      readings : vec record { t : nat64; yes : nat64; no : nat64 };
+      next : opt nat;
+    };
+  }) query;
+}

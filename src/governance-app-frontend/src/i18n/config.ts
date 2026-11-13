@@ -16,6 +16,7 @@ import devActionsModal from './en/modals/devActions.json';
 import disburseModal from './en/modals/disburse.json';
 import maturityModal from './en/modals/maturity.json';
 import neuronDetailModal from './en/modals/neuronDetail.json';
+import newFeatureModal from './en/modals/newFeature.json';
 import stakeWizardModal from './en/modals/stakeWizard.json';
 import stakingRatioModal from './en/modals/stakingRatio.json';
 import welcomeModal from './en/modals/welcome.json';
@@ -47,6 +48,7 @@ export const resources = {
       commandPalette,
       userAccount,
       welcomeModal,
+      newFeatureModal,
       knownNeurons,
       depositModal,
       disburseModal,

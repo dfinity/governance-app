@@ -5,6 +5,8 @@ use super::*;
 
 /// The source of the served `index.html`, so the tests fail if its head tags change shape.
 const INDEX_HTML: &str = include_str!("../../../governance-app-frontend/index.html");
+const IC_OS_VERSION_ELECTION_TOPIC: i32 = 13;
+const NOV_6_2026_SECONDS: u64 = 1_793_963_145;
 const GENERIC_DESCRIPTION: &str = "Participate in decentralized governance on the Internet Computer. Lock ICP, vote on proposals, and mint rewards.";
 
 fn proposal_info(id: u64, title: Option<&str>, summary: &str) -> ProposalInfo {
@@ -14,6 +16,8 @@ fn proposal_info(id: u64, title: Option<&str>, summary: &str) -> ProposalInfo {
             title: title.map(str::to_string),
             summary: summary.to_string(),
         }),
+        topic: IC_OS_VERSION_ELECTION_TOPIC,
+        proposal_timestamp_seconds: NOV_6_2026_SECONDS,
     }
 }
 
@@ -219,6 +223,61 @@ fn test_truncate_cuts_at_a_word_boundary() {
 }
 
 #[test]
+fn test_truncate_cuts_at_the_end_of_a_sentence() {
+    assert_eq!(
+        truncate(
+            "One short sentence. Another short one. And more text here",
+            45
+        ),
+        "One short sentence. Another short one."
+    );
+}
+
+#[test]
+fn test_truncate_keeps_a_sentence_that_ends_at_the_limit() {
+    assert_eq!(
+        truncate("One short sentence. And more", 19),
+        "One short sentence."
+    );
+}
+
+#[test]
+fn test_truncate_ignores_an_early_sentence_end() {
+    assert_eq!(
+        truncate("Hi. This is a long sentence with no end soon", 30),
+        "Hi. This is a long sentence…"
+    );
+}
+
+#[test]
+fn test_truncate_counts_characters_for_an_early_sentence_end() {
+    let text = format!("{}. {}", "é".repeat(60), "word ".repeat(40));
+    let truncated = truncate(&text, 160);
+
+    assert!(truncated.chars().count() > 150, "{truncated}");
+    assert!(truncated.ends_with('…'));
+}
+
+#[test]
+fn test_truncate_ignores_an_abbreviation() {
+    assert_eq!(
+        truncate("This change adds a new fee, e.g. for the large subnets", 40),
+        "This change adds a new fee, e.g. for…"
+    );
+}
+
+#[test]
+fn test_truncate_ignores_a_period_inside_a_word() {
+    assert_eq!(
+        truncate(
+            "Upgrade to version 1.4.0 of the canister with more text",
+            30
+        ),
+        "Upgrade to version 1.4.0 of…"
+    );
+}
+
+#[test]
 fn test_truncate_cuts_a_long_word() {
     assert_eq!(truncate("abcdefghijklmnop", 8), "abcdefg…");
 }
@@ -280,6 +339,248 @@ fn test_summary_excerpt_keeps_a_summary_that_is_only_the_title() {
     assert_eq!(summary_excerpt(Some("Motion"), "# Motion"), "Motion");
 }
 
+const COMMIT: &str = "daeac6ee3d92e538d7871297f112396aeda3138a";
+const BASE_COMMIT: &str = "620b81c4bf6c59aa1065fe7412afcaf49e51503e";
+const WASM_HASH: &str = "e63ca61947a7d5438180e656cdafe76a1b7bbca3c6ca1a57e2ff1cf4b32ccc71";
+
+#[test]
+fn test_summary_excerpt_of_release_notes() {
+    let summary = format!(
+        "Release Notes for [release-2026-11-06_03-19-enable-heap-limits](https://example.org) (`{COMMIT}`)\n\
+         This release is based on changes since [release-2026-11-06_03-19-base](https://example.org/{BASE_COMMIT}) (`{BASE_COMMIT}`).\n\n\
+         Please note that some commits may be excluded from this release if they are not relevant, or not modifying the GuestOS image."
+    );
+
+    assert_eq!(
+        summary_excerpt(Some("Elect new IC/GuestOS revision"), &summary),
+        "Release Notes for release-2026-11-06_03-19-enable-heap-limits. This release is based on changes since release-2026-11-06_03-19-base."
+    );
+}
+
+#[test]
+fn test_summary_excerpt_removes_metadata_lines() {
+    let summary = format!(
+        "# Proposal to upgrade the SOL RPC canister\n\n\
+         Repository: `https://github.com/dfinity/sol-rpc-canister.git`\n\n\
+         Git hash: `{COMMIT}`\n\n\
+         New compressed Wasm hash: `{WASM_HASH}`\n\n\
+         ---\n\n\
+         This upgrade adds a method."
+    );
+
+    assert_eq!(
+        summary_excerpt(Some("Upgrade NNS Canister"), &summary),
+        "Proposal to upgrade the SOL RPC canister. This upgrade adds a method."
+    );
+}
+
+#[test]
+fn test_summary_excerpt_keeps_a_label_with_a_sentence() {
+    assert_eq!(
+        summary_excerpt(None, "Motivation: The subnet has fewer nodes."),
+        "Motivation: The subnet has fewer nodes."
+    );
+}
+
+#[test]
+fn test_summary_excerpt_keeps_a_wrapped_label_with_a_sentence() {
+    assert_eq!(
+        summary_excerpt(None, "Summary: Upgrade\nthe governance canister."),
+        "Summary: Upgrade the governance canister."
+    );
+}
+
+#[test]
+fn test_summary_excerpt_keeps_the_text_before_a_lowercase_metadata_line() {
+    assert_eq!(
+        summary_excerpt(
+            None,
+            &format!("Upgrade governance\nwasm hash: {WASM_HASH}\nThis adds a feature.")
+        ),
+        "Upgrade governance. This adds a feature."
+    );
+}
+
+#[test]
+fn test_summary_excerpt_removes_consecutive_lowercase_metadata_lines() {
+    assert_eq!(
+        summary_excerpt(
+            None,
+            &format!("git hash: {COMMIT}\nwasm hash: {WASM_HASH}\nThis upgrade adds a method.")
+        ),
+        "This upgrade adds a method."
+    );
+}
+
+#[test]
+fn test_summary_excerpt_keeps_lowercase_list_items_apart() {
+    assert_eq!(
+        summary_excerpt(
+            None,
+            "- feat: add a method\n- fix: remove a bug\n1. test the fix"
+        ),
+        "feat: add a method. fix: remove a bug. test the fix"
+    );
+}
+
+#[test]
+fn test_summary_excerpt_removes_a_leading_title_in_a_list_item() {
+    assert_eq!(
+        summary_excerpt(
+            Some("Upgrade governance"),
+            "- Upgrade governance\n- Add a method."
+        ),
+        "Add a method."
+    );
+}
+
+#[test]
+fn test_strip_markdown_removes_an_empty_list_item() {
+    assert_eq!(strip_markdown("Text\n- \n- More"), "Text More");
+}
+
+#[test]
+fn test_summary_excerpt_removes_a_wrapped_leading_title() {
+    for summary in [
+        "# Upgrade the governance\ncanister\n\nThis upgrade adds a feature.",
+        "# Upgrade the\nGovernance canister\n\nThis upgrade adds a feature.",
+    ] {
+        assert_eq!(
+            summary_excerpt(Some("Upgrade the governance canister"), summary),
+            "This upgrade adds a feature."
+        );
+    }
+}
+
+#[test]
+fn test_summary_excerpt_keeps_a_summary_with_only_metadata() {
+    assert_eq!(
+        summary_excerpt(None, &format!("Git hash: `{COMMIT}`")),
+        "Git hash: daeac6e"
+    );
+}
+
+#[test]
+fn test_summary_excerpt_shortens_a_hash_in_a_sentence() {
+    assert_eq!(
+        summary_excerpt(
+            None,
+            &format!("Update subnet x4jtx to replica version [{COMMIT}](https://example.org)")
+        ),
+        "Update subnet x4jtx to replica version daeac6e"
+    );
+}
+
+#[test]
+fn test_summary_excerpt_keeps_a_hash_in_a_url() {
+    for url in [
+        format!("https://example.org/release/{COMMIT}"),
+        format!("https://example.org/?sha={COMMIT}"),
+        format!("https://example.org/page#{COMMIT}"),
+    ] {
+        assert_eq!(summary_excerpt(None, &url), url);
+    }
+}
+
+#[test]
+fn test_summary_excerpt_ignores_a_line_with_only_a_hash() {
+    assert_eq!(
+        summary_excerpt(None, &format!("Intro\n(`{COMMIT}`)\nDetails")),
+        "Intro. Details"
+    );
+}
+
+#[test]
+fn test_summary_excerpt_joins_a_wrapped_sentence() {
+    assert_eq!(
+        summary_excerpt(None, "This proposal upgrades the\ngovernance canister."),
+        "This proposal upgrades the governance canister."
+    );
+}
+
+#[test]
+fn test_summary_excerpt_keeps_short_hex_text() {
+    assert_eq!(
+        summary_excerpt(None, "Elect revision daeac6e (commit 620b81c)."),
+        "Elect revision daeac6e (commit 620b81c)."
+    );
+}
+
+#[test]
+fn test_summary_excerpt_keeps_the_punctuation_of_a_line() {
+    assert_eq!(
+        summary_excerpt(None, "Changes:\n- Add a method\n- Fix a bug."),
+        "Changes: Add a method. Fix a bug."
+    );
+}
+
+#[test]
+fn test_render_page_shortens_a_hash_in_the_title() {
+    let page = render_page(
+        INDEX_HTML,
+        144_737,
+        Some(&format!(
+            "Upgrade NNS Canister to wasm with hash: {WASM_HASH}"
+        )),
+        "Summary",
+    );
+
+    assert_eq!(
+        meta_content(&page, "og:title").as_deref(),
+        Some("Proposal 144737: Upgrade NNS Canister to wasm with hash: e63ca61")
+    );
+}
+
+#[test]
+fn test_add_card_fields_adds_the_topic_and_the_date() {
+    let page = add_card_fields(INDEX_HTML, 14, NOV_6_2026_SECONDS);
+
+    for (key, value) in [
+        ("twitter:label1", "Topic"),
+        ("twitter:data1", "SNS &amp; Neurons&#39; Fund"),
+        ("twitter:label2", "Submitted"),
+        ("twitter:data2", "6 Nov 2026"),
+    ] {
+        assert_eq!(meta_content(&page, key).as_deref(), Some(value), "{key}");
+    }
+    let (_, index_body) = INDEX_HTML.split_once("</head>").unwrap();
+    let (_, page_body) = page.split_once("</head>").unwrap();
+    assert_eq!(page_body, index_body);
+}
+
+#[test]
+fn test_add_card_fields_without_a_known_topic() {
+    for topic in [0, 19, -1] {
+        let page = add_card_fields(INDEX_HTML, topic, NOV_6_2026_SECONDS);
+
+        assert_eq!(
+            meta_content(&page, "twitter:label1").as_deref(),
+            Some("Submitted")
+        );
+        assert_eq!(
+            meta_content(&page, "twitter:data1").as_deref(),
+            Some("6 Nov 2026")
+        );
+        assert_eq!(meta_content(&page, "twitter:label2"), None);
+    }
+}
+
+#[test]
+fn test_format_date() {
+    for (seconds, date) in [
+        (0, "1 Jan 1970"),
+        (68_169_599, "28 Feb 1972"),
+        (68_169_600, "29 Feb 1972"),
+        (951_782_400, "29 Feb 2000"),
+        (1_709_164_800, "29 Feb 2024"),
+        (1_735_689_599, "31 Dec 2024"),
+        (1_735_689_600, "1 Jan 2025"),
+        (NOV_6_2026_SECONDS, "6 Nov 2026"),
+    ] {
+        assert_eq!(format_date(seconds), date, "{seconds}");
+    }
+}
+
 #[test]
 fn test_escape_html() {
     assert_eq!(
@@ -297,7 +598,7 @@ fn test_render_page_sets_the_link_preview_tags() {
         "This proposal elects a new **revision**.",
     );
 
-    let card_title = "Proposal #139000: Elect new IC/HostOS revision";
+    let card_title = "Proposal 139000: Elect new IC/HostOS revision";
     let description = "This proposal elects a new revision.";
     assert_eq!(
         TITLE_TAG.captures(&page).unwrap()[0].to_string(),
@@ -348,7 +649,7 @@ fn test_render_page_escapes_html() {
         "Use $1 and </title>",
     );
 
-    let escaped_title = "Proposal #7: Fix &quot;&lt;script&gt;&quot; &amp; more";
+    let escaped_title = "Proposal 7: Fix &quot;&lt;script&gt;&quot; &amp; more";
     assert_eq!(
         meta_content(&page, "og:title").as_deref(),
         Some(escaped_title)
@@ -366,7 +667,7 @@ fn test_render_page_without_title_and_summary() {
 
     assert_eq!(
         meta_content(&page, "og:title").as_deref(),
-        Some("Proposal #42")
+        Some("Proposal 42")
     );
     assert_eq!(
         meta_content(&page, "og:description").as_deref(),
@@ -400,7 +701,15 @@ async fn test_render_proposal_page_fetches_the_proposal() {
     );
     assert_eq!(
         meta_content(&page, "og:title").as_deref(),
-        Some("Proposal #5: Title")
+        Some("Proposal 5: Title")
+    );
+    assert_eq!(
+        meta_content(&page, "twitter:data1").as_deref(),
+        Some("IC OS Version Election")
+    );
+    assert_eq!(
+        meta_content(&page, "twitter:data2").as_deref(),
+        Some("6 Nov 2026")
     );
 }
 
@@ -416,6 +725,8 @@ async fn test_render_proposal_page_returns_none_for_an_unknown_proposal() {
     testing::add_list_proposals_response(Ok(list_proposals_response(vec![ProposalInfo {
         id: Some(ProposalId { id: 7 }),
         proposal: None,
+        topic: IC_OS_VERSION_ELECTION_TOPIC,
+        proposal_timestamp_seconds: NOV_6_2026_SECONDS,
     }])));
 
     assert_eq!(render_proposal_page(INDEX_HTML, 5).await, None);
