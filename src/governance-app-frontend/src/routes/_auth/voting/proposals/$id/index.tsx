@@ -118,7 +118,8 @@ function ProposalDetailsRouteComponent() {
           const proposalUrl = safeParseUrl(proposal.proposal?.url);
 
           return (
-            <ProposalDetailsLayout proposal={proposal}>
+            // A new proposal starts with no seen votes.
+            <ProposalDetailsLayout key={String(proposal.id)} proposal={proposal}>
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">

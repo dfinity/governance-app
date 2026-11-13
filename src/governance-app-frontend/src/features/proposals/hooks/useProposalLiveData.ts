@@ -3,6 +3,7 @@ import { isNullish } from '@dfinity/utils';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 
+import { MILLISECONDS_IN_SECOND } from '@constants/extra';
 import { useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import { nowInSeconds } from '@utils/date';
@@ -26,7 +27,16 @@ const isNewerTally = (tally: Tally, than: Tally | undefined) =>
  */
 export const useLiveProposal = (proposal: ProposalInfo): ProposalInfo => {
   const { ready, canister } = useNnsGovernance();
-  const live = isTakingVotes(proposal);
+  const baseDeadline = Number(proposal.deadlineTimestampSeconds ?? 0n);
+
+  // The latest deadline seen, and whether a read after it holds the final tally.
+  const getDeadline = (polled: ProposalInfo | null | undefined) =>
+    Math.max(baseDeadline, Number(polled?.deadlineTimestampSeconds ?? 0n));
+  const hasFinalRead = ({
+    state,
+  }: {
+    state: { data?: ProposalInfo | null; dataUpdatedAt: number };
+  }) => state.dataUpdatedAt / MILLISECONDS_IN_SECOND > getDeadline(state.data);
 
   const { data: polled } = useQuery({
     queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL_LIVE_TALLY, proposal.id?.toString()],
@@ -45,8 +55,14 @@ export const useLiveProposal = (proposal: ProposalInfo): ProposalInfo => {
       });
       return proposals.find(({ id }) => id === proposal.id) ?? null;
     },
-    enabled: ready && live && !isNullish(proposal.id),
-    refetchInterval: live ? LIVE_POLL_INTERVAL_MS : false,
+    // A proposal that closed before the page opened needs no read. One that closes while the page
+    // is open gets one read after its deadline, also when the tab comes back from the background.
+    enabled: (query) =>
+      ready &&
+      !isNullish(proposal.id) &&
+      (isTakingVotes(proposal) || query.state.data !== undefined),
+    staleTime: (query) => (hasFinalRead(query) ? Infinity : 0),
+    refetchInterval: (query) => (hasFinalRead(query) ? false : LIVE_POLL_INTERVAL_MS),
   });
 
   if (!polled) return proposal;
