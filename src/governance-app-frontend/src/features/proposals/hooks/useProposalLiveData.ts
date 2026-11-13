@@ -95,7 +95,8 @@ export const useLiveProposal = (proposal: ProposalInfo): ProposalInfo => {
       ready &&
       !isNullish(proposal.id) &&
       proposal.topic !== Topic.NeuronManagement &&
-      (isTakingVotes(proposal) || query.state.data !== undefined),
+      // A read that ran, even a failed one, keeps the poll on until a final read succeeds.
+      (isTakingVotes(proposal) || query.state.dataUpdatedAt > 0 || query.state.errorUpdatedAt > 0),
     staleTime: (query) => (hasFinalRead(query) ? Infinity : 0),
     refetchInterval: (query) => (hasFinalRead(query) ? false : LIVE_POLL_INTERVAL_MS),
   });
