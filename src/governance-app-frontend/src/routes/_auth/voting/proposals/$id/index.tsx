@@ -109,119 +109,132 @@ function ProposalDetailsRouteComponent() {
       >
         {({ response: proposal }) => {
           if (!nonNullish(proposal)) return null;
-          const timeLeft = secondsToDuration({
-            seconds: getProposalTimeLeftInSeconds(proposal),
-            i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
-          });
-
           const statusColor = getProposalStatusColor(proposal);
           const proposalUrl = safeParseUrl(proposal.proposal?.url);
 
           return (
             // A new proposal starts with no seen votes.
             <ProposalDetailsLayout key={String(proposal.id)} proposal={proposal}>
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs tracking-wide text-muted-foreground uppercase">
-                      {t(($) => $.proposal.proposalId, { id: proposal.id })}
-                    </span>
-                    <CertifiedBadge certified={proposalQuery.data?.certified} />
-                  </div>
-                  <CardTitle className="mt-2 min-w-0 text-3xl leading-tight font-normal break-words">
-                    {proposal.proposal?.title}
-                  </CardTitle>
-                  <div className="flex flex-wrap gap-2 text-sm">
-                    <Badge className={statusColor}>
-                      {ProposalStatus[proposal.status] ??
-                        t(($) => $.proposal.unknownStatus, { id: proposal.status })}
-                    </Badge>
-                    {timeLeft.length > 0 && (
-                      <Badge variant="secondary" className="gap-1.5 font-normal">
-                        <Clock className="h-3.5 w-3.5" />
-                        {t(($) => $.proposal.timeLeft, { timeLeft })}
-                      </Badge>
-                    )}
-                    <Badge variant="secondary" className="gap-1.5 font-normal">
-                      <Tag className="h-3.5 w-3.5" />
-                      {Topic[proposal.topic] ??
-                        t(($) => $.proposal.unknownTopic, { id: proposal.topic })}
-                    </Badge>
-                    {nonNullish(proposal.proposer) && (
-                      <ProposerBadge
-                        proposer={proposal.proposer}
-                        knownNeuronNames={knownNeuronNames}
-                        interactive
-                      />
-                    )}
-                    {proposalUrl && (
-                      <a
-                        href={proposalUrl.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="no-underline"
-                      >
-                        <Badge
-                          variant="secondary"
-                          className="gap-1.5 font-normal hover:bg-secondary/80"
-                        >
-                          <LinkIcon className="h-3.5 w-3.5" />
-                          <span className="max-w-[150px] truncate">{proposalUrl.hostname}</span>
-                        </Badge>
-                        <span className="sr-only">{t(($) => $.common.opensInNewTab)}</span>
-                      </a>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-4">
-                  {spamCheckResult && CheckResultKey.Abusive in spamCheckResult && (
-                    <Alert variant="warning">
-                      <AlertTitle>{t(($) => $.proposal.spamWarning.abusiveTitle)}</AlertTitle>
-                      <AlertDescription>
-                        <p>{t(($) => $.proposal.spamWarning.reasons)}</p>
-                        <ul className="list-inside list-disc">
-                          {spamCheckResult.abusive.map((reason, i) => (
-                            <li key={i}>{reason}</li>
-                          ))}
-                        </ul>
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  {spamCheckResult && CheckResultKey.NonActionable in spamCheckResult && (
-                    <Alert variant="warning">
-                      <AlertTitle>{t(($) => $.proposal.spamWarning.nonActionableTitle)}</AlertTitle>
-                      <AlertDescription>
-                        <p>{t(($) => $.proposal.spamWarning.reasons)}</p>
-                        <ul className="list-inside list-disc">
-                          {spamCheckResult.nonActionable.map((reason, i) => (
-                            <li key={i}>{reason}</li>
-                          ))}
-                        </ul>
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  <MarkdownRenderer content={proposal.proposal?.summary || ''} />
-                </CardContent>
-              </Card>
+              {(liveProposal) => {
+                // The live deadline: wait for quiet can extend it while the page is open.
+                const timeLeft = secondsToDuration({
+                  seconds: getProposalTimeLeftInSeconds(liveProposal),
+                  i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
+                });
 
-              {nonNullish(proposal.proposal?.selfDescribingAction) && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{t(($) => $.proposal.action)}</CardTitle>
-                    <Badge variant="info-subtle" className="w-fit text-xs font-medium">
-                      {proposal.proposal.selfDescribingAction.typeName}
-                    </Badge>
-                  </CardHeader>
-                  <CardContent className="flex flex-col gap-2">
-                    {proposal.proposal.selfDescribingAction.typeDescription && (
-                      <p className="text-sm leading-relaxed text-muted-foreground">
-                        {proposal.proposal.selfDescribingAction.typeDescription}
-                      </p>
+                return (
+                  <>
+                    <Card>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs tracking-wide text-muted-foreground uppercase">
+                            {t(($) => $.proposal.proposalId, { id: proposal.id })}
+                          </span>
+                          <CertifiedBadge certified={proposalQuery.data?.certified} />
+                        </div>
+                        <CardTitle className="mt-2 min-w-0 text-3xl leading-tight font-normal break-words">
+                          {proposal.proposal?.title}
+                        </CardTitle>
+                        <div className="flex flex-wrap gap-2 text-sm">
+                          <Badge className={statusColor}>
+                            {ProposalStatus[proposal.status] ??
+                              t(($) => $.proposal.unknownStatus, { id: proposal.status })}
+                          </Badge>
+                          {timeLeft.length > 0 && (
+                            <Badge variant="secondary" className="gap-1.5 font-normal">
+                              <Clock className="h-3.5 w-3.5" />
+                              {t(($) => $.proposal.timeLeft, { timeLeft })}
+                            </Badge>
+                          )}
+                          <Badge variant="secondary" className="gap-1.5 font-normal">
+                            <Tag className="h-3.5 w-3.5" />
+                            {Topic[proposal.topic] ??
+                              t(($) => $.proposal.unknownTopic, { id: proposal.topic })}
+                          </Badge>
+                          {nonNullish(proposal.proposer) && (
+                            <ProposerBadge
+                              proposer={proposal.proposer}
+                              knownNeuronNames={knownNeuronNames}
+                              interactive
+                            />
+                          )}
+                          {proposalUrl && (
+                            <a
+                              href={proposalUrl.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="no-underline"
+                            >
+                              <Badge
+                                variant="secondary"
+                                className="gap-1.5 font-normal hover:bg-secondary/80"
+                              >
+                                <LinkIcon className="h-3.5 w-3.5" />
+                                <span className="max-w-[150px] truncate">
+                                  {proposalUrl.hostname}
+                                </span>
+                              </Badge>
+                              <span className="sr-only">{t(($) => $.common.opensInNewTab)}</span>
+                            </a>
+                          )}
+                        </div>
+                      </CardHeader>
+                      <CardContent className="flex flex-col gap-4">
+                        {spamCheckResult && CheckResultKey.Abusive in spamCheckResult && (
+                          <Alert variant="warning">
+                            <AlertTitle>{t(($) => $.proposal.spamWarning.abusiveTitle)}</AlertTitle>
+                            <AlertDescription>
+                              <p>{t(($) => $.proposal.spamWarning.reasons)}</p>
+                              <ul className="list-inside list-disc">
+                                {spamCheckResult.abusive.map((reason, i) => (
+                                  <li key={i}>{reason}</li>
+                                ))}
+                              </ul>
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                        {spamCheckResult && CheckResultKey.NonActionable in spamCheckResult && (
+                          <Alert variant="warning">
+                            <AlertTitle>
+                              {t(($) => $.proposal.spamWarning.nonActionableTitle)}
+                            </AlertTitle>
+                            <AlertDescription>
+                              <p>{t(($) => $.proposal.spamWarning.reasons)}</p>
+                              <ul className="list-inside list-disc">
+                                {spamCheckResult.nonActionable.map((reason, i) => (
+                                  <li key={i}>{reason}</li>
+                                ))}
+                              </ul>
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                        <MarkdownRenderer content={proposal.proposal?.summary || ''} />
+                      </CardContent>
+                    </Card>
+
+                    {nonNullish(proposal.proposal?.selfDescribingAction) && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>{t(($) => $.proposal.action)}</CardTitle>
+                          <Badge variant="info-subtle" className="w-fit text-xs font-medium">
+                            {proposal.proposal.selfDescribingAction.typeName}
+                          </Badge>
+                        </CardHeader>
+                        <CardContent className="flex flex-col gap-2">
+                          {proposal.proposal.selfDescribingAction.typeDescription && (
+                            <p className="text-sm leading-relaxed text-muted-foreground">
+                              {proposal.proposal.selfDescribingAction.typeDescription}
+                            </p>
+                          )}
+                          <SelfDescribingActionView
+                            action={proposal.proposal.selfDescribingAction}
+                          />
+                        </CardContent>
+                      </Card>
                     )}
-                    <SelfDescribingActionView action={proposal.proposal.selfDescribingAction} />
-                  </CardContent>
-                </Card>
-              )}
+                  </>
+                );
+              }}
             </ProposalDetailsLayout>
           );
         }}
@@ -239,7 +252,7 @@ function ProposalDetailsLayout({
   children,
 }: {
   proposal: ProposalInfo;
-  children: ReactNode;
+  children: (liveProposal: ProposalInfo) => ReactNode;
 }) {
   const isWide = useMediaQuery('(min-width: 80rem)');
   const liveProposal = useLiveProposal(proposal);
@@ -267,7 +280,7 @@ function ProposalDetailsLayout({
       }
     >
       <div className={isWide ? 'flex min-w-0 flex-col gap-6' : 'contents'}>
-        {children}
+        {children(liveProposal)}
         <ProposalVotingHistory proposal={liveProposal} />
         {!isWide && liveActivity}
         <ProposalDetailsVoting proposal={liveProposal} />

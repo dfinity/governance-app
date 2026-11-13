@@ -177,7 +177,8 @@ export const ProposalLiveActivity = ({ proposal, knownNeuronVotes, seenVotes }: 
   const { votes, dataUpdatedAt } = knownNeuronVotes;
   const historyQuery = useProposalTallyHistory(proposal);
   const voteLabel = useVoteLabel();
-  const nowMs = useNow(15_000, live && seenVotes.length > 0);
+  // Runs also after the close, so a highlight that started just before it still ends.
+  const nowMs = useNow(15_000, seenVotes.length > 0);
   const [expanded, setExpanded] = useState(false);
 
   // A failed poll keeps the last votes on screen.
