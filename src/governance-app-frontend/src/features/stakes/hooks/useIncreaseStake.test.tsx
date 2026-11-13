@@ -1,6 +1,11 @@
 import '@/i18n/config';
 
-import { AccountIdentifier, TxTooOldError } from '@icp-sdk/canisters/ledger/icp';
+import {
+  AccountIdentifier,
+  InsufficientFundsError,
+  TxDuplicateError,
+  TxTooOldError,
+} from '@icp-sdk/canisters/ledger/icp';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
@@ -155,6 +160,43 @@ describe('useIncreaseStake', () => {
     expect(mocks.analyticsEvent).toHaveBeenCalledWith('neuron_increase_stake', {
       amount_range: '1-10',
     });
+  });
+
+  it('refreshes the neuron when the retry of a landed session transfer is a duplicate', async () => {
+    mocks.iiGovernance.claimOrRefreshNeuron.mockRejectedValueOnce(new Error('dropped'));
+    const { result, invalidateQueries } = renderIncreaseStake();
+
+    await expect(act(() => result.current.mutateAsync(params))).rejects.toThrow('dropped');
+
+    // The ledger holds the first transfer, so it answers the retry with a duplicate.
+    mocks.iiLedger.transfer.mockRejectedValueOnce(new TxDuplicateError(7n));
+    await act(() => result.current.mutateAsync(params));
+
+    const createdAts = mocks.iiLedger.transfer.mock.calls.map(([args]) => args.createdAt);
+    expect(createdAts).toHaveLength(2);
+    expect(createdAts[0]).toBe(createdAts[1]);
+    expect(mocks.iiGovernance.claimOrRefreshNeuron).toHaveBeenCalledTimes(2);
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: [QUERY_KEYS.NNS_GOVERNANCE.NEURONS],
+    });
+    expect(mocks.analyticsEvent).toHaveBeenCalledWith('neuron_increase_stake', {
+      amount_range: '1-10',
+    });
+
+    // A done top-up starts a new transaction next time.
+    await act(() => result.current.mutateAsync(params));
+    expect(mocks.iiLedger.transfer.mock.calls[2][0].createdAt).not.toBe(createdAts[0]);
+  });
+
+  it('does not refresh the neuron when the ledger rejects a session transfer', async () => {
+    mocks.iiLedger.transfer.mockRejectedValueOnce(new InsufficientFundsError(0n));
+    const { result } = renderIncreaseStake();
+
+    await expect(act(() => result.current.mutateAsync(params))).rejects.toBeInstanceOf(
+      InsufficientFundsError,
+    );
+
+    expect(mocks.iiGovernance.claimOrRefreshNeuron).not.toHaveBeenCalled();
   });
 
   it('transfers with the device behind the approval dialog and refreshes anonymously', async () => {
