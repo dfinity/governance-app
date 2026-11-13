@@ -37,6 +37,7 @@ import {
 import { runOnDevice } from '@common/ledger/deviceQueue';
 import { getLedgerIdentity } from '@common/ledger/session';
 import { II_SIGNER, type Signer } from '@common/ledger/signer';
+import { fetchRegisteredDevicePrincipals } from '@common/queries/nnsDapp';
 
 import { StakingWizardCreateNeuronStep } from '../components/stakingWizard/types';
 import { claimDeviceStake } from '../utils/claimDeviceStake';
@@ -46,7 +47,6 @@ import {
   readPendingDeviceStake,
   writePendingDeviceStake,
 } from '../utils/pendingDeviceStake';
-import { useLedgerSignerPrincipals } from './useNeuronSigner';
 
 type Props = {
   amount: string;
@@ -92,7 +92,6 @@ export function useCreateNeuron(params: Props) {
   const { canister: governanceCanister } = useNnsGovernance();
   const { canister: ledgerCanister } = useIcpLedger();
   const signer = params.signer ?? II_SIGNER;
-  const ledgerPrincipals = useLedgerSignerPrincipals();
 
   const [currentStep, setCurrentStep] = useState<StakingWizardCreateNeuronStep>(
     StakingWizardCreateNeuronStep.CreateNeuron,
@@ -345,11 +344,15 @@ export function useCreateNeuron(params: Props) {
       // Step 5: Set following automatically. The session signs it as controller or hotkey:
       // the device cannot sign `set_following`.
       if (step === StakingWizardCreateNeuronStep.SetFollowing) {
-        const userNeurons = await governanceCanister.listNeurons({
-          includeEmptyNeurons: false,
-          includePublicNeurons: true,
-          certified: true,
-        });
+        // Every registered device counts, also in a browser that cannot sign with it.
+        const [userNeurons, ledgerPrincipals] = await Promise.all([
+          governanceCanister.listNeurons({
+            includeEmptyNeurons: false,
+            includePublicNeurons: true,
+            certified: true,
+          }),
+          fetchRegisteredDevicePrincipals(queryClient),
+        ]);
 
         // Copy only from the user's own neurons that the app lists. `listNeurons` also returns
         // neurons where the user is only a hotkey, and a stranger can add any principal as hotkey.

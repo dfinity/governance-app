@@ -64,13 +64,14 @@ const mocks = vi.hoisted(() => ({
   readPendingDeviceStake: vi.fn(),
   writePendingDeviceStake: vi.fn(),
   clearPendingDeviceStake: vi.fn(),
-  ledgerSignerPrincipals: vi.fn((): string[] => []),
+  getNnsDappAccount: vi.fn(),
 }));
 
 vi.mock('@common/canisters', () => ({
   getNnsGovernanceCanister: mocks.getNnsGovernanceCanister,
   getIcpLedgerCanister: mocks.getIcpLedgerCanister,
   getAnonymousNnsGovernanceCanister: mocks.getAnonymousNnsGovernanceCanister,
+  getNnsDappActor: () => Promise.resolve({ get_account: mocks.getNnsDappAccount }),
 }));
 vi.mock('@common/ledger/session', () => ({
   getLedgerIdentity: () => Promise.resolve(mocks.deviceIdentity),
@@ -94,9 +95,6 @@ vi.mock('@hooks/useInternetIdentity', () => ({
   useInternetIdentity: () => ({
     identity: { getPrincipal: () => Principal.fromText(II_PRINCIPAL) },
   }),
-}));
-vi.mock('./useNeuronSigner', () => ({
-  useLedgerSignerPrincipals: mocks.ledgerSignerPrincipals,
 }));
 vi.mock('@features/analytics/service', () => ({ analytics: { event: mocks.analyticsEvent } }));
 
@@ -191,7 +189,7 @@ let runApprovedDeviceCall: typeof import('@common/ledger/approvedDeviceCall').ru
 describe('useCreateNeuron', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
-    mocks.ledgerSignerPrincipals.mockReturnValue([]);
+    mocks.getNnsDappAccount.mockResolvedValue({ Ok: { hardware_wallet_accounts: [] } });
     clearDeviceApprovals();
     ({ runApprovedDeviceCall } = await vi.importActual<
       typeof import('@common/ledger/approvedDeviceCall')
@@ -685,7 +683,10 @@ describe('useCreateNeuron', () => {
     });
 
     it('copies the following of a neuron that a registered device controls', async () => {
-      mocks.ledgerSignerPrincipals.mockReturnValue([DEVICE_PRINCIPAL]);
+      // No WebHID in the test environment: the device cannot sign here, and still counts.
+      mocks.getNnsDappAccount.mockResolvedValue({
+        Ok: { hardware_wallet_accounts: [{ principal: Principal.fromText(DEVICE_PRINCIPAL) }] },
+      });
       mocks.iiGovernance.listNeurons.mockResolvedValue([
         NEW_NEURON,
         followingNeuron({
