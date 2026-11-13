@@ -42,7 +42,9 @@ const getVoteState = (neuron: NeuronInfo | undefined, proposalId: bigint): Known
 
   if (ballots.length < MAX_RECENT_BALLOTS) return KnownNeuronVoteState.NotVoted;
 
-  // The list is a ring buffer, so the lowest proposal ID marks its oldest end.
+  // The list has no timestamps, so the lowest proposal ID stands for its oldest end. A late vote on
+  // an older proposal can stay after the ballot of this proposal drops out, and then the neuron
+  // shows as not voted. This can happen only near the end of the list, about 10 days after a vote.
   const oldestProposalId = ballots.reduce<bigint | undefined>(
     (oldest, { proposalId: id }) =>
       isNullish(id) || (nonNullish(oldest) && oldest <= id) ? oldest : id,

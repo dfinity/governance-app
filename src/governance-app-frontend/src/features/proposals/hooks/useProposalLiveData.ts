@@ -1,7 +1,9 @@
-import { ProposalInfo, Tally } from '@icp-sdk/canisters/nns';
+import { ProposalInfo, Tally, Topic } from '@icp-sdk/canisters/nns';
 import { isNullish } from '@dfinity/utils';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
+
+import { isActiveKnownNeuron } from '@features/voting/utils/knownNeurons';
 
 import { MILLISECONDS_IN_SECOND } from '@constants/extra';
 import { useNnsGovernance } from '@hooks/governance';
@@ -14,12 +16,19 @@ import { findNewKnownNeuronVotes, getKnownNeuronVotes, KnownNeuronVote } from '.
 // The page polls governance this often while the proposal takes votes and the tab is visible.
 export const LIVE_POLL_INTERVAL_MS = 15_000;
 
+// One read of the known neuron ballots is about 145 KB, so they poll less often than the tally.
+const BALLOTS_POLL_INTERVAL_MS = 60_000;
+
 // A response stamps the time it arrived, not the time governance read it, and the clocks can
 // differ. Only a read this long after the deadline holds the final tally.
 const FINAL_READ_MARGIN_SECONDS = 60;
 
 export const isTakingVotes = (proposal: ProposalInfo): boolean =>
   Number(proposal.deadlineTimestampSeconds ?? 0n) > nowInSeconds();
+
+// True until a read can hold the final result, with the margin above.
+const isBeforeFinalRead = (proposal: ProposalInfo): boolean =>
+  Number(proposal.deadlineTimestampSeconds ?? 0n) + FINAL_READ_MARGIN_SECONDS > nowInSeconds();
 
 // Yes and No only rise, so the tally with more votes is the newer one.
 const isNewerTally = (tally: Tally, than: Tally | undefined) =>
@@ -63,9 +72,11 @@ export const useLiveProposal = (proposal: ProposalInfo): ProposalInfo => {
     },
     // A proposal that closed before the page opened needs no read. One that closes while the page
     // is open gets one read after its deadline, also when the tab comes back from the background.
+    // `list_proposals` leaves out Neuron Management proposals.
     enabled: (query) =>
       ready &&
       !isNullish(proposal.id) &&
+      proposal.topic !== Topic.NeuronManagement &&
       (isTakingVotes(proposal) || query.state.data !== undefined),
     staleTime: (query) => (hasFinalRead(query) ? Infinity : 0),
     refetchInterval: (query) => (hasFinalRead(query) ? false : LIVE_POLL_INTERVAL_MS),
@@ -87,20 +98,20 @@ export const useLiveProposal = (proposal: ProposalInfo): ProposalInfo => {
 
 /**
  * The vote of each active known neuron, read from their recent ballots. A query call, so it is
- * not certified. It polls while the proposal takes votes.
+ * not certified. It polls while the proposal takes votes, and reads one last time after it.
  */
 export const useKnownNeuronVotes = (proposal: ProposalInfo) => {
   const { ready, canister } = useNnsGovernance();
   const knownNeurons = useGovernanceKnownNeurons().data?.response;
-  const live = isTakingVotes(proposal);
-  const neuronIds = knownNeurons?.map(({ id }) => id);
+  const live = isBeforeFinalRead(proposal);
+  const neuronIds = knownNeurons?.filter(isActiveKnownNeuron).map(({ id }) => id);
 
   const query = useQuery({
     queryKey: [
       QUERY_KEYS.NNS_GOVERNANCE.KNOWN_NEURON_BALLOTS,
       neuronIds?.map(String),
       proposal.id?.toString(),
-      // A new key at the deadline reads the ballots one last time.
+      // A new key after the deadline reads the ballots one last time.
       live,
     ],
     queryFn: () =>
@@ -113,8 +124,8 @@ export const useKnownNeuronVotes = (proposal: ProposalInfo) => {
     enabled: ready && !isNullish(neuronIds) && neuronIds.length > 0 && !isNullish(proposal.id),
     // Keeps the grid on screen while the last read at the deadline runs.
     placeholderData: (previous) => previous,
-    staleTime: live ? LIVE_POLL_INTERVAL_MS : Infinity,
-    refetchInterval: live ? LIVE_POLL_INTERVAL_MS : false,
+    staleTime: live ? BALLOTS_POLL_INTERVAL_MS : Infinity,
+    refetchInterval: live ? BALLOTS_POLL_INTERVAL_MS : false,
   });
 
   const votes =
@@ -122,7 +133,7 @@ export const useKnownNeuronVotes = (proposal: ProposalInfo) => {
       ? getKnownNeuronVotes({ knownNeurons, neurons: query.data, proposalId: proposal.id })
       : undefined;
 
-  return { votes, isError: query.isError, dataUpdatedAt: query.dataUpdatedAt };
+  return { votes, dataUpdatedAt: query.dataUpdatedAt };
 };
 
 export type SeenVote = { vote: KnownNeuronVote; seenAtMs: number };

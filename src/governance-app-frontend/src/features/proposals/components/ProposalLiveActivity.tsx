@@ -174,13 +174,14 @@ const TallyChangeRow = ({
 export const ProposalLiveActivity = ({ proposal, knownNeuronVotes, seenVotes }: Props) => {
   const { t } = useTranslation();
   const live = isTakingVotes(proposal);
-  const { votes, isError, dataUpdatedAt } = knownNeuronVotes;
+  const { votes, dataUpdatedAt } = knownNeuronVotes;
   const historyQuery = useProposalTallyHistory(proposal);
   const voteLabel = useVoteLabel();
   const nowMs = useNow(15_000, live && seenVotes.length > 0);
   const [expanded, setExpanded] = useState(false);
 
-  if (isError || !votes) return null;
+  // A failed poll keeps the last votes on screen.
+  if (!votes) return null;
   if (votes.every(({ state }) => state === KnownNeuronVoteState.Unknown)) return null;
 
   const count = (state: KnownNeuronVoteState) => votes.filter((v) => v.state === state).length;

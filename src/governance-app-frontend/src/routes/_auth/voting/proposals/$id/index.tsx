@@ -272,7 +272,12 @@ function ProposalDetailsLayout({
         {!isWide && liveActivity}
         <ProposalDetailsVoting proposal={liveProposal} />
       </div>
-      {isWide && <div className="sticky top-0 min-w-0">{liveActivity}</div>}
+      {/* The rail scrolls on its own when the expanded timeline is taller than the window. */}
+      {isWide && (
+        <div className="sticky top-0 max-h-[calc(100dvh-4rem)] min-w-0 overflow-y-auto">
+          {liveActivity}
+        </div>
+      )}
     </div>
   );
 }
