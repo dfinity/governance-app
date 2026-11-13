@@ -34,14 +34,14 @@ describe('LedgerDevicesMenu', () => {
   });
 
   it('lists one item for each Ledger device', async () => {
-    render(<LedgerDevicesMenu variant="button" onSelectDevice={vi.fn()} />);
+    render(<LedgerDevicesMenu variant="split" onSelectDevice={vi.fn()} />);
 
     await userEvent.click(screen.getByTestId('ledger-devices-menu-trigger'));
 
     const items = screen.getAllByTestId('ledger-show-neurons');
     expect(items).toHaveLength(2);
-    expect(items[0].textContent).toContain('Nano X');
-    expect(items[1].textContent).toContain('Cold storage');
+    expect(items[0].textContent).toBe('Show neurons on Nano X');
+    expect(items[1].textContent).toBe('Show neurons on Cold storage');
   });
 
   it('reports the selected device', async () => {
@@ -59,7 +59,7 @@ describe('LedgerDevicesMenu', () => {
   it('shows nothing without a Ledger device', () => {
     mocks.hardwareWallets.mockReturnValue({ data: [] });
 
-    render(<LedgerDevicesMenu variant="button" onSelectDevice={vi.fn()} />);
+    render(<LedgerDevicesMenu variant="split" onSelectDevice={vi.fn()} />);
 
     expect(screen.queryByTestId('ledger-devices-menu-trigger')).toBeNull();
   });
@@ -67,7 +67,7 @@ describe('LedgerDevicesMenu', () => {
   it('shows nothing in a browser without WebHID', () => {
     mocks.isWebHidSupported.mockReturnValue(false);
 
-    render(<LedgerDevicesMenu variant="button" onSelectDevice={vi.fn()} />);
+    render(<LedgerDevicesMenu variant="split" onSelectDevice={vi.fn()} />);
 
     expect(screen.queryByTestId('ledger-devices-menu-trigger')).toBeNull();
   });

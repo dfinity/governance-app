@@ -104,9 +104,9 @@
   "ledgerDeviceBand": "Ledger · {{name}}",
   "controller": "Controller",
   "ledgerNeurons": {
-    "menu": "Ledger devices",
+    "menu": "Neurons on a Ledger device",
     "emptyLink": "Show neurons on a Ledger device",
-    "showNeurons": "Show neurons",
+    "showNeuronsOn": "Show neurons on {{name}}",
     "title": "Neurons on device",
     "description": "The neurons that {{name}} controls. Add this app as a hotkey to see a neuron in your neurons list.",
     "connecting": "Connect your Ledger device, open the Internet Computer app, and approve the request.",

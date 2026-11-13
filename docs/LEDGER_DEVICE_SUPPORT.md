@@ -315,6 +315,9 @@ nns-dapp.
 - "Show neurons on device": `list_neurons` with the Ledger agent
   (`includeEmptyNeurons: undefined`), table with stake and a per-neuron "Add
   this app as hotkey" (device signs `AddHotkey` with the II principal).
+- Entry point: the Neurons page. A chevron on "Create neuron" opens a menu
+  with "Show neurons on <device>" for each registered device. The empty
+  state has the same menu as a link. The menu needs WebHID.
 - Promote `useAddHotkey` from `src/dev` to a product hook with a `Signer`.
 - Invalidate `NNS_GOVERNANCE.NEURONS` after each hotkey.
 - Neuron card and detail: "Ledger device" tag when the controller is a

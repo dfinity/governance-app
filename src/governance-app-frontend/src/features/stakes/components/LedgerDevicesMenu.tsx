@@ -1,7 +1,6 @@
 import { ChevronDown, Usb } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { useHardwareWalletsMetadata } from '@features/accounts/hooks/useHardwareWalletsMetadata';
 import type { AccountMetadata } from '@features/accounts/types';
 
 import { Button } from '@components/button';
@@ -9,13 +8,15 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@components/DropdownMenu';
-import { isWebHidSupported } from '@common/ledger/webhid';
+
+import { useLedgerMenuDevices } from '../hooks/useLedgerMenuDevices';
 
 type Props = {
-  /** `button` for the page header, `link` for the empty state. */
-  variant: 'button' | 'link';
+  /** `split` joins the right side of the Create neuron button, `link` sits in the empty state. */
+  variant: 'split' | 'link';
   onSelectDevice: (device: AccountMetadata) => void;
 };
 
@@ -25,24 +26,24 @@ type Props = {
  */
 export const LedgerDevicesMenu = ({ variant, onSelectDevice }: Props) => {
   const { t } = useTranslation();
-  const { data: devices } = useHardwareWalletsMetadata();
+  const devices = useLedgerMenuDevices();
 
-  if (devices.length === 0 || !isWebHidSupported()) return null;
+  if (devices.length === 0) return null;
+
+  const label = t(($) => $.neuron.ledgerNeurons.menu);
 
   // Not modal: a modal menu that opens a dialog leaves the page without pointer events.
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        {variant === 'button' ? (
+        {variant === 'split' ? (
           <Button
-            variant="outline"
             size="xl"
-            className="shrink-0"
+            className="rounded-l-none border-l border-primary-foreground/25 px-4 has-[>svg]:px-4"
+            aria-label={label}
+            title={label}
             data-testid="ledger-devices-menu-trigger"
           >
-            <Usb aria-hidden="true" />
-            {/* Icon only on phones, so the Create neuron button keeps its width. */}
-            <span className="sr-only sm:not-sr-only">{t(($) => $.neuron.ledgerNeurons.menu)}</span>
             <ChevronDown aria-hidden="true" />
           </Button>
         ) : (
@@ -53,10 +54,13 @@ export const LedgerDevicesMenu = ({ variant, onSelectDevice }: Props) => {
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        align={variant === 'button' ? 'end' : 'center'}
+        align={variant === 'split' ? 'end' : 'center'}
         collisionPadding={16}
         className="w-64"
       >
+        <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+          {label}
+        </DropdownMenuLabel>
         {devices.map((item) => (
           <DropdownMenuItem
             key={item.accountId}
@@ -64,9 +68,8 @@ export const LedgerDevicesMenu = ({ variant, onSelectDevice }: Props) => {
             data-testid="ledger-show-neurons"
           >
             <Usb aria-hidden="true" />
-            <span className="min-w-0 flex-1 truncate">{item.name}</span>
-            <span className="shrink-0 text-xs text-muted-foreground">
-              {t(($) => $.neuron.ledgerNeurons.showNeurons)}
+            <span className="min-w-0 truncate">
+              {t(($) => $.neuron.ledgerNeurons.showNeuronsOn, { name: item.name })}
             </span>
           </DropdownMenuItem>
         ))}

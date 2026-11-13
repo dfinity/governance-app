@@ -18,6 +18,7 @@ import {
   EarningsCard,
   EngagementCard,
 } from '@features/stakes/components/summaryCards';
+import { useLedgerMenuDevices } from '@features/stakes/hooks/useLedgerMenuDevices';
 
 import { Button } from '@components/button';
 import { PageHeader } from '@components/PageHeader';
@@ -29,6 +30,7 @@ import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import type { CertifiedData } from '@typings/queries';
 import { bigIntDiv, stringToBigInt } from '@utils/bigInt';
 import { warningNotification } from '@utils/notification';
+import { cn } from '@utils/shadcn';
 import { prefetchNeuronsRoute } from '@common/queries/routeLoaders';
 
 import i18n from '@/i18n/config';
@@ -109,6 +111,7 @@ function NeuronsComponent() {
     setLedgerDevice(device);
     setIsLedgerDialogOpen(true);
   };
+  const hasLedgerMenu = useLedgerMenuDevices().length > 0;
 
   const hasNeurons = neuronsQuery.isSuccess && (neuronsQuery.data?.response.length ?? 0) > 0;
 
@@ -119,18 +122,18 @@ function NeuronsComponent() {
           title={t(($) => $.neuron.title)}
           description={t(($) => $.neuron.description)}
           actions={
-            <>
-              <LedgerDevicesMenu variant="button" onSelectDevice={openLedgerDevice} />
+            <div className="flex flex-1 sm:flex-initial">
               <Button
                 onClick={() => handleOpenStakingWizard('neurons_header')}
                 data-testid="staking-wizard-trigger-btn"
-                className="flex-1 sm:flex-initial"
+                className={cn('flex-1 sm:flex-initial', hasLedgerMenu && 'rounded-r-none')}
                 size="xl"
               >
                 <Plus />
                 {t(($) => $.stakeWizardModal.title)}
               </Button>
-            </>
+              <LedgerDevicesMenu variant="split" onSelectDevice={openLedgerDevice} />
+            </div>
           }
         />
       )}
