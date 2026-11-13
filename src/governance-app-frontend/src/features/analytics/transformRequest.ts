@@ -15,9 +15,30 @@ export const getCampaignParams = (search: string): [string, string][] => {
   });
 };
 
+const getHostname = (url: string): string | undefined => {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return undefined;
+  }
+};
+
 /**
- * Adds the UTM parameters of the landing URL to the payload URL, unless the payload URL has
- * its own. A redirect, for example from `/` to `/dashboard`, drops the query of the landing URL.
+ * Removes the query and the hash of the page URL, and a referrer from the same host. They can
+ * hold a neuron ID or an account ID. An external referrer stays, because it sets the visit source.
+ */
+export const removeUrlParams = (payload: PlausibleRequestPayload): PlausibleRequestPayload => {
+  const { u, r } = payload;
+  return {
+    ...payload,
+    u: u.split(/[?#]/)[0],
+    r: r && getHostname(r) === getHostname(u) ? null : r,
+  };
+};
+
+/**
+ * Adds the UTM parameters of the landing URL to the payload URL.
+ * A redirect, for example from `/` to `/dashboard`, drops the query of the landing URL.
  */
 export const addCampaignParams = (
   payload: PlausibleRequestPayload,
@@ -31,8 +52,6 @@ export const addCampaignParams = (
   } catch {
     return payload;
   }
-
-  if (CAMPAIGN_PARAMS.some((key) => url.searchParams.has(key))) return payload;
 
   for (const [key, value] of campaign) url.searchParams.set(key, value);
   return { ...payload, u: url.toString() };

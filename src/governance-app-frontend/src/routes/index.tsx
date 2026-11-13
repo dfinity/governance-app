@@ -50,7 +50,7 @@ export const Route = createFileRoute('/')({
 });
 
 function LoginPage() {
-  const { identity, canLogin, login, isLoggingIn } = useInternetIdentity();
+  const { identity, canLogin, login, isLoggingIn, isFinishingLogin } = useInternetIdentity();
   const { t } = useTranslation();
 
   useLoginAnalytics();
@@ -100,7 +100,7 @@ function LoginPage() {
                 <AnimatedGovernanceLogo />
                 <p className="text-lg font-medium">{t(($) => $.login.authenticating)}</p>
               </div>
-              {isLoggingIn && <LoginRestart onRestart={login} />}
+              {isLoggingIn && <LoginRestart onRestart={login} isFinishing={isFinishingLogin} />}
             </div>
           </div>
         )}

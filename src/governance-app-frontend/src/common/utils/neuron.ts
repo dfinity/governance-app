@@ -535,6 +535,25 @@ export const isUserHotkeyOnly = ({
   !isNeuronControlledByLedger({ neuron, ledgerPrincipals });
 
 /**
+ * Returns true if the user controls the neuron: the controller is the Internet Identity principal
+ * or a registered Ledger device in `ledgerPrincipals`. A hotkey is not enough, because any
+ * controller can add any principal as hotkey without its consent.
+ */
+export const isUserController = ({
+  neuron,
+  principalId,
+  ledgerPrincipals,
+}: {
+  neuron: NeuronInfo;
+  principalId?: string | null;
+  ledgerPrincipals: readonly string[];
+}): boolean => {
+  const controller = neuron.fullNeuron?.controller;
+  if (!controller) return false;
+  return controller === principalId || ledgerPrincipals.includes(controller);
+};
+
+/**
  * Returns true if the current user is the controller or a hotkey of the neuron.
  * Both can call `refreshVotingPower`.
  */

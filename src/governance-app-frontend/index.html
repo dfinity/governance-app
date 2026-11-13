@@ -11,6 +11,7 @@
       `RootComponent` removes the `data-static-head` tags once `HeadContent` renders its own.
       On `/voting/proposals/<id>`, the backend writes the proposal into the title, description,
       og:title, og:description, og:url, twitter:title, and twitter:description tags.
+      It also adds twitter:label and twitter:data tags after twitter:image:alt.
     -->
     <title data-static-head>ICP governance &amp; voting | Network Nervous System</title>
     <meta
@@ -28,11 +29,15 @@
       content="Participate in decentralized governance on the Internet Computer. Lock ICP, vote on proposals, and mint rewards."
     />
     <meta property="og:url" content="https://nns.icp.net/" />
-    <meta property="og:image" content="https://nns.icp.net/og-image.jpg" />
+    <!--
+      Slack reads only og:image and crops it to a near-square box, so og:image is square.
+      X reads twitter:image, which stays at 1200x630 for its large card.
+    -->
+    <meta property="og:image" content="https://nns.icp.net/og-image-square.jpg" />
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Internet Computer Governance" />
+    <meta property="og:image:height" content="1200" />
+    <meta property="og:image:alt" content="Network Nervous System" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -42,7 +47,7 @@
       content="Participate in decentralized governance on the Internet Computer. Lock ICP, vote on proposals, and mint rewards."
     />
     <meta name="twitter:image" content="https://nns.icp.net/og-image.jpg" />
-    <meta name="twitter:image:alt" content="Internet Computer Governance" />
+    <meta name="twitter:image:alt" content="Network Nervous System" />
 
     <!-- Favicon (colored infinity mark, reads on both light and dark) -->
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
@@ -65,6 +70,9 @@
     <!-- Theme Color -->
     <meta name="theme-color" content="#faf9f5" />
 
+    <!-- Sets the theme and picks the static frame. The CSP blocks inline scripts. -->
+    <script src="/startup-v1.js"></script>
+
     <!-- Apple iOS Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -77,9 +85,257 @@
 
     <!-- Prevent telephone number detection -->
     <meta name="format-detection" content="telephone=no" />
+
+    <!-- Styles of the static frame in `body`. -->
+    <style>
+      [data-startup='app'],
+      [data-nav-item='accounts'] {
+        display: none;
+      }
+      html[data-session] [data-startup='login'] {
+        display: none;
+      }
+      html[data-session] [data-startup='app'],
+      html[data-accounts] [data-nav-item='accounts'] {
+        display: flex;
+      }
+      html[data-nav='dashboard'] [data-nav-item='dashboard'],
+      html[data-nav='accounts'] [data-nav-item='accounts'],
+      html[data-nav='neurons'] [data-nav-item='neurons'],
+      html[data-nav='voting'] [data-nav-item='voting'],
+      html[data-nav='settings'] [data-nav-item='settings'] {
+        --startup-active-bar: var(--primary);
+        --startup-active-row: color-mix(in oklab, var(--primary) 10%, transparent);
+        color: var(--primary);
+      }
+      aside [data-nav-item] {
+        background: var(--startup-active-row);
+      }
+      aside [data-nav-item]::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        width: 3px;
+        height: 1.5rem;
+        border-radius: 9999px;
+        background: var(--startup-active-bar);
+      }
+      @media (max-width: 1023px) {
+        html[data-detail] [data-startup-bottom] {
+          display: none;
+        }
+      }
+    </style>
   </head>
 
   <body>
+    <!--
+      Static frame: the first paint, before the JavaScript arrives. `main.tsx` removes it when React
+      first renders. `public/startup-v1.js` picks the frame with the `html` data attributes.
+      - The login frame has only the background and the logo. `LoginPage` fades in the rest.
+      - The app frame matches `MainLayout`, `Sidebar`, and `BottomNav`. Keep the classes, the nav
+        order, and the labels (`common.dashboard`, `common.accounts`, ...) in sync.
+    -->
+    <div id="startup-frame" aria-hidden="true">
+      <svg width="0" height="0" class="absolute">
+        <symbol id="startup-wordmark" viewBox="261 16 559 76" fill="currentColor">
+          <path
+            d="M286.456 43a1 1 0 0 1-1 1h-3.818a1 1 0 0 1-.842-.46l-11.619-18.151V43a1 1 0 0 1-1 1h-3.106a1 1 0 0 1-1-1V18.767a1 1 0 0 1 1-1h4.812a1 1 0 0 1 .846.468L281.35 35.12V18.767a1 1 0 0 1 1-1h3.106a1 1 0 0 1 1 1zM322.428 43a1 1 0 0 1-1 1H306V17.767h15.428a1 1 0 0 1 1 1v2.81a1 1 0 0 1-1 1h-10.322v5.994h9.249a1 1 0 0 1 1 1v2.551a1 1 0 0 1-1 1h-9.249v6.068h10.322a1 1 0 0 1 1 1zM360 21.614a1 1 0 0 1-1 1h-7.288V43a1 1 0 0 1-1 1h-3.143a1 1 0 0 1-1-1V22.614h-7.288a1 1 0 0 1-1-1v-2.847a1 1 0 0 1 1-1H359a1 1 0 0 1 1 1zM401.547 35.897l4.541-17.383a1 1 0 0 1 .967-.747h3.131a1 1 0 0 1 .964 1.266l-6.699 24.233a1 1 0 0 1-.964.734h-3.764a1 1 0 0 1-.952-.695L393 25.315l-5.771 17.99a1 1 0 0 1-.952.695h-3.839a1 1 0 0 1-.963-.732l-6.734-24.233a1 1 0 0 1 .964-1.268h3.318a1 1 0 0 1 .966.743l4.612 17.313 5.586-17.362a1 1 0 0 1 .952-.694h3.834c.434 0 .818.28.951.693zM432 30.865c0 5.92 4.144 8.732 8.177 8.732 4.07 0 8.214-2.812 8.214-8.732s-4.144-8.732-8.214-8.732c-4.033 0-8.177 2.812-8.177 8.732m-5.291.037c0-8.473 6.364-13.69 13.468-13.69 7.141 0 13.505 5.217 13.505 13.69 0 8.436-6.364 13.653-13.505 13.653-7.104 0-13.468-5.217-13.468-13.653M484.915 44a1 1 0 0 1-.891-.546l-4.865-9.555h-2.664V43a1 1 0 0 1-1 1h-3.143a1 1 0 0 1-1-1V17.767h10.249c5.106 0 8.362 3.515 8.362 8.066 0 3.663-2.146 6.438-5.587 7.437l4.857 9.266a1 1 0 0 1-.886 1.464zm-8.42-14.504h4.144c2.59 0 4.107-1.48 4.107-3.626 0-2.22-1.517-3.663-4.107-3.663h-4.144zM524.504 44c-.326 0-.631-.16-.819-.426l-7.323-10.452-3.256 3.589V43a1 1 0 0 1-1 1H509a1 1 0 0 1-1-1V18.767a1 1 0 0 1 1-1h3.106a1 1 0 0 1 1 1v10.877l10.21-11.54a1 1 0 0 1 .748-.337h3.986c.868 0 1.324 1.03.74 1.673l-8.876 9.76 9.355 13.222a1 1 0 0 1-.816 1.578zM591.039 43a1 1 0 0 1-1 1h-3.818a1 1 0 0 1-.842-.46L573.76 25.388V43a1 1 0 0 1-1 1h-3.106a1 1 0 0 1-1-1V18.767a1 1 0 0 1 1-1h4.812c.344 0 .663.177.846.468l10.621 16.885V18.767a1 1 0 0 1 1-1h3.106a1 1 0 0 1 1 1zM626.5 43a1 1 0 0 1-1 1h-14.428a1 1 0 0 1-1-1V18.767a1 1 0 0 1 1-1H625.5a1 1 0 0 1 1 1v2.81a1 1 0 0 1-1 1h-10.322v5.994h9.249a1 1 0 0 1 1 1v2.551a1 1 0 0 1-1 1h-9.249v6.068H625.5a1 1 0 0 1 1 1zM658.563 44a1 1 0 0 1-.891-.546l-4.865-9.555h-2.664V43a1 1 0 0 1-1 1H646a1 1 0 0 1-1-1V18.767a1 1 0 0 1 1-1h9.249c5.106 0 8.362 3.515 8.362 8.066 0 3.663-2.146 6.438-5.587 7.437l4.857 9.266a1 1 0 0 1-.886 1.464zm-8.42-14.504h4.144c2.59 0 4.107-1.48 4.107-3.626 0-2.22-1.517-3.663-4.107-3.663h-4.144zM690.753 37.266l6.61-18.83a1 1 0 0 1 .944-.669h3.255a1 1 0 0 1 .938 1.348l-8.989 24.233a1 1 0 0 1-.938.652h-3.861a1 1 0 0 1-.938-.653l-8.955-24.233a1 1 0 0 1 .938-1.347h3.442a1 1 0 0 1 .944.669zM722.823 30.865c0 5.92 4.144 8.732 8.177 8.732 4.07 0 8.214-2.812 8.214-8.732s-4.144-8.732-8.214-8.732c-4.033 0-8.177 2.812-8.177 8.732m-5.291.037c0-8.473 6.364-13.69 13.468-13.69 7.141 0 13.505 5.217 13.505 13.69 0 8.436-6.364 13.653-13.505 13.653-7.104 0-13.468-5.217-13.468-13.653M772.064 44.592c-5.587 0-10.064-3.441-10.064-9.879V18.767a1 1 0 0 1 1-1h3.106a1 1 0 0 1 1 1v15.576c0 3.441 1.924 5.254 4.958 5.254 3.108 0 4.995-1.813 4.995-5.254V18.767a1 1 0 0 1 1-1h3.106a1 1 0 0 1 1 1v15.946c0 6.438-4.477 9.879-10.101 9.879M818.142 23.144c.154.49-.149.99-.64 1.141l-2.645.81c-.574.176-1.167-.196-1.413-.743-.573-1.278-1.865-2.626-4.438-2.626-2.479 0-4.107 1.591-4.107 3.33 0 1.443.925 2.59 2.849 2.96l3.663.703c4.773.925 7.326 4.033 7.326 7.733 0 4.033-3.367 8.103-9.472 8.103-6.437 0-9.547-3.833-10.298-7.367-.103-.483.216-.94.694-1.068l2.754-.731c.601-.16 1.194.267 1.368.863.608 2.083 2.388 3.752 5.519 3.752 2.738 0 4.255-1.369 4.255-3.219 0-1.517-1.147-2.701-3.182-3.108l-3.663-.74c-4.181-.851-6.882-3.552-6.882-7.511 0-4.662 4.181-8.214 9.139-8.214 5.751 0 8.299 3.142 9.173 5.932M281.533 69.144c.153.49-.15.99-.641 1.141l-2.645.81c-.573.176-1.167-.196-1.412-.743-.574-1.278-1.866-2.626-4.439-2.626-2.479 0-4.107 1.591-4.107 3.33 0 1.443.925 2.59 2.849 2.96l3.663.703c4.773.925 7.326 4.033 7.326 7.733 0 4.033-3.367 8.103-9.472 8.103-6.437 0-9.547-3.833-10.298-7.367-.103-.483.217-.94.694-1.068l2.755-.731c.6-.16 1.193.267 1.367.864.609 2.082 2.388 3.751 5.519 3.751 2.738 0 4.255-1.369 4.255-3.219 0-1.517-1.147-2.701-3.182-3.108l-3.663-.74c-4.181-.851-6.882-3.552-6.882-7.511 0-4.662 4.181-8.214 9.139-8.214 5.751 0 8.299 3.142 9.174 5.932M305.139 78.974l-8.228-13.692a1 1 0 0 1 .857-1.515h3.643a1 1 0 0 1 .87.508l5.596 9.889 5.596-9.89a1 1 0 0 1 .87-.507h3.373a1 1 0 0 1 .855 1.52l-8.326 13.687V90h-5.106zM352.906 69.144c.153.49-.15.99-.641 1.141l-2.645.81c-.573.176-1.167-.196-1.412-.743-.574-1.278-1.866-2.626-4.439-2.626-2.479 0-4.107 1.591-4.107 3.33 0 1.443.925 2.59 2.849 2.96l3.663.703c4.773.925 7.326 4.033 7.326 7.733 0 4.033-3.367 8.103-9.472 8.103-6.437 0-9.547-3.833-10.298-7.367-.102-.483.217-.94.694-1.068l2.755-.731c.6-.16 1.193.267 1.368.864.608 2.082 2.387 3.751 5.518 3.751 2.738 0 4.255-1.369 4.255-3.219 0-1.517-1.147-2.701-3.182-3.108l-3.663-.74c-4.181-.851-6.882-3.552-6.882-7.511 0-4.662 4.181-8.214 9.139-8.214 5.751 0 8.299 3.142 9.174 5.932M390.5 67.614a1 1 0 0 1-1 1h-7.288V89a1 1 0 0 1-1 1h-3.143a1 1 0 0 1-1-1V68.614h-7.288a1 1 0 0 1-1-1v-2.847a1 1 0 0 1 1-1H389.5a1 1 0 0 1 1 1zM423.928 89a1 1 0 0 1-1 1H408.5a1 1 0 0 1-1-1V64.767a1 1 0 0 1 1-1h14.428a1 1 0 0 1 1 1v2.81a1 1 0 0 1-1 1h-10.322v5.994h9.249a1 1 0 0 1 1 1v2.551a1 1 0 0 1-1 1h-9.249v6.068h10.322a1 1 0 0 1 1 1zM471.267 89a1 1 0 0 1-1 1h-3.032a1 1 0 0 1-1-1V71.611l-7.293 17.769a1 1 0 0 1-.926.62H455.1a1 1 0 0 1-.924-.618l-7.292-17.623V89a1 1 0 0 1-1 1H443a1 1 0 0 1-1-1V64.767a1 1 0 0 1 1-1h5.067a1 1 0 0 1 .923.616l7.625 18.328 7.443-18.32a1 1 0 0 1 .926-.624h5.283a1 1 0 0 1 1 1z"
+          />
+        </symbol>
+        <symbol id="startup-dashboard" viewBox="0 0 24 24">
+          <g
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+          >
+            <rect width="7" height="9" x="3" y="3" rx="1" />
+            <rect width="7" height="5" x="14" y="3" rx="1" />
+            <rect width="7" height="9" x="14" y="12" rx="1" />
+            <rect width="7" height="5" x="3" y="16" rx="1" />
+          </g>
+        </symbol>
+        <symbol id="startup-accounts" viewBox="0 0 24 24">
+          <g
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+          >
+            <path
+              d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"
+            />
+            <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4" />
+          </g>
+        </symbol>
+        <symbol id="startup-neurons" viewBox="0 0 20 20">
+          <g
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+          >
+            <circle cx="10" cy="10.121" r="1.875" />
+            <circle cx="7.5" cy="4.496" r="1.875" />
+            <circle cx="15.625" cy="8.246" r="1.875" />
+            <circle cx="15.625" cy="14.496" r="1.875" />
+            <circle cx="4.375" cy="15.121" r="1.875" />
+            <path
+              d="M9.242 8.41 8.258 6.207M13.844 8.84l-2.063.687M14.148 13.348l-2.671-2.079M8.602 11.363l-2.829 2.516"
+            />
+          </g>
+        </symbol>
+        <symbol id="startup-voting" viewBox="0 0 24 24">
+          <g
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+          >
+            <path d="m9 12 2 2 4-4" />
+            <path d="M5 7c0-1.1.9-2 2-2h10a2 2 0 0 1 2 2v12H5V7Z" />
+            <path d="M22 19H2" />
+          </g>
+        </symbol>
+        <symbol id="startup-settings" viewBox="0 0 24 24">
+          <g
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+          >
+            <path
+              d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"
+            />
+            <circle cx="12" cy="12" r="3" />
+          </g>
+        </symbol>
+      </svg>
+      <div data-startup="login" class="relative isolate min-h-dvh w-full font-sans text-foreground">
+        <div class="absolute inset-0 z-0 overflow-hidden">
+          <div class="absolute inset-0 bg-background"></div>
+          <div
+            class="icp-grid-paper-overlay [--icp-grid-line:rgba(26,26,26,0.04)] dark:[--icp-grid-line:rgba(240,235,224,0.05)]"
+          ></div>
+        </div>
+        <div
+          class="relative z-10 flex min-h-dvh w-full flex-col justify-between px-4 pt-[calc(2.5rem+env(safe-area-inset-top))] pb-[calc(2.5rem+env(safe-area-inset-bottom))] 3xl:mx-auto 3xl:max-w-[2000px] sm:p-12"
+        >
+          <div class="relative flex flex-col gap-6 md:mb-12 md:gap-0">
+            <div class="relative flex items-start justify-between gap-4">
+              <div class="flex w-fit items-center gap-4">
+                <img
+                  src="/infinity-mark.png"
+                  alt=""
+                  width="195"
+                  height="92"
+                  class="h-7 w-auto lg:h-8"
+                /><svg
+                  class="h-[1.625rem] w-auto text-foreground lg:h-7"
+                  style="aspect-ratio: 559 / 76"
+                >
+                  <use href="#startup-wordmark" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-startup="app" class="relative z-10 h-dvh w-full">
+        <aside
+          class="sticky top-0 z-20 hidden h-full w-80 flex-col border-r bg-background text-sm lg:flex"
+        >
+          <div class="flex items-center gap-3 px-6 pt-8 pb-6">
+            <img src="/infinity-mark.png" alt="" width="195" height="92" class="h-7 w-auto" /><svg
+              class="h-[1.625rem] w-auto text-foreground"
+              style="aspect-ratio: 559 / 76"
+            >
+              <use href="#startup-wordmark" />
+            </svg>
+          </div>
+          <div class="flex-1 space-y-1 p-2">
+            <div
+              data-nav-item="dashboard"
+              class="relative flex items-center gap-3 rounded-md px-4 py-3 text-foreground-secondary"
+            >
+              <svg class="size-5"><use href="#startup-dashboard" /></svg><span>Dashboard</span>
+            </div>
+            <div
+              data-nav-item="accounts"
+              class="relative flex items-center gap-3 rounded-md px-4 py-3 text-foreground-secondary"
+            >
+              <svg class="size-5"><use href="#startup-accounts" /></svg><span>ICP accounts</span>
+            </div>
+            <div
+              data-nav-item="neurons"
+              class="relative flex items-center gap-3 rounded-md px-4 py-3 text-foreground-secondary"
+            >
+              <svg class="size-5"><use href="#startup-neurons" /></svg><span>Voting neurons</span>
+            </div>
+            <div
+              data-nav-item="voting"
+              class="relative flex items-center gap-3 rounded-md px-4 py-3 text-foreground-secondary"
+            >
+              <svg class="size-5"><use href="#startup-voting" /></svg
+              ><span>Vote for proposals</span>
+            </div>
+            <div
+              data-nav-item="settings"
+              class="relative flex items-center gap-3 rounded-md px-4 py-3 text-foreground-secondary"
+            >
+              <svg class="size-5"><use href="#startup-settings" /></svg><span>Settings</span>
+            </div>
+          </div>
+          <div class="border-t p-3"><div class="h-12"></div></div>
+        </aside>
+        <div class="flex h-full w-full flex-col overflow-hidden">
+          <div class="relative flex-1 bg-main-content"></div>
+          <div
+            data-startup-bottom
+            class="z-50 shrink-0 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm lg:hidden"
+          >
+            <div class="flex h-13 w-full">
+              <div
+                data-nav-item="dashboard"
+                class="flex w-full flex-col items-center justify-center text-foreground-secondary"
+              >
+                <svg class="size-6"><use href="#startup-dashboard" /></svg>
+              </div>
+              <div
+                data-nav-item="accounts"
+                class="flex w-full flex-col items-center justify-center text-foreground-secondary"
+              >
+                <svg class="size-6"><use href="#startup-accounts" /></svg>
+              </div>
+              <div
+                data-nav-item="neurons"
+                class="flex w-full flex-col items-center justify-center text-foreground-secondary"
+              >
+                <svg class="size-6"><use href="#startup-neurons" /></svg>
+              </div>
+              <div
+                data-nav-item="voting"
+                class="flex w-full flex-col items-center justify-center text-foreground-secondary"
+              >
+                <svg class="size-6"><use href="#startup-voting" /></svg>
+              </div>
+              <div
+                data-nav-item="settings"
+                class="flex w-full flex-col items-center justify-center text-foreground-secondary"
+              >
+                <svg class="size-6"><use href="#startup-settings" /></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="root"></div>
     <div id="notifications"></div>
     <script type="module" src="/src/main.tsx"></script>

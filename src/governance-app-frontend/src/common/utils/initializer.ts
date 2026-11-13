@@ -1,6 +1,8 @@
 import { QueryClient } from '@tanstack/react-query';
 import { createRouter } from '@tanstack/react-router';
 
+import { RootError } from '@components/RootError';
+
 import { routeTree } from '@/routeTree.gen';
 
 import { isE2E } from './e2e';
@@ -41,6 +43,8 @@ export const routerConfig = createRouter({
   // chunk is still downloading, instead of waiting for the component to mount.
   context: { queryClient: queryClientConfig },
   defaultPreload: 'intent',
+  // In place of the plain router screen, for an error in a route or a loader.
+  defaultErrorComponent: RootError,
   defaultPendingMs: 100,
   defaultPendingMinMs: 300,
 });
