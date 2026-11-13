@@ -2,9 +2,11 @@ import '@/i18n/config';
 
 import { Topic } from '@icp-sdk/canisters/nns';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import { DIALOG_RESET_DELAY_MS } from '@constants/extra';
 
 import { MAX_FOLLOWEES_PER_TOPIC } from '../utils/topicFollowing';
 import { FolloweePicker } from './FolloweePicker';
@@ -48,6 +50,10 @@ const addCustomNeurons = async (user: ReturnType<typeof userEvent.setup>, neuron
 };
 
 describe('FolloweePicker', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('blocks Next above the followee limit', async () => {
     const user = userEvent.setup({ delay: null });
     renderPicker();
@@ -80,6 +86,39 @@ describe('FolloweePicker', () => {
     await user.click(screen.getByTestId(`picker-topic-${Topic.Governance}`));
     expect(screen.getByTestId('picker-followee-limit').textContent).toContain('Governance');
     expect(screen.getByTestId('picker-followee-limit').textContent).not.toContain('SNS');
+    expect(screen.getByTestId('picker-apply-btn')).toHaveProperty('disabled', true);
+  });
+
+  it('starts from the first step when it reopens before the delayed reset', () => {
+    vi.useFakeTimers();
+    const client = new QueryClient();
+    const picker = (open: boolean) => (
+      <QueryClientProvider client={client}>
+        <FolloweePicker
+          open={open}
+          onOpenChange={() => {}}
+          userNeurons={[]}
+          currentFolloweesMap={new Map()}
+        />
+      </QueryClientProvider>
+    );
+    const { rerender } = render(picker(true));
+
+    fireEvent.change(screen.getByTestId('picker-custom-id-input'), { target: { value: '7' } });
+    fireEvent.click(screen.getByTestId('picker-custom-id-add'));
+    fireEvent.click(screen.getByTestId('picker-next-btn'));
+    fireEvent.click(screen.getByTestId(`picker-topic-${Topic.Governance}`));
+    fireEvent.click(screen.getByTestId('picker-apply-btn'));
+    expect(screen.getByTestId('picker-confirm-btn')).toBeTruthy();
+
+    rerender(picker(false));
+    act(() => {
+      vi.advanceTimersByTime(DIALOG_RESET_DELAY_MS - 1);
+    });
+    rerender(picker(true));
+
+    expect(screen.queryByTestId('picker-confirm-btn')).toBeNull();
+    expect(screen.getByTestId('picker-next-btn')).toHaveProperty('disabled', true);
     expect(screen.getByTestId('picker-apply-btn')).toHaveProperty('disabled', true);
   });
 });
