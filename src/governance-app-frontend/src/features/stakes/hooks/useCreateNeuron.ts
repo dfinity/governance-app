@@ -27,7 +27,7 @@ import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { bigIntMul } from '@utils/bigInt';
 import { isCertifiedRejectError } from '@utils/errors';
 import { duplicateTransferOf } from '@utils/errors/duplicateTransfer';
-import { formatDissolveDelay } from '@utils/neuron';
+import { formatDissolveDelay, isNonEmptyNeuron, isUserController } from '@utils/neuron';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 import { getIcpLedgerCanister, getNnsGovernanceCanister } from '@common/canisters';
 import {
@@ -46,6 +46,7 @@ import {
   readPendingDeviceStake,
   writePendingDeviceStake,
 } from '../utils/pendingDeviceStake';
+import { useLedgerSignerPrincipals } from './useNeuronSigner';
 
 type Props = {
   amount: string;
@@ -91,6 +92,7 @@ export function useCreateNeuron(params: Props) {
   const { canister: governanceCanister } = useNnsGovernance();
   const { canister: ledgerCanister } = useIcpLedger();
   const signer = params.signer ?? II_SIGNER;
+  const ledgerPrincipals = useLedgerSignerPrincipals();
 
   const [currentStep, setCurrentStep] = useState<StakingWizardCreateNeuronStep>(
     StakingWizardCreateNeuronStep.CreateNeuron,
@@ -344,12 +346,20 @@ export function useCreateNeuron(params: Props) {
       // the device cannot sign `set_following`.
       if (step === StakingWizardCreateNeuronStep.SetFollowing) {
         const userNeurons = await governanceCanister.listNeurons({
-          includeEmptyNeurons: true,
+          includeEmptyNeurons: false,
           includePublicNeurons: true,
           certified: true,
         });
 
-        const otherNeurons = userNeurons.filter((n) => n.neuronId !== id);
+        // Copy only from the user's own neurons that the app lists. `listNeurons` also returns
+        // neurons where the user is only a hotkey, and a stranger can add any principal as hotkey.
+        const principalId = identity.getPrincipal().toText();
+        const otherNeurons = userNeurons.filter(
+          (n) =>
+            n.neuronId !== id &&
+            isNonEmptyNeuron(n) &&
+            isUserController({ neuron: n, principalId, ledgerPrincipals }),
+        );
 
         if (otherNeurons.length > 0) {
           const consistentFollowees = getConsistentTopicFollowees(otherNeurons);

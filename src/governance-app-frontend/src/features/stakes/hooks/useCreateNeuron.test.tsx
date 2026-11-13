@@ -3,7 +3,9 @@ import '@/i18n/config';
 import { TxDuplicateError, TxTooOldError } from '@icp-sdk/canisters/ledger/icp';
 import {
   CouldNotClaimNeuronError,
+  type NeuronInfo,
   NeuronState,
+  Topic,
   UnrecognizedTypeError,
 } from '@icp-sdk/canisters/nns';
 import { Principal } from '@icp-sdk/core/principal';
@@ -62,6 +64,7 @@ const mocks = vi.hoisted(() => ({
   readPendingDeviceStake: vi.fn(),
   writePendingDeviceStake: vi.fn(),
   clearPendingDeviceStake: vi.fn(),
+  ledgerSignerPrincipals: vi.fn((): string[] => []),
 }));
 
 vi.mock('@common/canisters', () => ({
@@ -91,6 +94,9 @@ vi.mock('@hooks/useInternetIdentity', () => ({
   useInternetIdentity: () => ({
     identity: { getPrincipal: () => Principal.fromText(II_PRINCIPAL) },
   }),
+}));
+vi.mock('./useNeuronSigner', () => ({
+  useLedgerSignerPrincipals: mocks.ledgerSignerPrincipals,
 }));
 vi.mock('@features/analytics/service', () => ({ analytics: { event: mocks.analyticsEvent } }));
 
@@ -134,6 +140,34 @@ const renderCreateNeuron = ({ signer, autoStake = true, dissolving = false }: Op
   );
 };
 
+/** A neuron with a stake and one followee on the Governance topic. */
+const followingNeuron = ({
+  neuronId,
+  controller,
+  hotKeys = [],
+  followee,
+  stake = 100_000_000n,
+}: {
+  neuronId: bigint;
+  controller: string;
+  hotKeys?: string[];
+  followee: bigint;
+  stake?: bigint;
+}): NeuronInfo =>
+  mockNeuron({
+    neuronId,
+    fullNeuron: {
+      id: neuronId,
+      controller,
+      hotKeys,
+      cachedNeuronStake: stake,
+      followees: [{ topic: Topic.Governance, followees: [followee] }],
+    },
+  });
+
+const STRANGER_PRINCIPAL = '2vxsx-fae';
+const NEW_NEURON = mockNeuron({ neuronId: 42n, fullNeuron: { controller: II_PRINCIPAL } });
+
 /** The description of every device approval, in the order the hook asked for them. */
 const approvalDescriptions = () =>
   mocks.runApprovedDeviceCall.mock.calls.map(([, , options]) => options.description);
@@ -157,6 +191,7 @@ let runApprovedDeviceCall: typeof import('@common/ledger/approvedDeviceCall').ru
 describe('useCreateNeuron', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
+    mocks.ledgerSignerPrincipals.mockReturnValue([]);
     clearDeviceApprovals();
     ({ runApprovedDeviceCall } = await vi.importActual<
       typeof import('@common/ledger/approvedDeviceCall')
@@ -625,5 +660,100 @@ describe('useCreateNeuron', () => {
 
     expect(result.current.isTransferDone).toBe(false);
     expect(result.current.currentStep).toBe(StakingWizardCreateNeuronStep.CreateNeuron);
+  });
+
+  describe('following step', () => {
+    const governanceFollowees = (followee: bigint) =>
+      expect.arrayContaining([{ topic: Topic.Governance, followees: [followee] }]);
+
+    it('copies the following of a neuron the user controls', async () => {
+      mocks.iiGovernance.listNeurons.mockResolvedValue([
+        NEW_NEURON,
+        followingNeuron({ neuronId: 7n, controller: II_PRINCIPAL, followee: 1111n }),
+      ]);
+      const { result } = renderCreateNeuron({ signer: II_SIGNER });
+
+      await act(() => result.current.mutateAsync());
+
+      expect(mocks.iiGovernance.listNeurons).toHaveBeenCalledWith(
+        expect.objectContaining({ includeEmptyNeurons: false }),
+      );
+      expect(mocks.iiGovernance.setFollowing).toHaveBeenCalledWith({
+        neuronId: 42n,
+        topicFollowing: governanceFollowees(1111n),
+      });
+    });
+
+    it('copies the following of a neuron that a registered device controls', async () => {
+      mocks.ledgerSignerPrincipals.mockReturnValue([DEVICE_PRINCIPAL]);
+      mocks.iiGovernance.listNeurons.mockResolvedValue([
+        NEW_NEURON,
+        followingNeuron({
+          neuronId: 7n,
+          controller: DEVICE_PRINCIPAL,
+          hotKeys: [II_PRINCIPAL],
+          followee: 1111n,
+        }),
+      ]);
+      const { result } = renderCreateNeuron({ signer: II_SIGNER });
+
+      await act(() => result.current.mutateAsync());
+
+      expect(mocks.iiGovernance.setFollowing).toHaveBeenCalledWith({
+        neuronId: 42n,
+        topicFollowing: governanceFollowees(1111n),
+      });
+    });
+
+    it('does not copy the following of a neuron where the user is only a hotkey', async () => {
+      mocks.iiGovernance.listNeurons.mockResolvedValue([
+        NEW_NEURON,
+        followingNeuron({
+          neuronId: 7n,
+          controller: STRANGER_PRINCIPAL,
+          hotKeys: [II_PRINCIPAL],
+          followee: 6666n,
+        }),
+      ]);
+      const { result } = renderCreateNeuron({ signer: II_SIGNER });
+
+      await act(() => result.current.mutateAsync());
+
+      expect(mocks.iiGovernance.setFollowing).not.toHaveBeenCalled();
+      expect(result.current.currentStep).toBe(StakingWizardCreateNeuronStep.Done);
+    });
+
+    it('does not copy the following of an empty neuron', async () => {
+      mocks.iiGovernance.listNeurons.mockResolvedValue([
+        NEW_NEURON,
+        followingNeuron({ neuronId: 7n, controller: II_PRINCIPAL, followee: 6666n, stake: 0n }),
+      ]);
+      const { result } = renderCreateNeuron({ signer: II_SIGNER });
+
+      await act(() => result.current.mutateAsync());
+
+      expect(mocks.iiGovernance.setFollowing).not.toHaveBeenCalled();
+    });
+
+    it('copies the following of the user neurons when a hotkey-only neuron follows another neuron', async () => {
+      mocks.iiGovernance.listNeurons.mockResolvedValue([
+        NEW_NEURON,
+        followingNeuron({ neuronId: 7n, controller: II_PRINCIPAL, followee: 1111n }),
+        followingNeuron({
+          neuronId: 8n,
+          controller: STRANGER_PRINCIPAL,
+          hotKeys: [II_PRINCIPAL],
+          followee: 6666n,
+        }),
+      ]);
+      const { result } = renderCreateNeuron({ signer: II_SIGNER });
+
+      await act(() => result.current.mutateAsync());
+
+      expect(mocks.iiGovernance.setFollowing).toHaveBeenCalledWith({
+        neuronId: 42n,
+        topicFollowing: governanceFollowees(1111n),
+      });
+    });
   });
 });
