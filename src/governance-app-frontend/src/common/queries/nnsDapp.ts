@@ -21,14 +21,15 @@ export const nnsDappAccountQuery = (): CertifiedQuery<AccountDetails | null> => 
 });
 
 /**
- * Resolves with the principals of the Ledger devices registered in NNS dapp, from the certified
- * cache or a certified call. It does not depend on the `ledgerDevice` feature or on WebHID.
+ * Resolves with the principals of the Ledger devices registered in NNS dapp, with a certified
+ * call unless the certified cache is fresh. It does not depend on the `ledgerDevice` feature or
+ * on WebHID.
  */
 export const fetchRegisteredDevicePrincipals = async (
   queryClient: QueryClient,
 ): Promise<string[]> => {
   const { queryKey, updateFn } = nnsDappAccountQuery();
-  const { response } = await queryClient.ensureQueryData({
+  const { response } = await queryClient.fetchQuery({
     queryKey: certifiedQueryKey(queryKey),
     queryFn: () => withCertifiedFlag(updateFn(), true),
   });
