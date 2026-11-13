@@ -10,7 +10,11 @@ import { ProposalLiveActivity } from '@features/proposals/components/ProposalLiv
 import { ProposalVotingHistory } from '@features/proposals/components/ProposalVotingHistory';
 import { ProposerBadge } from '@features/proposals/components/ProposerBadge';
 import { SelfDescribingActionView } from '@features/proposals/components/SelfDescribingActionView';
-import { useLiveProposal } from '@features/proposals/hooks/useProposalLiveData';
+import {
+  useKnownNeuronVotes,
+  useLiveProposal,
+  useSeenVotes,
+} from '@features/proposals/hooks/useProposalLiveData';
 import {
   getKnownNeuronNames,
   getProposalStatusColor,
@@ -238,9 +242,18 @@ function ProposalDetailsLayout({
 }) {
   const isWide = useMediaQuery('(min-width: 80rem)');
   const liveProposal = useLiveProposal(proposal);
+  // Kept above the layout switch: the card remounts when the window crosses `xl`.
+  const knownNeuronVotes = useKnownNeuronVotes(liveProposal);
+  const seenVotes = useSeenVotes(knownNeuronVotes.votes);
 
   const history = <ProposalVotingHistory proposal={liveProposal} />;
-  const liveActivity = <ProposalLiveActivity proposal={liveProposal} />;
+  const liveActivity = (
+    <ProposalLiveActivity
+      proposal={liveProposal}
+      knownNeuronVotes={knownNeuronVotes}
+      seenVotes={seenVotes}
+    />
+  );
   // A direct child of a page column: its docking footer cancels the column gap.
   const voting = <ProposalDetailsVoting proposal={liveProposal} />;
 

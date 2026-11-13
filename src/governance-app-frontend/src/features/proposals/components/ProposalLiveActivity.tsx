@@ -1,6 +1,6 @@
 import { ProposalInfo } from '@icp-sdk/canisters/nns';
 import { ChevronDown } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
@@ -11,12 +11,10 @@ import { secondsToTime } from '@utils/date';
 import { formatCompactNumber } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
-import { isTakingVotes, useKnownNeuronVotes } from '../hooks/useProposalLiveData';
+import { isTakingVotes, SeenVote, useKnownNeuronVotes } from '../hooks/useProposalLiveData';
 import { useProposalTallyHistory } from '../hooks/useProposalTallyHistory';
 import {
-  findNewKnownNeuronVotes,
   getTallyChanges,
-  hasVoted,
   KnownNeuronVote,
   KnownNeuronVoteState,
   TallyChange,
@@ -24,6 +22,9 @@ import {
 
 type Props = {
   proposal: ProposalInfo;
+  // The page keeps these, so a layout change at a breakpoint does not reset them.
+  knownNeuronVotes: ReturnType<typeof useKnownNeuronVotes>;
+  seenVotes: SeenVote[];
 };
 
 // A vote seen this recently shows as "Just now" and keeps its highlight.
@@ -35,11 +36,9 @@ const NO_TEXT = 'text-red-800 dark:text-red-400';
 const YES_FILL = 'bg-emerald-800 dark:bg-emerald-400';
 const NO_FILL = 'bg-red-800 dark:bg-red-400';
 
-type SeenVote = { vote: KnownNeuronVote; seenAtMs: number };
-
 type TimelineEvent =
   | { kind: 'vote'; timeMs: number; vote: KnownNeuronVote }
-  | { kind: 'tally'; timeMs: number; change: TallyChange };
+  | { kind: 'tally'; timeMs: number; change: TallyChange; ordinal: number };
 
 // We only support English for now.
 const formatEventTime = (timeMs: number, nowMs: number) => {
@@ -62,26 +61,6 @@ const useNow = (intervalMs: number, enabled: boolean) => {
   return now;
 };
 
-/** The known neuron votes that appear while the page is open, with the time the poll saw them. */
-const useSeenVotes = (votes: KnownNeuronVote[] | undefined) => {
-  const previousRef = useRef<KnownNeuronVote[] | undefined>(undefined);
-  const [seen, setSeen] = useState<SeenVote[]>([]);
-
-  useEffect(() => {
-    if (!votes) return;
-    const previous = previousRef.current;
-    previousRef.current = votes;
-    if (!previous) return;
-
-    const added = findNewKnownNeuronVotes(previous, votes);
-    if (added.length === 0) return;
-    const seenAtMs = Date.now();
-    setSeen((current) => [...added.map((vote) => ({ vote, seenAtMs })), ...current]);
-  }, [votes]);
-
-  return seen;
-};
-
 const VoteLabel = ({ state }: { state: KnownNeuronVoteState }) => {
   const { t } = useTranslation();
   if (state === KnownNeuronVoteState.Yes)
@@ -91,18 +70,24 @@ const VoteLabel = ({ state }: { state: KnownNeuronVoteState }) => {
   return null;
 };
 
-const NeuronSquare = ({ vote, isNew }: { vote: KnownNeuronVote; isNew: boolean }) => {
+const useVoteLabel = () => {
   const { t } = useTranslation();
-  const label = {
-    [KnownNeuronVoteState.Yes]: t(($) => $.proposal.liveActivity.votedYes, { name: vote.name }),
-    [KnownNeuronVoteState.No]: t(($) => $.proposal.liveActivity.votedNo, { name: vote.name }),
-    [KnownNeuronVoteState.NotVoted]: t(($) => $.proposal.liveActivity.notVoted, {
-      name: vote.name,
-    }),
-    [KnownNeuronVoteState.Unknown]: t(($) => $.proposal.liveActivity.unknownVote, {
-      name: vote.name,
-    }),
-  }[vote.state];
+  return ({ name, state }: KnownNeuronVote) => {
+    switch (state) {
+      case KnownNeuronVoteState.Yes:
+        return t(($) => $.proposal.liveActivity.votedYes, { name });
+      case KnownNeuronVoteState.No:
+        return t(($) => $.proposal.liveActivity.votedNo, { name });
+      case KnownNeuronVoteState.NotVoted:
+        return t(($) => $.proposal.liveActivity.notVoted, { name });
+      case KnownNeuronVoteState.Unknown:
+        return t(($) => $.proposal.liveActivity.unknownVote, { name });
+    }
+  };
+};
+
+const NeuronSquare = ({ vote, isNew }: { vote: KnownNeuronVote; isNew: boolean }) => {
+  const label = useVoteLabel()(vote);
 
   return (
     <Tooltip>
@@ -186,12 +171,12 @@ const TallyChangeRow = ({
   );
 };
 
-export const ProposalLiveActivity = ({ proposal }: Props) => {
+export const ProposalLiveActivity = ({ proposal, knownNeuronVotes, seenVotes }: Props) => {
   const { t } = useTranslation();
   const live = isTakingVotes(proposal);
-  const { votes, isError, dataUpdatedAt } = useKnownNeuronVotes(proposal);
+  const { votes, isError, dataUpdatedAt } = knownNeuronVotes;
   const historyQuery = useProposalTallyHistory(proposal);
-  const seenVotes = useSeenVotes(votes);
+  const voteLabel = useVoteLabel();
   const nowMs = useNow(15_000, live && seenVotes.length > 0);
   const [expanded, setExpanded] = useState(false);
 
@@ -214,10 +199,12 @@ export const ProposalLiveActivity = ({ proposal }: Props) => {
     : [];
   const events: TimelineEvent[] = [
     ...seenVotes.map(({ vote, seenAtMs }) => ({ kind: 'vote' as const, timeMs: seenAtMs, vote })),
-    ...changes.map((change) => ({
+    ...changes.map((change, index) => ({
       kind: 'tally' as const,
       timeMs: change.timestampSeconds * MILLISECONDS_IN_SECOND,
       change,
+      // Changes come newest first, so counting from the oldest keeps each key stable.
+      ordinal: changes.length - index,
     })),
   ].toSorted((a, b) => b.timeMs - a.timeMs);
   const shownEvents = expanded ? events : events.slice(0, VISIBLE_EVENTS);
@@ -229,8 +216,6 @@ export const ProposalLiveActivity = ({ proposal }: Props) => {
     1,
   );
   const hiddenCount = events.length - VISIBLE_EVENTS;
-
-  const voters = votes.filter(hasVoted);
 
   return (
     <Card data-testid="proposal-live-activity">
@@ -282,12 +267,8 @@ export const ProposalLiveActivity = ({ proposal }: Props) => {
             ))}
           </div>
           <ul className="sr-only">
-            {voters.map((vote) => (
-              <li key={String(vote.id)}>
-                {vote.state === KnownNeuronVoteState.Yes
-                  ? t(($) => $.proposal.liveActivity.votedYes, { name: vote.name })
-                  : t(($) => $.proposal.liveActivity.votedNo, { name: vote.name })}
-              </li>
+            {votes.map((vote) => (
+              <li key={String(vote.id)}>{voteLabel(vote)}</li>
             ))}
           </ul>
         </div>
@@ -330,7 +311,7 @@ export const ProposalLiveActivity = ({ proposal }: Props) => {
                   </li>
                 ) : (
                   <TallyChangeRow
-                    key={`tally-${event.timeMs}`}
+                    key={`tally-${event.ordinal}`}
                     change={event.change}
                     maxChange={maxChange}
                     time={formatEventTime(event.timeMs, nowMs)}
