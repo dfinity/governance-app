@@ -56,7 +56,7 @@ export const LedgerDevicesMenu = ({ variant, onSelectDevice }: Props) => {
       <DropdownMenuContent
         align={variant === 'split' ? 'end' : 'center'}
         collisionPadding={16}
-        className="w-64"
+        className="max-w-sm min-w-64"
       >
         <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
           {label}
