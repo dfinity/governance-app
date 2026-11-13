@@ -14,6 +14,10 @@ import { findNewKnownNeuronVotes, getKnownNeuronVotes, KnownNeuronVote } from '.
 // The page polls governance this often while the proposal takes votes and the tab is visible.
 export const LIVE_POLL_INTERVAL_MS = 15_000;
 
+// A response stamps the time it arrived, not the time governance read it, and the clocks can
+// differ. Only a read this long after the deadline holds the final tally.
+const FINAL_READ_MARGIN_SECONDS = 60;
+
 export const isTakingVotes = (proposal: ProposalInfo): boolean =>
   Number(proposal.deadlineTimestampSeconds ?? 0n) > nowInSeconds();
 
@@ -36,7 +40,9 @@ export const useLiveProposal = (proposal: ProposalInfo): ProposalInfo => {
     state,
   }: {
     state: { data?: ProposalInfo | null; dataUpdatedAt: number };
-  }) => state.dataUpdatedAt / MILLISECONDS_IN_SECOND > getDeadline(state.data);
+  }) =>
+    state.dataUpdatedAt / MILLISECONDS_IN_SECOND >
+    getDeadline(state.data) + FINAL_READ_MARGIN_SECONDS;
 
   const { data: polled } = useQuery({
     queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL_LIVE_TALLY, proposal.id?.toString()],
