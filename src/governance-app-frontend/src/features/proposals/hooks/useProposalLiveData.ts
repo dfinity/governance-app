@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from 'react';
 
 import { isActiveKnownNeuron } from '@features/voting/utils/knownNeurons';
 
-import { MILLISECONDS_IN_SECOND } from '@constants/extra';
 import { useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import { nowInSeconds } from '@utils/date';
@@ -19,9 +18,9 @@ export const LIVE_POLL_INTERVAL_MS = 15_000;
 // One read of the known neuron ballots is about 145 KB, so they poll less often than the tally.
 const BALLOTS_POLL_INTERVAL_MS = 60_000;
 
-// A response stamps the time it arrived, not the time governance read it, and the clocks can
-// differ. Only a read this long after the deadline holds the final tally.
-const FINAL_READ_MARGIN_SECONDS = 60;
+// The local clock and the IC clock can differ. Only a read that starts this long after the deadline
+// holds the final tally.
+export const FINAL_READ_MARGIN_SECONDS = 60;
 
 export const isTakingVotes = (proposal: ProposalInfo): boolean =>
   Number(proposal.deadlineTimestampSeconds ?? 0n) > nowInSeconds();
@@ -34,6 +33,29 @@ const isBeforeFinalRead = (proposal: ProposalInfo): boolean =>
 const isNewerTally = (tally: Tally, than: Tally | undefined) =>
   isNullish(than) || tally.yes + tally.no > than.yes + than.no;
 
+export type LiveProposalRead = {
+  proposal: ProposalInfo | null;
+  // When the request started. A slow response, for example in a suspended tab, can arrive after the
+  // deadline and still hold a read from before it.
+  startedAtSeconds: number;
+};
+
+/** True when the read started after the latest deadline that it knows, with the margin. */
+export const isFinalProposalRead = ({
+  read,
+  baseDeadlineSeconds,
+}: {
+  read: LiveProposalRead | undefined;
+  baseDeadlineSeconds: number;
+}): boolean => {
+  if (!read) return false;
+  const deadlineSeconds = Math.max(
+    baseDeadlineSeconds,
+    Number(read.proposal?.deadlineTimestampSeconds ?? 0n),
+  );
+  return read.startedAtSeconds > deadlineSeconds + FINAL_READ_MARGIN_SECONDS;
+};
+
 /**
  * The proposal with its latest tally and deadline: wait for quiet can extend the deadline. While
  * the proposal takes votes, a query call reads both again at each poll, so they are not certified.
@@ -42,20 +64,13 @@ export const useLiveProposal = (proposal: ProposalInfo): ProposalInfo => {
   const { ready, canister } = useNnsGovernance();
   const baseDeadline = Number(proposal.deadlineTimestampSeconds ?? 0n);
 
-  // The latest deadline seen, and whether a read after it holds the final tally.
-  const getDeadline = (polled: ProposalInfo | null | undefined) =>
-    Math.max(baseDeadline, Number(polled?.deadlineTimestampSeconds ?? 0n));
-  const hasFinalRead = ({
-    state,
-  }: {
-    state: { data?: ProposalInfo | null; dataUpdatedAt: number };
-  }) =>
-    state.dataUpdatedAt / MILLISECONDS_IN_SECOND >
-    getDeadline(state.data) + FINAL_READ_MARGIN_SECONDS;
+  const hasFinalRead = ({ state }: { state: { data?: LiveProposalRead } }) =>
+    isFinalProposalRead({ read: state.data, baseDeadlineSeconds: baseDeadline });
 
-  const { data: polled } = useQuery({
+  const { data: read } = useQuery<LiveProposalRead>({
     queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL_LIVE_TALLY, proposal.id?.toString()],
     queryFn: async () => {
+      const startedAtSeconds = nowInSeconds();
       const { proposals } = await canister!.listProposals({
         certified: false,
         request: {
@@ -68,7 +83,10 @@ export const useLiveProposal = (proposal: ProposalInfo): ProposalInfo => {
           omitLargeFields: true,
         },
       });
-      return proposals.find(({ id }) => id === proposal.id) ?? null;
+      return {
+        proposal: proposals.find(({ id }) => id === proposal.id) ?? null,
+        startedAtSeconds,
+      };
     },
     // A proposal that closed before the page opened needs no read. One that closes while the page
     // is open gets one read after its deadline, also when the tab comes back from the background.
@@ -82,6 +100,7 @@ export const useLiveProposal = (proposal: ProposalInfo): ProposalInfo => {
     refetchInterval: (query) => (hasFinalRead(query) ? false : LIVE_POLL_INTERVAL_MS),
   });
 
+  const polled = read?.proposal;
   if (!polled) return proposal;
 
   const deadlineTimestampSeconds =
