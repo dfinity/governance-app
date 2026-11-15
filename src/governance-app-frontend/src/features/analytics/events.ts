@@ -99,6 +99,10 @@ export enum AnalyticsEvent {
   // Preferences
   ForecastPeriodChange = 'forecast_period_change',
 
+  // Reports
+  ReportDownload = 'report_download',
+  ReportDownloadError = 'report_download_error',
+
   // Performance
   WebVital = 'web_vital',
 }

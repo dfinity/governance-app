@@ -1,0 +1,86 @@
+{
+  "title": "Reports",
+  "description": "Download your neurons and transactions as CSV files.",
+  "exports": "Exports",
+  "footnote": "All dates are in UTC. These reports are not financial or tax advice.",
+  "download": "Download CSV",
+  "settingsRow": {
+    "description": "Download your neurons and transactions as CSV files.",
+    "open": "Open"
+  },
+  "neurons": {
+    "title": "Neurons",
+    "description": "The stake, maturity, dissolve delay, and state of each neuron, as of today.",
+    "fileName": "neurons-{{date}}.csv",
+    "empty": "You have no neurons.",
+    "error": "The neurons report failed. Try again."
+  },
+  "transactions": {
+    "title": "Transactions",
+    "description": "The transactions of all your accounts and neuron accounts in the period.",
+    "period": "Period",
+    "periods": {
+      "yearToDate": "Year to date",
+      "lastYear": "Last year",
+      "custom": "Custom"
+    },
+    "from": "From",
+    "to": "To",
+    "invalidRange": "Select a start date and an end date. The end date cannot be before the start date.",
+    "rangeTooLong": "The period can be one year at most.",
+    "fileName": "transactions-{{from}}-to-{{to}}.csv",
+    "empty": "You have no transactions in this period.",
+    "incomplete": "Some accounts have too many transactions. The file does not include the oldest ones.",
+    "error": "The transactions report failed. Try again."
+  },
+  "csv": {
+    "neurons": {
+      "neuronId": "Neuron ID",
+      "neuronAccountId": "Neuron account ID",
+      "controller": "Controller",
+      "access": "Access",
+      "stake": "Stake (ICP)",
+      "availableMaturity": "Available maturity (ICP)",
+      "stakedMaturity": "Staked maturity (ICP)",
+      "dissolveDelayDays": "Dissolve delay (days)",
+      "dissolveDate": "Dissolve date (UTC)",
+      "creationDate": "Creation date (UTC)",
+      "state": "State"
+    },
+    "states": {
+      "unspecified": "Unspecified",
+      "locked": "Locked",
+      "dissolving": "Dissolving",
+      "dissolved": "Dissolved",
+      "spawning": "Spawning"
+    },
+    "access": {
+      "controller": "Controller",
+      "ledgerDevice": "Ledger device",
+      "hotkey": "Hotkey"
+    },
+    "transactions": {
+      "index": "Index",
+      "date": "Date (UTC)",
+      "account": "Account",
+      "accountId": "Account ID",
+      "neuronId": "Neuron ID",
+      "type": "Type",
+      "from": "From",
+      "to": "To",
+      "amount": "Amount (ICP)",
+      "fee": "Fee (ICP)"
+    },
+    "types": {
+      "received": "Received",
+      "sent": "Sent",
+      "stake": "Stake",
+      "disburse": "Disburse",
+      "selfTransfer": "Self transfer",
+      "reward": "Reward (minted)",
+      "burn": "Burn",
+      "approve": "Approve",
+      "unknown": "Unknown"
+    }
+  }
+}
