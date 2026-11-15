@@ -41,7 +41,7 @@ const labels: NeuronsCsvLabels = {
 };
 
 describe('buildNeuronsCsv', () => {
-  it('writes one row for each neuron, sorted by stake', () => {
+  it('writes one row for each neuron, sorted by the stake after fees', () => {
     const locked = mockNeuron({
       neuronId: 11n,
       state: NeuronState.Locked,
@@ -49,7 +49,8 @@ describe('buildNeuronsCsv', () => {
       fullNeuron: {
         accountIdentifier: 'locked-account',
         controller: II,
-        cachedNeuronStake: 100_000_000n,
+        cachedNeuronStake: 110_000_000n,
+        neuronFees: 10_000_000n,
         maturityE8sEquivalent: 2_500_000n,
         stakedMaturityE8sEquivalent: 1n,
         dissolveState: { DissolveDelaySeconds: 180n * DAY },

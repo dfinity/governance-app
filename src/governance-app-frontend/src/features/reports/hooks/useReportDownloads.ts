@@ -85,7 +85,12 @@ export const useTransactionsReportDownload = () => {
       const { results, complete } = await loadReportTransactions({ entities, range });
 
       if (results.every(({ transactions }) => transactions.length === 0)) {
-        infoNotification({ description: t(($) => $.reports.transactions.empty) });
+        // An incomplete fetch can miss the whole period, so it does not prove an empty period.
+        if (complete) {
+          infoNotification({ description: t(($) => $.reports.transactions.empty) });
+        } else {
+          warningNotification({ description: t(($) => $.reports.transactions.incomplete) });
+        }
         return;
       }
 

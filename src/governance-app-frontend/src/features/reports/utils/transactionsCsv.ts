@@ -1,6 +1,7 @@
 import type { IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 
 import {
+  asSafeSpreadsheetText,
   asSpreadsheetText,
   buildCsv,
   type CsvColumn,
@@ -185,7 +186,7 @@ export const buildTransactionsCsv = ({
     },
     {
       header: headers.account,
-      value: ({ entity }) => (entity.kind === 'account' ? entity.name : ''),
+      value: ({ entity }) => (entity.kind === 'account' ? asSafeSpreadsheetText(entity.name) : ''),
     },
     { header: headers.accountId, value: ({ entity }) => entity.accountId },
     {

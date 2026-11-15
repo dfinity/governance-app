@@ -45,6 +45,13 @@ export const formatUtcDate = (ms: number): string => new Date(ms).toISOString().
  */
 export const asSpreadsheetText = (value: string): string => `="${value}"`;
 
+/**
+ * Keeps user text from running as a formula in a spreadsheet: a leading `=`, `+`, `-`, `@`, tab,
+ * or carriage return gets a `'` prefix, as OWASP advises against CSV injection.
+ */
+export const asSafeSpreadsheetText = (value: string): string =>
+  /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+
 export const downloadCsv = ({ fileName, content }: { fileName: string; content: string }) => {
   const url = URL.createObjectURL(new Blob([content], { type: 'text/csv;charset=utf-8' }));
   const link = document.createElement('a');

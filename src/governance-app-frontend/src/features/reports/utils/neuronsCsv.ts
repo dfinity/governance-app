@@ -5,8 +5,8 @@ import {
   getDissolvingTimestampSeconds,
   getNeuronDissolveDelaySeconds,
   getNeuronFreeMaturityE8s,
+  getNeuronStakeAfterFeesE8s,
   getNeuronStakedMaturityE8s,
-  getNeuronStakeE8s,
   isUserController,
 } from '@utils/neuron';
 
@@ -56,7 +56,7 @@ export const getNeuronAccess = ({
 };
 
 const byStakeDesc = (a: NeuronInfo, b: NeuronInfo): number => {
-  const diff = getNeuronStakeE8s(b) - getNeuronStakeE8s(a);
+  const diff = getNeuronStakeAfterFeesE8s(b) - getNeuronStakeAfterFeesE8s(a);
   return diff > 0n ? 1 : diff < 0n ? -1 : 0;
 };
 
@@ -84,7 +84,10 @@ export const buildNeuronsCsv = ({
     },
     { header: headers.controller, value: ({ neuron }) => neuron.fullNeuron?.controller ?? '' },
     { header: headers.access, value: ({ access }) => labels.access[access] },
-    { header: headers.stake, value: ({ neuron }) => formatE8sForCsv(getNeuronStakeE8s(neuron)) },
+    {
+      header: headers.stake,
+      value: ({ neuron }) => formatE8sForCsv(getNeuronStakeAfterFeesE8s(neuron)),
+    },
     {
       header: headers.availableMaturity,
       value: ({ neuron }) => formatE8sForCsv(getNeuronFreeMaturityE8s(neuron)),

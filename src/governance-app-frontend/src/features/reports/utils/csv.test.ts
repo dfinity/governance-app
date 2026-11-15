@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  asSafeSpreadsheetText,
   asSpreadsheetText,
   buildCsv,
   formatE8sForCsv,
@@ -64,5 +65,15 @@ describe('dates', () => {
 describe('asSpreadsheetText', () => {
   it('wraps the value in a text formula', () => {
     expect(asSpreadsheetText('12345678901234567890')).toBe('="12345678901234567890"');
+  });
+});
+
+describe('asSafeSpreadsheetText', () => {
+  it.each(['=SUM(1,2)', '+1', '-1', '@cmd', '\tx', '\rx'])('prefixes %j with a quote', (value) => {
+    expect(asSafeSpreadsheetText(value)).toBe(`'${value}`);
+  });
+
+  it('keeps other text', () => {
+    expect(asSafeSpreadsheetText('Savings = 2')).toBe('Savings = 2');
   });
 });

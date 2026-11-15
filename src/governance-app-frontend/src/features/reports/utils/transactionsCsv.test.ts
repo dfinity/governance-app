@@ -120,6 +120,23 @@ describe('buildTransactionsCsv', () => {
     ]);
   });
 
+  it('keeps an account name from running as a formula', () => {
+    const named: ReportEntity = { kind: 'account', accountId: SAVINGS, name: '=SUM(1,2)' };
+    const csv = buildTransactionsCsv({
+      results: [
+        {
+          entity: named,
+          transactions: [
+            map(named, transferTx({ id: 5n, ms: MS, from: OTHER, to: SAVINGS, e8s: 1n })),
+          ],
+        },
+      ],
+      labels,
+    });
+
+    expect(csv).toContain(`,"'=SUM(1,2)",${SAVINGS},`);
+  });
+
   it('writes the neuron ID as spreadsheet text', () => {
     const csv = buildTransactionsCsv({
       results: [
