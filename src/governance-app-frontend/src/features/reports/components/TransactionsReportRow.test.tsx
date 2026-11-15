@@ -47,6 +47,12 @@ describe('TransactionsReportRow', () => {
     });
   });
 
+  it('names the download button after the report', () => {
+    render(<TransactionsReportRow />);
+
+    expect(screen.getByRole('button', { name: 'Download CSV Transactions' })).toBeTruthy();
+  });
+
   it('shows the date fields only for a custom period', () => {
     render(<TransactionsReportRow />);
     expect(screen.queryByTestId('transactions-report-from')).toBeNull();

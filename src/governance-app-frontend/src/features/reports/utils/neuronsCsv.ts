@@ -2,7 +2,6 @@ import { type NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
 
 import { SECONDS_IN_DAY } from '@constants/extra';
 import {
-  getDissolvingTimestampSeconds,
   getNeuronDissolveDelaySeconds,
   getNeuronFreeMaturityE8s,
   getNeuronStakeAfterFeesE8s,
@@ -55,6 +54,14 @@ export const getNeuronAccess = ({
   return NeuronAccess.Hotkey;
 };
 
+/** The dissolve date of a dissolving neuron, or the past one of a dissolved neuron. */
+const getDissolveTimestampSeconds = ({ state, fullNeuron }: NeuronInfo): bigint | undefined =>
+  (state === NeuronState.Dissolving || state === NeuronState.Dissolved) &&
+  fullNeuron?.dissolveState !== undefined &&
+  'WhenDissolvedTimestampSeconds' in fullNeuron.dissolveState
+    ? fullNeuron.dissolveState.WhenDissolvedTimestampSeconds
+    : undefined;
+
 const byStakeDesc = (a: NeuronInfo, b: NeuronInfo): number => {
   const diff = getNeuronStakeAfterFeesE8s(b) - getNeuronStakeAfterFeesE8s(a);
   return diff > 0n ? 1 : diff < 0n ? -1 : 0;
@@ -106,7 +113,7 @@ export const buildNeuronsCsv = ({
     {
       header: headers.dissolveDate,
       value: ({ neuron }) => {
-        const seconds = getDissolvingTimestampSeconds(neuron);
+        const seconds = getDissolveTimestampSeconds(neuron);
         return seconds === undefined ? '' : formatUtcDate(Number(seconds) * 1_000);
       },
     },

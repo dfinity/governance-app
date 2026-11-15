@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Input } from '@components/Input';
@@ -13,6 +13,7 @@ type RangeError = 'invalidRange' | 'rangeTooLong';
 
 export const TransactionsReportRow = () => {
   const { t } = useTranslation();
+  const titleId = useId();
   const download = useTransactionsReportDownload();
   const [period, setPeriod] = useState(ReportPeriod.YearToDate);
   const [customFrom, setCustomFrom] = useState('');
@@ -54,7 +55,9 @@ export const TransactionsReportRow = () => {
     >
       <div className="flex flex-col gap-4">
         <div className="space-y-1">
-          <p className="leading-none font-medium">{t(($) => $.reports.transactions.title)}</p>
+          <p id={titleId} className="leading-none font-medium">
+            {t(($) => $.reports.transactions.title)}
+          </p>
           <p className="text-sm text-muted-foreground">
             {t(($) => $.reports.transactions.description)}
           </p>
@@ -128,6 +131,7 @@ export const TransactionsReportRow = () => {
       </div>
 
       <ReportDownloadButton
+        titleId={titleId}
         onClick={handleDownload}
         isPending={download.isPending}
         testId="transactions-report-download-btn"

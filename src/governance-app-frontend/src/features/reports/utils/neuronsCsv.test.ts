@@ -70,7 +70,12 @@ describe('buildNeuronsCsv', () => {
     const hotkeyOnly = mockNeuron({
       neuronId: 33n,
       state: NeuronState.Dissolved,
-      fullNeuron: { accountIdentifier: 'hotkey-account', controller: OTHER, hotKeys: [II] },
+      fullNeuron: {
+        accountIdentifier: 'hotkey-account',
+        controller: OTHER,
+        hotKeys: [II],
+        dissolveState: { WhenDissolvedTimestampSeconds: NOW_SECONDS - 10n * DAY },
+      },
     });
 
     const csv = buildNeuronsCsv({
@@ -85,7 +90,7 @@ describe('buildNeuronsCsv', () => {
       '﻿ID,Account,Controller,Access,Stake,Maturity,Staked,Delay,Dissolve,Created,State',
       `"=""22""",dissolving-account,${DEVICE},Ledger,5.00000000,0.00000000,0.00000000,30,2026-12-15,2026-11-15,Dissolving`,
       `"=""11""",locked-account,${II},Controller,1.00000000,0.02500000,0.00000001,180,,2025-10-11,Locked`,
-      `"=""33""",hotkey-account,${OTHER},Hotkey,0.00000000,0.00000000,0.00000000,0,,1970-01-01,Dissolved`,
+      `"=""33""",hotkey-account,${OTHER},Hotkey,0.00000000,0.00000000,0.00000000,0,2026-11-05,1970-01-01,Dissolved`,
       '',
     ]);
   });
