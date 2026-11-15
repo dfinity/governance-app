@@ -1,7 +1,12 @@
+import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
+import { Ed25519KeyIdentity } from '@icp-sdk/core/identity';
+import { Principal } from '@icp-sdk/core/principal';
 import { describe, expect, it, vi } from 'vitest';
 
+import { mockNeuron } from '@fixtures/neuron';
+
 import type { GetTransactionsPage } from './fetchTransactions';
-import { loadReportTransactions, mapWithLimit } from './loadReportData';
+import { getReportEntities, loadReportTransactions, mapWithLimit } from './loadReportData';
 import { MAIN, NEURON, OTHER, transferTx } from './testUtils';
 import { type ReportEntity, ReportTransactionType } from './transactionsCsv';
 
@@ -93,5 +98,38 @@ describe('mapWithLimit', () => {
     await expect(mapWithLimit([1, 2, 3, 4], 2, task)).rejects.toThrow('down');
     expect(started).toEqual([1, 2]);
     expect(slowSettled).toBe(true);
+  });
+});
+
+describe('getReportEntities', () => {
+  it('lists the main account, the subaccounts, the Ledger accounts, and each neuron account', () => {
+    const identity = Ed25519KeyIdentity.generate(new Uint8Array(32).fill(1));
+    const mainAccountId = AccountIdentifier.fromPrincipal({
+      principal: identity.getPrincipal(),
+    }).toHex();
+
+    const entities = getReportEntities({
+      identity,
+      mainAccountName: 'Main',
+      nnsDappAccounts: {
+        subAccounts: [
+          { name: 'Savings', account_identifier: 'savings-id', sub_account: new Uint8Array(32) },
+        ],
+        hardwareWallets: [
+          { name: 'Nano', account_identifier: 'nano-id', principal: Principal.anonymous() },
+        ],
+      },
+      neurons: [
+        mockNeuron({ neuronId: 7n, fullNeuron: { accountIdentifier: 'neuron-id' } }),
+        mockNeuron({ neuronId: 8n, fullNeuron: undefined }),
+      ],
+    });
+
+    expect(entities).toEqual([
+      { kind: 'account', accountId: mainAccountId, name: 'Main' },
+      { kind: 'account', accountId: 'savings-id', name: 'Savings' },
+      { kind: 'account', accountId: 'nano-id', name: 'Nano' },
+      { kind: 'neuron', accountId: 'neuron-id', neuronId: 7n },
+    ]);
   });
 });
