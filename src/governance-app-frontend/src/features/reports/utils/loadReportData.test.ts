@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import type { GetTransactionsPage } from './fetchTransactions';
-import { loadReportTransactions } from './loadReportData';
+import { loadReportTransactions, mapWithLimit } from './loadReportData';
 import { MAIN, NEURON, OTHER, transferTx } from './testUtils';
 import { type ReportEntity, ReportTransactionType } from './transactionsCsv';
 
@@ -60,5 +60,38 @@ describe('loadReportTransactions', () => {
     await expect(
       loadReportTransactions({ entities, range: RANGE, getPage: failing }),
     ).rejects.toThrow('down');
+  });
+});
+
+describe('mapWithLimit', () => {
+  it('keeps the order and runs at most `limit` tasks at one time', async () => {
+    let running = 0;
+    let maxRunning = 0;
+    const task = async (item: number) => {
+      running++;
+      maxRunning = Math.max(maxRunning, running);
+      await new Promise((resolve) => setTimeout(resolve, 5 - item));
+      running--;
+      return item * 10;
+    };
+
+    expect(await mapWithLimit([1, 2, 3, 4, 5], 2, task)).toEqual([10, 20, 30, 40, 50]);
+    expect(maxRunning).toBe(2);
+  });
+
+  it('starts no new task after a failure and lets the running ones settle first', async () => {
+    const started: number[] = [];
+    let slowSettled = false;
+    const task = async (item: number) => {
+      started.push(item);
+      if (item === 1) throw new Error('down');
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      slowSettled = true;
+      return item;
+    };
+
+    await expect(mapWithLimit([1, 2, 3, 4], 2, task)).rejects.toThrow('down');
+    expect(started).toEqual([1, 2]);
+    expect(slowSettled).toBe(true);
   });
 });

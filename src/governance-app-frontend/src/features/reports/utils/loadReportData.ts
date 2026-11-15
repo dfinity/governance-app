@@ -88,23 +88,38 @@ const getIndexPage: GetTransactionsPage = async ({ accountIdentifier, start, max
   return canister.getTransactions({ accountIdentifier, start, maxResults, certified: false });
 };
 
-/** Runs `task` for each item, with at most `limit` tasks at one time. Keeps the order. */
-const mapWithLimit = async <Item, Result>(
+/**
+ * Runs `task` for each item, with at most `limit` tasks at one time. Keeps the order.
+ * After a failure, no new task starts. The tasks in progress settle before the promise rejects,
+ * so that a retry cannot overlap them.
+ */
+export const mapWithLimit = async <Item, Result>(
   items: Item[],
   limit: number,
   task: (item: Item) => Promise<Result>,
 ): Promise<Result[]> => {
   const results: Result[] = new Array(items.length);
   let next = 0;
+  let failed = false;
 
   const worker = async () => {
-    while (next < items.length) {
+    while (!failed && next < items.length) {
       const index = next++;
-      results[index] = await task(items[index]);
+      try {
+        results[index] = await task(items[index]);
+      } catch (error) {
+        failed = true;
+        throw error;
+      }
     }
   };
 
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  const settled = await Promise.allSettled(
+    Array.from({ length: Math.min(limit, items.length) }, worker),
+  );
+  const rejection = settled.find((outcome) => outcome.status === 'rejected');
+  if (rejection) throw rejection.reason;
+
   return results;
 };
 
