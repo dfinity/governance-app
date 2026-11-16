@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   addCampaignParams,
+  addRedirectTarget,
   getCampaignParams,
   groupProposalPages,
   removeUrlParams,
@@ -145,5 +146,44 @@ describe('addCampaignParams', () => {
   it('does not change the payload without a campaign', () => {
     const input = payload('https://nns.internetcomputer.org/dashboard');
     expect(addCampaignParams(input, [])).toBe(input);
+  });
+});
+
+describe('addRedirectTarget', () => {
+  const login = (redirect: string) =>
+    payload(`https://nns.internetcomputer.org/?redirect=${encodeURIComponent(redirect)}`);
+  const target = (redirect: string) => addRedirectTarget(login(redirect)).p?.redirect_target;
+
+  it('adds the target page of the login page', () => {
+    expect(target('/neurons')).toBe('/neurons');
+    expect(target('/voting/')).toBe('/voting');
+  });
+
+  it('groups a proposal page', () => {
+    expect(target('/voting/proposals/144355')).toBe('/voting/proposals/:id');
+  });
+
+  it('reports a path of another form as other', () => {
+    expect(target('/accounts/abc123')).toBe('other');
+    expect(target('https://example.com/')).toBe('other');
+  });
+
+  it('ignores the query and the hash of the target', () => {
+    expect(target('/voting/proposals/7?neuronId=123#votes')).toBe('/voting/proposals/:id');
+  });
+
+  it('keeps the existing properties', () => {
+    const input = { ...login('/neurons'), p: { theme: 'dark' } };
+    expect(addRedirectTarget(input).p).toEqual({ theme: 'dark', redirect_target: '/neurons' });
+  });
+
+  it('does not change the login page without a redirect', () => {
+    const input = payload('https://nns.internetcomputer.org/');
+    expect(addRedirectTarget(input)).toBe(input);
+  });
+
+  it('does not change other pages', () => {
+    const input = payload('https://nns.internetcomputer.org/voting?redirect=/neurons');
+    expect(addRedirectTarget(input)).toBe(input);
   });
 });
