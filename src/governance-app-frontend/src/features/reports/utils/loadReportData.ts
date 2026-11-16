@@ -159,39 +159,71 @@ export const mapWithLimit = async <Item, Result>(
 
 const CONCURRENT_ACCOUNTS = 6;
 
-export const loadReportTransactions = async ({
+/** The current balance of an entity, and its transactions from now back to a start time. */
+export type EntityHistory = EntityTransactions & { balanceE8s: bigint };
+
+/**
+ * Loads the transactions of each entity from now back to `fromMs`, as each entity sees them.
+ * The list can have transactions before `fromMs`, from the last page.
+ */
+export const loadEntityHistories = async ({
   entities,
-  range,
+  fromMs,
   getPage = getIndexPage,
 }: {
   entities: ReportEntity[];
-  range: ReportRange;
+  fromMs: number;
   getPage?: GetTransactionsPage;
-}): Promise<{ results: EntityTransactions[]; complete: boolean }> => {
+}): Promise<{ histories: EntityHistory[]; complete: boolean }> => {
   const neuronAccountIds = new Set(
     entities.filter(({ kind }) => kind === 'neuron').map(({ accountId }) => accountId),
   );
 
   const fetched = await mapWithLimit(entities, CONCURRENT_ACCOUNTS, async (entity) => {
-    const { transactions, complete } = await fetchTransactionsSince({
+    const { balanceE8s, transactions, complete } = await fetchTransactionsSince({
       accountIdentifier: entity.accountId,
-      range,
+      fromMs,
       getPage,
     });
 
     return {
       complete,
-      result: {
+      history: {
         entity,
-        transactions: transactions
-          .map((transaction) => mapReportTransaction({ entity, transaction, neuronAccountIds }))
-          .filter((transaction) => isInRange(transaction, range)),
+        balanceE8s,
+        transactions: transactions.map((transaction) =>
+          mapReportTransaction({ entity, transaction, neuronAccountIds }),
+        ),
       },
     };
   });
 
   return {
-    results: fetched.map(({ result }) => result),
+    histories: fetched.map(({ history }) => history),
     complete: fetched.every(({ complete }) => complete),
+  };
+};
+
+export const loadReportTransactions = async ({
+  entities,
+  range,
+  getPage,
+}: {
+  entities: ReportEntity[];
+  range: ReportRange;
+  getPage?: GetTransactionsPage;
+}): Promise<{ results: EntityTransactions[]; complete: boolean }> => {
+  const { histories, complete } = await loadEntityHistories({
+    entities,
+    fromMs: range.fromMs,
+    getPage,
+  });
+
+  return {
+    results: histories.map(({ entity, transactions }) => ({
+      entity,
+      transactions: transactions.filter((transaction) => isInRange(transaction, range)),
+    })),
+    complete,
   };
 };

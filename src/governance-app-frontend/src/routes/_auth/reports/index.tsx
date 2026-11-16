@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { NeuronsReportRow } from '@features/reports/components/NeuronsReportRow';
 import { TransactionsReportRow } from '@features/reports/components/TransactionsReportRow';
+import { YearSummarySection } from '@features/reports/components/YearSummarySection';
 
 import { Card } from '@components/Card';
 import { PageHeader } from '@components/PageHeader';
@@ -36,6 +37,8 @@ function ReportsPage() {
   return (
     <div className="flex min-h-full flex-col gap-12">
       <PageHeader title={t(($) => $.reports.title)} description={t(($) => $.reports.description)} />
+
+      <YearSummarySection />
 
       <section className="flex flex-col gap-4">
         <h2 className="text-2xl font-normal">{t(($) => $.reports.exports)}</h2>

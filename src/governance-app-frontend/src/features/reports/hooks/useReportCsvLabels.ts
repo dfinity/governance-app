@@ -3,8 +3,11 @@ import { useTranslation } from 'react-i18next';
 
 import type { FiatCurrency } from '@constants/fiat';
 
+import { formatUtcDate } from '../utils/csv';
 import { NeuronAccess, type NeuronsCsvLabels } from '../utils/neuronsCsv';
 import { ReportTransactionType, type TransactionsCsvLabels } from '../utils/transactionsCsv';
+import type { YearPeriod } from '../utils/yearSummary';
+import type { YearSummaryCsvLabels } from '../utils/yearSummaryCsv';
 
 export const useNeuronsCsvLabels = (currency: FiatCurrency): NeuronsCsvLabels => {
   const { t } = useTranslation();
@@ -69,5 +72,57 @@ export const useTransactionsCsvLabels = (currency: FiatCurrency): TransactionsCs
       [ReportTransactionType.Approve]: t(($) => $.reports.csv.types.approve),
       [ReportTransactionType.Unknown]: t(($) => $.reports.csv.types.unknown),
     },
+  };
+};
+
+export const useYearSummaryLimits = (): string[] => {
+  const { t } = useTranslation();
+
+  return [
+    t(($) => $.reports.yearSummary.limits.externalDisbursements),
+    t(($) => $.reports.yearSummary.limits.pastMaturity),
+    t(($) => $.reports.yearSummary.limits.deviceNeurons),
+    t(($) => $.reports.yearSummary.limits.gains),
+    t(($) => $.reports.yearSummary.limits.rates),
+  ];
+};
+
+export const useYearSummaryCsvLabels = ({
+  currency,
+  period,
+}: {
+  currency: FiatCurrency;
+  period: YearPeriod;
+}): YearSummaryCsvLabels => {
+  const { t } = useTranslation();
+  const limits = useYearSummaryLimits();
+
+  return {
+    title: t(($) => $.reports.csv.yearSummary.title),
+    period: t(($) => $.reports.csv.yearSummary.period),
+    currency: t(($) => $.reports.csv.yearSummary.currency),
+    total: t(($) => $.reports.csv.yearSummary.total),
+    rewards: t(($) => $.reports.csv.yearSummary.rewards),
+    holdings: period.isCurrentYear
+      ? t(($) => $.reports.csv.yearSummary.holdingsToday)
+      : t(($) => $.reports.csv.yearSummary.holdingsOn, { date: formatUtcDate(period.toMs - 1) }),
+    movements: t(($) => $.reports.csv.yearSummary.movements),
+    notIncluded: t(($) => $.reports.csv.yearSummary.notIncluded),
+    headers: {
+      date: t(($) => $.reports.csv.transactions.date),
+      account: t(($) => $.reports.csv.transactions.account),
+      accountId: t(($) => $.reports.csv.transactions.accountId),
+      neuronId: t(($) => $.reports.csv.transactions.neuronId),
+      amount: t(($) => $.reports.csv.transactions.amount),
+      balance: t(($) => $.reports.csv.yearSummary.balance),
+      price: t(($) => $.reports.csv.transactions.price, { currency }),
+      value: t(($) => $.reports.csv.transactions.value, { currency }),
+      rateDate: t(($) => $.reports.csv.transactions.rateDate),
+      maturity: t(($) => $.reports.csv.yearSummary.maturity),
+      received: t(($) => $.reports.csv.yearSummary.received),
+      sent: t(($) => $.reports.csv.yearSummary.sent),
+      fees: t(($) => $.reports.csv.yearSummary.fees),
+    },
+    limits,
   };
 };

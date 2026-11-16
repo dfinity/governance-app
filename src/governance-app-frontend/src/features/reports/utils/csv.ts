@@ -8,15 +8,20 @@ export type CsvColumn<Row> = {
 const escapeCell = (cell: string): string =>
   /[",\r\n]/.test(cell) ? `"${cell.replaceAll('"', '""')}"` : cell;
 
-/** Lines end with CRLF, as RFC 4180 says. The byte order mark makes Excel read UTF-8. */
-export const buildCsv = <Row>(columns: CsvColumn<Row>[], rows: Row[]): string => {
-  const lines = [
-    columns.map(({ header }) => escapeCell(header)),
-    ...rows.map((row) => columns.map(({ value }) => escapeCell(value(row)))),
-  ];
+/** One CSV line, without the line end. */
+export const toCsvLine = (cells: string[]): string => cells.map(escapeCell).join(',');
 
-  return `\uFEFF${lines.map((cells) => cells.join(',')).join('\r\n')}\r\n`;
-};
+/** The header line, then one line for each row. */
+export const buildCsvLines = <Row>(columns: CsvColumn<Row>[], rows: Row[]): string[] => [
+  toCsvLine(columns.map(({ header }) => header)),
+  ...rows.map((row) => toCsvLine(columns.map(({ value }) => value(row)))),
+];
+
+/** Lines end with CRLF, as RFC 4180 says. The byte order mark makes Excel read UTF-8. */
+export const joinCsvLines = (lines: string[]): string => `\uFEFF${lines.join('\r\n')}\r\n`;
+
+export const buildCsv = <Row>(columns: CsvColumn<Row>[], rows: Row[]): string =>
+  joinCsvLines(buildCsvLines(columns, rows));
 
 /**
  * A fixed-point number with all its decimals and no group separators, so that spreadsheets read
