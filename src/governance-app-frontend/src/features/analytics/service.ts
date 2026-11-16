@@ -7,6 +7,7 @@ import { IS_LOCAL } from '@constants/extra';
 import { AnalyticsEvent } from './events';
 import {
   addCampaignParams,
+  addRedirectTarget,
   getCampaignParams,
   groupProposalPages,
   removeUrlParams,
@@ -145,7 +146,8 @@ class AnalyticsService {
 
     // The tracker sends `engagement` without this hook, but with the URL and the properties
     // that this hook returned for the last pageview.
-    const cleanPayload = groupProposalPages(removeUrlParams(payload));
+    // Before `removeUrlParams`, which drops the `redirect` query.
+    const cleanPayload = groupProposalPages(removeUrlParams(addRedirectTarget(payload)));
     if (cleanPayload.n !== 'pageview') return cleanPayload;
 
     // The first pageview of a visit sets its source.
