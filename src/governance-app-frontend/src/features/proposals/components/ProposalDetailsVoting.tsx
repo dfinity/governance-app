@@ -1,4 +1,4 @@
-import { ProposalInfo, ProposalStatus, Vote } from '@icp-sdk/canisters/nns';
+import { ProposalInfo, Vote } from '@icp-sdk/canisters/nns';
 import { CheckCircle, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -14,6 +14,7 @@ import { formatNumber, formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
 import { useVoting } from '../hooks/useVoting';
+import { isAcceptingVotes } from '../utils';
 
 type Props = {
   proposal: ProposalInfo;
@@ -90,7 +91,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   const { identity } = useInternetIdentity();
   // A signed-out reader sees the tally, and a login in place of the vote buttons.
   const isReader = !identity;
-  const isOpen = proposal.status === ProposalStatus.Open;
+  const isAcceptingVotesNow = isAcceptingVotes(proposal);
   const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
   const [votingFor, setVotingFor] = useState<Vote.No | Vote.Yes | undefined>();
@@ -193,7 +194,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
           </div>
         </CardContent>
 
-        {isReader && isOpen && (
+        {isReader && isAcceptingVotesNow && (
           <CardFooter className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t pt-6">
             <p className="text-sm text-muted-foreground">{t(($) => $.reader.voteRow.text)}</p>
             <ReaderLoginButton

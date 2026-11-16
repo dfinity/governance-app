@@ -1,6 +1,6 @@
 import '@/i18n/config';
 
-import { ProposalInfo, ProposalStatus, Vote } from '@icp-sdk/canisters/nns';
+import { ProposalInfo, ProposalRewardStatus, ProposalStatus, Vote } from '@icp-sdk/canisters/nns';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -69,6 +69,8 @@ vi.stubGlobal('ResizeObserver', FakeResizeObserver);
 const proposal = {
   id: 1n,
   status: ProposalStatus.Open,
+  rewardStatus: ProposalRewardStatus.AcceptVotes,
+  deadlineTimestampSeconds: BigInt(Math.floor(Date.now() / 1000) + 3600),
   latestTally: {
     yes: 3n * 100_000_000n,
     no: 1n * 100_000_000n,
@@ -225,10 +227,22 @@ describe('ProposalDetailsVoting', () => {
       expect(mocks.login).toHaveBeenCalledTimes(1);
     });
 
-    it('shows no login for a proposal that is not open', () => {
+    it('shows the login for an adopted proposal that still takes votes', () => {
       renderInMain({ status: ProposalStatus.Executed });
 
+      expect(screen.getByRole('button', { name: 'Log in to vote' })).toBeTruthy();
+    });
+
+    it('shows no login once the proposal takes no votes', () => {
+      renderInMain({ rewardStatus: ProposalRewardStatus.Settled });
+
       expect(screen.getByText('Yes: 75.00%')).toBeTruthy();
+      expect(screen.queryByRole('button', { name: 'Log in to vote' })).toBeNull();
+    });
+
+    it('shows no login after the deadline', () => {
+      renderInMain({ deadlineTimestampSeconds: BigInt(Math.floor(Date.now() / 1000) - 1) });
+
       expect(screen.queryByRole('button', { name: 'Log in to vote' })).toBeNull();
     });
 

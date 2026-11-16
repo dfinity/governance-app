@@ -1,4 +1,9 @@
-import { KnownNeuron, ProposalInfo, ProposalStatus } from '@icp-sdk/canisters/nns';
+import {
+  KnownNeuron,
+  ProposalInfo,
+  ProposalRewardStatus,
+  ProposalStatus,
+} from '@icp-sdk/canisters/nns';
 import { isNullish } from '@dfinity/utils';
 
 import { stringToBigInt } from '@utils/bigInt';
@@ -20,6 +25,14 @@ export const getProposalTimeLeftInSeconds = (proposal: ProposalInfo): bigint => 
   const deadline = Number(proposal.deadlineTimestampSeconds ?? 0n);
   return BigInt(Math.floor(Math.max(deadline - now, 0)));
 };
+
+/**
+ * Whether the proposal still takes votes. An adopted proposal takes votes until its deadline, which
+ * the live data keeps up to date.
+ */
+export const isAcceptingVotes = (proposal: ProposalInfo): boolean =>
+  proposal.rewardStatus === ProposalRewardStatus.AcceptVotes &&
+  getProposalTimeLeftInSeconds(proposal) > 0n;
 
 export const getProposalStatusColor = (proposal: ProposalInfo): string => {
   const { status } = proposal;
