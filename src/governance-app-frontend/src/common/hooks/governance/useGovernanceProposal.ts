@@ -1,5 +1,5 @@
 import { ListProposalsRequest, ProposalInfo } from '@icp-sdk/canisters/nns';
-import { isNullish } from '@dfinity/utils';
+import { isNullish, nonNullish } from '@dfinity/utils';
 
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useQueryThenUpdateCall } from '@hooks/useQueryThenUpdateCall';
@@ -46,6 +46,12 @@ export const useGovernanceProposal = (props?: { proposalId: bigint }) => {
     },
     options: {
       enabled: ready,
+      // A login on the proposal page changes the principal only: keep the proposal on screen
+      // while the ballots of the new caller load.
+      placeholderData: (previous, previousQuery) =>
+        nonNullish(proposalId) && previousQuery?.queryKey[1] === proposalId.toString()
+          ? previous
+          : undefined,
     },
   });
 };

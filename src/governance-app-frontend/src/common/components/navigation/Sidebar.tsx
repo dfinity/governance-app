@@ -2,6 +2,8 @@ import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { ReaderIntro } from '@features/reader/components/ReaderIntro';
+
 import { NnsWordmark } from '@components/icons/NnsWordmark';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useIconMotion } from '@hooks/useIconMotion';
@@ -14,7 +16,13 @@ import { UserMenu } from './UserMenu';
 const ACTIVE_ITEM_CLASS =
   'before:absolute before:left-0 before:w-[3px] before:h-6 before:bg-primary before:rounded-full bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary';
 
-export const Sidebar = ({ activeHref }: { activeHref?: string }) => {
+type Props = {
+  activeHref?: string;
+  /** `reader`: a signed-out visitor on a public page, who gets an intro in place of the nav. */
+  variant?: 'app' | 'reader';
+};
+
+export const Sidebar = ({ activeHref, variant = 'app' }: Props) => {
   const { t } = useTranslation();
   const { features } = useAdvancedFeatures();
   const accountsEnabled = isAccountsAreaEnabled(features);
@@ -37,28 +45,36 @@ export const Sidebar = ({ activeHref }: { activeHref?: string }) => {
         <img src="/infinity-mark.png" alt="" className="h-7 w-auto" aria-hidden="true" />
         <NnsWordmark className="h-[1.625rem] w-auto text-foreground" />
       </div>
-      <nav className="flex-1 space-y-1 p-2">
-        {navigationItems.map((item) => (
-          <Link
-            key={item.href}
-            to={item.href}
-            {...iconMotion}
-            className={cn(
-              'relative flex items-center gap-3 rounded-md px-4 py-3 text-foreground-secondary transition-colors hover:bg-accent hover:text-accent-foreground',
-              shouldAnimate && item.href === '/accounts' && 'animate-highlight-pulse',
-              activeHref?.startsWith(item.href) && ACTIVE_ITEM_CLASS,
-            )}
-            onAnimationEnd={item.href === '/accounts' ? () => setShouldAnimate(false) : undefined}
-            activeProps={{ className: ACTIVE_ITEM_CLASS }}
-          >
-            <item.icon className="size-5" />
-            <span>{t(item.label as never)}</span>
-          </Link>
-        ))}
-      </nav>
-      <div className="border-t p-3">
-        <UserMenu />
-      </div>
+      {variant === 'reader' ? (
+        <ReaderIntro />
+      ) : (
+        <>
+          <nav className="flex-1 space-y-1 p-2">
+            {navigationItems.map((item) => (
+              <Link
+                key={item.href}
+                to={item.href}
+                {...iconMotion}
+                className={cn(
+                  'relative flex items-center gap-3 rounded-md px-4 py-3 text-foreground-secondary transition-colors hover:bg-accent hover:text-accent-foreground',
+                  shouldAnimate && item.href === '/accounts' && 'animate-highlight-pulse',
+                  activeHref?.startsWith(item.href) && ACTIVE_ITEM_CLASS,
+                )}
+                onAnimationEnd={
+                  item.href === '/accounts' ? () => setShouldAnimate(false) : undefined
+                }
+                activeProps={{ className: ACTIVE_ITEM_CLASS }}
+              >
+                <item.icon className="size-5" />
+                <span>{t(item.label as never)}</span>
+              </Link>
+            ))}
+          </nav>
+          <div className="border-t p-3">
+            <UserMenu />
+          </div>
+        </>
+      )}
     </aside>
   );
 };

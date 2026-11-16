@@ -1,7 +1,9 @@
-import { ProposalInfo, Vote } from '@icp-sdk/canisters/nns';
+import { ProposalInfo, ProposalStatus, Vote } from '@icp-sdk/canisters/nns';
 import { CheckCircle, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
+
+import { ReaderLoginButton } from '@features/reader/components/ReaderLoginButton';
 
 import { Button } from '@components/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@components/Card';
@@ -86,6 +88,9 @@ const DockingFooter = ({ children }: { children: ReactNode }) => {
 
 export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   const { identity } = useInternetIdentity();
+  // A signed-out reader sees the tally, and a login in place of the vote buttons.
+  const isReader = !identity;
+  const isOpen = proposal.status === ProposalStatus.Open;
   const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
   const [votingFor, setVotingFor] = useState<Vote.No | Vote.Yes | undefined>();
@@ -119,11 +124,9 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
     requestAnimationFrame(() => setIsMounted(true));
   }, []);
 
-  if (!identity) return null;
-
   return (
     <>
-      <Card className={cn(canVote && 'rounded-b-none border-b-0 pb-3')}>
+      <Card className={cn(!isReader && canVote && 'rounded-b-none border-b-0 pb-3')}>
         <CardHeader>
           <CardTitle>{t(($) => $.proposal.votingStatus)}</CardTitle>
         </CardHeader>
@@ -190,7 +193,21 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
           </div>
         </CardContent>
 
-        {hasVoted && (
+        {isReader && isOpen && (
+          <CardFooter className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t pt-6">
+            <p className="text-sm text-muted-foreground">{t(($) => $.reader.voteRow.text)}</p>
+            <ReaderLoginButton
+              source="reader_vote_row"
+              variant="outline"
+              size="lg"
+              className="h-11"
+            >
+              {t(($) => $.reader.voteRow.action)}
+            </ReaderLoginButton>
+          </CardFooter>
+        )}
+
+        {!isReader && hasVoted && (
           <CardFooter className="py-2">
             <div
               className={cn(
@@ -235,7 +252,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
         )}
       </Card>
 
-      {canVote && (
+      {!isReader && canVote && (
         <DockingFooter>
           <div className="flex w-full items-center gap-2">
             <Button

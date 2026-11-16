@@ -14,6 +14,7 @@ export const useInternetIdentity = () => {
     sessionEnd,
     canLogin: status === 'idle',
     isLoggingIn: status === 'logging-in',
+    isLoggingOut: status === 'logging-out',
     isFinishingLogin: status === 'logging-in' && iiAnswered === true,
     login,
     logout,

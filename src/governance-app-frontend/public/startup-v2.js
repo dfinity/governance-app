@@ -13,7 +13,7 @@
     sessionExpiry = (localStorage.getItem('ic-session-state') || '').split('|')[1] / 1e6;
     features = JSON.parse(localStorage.getItem('nns-advanced-features')) || {};
   } catch (e) {
-    // Storage is blocked or holds bad data: use the system theme and the logged-out frame.
+    // Storage is blocked or holds bad data: use the system theme and the signed-out frame.
   }
 
   // Same result as `applyTheme` in `useTheme.ts`. The colors are `THEME_COLOR`.
@@ -35,5 +35,8 @@
     html.dataset.nav = path[1] || 'dashboard';
     if (path[2] === 'proposals') html.dataset.detail = '';
     if (features.subaccounts || features.ledgerDevice) html.dataset.accounts = '';
+  } else if (/^\/voting\/proposals\/[1-9]\d*\/?$/.test(location.pathname)) {
+    // Same rule as `isPublicPath` in `publicRoutes.ts`: a signed-out reader of a public page.
+    html.dataset.reader = '';
   }
 })();

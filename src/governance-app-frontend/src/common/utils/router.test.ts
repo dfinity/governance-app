@@ -15,6 +15,7 @@ const { session, warningNotification } = vi.hoisted(() => ({
   session: {
     identity: undefined as Identity | undefined,
     logoutRedirectPending: false,
+    logoutInThisTab: false,
     stored: false,
   },
   warningNotification: vi.fn(),
@@ -23,10 +24,13 @@ const { session, warningNotification } = vi.hoisted(() => ({
 vi.mock('@common/auth/internetIdentity', () => ({
   ensureInitialized: async () => session.identity,
   hasStoredSession: () => session.stored,
-  consumeLogoutRedirect: () => {
+  consumeLogout: () => {
     const pending = session.logoutRedirectPending;
+    const inThisTab = session.logoutInThisTab;
     session.logoutRedirectPending = false;
-    return pending;
+    session.logoutInThisTab = false;
+    if (!pending) return undefined;
+    return inThisTab ? 'this-tab' : 'other-tab';
   },
 }));
 
@@ -68,6 +72,7 @@ describe('requireIdentity', () => {
   beforeEach(() => {
     session.identity = undefined;
     session.logoutRedirectPending = false;
+    session.logoutInThisTab = false;
     warningNotification.mockClear();
   });
 
@@ -98,13 +103,58 @@ describe('requireIdentity', () => {
     );
     expect(warningNotification).toHaveBeenCalledTimes(1);
   });
+
+  describe('on a public page', () => {
+    it('lets a visitor without a session in, with no notice.', async () => {
+      await expect(guard('/voting/proposals/144845')).resolves.toBeUndefined();
+      await expect(guard('/voting/proposals/144845/')).resolves.toBeUndefined();
+      expect(warningNotification).not.toHaveBeenCalled();
+    });
+
+    it('sends the user to the login page after a logout in this tab.', async () => {
+      session.logoutRedirectPending = true;
+      session.logoutInThisTab = true;
+
+      const redirect = await guard('/voting/proposals/144845');
+
+      expect(redirect).toEqual(expect.objectContaining({ to: '/' }));
+      expect(redirect).not.toHaveProperty('search.redirect');
+      expect(warningNotification).not.toHaveBeenCalled();
+    });
+
+    it('keeps the page after a logout in another tab, and consumes it.', async () => {
+      session.logoutRedirectPending = true;
+
+      await expect(guard('/voting/proposals/144845')).resolves.toBeUndefined();
+      expect(session.logoutRedirectPending).toBe(false);
+    });
+
+    it('keeps the guard for paths that only look like a proposal page.', async () => {
+      for (const path of [
+        '/voting',
+        '/voting/proposals/abc',
+        '/voting/proposals/0',
+        '/voting/proposals/1/votes',
+      ]) {
+        await expect(guard(path)).resolves.toEqual(
+          expect.objectContaining({ to: '/', search: { redirect: path } }),
+        );
+      }
+    });
+  });
 });
 
 describe('preloadSessionRouteChunks', () => {
   const chunk = () => vi.fn(async () => ({ default: () => null }));
 
   const setup = (path: string) => {
-    const chunks = { login: chunk(), auth: chunk(), dashboard: chunk(), neurons: chunk() };
+    const chunks = {
+      login: chunk(),
+      auth: chunk(),
+      dashboard: chunk(),
+      neurons: chunk(),
+      proposal: chunk(),
+    };
     const beforeLoad = vi.fn();
     const loader = vi.fn();
 
@@ -133,10 +183,17 @@ describe('preloadSessionRouteChunks', () => {
       component: lazyRouteComponent(chunks.neurons),
     });
 
+    const proposalRoute = createRoute({
+      getParentRoute: () => authRoute,
+      path: 'voting/proposals/$id',
+      loader,
+      component: lazyRouteComponent(chunks.proposal),
+    });
+
     const router = createRouter({
       routeTree: rootRoute.addChildren([
         loginRoute,
-        authRoute.addChildren([dashboardRoute, neuronsRoute]),
+        authRoute.addChildren([dashboardRoute, neuronsRoute, proposalRoute]),
       ]),
       history: createMemoryHistory({ initialEntries: [path] }),
     });
@@ -186,6 +243,18 @@ describe('preloadSessionRouteChunks', () => {
 
     expect(chunks.dashboard).toHaveBeenCalledTimes(1);
     expect(chunks.neurons).not.toHaveBeenCalled();
+  });
+
+  it('starts the chunks of a public page for a visitor without a stored session.', () => {
+    session.stored = false;
+    const { router, chunks, beforeLoad, loader } = setup('/voting/proposals/144845');
+
+    preloadSessionRouteChunks(router);
+
+    expect(chunks.auth).toHaveBeenCalledTimes(1);
+    expect(chunks.proposal).toHaveBeenCalledTimes(1);
+    expect(beforeLoad).not.toHaveBeenCalled();
+    expect(loader).not.toHaveBeenCalled();
   });
 
   it('starts nothing for a visitor without a stored session.', () => {
