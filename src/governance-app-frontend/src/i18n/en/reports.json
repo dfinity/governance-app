@@ -19,6 +19,12 @@
     "fees": "ICP · fees {{fees}} ICP",
     "rewards": "Rewards ({{count}})",
     "latestFirst": "Latest first",
+    "columns": {
+      "date": "Date (UTC)",
+      "account": "Account",
+      "amount": "Amount (ICP)",
+      "value": "Value ({{currency}})"
+    },
     "noRewards": "No rewards in this period.",
     "noRate": "No rate",
     "neuron": "Neuron {{id}}",

@@ -125,6 +125,16 @@ export const YearSummaryContent = ({ summary, currency, sectionTitleId }: Props)
           </p>
         ) : (
           <table className="w-full text-sm" aria-labelledby={titleId}>
+            <thead className="sr-only">
+              <tr>
+                <th scope="col">{t(($) => $.reports.yearSummary.columns.date)}</th>
+                <th scope="col" className="hidden sm:table-cell">
+                  {t(($) => $.reports.yearSummary.columns.account)}
+                </th>
+                <th scope="col">{t(($) => $.reports.yearSummary.columns.amount)}</th>
+                <th scope="col">{t(($) => $.reports.yearSummary.columns.value, { currency })}</th>
+              </tr>
+            </thead>
             <tbody>
               {summary.rewards.map(({ entity, transaction, valueHundredths }) => (
                 <tr

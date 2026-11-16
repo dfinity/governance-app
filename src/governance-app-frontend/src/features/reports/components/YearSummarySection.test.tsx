@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MAIN } from '../utils/testUtils';
+import { ReportTransactionType } from '../utils/transactionsCsv';
 import { getYearPeriod, type YearSummary } from '../utils/yearSummary';
 import { YearSummarySection } from './YearSummarySection';
 
@@ -77,6 +78,40 @@ describe('YearSummarySection', () => {
     expect(mocks.downloadCsv).toHaveBeenCalledWith(
       expect.objectContaining({ fileName: 'year-summary-2025.csv' }),
     );
+  });
+
+  it('names the columns of the rewards table', () => {
+    mocks.useYearSummary.mockReturnValue({
+      isPending: false,
+      isError: false,
+      data: {
+        ...summary,
+        rewards: [
+          {
+            entity: { kind: 'account', accountId: MAIN, name: 'Main' },
+            transaction: {
+              id: 1n,
+              timestampMs: Date.UTC(2025, 5, 1),
+              type: ReportTransactionType.Reward,
+              from: '',
+              to: MAIN,
+              amountE8s: ICP,
+              feeE8s: undefined,
+            },
+            rate: undefined,
+            valueHundredths: undefined,
+          },
+        ],
+      },
+    });
+    render(<YearSummarySection />);
+
+    expect(screen.getAllByRole('columnheader').map((header) => header.textContent)).toEqual([
+      'Date (UTC)',
+      'Account',
+      'Amount (ICP)',
+      'Value (USD)',
+    ]);
   });
 
   it('shows no fiat reward income when a reward has no rate', () => {
