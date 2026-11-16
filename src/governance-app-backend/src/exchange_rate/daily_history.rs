@@ -19,6 +19,10 @@ pub(super) const FIRST_DAY_START_SECONDS: u64 = 1_735_689_600;
 /// rate of a day only when the day started at least this long ago, and keeps that rate.
 pub(super) const FIAT_RATE_DELAY_SECS: u64 = 3 * ONE_DAY_SECS;
 
+/// After this many failed fetches, a rate is not listed as missing until the next upgrade.
+/// Each fetch costs cycles, so this limits the cost of a rate that the XRC cannot give.
+pub(super) const MAX_FETCH_ATTEMPTS: u8 = 3;
+
 /// An ISO 4217 currency code, e.g. "EUR".
 type FiatSymbolBytes = [u8; 3];
 
@@ -35,7 +39,7 @@ pub struct DailyRate {
 }
 
 /// The pair of one rate in the history.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum DailyRatePair {
     IcpToUsd,
     /// USD to the fiat currency with this ISO 4217 code.
@@ -43,7 +47,7 @@ pub enum DailyRatePair {
 }
 
 /// A rate that the history does not have yet.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct MissingDailyRate {
     pub day_start_seconds: u64,
     pub pair: DailyRatePair,
@@ -59,6 +63,10 @@ thread_local! {
     /// The symbol comes first, so that the days of one currency are next to each other.
     static USD_TO_FIAT_RATES_E8S: RefCell<StableBTreeMap<(FiatSymbolBytes, u64), u64, Memory>> =
         RefCell::new(StableBTreeMap::init(get_memory(USD_TO_FIAT_DAILY_HISTORY_MEMORY_ID)));
+
+    /// The number of failed fetches of each missing rate.
+    /// It lives on the heap, so an upgrade clears it.
+    static FAILED_FETCH_COUNTS: RefCell<BTreeMap<MissingDailyRate, u8>> = RefCell::default();
 }
 
 /// Stores the rate of the day that starts at `day_start_seconds`.
@@ -115,9 +123,19 @@ pub fn list_rates(from_seconds: u64, to_seconds: u64, fiat_symbol: Option<&str>)
     rates_by_day.into_values().collect()
 }
 
+/// Records one failed fetch of `missing_rate`.
+pub fn record_failed_fetch(missing_rate: MissingDailyRate) {
+    FAILED_FETCH_COUNTS.with(|counts| {
+        let mut counts = counts.borrow_mut();
+        let count = counts.entry(missing_rate).or_default();
+        *count = count.saturating_add(1);
+    });
+}
+
 /// Returns each rate that the history misses, from today back to `FIRST_DAY_START_SECONDS`.
 /// The newest day comes first. In one day, ICP/USD comes first, then `fiat_symbols` in order.
 /// The USD/fiat rates of the days in the last `FIAT_RATE_DELAY_SECS` are not listed.
+/// A rate that failed to fetch `MAX_FETCH_ATTEMPTS` times is not listed.
 pub fn list_missing_rates(fiat_symbols: &[&'static str]) -> Vec<MissingDailyRate> {
     let now_seconds = time_seconds();
     let newest_day_start_seconds = get_day_start_seconds(now_seconds);
@@ -127,7 +145,7 @@ pub fn list_missing_rates(fiat_symbols: &[&'static str]) -> Vec<MissingDailyRate
     let day_count =
         (newest_day_start_seconds.saturating_sub(FIRST_DAY_START_SECONDS)) / ONE_DAY_SECS + 1;
 
-    ICP_TO_USD_RATES_E8S.with(|icp_rates_e8s| {
+    let missing_rates = ICP_TO_USD_RATES_E8S.with(|icp_rates_e8s| {
         USD_TO_FIAT_RATES_E8S.with(|fiat_rates_e8s| {
             let icp_rates_e8s = icp_rates_e8s.borrow();
             let fiat_rates_e8s = fiat_rates_e8s.borrow();
@@ -160,6 +178,16 @@ pub fn list_missing_rates(fiat_symbols: &[&'static str]) -> Vec<MissingDailyRate
             }
             missing_rates
         })
+    });
+
+    FAILED_FETCH_COUNTS.with(|counts| {
+        let counts = counts.borrow();
+        missing_rates
+            .into_iter()
+            .filter(|missing_rate| {
+                counts.get(missing_rate).copied().unwrap_or_default() < MAX_FETCH_ATTEMPTS
+            })
+            .collect()
     })
 }
 
