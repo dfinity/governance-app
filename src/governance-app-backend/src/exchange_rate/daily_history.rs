@@ -19,14 +19,14 @@ pub(super) const FIRST_DAY_START_SECONDS: u64 = 1_735_689_600;
 /// rate of a day only when the day started at least this long ago, and keeps that rate.
 pub(super) const FIAT_RATE_DELAY_SECS: u64 = 3 * ONE_DAY_SECS;
 
-/// After this many failed fetches, a rate is not listed as missing until the next upgrade.
-/// Each fetch costs cycles, so this limits the cost of a rate that the XRC cannot give.
-pub(super) const MAX_FETCH_ATTEMPTS: u8 = 3;
-
-/// After a failed fetch, a rate is not listed as missing for this long.
+/// After the first failed fetch, a rate is not listed as missing for this long.
 /// The gap fill runs every 6 hours, so the next run tries the rate again, but the batches that
 /// follow the failed one in the same run do not.
 pub(super) const FETCH_RETRY_DELAY_SECS: u64 = 5 * 3_600;
+
+/// Each failed fetch doubles the retry delay, up to this delay.
+/// Each fetch costs cycles, so this limits the cost of a rate that the XRC cannot give.
+pub(super) const MAX_FETCH_RETRY_DELAY_SECS: u64 = 30 * ONE_DAY_SECS;
 
 /// The failed fetches of one missing rate.
 #[derive(Clone, Copy, Debug, Default)]
@@ -149,8 +149,7 @@ pub fn record_failed_fetch(missing_rate: MissingDailyRate) {
 /// Returns each rate that the history misses, from today back to `FIRST_DAY_START_SECONDS`.
 /// The newest day comes first. In one day, ICP/USD comes first, then `fiat_symbols` in order.
 /// The USD/fiat rates of the days in the last `FIAT_RATE_DELAY_SECS` are not listed.
-/// A rate that failed to fetch `MAX_FETCH_ATTEMPTS` times is not listed.
-/// A rate that failed to fetch in the last `FETCH_RETRY_DELAY_SECS` is not listed.
+/// A rate that failed to fetch is not listed until its retry delay ends.
 pub fn list_missing_rates(fiat_symbols: &[&'static str]) -> Vec<MissingDailyRate> {
     let now_seconds = time_seconds();
     let newest_day_start_seconds = get_day_start_seconds(now_seconds);
@@ -201,15 +200,23 @@ pub fn list_missing_rates(fiat_symbols: &[&'static str]) -> Vec<MissingDailyRate
             .into_iter()
             .filter(|missing_rate| {
                 failed_fetches.get(missing_rate).is_none_or(|failed| {
-                    failed.count < MAX_FETCH_ATTEMPTS
-                        && failed
-                            .last_failed_seconds
-                            .saturating_add(FETCH_RETRY_DELAY_SECS)
-                            <= now_seconds
+                    failed
+                        .last_failed_seconds
+                        .saturating_add(get_retry_delay_seconds(failed.count))
+                        <= now_seconds
                 })
             })
             .collect()
     })
+}
+
+/// Returns `FETCH_RETRY_DELAY_SECS`, doubled for each failed fetch after the first one, up to
+/// `MAX_FETCH_RETRY_DELAY_SECS`.
+pub(super) fn get_retry_delay_seconds(failed_count: u8) -> u64 {
+    let doublings = u32::from(failed_count.saturating_sub(1)).min(u64::BITS - 1);
+    FETCH_RETRY_DELAY_SECS
+        .saturating_mul(1 << doublings)
+        .min(MAX_FETCH_RETRY_DELAY_SECS)
 }
 
 fn empty_daily_rate(day_start_seconds: u64) -> DailyRate {

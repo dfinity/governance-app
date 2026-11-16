@@ -213,8 +213,7 @@ async fn fill_daily_history_gaps() {
 }
 
 /// Fetches up to `DAILY_HISTORY_BATCH_SIZE` rates that the daily history misses, newest day first.
-/// A failed fetch is tried again after `daily_history::FETCH_RETRY_DELAY_SECS`, up to
-/// `daily_history::MAX_FETCH_ATTEMPTS` times in all.
+/// A failed fetch is tried again after a retry delay, which doubles after each failure.
 /// A batch that starts while another batch is in progress returns at once.
 /// Returns `true` if the batch was full and stored a rate, so that the next batch can start
 /// at once. A batch that stores no rate leaves the next try to the next interval.
