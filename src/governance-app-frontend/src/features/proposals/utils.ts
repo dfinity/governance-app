@@ -30,9 +30,9 @@ export const getProposalTimeLeftInSeconds = (proposal: ProposalInfo): bigint => 
  * Whether the proposal still takes votes. An adopted proposal takes votes until its deadline, which
  * the live data keeps up to date.
  */
-export const isAcceptingVotes = (proposal: ProposalInfo): boolean =>
+export const isAcceptingVotes = (proposal: ProposalInfo, nowInSeconds: number): boolean =>
   proposal.rewardStatus === ProposalRewardStatus.AcceptVotes &&
-  getProposalTimeLeftInSeconds(proposal) > 0n;
+  Number(proposal.deadlineTimestampSeconds ?? 0n) > nowInSeconds;
 
 export const getProposalStatusColor = (proposal: ProposalInfo): string => {
   const { status } = proposal;

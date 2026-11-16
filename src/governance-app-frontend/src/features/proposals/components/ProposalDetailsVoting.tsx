@@ -10,6 +10,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@component
 import { Spinner } from '@components/Spinner';
 import { E8S } from '@constants/extra';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
+import { useNowInSeconds } from '@hooks/useNowInSeconds';
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
@@ -87,11 +88,26 @@ const DockingFooter = ({ children }: { children: ReactNode }) => {
   );
 };
 
+/** The login of a signed-out reader. It follows the clock, so it goes at the deadline. */
+const ReaderVoteRow = ({ proposal }: Props) => {
+  const { t } = useTranslation();
+  const nowInSeconds = useNowInSeconds();
+  if (!isAcceptingVotes(proposal, nowInSeconds)) return null;
+
+  return (
+    <CardFooter className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t pt-6">
+      <p className="text-sm text-muted-foreground">{t(($) => $.reader.voteRow.text)}</p>
+      <ReaderLoginButton source="reader_vote_row" variant="outline" size="lg" className="h-11">
+        {t(($) => $.reader.voteRow.action)}
+      </ReaderLoginButton>
+    </CardFooter>
+  );
+};
+
 export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
   const { identity } = useInternetIdentity();
   // A signed-out reader sees the tally, and a login in place of the vote buttons.
   const isReader = !identity;
-  const isAcceptingVotesNow = isAcceptingVotes(proposal);
   const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
   const [votingFor, setVotingFor] = useState<Vote.No | Vote.Yes | undefined>();
@@ -194,19 +210,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
           </div>
         </CardContent>
 
-        {isReader && isAcceptingVotesNow && (
-          <CardFooter className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t pt-6">
-            <p className="text-sm text-muted-foreground">{t(($) => $.reader.voteRow.text)}</p>
-            <ReaderLoginButton
-              source="reader_vote_row"
-              variant="outline"
-              size="lg"
-              className="h-11"
-            >
-              {t(($) => $.reader.voteRow.action)}
-            </ReaderLoginButton>
-          </CardFooter>
-        )}
+        {isReader && <ReaderVoteRow proposal={proposal} />}
 
         {!isReader && hasVoted && (
           <CardFooter className="py-2">

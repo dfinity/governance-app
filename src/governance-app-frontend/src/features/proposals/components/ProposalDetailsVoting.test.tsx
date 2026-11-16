@@ -246,6 +246,22 @@ describe('ProposalDetailsVoting', () => {
       expect(screen.queryByRole('button', { name: 'Log in to vote' })).toBeNull();
     });
 
+    it('hides the login when the deadline passes with no new proposal data', () => {
+      vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
+      try {
+        const nowInSeconds = Math.floor(Date.now() / 1000);
+        renderInMain({ deadlineTimestampSeconds: BigInt(nowInSeconds + 2) });
+        expect(screen.getByRole('button', { name: 'Log in to vote' })).toBeTruthy();
+
+        act(() => vi.advanceTimersByTime(3000));
+
+        expect(screen.queryByRole('button', { name: 'Log in to vote' })).toBeNull();
+        expect(screen.getByText('Yes: 75.00%')).toBeTruthy();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
     it('does not show a cast vote', () => {
       mocks.hasVoted = true;
       renderInMain();
