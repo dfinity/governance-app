@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
+import { useSignedInProperty } from '@features/analytics/useSignedInProperty';
 import { LoginHandoff } from '@features/login/components/LoginHandoff';
 
 import { Button } from '@components/button';
@@ -60,6 +61,8 @@ function AuthenticatedNotFound() {
   const { t } = useTranslation();
 
   useThemeShortcut();
+  // Before the tracker starts, so the first pageview has the property.
+  useSignedInProperty();
 
   useEffect(() => {
     analytics.init();

@@ -13,7 +13,7 @@ import { useNnsGovernance } from './useGovernance';
  */
 export const useGovernanceProposal = (props?: { proposalId: bigint }) => {
   const { identity } = useInternetIdentity();
-  const { ready, canister } = useNnsGovernance();
+  const { ready, canister, authenticated } = useNnsGovernance();
 
   const { proposalId } = props ?? {};
 
@@ -35,7 +35,9 @@ export const useGovernanceProposal = (props?: { proposalId: bigint }) => {
     isNullish(proposalId) || proposal?.id === proposalId ? proposal : undefined;
 
   return useQueryThenUpdateCall({
-    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL, proposalId, request, principal],
+    // The ballots depend on the caller. At a login, the authenticated agent starts after the
+    // identity, so the key also names the agent.
+    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL, proposalId, request, principal, authenticated],
     queryFn: async () => {
       const res = await canister!.listProposals({ request, certified: false });
       return matchesRequestedId(res.proposals[0]);
