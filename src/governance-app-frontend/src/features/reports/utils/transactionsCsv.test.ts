@@ -137,6 +137,22 @@ describe('buildTransactionsCsv', () => {
     expect(csv).toContain(`,"'=SUM(1,2)",${SAVINGS},`);
   });
 
+  it('keeps an index account ID from running as a formula', () => {
+    const csv = buildTransactionsCsv({
+      results: [
+        {
+          entity: main,
+          transactions: [
+            map(main, transferTx({ id: 5n, ms: MS, from: '=HYPERLINK(1)', to: MAIN, e8s: 1n })),
+          ],
+        },
+      ],
+      labels,
+    });
+
+    expect(csv).toContain(`,'=HYPERLINK(1),${MAIN},`);
+  });
+
   it('writes the neuron ID as spreadsheet text', () => {
     const csv = buildTransactionsCsv({
       results: [

@@ -5,6 +5,7 @@ import type { Identity } from '@icp-sdk/core/agent';
 import { getIcpIndexCanister, getNnsGovernanceCanister } from '@common/canisters';
 import { neuronsRequest } from '@common/queries/governance';
 import { nnsDappAccountQuery } from '@common/queries/nnsDapp';
+import { isUserController } from '@common/utils/neuron';
 
 import { fetchTransactionsSince, type GetTransactionsPage } from './fetchTransactions';
 import type { ReportRange } from './period';
@@ -48,38 +49,49 @@ export const getReportEntities = ({
   mainAccountName: string;
   nnsDappAccounts: Awaited<ReturnType<typeof loadNnsDappAccounts>>;
   neurons: NeuronInfo[];
-}): ReportEntity[] => [
-  {
-    kind: 'account',
-    accountId: AccountIdentifier.fromPrincipal({ principal: identity.getPrincipal() }).toHex(),
-    name: mainAccountName,
-  },
-  ...nnsDappAccounts.subAccounts.map(
-    (subAccount): ReportEntity => ({
+}): ReportEntity[] => {
+  const principalId = identity.getPrincipal().toText();
+  const ledgerPrincipals = nnsDappAccounts.hardwareWallets.map(({ principal }) =>
+    principal.toText(),
+  );
+  // A neuron where the user is only a hotkey belongs to someone else.
+  const ownNeurons = neurons.filter((neuron) =>
+    isUserController({ neuron, principalId, ledgerPrincipals }),
+  );
+
+  return [
+    {
       kind: 'account',
-      accountId: subAccount.account_identifier,
-      name: subAccount.name,
-    }),
-  ),
-  ...nnsDappAccounts.hardwareWallets.map(
-    (wallet): ReportEntity => ({
-      kind: 'account',
-      accountId: wallet.account_identifier,
-      name: wallet.name,
-    }),
-  ),
-  ...neurons.flatMap((neuron): ReportEntity[] =>
-    neuron.fullNeuron
-      ? [
-          {
-            kind: 'neuron',
-            accountId: neuron.fullNeuron.accountIdentifier,
-            neuronId: neuron.neuronId,
-          },
-        ]
-      : [],
-  ),
-];
+      accountId: AccountIdentifier.fromPrincipal({ principal: identity.getPrincipal() }).toHex(),
+      name: mainAccountName,
+    },
+    ...nnsDappAccounts.subAccounts.map(
+      (subAccount): ReportEntity => ({
+        kind: 'account',
+        accountId: subAccount.account_identifier,
+        name: subAccount.name,
+      }),
+    ),
+    ...nnsDappAccounts.hardwareWallets.map(
+      (wallet): ReportEntity => ({
+        kind: 'account',
+        accountId: wallet.account_identifier,
+        name: wallet.name,
+      }),
+    ),
+    ...ownNeurons.flatMap((neuron): ReportEntity[] =>
+      neuron.fullNeuron
+        ? [
+            {
+              kind: 'neuron',
+              accountId: neuron.fullNeuron.accountIdentifier,
+              neuronId: neuron.neuronId,
+            },
+          ]
+        : [],
+    ),
+  ];
+};
 
 const getIndexPage: GetTransactionsPage = async ({ accountIdentifier, start, maxResults }) => {
   const canister = await getIcpIndexCanister();

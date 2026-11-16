@@ -102,8 +102,10 @@ describe('mapWithLimit', () => {
 });
 
 describe('getReportEntities', () => {
-  it('lists the main account, the subaccounts, the Ledger accounts, and each neuron account', () => {
+  it('lists the main account, the subaccounts, the Ledger accounts, and each own neuron account', () => {
     const identity = Ed25519KeyIdentity.generate(new Uint8Array(32).fill(1));
+    const principalId = identity.getPrincipal().toText();
+    const ledgerPrincipalId = Principal.anonymous().toText();
     const mainAccountId = AccountIdentifier.fromPrincipal({
       principal: identity.getPrincipal(),
     }).toHex();
@@ -120,7 +122,22 @@ describe('getReportEntities', () => {
         ],
       },
       neurons: [
-        mockNeuron({ neuronId: 7n, fullNeuron: { accountIdentifier: 'neuron-id' } }),
+        mockNeuron({
+          neuronId: 7n,
+          fullNeuron: { accountIdentifier: 'neuron-id', controller: principalId },
+        }),
+        mockNeuron({
+          neuronId: 9n,
+          fullNeuron: { accountIdentifier: 'ledger-neuron-id', controller: ledgerPrincipalId },
+        }),
+        mockNeuron({
+          neuronId: 10n,
+          fullNeuron: {
+            accountIdentifier: 'hotkey-neuron-id',
+            controller: 'aaaaa-aa',
+            hotKeys: [principalId],
+          },
+        }),
         mockNeuron({ neuronId: 8n, fullNeuron: undefined }),
       ],
     });
@@ -130,6 +147,7 @@ describe('getReportEntities', () => {
       { kind: 'account', accountId: 'savings-id', name: 'Savings' },
       { kind: 'account', accountId: 'nano-id', name: 'Nano' },
       { kind: 'neuron', accountId: 'neuron-id', neuronId: 7n },
+      { kind: 'neuron', accountId: 'ledger-neuron-id', neuronId: 9n },
     ]);
   });
 });
