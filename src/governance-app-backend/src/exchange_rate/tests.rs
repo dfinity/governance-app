@@ -926,6 +926,12 @@ async fn test_fill_daily_history_gaps_fetches_failed_rate_on_next_run() {
         })
         .collect::<Vec<(String, String, Option<u64>)>>();
     assert_eq!(request_pairs, expected_request_pairs);
+    // A failed rate waits for the retry delay.
+    assert_eq!(
+        daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS),
+        vec![]
+    );
+    set_time_seconds(FIFTH_DAY_SECONDS + daily_history::FETCH_RETRY_DELAY_SECS);
     assert_eq!(
         daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS),
         vec![failed_rate]
@@ -1001,6 +1007,49 @@ async fn test_fill_daily_history_batch_stops_after_failed_batch() {
 }
 
 #[tokio::test]
+async fn test_fill_daily_history_batch_waits_before_it_tries_a_failed_rate_again() {
+    // Step 1: Prepare the world. The first rate of the first batch fails.
+    let tenth_day_seconds = FIRST_DAY_START_SECONDS + 9 * ONE_DAY_SECS + 5 * ONE_HOUR_SECS;
+    set_time_seconds(tenth_day_seconds);
+    let missing_rates = daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS);
+    let failed_rate = missing_rates[0];
+    testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
+    for missing_rate in missing_rates
+        .iter()
+        .skip(1)
+        .take(2 * DAILY_HISTORY_BATCH_SIZE - 1)
+    {
+        let response =
+            make_exchange_rate(100_000_000, E8S_DECIMALS, missing_rate.day_start_seconds);
+        testing::add_exchange_rate_response(Ok(Ok(response)));
+    }
+
+    // Step 2: Run the code under test. The second batch follows the first one at once.
+    assert!(fill_daily_history_batch().await);
+    assert!(fill_daily_history_batch().await);
+
+    // Step 3: Verify result(s). The second batch does not try the failed rate.
+    let request_timestamps = testing::drain_requests()
+        .into_iter()
+        .map(|request| request.timestamp)
+        .collect::<Vec<Option<u64>>>();
+    let expected_timestamps = missing_rates
+        .iter()
+        .take(2 * DAILY_HISTORY_BATCH_SIZE)
+        .map(|missing_rate| Some(missing_rate.day_start_seconds))
+        .collect::<Vec<Option<u64>>>();
+    assert_eq!(request_timestamps, expected_timestamps);
+    assert!(!daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS).contains(&failed_rate));
+
+    // Step 4: After the retry delay, the failed rate is listed again.
+    set_time_seconds(tenth_day_seconds + daily_history::FETCH_RETRY_DELAY_SECS);
+    assert_eq!(
+        daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS).first(),
+        Some(&failed_rate)
+    );
+}
+
+#[tokio::test]
 async fn test_fill_daily_history_batch_gives_up_on_a_rate_after_max_attempts() {
     // Step 1: Prepare the world. On the first day, only the ICP/USD rate is missing.
     set_time_seconds(FIRST_DAY_START_SECONDS + 5 * ONE_HOUR_SECS);
@@ -1014,9 +1063,12 @@ async fn test_fill_daily_history_batch_gives_up_on_a_rate_after_max_attempts() {
     );
 
     // Step 2: Run the code under test. Each batch fails to fetch the rate.
+    let mut now_seconds = FIRST_DAY_START_SECONDS + 5 * ONE_HOUR_SECS;
     for _ in 0..daily_history::MAX_FETCH_ATTEMPTS {
         testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
         fill_daily_history_batch().await;
+        now_seconds += daily_history::FETCH_RETRY_DELAY_SECS;
+        set_time_seconds(now_seconds);
     }
     fill_daily_history_batch().await;
 
