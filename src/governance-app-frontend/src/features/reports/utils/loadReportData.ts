@@ -73,6 +73,26 @@ export const loadNnsDappAccounts = async () => {
   };
 };
 
+/**
+ * Returns the neurons that the user or a Ledger device of the user controls.
+ * A neuron where the user is only a hotkey belongs to someone else.
+ */
+export const getOwnNeurons = ({
+  identity,
+  nnsDappAccounts,
+  neurons,
+}: {
+  identity: Identity;
+  nnsDappAccounts: Awaited<ReturnType<typeof loadNnsDappAccounts>>;
+  neurons: NeuronInfo[];
+}): NeuronInfo[] => {
+  const principalId = identity.getPrincipal().toText();
+  const ledgerPrincipals = nnsDappAccounts.hardwareWallets.map(({ principal }) =>
+    principal.toText(),
+  );
+  return neurons.filter((neuron) => isUserController({ neuron, principalId, ledgerPrincipals }));
+};
+
 export const getReportEntities = ({
   identity,
   mainAccountName,
@@ -84,14 +104,7 @@ export const getReportEntities = ({
   nnsDappAccounts: Awaited<ReturnType<typeof loadNnsDappAccounts>>;
   neurons: NeuronInfo[];
 }): ReportEntity[] => {
-  const principalId = identity.getPrincipal().toText();
-  const ledgerPrincipals = nnsDappAccounts.hardwareWallets.map(({ principal }) =>
-    principal.toText(),
-  );
-  // A neuron where the user is only a hotkey belongs to someone else.
-  const ownNeurons = neurons.filter((neuron) =>
-    isUserController({ neuron, principalId, ledgerPrincipals }),
-  );
+  const ownNeurons = getOwnNeurons({ identity, nnsDappAccounts, neurons });
 
   return [
     {

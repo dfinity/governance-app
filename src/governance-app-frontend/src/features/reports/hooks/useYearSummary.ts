@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 
 import { useFiatCurrency } from '@hooks/useFiatCurrency';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
-import { isUserController } from '@utils/neuron';
 import { QUERY_KEYS } from '@utils/query';
 
 import {
+  getOwnNeurons,
   getReportEntities,
   loadEntityHistories,
   loadNnsDappAccounts,
@@ -41,16 +41,7 @@ export const useYearSummary = (year: number) => {
         loadNnsDappAccounts(),
         loadReportRates({ range: period, currency: fiatCurrency }),
       ]);
-      // A neuron where the user is only a hotkey belongs to someone else.
-      const neurons = allNeurons.filter((neuron) =>
-        isUserController({
-          neuron,
-          principalId: identity.getPrincipal().toText(),
-          ledgerPrincipals: nnsDappAccounts.hardwareWallets.map(({ principal }) =>
-            principal.toText(),
-          ),
-        }),
-      );
+      const neurons = getOwnNeurons({ identity, nnsDappAccounts, neurons: allNeurons });
       const entities = getReportEntities({ identity, mainAccountName, nnsDappAccounts, neurons });
       const { histories, complete } = await loadEntityHistories({
         entities,
