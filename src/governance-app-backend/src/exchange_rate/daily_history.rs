@@ -14,6 +14,11 @@ use crate::stable_memory::{
 /// For older days, the XRC has few ICP and stablecoin sources.
 pub(super) const FIRST_DAY_START_SECONDS: u64 = 1_735_689_600;
 
+/// The XRC updates the forex rates of a day for up to 2 days after it. While a day has no forex
+/// rate yet, the XRC returns the rate of an earlier day. Thus the history fetches the USD/fiat
+/// rate of a day only when the day started at least this long ago, and keeps that rate.
+pub(super) const FIAT_RATE_DELAY_SECS: u64 = 3 * ONE_DAY_SECS;
+
 /// An ISO 4217 currency code, e.g. "EUR".
 type FiatSymbolBytes = [u8; 3];
 
@@ -112,8 +117,10 @@ pub fn list_rates(from_seconds: u64, to_seconds: u64, fiat_symbol: Option<&str>)
 
 /// Returns each rate that the history misses, from today back to `FIRST_DAY_START_SECONDS`.
 /// The newest day comes first. In one day, ICP/USD comes first, then `fiat_symbols` in order.
+/// The USD/fiat rates of the days in the last `FIAT_RATE_DELAY_SECS` are not listed.
 pub fn list_missing_rates(fiat_symbols: &[&'static str]) -> Vec<MissingDailyRate> {
-    let newest_day_start_seconds = get_day_start_seconds(time_seconds());
+    let now_seconds = time_seconds();
+    let newest_day_start_seconds = get_day_start_seconds(now_seconds);
     if newest_day_start_seconds < FIRST_DAY_START_SECONDS {
         return vec![];
     }
@@ -135,6 +142,9 @@ pub fn list_missing_rates(fiat_symbols: &[&'static str]) -> Vec<MissingDailyRate
                         day_start_seconds,
                         pair: DailyRatePair::IcpToUsd,
                     });
+                }
+                if day_start_seconds.saturating_add(FIAT_RATE_DELAY_SECS) > now_seconds {
+                    continue;
                 }
                 for &symbol in fiat_symbols {
                     let is_missing = to_fiat_symbol_bytes(symbol).is_some_and(|symbol_bytes| {

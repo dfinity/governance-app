@@ -3,7 +3,7 @@ use super::cache::{
     set_one_day_ago_rate, CachedRate,
 };
 use super::daily_history::{
-    self, DailyRate, DailyRatePair, MissingDailyRate, FIRST_DAY_START_SECONDS,
+    self, DailyRate, DailyRatePair, MissingDailyRate, FIAT_RATE_DELAY_SECS, FIRST_DAY_START_SECONDS,
 };
 use super::month_history::{
     add_rate, list_missing_slot_starts_seconds, list_past_month_rates, PastMonthRate, SLOT_SECS,
@@ -685,19 +685,30 @@ async fn test_update_icp_to_usd_exchange_rate_adds_current_rate_to_month_history
     );
 }
 
-/// Thursday, January 2, 2025 at 05:00:00 UTC, the second day of the daily history.
-const SECOND_DAY_SECONDS: u64 = FIRST_DAY_START_SECONDS + ONE_DAY_SECS + 5 * ONE_HOUR_SECS;
+/// Thursday, January 2, 2025 at 00:00:00 UTC, the second day of the daily history.
 const SECOND_DAY_START_SECONDS: u64 = FIRST_DAY_START_SECONDS + ONE_DAY_SECS;
 
-fn missing_rates_of_day(day_start_seconds: u64) -> Vec<MissingDailyRate> {
-    let fiat_pairs = SUPPORTED_FIAT_SYMBOLS
-        .iter()
-        .map(|&symbol| DailyRatePair::UsdToFiat(symbol));
-    std::iter::once(DailyRatePair::IcpToUsd)
-        .chain(fiat_pairs)
-        .map(|pair| MissingDailyRate {
-            day_start_seconds,
-            pair,
+/// Sunday, January 5, 2025 at 05:00:00 UTC, the fifth day of the daily history.
+/// The USD/fiat rates of the first two days are settled. Those of the last three days are not.
+const FIFTH_DAY_SECONDS: u64 = FIRST_DAY_START_SECONDS + 4 * ONE_DAY_SECS + 5 * ONE_HOUR_SECS;
+
+/// The missing rates at `FIFTH_DAY_SECONDS` of an empty history, newest day first.
+fn missing_rates_on_fifth_day() -> Vec<MissingDailyRate> {
+    (0..5)
+        .rev()
+        .flat_map(|day_index| {
+            let day_start_seconds = FIRST_DAY_START_SECONDS + day_index * ONE_DAY_SECS;
+            let is_fiat_settled = day_start_seconds + FIAT_RATE_DELAY_SECS <= FIFTH_DAY_SECONDS;
+            let fiat_pairs = SUPPORTED_FIAT_SYMBOLS
+                .iter()
+                .filter(move |_| is_fiat_settled)
+                .map(|&symbol| DailyRatePair::UsdToFiat(symbol));
+            std::iter::once(DailyRatePair::IcpToUsd)
+                .chain(fiat_pairs)
+                .map(move |pair| MissingDailyRate {
+                    day_start_seconds,
+                    pair,
+                })
         })
         .collect()
 }
@@ -705,15 +716,23 @@ fn missing_rates_of_day(day_start_seconds: u64) -> Vec<MissingDailyRate> {
 #[test]
 fn test_daily_history_lists_missing_rates_newest_day_first() {
     // Step 1: Prepare the world.
-    set_time_seconds(SECOND_DAY_SECONDS);
+    set_time_seconds(FIFTH_DAY_SECONDS);
+    let stored_icp_rate = MissingDailyRate {
+        day_start_seconds: FIRST_DAY_START_SECONDS,
+        pair: DailyRatePair::IcpToUsd,
+    };
+    let stored_eur_rate = MissingDailyRate {
+        day_start_seconds: SECOND_DAY_START_SECONDS,
+        pair: DailyRatePair::UsdToFiat("EUR"),
+    };
     daily_history::add_rate(
-        DailyRatePair::IcpToUsd,
-        FIRST_DAY_START_SECONDS,
+        stored_icp_rate.pair,
+        stored_icp_rate.day_start_seconds,
         700_000_000,
     );
     daily_history::add_rate(
-        DailyRatePair::UsdToFiat("EUR"),
-        SECOND_DAY_START_SECONDS,
+        stored_eur_rate.pair,
+        stored_eur_rate.day_start_seconds,
         96_000_000,
     );
 
@@ -721,23 +740,31 @@ fn test_daily_history_lists_missing_rates_newest_day_first() {
     let missing_rates = daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS);
 
     // Step 3: Verify result(s).
-    let expected_missing_rates = missing_rates_of_day(SECOND_DAY_START_SECONDS)
+    let expected_missing_rates = missing_rates_on_fifth_day()
         .into_iter()
-        .chain(missing_rates_of_day(FIRST_DAY_START_SECONDS))
-        .filter(|missing_rate| {
-            *missing_rate
-                != MissingDailyRate {
-                    day_start_seconds: FIRST_DAY_START_SECONDS,
-                    pair: DailyRatePair::IcpToUsd,
-                }
-                && *missing_rate
-                    != MissingDailyRate {
-                        day_start_seconds: SECOND_DAY_START_SECONDS,
-                        pair: DailyRatePair::UsdToFiat("EUR"),
-                    }
-        })
+        .filter(|missing_rate| *missing_rate != stored_icp_rate && *missing_rate != stored_eur_rate)
         .collect::<Vec<MissingDailyRate>>();
     assert_eq!(missing_rates, expected_missing_rates);
+}
+
+#[test]
+fn test_daily_history_does_not_list_fiat_rates_of_recent_days() {
+    // Step 1: Prepare the world.
+    let third_day_start_seconds = FIRST_DAY_START_SECONDS + 2 * ONE_DAY_SECS;
+    set_time_seconds(third_day_start_seconds + FIAT_RATE_DELAY_SECS - 1);
+
+    // Step 2: Run the code under test.
+    let missing_fiat_day_starts_seconds = daily_history::list_missing_rates(&["EUR"])
+        .into_iter()
+        .filter(|missing_rate| missing_rate.pair != DailyRatePair::IcpToUsd)
+        .map(|missing_rate| missing_rate.day_start_seconds)
+        .collect::<Vec<u64>>();
+
+    // Step 3: Verify result(s).
+    assert_eq!(
+        missing_fiat_day_starts_seconds,
+        vec![SECOND_DAY_START_SECONDS, FIRST_DAY_START_SECONDS]
+    );
 }
 
 #[test]
@@ -848,12 +875,13 @@ fn test_daily_history_lists_a_fiat_rate_without_an_icp_rate() {
 #[tokio::test]
 async fn test_fill_daily_history_gaps_fetches_failed_rate_on_next_run() {
     // Step 1: Prepare the world.
-    set_time_seconds(SECOND_DAY_SECONDS);
+    set_time_seconds(FIFTH_DAY_SECONDS);
     let missing_rates = daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS);
     let failed_rate = MissingDailyRate {
         day_start_seconds: FIRST_DAY_START_SECONDS,
         pair: DailyRatePair::UsdToFiat("JPY"),
     };
+    let mut expected_eur_rates = vec![];
     for (index, missing_rate) in missing_rates.iter().enumerate() {
         if *missing_rate == failed_rate {
             testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
@@ -862,50 +890,52 @@ async fn test_fill_daily_history_gaps_fetches_failed_rate_on_next_run() {
         let rate_e8s = 100_000_000 + index as u64;
         let response = make_exchange_rate(rate_e8s, E8S_DECIMALS, missing_rate.day_start_seconds);
         testing::add_exchange_rate_response(Ok(Ok(response)));
+        if missing_rate.pair == DailyRatePair::UsdToFiat("EUR") {
+            expected_eur_rates.push((missing_rate.day_start_seconds, rate_e8s));
+        }
     }
 
     // Step 2: Run the code under test.
     fill_daily_history_gaps().await;
 
     // Step 3: Verify result(s).
-    let requests = testing::drain_requests();
-    assert_eq!(requests.len(), 2 * (1 + SUPPORTED_FIAT_SYMBOLS.len()));
-    let request_pairs = requests
-        .iter()
+    assert_eq!(missing_rates, missing_rates_on_fifth_day());
+    let request_pairs = testing::drain_requests()
+        .into_iter()
         .map(|request| {
             (
-                request.base_asset.symbol.as_str(),
-                request.quote_asset.symbol.as_str(),
+                request.base_asset.symbol,
+                request.quote_asset.symbol,
                 request.timestamp,
             )
         })
-        .collect::<Vec<(&str, &str, Option<u64>)>>();
+        .collect::<Vec<(String, String, Option<u64>)>>();
     let expected_request_pairs = missing_rates
         .iter()
-        .map(|missing_rate| match missing_rate.pair {
-            DailyRatePair::IcpToUsd => ("ICP", "USD", Some(missing_rate.day_start_seconds)),
-            DailyRatePair::UsdToFiat(symbol) => {
-                ("USD", symbol, Some(missing_rate.day_start_seconds))
-            }
+        .map(|missing_rate| {
+            let (base_symbol, quote_symbol) = match missing_rate.pair {
+                DailyRatePair::IcpToUsd => ("ICP", "USD"),
+                DailyRatePair::UsdToFiat(symbol) => ("USD", symbol),
+            };
+            (
+                base_symbol.to_string(),
+                quote_symbol.to_string(),
+                Some(missing_rate.day_start_seconds),
+            )
         })
-        .collect::<Vec<(&str, &str, Option<u64>)>>();
+        .collect::<Vec<(String, String, Option<u64>)>>();
     assert_eq!(request_pairs, expected_request_pairs);
     assert_eq!(
         daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS),
         vec![failed_rate]
     );
-    assert_eq!(
-        daily_history::list_rates(
-            SECOND_DAY_START_SECONDS,
-            SECOND_DAY_START_SECONDS + ONE_DAY_SECS,
-            Some("EUR"),
-        ),
-        vec![DailyRate {
-            timestamp_seconds: SECOND_DAY_START_SECONDS,
-            icp_to_usd_e8s: Some(100_000_000),
-            usd_to_fiat_e8s: Some(100_000_001),
-        }]
-    );
+    let listed_eur_rates =
+        daily_history::list_rates(FIRST_DAY_START_SECONDS, FIFTH_DAY_SECONDS, Some("EUR"))
+            .into_iter()
+            .filter_map(|rate| Some((rate.timestamp_seconds, rate.usd_to_fiat_e8s?)))
+            .collect::<Vec<(u64, u64)>>();
+    expected_eur_rates.reverse();
+    assert_eq!(listed_eur_rates, expected_eur_rates);
 
     // Step 4: Run the code under test again. Only the failed rate is fetched.
     let response = make_exchange_rate(15_000_000_000, E8S_DECIMALS, FIRST_DAY_START_SECONDS);
