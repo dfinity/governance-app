@@ -2,7 +2,7 @@ import { type KnownNeuron, type NeuronId } from '@icp-sdk/canisters/nns';
 import { isNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'motion/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
@@ -155,17 +155,24 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
     handleFollow(knownNeuron, execute);
   };
 
+  const resetState = useEffectEvent(() => {
+    setPendingNeuron(null);
+    setUserOverrideId(undefined);
+    setSearchQuery('');
+    setActiveNeuronName('');
+    updateFollowingMutation.reset();
+  });
+
+  // The reset waits for the close animation. A reopen within that delay
+  // cancels the timer, so the open resets at once instead.
   useEffect(() => {
-    if (open) return;
-    const timer = setTimeout(() => {
-      setPendingNeuron(null);
-      setUserOverrideId(undefined);
-      setSearchQuery('');
-      setActiveNeuronName('');
-      updateFollowingMutation.reset();
-    }, DIALOG_RESET_DELAY_MS);
+    if (open) {
+      resetState();
+      return;
+    }
+    const timer = setTimeout(resetState, DIALOG_RESET_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [open, updateFollowingMutation]);
+  }, [open]);
 
   return (
     <MutationDialog
