@@ -171,6 +171,7 @@ describe('buildTransactionsCsv', () => {
         },
       ],
       labels,
+      rateLookup: noRate,
     });
 
     expect(csv).toContain(`,'=HYPERLINK(1),${MAIN},`);
