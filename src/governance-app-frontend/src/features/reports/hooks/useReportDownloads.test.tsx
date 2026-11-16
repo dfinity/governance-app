@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => ({
   loadReportNeurons: vi.fn(),
   loadNnsDappAccounts: vi.fn(),
   loadReportTransactions: vi.fn(),
+  loadReportRates: vi.fn(),
   downloadCsv: vi.fn(),
   infoNotification: vi.fn(),
   warningNotification: vi.fn(),
@@ -28,6 +29,10 @@ vi.mock('../utils/loadReportData', async (importOriginal) => ({
   loadReportNeurons: mocks.loadReportNeurons,
   loadNnsDappAccounts: mocks.loadNnsDappAccounts,
   loadReportTransactions: mocks.loadReportTransactions,
+  loadReportRates: mocks.loadReportRates,
+}));
+vi.mock('@hooks/tickers/useIcpPrice', () => ({
+  useIcpPrice: () => ({ icpPrice: 2.5, currency: 'USD' }),
 }));
 vi.mock('../utils/csv', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../utils/csv')>()),
@@ -68,9 +73,13 @@ describe('useTransactionsReportDownload', () => {
     vi.clearAllMocks();
     mocks.loadReportNeurons.mockResolvedValue([]);
     mocks.loadNnsDappAccounts.mockResolvedValue({ subAccounts: [], hardwareWallets: [] });
+    mocks.loadReportRates.mockResolvedValue(() => ({
+      dayMs: Date.UTC(2026, 5, 1),
+      icpToFiatE8s: 300_000_000n,
+    }));
   });
 
-  it('downloads the transactions', async () => {
+  it('downloads the transactions with the value of each one', async () => {
     mocks.loadReportTransactions.mockResolvedValue({
       results: [{ entity: main, transactions: [reward] }],
       complete: true,
@@ -78,10 +87,26 @@ describe('useTransactionsReportDownload', () => {
 
     await runTransactionsReport();
 
+    expect(mocks.loadReportRates).toHaveBeenCalledWith({ range: RANGE, currency: 'USD' });
     expect(mocks.downloadCsv).toHaveBeenCalledWith(
       expect.objectContaining({ fileName: 'transactions-2026-01-01-to-2026-11-14.csv' }),
     );
+    const [{ content }] = mocks.downloadCsv.mock.calls[0];
+    expect(content).toContain(',3.00000000,0.00,2026-06-01\r\n');
     expect(mocks.warningNotification).not.toHaveBeenCalled();
+  });
+
+  it('shows an error and saves no file when the rates fail to load', async () => {
+    mocks.loadReportTransactions.mockResolvedValue({
+      results: [{ entity: main, transactions: [reward] }],
+      complete: true,
+    });
+    mocks.loadReportRates.mockRejectedValue(new Error('down'));
+
+    await runTransactionsReport();
+
+    expect(mocks.downloadCsv).not.toHaveBeenCalled();
+    expect(mocks.errorNotification).toHaveBeenCalledOnce();
   });
 
   it('downloads a truncated list with a warning', async () => {
@@ -150,6 +175,8 @@ describe('useNeuronsReportDownload', () => {
     await runNeuronsReport();
 
     expect(mocks.downloadCsv).toHaveBeenCalledOnce();
+    const [{ content }] = mocks.downloadCsv.mock.calls[0];
+    expect(content).toContain('Stake value today (USD)');
   });
 
   it('saves no file without neurons', async () => {

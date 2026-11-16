@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
 
+import { useIcpPrice } from '@hooks/tickers/useIcpPrice';
+import { useFiatCurrency } from '@hooks/useFiatCurrency';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { errorNotification, infoNotification, warningNotification } from '@utils/notification';
 
@@ -12,6 +14,7 @@ import {
   getReportEntities,
   loadNnsDappAccounts,
   loadReportNeurons,
+  loadReportRates,
   loadReportTransactions,
 } from '../utils/loadReportData';
 import { buildNeuronsCsv } from '../utils/neuronsCsv';
@@ -31,7 +34,8 @@ const useIdentityOrThrow = () => {
 export const useNeuronsReportDownload = () => {
   const { t } = useTranslation();
   const getIdentity = useIdentityOrThrow();
-  const labels = useNeuronsCsvLabels();
+  const { icpPrice, currency } = useIcpPrice();
+  const labels = useNeuronsCsvLabels(currency);
 
   return useMutation({
     mutationFn: async () => {
@@ -57,6 +61,7 @@ export const useNeuronsReportDownload = () => {
           ),
           labels,
           now,
+          icpPrice,
         }),
       });
       analytics.event(AnalyticsEvent.ReportDownload, { report: 'neurons' });
@@ -71,7 +76,8 @@ export const useNeuronsReportDownload = () => {
 export const useTransactionsReportDownload = () => {
   const { t } = useTranslation();
   const getIdentity = useIdentityOrThrow();
-  const labels = useTransactionsCsvLabels();
+  const { fiatCurrency } = useFiatCurrency();
+  const labels = useTransactionsCsvLabels(fiatCurrency);
   const mainAccountName = t(($) => $.accounts.mainAccount);
 
   return useMutation({
@@ -82,7 +88,10 @@ export const useTransactionsReportDownload = () => {
         loadNnsDappAccounts(),
       ]);
       const entities = getReportEntities({ identity, mainAccountName, nnsDappAccounts, neurons });
-      const { results, complete } = await loadReportTransactions({ entities, range });
+      const [{ results, complete }, rateLookup] = await Promise.all([
+        loadReportTransactions({ entities, range }),
+        loadReportRates({ range, currency: fiatCurrency }),
+      ]);
 
       if (results.every(({ transactions }) => transactions.length === 0)) {
         // An incomplete fetch can miss the whole period, so it does not prove an empty period.
@@ -99,7 +108,7 @@ export const useTransactionsReportDownload = () => {
           from: toIsoDate(range.fromMs),
           to: toIsoDate(range.toMs - 1),
         }),
-        content: buildTransactionsCsv({ results, labels }),
+        content: buildTransactionsCsv({ results, labels, rateLookup }),
       });
       if (!complete) {
         warningNotification({ description: t(($) => $.reports.transactions.incomplete) });

@@ -6,9 +6,12 @@ import {
   buildCsv,
   type CsvColumn,
   formatE8sForCsv,
+  formatHundredthsForCsv,
+  formatUtcDate,
   formatUtcDateTime,
 } from './csv';
 import type { ReportRange } from './period';
+import { type ReportRate, type ReportRateLookup, toFiatHundredths } from './rates';
 
 /** An account or a neuron account of the user, with the transactions of the report range. */
 export type ReportEntity =
@@ -51,6 +54,9 @@ export type TransactionsCsvLabels = {
     to: string;
     amount: string;
     fee: string;
+    price: string;
+    value: string;
+    rateDate: string;
   };
   types: Record<ReportTransactionType, string>;
 };
@@ -158,6 +164,7 @@ export type EntityTransactions = {
 type TransactionRow = {
   entity: ReportEntity;
   transaction: ReportTransaction;
+  rate: ReportRate | undefined;
 };
 
 const byNewestFirst = (a: TransactionRow, b: TransactionRow): number =>
@@ -166,14 +173,16 @@ const byNewestFirst = (a: TransactionRow, b: TransactionRow): number =>
 
 /**
  * One flat table, newest first. A transfer between two accounts of the user has one row for each
- * account, because each account sees its own side of it.
+ * account, because each account sees its own side of it. A row without a rate has empty fiat cells.
  */
 export const buildTransactionsCsv = ({
   results,
   labels,
+  rateLookup,
 }: {
   results: EntityTransactions[];
   labels: TransactionsCsvLabels;
+  rateLookup: ReportRateLookup;
 }): string => {
   const { headers } = labels;
 
@@ -206,11 +215,37 @@ export const buildTransactionsCsv = ({
       value: ({ transaction }) =>
         transaction.feeE8s === undefined ? '' : formatE8sForCsv(transaction.feeE8s),
     },
+    {
+      header: headers.price,
+      value: ({ rate }) => (rate === undefined ? '' : formatE8sForCsv(rate.icpToFiatE8s)),
+    },
+    {
+      header: headers.value,
+      value: ({ transaction, rate }) =>
+        rate === undefined
+          ? ''
+          : formatHundredthsForCsv(
+              toFiatHundredths({
+                amountE8s: transaction.amountE8s,
+                icpToFiatE8s: rate.icpToFiatE8s,
+              }),
+              { signed: true },
+            ),
+    },
+    {
+      header: headers.rateDate,
+      value: ({ rate }) => (rate === undefined ? '' : formatUtcDate(rate.dayMs)),
+    },
   ];
 
   const rows = results
     .flatMap(({ entity, transactions }) =>
-      transactions.map((transaction) => ({ entity, transaction })),
+      transactions.map((transaction) => ({
+        entity,
+        transaction,
+        rate:
+          transaction.timestampMs === undefined ? undefined : rateLookup(transaction.timestampMs),
+      })),
     )
     .toSorted(byNewestFirst);
 

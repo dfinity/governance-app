@@ -17,7 +17,7 @@
   },
   "transactions": {
     "title": "Transactions",
-    "description": "The transactions of all your accounts and neuron accounts in the period.",
+    "description": "The transactions of all your accounts and neuron accounts in the period, with the {{currency}} value of each one.",
     "period": "Period",
     "periods": {
       "yearToDate": "Year to date",
@@ -40,6 +40,7 @@
       "controller": "Controller",
       "access": "Access",
       "stake": "Stake (ICP)",
+      "stakeValue": "Stake value today ({{currency}})",
       "availableMaturity": "Available maturity (ICP)",
       "stakedMaturity": "Staked maturity (ICP)",
       "dissolveDelayDays": "Dissolve delay (days)",
@@ -69,7 +70,10 @@
       "from": "From",
       "to": "To",
       "amount": "Amount (ICP)",
-      "fee": "Fee (ICP)"
+      "fee": "Fee (ICP)",
+      "price": "ICP price ({{currency}})",
+      "value": "Value ({{currency}})",
+      "rateDate": "Rate date (UTC)"
     },
     "types": {
       "received": "Received",
