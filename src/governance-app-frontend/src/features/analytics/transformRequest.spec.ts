@@ -163,8 +163,10 @@ describe('addRedirectTarget', () => {
     expect(target('/voting/proposals/144355')).toBe('/voting/proposals/:id');
   });
 
-  it('reports a path of another form as other', () => {
+  it('reports a path that is not an app page as other', () => {
     expect(target('/accounts/abc123')).toBe('other');
+    expect(target('/accounts/rrkah-fqaaa-aaaaa-aaaaq-cai')).toBe('other');
+    expect(target('/unknown')).toBe('other');
     expect(target('https://example.com/')).toBe('other');
   });
 

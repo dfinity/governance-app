@@ -2,8 +2,8 @@ import type { PlausibleRequestPayload } from '@plausible-analytics/tracker';
 
 const PROPOSAL_PATH = /^\/voting\/proposals\/(\d+)\/?$/;
 
-// App paths with no ID in them, for example `/voting` or `/neurons`.
-const STATIC_PATH = /^(\/[a-z-]+)+\/?$/;
+// The app pages that have no ID in the path.
+const STATIC_PATHS = new Set(['/dashboard', '/neurons', '/voting', '/accounts', '/settings']);
 
 const CAMPAIGN_PARAMS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
 
@@ -86,7 +86,7 @@ export const groupProposalPages = (payload: PlausibleRequestPayload): PlausibleR
 /**
  * Adds the `redirect_target` property to an event on the login page that has a `redirect`
  * query, so Plausible shows which page a signed-out visitor tried to open.
- * A proposal path becomes `/voting/proposals/:id`. A path of another form becomes `other`.
+ * A proposal path becomes `/voting/proposals/:id`. A path that is not an app page becomes `other`.
  */
 export const addRedirectTarget = (payload: PlausibleRequestPayload): PlausibleRequestPayload => {
   let url: URL;
@@ -101,11 +101,11 @@ export const addRedirectTarget = (payload: PlausibleRequestPayload): PlausibleRe
   const redirect = url.searchParams.get('redirect');
   if (!redirect) return payload;
 
-  const path = redirect.split(/[?#]/)[0];
+  const path = redirect.split(/[?#]/)[0].replace(/(.)\/$/, '$1');
   const target = PROPOSAL_PATH.test(path)
     ? '/voting/proposals/:id'
-    : STATIC_PATH.test(path)
-      ? path.replace(/\/$/, '')
+    : STATIC_PATHS.has(path)
+      ? path
       : 'other';
 
   return { ...payload, p: { ...payload.p, redirect_target: target } };
