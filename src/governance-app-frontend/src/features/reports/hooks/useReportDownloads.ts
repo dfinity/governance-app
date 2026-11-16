@@ -83,15 +83,14 @@ export const useTransactionsReportDownload = () => {
   return useMutation({
     mutationFn: async ({ range, period }: { range: ReportRange; period: ReportPeriod }) => {
       const identity = getIdentity();
-      const [neurons, nnsDappAccounts] = await Promise.all([
+      // The rates load before the transaction scan, so that a failed rate load leaves no scan running.
+      const [neurons, nnsDappAccounts, rateLookup] = await Promise.all([
         loadReportNeurons(),
         loadNnsDappAccounts(),
-      ]);
-      const entities = getReportEntities({ identity, mainAccountName, nnsDappAccounts, neurons });
-      const [{ results, complete }, rateLookup] = await Promise.all([
-        loadReportTransactions({ entities, range }),
         loadReportRates({ range, currency: fiatCurrency }),
       ]);
+      const entities = getReportEntities({ identity, mainAccountName, nnsDappAccounts, neurons });
+      const { results, complete } = await loadReportTransactions({ entities, range });
 
       if (results.every(({ transactions }) => transactions.length === 0)) {
         // An incomplete fetch can miss the whole period, so it does not prove an empty period.

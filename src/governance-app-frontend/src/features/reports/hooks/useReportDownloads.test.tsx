@@ -96,15 +96,12 @@ describe('useTransactionsReportDownload', () => {
     expect(mocks.warningNotification).not.toHaveBeenCalled();
   });
 
-  it('shows an error and saves no file when the rates fail to load', async () => {
-    mocks.loadReportTransactions.mockResolvedValue({
-      results: [{ entity: main, transactions: [reward] }],
-      complete: true,
-    });
+  it('starts no transaction scan and saves no file when the rates fail to load', async () => {
     mocks.loadReportRates.mockRejectedValue(new Error('down'));
 
     await runTransactionsReport();
 
+    expect(mocks.loadReportTransactions).not.toHaveBeenCalled();
     expect(mocks.downloadCsv).not.toHaveBeenCalled();
     expect(mocks.errorNotification).toHaveBeenCalledOnce();
   });
