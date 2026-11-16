@@ -204,8 +204,8 @@ export const buildTransactionsCsv = ({
         entity.kind === 'neuron' ? asSpreadsheetText(entity.neuronId.toString()) : '',
     },
     { header: headers.type, value: ({ transaction }) => labels.types[transaction.type] },
-    { header: headers.from, value: ({ transaction }) => transaction.from },
-    { header: headers.to, value: ({ transaction }) => transaction.to },
+    { header: headers.from, value: ({ transaction }) => asSafeSpreadsheetText(transaction.from) },
+    { header: headers.to, value: ({ transaction }) => asSafeSpreadsheetText(transaction.to) },
     {
       header: headers.amount,
       value: ({ transaction }) => formatE8sForCsv(transaction.amountE8s, { signed: true }),
