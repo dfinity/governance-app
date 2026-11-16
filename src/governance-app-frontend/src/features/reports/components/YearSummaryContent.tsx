@@ -74,8 +74,20 @@ export const YearSummaryContent = ({ summary, currency, sectionTitleId }: Props)
       <div className="grid gap-3 sm:grid-cols-3">
         <Tile
           label={t(($) => $.reports.yearSummary.rewardIncome)}
-          value={formatHundredths(summary.rewardsTotalHundredths, currency)}
-          detail={`${formatIcp(summary.rewardsTotalE8s)} ICP`}
+          // A fiat total without the rewards that have no rate would look complete.
+          value={
+            summary.rewardsWithoutRate > 0
+              ? '-'
+              : formatHundredths(summary.rewardsTotalHundredths, currency)
+          }
+          detail={
+            summary.rewardsWithoutRate > 0
+              ? t(($) => $.reports.yearSummary.withoutRate, {
+                  icp: formatIcp(summary.rewardsTotalE8s),
+                  count: summary.rewardsWithoutRate,
+                })
+              : `${formatIcp(summary.rewardsTotalE8s)} ICP`
+          }
           testId="year-summary-rewards"
         />
         <Tile

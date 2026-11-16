@@ -19,6 +19,7 @@ const labels: YearSummaryCsvLabels = {
   holdings: 'Holdings on 2025-12-31',
   movements: 'Movements',
   notIncluded: 'Not included',
+  incomplete: 'Some transactions are missing.',
   headers: {
     date: 'Date',
     account: 'Account',
@@ -100,6 +101,19 @@ describe('buildYearSummaryCsv', () => {
       '"No maturity, sorry."',
       '',
     ]);
+  });
+
+  it('warns about missing transactions and leaves out a fiat total that misses rates', () => {
+    const csv = buildYearSummaryCsv({
+      summary: { ...summary, complete: false, rewardsWithoutRate: 1 },
+      currency: 'EUR',
+      labels,
+    });
+
+    expect(csv).toContain('\r\nTotal,,,,10.00000000,,,\r\n');
+    expect(csv).toContain(
+      '\r\nNot included\r\nSome transactions are missing.\r\n"No maturity, sorry."\r\n',
+    );
   });
 
   it('adds the maturity for the current year', () => {

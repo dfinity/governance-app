@@ -108,6 +108,7 @@ export const useYearSummaryCsvLabels = ({
       : t(($) => $.reports.csv.yearSummary.holdingsOn, { date: formatUtcDate(period.toMs - 1) }),
     movements: t(($) => $.reports.csv.yearSummary.movements),
     notIncluded: t(($) => $.reports.csv.yearSummary.notIncluded),
+    incomplete: t(($) => $.reports.yearSummary.incomplete),
     headers: {
       date: t(($) => $.reports.csv.transactions.date),
       account: t(($) => $.reports.csv.transactions.account),

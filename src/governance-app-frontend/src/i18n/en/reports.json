@@ -10,6 +10,7 @@
     "year": "Year",
     "yearToDate": "{{year}} to date",
     "rewardIncome": "Reward income",
+    "withoutRate": "{{icp}} ICP · {{count}} without a rate",
     "holdingsToday": "Holdings today",
     "holdingsOn": "Holdings on {{date}}",
     "withMaturity": "{{icp}} ICP + {{maturity}} maturity",

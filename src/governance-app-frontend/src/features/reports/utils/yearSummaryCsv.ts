@@ -23,6 +23,8 @@ export type YearSummaryCsvLabels = {
   holdings: string;
   movements: string;
   notIncluded: string;
+  /** The warning for a summary that misses the oldest transactions of an account. */
+  incomplete: string;
   headers: {
     date: string;
     account: string;
@@ -115,7 +117,8 @@ export const buildYearSummaryCsv = ({
       '',
       formatE8sForCsv(summary.rewardsTotalE8s),
       '',
-      formatHundredthsForCsv(summary.rewardsTotalHundredths),
+      // A total without the rewards that have no rate would look complete.
+      summary.rewardsWithoutRate > 0 ? '' : formatHundredthsForCsv(summary.rewardsTotalHundredths),
       '',
     ]),
     '',
@@ -141,6 +144,7 @@ export const buildYearSummaryCsv = ({
     toCsvLine([headers.fees, formatE8sForCsv(summary.feesE8s)]),
     '',
     toCsvLine([labels.notIncluded]),
+    ...(summary.complete ? [] : [toCsvLine([labels.incomplete])]),
     ...labels.limits.map((limit) => toCsvLine([limit])),
   ]);
 };

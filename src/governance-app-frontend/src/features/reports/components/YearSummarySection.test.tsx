@@ -79,6 +79,20 @@ describe('YearSummarySection', () => {
     );
   });
 
+  it('shows no fiat reward income when a reward has no rate', () => {
+    mocks.useYearSummary.mockReturnValue({
+      isPending: false,
+      isError: false,
+      data: { ...summary, rewardsTotalE8s: 10n * ICP, rewardsWithoutRate: 1 },
+    });
+    render(<YearSummarySection />);
+
+    const tile = screen.getByTestId('year-summary-rewards').textContent;
+    expect(tile).toContain('-');
+    expect(tile).toContain('10.00 ICP · 1 without a rate');
+    expect(tile).not.toContain('€');
+  });
+
   it('offers a retry after an error', async () => {
     mocks.useYearSummary.mockReturnValue({
       isPending: false,

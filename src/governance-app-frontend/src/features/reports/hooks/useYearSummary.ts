@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useFiatCurrency } from '@hooks/useFiatCurrency';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
+import { isUserController } from '@utils/neuron';
 import { QUERY_KEYS } from '@utils/query';
 
 import {
@@ -35,11 +36,21 @@ export const useYearSummary = (year: number) => {
 
       const period = getYearPeriod(year, Date.now());
       // The rates load before the transaction scan, so that a failed rate load leaves no scan running.
-      const [neurons, nnsDappAccounts, rateLookup] = await Promise.all([
+      const [allNeurons, nnsDappAccounts, rateLookup] = await Promise.all([
         loadReportNeurons(),
         loadNnsDappAccounts(),
         loadReportRates({ range: period, currency: fiatCurrency }),
       ]);
+      // A neuron where the user is only a hotkey belongs to someone else.
+      const neurons = allNeurons.filter((neuron) =>
+        isUserController({
+          neuron,
+          principalId: identity.getPrincipal().toText(),
+          ledgerPrincipals: nnsDappAccounts.hardwareWallets.map(({ principal }) =>
+            principal.toText(),
+          ),
+        }),
+      );
       const entities = getReportEntities({ identity, mainAccountName, nnsDappAccounts, neurons });
       const { histories, complete } = await loadEntityHistories({
         entities,
