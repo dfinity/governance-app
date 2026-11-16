@@ -1050,36 +1050,50 @@ async fn test_fill_daily_history_batch_waits_before_it_tries_a_failed_rate_again
 }
 
 #[tokio::test]
-async fn test_fill_daily_history_batch_gives_up_on_a_rate_after_max_attempts() {
+async fn test_fill_daily_history_batch_doubles_the_retry_delay_after_each_failure() {
     // Step 1: Prepare the world. On the first day, only the ICP/USD rate is missing.
-    set_time_seconds(FIRST_DAY_START_SECONDS + 5 * ONE_HOUR_SECS);
+    let first_failure_seconds = FIRST_DAY_START_SECONDS + 5 * ONE_HOUR_SECS;
+    set_time_seconds(first_failure_seconds);
     let missing_rate = MissingDailyRate {
         day_start_seconds: FIRST_DAY_START_SECONDS,
         pair: DailyRatePair::IcpToUsd,
     };
+    testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
+    testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
+
+    // Step 2: Run the code under test. The fetch fails two times.
+    fill_daily_history_batch().await;
+    let second_failure_seconds = first_failure_seconds + daily_history::FETCH_RETRY_DELAY_SECS;
+    set_time_seconds(second_failure_seconds);
+    fill_daily_history_batch().await;
+
+    // Step 3: Verify result(s). The second delay is twice as long as the first one.
+    assert_eq!(testing::drain_requests().len(), 2);
+    set_time_seconds(second_failure_seconds + daily_history::FETCH_RETRY_DELAY_SECS);
+    assert_eq!(
+        daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS),
+        vec![]
+    );
+    set_time_seconds(second_failure_seconds + 2 * daily_history::FETCH_RETRY_DELAY_SECS);
     assert_eq!(
         daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS),
         vec![missing_rate]
     );
+}
 
-    // Step 2: Run the code under test. Each batch fails to fetch the rate.
-    let mut now_seconds = FIRST_DAY_START_SECONDS + 5 * ONE_HOUR_SECS;
-    for _ in 0..daily_history::MAX_FETCH_ATTEMPTS {
-        testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
-        fill_daily_history_batch().await;
-        now_seconds += daily_history::FETCH_RETRY_DELAY_SECS;
-        set_time_seconds(now_seconds);
-    }
-    fill_daily_history_batch().await;
-
-    // Step 3: Verify result(s). The last batch makes no call.
+#[test]
+fn test_daily_history_retry_delay_stops_at_the_maximum() {
     assert_eq!(
-        testing::drain_requests().len(),
-        usize::from(daily_history::MAX_FETCH_ATTEMPTS)
+        daily_history::get_retry_delay_seconds(1),
+        daily_history::FETCH_RETRY_DELAY_SECS
     );
     assert_eq!(
-        daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS),
-        vec![]
+        daily_history::get_retry_delay_seconds(3),
+        4 * daily_history::FETCH_RETRY_DELAY_SECS
+    );
+    assert_eq!(
+        daily_history::get_retry_delay_seconds(u8::MAX),
+        daily_history::MAX_FETCH_RETRY_DELAY_SECS
     );
 }
 
