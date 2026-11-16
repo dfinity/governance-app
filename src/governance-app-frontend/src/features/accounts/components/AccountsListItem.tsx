@@ -1,6 +1,6 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { nonNullish } from '@dfinity/utils';
-import { ArrowDownLeft, List } from 'lucide-react';
+import { ArrowDownLeft, List, Usb } from 'lucide-react';
 import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
@@ -14,6 +14,7 @@ import { TransactionListDialog } from '@features/transactions/components/Transac
 import { detectTransactionType, getAmountE8s } from '@features/transactions/utils/transactionType';
 import { txConfig } from '@features/transactions/utils/txConfig';
 
+import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { CopyButton } from '@components/CopyButton';
@@ -34,7 +35,7 @@ import { formatNumber } from '@utils/numbers';
 import { GetTokens } from '@/dev/GetTokens';
 
 import { useAccounts } from '../hooks/useAccounts';
-import { type Account, AccountType } from '../types';
+import { type Account, AccountType, canSignFromAccount } from '../types';
 import { RenameSubAccountDialog } from './RenameSubAccountDialog';
 
 type Props = {
@@ -59,6 +60,12 @@ export const AccountsListItem = ({ account }: Props) => {
                     currentName={account.name}
                   />
                 )}
+                {account.type === AccountType.HardwareWallet && (
+                  <Badge variant="outline" data-testid="ledger-device-badge">
+                    <Usb aria-hidden="true" />
+                    {t(($) => $.accounts.ledgerDevice)}
+                  </Badge>
+                )}
               </div>
               <div className="flex items-center gap-1.5">
                 <p className="font-mono text-xs text-muted-foreground">
@@ -72,6 +79,20 @@ export const AccountsListItem = ({ account }: Props) => {
                   className="size-6"
                 />
               </div>
+              {nonNullish(account.principal) && (
+                <div className="flex items-center gap-1.5">
+                  <p className="font-mono text-xs text-muted-foreground">
+                    {t(($) => $.accounts.principal, { principal: shortenId(account.principal, 8) })}
+                  </p>
+                  <CopyButton
+                    value={account.principal}
+                    label={`${account.name} principal`}
+                    size="sm"
+                    variant="ghost"
+                    className="size-6"
+                  />
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-1">
               {IS_TESTNET && <GetTokens accountId={AccountIdentifier.fromHex(account.accountId)} />}
@@ -138,7 +159,13 @@ function AccountBalance({ account }: { account: Account }) {
         </p>
       </div>
       <div className="flex gap-3">
-        <SendICPButton balance={balanceICP} fromAccountId={account.accountId} variant="advanced" />
+        {canSignFromAccount(account) && (
+          <SendICPButton
+            balance={balanceICP}
+            fromAccountId={account.accountId}
+            variant="advanced"
+          />
+        )}
         <Button
           variant="outline"
           size="xl"

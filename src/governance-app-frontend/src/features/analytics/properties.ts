@@ -16,7 +16,9 @@ import {
 } from '@icp-sdk/canisters/nns';
 import { AgentError } from '@icp-sdk/core/agent';
 
+import { isDeviceActionCancelled } from '@hooks/useDeviceAction';
 import { CanisterResponseError } from '@utils/errors/response';
+import { isLedgerDeviceError } from '@common/ledger/errors';
 
 const toSnakeCase = (value: string) => value.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
 
@@ -26,6 +28,8 @@ const toSnakeCase = (value: string) => value.replace(/([a-z0-9])([A-Z])/g, '$1_$
  */
 export const getErrorReason = (error: unknown): string => {
   if (error instanceof CanisterResponseError) return toSnakeCase(error.variant);
+  if (isLedgerDeviceError(error)) return `ledger_${toSnakeCase(error.code)}`;
+  if (isDeviceActionCancelled(error)) return 'cancelled';
   if (error instanceof GovernanceError) return `governance_${error.detail.error_type}`;
   if (error instanceof InsufficientAmountError) return 'insufficient_amount';
   if (error instanceof CouldNotClaimNeuronError) return 'could_not_claim_neuron';

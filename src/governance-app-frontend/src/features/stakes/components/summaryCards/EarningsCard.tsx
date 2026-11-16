@@ -3,21 +3,20 @@ import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { ApyOptimizationModal } from '@features/stakes/components/ApyOptimizationModal';
+import { useLedgerSignerPrincipals } from '@features/stakes/hooks/useNeuronSigner';
 import { getNeuronOptimizationIssues } from '@features/stakes/utils/getNeuronOptimizationIssues';
 
 import { Card, CardContent } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { Skeleton } from '@components/Skeleton';
+import { ForecastPeriod } from '@constants/forecast';
+import { FORECAST_ESTIMATE_PERIOD, useForecastPeriod } from '@hooks/useForecastPeriod';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useStakingRewards } from '@hooks/useStakingRewards';
-import { getNeuronIsDissolved, getNeuronsAggregatedData, isUserHotkey } from '@utils/neuron';
-import { formatNumber } from '@utils/numbers';
+import { getNeuronIsDissolved, getNeuronsAggregatedData, isUserHotkeyOnly } from '@utils/neuron';
+import { formatNumber, formatSmallAmount } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
-import {
-  isStakingRewardDataError,
-  isStakingRewardDataReady,
-  MaturityEstimatePeriod,
-} from '@utils/staking-rewards';
+import { isStakingRewardDataError, isStakingRewardDataReady } from '@utils/staking-rewards';
 
 import {
   CARD_ACTION_CHEVRON_CLASS,
@@ -31,31 +30,47 @@ type EarningsCardProps = {
 };
 
 /**
- * Shows the maturity and the forecast for the next year. If a neuron that the
+ * Shows the maturity and the forecast for the period that the user picked. If a neuron that the
  * user can change can get a higher maturity rate, the whole card opens the
  * optimization modal. Dissolved neurons are left out, because the capital card
- * offers to disburse them. Hotkey neurons are left out, because a hotkey cannot
- * change their settings.
+ * offers to disburse them. Hotkey-only neurons are left out, because a hotkey cannot
+ * change their settings; a neuron that a usable Ledger device controls stays in.
  */
 export function EarningsCard({ neurons }: EarningsCardProps) {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
   const principalId = identity?.getPrincipal().toText();
+  const ledgerPrincipals = useLedgerSignerPrincipals();
 
   const stakingRewards = useStakingRewards();
+  const { forecastPeriod } = useForecastPeriod();
 
   const { totalMaturity } = getNeuronsAggregatedData(neurons);
 
   const stakingRewardsReady = isStakingRewardDataReady(stakingRewards);
   const stakingRewardsError = isStakingRewardDataError(stakingRewards);
   const forecastValue = stakingRewardsReady
-    ? (stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) ?? 0)
+    ? (stakingRewards.rewardEstimates.get(FORECAST_ESTIMATE_PERIOD[forecastPeriod]) ?? 0)
     : null;
+
+  const getForecastText = (value: number) => {
+    const formatted = formatSmallAmount(value);
+    switch (forecastPeriod) {
+      case ForecastPeriod.Day:
+        return t(($) => $.neuron.summary.earningsPerDay, { value: formatted });
+      case ForecastPeriod.Week:
+        return t(($) => $.neuron.summary.earningsPerWeek, { value: formatted });
+      case ForecastPeriod.Month:
+        return t(($) => $.neuron.summary.earningsPerMonth, { value: formatted });
+      case ForecastPeriod.Year:
+        return t(($) => $.neuron.summary.earningsPerYear, { value: formatted });
+    }
+  };
 
   const canIncrease = neurons.some(
     (neuron) =>
       !getNeuronIsDissolved(neuron) &&
-      !isUserHotkey({ neuron, principalId }) &&
+      !isUserHotkeyOnly({ neuron, principalId, ledgerPrincipals }) &&
       getNeuronOptimizationIssues(neuron).length > 0,
   );
 
@@ -80,11 +95,7 @@ export function EarningsCard({ neurons }: EarningsCardProps) {
         </div>
         <div className="mt-1 flex flex-wrap items-center justify-between gap-x-3 text-sm text-muted-foreground">
           {stakingRewardsReady && forecastValue !== null ? (
-            <p>
-              {t(($) => $.neuron.summary.earningsPerYear, {
-                value: formatNumber(forecastValue),
-              })}
-            </p>
+            <p>{getForecastText(forecastValue)}</p>
           ) : stakingRewardsError ? (
             <p>—</p>
           ) : (

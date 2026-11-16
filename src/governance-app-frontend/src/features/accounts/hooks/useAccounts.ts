@@ -3,27 +3,33 @@ import { useIcpLedgerAccountsBalances } from '@hooks/icpLedger';
 import { bigIntDiv } from '@utils/bigInt';
 
 import { type Account, type AccountMetadata, type AccountsState, AccountType } from '../types';
+import { useHardwareWalletsMetadata } from './useHardwareWalletsMetadata';
 import { useMainAccountMetadata } from './useMainAccountMetadata';
 import { useSubaccountsMetadata } from './useSubaccountsMetadata';
 
+const byBalanceDesc = (a: Account, b: Account): number => {
+  const aBalance = a.status === 'ready' ? a.balanceE8s : 0n;
+  const bBalance = b.status === 'ready' ? b.balanceE8s : 0n;
+  return bBalance > aBalance ? 1 : bBalance < aBalance ? -1 : 0;
+};
+
+/** Main first, then the sub-accounts, then the Ledger device accounts. Each group is sorted by balance. */
 const sortAccounts = (accounts: Account[]): Account[] => {
-  const main = accounts.filter((a) => a.type === AccountType.Main);
-  const rest = accounts
-    .filter((a) => a.type !== AccountType.Main)
-    .sort((a, b) => {
-      const aBalance = a.status === 'ready' ? a.balanceE8s : 0n;
-      const bBalance = b.status === 'ready' ? b.balanceE8s : 0n;
-      return bBalance > aBalance ? 1 : bBalance < aBalance ? -1 : 0;
-    });
-  return [...main, ...rest];
+  const ofType = (type: AccountType) => accounts.filter((a) => a.type === type);
+  return [
+    ...ofType(AccountType.Main),
+    ...ofType(AccountType.Subaccount).sort(byBalanceDesc),
+    ...ofType(AccountType.HardwareWallet).sort(byBalanceDesc),
+  ];
 };
 
 export const useAccounts = () => {
   const mainAccountMetadata = useMainAccountMetadata();
   const subaccountsMetadata = useSubaccountsMetadata();
+  const hardwareWalletsMetadata = useHardwareWalletsMetadata();
 
   const accountsMetadata: AccountMetadata[] = mainAccountMetadata.data
-    ? [mainAccountMetadata.data, ...subaccountsMetadata.data]
+    ? [mainAccountMetadata.data, ...subaccountsMetadata.data, ...hardwareWalletsMetadata.data]
     : [];
 
   const accountIds = accountsMetadata.map((a) => a.accountId);
@@ -70,6 +76,7 @@ export const useAccounts = () => {
 
   const isLoading =
     subaccountsMetadata.isLoading ||
+    hardwareWalletsMetadata.isLoading ||
     accounts.length === 0 ||
     accounts.some((a) => a.status === 'loading');
   const totalBalanceIcp = isLoading ? undefined : bigIntDiv(data.totalBalanceE8s, E8Sn);

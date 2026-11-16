@@ -3,10 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts';
 
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
+import { getStakingRingArc } from '@features/dashboard/utils/stakingRing';
 import { StakingRatioModal } from '@features/stakes/components/StakingRatioModal';
 
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { type ChartConfig, ChartContainer } from '@components/Chart';
+import { HideBalancesToggle } from '@components/HideBalancesToggle';
 import { SensitiveValue } from '@components/SensitiveValue';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
@@ -50,17 +52,20 @@ export const TotalAssetsCard = () => {
 
   const stakingRatioPercent = stakingRewardsReady ? stakingRewards.stakingRatio * 100 : 0;
 
+  const stakingArc = getStakingRingArc(stakingRatioPercent);
+
   const chartData = [
-    { name: 'staking', value: stakingRatioPercent, fill: 'var(--color-stakingRatio)' },
+    { name: 'staking', value: stakingArc.value, fill: 'var(--color-stakingRatio)' },
   ];
 
   return (
     <Card className="pt-4 pb-6">
       <CardHeader className="flex flex-col items-center gap-0">
-        <div className="flex min-h-9 items-center">
+        <div className="flex min-h-9 items-center gap-1.5">
           <p className="text-sm tracking-wide text-muted-foreground uppercase">
             {t(($) => $.home.totalAssets)}
           </p>
+          <HideBalancesToggle />
         </div>
 
         <div>
@@ -93,7 +98,7 @@ export const TotalAssetsCard = () => {
               outerRadius="100%"
             >
               <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-              <RadialBar dataKey="value" background cornerRadius={10} />
+              <RadialBar dataKey="value" background cornerRadius={stakingArc.cornerRadius} />
             </RadialBarChart>
           </ChartContainer>
 

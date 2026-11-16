@@ -2,9 +2,13 @@ import { AlertTriangle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 
+import { DeviceAnswerHint } from '@features/ledger/components/DeviceAnswerHint';
+
+import { Alert, AlertDescription } from '@components/Alert';
 import { AnimatedCheckmark } from '@components/AnimatedCheckmark';
 import { Button } from '@components/button';
 import { ProcessingSpinner } from '@components/ProcessingSpinner';
+import type { Signer } from '@common/ledger/signer';
 
 import { STAKING_WIZARD_DISSOLVE_DELAY_OPTIONS } from './constants';
 import { StakingWizardCreateNeuronStep, StakingWizardFormState } from './types';
@@ -14,7 +18,11 @@ interface Props {
   isProcessing: boolean;
   currentStep: StakingWizardCreateNeuronStep;
   error: string | null;
+  /** The device transfer went through and the claim failed. The retry claims, no second transfer. */
+  isTransferDone?: boolean;
   expectedApy: string;
+  /** Who signs the steps. For a Ledger device signer, the processing screen shows the device hint. */
+  signer?: Signer;
   onDone: () => void;
   onRetry: () => void;
 }
@@ -24,7 +32,9 @@ export function StakingWizardStepConfirmation({
   isProcessing,
   currentStep,
   error,
+  isTransferDone = false,
   expectedApy,
+  signer,
   onDone,
   onRetry,
 }: Props) {
@@ -34,6 +44,8 @@ export function StakingWizardStepConfirmation({
     switch (step) {
       case StakingWizardCreateNeuronStep.CreateNeuron:
         return t(($) => $.stakeWizardModal.steps.confirmation.processing.steps.createNeuron);
+      case StakingWizardCreateNeuronStep.AddHotkey:
+        return t(($) => $.stakeWizardModal.steps.confirmation.processing.steps.addHotkey);
       case StakingWizardCreateNeuronStep.SetDissolveDelay:
         return t(($) => $.stakeWizardModal.steps.confirmation.processing.steps.setDissolveDelay);
       case StakingWizardCreateNeuronStep.SetAutoStakeMaturity:
@@ -63,6 +75,7 @@ export function StakingWizardStepConfirmation({
           <span className="rounded-md bg-muted px-3 py-1.5 text-sm text-muted-foreground">
             {getStepLabel(currentStep)}
           </span>
+          <DeviceAnswerHint signer={signer} className="mt-3" />
         </div>
         <p className="text-sm text-muted-foreground">
           {t(($) => $.stakeWizardModal.steps.confirmation.processing.warning)}
@@ -90,6 +103,17 @@ export function StakingWizardStepConfirmation({
             })}
           </span>
         </div>
+        {isTransferDone && (
+          <Alert variant="warning" className="text-left" data-testid="staking-wizard-transfer-done">
+            <AlertTriangle />
+            <AlertDescription>
+              {t(($) => $.stakeWizardModal.steps.confirmation.error.transferDone)}
+            </AlertDescription>
+            <AlertDescription className="font-mono text-[11px] wrap-anywhere opacity-85">
+              {error}
+            </AlertDescription>
+          </Alert>
+        )}
         <Button
           onClick={onRetry}
           size="xl"

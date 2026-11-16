@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 
 import { analytics } from '@features/analytics/service';
 import { useAnalyticsProperties } from '@features/analytics/useAnalyticsProperties';
+import { PendingDeviceActionDialog } from '@features/ledger/components/PendingDeviceActionDialog';
+import { useClaimPendingDeviceStakes } from '@features/stakes/hooks/useClaimPendingDeviceStakes';
 
 import { CommandPalette } from '@components/CommandPalette';
 import { MainLayout } from '@components/MainLayout';
@@ -36,6 +38,8 @@ function AuthLayout() {
   useScrollResetOnNavigation();
   useNewFeatureCheck();
   useAnalyticsProperties();
+  // A Ledger device stake that an earlier session signed and did not claim.
+  useClaimPendingDeviceStakes();
 
   useEffect(() => {
     analytics.init();
@@ -52,6 +56,7 @@ function AuthLayout() {
       <CommandPalette />
       <SessionCountdownToast />
       <TransactionPollingWatcher />
+      <PendingDeviceActionDialog />
     </MainLayout>
   );
 }

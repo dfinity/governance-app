@@ -6,7 +6,13 @@ import { useTranslation } from 'react-i18next';
 
 import { AccountSelect } from '@features/accounts/components/AccountSelect';
 import { useAccountSelection } from '@features/accounts/hooks/useAccountSelection';
-import { type Account, AccountType, isAccountReady } from '@features/accounts/types';
+import {
+  type Account,
+  AccountType,
+  getAccountSigner,
+  isAccountReady,
+} from '@features/accounts/types';
+import { DeviceAnswerHint } from '@features/ledger/components/DeviceAnswerHint';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { AmountInput } from '@components/AmountInput';
@@ -16,12 +22,14 @@ import { Spinner } from '@components/Spinner';
 import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useIcpPrice } from '@hooks/tickers';
+import { isDeviceActionCancelled } from '@hooks/useDeviceAction';
 import { bigIntDiv } from '@utils/bigInt';
 import { mapCanisterError } from '@utils/errors';
 import { getNeuronStakeAfterFeesE8s } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
 import { roundToE8sPrecision } from '@utils/numbers';
 
+import { useClaimPendingDeviceStakes } from '../../hooks/useClaimPendingDeviceStakes';
 import { useIncreaseStake } from '../../hooks/useIncreaseStake';
 
 type Props = {
@@ -33,7 +41,7 @@ type Props = {
 export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingChange }: Props) {
   const { t } = useTranslation();
   const [amount, setAmount] = useState('');
-  const { selectedAccountId, setSelectedAccountId, resolvedAccountId, subaccountsEnabled } =
+  const { selectedAccountId, setSelectedAccountId, resolvedAccountId, accountPickerEnabled } =
     useAccountSelection();
   const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -41,7 +49,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
 
   const { icpPrice, formatFiat } = useIcpPrice();
 
-  // Default balance from main account ledger (used when subaccounts FF is off)
+  // Default balance from main account ledger (used when the account picker is off)
   const { data: balanceValue } = useIcpLedgerAccountBalance();
   const defaultBalance = nonNullish(balanceValue?.response)
     ? bigIntDiv(balanceValue.response, E8Sn)
@@ -53,13 +61,15 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
       : null;
 
   const balance =
-    subaccountsEnabled && nonNullish(accountBalance) ? accountBalance : defaultBalance;
+    accountPickerEnabled && nonNullish(accountBalance) ? accountBalance : defaultBalance;
   const availableBalance = Math.max(0, roundToE8sPrecision(balance - ICP_TRANSACTION_FEE));
   const currentStake = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
 
   const accountIdentifier = neuron.fullNeuron?.accountIdentifier;
 
-  const { mutateAsync, isPending } = useIncreaseStake();
+  const { mutateAsync, isPending, variables } = useIncreaseStake();
+  // A device top-up whose refresh failed in an earlier view: refresh it now, no balance needed.
+  useClaimPendingDeviceStakes();
 
   const handleAccountChange = (accountId: string) => {
     setSelectedAccountId(accountId);
@@ -110,6 +120,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
         amount: numericAmount,
         fromSubAccount,
         selectedAccountId: resolvedAccountId,
+        signer: getAccountSigner(selectedAccount),
       });
 
       successNotification({
@@ -119,6 +130,8 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
       // The parent defers the actual navigation until the blocker has been released.
       onSuccess();
     } catch (err) {
+      // A cancel of the device approval dialog is the user's choice, not an error.
+      if (isDeviceActionCancelled(err)) return;
       errorNotification({
         description: mapCanisterError(err as Error),
       });
@@ -142,7 +155,7 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      {subaccountsEnabled && (
+      {accountPickerEnabled && (
         <div className="space-y-1">
           <Label htmlFor="increase-stake-from-account">
             {t(($) => $.neuronDetailModal.increaseStake.fromAccount)}
@@ -210,6 +223,11 @@ export function NeuronDetailIncreaseStakeView({ neuron, onSuccess, onProcessingC
           t(($) => $.neuronDetailModal.increaseStake.confirm)
         )}
       </Button>
+      {/* The signer of the submitted top-up: the picker can change while the device still asks. */}
+      <DeviceAnswerHint
+        signer={isPending ? variables?.signer : undefined}
+        className="mt-3 text-center"
+      />
     </form>
   );
 }

@@ -76,9 +76,18 @@ jobs:
           NO_COLOR=1 npm run build | grep 'dist/' >> build_report.md
           echo '```' >> build_report.md
 
+      - name: Check startup JS budget
+        shell: bash
+        run: |
+          echo "" >> build_report.md
+          npm run --silent check:startup-budget | tee -a build_report.md
+
+      # Runs after a failed budget check too, so the comment shows the reason.
       - name: Post build stats comment
         uses: mshick/add-pr-comment@b8f338c590a895d50bcbfa6c5859251edc8952fc # v2.8.2
-        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+        if: >-
+          !cancelled() && steps.build_step.outcome == 'success' &&
+          (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
         with:
           message-path: build_report.md
           message-id: build-stats

@@ -18,6 +18,7 @@ import {
   decodeSignature,
   decodeUpdateSignatures,
   getRequestId,
+  unwrapDefaultExport,
 } from './ledgerUtils';
 
 const rawPublicKey = Buffer.from(hexStringToUint8Array(rawPublicKeyHex));
@@ -196,5 +197,17 @@ describe('assertResponseOk', () => {
         details: { error: `Wrong Length (code ${LedgerReturnCode.WrongLength})` },
       }),
     );
+  });
+});
+
+describe('unwrapDefaultExport', () => {
+  class App {}
+
+  it('returns the default export when the module gives the value itself', () => {
+    expect(unwrapDefaultExport({ default: App })).toBe(App);
+  });
+
+  it('returns the nested default when the module gives the CommonJS exports object', () => {
+    expect(unwrapDefaultExport({ default: { default: App } })).toBe(App);
   });
 });

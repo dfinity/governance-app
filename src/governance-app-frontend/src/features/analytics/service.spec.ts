@@ -1,0 +1,340 @@
+import type { PlausibleConfig, PlausibleRequestPayload } from '@plausible-analytics/tracker';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { AnalyticsEvent } from './events';
+
+const { init, track, reportWebVitals, env } = vi.hoisted(() => ({
+  init: vi.fn(),
+  track: vi.fn(),
+  reportWebVitals: vi.fn(),
+  env: { isLocal: false },
+}));
+
+vi.mock('@plausible-analytics/tracker', () => ({ init, track }));
+vi.mock('./webVitals', () => ({ reportWebVitals }));
+vi.mock('@constants/externalServices', () => ({
+  PLAUSIBLE_DOMAIN_URL: 'nns.internetcomputer.org',
+}));
+vi.mock('@constants/extra', () => ({
+  get IS_LOCAL() {
+    return env.isLocal;
+  },
+}));
+
+// The vitest config replaces `@features/analytics/service` with a stub, so import the real file.
+// A new module gives a new service, which reads the landing URL again.
+const loadService = async () => {
+  vi.resetModules();
+  return (await import('./service')).analytics;
+};
+
+const navigate = (url: string) => window.history.replaceState(null, '', url);
+
+const pageviews = () => track.mock.calls.filter(([name]) => name === 'pageview').length;
+
+const transformRequest = (payload: PlausibleRequestPayload) => {
+  const config = init.mock.calls[0][0] as PlausibleConfig;
+  return config.transformRequest!(payload);
+};
+
+const payload = (n: string, u: string): PlausibleRequestPayload => ({
+  n,
+  u,
+  d: 'nns.internetcomputer.org',
+});
+
+const setVisibility = (state: DocumentVisibilityState) =>
+  Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => state });
+
+describe('analytics service', () => {
+  beforeEach(() => {
+    init.mockReset();
+    track.mockReset();
+    reportWebVitals.mockReset();
+    env.isLocal = false;
+    setVisibility('visible');
+    navigate('/');
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('starts the tracker once and sends one pageview', async () => {
+    const analytics = await loadService();
+
+    analytics.init();
+    analytics.init();
+
+    expect(init).toHaveBeenCalledOnce();
+    expect(init.mock.calls[0][0]).toMatchObject({ autoCapturePageviews: false });
+    expect(track).toHaveBeenCalledExactlyOnceWith('pageview', {});
+  });
+
+  it('does not start the tracker in a local build', async () => {
+    env.isLocal = true;
+    const analytics = await loadService();
+
+    analytics.init();
+    analytics.pageview();
+    analytics.event(AnalyticsEvent.SessionLogout);
+
+    expect(init).not.toHaveBeenCalled();
+    expect(track).not.toHaveBeenCalled();
+  });
+
+  it('sends one pageview for the target of a redirect', async () => {
+    navigate('/accounts');
+    const analytics = await loadService();
+    analytics.init();
+
+    // The router redirects from `/accounts` to `/dashboard` with `replaceState`.
+    navigate('/dashboard');
+    analytics.pageview();
+    // A second start of the tracker, and a modal that changes the query only.
+    analytics.init();
+    navigate('/dashboard?depositModal=true');
+    analytics.pageview();
+
+    expect(pageviews()).toBe(2);
+  });
+
+  it('sends a pageview for each new path', async () => {
+    const analytics = await loadService();
+    analytics.init();
+
+    navigate('/voting');
+    analytics.pageview();
+    navigate('/dashboard');
+    analytics.pageview();
+
+    expect(pageviews()).toBe(3);
+  });
+
+  it('does not send a pageview before the tracker starts', async () => {
+    const analytics = await loadService();
+
+    analytics.pageview();
+
+    expect(track).not.toHaveBeenCalled();
+  });
+
+  it('waits until a hidden page is visible', async () => {
+    setVisibility('hidden');
+    const analytics = await loadService();
+    analytics.init();
+
+    expect(track).not.toHaveBeenCalled();
+
+    setVisibility('visible');
+    document.dispatchEvent(new Event('visibilitychange'));
+
+    expect(track).toHaveBeenCalledExactlyOnceWith('pageview', {});
+  });
+
+  it('sends a pageview when the page comes back from the back/forward cache', async () => {
+    const addEventListener = vi.spyOn(window, 'addEventListener');
+    const analytics = await loadService();
+    analytics.init();
+
+    const onPageShow = addEventListener.mock.calls.find(([type]) => type === 'pageshow')?.[1];
+    (onPageShow as EventListener)({ persisted: true } as PageTransitionEvent);
+
+    expect(pageviews()).toBe(2);
+  });
+
+  it('sends a custom event with its properties', async () => {
+    const analytics = await loadService();
+    analytics.init();
+
+    analytics.event(AnalyticsEvent.SessionLogout, { source: 'user_menu' });
+
+    expect(track).toHaveBeenLastCalledWith('session_logout', { props: { source: 'user_menu' } });
+  });
+
+  it('does not throw if the tracker throws', async () => {
+    track.mockImplementation(() => {
+      throw new Error('blocked');
+    });
+    const analytics = await loadService();
+
+    expect(() => analytics.init()).not.toThrow();
+    expect(() => analytics.event(AnalyticsEvent.SessionLogout)).not.toThrow();
+  });
+
+  describe('web vitals', () => {
+    const webVital = {
+      metric: 'LCP',
+      bucket: '2000-2500',
+      rating: 'good',
+      route: '/voting/proposals/:id',
+    };
+
+    it('starts once and sends no extra pageview', async () => {
+      const analytics = await loadService();
+
+      analytics.init();
+      navigate('/dashboard');
+      analytics.pageview();
+      await vi.waitFor(() => expect(reportWebVitals).toHaveBeenCalled());
+
+      expect(reportWebVitals).toHaveBeenCalledOnce();
+      expect(pageviews()).toBe(2);
+    });
+
+    it('keeps the landing path if a navigation ends while the module loads', async () => {
+      navigate('/dashboard');
+      const analytics = await loadService();
+
+      analytics.init();
+      navigate('/neurons');
+      await vi.waitFor(() => expect(reportWebVitals).toHaveBeenCalled());
+
+      expect(reportWebVitals).toHaveBeenCalledExactlyOnceWith('/dashboard', expect.any(Function));
+    });
+
+    it('does not start in a local build', async () => {
+      env.isLocal = true;
+      const analytics = await loadService();
+
+      analytics.init();
+      analytics.pageview();
+      await vi.dynamicImportSettled();
+
+      expect(reportWebVitals).not.toHaveBeenCalled();
+    });
+
+    it('starts after the pageview of a hidden page', async () => {
+      setVisibility('hidden');
+      const analytics = await loadService();
+      analytics.init();
+      await vi.dynamicImportSettled();
+
+      expect(reportWebVitals).not.toHaveBeenCalled();
+
+      setVisibility('visible');
+      document.dispatchEvent(new Event('visibilitychange'));
+
+      await vi.waitFor(() => expect(reportWebVitals).toHaveBeenCalledOnce());
+    });
+
+    it('sends a non-interactive event with the route as the URL', async () => {
+      navigate('/voting/proposals/7?neuronId=123');
+      const analytics = await loadService();
+      analytics.init();
+      await vi.waitFor(() => expect(reportWebVitals).toHaveBeenCalled());
+
+      reportWebVitals.mock.calls[0][1](webVital);
+
+      expect(track).toHaveBeenLastCalledWith('web_vital', {
+        props: webVital,
+        interactive: false,
+        url: `${window.location.origin}/voting/proposals/:id`,
+      });
+    });
+
+    it('removes the referrer', async () => {
+      const analytics = await loadService();
+      analytics.init();
+
+      const event = {
+        ...payload('web_vital', 'https://nns.internetcomputer.org/dashboard'),
+        r: 'https://nns.internetcomputer.org/neurons?neuronId=123',
+      };
+
+      expect(transformRequest(event)).toEqual({ ...event, r: null });
+    });
+  });
+
+  describe('transformRequest', () => {
+    it('adds the landing UTM parameters to the first pageview only', async () => {
+      navigate('/?utm_source=nns-dapp&utm_medium=modal&utm_content=banner');
+      const analytics = await loadService();
+      // A signed-in user goes from `/` to `/dashboard` before the tracker starts.
+      navigate('/dashboard');
+      analytics.init();
+
+      expect(
+        transformRequest(payload('session_logout', 'https://nns.internetcomputer.org/dashboard'))
+          ?.u,
+      ).toBe('https://nns.internetcomputer.org/dashboard');
+      expect(
+        transformRequest(payload('pageview', 'https://nns.internetcomputer.org/dashboard'))?.u,
+      ).toBe(
+        'https://nns.internetcomputer.org/dashboard?utm_source=nns-dapp&utm_medium=modal&utm_content=banner',
+      );
+      expect(
+        transformRequest(payload('pageview', 'https://nns.internetcomputer.org/voting'))?.u,
+      ).toBe('https://nns.internetcomputer.org/voting');
+    });
+
+    it('removes the query of every event', async () => {
+      const analytics = await loadService();
+      analytics.init();
+      const u =
+        'https://nns.internetcomputer.org/voting/proposals/7?neuronId=123&accountId=abc&proposalFilter=open';
+
+      for (const name of ['pageview', 'login_success', 'Outbound Link: Click']) {
+        expect(transformRequest(payload(name, u))?.u).toBe(
+          'https://nns.internetcomputer.org/voting/proposals/:id',
+        );
+      }
+    });
+
+    it('keeps only the UTM parameters on the first pageview', async () => {
+      navigate('/dashboard?neuronId=123&utm_source=forum');
+      const analytics = await loadService();
+      analytics.init();
+
+      expect(
+        transformRequest(
+          payload(
+            'pageview',
+            'https://nns.internetcomputer.org/dashboard?neuronId=123&utm_source=forum',
+          ),
+        )?.u,
+      ).toBe('https://nns.internetcomputer.org/dashboard?utm_source=forum');
+      expect(
+        transformRequest(
+          payload('pageview', 'https://nns.internetcomputer.org/dashboard?utm_source=forum'),
+        )?.u,
+      ).toBe('https://nns.internetcomputer.org/dashboard');
+    });
+
+    it('removes a same-site referrer and keeps an external referrer', async () => {
+      const analytics = await loadService();
+      analytics.init();
+      const page = payload('pageview', 'https://nns.internetcomputer.org/dashboard');
+      const event = payload('login_success', 'https://nns.internetcomputer.org/dashboard');
+      const sameSite = 'https://nns.internetcomputer.org/neurons?neuronId=999';
+      const external = 'https://forum.dfinity.org/';
+
+      expect(transformRequest({ ...page, r: sameSite })?.r).toBeNull();
+      expect(transformRequest({ ...event, r: sameSite })?.r).toBeNull();
+      expect(transformRequest({ ...page, r: external })?.r).toBe(external);
+      expect(transformRequest({ ...event, r: external })?.r).toBe(external);
+    });
+
+    it('adds the redirect target to every event on the login page', async () => {
+      const analytics = await loadService();
+      analytics.init();
+      const u = 'https://nns.internetcomputer.org/?redirect=%2Fvoting%2Fproposals%2F7';
+
+      for (const name of ['pageview', 'login_success', 'Outbound Link: Click']) {
+        const result = transformRequest(payload(name, u));
+        expect(result?.u).toBe('https://nns.internetcomputer.org/');
+        expect(result?.p).toEqual({ redirect_target: '/voting/proposals/:id' });
+      }
+    });
+
+    it('groups the proposal pages', async () => {
+      const analytics = await loadService();
+      analytics.init();
+
+      expect(
+        transformRequest(payload('pageview', 'https://nns.internetcomputer.org/voting/proposals/7'))
+          ?.u,
+      ).toBe('https://nns.internetcomputer.org/voting/proposals/:id');
+    });
+  });
+});

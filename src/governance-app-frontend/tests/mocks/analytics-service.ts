@@ -5,6 +5,7 @@
 
 export const analytics = {
   init: () => {},
+  pageview: () => {},
   event: () => {},
   setProperties: () => {},
   get initialized() {

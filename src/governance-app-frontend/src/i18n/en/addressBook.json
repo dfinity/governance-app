@@ -53,7 +53,8 @@
     "placeholder": "Type a name or paste an address",
     "placeholderWithAccounts": "Your accounts, a contact, or an address",
     "addNew": "Add a new address",
-    "clear": "Clear the destination"
+    "clear": "Clear the destination",
+    "change": "Change the destination"
   },
   "sendTo": "Send ICP to {{name}}"
 }

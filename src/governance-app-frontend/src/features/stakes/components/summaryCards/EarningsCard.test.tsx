@@ -3,9 +3,10 @@ import '@/i18n/config';
 import { NeuronState } from '@icp-sdk/canisters/nns';
 import { render, screen } from '@testing-library/react';
 import type { ReactElement } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { E8Sn } from '@constants/extra';
+import { ForecastPeriod } from '@constants/forecast';
 import { ICP_MAX_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { MaturityEstimatePeriod } from '@utils/staking-rewards';
 import { mockNeuron } from '@fixtures/neuron';
@@ -13,6 +14,23 @@ import { mockNeuron } from '@fixtures/neuron';
 import { EarningsCard } from './EarningsCard';
 
 const USER = 'user-principal';
+const DEVICE = 'device-principal';
+
+const { ledgerPrincipals } = vi.hoisted(() => ({ ledgerPrincipals: vi.fn(() => [] as string[]) }));
+
+vi.mock('@hooks/governance/useGovernanceMaturityModulation', () => ({
+  useGovernanceMaturityModulation: () => ({ data: undefined, isLoading: false }),
+}));
+vi.mock('@features/stakes/hooks/useNeuronSigner', () => ({
+  useLedgerSignerPrincipals: () => ledgerPrincipals(),
+}));
+
+const forecast = vi.hoisted(() => ({ period: 'year' }));
+
+vi.mock('@hooks/useForecastPeriod', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@hooks/useForecastPeriod')>()),
+  useForecastPeriod: () => ({ forecastPeriod: forecast.period, setForecastPeriod: vi.fn() }),
+}));
 
 vi.mock('@hooks/useInternetIdentity', () => ({
   useInternetIdentity: () => ({
@@ -23,7 +41,12 @@ vi.mock('@hooks/useInternetIdentity', () => ({
 vi.mock('@hooks/useStakingRewards', () => ({
   useStakingRewards: () => ({
     loading: false,
-    rewardEstimates: new Map([[MaturityEstimatePeriod.YEAR, 22.68]]),
+    rewardEstimates: new Map([
+      [MaturityEstimatePeriod.DAY, 0.00207],
+      [MaturityEstimatePeriod.WEEK, 0.0145],
+      [MaturityEstimatePeriod.MONTH, 1.86],
+      [MaturityEstimatePeriod.YEAR, 22.68],
+    ]),
     stakingFlowApyPreview: {
       [ICP_MAX_DISSOLVE_DELAY_SECONDS]: { autoStake: { locked: 0.14 } },
     },
@@ -43,6 +66,10 @@ const optimizedNeuron = (overrides: Parameters<typeof mockNeuron>[0] = {}) =>
   });
 
 describe('EarningsCard', () => {
+  beforeEach(() => {
+    forecast.period = ForecastPeriod.Year;
+  });
+
   it('shows the locked plus the available maturity', () => {
     const neuron = mockNeuron({
       fullNeuron: {
@@ -61,6 +88,27 @@ describe('EarningsCard', () => {
     render(<EarningsCard neurons={[optimizedNeuron()]} />);
 
     expect(screen.getByText('+22.68 per year')).toBeTruthy();
+  });
+
+  it('shows the forecast for the period that the user picked', () => {
+    forecast.period = ForecastPeriod.Month;
+    render(<EarningsCard neurons={[optimizedNeuron()]} />);
+
+    expect(screen.getByText('+1.86 per month')).toBeTruthy();
+  });
+
+  it('keeps three significant digits of a small weekly forecast', () => {
+    forecast.period = ForecastPeriod.Week;
+    render(<EarningsCard neurons={[optimizedNeuron()]} />);
+
+    expect(screen.getByText('+0.0145 per week')).toBeTruthy();
+  });
+
+  it('keeps three significant digits of a small daily forecast', () => {
+    forecast.period = ForecastPeriod.Day;
+    render(<EarningsCard neurons={[optimizedNeuron()]} />);
+
+    expect(screen.getByText('+0.00207 per day')).toBeTruthy();
   });
 
   it('offers a higher rate when a neuron is not optimized', () => {
@@ -99,5 +147,19 @@ describe('EarningsCard', () => {
     );
 
     expect(screen.queryByRole('button', { name: 'Increase' })).toBeNull();
+  });
+
+  it('keeps a neuron that a usable Ledger device controls in the check', () => {
+    ledgerPrincipals.mockReturnValue([DEVICE]);
+    render(
+      <EarningsCard
+        neurons={[
+          optimizedNeuron(),
+          mockNeuron({ neuronId: 2n, fullNeuron: { controller: DEVICE, hotKeys: [USER] } }),
+        ]}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Increase' })).toBeTruthy();
   });
 });

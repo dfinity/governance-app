@@ -75,15 +75,17 @@ describe('FollowingStatusInline', () => {
     refreshVotingPower.mockResolvedValue(undefined);
   });
 
-  it('shows the last confirmed date and the confirm button in the ok state', () => {
+  it('shows the confirm button in the ok state and the last confirmed date in the tooltip', () => {
     const refreshedSeconds = daysAgo(10);
     renderInline({ refreshedSeconds });
 
     expect(screen.getByTestId('neuron-following-status-inline-ok')).toBeTruthy();
-    expect(screen.getByTestId('neuron-following-last-confirmed').textContent).toBe(
-      `Last confirmed ${secondsToDate(Number(refreshedSeconds))}`,
-    );
-    expect(confirmButton()?.textContent).toBe('Confirm following');
+    expect(
+      screen.getByText(`Last confirmed ${secondsToDate(Number(refreshedSeconds))}.`, {
+        exact: false,
+      }),
+    ).toBeTruthy();
+    expect(confirmButton()?.textContent).toBe('Confirm now');
   });
 
   it.each([
@@ -114,13 +116,13 @@ describe('FollowingStatusInline', () => {
     expect(successNotification).not.toHaveBeenCalled();
   });
 
-  it('shows the date but not the button for a user who is not a controller or a hotkey', () => {
+  it('does not show the button for a user who is not a controller or a hotkey', () => {
     renderInline({
       refreshedSeconds: daysAgo(10),
       fullNeuron: { controller: 'other-principal', hotKeys: [] },
     });
 
-    expect(screen.getByTestId('neuron-following-last-confirmed')).toBeTruthy();
+    expect(screen.getByTestId('neuron-following-status-inline-ok')).toBeTruthy();
     expect(confirmButton()).toBeNull();
   });
 
@@ -130,6 +132,6 @@ describe('FollowingStatusInline', () => {
 
     expect(screen.getByTestId('neuron-following-status-inline-warning')).toBeTruthy();
     expect(confirmButton()).toBeNull();
-    expect(screen.queryByTestId('neuron-following-last-confirmed')).toBeNull();
+    expect(screen.queryByText('Last confirmed', { exact: false })).toBeNull();
   });
 });

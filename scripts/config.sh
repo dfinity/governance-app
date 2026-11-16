@@ -63,6 +63,7 @@ CANISTER_ID_NNS_GOVERNANCE=rrkah-fqaaa-aaaaa-aaaaq-cai
 CANISTER_ID_CKUSD_LEDGER=xevnm-gaaaa-aaaar-qafnq-cai
 CANISTER_ID_NNS_DAPP=qoctq-giaaa-aaaaa-aaaea-cai
 CANISTER_ID_SPAM_FILTER=xhfiu-7yaaa-aaaal-qvdja-cai
+CANISTER_ID_DASHBOARD_COLLECTOR=gsmzf-bqaaa-aaaam-ajeyq-cai
 CANISTER_ID_SELF=mc7vh-sqaaa-aaaai-q33na-cai
 EXTRA_ICP_SWAP_URL='https://uvevg-iyaaa-aaaak-ac27q-cai.raw.ic0.app'
 EXTRA_PLAUSIBLE_DOMAIN_URL='nns.internetcomputer.org'

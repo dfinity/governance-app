@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatCompactNumber, formatFiat, getFiatFractionDigits } from './numbers';
+import {
+  formatCompactNumber,
+  formatFiat,
+  formatSmallAmount,
+  getFiatFractionDigits,
+} from './numbers';
 
 describe('formatFiat', () => {
   it('Puts the currency symbol before the number.', () => {
@@ -38,5 +43,22 @@ describe('formatCompactNumber', () => {
 
   it('Keeps small numbers as they are.', () => {
     expect(formatCompactNumber(950)).toBe('950');
+  });
+});
+
+describe('formatSmallAmount', () => {
+  it('Uses three significant digits below 0.1.', () => {
+    expect(formatSmallAmount(0.0145)).toBe('0.0145');
+    expect(formatSmallAmount(0.00145)).toBe('0.00145');
+    expect(formatSmallAmount(0.05)).toBe('0.05');
+  });
+
+  it('Uses two decimals from 0.1.', () => {
+    expect(formatSmallAmount(0.1234)).toBe('0.12');
+    expect(formatSmallAmount(1234.567)).toBe('1’234.57');
+  });
+
+  it('Uses two decimals for zero.', () => {
+    expect(formatSmallAmount(0)).toBe('0.00');
   });
 });
