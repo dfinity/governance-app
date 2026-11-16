@@ -1,6 +1,8 @@
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useIcpPrice } from '@hooks/tickers/useIcpPrice';
+
 import { useNeuronsReportDownload } from '../hooks/useReportDownloads';
 import { ReportDownloadButton } from './ReportDownloadButton';
 
@@ -8,6 +10,8 @@ export const NeuronsReportRow = () => {
   const { t } = useTranslation();
   const titleId = useId();
   const download = useNeuronsReportDownload();
+  // The file takes the price at the click, so the button waits for the price to load.
+  const { isLoading: isPriceLoading } = useIcpPrice();
 
   return (
     <div
@@ -23,7 +27,7 @@ export const NeuronsReportRow = () => {
       <ReportDownloadButton
         titleId={titleId}
         onClick={() => download.mutate()}
-        isPending={download.isPending}
+        isPending={download.isPending || isPriceLoading}
         testId="neurons-report-download-btn"
       />
     </div>
