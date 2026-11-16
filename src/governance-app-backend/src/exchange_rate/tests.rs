@@ -896,9 +896,10 @@ async fn test_fill_daily_history_gaps_fetches_failed_rate_on_next_run() {
     }
 
     // Step 2: Run the code under test.
-    fill_daily_history_gaps().await;
+    let should_continue = fill_daily_history_batch().await;
 
     // Step 3: Verify result(s).
+    assert!(!should_continue);
     assert_eq!(missing_rates, missing_rates_on_fifth_day());
     let request_pairs = testing::drain_requests()
         .into_iter()
@@ -941,7 +942,7 @@ async fn test_fill_daily_history_gaps_fetches_failed_rate_on_next_run() {
     let response = make_exchange_rate(15_000_000_000, E8S_DECIMALS, FIRST_DAY_START_SECONDS);
     testing::add_exchange_rate_response(Ok(Ok(response)));
 
-    fill_daily_history_gaps().await;
+    fill_daily_history_batch().await;
 
     // Step 5: Verify result(s).
     let request_timestamps = testing::drain_requests()
@@ -951,6 +952,78 @@ async fn test_fill_daily_history_gaps_fetches_failed_rate_on_next_run() {
     assert_eq!(
         request_timestamps,
         vec![("JPY".to_string(), Some(FIRST_DAY_START_SECONDS))]
+    );
+    assert_eq!(
+        daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS),
+        vec![]
+    );
+}
+
+#[tokio::test]
+async fn test_fill_daily_history_batch_fetches_at_most_one_batch() {
+    // Step 1: Prepare the world.
+    let tenth_day_seconds = FIRST_DAY_START_SECONDS + 9 * ONE_DAY_SECS + 5 * ONE_HOUR_SECS;
+    set_time_seconds(tenth_day_seconds);
+    let missing_rates = daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS);
+    for missing_rate in missing_rates.iter().take(DAILY_HISTORY_BATCH_SIZE) {
+        let response =
+            make_exchange_rate(100_000_000, E8S_DECIMALS, missing_rate.day_start_seconds);
+        testing::add_exchange_rate_response(Ok(Ok(response)));
+    }
+
+    // Step 2: Run the code under test.
+    let should_continue = fill_daily_history_batch().await;
+
+    // Step 3: Verify result(s).
+    assert!(should_continue);
+    assert_eq!(testing::drain_requests().len(), DAILY_HISTORY_BATCH_SIZE);
+    assert_eq!(
+        daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS),
+        missing_rates[DAILY_HISTORY_BATCH_SIZE..].to_vec()
+    );
+}
+
+#[tokio::test]
+async fn test_fill_daily_history_batch_stops_after_failed_batch() {
+    // Step 1: Prepare the world.
+    let tenth_day_seconds = FIRST_DAY_START_SECONDS + 9 * ONE_DAY_SECS + 5 * ONE_HOUR_SECS;
+    set_time_seconds(tenth_day_seconds);
+    for _ in 0..DAILY_HISTORY_BATCH_SIZE {
+        testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
+    }
+
+    // Step 2: Run the code under test.
+    let should_continue = fill_daily_history_batch().await;
+
+    // Step 3: Verify result(s).
+    assert!(!should_continue);
+    assert_eq!(testing::drain_requests().len(), DAILY_HISTORY_BATCH_SIZE);
+}
+
+#[tokio::test]
+async fn test_fill_daily_history_batch_gives_up_on_a_rate_after_max_attempts() {
+    // Step 1: Prepare the world. On the first day, only the ICP/USD rate is missing.
+    set_time_seconds(FIRST_DAY_START_SECONDS + 5 * ONE_HOUR_SECS);
+    let missing_rate = MissingDailyRate {
+        day_start_seconds: FIRST_DAY_START_SECONDS,
+        pair: DailyRatePair::IcpToUsd,
+    };
+    assert_eq!(
+        daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS),
+        vec![missing_rate]
+    );
+
+    // Step 2: Run the code under test. Each batch fails to fetch the rate.
+    for _ in 0..daily_history::MAX_FETCH_ATTEMPTS {
+        testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
+        fill_daily_history_batch().await;
+    }
+    fill_daily_history_batch().await;
+
+    // Step 3: Verify result(s). The last batch makes no call.
+    assert_eq!(
+        testing::drain_requests().len(),
+        usize::from(daily_history::MAX_FETCH_ATTEMPTS)
     );
     assert_eq!(
         daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS),

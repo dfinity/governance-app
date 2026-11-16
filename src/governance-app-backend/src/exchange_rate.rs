@@ -26,6 +26,9 @@ const MONTH_HISTORY_GAP_FILL_INTERVAL: Duration = Duration::from_secs(ONE_DAY_SE
 /// How often the canister tries again to fetch the rates that the daily history misses.
 /// The XRC can have no forex rate yet for today, so the canister checks more than once a day.
 const DAILY_HISTORY_GAP_FILL_INTERVAL: Duration = Duration::from_secs(6 * ONE_HOUR_SECS);
+/// The most rates that one daily history batch fetches.
+/// A batch keeps a call context open, so a small batch lets a canister stop in minutes.
+const DAILY_HISTORY_BATCH_SIZE: usize = 20;
 const ONE_DAY_SECS: u64 = 86_400;
 const ONE_HOUR_SECS: u64 = 3_600;
 /// The history includes the one-day-ago rate only if it is at most this much older than one day.
@@ -201,16 +204,32 @@ async fn fill_month_history_gaps() {
     }
 }
 
-/// Fetches the rate of each day that the daily history misses, newest day first.
-/// A failed call is not retried here. Its day stays missing, so the next run fetches it.
-/// The first run fetches the rates of each day since 1 January 2025, which takes hours.
-/// Thus a run that starts while another run is in progress returns at once.
+/// Fetches the rates that the daily history misses, one batch for each timer run.
+/// The first fill fetches the rates of each day since 1 January 2025, so it takes many batches.
 async fn fill_daily_history_gaps() {
+    if fill_daily_history_batch().await {
+        ic_cdk_timers::set_timer(Duration::ZERO, fill_daily_history_gaps());
+    }
+}
+
+/// Fetches up to `DAILY_HISTORY_BATCH_SIZE` rates that the daily history misses, newest day first.
+/// A failed fetch is not tried again in this batch. A later batch tries it again, up to
+/// `daily_history::MAX_FETCH_ATTEMPTS` times in all.
+/// A batch that starts while another batch is in progress returns at once.
+/// Returns `true` if the batch was full and stored a rate, so that the next batch can start
+/// at once. A batch that stores no rate leaves the next try to the next interval.
+async fn fill_daily_history_batch() -> bool {
     let Some(_guard) = DailyHistoryFillGuard::acquire() else {
-        return;
+        return false;
     };
 
-    for missing_rate in daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS) {
+    let batch = daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS)
+        .into_iter()
+        .take(DAILY_HISTORY_BATCH_SIZE)
+        .collect::<Vec<_>>();
+    let mut stored_count = 0;
+
+    for missing_rate in &batch {
         let (base_asset, quote_asset) = match missing_rate.pair {
             DailyRatePair::IcpToUsd => (icp_asset(), fiat_asset("USD")),
             DailyRatePair::UsdToFiat(symbol) => (fiat_asset("USD"), fiat_asset(symbol)),
@@ -225,14 +244,20 @@ async fn fill_daily_history_gaps() {
         )
         .await;
 
-        if let Some(rate) = daily_rate {
-            daily_history::add_rate(
-                missing_rate.pair,
-                missing_rate.day_start_seconds,
-                rate.rate_e8s,
-            );
+        match daily_rate {
+            Some(rate) => {
+                daily_history::add_rate(
+                    missing_rate.pair,
+                    missing_rate.day_start_seconds,
+                    rate.rate_e8s,
+                );
+                stored_count += 1;
+            }
+            None => daily_history::record_failed_fetch(*missing_rate),
         }
     }
+
+    batch.len() == DAILY_HISTORY_BATCH_SIZE && stored_count > 0
 }
 
 /// Marks a daily history fill as in progress, until the guard is dropped.
