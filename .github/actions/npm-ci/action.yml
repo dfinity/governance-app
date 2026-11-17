@@ -1,0 +1,43 @@
+name: Install npm dependencies
+description: >-
+  Restores node_modules for the lockfile and the builder image. When there is no such cache, it
+  restores the npm cache and runs npm ci.
+
+inputs:
+  run-npm-ci:
+    description: >-
+      Run npm ci when node_modules is not in the cache. Set it to false when npm ci must run in
+      another place, such as the E2E docker container. Then read the cache-hit output.
+    default: 'true'
+
+outputs:
+  cache-hit:
+    description: '"true" when node_modules came from the cache.'
+    value: ${{ steps.node-modules.outputs.cache-hit }}
+
+runs:
+  using: composite
+  steps:
+    # npm ci deletes node_modules, so a partial match (restore-keys) has no use here.
+    # Native packages depend on the Node version, so the key holds the builder image too.
+    - name: Restore node_modules
+      id: node-modules
+      uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+      with:
+        path: |
+          node_modules
+          src/governance-app-frontend/node_modules
+        key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json', 'docker/Dockerfile.base') }}
+
+    - name: Restore npm cache
+      if: steps.node-modules.outputs.cache-hit != 'true'
+      uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+      with:
+        path: .ci-cache/npm
+        key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+        restore-keys: npm-${{ runner.os }}-
+
+    - name: Install dependencies
+      if: steps.node-modules.outputs.cache-hit != 'true' && inputs.run-npm-ci == 'true'
+      shell: bash
+      run: npm ci
