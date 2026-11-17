@@ -37,6 +37,7 @@ describe('maskSearchQuery', () => {
 
   it('keeps a word with a dash that is not a principal.', () => {
     expect(maskSearchQuery('non-constructive')).toBe('non-constructive');
+    expect(maskSearchQuery('light-theme stake-all')).toBe('light-theme stake-all');
   });
 
   it('cuts the query to 40 characters.', () => {

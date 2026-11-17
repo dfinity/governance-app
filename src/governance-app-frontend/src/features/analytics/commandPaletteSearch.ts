@@ -1,3 +1,7 @@
+import { nonNullish } from '@dfinity/utils';
+
+import { getPrincipalFromString } from '@utils/principal';
+
 export const NO_RESULT_DELAY_MS = 1000;
 
 const MIN_QUERY_LENGTH = 2;
@@ -9,9 +13,9 @@ const PRINCIPAL_PATTERN = /^[a-z2-7]{5}(-[a-z2-7]{1,5})+$/;
 const maskWord = (word: string): string => {
   // An amount, a neuron ID, a proposal ID, or a hex account ID.
   if (/\d/.test(word)) return '#';
-  if (word.length > MAX_WORD_LENGTH || word.includes('@') || PRINCIPAL_PATTERN.test(word)) {
-    return '*';
-  }
+  if (word.length > MAX_WORD_LENGTH || word.includes('@')) return '*';
+  // A command name such as `light-theme` also matches the pattern. The checksum tells them apart.
+  if (PRINCIPAL_PATTERN.test(word) && nonNullish(getPrincipalFromString(word))) return '*';
   return word;
 };
 
