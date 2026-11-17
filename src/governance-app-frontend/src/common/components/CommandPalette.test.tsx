@@ -15,7 +15,7 @@ import { CommandPalette } from './CommandPalette';
 const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
   openPalette: undefined as (() => void) | undefined,
-  neurons: [] as unknown[],
+  neurons: [] as unknown[] | undefined,
   setFiatCurrency: vi.fn(),
   setForecastPeriod: vi.fn(),
 }));
@@ -29,7 +29,7 @@ vi.mock('@hooks/useCommandPaletteShortcut', () => ({
 }));
 
 vi.mock('@hooks/governance', () => ({
-  useGovernanceNeurons: () => ({ data: { response: mocks.neurons } }),
+  useGovernanceNeurons: () => ({ data: mocks.neurons && { response: mocks.neurons } }),
 }));
 
 vi.mock('@hooks/useLogout', () => ({ useLogout: () => vi.fn() }));
@@ -171,6 +171,19 @@ describe('CommandPalette', () => {
       to: '/voting',
       search: { manageFollowing: true },
     });
+  });
+
+  it('disables the following command until the neurons load.', () => {
+    mocks.neurons = undefined;
+    openPalette();
+
+    const option = screen.getByRole('option', { name: 'Manage following' });
+    expect(option.getAttribute('aria-disabled')).toBe('true');
+
+    fireEvent.click(option);
+
+    expect(mocks.navigate).not.toHaveBeenCalled();
+    expect(warningNotification).not.toHaveBeenCalled();
   });
 
   it('warns and stays on the page when the user has no neurons to follow with.', () => {

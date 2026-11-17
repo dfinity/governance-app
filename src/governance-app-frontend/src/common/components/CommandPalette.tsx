@@ -213,7 +213,15 @@ export const CommandPalette = () => {
     runAndClose(() => navigate({ to: '/voting/proposals/$id', params: { id } }));
   };
 
-  const actions: Array<{ key: Action; icon: typeof LockIcon; label: string; run: () => void }> = [
+  const userNeurons = neuronsQuery.data?.response;
+
+  const actions: Array<{
+    key: Action;
+    icon: typeof LockIcon;
+    label: string;
+    disabled?: boolean;
+    run: () => void;
+  }> = [
     {
       key: Action.Receive,
       icon: ArrowDownToLineIcon,
@@ -230,8 +238,10 @@ export const CommandPalette = () => {
       key: Action.ManageFollowing,
       icon: UsersIcon,
       label: t(($) => $.commandPalette.items.manageFollowing),
+      // The warning needs a loaded list of neurons.
+      disabled: !userNeurons,
       run: () => {
-        if (!neuronsQuery.data?.response?.length) {
+        if (!userNeurons?.length) {
           warningNotification({ description: t(($) => $.voting.warnings.stakeRequired) });
           return;
         }
@@ -312,11 +322,12 @@ export const CommandPalette = () => {
         </CommandSection>
 
         <CommandSection ranked={isSearching} heading={t(($) => $.commandPalette.groups.actions)}>
-          {actions.map(({ key, icon: Icon, label, run }) => (
+          {actions.map(({ key, icon: Icon, label, disabled, run }) => (
             <TrackedCommandItem
               key={key}
               value={actionValue(key)}
               keywords={[label, ...ACTION_KEYWORDS[key]]}
+              disabled={disabled}
               onSelect={() => runAndClose(run)}
             >
               <Icon />
