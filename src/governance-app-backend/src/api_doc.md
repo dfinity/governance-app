@@ -83,9 +83,11 @@ upgrade.
   day, oldest first. The first entry is the rate of one day ago, if it is at
   most 10 minutes older than one day.
 - `list_icp_to_usd_past_month_rates` (query) returns one ICP/USD rate for each
-  two-hour slot of the last 30 days, oldest first. Each rate is the rate at the
-  start of its slot. A slot without a rate has no entry. The canister tries
-  again each day to fetch the missing slots.
+  two-hour slot of the last 30 days, oldest first. Each rate is the first rate
+  that the canister got in its slot, not the exact rate at the slot start. Its
+  `timestamp_seconds` is the start of the slot, not the time of the
+  observation. A slot without a rate has no entry. The canister tries again
+  each day to fetch the missing slots.
 - `list_usd_to_fiat_exchange_rates` (query) returns one entry for each of
   `EUR`, `GBP`, `CHF`, `JPY`, `CNY`, `CAD`, and `AUD`, in this order. The
   canister updates them every hour. The XRC changes its fiat rates one time
