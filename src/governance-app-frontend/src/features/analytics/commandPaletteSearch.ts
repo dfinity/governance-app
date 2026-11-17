@@ -29,7 +29,8 @@ export const maskSearchQuery = (query: string): string | undefined => {
 
 /**
  * Sends a search that has no result after a pause in typing, or when `flush` runs.
- * A search with results cancels the pending send. The same query is sent one time only.
+ * A search with results or an empty search cancels the pending send.
+ * The same query is sent one time only.
  */
 export const createNoResultReporter = (send: (query: string) => void) => {
   let pending: string | undefined;
@@ -46,9 +47,6 @@ export const createNoResultReporter = (send: (query: string) => void) => {
   };
 
   const update = (search: string, hasResults: boolean) => {
-    // The palette clears the search when it closes. The pending query stays.
-    if (search.trim() === '') return;
-
     clearTimeout(timer);
     pending = hasResults ? undefined : maskSearchQuery(search);
     if (pending !== undefined) timer = setTimeout(flush, NO_RESULT_DELAY_MS);

@@ -472,7 +472,7 @@ export const CommandPalette = () => {
         </CommandSection>
       </CommandList>
       <CommandHintFooter />
-      <CommandPaletteNoResultTracker />
+      <CommandPaletteNoResultTracker open={open} />
     </CommandDialog>
   );
 };

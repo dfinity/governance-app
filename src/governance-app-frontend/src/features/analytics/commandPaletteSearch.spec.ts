@@ -94,15 +94,16 @@ describe('createNoResultReporter', () => {
     expect(send).toHaveBeenCalledOnce();
   });
 
-  it('keeps the pending search when the search becomes empty.', () => {
+  it('cancels the pending search when the search becomes empty.', () => {
     const send = vi.fn();
     const reporter = createNoResultReporter(send);
 
     reporter.update('export', false);
     reporter.update('', true);
+    vi.advanceTimersByTime(NO_RESULT_DELAY_MS);
     reporter.flush();
 
-    expect(send).toHaveBeenCalledExactlyOnceWith('export');
+    expect(send).not.toHaveBeenCalled();
   });
 
   it('sends the same query one time only.', () => {

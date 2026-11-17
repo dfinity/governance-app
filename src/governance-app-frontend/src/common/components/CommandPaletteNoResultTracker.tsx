@@ -7,9 +7,9 @@ import { analytics } from '@features/analytics/service';
 
 /**
  * Reports a command palette search that has no result. Render it inside the `Command` root.
- * The dialog unmounts its content when it closes, which sends the pending search.
+ * A close sends the pending search, before the palette clears the search.
  */
-export const CommandPaletteNoResultTracker = () => {
+export const CommandPaletteNoResultTracker = ({ open }: { open: boolean }) => {
   const search = useCommandState((state) => state.search);
   const hasResults = useCommandState((state) => state.filtered.count > 0);
   const [reporter] = useState(() =>
@@ -18,7 +18,13 @@ export const CommandPaletteNoResultTracker = () => {
     ),
   );
 
-  useEffect(() => reporter.update(search, hasResults), [reporter, search, hasResults]);
+  // Before the update, which cancels the pending search when the search becomes empty.
+  useEffect(() => {
+    if (!open) reporter.flush();
+  }, [reporter, open]);
+  useEffect(() => {
+    if (open) reporter.update(search, hasResults);
+  }, [reporter, open, search, hasResults]);
   useEffect(() => () => reporter.flush(), [reporter]);
 
   return null;

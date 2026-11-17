@@ -10,16 +10,17 @@ import { CommandPaletteNoResultTracker } from './CommandPaletteNoResultTracker';
 
 vi.mock('@features/analytics/service', () => ({ analytics: { event: vi.fn() } }));
 
-const renderPalette = () =>
-  render(
-    <Command>
-      <Command.Input />
-      <Command.List>
-        <Command.Item value="stake">Stake ICP</Command.Item>
-      </Command.List>
-      <CommandPaletteNoResultTracker />
-    </Command>,
-  );
+const Palette = ({ open = true }: { open?: boolean }) => (
+  <Command>
+    <Command.Input />
+    <Command.List>
+      <Command.Item value="stake">Stake ICP</Command.Item>
+    </Command.List>
+    <CommandPaletteNoResultTracker open={open} />
+  </Command>
+);
+
+const renderPalette = () => render(<Palette />);
 
 const search = (query: string) =>
   act(() => {
@@ -66,7 +67,29 @@ describe('CommandPaletteNoResultTracker', () => {
     expect(analytics.event).not.toHaveBeenCalled();
   });
 
+  it('does not report a search that the user clears.', () => {
+    renderPalette();
+
+    search('export');
+    search('');
+    act(() => vi.advanceTimersByTime(NO_RESULT_DELAY_MS));
+
+    expect(analytics.event).not.toHaveBeenCalled();
+  });
+
   it('reports the pending search when the palette closes.', () => {
+    const { rerender } = renderPalette();
+
+    search('send 5 icp');
+    rerender(<Palette open={false} />);
+    search('');
+
+    expect(analytics.event).toHaveBeenCalledExactlyOnceWith(AnalyticsEvent.CommandPaletteNoResult, {
+      query: 'send # icp',
+    });
+  });
+
+  it('reports the pending search when the palette unmounts.', () => {
     const { unmount } = renderPalette();
 
     search('send 5 icp');
