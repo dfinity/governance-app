@@ -114,4 +114,7 @@ service : {
     list_icp_to_usd_past_month_rates : () -> (vec PastMonthRate) query;
     list_usd_to_fiat_exchange_rates : () -> (vec FiatExchangeRate) query;
     // End Exchange Rate
+
+    // A markdown guide to the API, for AI agents.
+    get_api_doc : () -> (text) query;
 }
