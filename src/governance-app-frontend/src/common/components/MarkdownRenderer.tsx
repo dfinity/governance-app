@@ -69,6 +69,8 @@ export const MarkdownRenderer = ({ content }: Props) => {
                   className="word-break-all break-all"
                   onClick={(e) => handleExternalLinkClick(e, href)}
                   {...props}
+                  // The content comes from proposers and known neurons, not from us.
+                  rel="nofollow ugc noopener noreferrer"
                 />
               );
             },

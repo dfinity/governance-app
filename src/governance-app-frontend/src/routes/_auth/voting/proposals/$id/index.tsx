@@ -67,8 +67,8 @@ export const Route = createFileRoute('/_auth/voting/proposals/$id/')({
     const title = i18n.t(($) => $.common.head.proposalDetails.title, { proposalId });
 
     return {
-      // Proposals are public, so search engines can list them.
-      meta: [{ title }, { name: 'robots', content: 'index, follow' }],
+      // Proposals are public, so search engines can list them. Proposers write the links.
+      meta: [{ title }, { name: 'robots', content: 'index, nofollow' }],
     };
   },
   staticData: {
@@ -178,7 +178,7 @@ function ProposalDetailsRouteComponent() {
                             <a
                               href={proposalUrl.href}
                               target="_blank"
-                              rel="noopener noreferrer"
+                              rel="nofollow ugc noopener noreferrer"
                               className="no-underline"
                             >
                               <Badge

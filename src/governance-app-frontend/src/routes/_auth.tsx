@@ -1,5 +1,5 @@
 import { isNullish, nonNullish } from '@dfinity/utils';
-import { createFileRoute, Outlet, useLocation } from '@tanstack/react-router';
+import { createFileRoute, Outlet, useMatches } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -35,7 +35,8 @@ export const Route = createFileRoute('/_auth')({
 function AuthLayout() {
   const { t } = useTranslation();
   const { identity, isLoggingIn, isLoggingOut } = useInternetIdentity();
-  const pathname = useLocation({ select: (location) => location.pathname });
+  // The path of the rendered page. The location moves to a pending page before its guard runs.
+  const pathname = useMatches({ select: (matches) => matches.at(-1)?.pathname ?? '' });
 
   // The page of a logout in this tab, which waits for the redirect to the login page. The logout
   // can end before the redirect, so the reader view must not show for that page in between.

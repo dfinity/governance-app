@@ -17,8 +17,8 @@ vi.mock('@tanstack/react-router', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   createFileRoute: () => (options: object) => ({ options }),
   Outlet: () => <p>page</p>,
-  useLocation: ({ select }: { select: (location: { pathname: string }) => string }) =>
-    select({ pathname: mocks.pathname }),
+  useMatches: ({ select }: { select: (matches: { pathname: string }[]) => string }) =>
+    select([{ pathname: '/' }, { pathname: mocks.pathname }]),
 }));
 
 vi.mock('@hooks/useInternetIdentity', () => ({ useInternetIdentity: () => mocks.auth }));
@@ -99,6 +99,7 @@ describe('AuthLayout', () => {
   });
 
   it('shows nothing on a protected page without a session', () => {
+    // Also the case of a session that ends while a proposal page is pending over this page.
     mocks.pathname = '/dashboard';
     const { container } = render(<AuthLayout />);
 
