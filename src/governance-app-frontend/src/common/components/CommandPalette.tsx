@@ -35,6 +35,7 @@ import {
   CommandList,
   CommandSeparator,
 } from '@components/Command';
+import { CommandPaletteNoResultTracker } from '@components/CommandPaletteNoResultTracker';
 import { Kbd } from '@components/Kbd';
 import { getNavigationItems } from '@components/navigation/NavigationItems';
 import { getSupportedAdvancedFeatures } from '@constants/advancedFeatures';
@@ -471,6 +472,7 @@ export const CommandPalette = () => {
         </CommandSection>
       </CommandList>
       <CommandHintFooter />
+      <CommandPaletteNoResultTracker />
     </CommandDialog>
   );
 };
