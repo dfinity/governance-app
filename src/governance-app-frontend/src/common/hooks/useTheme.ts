@@ -1,7 +1,7 @@
 import { useEffect, useSyncExternalStore } from 'react';
 
 import { THEME_STORAGE_KEY } from '@constants/extra';
-import { Theme } from '@constants/theme';
+import { Theme, THEME_COLOR } from '@constants/theme';
 
 const getStoredTheme = (): Theme => {
   try {
@@ -49,6 +49,9 @@ const applyTheme = (theme: Theme): void => {
   const resolvedTheme = theme === Theme.System ? getSystemTheme() : theme;
 
   root.classList.toggle(Theme.Dark, resolvedTheme === Theme.Dark);
+  document
+    .querySelector('meta[name="theme-color"]')
+    ?.setAttribute('content', THEME_COLOR[resolvedTheme]);
 };
 
 export const useTheme = () => {

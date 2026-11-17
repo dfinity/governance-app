@@ -1,7 +1,17 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
-import { Clock, Key, Lock, PlusCircle, Settings, Unlock, Wrench } from 'lucide-react';
+import {
+  Clock,
+  Hourglass,
+  Key,
+  Lock,
+  PlusCircle,
+  Settings,
+  Unlock,
+  Usb,
+  Wrench,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -10,25 +20,28 @@ import {
   resolveFolloweeNames,
 } from '@features/voting/utils/topicFollowing';
 
+import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { CopyButton } from '@components/CopyButton';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { SensitiveValue } from '@components/SensitiveValue';
 import { Skeleton } from '@components/Skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
-import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
-import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
+import { useIcpPrice } from '@hooks/tickers';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useApyColor } from '@hooks/useApyColor';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { bigIntDiv } from '@utils/bigInt';
-import { formatTimestampToLocalDate } from '@utils/date';
+import { secondsToDate } from '@utils/date';
+import { shortenId } from '@utils/id';
 import {
   formatDissolveDelay,
   getEightYearGangBonusE8s,
   getNeuronFreeMaturityE8s,
+  getNeuronMaturityDisbursementsInProgress,
+  getNeuronMaturityDisbursementsInProgressE8s,
   getNeuronStakeAfterFeesE8s,
   getNeuronStakedMaturityE8s,
   shortenNeuronId,
@@ -36,6 +49,10 @@ import {
 import { formatNumber, formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
+import { useNeuronLedgerDevice } from '../../hooks/useNeuronLedgerDevice';
+import { FollowingStatusAlert } from '../FollowingStatusAlert';
+import { FollowingStatusInline } from '../FollowingStatusInline';
+import { LedgerDeviceBand } from '../LedgerDeviceBand';
 import { NeuronStateBadge } from '../NeuronStateBadge';
 import { NeuronDetailView } from './types';
 
@@ -64,14 +81,16 @@ export function NeuronDetailSummaryView({
 }: Props) {
   const { t } = useTranslation();
   const apyColor = useApyColor(apy?.cur ?? 0);
-  const { tickerPrices: tickersQuery } = useTickerPrices();
+  const { icpPrice, formatFiat, isLoading: isIcpPriceLoading } = useIcpPrice();
+  const ledgerDevice = useNeuronLedgerDevice(neuron);
 
   const stakedAmount = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
   const stakedMaturity = bigIntDiv(getNeuronStakedMaturityE8s(neuron), E8Sn);
   const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
+  const hasDisbursementsInProgress = getNeuronMaturityDisbursementsInProgress(neuron).length > 0;
+  const disbursingMaturity = bigIntDiv(getNeuronMaturityDisbursementsInProgressE8s(neuron), E8Sn);
 
-  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const usdValue = icpPrice ? formatNumber(stakedAmount * icpPrice.usd) : undefined;
+  const fiatValue = nonNullish(icpPrice) ? formatFiat(stakedAmount * icpPrice) : undefined;
 
   const dissolveDelaySeconds = neuron.dissolveDelaySeconds;
   const durationText = formatDissolveDelay({
@@ -79,7 +98,8 @@ export function NeuronDetailSummaryView({
     i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
   });
 
-  const creationDate = formatTimestampToLocalDate(neuron.fullNeuron?.createdTimestampSeconds);
+  const createdSeconds = neuron.fullNeuron?.createdTimestampSeconds;
+  const creationDate = nonNullish(createdSeconds) ? secondsToDate(Number(createdSeconds)) : '-';
 
   const { features } = useAdvancedFeatures();
   const isAdvancedFollowing = features[AdvancedFeature.AdvancedFollowing];
@@ -97,6 +117,8 @@ export function NeuronDetailSummaryView({
 
   return (
     <div className="flex flex-col gap-4">
+      <FollowingStatusAlert neuron={neuron} isHotkey={isHotkey} />
+
       {/* Staked Amount - Prominent Display */}
       <div className="flex flex-col items-center gap-1 pb-2">
         <p className="text-3xl font-bold md:text-4xl" data-testid="neuron-detail-staked-amount">
@@ -104,13 +126,13 @@ export function NeuronDetailSummaryView({
             {formatNumber(stakedAmount)} {t(($) => $.common.icp)}
           </SensitiveValue>
         </p>
-        {tickersQuery.isLoading ? (
+        {isIcpPriceLoading ? (
           <Skeleton className="h-5 w-24" />
         ) : (
-          usdValue && (
+          fiatValue && (
             <p className="text-sm text-muted-foreground md:text-base">
               <SensitiveValue size="sm">
-                {t(($) => $.account.approxUsd, { value: usdValue })}
+                {t(($) => $.account.approxFiat, { value: fiatValue })}
               </SensitiveValue>
             </p>
           )
@@ -118,7 +140,8 @@ export function NeuronDetailSummaryView({
       </div>
 
       {/* Neuron Info Section */}
-      <div className="flex flex-col rounded-lg border bg-muted/30">
+      <div className="flex flex-col overflow-hidden rounded-lg border bg-muted/30">
+        {ledgerDevice && <LedgerDeviceBand name={ledgerDevice.name} className="px-4" />}
         <InfoRow label={t(($) => $.neuron.stakeId)} dataTestId="neuron-detail-stake-id">
           <div className="flex items-center gap-2">
             {isHotkey && (
@@ -154,6 +177,25 @@ export function NeuronDetailSummaryView({
             <span className="font-semibold">{durationText}</span>
           </div>
         </InfoRow>
+
+        {ledgerDevice && (
+          <InfoRow label={t(($) => $.neuron.controller)} dataTestId="neuron-detail-controller">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">
+                <Usb aria-hidden="true" />
+                {ledgerDevice.name}
+              </Badge>
+              <span className="font-mono text-xs text-muted-foreground">
+                {shortenId(ledgerDevice.principal, 5)}
+              </span>
+              <CopyButton
+                value={ledgerDevice.principal}
+                label={t(($) => $.neuron.controller)}
+                className="size-6 border-0 p-0 hover:bg-transparent"
+              />
+            </div>
+          </InfoRow>
+        )}
 
         <InfoRow label={t(($) => $.common.apy)} dataTestId="neuron-detail-apy">
           {isApyLoading ? (
@@ -199,18 +241,38 @@ export function NeuronDetailSummaryView({
           </div>
         </InfoRow>
 
-        <InfoRow
-          label={t(($) => $.neuron.maturityMode)}
-          isLast={!isAdvancedFollowing}
-          dataTestId="neuron-detail-maturity-mode"
-        >
+        {hasDisbursementsInProgress && (
+          <InfoRow
+            label={t(($) => $.neuron.disbursingMaturity)}
+            dataTestId="neuron-detail-disbursing-maturity"
+          >
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <Hourglass className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                <span className="font-semibold">{formatNumber(disbursingMaturity)}</span>
+                <MaturitySymbol />
+              </div>
+              <button
+                type="button"
+                className="font-semibold text-primary hover:underline"
+                onClick={() => onNavigate(NeuronDetailView.Disbursements)}
+                aria-label={t(($) => $.neuronDetailModal.disbursements.viewAria)}
+                data-testid="neuron-detail-view-disbursements-btn"
+              >
+                {t(($) => $.neuronDetailModal.disbursements.view)}
+              </button>
+            </div>
+          </InfoRow>
+        )}
+
+        <InfoRow label={t(($) => $.neuron.maturityMode)} dataTestId="neuron-detail-maturity-mode">
           <span className="font-semibold">
             {isAutoStake ? t(($) => $.neuron.autoStake) : t(($) => $.neuron.keepLiquid)}
           </span>
         </InfoRow>
 
         {isAdvancedFollowing && (
-          <InfoRow label={t(($) => $.neuron.following)} isLast dataTestId="neuron-detail-following">
+          <InfoRow label={t(($) => $.neuron.following)} dataTestId="neuron-detail-following">
             {knownNeuronsQuery.isLoading ? (
               <Skeleton className="h-5 w-24" />
             ) : !hasFollowees ? (
@@ -233,6 +295,14 @@ export function NeuronDetailSummaryView({
             )}
           </InfoRow>
         )}
+
+        <InfoRow
+          label={t(($) => $.neuron.followingStatus.rowLabel)}
+          isLast
+          dataTestId="neuron-detail-following-status"
+        >
+          <FollowingStatusInline neuron={neuron} />
+        </InfoRow>
       </div>
 
       {/* Quick Actions Grid */}

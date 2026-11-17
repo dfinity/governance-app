@@ -1,18 +1,22 @@
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute, redirect } from '@tanstack/react-router';
-import { ensureInitialized, useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { useLoginAnalytics } from '@features/analytics/useLoginAnalytics';
 import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGovernanceLogo';
+import { LoginRestart } from '@features/login/components/LoginRestart';
 
 import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Button } from '@components/button';
+import { NnsWordmark } from '@components/icons/NnsWordmark';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
 import { useGovernanceProposal } from '@hooks/governance';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useTvlValue } from '@hooks/useTvlValue';
 import { isSafeInternalRedirect } from '@utils/router';
+import { ensureInitialized } from '@common/auth/internetIdentity';
 
 import i18n from '@/i18n/config';
 
@@ -40,31 +44,21 @@ export const Route = createFileRoute('/')({
     const description = i18n.t(($) => $.common.head.login.description);
 
     return {
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        // Open Graph
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:image', content: '/og-image.webp' },
-        // Twitter Card
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: '/og-image.webp' },
-      ],
+      meta: [{ title }, { name: 'description', content: description }],
     };
   },
 });
 
 function LoginPage() {
-  const { login, isLoggingIn, isLoginSuccess } = useInternetIdentity();
+  const { identity, canLogin, login, isLoggingIn, isFinishingLogin } = useInternetIdentity();
   const { t } = useTranslation();
+
+  useLoginAnalytics();
 
   const [isVideoReady, setIsVideoReady] = useState(false);
   const baseVideoRef = useRef<HTMLVideoElement>(null);
   const coreVideoRef = useRef<HTMLVideoElement>(null);
-  const { tvl, isLoading: isTvlLoading, isError: isTvlError } = useTvlValue();
+  const { tvl, formatTvl, isLoading: isTvlLoading, isError: isTvlError } = useTvlValue();
   const participants = 57986;
   const proposalsQuery = useGovernanceProposal();
   const totalProposals = proposalsQuery?.data?.response?.id ?? 0n;
@@ -95,15 +89,18 @@ function LoginPage() {
     <>
       <div className="login-page relative isolate min-h-dvh w-full font-sans text-foreground">
         {/* Loading Overlay */}
-        {(isLoggingIn || isLoginSuccess) && (
+        {(isLoggingIn || nonNullish(identity)) && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-            <div
-              className="flex flex-col items-center gap-6 text-foreground"
-              role="status"
-              aria-live="polite"
-            >
-              <AnimatedGovernanceLogo />
-              <p className="text-lg font-medium">{t(($) => $.login.authenticating)}</p>
+            <div className="flex flex-col items-center gap-6">
+              <div
+                className="flex flex-col items-center gap-6 text-foreground"
+                role="status"
+                aria-live="polite"
+              >
+                <AnimatedGovernanceLogo />
+                <p className="text-lg font-medium">{t(($) => $.login.authenticating)}</p>
+              </div>
+              {isLoggingIn && <LoginRestart onRestart={login} isFinishing={isFinishingLogin} />}
             </div>
           </div>
         )}
@@ -162,15 +159,18 @@ function LoginPage() {
         <div className="absolute inset-0 z-[1] bg-background/20 md:hidden" />
 
         {/* Content */}
-        <div className="relative z-10 flex min-h-dvh w-full flex-col justify-between px-4 py-10 3xl:mx-auto 3xl:max-w-[2000px] sm:p-12">
+        <div className="relative z-10 flex min-h-dvh w-full flex-col justify-between px-4 pt-[calc(2.5rem+env(safe-area-inset-top))] pb-[calc(2.5rem+env(safe-area-inset-bottom))] 3xl:mx-auto 3xl:max-w-[2000px] sm:p-12">
           {/* Header Section */}
           <div className="relative flex flex-col gap-6 md:mb-12 md:gap-0">
             <div className="relative flex items-start justify-between gap-4">
               <div className="flex w-fit items-center gap-4">
-                <img src="/infinity-mark.png" alt="" aria-hidden={true} className="h-6 w-fit" />
-                <span className="text-sm leading-tight font-semibold">
-                  {t(($) => $.common.head.appName)}
-                </span>
+                <img
+                  src="/infinity-mark.png"
+                  alt=""
+                  aria-hidden={true}
+                  className="h-7 w-auto lg:h-8"
+                />
+                <NnsWordmark className="h-[1.625rem] w-auto text-foreground lg:h-7" />
               </div>
             </div>
             <h1 className="animate-fade-up text-hero-responsive mt-4 mb-6 max-w-xl font-serif font-normal tracking-tight md:mt-12 md:mb-0 md:max-w-3xl 2xl:mt-30 2xl:max-w-4xl">
@@ -240,11 +240,7 @@ function LoginPage() {
                   ) : isTvlError || isNullish(tvl) ? (
                     '-'
                   ) : (
-                    <AnimatedNumber
-                      value={tvl}
-                      prefix="$"
-                      formatOptions={{ minFraction: 0, maxFraction: 0 }}
-                    />
+                    <AnimatedNumber value={tvl} formatter={formatTvl} />
                   )}
                 </dd>
               </div>
@@ -259,7 +255,7 @@ function LoginPage() {
               <div className="flex flex-col gap-4">
                 <Button
                   onClick={login}
-                  disabled={isLoggingIn}
+                  disabled={!canLogin}
                   className="w-full text-base"
                   variant="default"
                   size="xxl"

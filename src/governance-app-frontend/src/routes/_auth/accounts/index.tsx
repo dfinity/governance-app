@@ -7,17 +7,28 @@ import { CreateSubAccountDialog } from '@features/accounts/components/CreateSubA
 import { RecentTransactions } from '@features/accounts/components/RecentTransactions';
 
 import { PageHeader } from '@components/PageHeader';
-import { readFromStorage as readAdvancedFeaturesFromStorage } from '@hooks/useAdvancedFeatures';
+import { AccountsSkeleton } from '@components/skeletons/AccountsSkeleton';
+import {
+  readFromStorage as readAdvancedFeaturesFromStorage,
+  useAdvancedFeatures,
+} from '@hooks/useAdvancedFeatures';
+import { isAccountsAreaEnabled } from '@utils/advancedFeatures';
+import { prefetchAccountsRoute } from '@common/queries/routeLoaders';
 
 import i18n from '@/i18n/config';
 
 export const Route = createFileRoute('/_auth/accounts/')({
   component: AccountsPage,
+  pendingComponent: AccountsSkeleton,
   beforeLoad: () => {
     const features = readAdvancedFeaturesFromStorage();
 
-    if (!features.subaccounts) throw redirect({ to: '/dashboard', replace: true });
+    if (!isAccountsAreaEnabled(features)) throw redirect({ to: '/dashboard', replace: true });
   },
+  loader: ({ context }) =>
+    prefetchAccountsRoute(context.queryClient, readAdvancedFeaturesFromStorage()),
+  // Entry only: a change of the search params must not rerun the loader.
+  staleTime: Infinity,
   head: () => {
     const title = i18n.t(($) => $.common.head.accounts.title);
 
@@ -32,13 +43,14 @@ export const Route = createFileRoute('/_auth/accounts/')({
 
 function AccountsPage() {
   const { t } = useTranslation();
+  const { features } = useAdvancedFeatures();
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title={t(($) => $.accounts.title)}
         description={t(($) => $.accounts.description)}
-        actions={<CreateSubAccountDialog />}
+        actions={features.subaccounts ? <CreateSubAccountDialog /> : undefined}
       />
 
       <AccountsTotalCard />

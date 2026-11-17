@@ -1,4 +1,4 @@
-import type { IcpExchangeRateResponse } from '@declarations/governance-app-backend/governance-app-backend.did';
+import type { IcpExchangeRateResponse } from '@declarations/governance-app-backend/backend.did';
 
 export const fixture_ExchangeRate: IcpExchangeRateResponse = {
   current: [

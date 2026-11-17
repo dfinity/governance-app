@@ -1,6 +1,8 @@
 import { nonNullish } from '@dfinity/utils';
 import { useTranslation } from 'react-i18next';
 
+import { getLockedSupplyBreakdown } from '@features/dashboard/utils/lockedSupply';
+
 import { AnimatedNumber } from '@components/AnimatedNumber';
 import { Card, CardContent } from '@components/Card';
 import { Skeleton } from '@components/Skeleton';
@@ -10,9 +12,11 @@ import { useTvlValue } from '@hooks/useTvlValue';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber } from '@utils/numbers';
 
+import { LockedSupplyBar } from './LockedSupplyBar';
+
 export const TotalStakedCard = () => {
   const { t } = useTranslation();
-  const { tvl, isLoading: isTvlLoading } = useTvlValue();
+  const { tvl, formatTvl, isLoading: isTvlLoading } = useTvlValue();
   const { data: metricsData, isLoading: isMetricsLoading } = useGovernanceMetrics();
 
   const metrics = metricsData?.response;
@@ -26,7 +30,7 @@ export const TotalStakedCard = () => {
       ? (totalLockedIcp / Number(metrics.totalSupplyIcp)) * 100
       : undefined;
 
-  const isLoading = isTvlLoading || isMetricsLoading;
+  const breakdown = nonNullish(metrics) ? getLockedSupplyBreakdown(metrics) : undefined;
 
   return (
     <Card className="gap-3 py-4">
@@ -34,33 +38,46 @@ export const TotalStakedCard = () => {
         <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {t(($) => $.home.totalStaked)}
         </p>
-        {isLoading ? (
-          <>
-            <Skeleton className="mb-2 h-8 w-40" />
-            <Skeleton className="h-4 w-28" />
-          </>
+        {isTvlLoading ? (
+          <Skeleton className="h-8 w-40" />
         ) : (
-          <>
+          // The line has a fixed height, so the percentage wraps out of sight when it does not
+          // fit next to the value.
+          <div className="flex h-8 flex-wrap items-baseline gap-x-2 overflow-y-clip">
             <p className="text-2xl font-semibold text-foreground">
               {nonNullish(tvl) ? (
-                <AnimatedNumber
-                  value={tvl}
-                  prefix="$"
-                  formatOptions={{ minFraction: 0, maxFraction: 0 }}
-                />
+                // The hidden final value sizes the slot, so the percentage does not move while
+                // the number counts up.
+                <span className="inline-grid">
+                  <span aria-hidden="true" className="invisible col-start-1 row-start-1">
+                    {formatTvl(tvl)}
+                  </span>
+                  <AnimatedNumber
+                    value={tvl}
+                    formatter={formatTvl}
+                    className="col-start-1 row-start-1"
+                  />
+                </span>
               ) : (
                 '—'
               )}
             </p>
             {nonNullish(stakedPercentage) && (
-              <p className="mt-1 text-sm font-normal text-muted-foreground">
-                {t(($) => $.home.ofTotalSupply, {
+              <p className="text-sm font-normal text-muted-foreground">
+                {t(($) => $.home.ofSupply, {
                   value: formatNumber(stakedPercentage, { minFraction: 1, maxFraction: 1 }),
                 })}
               </p>
             )}
-          </>
+          </div>
         )}
+        <div className="mt-1 min-h-5">
+          {isMetricsLoading ? (
+            <Skeleton className="mt-1.5 h-2 w-full rounded-full" />
+          ) : (
+            nonNullish(breakdown) && <LockedSupplyBar breakdown={breakdown} />
+          )}
+        </div>
       </CardContent>
     </Card>
   );

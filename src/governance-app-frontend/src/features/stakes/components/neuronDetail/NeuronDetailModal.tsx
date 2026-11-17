@@ -1,7 +1,6 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ArrowLeft } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
@@ -13,6 +12,7 @@ import {
 } from '@components/ResponsiveDialog';
 import { DIALOG_RESET_DELAY_MS, IS_TESTNET } from '@constants/extra';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import {
   getNeuronId,
@@ -20,10 +20,13 @@ import {
   getNeuronIsDissolved,
   getNeuronIsDissolving,
   isUserHotkey,
+  isUserHotkeyOnly,
 } from '@utils/neuron';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
+import { useLedgerSignerPrincipals } from '../../hooks/useNeuronSigner';
 import { NeuronDetailDevActionsView } from './NeuronDetailDevActionsView';
+import { NeuronDetailDisbursementsView } from './NeuronDetailDisbursementsView';
 import { NeuronDetailDissolveView } from './NeuronDetailDissolveView';
 import { NeuronDetailFollowingDialog } from './NeuronDetailFollowingDialog';
 import { NeuronDetailIncreaseDelayView } from './NeuronDetailIncreaseDelayView';
@@ -44,6 +47,7 @@ type Props = {
 export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewChange }: Props) {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
+  const ledgerPrincipals = useLedgerSignerPrincipals();
   const [isProcessing, setIsProcessing] = useState(false);
   const [followingDialogOpen, setFollowingDialogOpen] = useState(false);
 
@@ -84,6 +88,25 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
     }
   };
 
+  // Returning to the summary is a router navigation, so it is swallowed while
+  // NavigationBlockerDialog is still armed. Rather than racing the blocker on a timer, action
+  // views flag success and we navigate from an effect: child effects (the blocker's
+  // re-registration with isBlocked=false) always run before this parent effect.
+  const [pendingSuccess, setPendingSuccess] = useState(false);
+
+  const leaveActionView = useEffectEvent(() => {
+    setPendingSuccess(false);
+    onViewChange(NeuronDetailView.Summary);
+  });
+
+  useEffect(() => {
+    if (pendingSuccess && !isProcessing) {
+      leaveActionView();
+    }
+  }, [pendingSuccess, isProcessing]);
+
+  const handleActionSuccess = () => setPendingSuccess(true);
+
   const handleOpenChange = (open: boolean) => {
     if (isProcessing && !open) return;
     onOpenChange(open);
@@ -94,10 +117,11 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
   const isDissolved = getNeuronIsDissolved(displayNeuron);
   const isDissolving = getNeuronIsDissolving(displayNeuron);
   const isAutoStake = getNeuronIsAutoStakingMaturity(displayNeuron);
-  const isHotkey = isUserHotkey({
-    neuron: displayNeuron,
-    principalId: identity?.getPrincipal().toText(),
-  });
+  const principalId = identity?.getPrincipal().toText();
+  // Hotkey access only: a neuron that a usable Ledger device controls keeps its actions.
+  const isHotkey = isUserHotkeyOnly({ neuron: displayNeuron, principalId, ledgerPrincipals });
+  // The dev actions sign with the Internet Identity session, so a device neuron keeps them hidden.
+  const isIiHotkey = isUserHotkey({ neuron: displayNeuron, principalId });
 
   const getTitle = (): string => {
     switch (displayView) {
@@ -109,6 +133,8 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
         return t(($) => $.neuronDetailModal.increaseDelay.title);
       case NeuronDetailView.MaturityMode:
         return t(($) => $.neuronDetailModal.maturityMode.title);
+      case NeuronDetailView.Disbursements:
+        return t(($) => $.neuronDetailModal.disbursements.title);
       case NeuronDetailView.Dissolve:
         return isDissolving
           ? t(($) => $.neuronDetailModal.dissolve.stopTitle)
@@ -164,7 +190,7 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
             {displayView === NeuronDetailView.IncreaseStake && (
               <NeuronDetailIncreaseStakeView
                 neuron={displayNeuron}
-                onSuccess={goBack}
+                onSuccess={handleActionSuccess}
                 onProcessingChange={setIsProcessing}
               />
             )}
@@ -173,7 +199,7 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
               <NeuronDetailIncreaseDelayView
                 neuron={displayNeuron}
                 isHotkey={isHotkey}
-                onSuccess={goBack}
+                onSuccess={handleActionSuccess}
                 onProcessingChange={setIsProcessing}
               />
             )}
@@ -182,9 +208,13 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
               <NeuronDetailMaturityModeView
                 neuron={displayNeuron}
                 isHotkey={isHotkey}
-                onSuccess={goBack}
+                onSuccess={handleActionSuccess}
                 onProcessingChange={setIsProcessing}
               />
+            )}
+
+            {displayView === NeuronDetailView.Disbursements && (
+              <NeuronDetailDisbursementsView neuron={displayNeuron} />
             )}
 
             {displayView === NeuronDetailView.Dissolve && (
@@ -193,13 +223,13 @@ export function NeuronDetailModal({ neuron, view, isOpen, onOpenChange, onViewCh
                 isDissolved={isDissolved}
                 isDissolving={isDissolving}
                 isHotkey={isHotkey}
-                onSuccess={goBack}
+                onSuccess={handleActionSuccess}
                 onProcessingChange={setIsProcessing}
               />
             )}
 
             {IS_TESTNET && displayView === NeuronDetailView.DevActions && (
-              <NeuronDetailDevActionsView neuron={displayNeuron} isHotkey={isHotkey} />
+              <NeuronDetailDevActionsView neuron={displayNeuron} isHotkey={isIiHotkey} />
             )}
           </div>
         </ResponsiveDialogContent>

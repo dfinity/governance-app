@@ -1,0 +1,124 @@
+import '@/i18n/config';
+
+import { Topic } from '@icp-sdk/canisters/nns';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import { DIALOG_RESET_DELAY_MS } from '@constants/extra';
+
+import { MAX_FOLLOWEES_PER_TOPIC } from '../utils/topicFollowing';
+import { FolloweePicker } from './FolloweePicker';
+
+// ─── Module mocks ────────────────────────────────────────────────
+
+vi.mock('@hooks/governance', () => ({
+  useNnsGovernance: () => ({ canister: { setFollowing: vi.fn() } }),
+  useGovernanceNeurons: () => ({ data: { certified: true, response: [] } }),
+}));
+
+vi.mock('@hooks/governance/useGovernanceKnownNeurons', () => ({
+  useGovernanceKnownNeurons: () => ({ data: { response: [] }, isLoading: false }),
+}));
+
+vi.mock('@hooks/useMediaQuery', () => ({ useMediaQuery: () => true }));
+
+vi.mock('@components/NavigationBlockerDialog', () => ({ NavigationBlockerDialog: () => null }));
+
+// ─── Helpers ─────────────────────────────────────────────────────
+
+const ids = (count: number, offset = 0) =>
+  Array.from({ length: count }, (_, i) => BigInt(i + 1 + offset));
+
+const renderPicker = (currentFolloweesMap = new Map<Topic, bigint[]>()) =>
+  render(
+    <QueryClientProvider client={new QueryClient()}>
+      <FolloweePicker
+        open
+        onOpenChange={() => {}}
+        userNeurons={[]}
+        currentFolloweesMap={currentFolloweesMap}
+      />
+    </QueryClientProvider>,
+  );
+
+// One focus and one keyboard call for all IDs. A click per ID times out under full-suite load.
+const addCustomNeurons = async (user: ReturnType<typeof userEvent.setup>, neuronIds: bigint[]) => {
+  await user.click(screen.getByTestId('picker-custom-id-input'));
+  await user.keyboard(neuronIds.map((id) => `${id}{Enter}`).join(''));
+};
+
+describe('FolloweePicker', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('blocks Next above the followee limit', async () => {
+    const user = userEvent.setup({ delay: null });
+    renderPicker();
+
+    await addCustomNeurons(user, ids(MAX_FOLLOWEES_PER_TOPIC + 1));
+
+    expect(screen.getByTestId('picker-too-many-neurons')).toBeTruthy();
+    expect(screen.getByTestId('picker-next-btn')).toHaveProperty('disabled', true);
+
+    // getByRole computes the name of each checkbox, topics included, and is slow under load.
+    await user.click(
+      screen.getByText(String(MAX_FOLLOWEES_PER_TOPIC + 1), { selector: '[role="checkbox"] span' }),
+    );
+
+    expect(screen.queryByTestId('picker-too-many-neurons')).toBeNull();
+    expect(screen.getByTestId('picker-next-btn')).toHaveProperty('disabled', false);
+  });
+
+  it('counts the existing followees of a topic together with the new ones', async () => {
+    const user = userEvent.setup({ delay: null });
+    renderPicker(new Map([[Topic.Governance, ids(10)]]));
+
+    await addCustomNeurons(user, ids(6, 100));
+    await user.click(screen.getByTestId('picker-next-btn'));
+
+    await user.click(screen.getByTestId(`picker-topic-${Topic.SnsAndCommunityFund}`));
+    expect(screen.queryByTestId('picker-followee-limit')).toBeNull();
+    expect(screen.getByTestId('picker-apply-btn')).toHaveProperty('disabled', false);
+
+    await user.click(screen.getByTestId(`picker-topic-${Topic.Governance}`));
+    expect(screen.getByTestId('picker-followee-limit').textContent).toContain('Governance');
+    expect(screen.getByTestId('picker-followee-limit').textContent).not.toContain('SNS');
+    expect(screen.getByTestId('picker-apply-btn')).toHaveProperty('disabled', true);
+  });
+
+  it('starts from the first step when it reopens before the delayed reset', () => {
+    vi.useFakeTimers();
+    const client = new QueryClient();
+    const picker = (open: boolean) => (
+      <QueryClientProvider client={client}>
+        <FolloweePicker
+          open={open}
+          onOpenChange={() => {}}
+          userNeurons={[]}
+          currentFolloweesMap={new Map()}
+        />
+      </QueryClientProvider>
+    );
+    const { rerender } = render(picker(true));
+
+    fireEvent.change(screen.getByTestId('picker-custom-id-input'), { target: { value: '7' } });
+    fireEvent.click(screen.getByTestId('picker-custom-id-add'));
+    fireEvent.click(screen.getByTestId('picker-next-btn'));
+    fireEvent.click(screen.getByTestId(`picker-topic-${Topic.Governance}`));
+    fireEvent.click(screen.getByTestId('picker-apply-btn'));
+    expect(screen.getByTestId('picker-confirm-btn')).toBeTruthy();
+
+    rerender(picker(false));
+    act(() => {
+      vi.advanceTimersByTime(DIALOG_RESET_DELAY_MS - 1);
+    });
+    rerender(picker(true));
+
+    expect(screen.queryByTestId('picker-confirm-btn')).toBeNull();
+    expect(screen.getByTestId('picker-next-btn')).toHaveProperty('disabled', true);
+    expect(screen.getByTestId('picker-apply-btn')).toHaveProperty('disabled', true);
+  });
+});

@@ -1,21 +1,22 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { List, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
 import { TransactionListDialog } from '@features/transactions/components/TransactionListDialog';
 
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { SensitiveValue } from '@components/SensitiveValue';
 import { Skeleton } from '@components/Skeleton';
-import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, IS_TESTNET } from '@constants/extra';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
-import { useTickerPrices } from '@hooks/tickers';
+import { useIcpPrice } from '@hooks/tickers';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { bigIntDiv } from '@utils/bigInt';
 import { formatNumber } from '@utils/numbers';
 
@@ -28,7 +29,7 @@ export function AccountCard() {
   const { identity } = useInternetIdentity();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const { tickerPrices: tickersQuery } = useTickerPrices();
+  const { icpPrice, formatFiat, isLoading: isIcpPriceLoading } = useIcpPrice();
   const balanceQuery = useIcpLedgerAccountBalance();
 
   const accountId = nonNullish(identity)
@@ -40,8 +41,7 @@ export function AccountCard() {
   if (isNullish(accountId)) return null;
 
   const balanceICP = bigIntDiv(balanceQuery.data?.response || 0n, E8Sn);
-  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const usdValue = icpPrice ? formatNumber(balanceICP * icpPrice.usd) : '-';
+  const fiatValue = nonNullish(icpPrice) ? formatFiat(balanceICP * icpPrice) : '-';
 
   return (
     <>
@@ -76,12 +76,12 @@ export function AccountCard() {
               </p>
             )}
 
-            {balanceQuery.isLoading || tickersQuery.isLoading ? (
-              <Skeleton className="h-4 w-20" />
+            {balanceQuery.isLoading || isIcpPriceLoading ? (
+              <Skeleton className="h-5 w-20" />
             ) : (
               <p className="text-sm text-muted-foreground">
                 <SensitiveValue size="sm">
-                  {t(($) => $.account.approxUsd, { value: usdValue })}
+                  {t(($) => $.account.approxFiat, { value: fiatValue })}
                 </SensitiveValue>
               </p>
             )}
@@ -91,7 +91,14 @@ export function AccountCard() {
         <CardContent className="flex flex-1 flex-col justify-between gap-6">
           <div className="mt-auto flex flex-col gap-3">
             <Button asChild size="xl" className="w-full">
-              <Link to="/dashboard" search={{ depositModal: true }} replace>
+              <Link
+                to="/dashboard"
+                search={{ depositModal: true }}
+                replace
+                onClick={() =>
+                  analytics.event(AnalyticsEvent.AccountOpenDeposit, { source: 'dashboard_card' })
+                }
+              >
                 <Plus aria-hidden="true" />
                 {t(($) => $.account.addIcp)}
               </Link>

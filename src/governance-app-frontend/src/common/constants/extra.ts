@@ -13,7 +13,6 @@ export const IS_TESTNET =
 export const PAGINATION_LIMIT_PROPOSALS = 25;
 // Somehow this one has a different limit in case of a certified request.
 export const PAGINATION_LIMIT_TRANSACTIONS = 50;
-export const MIN_ASYNC_DELAY = 300; // Avoids flashing of loading indicators.
 
 export const E8S_PRECISION = 8;
 export const E8S = 10 ** E8S_PRECISION;
@@ -28,6 +27,15 @@ export const ICP_TRANSACTION_FEE_E8Sn = BigInt(ICP_TRANSACTION_FEE_E8S);
 export const ICP_TRANSACTION_PROPAGATION_DELAY_MS = 2_000;
 export const SUCCESS_AUTO_CLOSE_MS = 2_400;
 export const DIALOG_RESET_DELAY_MS = 300;
+// The backend gets a new ICP/USD rate from the XRC at this interval.
+export const EXCHANGE_RATE_REFRESH_MS = 5 * 60 * 1_000;
+// The backend adds one rate to the month history every two hours.
+export const EXCHANGE_RATE_MONTH_HISTORY_REFRESH_MS = 60 * 60 * 1_000;
+// The backend gets new USD to fiat rates from the XRC at this interval.
+export const FIAT_EXCHANGE_RATES_REFRESH_MS = 60 * 60 * 1_000;
+// A response without every fiat rate is fetched again at this interval.
+// For example, the backend fills an empty cache right after an upgrade.
+export const FIAT_EXCHANGE_RATES_RETRY_MS = 60 * 1_000;
 
 export const VOTING_RESULTS_PRECISION = 6; // Number of digits after the decimal point.
 
@@ -44,6 +52,8 @@ export const SECONDS_IN_TWO_YEARS = SECONDS_IN_YEAR * 2;
 export const SECONDS_IN_FOUR_YEARS = SECONDS_IN_YEAR * 4;
 export const SECONDS_IN_EIGHT_YEARS = SECONDS_IN_YEAR * 8;
 export const DAYS_IN_AVG_YEAR = 365.25;
+// The governance canister mints the ICP 7 days after a maturity disbursement starts.
+export const MATURITY_DISBURSEMENT_DELAY_SECONDS = SECONDS_IN_DAY * 7;
 
 // NNS reward parameters
 export const NNS_GENESIS_TIMESTAMP_SECONDS = 1_620_604_800; // May 10, 2021
@@ -62,18 +72,24 @@ export const EIGHT_YEAR_GANG_BONUS_RATE = 0.1;
 export const EIGHT_YEAR_GANG_BONUS_EXPIRY_SECONDS = 1_924_991_999; // 2030-12-31T23:59:59Z
 
 // Local Storage Keys
-export const MANUAL_LOGOUT_KEY = 'nns-manual-logout';
 export const WELCOME_MODAL_STORAGE_KEY = 'nns-welcome-modal-seen';
 export const SHORTCUTS_SETTINGS_KEY = 'nns-shortcuts-settings';
 export const COMMAND_PALETTE_SETTINGS_KEY = 'nns-command-palette-settings';
 export const ADVANCED_FEATURES_STORAGE_KEY = 'nns-advanced-features';
+export const SEEN_FEATURE_ANNOUNCEMENTS_STORAGE_KEY = 'nns-seen-feature-announcements';
 export const THEME_STORAGE_KEY = 'nns-theme';
 export const HIDE_BALANCES_KEY = 'nns-hide-balances';
+export const FIAT_CURRENCY_STORAGE_KEY = 'nns-fiat-currency';
+export const FORECAST_PERIOD_STORAGE_KEY = 'nns-forecast-period';
+export const PENDING_DEVICE_STAKE_STORAGE_KEY = 'nns-ledger-pending-stake';
+export const PENDING_DEVICE_TOP_UP_STORAGE_KEY = 'nns-ledger-pending-top-up';
 
 // External Links
 export const DASHBOARD_URL = `https://dashboard.internetcomputer.org/neuron`;
 
 const II_DOMAIN = IS_LOCAL ? `http://${CANISTER_ID_INTERNET_IDENTITY}.${HOST}` : 'https://id.ai';
-export const II_LOGIN_URL = `${II_DOMAIN}/?feature_flag_min_guided_upgrade=true`;
+export const II_AUTHORIZE_URL = `${II_DOMAIN}/authorize?feature_flag_min_guided_upgrade=true`;
 export const II_MANAGE_URL = `${II_DOMAIN}/manage`;
 export const II_DERIVATION_ORIGIN = IS_LOCAL ? null : 'https://nns.ic0.app';
+// The Internet Identity backend, which mints the delegations. It has this ID locally too.
+export const II_BACKEND_CANISTER_ID = 'rdmx6-jaaaa-aaaaa-aaadq-cai';

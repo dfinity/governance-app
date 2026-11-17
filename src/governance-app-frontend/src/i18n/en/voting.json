@@ -82,6 +82,8 @@
     "selectAll": "Select all",
     "deselectAll": "Deselect all",
     "applyToTopics": "Apply to {{count}} topics",
+    "tooManyNeurons": "You can follow up to {{max}} neurons on a topic. Deselect some neurons to continue.",
+    "followeeLimit": "A topic can have up to {{max}} followees. These topics would have more: {{topics}}. Select fewer neurons, or remove followees from these topics first.",
     "confirm": {
       "title": "Confirm changes",
       "description": "This will update following for all your neurons. Selected neurons will be added to the chosen topics.",

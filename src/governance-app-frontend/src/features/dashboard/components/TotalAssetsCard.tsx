@@ -3,19 +3,20 @@ import { useTranslation } from 'react-i18next';
 import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts';
 
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
+import { getStakingRingArc } from '@features/dashboard/utils/stakingRing';
 import { StakingRatioModal } from '@features/stakes/components/StakingRatioModal';
 
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { type ChartConfig, ChartContainer } from '@components/Chart';
+import { HideBalancesToggle } from '@components/HideBalancesToggle';
 import { SensitiveValue } from '@components/SensitiveValue';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
-import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { useGovernanceNeurons } from '@hooks/governance';
-import { useTickerPrices } from '@hooks/tickers';
+import { useIcpPrice } from '@hooks/tickers';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { getNeuronsAggregatedData } from '@utils/neuron';
-import { formatNumber, formatPercentage } from '@utils/numbers';
+import { formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 const chartConfig = {
@@ -31,7 +32,7 @@ const chartConfig = {
 export const TotalAssetsCard = () => {
   const { t } = useTranslation();
 
-  const { tickerPrices: tickersQuery } = useTickerPrices();
+  const { icpPrice, formatFiat, isLoading: isIcpPriceLoading } = useIcpPrice();
   const neuronsQuery = useGovernanceNeurons();
   const { isLoading: isLoadingAccounts, totalBalanceIcp } = useAccounts();
   const stakingRewards = useStakingRewards();
@@ -44,34 +45,36 @@ export const TotalAssetsCard = () => {
 
   const totalAssets = liquidBalance + stakedBalance;
 
-  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const totalAssetsUsd = icpPrice ? formatNumber(totalAssets * icpPrice.usd) : undefined;
+  const totalAssetsFiat = nonNullish(icpPrice) ? formatFiat(totalAssets * icpPrice) : undefined;
 
   const isLoading = isLoadingAccounts || neuronsQuery.isLoading;
   const stakingRewardsReady = isStakingRewardDataReady(stakingRewards);
 
   const stakingRatioPercent = stakingRewardsReady ? stakingRewards.stakingRatio * 100 : 0;
 
+  const stakingArc = getStakingRingArc(stakingRatioPercent);
+
   const chartData = [
-    { name: 'staking', value: stakingRatioPercent, fill: 'var(--color-stakingRatio)' },
+    { name: 'staking', value: stakingArc.value, fill: 'var(--color-stakingRatio)' },
   ];
 
   return (
     <Card className="pt-4 pb-6">
       <CardHeader className="flex flex-col items-center gap-0">
-        <div className="flex min-h-9 items-center">
+        <div className="flex min-h-9 items-center gap-1.5">
           <p className="text-sm tracking-wide text-muted-foreground uppercase">
             {t(($) => $.home.totalAssets)}
           </p>
+          <HideBalancesToggle />
         </div>
 
         <div>
-          {isLoading || tickersQuery.isLoading ? (
+          {isLoading || isIcpPriceLoading ? (
             <Skeleton className="h-8 w-40" />
           ) : (
             <p className="text-2xl font-semibold text-foreground">
-              {nonNullish(totalAssetsUsd) ? (
-                <SensitiveValue>${totalAssetsUsd}</SensitiveValue>
+              {nonNullish(totalAssetsFiat) ? (
+                <SensitiveValue>{totalAssetsFiat}</SensitiveValue>
               ) : (
                 '—'
               )}
@@ -95,7 +98,7 @@ export const TotalAssetsCard = () => {
               outerRadius="100%"
             >
               <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-              <RadialBar dataKey="value" background cornerRadius={10} />
+              <RadialBar dataKey="value" background cornerRadius={stakingArc.cornerRadius} />
             </RadialBarChart>
           </ChartContainer>
 

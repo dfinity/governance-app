@@ -1,9 +1,13 @@
-import { AnonymousIdentity } from '@icp-sdk/core/agent';
-import { createAgent } from '@dfinity/utils';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ReactNode, useEffect, useState } from 'react';
 
-import { IS_LOCAL, NETWORK } from '@constants/extra';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
+import {
+  clearAuthenticatedAgent,
+  clearLedgerAgents,
+  getAnonymousAgent,
+  getAuthenticatedAgent,
+} from '@common/canisters/agents';
+import { clearLedgerIdentities } from '@common/ledger/session';
 
 import { AgentPool, AgentPoolContext } from './agentPoolContext';
 
@@ -22,11 +26,7 @@ export const AgentPoolProvider = ({ children }: { children: ReactNode }) => {
   });
 
   useEffect(() => {
-    createAgent({
-      identity: new AnonymousIdentity(),
-      host: NETWORK,
-      fetchRootKey: IS_LOCAL,
-    })
+    getAnonymousAgent()
       .then((agent) => {
         setAgentPool((prev) => ({
           ...prev,
@@ -63,12 +63,12 @@ export const AgentPoolProvider = ({ children }: { children: ReactNode }) => {
         },
       }));
 
-      createAgent({
-        identity,
-        host: NETWORK,
-        fetchRootKey: IS_LOCAL,
-      })
+      // A newer identity, for example a session that another tab renewed, replaces this one.
+      let current = true;
+
+      getAuthenticatedAgent(identity)
         .then((agent) => {
+          if (!current) return;
           setAgentPool((prev) => ({
             ...prev,
             authenticated: {
@@ -79,6 +79,7 @@ export const AgentPoolProvider = ({ children }: { children: ReactNode }) => {
           }));
         })
         .catch((error) => {
+          if (!current) return;
           console.error('AgentPoolProvider: failed to create authenticated agent.', error);
           setAgentPool((prev) => ({
             ...prev,
@@ -89,7 +90,16 @@ export const AgentPoolProvider = ({ children }: { children: ReactNode }) => {
             },
           }));
         });
+
+      return () => {
+        current = false;
+      };
     } else {
+      // Drop the cached agents too, so a later login cannot reuse a stale identity.
+      // The Ledger caches belong to the session that registered the devices.
+      clearAuthenticatedAgent();
+      clearLedgerIdentities();
+      clearLedgerAgents();
       setAgentPool((prev) => ({
         ...prev,
         authenticated: {

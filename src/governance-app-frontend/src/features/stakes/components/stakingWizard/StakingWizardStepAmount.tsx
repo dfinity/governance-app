@@ -10,15 +10,15 @@ import { Alert, AlertDescription } from '@components/Alert';
 import { AmountInput } from '@components/AmountInput';
 import { Button } from '@components/button';
 import { Label } from '@components/Label';
-import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, ICP_MIN_STAKE_AMOUNT, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { ICP_MAX_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
-import { useTickerPrices } from '@hooks/tickers';
+import { useIcpPrice } from '@hooks/tickers';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useStakingRewards } from '@hooks/useStakingRewards';
+import { isAccountPickerEnabled } from '@utils/advancedFeatures';
 import { bigIntDiv } from '@utils/bigInt';
-import { formatNumber, formatPercentage, roundToE8sPrecision } from '@utils/numbers';
+import { formatPercentage, roundToE8sPrecision } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 interface Props {
@@ -40,19 +40,18 @@ export function StakingWizardStepAmount({
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { tickerPrices: tickersQuery } = useTickerPrices();
-  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
+  const { icpPrice, formatFiat } = useIcpPrice();
 
   const { features } = useAdvancedFeatures();
-  const subaccountsEnabled = features.subaccounts;
+  const accountPickerEnabled = isAccountPickerEnabled(features);
 
-  // Default balance from main account ledger (used when subaccounts FF is off)
+  // Default balance from main account ledger (used when the account picker is off)
   const { data: balanceValue } = useIcpLedgerAccountBalance();
   const defaultBalance = nonNullish(balanceValue?.response)
     ? bigIntDiv(balanceValue.response, E8Sn)
     : 0;
 
-  // When subaccounts are enabled, AccountSelect reports the selected account
+  // When the account picker shows, AccountSelect reports the selected account
   const [selectedAccount, setSelectedAccount] = useState<Account | undefined>();
 
   const accountBalance =
@@ -61,7 +60,7 @@ export function StakingWizardStepAmount({
       : null;
 
   const balance =
-    subaccountsEnabled && nonNullish(accountBalance) ? accountBalance : defaultBalance;
+    accountPickerEnabled && nonNullish(accountBalance) ? accountBalance : defaultBalance;
   const maxStake = Math.max(0, roundToE8sPrecision(balance - ICP_TRANSACTION_FEE));
 
   const stakingRewards = useStakingRewards();
@@ -110,14 +109,14 @@ export function StakingWizardStepAmount({
   };
 
   const numericAmount = Number(amount);
-  const approxUsd =
-    icpPrice && numericAmount > 0
-      ? t(($) => $.account.approxUsd, { value: formatNumber(numericAmount * icpPrice.usd) })
+  const approxFiat =
+    nonNullish(icpPrice) && numericAmount > 0
+      ? t(($) => $.account.approxFiat, { value: formatFiat(numericAmount * icpPrice) })
       : undefined;
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      {subaccountsEnabled && (
+      {accountPickerEnabled && (
         <div className="space-y-1">
           <Label htmlFor="stake-from-account">
             {t(($) => $.stakeWizardModal.steps.amount.fromAccount)}
@@ -142,7 +141,7 @@ export function StakingWizardStepAmount({
           maxAmount={maxStake}
           onMaxSelect={handleMaxSelect}
           error={!!error}
-          approxUsdLabel={approxUsd}
+          approxFiatLabel={approxFiat}
           availableLabel={t(($) => $.stakeWizardModal.steps.amount.available, {
             amount: maxStake.toString(),
           })}

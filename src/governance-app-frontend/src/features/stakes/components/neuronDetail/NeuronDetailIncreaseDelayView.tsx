@@ -1,16 +1,21 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { AlertTriangle, Key, Loader2 } from 'lucide-react';
+import { AlertTriangle, Key } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { DeviceAnswerHint } from '@features/ledger/components/DeviceAnswerHint';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { MaxRewardsBadge } from '@components/MaxRewardsBadge';
+import { Spinner } from '@components/Spinner';
+import { isDeviceActionCancelled } from '@hooks/useDeviceAction';
 import { mapCanisterError } from '@utils/errors';
 import { getNeuronDissolveDelaySeconds, getNeuronIsMaxDissolveDelay } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
 
 import { useIncreaseDelay } from '../../hooks/useIncreaseDelay';
+import { useNeuronSigner } from '../../hooks/useNeuronSigner';
 import { STAKING_WIZARD_DISSOLVE_DELAY_OPTIONS } from '../stakingWizard/constants';
 import { StakingWizardDissolveDelayPreset } from '../stakingWizard/types';
 
@@ -31,6 +36,7 @@ export function NeuronDetailIncreaseDelayView({
   const [selectedSeconds, setSelectedSeconds] = useState<number | null>(null);
 
   const { mutateAsync, isPending } = useIncreaseDelay();
+  const signer = useNeuronSigner(neuron);
 
   const currentDelaySeconds = Number(getNeuronDissolveDelaySeconds(neuron));
   const isMaxDelay = getNeuronIsMaxDissolveDelay(neuron);
@@ -45,15 +51,17 @@ export function NeuronDetailIncreaseDelayView({
         neuronId: neuron.neuronId,
         dissolveDelaySeconds: selectedSeconds,
         currentDissolveDelaySeconds: currentDelaySeconds,
+        signer,
       });
 
       successNotification({
         description: t(($) => $.neuronDetailModal.increaseDelay.success),
       });
 
-      // Wait for the navigation blocker to be released (isPending propagated to false)
-      setTimeout(onSuccess);
+      // The parent defers the actual navigation until the blocker has been released.
+      onSuccess();
     } catch (err) {
+      if (isDeviceActionCancelled(err)) return;
       errorNotification({
         description: mapCanisterError(err as Error),
       });
@@ -169,13 +177,14 @@ export function NeuronDetailIncreaseDelayView({
       >
         {isPending ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Spinner className="mr-2" />
             {t(($) => $.neuronDetailModal.increaseDelay.confirming)}
           </>
         ) : (
           t(($) => $.neuronDetailModal.increaseDelay.confirm)
         )}
       </Button>
+      <DeviceAnswerHint signer={isPending ? signer : undefined} className="text-center" />
     </form>
   );
 }

@@ -1,5 +1,8 @@
 import { useEffect } from 'react';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
+
 import { Theme } from '@constants/theme';
 import { useShortcutSettings } from '@hooks/useShortcutSettings';
 import { useTheme } from '@hooks/useTheme';
@@ -14,7 +17,10 @@ export const useThemeShortcut = () => {
       if (!enabled) return;
       if (shouldIgnoreKeyboardShortcut(event)) return;
 
-      if (event.key === 'd') setTheme(theme === Theme.Dark ? Theme.Light : Theme.Dark);
+      if (event.key === 'd') {
+        analytics.event(AnalyticsEvent.ShortcutUsed, { shortcut: 'theme' });
+        setTheme(theme === Theme.Dark ? Theme.Light : Theme.Dark);
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);

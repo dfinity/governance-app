@@ -8,6 +8,7 @@ import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
 import { ProposalListItem } from '@features/proposals/components/ProposalListItem';
 import {
+  getKnownNeuronNames,
   isProposalFilter,
   ProposalFilter,
   validateProposalsSearch,
@@ -23,11 +24,11 @@ import {
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Button } from '@components/button';
-import { Card } from '@components/Card';
 import { InViewSentinel } from '@components/InViewSentinel';
-import { MultipleSkeletons } from '@components/MultipleSkeletons';
 import { QueryStates } from '@components/QueryStates';
 import { Separator } from '@components/Separator';
+import { ProposalListSkeleton } from '@components/skeletons/ProposalListSkeleton';
+import { VotingSkeleton } from '@components/skeletons/VotingSkeleton';
 import { ToggleGroup, ToggleGroupItem } from '@components/ToggleGroup';
 import { DIALOG_RESET_DELAY_MS } from '@constants/extra';
 import { useGovernanceNeurons, useGovernanceProposals } from '@hooks/governance';
@@ -36,13 +37,38 @@ import { useNonConstructiveProposalIds } from '@hooks/spamFilter';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { warningNotification } from '@utils/notification';
+import { PrefetchedProposals, prefetchVotingRoute } from '@common/queries/routeLoaders';
 
 import i18n from '@/i18n/config';
 
+const proposalsToPrefetch = ({
+  showProposals,
+  proposalFilter,
+}: {
+  showProposals?: boolean;
+  proposalFilter?: ProposalFilter;
+}): PrefetchedProposals => {
+  if (!showProposals) return 'none';
+
+  return (proposalFilter ?? ProposalFilter.Open) === ProposalFilter.Open ? 'open' : 'all';
+};
+
 export const Route = createFileRoute('/_auth/voting/')({
   validateSearch: validateProposalsSearch,
+  // Only the two params that change *what* gets prefetched. `manageFollowing`
+  // stays out: it is modal state, and rerunning the loader on it is what the
+  // route's `staleTime` is here to prevent.
+  loaderDeps: ({ search: { proposalFilter, showProposals } }) => ({
+    proposalFilter,
+    showProposals,
+  }),
+  // Mirrors the `enabled` gates in the component. Prefetching a list the
+  // component does not ask for would reinstate the certified calls they avoid.
+  loader: ({ context, deps }) =>
+    prefetchVotingRoute(context.queryClient, { proposals: proposalsToPrefetch(deps) }),
+  staleTime: Infinity,
   component: Voting,
-  pendingComponent: () => <MultipleSkeletons count={3} />,
+  pendingComponent: VotingPending,
   head: () => {
     const title = i18n.t(($) => $.common.head.voting.title);
 
@@ -55,6 +81,18 @@ export const Route = createFileRoute('/_auth/voting/')({
   },
 });
 
+function VotingPending() {
+  const { showProposals } = Route.useSearch();
+  const { features } = useAdvancedFeatures();
+
+  return (
+    <VotingSkeleton
+      showProposals={!!showProposals}
+      advancedFollowing={features[AdvancedFeature.AdvancedFollowing]}
+    />
+  );
+}
+
 function Voting() {
   const { t } = useTranslation();
 
@@ -64,10 +102,16 @@ function Voting() {
   const proposalsRef = useRef<HTMLDivElement>(null);
 
   const proposalFilter = search.proposalFilter ?? ProposalFilter.Open;
-  const openProposals = useGovernanceProposals({
-    includeStatus: [ProposalStatus.Open],
+  // The list sits behind the "show proposals" toggle and only ever renders one
+  // filter, so fetching the hidden ones just crowds the certified update calls
+  // that already dominate this page.
+  const openProposals = useGovernanceProposals(
+    { includeStatus: [ProposalStatus.Open] },
+    { enabled: showProposals && proposalFilter === ProposalFilter.Open },
+  );
+  const allProposals = useGovernanceProposals(undefined, {
+    enabled: showProposals && proposalFilter === ProposalFilter.All,
   });
-  const allProposals = useGovernanceProposals();
   const activeQuery = proposalFilter === ProposalFilter.Open ? openProposals : allProposals;
 
   const { features } = useAdvancedFeatures();
@@ -88,6 +132,7 @@ function Voting() {
 
   const userNeurons = neuronsQuery.data?.response ?? [];
   const knownNeurons = knownNeuronsQuery.data?.response ?? [];
+  const knownNeuronNames = getKnownNeuronNames(knownNeurons);
 
   const consistentFollowees = getConsistentTopicFollowees(userNeurons);
   const uniformFolloweeId = consistentFollowees
@@ -214,19 +259,7 @@ function Voting() {
                 )}
               </p>
             }
-            loadingComponent={
-              <div className="flex flex-col gap-4">
-                <Card>
-                  <MultipleSkeletons count={3} />
-                </Card>
-                <Card>
-                  <MultipleSkeletons count={3} />
-                </Card>
-                <Card>
-                  <MultipleSkeletons count={3} />
-                </Card>
-              </div>
-            }
+            loadingComponent={<ProposalListSkeleton />}
           >
             {(data) => (
               <>
@@ -260,6 +293,7 @@ function Voting() {
                           >
                             <ProposalListItem
                               proposal={proposal}
+                              knownNeuronNames={knownNeuronNames}
                               certified={page?.certified}
                               isSpam={isSpam}
                               isNonActionable={isNonActionable}
@@ -272,8 +306,7 @@ function Voting() {
 
                 {activeQuery.hasNextPage && (
                   <InViewSentinel retrigger={data} callback={activeQuery.fetchNextPage}>
-                    {/* @TODO: Update skeleton loader to match list item */}
-                    <MultipleSkeletons count={3} />
+                    {activeQuery.isFetchingNextPage && <ProposalListSkeleton count={2} />}
                   </InViewSentinel>
                 )}
               </>

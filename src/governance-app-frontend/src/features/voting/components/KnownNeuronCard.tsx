@@ -7,7 +7,6 @@ import {
   Circle,
   CircleDot,
   LinkIcon,
-  Loader2,
   Square,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -18,7 +17,9 @@ import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card } from '@components/Card';
 import { MarkdownRenderer } from '@components/MarkdownRenderer';
+import { Spinner } from '@components/Spinner';
 import { DASHBOARD_URL } from '@constants/extra';
+import { isFromPortal } from '@utils/events';
 import { cn } from '@utils/shadcn';
 import { safeParseUrl } from '@utils/urls';
 
@@ -63,12 +64,14 @@ export const KnownNeuronCard = ({
       )}
       aria-disabled={isDisabled}
       role="button"
-      onClick={() => !isDisabled && onSelect(neuron)}
+      onClick={(e) => {
+        if (!isDisabled && !isFromPortal(e)) onSelect(neuron);
+      }}
     >
       <div className="flex gap-4">
         <div className="flex h-14 shrink-0 items-center pl-5">
           {isLoading ? (
-            <Loader2 className="size-6 animate-spin" />
+            <Spinner className="size-6" />
           ) : mode === 'checkbox' ? (
             isSelected ? (
               <CheckSquare2 className="size-6 text-primary" />

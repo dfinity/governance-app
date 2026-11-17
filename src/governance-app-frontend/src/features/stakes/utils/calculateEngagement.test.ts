@@ -69,7 +69,14 @@ describe('calculateEngagement', () => {
     ];
 
     const result = calculateEngagement(neurons, proposals);
-    expect(result).toEqual({ rate: 1, participated: 3, total: 3 });
+    expect(result).toEqual({
+      rate: 1,
+      proposals: [
+        { proposalId: 1n, voted: true },
+        { proposalId: 2n, voted: true },
+        { proposalId: 3n, voted: true },
+      ],
+    });
   });
 
   it('returns 0% when neuron is eligible but never voted', () => {
@@ -80,7 +87,13 @@ describe('calculateEngagement', () => {
     ];
 
     const result = calculateEngagement(neurons, proposals);
-    expect(result).toEqual({ rate: 0, participated: 0, total: 2 });
+    expect(result).toEqual({
+      rate: 0,
+      proposals: [
+        { proposalId: 1n, voted: false },
+        { proposalId: 2n, voted: false },
+      ],
+    });
   });
 
   it('calculates partial engagement correctly', () => {
@@ -94,8 +107,11 @@ describe('calculateEngagement', () => {
     const result = calculateEngagement(neurons, proposals);
     expect(result).toEqual({
       rate: 2 / 3,
-      participated: 2,
-      total: 3,
+      proposals: [
+        { proposalId: 1n, voted: true },
+        { proposalId: 2n, voted: false },
+        { proposalId: 3n, voted: true },
+      ],
     });
   });
 
@@ -108,7 +124,13 @@ describe('calculateEngagement', () => {
     ];
 
     const result = calculateEngagement(neurons, proposals);
-    expect(result).toEqual({ rate: 0.5, participated: 1, total: 2 });
+    expect(result).toEqual({
+      rate: 0.5,
+      proposals: [
+        { proposalId: 1n, voted: true },
+        { proposalId: 3n, voted: false },
+      ],
+    });
   });
 
   it('counts ballots across multiple neurons', () => {
@@ -119,7 +141,13 @@ describe('calculateEngagement', () => {
     ];
 
     const result = calculateEngagement(neurons, proposals);
-    expect(result).toEqual({ rate: 3 / 4, participated: 3, total: 4 });
+    expect(result).toEqual({
+      rate: 3 / 4,
+      proposals: [
+        { proposalId: 1n, voted: true },
+        { proposalId: 2n, voted: false },
+      ],
+    });
   });
 
   it('ignores ballots from neurons the user does not own', () => {
@@ -133,6 +161,18 @@ describe('calculateEngagement', () => {
     ];
 
     const result = calculateEngagement(neurons, proposals);
-    expect(result).toEqual({ rate: 1, participated: 1, total: 1 });
+    expect(result).toEqual({ rate: 1, proposals: [{ proposalId: 1n, voted: true }] });
+  });
+
+  it('lists the proposals from the oldest to the newest', () => {
+    const neurons = [mockNeuron(1n)];
+    const proposals = [
+      mockProposal(3n, [mockBallot(1n, Vote.Yes)]),
+      mockProposal(1n, [mockBallot(1n, Vote.Unspecified)]),
+      mockProposal(2n, [mockBallot(1n, Vote.Yes)]),
+    ];
+
+    const result = calculateEngagement(neurons, proposals);
+    expect(result?.proposals.map(({ proposalId }) => proposalId)).toEqual([1n, 2n, 3n]);
   });
 });

@@ -7,6 +7,7 @@
   "detectingNavBlock": "Please wait while we finish setting up the application.",
   "subaccountsDetected": "Multiple accounts detected, this feature has been enabled for you.",
   "advancedFollowingDetected": "Advanced Following detected, this feature has been enabled for you.",
+  "ledgerDeviceDetected": "Ledger device detected, this feature has been enabled for you.",
   "detectedHint": "You can always change it in the Settings.",
   "detectingError": "Some checks could not be completed. You can enable advanced features manually in Settings."
 }

@@ -1,11 +1,15 @@
+import { nonNullish } from '@dfinity/utils';
 import { BookUser, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type {
-  AddressBook,
-  NamedAddress,
-} from '@declarations/governance-app-backend/governance-app-backend.did';
+import type { AddressBook, NamedAddress } from '@declarations/governance-app-backend/backend.did';
+
+import { SendICPDialog } from '@features/account/components/SendICPButton';
+import { useAccounts } from '@features/accounts/hooks/useAccounts';
+import { isAccountReady } from '@features/accounts/types';
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
 
 import { Button } from '@components/button';
 import { QueryStates } from '@components/QueryStates';
@@ -16,11 +20,15 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
-import { Spinner } from '@components/Spinner';
+import { SkeletonAddressBookRows } from '@components/skeletons/SkeletonListRows';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { ADDRESS_BOOK_MAX_ENTRIES } from '@constants/addressBook';
+import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
+import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
 import type { CertifiedData } from '@typings/queries';
+import { addressBookGetAddressString } from '@utils/addressBook';
+import { bigIntDiv } from '@utils/bigInt';
 
 import { AddAddressModal } from './AddAddressModal';
 import { AddressBookEntry } from './AddressBookEntry';
@@ -38,6 +46,24 @@ export const AddressBookModal: React.FC<Props> = ({ isOpen, onOpenChange }) => {
   const [editingAddress, setEditingAddress] = useState<NamedAddress | undefined>();
   const [deletingAddress, setDeletingAddress] = useState<NamedAddress | undefined>();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [sendingTo, setSendingTo] = useState<NamedAddress | undefined>();
+
+  // The send dialog sends from the main account. The send action shows only
+  // once the balance is known and the ledger can transfer, as for the send button.
+  const { data: accountsState } = useAccounts();
+  const { ready: ledgerReady, authenticated: ledgerAuthenticated } = useIcpLedger();
+  const mainAccount = accountsState?.accounts.find(
+    (account) => account.accountId === accountsState.mainAccountId,
+  );
+  const mainBalance =
+    nonNullish(mainAccount) && isAccountReady(mainAccount)
+      ? bigIntDiv(mainAccount.balanceE8s, E8Sn)
+      : undefined;
+  const canSend =
+    nonNullish(mainBalance) &&
+    mainBalance > ICP_TRANSACTION_FEE &&
+    ledgerReady &&
+    ledgerAuthenticated;
 
   const handleEdit = (namedAddress: NamedAddress) => {
     setEditingAddress(namedAddress);
@@ -80,16 +106,7 @@ export const AddressBookModal: React.FC<Props> = ({ isOpen, onOpenChange }) => {
             <QueryStates<CertifiedData<AddressBook>>
               query={addressBookQuery}
               isEmpty={(data) => data.response.named_addresses.length === 0}
-              loadingComponent={
-                <div className="flex flex-col items-center justify-center gap-4 py-16">
-                  <div className="rounded-full bg-muted p-4">
-                    <Spinner className="size-8" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {t(($) => $.addressBook.sendFlow.tooltipLoading)}
-                  </p>
-                </div>
-              }
+              loadingComponent={<SkeletonAddressBookRows />}
               emptyComponent={
                 <div
                   className="flex flex-col items-center gap-5 py-12 text-center"
@@ -137,6 +154,16 @@ export const AddressBookModal: React.FC<Props> = ({ isOpen, onOpenChange }) => {
                           namedAddress={entry}
                           onEdit={handleEdit}
                           onDelete={handleDelete}
+                          onSend={
+                            canSend
+                              ? (entry) => {
+                                  analytics.event(AnalyticsEvent.AccountOpenSend, {
+                                    variant: 'contact',
+                                  });
+                                  setSendingTo(entry);
+                                }
+                              : undefined
+                          }
                         />
                       ))}
                     </div>
@@ -156,6 +183,20 @@ export const AddressBookModal: React.FC<Props> = ({ isOpen, onOpenChange }) => {
         }}
         namedAddress={editingAddress}
         existingAddresses={addressBookQuery.data?.response?.named_addresses ?? []}
+      />
+
+      <SendICPDialog
+        open={nonNullish(sendingTo)}
+        onOpenChange={(open) => {
+          if (!open) setSendingTo(undefined);
+        }}
+        balance={mainBalance ?? 0}
+        variant="contact"
+        initialDestination={
+          nonNullish(sendingTo)
+            ? { name: sendingTo.name, address: addressBookGetAddressString(sendingTo.address) }
+            : undefined
+        }
       />
 
       <RemoveAddressConfirmation

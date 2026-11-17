@@ -1,10 +1,13 @@
-import { AlertTriangle, Loader } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useEffectEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { DeviceAnswerHint } from '@features/ledger/components/DeviceAnswerHint';
 
 import { Button } from '@components/button';
 import { NavigationBlockerDialog } from '@components/NavigationBlockerDialog';
+import { ProcessingSpinner } from '@components/ProcessingSpinner';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -12,8 +15,10 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { DIALOG_RESET_DELAY_MS, SUCCESS_AUTO_CLOSE_MS } from '@constants/extra';
+import { isDeviceActionCancelled } from '@hooks/useDeviceAction';
 import { mapCanisterError } from '@utils/errors';
 import { cn } from '@utils/shadcn';
+import type { Signer } from '@common/ledger/signer';
 
 import { AnimatedCheckmark } from './AnimatedCheckmark';
 
@@ -25,6 +30,8 @@ type MutationDialogProps = {
   successMessage: string;
   navBlockerDescription: string;
   errorFallbackMessage?: string;
+  /** Who signs the mutation. For a Ledger device signer, the processing phase shows the device hint. */
+  signer?: Signer;
 
   className?: string;
   'data-testid'?: string;
@@ -49,6 +56,7 @@ export function MutationDialog({
   successMessage,
   navBlockerDescription,
   errorFallbackMessage,
+  signer,
   className,
   'data-testid': dataTestId,
   children,
@@ -69,6 +77,11 @@ export function MutationDialog({
       await fn();
       setPhase(Phase.Success);
     } catch (err) {
+      // A cancel on the Ledger approval dialog is not an error: the form shows again.
+      if (isDeviceActionCancelled(err)) {
+        setPhase(Phase.Idle);
+        return;
+      }
       setErrorMessage(
         err instanceof Error
           ? mapCanisterError(err)
@@ -89,13 +102,20 @@ export function MutationDialog({
     return () => clearTimeout(timer);
   }, [phase, close]);
 
+  const resetPhase = useEffectEvent(() => {
+    setPhase(Phase.Idle);
+    setErrorMessage('');
+    setLastMutation(null);
+  });
+
+  // The reset waits for the close animation. A reopen within that delay
+  // cancels the timer, so the open resets at once instead.
   useEffect(() => {
-    if (open) return;
-    const timer = setTimeout(() => {
-      setPhase(Phase.Idle);
-      setErrorMessage('');
-      setLastMutation(null);
-    }, DIALOG_RESET_DELAY_MS);
+    if (open) {
+      resetPhase();
+      return;
+    }
+    const timer = setTimeout(resetPhase, DIALOG_RESET_DELAY_MS);
     return () => clearTimeout(timer);
   }, [open]);
 
@@ -131,8 +151,11 @@ export function MutationDialog({
                 <ResponsiveDialogTitle className="sr-only">
                   {processingMessage}
                 </ResponsiveDialogTitle>
-                <AnimatedSpinner />
-                <FadeInText delay={0.2}>{processingMessage}</FadeInText>
+                <ProcessingSpinner />
+                <div className="flex flex-col items-center">
+                  <FadeInText delay={0.2}>{processingMessage}</FadeInText>
+                  <DeviceAnswerHint signer={signer} className="mt-2 max-w-xs wrap-anywhere" />
+                </div>
               </PhaseContainer>
             )}
 
@@ -140,9 +163,7 @@ export function MutationDialog({
               <PhaseContainer key="success" className="items-center justify-center gap-5">
                 <ResponsiveDialogTitle className="sr-only">{successMessage}</ResponsiveDialogTitle>
                 <AnimatedSuccessIcon />
-                <FadeInText delay={0.35} className="max-w-xs">
-                  {successMessage}
-                </FadeInText>
+                <FadeInText delay={0.35}>{successMessage}</FadeInText>
               </PhaseContainer>
             )}
 
@@ -151,9 +172,7 @@ export function MutationDialog({
                 <ResponsiveDialogTitle className="sr-only">{errorMessage}</ResponsiveDialogTitle>
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                   <AnimatedErrorIcon />
-                  <FadeInText delay={0.3} className="max-w-xs">
-                    {errorMessage}
-                  </FadeInText>
+                  <FadeInText delay={0.3}>{errorMessage}</FadeInText>
                 </div>
                 <div className="flex w-full gap-3 pt-4">
                   <Button variant="outline" size="xl" className="flex-1" onClick={close}>
@@ -236,19 +255,6 @@ function PhaseContainer({
   );
 }
 
-function AnimatedSpinner() {
-  return (
-    <motion.div
-      className="flex size-16 items-center justify-center rounded-full bg-primary/10"
-      initial={{ scale: 0.8, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-    >
-      <Loader className="size-8 animate-spin text-primary" />
-    </motion.div>
-  );
-}
-
 function AnimatedSuccessIcon() {
   return (
     <motion.div
@@ -286,7 +292,7 @@ function FadeInText({
 }) {
   return (
     <motion.p
-      className={cn('text-sm font-medium text-muted-foreground', className)}
+      className={cn('max-w-xs text-sm font-medium wrap-anywhere text-muted-foreground', className)}
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.3 }}

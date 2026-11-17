@@ -1,13 +1,161 @@
+import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
+import { encodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
+import { Principal } from '@icp-sdk/core/principal';
 import { describe, expect, it } from 'vitest';
 
-import { ICP_TRANSACTION_FEE_E8Sn } from '@constants/extra';
+import {
+  E8Sn,
+  ICP_TRANSACTION_FEE_E8Sn,
+  MATURITY_DISBURSEMENT_DELAY_SECONDS,
+  SECONDS_IN_MONTH as SECONDS_IN_MONTH_SECONDS,
+} from '@constants/extra';
 import { mockDisbursement, mockNeuron } from '@fixtures/neuron';
 
 import {
+  formatRemainingTime,
+  getFollowingHealth,
+  getMaturityDisbursementDestination,
+  getMaturityDisbursementDestinationAccountIdentifier,
+  getMaturityDisbursementFinalizeTimestampSeconds,
+  getNeuronMaturityDisbursementsInProgress,
   getNeuronMaturityDisbursementsInProgressE8s,
+  getNeuronsAggregatedData,
+  getSecondsSinceVotingPowerRefresh,
+  getSecondsUntilDecayStarts,
+  getSecondsUntilFollowingCleared,
   hasValueAboveTransactionFee,
   isNonEmptyNeuron,
+  isUserController,
+  isUserControllerOrHotkey,
+  isUserHotkeyOnly,
 } from './neuron';
+
+// Reuse the shared month constant (SECONDS_IN_YEAR / 12) rather than a local
+// 30-day approximation, so these thresholds can't drift from the rest of the app.
+const SECONDS_IN_MONTH = BigInt(SECONDS_IN_MONTH_SECONDS);
+// Matches the protocol defaults from governance.proto VotingPowerEconomics:
+// voting power starts to decline 6 months after the last refresh, and following
+// is cleared one month later (so 7 months after the last refresh in total).
+// `clearFollowingAfterSeconds` is the duration of the reduction phase, not the
+// absolute deadline from refresh.
+const ECONOMICS = {
+  startReducingVotingPowerAfterSeconds: 6n * SECONDS_IN_MONTH,
+  clearFollowingAfterSeconds: 1n * SECONDS_IN_MONTH,
+};
+const NOW = new Date('2026-01-01T00:00:00Z');
+const NOW_SECONDS = BigInt(Math.floor(NOW.getTime() / 1000));
+
+describe('getNeuronMaturityDisbursementsInProgress', () => {
+  it('returns an empty array when fullNeuron is undefined', () => {
+    const neuron = mockNeuron({ fullNeuron: undefined });
+    expect(getNeuronMaturityDisbursementsInProgress(neuron)).toEqual([]);
+  });
+
+  it('returns an empty array when no disbursements exist', () => {
+    const neuron = mockNeuron();
+    expect(getNeuronMaturityDisbursementsInProgress(neuron)).toEqual([]);
+  });
+
+  it('returns the disbursements of the neuron', () => {
+    const disbursements = [
+      mockDisbursement({ amountE8s: 1n }),
+      mockDisbursement({ amountE8s: 2n }),
+    ];
+    const neuron = mockNeuron({
+      fullNeuron: { maturityDisbursementsInProgress: disbursements },
+    });
+    expect(getNeuronMaturityDisbursementsInProgress(neuron)).toEqual(disbursements);
+  });
+});
+
+describe('getMaturityDisbursementFinalizeTimestampSeconds', () => {
+  it('returns the finalize timestamp when the canister reports it', () => {
+    const disbursement = mockDisbursement({
+      timestampOfDisbursementSeconds: 1_000n,
+      finalizeDisbursementTimestampSeconds: 5_000n,
+    });
+    expect(getMaturityDisbursementFinalizeTimestampSeconds(disbursement)).toBe(5_000n);
+  });
+
+  it('falls back to start + 7 days when the finalize timestamp is missing', () => {
+    const disbursement = mockDisbursement({ timestampOfDisbursementSeconds: 1_000n });
+    expect(getMaturityDisbursementFinalizeTimestampSeconds(disbursement)).toBe(
+      1_000n + BigInt(MATURITY_DISBURSEMENT_DELAY_SECONDS),
+    );
+  });
+
+  it('returns undefined when both timestamps are missing', () => {
+    expect(getMaturityDisbursementFinalizeTimestampSeconds(mockDisbursement())).toBeUndefined();
+  });
+});
+
+describe('getMaturityDisbursementDestination', () => {
+  const owner = Principal.fromText('aaaaa-aa');
+
+  it('returns the ICP account identifier when present', () => {
+    const disbursement = mockDisbursement({ accountIdentifierToDisburseTo: 'abc123' });
+    expect(getMaturityDisbursementDestination(disbursement)).toBe('abc123');
+  });
+
+  it('encodes an ICRC-1 account without a subaccount', () => {
+    const disbursement = mockDisbursement({
+      accountToDisburseTo: { owner, subaccount: undefined },
+    });
+    expect(getMaturityDisbursementDestination(disbursement)).toBe(owner.toText());
+  });
+
+  it('encodes an ICRC-1 account with a subaccount', () => {
+    const subaccount = Array.from({ length: 32 }, (_, i) => (i === 31 ? 1 : 0));
+    const disbursement = mockDisbursement({
+      accountToDisburseTo: { owner, subaccount },
+    });
+    expect(getMaturityDisbursementDestination(disbursement)).toBe(
+      encodeIcrcAccount({ owner, subaccount: Uint8Array.from(subaccount) }),
+    );
+  });
+
+  it('encodes a subaccount that is not 32 bytes as the default subaccount', () => {
+    const disbursement = mockDisbursement({
+      accountToDisburseTo: { owner, subaccount: [1, 2, 3] },
+    });
+    expect(getMaturityDisbursementDestination(disbursement)).toBe(owner.toText());
+  });
+
+  it('returns undefined when no destination is reported', () => {
+    expect(getMaturityDisbursementDestination(mockDisbursement())).toBeUndefined();
+  });
+});
+
+describe('getMaturityDisbursementDestinationAccountIdentifier', () => {
+  const owner = Principal.fromText('aaaaa-aa');
+
+  it('returns the ICP account identifier when present', () => {
+    const disbursement = mockDisbursement({ accountIdentifierToDisburseTo: 'abc123' });
+    expect(getMaturityDisbursementDestinationAccountIdentifier(disbursement)).toBe('abc123');
+  });
+
+  it('converts an ICRC-1 account without a subaccount to the main account identifier', () => {
+    const disbursement = mockDisbursement({
+      accountToDisburseTo: { owner, subaccount: undefined },
+    });
+    expect(getMaturityDisbursementDestinationAccountIdentifier(disbursement)).toBe(
+      AccountIdentifier.fromPrincipal({ principal: owner }).toHex(),
+    );
+  });
+
+  it('treats a subaccount that is not 32 bytes as the default subaccount', () => {
+    const disbursement = mockDisbursement({
+      accountToDisburseTo: { owner, subaccount: [1, 2, 3] },
+    });
+    expect(getMaturityDisbursementDestinationAccountIdentifier(disbursement)).toBe(
+      AccountIdentifier.fromPrincipal({ principal: owner }).toHex(),
+    );
+  });
+
+  it('returns undefined when no destination is reported', () => {
+    expect(getMaturityDisbursementDestinationAccountIdentifier(mockDisbursement())).toBeUndefined();
+  });
+});
 
 describe('getNeuronMaturityDisbursementsInProgressE8s', () => {
   it('returns 0 when fullNeuron is undefined', () => {
@@ -101,6 +249,66 @@ describe('hasValueAboveTransactionFee', () => {
   });
 });
 
+describe('getNeuronsAggregatedData', () => {
+  it('returns zero totals when there are no neurons', () => {
+    expect(getNeuronsAggregatedData()).toEqual({
+      totalStakedAfterFees: 0,
+      totalMaturity: 0,
+      totalStakedMaturity: 0,
+      totalFreeMaturity: 0,
+    });
+  });
+
+  it('counts staked maturity in the maturity totals and not in the stake', () => {
+    const neuron = mockNeuron({
+      fullNeuron: {
+        cachedNeuronStake: 10n * E8Sn,
+        stakedMaturityE8sEquivalent: 2n * E8Sn,
+        maturityE8sEquivalent: 3n * E8Sn,
+      },
+    });
+    expect(getNeuronsAggregatedData([neuron])).toEqual({
+      totalStakedAfterFees: 10,
+      totalMaturity: 5,
+      totalStakedMaturity: 2,
+      totalFreeMaturity: 3,
+    });
+  });
+
+  it('subtracts neuron fees from the stake', () => {
+    const neuron = mockNeuron({
+      fullNeuron: { cachedNeuronStake: 10n * E8Sn, neuronFees: 1n * E8Sn },
+    });
+    expect(getNeuronsAggregatedData([neuron]).totalStakedAfterFees).toBe(9);
+  });
+
+  it('sums the totals of all neurons', () => {
+    const neurons = [
+      mockNeuron({
+        fullNeuron: {
+          cachedNeuronStake: 10n * E8Sn,
+          stakedMaturityE8sEquivalent: 2n * E8Sn,
+          maturityE8sEquivalent: 1n * E8Sn,
+        },
+      }),
+      mockNeuron({
+        neuronId: 2n,
+        fullNeuron: {
+          cachedNeuronStake: 5n * E8Sn,
+          stakedMaturityE8sEquivalent: 1n * E8Sn,
+          maturityE8sEquivalent: 4n * E8Sn,
+        },
+      }),
+    ];
+    expect(getNeuronsAggregatedData(neurons)).toEqual({
+      totalStakedAfterFees: 15,
+      totalMaturity: 8,
+      totalStakedMaturity: 3,
+      totalFreeMaturity: 5,
+    });
+  });
+});
+
 describe('isNonEmptyNeuron', () => {
   it('returns false for a neuron with no stake, no maturity, no disbursements', () => {
     const neuron = mockNeuron();
@@ -114,6 +322,15 @@ describe('isNonEmptyNeuron', () => {
     expect(isNonEmptyNeuron(neuron)).toBe(true);
   });
 
+  it('returns true when a disbursement in progress has no amount', () => {
+    const neuron = mockNeuron({
+      fullNeuron: {
+        maturityDisbursementsInProgress: [mockDisbursement({ amountE8s: undefined })],
+      },
+    });
+    expect(isNonEmptyNeuron(neuron)).toBe(true);
+  });
+
   it('returns true when neuron has zero stake but disbursements in progress', () => {
     const neuron = mockNeuron({
       fullNeuron: {
@@ -122,5 +339,251 @@ describe('isNonEmptyNeuron', () => {
       },
     });
     expect(isNonEmptyNeuron(neuron)).toBe(true);
+  });
+});
+
+describe('getSecondsSinceVotingPowerRefresh', () => {
+  it('returns undefined when no refresh timestamp is set', () => {
+    const neuron = mockNeuron({ votingPowerRefreshedTimestampSeconds: undefined });
+    expect(getSecondsSinceVotingPowerRefresh(neuron, NOW)).toBeUndefined();
+  });
+
+  it('returns elapsed seconds since the refresh', () => {
+    const neuron = mockNeuron({
+      votingPowerRefreshedTimestampSeconds: NOW_SECONDS - SECONDS_IN_MONTH,
+    });
+    expect(getSecondsSinceVotingPowerRefresh(neuron, NOW)).toBe(SECONDS_IN_MONTH);
+  });
+
+  it('clamps to 0 when the refresh timestamp is in the future', () => {
+    const neuron = mockNeuron({
+      votingPowerRefreshedTimestampSeconds: NOW_SECONDS + SECONDS_IN_MONTH,
+    });
+    expect(getSecondsSinceVotingPowerRefresh(neuron, NOW)).toBe(0n);
+  });
+
+  it('falls back to fullNeuron.votingPowerRefreshedTimestampSeconds', () => {
+    const neuron = mockNeuron({
+      votingPowerRefreshedTimestampSeconds: undefined,
+      fullNeuron: { votingPowerRefreshedTimestampSeconds: NOW_SECONDS - SECONDS_IN_MONTH },
+    });
+    expect(getSecondsSinceVotingPowerRefresh(neuron, NOW)).toBe(SECONDS_IN_MONTH);
+  });
+});
+
+describe('getSecondsUntilFollowingCleared', () => {
+  it('returns remaining seconds before the deadline (startReducing + clearFollowing from refresh)', () => {
+    const neuron = mockNeuron({
+      votingPowerRefreshedTimestampSeconds: NOW_SECONDS - 5n * SECONDS_IN_MONTH,
+    });
+    // Deadline is at 6mo + 1mo = 7mo after refresh; with 5mo elapsed, 2mo remain.
+    expect(getSecondsUntilFollowingCleared(neuron, ECONOMICS, NOW)).toBe(2n * SECONDS_IN_MONTH);
+  });
+
+  it('returns 0 once the deadline has passed', () => {
+    const neuron = mockNeuron({
+      votingPowerRefreshedTimestampSeconds: NOW_SECONDS - 8n * SECONDS_IN_MONTH,
+    });
+    expect(getSecondsUntilFollowingCleared(neuron, ECONOMICS, NOW)).toBe(0n);
+  });
+
+  it('returns undefined when economics are missing', () => {
+    const neuron = mockNeuron({ votingPowerRefreshedTimestampSeconds: NOW_SECONDS });
+    expect(getSecondsUntilFollowingCleared(neuron, undefined, NOW)).toBeUndefined();
+  });
+
+  it('returns undefined when the refresh timestamp is missing', () => {
+    const neuron = mockNeuron({ votingPowerRefreshedTimestampSeconds: undefined });
+    expect(getSecondsUntilFollowingCleared(neuron, ECONOMICS, NOW)).toBeUndefined();
+  });
+});
+
+describe('formatRemainingTime', () => {
+  const SECONDS_IN_DAY_BIG = BigInt(24 * 60 * 60);
+
+  it('returns empty string for non-positive values', () => {
+    expect(formatRemainingTime(0n)).toBe('');
+    expect(formatRemainingTime(-1n)).toBe('');
+  });
+
+  it('rounds to a whole day when just under a day boundary (the flicker fix)', () => {
+    // 9d 23h 59m 59s — would normally render as "9 days, 23 hours"
+    expect(formatRemainingTime(10n * SECONDS_IN_DAY_BIG - 1n)).toBe('10 days');
+  });
+
+  it('rounds to a whole day when just over a day boundary', () => {
+    // 10d 1s — would normally render as "10 days, 1 second"
+    expect(formatRemainingTime(10n * SECONDS_IN_DAY_BIG + 1n)).toBe('10 days');
+  });
+
+  it('uses the nearest day when between day boundaries', () => {
+    // 10d 12h — the half-day tie rounds up (half-up rounding: add ½ day, then floor).
+    expect(formatRemainingTime(10n * SECONDS_IN_DAY_BIG + 12n * 3600n)).toBe('11 days');
+    // 10d 11h — rounds down to 10 days.
+    expect(formatRemainingTime(10n * SECONDS_IN_DAY_BIG + 11n * 3600n)).toBe('10 days');
+  });
+
+  it('preserves precision for sub-day durations', () => {
+    expect(formatRemainingTime(BigInt(3 * 60 * 60))).toBe('3 hours');
+    expect(formatRemainingTime(BigInt(23 * 60 * 60 + 30 * 60))).toBe('23 hours, 30 minutes');
+  });
+});
+
+describe('getSecondsUntilDecayStarts', () => {
+  it('returns remaining seconds before startReducing is reached', () => {
+    const neuron = mockNeuron({
+      votingPowerRefreshedTimestampSeconds: NOW_SECONDS - 5n * SECONDS_IN_MONTH,
+    });
+    expect(getSecondsUntilDecayStarts(neuron, ECONOMICS, NOW)).toBe(1n * SECONDS_IN_MONTH);
+  });
+
+  it('returns 0 once startReducing has been crossed', () => {
+    const neuron = mockNeuron({
+      votingPowerRefreshedTimestampSeconds: NOW_SECONDS - 7n * SECONDS_IN_MONTH,
+    });
+    expect(getSecondsUntilDecayStarts(neuron, ECONOMICS, NOW)).toBe(0n);
+  });
+
+  it('returns undefined when economics are missing', () => {
+    const neuron = mockNeuron({ votingPowerRefreshedTimestampSeconds: NOW_SECONDS });
+    expect(getSecondsUntilDecayStarts(neuron, undefined, NOW)).toBeUndefined();
+  });
+
+  it('returns undefined when the refresh timestamp is missing', () => {
+    const neuron = mockNeuron({ votingPowerRefreshedTimestampSeconds: undefined });
+    expect(getSecondsUntilDecayStarts(neuron, ECONOMICS, NOW)).toBeUndefined();
+  });
+});
+
+describe('getFollowingHealth', () => {
+  it("returns 'ok' well inside the safe window", () => {
+    const neuron = mockNeuron({
+      votingPowerRefreshedTimestampSeconds: NOW_SECONDS - 1n * SECONDS_IN_MONTH,
+    });
+    expect(getFollowingHealth(neuron, ECONOMICS, NOW)).toBe('ok');
+  });
+
+  it("returns 'warning' inside the proactive notice window before voting power starts to reduce", () => {
+    // 20 days before startReducing (which is 6mo). Falls within the 30-day window.
+    const refreshed = NOW_SECONDS - (6n * SECONDS_IN_MONTH - BigInt(20 * 24 * 60 * 60));
+    const neuron = mockNeuron({ votingPowerRefreshedTimestampSeconds: refreshed });
+    expect(getFollowingHealth(neuron, ECONOMICS, NOW)).toBe('warning');
+  });
+
+  it("stays 'ok' just outside the proactive notice window", () => {
+    // 35 days before startReducing — outside the 30-day notice window.
+    const refreshed = NOW_SECONDS - (6n * SECONDS_IN_MONTH - BigInt(35 * 24 * 60 * 60));
+    const neuron = mockNeuron({ votingPowerRefreshedTimestampSeconds: refreshed });
+    expect(getFollowingHealth(neuron, ECONOMICS, NOW)).toBe('ok');
+  });
+
+  it("transitions to 'decaying' the moment voting power starts to reduce", () => {
+    const neuron = mockNeuron({
+      votingPowerRefreshedTimestampSeconds: NOW_SECONDS - 6n * SECONDS_IN_MONTH,
+    });
+    expect(getFollowingHealth(neuron, ECONOMICS, NOW)).toBe('decaying');
+  });
+
+  it("stays 'decaying' between startReducing and the clear deadline", () => {
+    // 6.5 months elapsed: past startReducing but before startReducing + clearFollowing.
+    const refreshed = NOW_SECONDS - (6n * SECONDS_IN_MONTH + BigInt(15 * 24 * 60 * 60));
+    const neuron = mockNeuron({ votingPowerRefreshedTimestampSeconds: refreshed });
+    expect(getFollowingHealth(neuron, ECONOMICS, NOW)).toBe('decaying');
+  });
+
+  it("returns 'expired' once following is cleared (startReducing + clearFollowing)", () => {
+    const neuron = mockNeuron({
+      votingPowerRefreshedTimestampSeconds: NOW_SECONDS - 7n * SECONDS_IN_MONTH,
+    });
+    expect(getFollowingHealth(neuron, ECONOMICS, NOW)).toBe('expired');
+  });
+
+  it('returns undefined when thresholds are missing', () => {
+    const neuron = mockNeuron({ votingPowerRefreshedTimestampSeconds: NOW_SECONDS });
+    expect(getFollowingHealth(neuron, undefined, NOW)).toBeUndefined();
+  });
+});
+
+describe('isUserHotkeyOnly', () => {
+  const USER = 'user-principal';
+  const DEVICE = 'device-principal';
+
+  it('returns true when the user is a hotkey of a neuron that no registered device controls', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: 'other', hotKeys: [USER] } });
+    expect(isUserHotkeyOnly({ neuron, principalId: USER, ledgerPrincipals: [DEVICE] })).toBe(true);
+  });
+
+  it('returns false when a registered device controls the neuron', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: DEVICE, hotKeys: [USER] } });
+    expect(isUserHotkeyOnly({ neuron, principalId: USER, ledgerPrincipals: [DEVICE] })).toBe(false);
+  });
+
+  it('returns true when the device that controls the neuron is not usable', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: DEVICE, hotKeys: [USER] } });
+    expect(isUserHotkeyOnly({ neuron, principalId: USER, ledgerPrincipals: [] })).toBe(true);
+  });
+
+  it('returns false when the user is the controller', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: USER, hotKeys: [USER] } });
+    expect(isUserHotkeyOnly({ neuron, principalId: USER, ledgerPrincipals: [] })).toBe(false);
+  });
+});
+
+describe('isUserController', () => {
+  const USER = 'user-principal';
+  const DEVICE = 'device-principal';
+
+  it('returns true when the user is the controller', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: USER } });
+    expect(isUserController({ neuron, principalId: USER, ledgerPrincipals: [] })).toBe(true);
+  });
+
+  it('returns true when a registered device is the controller', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: DEVICE, hotKeys: [USER] } });
+    expect(isUserController({ neuron, principalId: USER, ledgerPrincipals: [DEVICE] })).toBe(true);
+  });
+
+  it('returns false when the user is only a hotkey', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: 'other', hotKeys: [USER] } });
+    expect(isUserController({ neuron, principalId: USER, ledgerPrincipals: [DEVICE] })).toBe(false);
+  });
+
+  it('returns false without a principal', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: USER } });
+    expect(isUserController({ neuron, principalId: undefined, ledgerPrincipals: [] })).toBe(false);
+  });
+
+  it('returns false without a full neuron', () => {
+    const neuron = mockNeuron({ fullNeuron: undefined });
+    expect(isUserController({ neuron, principalId: USER, ledgerPrincipals: [USER] })).toBe(false);
+  });
+});
+
+describe('isUserControllerOrHotkey', () => {
+  const USER = 'user-principal';
+
+  it('returns true when the user is the controller', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: USER } });
+    expect(isUserControllerOrHotkey({ neuron, principalId: USER })).toBe(true);
+  });
+
+  it('returns true when the user is a hotkey', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: 'other', hotKeys: [USER] } });
+    expect(isUserControllerOrHotkey({ neuron, principalId: USER })).toBe(true);
+  });
+
+  it('returns false when the user is neither the controller nor a hotkey', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: 'other', hotKeys: ['another'] } });
+    expect(isUserControllerOrHotkey({ neuron, principalId: USER })).toBe(false);
+  });
+
+  it('returns false without a principal', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: USER } });
+    expect(isUserControllerOrHotkey({ neuron, principalId: undefined })).toBe(false);
+  });
+
+  it('returns false without a full neuron', () => {
+    const neuron = mockNeuron({ fullNeuron: undefined });
+    expect(isUserControllerOrHotkey({ neuron, principalId: USER })).toBe(false);
   });
 });

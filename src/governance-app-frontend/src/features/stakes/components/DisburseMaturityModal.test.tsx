@@ -1,162 +1,117 @@
-// Initialize i18n so the button/error labels this test locates by text are translated,
-// regardless of vitest file ordering.
 import '@/i18n/config';
 
-import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { E8S } from '@constants/extra';
+import { E8Sn } from '@constants/extra';
 import { renderWithProviders } from '@utils/unitTest';
 import { mockNeuron } from '@fixtures/neuron';
+import { II_SIGNER } from '@common/ledger/signer';
 
 import { DisburseMaturityModal } from './DisburseMaturityModal';
 
-// ─── Module mocks ────────────────────────────────────────────────
+// jsdom has no layout, so the active option scroll is a no-op here.
+Element.prototype.scrollIntoView = vi.fn();
 
-const mocks = vi.hoisted(() => ({
-  mutateAsync: vi.fn().mockResolvedValue(undefined),
-  useAccountSelection: vi.fn(),
-  useAccounts: vi.fn(),
-  useAddressBook: vi.fn(),
+const ids = vi.hoisted(() => ({
+  MAIN_ACCOUNT_ID: 'd4685b31b51450508aff0331584df7692a84467b680326f5c5f7d30ae711682f',
+  DEVICE_ACCOUNT_ID: 'c42a00e37f88efa2678f131b2661cf1b9b826d4620cac331394ac6da9541a5b1',
 }));
 
-// The modal renders inside MutationDialog's NavigationBlockerDialog, which calls useBlocker.
-// Stub just the blocker so we don't need a RouterProvider; keep the rest of the module real.
-vi.mock('@tanstack/react-router', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@tanstack/react-router')>()),
-  useBlocker: () => ({ status: 'idle', proceed: vi.fn(), reset: vi.fn() }),
-}));
+const accounts = vi.hoisted(() => [
+  {
+    name: 'Main',
+    accountId: ids.MAIN_ACCOUNT_ID,
+    type: 'main',
+    status: 'ready',
+    balanceE8s: 1_000_000_000n,
+  },
+  {
+    name: 'Nano X',
+    accountId: ids.DEVICE_ACCOUNT_ID,
+    type: 'hardwareWallet',
+    principal: 'aaaaa-aa',
+    status: 'ready',
+    balanceE8s: 500_000_000n,
+  },
+]);
 
-// Force the desktop (Radix Dialog) branch of ResponsiveDialog; the mobile branch uses vaul,
-// whose pointer handling throws under jsdom.
-vi.mock('@hooks/useMediaQuery', () => ({
-  useMediaQuery: () => true,
+// Only the Ledger flag is on: the device account must still be a destination.
+vi.mock('@hooks/useAdvancedFeatures', () => ({
+  useAdvancedFeatures: () => ({ features: { subaccounts: false, ledgerDevice: true } }),
 }));
-
-vi.mock('../hooks/useDisburseMaturity', () => ({
-  useDisburseMaturity: () => ({ mutateAsync: mocks.mutateAsync }),
+vi.mock('@features/accounts/hooks/useMainAccountMetadata', () => ({
+  useMainAccountMetadata: () => ({ data: accounts[0], isLoading: false }),
 }));
-
-vi.mock('@features/accounts/hooks/useAccountSelection', () => ({
-  useAccountSelection: mocks.useAccountSelection,
-}));
-
 vi.mock('@features/accounts/hooks/useAccounts', () => ({
-  useAccounts: mocks.useAccounts,
-}));
-
-vi.mock('@hooks/addressBook/useAddressBook', () => ({
-  useAddressBook: mocks.useAddressBook,
-}));
-
-// Stub the pickers — the modal's own wiring is under test, not the child components.
-vi.mock('@features/accounts/components/AccountSelect', () => ({
-  AccountSelect: () => <div data-testid="disburse-maturity-account-select" />,
-}));
-
-vi.mock('@features/addressBook/components/AddressBookSelect', () => ({
-  AddressBookSelect: ({
-    selectedName,
-    onSelect,
-  }: {
-    selectedName: string;
-    onSelect: (name: string) => void;
-  }) => (
-    <button type="button" data-testid="stub-address-book-select" onClick={() => onSelect('Alice')}>
-      {selectedName || 'no selection'}
-    </button>
-  ),
-}));
-
-// ─── Fixtures ────────────────────────────────────────────────────
-
-const MAIN_ACCOUNT_ID = 'main-account-id';
-
-const neuronWithMaturity = (): NeuronInfo =>
-  mockNeuron({ fullNeuron: { maturityE8sEquivalent: BigInt(2 * E8S) } });
-
-const setAccounts = () =>
-  mocks.useAccounts.mockReturnValue({
+  useAccounts: () => ({
     data: {
-      accounts: [
-        {
-          name: 'Main',
-          accountId: MAIN_ACCOUNT_ID,
-          type: 'main',
-          status: 'ready',
-          balanceE8s: BigInt(5 * E8S),
-        },
-      ],
-      mainAccountId: MAIN_ACCOUNT_ID,
-      totalBalanceE8s: 0n,
+      accounts,
+      mainAccountId: ids.MAIN_ACCOUNT_ID,
+      totalBalanceE8s: 1_500_000_000n,
       hasSubaccounts: false,
     },
-  });
+  }),
+}));
+vi.mock('@hooks/addressBook/useAddressBook', () => ({
+  useAddressBook: () => ({ data: { response: { named_addresses: [] } }, isLoading: false }),
+}));
+const mutateAsync = vi.hoisted(() => vi.fn(() => Promise.resolve()));
 
-const setAccountSelection = (subaccountsEnabled: boolean) =>
-  mocks.useAccountSelection.mockReturnValue({
-    selectedAccountId: undefined,
-    setSelectedAccountId: vi.fn(),
-    resolvedAccountId: 'resolved-account-id',
-    subaccountsEnabled,
-  });
+vi.mock('@features/stakes/hooks/useDisburseMaturity', () => ({
+  useDisburseMaturity: () => ({ mutateAsync }),
+}));
+vi.mock('@features/stakes/hooks/useNeuronSigner', () => ({
+  useNeuronSigner: () => II_SIGNER,
+}));
+vi.mock('@components/NavigationBlockerDialog', () => ({ NavigationBlockerDialog: () => null }));
+vi.mock('@hooks/useMediaQuery', () => ({ useMediaQuery: () => true }));
 
-const withEntries = { name: 'Alice', address: { Icp: 'alice-icp-account' } };
-
-const setAddressBook = ({
-  isLoading = false,
-  hasEntries = true,
-}: { isLoading?: boolean; hasEntries?: boolean } = {}) =>
-  mocks.useAddressBook.mockReturnValue({
-    isLoading,
-    data: { response: { named_addresses: hasEntries ? [withEntries] : [] } },
-  });
-
-const renderModal = () =>
+const renderDialog = () =>
   renderWithProviders(
-    <DisburseMaturityModal neuron={neuronWithMaturity()} isOpen onOpenChange={vi.fn()} />,
+    <DisburseMaturityModal
+      neuron={mockNeuron({ fullNeuron: { maturityE8sEquivalent: 2n * E8Sn } })}
+      isOpen
+      onOpenChange={() => {}}
+    />,
   );
 
-describe('DisburseMaturityModal', () => {
+// The main account is the default destination, so the list opens after a clear.
+const openDestinationList = async () => {
+  await userEvent.click(screen.getByTestId('disburse-maturity-destination-input-clear'));
+  await userEvent.click(screen.getByTestId('disburse-maturity-destination-input'));
+  return screen.getAllByTestId('disburse-maturity-destination-input-option');
+};
+
+describe('DisburseMaturityModal destination suggestions', () => {
   beforeEach(() => {
-    mocks.mutateAsync.mockClear();
-    setAccounts();
-    setAccountSelection(false);
-    setAddressBook();
+    mutateAsync.mockClear();
   });
 
-  afterEach(() => {
-    vi.clearAllMocks();
+  it('offers a Ledger device account when only the Ledger feature is on', async () => {
+    renderDialog();
+
+    const options = await openDestinationList();
+
+    expect(options.map((option) => option.textContent)).toEqual([
+      expect.stringContaining('Main'),
+      expect.stringContaining('Nano X'),
+    ]);
   });
 
-  it('shows the noDestination error when the address book is toggled on but no entry is picked', async () => {
-    setAccountSelection(true);
-    renderModal();
+  it('disburses to the picked Ledger device account', async () => {
+    renderDialog();
 
-    await userEvent.click(screen.getByTestId('disburse-maturity-address-book-toggle'));
-    await userEvent.click(screen.getByRole('button', { name: /disburse/i }));
+    const options = await openDestinationList();
+    await userEvent.click(options[1]);
+    await userEvent.click(screen.getByRole('button', { name: 'Disburse' }));
 
-    const error = await screen.findByTestId('disburse-maturity-amount-error');
-    expect(error.textContent).toContain('Pick a destination address from your address book.');
-    expect(mocks.mutateAsync).not.toHaveBeenCalled();
-  });
-
-  it('shows the read-only main-account field when the address book is off and subaccounts are disabled', () => {
-    setAccountSelection(false);
-    renderModal();
-
-    const mainAccount = screen.getByTestId('disburse-maturity-main-account');
-    expect(mainAccount.textContent).toContain('Main');
-    expect(screen.queryByTestId('disburse-maturity-account-select')).toBeFalsy();
-  });
-
-  it('disables the Disburse button while the address book query is loading', () => {
-    setAddressBook({ isLoading: true });
-    renderModal();
-
-    const disburseButton = screen.getByRole('button', { name: /disburse/i }) as HTMLButtonElement;
-    expect(disburseButton.disabled).toBe(true);
+    expect(mutateAsync).toHaveBeenCalledWith({
+      neuronId: 1n,
+      destination: { kind: 'icp', accountIdentifier: ids.DEVICE_ACCOUNT_ID },
+      percentageToDisburse: 100,
+      signer: II_SIGNER,
+    });
   });
 });

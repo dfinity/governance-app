@@ -1,5 +1,7 @@
-import { type NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
-import { type I18nSecondsToDuration, nonNullish } from '@dfinity/utils';
+import { AccountIdentifier, SubAccount } from '@icp-sdk/canisters/ledger/icp';
+import { encodeIcrcAccount } from '@icp-sdk/canisters/ledger/icrc';
+import { type MaturityDisbursement, type NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
+import { type I18nSecondsToDuration, isNullish, nonNullish } from '@dfinity/utils';
 
 import { FOLLOWABLE_TOPIC_SET } from '@features/voting/utils/topicFollowing';
 
@@ -7,6 +9,7 @@ import {
   E8Sn,
   EIGHT_YEAR_GANG_BONUS_EXPIRY_SECONDS,
   ICP_TRANSACTION_FEE_E8Sn,
+  MATURITY_DISBURSEMENT_DELAY_SECONDS,
   SECONDS_IN_DAY,
   SECONDS_IN_YEAR,
 } from '@constants/extra';
@@ -14,6 +17,7 @@ import { ICP_MAX_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { bigIntDiv, bigIntMax } from '@utils/bigInt';
 import { nowInSeconds } from '@utils/date';
 import { shortenId } from '@utils/id';
+import { isNeuronControlledByLedger } from '@common/ledger/signer';
 
 export const getNeuronId = (neuron: NeuronInfo): string => {
   return String(neuron.neuronId);
@@ -59,11 +63,74 @@ export const getNeuronTotalValueAfterFeesE8s = (neuron: NeuronInfo): bigint => {
   return getNeuronTotalStakeAfterFeesE8s(neuron) + getNeuronFreeMaturityE8s(neuron);
 };
 
+export const getNeuronMaturityDisbursementsInProgress = (
+  neuron: NeuronInfo,
+): MaturityDisbursement[] => neuron.fullNeuron?.maturityDisbursementsInProgress ?? [];
+
 export const getNeuronMaturityDisbursementsInProgressE8s = (neuron: NeuronInfo): bigint =>
-  neuron.fullNeuron?.maturityDisbursementsInProgress?.reduce(
+  getNeuronMaturityDisbursementsInProgress(neuron).reduce(
     (acc, disbursement) => acc + (disbursement.amountE8s ?? 0n),
     0n,
-  ) ?? 0n;
+  );
+
+/**
+ * The timestamp at which the governance canister finalizes the disbursement and mints the ICP.
+ * Falls back to start + 7 days when the canister did not report a finalize timestamp.
+ */
+export const getMaturityDisbursementFinalizeTimestampSeconds = (
+  disbursement: MaturityDisbursement,
+): bigint | undefined => {
+  if (nonNullish(disbursement.finalizeDisbursementTimestampSeconds)) {
+    return disbursement.finalizeDisbursementTimestampSeconds;
+  }
+  if (nonNullish(disbursement.timestampOfDisbursementSeconds)) {
+    return (
+      disbursement.timestampOfDisbursementSeconds + BigInt(MATURITY_DISBURSEMENT_DELAY_SECONDS)
+    );
+  }
+  return undefined;
+};
+
+// Only 32-byte subaccounts are valid; anything else is the default subaccount.
+const normalizeIcrcSubaccount = (subaccount: number[] | undefined): Uint8Array | undefined =>
+  nonNullish(subaccount) && subaccount.length === 32 ? Uint8Array.from(subaccount) : undefined;
+
+/**
+ * The destination of a maturity disbursement as an ICP account identifier (hex), for both the
+ * ICP and the ICRC-1 form. Use it to match the destination against the user's own accounts.
+ * Returns undefined when the canister reported no destination.
+ */
+export const getMaturityDisbursementDestinationAccountIdentifier = (
+  disbursement: MaturityDisbursement,
+): string | undefined => {
+  if (nonNullish(disbursement.accountIdentifierToDisburseTo)) {
+    return disbursement.accountIdentifierToDisburseTo;
+  }
+  const owner = disbursement.accountToDisburseTo?.owner;
+  if (isNullish(owner)) return undefined;
+  const subaccount = normalizeIcrcSubaccount(disbursement.accountToDisburseTo?.subaccount);
+  const subAccount = subaccount ? SubAccount.fromBytes(subaccount) : undefined;
+  return AccountIdentifier.fromPrincipal({ principal: owner, subAccount }).toHex();
+};
+
+/**
+ * The destination of a maturity disbursement as text for display: an ICP account identifier
+ * (hex) or an ICRC-1 account (textual encoding). Returns undefined when the canister reported
+ * neither.
+ */
+export const getMaturityDisbursementDestination = (
+  disbursement: MaturityDisbursement,
+): string | undefined => {
+  if (nonNullish(disbursement.accountIdentifierToDisburseTo)) {
+    return disbursement.accountIdentifierToDisburseTo;
+  }
+  const owner = disbursement.accountToDisburseTo?.owner;
+  if (isNullish(owner)) return undefined;
+  return encodeIcrcAccount({
+    owner,
+    subaccount: normalizeIcrcSubaccount(disbursement.accountToDisburseTo?.subaccount),
+  });
+};
 
 export const hasValueAboveTransactionFee = (neuron: NeuronInfo): boolean =>
   nonNullish(neuron.fullNeuron)
@@ -77,7 +144,8 @@ export const hasValueAboveTransactionFee = (neuron: NeuronInfo): boolean =>
  * Ref: https://github.com/dfinity/nns-dapp/blob/0ed30e6c92b8d813bbd6723f531dc56ab3de3f8e/frontend/src/lib/derived/neurons.derived.ts#L18
  */
 export const isNonEmptyNeuron = (neuron: NeuronInfo): boolean =>
-  hasValueAboveTransactionFee(neuron) || getNeuronMaturityDisbursementsInProgressE8s(neuron) > 0n;
+  hasValueAboveTransactionFee(neuron) ||
+  getNeuronMaturityDisbursementsInProgress(neuron).length > 0;
 
 export const getNeuronIsAutoStakingMaturity = (neuron: NeuronInfo): boolean => {
   return hasAutoStakeMaturityOn(neuron);
@@ -281,6 +349,23 @@ export const formatDissolveDelay = ({
   return parts.slice(0, 2).join(', ');
 };
 
+/**
+ * Variant of `formatDissolveDelay` for "time remaining" labels in the
+ * FollowingStatus components. Rounds to the nearest whole day once the
+ * duration is at least one day so the display doesn't flicker between e.g.
+ * "10 days" and "9 days, 23 hours" when `Date.now()` crosses a second
+ * boundary between renders. Sub-day values are passed through unchanged.
+ */
+export const formatRemainingTime = (seconds: bigint, i18n?: I18nSecondsToDuration): string => {
+  if (seconds <= 0n) return '';
+  const secondsInDayBig = BigInt(SECONDS_IN_DAY);
+  const display =
+    seconds >= secondsInDayBig
+      ? ((seconds + secondsInDayBig / 2n) / secondsInDayBig) * secondsInDayBig
+      : seconds;
+  return formatDissolveDelay({ seconds: display, i18n });
+};
+
 export const getNeuronHasNoFollowing = (neuron: NeuronInfo): boolean => {
   const followees = neuron.fullNeuron?.followees ?? [];
 
@@ -289,6 +374,124 @@ export const getNeuronHasNoFollowing = (neuron: NeuronInfo): boolean => {
   return followees
     .filter((f) => FOLLOWABLE_TOPIC_SET.has(f.topic))
     .every((topicFollowees) => topicFollowees.followees.length === 0);
+};
+
+export type FollowingHealth = 'ok' | 'warning' | 'decaying' | 'expired';
+
+export type VotingPowerEconomicsThresholds = {
+  startReducingVotingPowerAfterSeconds: bigint | undefined | null;
+  clearFollowingAfterSeconds: bigint | undefined | null;
+};
+
+/**
+ * How long before voting power starts to decay we begin to surface a warning.
+ * Matches nns-dapp's NOTIFICATION_PERIOD_BEFORE_REWARD_LOSS_STARTS_DAYS (30 days).
+ */
+export const FOLLOWING_WARNING_WINDOW_SECONDS = BigInt(30 * SECONDS_IN_DAY);
+
+export const getVotingPowerRefreshedTimestampSeconds = (neuron: NeuronInfo): bigint | undefined =>
+  neuron.votingPowerRefreshedTimestampSeconds ??
+  neuron.fullNeuron?.votingPowerRefreshedTimestampSeconds ??
+  undefined;
+
+/**
+ * Seconds since the neuron's voting power was last refreshed. A refresh happens
+ * automatically on most controller actions (setting followees, voting…) or
+ * explicitly via `refreshVotingPower`.
+ */
+export const getSecondsSinceVotingPowerRefresh = (
+  neuron: NeuronInfo,
+  referenceDate: Date = new Date(),
+): bigint | undefined => {
+  const refreshed = getVotingPowerRefreshedTimestampSeconds(neuron);
+  if (isNullish(refreshed)) return undefined;
+  const now = BigInt(Math.floor(referenceDate.getTime() / 1000));
+  return now > refreshed ? now - refreshed : 0n;
+};
+
+/**
+ * Seconds remaining before the neuron's following is cleared by the protocol.
+ * The protocol clears following at `startReducing + clearFollowing` seconds
+ * after the last refresh — `clearFollowingAfterSeconds` is the duration of the
+ * voting-power-reduction phase, not the absolute deadline from refresh. See
+ * governance.proto VotingPowerEconomics.
+ *
+ * Returns `undefined` if the threshold or refresh timestamp is missing.
+ * Returns `0n` once the deadline has passed.
+ */
+export const getSecondsUntilFollowingCleared = (
+  neuron: NeuronInfo,
+  economics: VotingPowerEconomicsThresholds | undefined,
+  referenceDate: Date = new Date(),
+): bigint | undefined => {
+  const elapsed = getSecondsSinceVotingPowerRefresh(neuron, referenceDate);
+  const startReducing = economics?.startReducingVotingPowerAfterSeconds;
+  const clearAfter = economics?.clearFollowingAfterSeconds;
+  if (isNullish(elapsed) || isNullish(startReducing) || isNullish(clearAfter)) {
+    return undefined;
+  }
+  const deadline = startReducing + clearAfter;
+  return deadline > elapsed ? deadline - elapsed : 0n;
+};
+
+/**
+ * Seconds remaining before voting power starts to decay (i.e. when the
+ * neuron enters the `decaying` health state). Returns `0n` once the boundary
+ * has been crossed; returns `undefined` if thresholds or refresh timestamp
+ * are missing.
+ */
+export const getSecondsUntilDecayStarts = (
+  neuron: NeuronInfo,
+  economics: VotingPowerEconomicsThresholds | undefined,
+  referenceDate: Date = new Date(),
+): bigint | undefined => {
+  const elapsed = getSecondsSinceVotingPowerRefresh(neuron, referenceDate);
+  const startReducing = economics?.startReducingVotingPowerAfterSeconds;
+  if (isNullish(elapsed) || isNullish(startReducing)) {
+    return undefined;
+  }
+  return startReducing > elapsed ? startReducing - elapsed : 0n;
+};
+
+/**
+ * Classifies the current following health into four phases that map onto the
+ * protocol's voting-power lifecycle:
+ *
+ *  Time since refresh:   0 ────── (startReducing − warningWindow) ─── startReducing ──────── (startReducing + clearFollowing) ──►
+ *  Voting power:         |        full                                full → decreasing linearly → 0                              |
+ *  Followees:            |        intact                              intact                                                cleared
+ *  Health value:         |  ok   |             warning              |               decaying                              | expired
+ *
+ * - `ok`       — well inside the safe window; voting power full, followees intact.
+ * - `warning`  — within the proactive notice window before decay. Voting power
+ *                is still full, followees still intact, but action is recommended
+ *                so the user avoids losing any rewards.
+ * - `decaying` — voting power is actively decreasing toward zero. Followees are
+ *                still intact, but the neuron is earning less per vote. Confirming
+ *                stops the bleed.
+ * - `expired`  — past `startReducing + clearFollowing`; voting power is zero
+ *                and followees have been cleared by the protocol.
+ */
+export const getFollowingHealth = (
+  neuron: NeuronInfo,
+  economics: VotingPowerEconomicsThresholds | undefined,
+  referenceDate: Date = new Date(),
+): FollowingHealth | undefined => {
+  const elapsed = getSecondsSinceVotingPowerRefresh(neuron, referenceDate);
+  const startReducing = economics?.startReducingVotingPowerAfterSeconds;
+  const clearAfter = economics?.clearFollowingAfterSeconds;
+  if (isNullish(elapsed) || isNullish(startReducing) || isNullish(clearAfter)) {
+    return undefined;
+  }
+  const clearDeadline = startReducing + clearAfter;
+  const warningStart =
+    startReducing > FOLLOWING_WARNING_WINDOW_SECONDS
+      ? startReducing - FOLLOWING_WARNING_WINDOW_SECONDS
+      : 0n;
+  if (elapsed >= clearDeadline) return 'expired';
+  if (elapsed >= startReducing) return 'decaying';
+  if (elapsed >= warningStart) return 'warning';
+  return 'ok';
 };
 
 /**
@@ -314,22 +517,84 @@ export const isUserHotkey = ({
 };
 
 /**
+ * Returns true if the current user has hotkey access only: the Internet Identity principal is a
+ * hotkey, not the controller, and no Ledger device in `ledgerPrincipals` controls the neuron.
+ * Every controller-only action in the UI hides or disables itself on this rule, so a neuron
+ * that a usable Ledger device controls keeps its actions.
+ */
+export const isUserHotkeyOnly = ({
+  neuron,
+  principalId,
+  ledgerPrincipals,
+}: {
+  neuron: NeuronInfo;
+  principalId?: string | null;
+  ledgerPrincipals: readonly string[];
+}): boolean =>
+  isUserHotkey({ neuron, principalId }) &&
+  !isNeuronControlledByLedger({ neuron, ledgerPrincipals });
+
+/**
+ * Returns true if the user controls the neuron: the controller is the Internet Identity principal
+ * or a registered Ledger device in `ledgerPrincipals`. A hotkey is not enough, because any
+ * controller can add any principal as hotkey without its consent.
+ */
+export const isUserController = ({
+  neuron,
+  principalId,
+  ledgerPrincipals,
+}: {
+  neuron: NeuronInfo;
+  principalId?: string | null;
+  ledgerPrincipals: readonly string[];
+}): boolean => {
+  const controller = neuron.fullNeuron?.controller;
+  if (!controller) return false;
+  return controller === principalId || ledgerPrincipals.includes(controller);
+};
+
+/**
+ * Returns true if the current user is the controller or a hotkey of the neuron.
+ * Both can call `refreshVotingPower`.
+ */
+export const isUserControllerOrHotkey = ({
+  neuron,
+  principalId,
+}: {
+  neuron: NeuronInfo;
+  principalId?: string | null;
+}): boolean =>
+  !!principalId &&
+  (neuron.fullNeuron?.controller === principalId ||
+    (neuron.fullNeuron?.hotKeys.includes(principalId) ?? false));
+
+/**
  * Aggregates staking data from multiple neurons.
  * @param neurons - Array of neurons to aggregate data from
- * @returns Object containing totalStakedAfterFees and totalMaturity
+ * @returns Object containing totalStakedAfterFees (ICP stake only), totalMaturity, and its
+ * split into totalStakedMaturity and totalFreeMaturity
  */
 export const getNeuronsAggregatedData = (
   neurons: NeuronInfo[] = [],
-): { totalStakedAfterFees: number; totalMaturity: number } => {
+): {
+  totalStakedAfterFees: number;
+  totalMaturity: number;
+  totalStakedMaturity: number;
+  totalFreeMaturity: number;
+} => {
   return neurons.reduce(
     (acc, neuron) => {
       const stake = bigIntDiv(getNeuronStakeAfterFeesE8s(neuron), E8Sn);
       const maturity = bigIntDiv(getNeuronTotalMaturityE8s(neuron), E8Sn);
+      const stakedMaturity = bigIntDiv(getNeuronStakedMaturityE8s(neuron), E8Sn);
+      const freeMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
       return {
         totalStakedAfterFees: acc.totalStakedAfterFees + stake,
         totalMaturity: acc.totalMaturity + maturity,
+        totalStakedMaturity: acc.totalStakedMaturity + stakedMaturity,
+        totalFreeMaturity: acc.totalFreeMaturity + freeMaturity,
       };
     },
-    { totalStakedAfterFees: 0, totalMaturity: 0 },
+    { totalStakedAfterFees: 0, totalMaturity: 0, totalStakedMaturity: 0, totalFreeMaturity: 0 },
   );
 };

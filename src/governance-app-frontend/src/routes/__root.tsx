@@ -1,7 +1,7 @@
 import { nonNullish } from '@dfinity/utils';
-import { useQueryClient } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query';
 import {
-  createRootRoute,
+  createRootRouteWithContext,
   HeadContent,
   Link,
   Outlet,
@@ -9,40 +9,38 @@ import {
   useRouter,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { ArrowLeft, LogIn } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
+import { LoginHandoff } from '@features/login/components/LoginHandoff';
 
 import { Button } from '@components/button';
 import { MainLayout } from '@components/MainLayout';
-import { MANUAL_LOGOUT_KEY } from '@constants/extra';
-import { useSessionCountdownToast } from '@hooks/useSessionCountdownToast';
+import { SessionCountdownToast } from '@components/SessionCountdownToast';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
+import { useSessionChange } from '@hooks/useSessionChange';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
 import { isE2E } from '@utils/e2e';
-import { infoNotification } from '@utils/notification';
 
 import i18n from '@/i18n/config';
 
-export const Route = createRootRoute({
+export type RouterContext = {
+  /** Lets route loaders warm queries before the route's component mounts. */
+  queryClient: QueryClient;
+};
+
+export const Route = createRootRouteWithContext<RouterContext>()({
+  // Open Graph and Twitter Card tags are static in index.html, because link crawlers do not run
+  // JavaScript.
   head: () => {
     const appName = i18n.t(($) => $.common.head.appName);
     const description = i18n.t(($) => $.common.head.defaultDescription);
 
     return {
-      meta: [
-        { title: appName },
-        { name: 'description', content: description },
-        // Open Graph
-        { property: 'og:type', content: 'website' },
-        { property: 'og:site_name', content: appName },
-        { property: 'og:title', content: appName },
-        { property: 'og:description', content: description },
-        // Twitter Card
-        { name: 'twitter:card', content: 'summary' },
-        { name: 'twitter:title', content: appName },
-        { name: 'twitter:description', content: description },
-      ],
+      meta: [{ title: appName }, { name: 'description', content: description }],
     };
   },
   component: RootComponent,
@@ -62,10 +60,15 @@ function AuthenticatedNotFound() {
   const { t } = useTranslation();
 
   useThemeShortcut();
-  useSessionCountdownToast();
+
+  useEffect(() => {
+    analytics.init();
+    analytics.event(AnalyticsEvent.NotFound, undefined, { interactive: false });
+  }, []);
 
   return (
     <MainLayout>
+      <SessionCountdownToast />
       <div className="flex flex-1 flex-col items-center justify-center py-16">
         <div className="flex max-w-md flex-col items-center text-center">
           <h1 className="text-8xl leading-none font-bold tracking-tighter text-muted-foreground/20 sm:text-9xl">
@@ -102,7 +105,7 @@ function UnauthenticatedNotFound() {
           <img
             src="/infinity-mark.png"
             alt={t(($) => $.common.alt.icpLogo)}
-            className="h-6 w-fit"
+            className="h-6 w-auto"
           />
         </div>
       </div>
@@ -132,41 +135,23 @@ function UnauthenticatedNotFound() {
 }
 
 function RootComponent() {
-  const { identity } = useInternetIdentity();
-  const { invalidate } = useRouter();
-  const queryClient = useQueryClient();
-  const { t } = useTranslation();
+  const { subscribe } = useRouter();
 
-  const hadIdentity = useRef(!!identity);
+  useSessionChange();
 
-  // Global identity change handler: login, logout, and auto-expiration
+  // `HeadContent` renders the title and description now, so drop the static ones from index.html.
   useEffect(() => {
-    // Revalidate/re-check route guards on any identity change
-    invalidate().finally(() => {
-      // Handle logout or session expiration
-      if (hadIdentity.current && !identity) {
-        // Reset queries after identity is removed
-        queryClient.resetQueries();
+    document.head.querySelectorAll('[data-static-head]').forEach((node) => node.remove());
+  }, []);
 
-        // Check if this was a manual logout or auto-expiration
-        const isManualLogout = localStorage.getItem(MANUAL_LOGOUT_KEY) === 'true';
-        localStorage.removeItem(MANUAL_LOGOUT_KEY);
-
-        if (isManualLogout) return;
-
-        // Notify user only on auto-expiration
-        infoNotification({ description: t(($) => $.common.autoExpirationLogout) });
-      }
-
-      // Remember last identity state.
-      hadIdentity.current = !!identity;
-    });
-  }, [identity, invalidate, queryClient, t]);
+  // Sends a pageview after each navigation, redirects included, once a page starts the tracker.
+  useEffect(() => subscribe('onResolved', () => analytics.pageview()), [subscribe]);
 
   return (
     <>
       <HeadContent />
       <Outlet />
+      <LoginHandoff />
       <Scripts />
       {!isE2E && <TanStackRouterDevtools />}
     </>

@@ -5,7 +5,7 @@ import { txConfig } from '@features/transactions/utils/txConfig';
 import { Badge } from '@components/badge';
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { SensitiveValue } from '@components/SensitiveValue';
-import { Skeleton } from '@components/Skeleton';
+import { SkeletonTransactionRows } from '@components/skeletons/SkeletonTransactionList';
 import { E8Sn } from '@constants/extra';
 import { bigIntDiv } from '@utils/bigInt';
 import { secondsToDate, secondsToTime } from '@utils/date';
@@ -29,16 +29,7 @@ export const RecentTransactions = () => {
 
       <CardContent className="flex flex-col gap-3">
         {isLoading ? (
-          Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <Skeleton className="size-10 shrink-0 rounded-full" />
-              <div className="flex flex-1 flex-col gap-1">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-3 w-16" />
-              </div>
-              <Skeleton className="h-4 w-16" />
-            </div>
-          ))
+          <SkeletonTransactionRows />
         ) : transactions && transactions.length > 0 ? (
           transactions.map((tx) => <TransactionRow key={`${tx.accountId}-${tx.id}`} tx={tx} />)
         ) : (

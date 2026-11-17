@@ -2,6 +2,8 @@
 # BLUEPRINT (OLD) NNS BETA DEPLOYMENT: https://github.com/dfinity/nns-dapp/blob/main/scripts/nns-dapp/release-beta
 set -euo pipefail
 SOURCE_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+# icp-cli is a devDependency of the project. dfx is still needed for the identity that dfx-orbit uses.
+export PATH="$SOURCE_DIR/../node_modules/.bin:$PATH"
 
 print_help() {
   cat <<-EOF
@@ -113,7 +115,13 @@ check_dfx_orbit_identity() {
 has_asset_permission() {
   principal="$1"
   permission="$2"
-  dfx canister call "$ASSET_CANISTER_ID" list_permitted "(record { permission = variant { $permission } })" --identity anonymous --network ic | idl2json | jq -r '.[]' | grep -q "$principal"
+  icp canister call \
+      "$ASSET_CANISTER_ID" \
+      list_permitted \
+      "(record { permission = variant { $permission } })" \
+      --identity anonymous \
+      --network ic \
+    | grep -qF "\"$principal\""
 }
 
 require_asset_permission() {
@@ -245,7 +253,14 @@ REPO_URL="https://github.com/dfinity/governance-app"
 
 echo
 echo "Querying deployed canister for current build info..."
-if DEPLOYED_COMMIT="$(dfx canister metadata "$CANISTER_ID" git_commit_id --network ic --identity anonymous 2>/dev/null)"; then
+if DEPLOYED_COMMIT="$(
+  icp canister metadata \
+      "$CANISTER_ID" \
+      git_commit_id \
+      --network ic \
+      --identity anonymous \
+      2>/dev/null
+)"; then
   DEPLOYED_COMMIT="$(echo "$DEPLOYED_COMMIT" | xargs)"
 fi
 
@@ -290,7 +305,9 @@ git fetch && git checkout \"$COMMIT\" && ./scripts/build.sh --keep-wasm && sha25
 
 echo
 echo "Creating Orbit request..."
-dfx-orbit --station "$STATION" --identity "$DFX_IDENTITY" request --title "$TITLE" --summary "$SUMMARY" canister install --mode "$INSTALL_MODE" --wasm "$WASM_PATH" "$CANISTER_ID" --asset-canister "$ASSET_CANISTER_ID"
+ORBIT_OUTPUT="$(dfx-orbit --station "$STATION" --identity "$DFX_IDENTITY" request --title "$TITLE" --summary "$SUMMARY" canister install --mode "$INSTALL_MODE" --wasm "$WASM_PATH" "$CANISTER_ID" --asset-canister "$ASSET_CANISTER_ID")"
+echo "$ORBIT_OUTPUT"
+ORBIT_REQUEST_URL="$(sed -n 's/^Request URL: //p' <<<"$ORBIT_OUTPUT")"
 
 echo
 echo "✅ Installation was requested. A team member now needs to approve the request in Orbit."
@@ -321,11 +338,23 @@ fi
 
 echo
 echo "Creating draft GitHub Release: $RELEASE_TAG..."
-# Suppress stdout: gh prints an internal "untagged-*" URL for draft releases.
-if gh release create "$RELEASE_TAG" "${RELEASE_FLAGS[@]}" "$WASM_PATH" > /dev/null; then
-  echo "📝 Draft release created: ${REPO_URL}/releases/tag/${RELEASE_TAG}"
+# gh prints the draft URL ("untagged-*"). The git tag does not exist until the release is published.
+if RELEASE_DRAFT_URL="$(gh release create "$RELEASE_TAG" "${RELEASE_FLAGS[@]}" "$WASM_PATH")"; then
+  echo "📝 Draft release created: $RELEASE_DRAFT_URL"
   echo "   After Orbit approval:  gh release edit \"$RELEASE_TAG\" --draft=false"
   echo "   If proposal rejected:  gh release delete \"$RELEASE_TAG\" --yes --cleanup-tag"
 else
   echo "⚠️  Failed to create draft release. You can create it manually after deployment."
 fi
+
+# -----------------------------------------------------------------------------
+# Release announcement
+# -----------------------------------------------------------------------------
+
+cat <<EOF
+
+New version of the governance-app:
+* Proposal: ${ORBIT_REQUEST_URL:-not available}
+* Release draft: ${RELEASE_DRAFT_URL:-not available}
+
+EOF

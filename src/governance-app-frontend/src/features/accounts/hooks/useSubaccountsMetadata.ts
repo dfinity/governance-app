@@ -5,12 +5,15 @@ import { type AccountMetadata, AccountType } from '../types';
 
 /**
  * Fetches sub-account metadata from NNS dapp.
- * Skips the fetch when the subaccounts feature is disabled.
+ * Returns no accounts when the subaccounts feature is disabled.
+ * The NNS dapp account also carries the Ledger device accounts, so the fetch runs
+ * when either feature is enabled and both hooks share the one query.
  */
 export const useSubaccountsMetadata = () => {
   const { features } = useAdvancedFeatures();
-  const nnsDappAccount = useNnsDappAccount(features.subaccounts);
-  const subAccounts = nnsDappAccount.data?.response?.sub_accounts ?? [];
+  const enabled = features.subaccounts;
+  const nnsDappAccount = useNnsDappAccount(enabled || features.ledgerDevice);
+  const subAccounts = enabled ? (nnsDappAccount.data?.response?.sub_accounts ?? []) : [];
 
   const data: AccountMetadata[] = subAccounts.map((sa) => ({
     name: sa.name,
@@ -19,5 +22,5 @@ export const useSubaccountsMetadata = () => {
     subAccount: sa.sub_account,
   }));
 
-  return { data, isLoading: nnsDappAccount.isLoading };
+  return { data, isLoading: enabled && nnsDappAccount.isLoading };
 };

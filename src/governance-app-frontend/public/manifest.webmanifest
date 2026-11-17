@@ -4,8 +4,8 @@
   "description": "Decentralized governance application on the Internet Computer",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0e0e10",
-  "theme_color": "#0e0e10",
+  "background_color": "#14110d",
+  "theme_color": "#14110d",
   "orientation": "portrait-primary",
   "scope": "/",
   "icons": [
@@ -26,12 +26,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    },
-    {
-      "src": "/governance-logo.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
     }
   ],
   "categories": ["finance", "utilities"],

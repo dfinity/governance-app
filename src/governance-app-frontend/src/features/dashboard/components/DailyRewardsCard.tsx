@@ -57,17 +57,19 @@ export const DailyRewardsCard = () => {
             )}
           </p>
         )}
-        {isRewardEventLoading ? (
-          <Skeleton className="mt-1 h-4 w-32" />
-        ) : (
-          nonNullish(lastRewardTimestamp) && (
-            <p className="mt-1 text-sm font-normal text-muted-foreground">
-              {t(($) => $.home.lastRewardEvent, {
-                date: secondsToDate(Number(lastRewardTimestamp)),
-              })}
-            </p>
-          )
-        )}
+        <div className="mt-1 min-h-5">
+          {isRewardEventLoading ? (
+            <Skeleton className="h-5 w-32" />
+          ) : (
+            nonNullish(lastRewardTimestamp) && (
+              <p className="text-sm font-normal text-muted-foreground">
+                {t(($) => $.home.lastRewardEvent, {
+                  date: secondsToDate(Number(lastRewardTimestamp)),
+                })}
+              </p>
+            )
+          )}
+        </div>
       </CardContent>
     </Card>
   );

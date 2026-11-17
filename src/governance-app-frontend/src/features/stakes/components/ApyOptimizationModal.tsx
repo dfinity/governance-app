@@ -2,8 +2,15 @@ import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { Link } from '@tanstack/react-router';
 import { TFunction } from 'i18next';
 import { CheckCircle2, MessageCircleQuestionMarkIcon } from 'lucide-react';
-import { useState } from 'react';
+import { type ReactElement, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
+
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
+import {
+  getNeuronOptimizationIssues,
+  NeuronOptimizationIssue,
+} from '@features/stakes/utils/getNeuronOptimizationIssues';
 
 import { Badge } from '@components/badge';
 import { Button } from '@components/button';
@@ -19,12 +26,7 @@ import { ICP_MAX_DISSOLVE_DELAY_SECONDS } from '@constants/neuron';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useApyColor } from '@hooks/useApyColor';
 import { useStakingRewards } from '@hooks/useStakingRewards';
-import {
-  getNeuronId,
-  getNeuronIsAutoStakingMaturity,
-  getNeuronIsDissolving,
-  getNeuronIsMaxDissolveDelay,
-} from '@utils/neuron';
+import { getNeuronId } from '@utils/neuron';
 import { formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
@@ -35,19 +37,14 @@ type NeuronOptimizationStatus = {
 };
 
 function getNeuronOptimizationStatus(neuron: NeuronInfo, t: TFunction): NeuronOptimizationStatus {
-  const issues: string[] = [];
-
-  if (getNeuronIsDissolving(neuron)) {
-    issues.push(t(($) => $.apyOptimizationModal.issues.notLocked));
-  }
-
-  if (!getNeuronIsMaxDissolveDelay(neuron)) {
-    issues.push(t(($) => $.apyOptimizationModal.issues.delayLow));
-  }
-
-  if (!getNeuronIsAutoStakingMaturity(neuron)) {
-    issues.push(t(($) => $.apyOptimizationModal.issues.notAutoStaking));
-  }
+  const labels: Record<NeuronOptimizationIssue, string> = {
+    [NeuronOptimizationIssue.NotLocked]: t(($) => $.apyOptimizationModal.issues.notLocked),
+    [NeuronOptimizationIssue.DelayLow]: t(($) => $.apyOptimizationModal.issues.delayLow),
+    [NeuronOptimizationIssue.NotAutoStaking]: t(
+      ($) => $.apyOptimizationModal.issues.notAutoStaking,
+    ),
+  };
+  const issues = getNeuronOptimizationIssues(neuron).map((issue) => labels[issue]);
 
   return {
     neuron,
@@ -56,7 +53,12 @@ function getNeuronOptimizationStatus(neuron: NeuronInfo, t: TFunction): NeuronOp
   };
 }
 
-export function ApyOptimizationModal() {
+type ApyOptimizationModalProps = {
+  /** Replaces the default icon button that opens the modal. */
+  trigger?: ReactElement;
+};
+
+export function ApyOptimizationModal({ trigger }: ApyOptimizationModalProps) {
   const [open, setOpen] = useState(false);
   const { t } = useTranslation();
 
@@ -79,23 +81,33 @@ export function ApyOptimizationModal() {
   const hasUnoptimized = neuronStatuses.some((status) => !status.isOptimized);
 
   return (
-    <ResponsiveDialog open={open} onOpenChange={setOpen}>
-      <ResponsiveDialogTrigger
-        className="cursor-pointer rounded-sm p-0.5 transition-all duration-300 hover:scale-110 focus-visible:ring-2 focus-visible:ring-muted-foreground focus-visible:ring-offset-1 focus-visible:outline-none"
-        disabled={isLoading}
-        aria-label={t(($) => $.apyOptimizationModal.ariaLabel)}
-      >
-        {isLoading ? (
-          <span className="text-muted-foreground">
-            <Spinner className="size-5" />
-          </span>
-        ) : (
-          <MessageCircleQuestionMarkIcon
-            style={{ color: apyColor.ready ? apyColor.textColor : undefined }}
-            className="size-5"
-          />
-        )}
-      </ResponsiveDialogTrigger>
+    <ResponsiveDialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (isOpen) analytics.event(AnalyticsEvent.StakingOpenApyOptimization);
+        setOpen(isOpen);
+      }}
+    >
+      {trigger ? (
+        <ResponsiveDialogTrigger asChild>{trigger}</ResponsiveDialogTrigger>
+      ) : (
+        <ResponsiveDialogTrigger
+          className="cursor-pointer rounded-sm p-0.5 transition-all duration-300 hover:scale-110 focus-visible:ring-2 focus-visible:ring-muted-foreground focus-visible:ring-offset-1 focus-visible:outline-none"
+          disabled={isLoading}
+          aria-label={t(($) => $.apyOptimizationModal.ariaLabel)}
+        >
+          {isLoading ? (
+            <span className="text-muted-foreground">
+              <Spinner className="size-5" />
+            </span>
+          ) : (
+            <MessageCircleQuestionMarkIcon
+              style={{ color: apyColor.ready ? apyColor.textColor : undefined }}
+              className="size-5"
+            />
+          )}
+        </ResponsiveDialogTrigger>
+      )}
       <ResponsiveDialogContent className="flex max-h-[90vh] flex-col">
         <ResponsiveDialogHeader className="shrink-0">
           <div className="flex items-center gap-3">
@@ -159,6 +171,7 @@ export function ApyOptimizationModal() {
                     neuron={neuron}
                     isOptimized={isOptimized}
                     issues={issues}
+                    onMaximize={() => setOpen(false)}
                   />
                 ))}
               </div>
@@ -191,9 +204,16 @@ type NeuronOptimizationItemProps = {
   neuron: NeuronInfo;
   isOptimized: boolean;
   issues: string[];
+  /** Closes the modal, which stays mounted when the link stays on `/neurons`. */
+  onMaximize: () => void;
 };
 
-function NeuronOptimizationItem({ neuron, isOptimized, issues }: NeuronOptimizationItemProps) {
+function NeuronOptimizationItem({
+  neuron,
+  isOptimized,
+  issues,
+  onMaximize,
+}: NeuronOptimizationItemProps) {
   const { t } = useTranslation();
   const neuronId = getNeuronId(neuron);
 
@@ -232,7 +252,11 @@ function NeuronOptimizationItem({ neuron, isOptimized, issues }: NeuronOptimizat
           className="transition-colors hover:border-primary hover:bg-primary/10 focus-visible:border-primary focus-visible:bg-primary/10 focus-visible:ring-0"
           asChild
         >
-          <Link to="/neurons" search={{ neuronId: neuron.neuronId.toString() }}>
+          <Link
+            to="/neurons"
+            search={{ neuronId: neuron.neuronId.toString() }}
+            onClick={onMaximize}
+          >
             {t(($) => $.apyOptimizationModal.maximize)}
           </Link>
         </Button>

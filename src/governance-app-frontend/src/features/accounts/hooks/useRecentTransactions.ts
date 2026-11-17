@@ -8,6 +8,7 @@ import { NANOSECONDS_IN_SECOND } from '@constants/extra';
 import { useIcpIndexAccountsTransactions } from '@hooks/icpIndex';
 
 import type { AccountMetadata, AccountTransaction } from '../types';
+import { useHardwareWalletsMetadata } from './useHardwareWalletsMetadata';
 import { useMainAccountMetadata } from './useMainAccountMetadata';
 import { useSubaccountsMetadata } from './useSubaccountsMetadata';
 
@@ -40,16 +41,17 @@ function toAccountTransaction(
 }
 
 /**
- * Fetches the most recent transactions across all user accounts (main + sub-accounts).
+ * Fetches the most recent transactions across all user accounts (main, sub-accounts, Ledger device).
  * Transactions are merged, sorted by timestamp descending, and capped.
  */
 export const useRecentTransactions = () => {
   const mainAccountMetadata = useMainAccountMetadata();
   const subaccountsMetadata = useSubaccountsMetadata();
+  const hardwareWalletsMetadata = useHardwareWalletsMetadata();
   const { accountIds: neuronAccountIds } = useNeuronAccountsIds();
 
   const accountsMetadata: AccountMetadata[] = mainAccountMetadata.data
-    ? [mainAccountMetadata.data, ...subaccountsMetadata.data]
+    ? [mainAccountMetadata.data, ...subaccountsMetadata.data, ...hardwareWalletsMetadata.data]
     : [];
 
   const accountIds = accountsMetadata.map((a) => a.accountId);
@@ -73,7 +75,10 @@ export const useRecentTransactions = () => {
     .sort((a, b) => b.timestamp - a.timestamp)
     .slice(0, MAX_RECENT_TRANSACTIONS);
 
-  const isLoading = subaccountsMetadata.isLoading || transactionsQuery.isLoading;
+  const isLoading =
+    subaccountsMetadata.isLoading ||
+    hardwareWalletsMetadata.isLoading ||
+    transactionsQuery.isLoading;
 
   return { data, isLoading };
 };

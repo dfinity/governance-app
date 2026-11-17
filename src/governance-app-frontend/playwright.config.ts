@@ -18,8 +18,10 @@ export default defineConfig({
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
+  /* Retry on CI only. Kept at 1: every spec here is a `describe.serial` block, so a retry
+   * re-runs the whole block (including its expensive beforeAll). 2 retries meant a single
+   * stuck test could burn ~15 minutes before reporting. */
+  retries: process.env.CI ? 1 : 0,
   /* Cap workers on CI: many parallel workers contend for the single local pocket-ic
    * replica, slowing consensus-bound actions (staking, voting) enough to blow setup
    * timeouts. Fewer workers keeps per-action latency low and the suite stable. */

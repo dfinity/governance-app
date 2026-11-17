@@ -17,8 +17,14 @@ vi.mock('@hooks/governance', () => ({
   useNnsGovernance: () => ({ canister: { disburseMaturity } }),
 }));
 
-vi.mock('ic-use-internet-identity', () => ({
+vi.mock('@hooks/useInternetIdentity', () => ({
   useInternetIdentity: () => ({ identity: { getPrincipal: () => Principal.anonymous() } }),
+}));
+
+// The default Internet Identity signer runs the direct path, so the Ledger hook is never
+// called. Stub it so the hook factory still mounts.
+vi.mock('./useLedgerNeuronCall', () => ({
+  useLedgerNeuronCall: () => vi.fn(),
 }));
 
 // ─── Helpers ─────────────────────────────────────────────────────
@@ -56,6 +62,7 @@ describe('useDisburseMaturity', () => {
       await result.current.mutateAsync({
         neuronId: 1n,
         destination: { kind: 'icp', accountIdentifier: 'account-id-hex' },
+        percentageToDisburse: 100,
       });
 
       expect(disburseMaturity).toHaveBeenCalledWith({
@@ -72,6 +79,7 @@ describe('useDisburseMaturity', () => {
       await result.current.mutateAsync({
         neuronId: 1n,
         destination: { kind: 'icp', accountIdentifier: 'account-id-hex' },
+        percentageToDisburse: 100,
       });
 
       expect(invalidateQueries).toHaveBeenCalledWith(balanceKey('account-id-hex'));
@@ -89,6 +97,7 @@ describe('useDisburseMaturity', () => {
       await result.current.mutateAsync({
         neuronId: 2n,
         destination: { kind: 'icrc1', owner: OWNER, subaccount },
+        percentageToDisburse: 100,
       });
 
       expect(disburseMaturity).toHaveBeenCalledWith({
@@ -105,6 +114,7 @@ describe('useDisburseMaturity', () => {
       await result.current.mutateAsync({
         neuronId: 2n,
         destination: { kind: 'icrc1', owner: OWNER },
+        percentageToDisburse: 100,
       });
 
       expect(disburseMaturity).toHaveBeenCalledWith({
@@ -121,6 +131,7 @@ describe('useDisburseMaturity', () => {
       await result.current.mutateAsync({
         neuronId: 2n,
         destination: { kind: 'icrc1', owner: OWNER, subaccount: shortSubaccount },
+        percentageToDisburse: 100,
       });
 
       expect(disburseMaturity.mock.calls[0][0].toAccount.subaccount).toBeUndefined();
@@ -133,6 +144,7 @@ describe('useDisburseMaturity', () => {
       await result.current.mutateAsync({
         neuronId: 2n,
         destination: { kind: 'icrc1', owner: OWNER, subaccount },
+        percentageToDisburse: 100,
       });
 
       const expectedAccountId = AccountIdentifier.fromPrincipal({
@@ -150,6 +162,7 @@ describe('useDisburseMaturity', () => {
       await result.current.mutateAsync({
         neuronId: 2n,
         destination: { kind: 'icrc1', owner: OWNER, subaccount: shortSubaccount },
+        percentageToDisburse: 100,
       });
 
       const expectedAccountId = AccountIdentifier.fromPrincipal({ principal: OWNER }).toHex();

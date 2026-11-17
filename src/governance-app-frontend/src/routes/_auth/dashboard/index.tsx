@@ -14,7 +14,10 @@ import { TotalAssetsCard } from '@features/dashboard/components/TotalAssetsCard'
 import { TotalStakedCard } from '@features/dashboard/components/TotalStakedCard';
 import { StakedCard } from '@features/stakes/components/StakedCard';
 
+import { DashboardSkeleton } from '@components/skeletons/DashboardSkeleton';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { isAccountsAreaEnabled } from '@utils/advancedFeatures';
+import { prefetchDashboardRoute } from '@common/queries/routeLoaders';
 
 import i18n from '@/i18n/config';
 
@@ -26,6 +29,10 @@ export const Route = createFileRoute('/_auth/dashboard/')({
   validateSearch: (search: Record<string, unknown>): DashboardSearchParams => ({
     depositModal: search.depositModal === 'true' || search.depositModal === true ? true : undefined,
   }),
+  loader: ({ context }) => prefetchDashboardRoute(context.queryClient),
+  pendingComponent: DashboardPending,
+  // Entry only — `?depositModal` toggles must not rerun the loader.
+  staleTime: Infinity,
   component: Dashboard,
   head: () => {
     const title = i18n.t(($) => $.common.head.dashboard.title);
@@ -39,12 +46,18 @@ export const Route = createFileRoute('/_auth/dashboard/')({
   },
 });
 
+function DashboardPending() {
+  const { features } = useAdvancedFeatures();
+
+  return <DashboardSkeleton subaccounts={isAccountsAreaEnabled(features)} />;
+}
+
 function Dashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate({ from: Route.fullPath });
   const { depositModal } = Route.useSearch();
   const { features } = useAdvancedFeatures();
-  const subaccountsEnabled = features.subaccounts;
+  const accountsEnabled = isAccountsAreaEnabled(features);
 
   const handleDepositModalOpenChange = (isOpen: boolean) => {
     if (!isOpen) navigate({ search: {}, replace: true });
@@ -61,7 +74,7 @@ function Dashboard() {
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
         <TotalAssetsCard />
-        {subaccountsEnabled ? <AccountsCard /> : <AccountCard />}
+        {accountsEnabled ? <AccountsCard /> : <AccountCard />}
         <div className="md:col-span-2">
           <StakedCard />
         </div>

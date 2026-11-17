@@ -2,6 +2,8 @@
   "title": "ICP accounts",
   "description": "Manage your ICP ledger accounts.",
   "mainAccount": "Main",
+  "ledgerDevice": "Ledger device",
+  "principal": "Principal {{principal}}",
   "totalAcrossAll": "Total across all accounts",
   "viewAll": "View all accounts",
   "moreAccounts": "more accounts",

@@ -1,6 +1,5 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { nonNullish } from '@dfinity/utils';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { AlertCircle } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
@@ -15,8 +14,7 @@ import {
   ResponsiveDialogTitle,
 } from '@components/ResponsiveDialog';
 import { Separator } from '@components/Separator';
-
-import { BuyIcpButton } from './BuyIcpButton';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 
 // Aspect ratio (width / height) of the ICP logo image embedded in the QR code.
 const QR_CODE_LOGO_ASPECT_RATIO = 195 / 92;
@@ -71,6 +69,8 @@ export const DepositICPModal = ({
                 value={accountId.toHex()}
                 size={220}
                 level="H"
+                // Quiet zone inside the SVG, so the code keeps a white margin on a dark card.
+                marginSize={4}
                 imageSettings={{
                   src: '/infinity-mark.png',
                   height: QR_CODE_LOGO_HEIGHT,
@@ -92,12 +92,6 @@ export const DepositICPModal = ({
               <CopyButton value={accountId.toHex()} label={t(($) => $.account.accountIdentifier)} />
             </div>
           </div>
-
-          <Separator />
-
-          <p className="text-sm text-muted-foreground">{t(($) => $.depositModal.buyIcpHint)}</p>
-
-          <BuyIcpButton accountId={accountId} />
         </div>
       </ResponsiveDialogContent>
     </ResponsiveDialog>

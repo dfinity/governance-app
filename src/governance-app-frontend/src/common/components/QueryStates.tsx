@@ -2,7 +2,8 @@ import { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/
 import { useTranslation } from 'react-i18next';
 
 import { EmptyMessage } from './EmptyMessage';
-import { MultipleSkeletons } from './MultipleSkeletons';
+import { SkeletonScreen } from './skeletons/SkeletonScreen';
+import { SkeletonText } from './skeletons/SkeletonText';
 import { WarningMessage } from './WarningMessage';
 
 type InfiniteQueryData<TData = unknown> = Partial<InfiniteData<TData, unknown>>;
@@ -42,7 +43,17 @@ export const QueryStates = <TData,>({
   const q = query || infiniteQuery;
 
   if (q.isLoading) {
-    return loadingComponent || <MultipleSkeletons count={3} />;
+    // The loader holds its space at once and reveals itself after a short
+    // delay, so a fast query shows no flash. See `.skeleton` and
+    // `.reveal-delayed` in `main.css`. Wrap a custom skeleton in
+    // `SkeletonScreen` so screen readers hear "loading".
+    if (loadingComponent) return <div className="reveal-delayed">{loadingComponent}</div>;
+
+    return (
+      <SkeletonScreen>
+        <SkeletonText lines={3} />
+      </SkeletonScreen>
+    );
   }
 
   if (q.error) {

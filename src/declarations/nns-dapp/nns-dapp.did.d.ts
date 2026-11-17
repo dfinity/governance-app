@@ -1,6 +1,6 @@
-import type { Principal } from '@icp-sdk/core/principal';
-import type { ActorMethod } from '@icp-sdk/core/agent';
-import type { IDL } from '@icp-sdk/core/candid';
+import type { Principal } from "@icp-sdk/core/principal";
+import type { ActorMethod } from "@icp-sdk/core/agent";
+import type { IDL } from "@icp-sdk/core/candid";
 
 export interface AccountDetails {
   principal: Principal;
@@ -14,12 +14,24 @@ export type CreateSubAccountResponse =
   | { AccountNotFound: null }
   | { NameTooLong: null }
   | { SubAccountLimitExceeded: null };
-export type GetAccountResponse = { Ok: AccountDetails } | { AccountNotFound: null };
+export type GetAccountResponse =
+  | { Ok: AccountDetails }
+  | { AccountNotFound: null };
 export interface HardwareWalletAccountDetails {
   principal: Principal;
   name: string;
   account_identifier: AccountIdentifier;
 }
+export interface RegisterHardwareWalletRequest {
+  principal: Principal;
+  name: string;
+}
+export type RegisterHardwareWalletResponse =
+  | { Ok: null }
+  | { AccountNotFound: null }
+  | { HardwareWalletAlreadyRegistered: null }
+  | { HardwareWalletLimitExceeded: null }
+  | { NameTooLong: null };
 export interface RenameSubAccountRequest {
   new_name: string;
   account_identifier: AccountIdentifier;
@@ -39,7 +51,14 @@ export interface _SERVICE {
   add_account: ActorMethod<[], AccountIdentifier>;
   create_sub_account: ActorMethod<[string], CreateSubAccountResponse>;
   get_account: ActorMethod<[], GetAccountResponse>;
-  rename_sub_account: ActorMethod<[RenameSubAccountRequest], RenameSubAccountResponse>;
+  register_hardware_wallet: ActorMethod<
+    [RegisterHardwareWalletRequest],
+    RegisterHardwareWalletResponse
+  >;
+  rename_sub_account: ActorMethod<
+    [RenameSubAccountRequest],
+    RenameSubAccountResponse
+  >;
 }
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];

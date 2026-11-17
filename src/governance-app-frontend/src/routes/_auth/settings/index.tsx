@@ -1,6 +1,5 @@
 import { isNullish, nonNullish } from '@dfinity/utils';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -8,8 +7,11 @@ import { AddressBookCard } from '@features/addressBook/components/AddressBookCar
 import { AccountIdCard } from '@features/userAccount/components/AccountIdCard';
 import { AdvancedFeaturesCard } from '@features/userAccount/components/AdvancedFeaturesCard';
 import { CommandPaletteCard } from '@features/userAccount/components/CommandPaletteCard';
+import { FiatCurrencyCard } from '@features/userAccount/components/FiatCurrencyCard';
+import { ForecastPeriodCard } from '@features/userAccount/components/ForecastPeriodCard';
 import { GovernanceAccessCard } from '@features/userAccount/components/GovernanceAccessCard';
 import { HideBalancesCard } from '@features/userAccount/components/HideBalancesCard';
+import { LedgerDevicesCard } from '@features/userAccount/components/LedgerDevicesCard';
 import { ManageIICard } from '@features/userAccount/components/ManageIICard';
 import { PrincipalCard } from '@features/userAccount/components/PrincipalCard';
 import { ShortcutsCard } from '@features/userAccount/components/ShortcutsCard';
@@ -19,10 +21,14 @@ import { ThemeCard } from '@features/userAccount/components/ThemeCard';
 import { Button } from '@components/button';
 import { Card } from '@components/Card';
 import { PageHeader } from '@components/PageHeader';
+import { SettingsSkeleton } from '@components/skeletons/SettingsSkeleton';
 import { BUILD_DATE, GIT_COMMIT } from '@constants/extra';
+import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useLogout } from '@hooks/useLogout';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
 import { getSessionTimeLeftForUi } from '@utils/date';
+import { isWebHidSupported } from '@common/ledger/webhid';
 
 import i18n from '@/i18n/config';
 
@@ -36,6 +42,7 @@ export const Route = createFileRoute('/_auth/settings/')({
       search.openAddressBook === 'true' || search.openAddressBook === true ? true : undefined,
   }),
   component: Settings,
+  pendingComponent: SettingsSkeleton,
   head: () => {
     const title = i18n.t(($) => $.common.head.settings.title);
 
@@ -54,7 +61,9 @@ function Settings() {
   const timeLeft = useSessionTimeLeft();
   const navigate = useNavigate({ from: Route.fullPath });
   const { openAddressBook } = Route.useSearch();
-  const logout = useLogout();
+  const logout = useLogout('settings');
+  const { features } = useAdvancedFeatures();
+  const showLedgerDevices = features.ledgerDevice && isWebHidSupported();
 
   const handleAddressBookOpenChange = (open: boolean) => {
     navigate({ search: open ? { openAddressBook: true } : {}, replace: true });
@@ -71,7 +80,7 @@ function Settings() {
 
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
-          <h2 className="text-3xl font-normal">{t(($) => $.userAccount.identity)}</h2>
+          <h2 className="text-2xl font-normal">{t(($) => $.userAccount.identity)}</h2>
           <p className="text-sm text-muted-foreground">
             {t(($) => $.userAccount.identityDescription)}
           </p>
@@ -87,13 +96,18 @@ function Settings() {
             <div className="px-6 py-5">
               <ManageIICard />
             </div>
+            {showLedgerDevices && (
+              <div className="px-6 py-5">
+                <LedgerDevicesCard />
+              </div>
+            )}
           </div>
         </Card>
       </section>
 
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
-          <h2 className="text-3xl font-normal">{t(($) => $.addressBook.title)}</h2>
+          <h2 className="text-2xl font-normal">{t(($) => $.addressBook.title)}</h2>
         </div>
         <Card className="overflow-hidden p-0">
           <div className="px-6 py-5">
@@ -107,7 +121,7 @@ function Settings() {
 
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
-          <h2 className="text-3xl font-normal">{t(($) => $.userAccount.advancedFeatures.title)}</h2>
+          <h2 className="text-2xl font-normal">{t(($) => $.userAccount.advancedFeatures.title)}</h2>
         </div>
         <Card className="overflow-hidden p-0">
           <AdvancedFeaturesCard />
@@ -116,7 +130,7 @@ function Settings() {
 
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
-          <h2 className="text-3xl font-normal">{t(($) => $.userAccount.governance.title)}</h2>
+          <h2 className="text-2xl font-normal">{t(($) => $.userAccount.governance.title)}</h2>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Card className="p-6">
@@ -130,7 +144,7 @@ function Settings() {
 
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
-          <h2 className="text-3xl font-normal">{t(($) => $.userAccount.appearance)}</h2>
+          <h2 className="text-2xl font-normal">{t(($) => $.userAccount.appearance)}</h2>
         </div>
         <Card className="overflow-hidden p-0">
           <div className="flex flex-col divide-y">
@@ -138,7 +152,13 @@ function Settings() {
               <ThemeCard />
             </div>
             <div className="px-6 py-5">
+              <FiatCurrencyCard />
+            </div>
+            <div className="px-6 py-5">
               <HideBalancesCard />
+            </div>
+            <div className="px-6 py-5">
+              <ForecastPeriodCard />
             </div>
             <div className="px-6 py-5">
               <ShortcutsCard />
@@ -152,7 +172,7 @@ function Settings() {
 
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
-          <h2 className="text-3xl font-normal">{t(($) => $.userAccount.session.title)}</h2>
+          <h2 className="text-2xl font-normal">{t(($) => $.userAccount.session.title)}</h2>
           {nonNullish(timeLeft) && (
             <p className="text-sm text-muted-foreground">
               {t(($) => $.userAccount.session.timeLeft, getSessionTimeLeftForUi(timeLeft))}

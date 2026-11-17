@@ -12,10 +12,11 @@ import {
   Square,
   X,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
+import { getErrorReason } from '@features/analytics/properties';
 import { analytics } from '@features/analytics/service';
 
 import { Alert, AlertDescription } from '@components/Alert';
@@ -29,7 +30,7 @@ import {
   MutationDialogHeader,
 } from '@components/MutationDialog';
 import { ResponsiveDialogDescription, ResponsiveDialogTitle } from '@components/ResponsiveDialog';
-import { Skeleton } from '@components/Skeleton';
+import { SkeletonPickerRows } from '@components/skeletons/SkeletonListRows';
 import { DIALOG_RESET_DELAY_MS } from '@constants/extra';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
@@ -41,7 +42,12 @@ import { cn } from '@utils/shadcn';
 
 import { INDIVIDUAL_TOPICS, TOP_LEVEL_TOPICS } from '../data/topics';
 import { isActiveKnownNeuron, sortKnownNeurons } from '../utils/knownNeurons';
-import { buildAdvancedTopicFollowing } from '../utils/topicFollowing';
+import {
+  addFolloweesToTopics,
+  buildAdvancedTopicFollowing,
+  getTopicsOverFolloweeLimit,
+  MAX_FOLLOWEES_PER_TOPIC,
+} from '../utils/topicFollowing';
 import { KnownNeuronCard } from './KnownNeuronCard';
 
 enum WizardStep {
@@ -82,19 +88,25 @@ export function FolloweePicker({
   const [customIdInput, setCustomIdInput] = useState('');
   const [customIdError, setCustomIdError] = useState<string | null>(null);
 
+  const resetState = useEffectEvent(() => {
+    setStep(WizardStep.SelectNeurons);
+    setSelectedNeuronIds(new Set());
+    setCustomNeuronIds(new Set());
+    setSelectedTopics(new Set());
+    setSearchQuery('');
+    setCustomIdInput('');
+    setCustomIdError(null);
+  });
+
+  // The reset waits for the close animation. A reopen within that delay
+  // cancels the timer, so the open resets at once instead.
   useEffect(() => {
-    if (!open) {
-      const timer = setTimeout(() => {
-        setStep(WizardStep.SelectNeurons);
-        setSelectedNeuronIds(new Set());
-        setCustomNeuronIds(new Set());
-        setSelectedTopics(new Set());
-        setSearchQuery('');
-        setCustomIdInput('');
-        setCustomIdError(null);
-      }, DIALOG_RESET_DELAY_MS);
-      return () => clearTimeout(timer);
+    if (open) {
+      resetState();
+      return;
     }
+    const timer = setTimeout(resetState, DIALOG_RESET_DELAY_MS);
+    return () => clearTimeout(timer);
   }, [open]);
 
   const filteredNeurons = useMemo(() => {
@@ -170,19 +182,23 @@ export function FolloweePicker({
     });
   };
 
+  const updatedFollowees = addFolloweesToTopics(
+    currentFolloweesMap,
+    selectedTopics,
+    Array.from(selectedNeuronIds),
+  );
+  const overLimitTopicLabels = getTopicsOverFolloweeLimit(updatedFollowees).map((topic) => {
+    const labelKey = [...TOP_LEVEL_TOPICS, ...INDIVIDUAL_TOPICS].find(
+      (entry) => entry.topic === topic,
+    )?.labelKey;
+    return labelKey ? t(labelKey as never) : String(topic);
+  });
+
   const applyMutation = useMutation<void[], Error>({
     mutationFn: () => {
       if (!canister) throw new Error(t(($) => $.common.unknownError));
 
-      const updated = new Map(currentFolloweesMap);
-      const selectedIds = Array.from(selectedNeuronIds);
-
-      for (const topic of selectedTopics) {
-        const existing = updated.get(topic) ?? [];
-        updated.set(topic, Array.from(new Set([...existing, ...selectedIds])));
-      }
-
-      const topicFollowing = buildAdvancedTopicFollowing(updated);
+      const topicFollowing = buildAdvancedTopicFollowing(updatedFollowees);
       return Promise.all(
         userNeurons.map((n) => canister.setFollowing({ neuronId: n.neuronId, topicFollowing })),
       );
@@ -197,7 +213,7 @@ export function FolloweePicker({
     },
     onError: (error) => {
       errorMessage('FolloweePicker', error.message);
-      analytics.event(AnalyticsEvent.FollowingPickerApplyError);
+      analytics.event(AnalyticsEvent.FollowingPickerApplyError, { reason: getErrorReason(error) });
     },
   });
 
@@ -274,6 +290,7 @@ export function FolloweePicker({
                 onBack={() => setStep(WizardStep.SelectNeurons)}
                 onApply={() => setStep(WizardStep.Confirm)}
                 topicCount={topicCount}
+                overLimitTopicLabels={overLimitTopicLabels}
               />
             </div>
           </>
@@ -344,14 +361,7 @@ function StepSelectNeurons({
       <div ref={scrollRef} className="flex-1 overflow-y-auto rounded-lg border">
         <div className="flex flex-col divide-y">
           {isLoading ? (
-            <div className="flex flex-col gap-3 p-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center gap-4 p-4">
-                  <Skeleton className="size-6 rounded" />
-                  <Skeleton className="h-5 w-48" />
-                </div>
-              ))}
-            </div>
+            <SkeletonPickerRows />
           ) : knownNeurons.length === 0 && customNeuronIds.size === 0 ? (
             <p className="py-4 text-center text-sm text-muted-foreground">
               {t(($) => $.voting.picker.noResults)}
@@ -408,12 +418,20 @@ function StepSelectNeurons({
           <AlertDescription>{customIdError}</AlertDescription>
         </Alert>
       )}
+      {selectedCount > MAX_FOLLOWEES_PER_TOPIC && (
+        <Alert variant="warning" data-testid="picker-too-many-neurons">
+          <AlertTriangle className="size-4 text-destructive" />
+          <AlertDescription>
+            {t(($) => $.voting.picker.tooManyNeurons, { max: MAX_FOLLOWEES_PER_TOPIC })}
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="mt-auto pt-2 pb-4 md:pb-0">
         <Button
           size="xl"
           className="w-full"
-          disabled={selectedCount === 0}
+          disabled={selectedCount === 0 || selectedCount > MAX_FOLLOWEES_PER_TOPIC}
           onClick={onNext}
           data-testid="picker-next-btn"
         >
@@ -435,6 +453,7 @@ function StepSelectTopics({
   onBack,
   onApply,
   topicCount,
+  overLimitTopicLabels,
 }: {
   selectedNeuronIds: Set<bigint>;
   knownNeurons: KnownNeuron[];
@@ -446,6 +465,7 @@ function StepSelectTopics({
   onBack: () => void;
   onApply: () => void;
   topicCount: number;
+  overLimitTopicLabels: string[];
 }) {
   const { t } = useTranslation();
 
@@ -562,11 +582,23 @@ function StepSelectTopics({
         </div>
       </div>
 
+      {overLimitTopicLabels.length > 0 && (
+        <Alert variant="warning" data-testid="picker-followee-limit">
+          <AlertTriangle className="size-4 text-destructive" />
+          <AlertDescription>
+            {t(($) => $.voting.picker.followeeLimit, {
+              max: MAX_FOLLOWEES_PER_TOPIC,
+              topics: overLimitTopicLabels.join(', '),
+            })}
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="mt-auto pt-2 pb-4 md:pb-0">
         <Button
           size="xl"
           className="w-full"
-          disabled={topicCount === 0}
+          disabled={topicCount === 0 || overLimitTopicLabels.length > 0}
           onClick={onApply}
           data-testid="picker-apply-btn"
         >

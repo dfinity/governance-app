@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import type { NamedAddress } from '@declarations/governance-app-backend/governance-app-backend.did';
+import type { NamedAddress } from '@declarations/governance-app-backend/backend.did';
 
 import { Button } from '@components/button';
 import {

@@ -1,13 +1,14 @@
 import { useEffect } from 'react';
 
 import { useCommandPaletteSettings } from '@hooks/useCommandPaletteSettings';
+import { isLoginHandoffActive } from '@common/auth/loginHandoff';
 
 export const useCommandPaletteShortcut = (onTrigger: () => void) => {
   const { enabled } = useCommandPaletteSettings();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (!enabled) return;
+      if (!enabled || isLoginHandoffActive()) return;
       if (event.repeat) return;
       if (!(event.metaKey || event.ctrlKey)) return;
       if (event.shiftKey || event.altKey) return;

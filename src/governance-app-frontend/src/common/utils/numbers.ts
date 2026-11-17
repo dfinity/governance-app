@@ -29,6 +29,55 @@ export const formatNumber = (
 };
 
 /**
+ * Formats an amount with two decimals, or with three significant digits below 0.1,
+ * so that a small amount does not round to 0.01 or 0.00: 0.0145 -> "0.0145".
+ */
+export const formatSmallAmount = (value: number): string =>
+  value > 0 && value < 0.1
+    ? formatNumber(value, { minFraction: 2, maxFraction: 2, maximumSignificantDigits: 3 })
+    : formatNumber(value);
+
+export type FormatFiatOptions = { minFraction: number; maxFraction: number };
+
+/**
+ * The number of decimals of the currency's smallest unit. For example, 2 for "EUR" and 0 for "JPY".
+ */
+export const getFiatFractionDigits = (currency: string): number =>
+  new Intl.NumberFormat('en', { style: 'currency', currency }).resolvedOptions()
+    .maximumFractionDigits ?? 2;
+
+/**
+ * Default format: (1234.5, "EUR") -> "€1’234.50", (1234.5, "CHF") -> "CHF 1’234.50",
+ * (1234.5, "JPY") -> "¥1’235"
+ */
+export const formatFiat = (
+  value: number,
+  currency: string,
+  options?: FormatFiatOptions,
+): string => {
+  const fractionDigits = getFiatFractionDigits(currency);
+  const { minFraction = fractionDigits, maxFraction = fractionDigits } = options || {};
+
+  // The `en` locale puts the symbol before the number, for example "CA$" or "CHF ".
+  const parts = new Intl.NumberFormat('en', { style: 'currency', currency }).formatToParts(0);
+  const symbol = parts
+    .slice(
+      0,
+      parts.findIndex(({ type }) => type === 'integer'),
+    )
+    .map(({ value }) => value)
+    .join('');
+
+  return `${symbol}${formatNumber(value, { minFraction, maxFraction })}`;
+};
+
+/**
+ * Default format: 168123456 -> "168.1M", 30000000 -> "30M", 950 -> "950"
+ */
+export const formatCompactNumber = (value: number): string =>
+  new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(value);
+
+/**
  * Default format: 0.150123 -> "15.01%"
  */
 export const formatPercentage = (

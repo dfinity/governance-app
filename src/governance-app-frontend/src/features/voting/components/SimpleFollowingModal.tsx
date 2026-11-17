@@ -2,10 +2,11 @@ import { type KnownNeuron, type NeuronId } from '@icp-sdk/canisters/nns';
 import { isNullish } from '@dfinity/utils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'motion/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
+import { getErrorReason } from '@features/analytics/properties';
 import { analytics } from '@features/analytics/service';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
@@ -17,7 +18,7 @@ import {
   MutationDialogHeader,
 } from '@components/MutationDialog';
 import { ResponsiveDialogDescription, ResponsiveDialogTitle } from '@components/ResponsiveDialog';
-import { Skeleton } from '@components/Skeleton';
+import { SkeletonPickerRows } from '@components/skeletons/SkeletonListRows';
 import { DIALOG_RESET_DELAY_MS } from '@constants/extra';
 import { useGovernanceNeurons, useNnsGovernance } from '@hooks/governance';
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
@@ -111,7 +112,9 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
     },
     onError: (error, _variables, context) => {
       errorMessage('SimpleFollowingModal', error.message);
-      analytics.event(AnalyticsEvent.FollowingSimpleConfirmationError);
+      analytics.event(AnalyticsEvent.FollowingSimpleConfirmationError, {
+        reason: getErrorReason(error),
+      });
       setUserOverrideId(context?.previousSelectedId ?? null);
     },
   });
@@ -152,17 +155,24 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
     handleFollow(knownNeuron, execute);
   };
 
+  const resetState = useEffectEvent(() => {
+    setPendingNeuron(null);
+    setUserOverrideId(undefined);
+    setSearchQuery('');
+    setActiveNeuronName('');
+    updateFollowingMutation.reset();
+  });
+
+  // The reset waits for the close animation. A reopen within that delay
+  // cancels the timer, so the open resets at once instead.
   useEffect(() => {
-    if (open) return;
-    const timer = setTimeout(() => {
-      setPendingNeuron(null);
-      setUserOverrideId(undefined);
-      setSearchQuery('');
-      setActiveNeuronName('');
-      updateFollowingMutation.reset();
-    }, DIALOG_RESET_DELAY_MS);
+    if (open) {
+      resetState();
+      return;
+    }
+    const timer = setTimeout(resetState, DIALOG_RESET_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [open, updateFollowingMutation]);
+  }, [open]);
 
   return (
     <MutationDialog
@@ -242,14 +252,7 @@ export function SimpleFollowingModal({ open, onOpenChange }: Props) {
               >
                 <div className="flex flex-col divide-y">
                   {knownNeuronsQuery.isLoading ? (
-                    <div className="flex flex-col gap-3 p-3">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="flex items-center gap-4 p-4">
-                          <Skeleton className="size-6 rounded" />
-                          <Skeleton className="h-5 w-48" />
-                        </div>
-                      ))}
-                    </div>
+                    <SkeletonPickerRows />
                   ) : knownNeuronsQuery.isError ? (
                     <p className="py-4 text-center text-destructive">
                       {t(($) => $.common.loadingError)}

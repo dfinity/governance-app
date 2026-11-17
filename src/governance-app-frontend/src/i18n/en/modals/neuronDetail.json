@@ -21,6 +21,11 @@
       "amountTooLow": "Enter an amount greater than zero.",
       "insufficientBalance": "Insufficient balance.",
       "failed": "Failed to top up neuron. Please try again."
+    },
+    "ledgerDevice": {
+      "approveTransfer": "Check the amount and the neuron account on the device screen and approve the transfer.",
+      "recoveredTitle": "Neuron refreshed",
+      "recovered": "An earlier top-up of {{amount}} ICP from a Ledger device account is now in the neuron."
     }
   },
   "increaseDelay": {
@@ -75,26 +80,35 @@
     "title": "Disburse neuron",
     "toAccount": "To account",
     "info": "<strong>Disburse {{amount}} ICP.</strong> They will be returned to your available balance, and can be relocked at any time after disbursement.",
+    "infoToAccount": "<strong>Disburse {{amount}} ICP.</strong> They will be sent to the selected account.",
     "cancel": "Cancel",
     "confirm": "Disburse",
     "confirming": "Disbursing, please wait...",
     "success": "Neuron has been disbursed. ICP returned to your balance.",
+    "successToAccount": "Neuron has been disbursed. ICP sent to the selected account.",
     "errors": {
+      "noDestination": "Enter a destination account.",
+      "invalidDestination": "The destination is not a valid account.",
       "failed": "Failed to disburse neuron. Please try again."
     }
   },
   "disburseMaturity": {
     "title": "Disburse maturity",
     "toAccount": "To account",
+    "portion": "Portion to disburse",
+    "available": "{{amount}} maturity available",
+    "percentageAria": "Percentage of maturity to disburse",
     "info": "<strong>Disbursement takes 1 week.</strong> {{amount}} maturity will be converted to ICP and added to your balance.",
+    "infoToAccount": "<strong>Disbursement takes 1 week.</strong> {{amount}} maturity will be converted to ICP and added to the selected account.",
     "cancel": "Cancel",
     "confirm": "Disburse",
     "confirming": "Disbursing, please wait...",
     "success": "Maturity disbursement started. ICP will be added to your balance in approximately 1 week.",
+    "successToAccount": "Maturity disbursement started. ICP will be added to the selected account in approximately 1 week.",
     "errors": {
       "amountTooLow": "Minimum amount is {{min}} maturity.",
-      "noDestination": "Pick a destination address from your address book.",
-      "invalidDestination": "This address book entry is invalid. Please pick another.",
+      "noDestination": "Enter a destination account.",
+      "invalidDestination": "The destination is not a valid account.",
       "failed": "Failed to disburse maturity. Please try again."
     }
   },
@@ -108,6 +122,21 @@
     "errors": {
       "failed": "Failed to lock maturity. Please try again."
     }
+  },
+  "disbursements": {
+    "title": "Active disbursements",
+    "view": "View",
+    "viewAria": "View active disbursements",
+    "total": "Total disbursing",
+    "amount": "Maturity disbursing",
+    "to": "To",
+    "started": "Started",
+    "completes": "Completes",
+    "arrivesIn": "ICP arrives in {{duration}}",
+    "finalizing": "Finalizing. The ICP arrives soon.",
+    "progressAria": "Disbursement progress",
+    "unknownDestination": "Unknown destination",
+    "info": "These disbursements are in progress and irreversible. 7 days after a disbursement starts, the ICP is minted and sent to the destination account. The final amount depends on the maturity modulation at that time."
   },
   "hotkeyNotice": "As a hotkey, you can view this setting but only the neuron controller can make changes.",
   "devActions": {

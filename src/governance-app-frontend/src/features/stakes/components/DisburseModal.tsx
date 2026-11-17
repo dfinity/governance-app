@@ -27,14 +27,16 @@ type Props = {
   neurons: NeuronInfo[];
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Skips the choice between ICP and maturity, and disburses ICP. */
+  icpOnly?: boolean;
 };
 
-export function DisburseModal({ neurons, isOpen, onOpenChange }: Props) {
+export function DisburseModal({ neurons, isOpen, onOpenChange, icpOnly = false }: Props) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [selectedNeuron, setSelectedNeuron] = useState<NeuronInfo | null>(null);
 
-  const skipNeuronStep = neurons.length === 1;
+  const skipNeuronStep = !icpOnly && neurons.length === 1;
   const currentNeuron = skipNeuronStep ? neurons[0] : selectedNeuron;
   const showTypeStep = currentNeuron !== null;
 
@@ -57,7 +59,7 @@ export function DisburseModal({ neurons, isOpen, onOpenChange }: Props) {
     const maturity = getNeuronFreeMaturityE8s(neuron) > 0n;
 
     // Single option → skip type step and navigate directly
-    if (dissolved && !maturity) {
+    if (icpOnly || (dissolved && !maturity)) {
       navigateToAction(neuron, NeuronStandaloneAction.DisburseIcp);
     } else if (!dissolved && maturity) {
       navigateToAction(neuron, NeuronStandaloneAction.DisburseMaturity);

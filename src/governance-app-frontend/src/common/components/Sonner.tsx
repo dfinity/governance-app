@@ -1,33 +1,30 @@
-import {
-  CircleCheckBig,
-  InfoIcon,
-  Loader2Icon,
-  OctagonXIcon,
-  TriangleAlertIcon,
-} from 'lucide-react';
+import { CircleCheckBig, InfoIcon, OctagonXIcon, TriangleAlertIcon } from 'lucide-react';
 import { Toaster, type ToasterProps } from 'sonner';
 
+import { Spinner } from '@components/Spinner';
 import { useTheme } from '@hooks/useTheme';
 
 const Sonner = ({ ...props }: ToasterProps) => {
   const { theme } = useTheme();
 
-  /*
-   * mobileOffset: Includes safe-area-inset-top for iOS PWA notch support.
-   * Note: This assumes toasts appear at the top (default). If position changes
-   * to bottom-*, update to use safe-area-inset-bottom instead.
-   */
   return (
     <Toaster
       theme={theme}
       className="toaster group"
-      mobileOffset="calc(0.5rem + env(safe-area-inset-top))"
+      // Each side clears its own safe-area inset (notch, home indicator, gesture bar).
+      mobileOffset={{
+        top: 'calc(0.5rem + env(safe-area-inset-top))',
+        right: 'calc(0.5rem + env(safe-area-inset-right))',
+        bottom: 'calc(0.5rem + env(safe-area-inset-bottom))',
+        left: 'calc(0.5rem + env(safe-area-inset-left))',
+      }}
       icons={{
         success: <CircleCheckBig className="size-4 text-emerald-700 dark:text-emerald-400" />,
         info: <InfoIcon className="size-4" />,
         warning: <TriangleAlertIcon className="size-4 text-amber-700 dark:text-amber-400" />,
         error: <OctagonXIcon className="size-4" />,
-        loading: <Loader2Icon className="size-4 animate-spin" />,
+        // The toast is already a live region, so the spinner adds no second status.
+        loading: <Spinner aria-hidden />,
       }}
       style={
         {

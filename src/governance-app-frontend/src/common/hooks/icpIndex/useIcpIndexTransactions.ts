@@ -1,10 +1,10 @@
 import { AccountIdentifier, IcpIndexDid } from '@icp-sdk/canisters/ledger/icp';
 import { Option } from '@icp-sdk/canisters/nns';
 import { AnonymousIdentity } from '@icp-sdk/core/agent';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 
 import { PAGINATION_LIMIT_TRANSACTIONS } from '@constants/extra';
 import { useInfiniteQueryThenUpdateCall } from '@hooks/useInfiniteQueryThenUpdateCall';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { QUERY_KEYS } from '@utils/query';
 
 import { useIcpIndex } from './useIcpIndex';
@@ -13,8 +13,11 @@ import { useIcpIndex } from './useIcpIndex';
  * Fetches paginated transactions from the ICP Index canister.
  * When called without arguments, uses the main account.
  * Pass an accountId hex string to fetch transactions for a specific sub-account.
+ *
+ * Pass `enabled: false` to keep the query idle (e.g. while the hosting dialog is
+ * closed) so we don't fire a paginated Index call per mounted-but-hidden instance.
  */
-export const useIcpIndexTransactions = (accountId?: string) => {
+export const useIcpIndexTransactions = (accountId?: string, { enabled = true } = {}) => {
   const { identity } = useInternetIdentity();
   const { ready, authenticated, canister } = useIcpIndex();
 
@@ -54,7 +57,7 @@ export const useIcpIndexTransactions = (accountId?: string) => {
       return lastTransactionId;
     },
     options: {
-      enabled: ready && authenticated,
+      enabled: enabled && ready && authenticated,
     },
   });
 };

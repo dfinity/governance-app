@@ -1,6 +1,6 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { nonNullish } from '@dfinity/utils';
-import { ArrowDownLeft, List } from 'lucide-react';
+import { ArrowDownLeft, List, Usb } from 'lucide-react';
 import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
@@ -8,23 +8,25 @@ import { DepositICPModal } from '@features/account/components/DepositICPModal';
 import { SendICPButton } from '@features/account/components/SendICPButton';
 import { useNeuronAccountsIds } from '@features/account/hooks/useNeuronAccountsIds';
 import { TransactionType } from '@features/account/types';
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
 import { TransactionListDialog } from '@features/transactions/components/TransactionListDialog';
 import { detectTransactionType, getAmountE8s } from '@features/transactions/utils/transactionType';
 import { txConfig } from '@features/transactions/utils/txConfig';
 
+import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card, CardContent, CardHeader } from '@components/Card';
 import { CopyButton } from '@components/CopyButton';
 import { SENSITIVE_PLACEHOLDER, SensitiveValue } from '@components/SensitiveValue';
 import { Separator } from '@components/Separator';
 import { Skeleton } from '@components/Skeleton';
-import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
 import { E8Sn, IS_TESTNET, NANOSECONDS_IN_SECOND } from '@constants/extra';
 import { useAddressBook } from '@hooks/addressBook/useAddressBook';
 import { useIcpIndexAccountsTransactions } from '@hooks/icpIndex';
-import { useTickerPrices } from '@hooks/tickers';
+import { useIcpPrice } from '@hooks/tickers';
 import { useHideBalances } from '@hooks/useHideBalances';
-import { addressBookGetAddressString } from '@utils/addressBook';
+import { addressBookMatchesAddress } from '@utils/addressBook';
 import { bigIntDiv } from '@utils/bigInt';
 import { secondsToDate } from '@utils/date';
 import { shortenId } from '@utils/id';
@@ -33,7 +35,7 @@ import { formatNumber } from '@utils/numbers';
 import { GetTokens } from '@/dev/GetTokens';
 
 import { useAccounts } from '../hooks/useAccounts';
-import { type Account, AccountType } from '../types';
+import { type Account, AccountType, canSignFromAccount } from '../types';
 import { RenameSubAccountDialog } from './RenameSubAccountDialog';
 
 type Props = {
@@ -42,7 +44,6 @@ type Props = {
 
 export const AccountsListItem = ({ account }: Props) => {
   const { t } = useTranslation();
-  const { tickerPrices: tickersQuery } = useTickerPrices();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   return (
@@ -59,6 +60,12 @@ export const AccountsListItem = ({ account }: Props) => {
                     currentName={account.name}
                   />
                 )}
+                {account.type === AccountType.HardwareWallet && (
+                  <Badge variant="outline" data-testid="ledger-device-badge">
+                    <Usb aria-hidden="true" />
+                    {t(($) => $.accounts.ledgerDevice)}
+                  </Badge>
+                )}
               </div>
               <div className="flex items-center gap-1.5">
                 <p className="font-mono text-xs text-muted-foreground">
@@ -72,6 +79,20 @@ export const AccountsListItem = ({ account }: Props) => {
                   className="size-6"
                 />
               </div>
+              {nonNullish(account.principal) && (
+                <div className="flex items-center gap-1.5">
+                  <p className="font-mono text-xs text-muted-foreground">
+                    {t(($) => $.accounts.principal, { principal: shortenId(account.principal, 8) })}
+                  </p>
+                  <CopyButton
+                    value={account.principal}
+                    label={`${account.name} principal`}
+                    size="sm"
+                    variant="ghost"
+                    className="size-6"
+                  />
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-1">
               {IS_TESTNET && <GetTokens accountId={AccountIdentifier.fromHex(account.accountId)} />}
@@ -88,7 +109,7 @@ export const AccountsListItem = ({ account }: Props) => {
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
-          <AccountBalance account={account} tickersQuery={tickersQuery} />
+          <AccountBalance account={account} />
           <Separator className="my-1" />
           <LastTransaction accountId={account.accountId} />
         </CardContent>
@@ -102,21 +123,16 @@ export const AccountsListItem = ({ account }: Props) => {
   );
 };
 
-function AccountBalance({
-  account,
-  tickersQuery,
-}: {
-  account: Account;
-  tickersQuery: ReturnType<typeof useTickerPrices>['tickerPrices'];
-}) {
+function AccountBalance({ account }: { account: Account }) {
   const { t } = useTranslation();
+  const { icpPrice, formatFiat } = useIcpPrice();
   const [isDepositOpen, setIsDepositOpen] = useState(false);
 
   if (account.status === 'loading') {
     return (
       <div className="flex flex-col gap-0.5">
         <Skeleton className="h-8 w-32" />
-        <Skeleton className="h-4 w-20" />
+        <Skeleton className="h-5 w-20" />
       </div>
     );
   }
@@ -126,8 +142,7 @@ function AccountBalance({
   }
 
   const balanceICP = bigIntDiv(account.balanceE8s, E8Sn);
-  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const usdValue = icpPrice ? formatNumber(balanceICP * icpPrice.usd) : '-';
+  const fiatValue = nonNullish(icpPrice) ? formatFiat(balanceICP * icpPrice) : '-';
 
   return (
     <div className="flex flex-col gap-3">
@@ -139,17 +154,26 @@ function AccountBalance({
         </p>
         <p className="text-sm text-muted-foreground">
           <SensitiveValue size="sm">
-            {t(($) => $.account.approxUsd, { value: usdValue })}
+            {t(($) => $.account.approxFiat, { value: fiatValue })}
           </SensitiveValue>
         </p>
       </div>
       <div className="flex gap-3">
-        <SendICPButton balance={balanceICP} fromAccountId={account.accountId} variant="advanced" />
+        {canSignFromAccount(account) && (
+          <SendICPButton
+            balance={balanceICP}
+            fromAccountId={account.accountId}
+            variant="advanced"
+          />
+        )}
         <Button
           variant="outline"
           size="xl"
           className="flex-1"
-          onClick={() => setIsDepositOpen(true)}
+          onClick={() => {
+            analytics.event(AnalyticsEvent.AccountOpenDeposit, { source: 'accounts' });
+            setIsDepositOpen(true);
+          }}
         >
           <ArrowDownLeft aria-hidden="true" />
           {t(($) => $.common.receive)}
@@ -208,9 +232,8 @@ function LastTransaction({ accountId }: { accountId: string }) {
     : null;
   const userAccount = counterparty ? userAccounts.find((a) => a.accountId === counterparty) : null;
   const addressBookName = counterparty
-    ? addressBookEntries.find(
-        (entry) => addressBookGetAddressString(entry.address) === counterparty,
-      )?.name
+    ? addressBookEntries.find((entry) => addressBookMatchesAddress(entry.address, counterparty))
+        ?.name
     : null;
   const address =
     userAccount?.name ?? addressBookName ?? (counterparty ? shortenId(counterparty, 8) : '');

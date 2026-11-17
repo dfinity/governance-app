@@ -1,8 +1,10 @@
-import { ERROR_USER_INTERRUPT } from '@icp-sdk/auth/client';
-import { ParsedLocation, redirect } from '@tanstack/react-router';
-import { ensureInitialized } from 'ic-use-internet-identity';
+import { AnyRouter, ParsedLocation, redirect } from '@tanstack/react-router';
 
-import { MANUAL_LOGOUT_KEY } from '@constants/extra';
+import {
+  consumeLogoutRedirect,
+  ensureInitialized,
+  hasStoredSession,
+} from '@common/auth/internetIdentity';
 
 import i18n from '@/i18n/config';
 
@@ -24,19 +26,12 @@ export const isSafeInternalRedirect = (value: unknown): value is string =>
   !value.startsWith('/\\');
 
 export const requireIdentity = async ({ location }: { location: ParsedLocation }) => {
-  let identity;
-
-  try {
-    identity = await ensureInitialized();
-  } catch (err) {
-    // If user interrupts the login flow by closing the InternetIdentiy page, we just swallow the error (the user is just not authenticated, it is not an error in our app)
-    if (!(err instanceof Error && err.message === ERROR_USER_INTERRUPT)) throw err;
-  }
+  const identity = await ensureInitialized();
 
   if (!identity) {
     console.log('[🔐 Protected Route]: identity not found, redirecting to login page.');
 
-    const isManualLogout = localStorage.getItem(MANUAL_LOGOUT_KEY) === 'true';
+    const isManualLogout = consumeLogoutRedirect();
 
     // If the user logs out, we don't want to save their last location
     // and don't show warning if user intentionally logged out
@@ -49,4 +44,23 @@ export const requireIdentity = async ({ location }: { location: ParsedLocation }
 
     throw redirect({ to: '/', search: { redirect: location.pathname } });
   }
+};
+
+// The login page sends a visitor with a session to its redirect target, or to the dashboard.
+const sessionDestination = ({ pathname, search }: ParsedLocation<{ redirect?: unknown }>) => {
+  if (pathname !== '/') return pathname;
+
+  return isSafeInternalRedirect(search.redirect) ? search.redirect.split(/[?#]/)[0] : '/dashboard';
+};
+
+/**
+ * Starts the route code for a visitor with a stored session, so it downloads during the session
+ * read. It fetches no data: the loaders still run after the route guards.
+ */
+export const preloadSessionRouteChunks = (router: AnyRouter) => {
+  if (!hasStoredSession()) return;
+
+  const [routes] = router.getMatchedRoutes(sessionDestination(router.latestLocation));
+
+  routes.forEach((route) => void router.loadRouteChunk(route));
 };

@@ -1,16 +1,21 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
-import { Info, Key, Loader2 } from 'lucide-react';
+import { Info, Key } from 'lucide-react';
 import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
+
+import { DeviceAnswerHint } from '@features/ledger/components/DeviceAnswerHint';
 
 import { Alert, AlertDescription } from '@components/Alert';
 import { Button } from '@components/button';
 import { MaxRewardsBadge } from '@components/MaxRewardsBadge';
 import { SegmentedToggle, type SegmentedToggleValue } from '@components/SegmentedToggle';
+import { Spinner } from '@components/Spinner';
+import { isDeviceActionCancelled } from '@hooks/useDeviceAction';
 import { mapCanisterError } from '@utils/errors';
 import { getNeuronIsAutoStakingMaturity } from '@utils/neuron';
 import { errorNotification, successNotification } from '@utils/notification';
 
+import { useNeuronSigner } from '../../hooks/useNeuronSigner';
 import { useToggleMaturityMode } from '../../hooks/useToggleMaturityMode';
 
 type Props = {
@@ -34,6 +39,7 @@ export function NeuronDetailMaturityModeView({
   const [selectedMode, setSelectedMode] = useState<SegmentedToggleValue>(currentMode);
 
   const { mutateAsync, isPending } = useToggleMaturityMode();
+  const signer = useNeuronSigner(neuron);
 
   const handleConfirm = async () => {
     if (selectedMode === currentMode) {
@@ -46,15 +52,17 @@ export function NeuronDetailMaturityModeView({
       await mutateAsync({
         neuronId: neuron.neuronId,
         autoStake: selectedMode === 'left',
+        signer,
       });
 
       successNotification({
         description: t(($) => $.neuronDetailModal.maturityMode.success),
       });
 
-      // Wait for the navigation blocker to be released (isPending propagated to false)
-      setTimeout(onSuccess);
+      // The parent defers the actual navigation until the blocker has been released.
+      onSuccess();
     } catch (err) {
+      if (isDeviceActionCancelled(err)) return;
       errorNotification({
         description: mapCanisterError(err as Error),
       });
@@ -127,13 +135,14 @@ export function NeuronDetailMaturityModeView({
       >
         {isPending ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Spinner className="mr-2" />
             {t(($) => $.neuronDetailModal.maturityMode.confirming)}
           </>
         ) : (
           t(($) => $.neuronDetailModal.maturityMode.confirm)
         )}
       </Button>
+      <DeviceAnswerHint signer={isPending ? signer : undefined} className="text-center" />
     </form>
   );
 }

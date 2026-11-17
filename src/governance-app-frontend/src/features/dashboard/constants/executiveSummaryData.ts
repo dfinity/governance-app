@@ -82,84 +82,75 @@ import type { MonthlyGovernanceSummary } from '../types/executiveSummary';
  * ▲▲▲ END PROMPT ▲▲▲
  */
 
-const JUNE_2026: MonthlyGovernanceSummary = {
-  month: 'June',
+const OCTOBER_2026: MonthlyGovernanceSummary = {
+  month: 'October',
   year: 2026,
 
   outcomes: [
-    { status: 'approved', count: 620 },
-    { status: 'rejected', count: 4 },
-    { status: 'failed', count: 4 },
+    { status: 'approved', count: 474 },
+    { status: 'rejected', count: 3 },
+    { status: 'failed', count: 0 },
   ],
 
   topChanges: [
     {
       icon: 'network',
       title: 'Network operations & infrastructure',
-      description: 'Confidential subnet type launched; new long-running cloud engine created',
+      description: 'P-256 signing key created and reshared; subnet x4jtx recovered',
       highlights: [
-        { value: 420, label: 'rollouts completed' },
-        { value: 10, label: 'GuestOS versions' },
+        { value: 350, label: 'rollouts completed' },
+        { value: 6, label: 'GuestOS versions' },
         { value: 4, label: 'HostOS versions' },
-        { value: 1, label: 'new cloud engine' },
+        { value: 3, label: 'nodes replaced' },
       ],
     },
     {
       icon: 'protocol',
       title: 'Core protocol & app upgrades',
-      description: 'Engine-controller canister added; Internet Identity upgraded 13 times',
+      description: 'ckSOL canisters installed; Internet Identity added app notifications',
       highlights: [
-        { value: 12, label: 'protocol upgrades' },
-        { value: 13, label: 'II upgrades' },
-        { value: 3, label: 'other app upgrades' },
-        { value: 1, label: 'new NNS canister' },
+        { value: 11, label: 'protocol upgrades' },
+        { value: 6, label: 'II upgrades' },
+        { value: 1, label: 'NNS Dapp upgrade' },
+        { value: 3, label: 'ckSOL canisters installed' },
       ],
     },
     {
       icon: 'community',
       title: 'Community governance',
-      description: 'Forum archiving motion passed; BSV integration and node provider rejected',
+      description: 'Two SNS proposals rejected; Swiss Subnet AG added as a node provider',
       highlights: [
-        { value: 1, label: 'motion passed' },
-        { value: 1, label: 'motion rejected' },
-        { value: 1, label: 'node provider rejected' },
+        { value: 2, label: 'SNS proposals rejected' },
+        { value: 1, label: 'node provider added' },
+        { value: 1, label: 'node provider removed' },
       ],
     },
   ],
 
   communityHighlights: [
     {
-      title: 'Motion: Transitioning or Archiving the DFINITY Forum',
-      outcome: 'passed',
-      label: 'Passed',
-    },
-    {
-      title: 'Create a Long-Running Cloud Engine',
-      outcome: 'passed',
-      label: 'Passed',
-    },
-    {
-      title: 'Add New Subnet Type: Confidential',
-      outcome: 'passed',
-      label: 'Passed',
-    },
-    {
-      title: 'Recover Subnet: 3hhby',
-      outcome: 'passed',
-      label: 'Passed',
-    },
-    {
-      title: 'Motion: Native Bitcoin SV (BSV) Headers-Only Integration',
+      title: 'Create an SNS DAO for the AUCTION platform',
       outcome: 'rejected',
       label: 'Rejected',
     },
     {
-      title: 'Add Node Provider: HashEra (Mongolia)',
+      title:
+        'Donate the funnAI application to the onicai SNS and seed an ONICAI/ICP liquidity pool',
       outcome: 'rejected',
       label: 'Rejected',
+    },
+    {
+      title: 'Add Swiss Subnet AG as a node provider',
+      outcome: 'passed',
+      label: 'Passed',
+    },
+    {
+      title: 'Remove Decentralized as a node provider',
+      outcome: 'passed',
+      label: 'Passed',
     },
   ],
 };
 
 /** The currently displayed summary — update this reference each month */
-export const currentSummary: MonthlyGovernanceSummary = JUNE_2026;
+export const currentSummary: MonthlyGovernanceSummary = OCTOBER_2026;

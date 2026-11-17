@@ -11,6 +11,9 @@
 # dfx temporary files
 .dfx/
 
+# icp-cli local network state (.icp/data holds the committed mainnet canister IDs)
+.icp/cache/
+
 # generated files
 **/declarations/
 !src/declarations/
@@ -18,6 +21,7 @@ src/declarations/*
 # exceptions to the above rule, needed for the nns-dapp subaccount feature
 !src/declarations/nns-dapp/
 !src/declarations/spam-filter/
+!src/declarations/dashboard-collector/
 
 # rust
 target/
@@ -25,6 +29,7 @@ target/
 # frontend code
 node_modules/
 dist/
+*.tsbuildinfo
 .svelte-kit/
 
 ## i18n
@@ -36,12 +41,12 @@ src/governance-app-frontend/src/i18n/generated*
 # tanstack temp
 .tanstack
 
-# Developmnet environment
-pocket-ic-server.log
-dev-env-*
-pocket-ic
+# rollup-plugin-visualizer output
 stats.html
 
 # e2e
 src/governance-app-frontend/playwright-report/
 src/governance-app-frontend/test-results/
+
+# CI dependency caches (npm / cargo / Playwright browsers)
+.ci-cache/

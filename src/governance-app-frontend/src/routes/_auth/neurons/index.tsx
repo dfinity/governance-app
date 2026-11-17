@@ -1,11 +1,15 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import type { AccountMetadata } from '@features/accounts/types';
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
 import { EmptyNeuronsState } from '@features/stakes/components/EmptyNeuronsState';
+import { LedgerDevicesMenu } from '@features/stakes/components/LedgerDevicesMenu';
+import { LedgerNeuronsDialog } from '@features/stakes/components/LedgerNeuronsDialog';
 import { NeuronsList } from '@features/stakes/components/NeuronsList';
 import { StakingWizardModal } from '@features/stakes/components/stakingWizard/StakingWizardModal';
 import {
@@ -14,16 +18,20 @@ import {
   EarningsCard,
   EngagementCard,
 } from '@features/stakes/components/summaryCards';
+import { useLedgerMenuDevices } from '@features/stakes/hooks/useLedgerMenuDevices';
 
 import { Button } from '@components/button';
 import { PageHeader } from '@components/PageHeader';
 import { QueryStates } from '@components/QueryStates';
+import { NeuronsContentSkeleton, NeuronsSkeleton } from '@components/skeletons/NeuronsSkeleton';
 import { E8Sn, ICP_TRANSACTION_FEE } from '@constants/extra';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import type { CertifiedData } from '@typings/queries';
 import { bigIntDiv, stringToBigInt } from '@utils/bigInt';
 import { warningNotification } from '@utils/notification';
+import { cn } from '@utils/shadcn';
+import { prefetchNeuronsRoute } from '@common/queries/routeLoaders';
 
 import i18n from '@/i18n/config';
 
@@ -39,6 +47,12 @@ export const Route = createFileRoute('/_auth/neurons/')({
     action: typeof search.action === 'string' ? search.action : undefined,
     openWizard: search.openWizard === 'true' || search.openWizard === true ? true : undefined,
   }),
+  loader: ({ context }) => prefetchNeuronsRoute(context.queryClient),
+  pendingComponent: NeuronsSkeleton,
+  // The loader warms the cache on entry and nothing more. Without this the
+  // router reruns it on every navigation to the route, which here means every
+  // `?openWizard`/`?neuronId` toggle — modal state lives in the search params.
+  staleTime: Infinity,
   component: NeuronsComponent,
   head: () => {
     const title = i18n.t(($) => $.common.head.stakes.title);
@@ -77,38 +91,49 @@ function NeuronsComponent() {
       search: isOpen ? { openWizard: true } : {},
       replace: true,
     });
-    if (isOpen) {
-      analytics.event(AnalyticsEvent.StakingOpenWizard);
-    }
   };
 
-  const handleOpenStakingWizard = () => {
+  const handleOpenStakingWizard = (source: string) => {
     if (!canStake) {
       warningNotification({
         description: t(($) => $.stakeWizardModal.errors.cannotStake),
       });
     }
+    analytics.event(AnalyticsEvent.StakingOpenWizard, { source });
     handleStakingWizardOpenChange(true);
   };
+
+  // One dialog for the header and the empty state: the first hotkey swaps the empty state for the
+  // list, and the dialog stays open. It keeps the last device while it closes.
+  const [ledgerDevice, setLedgerDevice] = useState<AccountMetadata | null>(null);
+  const [isLedgerDialogOpen, setIsLedgerDialogOpen] = useState(false);
+  const openLedgerDevice = (device: AccountMetadata) => {
+    setLedgerDevice(device);
+    setIsLedgerDialogOpen(true);
+  };
+  const hasLedgerMenu = useLedgerMenuDevices().length > 0;
 
   const hasNeurons = neuronsQuery.isSuccess && (neuronsQuery.data?.response.length ?? 0) > 0;
 
   return (
     <div className="flex flex-col gap-6">
-      {hasNeurons && (
+      {(hasNeurons || neuronsQuery.isLoading) && (
         <PageHeader
           title={t(($) => $.neuron.title)}
           description={t(($) => $.neuron.description)}
           actions={
-            <Button
-              onClick={handleOpenStakingWizard}
-              data-testid="staking-wizard-trigger-btn"
-              className="w-full sm:w-auto"
-              size="xl"
-            >
-              <Plus />
-              {t(($) => $.stakeWizardModal.title)}
-            </Button>
+            <div className="flex flex-1 sm:flex-initial">
+              <Button
+                onClick={() => handleOpenStakingWizard('neurons_header')}
+                data-testid="staking-wizard-trigger-btn"
+                className={cn('flex-1 sm:flex-initial', hasLedgerMenu && 'rounded-r-none')}
+                size="xl"
+              >
+                <Plus />
+                {t(($) => $.stakeWizardModal.title)}
+              </Button>
+              <LedgerDevicesMenu variant="split" onSelectDevice={openLedgerDevice} />
+            </div>
           }
         />
       )}
@@ -116,7 +141,13 @@ function NeuronsComponent() {
       <QueryStates<CertifiedData<NeuronInfo[]>>
         query={neuronsQuery}
         isEmpty={(neurons) => neurons.response.length === 0}
-        emptyComponent={<EmptyNeuronsState openStakingWizard={handleOpenStakingWizard} />}
+        emptyComponent={
+          <EmptyNeuronsState
+            openStakingWizard={() => handleOpenStakingWizard('neurons_empty')}
+            onSelectLedgerDevice={openLedgerDevice}
+          />
+        }
+        loadingComponent={<NeuronsContentSkeleton />}
       >
         {(neurons) => (
           <>
@@ -137,6 +168,13 @@ function NeuronsComponent() {
       </QueryStates>
 
       <StakingWizardModal isOpen={!!openWizard} setIsOpen={handleStakingWizardOpenChange} />
+      {ledgerDevice && (
+        <LedgerNeuronsDialog
+          device={ledgerDevice}
+          open={isLedgerDialogOpen}
+          onOpenChange={setIsLedgerDialogOpen}
+        />
+      )}
     </div>
   );
 }

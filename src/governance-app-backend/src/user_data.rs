@@ -1,18 +1,11 @@
 use candid::{CandidType, Principal};
-use ic_stable_structures::{
-    memory_manager::{MemoryId, MemoryManager, VirtualMemory},
-    storable::Bound,
-    DefaultMemoryImpl, StableBTreeMap, Storable,
-};
+use ic_stable_structures::{storable::Bound, StableBTreeMap, Storable};
 use serde::Deserialize;
 use std::borrow::Cow;
 use std::cell::RefCell;
 
 use crate::address_book::AddressBook;
-
-const USER_DATA_MEMORY_ID: MemoryId = MemoryId::new(0);
-
-type Memory = VirtualMemory<DefaultMemoryImpl>;
+use crate::stable_memory::{get_memory, Memory, USER_DATA_MEMORY_ID};
 
 #[derive(CandidType, Clone, Default, Deserialize, Debug, Eq, PartialEq)]
 pub struct UserData {
@@ -36,15 +29,8 @@ impl Storable for UserData {
 }
 
 thread_local! {
-    static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> =
-        RefCell::new(MemoryManager::init(DefaultMemoryImpl::default()));
-
     static USER_DATA_MAP: RefCell<StableBTreeMap<Principal, UserData, Memory>> =
-        RefCell::new(
-            MEMORY_MANAGER.with(|mm| {
-                StableBTreeMap::init(mm.borrow().get(USER_DATA_MEMORY_ID))
-            })
-        );
+        RefCell::new(StableBTreeMap::init(get_memory(USER_DATA_MEMORY_ID)));
 }
 
 pub fn get_user_data(caller: &Principal) -> UserData {

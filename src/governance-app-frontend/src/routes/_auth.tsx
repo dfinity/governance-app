@@ -1,18 +1,21 @@
 import { isNullish } from '@dfinity/utils';
 import { createFileRoute, Outlet } from '@tanstack/react-router';
-import { useInternetIdentity } from 'ic-use-internet-identity';
 import { useEffect } from 'react';
 
 import { analytics } from '@features/analytics/service';
+import { useAnalyticsProperties } from '@features/analytics/useAnalyticsProperties';
+import { PendingDeviceActionDialog } from '@features/ledger/components/PendingDeviceActionDialog';
+import { useClaimPendingDeviceStakes } from '@features/stakes/hooks/useClaimPendingDeviceStakes';
 
 import { CommandPalette } from '@components/CommandPalette';
 import { MainLayout } from '@components/MainLayout';
-import { useIcpIndexTransactionsPolling } from '@hooks/icpIndex/useIcpIndexTransactionsPolling';
+import { SessionCountdownToast } from '@components/SessionCountdownToast';
+import { TransactionPollingWatcher } from '@components/TransactionPollingWatcher';
 import { useHideBalancesShortcut } from '@hooks/useHideBalancesShortcut';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useLogoutShortcut } from '@hooks/useLogoutShortcut';
 import { useNewFeatureCheck } from '@hooks/useNewFeatureCheck';
 import { useScrollResetOnNavigation } from '@hooks/useScrollResetOnNavigation';
-import { useSessionCountdownToast } from '@hooks/useSessionCountdownToast';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
 import { requireIdentity } from '@utils/router';
 
@@ -32,10 +35,11 @@ function AuthLayout() {
   useThemeShortcut();
   useLogoutShortcut();
   useHideBalancesShortcut();
-  useSessionCountdownToast();
-  useIcpIndexTransactionsPolling();
   useScrollResetOnNavigation();
   useNewFeatureCheck();
+  useAnalyticsProperties();
+  // A Ledger device stake that an earlier session signed and did not claim.
+  useClaimPendingDeviceStakes();
 
   useEffect(() => {
     analytics.init();
@@ -50,6 +54,9 @@ function AuthLayout() {
     <MainLayout>
       <Outlet />
       <CommandPalette />
+      <SessionCountdownToast />
+      <TransactionPollingWatcher />
+      <PendingDeviceActionDialog />
     </MainLayout>
   );
 }

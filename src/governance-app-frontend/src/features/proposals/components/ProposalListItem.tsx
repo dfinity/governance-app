@@ -1,9 +1,8 @@
 import { ProposalInfo, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
-import { secondsToDuration } from '@dfinity/utils';
+import { nonNullish, secondsToDuration } from '@dfinity/utils';
 import {
   CheckCircle,
   Clock,
-  Loader2,
   MessageSquareOff,
   ShieldBan,
   Tag,
@@ -18,15 +17,18 @@ import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card, CardFooter, CardHeader } from '@components/Card';
 import { CertifiedBadge } from '@components/CertifiedBadge';
+import { Spinner } from '@components/Spinner';
 import { E8S } from '@constants/extra';
 import { formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
 import { useVoting } from '../hooks/useVoting';
 import { getProposalStatusColor, getProposalTimeLeftInSeconds } from '../utils';
+import { ProposerBadge } from './ProposerBadge';
 
 type Props = {
   proposal: ProposalInfo;
+  knownNeuronNames: Map<bigint, string>;
   certified?: boolean;
   isSpam?: boolean;
   isNonActionable?: boolean;
@@ -35,7 +37,13 @@ type Props = {
 const warningBadgeClassName =
   'gap-1.5 border-transparent bg-amber-100 font-normal text-amber-800 dark:bg-amber-900/30 dark:text-amber-400';
 
-export function ProposalListItem({ proposal, certified, isSpam, isNonActionable }: Props) {
+export function ProposalListItem({
+  proposal,
+  knownNeuronNames,
+  certified,
+  isSpam,
+  isNonActionable,
+}: Props) {
   const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
   const [votingFor, setVotingFor] = useState<Vote.No | Vote.Yes | undefined>();
@@ -93,7 +101,7 @@ export function ProposalListItem({ proposal, certified, isSpam, isNonActionable 
           {proposal.proposal?.title}
         </h3>
 
-        <div className="flex flex-col gap-2 text-xs lg:flex-row lg:flex-wrap lg:items-center">
+        <div className="flex flex-col gap-2 text-xs lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <Badge className={statusColor}>
               {ProposalStatus[proposal.status] ??
@@ -109,6 +117,9 @@ export function ProposalListItem({ proposal, certified, isSpam, isNonActionable 
               <Tag className="size-3.5" />
               {Topic[proposal.topic] ?? t(($) => $.proposal.unknownTopic, { id: proposal.topic })}
             </Badge>
+            {nonNullish(proposal.proposer) && (
+              <ProposerBadge proposer={proposal.proposer} knownNeuronNames={knownNeuronNames} />
+            )}
             {isSpam && (
               <Badge className={warningBadgeClassName}>
                 <ShieldBan className="size-3.5" />
@@ -123,7 +134,7 @@ export function ProposalListItem({ proposal, certified, isSpam, isNonActionable 
             )}
           </div>
 
-          <div className="flex w-full min-w-[200px] flex-1 items-center gap-2 lg:ml-auto lg:w-auto lg:max-w-[500px]">
+          <div className="flex w-full min-w-[200px] flex-1 items-center gap-2 lg:w-auto lg:max-w-[500px]">
             <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400">
               {formatPercentage(yesProportion)}
             </span>
@@ -203,14 +214,14 @@ export function ProposalListItem({ proposal, certified, isSpam, isNonActionable 
                   vote: t(($) => $.proposal.yes),
                   proposalId: proposal.id?.toString(),
                 })}
-                className="flex-1 text-emerald-800 hover:border-emerald-700 hover:bg-emerald-100/10 hover:text-emerald-700 dark:text-emerald-400 dark:hover:border-emerald-300 dark:hover:bg-emerald-50/10 dark:hover:text-emerald-300"
+                className="flex-1 text-emerald-800 hover:border-emerald-700 hover:bg-emerald-100/10 hover:text-emerald-700 dark:text-emerald-400 dark:hover:border-emerald-300 dark:hover:bg-emerald-900/10 dark:hover:text-emerald-300"
                 disabled={isVoting}
                 onClick={(e) => voteHandler(Vote.Yes, e)}
                 size="xl"
                 variant="outline"
               >
                 {isVoting && votingFor === Vote.Yes ? (
-                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  <Spinner className="mr-2" />
                 ) : (
                   <ThumbsUp className="mr-2 size-4" />
                 )}
@@ -229,7 +240,7 @@ export function ProposalListItem({ proposal, certified, isSpam, isNonActionable 
                 variant="outline"
               >
                 {isVoting && votingFor === Vote.No ? (
-                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  <Spinner className="mr-2" />
                 ) : (
                   <ThumbsDown className="mr-2 size-4" />
                 )}

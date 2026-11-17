@@ -1,9 +1,7 @@
 import { QueryKey, useQuery, UseQueryOptions } from '@tanstack/react-query';
 
-import { MIN_ASYNC_DELAY } from '@constants/extra';
-import { withMinimumDelay } from '@utils/async';
-import { stringifyKeys } from '@utils/query';
-import { CertifiedData, QueryType } from '@common/typings/queries';
+import { certifiedQueryKey, nonCertifiedQueryKey } from '@common/queries/certified';
+import { CertifiedData } from '@common/typings/queries';
 
 type Props<TData> = {
   queryKey: QueryKey;
@@ -19,11 +17,11 @@ export const useQueryThenUpdateCall = <TData>({
   options,
 }: Props<TData>) => {
   const queryCall = async (): Promise<CertifiedData<TData>> => ({
-    response: await withMinimumDelay(queryFn(), MIN_ASYNC_DELAY),
+    response: await queryFn(),
     certified: false,
   });
   const queryQuery = useQuery({
-    queryKey: [...stringifyKeys(queryKey), QueryType.NonCertified],
+    queryKey: nonCertifiedQueryKey(queryKey),
     queryFn: queryCall,
     ...options,
   });
@@ -32,11 +30,11 @@ export const useQueryThenUpdateCall = <TData>({
   }
 
   const updateCall = async (): Promise<CertifiedData<TData>> => ({
-    response: await withMinimumDelay(updateFn(), MIN_ASYNC_DELAY),
+    response: await updateFn(),
     certified: true,
   });
   const updateQuery = useQuery({
-    queryKey: [...stringifyKeys(queryKey), QueryType.Certified],
+    queryKey: certifiedQueryKey(queryKey),
     queryFn: updateCall,
     ...options,
   });

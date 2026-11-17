@@ -38,6 +38,8 @@ export const isSuspiciousAddress = (
   trustedAddresses: Set<string>,
 ): boolean => {
   if (amountE8s > SMALL_AMOUNT_THRESHOLD_E8S) return false;
+  // A trusted address is never suspicious, even when another trusted address looks like it.
+  if (trustedAddresses.has(address)) return false;
 
   for (const trusted of trustedAddresses) {
     if (isAddressSimilar(address, trusted)) return true;
@@ -52,6 +54,7 @@ export const isSuspiciousAddress = (
  * Trusted means any address the user owns or has intentionally interacted with:
  * - The user's own account identifier.
  * - Neuron sub-account identifiers (controlled by the user).
+ * - Address book entries, as account identifiers.
  * - Destination addresses from outgoing (SEND) transactions (any amount).
  * - Source addresses from incoming (RECEIVE) transactions whose amount exceeds
  *   the poisoning threshold (small incoming transfers are excluded to avoid
@@ -65,8 +68,9 @@ export const buildTrustedAddresses = (
   userAccountId: string,
   neuronAccountIds: Set<string>,
   transactions: Array<IcpIndexDid.Transaction>,
+  addressBookAccountIds: Iterable<string> = [],
 ): Set<string> => {
-  const trusted = new Set<string>([userAccountId, ...neuronAccountIds]);
+  const trusted = new Set<string>([userAccountId, ...neuronAccountIds, ...addressBookAccountIds]);
 
   for (const tx of transactions) {
     if (!('Transfer' in tx.operation)) continue;

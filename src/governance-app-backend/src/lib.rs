@@ -1,13 +1,16 @@
 use ic_cdk::{init, post_upgrade, query, update};
-use ic_http_certification::{HttpRequest, HttpResponse};
+use ic_http_certification::{HttpRequest, HttpResponse, HttpUpdateRequest, HttpUpdateResponse};
 
 mod address_book;
 mod assets;
 mod exchange_rate;
+mod proposal_preview;
+mod stable_memory;
 mod user_data;
 
 use address_book::{AddressBook, GetAddressBookResponse, SetAddressBookResponse};
-use exchange_rate::cache::IcpExchangeRateResponse;
+use exchange_rate::cache::{CachedRate, FiatExchangeRate, IcpExchangeRateResponse};
+use exchange_rate::month_history::PastMonthRate;
 
 #[init]
 fn init() {
@@ -24,6 +27,11 @@ fn post_upgrade() {
 #[query]
 fn http_request(req: HttpRequest<'static>) -> HttpResponse<'static> {
     assets::http_request_handler(&req)
+}
+
+#[update]
+async fn http_request_update(req: HttpUpdateRequest<'static>) -> HttpUpdateResponse<'static> {
+    assets::http_request_update_handler(&req).await
 }
 
 #[query]
@@ -43,8 +51,29 @@ fn get_icp_to_usd_exchange_rate() -> IcpExchangeRateResponse {
     exchange_rate::get_icp_to_usd_exchange_rate()
 }
 
+#[query]
+fn get_icp_to_usd_rate_history() -> Vec<CachedRate> {
+    exchange_rate::get_icp_to_usd_rate_history()
+}
+
+#[query]
+fn list_icp_to_usd_past_month_rates() -> Vec<PastMonthRate> {
+    exchange_rate::list_icp_to_usd_past_month_rates()
+}
+
+#[query]
+fn list_usd_to_fiat_exchange_rates() -> Vec<FiatExchangeRate> {
+    exchange_rate::list_usd_to_fiat_exchange_rates()
+}
+
 #[cfg(feature = "testnet")]
 #[update]
 fn set_mock_exchange_rate(current_rate_e8s: u64, rate_one_day_ago_e8s: u64) {
     exchange_rate::set_mock_exchange_rate(current_rate_e8s, rate_one_day_ago_e8s);
+}
+
+#[cfg(feature = "testnet")]
+#[update]
+fn set_mock_fiat_exchange_rate(symbol: String, rate_e8s: u64) {
+    exchange_rate::set_mock_fiat_exchange_rate(symbol, rate_e8s);
 }

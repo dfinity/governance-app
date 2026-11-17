@@ -1,12 +1,13 @@
 import { nonNullish } from '@dfinity/utils';
 import { ArrowLeft } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
-import { AccountType } from '@features/accounts/types';
+import { AccountType, getAccountSigner } from '@features/accounts/types';
 import { AnalyticsEvent } from '@features/analytics/events';
+import { getAmountRange, getErrorReason } from '@features/analytics/properties';
 import { analytics } from '@features/analytics/service';
 
 import {
@@ -33,7 +34,9 @@ import { mapCanisterError } from '@utils/errors';
 import { formatPercentage } from '@utils/numbers';
 import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
+import { useClaimPendingDeviceStakes } from '../../hooks/useClaimPendingDeviceStakes';
 import { useCreateNeuron } from '../../hooks/useCreateNeuron';
+import { getDeviceApprovalSteps } from '../../utils/ledgerStake';
 import { STAKING_WIZARD_DEFAULT_FORM_STATE } from './constants';
 import { StakingWizardAnimatedApyBadge } from './StakingWizardAnimatedApyBadge';
 import { StakingWizardStepAmount } from './StakingWizardStepAmount';
@@ -76,14 +79,24 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
   // Falls back to main account id, derived synchronously from the identity.
   const selectedAccountId = formState.selectedAccountId ?? mainAccountMetadata.data!.accountId;
 
+  const signer = getAccountSigner(selectedAccount);
+  const autoStakeMaturity = formState.maturityMode === StakingWizardMaturityMode.Auto;
+  const startDissolving = formState.initialState === StakingWizardInitialState.Dissolving;
+  const deviceApprovalSteps =
+    signer.kind === 'ledger' ? getDeviceApprovalSteps({ autoStakeMaturity, startDissolving }) : [];
+
   const createNeuron = useCreateNeuron({
     amount: formState.amount,
     dissolveDelaySeconds: formState.dissolveDelaySeconds,
-    autoStakeMaturity: formState.maturityMode === StakingWizardMaturityMode.Auto,
-    startDissolving: formState.initialState === StakingWizardInitialState.Dissolving,
+    autoStakeMaturity,
+    startDissolving,
     fromSubAccount,
     selectedAccountId,
+    signer,
   });
+
+  // An unclaimed device stake from a closed wizard: claim it on open, before a new stake.
+  useClaimPendingDeviceStakes(isOpen);
 
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -99,20 +112,26 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
     }
   }, [isCloseConfirmed, setIsOpen]);
 
-  // Reset form state when modal closes
+  const resetWizardState = useEffectEvent(() => {
+    setStep(StakingWizardStep.Amount);
+    setFormState(STAKING_WIZARD_DEFAULT_FORM_STATE);
+    createNeuron.reset();
+    setShowCloseConfirmation(false);
+    setIsCloseConfirmed(false);
+  });
+
+  // Reset form state around the modal's closed state. The delayed reset on close keeps the
+  // close animation from visibly snapping back to step 1, but that timer is cleared if the
+  // modal reopens first — so reset on open too, otherwise reopening within
+  // DIALOG_RESET_DELAY_MS leaves the wizard stuck on the previous success screen.
   useEffect(() => {
-    if (!isOpen) {
-      // Delay reset to allow close animation to complete
-      const timer = setTimeout(() => {
-        setStep(StakingWizardStep.Amount);
-        setFormState(STAKING_WIZARD_DEFAULT_FORM_STATE);
-        createNeuron.reset();
-        setShowCloseConfirmation(false);
-        setIsCloseConfirmed(false);
-      }, DIALOG_RESET_DELAY_MS);
-      return () => clearTimeout(timer);
+    if (isOpen) {
+      resetWizardState();
+      return;
     }
-  }, [isOpen, createNeuron]);
+    const timer = setTimeout(resetWizardState, DIALOG_RESET_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [isOpen]);
 
   // Check if user has unsaved data (step 2 or 3, not processing)
   const hasUnsavedData =
@@ -180,7 +199,7 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
           .mutateAsync()
           .then(() => {
             analytics.event(AnalyticsEvent.StakingConfirmation, {
-              amount: formState.amount,
+              amount_range: getAmountRange(Number(formState.amount)),
               dissolveDelaySeconds: formState.dissolveDelaySeconds.toString(),
               maturityMode:
                 formState.maturityMode === StakingWizardMaturityMode.Auto ? 'auto' : 'liquid',
@@ -190,8 +209,10 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
                   : 'dissolving',
             });
           })
-          .catch(() => {
-            analytics.event(AnalyticsEvent.StakingConfirmationError);
+          .catch((error) => {
+            analytics.event(AnalyticsEvent.StakingConfirmationError, {
+              reason: getErrorReason(error),
+            });
           });
         break;
     }
@@ -349,16 +370,19 @@ export function StakingWizardModal({ isOpen, setIsOpen }: Props) {
                 onMaturityModeChange={updateMaturityMode}
                 onInitialStateChange={updateInitialState}
                 onConfirm={goNext}
+                deviceApprovalSteps={deviceApprovalSteps}
               />
             )}
 
             {step === StakingWizardStep.Confirmation && (
               <StakingWizardStepConfirmation
-                formState={formState}
+                formState={{ ...formState, amount: createNeuron.stakedAmount }}
                 isProcessing={createNeuron.isPending}
                 currentStep={createNeuron.currentStep}
                 error={createNeuron.error ? mapCanisterError(createNeuron.error) : null}
+                isTransferDone={createNeuron.isTransferDone}
                 expectedApy={getCurrentApyFormatted()}
+                signer={signer}
                 onDone={() => handleOpenChange(false)}
                 onRetry={() => createNeuron.mutateAsync()}
               />

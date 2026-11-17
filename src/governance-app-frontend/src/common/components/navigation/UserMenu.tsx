@@ -1,32 +1,50 @@
-import { nonNullish } from '@dfinity/utils';
-import { useInternetIdentity } from 'ic-use-internet-identity';
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { Skeleton } from '@components/Skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useLogout } from '@hooks/useLogout';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
 import { shortenId } from '@utils/id';
 
+// Isolated so the once-per-second session tick re-renders only this small label
+// instead of the whole UserMenu subtree.
+const SessionTimeLeftLabel = () => {
+  const { t } = useTranslation();
+  const timeLeft = useSessionTimeLeft();
+
+  if (!nonNullish(timeLeft)) return null;
+
+  return (
+    <p className="text-xs text-muted-foreground">
+      {t(($) => $.userAccount.session.timeLeftShort, { minutes: timeLeft.minutes })}
+    </p>
+  );
+};
+
 export const UserMenu = () => {
   const { identity } = useInternetIdentity();
   const { t } = useTranslation();
-  const timeLeft = useSessionTimeLeft();
-  const logout = useLogout();
+  const logout = useLogout('user_menu');
 
   const principal = identity?.getPrincipal().toText();
+
+  // The frame that a login shows before the identity arrives.
+  if (isNullish(principal)) {
+    return (
+      <div className="px-3 py-2.5">
+        <Skeleton className="h-5 w-32" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center gap-2 px-3 py-2.5">
       <div className="min-w-0 flex-1">
-        {nonNullish(principal) && (
-          <p className="truncate text-sm font-medium">{shortenId(principal, 7)}</p>
-        )}
-        {nonNullish(timeLeft) && (
-          <p className="text-xs text-muted-foreground">
-            {t(($) => $.userAccount.session.timeLeftShort, { minutes: timeLeft.minutes })}
-          </p>
-        )}
+        <p className="truncate text-sm font-medium">{shortenId(principal, 7)}</p>
+        <SessionTimeLeftLabel />
       </div>
       <Tooltip>
         <TooltipTrigger asChild>

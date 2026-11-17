@@ -1,8 +1,11 @@
+import { isNullish, nonNullish } from '@dfinity/utils';
 import { Link } from '@tanstack/react-router';
 import { Coins, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
 import { ApyOptimizationModal } from '@features/stakes/components/ApyOptimizationModal';
 import { DisburseModal } from '@features/stakes/components/DisburseModal';
 import { DisburseActionType, getDisburseAction } from '@features/stakes/utils/getDisburseAction';
@@ -14,26 +17,33 @@ import { Card, CardContent, CardHeader } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
 import { SensitiveValue } from '@components/SensitiveValue';
 import { Skeleton } from '@components/Skeleton';
-import { CANISTER_ID_ICP_LEDGER } from '@constants/canisterIds';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { E8Sn } from '@constants/extra';
+import { ForecastPeriod } from '@constants/forecast';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
-import { useTickerPrices } from '@hooks/tickers/useTickerPrices';
+import { useIcpPrice } from '@hooks/tickers';
 import { useApyColor } from '@hooks/useApyColor';
+import {
+  FORECAST_ESTIMATE_PERIOD,
+  getNextForecastPeriod,
+  useForecastPeriod,
+} from '@hooks/useForecastPeriod';
 import { useStakingRewards } from '@hooks/useStakingRewards';
 import { bigIntDiv } from '@utils/bigInt';
 import { getNeuronsAggregatedData } from '@utils/neuron';
 import { warningNotification } from '@utils/notification';
-import { formatNumber, formatPercentage } from '@utils/numbers';
-import { isStakingRewardDataReady, MaturityEstimatePeriod } from '@utils/staking-rewards';
+import { formatNumber, formatPercentage, formatSmallAmount } from '@utils/numbers';
+import { isStakingRewardDataReady } from '@utils/staking-rewards';
 
 export function StakedCard() {
   const { t } = useTranslation();
 
   const neuronsQuery = useGovernanceNeurons();
   const balanceQuery = useIcpLedgerAccountBalance();
-  const { tickerPrices: tickersQuery } = useTickerPrices();
+  const { icpPrice, formatFiat, isLoading: isIcpPriceLoading } = useIcpPrice();
   const stakingRewards = useStakingRewards();
+  const { forecastPeriod, setForecastPeriod } = useForecastPeriod();
   const apyColor = useApyColor(
     isStakingRewardDataReady(stakingRewards) ? stakingRewards.apy.cur : 0,
   );
@@ -46,19 +56,43 @@ export function StakedCard() {
       warningNotification({
         description: t(($) => $.neuron.stakeNeuron.errors.zeroBalance),
       });
+      return;
     }
+
+    analytics.event(AnalyticsEvent.StakingOpenWizard, { source: 'staked_card' });
   };
+
+  const handleForecastPeriodClick = () => {
+    const period = getNextForecastPeriod(forecastPeriod);
+    setForecastPeriod(period);
+    analytics.event(AnalyticsEvent.ForecastPeriodChange, { period, source: 'overview' });
+  };
+
+  const forecastLabel = {
+    [ForecastPeriod.Day]: t(($) => $.home.forecast.day),
+    [ForecastPeriod.Week]: t(($) => $.home.forecast.week),
+    [ForecastPeriod.Month]: t(($) => $.home.forecast.month),
+    [ForecastPeriod.Year]: t(($) => $.home.forecast.year),
+  }[forecastPeriod];
 
   const neurons = neuronsQuery.data?.response ?? [];
   const neuronCount = neurons.length;
 
-  const { totalStakedAfterFees: totalStaked, totalMaturity } = getNeuronsAggregatedData(neurons);
+  const {
+    totalStakedAfterFees: totalStaked,
+    totalMaturity,
+    totalStakedMaturity,
+    totalFreeMaturity,
+  } = getNeuronsAggregatedData(neurons);
+  const maturityTooltip = t(($) => $.neuron.summary.maturityTooltip, {
+    locked: formatNumber(totalStakedMaturity),
+    available: formatNumber(totalFreeMaturity),
+  });
 
   const disburseAction = getDisburseAction(neurons);
   const [disburseModalOpen, setDisburseModalOpen] = useState(false);
 
-  const icpPrice = tickersQuery.data?.get(CANISTER_ID_ICP_LEDGER!);
-  const usdValue = icpPrice ? formatNumber(totalStaked * icpPrice.usd) : '-';
+  const fiatValue = nonNullish(icpPrice) ? formatFiat(totalStaked * icpPrice) : '-';
 
   const stakingRewardsReady = isStakingRewardDataReady(stakingRewards);
 
@@ -91,7 +125,7 @@ export function StakedCard() {
                 {stakingRewards.apy.cur < stakingRewards.apy.max && <ApyOptimizationModal />}
               </span>
             ) : (
-              <Skeleton className="h-5 w-16" />
+              <Skeleton className="h-7 w-16" />
             )}
           </div>
         </div>
@@ -107,12 +141,12 @@ export function StakedCard() {
             </p>
           )}
 
-          {neuronsQuery.isLoading || tickersQuery.isLoading ? (
-            <Skeleton className="h-4 w-20" />
+          {neuronsQuery.isLoading || isIcpPriceLoading ? (
+            <Skeleton className="h-5 w-20" />
           ) : (
             <p className="text-sm text-muted-foreground">
               <SensitiveValue size="sm">
-                {t(($) => $.account.approxUsd, { value: usdValue })}
+                {t(($) => $.account.approxFiat, { value: fiatValue })}
               </SensitiveValue>
             </p>
           )}
@@ -122,9 +156,23 @@ export function StakedCard() {
       <CardContent className="flex flex-1 flex-col justify-between gap-6">
         <div className="mt-auto grid grid-cols-2 gap-6 border-t pt-4 text-right">
           <div className="flex flex-col gap-1">
-            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              {t(($) => $.home.maturity)}
-            </p>
+            {isNullish(neuronsQuery.data) ? (
+              <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                {t(($) => $.home.maturity)}
+              </p>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="cursor-default self-end text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                  >
+                    {t(($) => $.home.maturity)} <span className="sr-only">{maturityTooltip}</span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>{maturityTooltip}</TooltipContent>
+              </Tooltip>
+            )}
             <div className="flex items-center justify-end gap-1.5">
               {neuronsQuery.isLoading ? (
                 <Skeleton className="h-7 w-13" />
@@ -135,22 +183,36 @@ export function StakedCard() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-1 border-l pl-6">
+          <div className="relative flex flex-col gap-1 border-l pl-6">
             <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              {t(($) => $.home.forecast.oneYear)}
+              {/* The button covers the whole cell, number included, so a tap anywhere on it changes
+                  the period. */}
+              <button
+                type="button"
+                onClick={handleForecastPeriodClick}
+                aria-label={t(($) => $.home.forecast.aria.change, { label: forecastLabel })}
+                className="cursor-pointer tracking-wide uppercase outline-none after:absolute after:inset-0 after:z-[1] after:rounded-sm focus-visible:after:ring-[3px] focus-visible:after:ring-ring/50"
+                data-testid="forecast-period-toggle"
+              >
+                {forecastLabel}
+              </button>
             </p>
             <div className="flex items-center justify-end gap-1.5">
               {stakingRewardsReady ? (
                 <AnimatedNumber
-                  value={stakingRewards.rewardEstimates.get(MaturityEstimatePeriod.YEAR) || 0}
+                  value={
+                    stakingRewards.rewardEstimates.get(FORECAST_ESTIMATE_PERIOD[forecastPeriod]) ||
+                    0
+                  }
                   prefix="+"
-                  formatOptions={{ minFraction: 2, maxFraction: 2 }}
+                  formatter={formatSmallAmount}
                   className="text-xl font-bold"
                 />
               ) : (
                 <Skeleton className="h-7 w-13" />
               )}
-              <MaturitySymbol />
+              {/* Keeps the symbol above the button cover. */}
+              <MaturitySymbol className="relative z-10" />
             </div>
           </div>
         </div>
