@@ -118,6 +118,15 @@ describe('CommandPalette', () => {
     expect(optionNames()).toContain('Forecast period: Day');
   });
 
+  it('puts the best match first and drops scattered letter matches.', () => {
+    openPalette();
+    search('eur');
+
+    expect(optionNames()[0]).toBe('Show values in Euro (EUR)');
+    expect(optionNames()).toContain('Voting neurons');
+    expect(optionNames()).not.toContain('Show all proposals');
+  });
+
   it('changes the currency.', () => {
     openPalette();
     search('euro');

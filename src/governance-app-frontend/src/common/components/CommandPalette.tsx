@@ -1,6 +1,6 @@
 import { nonNullish } from '@dfinity/utils';
 import { useNavigate } from '@tanstack/react-router';
-import { useCommandState } from 'cmdk';
+import { defaultFilter, useCommandState } from 'cmdk';
 import {
   ArrowDownToLineIcon,
   BanknoteIcon,
@@ -91,6 +91,15 @@ const ACTION_KEYWORDS: Record<Action, string[]> = {
   [Action.AddressBook]: ['contacts', 'addresses', 'saved addresses'],
 };
 
+// The cmdk filter also scores letters that are far apart, for example "euro" in "Show all proposals".
+// Such matches score below 0.05. Word, prefix, and abbreviation matches score above 0.15.
+const MIN_MATCH_SCORE = 0.1;
+
+const filterCommands = (value: string, search: string, keywords?: string[]) => {
+  const score = defaultFilter(value, search, keywords);
+  return score >= MIN_MATCH_SCORE ? score : 0;
+};
+
 const TOGGLE_BALANCES_VALUE = 'toggle-balances';
 const TOGGLE_SHORTCUTS_VALUE = 'toggle-shortcuts';
 const SIGN_OUT_VALUE = 'signout';
@@ -141,6 +150,16 @@ const CommandHintFooter = () => {
     </div>
   );
 };
+
+/**
+ * cmdk ranks items inside a group, but it keeps the groups in DOM order. While the user searches,
+ * the items render without groups, so the best match is first.
+ */
+const CommandSection = ({
+  ranked,
+  ...props
+}: ComponentProps<typeof CommandGroup> & { ranked: boolean }) =>
+  ranked ? props.children : <CommandGroup {...props} />;
 
 /**
  * CommandItem that reports the selected item to analytics. A proposal ID is reported as
@@ -237,8 +256,7 @@ export const CommandPalette = () => {
     analytics.event(AnalyticsEvent.ForecastPeriodChange, { period, source: 'command_palette' });
   };
 
-  // The options are long lists, so they show only when the user searches.
-  const showOptionItems = trimmedSearch !== '';
+  const isSearching = trimmedSearch !== '';
 
   const toggleFeature = (key: AdvancedFeature) => {
     const next = !features[key];
@@ -266,6 +284,7 @@ export const CommandPalette = () => {
       title={t(($) => $.commandPalette.title)}
       description={t(($) => $.commandPalette.description)}
       showCloseButton={false}
+      filter={filterCommands}
     >
       <CommandInput
         value={search}
@@ -275,7 +294,7 @@ export const CommandPalette = () => {
       <CommandList>
         <CommandEmpty>{t(($) => $.commandPalette.empty)}</CommandEmpty>
 
-        <CommandGroup heading={t(($) => $.commandPalette.groups.navigate)}>
+        <CommandSection ranked={isSearching} heading={t(($) => $.commandPalette.groups.navigate)}>
           {navigationItems.map((item) => {
             const label = t(item.label as never);
             return (
@@ -290,9 +309,9 @@ export const CommandPalette = () => {
               </TrackedCommandItem>
             );
           })}
-        </CommandGroup>
+        </CommandSection>
 
-        <CommandGroup heading={t(($) => $.commandPalette.groups.actions)}>
+        <CommandSection ranked={isSearching} heading={t(($) => $.commandPalette.groups.actions)}>
           {actions.map(({ key, icon: Icon, label, run }) => (
             <TrackedCommandItem
               key={key}
@@ -304,10 +323,13 @@ export const CommandPalette = () => {
               <span>{label}</span>
             </TrackedCommandItem>
           ))}
-        </CommandGroup>
+        </CommandSection>
 
         {(showProposalHint || nonNullish(proposalIdMatch)) && (
-          <CommandGroup heading={t(($) => $.commandPalette.groups.proposals)}>
+          <CommandSection
+            ranked={isSearching}
+            heading={t(($) => $.commandPalette.groups.proposals)}
+          >
             {nonNullish(proposalIdMatch) ? (
               <TrackedCommandItem
                 value={trimmedSearch}
@@ -326,12 +348,15 @@ export const CommandPalette = () => {
                 <span>{t(($) => $.commandPalette.items.proposalHint)}</span>
               </TrackedCommandItem>
             )}
-          </CommandGroup>
+          </CommandSection>
         )}
 
-        <CommandSeparator />
+        {!isSearching && <CommandSeparator />}
 
-        <CommandGroup heading={t(($) => $.commandPalette.groups.preferences)}>
+        <CommandSection
+          ranked={isSearching}
+          heading={t(($) => $.commandPalette.groups.preferences)}
+        >
           {themeItems.map(({ theme: itemTheme, icon: Icon, label }) => (
             <TrackedCommandItem
               key={itemTheme}
@@ -362,7 +387,8 @@ export const CommandPalette = () => {
             <span>{shortcutsLabel}</span>
             {shortcutsEnabled && <CheckIcon className="ml-auto" />}
           </TrackedCommandItem>
-          {showOptionItems &&
+          {/* The options are long lists, so they show only when the user searches. */}
+          {isSearching &&
             Object.values(FiatCurrency).map((currency) => {
               const label = t(($) => $.commandPalette.items.fiatCurrency, {
                 name: currencyNames.of(currency),
@@ -381,7 +407,7 @@ export const CommandPalette = () => {
                 </TrackedCommandItem>
               );
             })}
-          {showOptionItems &&
+          {isSearching &&
             Object.values(ForecastPeriod).map((period) => {
               const label = forecastPeriodLabel(period);
               return (
@@ -397,9 +423,12 @@ export const CommandPalette = () => {
                 </TrackedCommandItem>
               );
             })}
-        </CommandGroup>
+        </CommandSection>
 
-        <CommandGroup heading={t(($) => $.commandPalette.groups.advancedFeatures)}>
+        <CommandSection
+          ranked={isSearching}
+          heading={t(($) => $.commandPalette.groups.advancedFeatures)}
+        >
           {getSupportedAdvancedFeatures().map(({ key, icon: Icon }) => {
             const label = t(($) => $.userAccount.advancedFeatures.items[key].label);
             return (
@@ -415,11 +444,11 @@ export const CommandPalette = () => {
               </TrackedCommandItem>
             );
           })}
-        </CommandGroup>
+        </CommandSection>
 
-        <CommandSeparator />
+        {!isSearching && <CommandSeparator />}
 
-        <CommandGroup>
+        <CommandSection ranked={isSearching}>
           <TrackedCommandItem
             value={SIGN_OUT_VALUE}
             keywords={[signOutLabel, 'logout', 'log out']}
@@ -428,7 +457,7 @@ export const CommandPalette = () => {
             <LogOutIcon />
             <span>{signOutLabel}</span>
           </TrackedCommandItem>
-        </CommandGroup>
+        </CommandSection>
       </CommandList>
       <CommandHintFooter />
     </CommandDialog>
