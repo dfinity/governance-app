@@ -37,9 +37,16 @@ const RowTooltip = ({
   children: ReactElement;
 }) => {
   const [open, setOpen] = useState(false);
+  const [prevCollapsed, setPrevCollapsed] = useState(collapsed);
+
+  // A toggle clears the open state: Radix does not report a close while `open` is false.
+  if (collapsed !== prevCollapsed) {
+    setPrevCollapsed(collapsed);
+    setOpen(false);
+  }
 
   return (
-    <Tooltip open={collapsed && open} onOpenChange={setOpen}>
+    <Tooltip open={collapsed && open} onOpenChange={(next) => setOpen(collapsed && next)}>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
       {collapsed && (
         <TooltipContent side="right" sideOffset={8} className="flex items-center gap-2">

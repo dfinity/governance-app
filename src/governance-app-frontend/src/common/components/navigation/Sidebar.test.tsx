@@ -18,6 +18,17 @@ import { Sidebar } from './Sidebar';
 
 const mocks = vi.hoisted(() => ({ shortcutsEnabled: false }));
 
+// The real Radix tooltip, so the tests cover when a row label shows.
+vi.unmock('@components/Tooltip');
+
+// Radix positions the tooltip with ResizeObserver, which jsdom does not have. `afterEach` removes
+// stubbed globals, so this is a plain assignment.
+globalThis.ResizeObserver = class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
 vi.mock('@hooks/useAdvancedFeatures', () => ({
   useAdvancedFeatures: () => ({ features: {} }),
 }));
@@ -129,6 +140,26 @@ describe('Sidebar', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Collapse sidebar' }));
 
     expect(screen.getByRole('complementary').dataset.collapsed).toBe('true');
+  });
+
+  it('shows the label of a row on hover when collapsed.', async () => {
+    vi.stubGlobal('localStorage', createStorage({ [SIDEBAR_COLLAPSED_KEY]: 'true' }));
+    await renderSidebar();
+
+    await userEvent.hover(screen.getByRole('link', { name: /Dashboard/ }));
+
+    expect((await screen.findByRole('tooltip')).textContent).toBe('Dashboard');
+  });
+
+  it('does not show a label that was hovered while expanded.', async () => {
+    await renderSidebar();
+    const link = screen.getByRole('link', { name: /Dashboard/ });
+    await userEvent.hover(link);
+    await userEvent.unhover(link);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Collapse sidebar' }));
+
+    expect(screen.queryByRole('tooltip', { name: 'Dashboard' })).toBeNull();
   });
 
   it('hides the shortcut key when the keyboard shortcuts are off.', async () => {
