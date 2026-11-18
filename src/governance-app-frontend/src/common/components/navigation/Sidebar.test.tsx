@@ -110,6 +110,27 @@ describe('Sidebar', () => {
     expect(screen.getByText('rrkah-f...aaq-cai')).toBeTruthy();
   });
 
+  it('keeps the keyboard focus on the toggle.', async () => {
+    await renderSidebar();
+    screen.getByRole('button', { name: 'Collapse sidebar' }).focus();
+
+    await userEvent.keyboard('{Enter}');
+
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Expand sidebar' }));
+  });
+
+  it('collapses when the browser denies the storage.', async () => {
+    const denied = () => {
+      throw new DOMException('Denied', 'SecurityError');
+    };
+    vi.stubGlobal('localStorage', { getItem: denied, setItem: denied });
+    await renderSidebar();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Collapse sidebar' }));
+
+    expect(screen.getByRole('complementary').dataset.collapsed).toBe('true');
+  });
+
   it('hides the shortcut key when the keyboard shortcuts are off.', async () => {
     await renderSidebar();
     expect(screen.queryByText('[')).toBeNull();

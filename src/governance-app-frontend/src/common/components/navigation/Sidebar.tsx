@@ -23,7 +23,10 @@ const ACTIVE_ITEM_CLASS =
 const ROW_CLASS =
   'relative flex items-center gap-3 rounded-md px-4 py-3 text-foreground-secondary transition-colors hover:bg-accent hover:text-accent-foreground';
 
-/** Shows the label of an icon-only row on the right of the collapsed sidebar. */
+/**
+ * Shows the label of an icon-only row on the right of the collapsed sidebar. The trigger stays
+ * mounted in both states, so a toggle keeps the keyboard focus on the row.
+ */
 const RowTooltip = ({
   collapsed,
   label,
@@ -33,14 +36,16 @@ const RowTooltip = ({
   label: ReactElement | string;
   children: ReactElement;
 }) => {
-  if (!collapsed) return children;
+  const [open, setOpen] = useState(false);
 
   return (
-    <Tooltip>
+    <Tooltip open={collapsed && open} onOpenChange={setOpen}>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
-      <TooltipContent side="right" sideOffset={8} className="flex items-center gap-2">
-        {label}
-      </TooltipContent>
+      {collapsed && (
+        <TooltipContent side="right" sideOffset={8} className="flex items-center gap-2">
+          {label}
+        </TooltipContent>
+      )}
     </Tooltip>
   );
 };
@@ -138,7 +143,6 @@ export const Sidebar = ({ activeHref }: { activeHref?: string }) => {
               ROW_CLASS,
               'w-full text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring',
             )}
-            data-testid="sidebar-toggle"
           >
             <ToggleIcon className="size-5 shrink-0" />
             {!collapsed && (
