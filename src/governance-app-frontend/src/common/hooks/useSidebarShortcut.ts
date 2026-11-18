@@ -16,7 +16,7 @@ export const useSidebarShortcut = () => {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!enabled) return;
-      if (shouldIgnoreKeyboardShortcut(event)) return;
+      if (shouldIgnoreKeyboardShortcut(event, { layoutModifiers: true })) return;
 
       if (event.key === SIDEBAR_SHORTCUT_KEY) {
         analytics.event(AnalyticsEvent.ShortcutUsed, { shortcut: 'sidebar' });

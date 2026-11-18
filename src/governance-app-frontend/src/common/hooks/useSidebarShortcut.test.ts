@@ -13,9 +13,9 @@ vi.mock('@hooks/useShortcutSettings', () => ({
 }));
 vi.mock('@features/analytics/service', () => ({ analytics: { event: vi.fn() } }));
 
-const pressKey = (key: string, target: EventTarget = document.body) =>
+const pressKey = (key: string, target: EventTarget = document.body, init: KeyboardEventInit = {}) =>
   act(() => {
-    target.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+    target.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, ...init }));
   });
 
 describe('useSidebarShortcut', () => {
@@ -48,6 +48,22 @@ describe('useSidebarShortcut', () => {
     expect(items.get(SIDEBAR_COLLAPSED_KEY)).toBe('true');
 
     pressKey('[');
+    expect(result.current.collapsed).toBe(false);
+  });
+
+  it('toggles the sidebar on [ typed with AltGr.', () => {
+    const { result } = renderShortcut();
+
+    pressKey('[', document.body, { ctrlKey: true, altKey: true });
+
+    expect(result.current.collapsed).toBe(true);
+  });
+
+  it('does nothing on Cmd+[.', () => {
+    const { result } = renderShortcut();
+
+    pressKey('[', document.body, { metaKey: true });
+
     expect(result.current.collapsed).toBe(false);
   });
 
