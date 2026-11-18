@@ -18,6 +18,7 @@ import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useLogoutShortcut } from '@hooks/useLogoutShortcut';
 import { useNewFeatureCheck } from '@hooks/useNewFeatureCheck';
 import { useScrollResetOnNavigation } from '@hooks/useScrollResetOnNavigation';
+import { useSidebarShortcut } from '@hooks/useSidebarShortcut';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
 import { isPublicPath } from '@utils/publicRoutes';
 import { requireIdentity } from '@utils/router';
@@ -80,6 +81,7 @@ function AuthLayout() {
 function SignedInLayout() {
   useLogoutShortcut();
   useHideBalancesShortcut();
+  useSidebarShortcut();
   useNewFeatureCheck();
   useAnalyticsProperties();
   // A Ledger device stake that an earlier session signed and did not claim.

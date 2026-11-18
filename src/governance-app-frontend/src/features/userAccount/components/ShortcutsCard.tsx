@@ -3,15 +3,17 @@ import { useTranslation } from 'react-i18next';
 import { Kbd } from '@components/Kbd';
 import { Switch } from '@components/Switch';
 import { useShortcutSettings } from '@hooks/useShortcutSettings';
+import { SIDEBAR_SHORTCUT_KEY } from '@hooks/useSidebarShortcut';
 
 type Shortcut = {
-  labelKey: 'toggleTheme' | 'logout' | 'hideBalances';
+  labelKey: 'toggleTheme' | 'logout' | 'hideBalances' | 'toggleSidebar';
   key: string;
 };
 
 const SHORTCUTS: Shortcut[] = [
   { labelKey: 'toggleTheme', key: 'd' },
   { labelKey: 'hideBalances', key: 'p' },
+  { labelKey: 'toggleSidebar', key: SIDEBAR_SHORTCUT_KEY },
   { labelKey: 'logout', key: 'u' },
 ];
 

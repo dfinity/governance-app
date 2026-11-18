@@ -60,6 +60,11 @@
   "accounts": "ICP accounts",
   "stakes": "Voting neurons",
   "settings": "Settings",
+  "sidebar": {
+    "collapse": "Collapse",
+    "collapseLabel": "Collapse sidebar",
+    "expandLabel": "Expand sidebar"
+  },
   "clipboard": {
     "copy": "Copy to clipboard",
     "copied": "Your {{label}} was copied to the clipboard.",
