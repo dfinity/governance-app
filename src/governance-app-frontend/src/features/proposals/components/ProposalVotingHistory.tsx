@@ -126,8 +126,18 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
   const lastIndex = (chart?.points.length ?? 0) - 1;
   const shareAxis = getShareAxis(chart?.points ?? []);
   const referenceLines = [
-    { share: QUORUM_SHARE, label: t(($) => $.proposal.votingHistory.quorum) },
-    { share: MAJORITY_SHARE, label: t(($) => $.proposal.votingHistory.majority) },
+    // Above its line, so the label stays clear of the date ticks when the line is near the bottom.
+    {
+      share: QUORUM_SHARE,
+      label: t(($) => $.proposal.votingHistory.quorum),
+      position: 'insideBottomRight' as const,
+    },
+    // Below its line, so the label stays inside the plot when the line is the top of the axis.
+    {
+      share: MAJORITY_SHARE,
+      label: t(($) => $.proposal.votingHistory.majority),
+      position: 'insideTopRight' as const,
+    },
   ].filter(({ share }) => share <= shareAxis.max);
 
   return (
@@ -215,7 +225,7 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
                   />
                 }
               />
-              {referenceLines.map(({ share, label }) => (
+              {referenceLines.map(({ share, label, position }) => (
                 <ReferenceLine
                   key={share}
                   y={share}
@@ -223,7 +233,7 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
                   strokeDasharray={REFERENCE_DASH}
                   label={{
                     value: label,
-                    position: 'insideTopRight',
+                    position,
                     fontSize: 11,
                     fill: 'var(--icp-fg-secondary)',
                     // Keeps the label readable where a line passes under it.
