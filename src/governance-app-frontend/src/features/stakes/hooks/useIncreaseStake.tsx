@@ -147,13 +147,19 @@ export function useIncreaseStake() {
         clearPendingDeviceTopUp(key, pending.createdAt);
       } else {
         // Step 1: Transfer ICP to the neuron's account identifier
-        await ledgerCanister.transfer({
-          to,
-          amount: amountE8s,
-          fee: ICP_TRANSACTION_FEE_E8Sn,
-          fromSubAccount: params.fromSubAccount,
-          createdAt,
-        });
+        try {
+          await ledgerCanister.transfer({
+            to,
+            amount: amountE8s,
+            fee: ICP_TRANSACTION_FEE_E8Sn,
+            fromSubAccount: params.fromSubAccount,
+            createdAt,
+          });
+        } catch (error: unknown) {
+          // An earlier attempt landed and its refresh failed. The ICP is on the neuron account,
+          // so the refresh below picks it up.
+          if (duplicateTransferOf(error) === undefined) throw error;
+        }
 
         // Step 2: Refresh the neuron to update the cached stake
         await governanceCanister.claimOrRefreshNeuron({
