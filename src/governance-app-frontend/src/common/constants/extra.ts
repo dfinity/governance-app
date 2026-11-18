@@ -79,6 +79,8 @@ export const ADVANCED_FEATURES_STORAGE_KEY = 'nns-advanced-features';
 export const SEEN_FEATURE_ANNOUNCEMENTS_STORAGE_KEY = 'nns-seen-feature-announcements';
 export const THEME_STORAGE_KEY = 'nns-theme';
 export const HIDE_BALANCES_KEY = 'nns-hide-balances';
+/** Also read by `public/startup-v2.js` for the first paint. */
+export const SIDEBAR_COLLAPSED_KEY = 'nns-sidebar-collapsed';
 export const FIAT_CURRENCY_STORAGE_KEY = 'nns-fiat-currency';
 export const FORECAST_PERIOD_STORAGE_KEY = 'nns-forecast-period';
 export const PENDING_DEVICE_STAKE_STORAGE_KEY = 'nns-ledger-pending-stake';
