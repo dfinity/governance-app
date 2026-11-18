@@ -128,7 +128,8 @@ export const mapReportTransaction = ({
       from,
       to: spender,
       amountE8s: 0n,
-      feeE8s: fee.e8s,
+      // The index lists an approval for the spender too, but only the approving account pays the fee.
+      feeE8s: from === entity.accountId ? fee.e8s : undefined,
     };
   }
 

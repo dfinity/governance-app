@@ -94,15 +94,19 @@ export const useTransactionsReportDownload = () => {
         return;
       }
 
+      const fileNameDates = { from: toIsoDate(range.fromMs), to: toIsoDate(range.toMs - 1) };
       downloadCsv({
-        fileName: t(($) => $.reports.transactions.fileName, {
-          from: toIsoDate(range.fromMs),
-          to: toIsoDate(range.toMs - 1),
-        }),
+        // The file name marks a truncated file, so that the file shows it after the warning closes.
+        fileName: complete
+          ? t(($) => $.reports.transactions.fileName, fileNameDates)
+          : t(($) => $.reports.transactions.incompleteFileName, fileNameDates),
         content: buildTransactionsCsv({ results, labels }),
       });
       if (!complete) {
-        warningNotification({ description: t(($) => $.reports.transactions.incomplete) });
+        warningNotification({
+          description: t(($) => $.reports.transactions.incomplete),
+          persistent: true,
+        });
       }
       analytics.event(AnalyticsEvent.ReportDownload, { report: 'transactions', period });
     },

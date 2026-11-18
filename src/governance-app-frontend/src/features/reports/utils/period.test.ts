@@ -46,6 +46,7 @@ describe('getReportRange', () => {
     ['an invalid date', '2026-02-30', '2026-03-01'],
     ['an end before the start', '2026-03-02', '2026-03-01'],
     ['a start in the future', '2026-12-01', '2026-12-02'],
+    ['an end in the future', '2026-11-01', '2026-11-16'],
   ])('rejects %s', (_, customFrom, customTo) => {
     expect(
       getReportRange({ period: ReportPeriod.Custom, customFrom, customTo, now: NOW }),

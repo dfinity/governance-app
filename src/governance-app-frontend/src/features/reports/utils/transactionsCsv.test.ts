@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { MAIN, mintTx, NEURON, OTHER, SAVINGS, transferTx } from './testUtils';
+import { approveTx, MAIN, mintTx, NEURON, OTHER, SAVINGS, transferTx } from './testUtils';
 import {
   buildTransactionsCsv,
   mapReportTransaction,
@@ -67,6 +67,14 @@ describe('mapReportTransaction', () => {
       to: MAIN,
       amountE8s: 7n,
     });
+  });
+
+  it('gives the approval fee only to the approving account', () => {
+    const approval = approveTx({ id: 1n, ms: MS, from: MAIN, spender: SAVINGS });
+    const spender: ReportEntity = { kind: 'account', accountId: SAVINGS, name: 'Savings' };
+
+    expect(map(main, approval)).toMatchObject({ amountE8s: 0n, feeE8s: 10_000n });
+    expect(map(spender, approval)).toMatchObject({ amountE8s: 0n, feeE8s: undefined });
   });
 });
 
