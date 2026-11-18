@@ -20,6 +20,8 @@ runs:
   steps:
     # npm ci deletes node_modules, so a partial match (restore-keys) has no use here.
     # Native packages depend on the Node version, so the key holds the builder image too.
+    # The key holds the package.json files too: when one changes without the lockfile, npm ci
+    # must run and fail on the out-of-sync lockfile.
     - name: Restore node_modules
       id: node-modules
       uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
@@ -27,7 +29,7 @@ runs:
         path: |
           node_modules
           src/governance-app-frontend/node_modules
-        key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json', 'docker/Dockerfile.base') }}
+        key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json', 'package.json', 'src/governance-app-frontend/package.json', 'docker/Dockerfile.base') }}
 
     - name: Restore npm cache
       if: steps.node-modules.outputs.cache-hit != 'true'
