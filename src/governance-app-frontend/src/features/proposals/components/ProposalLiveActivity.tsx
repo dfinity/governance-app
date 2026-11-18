@@ -153,16 +153,17 @@ const TallyChangeRow = ({
           )}
         </span>
       </div>
+      {/* The minimum width keeps a small change visible next to a large one. */}
       <div aria-hidden className="mt-1.5 flex h-1.5 gap-0.5">
         {change.yes > 0 && (
           <span
-            className={cn('rounded-[2px]', YES_FILL)}
+            className={cn('min-w-1 rounded-[2px]', YES_FILL)}
             style={{ width: `${(change.yes / maxChange) * 100}%` }}
           />
         )}
         {change.no > 0 && (
           <span
-            className={cn('rounded-[2px]', NO_FILL)}
+            className={cn('min-w-1 rounded-[2px]', NO_FILL)}
             style={{ width: `${(change.no / maxChange) * 100}%` }}
           />
         )}
