@@ -190,9 +190,10 @@ Call `manage_neuron` (update) one time for each neuron:
   dissolve delay of 14 days or more at that time.
 - A vote cannot be changed or undone. A second vote with the same neuron
   returns an error.
-- A neuron that follows this neuron votes only if a majority of its followees
-  for the topic of the proposal vote the same way. Do not report the votes of
-  followers. Read their ballots instead.
+- A vote can make the neurons that follow this neuron vote. A follower votes
+  yes if more than half of its followees for the topic vote yes. It votes no if
+  half or more of them vote no. So with two followees, one no vote is enough.
+  Do not report the votes of followers. Read their ballots instead.
 
 Correct use of a vote:
 
