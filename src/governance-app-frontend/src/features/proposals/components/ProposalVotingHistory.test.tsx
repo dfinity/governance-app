@@ -2,7 +2,7 @@ import '@/i18n/config';
 
 import { ProposalInfo, Topic } from '@icp-sdk/canisters/nns';
 import { render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { TALLY_RECORDING_SINCE_SECONDS, TallyHistory } from '../tallyHistory';
 import { ProposalVotingHistory } from './ProposalVotingHistory';
@@ -94,5 +94,61 @@ describe('ProposalVotingHistory', () => {
     );
 
     expect(screen.queryByTestId('proposal-voting-history')).toBeNull();
+  });
+
+  describe('reference lines', () => {
+    // Recharts draws nothing at a size of 0, so the container reports a fixed size.
+    beforeEach(() => {
+      vi.stubGlobal(
+        'ResizeObserver',
+        class {
+          constructor(private callback: ResizeObserverCallback) {}
+          observe(target: Element) {
+            this.callback(
+              [{ target, contentRect: { width: 600, height: 180 } } as ResizeObserverEntry],
+              this as unknown as ResizeObserver,
+            );
+          }
+          unobserve() {}
+          disconnect() {}
+        },
+      );
+      vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(600);
+      vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(180);
+    });
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
+    });
+
+    const renderWithYes = (yes: bigint) => {
+      mocks.query = {
+        data: history([{ t: BigInt(CREATED + 60), yes, no: 0n }]),
+        isPending: false,
+        isError: false,
+      };
+      render(<ProposalVotingHistory proposal={proposal()} />);
+    };
+
+    it('shows the 3% line and hides the 50% line below a 50% axis', async () => {
+      renderWithYes(1n);
+
+      expect(await screen.findByText('Yes minimum 3%')).toBeTruthy();
+      expect(screen.queryByText('Absolute majority 50%')).toBeNull();
+    });
+
+    it('shows the 50% line on a 50% axis', async () => {
+      renderWithYes(400n);
+
+      expect(await screen.findByText('Absolute majority 50%')).toBeTruthy();
+      expect(screen.getByText('Yes minimum 3%')).toBeTruthy();
+    });
+
+    it('shows the 50% line on the full axis', async () => {
+      renderWithYes(600n);
+
+      expect(await screen.findByText('Absolute majority 50%')).toBeTruthy();
+    });
   });
 });
