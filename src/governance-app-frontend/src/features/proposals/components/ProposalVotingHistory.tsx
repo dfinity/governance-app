@@ -50,18 +50,38 @@ const VotingHistoryTooltipContent = (props: ComponentProps<typeof ChartTooltipCo
   </div>
 );
 
-// Marks the latest value of a line.
-const latestDot =
-  (lastIndex: number, color: string) =>
-  ({ index, cx, cy }: { index: number; cx?: number; cy?: number }) =>
+type DotProps = { index: number; cx?: number; cy?: number };
+
+// Marks the latest Yes value with a filled dot.
+const latestYesDot =
+  (lastIndex: number) =>
+  ({ index, cx, cy }: DotProps) =>
     index === lastIndex ? (
       <circle
         key="latest"
         cx={cx}
         cy={cy}
         r={4}
-        fill={color}
+        fill="var(--color-yes)"
         stroke="var(--card)"
+        strokeWidth={2}
+      />
+    ) : (
+      <g key={index} />
+    );
+
+// Marks the latest No value with a ring. The ring goes around the Yes dot when both are close.
+const latestNoDot =
+  (lastIndex: number) =>
+  ({ index, cx, cy }: DotProps) =>
+    index === lastIndex ? (
+      <circle
+        key="latest"
+        cx={cx}
+        cy={cy}
+        r={5}
+        fill="none"
+        stroke="var(--color-no)"
         strokeWidth={2}
       />
     ) : (
@@ -199,33 +219,33 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
                 <ReferenceLine
                   key={share}
                   y={share}
-                  stroke="var(--color-foreground-secondary)"
+                  stroke="var(--icp-fg-secondary)"
                   strokeDasharray={REFERENCE_DASH}
                   label={{
                     value: label,
                     position: 'insideTopRight',
                     fontSize: 11,
-                    fill: 'var(--color-foreground-secondary)',
+                    fill: 'var(--icp-fg-secondary)',
                   }}
                 />
               ))}
-              <Line
-                dataKey="no"
-                type="stepAfter"
-                stroke="var(--color-no)"
-                strokeWidth={2}
-                strokeDasharray={NO_DASH}
-                dot={latestDot(lastIndex, 'var(--color-no)')}
-                activeDot={{ r: 3 }}
-                isAnimationActive={false}
-              />
               <Line
                 dataKey="yes"
                 type="stepAfter"
                 stroke="var(--color-yes)"
                 strokeWidth={2}
                 strokeLinejoin="round"
-                dot={latestDot(lastIndex, 'var(--color-yes)')}
+                dot={latestYesDot(lastIndex)}
+                activeDot={{ r: 3 }}
+                isAnimationActive={false}
+              />
+              <Line
+                dataKey="no"
+                type="stepAfter"
+                stroke="var(--color-no)"
+                strokeWidth={2}
+                strokeDasharray={NO_DASH}
+                dot={latestNoDot(lastIndex)}
                 activeDot={{ r: 3 }}
                 isAnimationActive={false}
               />
