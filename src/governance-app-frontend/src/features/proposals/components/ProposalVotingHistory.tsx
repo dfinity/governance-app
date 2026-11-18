@@ -43,6 +43,18 @@ const formatDay = (seconds: number) =>
     day: 'numeric',
   });
 
+type DotProps = { index: number; cx?: number; cy?: number };
+
+// Marks the latest value of a line with a filled dot.
+const latestDot =
+  (lastIndex: number, fill: string) =>
+  ({ index, cx, cy }: DotProps) =>
+    index === lastIndex ? (
+      <circle key="latest" cx={cx} cy={cy} r={4} fill={fill} stroke="var(--card)" strokeWidth={2} />
+    ) : (
+      <g key={index} />
+    );
+
 // A live region, so screen readers read the point that the arrow keys select.
 const VotingHistoryTooltipContent = (props: ComponentProps<typeof ChartTooltipContent>) => (
   <div role="status" aria-live="polite">
@@ -85,7 +97,39 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
       theme: { light: 'var(--color-red-800)', dark: 'var(--color-red-400)' },
     },
   } satisfies ChartConfig;
-  const shareAxis = getShareAxis(chart?.points ?? []);
+  const points = chart?.points ?? [];
+  const lastIndex = points.length - 1;
+  const latest = points[lastIndex];
+  const shareAxis = getShareAxis(points);
+  // The line with more votes paints last, so its dot sits on top when the dots overlap.
+  const yesOnTop = (latest?.yes ?? 0) >= (latest?.no ?? 0);
+  const yesLine = (
+    <Line
+      key="yes"
+      dataKey="yes"
+      type="stepAfter"
+      stroke="var(--color-yes)"
+      strokeWidth={2}
+      strokeLinejoin="round"
+      dot={latestDot(lastIndex, 'var(--color-yes)')}
+      activeDot={{ r: 3 }}
+      isAnimationActive={false}
+    />
+  );
+  const noLine = (
+    <Line
+      key="no"
+      dataKey="no"
+      type="stepAfter"
+      stroke="var(--color-no)"
+      strokeWidth={2}
+      strokeDasharray={NO_DASH}
+      dot={latestDot(lastIndex, 'var(--color-no)')}
+      activeDot={{ r: 3 }}
+      isAnimationActive={false}
+    />
+  );
+  const lines = yesOnTop ? [noLine, yesLine] : [yesLine, noLine];
   const referenceLines = [
     // Above its line, so the label stays clear of the date ticks when the line is near the bottom.
     {
@@ -205,26 +249,7 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
                   }}
                 />
               ))}
-              <Line
-                dataKey="yes"
-                type="stepAfter"
-                stroke="var(--color-yes)"
-                strokeWidth={2}
-                strokeLinejoin="round"
-                dot={false}
-                activeDot={{ r: 3 }}
-                isAnimationActive={false}
-              />
-              <Line
-                dataKey="no"
-                type="stepAfter"
-                stroke="var(--color-no)"
-                strokeWidth={2}
-                strokeDasharray={NO_DASH}
-                dot={false}
-                activeDot={{ r: 3 }}
-                isAnimationActive={false}
-              />
+              {lines}
             </LineChart>
           </ChartContainer>
         )}

@@ -1,7 +1,7 @@
 import '@/i18n/config';
 
 import { ProposalInfo, Topic } from '@icp-sdk/canisters/nns';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { TALLY_RECORDING_SINCE_SECONDS, TallyHistory } from '../tallyHistory';
@@ -96,7 +96,7 @@ describe('ProposalVotingHistory', () => {
     expect(screen.queryByTestId('proposal-voting-history')).toBeNull();
   });
 
-  describe('reference lines', () => {
+  describe('sized chart', () => {
     // Recharts draws nothing at a size of 0, so the container reports a fixed size.
     beforeEach(() => {
       vi.stubGlobal(
@@ -149,6 +149,49 @@ describe('ProposalVotingHistory', () => {
       renderWithYes(600n);
 
       expect(await screen.findByText('Absolute majority 50%')).toBeTruthy();
+    });
+
+    const tally = (yes: bigint, no: bigint) => ({
+      data: history([{ t: BigInt(CREATED + 60), yes, no }]),
+      isPending: false,
+      isError: false,
+    });
+
+    // The dot that comes last in the document paints on top.
+    const latestDotFills = () =>
+      Array.from(document.querySelectorAll('circle[r="4"]')).map((dot) => dot.getAttribute('fill'));
+
+    it('paints the Yes dot on top when Yes leads', async () => {
+      mocks.query = tally(30n, 10n);
+      render(<ProposalVotingHistory proposal={proposal()} />);
+
+      await waitFor(() =>
+        expect(latestDotFills()).toEqual(['var(--color-no)', 'var(--color-yes)']),
+      );
+    });
+
+    it('paints the No dot on top when No leads', async () => {
+      mocks.query = tally(10n, 30n);
+      render(<ProposalVotingHistory proposal={proposal()} />);
+
+      await waitFor(() =>
+        expect(latestDotFills()).toEqual(['var(--color-yes)', 'var(--color-no)']),
+      );
+    });
+
+    it('moves the dot of the new leader on top', async () => {
+      mocks.query = tally(30n, 10n);
+      const { rerender } = render(<ProposalVotingHistory proposal={proposal()} />);
+      await waitFor(() =>
+        expect(latestDotFills()).toEqual(['var(--color-no)', 'var(--color-yes)']),
+      );
+
+      mocks.query = tally(30n, 40n);
+      rerender(<ProposalVotingHistory proposal={proposal()} />);
+
+      await waitFor(() =>
+        expect(latestDotFills()).toEqual(['var(--color-yes)', 'var(--color-no)']),
+      );
     });
   });
 });
