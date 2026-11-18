@@ -226,6 +226,11 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
                     position: 'insideTopRight',
                     fontSize: 11,
                     fill: 'var(--icp-fg-secondary)',
+                    // Keeps the label readable where a line passes under it.
+                    stroke: 'var(--card)',
+                    strokeWidth: 4,
+                    strokeLinejoin: 'round',
+                    paintOrder: 'stroke',
                   }}
                 />
               ))}
