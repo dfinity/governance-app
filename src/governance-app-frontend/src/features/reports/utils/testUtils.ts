@@ -37,6 +37,28 @@ export const transferTx = ({
     Transfer: { from, to, amount: { e8s }, fee: { e8s: 10_000n }, spender: [] },
   });
 
+export const approveTx = ({
+  id,
+  ms,
+  from,
+  spender,
+}: {
+  id: bigint;
+  ms: number;
+  from: string;
+  spender: string;
+}): IcpIndexDid.TransactionWithId =>
+  withTimestamp(id, ms, {
+    Approve: {
+      from,
+      spender,
+      allowance: { e8s: 100_000_000n },
+      expected_allowance: [],
+      expires_at: [],
+      fee: { e8s: 10_000n },
+    },
+  });
+
 export const mintTx = ({
   id,
   ms,

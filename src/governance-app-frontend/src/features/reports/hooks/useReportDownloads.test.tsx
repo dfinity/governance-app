@@ -114,8 +114,12 @@ describe('useTransactionsReportDownload', () => {
 
     await runTransactionsReport();
 
-    expect(mocks.downloadCsv).toHaveBeenCalledOnce();
-    expect(mocks.warningNotification).toHaveBeenCalledOnce();
+    expect(mocks.downloadCsv).toHaveBeenCalledWith(
+      expect.objectContaining({ fileName: 'transactions-2026-01-01-to-2026-11-14-incomplete.csv' }),
+    );
+    expect(mocks.warningNotification).toHaveBeenCalledWith(
+      expect.objectContaining({ persistent: true }),
+    );
   });
 
   it('says that the period is empty when the fetch is complete', async () => {
