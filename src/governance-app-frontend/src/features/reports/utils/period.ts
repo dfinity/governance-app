@@ -45,7 +45,8 @@ export const isCustomRangeTooLong = ({ fromMs, toMs }: ReportRange): boolean => 
 
 /**
  * The range of a period, in UTC. A custom range includes the full `to` date.
- * Returns `undefined` when a custom date is missing or invalid, or when `to` is before `from`.
+ * Returns `undefined` when a custom date is missing or invalid, when `to` is before `from`, or
+ * when `to` is after today.
  */
 export const getReportRange = ({
   period,
@@ -69,6 +70,7 @@ export const getReportRange = ({
       const fromMs = parseIsoDate(customFrom ?? '');
       const toStartMs = parseIsoDate(customTo ?? '');
       if (fromMs === undefined || toStartMs === undefined || toStartMs < fromMs) return undefined;
+      if (toStartMs > now - (now % DAY_MS)) return undefined;
 
       const toMs = Math.min(toStartMs + DAY_MS, now);
       return toMs > fromMs ? { fromMs, toMs } : undefined;

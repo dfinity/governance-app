@@ -62,9 +62,10 @@
     },
     "from": "From",
     "to": "To",
-    "invalidRange": "Select a start date and an end date. The end date cannot be before the start date.",
+    "invalidRange": "Select a start date and an end date. The end date cannot be before the start date or after today.",
     "rangeTooLong": "The period can be one year at most.",
     "fileName": "transactions-{{from}}-to-{{to}}.csv",
+    "incompleteFileName": "transactions-{{from}}-to-{{to}}-incomplete.csv",
     "empty": "You have no transactions in this period.",
     "incomplete": "Some accounts have too many transactions. The file does not include the oldest ones.",
     "error": "The transactions report failed. Try again."
