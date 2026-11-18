@@ -50,44 +50,6 @@ const VotingHistoryTooltipContent = (props: ComponentProps<typeof ChartTooltipCo
   </div>
 );
 
-type DotProps = { index: number; cx?: number; cy?: number };
-
-// Marks the latest Yes value with a filled dot.
-const latestYesDot =
-  (lastIndex: number) =>
-  ({ index, cx, cy }: DotProps) =>
-    index === lastIndex ? (
-      <circle
-        key="latest"
-        cx={cx}
-        cy={cy}
-        r={4}
-        fill="var(--color-yes)"
-        stroke="var(--card)"
-        strokeWidth={2}
-      />
-    ) : (
-      <g key={index} />
-    );
-
-// Marks the latest No value with a ring. The ring goes around the Yes dot when both are close.
-const latestNoDot =
-  (lastIndex: number) =>
-  ({ index, cx, cy }: DotProps) =>
-    index === lastIndex ? (
-      <circle
-        key="latest"
-        cx={cx}
-        cy={cy}
-        r={5}
-        fill="none"
-        stroke="var(--color-no)"
-        strokeWidth={2}
-      />
-    ) : (
-      <g key={index} />
-    );
-
 const LegendItem = ({ label, className }: { label: string; className: string }) => (
   <span className="flex items-center gap-1.5">
     <span aria-hidden className={cn('w-3.5 border-t-2', className)} />
@@ -123,7 +85,6 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
       theme: { light: 'var(--color-red-800)', dark: 'var(--color-red-400)' },
     },
   } satisfies ChartConfig;
-  const lastIndex = (chart?.points.length ?? 0) - 1;
   const shareAxis = getShareAxis(chart?.points ?? []);
   const referenceLines = [
     // Above its line, so the label stays clear of the date ticks when the line is near the bottom.
@@ -250,7 +211,7 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
                 stroke="var(--color-yes)"
                 strokeWidth={2}
                 strokeLinejoin="round"
-                dot={latestYesDot(lastIndex)}
+                dot={false}
                 activeDot={{ r: 3 }}
                 isAnimationActive={false}
               />
@@ -260,7 +221,7 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
                 stroke="var(--color-no)"
                 strokeWidth={2}
                 strokeDasharray={NO_DASH}
-                dot={latestNoDot(lastIndex)}
+                dot={false}
                 activeDot={{ r: 3 }}
                 isAnimationActive={false}
               />
