@@ -25,6 +25,7 @@ import {
   getSecondsUntilFollowingCleared,
   hasValueAboveTransactionFee,
   isNonEmptyNeuron,
+  isUserController,
   isUserControllerOrHotkey,
   isUserHotkeyOnly,
 } from './neuron';
@@ -525,6 +526,36 @@ describe('isUserHotkeyOnly', () => {
   it('returns false when the user is the controller', () => {
     const neuron = mockNeuron({ fullNeuron: { controller: USER, hotKeys: [USER] } });
     expect(isUserHotkeyOnly({ neuron, principalId: USER, ledgerPrincipals: [] })).toBe(false);
+  });
+});
+
+describe('isUserController', () => {
+  const USER = 'user-principal';
+  const DEVICE = 'device-principal';
+
+  it('returns true when the user is the controller', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: USER } });
+    expect(isUserController({ neuron, principalId: USER, ledgerPrincipals: [] })).toBe(true);
+  });
+
+  it('returns true when a registered device is the controller', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: DEVICE, hotKeys: [USER] } });
+    expect(isUserController({ neuron, principalId: USER, ledgerPrincipals: [DEVICE] })).toBe(true);
+  });
+
+  it('returns false when the user is only a hotkey', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: 'other', hotKeys: [USER] } });
+    expect(isUserController({ neuron, principalId: USER, ledgerPrincipals: [DEVICE] })).toBe(false);
+  });
+
+  it('returns false without a principal', () => {
+    const neuron = mockNeuron({ fullNeuron: { controller: USER } });
+    expect(isUserController({ neuron, principalId: undefined, ledgerPrincipals: [] })).toBe(false);
+  });
+
+  it('returns false without a full neuron', () => {
+    const neuron = mockNeuron({ fullNeuron: undefined });
+    expect(isUserController({ neuron, principalId: USER, ledgerPrincipals: [USER] })).toBe(false);
   });
 });
 

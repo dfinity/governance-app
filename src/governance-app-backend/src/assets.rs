@@ -304,7 +304,7 @@ fn get_asset_headers(additional_headers: Vec<HeaderField>) -> Vec<HeaderField> {
         ("x-content-type-options".to_string(), "nosniff".to_string()),
         ("content-security-policy".to_string(), get_csp_header_value()),
         ("referrer-policy".to_string(), "same-origin".to_string()),
-        ("permissions-policy".to_string(), "accelerometer=(), ambient-light-sensor=(), autoplay=(self), battery=(), camera=(self), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=(), clipboard-read=(), clipboard-write=(self), gamepad=(), speaker-selection=(), conversion-measurement=(), focus-without-user-activation=(), hid=(), idle-detection=(), interest-cohort=(), serial=(), sync-script=(), trust-token-redemption=(), window-placement=(), vertical-scroll=()".to_string()),
+        ("permissions-policy".to_string(), "accelerometer=(), ambient-light-sensor=(), autoplay=(self), battery=(), camera=(self), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=(), clipboard-read=(), clipboard-write=(self), gamepad=(), speaker-selection=(), conversion-measurement=(), focus-without-user-activation=(), hid=(self), idle-detection=(), interest-cohort=(), serial=(), sync-script=(), trust-token-redemption=(), window-placement=(), vertical-scroll=()".to_string()),
         ("x-xss-protection".to_string(), "1; mode=block".to_string()),
     ];
     headers.extend(additional_headers);
@@ -502,6 +502,18 @@ mod tests {
             .iter()
             .find(|(key, _)| key.eq_ignore_ascii_case(name))
             .map(|(_, value)| value.as_str())
+    }
+
+    // The Ledger device flows open the device through WebHID.
+    #[test]
+    fn permissions_policy_allows_webhid_on_the_same_origin() {
+        let headers = get_asset_headers(vec![]);
+        let (_, policy) = headers
+            .iter()
+            .find(|(key, _)| key == "permissions-policy")
+            .unwrap();
+
+        assert!(policy.split(", ").any(|entry| entry == "hid=(self)"));
     }
 
     #[test]

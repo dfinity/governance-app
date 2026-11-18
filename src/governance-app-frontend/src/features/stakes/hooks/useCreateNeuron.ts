@@ -27,7 +27,7 @@ import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { bigIntMul } from '@utils/bigInt';
 import { isCertifiedRejectError } from '@utils/errors';
 import { duplicateTransferOf } from '@utils/errors/duplicateTransfer';
-import { formatDissolveDelay } from '@utils/neuron';
+import { formatDissolveDelay, isNonEmptyNeuron, isUserController } from '@utils/neuron';
 import { failedRefresh, QUERY_KEYS } from '@utils/query';
 import { getIcpLedgerCanister, getNnsGovernanceCanister } from '@common/canisters';
 import {
@@ -37,6 +37,7 @@ import {
 import { runOnDevice } from '@common/ledger/deviceQueue';
 import { getLedgerIdentity } from '@common/ledger/session';
 import { II_SIGNER, type Signer } from '@common/ledger/signer';
+import { fetchRegisteredDevicePrincipals } from '@common/queries/nnsDapp';
 
 import { StakingWizardCreateNeuronStep } from '../components/stakingWizard/types';
 import { claimDeviceStake } from '../utils/claimDeviceStake';
@@ -343,13 +344,25 @@ export function useCreateNeuron(params: Props) {
       // Step 5: Set following automatically. The session signs it as controller or hotkey:
       // the device cannot sign `set_following`.
       if (step === StakingWizardCreateNeuronStep.SetFollowing) {
-        const userNeurons = await governanceCanister.listNeurons({
-          includeEmptyNeurons: true,
-          includePublicNeurons: true,
-          certified: true,
-        });
+        // Every registered device counts, also in a browser that cannot sign with it.
+        const [userNeurons, ledgerPrincipals] = await Promise.all([
+          governanceCanister.listNeurons({
+            includeEmptyNeurons: false,
+            includePublicNeurons: true,
+            certified: true,
+          }),
+          fetchRegisteredDevicePrincipals(queryClient),
+        ]);
 
-        const otherNeurons = userNeurons.filter((n) => n.neuronId !== id);
+        // Copy only from the user's own neurons that the app lists. `listNeurons` also returns
+        // neurons where the user is only a hotkey, and a stranger can add any principal as hotkey.
+        const principalId = identity.getPrincipal().toText();
+        const otherNeurons = userNeurons.filter(
+          (n) =>
+            n.neuronId !== id &&
+            isNonEmptyNeuron(n) &&
+            isUserController({ neuron: n, principalId, ledgerPrincipals }),
+        );
 
         if (otherNeurons.length > 0) {
           const consistentFollowees = getConsistentTopicFollowees(otherNeurons);

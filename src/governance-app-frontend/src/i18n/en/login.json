@@ -8,5 +8,9 @@
   "authenticating": "Authenticating with Internet Identity ...",
   "closedWindow": "Closed the window?",
   "openAgain": "Open Internet Identity again",
-  "legacyNnsDapp": "Go to the legacy NNS Dapp"
+  "legacyNnsDapp": "Go to the legacy NNS Dapp",
+  "storageDenied": {
+    "title": "Login is not possible",
+    "description": "Your browser blocks this site from saving data on your device, so it cannot keep a session. Allow site data for this site in the browser settings, then reload the page."
+  }
 }

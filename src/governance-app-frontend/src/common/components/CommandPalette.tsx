@@ -1,16 +1,22 @@
 import { nonNullish } from '@dfinity/utils';
 import { useNavigate } from '@tanstack/react-router';
-import { useCommandState } from 'cmdk';
+import { defaultFilter, useCommandState } from 'cmdk';
 import {
+  ArrowDownToLineIcon,
+  BanknoteIcon,
+  BookUserIcon,
+  CalendarRangeIcon,
   CheckIcon,
   EyeIcon,
   EyeOffIcon,
   FileTextIcon,
   KeyboardIcon,
+  LockIcon,
   LogOutIcon,
   MonitorIcon,
   MoonIcon,
   SunIcon,
+  UsersIcon,
 } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import { useState } from 'react';
@@ -32,15 +38,24 @@ import {
 import { Kbd } from '@components/Kbd';
 import { getNavigationItems } from '@components/navigation/NavigationItems';
 import { getSupportedAdvancedFeatures } from '@constants/advancedFeatures';
+import { FiatCurrency } from '@constants/fiat';
+import { ForecastPeriod } from '@constants/forecast';
 import { Theme } from '@constants/theme';
+import { useGovernanceNeurons } from '@hooks/governance';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useCommandPaletteShortcut } from '@hooks/useCommandPaletteShortcut';
+import { useFiatCurrency } from '@hooks/useFiatCurrency';
+import { useForecastPeriod } from '@hooks/useForecastPeriod';
 import { useHideBalances } from '@hooks/useHideBalances';
 import { useLogout } from '@hooks/useLogout';
 import { useShortcutSettings } from '@hooks/useShortcutSettings';
 import { useTheme } from '@hooks/useTheme';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { isAccountsAreaEnabled, notifyAdvancedFeatureChange } from '@utils/advancedFeatures';
+import { warningNotification } from '@utils/notification';
+
+// We only support English for now.
+const currencyNames = new Intl.DisplayNames('en', { type: 'currency' });
 
 const NAVIGATION_KEYWORDS: Record<string, string[]> = {
   '/dashboard': ['home', 'overview'],
@@ -62,16 +77,45 @@ const FEATURE_KEYWORDS: Record<AdvancedFeature, string[]> = {
   [AdvancedFeature.LedgerDevice]: ['ledger', 'hardware wallet', 'device', 'nano'],
 };
 
+enum Action {
+  Receive = 'receive',
+  Stake = 'stake',
+  ManageFollowing = 'manageFollowing',
+  AddressBook = 'addressBook',
+}
+
+const ACTION_KEYWORDS: Record<Action, string[]> = {
+  [Action.Receive]: ['deposit', 'address', 'qr code', 'account id'],
+  [Action.Stake]: ['neuron', 'staking', 'create neuron', 'wizard'],
+  [Action.ManageFollowing]: ['follow', 'followees', 'vote', 'known neuron'],
+  [Action.AddressBook]: ['contacts', 'addresses', 'saved addresses'],
+};
+
+// The cmdk filter also scores letters that are far apart, for example "euro" in "Show all proposals".
+// Such matches score below 0.05. Word, prefix, and abbreviation matches score above 0.15.
+const MIN_MATCH_SCORE = 0.1;
+
+const filterCommands = (value: string, search: string, keywords?: string[]) => {
+  const score = defaultFilter(value, search, keywords);
+  return score >= MIN_MATCH_SCORE ? score : 0;
+};
+
 const TOGGLE_BALANCES_VALUE = 'toggle-balances';
 const TOGGLE_SHORTCUTS_VALUE = 'toggle-shortcuts';
 const SIGN_OUT_VALUE = 'signout';
 const navValue = (href: string) => `nav:${href}`;
 const themeValue = (theme: Theme) => `theme:${theme}`;
 const featureValue = (feature: AdvancedFeature) => `feature:${feature}`;
+const actionValue = (action: Action) => `action:${action}`;
+const currencyValue = (currency: FiatCurrency) => `currency:${currency}`;
+const forecastValue = (period: ForecastPeriod) => `forecast:${period}`;
 
 type HintKey =
   | 'goToPage'
   | 'openProposal'
+  | 'runAction'
+  | 'setCurrency'
+  | 'setForecastPeriod'
   | 'applyTheme'
   | 'toggleBalances'
   | 'toggleShortcuts'
@@ -83,6 +127,9 @@ const getHintKey = (value: unknown): HintKey | null => {
   if (value.startsWith('nav:')) return 'goToPage';
   if (value.startsWith('theme:')) return 'applyTheme';
   if (value.startsWith('feature:')) return 'toggleFeature';
+  if (value.startsWith('action:')) return 'runAction';
+  if (value.startsWith('currency:')) return 'setCurrency';
+  if (value.startsWith('forecast:')) return 'setForecastPeriod';
   if (value === TOGGLE_BALANCES_VALUE) return 'toggleBalances';
   if (value === TOGGLE_SHORTCUTS_VALUE) return 'toggleShortcuts';
   if (value === SIGN_OUT_VALUE) return 'signOut';
@@ -103,6 +150,16 @@ const CommandHintFooter = () => {
     </div>
   );
 };
+
+/**
+ * cmdk ranks items inside a group, but it keeps the groups in DOM order. While the user searches,
+ * the items render without groups, so the best match is first.
+ */
+const CommandSection = ({
+  ranked,
+  ...props
+}: ComponentProps<typeof CommandGroup> & { ranked: boolean }) =>
+  ranked ? props.children : <CommandGroup {...props} />;
 
 /**
  * CommandItem that reports the selected item to analytics. A proposal ID is reported as
@@ -127,6 +184,9 @@ export const CommandPalette = () => {
   const { hidden, setHidden } = useHideBalances();
   const { enabled: shortcutsEnabled, setEnabled: setShortcutsEnabled } = useShortcutSettings();
   const { features, setFeature } = useAdvancedFeatures();
+  const { fiatCurrency, setFiatCurrency } = useFiatCurrency();
+  const { forecastPeriod, setForecastPeriod } = useForecastPeriod();
+  const neuronsQuery = useGovernanceNeurons();
   const logout = useLogout('command_palette');
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -153,6 +213,61 @@ export const CommandPalette = () => {
     runAndClose(() => navigate({ to: '/voting/proposals/$id', params: { id } }));
   };
 
+  const userNeurons = neuronsQuery.data?.response;
+
+  const actions: Array<{
+    key: Action;
+    icon: typeof LockIcon;
+    label: string;
+    disabled?: boolean;
+    run: () => void;
+  }> = [
+    {
+      key: Action.Receive,
+      icon: ArrowDownToLineIcon,
+      label: t(($) => $.commandPalette.items.receiveIcp),
+      run: () => navigate({ to: '/dashboard', search: { depositModal: true } }),
+    },
+    {
+      key: Action.Stake,
+      icon: LockIcon,
+      label: t(($) => $.commandPalette.items.stakeIcp),
+      run: () => navigate({ to: '/neurons', search: { openWizard: true } }),
+    },
+    {
+      key: Action.ManageFollowing,
+      icon: UsersIcon,
+      label: t(($) => $.commandPalette.items.manageFollowing),
+      // The warning needs a loaded list of neurons.
+      disabled: !userNeurons,
+      run: () => {
+        if (!userNeurons?.length) {
+          warningNotification({ description: t(($) => $.voting.warnings.stakeRequired) });
+          return;
+        }
+        navigate({ to: '/voting', search: { manageFollowing: true } });
+      },
+    },
+    {
+      key: Action.AddressBook,
+      icon: BookUserIcon,
+      label: t(($) => $.commandPalette.items.addressBook),
+      run: () => navigate({ to: '/settings', search: { openAddressBook: true } }),
+    },
+  ];
+
+  const forecastPeriodLabel = (period: ForecastPeriod) =>
+    t(($) => $.commandPalette.items.forecastPeriod, {
+      period: t(($) => $.userAccount.forecastPeriod.options[period]),
+    });
+
+  const changeForecastPeriod = (period: ForecastPeriod) => {
+    setForecastPeriod(period);
+    analytics.event(AnalyticsEvent.ForecastPeriodChange, { period, source: 'command_palette' });
+  };
+
+  const isSearching = trimmedSearch !== '';
+
   const toggleFeature = (key: AdvancedFeature) => {
     const next = !features[key];
     runAndClose(() => {
@@ -161,6 +276,17 @@ export const CommandPalette = () => {
     });
   };
 
+  const themeItems = [
+    { theme: Theme.Light, icon: SunIcon, label: t(($) => $.commandPalette.items.themeLight) },
+    { theme: Theme.Dark, icon: MoonIcon, label: t(($) => $.commandPalette.items.themeDark) },
+    { theme: Theme.System, icon: MonitorIcon, label: t(($) => $.commandPalette.items.themeSystem) },
+  ];
+  const balancesLabel = hidden
+    ? t(($) => $.commandPalette.items.showBalances)
+    : t(($) => $.commandPalette.items.hideBalances);
+  const shortcutsLabel = t(($) => $.commandPalette.items.keyboardShortcuts);
+  const signOutLabel = t(($) => $.commandPalette.items.signOut);
+
   return (
     <CommandDialog
       open={open}
@@ -168,6 +294,7 @@ export const CommandPalette = () => {
       title={t(($) => $.commandPalette.title)}
       description={t(($) => $.commandPalette.description)}
       showCloseButton={false}
+      filter={filterCommands}
     >
       <CommandInput
         value={search}
@@ -177,22 +304,43 @@ export const CommandPalette = () => {
       <CommandList>
         <CommandEmpty>{t(($) => $.commandPalette.empty)}</CommandEmpty>
 
-        <CommandGroup heading={t(($) => $.commandPalette.groups.navigate)}>
-          {navigationItems.map((item) => (
+        <CommandSection ranked={isSearching} heading={t(($) => $.commandPalette.groups.navigate)}>
+          {navigationItems.map((item) => {
+            const label = t(item.label as never);
+            return (
+              <TrackedCommandItem
+                key={item.href}
+                value={navValue(item.href)}
+                keywords={[label, ...(NAVIGATION_KEYWORDS[item.href] ?? [])]}
+                onSelect={() => runAndClose(() => navigate({ to: item.href }))}
+              >
+                <item.icon />
+                <span>{label}</span>
+              </TrackedCommandItem>
+            );
+          })}
+        </CommandSection>
+
+        <CommandSection ranked={isSearching} heading={t(($) => $.commandPalette.groups.actions)}>
+          {actions.map(({ key, icon: Icon, label, disabled, run }) => (
             <TrackedCommandItem
-              key={item.href}
-              value={navValue(item.href)}
-              keywords={NAVIGATION_KEYWORDS[item.href]}
-              onSelect={() => runAndClose(() => navigate({ to: item.href }))}
+              key={key}
+              value={actionValue(key)}
+              keywords={[label, ...ACTION_KEYWORDS[key]]}
+              disabled={disabled}
+              onSelect={() => runAndClose(run)}
             >
-              <item.icon />
-              <span>{t(item.label as never)}</span>
+              <Icon />
+              <span>{label}</span>
             </TrackedCommandItem>
           ))}
-        </CommandGroup>
+        </CommandSection>
 
         {(showProposalHint || nonNullish(proposalIdMatch)) && (
-          <CommandGroup heading={t(($) => $.commandPalette.groups.proposals)}>
+          <CommandSection
+            ranked={isSearching}
+            heading={t(($) => $.commandPalette.groups.proposals)}
+          >
             {nonNullish(proposalIdMatch) ? (
               <TrackedCommandItem
                 value={trimmedSearch}
@@ -211,90 +359,116 @@ export const CommandPalette = () => {
                 <span>{t(($) => $.commandPalette.items.proposalHint)}</span>
               </TrackedCommandItem>
             )}
-          </CommandGroup>
+          </CommandSection>
         )}
 
-        <CommandSeparator />
+        {!isSearching && <CommandSeparator />}
 
-        <CommandGroup heading={t(($) => $.commandPalette.groups.preferences)}>
-          <TrackedCommandItem
-            value={themeValue(Theme.Light)}
-            keywords={['appearance', 'color']}
-            onSelect={() => setTheme(Theme.Light)}
-          >
-            <SunIcon />
-            <span>{t(($) => $.commandPalette.items.themeLight)}</span>
-            {theme === Theme.Light && <CheckIcon className="ml-auto" />}
-          </TrackedCommandItem>
-          <TrackedCommandItem
-            value={themeValue(Theme.Dark)}
-            keywords={['appearance', 'color']}
-            onSelect={() => setTheme(Theme.Dark)}
-          >
-            <MoonIcon />
-            <span>{t(($) => $.commandPalette.items.themeDark)}</span>
-            {theme === Theme.Dark && <CheckIcon className="ml-auto" />}
-          </TrackedCommandItem>
-          <TrackedCommandItem
-            value={themeValue(Theme.System)}
-            keywords={['appearance', 'color']}
-            onSelect={() => setTheme(Theme.System)}
-          >
-            <MonitorIcon />
-            <span>{t(($) => $.commandPalette.items.themeSystem)}</span>
-            {theme === Theme.System && <CheckIcon className="ml-auto" />}
-          </TrackedCommandItem>
+        <CommandSection
+          ranked={isSearching}
+          heading={t(($) => $.commandPalette.groups.preferences)}
+        >
+          {themeItems.map(({ theme: itemTheme, icon: Icon, label }) => (
+            <TrackedCommandItem
+              key={itemTheme}
+              value={themeValue(itemTheme)}
+              keywords={[label, 'appearance', 'color']}
+              onSelect={() => setTheme(itemTheme)}
+            >
+              <Icon />
+              <span>{label}</span>
+              {theme === itemTheme && <CheckIcon className="ml-auto" />}
+            </TrackedCommandItem>
+          ))}
           <TrackedCommandItem
             value={TOGGLE_BALANCES_VALUE}
-            keywords={['privacy', 'balance']}
+            keywords={[balancesLabel, 'privacy', 'balance']}
             onSelect={() => runAndClose(() => setHidden(!hidden))}
           >
             {hidden ? <EyeIcon /> : <EyeOffIcon />}
-            <span>
-              {hidden
-                ? t(($) => $.commandPalette.items.showBalances)
-                : t(($) => $.commandPalette.items.hideBalances)}
-            </span>
+            <span>{balancesLabel}</span>
           </TrackedCommandItem>
           {/* Stays open: the checkmark is the only feedback this toggle gives. */}
           <TrackedCommandItem
             value={TOGGLE_SHORTCUTS_VALUE}
-            keywords={['keyboard', 'shortcuts', 'hotkeys', 'keys']}
+            keywords={[shortcutsLabel, 'keyboard', 'shortcuts', 'hotkeys', 'keys']}
             onSelect={() => setShortcutsEnabled(!shortcutsEnabled)}
           >
             <KeyboardIcon />
-            <span>{t(($) => $.commandPalette.items.keyboardShortcuts)}</span>
+            <span>{shortcutsLabel}</span>
             {shortcutsEnabled && <CheckIcon className="ml-auto" />}
           </TrackedCommandItem>
-        </CommandGroup>
+          {/* The options are long lists, so they show only when the user searches. */}
+          {isSearching &&
+            Object.values(FiatCurrency).map((currency) => {
+              const label = t(($) => $.commandPalette.items.fiatCurrency, {
+                name: currencyNames.of(currency),
+                code: currency,
+              });
+              return (
+                <TrackedCommandItem
+                  key={currency}
+                  value={currencyValue(currency)}
+                  keywords={[label, 'currency', 'fiat', 'money']}
+                  onSelect={() => setFiatCurrency(currency)}
+                >
+                  <BanknoteIcon />
+                  <span>{label}</span>
+                  {fiatCurrency === currency && <CheckIcon className="ml-auto" />}
+                </TrackedCommandItem>
+              );
+            })}
+          {isSearching &&
+            Object.values(ForecastPeriod).map((period) => {
+              const label = forecastPeriodLabel(period);
+              return (
+                <TrackedCommandItem
+                  key={period}
+                  value={forecastValue(period)}
+                  keywords={[label, 'forecast', 'maturity', 'rewards', 'period']}
+                  onSelect={() => changeForecastPeriod(period)}
+                >
+                  <CalendarRangeIcon />
+                  <span>{label}</span>
+                  {forecastPeriod === period && <CheckIcon className="ml-auto" />}
+                </TrackedCommandItem>
+              );
+            })}
+        </CommandSection>
 
-        <CommandGroup heading={t(($) => $.commandPalette.groups.advancedFeatures)}>
-          {getSupportedAdvancedFeatures().map(({ key, icon: Icon }) => (
-            <TrackedCommandItem
-              key={key}
-              value={featureValue(key)}
-              keywords={FEATURE_KEYWORDS[key]}
-              onSelect={() => toggleFeature(key)}
-            >
-              <Icon />
-              <span>{t(($) => $.userAccount.advancedFeatures.items[key].label)}</span>
-              {features[key] && <CheckIcon className="ml-auto" />}
-            </TrackedCommandItem>
-          ))}
-        </CommandGroup>
+        <CommandSection
+          ranked={isSearching}
+          heading={t(($) => $.commandPalette.groups.advancedFeatures)}
+        >
+          {getSupportedAdvancedFeatures().map(({ key, icon: Icon }) => {
+            const label = t(($) => $.userAccount.advancedFeatures.items[key].label);
+            return (
+              <TrackedCommandItem
+                key={key}
+                value={featureValue(key)}
+                keywords={[label, ...FEATURE_KEYWORDS[key]]}
+                onSelect={() => toggleFeature(key)}
+              >
+                <Icon />
+                <span>{label}</span>
+                {features[key] && <CheckIcon className="ml-auto" />}
+              </TrackedCommandItem>
+            );
+          })}
+        </CommandSection>
 
-        <CommandSeparator />
+        {!isSearching && <CommandSeparator />}
 
-        <CommandGroup>
+        <CommandSection ranked={isSearching}>
           <TrackedCommandItem
             value={SIGN_OUT_VALUE}
-            keywords={['logout', 'log out']}
+            keywords={[signOutLabel, 'logout', 'log out']}
             onSelect={() => runAndClose(logout)}
           >
             <LogOutIcon />
-            <span>{t(($) => $.commandPalette.items.signOut)}</span>
+            <span>{signOutLabel}</span>
           </TrackedCommandItem>
-        </CommandGroup>
+        </CommandSection>
       </CommandList>
       <CommandHintFooter />
     </CommandDialog>

@@ -85,7 +85,8 @@
     "items": {
       "toggleTheme": "Toggle theme",
       "logout": "Logout",
-      "hideBalances": "Toggle privacy"
+      "hideBalances": "Toggle privacy",
+      "toggleSidebar": "Toggle sidebar"
     },
     "aria": {
       "toggle": "Toggle keyboard shortcuts"

@@ -1,9 +1,11 @@
+import type { QueryClient } from '@tanstack/react-query';
+
 import type { AccountDetails } from '@declarations/nns-dapp/nns-dapp.did';
 
 import { QUERY_KEYS } from '@utils/query';
 import { getNnsDappActor } from '@common/canisters';
 
-import { CertifiedQuery } from './certified';
+import { CertifiedQuery, certifiedQueryKey, withCertifiedFlag } from './certified';
 
 const getAccount = async (certified: boolean): Promise<AccountDetails | null> => {
   const actor = await getNnsDappActor({ certified });
@@ -17,3 +19,20 @@ export const nnsDappAccountQuery = (): CertifiedQuery<AccountDetails | null> => 
   queryFn: () => getAccount(false),
   updateFn: () => getAccount(true),
 });
+
+/**
+ * Resolves with the principals of the Ledger devices registered in NNS dapp, with a certified
+ * call unless the certified cache is fresh. It does not depend on the `ledgerDevice` feature or
+ * on WebHID.
+ */
+export const fetchRegisteredDevicePrincipals = async (
+  queryClient: QueryClient,
+): Promise<string[]> => {
+  const { queryKey, updateFn } = nnsDappAccountQuery();
+  const { response } = await queryClient.fetchQuery({
+    queryKey: certifiedQueryKey(queryKey),
+    queryFn: () => withCertifiedFlag(updateFn(), true),
+  });
+
+  return (response?.hardware_wallet_accounts ?? []).map((device) => device.principal.toText());
+};
