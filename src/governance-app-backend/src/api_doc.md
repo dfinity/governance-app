@@ -187,7 +187,9 @@ Call `manage_neuron` (update) one time for each neuron:
   response is `command = opt variant { Error = ... }`.
 - A neuron can vote on a proposal only if the proposal has a ballot for it.
   The proposal makes the ballots when it is made, for each neuron with a
-  dissolve delay of 14 days or more at that time.
+  dissolve delay of 14 days or more at that time. A neuron management proposal
+  (topic 1) is the exception: it has ballots only for the followees of the
+  managed neuron on topic 1.
 - A vote cannot be changed or undone. A second vote with the same neuron
   returns an error.
 - A vote can make the neurons that follow this neuron vote. A follower votes
