@@ -1,7 +1,7 @@
 import { ProposalInfo } from '@icp-sdk/canisters/nns';
 import { type ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
+import { CartesianGrid, Line, LineChart, ReferenceLine, XAxis, YAxis } from 'recharts';
 
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@components/Card';
 import {
@@ -18,14 +18,22 @@ import { formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
 import { useProposalTallyHistory } from '../hooks/useProposalTallyHistory';
-import { getDayTicks, hasTallyHistory, TallyPoint, toTallyChart } from '../tallyHistory';
+import {
+  getDayTicks,
+  getShareAxis,
+  hasTallyHistory,
+  MAJORITY_SHARE,
+  QUORUM_SHARE,
+  TallyPoint,
+  toTallyChart,
+} from '../tallyHistory';
 
 type Props = {
   proposal: ProposalInfo;
 };
 
-const SHARE_TICKS = [0, 0.25, 0.5, 0.75, 1];
 const NO_DASH = '5 4';
+const REFERENCE_DASH = '2 3';
 const CHART_HEIGHT = 'h-45';
 
 // We only support English for now.
@@ -41,6 +49,24 @@ const VotingHistoryTooltipContent = (props: ComponentProps<typeof ChartTooltipCo
     <ChartTooltipContent {...props} />
   </div>
 );
+
+// Marks the latest value of a line.
+const latestDot =
+  (lastIndex: number, color: string) =>
+  ({ index, cx, cy }: { index: number; cx?: number; cy?: number }) =>
+    index === lastIndex ? (
+      <circle
+        key="latest"
+        cx={cx}
+        cy={cy}
+        r={4}
+        fill={color}
+        stroke="var(--card)"
+        strokeWidth={2}
+      />
+    ) : (
+      <g key={index} />
+    );
 
 const LegendItem = ({ label, className }: { label: string; className: string }) => (
   <span className="flex items-center gap-1.5">
@@ -78,6 +104,11 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
     },
   } satisfies ChartConfig;
   const lastIndex = (chart?.points.length ?? 0) - 1;
+  const shareAxis = getShareAxis(chart?.points ?? []);
+  const referenceLines = [
+    { share: QUORUM_SHARE, label: t(($) => $.proposal.votingHistory.quorum) },
+    { share: MAJORITY_SHARE, label: t(($) => $.proposal.votingHistory.majority) },
+  ].filter(({ share }) => share <= shareAxis.max);
 
   return (
     <Card data-testid="proposal-voting-history">
@@ -124,8 +155,8 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
                 tickMargin={8}
               />
               <YAxis
-                domain={[0, 1]}
-                ticks={SHARE_TICKS}
+                domain={[0, shareAxis.max]}
+                ticks={shareAxis.ticks}
                 tickFormatter={(share: number) =>
                   formatPercentage(share, { minFraction: 0, maxFraction: 0 })
                 }
@@ -164,13 +195,27 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
                   />
                 }
               />
+              {referenceLines.map(({ share, label }) => (
+                <ReferenceLine
+                  key={share}
+                  y={share}
+                  stroke="var(--color-foreground-secondary)"
+                  strokeDasharray={REFERENCE_DASH}
+                  label={{
+                    value: label,
+                    position: 'insideTopRight',
+                    fontSize: 11,
+                    fill: 'var(--color-foreground-secondary)',
+                  }}
+                />
+              ))}
               <Line
                 dataKey="no"
                 type="stepAfter"
                 stroke="var(--color-no)"
                 strokeWidth={2}
                 strokeDasharray={NO_DASH}
-                dot={false}
+                dot={latestDot(lastIndex, 'var(--color-no)')}
                 activeDot={{ r: 3 }}
                 isAnimationActive={false}
               />
@@ -180,22 +225,7 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
                 stroke="var(--color-yes)"
                 strokeWidth={2}
                 strokeLinejoin="round"
-                // Marks the latest value.
-                dot={({ index, cx, cy }) =>
-                  index === lastIndex ? (
-                    <circle
-                      key="latest"
-                      cx={cx}
-                      cy={cy}
-                      r={4}
-                      fill="var(--color-yes)"
-                      stroke="var(--card)"
-                      strokeWidth={2}
-                    />
-                  ) : (
-                    <g key={index} />
-                  )
-                }
+                dot={latestDot(lastIndex, 'var(--color-yes)')}
                 activeDot={{ r: 3 }}
                 isAnimationActive={false}
               />
