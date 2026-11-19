@@ -11,8 +11,14 @@ import { WarningMessage } from '@components/WarningMessage';
 import { useVerifyLedgerDevice } from '../hooks/useVerifyLedgerDevice';
 import { AddLedgerDeviceDialog } from './AddLedgerDeviceDialog';
 
+type Props = {
+  /** Controls the open state of the add dialog. */
+  isAddOpen?: boolean;
+  onAddOpenChange?: (open: boolean) => void;
+};
+
 /** The Ledger devices registered in the NNS dapp, with the add and verify actions. */
-export const LedgerDevicesCard = () => {
+export const LedgerDevicesCard = ({ isAddOpen, onAddOpenChange }: Props = {}) => {
   const { t } = useTranslation();
   const { data: devices, isLoading, isError, refetch } = useHardwareWalletsMetadata();
   const verify = useVerifyLedgerDevice();
@@ -29,6 +35,8 @@ export const LedgerDevicesCard = () => {
           </p>
         </div>
         <AddLedgerDeviceDialog
+          open={isAddOpen}
+          onOpenChange={onAddOpenChange}
           trigger={(open) => (
             <Button variant="outline" onClick={open} className="shrink-0">
               <Plus aria-hidden="true" />
