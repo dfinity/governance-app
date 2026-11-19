@@ -63,8 +63,12 @@ export const AgentPoolProvider = ({ children }: { children: ReactNode }) => {
         },
       }));
 
+      // A newer identity, for example a session that another tab renewed, replaces this one.
+      let current = true;
+
       getAuthenticatedAgent(identity)
         .then((agent) => {
+          if (!current) return;
           setAgentPool((prev) => ({
             ...prev,
             authenticated: {
@@ -75,6 +79,7 @@ export const AgentPoolProvider = ({ children }: { children: ReactNode }) => {
           }));
         })
         .catch((error) => {
+          if (!current) return;
           console.error('AgentPoolProvider: failed to create authenticated agent.', error);
           setAgentPool((prev) => ({
             ...prev,
@@ -85,6 +90,10 @@ export const AgentPoolProvider = ({ children }: { children: ReactNode }) => {
             },
           }));
         });
+
+      return () => {
+        current = false;
+      };
     } else {
       // Drop the cached agents too, so a later login cannot reuse a stale identity.
       // The Ledger caches belong to the session that registered the devices.

@@ -11,7 +11,10 @@ import { WELCOME_MODAL_STORAGE_KEY } from '@constants/extra';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useDetectAdvancedFeatures } from '@hooks/useDetectAdvancedFeatures';
 import { AdvancedFeature } from '@typings/advancedFeatures';
+import { markAllAnnouncementsSeen } from '@utils/featureAnnouncements';
 import { successNotification } from '@utils/notification';
+import { getStorageItem, setStorageItem } from '@utils/storage';
+import { useIsLoginHandoffActive } from '@common/auth/loginHandoff';
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -23,11 +26,14 @@ import {
 export function WelcomeModal() {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(
-    () => typeof window !== 'undefined' && !localStorage.getItem(WELCOME_MODAL_STORAGE_KEY),
+    () => typeof window !== 'undefined' && !getStorageItem(WELCOME_MODAL_STORAGE_KEY),
   );
 
-  const { isDetecting, detectedFeatures, error } = useDetectAdvancedFeatures();
-  const { setFeature } = useAdvancedFeatures();
+  // Opens once the login hand-off frame leaves, so it does not take focus behind the frame.
+  const isLoginHandoffActive = useIsLoginHandoffActive();
+  const isShown = isOpen && !isLoginHandoffActive;
+  const { setFeature, missingFeatureKeys } = useAdvancedFeatures();
+  const { isDetecting, detectedFeatures, error } = useDetectAdvancedFeatures(missingFeatureKeys);
 
   const hasError = nonNullish(error);
 
@@ -46,7 +52,8 @@ export function WelcomeModal() {
       setFeature(key as keyof typeof detectedFeatures, detected ?? false);
     }
     setIsOpen(false);
-    localStorage.setItem(WELCOME_MODAL_STORAGE_KEY, 'true');
+    setStorageItem(WELCOME_MODAL_STORAGE_KEY, 'true');
+    markAllAnnouncementsSeen();
     successNotification({
       description: t(($) => $.welcomeModal.toast),
     });
@@ -55,10 +62,10 @@ export function WelcomeModal() {
   return (
     <>
       <NavigationBlockerDialog
-        isBlocked={isOpen && isDetecting}
+        isBlocked={isShown && isDetecting}
         description={t(($) => $.welcomeModal.detectingNavBlock)}
       />
-      <ResponsiveDialog open={isOpen} onOpenChange={setIsOpen} dismissible={!isDetecting}>
+      <ResponsiveDialog open={isShown} onOpenChange={setIsOpen} dismissible={!isDetecting}>
         <ResponsiveDialogContent
           onPointerDownOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={isDetecting ? (e) => e.preventDefault() : undefined}

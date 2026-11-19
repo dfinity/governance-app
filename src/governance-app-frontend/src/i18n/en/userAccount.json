@@ -39,7 +39,6 @@
       "connectHint": "The browser shows a list of devices. Pick the Ledger device to continue.",
       "connect": "Connect",
       "connecting": "Connecting…",
-      "connected": "Device connected",
       "connectedDescription": "Check that the values match the device.",
       "principal": "Principal",
       "accountIdentifier": "Account identifier",
@@ -86,7 +85,8 @@
     "items": {
       "toggleTheme": "Toggle theme",
       "logout": "Logout",
-      "hideBalances": "Toggle privacy"
+      "hideBalances": "Toggle privacy",
+      "toggleSidebar": "Toggle sidebar"
     },
     "aria": {
       "toggle": "Toggle keyboard shortcuts"
@@ -108,6 +108,7 @@
     "title": "Forecast period",
     "description": "Choose the period of the maturity forecast. On the Overview page, a tap on the forecast also changes it.",
     "options": {
+      "day": "Day",
       "week": "Week",
       "month": "Month",
       "year": "Year"

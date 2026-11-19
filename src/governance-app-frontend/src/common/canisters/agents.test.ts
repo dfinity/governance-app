@@ -8,7 +8,8 @@ vi.mock('@dfinity/utils', async (importOriginal) => ({
   createAgent,
 }));
 
-const { clearLedgerAgents, getAuthenticatedAgent, getLedgerAgent } = await import('./agents');
+const { clearAuthenticatedAgent, clearLedgerAgents, getAuthenticatedAgent, getLedgerAgent } =
+  await import('./agents');
 
 const identityOf = (principal: string): Identity =>
   ({ getPrincipal: () => Principal.fromText(principal) }) as Identity;
@@ -83,5 +84,38 @@ describe('getLedgerAgent', () => {
 
     expect(authenticated).not.toBe(ledger);
     expect(createAgent).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('getAuthenticatedAgent', () => {
+  beforeEach(() => {
+    clearAuthenticatedAgent();
+    createAgent.mockImplementation(async ({ identity }: { identity: Identity }) => ({ identity }));
+  });
+
+  afterEach(() => {
+    clearAuthenticatedAgent();
+    createAgent.mockReset();
+  });
+
+  it('reuses the agent for the same identity', async () => {
+    const identity = identityOf('2vxsx-fae');
+
+    const first = await getAuthenticatedAgent(identity);
+    const second = await getAuthenticatedAgent(identity);
+
+    expect(second).toBe(first);
+    expect(createAgent).toHaveBeenCalledTimes(1);
+  });
+
+  it('signs with the renewed identity when another tab renews the same account', async () => {
+    const before = identityOf('2vxsx-fae');
+    const renewed = identityOf('2vxsx-fae');
+
+    const first = await getAuthenticatedAgent(before);
+    const second = await getAuthenticatedAgent(renewed);
+
+    expect(second).not.toBe(first);
+    expect(second).toEqual({ identity: renewed });
   });
 });

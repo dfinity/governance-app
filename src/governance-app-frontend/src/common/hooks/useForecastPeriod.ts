@@ -5,6 +5,7 @@ import { ForecastPeriod } from '@constants/forecast';
 import { MaturityEstimatePeriod } from '@utils/staking-rewards';
 
 export const FORECAST_ESTIMATE_PERIOD: Record<ForecastPeriod, MaturityEstimatePeriod> = {
+  [ForecastPeriod.Day]: MaturityEstimatePeriod.DAY,
   [ForecastPeriod.Week]: MaturityEstimatePeriod.WEEK,
   [ForecastPeriod.Month]: MaturityEstimatePeriod.MONTH,
   [ForecastPeriod.Year]: MaturityEstimatePeriod.YEAR,

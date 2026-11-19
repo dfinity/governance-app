@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { AnalyticsEvent } from '@features/analytics/events';
 import { getErrorReason } from '@features/analytics/properties';
 import { analytics } from '@features/analytics/service';
+import { DeviceActionLabeledDetail } from '@features/ledger/components/DeviceActionDetail';
 
 import { DeviceActionCancelledError, isDeviceActionCancelled } from '@hooks/useDeviceAction';
 import { mapCanisterError } from '@utils/errors';
@@ -36,11 +37,20 @@ export function useVerifyLedgerDevice() {
         },
         {
           description: t(($) => $.userAccount.ledgerDevices.verifyDescription),
+          // The device shows the address first, then the principal.
           detail: (
-            <span className="flex flex-col gap-1">
-              <span>{principal}</span>
-              <span>{accountId}</span>
-            </span>
+            <DeviceActionLabeledDetail
+              entries={[
+                {
+                  label: t(($) => $.userAccount.ledgerDevices.addDialog.accountIdentifier),
+                  value: accountId,
+                },
+                {
+                  label: t(($) => $.userAccount.ledgerDevices.addDialog.principal),
+                  value: principal,
+                },
+              ]}
+            />
           ),
         },
       ),

@@ -34,7 +34,7 @@ import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useApyColor } from '@hooks/useApyColor';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { bigIntDiv } from '@utils/bigInt';
-import { formatTimestampToLocalDate } from '@utils/date';
+import { secondsToDate } from '@utils/date';
 import { shortenId } from '@utils/id';
 import {
   formatDissolveDelay,
@@ -52,6 +52,7 @@ import { cn } from '@utils/shadcn';
 import { useNeuronLedgerDevice } from '../../hooks/useNeuronLedgerDevice';
 import { FollowingStatusAlert } from '../FollowingStatusAlert';
 import { FollowingStatusInline } from '../FollowingStatusInline';
+import { LedgerDeviceBand } from '../LedgerDeviceBand';
 import { NeuronStateBadge } from '../NeuronStateBadge';
 import { NeuronDetailView } from './types';
 
@@ -97,7 +98,8 @@ export function NeuronDetailSummaryView({
     i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
   });
 
-  const creationDate = formatTimestampToLocalDate(neuron.fullNeuron?.createdTimestampSeconds);
+  const createdSeconds = neuron.fullNeuron?.createdTimestampSeconds;
+  const creationDate = nonNullish(createdSeconds) ? secondsToDate(Number(createdSeconds)) : '-';
 
   const { features } = useAdvancedFeatures();
   const isAdvancedFollowing = features[AdvancedFeature.AdvancedFollowing];
@@ -138,15 +140,10 @@ export function NeuronDetailSummaryView({
       </div>
 
       {/* Neuron Info Section */}
-      <div className="flex flex-col rounded-lg border bg-muted/30">
+      <div className="flex flex-col overflow-hidden rounded-lg border bg-muted/30">
+        {ledgerDevice && <LedgerDeviceBand name={ledgerDevice.name} className="px-4" />}
         <InfoRow label={t(($) => $.neuron.stakeId)} dataTestId="neuron-detail-stake-id">
           <div className="flex items-center gap-2">
-            {ledgerDevice && (
-              <Badge variant="outline" data-testid="neuron-ledger-device-badge">
-                <Usb aria-hidden="true" />
-                {t(($) => $.neuron.ledgerDevice)}
-              </Badge>
-            )}
             {isHotkey && (
               <Tooltip>
                 <TooltipTrigger asChild>

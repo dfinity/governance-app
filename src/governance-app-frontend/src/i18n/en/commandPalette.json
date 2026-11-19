@@ -5,6 +5,7 @@
   "empty": "No results found.",
   "groups": {
     "navigate": "Navigate",
+    "actions": "Actions",
     "proposals": "Proposals",
     "preferences": "Preferences",
     "advancedFeatures": "Advanced features"
@@ -18,7 +19,15 @@
     "hideBalances": "Hide balances",
     "showBalances": "Show balances",
     "keyboardShortcuts": "Keyboard shortcuts",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "receiveIcp": "Receive ICP",
+    "sendIcp": "Send ICP",
+    "stakeIcp": "Stake ICP",
+    "manageFollowing": "Manage following",
+    "addressBook": "Open address book",
+    "addLedgerDevice": "Add Ledger device",
+    "fiatCurrency": "Show values in {{name}} ({{code}})",
+    "forecastPeriod": "Forecast period: {{period}}"
   },
   "hints": {
     "goToPage": "Go to page",
@@ -27,6 +36,9 @@
     "toggleBalances": "Toggle balances",
     "toggleShortcuts": "Toggle keyboard shortcuts",
     "toggleFeature": "Toggle feature",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "runAction": "Run action",
+    "setCurrency": "Change currency",
+    "setForecastPeriod": "Change forecast period"
   }
 }

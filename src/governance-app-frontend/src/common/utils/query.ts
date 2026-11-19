@@ -12,11 +12,14 @@ const NNS_GOVERNANCE = {
   ECONOMICS: 'nnsGovernanceEconomics',
   ENGAGEMENT: 'nnsGovernanceEngagement',
   KNOWN_NEURONS: 'nnsGovernanceKnownNeurons',
+  KNOWN_NEURON_BALLOTS: 'nnsGovernanceKnownNeuronBallots',
   LATEST_REWARD_EVENT: 'nnsGovernanceLatestRewardEvent',
+  MATURITY_MODULATION: 'nnsGovernanceMaturityModulation',
   METRICS: 'nnsGovernanceMetrics',
   NEURONS: 'nnsGovernanceNeurons',
   DEVICE_NEURONS: 'nnsGovernanceDeviceNeurons',
   PROPOSAL: 'nnsGovernanceProposal',
+  PROPOSAL_LIVE_TALLY: 'nnsGovernanceProposalLiveTally',
   PROPOSALS: 'nnsGovernanceProposals',
 };
 
@@ -37,12 +40,17 @@ const GOVERNANCE_APP_BACKEND = {
   ADDRESS_BOOK: 'governanceAppBackendAddressBook',
   EXCHANGE_RATE: 'governanceAppBackendExchangeRate',
   EXCHANGE_RATE_HISTORY: 'governanceAppBackendExchangeRateHistory',
+  EXCHANGE_RATE_MONTH_HISTORY: 'governanceAppBackendExchangeRateMonthHistory',
   FIAT_EXCHANGE_RATES: 'governanceAppBackendFiatExchangeRates',
 };
 
 const SPAM_FILTER = {
   NON_CONSTRUCTIVE_PROPOSAL_IDS: 'spamFilterNonConstructiveProposalIds',
   SPAM_CHECK: 'spamFilterSpamCheck',
+};
+
+const DASHBOARD_COLLECTOR = {
+  TALLY_HISTORY: 'dashboardCollectorTallyHistory',
 };
 
 export const QUERY_KEYS = {
@@ -53,6 +61,7 @@ export const QUERY_KEYS = {
   EXTERNAL_SERVICES,
   GOVERNANCE_APP_BACKEND,
   SPAM_FILTER,
+  DASHBOARD_COLLECTOR,
 };
 
 export const stringifyKeys = (keys: readonly unknown[]) => {

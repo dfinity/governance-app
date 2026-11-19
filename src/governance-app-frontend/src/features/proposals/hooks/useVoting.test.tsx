@@ -1,11 +1,20 @@
 import '@/i18n/config';
 
 import type { Ballot, NeuronInfo, ProposalInfo } from '@icp-sdk/canisters/nns';
-import { ProposalRewardStatus, ProposalStatus, Topic, Vote } from '@icp-sdk/canisters/nns';
+import {
+  GovernanceError,
+  ProposalRewardStatus,
+  ProposalStatus,
+  Topic,
+  Vote,
+} from '@icp-sdk/canisters/nns';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { AnalyticsEvent } from '@features/analytics/events';
+import { analytics } from '@features/analytics/service';
 
 import { cancelPendingDeviceAction, usePendingDeviceAction } from '@hooks/useDeviceAction';
 import { QUERY_KEYS } from '@utils/query';
@@ -101,6 +110,10 @@ const deferred = <T,>() => {
   return { promise, resolve, reject };
 };
 
+const governanceError = (errorType: number) =>
+  new GovernanceError({ error_type: errorType, error_message: 'rejected by governance' });
+const alreadyVotedError = () => governanceError(19);
+
 const renderVoting = (proposal: ProposalInfo) => {
   const queryClient = new QueryClient();
   const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries');
@@ -127,6 +140,7 @@ describe('useVoting', () => {
       .mockResolvedValue({ registerVote: mocks.deviceRegisterVote });
     mocks.runOnDevice.mockReset().mockImplementation((_principal, call) => call());
     mocks.toastPromise.mockReset();
+    vi.mocked(analytics.event).mockClear();
   });
 
   it('refreshes the participation rate after a vote', async () => {
@@ -316,6 +330,68 @@ describe('useVoting', () => {
       queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS],
     });
     await expect(mocks.toastPromise.mock.calls[0][0]).resolves.toBeDefined();
+  });
+
+  it('reports success when a neuron voted already', async () => {
+    mocks.neurons.mockReturnValue([sessionNeuron(1n), sessionNeuron(2n)]);
+    mocks.registerVote.mockRejectedValueOnce(alreadyVotedError());
+    const { result, invalidateQueries } = renderVoting(proposalWith([1n, 2n]));
+
+    act(() => result.current.voting.vote(Vote.Yes));
+
+    await waitFor(() => expect(result.current.voting.isVoting).toBe(false));
+    expect(mocks.registerVote).toHaveBeenCalledTimes(2);
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSALS],
+    });
+    await expect(mocks.toastPromise.mock.calls[0][0]).resolves.toBeDefined();
+    expect(analytics.event).toHaveBeenCalledWith(AnalyticsEvent.VotingCastVote, expect.anything());
+    expect(analytics.event).not.toHaveBeenCalledWith(
+      AnalyticsEvent.VotingCastVoteError,
+      expect.anything(),
+    );
+  });
+
+  it('votes with the device after a session neuron that voted already', async () => {
+    mocks.neurons.mockReturnValue([sessionNeuron(1n), deviceNeuron(2n)]);
+    mocks.ledgerPrincipals.mockReturnValue([DEVICE]);
+    mocks.registerVote.mockRejectedValueOnce(alreadyVotedError());
+    const { result } = renderVoting(proposalWith([1n, 2n]));
+
+    act(() => result.current.voting.vote(Vote.Yes));
+
+    await waitFor(() => expect(result.current.voting.isVoting).toBe(false));
+    expect(mocks.deviceRegisterVote).toHaveBeenCalledTimes(1);
+  });
+
+  it('goes on with the next device vote when a device neuron voted already', async () => {
+    mocks.neurons.mockReturnValue([deviceNeuron(1n), deviceNeuron(2n)]);
+    mocks.ledgerPrincipals.mockReturnValue([DEVICE]);
+    mocks.deviceRegisterVote.mockRejectedValueOnce(alreadyVotedError());
+    const { result } = renderVoting(proposalWith([1n, 2n]));
+
+    act(() => result.current.voting.vote(Vote.Yes));
+
+    await waitFor(() => expect(result.current.voting.isVoting).toBe(false));
+    expect(mocks.deviceRegisterVote).toHaveBeenCalledTimes(2);
+    await expect(mocks.toastPromise.mock.calls[0][0]).resolves.toBeDefined();
+  });
+
+  it('reports a failure when another governance error comes with an already voted one', async () => {
+    mocks.neurons.mockReturnValue([sessionNeuron(1n), sessionNeuron(2n)]);
+    mocks.registerVote
+      .mockRejectedValueOnce(alreadyVotedError())
+      .mockRejectedValueOnce(governanceError(11));
+    const { result } = renderVoting(proposalWith([1n, 2n]));
+
+    act(() => result.current.voting.vote(Vote.Yes));
+
+    await waitFor(() => expect(result.current.voting.isVoting).toBe(false));
+    await expect(mocks.toastPromise.mock.calls[0][0]).rejects.toBeInstanceOf(GovernanceError);
+    expect(analytics.event).toHaveBeenCalledWith(
+      AnalyticsEvent.VotingCastVoteError,
+      expect.objectContaining({ reason: 'governance_11' }),
+    );
   });
 
   it('refreshes the votes already cast when a device vote fails', async () => {

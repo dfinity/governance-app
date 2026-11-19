@@ -22,6 +22,9 @@ const { hardwareWallets, webHid } = vi.hoisted(() => ({
   webHid: vi.fn(() => false),
 }));
 
+vi.mock('@hooks/governance/useGovernanceMaturityModulation', () => ({
+  useGovernanceMaturityModulation: () => ({ data: undefined, isLoading: false }),
+}));
 vi.mock('@features/accounts/hooks/useHardwareWalletsMetadata', () => ({
   useHardwareWalletsMetadata: () => ({ data: hardwareWallets(), isLoading: false }),
 }));
@@ -86,7 +89,7 @@ describe('NeuronCard', () => {
       principal: DEVICE_PRINCIPAL,
     };
 
-    it('shows the badge with the device name when a registered device controls the neuron', () => {
+    it('shows the band with the device name when a registered device controls the neuron', () => {
       hardwareWallets.mockReturnValue([device]);
 
       render(
@@ -97,24 +100,23 @@ describe('NeuronCard', () => {
         />,
       );
 
-      expect(getTestId('neuron-ledger-device-badge').getAttribute('title')).toBe('Nano X');
-      expect(getTestId('neuron-ledger-device-badge').textContent).toContain('Ledger device');
+      expect(getTestId('neuron-ledger-device-band').textContent).toBe('Ledger · Nano X');
     });
 
-    it('hides the badge when the controller is not a registered device', () => {
+    it('hides the band when the controller is not a registered device', () => {
       hardwareWallets.mockReturnValue([device]);
 
       render(<NeuronCard neuron={mockNeuron()} />);
 
-      expect(queryTestId('neuron-ledger-device-badge')).toBeNull();
+      expect(queryTestId('neuron-ledger-device-band')).toBeNull();
     });
 
-    it('hides the badge when no device is registered', () => {
+    it('hides the band when no device is registered', () => {
       hardwareWallets.mockReturnValue([]);
 
       render(<NeuronCard neuron={mockNeuron({ fullNeuron: { controller: DEVICE_PRINCIPAL } })} />);
 
-      expect(queryTestId('neuron-ledger-device-badge')).toBeNull();
+      expect(queryTestId('neuron-ledger-device-band')).toBeNull();
     });
   });
 
@@ -131,6 +133,16 @@ describe('NeuronCard', () => {
 
       expect(queryTestId('neuron-card-maturity-auto-stake')).toBeTruthy();
       expect(queryTestId('neuron-card-maturity-keep-liquid')).toBeFalsy();
+    });
+  });
+
+  describe('creation date', () => {
+    it('shows the month as a word', () => {
+      // Local noon, so the day does not depend on the host time zone.
+      const createdTimestampSeconds = BigInt(new Date(2023, 10, 15, 12).getTime() / 1000);
+      render(<NeuronCard neuron={mockNeuron({ fullNeuron: { createdTimestampSeconds } })} />);
+
+      expect(screen.getByText('Nov 15, 2023')).toBeTruthy();
     });
   });
 
@@ -403,7 +415,7 @@ describe('NeuronCard', () => {
       expect(getTestId('neuron-card-disburse-icp-btn')).toBeTruthy();
       expect(getTestId('neuron-card-disburse-maturity-btn')).toBeTruthy();
       expect(queryTestId('neuron-hotkey-badge')).toBeFalsy();
-      expect(getTestId('neuron-ledger-device-badge')).toBeTruthy();
+      expect(getTestId('neuron-ledger-device-band')).toBeTruthy();
     });
 
     it('hides the action buttons when the browser has no WebHID', () => {

@@ -5,6 +5,7 @@ import { Trans, useTranslation } from 'react-i18next';
 
 import { useAccounts } from '@features/accounts/hooks/useAccounts';
 import { useMainAccountMetadata } from '@features/accounts/hooks/useMainAccountMetadata';
+import { isAccountOffered } from '@features/accounts/types';
 import {
   DestinationInput,
   type DestinationSuggestion,
@@ -43,7 +44,6 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
   const { mutateAsync } = useDisburseNeuron();
   const signer = useNeuronSigner(neuron);
   const { features } = useAdvancedFeatures();
-  const subaccountsEnabled = features.subaccounts;
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const addressBookQuery = useAddressBook();
@@ -54,8 +54,8 @@ export function DisburseIcpModal({ neuron, isOpen, onOpenChange }: Props) {
   const mainAccountId = useMainAccountMetadata().data!.accountId;
   const mainAccountName = t(($) => $.accounts.mainAccount);
   const { data: accountsState } = useAccounts();
-  const ownAccounts = (accountsState?.accounts ?? []).filter(
-    (account) => subaccountsEnabled || account.accountId === mainAccountId,
+  const ownAccounts = (accountsState?.accounts ?? []).filter((account) =>
+    isAccountOffered(account, features),
   );
   const destinationSuggestions: DestinationSuggestion[] = [
     ...ownAccounts.map((account) => ({

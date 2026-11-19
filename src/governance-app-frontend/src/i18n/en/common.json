@@ -5,6 +5,12 @@
     "goToLogin": "Go to login",
     "goBack": "Go back"
   },
+  "error": {
+    "title": "Something went wrong",
+    "description": "The page could not load. Reload the page to try again.",
+    "storageDenied": "Your browser blocks this site from saving data on your device. Allow site data for this site in the browser settings, then reload the page.",
+    "reload": "Reload page"
+  },
   "loading": "Loading",
   "loadingError": "Error loading data.",
   "refreshFailed": "Failed to automatically refresh the data. Please try reloading the page.",
@@ -54,6 +60,11 @@
   "accounts": "ICP accounts",
   "stakes": "Voting neurons",
   "settings": "Settings",
+  "sidebar": {
+    "collapse": "Collapse",
+    "collapseLabel": "Collapse sidebar",
+    "expandLabel": "Expand sidebar"
+  },
   "clipboard": {
     "copy": "Copy to clipboard",
     "copied": "Your {{label}} was copied to the clipboard.",
@@ -116,6 +127,8 @@
   "ledgerApproval": {
     "title": "Approve on your Ledger device",
     "answerPending": "Approve or reject on your Ledger device to continue.",
+    "waiting": "Waiting for your answer on the device. The request takes a few seconds to appear.",
+    "closeHint": "If you close this dialog, the device still shows the request.",
     "neuron": "Neuron {{neuronId}}",
     "increaseDelay": "Check the neuron ID and the additional dissolve delay on the device screen and approve.",
     "additionalDelay": "Additional delay: {{delay}}",

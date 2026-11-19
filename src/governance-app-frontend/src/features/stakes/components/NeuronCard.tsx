@@ -1,9 +1,8 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { nonNullish } from '@dfinity/utils';
-import { AlertTriangle, CircleAlert, Coins, Hourglass, Key, PackagePlus, Usb } from 'lucide-react';
+import { AlertTriangle, CircleAlert, Coins, Hourglass, Key, PackagePlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge } from '@components/badge';
 import { Button } from '@components/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@components/Card';
 import { MaturitySymbol } from '@components/MaturitySymbol';
@@ -15,7 +14,7 @@ import { useIcpPrice } from '@hooks/tickers';
 import { useApyColor } from '@hooks/useApyColor';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { bigIntDiv } from '@utils/bigInt';
-import { formatTimestampToLocalDate } from '@utils/date';
+import { secondsToDate } from '@utils/date';
 import {
   formatDissolveDelay,
   getDissolvingTimeInSeconds,
@@ -39,6 +38,7 @@ import { APY } from '@utils/staking-rewards';
 import { useNeuronLedgerDevice } from '../hooks/useNeuronLedgerDevice';
 import { useLedgerSignerPrincipals } from '../hooks/useNeuronSigner';
 import { FollowingStatusBadge } from './FollowingStatusBadge';
+import { LedgerDeviceBand } from './LedgerDeviceBand';
 import type { NeuronAction } from './neuronDetail';
 import { NeuronStandaloneAction } from './neuronDetail';
 import { NeuronStateBadge } from './NeuronStateBadge';
@@ -80,7 +80,8 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
     i18n: t(($) => $.common.durationUnits, { returnObjects: true }),
   });
 
-  const creationDate = formatTimestampToLocalDate(neuron.fullNeuron?.createdTimestampSeconds);
+  const createdSeconds = neuron.fullNeuron?.createdTimestampSeconds;
+  const creationDate = nonNullish(createdSeconds) ? secondsToDate(Number(createdSeconds)) : '-';
 
   const stakedMaturity = bigIntDiv(getNeuronStakedMaturityE8s(neuron), E8Sn);
   const unstakedMaturity = bigIntDiv(getNeuronFreeMaturityE8s(neuron), E8Sn);
@@ -94,10 +95,17 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
   return (
     <>
       <Card
-        className="@container/neuron-card flex h-full flex-col gap-3 transition-colors hover:border-foreground"
+        className="group/neuron-card @container/neuron-card relative flex h-full flex-col gap-3 transition-colors hover:border-foreground"
         data-testid="neuron-card"
       >
-        {/* The tags (device, hotkey, 8-year gang, APY) share one cluster. Narrow cards show
+        {/* The tab hangs in the top padding, so the rows line up with cards without it. */}
+        {ledgerDevice && (
+          <LedgerDeviceBand
+            name={ledgerDevice.name}
+            className="absolute top-0 left-6 max-w-[calc(100%-3rem)] gap-1 rounded-b-[5px] border-x px-2 py-0.5 text-[11px] leading-4 transition-colors group-hover/neuron-card:border-foreground"
+          />
+        )}
+        {/* The tags (hotkey, 8-year gang, APY) share one cluster. Narrow cards show
             the fiat value and the tags on one line below the amount. */}
         <CardHeader className="flex flex-wrap items-center justify-between space-y-0 gap-x-3 gap-y-1 @md/neuron-card:items-start @md/neuron-card:gap-y-3">
           <div className="contents @md/neuron-card:flex @md/neuron-card:flex-col @md/neuron-card:gap-1">
@@ -121,27 +129,19 @@ export const NeuronCard = ({ neuron, apy, onAction }: Props) => {
               )
             )}
           </div>
-          {(ledgerDevice || isHotkey || showApy) && (
+          {(isHotkey || showApy) && (
             <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-1.5">
-              {ledgerDevice && (
-                <Badge
-                  variant="outline"
-                  title={ledgerDevice.name}
-                  data-testid="neuron-ledger-device-badge"
-                >
-                  <Usb aria-hidden="true" />
-                  {t(($) => $.neuron.ledgerDevice)}
-                </Badge>
-              )}
               {isHotkey && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div
-                      className="flex cursor-help items-center gap-1 rounded-sm border border-blue-200 bg-blue-100 px-2 py-0.5 text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+                      className="flex cursor-help items-center gap-1 rounded-sm border border-blue-200 bg-blue-100 px-2 py-0.5 text-blue-700 @md/neuron-card:gap-1.5 @md/neuron-card:p-2 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
                       data-testid="neuron-hotkey-badge"
                     >
-                      <Key className="size-3" aria-hidden="true" />
-                      <span className="text-[11px] font-medium">{t(($) => $.neuron.hotkey)}</span>
+                      <Key className="size-3 @md/neuron-card:size-3.5" aria-hidden="true" />
+                      <span className="text-[11px] font-medium @md/neuron-card:text-[13px]">
+                        {t(($) => $.neuron.hotkey)}
+                      </span>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>{t(($) => $.neuron.hotkeyTooltip)}</TooltipContent>

@@ -12,6 +12,7 @@ export const ForecastPeriodCard = () => {
   const { forecastPeriod, setForecastPeriod } = useForecastPeriod();
 
   const optionLabels: Record<ForecastPeriod, string> = {
+    [ForecastPeriod.Day]: t(($) => $.userAccount.forecastPeriod.options.day),
     [ForecastPeriod.Week]: t(($) => $.userAccount.forecastPeriod.options.week),
     [ForecastPeriod.Month]: t(($) => $.userAccount.forecastPeriod.options.month),
     [ForecastPeriod.Year]: t(($) => $.userAccount.forecastPeriod.options.year),

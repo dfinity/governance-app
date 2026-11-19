@@ -63,6 +63,7 @@ CANISTER_ID_NNS_GOVERNANCE=rrkah-fqaaa-aaaaa-aaaaq-cai
 CANISTER_ID_CKUSD_LEDGER=xevnm-gaaaa-aaaar-qafnq-cai
 CANISTER_ID_NNS_DAPP=qoctq-giaaa-aaaaa-aaaea-cai
 CANISTER_ID_SPAM_FILTER=xhfiu-7yaaa-aaaal-qvdja-cai
+CANISTER_ID_DASHBOARD_COLLECTOR=gsmzf-bqaaa-aaaam-ajeyq-cai
 CANISTER_ID_SELF=mc7vh-sqaaa-aaaai-q33na-cai
 EXTRA_ICP_SWAP_URL='https://uvevg-iyaaa-aaaak-ac27q-cai.raw.ic0.app'
 EXTRA_PLAUSIBLE_DOMAIN_URL='nns.internetcomputer.org'
@@ -95,7 +96,10 @@ if [[ "$NETWORK" == "devenv" ]]; then
   echo "Using devenv with user: $USERNAME"
 fi
 
-generate_env_content "$NETWORK" "$USERNAME" > "$ENV_FILE"
+# Write a temporary file and rename it, so a process that reads .env at the same time
+# (the E2E build runs while the network starts) never sees a half-written file.
+generate_env_content "$NETWORK" "$USERNAME" > "$ENV_FILE.tmp.$$"
+mv "$ENV_FILE.tmp.$$" "$ENV_FILE"
 
 echo "✅ Generated .env file: $ENV_FILE"
 echo

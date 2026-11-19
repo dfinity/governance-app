@@ -24,6 +24,59 @@ try {
   process.env.BUILD_DATE ??= 'dev';
 }
 
+const vendorChunkName = (id) => {
+  if (id.includes('node_modules')) {
+    if (
+      id.includes('node_modules/react/') ||
+      id.includes('node_modules/react-dom/') ||
+      id.includes('node_modules/scheduler/') // React 19 dependency
+    )
+      return 'vendor-core-react';
+
+    if (id.includes('@tanstack')) return 'vendor-tanstack';
+
+    // Isolate the ICP SDKs as they are heavy
+    if (id.includes('@dfinity') || id.includes('@icp-sdk') || id.includes('@noble'))
+      return 'vendor-icp';
+
+    if (id.includes('markdown') || id.includes('remark') || id.includes('micromark'))
+      return 'vendor-md';
+
+    if (id.includes('recharts') || id.includes('d3') || id.includes('lodash'))
+      return 'vendor-recharts';
+
+    // Loaded on demand by the QR scanner. Keep it out of the shared vendor chunk.
+    if (id.includes('node_modules/jsqr/')) return 'vendor-jsqr';
+
+    // Loaded on demand by the Ledger device module. Keep it and the dependencies of the
+    // Device Management Kit out of the shared vendor chunk.
+    if (
+      [
+        '@zondax',
+        '@ledgerhq',
+        'node_modules/rxjs/',
+        'node_modules/xstate/',
+        'node_modules/inversify/',
+        '@inversifyjs/',
+        'node_modules/uuid/',
+        'node_modules/purify-ts/',
+        'node_modules/reflect-metadata/',
+        'node_modules/@sentry/',
+        'node_modules/isomorphic-ws/',
+      ].some((lib) => id.includes(lib))
+    )
+      return 'vendor-ledger';
+
+    // The Ledger libraries read `Buffer` from the global scope when their chunk
+    // evaluates, so the polyfill must load and run in its own chunk first.
+    if (id.includes('node_modules/buffer/')) return 'vendor-buffer';
+
+    // Everything else (Lucide, Radix, Motion)
+    return 'vendor-libs';
+  }
+  return null;
+};
+
 export default defineConfig({
   server: {
     port: 3000,
@@ -31,58 +84,16 @@ export default defineConfig({
   },
   build: {
     emptyOutDir: true,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (
-              id.includes('node_modules/react/') ||
-              id.includes('node_modules/react-dom/') ||
-              id.includes('node_modules/scheduler/') // React 19 dependency
-            )
-              return 'vendor-core-react';
-
-            if (id.includes('@tanstack')) return 'vendor-tanstack';
-
-            // Isolate the ICP SDKs as they are heavy
-            if (id.includes('@dfinity') || id.includes('@icp-sdk') || id.includes('@noble'))
-              return 'vendor-icp';
-
-            if (id.includes('markdown') || id.includes('remark') || id.includes('micromark'))
-              return 'vendor-md';
-
-            if (id.includes('recharts') || id.includes('d3') || id.includes('lodash'))
-              return 'vendor-recharts';
-
-            // Loaded on demand by the QR scanner. Keep it out of the shared vendor chunk.
-            if (id.includes('node_modules/jsqr/')) return 'vendor-jsqr';
-
-            // Loaded on demand by the Ledger device module. Keep it and the dependencies of the
-            // Device Management Kit out of the shared vendor chunk.
-            if (
-              [
-                '@zondax',
-                '@ledgerhq',
-                'node_modules/rxjs/',
-                'node_modules/xstate/',
-                'node_modules/inversify/',
-                '@inversifyjs/',
-                'node_modules/uuid/',
-                'node_modules/purify-ts/',
-                'node_modules/reflect-metadata/',
-                'node_modules/@sentry/',
-                'node_modules/isomorphic-ws/',
-              ].some((lib) => id.includes(lib))
-            )
-              return 'vendor-ledger';
-
-            // The Ledger libraries read `Buffer` from the global scope when their chunk
-            // evaluates, so the polyfill must load and run in its own chunk first.
-            if (id.includes('node_modules/buffer/')) return 'vendor-buffer';
-
-            // Everything else (Lucide, Radix, Motion)
-            return 'vendor-libs';
-          }
+        codeSplitting: {
+          groups: [
+            // A group also takes the dependencies of its modules. `rxjs` needs `tslib`, and the
+            // shared vendor code needs it at startup, so `tslib` has a group of its own. Without
+            // it, `tslib` lands in `vendor-ledger` and the entry preloads that chunk.
+            { name: 'vendor-tslib', test: /node_modules\/tslib\//, priority: 100 },
+            { name: vendorChunkName, priority: 1 },
+          ],
         },
       },
     },

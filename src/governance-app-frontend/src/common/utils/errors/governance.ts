@@ -7,6 +7,15 @@ import {
 } from '@icp-sdk/canisters/nns';
 import { t } from 'i18next';
 
+// `ErrorType::NeuronAlreadyVoted` in the NNS Governance canister.
+const NEURON_ALREADY_VOTED_ERROR_TYPE = 19;
+
+/**
+ * Checks for the error of a vote from a neuron with a ballot already cast on the proposal.
+ */
+export const isNeuronAlreadyVotedError = (error: unknown): boolean =>
+  error instanceof GovernanceError && error.detail.error_type === NEURON_ALREADY_VOTED_ERROR_TYPE;
+
 /**
  * Maps NNS Governance canister errors to user-friendly i18n messages.
  */

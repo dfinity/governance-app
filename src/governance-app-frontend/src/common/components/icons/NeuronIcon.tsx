@@ -1,12 +1,15 @@
 import type { SVGProps } from 'react';
 
-export const NeuronIcon = (props: SVGProps<SVGSVGElement>) => (
+import { cn } from '@utils/shadcn';
+
+export const NeuronIcon = ({ className, ...props }: SVGProps<SVGSVGElement>) => (
   <svg
     viewBox="0 0 20 20"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     aria-hidden="true"
     focusable={false}
+    className={cn('neuron-icon', className)}
     {...props}
   >
     <g stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}>

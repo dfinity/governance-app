@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { II_SIGNER } from '@common/ledger/signer';
 
-import { AccountType, canSignFromAccount, getAccountSigner } from './types';
+import { AccountType, canSignFromAccount, getAccountSigner, isAccountOffered } from './types';
 
 const DEVICE = { type: AccountType.HardwareWallet, principal: 'aaaaa-aa' };
 
@@ -34,6 +34,32 @@ describe('canSignFromAccount', () => {
 
     withWebHid(false);
     expect(canSignFromAccount(DEVICE)).toBe(false);
+  });
+});
+
+describe('isAccountOffered', () => {
+  const NONE = { subaccounts: false, ledgerDevice: false };
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('always offers the main account', () => {
+    expect(isAccountOffered({ type: AccountType.Main }, NONE)).toBe(true);
+  });
+
+  it('offers a sub-account only with the subaccounts feature', () => {
+    expect(isAccountOffered({ type: AccountType.Subaccount }, NONE)).toBe(false);
+    expect(isAccountOffered({ type: AccountType.Subaccount }, { ...NONE, subaccounts: true })).toBe(
+      true,
+    );
+  });
+
+  it('offers a Ledger device account only with the ledgerDevice feature, without WebHID', () => {
+    withWebHid(false);
+
+    expect(isAccountOffered(DEVICE, NONE)).toBe(false);
+    expect(isAccountOffered(DEVICE, { ...NONE, ledgerDevice: true })).toBe(true);
   });
 });
 

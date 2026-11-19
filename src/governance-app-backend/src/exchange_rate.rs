@@ -1,4 +1,5 @@
 pub mod cache;
+pub mod month_history;
 mod time;
 pub mod xrc_client;
 
@@ -8,12 +9,15 @@ mod tests;
 use std::time::Duration;
 
 use cache::{CachedRate, FiatExchangeRate, IcpExchangeRateResponse};
+use month_history::PastMonthRate;
 use xrc_client::{Asset, AssetClass, GetExchangeRateRequest};
 
 const UPDATE_INTERVAL: Duration = Duration::from_secs(300); // 5 minutes
 /// The XRC moves to a new daily forex rate at no fixed time.
 /// An hourly check keeps the cached fiat rates at most one hour behind the XRC.
 const FIAT_UPDATE_INTERVAL: Duration = Duration::from_secs(ONE_HOUR_SECS);
+/// How often the canister tries again to fetch the rates that the month history misses.
+const MONTH_HISTORY_GAP_FILL_INTERVAL: Duration = Duration::from_secs(ONE_DAY_SECS);
 const ONE_DAY_SECS: u64 = 86_400;
 const ONE_HOUR_SECS: u64 = 3_600;
 /// The history includes the one-day-ago rate only if it is at most this much older than one day.
@@ -31,8 +35,10 @@ pub fn init_exchange_rate_timer() {
         update_icp_to_usd_exchange_rate().await;
         // The history lives on the heap, so it is empty after `init` and `post_upgrade`.
         backfill_rate_history().await;
+        fill_month_history_gaps().await;
     });
     ic_cdk_timers::set_timer_interval(UPDATE_INTERVAL, update_icp_to_usd_exchange_rate);
+    ic_cdk_timers::set_timer_interval(MONTH_HISTORY_GAP_FILL_INTERVAL, fill_month_history_gaps);
     ic_cdk_timers::set_timer(Duration::ZERO, update_fiat_exchange_rates());
     ic_cdk_timers::set_timer_interval(FIAT_UPDATE_INTERVAL, update_fiat_exchange_rates);
 }
@@ -43,6 +49,10 @@ pub fn get_icp_to_usd_exchange_rate() -> IcpExchangeRateResponse {
 
 pub fn get_icp_to_usd_rate_history() -> Vec<CachedRate> {
     cache::list_past_day_rates()
+}
+
+pub fn list_icp_to_usd_past_month_rates() -> Vec<PastMonthRate> {
+    month_history::list_past_month_rates()
 }
 
 pub fn list_usd_to_fiat_exchange_rates() -> Vec<FiatExchangeRate> {
@@ -84,6 +94,7 @@ async fn update_icp_to_usd_exchange_rate() {
     // No timestamp = latest available rate from XRC.
     // https://github.com/dfinity/exchange-rate-canister/blob/41393865715eecb620474de34351096ec77a13fa/src/xrc/src/api.rs#L369
     if let Some(rate) = fetch_rate(icp_asset(), fiat_asset("USD"), None, "current").await {
+        month_history::add_rate(&rate);
         cache::set_current_rate(rate);
     }
     let one_day_ago_rate = fetch_rate(
@@ -111,6 +122,25 @@ async fn backfill_rate_history() {
             fetch_rate(icp_asset(), fiat_asset("USD"), Some(timestamp), "history").await;
         if let Some(rate) = history_rate {
             cache::add_history_rate(rate);
+        }
+    }
+}
+
+/// Fetches the rate of each slot that the month history misses, newest first.
+/// A failed call is not retried here. Its slot stays missing, so the next run fetches it.
+async fn fill_month_history_gaps() {
+    for slot_start_seconds in month_history::list_missing_slot_starts_seconds() {
+        // A `None` needs no log here, because `fetch_rate` logs the reason.
+        let month_history_rate = fetch_rate(
+            icp_asset(),
+            fiat_asset("USD"),
+            Some(slot_start_seconds),
+            "month-history",
+        )
+        .await;
+
+        if let Some(rate) = month_history_rate {
+            month_history::add_rate(&rate);
         }
     }
 }

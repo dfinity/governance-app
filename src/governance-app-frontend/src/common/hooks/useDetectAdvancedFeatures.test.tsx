@@ -9,13 +9,11 @@ import { useDetectAdvancedFeatures } from './useDetectAdvancedFeatures';
 const mocks = vi.hoisted(() => ({
   nnsDappAccount: vi.fn(),
   governanceNeurons: vi.fn(),
-  advancedFeatures: vi.fn(),
   isWebHidSupported: vi.fn(),
 }));
 
 vi.mock('@hooks/nnsDapp/useNnsDappAccount', () => ({ useNnsDappAccount: mocks.nnsDappAccount }));
 vi.mock('@hooks/governance', () => ({ useGovernanceNeurons: mocks.governanceNeurons }));
-vi.mock('@hooks/useAdvancedFeatures', () => ({ useAdvancedFeatures: mocks.advancedFeatures }));
 vi.mock('@common/ledger/webhid', () => ({ isWebHidSupported: mocks.isWebHidSupported }));
 
 const DEVICE = {
@@ -32,9 +30,6 @@ const mockAccount = (hardwareWallets: (typeof DEVICE)[]) =>
 
 describe('useDetectAdvancedFeatures', () => {
   beforeEach(() => {
-    mocks.advancedFeatures.mockReturnValue({
-      missingFeatureKeys: [AdvancedFeature.LedgerDevice],
-    });
     mocks.governanceNeurons.mockReturnValue({ data: undefined, isLoading: false });
     mocks.isWebHidSupported.mockReturnValue(true);
   });
@@ -42,7 +37,7 @@ describe('useDetectAdvancedFeatures', () => {
   it('detects a registered Ledger device when WebHID is available', () => {
     mockAccount([DEVICE]);
 
-    const { result } = renderHook(() => useDetectAdvancedFeatures());
+    const { result } = renderHook(() => useDetectAdvancedFeatures([AdvancedFeature.LedgerDevice]));
 
     expect(result.current.detectedFeatures).toEqual({ [AdvancedFeature.LedgerDevice]: true });
     expect(mocks.nnsDappAccount).toHaveBeenCalledWith(true);
@@ -51,7 +46,7 @@ describe('useDetectAdvancedFeatures', () => {
   it('reports no device when none is registered', () => {
     mockAccount([]);
 
-    const { result } = renderHook(() => useDetectAdvancedFeatures());
+    const { result } = renderHook(() => useDetectAdvancedFeatures([AdvancedFeature.LedgerDevice]));
 
     expect(result.current.detectedFeatures).toEqual({ [AdvancedFeature.LedgerDevice]: false });
   });
@@ -60,7 +55,17 @@ describe('useDetectAdvancedFeatures', () => {
     mocks.isWebHidSupported.mockReturnValue(false);
     mockAccount([DEVICE]);
 
-    const { result } = renderHook(() => useDetectAdvancedFeatures());
+    const { result } = renderHook(() => useDetectAdvancedFeatures([AdvancedFeature.LedgerDevice]));
+
+    expect(result.current.detectedFeatures).toEqual({});
+    expect(result.current.isDetecting).toBe(false);
+    expect(mocks.nnsDappAccount).toHaveBeenCalledWith(false);
+  });
+
+  it('stays inert with no feature to check', () => {
+    mockAccount([DEVICE]);
+
+    const { result } = renderHook(() => useDetectAdvancedFeatures([]));
 
     expect(result.current.detectedFeatures).toEqual({});
     expect(result.current.isDetecting).toBe(false);

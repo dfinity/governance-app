@@ -1,19 +1,27 @@
 import { nonNullish } from '@dfinity/utils';
 import { useNavigate } from '@tanstack/react-router';
-import { useCommandState } from 'cmdk';
+import { defaultFilter, useCommandState } from 'cmdk';
 import {
+  ArrowDownToLineIcon,
+  BanknoteIcon,
+  BookUserIcon,
+  CalendarRangeIcon,
   CheckIcon,
   EyeIcon,
   EyeOffIcon,
   FileTextIcon,
   KeyboardIcon,
+  LockIcon,
   LogOutIcon,
   MonitorIcon,
   MoonIcon,
+  SendIcon,
   SunIcon,
+  UsbIcon,
+  UsersIcon,
 } from 'lucide-react';
-import type { ComponentProps } from 'react';
-import { useState } from 'react';
+import type { ComponentProps, ElementType } from 'react';
+import { Fragment, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
@@ -28,25 +36,38 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
+  CommandShortcut,
 } from '@components/Command';
+import { CommandPaletteNoResultTracker } from '@components/CommandPaletteNoResultTracker';
 import { Kbd } from '@components/Kbd';
 import { getNavigationItems } from '@components/navigation/NavigationItems';
 import { getSupportedAdvancedFeatures } from '@constants/advancedFeatures';
+import { FiatCurrency } from '@constants/fiat';
+import { ForecastPeriod } from '@constants/forecast';
 import { Theme } from '@constants/theme';
+import { useGovernanceNeurons } from '@hooks/governance';
+import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useCommandPaletteShortcut } from '@hooks/useCommandPaletteShortcut';
+import { useFiatCurrency } from '@hooks/useFiatCurrency';
+import { useForecastPeriod } from '@hooks/useForecastPeriod';
 import { useHideBalances } from '@hooks/useHideBalances';
 import { useLogout } from '@hooks/useLogout';
 import { useShortcutSettings } from '@hooks/useShortcutSettings';
 import { useTheme } from '@hooks/useTheme';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { isAccountsAreaEnabled, notifyAdvancedFeatureChange } from '@utils/advancedFeatures';
+import { warningNotification } from '@utils/notification';
+import { isWebHidSupported } from '@common/ledger/webhid';
+
+// We only support English for now.
+const currencyNames = new Intl.DisplayNames('en', { type: 'currency' });
 
 const NAVIGATION_KEYWORDS: Record<string, string[]> = {
   '/dashboard': ['home', 'overview'],
   '/neurons': ['stake', 'stakes', 'staking'],
   '/voting': ['proposals', 'vote', 'governance'],
-  '/accounts': ['wallet', 'balance', 'send', 'receive'],
+  '/accounts': ['wallet', 'balance', 'receive'],
   '/settings': ['preferences', 'config'],
 };
 
@@ -58,20 +79,66 @@ const FEATURE_KEYWORDS: Record<AdvancedFeature, string[]> = {
     'spam',
     'non-constructive',
   ],
-  [AdvancedFeature.TransactionMemo]: ['memo', 'send', 'transaction'],
+  [AdvancedFeature.TransactionMemo]: ['memo', 'transaction'],
   [AdvancedFeature.LedgerDevice]: ['ledger', 'hardware wallet', 'device', 'nano'],
+};
+
+// The cmdk filter also scores letters that are far apart, for example "euro" in "Show all proposals".
+// Such matches score below 0.05. Word, prefix, and abbreviation matches score above 0.15.
+const MIN_MATCH_SCORE = 0.1;
+
+const filterCommands = (value: string, search: string, keywords?: string[]) => {
+  const score = defaultFilter(value, search, keywords);
+  return score >= MIN_MATCH_SCORE ? score : 0;
 };
 
 const TOGGLE_BALANCES_VALUE = 'toggle-balances';
 const TOGGLE_SHORTCUTS_VALUE = 'toggle-shortcuts';
 const SIGN_OUT_VALUE = 'signout';
-const navValue = (href: string) => `nav:${href}`;
-const themeValue = (theme: Theme) => `theme:${theme}`;
-const featureValue = (feature: AdvancedFeature) => `feature:${feature}`;
+
+type CommandGroupId =
+  | 'navigate'
+  | 'actions'
+  | 'proposals'
+  | 'preferences'
+  | 'advancedFeatures'
+  | 'account';
+
+/** The display order of the groups. A separator comes before a `separated` group. */
+const GROUPS: Array<{ id: CommandGroupId; separated?: boolean }> = [
+  { id: 'navigate' },
+  { id: 'actions' },
+  { id: 'proposals' },
+  { id: 'preferences', separated: true },
+  { id: 'advancedFeatures' },
+  { id: 'account', separated: true },
+];
+
+type PaletteCommand = {
+  /** The cmdk value. Analytics and the hint footer read it. */
+  id: string;
+  group: CommandGroupId;
+  label: string;
+  /** More search words. The item also matches its label, which comes first. */
+  keywords?: string[];
+  icon: ElementType;
+  disabled?: boolean;
+  /** Shows a checkmark, for example on the current theme. */
+  checked?: boolean;
+  shortcut?: string;
+  /** The item shows only while the user searches. */
+  searchOnly?: boolean;
+  /** The palette stays open after `run`. */
+  keepOpen?: boolean;
+  run: () => void;
+};
 
 type HintKey =
   | 'goToPage'
   | 'openProposal'
+  | 'runAction'
+  | 'setCurrency'
+  | 'setForecastPeriod'
   | 'applyTheme'
   | 'toggleBalances'
   | 'toggleShortcuts'
@@ -83,6 +150,9 @@ const getHintKey = (value: unknown): HintKey | null => {
   if (value.startsWith('nav:')) return 'goToPage';
   if (value.startsWith('theme:')) return 'applyTheme';
   if (value.startsWith('feature:')) return 'toggleFeature';
+  if (value.startsWith('action:')) return 'runAction';
+  if (value.startsWith('currency:')) return 'setCurrency';
+  if (value.startsWith('forecast:')) return 'setForecastPeriod';
   if (value === TOGGLE_BALANCES_VALUE) return 'toggleBalances';
   if (value === TOGGLE_SHORTCUTS_VALUE) return 'toggleShortcuts';
   if (value === SIGN_OUT_VALUE) return 'signOut';
@@ -103,6 +173,16 @@ const CommandHintFooter = () => {
     </div>
   );
 };
+
+/**
+ * cmdk ranks items inside a group, but it keeps the groups in DOM order. While the user searches,
+ * the items render without groups, so the best match is first.
+ */
+const CommandSection = ({
+  ranked,
+  ...props
+}: ComponentProps<typeof CommandGroup> & { ranked: boolean }) =>
+  ranked ? props.children : <CommandGroup {...props} />;
 
 /**
  * CommandItem that reports the selected item to analytics. A proposal ID is reported as
@@ -127,6 +207,10 @@ export const CommandPalette = () => {
   const { hidden, setHidden } = useHideBalances();
   const { enabled: shortcutsEnabled, setEnabled: setShortcutsEnabled } = useShortcutSettings();
   const { features, setFeature } = useAdvancedFeatures();
+  const { fiatCurrency, setFiatCurrency } = useFiatCurrency();
+  const { forecastPeriod, setForecastPeriod } = useForecastPeriod();
+  const neuronsQuery = useGovernanceNeurons();
+  const icpLedger = useIcpLedger();
   const logout = useLogout('command_palette');
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -149,17 +233,225 @@ export const CommandPalette = () => {
   const trimmedSearch = search.trim();
   const proposalIdMatch = parseProposalId(trimmedSearch);
   const showProposalHint = trimmedSearch === '';
-  const goToProposal = (id: bigint) => {
-    runAndClose(() => navigate({ to: '/voting/proposals/$id', params: { id } }));
+
+  const userNeurons = neuronsQuery.data?.response;
+
+  const forecastPeriodLabel = (period: ForecastPeriod) =>
+    t(($) => $.commandPalette.items.forecastPeriod, {
+      period: t(($) => $.userAccount.forecastPeriod.options[period]),
+    });
+
+  const isSearching = trimmedSearch !== '';
+
+  const groupHeadings: Record<CommandGroupId, string | undefined> = {
+    navigate: t(($) => $.commandPalette.groups.navigate),
+    actions: t(($) => $.commandPalette.groups.actions),
+    proposals: t(($) => $.commandPalette.groups.proposals),
+    preferences: t(($) => $.commandPalette.groups.preferences),
+    advancedFeatures: t(($) => $.commandPalette.groups.advancedFeatures),
+    account: undefined,
   };
 
-  const toggleFeature = (key: AdvancedFeature) => {
-    const next = !features[key];
-    runAndClose(() => {
-      setFeature(key, next);
-      notifyAdvancedFeatureChange(t, key, next);
-    });
-  };
+  const themeItems = [
+    { theme: Theme.Light, icon: SunIcon, label: t(($) => $.commandPalette.items.themeLight) },
+    { theme: Theme.Dark, icon: MoonIcon, label: t(($) => $.commandPalette.items.themeDark) },
+    { theme: Theme.System, icon: MonitorIcon, label: t(($) => $.commandPalette.items.themeSystem) },
+  ];
+
+  const commands: PaletteCommand[] = [
+    ...navigationItems.map(
+      (item): PaletteCommand => ({
+        id: `nav:${item.href}`,
+        group: 'navigate',
+        label: t(item.label as never),
+        keywords: NAVIGATION_KEYWORDS[item.href],
+        icon: item.icon,
+        run: () => navigate({ to: item.href }),
+      }),
+    ),
+    {
+      id: 'action:receive',
+      group: 'actions',
+      label: t(($) => $.commandPalette.items.receiveIcp),
+      keywords: ['deposit', 'address', 'qr code', 'account id'],
+      icon: ArrowDownToLineIcon,
+      run: () => navigate({ to: '/dashboard', search: { depositModal: true } }),
+    },
+    {
+      id: 'action:send',
+      group: 'actions',
+      label: t(($) => $.commandPalette.items.sendIcp),
+      keywords: ['withdraw', 'transfer', 'pay'],
+      icon: SendIcon,
+      disabled: !icpLedger.ready || !icpLedger.authenticated,
+      run: () => navigate({ to: '/dashboard', search: { sendModal: true } }),
+    },
+    {
+      id: 'action:stake',
+      group: 'actions',
+      label: t(($) => $.commandPalette.items.stakeIcp),
+      keywords: ['neuron', 'staking', 'create neuron', 'wizard'],
+      icon: LockIcon,
+      run: () => navigate({ to: '/neurons', search: { openWizard: true } }),
+    },
+    {
+      id: 'action:manageFollowing',
+      group: 'actions',
+      label: t(($) => $.commandPalette.items.manageFollowing),
+      keywords: ['follow', 'followees', 'vote', 'known neuron'],
+      icon: UsersIcon,
+      // The warning needs a loaded list of neurons.
+      disabled: !userNeurons,
+      run: () => {
+        if (!userNeurons?.length) {
+          warningNotification({ description: t(($) => $.voting.warnings.stakeRequired) });
+          return;
+        }
+        navigate({ to: '/voting', search: { manageFollowing: true } });
+      },
+    },
+    {
+      id: 'action:addressBook',
+      group: 'actions',
+      label: t(($) => $.commandPalette.items.addressBook),
+      keywords: ['contacts', 'addresses', 'saved addresses'],
+      icon: BookUserIcon,
+      run: () => navigate({ to: '/settings', search: { openAddressBook: true } }),
+    },
+    // Settings shows the Ledger devices card only with the feature on and WebHID.
+    ...(features[AdvancedFeature.LedgerDevice] && isWebHidSupported()
+      ? [
+          {
+            id: 'action:addLedgerDevice',
+            group: 'actions',
+            label: t(($) => $.commandPalette.items.addLedgerDevice),
+            keywords: ['connect ledger', 'hardware wallet', 'device', 'nano'],
+            icon: UsbIcon,
+            run: () => navigate({ to: '/settings', search: { addLedgerDevice: true } }),
+          } satisfies PaletteCommand,
+        ]
+      : []),
+    ...(nonNullish(proposalIdMatch)
+      ? [
+          {
+            // Analytics reports a numeric value as `proposal`.
+            id: trimmedSearch,
+            group: 'proposals',
+            label: t(($) => $.commandPalette.items.goToProposal, {
+              id: proposalIdMatch.toString(),
+            }),
+            icon: FileTextIcon,
+            run: () => navigate({ to: '/voting/proposals/$id', params: { id: proposalIdMatch } }),
+          } satisfies PaletteCommand,
+        ]
+      : []),
+    ...(showProposalHint
+      ? [
+          {
+            id: 'proposal-hint',
+            group: 'proposals',
+            label: t(($) => $.commandPalette.items.proposalHint),
+            icon: FileTextIcon,
+            disabled: true,
+            run: () => {},
+          } satisfies PaletteCommand,
+        ]
+      : []),
+    ...themeItems.map(
+      ({ theme: itemTheme, icon, label }): PaletteCommand => ({
+        id: `theme:${itemTheme}`,
+        group: 'preferences',
+        label,
+        keywords: ['appearance', 'color'],
+        icon,
+        checked: theme === itemTheme,
+        keepOpen: true,
+        run: () => setTheme(itemTheme),
+      }),
+    ),
+    {
+      id: TOGGLE_BALANCES_VALUE,
+      group: 'preferences',
+      label: hidden
+        ? t(($) => $.commandPalette.items.showBalances)
+        : t(($) => $.commandPalette.items.hideBalances),
+      keywords: ['privacy', 'balance'],
+      icon: hidden ? EyeIcon : EyeOffIcon,
+      run: () => setHidden(!hidden),
+    },
+    {
+      id: TOGGLE_SHORTCUTS_VALUE,
+      group: 'preferences',
+      label: t(($) => $.commandPalette.items.keyboardShortcuts),
+      keywords: ['keyboard', 'shortcuts', 'hotkeys', 'keys'],
+      icon: KeyboardIcon,
+      checked: shortcutsEnabled,
+      // The checkmark is the only feedback this toggle gives.
+      keepOpen: true,
+      run: () => setShortcutsEnabled(!shortcutsEnabled),
+    },
+    // The currency and forecast options are long lists, so they show only while the user searches.
+    ...Object.values(FiatCurrency).map(
+      (currency): PaletteCommand => ({
+        id: `currency:${currency}`,
+        group: 'preferences',
+        label: t(($) => $.commandPalette.items.fiatCurrency, {
+          name: currencyNames.of(currency),
+          code: currency,
+        }),
+        keywords: ['currency', 'fiat', 'money'],
+        icon: BanknoteIcon,
+        checked: fiatCurrency === currency,
+        searchOnly: true,
+        keepOpen: true,
+        run: () => setFiatCurrency(currency),
+      }),
+    ),
+    ...Object.values(ForecastPeriod).map(
+      (period): PaletteCommand => ({
+        id: `forecast:${period}`,
+        group: 'preferences',
+        label: forecastPeriodLabel(period),
+        keywords: ['forecast', 'maturity', 'rewards', 'period'],
+        icon: CalendarRangeIcon,
+        checked: forecastPeriod === period,
+        searchOnly: true,
+        keepOpen: true,
+        run: () => {
+          setForecastPeriod(period);
+          analytics.event(AnalyticsEvent.ForecastPeriodChange, {
+            period,
+            source: 'command_palette',
+          });
+        },
+      }),
+    ),
+    ...getSupportedAdvancedFeatures().map(
+      ({ key, icon }): PaletteCommand => ({
+        id: `feature:${key}`,
+        group: 'advancedFeatures',
+        label: t(($) => $.userAccount.advancedFeatures.items[key].label),
+        keywords: FEATURE_KEYWORDS[key],
+        icon,
+        checked: features[key],
+        run: () => {
+          const next = !features[key];
+          setFeature(key, next);
+          notifyAdvancedFeatureChange(t, key, next);
+        },
+      }),
+    ),
+    {
+      id: SIGN_OUT_VALUE,
+      group: 'account',
+      label: t(($) => $.commandPalette.items.signOut),
+      keywords: ['logout', 'log out'],
+      icon: LogOutIcon,
+      run: logout,
+    },
+  ];
+
+  const visibleCommands = commands.filter((command) => isSearching || !command.searchOnly);
 
   return (
     <CommandDialog
@@ -168,6 +460,7 @@ export const CommandPalette = () => {
       title={t(($) => $.commandPalette.title)}
       description={t(($) => $.commandPalette.description)}
       showCloseButton={false}
+      filter={filterCommands}
     >
       <CommandInput
         value={search}
@@ -177,126 +470,37 @@ export const CommandPalette = () => {
       <CommandList>
         <CommandEmpty>{t(($) => $.commandPalette.empty)}</CommandEmpty>
 
-        <CommandGroup heading={t(($) => $.commandPalette.groups.navigate)}>
-          {navigationItems.map((item) => (
-            <TrackedCommandItem
-              key={item.href}
-              value={navValue(item.href)}
-              keywords={NAVIGATION_KEYWORDS[item.href]}
-              onSelect={() => runAndClose(() => navigate({ to: item.href }))}
-            >
-              <item.icon />
-              <span>{t(item.label as never)}</span>
-            </TrackedCommandItem>
-          ))}
-        </CommandGroup>
+        {GROUPS.map(({ id, separated }) => {
+          const groupCommands = visibleCommands.filter((command) => command.group === id);
+          if (groupCommands.length === 0) return null;
 
-        {(showProposalHint || nonNullish(proposalIdMatch)) && (
-          <CommandGroup heading={t(($) => $.commandPalette.groups.proposals)}>
-            {nonNullish(proposalIdMatch) ? (
-              <TrackedCommandItem
-                value={trimmedSearch}
-                onSelect={() => goToProposal(proposalIdMatch)}
-              >
-                <FileTextIcon />
-                <span>
-                  {t(($) => $.commandPalette.items.goToProposal, {
-                    id: proposalIdMatch.toString(),
-                  })}
-                </span>
-              </TrackedCommandItem>
-            ) : (
-              <TrackedCommandItem value="proposal-hint" disabled>
-                <FileTextIcon />
-                <span>{t(($) => $.commandPalette.items.proposalHint)}</span>
-              </TrackedCommandItem>
-            )}
-          </CommandGroup>
-        )}
-
-        <CommandSeparator />
-
-        <CommandGroup heading={t(($) => $.commandPalette.groups.preferences)}>
-          <TrackedCommandItem
-            value={themeValue(Theme.Light)}
-            keywords={['appearance', 'color']}
-            onSelect={() => setTheme(Theme.Light)}
-          >
-            <SunIcon />
-            <span>{t(($) => $.commandPalette.items.themeLight)}</span>
-            {theme === Theme.Light && <CheckIcon className="ml-auto" />}
-          </TrackedCommandItem>
-          <TrackedCommandItem
-            value={themeValue(Theme.Dark)}
-            keywords={['appearance', 'color']}
-            onSelect={() => setTheme(Theme.Dark)}
-          >
-            <MoonIcon />
-            <span>{t(($) => $.commandPalette.items.themeDark)}</span>
-            {theme === Theme.Dark && <CheckIcon className="ml-auto" />}
-          </TrackedCommandItem>
-          <TrackedCommandItem
-            value={themeValue(Theme.System)}
-            keywords={['appearance', 'color']}
-            onSelect={() => setTheme(Theme.System)}
-          >
-            <MonitorIcon />
-            <span>{t(($) => $.commandPalette.items.themeSystem)}</span>
-            {theme === Theme.System && <CheckIcon className="ml-auto" />}
-          </TrackedCommandItem>
-          <TrackedCommandItem
-            value={TOGGLE_BALANCES_VALUE}
-            keywords={['privacy', 'balance']}
-            onSelect={() => runAndClose(() => setHidden(!hidden))}
-          >
-            {hidden ? <EyeIcon /> : <EyeOffIcon />}
-            <span>
-              {hidden
-                ? t(($) => $.commandPalette.items.showBalances)
-                : t(($) => $.commandPalette.items.hideBalances)}
-            </span>
-          </TrackedCommandItem>
-          {/* Stays open: the checkmark is the only feedback this toggle gives. */}
-          <TrackedCommandItem
-            value={TOGGLE_SHORTCUTS_VALUE}
-            keywords={['keyboard', 'shortcuts', 'hotkeys', 'keys']}
-            onSelect={() => setShortcutsEnabled(!shortcutsEnabled)}
-          >
-            <KeyboardIcon />
-            <span>{t(($) => $.commandPalette.items.keyboardShortcuts)}</span>
-            {shortcutsEnabled && <CheckIcon className="ml-auto" />}
-          </TrackedCommandItem>
-        </CommandGroup>
-
-        <CommandGroup heading={t(($) => $.commandPalette.groups.advancedFeatures)}>
-          {getSupportedAdvancedFeatures().map(({ key, icon: Icon }) => (
-            <TrackedCommandItem
-              key={key}
-              value={featureValue(key)}
-              keywords={FEATURE_KEYWORDS[key]}
-              onSelect={() => toggleFeature(key)}
-            >
-              <Icon />
-              <span>{t(($) => $.userAccount.advancedFeatures.items[key].label)}</span>
-              {features[key] && <CheckIcon className="ml-auto" />}
-            </TrackedCommandItem>
-          ))}
-        </CommandGroup>
-
-        <CommandSeparator />
-
-        <CommandGroup>
-          <TrackedCommandItem
-            value={SIGN_OUT_VALUE}
-            keywords={['logout', 'log out']}
-            onSelect={() => runAndClose(logout)}
-          >
-            <LogOutIcon />
-            <span>{t(($) => $.commandPalette.items.signOut)}</span>
-          </TrackedCommandItem>
-        </CommandGroup>
+          return (
+            <Fragment key={id}>
+              {separated && !isSearching && <CommandSeparator />}
+              <CommandSection ranked={isSearching} heading={groupHeadings[id]}>
+                {groupCommands.map((command) => (
+                  <TrackedCommandItem
+                    key={command.id}
+                    value={command.id}
+                    keywords={[command.label, ...(command.keywords ?? [])]}
+                    disabled={command.disabled}
+                    onSelect={() => (command.keepOpen ? command.run() : runAndClose(command.run))}
+                  >
+                    <command.icon />
+                    <span>{command.label}</span>
+                    {nonNullish(command.shortcut) && (
+                      <CommandShortcut>{command.shortcut}</CommandShortcut>
+                    )}
+                    {command.checked && <CheckIcon className="ml-auto" />}
+                  </TrackedCommandItem>
+                ))}
+              </CommandSection>
+            </Fragment>
+          );
+        })}
       </CommandList>
       <CommandHintFooter />
+      <CommandPaletteNoResultTracker open={open} />
     </CommandDialog>
   );
 };

@@ -143,7 +143,7 @@ export function NeuronDetailDissolveView({
           t(($) => $.neuronDetailModal.dissolve.confirmStart)
         )}
       </Button>
-      <DeviceAnswerHint signer={signer} className="mt-3 text-center" />
+      <DeviceAnswerHint signer={isPending ? signer : undefined} className="text-center" />
     </form>
   );
 }
