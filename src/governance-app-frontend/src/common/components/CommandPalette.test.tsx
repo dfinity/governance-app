@@ -7,9 +7,14 @@ import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
 import { ProposalFilter } from '@features/proposals/utils';
 
-import { COMMAND_PALETTE_RECENT_STORAGE_KEY } from '@constants/extra';
+import {
+  COMMAND_PALETTE_RECENT_STORAGE_KEY,
+  SHORTCUTS_SETTINGS_KEY,
+  THEME_STORAGE_KEY,
+} from '@constants/extra';
 import { FiatCurrency } from '@constants/fiat';
 import { ForecastPeriod } from '@constants/forecast';
+import { Theme } from '@constants/theme';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { warningNotification } from '@utils/notification';
@@ -22,6 +27,7 @@ const mocks = vi.hoisted(() => ({
   neurons: [] as unknown[] | undefined,
   setFiatCurrency: vi.fn(),
   setForecastPeriod: vi.fn(),
+  finePointer: true,
   icpLedgerReady: true,
   webHid: false,
 }));
@@ -66,6 +72,8 @@ vi.mock('@hooks/useForecastPeriod', () => ({
     setForecastPeriod: mocks.setForecastPeriod,
   }),
 }));
+
+vi.mock('@hooks/useMediaQuery', () => ({ useMediaQuery: () => mocks.finePointer }));
 
 vi.mock('@features/analytics/service', () => ({ analytics: { event: vi.fn() } }));
 
@@ -131,6 +139,7 @@ describe('CommandPalette', () => {
     );
     Element.prototype.scrollIntoView = vi.fn();
     mocks.neurons = [];
+    mocks.finePointer = true;
     mocks.icpLedgerReady = true;
     mocks.webHid = false;
   });
@@ -393,6 +402,58 @@ describe('CommandPalette', () => {
       fireEvent.click(screen.getByRole('option', { name: 'Sign out' }));
 
       expect(storedRecent()).toEqual([]);
+    });
+  });
+
+  describe('shortcut hints', () => {
+    const shortcuts = () =>
+      Object.fromEntries(
+        screen
+          .queryAllByRole('option')
+          .filter((option) => option.hasAttribute('aria-keyshortcuts'))
+          .map((option) => [
+            option.getAttribute('aria-keyshortcuts'),
+            option.querySelector('span')?.textContent,
+          ]),
+      );
+
+    beforeEach(() => {
+      localStorage.setItem(SHORTCUTS_SETTINGS_KEY, 'true');
+    });
+
+    it('shows each key on the item that does the same thing.', () => {
+      localStorage.setItem(THEME_STORAGE_KEY, Theme.System);
+      openPalette();
+
+      expect(shortcuts()).toEqual({ d: 'Dark theme', p: 'Hide balances', u: 'Sign out' });
+      expect(
+        screen.getByRole('option', { name: 'Dark theme' }).querySelector('kbd')?.textContent,
+      ).toBe('d');
+    });
+
+    it('shows the theme key on the light theme when the theme is dark.', () => {
+      localStorage.setItem(THEME_STORAGE_KEY, Theme.Dark);
+      openPalette();
+
+      expect(shortcuts().d).toBe('Light theme');
+    });
+
+    it('shows the hints when the user turns the shortcuts on.', () => {
+      localStorage.setItem(SHORTCUTS_SETTINGS_KEY, 'false');
+      openPalette();
+      expect(shortcuts()).toEqual({});
+
+      fireEvent.click(screen.getByRole('option', { name: 'Keyboard shortcuts' }));
+
+      expect(Object.keys(shortcuts())).toEqual(['d', 'p', 'u']);
+    });
+
+    it('shows no hints on a touch screen.', () => {
+      mocks.finePointer = false;
+      openPalette();
+
+      expect(shortcuts()).toEqual({});
+      expect(document.querySelector('[cmdk-list] kbd')).toBeNull();
     });
   });
 });
