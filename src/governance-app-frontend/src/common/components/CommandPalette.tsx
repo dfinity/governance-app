@@ -269,7 +269,7 @@ export const CommandPalette = () => {
     { theme: Theme.System, icon: MonitorIcon, label: t(($) => $.commandPalette.items.themeSystem) },
   ];
 
-  const copy = (value: string, label: string) => copyToClipboard({ t, value, label });
+  const copy = (value: string, label: string) => void copyToClipboard({ t, value, label });
 
   const proposalCommands: PaletteCommand[] = proposalMatch
     ? [

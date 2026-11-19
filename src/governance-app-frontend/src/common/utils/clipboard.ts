@@ -4,9 +4,9 @@ import { errorNotification, successNotification } from '@utils/notification';
 
 /**
  * Copies the value and shows a toast that names the label.
- * Returns `false` if the copy fails.
+ * Resolves to `false` if the copy fails.
  */
-export const copyToClipboard = ({
+export const copyToClipboard = async ({
   t,
   value,
   label,
@@ -14,9 +14,9 @@ export const copyToClipboard = ({
   t: TFunction;
   value: string;
   label: string;
-}): boolean => {
+}): Promise<boolean> => {
   try {
-    navigator.clipboard.writeText(value);
+    await navigator.clipboard.writeText(value);
     successNotification({ description: t(($) => $.common.clipboard.copied, { label }) });
     return true;
   } catch (e) {

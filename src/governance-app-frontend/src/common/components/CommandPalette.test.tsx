@@ -2,7 +2,7 @@ import '@/i18n/config';
 
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { Principal } from '@icp-sdk/core/principal';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AnalyticsEvent } from '@features/analytics/events';
@@ -10,7 +10,7 @@ import { analytics } from '@features/analytics/service';
 
 import { FiatCurrency } from '@constants/fiat';
 import { ForecastPeriod } from '@constants/forecast';
-import { successNotification, warningNotification } from '@utils/notification';
+import { errorNotification, successNotification, warningNotification } from '@utils/notification';
 
 import { CommandPalette } from './CommandPalette';
 
@@ -253,7 +253,7 @@ describe('CommandPalette', () => {
       ]);
     });
 
-    it('copies the proposal link without the search params.', () => {
+    it('copies the proposal link without the search params.', async () => {
       mocks.proposalMatch = { params: { id: 144845n }, search: { proposalFilter: 'open' } };
       openPalette();
 
@@ -262,9 +262,11 @@ describe('CommandPalette', () => {
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
         `${window.location.origin}/voting/proposals/144845`,
       );
-      expect(successNotification).toHaveBeenCalledWith({
-        description: 'Your proposal link was copied to the clipboard.',
-      });
+      await waitFor(() =>
+        expect(successNotification).toHaveBeenCalledWith({
+          description: 'Your proposal link was copied to the clipboard.',
+        }),
+      );
       expect(screen.queryByRole('combobox')).toBeNull();
     });
 
@@ -280,7 +282,7 @@ describe('CommandPalette', () => {
       });
     });
 
-    it('copies the account ID.', () => {
+    it('copies the account ID.', async () => {
       openPalette();
 
       fireEvent.click(screen.getByRole('option', { name: 'Copy ICP wallet address' }));
@@ -288,9 +290,22 @@ describe('CommandPalette', () => {
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
         AccountIdentifier.fromPrincipal({ principal: Principal.fromText(PRINCIPAL) }).toHex(),
       );
-      expect(successNotification).toHaveBeenCalledWith({
-        description: 'Your ICP wallet address was copied to the clipboard.',
-      });
+      await waitFor(() =>
+        expect(successNotification).toHaveBeenCalledWith({
+          description: 'Your ICP wallet address was copied to the clipboard.',
+        }),
+      );
+    });
+
+    it('shows an error when the browser denies the copy.', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.mocked(navigator.clipboard.writeText).mockRejectedValueOnce(new Error('denied'));
+      openPalette();
+
+      fireEvent.click(screen.getByRole('option', { name: 'Copy principal ID' }));
+
+      await waitFor(() => expect(errorNotification).toHaveBeenCalledOnce());
+      expect(successNotification).not.toHaveBeenCalled();
     });
 
     it('copies the principal.', () => {

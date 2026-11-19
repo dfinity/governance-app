@@ -39,9 +39,9 @@ export const CopyButton = ({
     }
   }, [isCopied]);
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     if (!value) return;
-    if (!copyToClipboard({ t, value, label })) return;
+    if (!(await copyToClipboard({ t, value, label }))) return;
     setIsCopied(true);
     onCopy?.();
   };
