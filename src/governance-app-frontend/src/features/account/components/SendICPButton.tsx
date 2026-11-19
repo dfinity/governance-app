@@ -63,6 +63,11 @@ type Props = {
   variant?: 'simple' | 'advanced';
 };
 
+type ButtonProps = Props & {
+  /** Opens a dialog that the parent renders. Without it, the button renders its own dialog. */
+  onOpen?: () => void;
+};
+
 export type SendDestination = {
   name: string;
   address: string;
@@ -757,7 +762,12 @@ function SendConfirmationStep({
   );
 }
 
-export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant = 'simple' }) => {
+export const SendICPButton: React.FC<ButtonProps> = ({
+  balance,
+  fromAccountId,
+  variant = 'simple',
+  onOpen,
+}) => {
   const { t } = useTranslation();
   const { ready: ledgerReady, authenticated: ledgerAuthenticated } = useIcpLedger();
   const [open, setOpen] = useState(false);
@@ -775,20 +785,23 @@ export const SendICPButton: React.FC<Props> = ({ balance, fromAccountId, variant
         data-testid="send-icp-btn"
         onClick={() => {
           analytics.event(AnalyticsEvent.AccountOpenSend, { variant });
-          setOpen(true);
+          if (onOpen) onOpen();
+          else setOpen(true);
         }}
       >
         <Icon aria-hidden />
         {t(($) => $.common[label])}
       </Button>
 
-      <SendICPDialog
-        open={open}
-        onOpenChange={setOpen}
-        balance={balance}
-        fromAccountId={fromAccountId}
-        variant={variant}
-      />
+      {!onOpen && (
+        <SendICPDialog
+          open={open}
+          onOpenChange={setOpen}
+          balance={balance}
+          fromAccountId={fromAccountId}
+          variant={variant}
+        />
+      )}
     </>
   );
 };
