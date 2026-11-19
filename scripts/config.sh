@@ -96,7 +96,10 @@ if [[ "$NETWORK" == "devenv" ]]; then
   echo "Using devenv with user: $USERNAME"
 fi
 
-generate_env_content "$NETWORK" "$USERNAME" > "$ENV_FILE"
+# Write a temporary file and rename it, so a process that reads .env at the same time
+# (the E2E build runs while the network starts) never sees a half-written file.
+generate_env_content "$NETWORK" "$USERNAME" > "$ENV_FILE.tmp.$$"
+mv "$ENV_FILE.tmp.$$" "$ENV_FILE"
 
 echo "✅ Generated .env file: $ENV_FILE"
 echo

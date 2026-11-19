@@ -29,11 +29,7 @@ canisters:
                 echo >&2 'Build mainnet wasms with scripts/build.sh and release them with scripts/release-prod.'
                 exit 1
               fi
-            - ./scripts/config.sh -n local
-            - npm run generate:candid-bindings
-            - npm run build
-            - cargo build --target wasm32-unknown-unknown --release -p governance-app-backend --locked --features testnet
-            - gzip --no-name --stdout target/wasm32-unknown-unknown/release/governance_app_backend.wasm > "$ICP_WASM_OUTPUT_PATH"
+            - ./scripts/build-local-wasm.sh "$ICP_WASM_OUTPUT_PATH"
 
 environments:
   - name: local
