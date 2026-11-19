@@ -1,8 +1,10 @@
+import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { nonNullish } from '@dfinity/utils';
-import { useNavigate } from '@tanstack/react-router';
+import { useMatch, useNavigate } from '@tanstack/react-router';
 import { defaultFilter, useCommandState } from 'cmdk';
 import {
   ArrowDownToLineIcon,
+  ArrowLeftIcon,
   BanknoteIcon,
   BookUserIcon,
   CalendarRangeIcon,
@@ -10,7 +12,11 @@ import {
   EyeIcon,
   EyeOffIcon,
   FileTextIcon,
+  FingerprintIcon,
   KeyboardIcon,
+  LinkIcon,
+  ListIcon,
+  ListTodoIcon,
   LockIcon,
   LogOutIcon,
   MonitorIcon,
@@ -19,6 +25,7 @@ import {
   SunIcon,
   UsbIcon,
   UsersIcon,
+  WalletIcon,
 } from 'lucide-react';
 import type { ComponentProps, ElementType } from 'react';
 import { Fragment, useEffect, useState } from 'react';
@@ -26,7 +33,7 @@ import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
-import { parseProposalId } from '@features/proposals/utils';
+import { parseProposalId, ProposalFilter } from '@features/proposals/utils';
 
 import {
   CommandDialog,
@@ -59,11 +66,17 @@ import { useCommandPaletteShortcut } from '@hooks/useCommandPaletteShortcut';
 import { useFiatCurrency } from '@hooks/useFiatCurrency';
 import { useForecastPeriod } from '@hooks/useForecastPeriod';
 import { useHideBalances } from '@hooks/useHideBalances';
+import { HIDE_BALANCES_SHORTCUT_KEY } from '@hooks/useHideBalancesShortcut';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useLogout } from '@hooks/useLogout';
+import { LOGOUT_SHORTCUT_KEY } from '@hooks/useLogoutShortcut';
+import { useMediaQuery } from '@hooks/useMediaQuery';
 import { useShortcutSettings } from '@hooks/useShortcutSettings';
 import { useTheme } from '@hooks/useTheme';
+import { getShortcutTheme, THEME_SHORTCUT_KEY } from '@hooks/useThemeShortcut';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { isAccountsAreaEnabled, notifyAdvancedFeatureChange } from '@utils/advancedFeatures';
+import { copyToClipboard } from '@utils/clipboard';
 import { warningNotification } from '@utils/notification';
 import { isWebHidSupported } from '@common/ledger/webhid';
 
@@ -104,6 +117,7 @@ const TOGGLE_SHORTCUTS_VALUE = 'toggle-shortcuts';
 const SIGN_OUT_VALUE = 'signout';
 
 type CommandGroupId =
+  | 'page'
   | 'navigate'
   | 'actions'
   | 'proposals'
@@ -113,6 +127,7 @@ type CommandGroupId =
 
 /** The display order of the groups. A separator comes before a `separated` group. */
 const GROUPS: Array<{ id: CommandGroupId; separated?: boolean }> = [
+  { id: 'page' },
   { id: 'navigate' },
   { id: 'actions' },
   { id: 'proposals' },
@@ -132,6 +147,7 @@ type PaletteCommand = {
   disabled?: boolean;
   /** Shows a checkmark, for example on the current theme. */
   checked?: boolean;
+  /** The single-key shortcut that does the same as `run`. */
   shortcut?: string;
   /** The item shows only while the user searches. */
   searchOnly?: boolean;
@@ -141,6 +157,8 @@ type PaletteCommand = {
 };
 
 type HintKey =
+  | 'copyToClipboard'
+  | 'goBack'
   | 'goToPage'
   | 'openProposal'
   | 'runAction'
@@ -154,7 +172,9 @@ type HintKey =
 
 const getHintKey = (value: unknown): HintKey | null => {
   if (typeof value !== 'string' || value === '') return null;
-  if (value.startsWith('nav:')) return 'goToPage';
+  if (value.startsWith('copy:')) return 'copyToClipboard';
+  if (value.startsWith('back:')) return 'goBack';
+  if (value.startsWith('nav:') || value.startsWith('proposals:')) return 'goToPage';
   if (value.startsWith('theme:')) return 'applyTheme';
   if (value.startsWith('feature:')) return 'toggleFeature';
   if (value.startsWith('action:')) return 'runAction';
@@ -219,6 +239,8 @@ export const CommandPalette = () => {
   const neuronsQuery = useGovernanceNeurons();
   const icpLedger = useIcpLedger();
   const logout = useLogout('command_palette');
+  const { identity } = useInternetIdentity();
+  const proposalMatch = useMatch({ from: '/_auth/voting/proposals/$id/', shouldThrow: false });
   const open = useCommandPaletteOpen();
   const [search, setSearch] = useState('');
 
@@ -252,7 +274,13 @@ export const CommandPalette = () => {
 
   const isSearching = trimmedSearch !== '';
 
+  // A touch screen has no keyboard for the shortcuts, so it gets no hints.
+  const hasFinePointer = useMediaQuery('(pointer: fine)');
+  const shortcutHint = (key: string) => (shortcutsEnabled && hasFinePointer ? key : undefined);
+  const shortcutTheme = getShortcutTheme(theme);
+
   const groupHeadings: Record<CommandGroupId, string | undefined> = {
+    page: t(($) => $.commandPalette.groups.page),
     navigate: t(($) => $.commandPalette.groups.navigate),
     actions: t(($) => $.commandPalette.groups.actions),
     proposals: t(($) => $.commandPalette.groups.proposals),
@@ -267,7 +295,73 @@ export const CommandPalette = () => {
     { theme: Theme.System, icon: MonitorIcon, label: t(($) => $.commandPalette.items.themeSystem) },
   ];
 
+  const copy = (value: string, label: string) => void copyToClipboard({ t, value, label });
+
+  const proposalCommands: PaletteCommand[] = proposalMatch
+    ? [
+        {
+          id: 'copy:proposalLink',
+          group: 'page',
+          label: t(($) => $.commandPalette.items.copyProposalLink),
+          keywords: ['share', 'url'],
+          icon: LinkIcon,
+          run: () =>
+            copy(
+              new URL(`/voting/proposals/${proposalMatch.params.id}`, window.location.origin).href,
+              t(($) => $.commandPalette.copyLabels.proposalLink),
+            ),
+        },
+        {
+          id: 'back:proposals',
+          group: 'page',
+          label: t(($) => $.proposal.backToProposals),
+          keywords: ['return', 'list'],
+          icon: ArrowLeftIcon,
+          // The same target as the Back link of the proposal page.
+          run: () =>
+            navigate({
+              to: '/voting',
+              search: {
+                showProposals: true,
+                proposalFilter: proposalMatch.search.proposalFilter,
+              },
+            }),
+        },
+      ]
+    : [];
+
+  const identityCommands: PaletteCommand[] = identity
+    ? [
+        {
+          id: 'copy:accountId',
+          group: 'page',
+          label: t(($) => $.commandPalette.items.copyAccountId),
+          keywords: ['account id', 'address', 'wallet'],
+          icon: WalletIcon,
+          run: () =>
+            copy(
+              AccountIdentifier.fromPrincipal({ principal: identity.getPrincipal() }).toHex(),
+              t(($) => $.userAccount.accountId),
+            ),
+        },
+        {
+          id: 'copy:principal',
+          group: 'page',
+          label: t(($) => $.commandPalette.items.copyPrincipal),
+          keywords: ['principal', 'identity'],
+          icon: FingerprintIcon,
+          run: () =>
+            copy(
+              identity.getPrincipal().toText(),
+              t(($) => $.userAccount.principalId),
+            ),
+        },
+      ]
+    : [];
+
   const commands: PaletteCommand[] = [
+    ...proposalCommands,
+    ...identityCommands,
     ...navigationItems.map(
       (item): PaletteCommand => ({
         id: `nav:${item.href}`,
@@ -366,6 +460,30 @@ export const CommandPalette = () => {
           } satisfies PaletteCommand,
         ]
       : []),
+    {
+      id: `proposals:${ProposalFilter.Open}`,
+      group: 'proposals',
+      label: t(($) => $.commandPalette.items.openProposals),
+      keywords: ['active', 'pending', 'vote', 'voting'],
+      icon: ListTodoIcon,
+      run: () =>
+        navigate({
+          to: '/voting',
+          search: { showProposals: true, proposalFilter: ProposalFilter.Open },
+        }),
+    },
+    {
+      id: `proposals:${ProposalFilter.All}`,
+      group: 'proposals',
+      label: t(($) => $.commandPalette.items.allProposals),
+      keywords: ['history', 'past', 'executed', 'list'],
+      icon: ListIcon,
+      run: () =>
+        navigate({
+          to: '/voting',
+          search: { showProposals: true, proposalFilter: ProposalFilter.All },
+        }),
+    },
     ...themeItems.map(
       ({ theme: itemTheme, icon, label }): PaletteCommand => ({
         id: `theme:${itemTheme}`,
@@ -374,6 +492,7 @@ export const CommandPalette = () => {
         keywords: ['appearance', 'color'],
         icon,
         checked: theme === itemTheme,
+        shortcut: itemTheme === shortcutTheme ? shortcutHint(THEME_SHORTCUT_KEY) : undefined,
         keepOpen: true,
         run: () => setTheme(itemTheme),
       }),
@@ -386,6 +505,7 @@ export const CommandPalette = () => {
         : t(($) => $.commandPalette.items.hideBalances),
       keywords: ['privacy', 'balance'],
       icon: hidden ? EyeIcon : EyeOffIcon,
+      shortcut: shortcutHint(HIDE_BALANCES_SHORTCUT_KEY),
       run: () => setHidden(!hidden),
     },
     {
@@ -456,6 +576,7 @@ export const CommandPalette = () => {
       label: t(($) => $.commandPalette.items.signOut),
       keywords: ['logout', 'log out'],
       icon: LogOutIcon,
+      shortcut: shortcutHint(LOGOUT_SHORTCUT_KEY),
       run: logout,
     },
   ];
@@ -497,12 +618,17 @@ export const CommandPalette = () => {
                     value={command.id}
                     keywords={[command.label, ...(command.keywords ?? [])]}
                     disabled={command.disabled}
+                    aria-keyshortcuts={command.shortcut}
                     onSelect={() => (command.keepOpen ? command.run() : runAndClose(command.run))}
                   >
                     <command.icon />
                     <span>{command.label}</span>
                     {nonNullish(command.shortcut) && (
-                      <CommandShortcut>{command.shortcut}</CommandShortcut>
+                      // `aria-keyshortcuts` gives the key to screen readers.
+                      <CommandShortcut aria-hidden className="tracking-normal">
+                        {/* In dark mode, the muted fill is the color of the palette. */}
+                        <Kbd className="border">{command.shortcut}</Kbd>
+                      </CommandShortcut>
                     )}
                     {command.checked && <CheckIcon className="ml-auto" />}
                   </TrackedCommandItem>

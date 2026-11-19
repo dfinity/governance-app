@@ -1,17 +1,22 @@
 import '@/i18n/config';
 
+import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
+import { Principal } from '@icp-sdk/core/principal';
 import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
+import { ProposalFilter } from '@features/proposals/utils';
 
+import { SHORTCUTS_SETTINGS_KEY, THEME_STORAGE_KEY } from '@constants/extra';
 import { FiatCurrency } from '@constants/fiat';
 import { ForecastPeriod } from '@constants/forecast';
+import { Theme } from '@constants/theme';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { AdvancedFeature } from '@typings/advancedFeatures';
-import { warningNotification } from '@utils/notification';
+import { errorNotification, successNotification, warningNotification } from '@utils/notification';
 
 import { CommandPalette } from './CommandPalette';
 import { CommandPaletteButton } from './navigation/CommandPaletteButton';
@@ -22,11 +27,25 @@ const mocks = vi.hoisted(() => ({
   neurons: [] as unknown[] | undefined,
   setFiatCurrency: vi.fn(),
   setForecastPeriod: vi.fn(),
+  proposalMatch: undefined as
+    | { params: { id: bigint }; search: { proposalFilter?: string } }
+    | undefined,
+  principal: undefined as Principal | undefined,
+  finePointer: true,
   icpLedgerReady: true,
   webHid: false,
 }));
 
-vi.mock('@tanstack/react-router', () => ({ useNavigate: () => mocks.navigate }));
+vi.mock('@tanstack/react-router', () => ({
+  useNavigate: () => mocks.navigate,
+  useMatch: () => mocks.proposalMatch,
+}));
+
+vi.mock('@hooks/useInternetIdentity', () => ({
+  useInternetIdentity: () => ({
+    identity: mocks.principal && { getPrincipal: () => mocks.principal },
+  }),
+}));
 
 vi.mock('@hooks/useCommandPaletteShortcut', () => ({
   useCommandPaletteShortcut: (onTrigger: () => void) => {
@@ -67,9 +86,17 @@ vi.mock('@hooks/useForecastPeriod', () => ({
   }),
 }));
 
+vi.mock('@hooks/useMediaQuery', () => ({ useMediaQuery: () => mocks.finePointer }));
+
 vi.mock('@features/analytics/service', () => ({ analytics: { event: vi.fn() } }));
 
-vi.mock('@utils/notification', () => ({ warningNotification: vi.fn() }));
+vi.mock('@utils/notification', () => ({
+  errorNotification: vi.fn(),
+  successNotification: vi.fn(),
+  warningNotification: vi.fn(),
+}));
+
+const PRINCIPAL = 'ryjl3-tyaaa-aaaaa-aaaba-cai';
 
 const createStorage = (): Storage => {
   const values = new Map<string, string>();
@@ -118,6 +145,10 @@ describe('CommandPalette', () => {
     );
     Element.prototype.scrollIntoView = vi.fn();
     mocks.neurons = [];
+    mocks.proposalMatch = undefined;
+    mocks.principal = Principal.fromText(PRINCIPAL);
+    vi.stubGlobal('navigator', { clipboard: { writeText: vi.fn() } });
+    mocks.finePointer = true;
     mocks.icpLedgerReady = true;
     mocks.webHid = false;
   });
@@ -213,6 +244,33 @@ describe('CommandPalette', () => {
     expect(mocks.navigate).toHaveBeenCalledWith(expected);
   });
 
+  it.each([
+    ['Open proposals', ProposalFilter.Open],
+    ['All proposals', ProposalFilter.All],
+  ])('shows the proposal list of "%s".', (label, proposalFilter) => {
+    openPalette();
+
+    fireEvent.click(screen.getByRole('option', { name: label }));
+
+    expect(mocks.navigate).toHaveBeenCalledWith({
+      to: '/voting',
+      search: { showProposals: true, proposalFilter },
+    });
+    expect(analytics.event).toHaveBeenCalledWith(AnalyticsEvent.CommandPaletteSelect, {
+      item: `proposals:${proposalFilter}`,
+    });
+  });
+
+  it('finds the proposal lists by their keywords.', () => {
+    openPalette();
+
+    search('pending');
+    expect(optionNames()[0]).toBe('Open proposals');
+
+    search('history');
+    expect(optionNames()[0]).toBe('All proposals');
+  });
+
   it('opens the following modal when the user has neurons.', () => {
     mocks.neurons = [{}];
     openPalette();
@@ -247,6 +305,104 @@ describe('CommandPalette', () => {
     expect(warningNotification).toHaveBeenCalledOnce();
   });
 
+  describe('page commands', () => {
+    const groupLabels = (heading: string) =>
+      [
+        ...(screen.getByText(heading).closest('[cmdk-group]')?.querySelectorAll('[cmdk-item]') ??
+          []),
+      ].map((item) => item.textContent);
+
+    it('shows the copy commands first on each page.', () => {
+      openPalette();
+
+      expect(optionNames().slice(0, 2)).toEqual(['Copy ICP wallet address', 'Copy principal ID']);
+      expect(screen.queryByRole('option', { name: 'Copy proposal link' })).toBeNull();
+      expect(screen.queryByRole('option', { name: 'Back to proposals' })).toBeNull();
+    });
+
+    it('hides the copy commands without an identity.', () => {
+      mocks.principal = undefined;
+      openPalette();
+
+      expect(screen.queryByText('This page')).toBeNull();
+    });
+
+    it('shows the proposal commands on a proposal page.', () => {
+      mocks.proposalMatch = { params: { id: 144845n }, search: {} };
+      openPalette();
+
+      expect(groupLabels('This page')).toEqual([
+        'Copy proposal link',
+        'Back to proposals',
+        'Copy ICP wallet address',
+        'Copy principal ID',
+      ]);
+    });
+
+    it('copies the proposal link without the search params.', async () => {
+      mocks.proposalMatch = { params: { id: 144845n }, search: { proposalFilter: 'open' } };
+      openPalette();
+
+      fireEvent.click(screen.getByRole('option', { name: 'Copy proposal link' }));
+
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+        `${window.location.origin}/voting/proposals/144845`,
+      );
+      await waitFor(() =>
+        expect(successNotification).toHaveBeenCalledWith({
+          description: 'Your proposal link was copied to the clipboard.',
+        }),
+      );
+      expect(screen.queryByRole('combobox')).toBeNull();
+    });
+
+    it('goes back to the proposal list with the current filter.', () => {
+      mocks.proposalMatch = { params: { id: 144845n }, search: { proposalFilter: 'open' } };
+      openPalette();
+
+      fireEvent.click(screen.getByRole('option', { name: 'Back to proposals' }));
+
+      expect(mocks.navigate).toHaveBeenCalledWith({
+        to: '/voting',
+        search: { showProposals: true, proposalFilter: 'open' },
+      });
+    });
+
+    it('copies the account ID.', async () => {
+      openPalette();
+
+      fireEvent.click(screen.getByRole('option', { name: 'Copy ICP wallet address' }));
+
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+        AccountIdentifier.fromPrincipal({ principal: Principal.fromText(PRINCIPAL) }).toHex(),
+      );
+      await waitFor(() =>
+        expect(successNotification).toHaveBeenCalledWith({
+          description: 'Your ICP wallet address was copied to the clipboard.',
+        }),
+      );
+    });
+
+    it('shows an error when the browser denies the copy.', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.mocked(navigator.clipboard.writeText).mockRejectedValueOnce(new Error('denied'));
+      openPalette();
+
+      fireEvent.click(screen.getByRole('option', { name: 'Copy principal ID' }));
+
+      await waitFor(() => expect(errorNotification).toHaveBeenCalledOnce());
+      expect(successNotification).not.toHaveBeenCalled();
+    });
+
+    it('copies the principal.', () => {
+      openPalette();
+      search('principal');
+
+      fireEvent.click(screen.getByRole('option', { name: 'Copy principal ID' }));
+
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(PRINCIPAL);
+    });
+  });
   it('disables the send command until the ICP ledger is ready.', () => {
     mocks.icpLedgerReady = false;
     openPalette();
@@ -283,5 +439,57 @@ describe('CommandPalette', () => {
     search('ledger');
 
     expect(screen.queryByRole('option', { name: 'Add Ledger device' })).toBeNull();
+  });
+
+  describe('shortcut hints', () => {
+    const shortcuts = () =>
+      Object.fromEntries(
+        screen
+          .queryAllByRole('option')
+          .filter((option) => option.hasAttribute('aria-keyshortcuts'))
+          .map((option) => [
+            option.getAttribute('aria-keyshortcuts'),
+            option.querySelector('span')?.textContent,
+          ]),
+      );
+
+    beforeEach(() => {
+      localStorage.setItem(SHORTCUTS_SETTINGS_KEY, 'true');
+    });
+
+    it('shows each key on the item that does the same thing.', () => {
+      localStorage.setItem(THEME_STORAGE_KEY, Theme.System);
+      openPalette();
+
+      expect(shortcuts()).toEqual({ d: 'Dark theme', p: 'Hide balances', u: 'Sign out' });
+      expect(
+        screen.getByRole('option', { name: 'Dark theme' }).querySelector('kbd')?.textContent,
+      ).toBe('d');
+    });
+
+    it('shows the theme key on the light theme when the theme is dark.', () => {
+      localStorage.setItem(THEME_STORAGE_KEY, Theme.Dark);
+      openPalette();
+
+      expect(shortcuts().d).toBe('Light theme');
+    });
+
+    it('shows the hints when the user turns the shortcuts on.', () => {
+      localStorage.setItem(SHORTCUTS_SETTINGS_KEY, 'false');
+      openPalette();
+      expect(shortcuts()).toEqual({});
+
+      fireEvent.click(screen.getByRole('option', { name: 'Keyboard shortcuts' }));
+
+      expect(Object.keys(shortcuts())).toEqual(['d', 'p', 'u']);
+    });
+
+    it('shows no hints on a touch screen.', () => {
+      mocks.finePointer = false;
+      openPalette();
+
+      expect(shortcuts()).toEqual({});
+      expect(document.querySelector('[cmdk-list] kbd')).toBeNull();
+    });
   });
 });
