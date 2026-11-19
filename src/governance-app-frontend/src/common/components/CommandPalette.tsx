@@ -66,7 +66,7 @@ const NAVIGATION_KEYWORDS: Record<string, string[]> = {
   '/dashboard': ['home', 'overview'],
   '/neurons': ['stake', 'stakes', 'staking'],
   '/voting': ['proposals', 'vote', 'governance'],
-  '/accounts': ['wallet', 'balance', 'send', 'receive'],
+  '/accounts': ['wallet', 'balance', 'receive'],
   '/settings': ['preferences', 'config'],
 };
 
@@ -78,7 +78,7 @@ const FEATURE_KEYWORDS: Record<AdvancedFeature, string[]> = {
     'spam',
     'non-constructive',
   ],
-  [AdvancedFeature.TransactionMemo]: ['memo', 'send', 'transaction'],
+  [AdvancedFeature.TransactionMemo]: ['memo', 'transaction'],
   [AdvancedFeature.LedgerDevice]: ['ledger', 'hardware wallet', 'device', 'nano'],
 };
 

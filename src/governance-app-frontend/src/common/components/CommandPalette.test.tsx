@@ -153,6 +153,13 @@ describe('CommandPalette', () => {
     expect(optionNames()).not.toContain('Show all proposals');
   });
 
+  it('puts the Send ICP action first for "send".', () => {
+    openPalette();
+    search('send');
+
+    expect(optionNames()[0]).toBe('Send ICP');
+  });
+
   it('changes the currency.', () => {
     openPalette();
     search('euro');
