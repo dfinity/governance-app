@@ -1,7 +1,7 @@
 import { ProposalInfo } from '@icp-sdk/canisters/nns';
 import { type ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
+import { CartesianGrid, Line, LineChart, ReferenceLine, XAxis, YAxis } from 'recharts';
 
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@components/Card';
 import {
@@ -18,14 +18,22 @@ import { formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
 import { useProposalTallyHistory } from '../hooks/useProposalTallyHistory';
-import { getDayTicks, hasTallyHistory, TallyPoint, toTallyChart } from '../tallyHistory';
+import {
+  getDayTicks,
+  getShareAxis,
+  hasTallyHistory,
+  MAJORITY_SHARE,
+  QUORUM_SHARE,
+  TallyPoint,
+  toTallyChart,
+} from '../tallyHistory';
 
 type Props = {
   proposal: ProposalInfo;
 };
 
-const SHARE_TICKS = [0, 0.25, 0.5, 0.75, 1];
 const NO_DASH = '5 4';
+const REFERENCE_DASH = '2 3';
 const CHART_HEIGHT = 'h-45';
 
 // We only support English for now.
@@ -34,6 +42,18 @@ const formatDay = (seconds: number) =>
     month: 'short',
     day: 'numeric',
   });
+
+type DotProps = { index: number; cx?: number; cy?: number };
+
+// Marks the latest value of a line with a filled dot.
+const latestDot =
+  (lastIndex: number, fill: string) =>
+  ({ index, cx, cy }: DotProps) =>
+    index === lastIndex ? (
+      <circle key="latest" cx={cx} cy={cy} r={4} fill={fill} stroke="var(--card)" strokeWidth={2} />
+    ) : (
+      <g key={index} />
+    );
 
 // A live region, so screen readers read the point that the arrow keys select.
 const VotingHistoryTooltipContent = (props: ComponentProps<typeof ChartTooltipContent>) => (
@@ -77,7 +97,53 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
       theme: { light: 'var(--color-red-800)', dark: 'var(--color-red-400)' },
     },
   } satisfies ChartConfig;
-  const lastIndex = (chart?.points.length ?? 0) - 1;
+  const points = chart?.points ?? [];
+  const lastIndex = points.length - 1;
+  const latest = points[lastIndex];
+  const shareAxis = getShareAxis(points);
+  // The line with more votes paints last, so its dot sits on top when the dots overlap.
+  const yesOnTop = (latest?.yes ?? 0) >= (latest?.no ?? 0);
+  const yesLine = (
+    <Line
+      key="yes"
+      dataKey="yes"
+      type="stepAfter"
+      stroke="var(--color-yes)"
+      strokeWidth={2}
+      strokeLinejoin="round"
+      dot={latestDot(lastIndex, 'var(--color-yes)')}
+      activeDot={{ r: 3 }}
+      isAnimationActive={false}
+    />
+  );
+  const noLine = (
+    <Line
+      key="no"
+      dataKey="no"
+      type="stepAfter"
+      stroke="var(--color-no)"
+      strokeWidth={2}
+      strokeDasharray={NO_DASH}
+      dot={latestDot(lastIndex, 'var(--color-no)')}
+      activeDot={{ r: 3 }}
+      isAnimationActive={false}
+    />
+  );
+  const lines = yesOnTop ? [noLine, yesLine] : [yesLine, noLine];
+  const referenceLines = [
+    // Above its line, so the label stays clear of the date ticks when the line is near the bottom.
+    {
+      share: QUORUM_SHARE,
+      label: t(($) => $.proposal.votingHistory.quorum),
+      position: 'insideBottomRight' as const,
+    },
+    // Below its line, so the label stays inside the plot when the line is the top of the axis.
+    {
+      share: MAJORITY_SHARE,
+      label: t(($) => $.proposal.votingHistory.majority),
+      position: 'insideTopRight' as const,
+    },
+  ].filter(({ share }) => share <= shareAxis.max);
 
   return (
     <Card data-testid="proposal-voting-history">
@@ -124,8 +190,8 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
                 tickMargin={8}
               />
               <YAxis
-                domain={[0, 1]}
-                ticks={SHARE_TICKS}
+                domain={[0, shareAxis.max]}
+                ticks={shareAxis.ticks}
                 tickFormatter={(share: number) =>
                   formatPercentage(share, { minFraction: 0, maxFraction: 0 })
                 }
@@ -164,41 +230,26 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
                   />
                 }
               />
-              <Line
-                dataKey="no"
-                type="stepAfter"
-                stroke="var(--color-no)"
-                strokeWidth={2}
-                strokeDasharray={NO_DASH}
-                dot={false}
-                activeDot={{ r: 3 }}
-                isAnimationActive={false}
-              />
-              <Line
-                dataKey="yes"
-                type="stepAfter"
-                stroke="var(--color-yes)"
-                strokeWidth={2}
-                strokeLinejoin="round"
-                // Marks the latest value.
-                dot={({ index, cx, cy }) =>
-                  index === lastIndex ? (
-                    <circle
-                      key="latest"
-                      cx={cx}
-                      cy={cy}
-                      r={4}
-                      fill="var(--color-yes)"
-                      stroke="var(--card)"
-                      strokeWidth={2}
-                    />
-                  ) : (
-                    <g key={index} />
-                  )
-                }
-                activeDot={{ r: 3 }}
-                isAnimationActive={false}
-              />
+              {referenceLines.map(({ share, label, position }) => (
+                <ReferenceLine
+                  key={share}
+                  y={share}
+                  stroke="var(--icp-fg-secondary)"
+                  strokeDasharray={REFERENCE_DASH}
+                  label={{
+                    value: label,
+                    position,
+                    fontSize: 11,
+                    fill: 'var(--icp-fg-secondary)',
+                    // Keeps the label readable where a line passes under it.
+                    stroke: 'var(--card)',
+                    strokeWidth: 4,
+                    strokeLinejoin: 'round',
+                    paintOrder: 'stroke',
+                  }}
+                />
+              ))}
+              {lines}
             </LineChart>
           </ChartContainer>
         )}

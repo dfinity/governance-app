@@ -1,7 +1,7 @@
 import '@/i18n/config';
 
-import { act, fireEvent, render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, renderHook, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
@@ -10,6 +10,8 @@ import { SHORTCUTS_SETTINGS_KEY, THEME_STORAGE_KEY } from '@constants/extra';
 import { FiatCurrency } from '@constants/fiat';
 import { ForecastPeriod } from '@constants/forecast';
 import { Theme } from '@constants/theme';
+import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { AdvancedFeature } from '@typings/advancedFeatures';
 import { warningNotification } from '@utils/notification';
 
 import { CommandPalette } from './CommandPalette';
@@ -21,6 +23,8 @@ const mocks = vi.hoisted(() => ({
   setFiatCurrency: vi.fn(),
   setForecastPeriod: vi.fn(),
   finePointer: true,
+  icpLedgerReady: true,
+  webHid: false,
 }));
 
 vi.mock('@tanstack/react-router', () => ({ useNavigate: () => mocks.navigate }));
@@ -33,6 +37,19 @@ vi.mock('@hooks/useCommandPaletteShortcut', () => ({
 
 vi.mock('@hooks/governance', () => ({
   useGovernanceNeurons: () => ({ data: mocks.neurons && { response: mocks.neurons } }),
+}));
+
+vi.mock('@hooks/icpLedger/useIcpLedger', () => ({
+  useIcpLedger: () => ({
+    ready: mocks.icpLedgerReady,
+    authenticated: mocks.icpLedgerReady,
+    canister: undefined,
+  }),
+}));
+
+vi.mock('@common/ledger/webhid', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@common/ledger/webhid')>()),
+  isWebHidSupported: () => mocks.webHid,
 }));
 
 vi.mock('@hooks/useLogout', () => ({ useLogout: () => vi.fn() }));
@@ -71,6 +88,11 @@ const createStorage = (): Storage => {
   };
 };
 
+const setLedgerFeature = (enabled: boolean) => {
+  const { result } = renderHook(() => useAdvancedFeatures());
+  act(() => result.current.setFeature(AdvancedFeature.LedgerDevice, enabled));
+};
+
 const openPalette = () => {
   render(<CommandPalette />);
   act(() => mocks.openPalette?.());
@@ -100,7 +122,11 @@ describe('CommandPalette', () => {
     Element.prototype.scrollIntoView = vi.fn();
     mocks.neurons = [];
     mocks.finePointer = true;
+    mocks.icpLedgerReady = true;
+    mocks.webHid = false;
   });
+
+  afterEach(() => setLedgerFeature(false));
 
   it('finds each item by its visible label.', () => {
     openPalette();
@@ -133,6 +159,13 @@ describe('CommandPalette', () => {
     expect(optionNames()).not.toContain('Show all proposals');
   });
 
+  it('puts the Send ICP action first for "send".', () => {
+    openPalette();
+    search('send');
+
+    expect(optionNames()[0]).toBe('Send ICP');
+  });
+
   it('changes the currency.', () => {
     openPalette();
     search('euro');
@@ -157,6 +190,7 @@ describe('CommandPalette', () => {
 
   it.each([
     ['Receive ICP', { to: '/dashboard', search: { depositModal: true } }],
+    ['Send ICP', { to: '/dashboard', search: { sendModal: true } }],
     ['Stake ICP', { to: '/neurons', search: { openWizard: true } }],
     ['Open address book', { to: '/settings', search: { openAddressBook: true } }],
   ])('opens the modal of "%s".', (label, expected) => {
@@ -199,6 +233,44 @@ describe('CommandPalette', () => {
 
     expect(mocks.navigate).not.toHaveBeenCalled();
     expect(warningNotification).toHaveBeenCalledOnce();
+  });
+
+  it('disables the send command until the ICP ledger is ready.', () => {
+    mocks.icpLedgerReady = false;
+    openPalette();
+
+    const option = screen.getByRole('option', { name: 'Send ICP' });
+    expect(option.getAttribute('aria-disabled')).toBe('true');
+
+    fireEvent.click(option);
+
+    expect(mocks.navigate).not.toHaveBeenCalled();
+  });
+
+  it('opens the add dialog of the Ledger devices with the feature on and WebHID.', () => {
+    mocks.webHid = true;
+    setLedgerFeature(true);
+    openPalette();
+    search('connect ledger');
+
+    fireEvent.click(screen.getByRole('option', { name: 'Add Ledger device' }));
+
+    expect(mocks.navigate).toHaveBeenCalledWith({
+      to: '/settings',
+      search: { addLedgerDevice: true },
+    });
+  });
+
+  it.each([
+    ['the browser has no WebHID', false, true],
+    ['the Ledger device feature is off', true, false],
+  ])('hides the Ledger command when %s.', (_, webHid, featureOn) => {
+    mocks.webHid = webHid;
+    setLedgerFeature(featureOn);
+    openPalette();
+    search('ledger');
+
+    expect(screen.queryByRole('option', { name: 'Add Ledger device' })).toBeNull();
   });
 
   describe('shortcut hints', () => {
