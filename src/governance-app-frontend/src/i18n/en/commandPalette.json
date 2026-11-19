@@ -4,8 +4,11 @@
   "placeholder": "Search commands or enter a proposal ID…",
   "empty": "No results found.",
   "groups": {
+    "recent": "Recent",
+    "page": "This page",
     "navigate": "Navigate",
     "actions": "Actions",
+    "neurons": "Neurons",
     "proposals": "Proposals",
     "preferences": "Preferences",
     "advancedFeatures": "Advanced features"
@@ -13,6 +16,8 @@
   "items": {
     "goToProposal": "Go to proposal #{{id}}",
     "proposalHint": "Open a proposal by ID — type a number",
+    "openProposals": "Open proposals",
+    "allProposals": "All proposals",
     "themeLight": "Light theme",
     "themeDark": "Dark theme",
     "themeSystem": "System theme",
@@ -21,11 +26,18 @@
     "keyboardShortcuts": "Keyboard shortcuts",
     "signOut": "Sign out",
     "receiveIcp": "Receive ICP",
+    "sendIcp": "Send ICP",
     "stakeIcp": "Stake ICP",
     "manageFollowing": "Manage following",
     "addressBook": "Open address book",
+    "addLedgerDevice": "Add Ledger device",
     "fiatCurrency": "Show values in {{name}} ({{code}})",
-    "forecastPeriod": "Forecast period: {{period}}"
+    "forecastPeriod": "Forecast period: {{period}}",
+    "openNeuron": "Open neuron",
+    "neuronId": "Neuron {{id}}",
+    "copyProposalLink": "Copy proposal link",
+    "copyAccountId": "Copy ICP wallet address",
+    "copyPrincipal": "Copy principal ID"
   },
   "hints": {
     "goToPage": "Go to page",
@@ -37,6 +49,12 @@
     "signOut": "Sign out",
     "runAction": "Run action",
     "setCurrency": "Change currency",
-    "setForecastPeriod": "Change forecast period"
+    "setForecastPeriod": "Change forecast period",
+    "openNeuron": "Open the neuron dialog",
+    "copyToClipboard": "Copy to clipboard",
+    "goBack": "Go back"
+  },
+  "copyLabels": {
+    "proposalLink": "proposal link"
   }
 }

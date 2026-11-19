@@ -12,7 +12,9 @@
   "voteProgress": "Vote progress",
   "votingHistory": {
     "title": "Voting history",
-    "chartLabel": "Yes and No votes as a share of the total voting power, from the creation of the proposal to its deadline"
+    "chartLabel": "Yes and No votes as a share of the total voting power, from the creation of the proposal to its deadline",
+    "quorum": "Yes minimum 3%",
+    "majority": "Absolute majority 50%"
   },
   "liveActivity": {
     "title": "Live activity",
