@@ -48,6 +48,7 @@ import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import {
   closeCommandPalette,
   openCommandPalette,
+  registerCommandPalette,
   restoreCommandPaletteFocus,
   useCommandPaletteOpen,
 } from '@hooks/useCommandPaletteOpen';
@@ -224,8 +225,7 @@ export const CommandPalette = () => {
 
   useCommandPaletteShortcut(() => handleOpenChange(!open));
 
-  // A sign-out unmounts the palette. The next session must not start with it open.
-  useEffect(() => closeCommandPalette, []);
+  useEffect(() => registerCommandPalette(), []);
 
   const runAndClose = (fn: () => void) => {
     fn();

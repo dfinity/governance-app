@@ -7,6 +7,7 @@ import { NnsWordmark } from '@components/icons/NnsWordmark';
 import { Kbd } from '@components/Kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { useCommandPaletteMounted } from '@hooks/useCommandPaletteOpen';
 import { useCommandPaletteSettings } from '@hooks/useCommandPaletteSettings';
 import { useIconMotion } from '@hooks/useIconMotion';
 import { useShortcutSettings } from '@hooks/useShortcutSettings';
@@ -68,6 +69,7 @@ export const Sidebar = ({ activeHref }: { activeHref?: string }) => {
   const { collapsed, setCollapsed } = useSidebarCollapsed();
   const { enabled: shortcutsEnabled } = useShortcutSettings();
   const { enabled: commandPaletteEnabled } = useCommandPaletteSettings();
+  const commandPaletteMounted = useCommandPaletteMounted();
 
   const [prevEnabled, setPrevEnabled] = useState(accountsEnabled);
   const [shouldAnimate, setShouldAnimate] = useState(false);
@@ -108,7 +110,7 @@ export const Sidebar = ({ activeHref }: { activeHref?: string }) => {
         />
         {!collapsed && <NnsWordmark className="h-[1.625rem] w-auto text-foreground" />}
       </div>
-      {commandPaletteEnabled && (
+      {commandPaletteEnabled && commandPaletteMounted && (
         <div className="px-2 pb-1">
           <RowTooltip
             collapsed={collapsed}

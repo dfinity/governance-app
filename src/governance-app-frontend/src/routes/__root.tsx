@@ -18,7 +18,6 @@ import { analytics } from '@features/analytics/service';
 import { LoginHandoff } from '@features/login/components/LoginHandoff';
 
 import { Button } from '@components/button';
-import { CommandPalette } from '@components/CommandPalette';
 import { MainLayout } from '@components/MainLayout';
 import { SessionCountdownToast } from '@components/SessionCountdownToast';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
@@ -69,7 +68,6 @@ function AuthenticatedNotFound() {
 
   return (
     <MainLayout>
-      <CommandPalette />
       <SessionCountdownToast />
       <div className="flex flex-1 flex-col items-center justify-center py-16">
         <div className="flex max-w-md flex-col items-center text-center">

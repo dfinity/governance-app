@@ -4,7 +4,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { closeCommandPalette } from '@hooks/useCommandPaletteOpen';
+import { closeCommandPalette, registerCommandPalette } from '@hooks/useCommandPaletteOpen';
 
 import { CommandPaletteButton } from './CommandPaletteButton';
 
@@ -19,11 +19,15 @@ vi.mock('@hooks/useCommandPaletteOpen', async (importOriginal) => ({
 }));
 
 describe('CommandPaletteButton', () => {
+  let unregisterPalette: () => void;
+
   beforeEach(() => {
     mocks.enabled = true;
+    unregisterPalette = registerCommandPalette();
   });
 
   afterEach(() => {
+    unregisterPalette();
     closeCommandPalette();
     vi.clearAllMocks();
   });
@@ -71,6 +75,14 @@ describe('CommandPaletteButton', () => {
 
   it('renders nothing while the palette is off.', () => {
     mocks.enabled = false;
+    const { container } = render(<CommandPaletteButton variant="header" />);
+
+    expect(container.childElementCount).toBe(0);
+  });
+
+  it('renders nothing on a screen without a palette.', () => {
+    unregisterPalette();
+    unregisterPalette = () => {};
     const { container } = render(<CommandPaletteButton variant="header" />);
 
     expect(container.childElementCount).toBe(0);

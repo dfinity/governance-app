@@ -9,7 +9,9 @@ import {
   RouterProvider,
 } from '@tanstack/react-router';
 import { render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { registerCommandPalette } from '@hooks/useCommandPaletteOpen';
 
 import { MobileHeader } from './MobileHeader';
 
@@ -47,6 +49,14 @@ const renderAt = async (path: string) => {
 };
 
 describe('MobileHeader', () => {
+  let unregisterPalette: () => void;
+
+  beforeEach(() => {
+    unregisterPalette = registerCommandPalette();
+  });
+
+  afterEach(() => unregisterPalette());
+
   it('shows the search button on a page.', async () => {
     await renderAt('/page');
 

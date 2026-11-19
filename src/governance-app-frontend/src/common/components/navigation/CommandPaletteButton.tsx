@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { Kbd, KbdGroup } from '@components/Kbd';
-import { openCommandPalette } from '@hooks/useCommandPaletteOpen';
+import { openCommandPalette, useCommandPaletteMounted } from '@hooks/useCommandPaletteOpen';
 import { useCommandPaletteSettings } from '@hooks/useCommandPaletteSettings';
 import { isApplePlatform } from '@utils/platform';
 import { cn } from '@utils/shadcn';
@@ -20,7 +20,10 @@ export const CommandPaletteShortcutHint = () => (
   </KbdGroup>
 );
 
-/** Opens the command palette, for a device without a keyboard. Hidden while the palette is off. */
+/**
+ * Opens the command palette, for a device without a keyboard. Hidden while the palette is off, or
+ * on a screen without a palette.
+ */
 export const CommandPaletteButton = ({
   variant,
   collapsed,
@@ -30,8 +33,9 @@ export const CommandPaletteButton = ({
 }: Props) => {
   const { t } = useTranslation();
   const { enabled } = useCommandPaletteSettings();
+  const mounted = useCommandPaletteMounted();
 
-  if (!enabled) return null;
+  if (!enabled || !mounted) return null;
 
   const label = t(($) => $.common.commandPalette.search);
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {

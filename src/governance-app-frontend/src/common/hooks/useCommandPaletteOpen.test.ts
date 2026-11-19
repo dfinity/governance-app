@@ -7,7 +7,9 @@ import { analytics } from '@features/analytics/service';
 import {
   closeCommandPalette,
   openCommandPalette,
+  registerCommandPalette,
   restoreCommandPaletteFocus,
+  useCommandPaletteMounted,
   useCommandPaletteOpen,
 } from './useCommandPaletteOpen';
 
@@ -75,5 +77,29 @@ describe('useCommandPaletteOpen', () => {
     closeCommandPalette();
 
     expect(restoreCommandPaletteFocus()).toBe(false);
+  });
+
+  it('reports whether a palette is mounted.', () => {
+    const { result } = renderHook(() => useCommandPaletteMounted());
+    expect(result.current).toBe(false);
+
+    let unregister = () => {};
+    act(() => {
+      unregister = registerCommandPalette();
+    });
+    expect(result.current).toBe(true);
+
+    act(() => unregister());
+    expect(result.current).toBe(false);
+  });
+
+  it('closes the palette when the palette unmounts.', () => {
+    const unregister = registerCommandPalette();
+    openCommandPalette('sidebar');
+    const { result } = renderHook(() => useCommandPaletteOpen());
+
+    act(() => unregister());
+
+    expect(result.current).toBe(false);
   });
 });
