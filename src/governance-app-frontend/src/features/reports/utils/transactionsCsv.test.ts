@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import type { ReportRateLookup } from './rates';
 import { approveTx, MAIN, mintTx, NEURON, OTHER, SAVINGS, transferTx } from './testUtils';
 import {
   buildTransactionsCsv,
@@ -90,6 +91,9 @@ const labels: TransactionsCsvLabels = {
     to: 'To',
     amount: 'Amount',
     fee: 'Fee',
+    price: 'Price',
+    value: 'Value',
+    rateDate: 'Rate date',
   },
   types: {
     [ReportTransactionType.Received]: 'Received',
@@ -104,8 +108,13 @@ const labels: TransactionsCsvLabels = {
   },
 };
 
+const noRate: ReportRateLookup = () => undefined;
+
 describe('buildTransactionsCsv', () => {
   it('writes one flat table, newest first, with one row for each side of an own transfer', () => {
+    // The rate of the day before, as for a day without a rate.
+    const rateDayMs = Date.UTC(2026, 1, 28);
+    const rateLookup: ReportRateLookup = () => ({ dayMs: rateDayMs, icpToFiatE8s: 264_000_000n });
     const savings: ReportEntity = { kind: 'account', accountId: SAVINGS, name: 'Savings' };
     const own = transferTx({ id: 2n, ms: MS + 1_000, from: MAIN, to: SAVINGS, e8s: 100_000_000n });
     const reward = mintTx({ id: 1n, ms: MS, to: MAIN, e8s: 50_000_000n });
@@ -117,15 +126,28 @@ describe('buildTransactionsCsv', () => {
         { entity: neuron, transactions: [] },
       ],
       labels,
+      rateLookup,
     });
 
     expect(csv.split('\r\n')).toEqual([
-      '﻿Index,Date,Account,Account ID,Neuron ID,Type,From,To,Amount,Fee',
-      `2,2026-03-01 10:00:01,Main,${MAIN},,Sent,${MAIN},${SAVINGS},-1.00000000,0.00010000`,
-      `2,2026-03-01 10:00:01,Savings,${SAVINGS},,Received,${MAIN},${SAVINGS},+1.00000000,`,
-      `1,2026-03-01 10:00:00,Main,${MAIN},,Reward,,${MAIN},+0.50000000,`,
+      '\uFEFFIndex,Date,Account,Account ID,Neuron ID,Type,From,To,Amount,Fee,Price,Value,Rate date',
+      `2,2026-03-01 10:00:01,Main,${MAIN},,Sent,${MAIN},${SAVINGS},-1.00000000,0.00010000,2.64000000,-2.64,2026-02-28`,
+      `2,2026-03-01 10:00:01,Savings,${SAVINGS},,Received,${MAIN},${SAVINGS},+1.00000000,,2.64000000,+2.64,2026-02-28`,
+      `1,2026-03-01 10:00:00,Main,${MAIN},,Reward,,${MAIN},+0.50000000,,2.64000000,+1.32,2026-02-28`,
       '',
     ]);
+  });
+
+  it('leaves the fiat cells empty without a rate', () => {
+    const csv = buildTransactionsCsv({
+      results: [
+        { entity: main, transactions: [map(main, mintTx({ id: 1n, ms: MS, to: MAIN, e8s: 1n }))] },
+      ],
+      labels,
+      rateLookup: noRate,
+    });
+
+    expect(csv).toContain(`,Reward,,${MAIN},+0.00000001,,,,\r\n`);
   });
 
   it('keeps an account name from running as a formula', () => {
@@ -140,6 +162,7 @@ describe('buildTransactionsCsv', () => {
         },
       ],
       labels,
+      rateLookup: noRate,
     });
 
     expect(csv).toContain(`,"'=SUM(1,2)",${SAVINGS},`);
@@ -156,6 +179,7 @@ describe('buildTransactionsCsv', () => {
         },
       ],
       labels,
+      rateLookup: noRate,
     });
 
     expect(csv).toContain(`,'=HYPERLINK(1),${MAIN},`);
@@ -172,6 +196,7 @@ describe('buildTransactionsCsv', () => {
         },
       ],
       labels,
+      rateLookup: noRate,
     });
 
     expect(csv).toContain(`,${NEURON},"=""12345678901234567""",Stake,`);

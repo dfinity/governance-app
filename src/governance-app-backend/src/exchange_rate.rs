@@ -1,4 +1,5 @@
 pub mod cache;
+pub mod daily_history;
 pub mod month_history;
 mod time;
 pub mod xrc_client;
@@ -6,10 +7,14 @@ pub mod xrc_client;
 #[cfg(test)]
 mod tests;
 
+use std::cell::Cell;
 use std::time::Duration;
 
 use cache::{CachedRate, FiatExchangeRate, IcpExchangeRateResponse};
+use candid::CandidType;
+use daily_history::{DailyRate, DailyRatePair};
 use month_history::PastMonthRate;
+use serde::Deserialize;
 use xrc_client::{Asset, AssetClass, GetExchangeRateRequest};
 
 const UPDATE_INTERVAL: Duration = Duration::from_secs(300); // 5 minutes
@@ -18,6 +23,12 @@ const UPDATE_INTERVAL: Duration = Duration::from_secs(300); // 5 minutes
 const FIAT_UPDATE_INTERVAL: Duration = Duration::from_secs(ONE_HOUR_SECS);
 /// How often the canister tries again to fetch the rates that the month history misses.
 const MONTH_HISTORY_GAP_FILL_INTERVAL: Duration = Duration::from_secs(ONE_DAY_SECS);
+/// How often the canister tries again to fetch the rates that the daily history misses.
+/// The XRC can have no forex rate yet for today, so the canister checks more than once a day.
+const DAILY_HISTORY_GAP_FILL_INTERVAL: Duration = Duration::from_secs(6 * ONE_HOUR_SECS);
+/// The most rates that one daily history batch fetches.
+/// A batch keeps a call context open, so a small batch lets a canister stop in minutes.
+const DAILY_HISTORY_BATCH_SIZE: usize = 20;
 const ONE_DAY_SECS: u64 = 86_400;
 const ONE_HOUR_SECS: u64 = 3_600;
 /// The history includes the one-day-ago rate only if it is at most this much older than one day.
@@ -29,6 +40,28 @@ const BACKFILL_HOURS: u64 = 23;
 /// Fiat currencies with a cached USD exchange rate.
 const SUPPORTED_FIAT_SYMBOLS: [&str; 7] = ["EUR", "GBP", "CHF", "JPY", "CNY", "CAD", "AUD"];
 
+thread_local! {
+    static IS_FILLING_DAILY_HISTORY: Cell<bool> = const { Cell::new(false) };
+}
+
+/// The days of the daily rates to list.
+#[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq)]
+pub struct ListDailyExchangeRatesRequest {
+    /// The list includes each day whose 00:00 UTC is at or after this time.
+    pub from_timestamp_seconds: u64,
+    /// The list includes each day whose 00:00 UTC is before this time.
+    pub to_timestamp_seconds: u64,
+    /// An ISO 4217 code from `SUPPORTED_FIAT_SYMBOLS`, e.g. "EUR".
+    /// Without it, the list has only the ICP/USD rates.
+    pub fiat_symbol: Option<String>,
+}
+
+#[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq)]
+pub enum ListDailyExchangeRatesResponse {
+    Ok(Vec<DailyRate>),
+    UnsupportedFiatSymbol { symbol: String },
+}
+
 /// Called from `init` and `post_upgrade` to kick off periodic exchange-rate fetching.
 pub fn init_exchange_rate_timer() {
     ic_cdk_timers::set_timer(Duration::ZERO, async {
@@ -36,9 +69,11 @@ pub fn init_exchange_rate_timer() {
         // The history lives on the heap, so it is empty after `init` and `post_upgrade`.
         backfill_rate_history().await;
         fill_month_history_gaps().await;
+        fill_daily_history_gaps().await;
     });
     ic_cdk_timers::set_timer_interval(UPDATE_INTERVAL, update_icp_to_usd_exchange_rate);
     ic_cdk_timers::set_timer_interval(MONTH_HISTORY_GAP_FILL_INTERVAL, fill_month_history_gaps);
+    ic_cdk_timers::set_timer_interval(DAILY_HISTORY_GAP_FILL_INTERVAL, fill_daily_history_gaps);
     ic_cdk_timers::set_timer(Duration::ZERO, update_fiat_exchange_rates());
     ic_cdk_timers::set_timer_interval(FIAT_UPDATE_INTERVAL, update_fiat_exchange_rates);
 }
@@ -57,6 +92,30 @@ pub fn list_icp_to_usd_past_month_rates() -> Vec<PastMonthRate> {
 
 pub fn list_usd_to_fiat_exchange_rates() -> Vec<FiatExchangeRate> {
     cache::list_cached_fiat_rates()
+}
+
+pub fn list_daily_exchange_rates(
+    request: ListDailyExchangeRatesRequest,
+) -> ListDailyExchangeRatesResponse {
+    let ListDailyExchangeRatesRequest {
+        from_timestamp_seconds,
+        to_timestamp_seconds,
+        fiat_symbol,
+    } = request;
+
+    if let Some(symbol) = &fiat_symbol {
+        if !SUPPORTED_FIAT_SYMBOLS.contains(&symbol.as_str()) {
+            return ListDailyExchangeRatesResponse::UnsupportedFiatSymbol {
+                symbol: symbol.clone(),
+            };
+        }
+    }
+
+    ListDailyExchangeRatesResponse::Ok(daily_history::list_rates(
+        from_timestamp_seconds,
+        to_timestamp_seconds,
+        fiat_symbol.as_deref(),
+    ))
 }
 
 #[cfg(feature = "testnet")]
@@ -142,6 +201,82 @@ async fn fill_month_history_gaps() {
         if let Some(rate) = month_history_rate {
             month_history::add_rate(&rate);
         }
+    }
+}
+
+/// Fetches the rates that the daily history misses, one batch for each timer run.
+/// The first fill fetches the rates of each day since 1 January 2025, so it takes many batches.
+async fn fill_daily_history_gaps() {
+    if fill_daily_history_batch().await {
+        ic_cdk_timers::set_timer(Duration::ZERO, fill_daily_history_gaps());
+    }
+}
+
+/// Fetches up to `DAILY_HISTORY_BATCH_SIZE` rates that the daily history misses, newest day first.
+/// A failed fetch is tried again after a retry delay, which doubles after each failure.
+/// A batch that starts while another batch is in progress returns at once.
+/// Returns `true` if the batch was full and stored a rate, so that the next batch can start
+/// at once. A batch that stores no rate leaves the next try to the next interval.
+async fn fill_daily_history_batch() -> bool {
+    let Some(_guard) = DailyHistoryFillGuard::acquire() else {
+        return false;
+    };
+
+    let batch = daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS)
+        .into_iter()
+        .take(DAILY_HISTORY_BATCH_SIZE)
+        .collect::<Vec<_>>();
+    let mut stored_count = 0;
+
+    for missing_rate in &batch {
+        let (base_asset, quote_asset) = match missing_rate.pair {
+            DailyRatePair::IcpToUsd => (icp_asset(), fiat_asset("USD")),
+            DailyRatePair::UsdToFiat(symbol) => (fiat_asset("USD"), fiat_asset(symbol)),
+        };
+
+        // A `None` needs no log here, because `fetch_rate` logs the reason.
+        let daily_rate = fetch_rate(
+            base_asset,
+            quote_asset,
+            Some(missing_rate.day_start_seconds),
+            "daily-history",
+        )
+        .await;
+
+        match daily_rate {
+            Some(rate) => {
+                daily_history::add_rate(
+                    missing_rate.pair,
+                    missing_rate.day_start_seconds,
+                    rate.rate_e8s,
+                );
+                stored_count += 1;
+            }
+            None => daily_history::record_failed_fetch(*missing_rate),
+        }
+    }
+
+    batch.len() == DAILY_HISTORY_BATCH_SIZE && stored_count > 0
+}
+
+/// Marks a daily history fill as in progress, until the guard is dropped.
+struct DailyHistoryFillGuard;
+
+impl DailyHistoryFillGuard {
+    /// Returns `None` if another fill is in progress.
+    fn acquire() -> Option<Self> {
+        let was_filling = IS_FILLING_DAILY_HISTORY.with(|is_filling| is_filling.replace(true));
+        if was_filling {
+            None
+        } else {
+            Some(Self)
+        }
+    }
+}
+
+impl Drop for DailyHistoryFillGuard {
+    fn drop(&mut self) {
+        IS_FILLING_DAILY_HISTORY.with(|is_filling| is_filling.set(false));
     }
 }
 

@@ -3,16 +3,26 @@ import { Ed25519KeyIdentity } from '@icp-sdk/core/identity';
 import { Principal } from '@icp-sdk/core/principal';
 import { describe, expect, it, vi } from 'vitest';
 
+import { FiatCurrency } from '@constants/fiat';
 import { mockNeuron } from '@fixtures/neuron';
 
 import type { GetTransactionsPage } from './fetchTransactions';
-import { getReportEntities, loadReportTransactions, mapWithLimit } from './loadReportData';
+import {
+  getReportEntities,
+  loadReportRates,
+  loadReportTransactions,
+  mapWithLimit,
+} from './loadReportData';
+import { MAX_RATE_LOOKBACK_DAYS } from './rates';
 import { MAIN, NEURON, OTHER, transferTx } from './testUtils';
 import { type ReportEntity, ReportTransactionType } from './transactionsCsv';
+
+const listDailyExchangeRates = vi.hoisted(() => vi.fn());
 
 vi.mock('@common/canisters', () => ({
   getIcpIndexCanister: vi.fn(),
   getNnsGovernanceCanister: vi.fn(),
+  getGovernanceAppActor: async () => ({ list_daily_exchange_rates: listDailyExchangeRates }),
 }));
 
 const RANGE = { fromMs: Date.UTC(2025, 0, 1), toMs: Date.UTC(2026, 0, 1) };
@@ -149,5 +159,49 @@ describe('getReportEntities', () => {
       { kind: 'neuron', accountId: 'neuron-id', neuronId: 7n },
       { kind: 'neuron', accountId: 'ledger-neuron-id', neuronId: 9n },
     ]);
+  });
+});
+
+describe('loadReportRates', () => {
+  const lookbackStartSeconds = BigInt(RANGE.fromMs / 1_000 - MAX_RATE_LOOKBACK_DAYS * 86_400);
+  const dailyRate = {
+    timestamp_seconds: BigInt(Date.UTC(2025, 5, 1) / 1_000),
+    icp_to_usd_e8s: [400_000_000n] as [bigint],
+    usd_to_fiat_e8s: [90_000_000n] as [bigint],
+  };
+
+  it('asks for the range plus the lookback days, with the fiat symbol', async () => {
+    listDailyExchangeRates.mockResolvedValue({ Ok: [dailyRate] });
+
+    const lookup = await loadReportRates({ range: RANGE, currency: FiatCurrency.EUR });
+
+    expect(listDailyExchangeRates).toHaveBeenCalledWith({
+      from_timestamp_seconds: lookbackStartSeconds,
+      to_timestamp_seconds: BigInt(RANGE.toMs / 1_000),
+      fiat_symbol: ['EUR'],
+    });
+    expect(lookup(Date.UTC(2025, 5, 1, 12))).toEqual({
+      dayMs: Date.UTC(2025, 5, 1),
+      icpToFiatE8s: 360_000_000n,
+    });
+  });
+
+  it('sends no fiat symbol for USD', async () => {
+    listDailyExchangeRates.mockResolvedValue({ Ok: [dailyRate] });
+
+    const lookup = await loadReportRates({ range: RANGE, currency: FiatCurrency.USD });
+
+    expect(listDailyExchangeRates).toHaveBeenCalledWith(
+      expect.objectContaining({ fiat_symbol: [] }),
+    );
+    expect(lookup(Date.UTC(2025, 5, 1))?.icpToFiatE8s).toBe(400_000_000n);
+  });
+
+  it('rejects when the backend does not support the currency', async () => {
+    listDailyExchangeRates.mockResolvedValue({ UnsupportedFiatSymbol: { symbol: 'EUR' } });
+
+    await expect(loadReportRates({ range: RANGE, currency: FiatCurrency.EUR })).rejects.toThrow(
+      'EUR',
+    );
   });
 });

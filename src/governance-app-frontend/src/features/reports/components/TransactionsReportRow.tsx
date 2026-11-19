@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Input } from '@components/Input';
 import { Label } from '@components/Label';
 import { NativeSelect, NativeSelectOption } from '@components/NativeSelect';
+import { useFiatCurrency } from '@hooks/useFiatCurrency';
 
 import { useTransactionsReportDownload } from '../hooks/useReportDownloads';
 import { getReportRange, isCustomRangeTooLong, ReportPeriod, toIsoDate } from '../utils/period';
@@ -15,6 +16,7 @@ export const TransactionsReportRow = () => {
   const { t } = useTranslation();
   const titleId = useId();
   const download = useTransactionsReportDownload();
+  const { fiatCurrency } = useFiatCurrency();
   const [period, setPeriod] = useState(ReportPeriod.YearToDate);
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
@@ -59,7 +61,7 @@ export const TransactionsReportRow = () => {
             {t(($) => $.reports.transactions.title)}
           </p>
           <p className="text-sm text-muted-foreground">
-            {t(($) => $.reports.transactions.description)}
+            {t(($) => $.reports.transactions.description, { currency: fiatCurrency })}
           </p>
         </div>
 
