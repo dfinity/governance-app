@@ -1,8 +1,10 @@
+import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { nonNullish } from '@dfinity/utils';
-import { useNavigate } from '@tanstack/react-router';
+import { useMatch, useNavigate } from '@tanstack/react-router';
 import { defaultFilter, useCommandState } from 'cmdk';
 import {
   ArrowDownToLineIcon,
+  ArrowLeftIcon,
   BanknoteIcon,
   BookUserIcon,
   CalendarRangeIcon,
@@ -10,7 +12,9 @@ import {
   EyeIcon,
   EyeOffIcon,
   FileTextIcon,
+  FingerprintIcon,
   KeyboardIcon,
+  LinkIcon,
   ListIcon,
   ListTodoIcon,
   LockIcon,
@@ -21,6 +25,7 @@ import {
   SunIcon,
   UsbIcon,
   UsersIcon,
+  WalletIcon,
 } from 'lucide-react';
 import type { ComponentProps, ElementType } from 'react';
 import { Fragment, useState } from 'react';
@@ -55,6 +60,7 @@ import { useFiatCurrency } from '@hooks/useFiatCurrency';
 import { useForecastPeriod } from '@hooks/useForecastPeriod';
 import { useHideBalances } from '@hooks/useHideBalances';
 import { HIDE_BALANCES_SHORTCUT_KEY } from '@hooks/useHideBalancesShortcut';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useLogout } from '@hooks/useLogout';
 import { LOGOUT_SHORTCUT_KEY } from '@hooks/useLogoutShortcut';
 import { useMediaQuery } from '@hooks/useMediaQuery';
@@ -63,6 +69,7 @@ import { useTheme } from '@hooks/useTheme';
 import { getShortcutTheme, THEME_SHORTCUT_KEY } from '@hooks/useThemeShortcut';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { isAccountsAreaEnabled, notifyAdvancedFeatureChange } from '@utils/advancedFeatures';
+import { copyToClipboard } from '@utils/clipboard';
 import { warningNotification } from '@utils/notification';
 import { addRecentCommand, readRecentCommands } from '@utils/recentCommands';
 import { isWebHidSupported } from '@common/ledger/webhid';
@@ -112,6 +119,7 @@ const parseItemValue = (value: string) =>
     : { id: value, recent: false };
 
 type CommandGroupId =
+  | 'page'
   | 'navigate'
   | 'actions'
   | 'proposals'
@@ -121,6 +129,7 @@ type CommandGroupId =
 
 /** The display order of the groups. A separator comes before a `separated` group. */
 const GROUPS: Array<{ id: CommandGroupId; separated?: boolean }> = [
+  { id: 'page' },
   { id: 'navigate' },
   { id: 'actions' },
   { id: 'proposals' },
@@ -151,7 +160,12 @@ type PaletteCommand = {
   run: () => void;
 };
 
+/** The "This page" group already shows the page commands, so the Recent group does not keep them. */
+const keepsRecent = (command: PaletteCommand) => !command.skipRecent && command.group !== 'page';
+
 type HintKey =
+  | 'copyToClipboard'
+  | 'goBack'
   | 'goToPage'
   | 'openProposal'
   | 'runAction'
@@ -170,6 +184,8 @@ const getHintKey = (value: unknown): HintKey | null => {
 };
 
 const getCommandHintKey = (value: string): HintKey | null => {
+  if (value.startsWith('copy:')) return 'copyToClipboard';
+  if (value.startsWith('back:')) return 'goBack';
   if (value.startsWith('nav:') || value.startsWith('proposals:')) return 'goToPage';
   if (value.startsWith('theme:')) return 'applyTheme';
   if (value.startsWith('feature:')) return 'toggleFeature';
@@ -237,6 +253,8 @@ export const CommandPalette = () => {
   const neuronsQuery = useGovernanceNeurons();
   const icpLedger = useIcpLedger();
   const logout = useLogout('command_palette');
+  const { identity } = useInternetIdentity();
+  const proposalMatch = useMatch({ from: '/_auth/voting/proposals/$id/', shouldThrow: false });
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   // Read on open, so the Recent items do not move while the palette is open.
@@ -279,6 +297,7 @@ export const CommandPalette = () => {
   const shortcutTheme = getShortcutTheme(theme);
 
   const groupHeadings: Record<CommandGroupId, string | undefined> = {
+    page: t(($) => $.commandPalette.groups.page),
     navigate: t(($) => $.commandPalette.groups.navigate),
     actions: t(($) => $.commandPalette.groups.actions),
     proposals: t(($) => $.commandPalette.groups.proposals),
@@ -293,7 +312,73 @@ export const CommandPalette = () => {
     { theme: Theme.System, icon: MonitorIcon, label: t(($) => $.commandPalette.items.themeSystem) },
   ];
 
+  const copy = (value: string, label: string) => void copyToClipboard({ t, value, label });
+
+  const proposalCommands: PaletteCommand[] = proposalMatch
+    ? [
+        {
+          id: 'copy:proposalLink',
+          group: 'page',
+          label: t(($) => $.commandPalette.items.copyProposalLink),
+          keywords: ['share', 'url'],
+          icon: LinkIcon,
+          run: () =>
+            copy(
+              new URL(`/voting/proposals/${proposalMatch.params.id}`, window.location.origin).href,
+              t(($) => $.commandPalette.copyLabels.proposalLink),
+            ),
+        },
+        {
+          id: 'back:proposals',
+          group: 'page',
+          label: t(($) => $.proposal.backToProposals),
+          keywords: ['return', 'list'],
+          icon: ArrowLeftIcon,
+          // The same target as the Back link of the proposal page.
+          run: () =>
+            navigate({
+              to: '/voting',
+              search: {
+                showProposals: true,
+                proposalFilter: proposalMatch.search.proposalFilter,
+              },
+            }),
+        },
+      ]
+    : [];
+
+  const identityCommands: PaletteCommand[] = identity
+    ? [
+        {
+          id: 'copy:accountId',
+          group: 'page',
+          label: t(($) => $.commandPalette.items.copyAccountId),
+          keywords: ['account id', 'address', 'wallet'],
+          icon: WalletIcon,
+          run: () =>
+            copy(
+              AccountIdentifier.fromPrincipal({ principal: identity.getPrincipal() }).toHex(),
+              t(($) => $.userAccount.accountId),
+            ),
+        },
+        {
+          id: 'copy:principal',
+          group: 'page',
+          label: t(($) => $.commandPalette.items.copyPrincipal),
+          keywords: ['principal', 'identity'],
+          icon: FingerprintIcon,
+          run: () =>
+            copy(
+              identity.getPrincipal().toText(),
+              t(($) => $.userAccount.principalId),
+            ),
+        },
+      ]
+    : [];
+
   const commands: PaletteCommand[] = [
+    ...proposalCommands,
+    ...identityCommands,
     ...navigationItems.map(
       (item): PaletteCommand => ({
         id: `nav:${item.href}`,
@@ -522,7 +607,7 @@ export const CommandPalette = () => {
   const recentCommands = isSearching
     ? []
     : recentIds
-        .map((id) => commands.find((command) => command.id === id && !command.skipRecent))
+        .map((id) => commands.find((command) => command.id === id && keepsRecent(command)))
         .filter(nonNullish)
         .slice(0, RECENT_LIMIT);
 
@@ -534,7 +619,7 @@ export const CommandPalette = () => {
       disabled={command.disabled}
       aria-keyshortcuts={command.shortcut}
       onSelect={() => {
-        if (!command.skipRecent) addRecentCommand(command.id);
+        if (keepsRecent(command)) addRecentCommand(command.id);
         if (command.keepOpen) command.run();
         else runAndClose(command.run);
       }}
