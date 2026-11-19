@@ -99,21 +99,6 @@ export const Sidebar = ({ activeHref }: { activeHref?: string }) => {
         />
         {!collapsed && <NnsWordmark className="h-[1.625rem] w-auto text-foreground" />}
       </div>
-      {commandPaletteEnabled && commandPaletteMounted && (
-        <div className="px-2 pb-1">
-          <RowTooltip
-            collapsed={collapsed}
-            label={
-              <>
-                {t(($) => $.common.commandPalette.search)}
-                <CommandPaletteShortcutHint />
-              </>
-            }
-          >
-            <CommandPaletteButton variant="sidebar" collapsed={collapsed} />
-          </RowTooltip>
-        </div>
-      )}
       <nav className="flex-1 space-y-1 p-2">
         {navigationItems.map((item) => {
           const label = t(item.label as never);
@@ -140,6 +125,21 @@ export const Sidebar = ({ activeHref }: { activeHref?: string }) => {
           );
         })}
       </nav>
+      {commandPaletteEnabled && commandPaletteMounted && (
+        <div className="p-2">
+          <RowTooltip
+            collapsed={collapsed}
+            label={
+              <>
+                {t(($) => $.common.commandPalette.search)}
+                <CommandPaletteShortcutHint />
+              </>
+            }
+          >
+            <CommandPaletteButton variant="sidebar" collapsed={collapsed} />
+          </RowTooltip>
+        </div>
+      )}
       <div className="border-t p-3">
         <UserMenu collapsed={collapsed} />
       </div>

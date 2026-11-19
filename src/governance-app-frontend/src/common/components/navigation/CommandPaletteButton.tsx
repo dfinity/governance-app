@@ -3,7 +3,7 @@ import type { ComponentProps, MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
-import { Kbd, KbdGroup } from '@components/Kbd';
+import { Kbd } from '@components/Kbd';
 import { openCommandPalette, useCommandPaletteMounted } from '@hooks/useCommandPaletteOpen';
 import { useCommandPaletteSettings } from '@hooks/useCommandPaletteSettings';
 import { isApplePlatform } from '@utils/platform';
@@ -12,12 +12,9 @@ import { cn } from '@utils/shadcn';
 type Props = ComponentProps<'button'> &
   ({ variant: 'sidebar'; collapsed: boolean } | { variant: 'header'; collapsed?: never });
 
-/** The Cmd+K keys. A touch screen has no keyboard, so it gets no hint. */
+/** The Cmd+K keys in one key cap. A touch screen has no keyboard, so it gets no hint. */
 export const CommandPaletteShortcutHint = () => (
-  <KbdGroup className="pointer-coarse:hidden">
-    <Kbd>{isApplePlatform ? '⌘' : 'Ctrl'}</Kbd>
-    <Kbd>K</Kbd>
-  </KbdGroup>
+  <Kbd className="pointer-coarse:hidden">{isApplePlatform ? '⌘K' : 'Ctrl K'}</Kbd>
 );
 
 /**
@@ -65,8 +62,7 @@ export const CommandPaletteButton = ({
       onClick={handleClick}
       aria-label={collapsed ? label : undefined}
       className={cn(
-        'flex h-10 w-full items-center gap-3 rounded-md border px-4 text-muted-foreground transition-colors outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring',
-        collapsed && 'justify-center px-0',
+        'relative flex w-full items-center gap-3 rounded-md px-4 py-3 text-muted-foreground transition-colors outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring',
         className,
       )}
     >

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { Kbd, KbdGroup } from '@components/Kbd';
+import { Kbd } from '@components/Kbd';
 import { Switch } from '@components/Switch';
 import { useCommandPaletteSettings } from '@hooks/useCommandPaletteSettings';
 import { isApplePlatform } from '@utils/platform';
@@ -17,10 +17,7 @@ export const CommandPaletteCard = () => {
           {t(($) => $.userAccount.commandPalette.description)}
         </p>
         <div className="pt-2">
-          <KbdGroup>
-            <Kbd>{isApplePlatform ? '⌘' : 'Ctrl'}</Kbd>
-            <Kbd>K</Kbd>
-          </KbdGroup>
+          <Kbd>{isApplePlatform ? '⌘K' : 'Ctrl K'}</Kbd>
         </div>
       </div>
       <Switch
