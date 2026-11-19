@@ -59,10 +59,14 @@ import { useCommandPaletteShortcut } from '@hooks/useCommandPaletteShortcut';
 import { useFiatCurrency } from '@hooks/useFiatCurrency';
 import { useForecastPeriod } from '@hooks/useForecastPeriod';
 import { useHideBalances } from '@hooks/useHideBalances';
+import { HIDE_BALANCES_SHORTCUT_KEY } from '@hooks/useHideBalancesShortcut';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useLogout } from '@hooks/useLogout';
+import { LOGOUT_SHORTCUT_KEY } from '@hooks/useLogoutShortcut';
+import { useMediaQuery } from '@hooks/useMediaQuery';
 import { useShortcutSettings } from '@hooks/useShortcutSettings';
 import { useTheme } from '@hooks/useTheme';
+import { getShortcutTheme, THEME_SHORTCUT_KEY } from '@hooks/useThemeShortcut';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { isAccountsAreaEnabled, notifyAdvancedFeatureChange } from '@utils/advancedFeatures';
 import { copyToClipboard } from '@utils/clipboard';
@@ -136,6 +140,7 @@ type PaletteCommand = {
   disabled?: boolean;
   /** Shows a checkmark, for example on the current theme. */
   checked?: boolean;
+  /** The single-key shortcut that does the same as `run`. */
   shortcut?: string;
   /** The item shows only while the user searches. */
   searchOnly?: boolean;
@@ -259,6 +264,11 @@ export const CommandPalette = () => {
     });
 
   const isSearching = trimmedSearch !== '';
+
+  // A touch screen has no keyboard for the shortcuts, so it gets no hints.
+  const hasFinePointer = useMediaQuery('(pointer: fine)');
+  const shortcutHint = (key: string) => (shortcutsEnabled && hasFinePointer ? key : undefined);
+  const shortcutTheme = getShortcutTheme(theme);
 
   const groupHeadings: Record<CommandGroupId, string | undefined> = {
     page: t(($) => $.commandPalette.groups.page),
@@ -473,6 +483,7 @@ export const CommandPalette = () => {
         keywords: ['appearance', 'color'],
         icon,
         checked: theme === itemTheme,
+        shortcut: itemTheme === shortcutTheme ? shortcutHint(THEME_SHORTCUT_KEY) : undefined,
         keepOpen: true,
         run: () => setTheme(itemTheme),
       }),
@@ -485,6 +496,7 @@ export const CommandPalette = () => {
         : t(($) => $.commandPalette.items.hideBalances),
       keywords: ['privacy', 'balance'],
       icon: hidden ? EyeIcon : EyeOffIcon,
+      shortcut: shortcutHint(HIDE_BALANCES_SHORTCUT_KEY),
       run: () => setHidden(!hidden),
     },
     {
@@ -555,6 +567,7 @@ export const CommandPalette = () => {
       label: t(($) => $.commandPalette.items.signOut),
       keywords: ['logout', 'log out'],
       icon: LogOutIcon,
+      shortcut: shortcutHint(LOGOUT_SHORTCUT_KEY),
       run: logout,
     },
   ];
@@ -592,12 +605,17 @@ export const CommandPalette = () => {
                     value={command.id}
                     keywords={[command.label, ...(command.keywords ?? [])]}
                     disabled={command.disabled}
+                    aria-keyshortcuts={command.shortcut}
                     onSelect={() => (command.keepOpen ? command.run() : runAndClose(command.run))}
                   >
                     <command.icon />
                     <span>{command.label}</span>
                     {nonNullish(command.shortcut) && (
-                      <CommandShortcut>{command.shortcut}</CommandShortcut>
+                      // `aria-keyshortcuts` gives the key to screen readers.
+                      <CommandShortcut aria-hidden className="tracking-normal">
+                        {/* In dark mode, the muted fill is the color of the palette. */}
+                        <Kbd className="border">{command.shortcut}</Kbd>
+                      </CommandShortcut>
                     )}
                     {command.checked && <CheckIcon className="ml-auto" />}
                   </TrackedCommandItem>

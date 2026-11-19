@@ -2,8 +2,11 @@ import { useTranslation } from 'react-i18next';
 
 import { Kbd } from '@components/Kbd';
 import { Switch } from '@components/Switch';
+import { HIDE_BALANCES_SHORTCUT_KEY } from '@hooks/useHideBalancesShortcut';
+import { LOGOUT_SHORTCUT_KEY } from '@hooks/useLogoutShortcut';
 import { useShortcutSettings } from '@hooks/useShortcutSettings';
 import { SIDEBAR_SHORTCUT_KEY } from '@hooks/useSidebarShortcut';
+import { THEME_SHORTCUT_KEY } from '@hooks/useThemeShortcut';
 
 type Shortcut = {
   labelKey: 'toggleTheme' | 'logout' | 'hideBalances' | 'toggleSidebar';
@@ -11,10 +14,10 @@ type Shortcut = {
 };
 
 const SHORTCUTS: Shortcut[] = [
-  { labelKey: 'toggleTheme', key: 'd' },
-  { labelKey: 'hideBalances', key: 'p' },
+  { labelKey: 'toggleTheme', key: THEME_SHORTCUT_KEY },
+  { labelKey: 'hideBalances', key: HIDE_BALANCES_SHORTCUT_KEY },
   { labelKey: 'toggleSidebar', key: SIDEBAR_SHORTCUT_KEY },
-  { labelKey: 'logout', key: 'u' },
+  { labelKey: 'logout', key: LOGOUT_SHORTCUT_KEY },
 ];
 
 export const ShortcutsCard = () => {
