@@ -76,6 +76,7 @@ export const WELCOME_MODAL_STORAGE_KEY = 'nns-welcome-modal-seen';
 export const SHORTCUTS_SETTINGS_KEY = 'nns-shortcuts-settings';
 /** Also read by `public/startup-v3.js` for the first paint. */
 export const COMMAND_PALETTE_SETTINGS_KEY = 'nns-command-palette-settings';
+export const COMMAND_PALETTE_RECENT_STORAGE_KEY = 'nns-command-palette-recent';
 export const ADVANCED_FEATURES_STORAGE_KEY = 'nns-advanced-features';
 export const SEEN_FEATURE_ANNOUNCEMENTS_STORAGE_KEY = 'nns-seen-feature-announcements';
 export const THEME_STORAGE_KEY = 'nns-theme';

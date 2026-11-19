@@ -78,6 +78,7 @@ import { AdvancedFeature } from '@typings/advancedFeatures';
 import { isAccountsAreaEnabled, notifyAdvancedFeatureChange } from '@utils/advancedFeatures';
 import { copyToClipboard } from '@utils/clipboard';
 import { warningNotification } from '@utils/notification';
+import { addRecentCommand, readRecentCommands } from '@utils/recentCommands';
 import { isWebHidSupported } from '@common/ledger/webhid';
 
 // We only support English for now.
@@ -115,6 +116,14 @@ const filterCommands = (value: string, search: string, keywords?: string[]) => {
 const TOGGLE_BALANCES_VALUE = 'toggle-balances';
 const TOGGLE_SHORTCUTS_VALUE = 'toggle-shortcuts';
 const SIGN_OUT_VALUE = 'signout';
+/** Prefixes the cmdk value of a Recent item, because each cmdk value must be unique. */
+const RECENT_VALUE_PREFIX = 'recent:';
+const RECENT_LIMIT = 3;
+
+const parseItemValue = (value: string) =>
+  value.startsWith(RECENT_VALUE_PREFIX)
+    ? { id: value.slice(RECENT_VALUE_PREFIX.length), recent: true }
+    : { id: value, recent: false };
 
 type CommandGroupId =
   | 'page'
@@ -153,8 +162,13 @@ type PaletteCommand = {
   searchOnly?: boolean;
   /** The palette stays open after `run`. */
   keepOpen?: boolean;
+  /** The Recent group does not keep the item, for example when it depends on the search. */
+  skipRecent?: boolean;
   run: () => void;
 };
+
+/** The "This page" group already shows the page commands, so the Recent group does not keep them. */
+const keepsRecent = (command: PaletteCommand) => !command.skipRecent && command.group !== 'page';
 
 type HintKey =
   | 'copyToClipboard'
@@ -172,6 +186,11 @@ type HintKey =
 
 const getHintKey = (value: unknown): HintKey | null => {
   if (typeof value !== 'string' || value === '') return null;
+  const { id } = parseItemValue(value);
+  return getCommandHintKey(id);
+};
+
+const getCommandHintKey = (value: string): HintKey | null => {
   if (value.startsWith('copy:')) return 'copyToClipboard';
   if (value.startsWith('back:')) return 'goBack';
   if (value.startsWith('nav:') || value.startsWith('proposals:')) return 'goToPage';
@@ -213,14 +232,16 @@ const CommandSection = ({
 
 /**
  * CommandItem that reports the selected item to analytics. A proposal ID is reported as
- * `proposal`.
+ * `proposal`, and a Recent item as its command id with `source: 'recent'`.
  */
 const TrackedCommandItem = ({ onSelect, ...props }: ComponentProps<typeof CommandItem>) => (
   <CommandItem
     {...props}
     onSelect={(value) => {
+      const { id, recent } = parseItemValue(value);
       analytics.event(AnalyticsEvent.CommandPaletteSelect, {
-        item: /^\d+$/.test(value) ? 'proposal' : value,
+        item: /^\d+$/.test(id) ? 'proposal' : id,
+        ...(recent && { source: 'recent' }),
       });
       onSelect?.(value);
     }}
@@ -243,6 +264,14 @@ export const CommandPalette = () => {
   const proposalMatch = useMatch({ from: '/_auth/voting/proposals/$id/', shouldThrow: false });
   const open = useCommandPaletteOpen();
   const [search, setSearch] = useState('');
+  // Read on open, so the Recent items do not move while the palette is open. A button can open
+  // the palette too, so this follows the shared open state.
+  const [recentIds, setRecentIds] = useState<string[]>([]);
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) setRecentIds(readRecentCommands());
+  }
 
   const handleOpenChange = (next: boolean) => {
     if (next) return openCommandPalette('shortcut');
@@ -444,6 +473,7 @@ export const CommandPalette = () => {
               id: proposalIdMatch.toString(),
             }),
             icon: FileTextIcon,
+            skipRecent: true,
             run: () => navigate({ to: '/voting/proposals/$id', params: { id: proposalIdMatch } }),
           } satisfies PaletteCommand,
         ]
@@ -456,6 +486,7 @@ export const CommandPalette = () => {
             label: t(($) => $.commandPalette.items.proposalHint),
             icon: FileTextIcon,
             disabled: true,
+            skipRecent: true,
             run: () => {},
           } satisfies PaletteCommand,
         ]
@@ -577,11 +608,46 @@ export const CommandPalette = () => {
       keywords: ['logout', 'log out'],
       icon: LogOutIcon,
       shortcut: shortcutHint(LOGOUT_SHORTCUT_KEY),
+      skipRecent: true,
       run: logout,
     },
   ];
 
   const visibleCommands = commands.filter((command) => isSearching || !command.searchOnly);
+
+  // A stored id that no longer has a command, for example a feature that is off, is dropped.
+  const recentCommands = isSearching
+    ? []
+    : recentIds
+        .map((id) => commands.find((command) => command.id === id && keepsRecent(command)))
+        .filter(nonNullish)
+        .slice(0, RECENT_LIMIT);
+
+  const renderItem = (command: PaletteCommand, value: string) => (
+    <TrackedCommandItem
+      key={value}
+      value={value}
+      keywords={[command.label, ...(command.keywords ?? [])]}
+      disabled={command.disabled}
+      aria-keyshortcuts={command.shortcut}
+      onSelect={() => {
+        if (keepsRecent(command)) addRecentCommand(command.id);
+        if (command.keepOpen) command.run();
+        else runAndClose(command.run);
+      }}
+    >
+      <command.icon />
+      <span>{command.label}</span>
+      {nonNullish(command.shortcut) && (
+        // `aria-keyshortcuts` gives the key to screen readers.
+        <CommandShortcut aria-hidden className="tracking-normal">
+          {/* In dark mode, the muted fill is the color of the palette. */}
+          <Kbd className="border">{command.shortcut}</Kbd>
+        </CommandShortcut>
+      )}
+      {command.checked && <CheckIcon className="ml-auto" />}
+    </TrackedCommandItem>
+  );
 
   return (
     <CommandDialog
@@ -604,6 +670,14 @@ export const CommandPalette = () => {
       <CommandList>
         <CommandEmpty>{t(($) => $.commandPalette.empty)}</CommandEmpty>
 
+        {recentCommands.length > 0 && (
+          <CommandGroup heading={t(($) => $.commandPalette.groups.recent)}>
+            {recentCommands.map((command) =>
+              renderItem(command, `${RECENT_VALUE_PREFIX}${command.id}`),
+            )}
+          </CommandGroup>
+        )}
+
         {GROUPS.map(({ id, separated }) => {
           const groupCommands = visibleCommands.filter((command) => command.group === id);
           if (groupCommands.length === 0) return null;
@@ -612,27 +686,7 @@ export const CommandPalette = () => {
             <Fragment key={id}>
               {separated && !isSearching && <CommandSeparator />}
               <CommandSection ranked={isSearching} heading={groupHeadings[id]}>
-                {groupCommands.map((command) => (
-                  <TrackedCommandItem
-                    key={command.id}
-                    value={command.id}
-                    keywords={[command.label, ...(command.keywords ?? [])]}
-                    disabled={command.disabled}
-                    aria-keyshortcuts={command.shortcut}
-                    onSelect={() => (command.keepOpen ? command.run() : runAndClose(command.run))}
-                  >
-                    <command.icon />
-                    <span>{command.label}</span>
-                    {nonNullish(command.shortcut) && (
-                      // `aria-keyshortcuts` gives the key to screen readers.
-                      <CommandShortcut aria-hidden className="tracking-normal">
-                        {/* In dark mode, the muted fill is the color of the palette. */}
-                        <Kbd className="border">{command.shortcut}</Kbd>
-                      </CommandShortcut>
-                    )}
-                    {command.checked && <CheckIcon className="ml-auto" />}
-                  </TrackedCommandItem>
-                ))}
+                {groupCommands.map((command) => renderItem(command, command.id))}
               </CommandSection>
             </Fragment>
           );
