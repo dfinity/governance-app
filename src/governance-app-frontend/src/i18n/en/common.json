@@ -60,6 +60,9 @@
   "accounts": "ICP accounts",
   "stakes": "Voting neurons",
   "settings": "Settings",
+  "commandPalette": {
+    "search": "Search"
+  },
   "clipboard": {
     "copy": "Copy to clipboard",
     "copied": "Your {{label}} was copied to the clipboard.",

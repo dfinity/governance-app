@@ -13,6 +13,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AnalyticsEvent } from '@features/analytics/events';
@@ -32,6 +33,7 @@ import { AdvancedFeature } from '@typings/advancedFeatures';
 import { errorNotification, successNotification, warningNotification } from '@utils/notification';
 
 import { CommandPalette } from './CommandPalette';
+import { CommandPaletteButton } from './navigation/CommandPaletteButton';
 
 const LOCKED_ID = 1664112345678949305n;
 const DISSOLVING_ID = 7331012345678958442n;
@@ -194,6 +196,22 @@ describe('CommandPalette', () => {
   });
 
   afterEach(() => setLedgerFeature(false));
+
+  it('gives the focus back to the search button on Escape.', async () => {
+    render(
+      <>
+        <CommandPaletteButton variant="header" />
+        <CommandPalette />
+      </>,
+    );
+    const button = screen.getByRole('button', { name: 'Search' });
+
+    await userEvent.click(button);
+    expect(screen.getByRole('combobox')).toBeTruthy();
+    await userEvent.keyboard('{Escape}');
+
+    await waitFor(() => expect(document.activeElement).toBe(button));
+  });
 
   it('finds each item by its visible label.', () => {
     openPalette();
@@ -564,6 +582,20 @@ describe('CommandPalette', () => {
         name: 'Show values in US Dollar (USD)',
       });
       expect(currency.querySelector('.lucide-check')).not.toBeNull();
+    });
+
+    it('shows the recent commands when the search button opens the palette.', async () => {
+      storeRecent(['action:stake']);
+      render(
+        <>
+          <CommandPaletteButton variant="header" />
+          <CommandPalette />
+        </>,
+      );
+
+      await userEvent.click(screen.getByRole('button', { name: 'Search' }));
+
+      expect(recentNames()).toEqual(['Stake ICP']);
     });
 
     it('hides while the user searches.', () => {

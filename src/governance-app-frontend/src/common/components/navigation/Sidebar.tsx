@@ -1,15 +1,18 @@
 import { Link } from '@tanstack/react-router';
-import { type ReactElement, useState } from 'react';
+import { type ReactElement, type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { NnsWordmark } from '@components/icons/NnsWordmark';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { useCommandPaletteMounted } from '@hooks/useCommandPaletteOpen';
+import { useCommandPaletteSettings } from '@hooks/useCommandPaletteSettings';
 import { useIconMotion } from '@hooks/useIconMotion';
 import { useSidebarCollapsed } from '@hooks/useSidebarCollapsed';
 import { isAccountsAreaEnabled } from '@utils/advancedFeatures';
 import { cn } from '@utils/shadcn';
 
+import { CommandPaletteButton, CommandPaletteShortcutHint } from './CommandPaletteButton';
 import { getNavigationItems } from './NavigationItems';
 import { UserMenu } from './UserMenu';
 
@@ -29,7 +32,7 @@ const RowTooltip = ({
   children,
 }: {
   collapsed: boolean;
-  label: string;
+  label: ReactNode;
   children: ReactElement;
 }) => {
   const [open, setOpen] = useState(false);
@@ -45,7 +48,7 @@ const RowTooltip = ({
     <Tooltip open={collapsed && open} onOpenChange={(next) => setOpen(collapsed && next)}>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
       {collapsed && (
-        <TooltipContent side="right" sideOffset={8}>
+        <TooltipContent side="right" sideOffset={8} className="flex items-center gap-2">
           {label}
         </TooltipContent>
       )}
@@ -60,6 +63,8 @@ export const Sidebar = ({ activeHref }: { activeHref?: string }) => {
   const navigationItems = getNavigationItems({ accountsEnabled });
   const iconMotion = useIconMotion();
   const { collapsed } = useSidebarCollapsed();
+  const { enabled: commandPaletteEnabled } = useCommandPaletteSettings();
+  const commandPaletteMounted = useCommandPaletteMounted();
 
   const [prevEnabled, setPrevEnabled] = useState(accountsEnabled);
   const [shouldAnimate, setShouldAnimate] = useState(false);
@@ -120,6 +125,21 @@ export const Sidebar = ({ activeHref }: { activeHref?: string }) => {
           );
         })}
       </nav>
+      {commandPaletteEnabled && commandPaletteMounted && (
+        <div className="p-2">
+          <RowTooltip
+            collapsed={collapsed}
+            label={
+              <>
+                {t(($) => $.common.commandPalette.search)}
+                <CommandPaletteShortcutHint />
+              </>
+            }
+          >
+            <CommandPaletteButton variant="sidebar" collapsed={collapsed} />
+          </RowTooltip>
+        </div>
+      )}
       <div className="border-t p-3">
         <UserMenu collapsed={collapsed} />
       </div>

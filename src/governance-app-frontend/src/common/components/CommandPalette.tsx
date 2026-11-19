@@ -33,7 +33,7 @@ import {
   WalletIcon,
 } from 'lucide-react';
 import type { ComponentProps, ElementType } from 'react';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
@@ -67,6 +67,13 @@ import { Theme } from '@constants/theme';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import {
+  closeCommandPalette,
+  openCommandPalette,
+  registerCommandPalette,
+  restoreCommandPaletteFocus,
+  useCommandPaletteOpen,
+} from '@hooks/useCommandPaletteOpen';
 import { useCommandPaletteShortcut } from '@hooks/useCommandPaletteShortcut';
 import { useFiatCurrency } from '@hooks/useFiatCurrency';
 import { useForecastPeriod } from '@hooks/useForecastPeriod';
@@ -305,21 +312,26 @@ export const CommandPalette = () => {
   const icpLedger = useIcpLedger();
   const logout = useLogout('command_palette');
   const proposalMatch = useMatch({ from: '/_auth/voting/proposals/$id/', shouldThrow: false });
-  const [open, setOpen] = useState(false);
+  const open = useCommandPaletteOpen();
   const [search, setSearch] = useState('');
-  // Read on open, so the Recent items do not move while the palette is open.
+  // Read on open, so the Recent items do not move while the palette is open. A button can open
+  // the palette too, so this follows the shared open state.
   const [recentIds, setRecentIds] = useState<string[]>([]);
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) setRecentIds(readRecentCommands());
+  }
 
   const handleOpenChange = (next: boolean) => {
-    if (next && !open) {
-      analytics.event(AnalyticsEvent.CommandPaletteOpen);
-      setRecentIds(readRecentCommands());
-    }
-    if (!next) setSearch('');
-    setOpen(next);
+    if (next) return openCommandPalette('shortcut');
+    setSearch('');
+    closeCommandPalette();
   };
 
   useCommandPaletteShortcut(() => handleOpenChange(!open));
+
+  useEffect(() => registerCommandPalette(), []);
 
   const runAndClose = (fn: () => void) => {
     fn();
@@ -737,6 +749,10 @@ export const CommandPalette = () => {
     <CommandDialog
       open={open}
       onOpenChange={handleOpenChange}
+      onCloseAutoFocus={(event) => {
+        event.preventDefault();
+        restoreCommandPaletteFocus();
+      }}
       title={t(($) => $.commandPalette.title)}
       description={t(($) => $.commandPalette.description)}
       showCloseButton={false}

@@ -12,7 +12,8 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { SIDEBAR_COLLAPSED_KEY } from '@constants/extra';
+import { COMMAND_PALETTE_SETTINGS_KEY, SIDEBAR_COLLAPSED_KEY } from '@constants/extra';
+import { registerCommandPalette } from '@hooks/useCommandPaletteOpen';
 import { useSidebarShortcut } from '@hooks/useSidebarShortcut';
 
 import { Sidebar } from './Sidebar';
@@ -136,6 +137,29 @@ describe('Sidebar', () => {
 
     expect(screen.getByRole('complementary').dataset.collapsed).toBeUndefined();
     expect(screen.getByText('rrkah-f...aaq-cai')).toBeTruthy();
+  });
+
+  it('shows the search button while the command palette is on.', async () => {
+    const unregister = registerCommandPalette();
+    await renderSidebar();
+
+    expect(screen.getByRole('button', { name: /Search/ })).toBeTruthy();
+    unregister();
+  });
+
+  it('hides the search button while the command palette is off.', async () => {
+    const unregister = registerCommandPalette();
+    vi.stubGlobal('localStorage', createStorage({ [COMMAND_PALETTE_SETTINGS_KEY]: 'false' }));
+    await renderSidebar();
+
+    expect(screen.queryByRole('button', { name: /Search/ })).toBeNull();
+    unregister();
+  });
+
+  it('hides the search button on a screen without a palette.', async () => {
+    await renderSidebar();
+
+    expect(screen.queryByRole('button', { name: /Search/ })).toBeNull();
   });
 
   it('keeps the keyboard focus on a row.', async () => {

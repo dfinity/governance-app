@@ -25,6 +25,7 @@ function CommandDialog({
   className,
   showCloseButton = true,
   filter,
+  onCloseAutoFocus,
   ...props
 }: React.ComponentProps<typeof Dialog> & {
   title?: string;
@@ -32,12 +33,14 @@ function CommandDialog({
   className?: string;
   showCloseButton?: boolean;
   filter?: React.ComponentProps<typeof Command>['filter'];
+  onCloseAutoFocus?: React.ComponentProps<typeof DialogContent>['onCloseAutoFocus'];
 }) {
   return (
     <Dialog {...props}>
       <DialogContent
         className={cn('overflow-hidden p-0', className)}
         showCloseButton={showCloseButton}
+        onCloseAutoFocus={onCloseAutoFocus}
       >
         {title && <DialogTitle className="sr-only">{title}</DialogTitle>}
         {description && <DialogDescription className="sr-only">{description}</DialogDescription>}

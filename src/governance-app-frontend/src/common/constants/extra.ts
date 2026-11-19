@@ -74,13 +74,14 @@ export const EIGHT_YEAR_GANG_BONUS_EXPIRY_SECONDS = 1_924_991_999; // 2030-12-31
 // Local Storage Keys
 export const WELCOME_MODAL_STORAGE_KEY = 'nns-welcome-modal-seen';
 export const SHORTCUTS_SETTINGS_KEY = 'nns-shortcuts-settings';
+/** Also read by `public/startup-v3.js` for the first paint. */
 export const COMMAND_PALETTE_SETTINGS_KEY = 'nns-command-palette-settings';
 export const COMMAND_PALETTE_RECENT_STORAGE_KEY = 'nns-command-palette-recent';
 export const ADVANCED_FEATURES_STORAGE_KEY = 'nns-advanced-features';
 export const SEEN_FEATURE_ANNOUNCEMENTS_STORAGE_KEY = 'nns-seen-feature-announcements';
 export const THEME_STORAGE_KEY = 'nns-theme';
 export const HIDE_BALANCES_KEY = 'nns-hide-balances';
-/** Also read by `public/startup-v2.js` for the first paint. */
+/** Also read by `public/startup-v3.js` for the first paint. */
 export const SIDEBAR_COLLAPSED_KEY = 'nns-sidebar-collapsed';
 export const FIAT_CURRENCY_STORAGE_KEY = 'nns-fiat-currency';
 export const FORECAST_PERIOD_STORAGE_KEY = 'nns-forecast-period';
