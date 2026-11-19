@@ -1,11 +1,47 @@
 {
   "title": "Reports",
-  "description": "Download your neurons and transactions as CSV files.",
+  "description": "See a summary of a year, or download your neurons and transactions as CSV files.",
   "exports": "Exports",
   "footnote": "All dates are in UTC. These reports are not financial or tax advice.",
   "download": "Download CSV",
+  "yearSummary": {
+    "title": "Year summary",
+    "subtitle": "Values in {{currency}}, at the rate of each day.",
+    "year": "Year",
+    "yearToDate": "{{year}} to date",
+    "rewardIncome": "Reward income",
+    "withoutRate": "{{icp}} ICP · {{count}} without a rate",
+    "holdingsToday": "Holdings today",
+    "holdingsOn": "Holdings on {{date}}",
+    "withMaturity": "{{icp}} ICP + {{maturity}} maturity",
+    "noMaturity": "{{icp}} ICP · no maturity",
+    "receivedSent": "Received · sent",
+    "fees": "ICP · fees {{fees}} ICP",
+    "rewards": "Rewards ({{count}})",
+    "latestFirst": "Latest first",
+    "columns": {
+      "date": "Date (UTC)",
+      "account": "Account",
+      "amount": "Amount (ICP)",
+      "value": "Value ({{currency}})"
+    },
+    "noRewards": "No rewards in this period.",
+    "noRate": "No rate",
+    "neuron": "Neuron {{id}}",
+    "notIncluded": "What the summary does not include",
+    "limits": {
+      "externalDisbursements": "Rewards that you disbursed to an account outside this app, for example an exchange.",
+      "pastMaturity": "The maturity at the end of a past year. No canister keeps a history of maturity.",
+      "deviceNeurons": "Neurons on a Ledger device that do not have your Internet Identity as a hotkey.",
+      "gains": "Gains, losses, and the cost basis. The app does not know your purchase prices.",
+      "rates": "If a day has no rate, the summary uses the rate of an earlier day. The CSV file shows the date of each rate."
+    },
+    "incomplete": "Some accounts have too many transactions. The summary does not include the oldest ones.",
+    "error": "The year summary did not load.",
+    "fileName": "year-summary-{{year}}.csv"
+  },
   "settingsRow": {
-    "description": "Download your neurons and transactions as CSV files.",
+    "description": "A year summary and CSV exports of your neurons and transactions.",
     "open": "Open"
   },
   "neurons": {
@@ -87,6 +123,22 @@
       "burn": "Burn",
       "approve": "Approve",
       "unknown": "Unknown"
+    },
+    "yearSummary": {
+      "title": "Year summary",
+      "period": "Period (UTC)",
+      "currency": "Currency",
+      "total": "Total",
+      "rewards": "Reward income",
+      "holdingsToday": "Holdings today",
+      "holdingsOn": "Holdings on {{date}}",
+      "movements": "Movements",
+      "notIncluded": "Not included",
+      "balance": "Balance (ICP)",
+      "maturity": "Maturity (ICP)",
+      "received": "Received from other accounts (ICP)",
+      "sent": "Sent to other accounts (ICP)",
+      "fees": "Fees (ICP)"
     }
   }
 }

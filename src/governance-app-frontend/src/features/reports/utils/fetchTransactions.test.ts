@@ -9,7 +9,7 @@ import {
 import { MAIN, OTHER, transferTx } from './testUtils';
 
 const DAY_MS = 24 * 60 * 60 * 1_000;
-const RANGE = { fromMs: Date.UTC(2026, 0, 1), toMs: Date.UTC(2026, 11, 31) };
+const FROM_MS = Date.UTC(2026, 0, 1);
 
 /** Transactions with IDs `count` down to 1, one day apart, the newest on `newestMs`. */
 const history = (count: number, newestMs: number) =>
@@ -28,7 +28,8 @@ const fakeIndex = (transactions: IcpIndexDid.TransactionWithId[], pageSize: numb
   vi.fn<GetTransactionsPage>(async ({ start }) => {
     const older = transactions.filter(({ id }) => start === undefined || id < start);
     return {
-      balance: 0n,
+      // A balance that changes on each page, to show that the first one is kept.
+      balance: BigInt(older.length),
       transactions: older.slice(0, pageSize),
       oldest_tx_id: transactions.length > 0 ? [transactions.at(-1)!.id] : [],
     };
@@ -38,9 +39,14 @@ describe('fetchTransactionsSince', () => {
   it('stops at the oldest transaction of the account', async () => {
     const getPage = fakeIndex(history(5, Date.UTC(2026, 5, 1)), 2);
 
-    const result = await fetchTransactionsSince({ accountIdentifier: MAIN, range: RANGE, getPage });
+    const result = await fetchTransactionsSince({
+      accountIdentifier: MAIN,
+      fromMs: FROM_MS,
+      getPage,
+    });
 
     expect(result.complete).toBe(true);
+    expect(result.balanceE8s).toBe(5n);
     expect(result.transactions.map(({ id }) => id)).toEqual([5n, 4n, 3n, 2n, 1n]);
     expect(getPage.mock.calls.map(([{ start }]) => start)).toEqual([undefined, 4n, 2n]);
   });
@@ -48,7 +54,11 @@ describe('fetchTransactionsSince', () => {
   it('stops at the first page that reaches before the range', async () => {
     const getPage = fakeIndex(history(100, Date.UTC(2026, 0, 3)), 2);
 
-    const result = await fetchTransactionsSince({ accountIdentifier: MAIN, range: RANGE, getPage });
+    const result = await fetchTransactionsSince({
+      accountIdentifier: MAIN,
+      fromMs: FROM_MS,
+      getPage,
+    });
 
     expect(result.complete).toBe(true);
     expect(getPage).toHaveBeenCalledTimes(2);
@@ -57,9 +67,13 @@ describe('fetchTransactionsSince', () => {
   it('stops on an empty page', async () => {
     const getPage = fakeIndex([], 2);
 
-    const result = await fetchTransactionsSince({ accountIdentifier: MAIN, range: RANGE, getPage });
+    const result = await fetchTransactionsSince({
+      accountIdentifier: MAIN,
+      fromMs: FROM_MS,
+      getPage,
+    });
 
-    expect(result).toEqual({ transactions: [], complete: true });
+    expect(result).toEqual({ balanceE8s: 0n, transactions: [], complete: true });
   });
 
   it('reports an incomplete list at the page limit', async () => {
@@ -67,7 +81,7 @@ describe('fetchTransactionsSince', () => {
 
     const result = await fetchTransactionsSince({
       accountIdentifier: MAIN,
-      range: { fromMs: 0, toMs: RANGE.toMs },
+      fromMs: 0,
       getPage,
     });
 
