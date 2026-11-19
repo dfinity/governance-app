@@ -1,18 +1,14 @@
 import { Link } from '@tanstack/react-router';
-import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
-import { type ReactElement, useState } from 'react';
+import { type ReactElement, type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { NnsWordmark } from '@components/icons/NnsWordmark';
-import { Kbd } from '@components/Kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useCommandPaletteMounted } from '@hooks/useCommandPaletteOpen';
 import { useCommandPaletteSettings } from '@hooks/useCommandPaletteSettings';
 import { useIconMotion } from '@hooks/useIconMotion';
-import { useShortcutSettings } from '@hooks/useShortcutSettings';
 import { useSidebarCollapsed } from '@hooks/useSidebarCollapsed';
-import { SIDEBAR_SHORTCUT_KEY } from '@hooks/useSidebarShortcut';
 import { isAccountsAreaEnabled } from '@utils/advancedFeatures';
 import { cn } from '@utils/shadcn';
 
@@ -36,7 +32,7 @@ const RowTooltip = ({
   children,
 }: {
   collapsed: boolean;
-  label: ReactElement | string;
+  label: ReactNode;
   children: ReactElement;
 }) => {
   const [open, setOpen] = useState(false);
@@ -66,8 +62,7 @@ export const Sidebar = ({ activeHref }: { activeHref?: string }) => {
   const accountsEnabled = isAccountsAreaEnabled(features);
   const navigationItems = getNavigationItems({ accountsEnabled });
   const iconMotion = useIconMotion();
-  const { collapsed, setCollapsed } = useSidebarCollapsed();
-  const { enabled: shortcutsEnabled } = useShortcutSettings();
+  const { collapsed } = useSidebarCollapsed();
   const { enabled: commandPaletteEnabled } = useCommandPaletteSettings();
   const commandPaletteMounted = useCommandPaletteMounted();
 
@@ -80,12 +75,6 @@ export const Sidebar = ({ activeHref }: { activeHref?: string }) => {
       setShouldAnimate(true);
     }
   }
-
-  const ToggleIcon = collapsed ? PanelLeftOpen : PanelLeftClose;
-  const toggleLabel = collapsed
-    ? t(($) => $.common.sidebar.expandLabel)
-    : t(($) => $.common.sidebar.collapseLabel);
-  const shortcutHint = shortcutsEnabled ? <Kbd>{SIDEBAR_SHORTCUT_KEY}</Kbd> : null;
 
   return (
     <aside
@@ -151,36 +140,6 @@ export const Sidebar = ({ activeHref }: { activeHref?: string }) => {
           );
         })}
       </nav>
-      <div className="p-2">
-        <RowTooltip
-          collapsed={collapsed}
-          label={
-            <>
-              {toggleLabel}
-              {shortcutHint}
-            </>
-          }
-        >
-          <button
-            type="button"
-            onClick={() => setCollapsed(!collapsed)}
-            aria-label={toggleLabel}
-            aria-expanded={!collapsed}
-            className={cn(
-              ROW_CLASS,
-              'w-full text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring',
-            )}
-          >
-            <ToggleIcon className="size-5 shrink-0" />
-            {!collapsed && (
-              <>
-                <span className="flex-1 text-left">{t(($) => $.common.sidebar.collapse)}</span>
-                {shortcutHint}
-              </>
-            )}
-          </button>
-        </RowTooltip>
-      </div>
       <div className="border-t p-3">
         <UserMenu collapsed={collapsed} />
       </div>

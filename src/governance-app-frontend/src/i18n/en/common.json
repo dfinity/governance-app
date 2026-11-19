@@ -60,11 +60,6 @@
   "accounts": "ICP accounts",
   "stakes": "Voting neurons",
   "settings": "Settings",
-  "sidebar": {
-    "collapse": "Collapse",
-    "collapseLabel": "Collapse sidebar",
-    "expandLabel": "Expand sidebar"
-  },
   "commandPalette": {
     "search": "Search"
   },

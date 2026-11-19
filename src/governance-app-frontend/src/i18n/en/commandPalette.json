@@ -8,6 +8,7 @@
     "page": "This page",
     "navigate": "Navigate",
     "actions": "Actions",
+    "neurons": "Neurons",
     "proposals": "Proposals",
     "preferences": "Preferences",
     "advancedFeatures": "Advanced features"
@@ -32,6 +33,8 @@
     "addLedgerDevice": "Add Ledger device",
     "fiatCurrency": "Show values in {{name}} ({{code}})",
     "forecastPeriod": "Forecast period: {{period}}",
+    "openNeuron": "Open neuron",
+    "neuronId": "Neuron {{id}}",
     "copyProposalLink": "Copy proposal link",
     "copyAccountId": "Copy ICP wallet address",
     "copyPrincipal": "Copy principal ID"
@@ -47,6 +50,7 @@
     "runAction": "Run action",
     "setCurrency": "Change currency",
     "setForecastPeriod": "Change forecast period",
+    "openNeuron": "Open the neuron dialog",
     "copyToClipboard": "Copy to clipboard",
     "goBack": "Go back"
   },

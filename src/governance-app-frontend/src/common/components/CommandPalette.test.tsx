@@ -1,6 +1,8 @@
 import '@/i18n/config';
 
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
+import type { NeuronInfo } from '@icp-sdk/canisters/nns';
+import { NeuronState } from '@icp-sdk/canisters/nns';
 import { Principal } from '@icp-sdk/core/principal';
 import {
   act,
@@ -32,6 +34,17 @@ import { errorNotification, successNotification, warningNotification } from '@ut
 
 import { CommandPalette } from './CommandPalette';
 import { CommandPaletteButton } from './navigation/CommandPaletteButton';
+
+const LOCKED_ID = 1664112345678949305n;
+const DISSOLVING_ID = 7331012345678958442n;
+
+const mockNeuron = (neuronId: bigint, state: NeuronState): NeuronInfo =>
+  ({
+    neuronId,
+    state,
+    dissolveDelaySeconds: 0n,
+    fullNeuron: { controller: PRINCIPAL, hotKeys: [], cachedNeuronStake: 1n, neuronFees: 0n },
+  }) as unknown as NeuronInfo;
 
 const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
@@ -67,6 +80,10 @@ vi.mock('@hooks/useCommandPaletteShortcut', () => ({
 
 vi.mock('@hooks/governance', () => ({
   useGovernanceNeurons: () => ({ data: mocks.neurons && { response: mocks.neurons } }),
+}));
+
+vi.mock('@features/stakes/hooks/useNeuronSigner', () => ({
+  useLedgerSignerPrincipals: () => [],
 }));
 
 vi.mock('@hooks/icpLedger/useIcpLedger', () => ({
@@ -297,7 +314,7 @@ describe('CommandPalette', () => {
   });
 
   it('opens the following modal when the user has neurons.', () => {
-    mocks.neurons = [{}];
+    mocks.neurons = [mockNeuron(LOCKED_ID, NeuronState.Locked)];
     openPalette();
 
     fireEvent.click(screen.getByRole('option', { name: 'Manage following' }));
@@ -464,6 +481,71 @@ describe('CommandPalette', () => {
     search('ledger');
 
     expect(screen.queryByRole('option', { name: 'Add Ledger device' })).toBeNull();
+  });
+
+  describe('neuron commands', () => {
+    beforeEach(() => {
+      mocks.neurons = [
+        mockNeuron(LOCKED_ID, NeuronState.Locked),
+        mockNeuron(DISSOLVING_ID, NeuronState.Dissolving),
+      ];
+    });
+
+    it('shows the neuron commands only while the user searches.', () => {
+      openPalette();
+
+      expect(optionNames().some((name) => name.includes('Neuron 16641...49305'))).toBe(false);
+    });
+
+    it('lists the dissolve command that applies to each neuron.', () => {
+      openPalette();
+      search('dissolve');
+
+      expect(optionNames()).toContain('Start dissolving Neuron 16641...49305');
+      expect(optionNames()).toContain('Stop dissolving Neuron 73310...58442');
+      expect(optionNames()).not.toContain('Stop dissolving Neuron 16641...49305');
+      expect(optionNames()).not.toContain('Start dissolving Neuron 73310...58442');
+      expect(optionNames().some((name) => name.startsWith('Increase delay'))).toBe(false);
+    });
+
+    it('finds the commands of a neuron by its ID.', () => {
+      openPalette();
+      search(LOCKED_ID.toString());
+
+      const names = optionNames();
+      expect(names).toContain('Open neuron Neuron 16641...49305');
+      expect(names).toContain('Top up neuron Neuron 16641...49305');
+      expect(names.some((name) => name.includes('73310...58442'))).toBe(false);
+    });
+
+    it('opens the dialog of the neuron action and reports no neuron ID.', () => {
+      openPalette();
+      search('dissolve');
+
+      fireEvent.click(
+        screen.getByRole('option', { name: 'Start dissolving Neuron 16641...49305' }),
+      );
+
+      expect(mocks.navigate).toHaveBeenCalledWith({
+        to: '/neurons',
+        search: { neuronId: LOCKED_ID.toString(), action: 'dissolve' },
+      });
+      expect(analytics.event).toHaveBeenCalledWith(AnalyticsEvent.CommandPaletteSelect, {
+        item: 'neuron:startDissolving',
+      });
+    });
+
+    it('opens the neuron summary.', () => {
+      openPalette();
+      search(DISSOLVING_ID.toString());
+
+      fireEvent.click(screen.getByRole('option', { name: 'Open neuron Neuron 73310...58442' }));
+
+      expect(mocks.navigate).toHaveBeenCalledWith({
+        to: '/neurons',
+        search: { neuronId: DISSOLVING_ID.toString(), action: undefined },
+      });
+    });
   });
 
   describe('Recent group', () => {
