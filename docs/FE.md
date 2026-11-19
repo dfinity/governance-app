@@ -90,6 +90,11 @@ To add a new shadcn/ui component:
 
 If your branch is failing E2E due to outdated snapshots, run the `scripts/update-snapshots.sh` script. It will download the updated files so you can review and commit them.
 
+CI runs E2E in shards. Each shard holds whole spec files, and `scripts/e2e-shards.ts` balances
+the shards by the time of each file in `tests/e2e/durations.json`. A new spec file gets the median
+time until it has a record. When the shards become unequal, run `scripts/update-e2e-durations.sh`
+to read the times of the last `main` run, and commit the file.
+
 ## Scripts
 
 ### Known Neurons

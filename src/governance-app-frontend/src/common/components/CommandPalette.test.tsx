@@ -1,16 +1,50 @@
 import '@/i18n/config';
 
-import { act, fireEvent, render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
+import type { NeuronInfo } from '@icp-sdk/canisters/nns';
+import { NeuronState } from '@icp-sdk/canisters/nns';
+import { Principal } from '@icp-sdk/core/principal';
+import {
+  act,
+  fireEvent,
+  render,
+  renderHook,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
+import { ProposalFilter } from '@features/proposals/utils';
 
+import {
+  COMMAND_PALETTE_RECENT_STORAGE_KEY,
+  SHORTCUTS_SETTINGS_KEY,
+  THEME_STORAGE_KEY,
+} from '@constants/extra';
 import { FiatCurrency } from '@constants/fiat';
 import { ForecastPeriod } from '@constants/forecast';
-import { warningNotification } from '@utils/notification';
+import { Theme } from '@constants/theme';
+import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { AdvancedFeature } from '@typings/advancedFeatures';
+import { errorNotification, successNotification, warningNotification } from '@utils/notification';
 
 import { CommandPalette } from './CommandPalette';
+import { CommandPaletteButton } from './navigation/CommandPaletteButton';
+
+const LOCKED_ID = 1664112345678949305n;
+const DISSOLVING_ID = 7331012345678958442n;
+
+const mockNeuron = (neuronId: bigint, state: NeuronState): NeuronInfo =>
+  ({
+    neuronId,
+    state,
+    dissolveDelaySeconds: 0n,
+    fullNeuron: { controller: PRINCIPAL, hotKeys: [], cachedNeuronStake: 1n, neuronFees: 0n },
+  }) as unknown as NeuronInfo;
 
 const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
@@ -18,9 +52,25 @@ const mocks = vi.hoisted(() => ({
   neurons: [] as unknown[] | undefined,
   setFiatCurrency: vi.fn(),
   setForecastPeriod: vi.fn(),
+  proposalMatch: undefined as
+    | { params: { id: bigint }; search: { proposalFilter?: string } }
+    | undefined,
+  principal: undefined as Principal | undefined,
+  finePointer: true,
+  icpLedgerReady: true,
+  webHid: false,
 }));
 
-vi.mock('@tanstack/react-router', () => ({ useNavigate: () => mocks.navigate }));
+vi.mock('@tanstack/react-router', () => ({
+  useNavigate: () => mocks.navigate,
+  useMatch: () => mocks.proposalMatch,
+}));
+
+vi.mock('@hooks/useInternetIdentity', () => ({
+  useInternetIdentity: () => ({
+    identity: mocks.principal && { getPrincipal: () => mocks.principal },
+  }),
+}));
 
 vi.mock('@hooks/useCommandPaletteShortcut', () => ({
   useCommandPaletteShortcut: (onTrigger: () => void) => {
@@ -30,6 +80,23 @@ vi.mock('@hooks/useCommandPaletteShortcut', () => ({
 
 vi.mock('@hooks/governance', () => ({
   useGovernanceNeurons: () => ({ data: mocks.neurons && { response: mocks.neurons } }),
+}));
+
+vi.mock('@features/stakes/hooks/useNeuronSigner', () => ({
+  useLedgerSignerPrincipals: () => [],
+}));
+
+vi.mock('@hooks/icpLedger/useIcpLedger', () => ({
+  useIcpLedger: () => ({
+    ready: mocks.icpLedgerReady,
+    authenticated: mocks.icpLedgerReady,
+    canister: undefined,
+  }),
+}));
+
+vi.mock('@common/ledger/webhid', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@common/ledger/webhid')>()),
+  isWebHidSupported: () => mocks.webHid,
 }));
 
 vi.mock('@hooks/useLogout', () => ({ useLogout: () => vi.fn() }));
@@ -48,9 +115,17 @@ vi.mock('@hooks/useForecastPeriod', () => ({
   }),
 }));
 
+vi.mock('@hooks/useMediaQuery', () => ({ useMediaQuery: () => mocks.finePointer }));
+
 vi.mock('@features/analytics/service', () => ({ analytics: { event: vi.fn() } }));
 
-vi.mock('@utils/notification', () => ({ warningNotification: vi.fn() }));
+vi.mock('@utils/notification', () => ({
+  errorNotification: vi.fn(),
+  successNotification: vi.fn(),
+  warningNotification: vi.fn(),
+}));
+
+const PRINCIPAL = 'ryjl3-tyaaa-aaaaa-aaaba-cai';
 
 const createStorage = (): Storage => {
   const values = new Map<string, string>();
@@ -66,10 +141,28 @@ const createStorage = (): Storage => {
   };
 };
 
+const setLedgerFeature = (enabled: boolean) => {
+  const { result } = renderHook(() => useAdvancedFeatures());
+  act(() => result.current.setFeature(AdvancedFeature.LedgerDevice, enabled));
+};
+
 const openPalette = () => {
   render(<CommandPalette />);
   act(() => mocks.openPalette?.());
 };
+
+const togglePalette = () => act(() => mocks.openPalette?.());
+
+const storeRecent = (ids: string[]) =>
+  localStorage.setItem(COMMAND_PALETTE_RECENT_STORAGE_KEY, JSON.stringify(ids));
+
+const storedRecent = () =>
+  JSON.parse(localStorage.getItem(COMMAND_PALETTE_RECENT_STORAGE_KEY) ?? '[]') as string[];
+
+const recentNames = () =>
+  within(screen.getByRole('group', { name: 'Recent' }))
+    .getAllByRole('option')
+    .map((option) => option.textContent ?? '');
 
 const search = (query: string) =>
   fireEvent.change(screen.getByRole('combobox'), { target: { value: query } });
@@ -94,6 +187,30 @@ describe('CommandPalette', () => {
     );
     Element.prototype.scrollIntoView = vi.fn();
     mocks.neurons = [];
+    mocks.proposalMatch = undefined;
+    mocks.principal = Principal.fromText(PRINCIPAL);
+    vi.stubGlobal('navigator', { clipboard: { writeText: vi.fn() } });
+    mocks.finePointer = true;
+    mocks.icpLedgerReady = true;
+    mocks.webHid = false;
+  });
+
+  afterEach(() => setLedgerFeature(false));
+
+  it('gives the focus back to the search button on Escape.', async () => {
+    render(
+      <>
+        <CommandPaletteButton variant="header" />
+        <CommandPalette />
+      </>,
+    );
+    const button = screen.getByRole('button', { name: 'Search' });
+
+    await userEvent.click(button);
+    expect(screen.getByRole('combobox')).toBeTruthy();
+    await userEvent.keyboard('{Escape}');
+
+    await waitFor(() => expect(document.activeElement).toBe(button));
   });
 
   it('finds each item by its visible label.', () => {
@@ -127,6 +244,13 @@ describe('CommandPalette', () => {
     expect(optionNames()).not.toContain('Show all proposals');
   });
 
+  it('puts the Send ICP action first for "send".', () => {
+    openPalette();
+    search('send');
+
+    expect(optionNames()[0]).toBe('Send ICP');
+  });
+
   it('changes the currency.', () => {
     openPalette();
     search('euro');
@@ -151,6 +275,7 @@ describe('CommandPalette', () => {
 
   it.each([
     ['Receive ICP', { to: '/dashboard', search: { depositModal: true } }],
+    ['Send ICP', { to: '/dashboard', search: { sendModal: true } }],
     ['Stake ICP', { to: '/neurons', search: { openWizard: true } }],
     ['Open address book', { to: '/settings', search: { openAddressBook: true } }],
   ])('opens the modal of "%s".', (label, expected) => {
@@ -161,8 +286,35 @@ describe('CommandPalette', () => {
     expect(mocks.navigate).toHaveBeenCalledWith(expected);
   });
 
+  it.each([
+    ['Open proposals', ProposalFilter.Open],
+    ['All proposals', ProposalFilter.All],
+  ])('shows the proposal list of "%s".', (label, proposalFilter) => {
+    openPalette();
+
+    fireEvent.click(screen.getByRole('option', { name: label }));
+
+    expect(mocks.navigate).toHaveBeenCalledWith({
+      to: '/voting',
+      search: { showProposals: true, proposalFilter },
+    });
+    expect(analytics.event).toHaveBeenCalledWith(AnalyticsEvent.CommandPaletteSelect, {
+      item: `proposals:${proposalFilter}`,
+    });
+  });
+
+  it('finds the proposal lists by their keywords.', () => {
+    openPalette();
+
+    search('pending');
+    expect(optionNames()[0]).toBe('Open proposals');
+
+    search('history');
+    expect(optionNames()[0]).toBe('All proposals');
+  });
+
   it('opens the following modal when the user has neurons.', () => {
-    mocks.neurons = [{}];
+    mocks.neurons = [mockNeuron(LOCKED_ID, NeuronState.Locked)];
     openPalette();
 
     fireEvent.click(screen.getByRole('option', { name: 'Manage following' }));
@@ -193,5 +345,371 @@ describe('CommandPalette', () => {
 
     expect(mocks.navigate).not.toHaveBeenCalled();
     expect(warningNotification).toHaveBeenCalledOnce();
+  });
+
+  describe('page commands', () => {
+    const groupLabels = (heading: string) =>
+      [
+        ...(screen.getByText(heading).closest('[cmdk-group]')?.querySelectorAll('[cmdk-item]') ??
+          []),
+      ].map((item) => item.textContent);
+
+    it('shows the copy commands first on each page.', () => {
+      openPalette();
+
+      expect(optionNames().slice(0, 2)).toEqual(['Copy ICP wallet address', 'Copy principal ID']);
+      expect(screen.queryByRole('option', { name: 'Copy proposal link' })).toBeNull();
+      expect(screen.queryByRole('option', { name: 'Back to proposals' })).toBeNull();
+    });
+
+    it('hides the copy commands without an identity.', () => {
+      mocks.principal = undefined;
+      openPalette();
+
+      expect(screen.queryByText('This page')).toBeNull();
+    });
+
+    it('shows the proposal commands on a proposal page.', () => {
+      mocks.proposalMatch = { params: { id: 144845n }, search: {} };
+      openPalette();
+
+      expect(groupLabels('This page')).toEqual([
+        'Copy proposal link',
+        'Back to proposals',
+        'Copy ICP wallet address',
+        'Copy principal ID',
+      ]);
+    });
+
+    it('copies the proposal link without the search params.', async () => {
+      mocks.proposalMatch = { params: { id: 144845n }, search: { proposalFilter: 'open' } };
+      openPalette();
+
+      fireEvent.click(screen.getByRole('option', { name: 'Copy proposal link' }));
+
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+        `${window.location.origin}/voting/proposals/144845`,
+      );
+      await waitFor(() =>
+        expect(successNotification).toHaveBeenCalledWith({
+          description: 'Your proposal link was copied to the clipboard.',
+        }),
+      );
+      expect(screen.queryByRole('combobox')).toBeNull();
+    });
+
+    it('goes back to the proposal list with the current filter.', () => {
+      mocks.proposalMatch = { params: { id: 144845n }, search: { proposalFilter: 'open' } };
+      openPalette();
+
+      fireEvent.click(screen.getByRole('option', { name: 'Back to proposals' }));
+
+      expect(mocks.navigate).toHaveBeenCalledWith({
+        to: '/voting',
+        search: { showProposals: true, proposalFilter: 'open' },
+      });
+    });
+
+    it('copies the account ID.', async () => {
+      openPalette();
+
+      fireEvent.click(screen.getByRole('option', { name: 'Copy ICP wallet address' }));
+
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+        AccountIdentifier.fromPrincipal({ principal: Principal.fromText(PRINCIPAL) }).toHex(),
+      );
+      await waitFor(() =>
+        expect(successNotification).toHaveBeenCalledWith({
+          description: 'Your ICP wallet address was copied to the clipboard.',
+        }),
+      );
+    });
+
+    it('shows an error when the browser denies the copy.', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.mocked(navigator.clipboard.writeText).mockRejectedValueOnce(new Error('denied'));
+      openPalette();
+
+      fireEvent.click(screen.getByRole('option', { name: 'Copy principal ID' }));
+
+      await waitFor(() => expect(errorNotification).toHaveBeenCalledOnce());
+      expect(successNotification).not.toHaveBeenCalled();
+    });
+
+    it('copies the principal.', () => {
+      openPalette();
+      search('principal');
+
+      fireEvent.click(screen.getByRole('option', { name: 'Copy principal ID' }));
+
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(PRINCIPAL);
+    });
+  });
+  it('disables the send command until the ICP ledger is ready.', () => {
+    mocks.icpLedgerReady = false;
+    openPalette();
+
+    const option = screen.getByRole('option', { name: 'Send ICP' });
+    expect(option.getAttribute('aria-disabled')).toBe('true');
+
+    fireEvent.click(option);
+
+    expect(mocks.navigate).not.toHaveBeenCalled();
+  });
+
+  it('opens the add dialog of the Ledger devices with the feature on and WebHID.', () => {
+    mocks.webHid = true;
+    setLedgerFeature(true);
+    openPalette();
+    search('connect ledger');
+
+    fireEvent.click(screen.getByRole('option', { name: 'Add Ledger device' }));
+
+    expect(mocks.navigate).toHaveBeenCalledWith({
+      to: '/settings',
+      search: { addLedgerDevice: true },
+    });
+  });
+
+  it.each([
+    ['the browser has no WebHID', false, true],
+    ['the Ledger device feature is off', true, false],
+  ])('hides the Ledger command when %s.', (_, webHid, featureOn) => {
+    mocks.webHid = webHid;
+    setLedgerFeature(featureOn);
+    openPalette();
+    search('ledger');
+
+    expect(screen.queryByRole('option', { name: 'Add Ledger device' })).toBeNull();
+  });
+
+  describe('neuron commands', () => {
+    beforeEach(() => {
+      mocks.neurons = [
+        mockNeuron(LOCKED_ID, NeuronState.Locked),
+        mockNeuron(DISSOLVING_ID, NeuronState.Dissolving),
+      ];
+    });
+
+    it('shows the neuron commands only while the user searches.', () => {
+      openPalette();
+
+      expect(optionNames().some((name) => name.includes('Neuron 16641...49305'))).toBe(false);
+    });
+
+    it('lists the dissolve command that applies to each neuron.', () => {
+      openPalette();
+      search('dissolve');
+
+      expect(optionNames()).toContain('Start dissolving Neuron 16641...49305');
+      expect(optionNames()).toContain('Stop dissolving Neuron 73310...58442');
+      expect(optionNames()).not.toContain('Stop dissolving Neuron 16641...49305');
+      expect(optionNames()).not.toContain('Start dissolving Neuron 73310...58442');
+      expect(optionNames().some((name) => name.startsWith('Increase delay'))).toBe(false);
+    });
+
+    it('finds the commands of a neuron by its ID.', () => {
+      openPalette();
+      search(LOCKED_ID.toString());
+
+      const names = optionNames();
+      expect(names).toContain('Open neuron Neuron 16641...49305');
+      expect(names).toContain('Top up neuron Neuron 16641...49305');
+      expect(names.some((name) => name.includes('73310...58442'))).toBe(false);
+    });
+
+    it('opens the dialog of the neuron action and reports no neuron ID.', () => {
+      openPalette();
+      search('dissolve');
+
+      fireEvent.click(
+        screen.getByRole('option', { name: 'Start dissolving Neuron 16641...49305' }),
+      );
+
+      expect(mocks.navigate).toHaveBeenCalledWith({
+        to: '/neurons',
+        search: { neuronId: LOCKED_ID.toString(), action: 'dissolve' },
+      });
+      expect(analytics.event).toHaveBeenCalledWith(AnalyticsEvent.CommandPaletteSelect, {
+        item: 'neuron:startDissolving',
+      });
+    });
+
+    it('opens the neuron summary.', () => {
+      openPalette();
+      search(DISSOLVING_ID.toString());
+
+      fireEvent.click(screen.getByRole('option', { name: 'Open neuron Neuron 73310...58442' }));
+
+      expect(mocks.navigate).toHaveBeenCalledWith({
+        to: '/neurons',
+        search: { neuronId: DISSOLVING_ID.toString(), action: undefined },
+      });
+    });
+  });
+
+  describe('Recent group', () => {
+    it('does not show before the user runs a command.', () => {
+      openPalette();
+
+      expect(screen.queryByRole('group', { name: 'Recent' })).toBeNull();
+    });
+
+    it('shows the last three commands first, the last one on top.', () => {
+      openPalette();
+      for (const label of ['Receive ICP', 'Stake ICP', 'Open address book', 'Hide balances']) {
+        fireEvent.click(screen.getByRole('option', { name: label }));
+        togglePalette();
+      }
+
+      // The balances toggle shows its label for the current state.
+      expect(recentNames()).toEqual(['Show balances', 'Open address book', 'Stake ICP']);
+      expect(optionNames().slice(0, 3)).toEqual(recentNames());
+      expect(storedRecent()).toEqual([
+        'toggle-balances',
+        'action:addressBook',
+        'action:stake',
+        'action:receive',
+      ]);
+    });
+
+    it('shows a search-only command and its checkmark, and drops ids with no command.', () => {
+      storeRecent(['nav:/gone', 'currency:USD', 'feature:unknown', 'theme:dark']);
+      openPalette();
+
+      expect(recentNames()).toEqual(['Show values in US Dollar (USD)', 'Dark theme']);
+      const currency = within(screen.getByRole('group', { name: 'Recent' })).getByRole('option', {
+        name: 'Show values in US Dollar (USD)',
+      });
+      expect(currency.querySelector('.lucide-check')).not.toBeNull();
+    });
+
+    it('shows the recent commands when the search button opens the palette.', async () => {
+      storeRecent(['action:stake']);
+      render(
+        <>
+          <CommandPaletteButton variant="header" />
+          <CommandPalette />
+        </>,
+      );
+
+      await userEvent.click(screen.getByRole('button', { name: 'Search' }));
+
+      expect(recentNames()).toEqual(['Stake ICP']);
+    });
+
+    it('hides while the user searches.', () => {
+      storeRecent(['action:stake']);
+      openPalette();
+      expect(recentNames()).toEqual(['Stake ICP']);
+
+      search('stake');
+
+      expect(screen.queryByRole('group', { name: 'Recent' })).toBeNull();
+      expect(optionNames().filter((name) => name === 'Stake ICP')).toHaveLength(1);
+    });
+
+    it('runs the command and reports the recent source.', () => {
+      storeRecent(['action:stake']);
+      openPalette();
+
+      fireEvent.click(
+        within(screen.getByRole('group', { name: 'Recent' })).getByRole('option', {
+          name: 'Stake ICP',
+        }),
+      );
+
+      expect(mocks.navigate).toHaveBeenCalledWith({ to: '/neurons', search: { openWizard: true } });
+      expect(analytics.event).toHaveBeenCalledWith(AnalyticsEvent.CommandPaletteSelect, {
+        item: 'action:stake',
+        source: 'recent',
+      });
+      expect(screen.queryByRole('combobox')).toBeNull();
+    });
+
+    it('keeps its items in place while the palette stays open.', () => {
+      openPalette();
+
+      fireEvent.click(screen.getByRole('option', { name: 'Dark theme' }));
+
+      expect(screen.queryByRole('group', { name: 'Recent' })).toBeNull();
+      togglePalette();
+      togglePalette();
+      expect(recentNames()).toEqual(['Dark theme']);
+    });
+
+    it('does not keep a proposal ID or sign out.', () => {
+      openPalette();
+      search('123');
+      fireEvent.click(screen.getByRole('option', { name: 'Go to proposal #123' }));
+      togglePalette();
+      fireEvent.click(screen.getByRole('option', { name: 'Sign out' }));
+
+      expect(storedRecent()).toEqual([]);
+    });
+
+    it('does not keep or show a page command.', () => {
+      mocks.proposalMatch = { params: { id: 144845n }, search: {} };
+      storeRecent(['back:proposals', 'action:stake']);
+      openPalette();
+
+      expect(recentNames()).toEqual(['Stake ICP']);
+
+      fireEvent.click(screen.getByRole('option', { name: 'Back to proposals' }));
+
+      expect(storedRecent()).toEqual(['back:proposals', 'action:stake']);
+    });
+  });
+
+  describe('shortcut hints', () => {
+    const shortcuts = () =>
+      Object.fromEntries(
+        screen
+          .queryAllByRole('option')
+          .filter((option) => option.hasAttribute('aria-keyshortcuts'))
+          .map((option) => [
+            option.getAttribute('aria-keyshortcuts'),
+            option.querySelector('span')?.textContent,
+          ]),
+      );
+
+    beforeEach(() => {
+      localStorage.setItem(SHORTCUTS_SETTINGS_KEY, 'true');
+    });
+
+    it('shows each key on the item that does the same thing.', () => {
+      localStorage.setItem(THEME_STORAGE_KEY, Theme.System);
+      openPalette();
+
+      expect(shortcuts()).toEqual({ d: 'Dark theme', p: 'Hide balances', u: 'Sign out' });
+      expect(
+        screen.getByRole('option', { name: 'Dark theme' }).querySelector('kbd')?.textContent,
+      ).toBe('d');
+    });
+
+    it('shows the theme key on the light theme when the theme is dark.', () => {
+      localStorage.setItem(THEME_STORAGE_KEY, Theme.Dark);
+      openPalette();
+
+      expect(shortcuts().d).toBe('Light theme');
+    });
+
+    it('shows the hints when the user turns the shortcuts on.', () => {
+      localStorage.setItem(SHORTCUTS_SETTINGS_KEY, 'false');
+      openPalette();
+      expect(shortcuts()).toEqual({});
+
+      fireEvent.click(screen.getByRole('option', { name: 'Keyboard shortcuts' }));
+
+      expect(Object.keys(shortcuts())).toEqual(['d', 'p', 'u']);
+    });
+
+    it('shows no hints on a touch screen.', () => {
+      mocks.finePointer = false;
+      openPalette();
+
+      expect(shortcuts()).toEqual({});
+      expect(document.querySelector('[cmdk-list] kbd')).toBeNull();
+    });
   });
 });
