@@ -1,8 +1,10 @@
+import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { nonNullish } from '@dfinity/utils';
-import { useNavigate } from '@tanstack/react-router';
+import { useMatch, useNavigate } from '@tanstack/react-router';
 import { defaultFilter, useCommandState } from 'cmdk';
 import {
   ArrowDownToLineIcon,
+  ArrowLeftIcon,
   BanknoteIcon,
   BookUserIcon,
   CalendarRangeIcon,
@@ -10,13 +12,16 @@ import {
   EyeIcon,
   EyeOffIcon,
   FileTextIcon,
+  FingerprintIcon,
   KeyboardIcon,
+  LinkIcon,
   LockIcon,
   LogOutIcon,
   MonitorIcon,
   MoonIcon,
   SunIcon,
   UsersIcon,
+  WalletIcon,
 } from 'lucide-react';
 import type { ComponentProps, ElementType } from 'react';
 import { Fragment, useState } from 'react';
@@ -49,11 +54,13 @@ import { useCommandPaletteShortcut } from '@hooks/useCommandPaletteShortcut';
 import { useFiatCurrency } from '@hooks/useFiatCurrency';
 import { useForecastPeriod } from '@hooks/useForecastPeriod';
 import { useHideBalances } from '@hooks/useHideBalances';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useLogout } from '@hooks/useLogout';
 import { useShortcutSettings } from '@hooks/useShortcutSettings';
 import { useTheme } from '@hooks/useTheme';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { isAccountsAreaEnabled, notifyAdvancedFeatureChange } from '@utils/advancedFeatures';
+import { copyToClipboard } from '@utils/clipboard';
 import { warningNotification } from '@utils/notification';
 
 // We only support English for now.
@@ -93,6 +100,7 @@ const TOGGLE_SHORTCUTS_VALUE = 'toggle-shortcuts';
 const SIGN_OUT_VALUE = 'signout';
 
 type CommandGroupId =
+  | 'page'
   | 'navigate'
   | 'actions'
   | 'proposals'
@@ -102,6 +110,7 @@ type CommandGroupId =
 
 /** The display order of the groups. A separator comes before a `separated` group. */
 const GROUPS: Array<{ id: CommandGroupId; separated?: boolean }> = [
+  { id: 'page' },
   { id: 'navigate' },
   { id: 'actions' },
   { id: 'proposals' },
@@ -130,6 +139,8 @@ type PaletteCommand = {
 };
 
 type HintKey =
+  | 'copyToClipboard'
+  | 'goBack'
   | 'goToPage'
   | 'openProposal'
   | 'runAction'
@@ -143,6 +154,8 @@ type HintKey =
 
 const getHintKey = (value: unknown): HintKey | null => {
   if (typeof value !== 'string' || value === '') return null;
+  if (value.startsWith('copy:')) return 'copyToClipboard';
+  if (value.startsWith('back:')) return 'goBack';
   if (value.startsWith('nav:')) return 'goToPage';
   if (value.startsWith('theme:')) return 'applyTheme';
   if (value.startsWith('feature:')) return 'toggleFeature';
@@ -207,6 +220,8 @@ export const CommandPalette = () => {
   const { forecastPeriod, setForecastPeriod } = useForecastPeriod();
   const neuronsQuery = useGovernanceNeurons();
   const logout = useLogout('command_palette');
+  const { identity } = useInternetIdentity();
+  const proposalMatch = useMatch({ from: '/_auth/voting/proposals/$id/', shouldThrow: false });
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -239,6 +254,7 @@ export const CommandPalette = () => {
   const isSearching = trimmedSearch !== '';
 
   const groupHeadings: Record<CommandGroupId, string | undefined> = {
+    page: t(($) => $.commandPalette.groups.page),
     navigate: t(($) => $.commandPalette.groups.navigate),
     actions: t(($) => $.commandPalette.groups.actions),
     proposals: t(($) => $.commandPalette.groups.proposals),
@@ -253,7 +269,73 @@ export const CommandPalette = () => {
     { theme: Theme.System, icon: MonitorIcon, label: t(($) => $.commandPalette.items.themeSystem) },
   ];
 
+  const copy = (value: string, label: string) => copyToClipboard({ t, value, label });
+
+  const proposalCommands: PaletteCommand[] = proposalMatch
+    ? [
+        {
+          id: 'copy:proposalLink',
+          group: 'page',
+          label: t(($) => $.commandPalette.items.copyProposalLink),
+          keywords: ['share', 'url'],
+          icon: LinkIcon,
+          run: () =>
+            copy(
+              new URL(`/voting/proposals/${proposalMatch.params.id}`, window.location.origin).href,
+              t(($) => $.commandPalette.copyLabels.proposalLink),
+            ),
+        },
+        {
+          id: 'back:proposals',
+          group: 'page',
+          label: t(($) => $.proposal.backToProposals),
+          keywords: ['return', 'list'],
+          icon: ArrowLeftIcon,
+          // The same target as the Back link of the proposal page.
+          run: () =>
+            navigate({
+              to: '/voting',
+              search: {
+                showProposals: true,
+                proposalFilter: proposalMatch.search.proposalFilter,
+              },
+            }),
+        },
+      ]
+    : [];
+
+  const identityCommands: PaletteCommand[] = identity
+    ? [
+        {
+          id: 'copy:accountId',
+          group: 'page',
+          label: t(($) => $.commandPalette.items.copyAccountId),
+          keywords: ['account id', 'address', 'wallet'],
+          icon: WalletIcon,
+          run: () =>
+            copy(
+              AccountIdentifier.fromPrincipal({ principal: identity.getPrincipal() }).toHex(),
+              t(($) => $.userAccount.accountId),
+            ),
+        },
+        {
+          id: 'copy:principal',
+          group: 'page',
+          label: t(($) => $.commandPalette.items.copyPrincipal),
+          keywords: ['principal', 'identity'],
+          icon: FingerprintIcon,
+          run: () =>
+            copy(
+              identity.getPrincipal().toText(),
+              t(($) => $.userAccount.principalId),
+            ),
+        },
+      ]
+    : [];
+
   const commands: PaletteCommand[] = [
+    ...proposalCommands,
+    ...identityCommands,
     ...navigationItems.map(
       (item): PaletteCommand => ({
         id: `nav:${item.href}`,

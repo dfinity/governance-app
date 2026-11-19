@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
-import { errorNotification, successNotification } from '@utils/notification';
+import { copyToClipboard } from '@utils/clipboard';
 import { cn } from '@utils/shadcn';
 
 type Props = {
@@ -41,21 +41,9 @@ export const CopyButton = ({
 
   const handleCopy = () => {
     if (!value) return;
-    try {
-      navigator.clipboard.writeText(value);
-      setIsCopied(true);
-
-      successNotification({
-        description: t(($) => $.common.clipboard.copied, {
-          label,
-        }),
-      });
-
-      onCopy?.();
-    } catch (e) {
-      console.error('Failed to copy to clipboard', e);
-      errorNotification({ description: t(($) => $.common.clipboard.error) });
-    }
+    if (!copyToClipboard({ t, value, label })) return;
+    setIsCopied(true);
+    onCopy?.();
   };
 
   return (
