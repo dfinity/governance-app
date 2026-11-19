@@ -19,6 +19,7 @@ export const useNeuronsCsvLabels = (currency: FiatCurrency): NeuronsCsvLabels =>
       stakeValue: t(($) => $.reports.csv.neurons.stakeValue, { currency }),
       availableMaturity: t(($) => $.reports.csv.neurons.availableMaturity),
       stakedMaturity: t(($) => $.reports.csv.neurons.stakedMaturity),
+      disbursingMaturity: t(($) => $.reports.csv.neurons.disbursingMaturity),
       dissolveDelayDays: t(($) => $.reports.csv.neurons.dissolveDelayDays),
       dissolveDate: t(($) => $.reports.csv.neurons.dissolveDate),
       creationDate: t(($) => $.reports.csv.neurons.creationDate),
