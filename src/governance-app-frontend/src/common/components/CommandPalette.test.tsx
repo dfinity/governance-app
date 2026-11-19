@@ -4,14 +4,26 @@ import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import { NeuronState } from '@icp-sdk/canisters/nns';
 import { Principal } from '@icp-sdk/core/principal';
-import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  renderHook,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
 import { ProposalFilter } from '@features/proposals/utils';
 
-import { SHORTCUTS_SETTINGS_KEY, THEME_STORAGE_KEY } from '@constants/extra';
+import {
+  COMMAND_PALETTE_RECENT_STORAGE_KEY,
+  SHORTCUTS_SETTINGS_KEY,
+  THEME_STORAGE_KEY,
+} from '@constants/extra';
 import { FiatCurrency } from '@constants/fiat';
 import { ForecastPeriod } from '@constants/forecast';
 import { Theme } from '@constants/theme';
@@ -136,6 +148,19 @@ const openPalette = () => {
   render(<CommandPalette />);
   act(() => mocks.openPalette?.());
 };
+
+const togglePalette = () => act(() => mocks.openPalette?.());
+
+const storeRecent = (ids: string[]) =>
+  localStorage.setItem(COMMAND_PALETTE_RECENT_STORAGE_KEY, JSON.stringify(ids));
+
+const storedRecent = () =>
+  JSON.parse(localStorage.getItem(COMMAND_PALETTE_RECENT_STORAGE_KEY) ?? '[]') as string[];
+
+const recentNames = () =>
+  within(screen.getByRole('group', { name: 'Recent' }))
+    .getAllByRole('option')
+    .map((option) => option.textContent ?? '');
 
 const search = (query: string) =>
   fireEvent.change(screen.getByRole('combobox'), { target: { value: query } });
@@ -502,6 +527,105 @@ describe('CommandPalette', () => {
         to: '/neurons',
         search: { neuronId: DISSOLVING_ID.toString(), action: undefined },
       });
+    });
+  });
+
+  describe('Recent group', () => {
+    it('does not show before the user runs a command.', () => {
+      openPalette();
+
+      expect(screen.queryByRole('group', { name: 'Recent' })).toBeNull();
+    });
+
+    it('shows the last three commands first, the last one on top.', () => {
+      openPalette();
+      for (const label of ['Receive ICP', 'Stake ICP', 'Open address book', 'Hide balances']) {
+        fireEvent.click(screen.getByRole('option', { name: label }));
+        togglePalette();
+      }
+
+      // The balances toggle shows its label for the current state.
+      expect(recentNames()).toEqual(['Show balances', 'Open address book', 'Stake ICP']);
+      expect(optionNames().slice(0, 3)).toEqual(recentNames());
+      expect(storedRecent()).toEqual([
+        'toggle-balances',
+        'action:addressBook',
+        'action:stake',
+        'action:receive',
+      ]);
+    });
+
+    it('shows a search-only command and its checkmark, and drops ids with no command.', () => {
+      storeRecent(['nav:/gone', 'currency:USD', 'feature:unknown', 'theme:dark']);
+      openPalette();
+
+      expect(recentNames()).toEqual(['Show values in US Dollar (USD)', 'Dark theme']);
+      const currency = within(screen.getByRole('group', { name: 'Recent' })).getByRole('option', {
+        name: 'Show values in US Dollar (USD)',
+      });
+      expect(currency.querySelector('.lucide-check')).not.toBeNull();
+    });
+
+    it('hides while the user searches.', () => {
+      storeRecent(['action:stake']);
+      openPalette();
+      expect(recentNames()).toEqual(['Stake ICP']);
+
+      search('stake');
+
+      expect(screen.queryByRole('group', { name: 'Recent' })).toBeNull();
+      expect(optionNames().filter((name) => name === 'Stake ICP')).toHaveLength(1);
+    });
+
+    it('runs the command and reports the recent source.', () => {
+      storeRecent(['action:stake']);
+      openPalette();
+
+      fireEvent.click(
+        within(screen.getByRole('group', { name: 'Recent' })).getByRole('option', {
+          name: 'Stake ICP',
+        }),
+      );
+
+      expect(mocks.navigate).toHaveBeenCalledWith({ to: '/neurons', search: { openWizard: true } });
+      expect(analytics.event).toHaveBeenCalledWith(AnalyticsEvent.CommandPaletteSelect, {
+        item: 'action:stake',
+        source: 'recent',
+      });
+      expect(screen.queryByRole('combobox')).toBeNull();
+    });
+
+    it('keeps its items in place while the palette stays open.', () => {
+      openPalette();
+
+      fireEvent.click(screen.getByRole('option', { name: 'Dark theme' }));
+
+      expect(screen.queryByRole('group', { name: 'Recent' })).toBeNull();
+      togglePalette();
+      togglePalette();
+      expect(recentNames()).toEqual(['Dark theme']);
+    });
+
+    it('does not keep a proposal ID or sign out.', () => {
+      openPalette();
+      search('123');
+      fireEvent.click(screen.getByRole('option', { name: 'Go to proposal #123' }));
+      togglePalette();
+      fireEvent.click(screen.getByRole('option', { name: 'Sign out' }));
+
+      expect(storedRecent()).toEqual([]);
+    });
+
+    it('does not keep or show a page command.', () => {
+      mocks.proposalMatch = { params: { id: 144845n }, search: {} };
+      storeRecent(['back:proposals', 'action:stake']);
+      openPalette();
+
+      expect(recentNames()).toEqual(['Stake ICP']);
+
+      fireEvent.click(screen.getByRole('option', { name: 'Back to proposals' }));
+
+      expect(storedRecent()).toEqual(['back:proposals', 'action:stake']);
     });
   });
 
