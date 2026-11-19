@@ -21,7 +21,6 @@ import { errorNotification, successNotification, warningNotification } from '@ut
 
 import { CommandPalette } from './CommandPalette';
 
-const USER = 'user-principal';
 const LOCKED_ID = 1664112345678949305n;
 const DISSOLVING_ID = 7331012345678958442n;
 
@@ -30,7 +29,7 @@ const mockNeuron = (neuronId: bigint, state: NeuronState): NeuronInfo =>
     neuronId,
     state,
     dissolveDelaySeconds: 0n,
-    fullNeuron: { controller: USER, hotKeys: [], cachedNeuronStake: 1n, neuronFees: 0n },
+    fullNeuron: { controller: PRINCIPAL, hotKeys: [], cachedNeuronStake: 1n, neuronFees: 0n },
   }) as unknown as NeuronInfo;
 
 const mocks = vi.hoisted(() => ({
@@ -67,10 +66,6 @@ vi.mock('@hooks/useCommandPaletteShortcut', () => ({
 
 vi.mock('@hooks/governance', () => ({
   useGovernanceNeurons: () => ({ data: mocks.neurons && { response: mocks.neurons } }),
-}));
-
-vi.mock('@hooks/useInternetIdentity', () => ({
-  useInternetIdentity: () => ({ identity: { getPrincipal: () => ({ toText: () => USER }) } }),
 }));
 
 vi.mock('@features/stakes/hooks/useNeuronSigner', () => ({
