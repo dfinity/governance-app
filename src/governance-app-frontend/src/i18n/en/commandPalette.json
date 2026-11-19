@@ -6,6 +6,7 @@
   "groups": {
     "navigate": "Navigate",
     "actions": "Actions",
+    "neurons": "Neurons",
     "proposals": "Proposals",
     "preferences": "Preferences",
     "advancedFeatures": "Advanced features"
@@ -25,7 +26,9 @@
     "manageFollowing": "Manage following",
     "addressBook": "Open address book",
     "fiatCurrency": "Show values in {{name}} ({{code}})",
-    "forecastPeriod": "Forecast period: {{period}}"
+    "forecastPeriod": "Forecast period: {{period}}",
+    "openNeuron": "Open neuron",
+    "neuronId": "Neuron {{id}}"
   },
   "hints": {
     "goToPage": "Go to page",
@@ -37,6 +40,7 @@
     "signOut": "Sign out",
     "runAction": "Run action",
     "setCurrency": "Change currency",
-    "setForecastPeriod": "Change forecast period"
+    "setForecastPeriod": "Change forecast period",
+    "openNeuron": "Open the neuron dialog"
   }
 }

@@ -7,14 +7,19 @@ import {
   BookUserIcon,
   CalendarRangeIcon,
   CheckIcon,
+  CirclePlusIcon,
+  ClockIcon,
+  CoinsIcon,
   EyeIcon,
   EyeOffIcon,
   FileTextIcon,
   KeyboardIcon,
   LockIcon,
+  LockOpenIcon,
   LogOutIcon,
   MonitorIcon,
   MoonIcon,
+  PackagePlusIcon,
   SunIcon,
   UsersIcon,
 } from 'lucide-react';
@@ -25,6 +30,12 @@ import { useTranslation } from 'react-i18next';
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
 import { parseProposalId } from '@features/proposals/utils';
+import { useLedgerSignerPrincipals } from '@features/stakes/hooks/useNeuronSigner';
+import {
+  getNeuronCommands,
+  NEURON_COMMAND_ACTIONS,
+  NeuronCommand,
+} from '@features/stakes/utils/getNeuronCommands';
 
 import {
   CommandDialog,
@@ -37,6 +48,7 @@ import {
   CommandShortcut,
 } from '@components/Command';
 import { CommandPaletteNoResultTracker } from '@components/CommandPaletteNoResultTracker';
+import { NeuronIcon } from '@components/icons/NeuronIcon';
 import { Kbd } from '@components/Kbd';
 import { getNavigationItems } from '@components/navigation/NavigationItems';
 import { getSupportedAdvancedFeatures } from '@constants/advancedFeatures';
@@ -49,11 +61,13 @@ import { useCommandPaletteShortcut } from '@hooks/useCommandPaletteShortcut';
 import { useFiatCurrency } from '@hooks/useFiatCurrency';
 import { useForecastPeriod } from '@hooks/useForecastPeriod';
 import { useHideBalances } from '@hooks/useHideBalances';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useLogout } from '@hooks/useLogout';
 import { useShortcutSettings } from '@hooks/useShortcutSettings';
 import { useTheme } from '@hooks/useTheme';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { isAccountsAreaEnabled, notifyAdvancedFeatureChange } from '@utils/advancedFeatures';
+import { shortenNeuronId } from '@utils/neuron';
 import { warningNotification } from '@utils/notification';
 
 // We only support English for now.
@@ -83,6 +97,28 @@ const FEATURE_KEYWORDS: Record<AdvancedFeature, string[]> = {
 // Such matches score below 0.05. Word, prefix, and abbreviation matches score above 0.15.
 const MIN_MATCH_SCORE = 0.1;
 
+const NEURON_COMMAND_KEYWORDS: Record<NeuronCommand, string[]> = {
+  [NeuronCommand.Open]: ['neuron', 'details'],
+  [NeuronCommand.IncreaseStake]: ['increase stake', 'add stake'],
+  [NeuronCommand.IncreaseDelay]: ['increase dissolve delay', 'lock'],
+  [NeuronCommand.StartDissolving]: ['dissolve', 'unlock'],
+  [NeuronCommand.StopDissolving]: ['dissolve', 'lock'],
+  [NeuronCommand.DisburseIcp]: ['disburse', 'withdraw'],
+  [NeuronCommand.DisburseMaturity]: ['disburse', 'withdraw', 'rewards'],
+  [NeuronCommand.StakeMaturity]: ['stake maturity', 'rewards'],
+};
+
+const NEURON_COMMAND_ICONS: Record<NeuronCommand, ElementType> = {
+  [NeuronCommand.Open]: NeuronIcon,
+  [NeuronCommand.IncreaseStake]: CirclePlusIcon,
+  [NeuronCommand.IncreaseDelay]: ClockIcon,
+  [NeuronCommand.StartDissolving]: LockOpenIcon,
+  [NeuronCommand.StopDissolving]: LockIcon,
+  [NeuronCommand.DisburseIcp]: CoinsIcon,
+  [NeuronCommand.DisburseMaturity]: CoinsIcon,
+  [NeuronCommand.StakeMaturity]: PackagePlusIcon,
+};
+
 const filterCommands = (value: string, search: string, keywords?: string[]) => {
   const score = defaultFilter(value, search, keywords);
   return score >= MIN_MATCH_SCORE ? score : 0;
@@ -95,6 +131,7 @@ const SIGN_OUT_VALUE = 'signout';
 type CommandGroupId =
   | 'navigate'
   | 'actions'
+  | 'neurons'
   | 'proposals'
   | 'preferences'
   | 'advancedFeatures'
@@ -104,6 +141,7 @@ type CommandGroupId =
 const GROUPS: Array<{ id: CommandGroupId; separated?: boolean }> = [
   { id: 'navigate' },
   { id: 'actions' },
+  { id: 'neurons' },
   { id: 'proposals' },
   { id: 'preferences', separated: true },
   { id: 'advancedFeatures' },
@@ -122,6 +160,8 @@ type PaletteCommand = {
   /** Shows a checkmark, for example on the current theme. */
   checked?: boolean;
   shortcut?: string;
+  /** Muted text at the right of the item, for example a neuron ID. */
+  detail?: string;
   /** The item shows only while the user searches. */
   searchOnly?: boolean;
   /** The palette stays open after `run`. */
@@ -133,6 +173,7 @@ type HintKey =
   | 'goToPage'
   | 'openProposal'
   | 'runAction'
+  | 'openNeuron'
   | 'setCurrency'
   | 'setForecastPeriod'
   | 'applyTheme'
@@ -147,6 +188,7 @@ const getHintKey = (value: unknown): HintKey | null => {
   if (value.startsWith('theme:')) return 'applyTheme';
   if (value.startsWith('feature:')) return 'toggleFeature';
   if (value.startsWith('action:')) return 'runAction';
+  if (value.startsWith('neuron:')) return 'openNeuron';
   if (value.startsWith('currency:')) return 'setCurrency';
   if (value.startsWith('forecast:')) return 'setForecastPeriod';
   if (value === TOGGLE_BALANCES_VALUE) return 'toggleBalances';
@@ -180,17 +222,22 @@ const CommandSection = ({
 }: ComponentProps<typeof CommandGroup> & { ranked: boolean }) =>
   ranked ? props.children : <CommandGroup {...props} />;
 
+const getAnalyticsItem = (value: string): string => {
+  if (/^\d+$/.test(value)) return 'proposal';
+  // `neuron:<command>:<neuron ID>` without the neuron ID.
+  if (value.startsWith('neuron:')) return value.split(':').slice(0, 2).join(':');
+  return value;
+};
+
 /**
  * CommandItem that reports the selected item to analytics. A proposal ID is reported as
- * `proposal`.
+ * `proposal`. A neuron command is reported without the neuron ID.
  */
 const TrackedCommandItem = ({ onSelect, ...props }: ComponentProps<typeof CommandItem>) => (
   <CommandItem
     {...props}
     onSelect={(value) => {
-      analytics.event(AnalyticsEvent.CommandPaletteSelect, {
-        item: /^\d+$/.test(value) ? 'proposal' : value,
-      });
+      analytics.event(AnalyticsEvent.CommandPaletteSelect, { item: getAnalyticsItem(value) });
       onSelect?.(value);
     }}
   />
@@ -206,6 +253,8 @@ export const CommandPalette = () => {
   const { fiatCurrency, setFiatCurrency } = useFiatCurrency();
   const { forecastPeriod, setForecastPeriod } = useForecastPeriod();
   const neuronsQuery = useGovernanceNeurons();
+  const { identity } = useInternetIdentity();
+  const ledgerPrincipals = useLedgerSignerPrincipals();
   const logout = useLogout('command_palette');
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -238,9 +287,47 @@ export const CommandPalette = () => {
 
   const isSearching = trimmedSearch !== '';
 
+  const neuronCommandLabels: Record<NeuronCommand, string> = {
+    [NeuronCommand.Open]: t(($) => $.commandPalette.items.openNeuron),
+    [NeuronCommand.IncreaseStake]: t(($) => $.neuronDetailModal.actions.increaseStake),
+    [NeuronCommand.IncreaseDelay]: t(($) => $.neuronDetailModal.actions.increaseDelay),
+    [NeuronCommand.StartDissolving]: t(($) => $.neuronDetailModal.actions.startDissolving),
+    [NeuronCommand.StopDissolving]: t(($) => $.neuronDetailModal.actions.stopDissolving),
+    [NeuronCommand.DisburseIcp]: t(($) => $.neuron.disburseIcp),
+    [NeuronCommand.DisburseMaturity]: t(($) => $.neuron.disburseMaturity),
+    [NeuronCommand.StakeMaturity]: t(($) => $.neuron.stakeMaturity),
+  };
+
+  // The list has one item for each action of each neuron, so it shows only while the user searches.
+  const neuronCommands = (userNeurons ?? []).flatMap((neuron) => {
+    const neuronId = neuron.neuronId.toString();
+    const shortId = shortenNeuronId(neuron.neuronId);
+    return getNeuronCommands({
+      neuron,
+      principalId: identity?.getPrincipal().toText(),
+      ledgerPrincipals,
+    }).map(
+      (command): PaletteCommand => ({
+        id: `neuron:${command}:${neuronId}`,
+        group: 'neurons',
+        label: neuronCommandLabels[command],
+        keywords: [...NEURON_COMMAND_KEYWORDS[command], neuronId, shortId],
+        icon: NEURON_COMMAND_ICONS[command],
+        detail: t(($) => $.commandPalette.items.neuronId, { id: shortId }),
+        searchOnly: true,
+        run: () =>
+          navigate({
+            to: '/neurons',
+            search: { neuronId, action: NEURON_COMMAND_ACTIONS[command] },
+          }),
+      }),
+    );
+  });
+
   const groupHeadings: Record<CommandGroupId, string | undefined> = {
     navigate: t(($) => $.commandPalette.groups.navigate),
     actions: t(($) => $.commandPalette.groups.actions),
+    neurons: t(($) => $.commandPalette.groups.neurons),
     proposals: t(($) => $.commandPalette.groups.proposals),
     preferences: t(($) => $.commandPalette.groups.preferences),
     advancedFeatures: t(($) => $.commandPalette.groups.advancedFeatures),
@@ -304,6 +391,7 @@ export const CommandPalette = () => {
       icon: BookUserIcon,
       run: () => navigate({ to: '/settings', search: { openAddressBook: true } }),
     },
+    ...neuronCommands,
     ...(nonNullish(proposalIdMatch)
       ? [
           {
@@ -461,6 +549,15 @@ export const CommandPalette = () => {
                   >
                     <command.icon />
                     <span>{command.label}</span>
+                    {/* The space separates the label and the detail in the accessible name. */}
+                    {nonNullish(command.detail) && (
+                      <>
+                        {' '}
+                        <span className="ml-auto text-xs text-muted-foreground">
+                          {command.detail}
+                        </span>
+                      </>
+                    )}
                     {nonNullish(command.shortcut) && (
                       <CommandShortcut>{command.shortcut}</CommandShortcut>
                     )}
