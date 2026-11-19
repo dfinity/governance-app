@@ -75,6 +75,7 @@ export const EIGHT_YEAR_GANG_BONUS_EXPIRY_SECONDS = 1_924_991_999; // 2030-12-31
 export const WELCOME_MODAL_STORAGE_KEY = 'nns-welcome-modal-seen';
 export const SHORTCUTS_SETTINGS_KEY = 'nns-shortcuts-settings';
 export const COMMAND_PALETTE_SETTINGS_KEY = 'nns-command-palette-settings';
+export const COMMAND_PALETTE_RECENT_STORAGE_KEY = 'nns-command-palette-recent';
 export const ADVANCED_FEATURES_STORAGE_KEY = 'nns-advanced-features';
 export const SEEN_FEATURE_ANNOUNCEMENTS_STORAGE_KEY = 'nns-seen-feature-announcements';
 export const THEME_STORAGE_KEY = 'nns-theme';
