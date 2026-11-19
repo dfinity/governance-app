@@ -148,6 +148,48 @@ describe.each([
     expect(screen.getAllByText('Processing')).not.toHaveLength(0);
   });
 
+  it.each([
+    ['resolves', 'Done'],
+    ['fails', 'Boom'],
+  ])(
+    'keeps the form of a new opening when the mutation of a closed opening %s',
+    async (outcome, message) => {
+      let settle: () => void = () => undefined;
+      const mutation = () =>
+        new Promise<void>((resolve, reject) => {
+          settle = outcome === 'resolves' ? resolve : () => reject(new Error(message));
+        });
+      const onOpenChange = vi.fn();
+      const dialog = (open: boolean) => (
+        <MutationDialog
+          open={open}
+          onOpenChange={onOpenChange}
+          processingMessage="Processing"
+          successMessage="Done"
+          navBlockerDescription="Blocked"
+        >
+          {({ execute }) => <button onClick={() => execute(mutation)}>Run</button>}
+        </MutationDialog>
+      );
+      const { rerender } = render(dialog(true));
+      fireEvent.click(screen.getByRole('button', { name: 'Run' }));
+      expect(await screen.findAllByText('Processing')).not.toHaveLength(0);
+
+      // A navigation closes the dialog during the mutation, then the user opens it again.
+      rerender(dialog(false));
+      rerender(dialog(true));
+      expect(await screen.findByRole('button', { name: 'Run' })).toBeTruthy();
+
+      await act(async () => settle());
+      // Gives a wrong phase change the time of the exit animation to show.
+      await act(() => new Promise((resolve) => setTimeout(resolve, 400)));
+
+      expect(screen.getByRole('button', { name: 'Run' })).toBeTruthy();
+      expect(screen.queryByText(message)).toBeNull();
+      expect(onOpenChange).not.toHaveBeenCalled();
+    },
+  );
+
   it('shows the success when the mutation resolves, also after a late device approval', async () => {
     let approve!: () => void;
     renderDialog(
