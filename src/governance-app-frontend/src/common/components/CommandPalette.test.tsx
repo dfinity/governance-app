@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
+import { ProposalFilter } from '@features/proposals/utils';
 
 import { FiatCurrency } from '@constants/fiat';
 import { ForecastPeriod } from '@constants/forecast';
@@ -193,6 +194,33 @@ describe('CommandPalette', () => {
     fireEvent.click(screen.getByRole('option', { name: label }));
 
     expect(mocks.navigate).toHaveBeenCalledWith(expected);
+  });
+
+  it.each([
+    ['Open proposals', ProposalFilter.Open],
+    ['All proposals', ProposalFilter.All],
+  ])('shows the proposal list of "%s".', (label, proposalFilter) => {
+    openPalette();
+
+    fireEvent.click(screen.getByRole('option', { name: label }));
+
+    expect(mocks.navigate).toHaveBeenCalledWith({
+      to: '/voting',
+      search: { showProposals: true, proposalFilter },
+    });
+    expect(analytics.event).toHaveBeenCalledWith(AnalyticsEvent.CommandPaletteSelect, {
+      item: `proposals:${proposalFilter}`,
+    });
+  });
+
+  it('finds the proposal lists by their keywords.', () => {
+    openPalette();
+
+    search('pending');
+    expect(optionNames()[0]).toBe('Open proposals');
+
+    search('history');
+    expect(optionNames()[0]).toBe('All proposals');
   });
 
   it('opens the following modal when the user has neurons.', () => {
