@@ -15,6 +15,8 @@ import {
   FingerprintIcon,
   KeyboardIcon,
   LinkIcon,
+  ListIcon,
+  ListTodoIcon,
   LockIcon,
   LogOutIcon,
   MonitorIcon,
@@ -31,7 +33,7 @@ import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
-import { parseProposalId } from '@features/proposals/utils';
+import { parseProposalId, ProposalFilter } from '@features/proposals/utils';
 
 import {
   CommandDialog,
@@ -160,7 +162,7 @@ const getHintKey = (value: unknown): HintKey | null => {
   if (typeof value !== 'string' || value === '') return null;
   if (value.startsWith('copy:')) return 'copyToClipboard';
   if (value.startsWith('back:')) return 'goBack';
-  if (value.startsWith('nav:')) return 'goToPage';
+  if (value.startsWith('nav:') || value.startsWith('proposals:')) return 'goToPage';
   if (value.startsWith('theme:')) return 'applyTheme';
   if (value.startsWith('feature:')) return 'toggleFeature';
   if (value.startsWith('action:')) return 'runAction';
@@ -439,6 +441,30 @@ export const CommandPalette = () => {
           } satisfies PaletteCommand,
         ]
       : []),
+    {
+      id: `proposals:${ProposalFilter.Open}`,
+      group: 'proposals',
+      label: t(($) => $.commandPalette.items.openProposals),
+      keywords: ['active', 'pending', 'vote', 'voting'],
+      icon: ListTodoIcon,
+      run: () =>
+        navigate({
+          to: '/voting',
+          search: { showProposals: true, proposalFilter: ProposalFilter.Open },
+        }),
+    },
+    {
+      id: `proposals:${ProposalFilter.All}`,
+      group: 'proposals',
+      label: t(($) => $.commandPalette.items.allProposals),
+      keywords: ['history', 'past', 'executed', 'list'],
+      icon: ListIcon,
+      run: () =>
+        navigate({
+          to: '/voting',
+          search: { showProposals: true, proposalFilter: ProposalFilter.All },
+        }),
+    },
     ...themeItems.map(
       ({ theme: itemTheme, icon, label }): PaletteCommand => ({
         id: `theme:${itemTheme}`,
