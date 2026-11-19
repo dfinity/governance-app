@@ -2,11 +2,11 @@ import '@/i18n/config';
 
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { renderWithProviders } from '@utils/unitTest';
 
-import { SendICPDialog } from './SendICPButton';
+import { SendICPButton, SendICPDialog } from './SendICPButton';
 
 // jsdom has no layout, so the active option scroll is a no-op here.
 Element.prototype.scrollIntoView = vi.fn();
@@ -21,6 +21,7 @@ const state = vi.hoisted(() => ({
   subaccounts: false,
   // A contact that points at the savings account, under another name or under the same name.
   savingsContact: false as false | 'Wallet' | 'Savings',
+  ledgerReady: false,
 }));
 
 const accounts = vi.hoisted(() => [
@@ -75,7 +76,11 @@ vi.mock('@hooks/addressBook/useAddressBook', () => ({
   }),
 }));
 vi.mock('@hooks/icpLedger/useIcpLedger', () => ({
-  useIcpLedger: () => ({ canister: undefined, ready: false, authenticated: false }),
+  useIcpLedger: () => ({
+    canister: undefined,
+    ready: state.ledgerReady,
+    authenticated: state.ledgerReady,
+  }),
 }));
 vi.mock('@hooks/tickers', () => ({
   useIcpPrice: () => ({
@@ -192,5 +197,33 @@ describe('SendICPDialog destination suggestions', () => {
     const chip = screen.getByTestId('send-icp-destination-input-selected');
     expect(chip.textContent).toContain('ICP');
     expect(chip.textContent).not.toContain('Account');
+  });
+});
+
+describe('SendICPButton', () => {
+  beforeEach(() => {
+    state.ledgerReady = true;
+  });
+
+  afterEach(() => {
+    state.ledgerReady = false;
+  });
+
+  it('opens its own dialog without onOpen.', async () => {
+    renderWithProviders(<SendICPButton balance={10} />);
+
+    await userEvent.click(screen.getByTestId('send-icp-btn'));
+
+    expect(screen.getByRole('dialog')).toBeTruthy();
+  });
+
+  it('calls onOpen and renders no dialog with onOpen.', async () => {
+    const onOpen = vi.fn();
+    renderWithProviders(<SendICPButton balance={10} onOpen={onOpen} />);
+
+    await userEvent.click(screen.getByTestId('send-icp-btn'));
+
+    expect(onOpen).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 });

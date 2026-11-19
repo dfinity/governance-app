@@ -33,15 +33,24 @@ enum Step {
 
 type Props = {
   trigger: (open: () => void) => ReactNode;
+  /** Controls the open state. Without it, the dialog keeps its own state. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 /**
  * Registers a Ledger device in the NNS dapp in three steps: connect the device, name it,
  * register it. The register step runs in the shared `MutationDialog` phases.
  */
-export const AddLedgerDeviceDialog = ({ trigger }: Props) => {
+export const AddLedgerDeviceDialog = ({
+  trigger,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+}: Props) => {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = controlledOnOpenChange ?? setUncontrolledOpen;
   const [step, setStep] = useState(Step.Connect);
   const [identity, setIdentity] = useState<LedgerIdentity>();
   const [name, setName] = useState('');
