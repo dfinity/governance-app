@@ -12,13 +12,13 @@ import {
   FileTextIcon,
   KeyboardIcon,
   ListIcon,
+  ListTodoIcon,
   LockIcon,
   LogOutIcon,
   MonitorIcon,
   MoonIcon,
   SunIcon,
   UsersIcon,
-  VoteIcon,
 } from 'lucide-react';
 import type { ComponentProps, ElementType } from 'react';
 import { Fragment, useState } from 'react';
@@ -337,7 +337,7 @@ export const CommandPalette = () => {
       group: 'proposals',
       label: t(($) => $.commandPalette.items.openProposals),
       keywords: ['active', 'pending', 'vote', 'voting'],
-      icon: VoteIcon,
+      icon: ListTodoIcon,
       run: () =>
         navigate({
           to: '/voting',
