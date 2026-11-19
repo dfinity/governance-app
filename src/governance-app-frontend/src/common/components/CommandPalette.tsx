@@ -100,7 +100,7 @@ const MIN_MATCH_SCORE = 0.1;
 const NEURON_COMMAND_KEYWORDS: Record<NeuronCommand, string[]> = {
   [NeuronCommand.Open]: ['neuron', 'details'],
   [NeuronCommand.IncreaseStake]: ['increase stake', 'add stake'],
-  [NeuronCommand.IncreaseDelay]: ['increase dissolve delay', 'lock'],
+  [NeuronCommand.IncreaseDelay]: ['delay', 'lock'],
   [NeuronCommand.StartDissolving]: ['dissolve', 'unlock'],
   [NeuronCommand.StopDissolving]: ['dissolve', 'lock'],
   [NeuronCommand.DisburseIcp]: ['disburse', 'withdraw'],

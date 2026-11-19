@@ -239,6 +239,7 @@ describe('CommandPalette', () => {
       expect(optionNames()).toContain('Stop dissolving Neuron 73310...58442');
       expect(optionNames()).not.toContain('Stop dissolving Neuron 16641...49305');
       expect(optionNames()).not.toContain('Start dissolving Neuron 73310...58442');
+      expect(optionNames().some((name) => name.startsWith('Increase delay'))).toBe(false);
     });
 
     it('finds the commands of a neuron by its ID.', () => {
