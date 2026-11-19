@@ -65,6 +65,9 @@
     "collapseLabel": "Collapse sidebar",
     "expandLabel": "Expand sidebar"
   },
+  "commandPalette": {
+    "search": "Search"
+  },
   "clipboard": {
     "copy": "Copy to clipboard",
     "copied": "Your {{label}} was copied to the clipboard.",

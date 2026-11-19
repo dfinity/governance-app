@@ -12,7 +12,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { SIDEBAR_COLLAPSED_KEY } from '@constants/extra';
+import { COMMAND_PALETTE_SETTINGS_KEY, SIDEBAR_COLLAPSED_KEY } from '@constants/extra';
 
 import { Sidebar } from './Sidebar';
 
@@ -119,6 +119,19 @@ describe('Sidebar', () => {
 
     expect(screen.getByRole('complementary').dataset.collapsed).toBeUndefined();
     expect(screen.getByText('rrkah-f...aaq-cai')).toBeTruthy();
+  });
+
+  it('shows the search button while the command palette is on.', async () => {
+    await renderSidebar();
+
+    expect(screen.getByRole('button', { name: /Search/ })).toBeTruthy();
+  });
+
+  it('hides the search button while the command palette is off.', async () => {
+    vi.stubGlobal('localStorage', createStorage({ [COMMAND_PALETTE_SETTINGS_KEY]: 'false' }));
+    await renderSidebar();
+
+    expect(screen.queryByRole('button', { name: /Search/ })).toBeNull();
   });
 
   it('keeps the keyboard focus on the toggle.', async () => {

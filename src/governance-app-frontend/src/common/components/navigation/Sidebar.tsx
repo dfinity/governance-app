@@ -7,6 +7,7 @@ import { NnsWordmark } from '@components/icons/NnsWordmark';
 import { Kbd } from '@components/Kbd';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { useCommandPaletteSettings } from '@hooks/useCommandPaletteSettings';
 import { useIconMotion } from '@hooks/useIconMotion';
 import { useShortcutSettings } from '@hooks/useShortcutSettings';
 import { useSidebarCollapsed } from '@hooks/useSidebarCollapsed';
@@ -14,6 +15,7 @@ import { SIDEBAR_SHORTCUT_KEY } from '@hooks/useSidebarShortcut';
 import { isAccountsAreaEnabled } from '@utils/advancedFeatures';
 import { cn } from '@utils/shadcn';
 
+import { CommandPaletteButton, CommandPaletteShortcutHint } from './CommandPaletteButton';
 import { getNavigationItems } from './NavigationItems';
 import { UserMenu } from './UserMenu';
 
@@ -65,6 +67,7 @@ export const Sidebar = ({ activeHref }: { activeHref?: string }) => {
   const iconMotion = useIconMotion();
   const { collapsed, setCollapsed } = useSidebarCollapsed();
   const { enabled: shortcutsEnabled } = useShortcutSettings();
+  const { enabled: commandPaletteEnabled } = useCommandPaletteSettings();
 
   const [prevEnabled, setPrevEnabled] = useState(accountsEnabled);
   const [shouldAnimate, setShouldAnimate] = useState(false);
@@ -105,6 +108,21 @@ export const Sidebar = ({ activeHref }: { activeHref?: string }) => {
         />
         {!collapsed && <NnsWordmark className="h-[1.625rem] w-auto text-foreground" />}
       </div>
+      {commandPaletteEnabled && (
+        <div className="px-2 pb-1">
+          <RowTooltip
+            collapsed={collapsed}
+            label={
+              <>
+                {t(($) => $.common.commandPalette.search)}
+                <CommandPaletteShortcutHint />
+              </>
+            }
+          >
+            <CommandPaletteButton variant="sidebar" collapsed={collapsed} />
+          </RowTooltip>
+        </div>
+      )}
       <nav className="flex-1 space-y-1 p-2">
         {navigationItems.map((item) => {
           const label = t(item.label as never);

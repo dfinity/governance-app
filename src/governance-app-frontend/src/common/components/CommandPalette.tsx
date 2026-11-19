@@ -19,7 +19,7 @@ import {
   UsersIcon,
 } from 'lucide-react';
 import type { ComponentProps, ElementType } from 'react';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
@@ -45,6 +45,11 @@ import { ForecastPeriod } from '@constants/forecast';
 import { Theme } from '@constants/theme';
 import { useGovernanceNeurons } from '@hooks/governance';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import {
+  closeCommandPalette,
+  openCommandPalette,
+  useCommandPaletteOpen,
+} from '@hooks/useCommandPaletteOpen';
 import { useCommandPaletteShortcut } from '@hooks/useCommandPaletteShortcut';
 import { useFiatCurrency } from '@hooks/useFiatCurrency';
 import { useForecastPeriod } from '@hooks/useForecastPeriod';
@@ -207,16 +212,19 @@ export const CommandPalette = () => {
   const { forecastPeriod, setForecastPeriod } = useForecastPeriod();
   const neuronsQuery = useGovernanceNeurons();
   const logout = useLogout('command_palette');
-  const [open, setOpen] = useState(false);
+  const open = useCommandPaletteOpen();
   const [search, setSearch] = useState('');
 
   const handleOpenChange = (next: boolean) => {
-    if (next && !open) analytics.event(AnalyticsEvent.CommandPaletteOpen);
-    if (!next) setSearch('');
-    setOpen(next);
+    if (next) return openCommandPalette('shortcut');
+    setSearch('');
+    closeCommandPalette();
   };
 
   useCommandPaletteShortcut(() => handleOpenChange(!open));
+
+  // A sign-out unmounts the palette. The next session must not start with it open.
+  useEffect(() => closeCommandPalette, []);
 
   const runAndClose = (fn: () => void) => {
     fn();

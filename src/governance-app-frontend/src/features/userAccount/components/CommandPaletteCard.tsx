@@ -3,8 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Kbd, KbdGroup } from '@components/Kbd';
 import { Switch } from '@components/Switch';
 import { useCommandPaletteSettings } from '@hooks/useCommandPaletteSettings';
-
-const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent);
+import { isApplePlatform } from '@utils/platform';
 
 export const CommandPaletteCard = () => {
   const { t } = useTranslation();
@@ -19,7 +18,7 @@ export const CommandPaletteCard = () => {
         </p>
         <div className="pt-2">
           <KbdGroup>
-            <Kbd>{isMac ? '⌘' : 'Ctrl'}</Kbd>
+            <Kbd>{isApplePlatform ? '⌘' : 'Ctrl'}</Kbd>
             <Kbd>K</Kbd>
           </KbdGroup>
         </div>
