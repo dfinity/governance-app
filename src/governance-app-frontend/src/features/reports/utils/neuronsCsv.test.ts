@@ -1,7 +1,7 @@
 import { NeuronState } from '@icp-sdk/canisters/nns';
 import { describe, expect, it } from 'vitest';
 
-import { mockNeuron } from '@fixtures/neuron';
+import { mockDisbursement, mockNeuron } from '@fixtures/neuron';
 
 import { buildNeuronsCsv, NeuronAccess, type NeuronsCsvLabels } from './neuronsCsv';
 
@@ -21,6 +21,7 @@ const labels: NeuronsCsvLabels = {
     stake: 'Stake',
     availableMaturity: 'Maturity',
     stakedMaturity: 'Staked',
+    disbursingMaturity: 'Disbursing',
     dissolveDelayDays: 'Delay',
     dissolveDate: 'Dissolve',
     creationDate: 'Created',
@@ -53,6 +54,7 @@ describe('buildNeuronsCsv', () => {
         neuronFees: 10_000_000n,
         maturityE8sEquivalent: 2_500_000n,
         stakedMaturityE8sEquivalent: 1n,
+        maturityDisbursementsInProgress: [mockDisbursement({ amountE8s: 300_000_000n })],
         dissolveState: { DissolveDelaySeconds: 180n * DAY },
       },
     });
@@ -87,10 +89,10 @@ describe('buildNeuronsCsv', () => {
     });
 
     expect(csv.split('\r\n')).toEqual([
-      '﻿ID,Account,Controller,Access,Stake,Maturity,Staked,Delay,Dissolve,Created,State',
-      `"=""22""",dissolving-account,${DEVICE},Ledger,5.00000000,0.00000000,0.00000000,30,2026-12-15,2026-11-15,Dissolving`,
-      `"=""11""",locked-account,${II},Controller,1.00000000,0.02500000,0.00000001,180,,2025-10-11,Locked`,
-      `"=""33""",hotkey-account,${OTHER},Hotkey,0.00000000,0.00000000,0.00000000,0,2026-11-05,1970-01-01,Dissolved`,
+      '﻿ID,Account,Controller,Access,Stake,Maturity,Staked,Disbursing,Delay,Dissolve,Created,State',
+      `"=""22""",dissolving-account,${DEVICE},Ledger,5.00000000,0.00000000,0.00000000,0.00000000,30,2026-12-15,2026-11-15,Dissolving`,
+      `"=""11""",locked-account,${II},Controller,1.00000000,0.02500000,0.00000001,3.00000000,180,,2025-10-11,Locked`,
+      `"=""33""",hotkey-account,${OTHER},Hotkey,0.00000000,0.00000000,0.00000000,0.00000000,0,2026-11-05,1970-01-01,Dissolved`,
       '',
     ]);
   });

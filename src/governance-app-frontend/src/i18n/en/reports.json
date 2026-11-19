@@ -43,6 +43,7 @@
       "stake": "Stake (ICP)",
       "availableMaturity": "Available maturity (ICP)",
       "stakedMaturity": "Staked maturity (ICP)",
+      "disbursingMaturity": "Disbursing maturity (ICP)",
       "dissolveDelayDays": "Dissolve delay (days)",
       "dissolveDate": "Dissolve date (UTC)",
       "creationDate": "Creation date (UTC)",

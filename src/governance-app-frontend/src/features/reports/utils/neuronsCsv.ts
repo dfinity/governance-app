@@ -4,6 +4,7 @@ import { SECONDS_IN_DAY } from '@constants/extra';
 import {
   getNeuronDissolveDelaySeconds,
   getNeuronFreeMaturityE8s,
+  getNeuronMaturityDisbursementsInProgressE8s,
   getNeuronStakeAfterFeesE8s,
   getNeuronStakedMaturityE8s,
   isUserController,
@@ -26,6 +27,7 @@ export type NeuronsCsvLabels = {
     stake: string;
     availableMaturity: string;
     stakedMaturity: string;
+    disbursingMaturity: string;
     dissolveDelayDays: string;
     dissolveDate: string;
     creationDate: string;
@@ -102,6 +104,10 @@ export const buildNeuronsCsv = ({
     {
       header: headers.stakedMaturity,
       value: ({ neuron }) => formatE8sForCsv(getNeuronStakedMaturityE8s(neuron)),
+    },
+    {
+      header: headers.disbursingMaturity,
+      value: ({ neuron }) => formatE8sForCsv(getNeuronMaturityDisbursementsInProgressE8s(neuron)),
     },
     {
       header: headers.dissolveDelayDays,
