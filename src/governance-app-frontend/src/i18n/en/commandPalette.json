@@ -4,6 +4,7 @@
   "placeholder": "Search commands or enter a proposal ID…",
   "empty": "No results found.",
   "groups": {
+    "page": "This page",
     "navigate": "Navigate",
     "actions": "Actions",
     "neurons": "Neurons",
@@ -32,7 +33,10 @@
     "fiatCurrency": "Show values in {{name}} ({{code}})",
     "forecastPeriod": "Forecast period: {{period}}",
     "openNeuron": "Open neuron",
-    "neuronId": "Neuron {{id}}"
+    "neuronId": "Neuron {{id}}",
+    "copyProposalLink": "Copy proposal link",
+    "copyAccountId": "Copy ICP wallet address",
+    "copyPrincipal": "Copy principal ID"
   },
   "hints": {
     "goToPage": "Go to page",
@@ -45,6 +49,11 @@
     "runAction": "Run action",
     "setCurrency": "Change currency",
     "setForecastPeriod": "Change forecast period",
-    "openNeuron": "Open the neuron dialog"
+    "openNeuron": "Open the neuron dialog",
+    "copyToClipboard": "Copy to clipboard",
+    "goBack": "Go back"
+  },
+  "copyLabels": {
+    "proposalLink": "proposal link"
   }
 }
