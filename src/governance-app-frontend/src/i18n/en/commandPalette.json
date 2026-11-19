@@ -4,6 +4,7 @@
   "placeholder": "Search commands or enter a proposal ID…",
   "empty": "No results found.",
   "groups": {
+    "recent": "Recent",
     "navigate": "Navigate",
     "actions": "Actions",
     "proposals": "Proposals",
