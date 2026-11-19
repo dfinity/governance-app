@@ -15,7 +15,9 @@ import {
   LogOutIcon,
   MonitorIcon,
   MoonIcon,
+  SendIcon,
   SunIcon,
+  UsbIcon,
   UsersIcon,
 } from 'lucide-react';
 import type { ComponentProps, ElementType } from 'react';
@@ -44,6 +46,7 @@ import { FiatCurrency } from '@constants/fiat';
 import { ForecastPeriod } from '@constants/forecast';
 import { Theme } from '@constants/theme';
 import { useGovernanceNeurons } from '@hooks/governance';
+import { useIcpLedger } from '@hooks/icpLedger/useIcpLedger';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useCommandPaletteShortcut } from '@hooks/useCommandPaletteShortcut';
 import { useFiatCurrency } from '@hooks/useFiatCurrency';
@@ -56,6 +59,7 @@ import { AdvancedFeature } from '@typings/advancedFeatures';
 import { isAccountsAreaEnabled, notifyAdvancedFeatureChange } from '@utils/advancedFeatures';
 import { warningNotification } from '@utils/notification';
 import { addRecentCommand, readRecentCommands } from '@utils/recentCommands';
+import { isWebHidSupported } from '@common/ledger/webhid';
 
 // We only support English for now.
 const currencyNames = new Intl.DisplayNames('en', { type: 'currency' });
@@ -64,7 +68,7 @@ const NAVIGATION_KEYWORDS: Record<string, string[]> = {
   '/dashboard': ['home', 'overview'],
   '/neurons': ['stake', 'stakes', 'staking'],
   '/voting': ['proposals', 'vote', 'governance'],
-  '/accounts': ['wallet', 'balance', 'send', 'receive'],
+  '/accounts': ['wallet', 'balance', 'receive'],
   '/settings': ['preferences', 'config'],
 };
 
@@ -76,7 +80,7 @@ const FEATURE_KEYWORDS: Record<AdvancedFeature, string[]> = {
     'spam',
     'non-constructive',
   ],
-  [AdvancedFeature.TransactionMemo]: ['memo', 'send', 'transaction'],
+  [AdvancedFeature.TransactionMemo]: ['memo', 'transaction'],
   [AdvancedFeature.LedgerDevice]: ['ledger', 'hardware wallet', 'device', 'nano'],
 };
 
@@ -224,6 +228,7 @@ export const CommandPalette = () => {
   const { fiatCurrency, setFiatCurrency } = useFiatCurrency();
   const { forecastPeriod, setForecastPeriod } = useForecastPeriod();
   const neuronsQuery = useGovernanceNeurons();
+  const icpLedger = useIcpLedger();
   const logout = useLogout('command_palette');
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -296,6 +301,15 @@ export const CommandPalette = () => {
       run: () => navigate({ to: '/dashboard', search: { depositModal: true } }),
     },
     {
+      id: 'action:send',
+      group: 'actions',
+      label: t(($) => $.commandPalette.items.sendIcp),
+      keywords: ['withdraw', 'transfer', 'pay'],
+      icon: SendIcon,
+      disabled: !icpLedger.ready || !icpLedger.authenticated,
+      run: () => navigate({ to: '/dashboard', search: { sendModal: true } }),
+    },
+    {
       id: 'action:stake',
       group: 'actions',
       label: t(($) => $.commandPalette.items.stakeIcp),
@@ -327,6 +341,19 @@ export const CommandPalette = () => {
       icon: BookUserIcon,
       run: () => navigate({ to: '/settings', search: { openAddressBook: true } }),
     },
+    // Settings shows the Ledger devices card only with the feature on and WebHID.
+    ...(features[AdvancedFeature.LedgerDevice] && isWebHidSupported()
+      ? [
+          {
+            id: 'action:addLedgerDevice',
+            group: 'actions',
+            label: t(($) => $.commandPalette.items.addLedgerDevice),
+            keywords: ['connect ledger', 'hardware wallet', 'device', 'nano'],
+            icon: UsbIcon,
+            run: () => navigate({ to: '/settings', search: { addLedgerDevice: true } }),
+          } satisfies PaletteCommand,
+        ]
+      : []),
     ...(nonNullish(proposalIdMatch)
       ? [
           {
