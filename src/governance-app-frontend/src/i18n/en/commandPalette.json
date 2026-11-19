@@ -4,6 +4,7 @@
   "placeholder": "Search commands or enter a proposal ID…",
   "empty": "No results found.",
   "groups": {
+    "page": "This page",
     "navigate": "Navigate",
     "actions": "Actions",
     "proposals": "Proposals",
@@ -29,7 +30,10 @@
     "addressBook": "Open address book",
     "addLedgerDevice": "Add Ledger device",
     "fiatCurrency": "Show values in {{name}} ({{code}})",
-    "forecastPeriod": "Forecast period: {{period}}"
+    "forecastPeriod": "Forecast period: {{period}}",
+    "copyProposalLink": "Copy proposal link",
+    "copyAccountId": "Copy ICP wallet address",
+    "copyPrincipal": "Copy principal ID"
   },
   "hints": {
     "goToPage": "Go to page",
@@ -41,6 +45,11 @@
     "signOut": "Sign out",
     "runAction": "Run action",
     "setCurrency": "Change currency",
-    "setForecastPeriod": "Change forecast period"
+    "setForecastPeriod": "Change forecast period",
+    "copyToClipboard": "Copy to clipboard",
+    "goBack": "Go back"
+  },
+  "copyLabels": {
+    "proposalLink": "proposal link"
   }
 }
