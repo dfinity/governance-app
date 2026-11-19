@@ -7,6 +7,8 @@ import { useHideBalances } from '@hooks/useHideBalances';
 import { useShortcutSettings } from '@hooks/useShortcutSettings';
 import { shouldIgnoreKeyboardShortcut } from '@utils/keyboard';
 
+export const HIDE_BALANCES_SHORTCUT_KEY = 'p';
+
 export const useHideBalancesShortcut = () => {
   const { hidden, setHidden } = useHideBalances();
   const { enabled } = useShortcutSettings();
@@ -16,7 +18,7 @@ export const useHideBalancesShortcut = () => {
       if (!enabled) return;
       if (shouldIgnoreKeyboardShortcut(event)) return;
 
-      if (event.key === 'p') {
+      if (event.key === HIDE_BALANCES_SHORTCUT_KEY) {
         analytics.event(AnalyticsEvent.ShortcutUsed, { shortcut: 'hide_balances' });
         setHidden(!hidden);
       }
