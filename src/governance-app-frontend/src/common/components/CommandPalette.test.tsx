@@ -1,6 +1,7 @@
 import '@/i18n/config';
 
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AnalyticsEvent } from '@features/analytics/events';
@@ -11,6 +12,7 @@ import { ForecastPeriod } from '@constants/forecast';
 import { warningNotification } from '@utils/notification';
 
 import { CommandPalette } from './CommandPalette';
+import { CommandPaletteButton } from './navigation/CommandPaletteButton';
 
 const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
@@ -94,6 +96,22 @@ describe('CommandPalette', () => {
     );
     Element.prototype.scrollIntoView = vi.fn();
     mocks.neurons = [];
+  });
+
+  it('gives the focus back to the search button on Escape.', async () => {
+    render(
+      <>
+        <CommandPaletteButton variant="header" />
+        <CommandPalette />
+      </>,
+    );
+    const button = screen.getByRole('button', { name: 'Search' });
+
+    await userEvent.click(button);
+    expect(screen.getByRole('combobox')).toBeTruthy();
+    await userEvent.keyboard('{Escape}');
+
+    await waitFor(() => expect(document.activeElement).toBe(button));
   });
 
   it('finds each item by its visible label.', () => {

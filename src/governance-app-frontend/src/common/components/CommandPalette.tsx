@@ -48,6 +48,7 @@ import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import {
   closeCommandPalette,
   openCommandPalette,
+  restoreCommandPaletteFocus,
   useCommandPaletteOpen,
 } from '@hooks/useCommandPaletteOpen';
 import { useCommandPaletteShortcut } from '@hooks/useCommandPaletteShortcut';
@@ -438,6 +439,10 @@ export const CommandPalette = () => {
     <CommandDialog
       open={open}
       onOpenChange={handleOpenChange}
+      onCloseAutoFocus={(event) => {
+        event.preventDefault();
+        restoreCommandPaletteFocus();
+      }}
       title={t(($) => $.commandPalette.title)}
       description={t(($) => $.commandPalette.description)}
       showCloseButton={false}

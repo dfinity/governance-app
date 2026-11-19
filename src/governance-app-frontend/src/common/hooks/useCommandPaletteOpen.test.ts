@@ -7,6 +7,7 @@ import { analytics } from '@features/analytics/service';
 import {
   closeCommandPalette,
   openCommandPalette,
+  restoreCommandPaletteFocus,
   useCommandPaletteOpen,
 } from './useCommandPaletteOpen';
 
@@ -50,5 +51,29 @@ describe('useCommandPaletteOpen', () => {
     openCommandPalette('sidebar');
 
     expect(analytics.event).toHaveBeenCalledOnce();
+  });
+
+  it('restores the focus to the element that opened the palette.', () => {
+    const button = document.body.appendChild(document.createElement('button'));
+    button.focus();
+
+    openCommandPalette('sidebar');
+    (document.activeElement as HTMLElement).blur();
+    closeCommandPalette();
+
+    expect(restoreCommandPaletteFocus()).toBe(true);
+    expect(document.activeElement).toBe(button);
+    button.remove();
+  });
+
+  it('does not restore the focus to an element that left the page.', () => {
+    const button = document.body.appendChild(document.createElement('button'));
+    button.focus();
+
+    openCommandPalette('mobile_header');
+    button.remove();
+    closeCommandPalette();
+
+    expect(restoreCommandPaletteFocus()).toBe(false);
   });
 });
