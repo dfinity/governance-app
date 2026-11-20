@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as AuthAccountsIndexRouteImport } from './routes/_auth/accounts/index'
 import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
 import { Route as AuthNeuronsIndexRouteImport } from './routes/_auth/neurons/index'
+import { Route as AuthReportsIndexRouteImport } from './routes/_auth/reports/index'
 import { Route as AuthSettingsIndexRouteImport } from './routes/_auth/settings/index'
 import { Route as AuthVotingIndexRouteImport } from './routes/_auth/voting/index'
 import { Route as AuthVotingProposalsIdIndexRouteImport } from './routes/_auth/voting/proposals/$id/index'
@@ -42,6 +43,11 @@ const AuthNeuronsIndexRoute = AuthNeuronsIndexRouteImport.update({
   path: '/neurons/',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthReportsIndexRoute = AuthReportsIndexRouteImport.update({
+  id: '/reports/',
+  path: '/reports/',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthSettingsIndexRoute = AuthSettingsIndexRouteImport.update({
   id: '/settings/',
   path: '/settings/',
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/accounts/': typeof AuthAccountsIndexRoute
   '/dashboard/': typeof AuthDashboardIndexRoute
   '/neurons/': typeof AuthNeuronsIndexRoute
+  '/reports/': typeof AuthReportsIndexRoute
   '/settings/': typeof AuthSettingsIndexRoute
   '/voting/': typeof AuthVotingIndexRoute
   '/voting/proposals/$id/': typeof AuthVotingProposalsIdIndexRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/accounts': typeof AuthAccountsIndexRoute
   '/dashboard': typeof AuthDashboardIndexRoute
   '/neurons': typeof AuthNeuronsIndexRoute
+  '/reports': typeof AuthReportsIndexRoute
   '/settings': typeof AuthSettingsIndexRoute
   '/voting': typeof AuthVotingIndexRoute
   '/voting/proposals/$id': typeof AuthVotingProposalsIdIndexRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/_auth/accounts/': typeof AuthAccountsIndexRoute
   '/_auth/dashboard/': typeof AuthDashboardIndexRoute
   '/_auth/neurons/': typeof AuthNeuronsIndexRoute
+  '/_auth/reports/': typeof AuthReportsIndexRoute
   '/_auth/settings/': typeof AuthSettingsIndexRoute
   '/_auth/voting/': typeof AuthVotingIndexRoute
   '/_auth/voting/proposals/$id/': typeof AuthVotingProposalsIdIndexRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
     | '/accounts/'
     | '/dashboard/'
     | '/neurons/'
+    | '/reports/'
     | '/settings/'
     | '/voting/'
     | '/voting/proposals/$id/'
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
     | '/accounts'
     | '/dashboard'
     | '/neurons'
+    | '/reports'
     | '/settings'
     | '/voting'
     | '/voting/proposals/$id'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
     | '/_auth/accounts/'
     | '/_auth/dashboard/'
     | '/_auth/neurons/'
+    | '/_auth/reports/'
     | '/_auth/settings/'
     | '/_auth/voting/'
     | '/_auth/voting/proposals/$id/'
@@ -161,6 +173,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthNeuronsIndexRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/reports/': {
+      id: '/_auth/reports/'
+      path: '/reports'
+      fullPath: '/reports/'
+      preLoaderRoute: typeof AuthReportsIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/settings/': {
       id: '/_auth/settings/'
       path: '/settings'
@@ -189,6 +208,7 @@ interface AuthRouteChildren {
   AuthAccountsIndexRoute: typeof AuthAccountsIndexRoute
   AuthDashboardIndexRoute: typeof AuthDashboardIndexRoute
   AuthNeuronsIndexRoute: typeof AuthNeuronsIndexRoute
+  AuthReportsIndexRoute: typeof AuthReportsIndexRoute
   AuthSettingsIndexRoute: typeof AuthSettingsIndexRoute
   AuthVotingIndexRoute: typeof AuthVotingIndexRoute
   AuthVotingProposalsIdIndexRoute: typeof AuthVotingProposalsIdIndexRoute
@@ -198,6 +218,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthAccountsIndexRoute: AuthAccountsIndexRoute,
   AuthDashboardIndexRoute: AuthDashboardIndexRoute,
   AuthNeuronsIndexRoute: AuthNeuronsIndexRoute,
+  AuthReportsIndexRoute: AuthReportsIndexRoute,
   AuthSettingsIndexRoute: AuthSettingsIndexRoute,
   AuthVotingIndexRoute: AuthVotingIndexRoute,
   AuthVotingProposalsIdIndexRoute: AuthVotingProposalsIdIndexRoute,
