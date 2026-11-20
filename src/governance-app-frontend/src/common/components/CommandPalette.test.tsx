@@ -288,6 +288,33 @@ describe('CommandPalette', () => {
     expect(list.scrollTop).toBe(0);
   });
 
+  it('shows the first result after the search changes with a lower row selected.', async () => {
+    openPalette();
+    const list = document.querySelector<HTMLElement>('[cmdk-list]');
+    if (!list) throw new Error('no list');
+    // A list that shows 3 rows of 40px. `scrollIntoView` scrolls it as a browser does.
+    const ROW = 40;
+    const VISIBLE = 3 * ROW;
+    Element.prototype.scrollIntoView = function (this: Element) {
+      const top = [...list.querySelectorAll('[cmdk-item]')].indexOf(this) * ROW;
+      if (top < list.scrollTop) list.scrollTop = top;
+      else if (top + ROW > list.scrollTop + VISIBLE) list.scrollTop = top + ROW - VISIBLE;
+    };
+
+    search('currency');
+    for (let i = 0; i < 6; i++)
+      fireEvent.keyDown(screen.getByRole('combobox'), { key: 'ArrowDown' });
+    expect(list.scrollTop).toBeGreaterThan(0);
+
+    search('currenc');
+    // The list follows the selection in a MutationObserver callback, which runs in a microtask.
+    await act(async () => {});
+
+    const first = list.querySelector('[cmdk-item]');
+    expect(first?.getAttribute('aria-selected')).toBe('true');
+    expect(list.scrollTop).toBe(0);
+  });
+
   it('puts the Send ICP action first for "send".', () => {
     openPalette();
     search('send');

@@ -155,6 +155,10 @@ const toWords = (text: string) =>
     .split(/[^\p{L}\p{N}]+/u)
     .filter((word) => word !== '');
 
+const scrollToTop = (list: HTMLElement) => {
+  list.scrollTop = 0;
+};
+
 const filterCommands = (value: string, search: string, keywords: string[] = []) => {
   const score = defaultFilter(value, search, keywords);
   const terms = toWords(search);
@@ -337,7 +341,7 @@ export const CommandPalette = () => {
   const proposalMatch = useMatch({ from: '/_auth/voting/proposals/$id/', shouldThrow: false });
   const open = useCommandPaletteOpen();
   const [search, setSearch] = useState('');
-  const listRef = useRef<HTMLDivElement>(null);
+  const [list, setList] = useState<HTMLDivElement | null>(null);
   // Read on open, so the Recent items do not move while the palette is open. A button can open
   // the palette too, so this follows the shared open state.
   const [recentIds, setRecentIds] = useState<string[]>([]);
@@ -357,11 +361,36 @@ export const CommandPalette = () => {
 
   useEffect(() => registerCommandPalette(), []);
 
-  // The first result is the selected one. cmdk scrolls to the selection before it sorts the new
-  // results, so the list can stay scrolled down with the first result out of view.
+  // While the first result is selected, the list stays at the top. cmdk can scroll to the old
+  // selection after a search change, and it can sort the rows after it selects the new first one.
+  // So the list checks again after each selection change and each row move. A wheel or touch
+  // scroll stops this until the next search change.
+  const keepTopRef = useRef(true);
   useEffect(() => {
-    if (listRef.current) listRef.current.scrollTop = 0;
-  }, [search]);
+    if (!list) return;
+    scrollToTop(list);
+    keepTopRef.current = true;
+  }, [list, search]);
+
+  useEffect(() => {
+    if (!list) return;
+    const observer = new MutationObserver(() => {
+      if (!keepTopRef.current) return;
+      const first = list.querySelector('[cmdk-item]:not([aria-disabled="true"])');
+      if (first?.getAttribute('aria-selected') === 'true') scrollToTop(list);
+    });
+    observer.observe(list, { subtree: true, childList: true, attributeFilter: ['aria-selected'] });
+    const stopKeepTop = () => {
+      keepTopRef.current = false;
+    };
+    list.addEventListener('wheel', stopKeepTop, { passive: true });
+    list.addEventListener('touchmove', stopKeepTop, { passive: true });
+    return () => {
+      observer.disconnect();
+      list.removeEventListener('wheel', stopKeepTop);
+      list.removeEventListener('touchmove', stopKeepTop);
+    };
+  }, [list]);
 
   const runAndClose = (fn: () => void) => {
     fn();
@@ -796,7 +825,7 @@ export const CommandPalette = () => {
         placeholder={t(($) => $.commandPalette.placeholder)}
       />
       {/* The list shrinks on a short screen, so the input and the footer stay below the fixed top. */}
-      <CommandList ref={listRef} className="max-h-[min(300px,calc(80dvh-6rem))]">
+      <CommandList ref={setList} className="max-h-[min(300px,calc(80dvh-6rem))]">
         <CommandEmpty>{t(($) => $.commandPalette.empty)}</CommandEmpty>
 
         {recentCommands.length > 0 && (
