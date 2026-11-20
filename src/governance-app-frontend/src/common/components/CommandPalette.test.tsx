@@ -244,6 +244,196 @@ describe('CommandPalette', () => {
     expect(optionNames()).not.toContain('Show all proposals');
   });
 
+  it('puts a label that starts with the search above a keyword match.', () => {
+    openPalette();
+    search('stake');
+
+    const names = optionNames();
+    expect(names[0]).toBe('Stake ICP');
+    expect(names).toContain('Voting neurons');
+  });
+
+  it('puts the currency with the searched code first.', () => {
+    openPalette();
+    search('chf');
+
+    expect(optionNames()[0]).toBe('Show values in Swiss Franc (CHF)');
+  });
+
+  it('keeps the top of the palette fixed.', () => {
+    openPalette();
+
+    const { classList } = screen.getByRole('dialog');
+    expect(
+      classList.contains(
+        'top-[calc(var(--visible-top,0px)+min(20vh,var(--visible-height,100vh)*0.2))]',
+      ),
+    ).toBe(true);
+    expect(classList.contains('translate-y-0')).toBe(true);
+    expect(classList.contains('top-[50%]')).toBe(false);
+  });
+
+  it('caps the list height to the visible area below the fixed top.', () => {
+    openPalette();
+
+    const list = document.querySelector('[cmdk-list]');
+    expect(
+      list?.classList.contains('max-h-[min(300px,calc(var(--visible-height,100dvh)*0.8-6rem))]'),
+    ).toBe(true);
+    expect(list?.classList.contains('max-h-[300px]')).toBe(false);
+  });
+
+  it('gives the list all the space below the input on a short visible area.', () => {
+    vi.stubGlobal(
+      'visualViewport',
+      Object.assign(new EventTarget(), { offsetTop: 0, height: 800 }),
+    );
+    openPalette();
+    expect(screen.getByText('Copy to clipboard')).toBeTruthy();
+
+    act(() => {
+      Object.assign(window.visualViewport ?? {}, { height: 150 });
+      window.visualViewport?.dispatchEvent(new Event('resize'));
+    });
+
+    expect(screen.getByRole('dialog').classList.contains('top-[var(--visible-top,0px)]')).toBe(
+      true,
+    );
+    const list = document.querySelector('[cmdk-list]');
+    expect(list?.classList.contains('max-h-[calc(var(--visible-height)-3.25rem)]')).toBe(true);
+    expect(screen.queryByText('Copy to clipboard')).toBeNull();
+    vi.stubGlobal('visualViewport', undefined);
+  });
+
+  // Gives the list and the element the vertical bounds of a layout.
+  const layOut = (element: Element, [top, bottom]: [number, number]) => {
+    element.getBoundingClientRect = () => ({ top, bottom }) as DOMRect;
+  };
+
+  const layOutSelected = (list: [number, number], row: [number, number]) => {
+    const listElement = document.querySelector('[cmdk-list]');
+    const selected = document.querySelector('[cmdk-item][aria-selected="true"]');
+    if (!listElement || !selected) throw new Error('no list');
+    layOut(listElement, list);
+    layOut(selected, row);
+  };
+
+  it('runs the selected command on Return when its row is in view.', () => {
+    openPalette();
+    search('send');
+    layOutSelected([0, 300], [8, 44]);
+
+    fireEvent.keyDown(screen.getByRole('combobox'), { key: 'Enter' });
+
+    expect(mocks.navigate).toHaveBeenCalledWith({ to: '/dashboard', search: { sendModal: true } });
+  });
+
+  it.each([
+    ['no row fits', [0, 8], [8, 44]],
+    ['the row is below a heading in a short list', [0, 88], [60, 96]],
+  ] satisfies Array<[string, [number, number], [number, number]]>)(
+    'closes the keyboard on Return when %s.',
+    (_, list, row) => {
+      openPalette();
+      search('send');
+      const input = screen.getByRole('combobox');
+      layOutSelected(list, row);
+      input.focus();
+
+      fireEvent.keyDown(input, { key: 'Enter' });
+
+      expect(mocks.navigate).not.toHaveBeenCalled();
+      expect(document.activeElement).not.toBe(input);
+      expect(screen.getByRole('dialog')).toBeTruthy();
+      expect((input as HTMLInputElement).value).toBe('send');
+    },
+  );
+
+  it('closes the keyboard on Return when the no-results message is cut off.', () => {
+    openPalette();
+    search('zzqqxx');
+    const input = screen.getByRole('combobox');
+    const list = document.querySelector('[cmdk-list]');
+    const empty = screen.getByText('No results found.');
+    if (!list) throw new Error('no list');
+    layOut(list, [0, 8]);
+    layOut(empty, [0, 44]);
+    input.focus();
+
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(document.activeElement).not.toBe(input);
+    expect((input as HTMLInputElement).value).toBe('zzqqxx');
+  });
+
+  it('leaves the Return of an IME composition to the IME when no result row fits.', () => {
+    openPalette();
+    search('send');
+    const input = screen.getByRole('combobox');
+    layOutSelected([0, 8], [8, 44]);
+    input.focus();
+
+    fireEvent.keyDown(input, { key: 'Enter', keyCode: 229 });
+
+    expect(document.activeElement).toBe(input);
+  });
+
+  it('follows the visible area when an on-screen keyboard opens.', () => {
+    const viewport = Object.assign(new EventTarget(), { offsetTop: 0, height: 800 });
+    vi.stubGlobal('visualViewport', viewport);
+    openPalette();
+    const dialog = screen.getByRole('dialog');
+    expect(dialog.style.getPropertyValue('--visible-top')).toBe('0px');
+    expect(dialog.style.getPropertyValue('--visible-height')).toBe('800px');
+
+    act(() => {
+      Object.assign(viewport, { offsetTop: 120, height: 330.4 });
+      viewport.dispatchEvent(new Event('resize'));
+    });
+
+    expect(dialog.style.getPropertyValue('--visible-top')).toBe('120px');
+    expect(dialog.style.getPropertyValue('--visible-height')).toBe('330px');
+    vi.stubGlobal('visualViewport', undefined);
+  });
+
+  it('scrolls the list to the top when the search changes.', () => {
+    openPalette();
+    const list = document.querySelector<HTMLElement>('[cmdk-list]');
+    if (!list) throw new Error('no list');
+    list.scrollTop = 400;
+
+    search('euro');
+
+    expect(list.scrollTop).toBe(0);
+  });
+
+  it('shows the first result after the search changes with a lower row selected.', async () => {
+    openPalette();
+    const list = document.querySelector<HTMLElement>('[cmdk-list]');
+    if (!list) throw new Error('no list');
+    // A list that shows 3 rows of 40px. `scrollIntoView` scrolls it as a browser does.
+    const ROW = 40;
+    const VISIBLE = 3 * ROW;
+    Element.prototype.scrollIntoView = function (this: Element) {
+      const top = [...list.querySelectorAll('[cmdk-item]')].indexOf(this) * ROW;
+      if (top < list.scrollTop) list.scrollTop = top;
+      else if (top + ROW > list.scrollTop + VISIBLE) list.scrollTop = top + ROW - VISIBLE;
+    };
+
+    search('currency');
+    for (let i = 0; i < 6; i++)
+      fireEvent.keyDown(screen.getByRole('combobox'), { key: 'ArrowDown' });
+    expect(list.scrollTop).toBeGreaterThan(0);
+
+    search('currenc');
+    // The list follows the selection in a MutationObserver callback, which runs in a microtask.
+    await act(async () => {});
+
+    const first = list.querySelector('[cmdk-item]');
+    expect(first?.getAttribute('aria-selected')).toBe('true');
+    expect(list.scrollTop).toBe(0);
+  });
+
   it('puts the Send ICP action first for "send".', () => {
     openPalette();
     search('send');
