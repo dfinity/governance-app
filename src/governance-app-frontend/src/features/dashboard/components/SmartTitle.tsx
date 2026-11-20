@@ -20,6 +20,9 @@ import { isStakingRewardDataError, isStakingRewardDataReady } from '@utils/staki
 
 type AccountState = 'no-assets' | 'liquid-only' | 'staked';
 
+/** Non-breaking hyphens (U+2011) keep the placeholder on one line. */
+export const APY_PLACEHOLDER = '\u2011\u2011.\u2011\u2011%';
+
 const useAccountState = (): { state: AccountState; isLoading: boolean } => {
   const neuronsQuery = useGovernanceNeurons();
   const balanceQuery = useIcpLedgerAccountBalance();
@@ -77,7 +80,7 @@ export function SmartTitle() {
                   stakingRewards?.stakingFlowApyPreview[ICP_MAX_DISSOLVE_DELAY_SECONDS].autoStake
                     .locked,
                 )
-              : `--.--%`,
+              : APY_PLACEHOLDER,
           }}
           components={{ em: <em className="italic" /> }}
         />
