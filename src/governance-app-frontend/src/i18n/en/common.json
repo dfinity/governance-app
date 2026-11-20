@@ -67,10 +67,8 @@
     "voting": "Vote",
     "settings": "Settings"
   },
-  "sidebar": {
-    "collapse": "Collapse",
-    "collapseLabel": "Collapse sidebar",
-    "expandLabel": "Expand sidebar"
+  "commandPalette": {
+    "search": "Search"
   },
   "clipboard": {
     "copy": "Copy to clipboard",

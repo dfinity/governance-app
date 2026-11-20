@@ -8,6 +8,8 @@ import { useLogout } from '@hooks/useLogout';
 import { useShortcutSettings } from '@hooks/useShortcutSettings';
 import { shouldIgnoreKeyboardShortcut } from '@utils/keyboard';
 
+export const LOGOUT_SHORTCUT_KEY = 'u';
+
 export const useLogoutShortcut = () => {
   const { identity } = useInternetIdentity();
   const { enabled } = useShortcutSettings();
@@ -18,7 +20,7 @@ export const useLogoutShortcut = () => {
       if (!identity || !enabled) return;
       if (shouldIgnoreKeyboardShortcut(event)) return;
 
-      if (event.key === 'u') {
+      if (event.key === LOGOUT_SHORTCUT_KEY) {
         analytics.event(AnalyticsEvent.ShortcutUsed, { shortcut: 'logout' });
         logout();
       }

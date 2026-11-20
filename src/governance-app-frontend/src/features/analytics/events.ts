@@ -93,6 +93,7 @@ export enum AnalyticsEvent {
   // Navigation and tools
   CommandPaletteOpen = 'command_palette_open',
   CommandPaletteSelect = 'command_palette_select',
+  CommandPaletteNoResult = 'command_palette_no_result',
   ShortcutUsed = 'shortcut_used',
   NotFound = 'not_found',
 

@@ -4,6 +4,7 @@ import { NewFeatureModal } from '@features/onboarding/NewFeatureModal';
 import { WelcomeModal } from '@features/onboarding/WelcomeModal';
 
 import { BottomNav } from '@components/navigation/BottomNav';
+import { MobileHeader } from '@components/navigation/MobileHeader';
 import { Sidebar } from '@components/navigation/Sidebar';
 import { useHidesBottomNav } from '@hooks/useHidesBottomNav';
 import { cn } from '@utils/shadcn';
@@ -32,7 +33,10 @@ export const AppFrame = ({ children, activeHref, ...props }: AppFrameProps) => {
             hidesBottomNav && '[--bottom-nav-space:0px]',
           )}
         >
-          <div className="mx-auto min-h-full w-full max-w-295">{children}</div>
+          <div className="mx-auto min-h-full w-full max-w-295">
+            <MobileHeader />
+            {children}
+          </div>
         </main>
         <BottomNav activeHref={activeHref} />
       </div>
