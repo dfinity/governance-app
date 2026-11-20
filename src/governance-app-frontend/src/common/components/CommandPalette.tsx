@@ -33,7 +33,7 @@ import {
   WalletIcon,
 } from 'lucide-react';
 import type { ComponentProps, ElementType } from 'react';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
@@ -143,8 +143,31 @@ const NEURON_COMMAND_ICONS: Record<NeuronCommand, ElementType> = {
   [NeuronCommand.StakeMaturity]: PackagePlusIcon,
 };
 
-const filterCommands = (value: string, search: string, keywords?: string[]) => {
+// A command whose label or keywords hold a word that starts with each search word ranks above
+// all fuzzy matches. The cmdk score orders the commands inside each tier. The cmdk value is the
+// command id, for example `action:stake`, so the tiers read only the label and the keywords.
+const LABEL_MATCH = 2;
+const KEYWORD_MATCH = 1;
+
+const toWords = (text: string) =>
+  text
+    .toLowerCase()
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter((word) => word !== '');
+
+const filterCommands = (value: string, search: string, keywords: string[] = []) => {
   const score = defaultFilter(value, search, keywords);
+  const terms = toWords(search);
+  if (terms.length > 0) {
+    // `renderItem` puts the label first in the keywords.
+    const [label = '', ...rest] = keywords;
+    const startsWords = (text: string) => {
+      const words = toWords(text);
+      return terms.every((term) => words.some((word) => word.startsWith(term)));
+    };
+    if (startsWords(label)) return LABEL_MATCH + score;
+    if (startsWords(rest.join(' '))) return KEYWORD_MATCH + score;
+  }
   return score >= MIN_MATCH_SCORE ? score : 0;
 };
 
@@ -314,6 +337,7 @@ export const CommandPalette = () => {
   const proposalMatch = useMatch({ from: '/_auth/voting/proposals/$id/', shouldThrow: false });
   const open = useCommandPaletteOpen();
   const [search, setSearch] = useState('');
+  const listRef = useRef<HTMLDivElement>(null);
   // Read on open, so the Recent items do not move while the palette is open. A button can open
   // the palette too, so this follows the shared open state.
   const [recentIds, setRecentIds] = useState<string[]>([]);
@@ -332,6 +356,12 @@ export const CommandPalette = () => {
   useCommandPaletteShortcut(() => handleOpenChange(!open));
 
   useEffect(() => registerCommandPalette(), []);
+
+  // The first result is the selected one. cmdk scrolls to the selection before it sorts the new
+  // results, so the list can stay scrolled down with the first result out of view.
+  useEffect(() => {
+    if (listRef.current) listRef.current.scrollTop = 0;
+  }, [search]);
 
   const runAndClose = (fn: () => void) => {
     fn();
@@ -747,6 +777,8 @@ export const CommandPalette = () => {
 
   return (
     <CommandDialog
+      // A fixed top keeps the search field in place while the result list changes its height.
+      className="top-[20vh] translate-y-0"
       open={open}
       onOpenChange={handleOpenChange}
       onCloseAutoFocus={(event) => {
@@ -763,7 +795,7 @@ export const CommandPalette = () => {
         onValueChange={setSearch}
         placeholder={t(($) => $.commandPalette.placeholder)}
       />
-      <CommandList>
+      <CommandList ref={listRef}>
         <CommandEmpty>{t(($) => $.commandPalette.empty)}</CommandEmpty>
 
         {recentCommands.length > 0 && (

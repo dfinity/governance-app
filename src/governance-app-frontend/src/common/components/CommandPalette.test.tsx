@@ -244,6 +244,42 @@ describe('CommandPalette', () => {
     expect(optionNames()).not.toContain('Show all proposals');
   });
 
+  it('puts a label that starts with the search above a keyword match.', () => {
+    openPalette();
+    search('stake');
+
+    const names = optionNames();
+    expect(names[0]).toBe('Stake ICP');
+    expect(names).toContain('Voting neurons');
+  });
+
+  it('puts the currency with the searched code first.', () => {
+    openPalette();
+    search('chf');
+
+    expect(optionNames()[0]).toBe('Show values in Swiss Franc (CHF)');
+  });
+
+  it('keeps the top of the palette fixed.', () => {
+    openPalette();
+
+    const { classList } = screen.getByRole('dialog');
+    expect(classList.contains('top-[20vh]')).toBe(true);
+    expect(classList.contains('translate-y-0')).toBe(true);
+    expect(classList.contains('top-[50%]')).toBe(false);
+  });
+
+  it('scrolls the list to the top when the search changes.', () => {
+    openPalette();
+    const list = document.querySelector<HTMLElement>('[cmdk-list]');
+    if (!list) throw new Error('no list');
+    list.scrollTop = 400;
+
+    search('euro');
+
+    expect(list.scrollTop).toBe(0);
+  });
+
   it('puts the Send ICP action first for "send".', () => {
     openPalette();
     search('send');
