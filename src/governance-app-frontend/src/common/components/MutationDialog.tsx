@@ -66,9 +66,16 @@ export function MutationDialog({
   // alone, so it does not show its result over the next opening.
   const [state, setState] = useState({ phase: Phase.Idle, errorMessage: '', opening: 0 });
   const { phase, errorMessage } = state;
+  // On from `execute` until the processing content mounts.
+  const [processingPending, setProcessingPending] = useState(false);
+  // On when the success content mounts.
+  const [successMounted, setSuccessMounted] = useState(false);
   const [lastMutation, setLastMutation] = useState<{ fn: () => Promise<unknown> } | null>(null);
 
-  const isProcessing = phase === Phase.Processing;
+  // If the mutation ends while the body still fades out, AnimatePresence ("wait" mode)
+  // never shows the next content. So the end waits for the processing content.
+  const visiblePhase = processingPending ? Phase.Processing : phase;
+  const isProcessing = visiblePhase === Phase.Processing;
 
   const close = useCallback(() => onOpenChange(false), [onOpenChange]);
 
@@ -78,6 +85,8 @@ export function MutationDialog({
       setState((prev) => (prev.opening === startedIn ? { ...prev, ...next } : prev));
 
     setLastMutation({ fn });
+    setProcessingPending(true);
+    setSuccessMounted(false);
     settle({ phase: Phase.Processing });
     try {
       await fn();
@@ -104,13 +113,15 @@ export function MutationDialog({
   };
 
   useEffect(() => {
-    if (phase !== Phase.Success) return;
+    if (!successMounted) return;
     const timer = setTimeout(close, SUCCESS_AUTO_CLOSE_MS);
     return () => clearTimeout(timer);
-  }, [phase, close]);
+  }, [successMounted, close]);
 
   const resetPhase = useEffectEvent(() => {
     setState((prev) => ({ ...prev, phase: Phase.Idle, errorMessage: '' }));
+    setProcessingPending(false);
+    setSuccessMounted(false);
     setLastMutation(null);
   });
 
@@ -138,13 +149,13 @@ export function MutationDialog({
         <ResponsiveDialogContent
           className={cn(
             'flex max-h-[90vh] flex-col focus:outline-none md:max-w-md',
-            phase === Phase.Idle && className,
+            visiblePhase === Phase.Idle && className,
           )}
-          showCloseButton={phase === Phase.Idle}
+          showCloseButton={visiblePhase === Phase.Idle}
           data-testid={dataTestId}
         >
           <AnimatePresence mode="wait" initial={false}>
-            {phase === Phase.Idle && (
+            {visiblePhase === Phase.Idle && (
               <motion.div
                 key="body"
                 className="flex min-h-0 flex-1 flex-col overflow-hidden"
@@ -157,8 +168,12 @@ export function MutationDialog({
               </motion.div>
             )}
 
-            {phase === Phase.Processing && (
-              <PhaseContainer key="processing" className="items-center justify-center gap-5">
+            {visiblePhase === Phase.Processing && (
+              <PhaseContainer
+                key="processing"
+                className="items-center justify-center gap-5"
+                onMount={() => setProcessingPending(false)}
+              >
                 <ResponsiveDialogTitle className="sr-only">
                   {processingMessage}
                 </ResponsiveDialogTitle>
@@ -170,15 +185,19 @@ export function MutationDialog({
               </PhaseContainer>
             )}
 
-            {phase === Phase.Success && (
-              <PhaseContainer key="success" className="items-center justify-center gap-5">
+            {visiblePhase === Phase.Success && (
+              <PhaseContainer
+                key="success"
+                className="items-center justify-center gap-5"
+                onMount={() => setSuccessMounted(true)}
+              >
                 <ResponsiveDialogTitle className="sr-only">{successMessage}</ResponsiveDialogTitle>
                 <AnimatedSuccessIcon />
                 <FadeInText delay={0.35}>{successMessage}</FadeInText>
               </PhaseContainer>
             )}
 
-            {phase === Phase.Error && (
+            {visiblePhase === Phase.Error && (
               <PhaseContainer key="error" className="items-center justify-between">
                 <ResponsiveDialogTitle className="sr-only">{errorMessage}</ResponsiveDialogTitle>
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
@@ -250,8 +269,17 @@ export function MutationDialogFooter({
 function PhaseContainer({
   children,
   className,
+  onMount,
   ...props
-}: React.ComponentProps<typeof motion.div>) {
+}: React.ComponentProps<typeof motion.div> & { onMount?: () => void }) {
+  const handleMount = useEffectEvent(() => onMount?.());
+
+  // A remount (Dialog to Drawer at the breakpoint) skips the enter animation.
+  // So an effect calls `onMount`, not `onAnimationComplete`.
+  useEffect(() => {
+    handleMount();
+  }, []);
+
   return (
     <motion.div
       className={cn('flex min-h-[200px] flex-1 flex-col pb-4 text-center md:pb-0', className)}
