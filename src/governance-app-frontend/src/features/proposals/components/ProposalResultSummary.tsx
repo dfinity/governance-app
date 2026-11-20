@@ -14,15 +14,17 @@ type Props = {
 };
 
 const scrollToVotingHistory = () => {
+  const card = document.getElementById(VOTING_HISTORY_CARD_ID);
+  if (!card) return;
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  document
-    .getElementById(VOTING_HISTORY_CARD_ID)
-    ?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+  // Focus first, so the next Tab enters the card.
+  card.focus({ preventScroll: true });
+  card.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
 };
 
 /**
  * The Yes and No shares of the total voting power, for the header of the proposal page.
- * When the Voting history card shows, a click scrolls to it.
+ * When the Voting history card shows, a click moves the focus to it and scrolls to it.
  */
 export const ProposalResultSummary = ({ proposal }: Props) => {
   const { t } = useTranslation();

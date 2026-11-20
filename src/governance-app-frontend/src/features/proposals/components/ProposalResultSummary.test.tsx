@@ -66,17 +66,21 @@ describe('ProposalResultSummary', () => {
     expect(screen.getByRole('button', { name: /Voting history/ })).toBeTruthy();
   });
 
-  it('scrolls to the Voting history card on a click', async () => {
+  it('moves the focus to the Voting history card and scrolls to it on a click', async () => {
     mocks.chart = { points: [] };
     vi.stubGlobal('matchMedia', () => ({ matches: false }));
     const card = document.createElement('div');
     card.id = VOTING_HISTORY_CARD_ID;
+    card.tabIndex = -1;
     card.scrollIntoView = vi.fn();
     document.body.appendChild(card);
+    const focus = vi.spyOn(card, 'focus');
     render(<ProposalResultSummary proposal={proposal(TALLY)} />);
 
     await userEvent.click(screen.getByRole('button', { name: /Voting history/ }));
 
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+    expect(document.activeElement).toBe(card);
     expect(card.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
   });
 

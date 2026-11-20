@@ -138,7 +138,8 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
     <Card
       id={VOTING_HISTORY_CARD_ID}
       data-testid="proposal-voting-history"
-      className="scroll-mt-16"
+      tabIndex={-1}
+      className="scroll-mt-16 outline-none"
     >
       <CardHeader>
         <CardTitle>{t(($) => $.proposal.votingHistory.title)}</CardTitle>
