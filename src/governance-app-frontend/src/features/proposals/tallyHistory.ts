@@ -86,6 +86,9 @@ export const getShareAxis = (points: TallyPoint[]): { max: number; ticks: number
  * The collector records only the proposals that took votes after it began to record.
  * Neuron Management proposals get no voting rewards, so it never sees them.
  */
+/** The element ID of the Voting history card, which the result summary scrolls to. */
+export const VOTING_HISTORY_CARD_ID = 'voting-history';
+
 export const hasTallyHistory = (proposal: ProposalInfo): boolean =>
   nonNullish(proposal.id) &&
   proposal.topic !== Topic.NeuronManagement &&
