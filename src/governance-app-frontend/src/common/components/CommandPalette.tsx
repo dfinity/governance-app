@@ -406,6 +406,9 @@ export const CommandPalette = () => {
   // If the list has no room for one full row, for example in landscape with the on-screen keyboard
   // open, Return closes the keyboard and keeps the search, so the user can read the results first.
   const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    // The Enter that confirms an input method editor (IME) composition belongs to the IME. Safari
+    // sends it with key code 229.
+    if (event.nativeEvent.isComposing || event.keyCode === 229) return;
     if (event.key !== 'Enter' || !list) return;
     const selected = list.querySelector<HTMLElement>('[cmdk-item][aria-selected="true"]');
     if (!selected || list.clientHeight >= selected.offsetHeight) return;

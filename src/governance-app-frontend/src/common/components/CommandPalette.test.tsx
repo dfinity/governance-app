@@ -338,6 +338,22 @@ describe('CommandPalette', () => {
     expect((input as HTMLInputElement).value).toBe('send');
   });
 
+  it('leaves the Return of an IME composition to the IME when no result row fits.', () => {
+    openPalette();
+    search('send');
+    const input = screen.getByRole('combobox');
+    const list = document.querySelector('[cmdk-list]');
+    const selected = document.querySelector<HTMLElement>('[cmdk-item][aria-selected="true"]');
+    if (!list || !selected) throw new Error('no list');
+    Object.defineProperty(list, 'clientHeight', { configurable: true, value: 8 });
+    Object.defineProperty(selected, 'offsetHeight', { configurable: true, value: 36 });
+    input.focus();
+
+    fireEvent.keyDown(input, { key: 'Enter', keyCode: 229 });
+
+    expect(document.activeElement).toBe(input);
+  });
+
   it('follows the visible area when an on-screen keyboard opens.', () => {
     const viewport = Object.assign(new EventTarget(), { offsetTop: 0, height: 800 });
     vi.stubGlobal('visualViewport', viewport);
