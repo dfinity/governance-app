@@ -305,6 +305,39 @@ describe('CommandPalette', () => {
     vi.stubGlobal('visualViewport', undefined);
   });
 
+  it('runs the selected command on Return when its row fits.', () => {
+    openPalette();
+    search('send');
+    const list = document.querySelector('[cmdk-list]');
+    const selected = document.querySelector<HTMLElement>('[cmdk-item][aria-selected="true"]');
+    if (!list || !selected) throw new Error('no list');
+    Object.defineProperty(list, 'clientHeight', { configurable: true, value: 300 });
+    Object.defineProperty(selected, 'offsetHeight', { configurable: true, value: 36 });
+
+    fireEvent.keyDown(screen.getByRole('combobox'), { key: 'Enter' });
+
+    expect(mocks.navigate).toHaveBeenCalledWith({ to: '/dashboard', search: { sendModal: true } });
+  });
+
+  it('closes the keyboard on Return when no result row fits.', () => {
+    openPalette();
+    search('send');
+    const input = screen.getByRole('combobox');
+    const list = document.querySelector('[cmdk-list]');
+    const selected = document.querySelector<HTMLElement>('[cmdk-item][aria-selected="true"]');
+    if (!list || !selected) throw new Error('no list');
+    Object.defineProperty(list, 'clientHeight', { configurable: true, value: 8 });
+    Object.defineProperty(selected, 'offsetHeight', { configurable: true, value: 36 });
+    input.focus();
+
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(mocks.navigate).not.toHaveBeenCalled();
+    expect(document.activeElement).not.toBe(input);
+    expect(screen.getByRole('dialog')).toBeTruthy();
+    expect((input as HTMLInputElement).value).toBe('send');
+  });
+
   it('follows the visible area when an on-screen keyboard opens.', () => {
     const viewport = Object.assign(new EventTarget(), { offsetTop: 0, height: 800 });
     vi.stubGlobal('visualViewport', viewport);

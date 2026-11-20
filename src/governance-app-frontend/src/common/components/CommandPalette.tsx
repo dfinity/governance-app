@@ -32,7 +32,7 @@ import {
   UsersIcon,
   WalletIcon,
 } from 'lucide-react';
-import type { ComponentProps, CSSProperties, ElementType } from 'react';
+import type { ComponentProps, CSSProperties, ElementType, KeyboardEvent } from 'react';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -402,6 +402,16 @@ export const CommandPalette = () => {
       list.removeEventListener('touchmove', stopKeepTop);
     };
   }, [list]);
+
+  // If the list has no room for one full row, for example in landscape with the on-screen keyboard
+  // open, Return closes the keyboard and keeps the search, so the user can read the results first.
+  const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== 'Enter' || !list) return;
+    const selected = list.querySelector<HTMLElement>('[cmdk-item][aria-selected="true"]');
+    if (!selected || list.clientHeight >= selected.offsetHeight) return;
+    event.preventDefault();
+    event.currentTarget.blur();
+  };
 
   const runAndClose = (fn: () => void) => {
     fn();
@@ -845,6 +855,7 @@ export const CommandPalette = () => {
       <CommandInput
         value={search}
         onValueChange={setSearch}
+        onKeyDown={handleInputKeyDown}
         placeholder={t(($) => $.commandPalette.placeholder)}
       />
       {/* The list shrinks with the visible area, so the input and the footer stay in view. */}
