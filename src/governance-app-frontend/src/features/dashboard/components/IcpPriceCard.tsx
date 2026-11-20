@@ -103,7 +103,7 @@ export const IcpPriceCard = () => {
   return (
     <Card className="gap-0 overflow-hidden py-4">
       <CardContent>
-        <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
             {t(($) => $.home.icpPrice)}
           </p>

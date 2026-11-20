@@ -125,8 +125,8 @@ export function SmartTitle() {
 
   return (
     <div className="flex flex-col">
-      <h2 className="font-serif text-4xl font-normal text-foreground">{title}</h2>
-      <div className="font-serif text-4xl text-muted-foreground">{subtitle}</div>
+      <h2 className="font-serif text-4xl font-normal wrap-anywhere text-foreground">{title}</h2>
+      <div className="font-serif text-4xl wrap-anywhere text-muted-foreground">{subtitle}</div>
       {cta && <div className="mt-5">{cta}</div>}
     </div>
   );

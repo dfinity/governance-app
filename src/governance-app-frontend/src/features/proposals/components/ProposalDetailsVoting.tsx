@@ -71,7 +71,7 @@ const DockingFooter = ({ children }: { children: ReactNode }) => {
         ref={footerRef}
         data-state={isDocked ? 'docked' : 'floating'}
         className={cn(
-          'sticky bottom-[env(safe-area-inset-bottom)] z-10 -mt-6 bg-card px-6 py-5 transition-[border-radius,box-shadow] duration-200 ease-out motion-reduce:transition-none',
+          '@container sticky bottom-[env(safe-area-inset-bottom)] z-10 -mt-6 bg-card px-6 py-5 transition-[border-radius,box-shadow] duration-200 ease-out motion-reduce:transition-none',
           isDocked
             ? 'rounded-t-none rounded-b-[6px] shadow-[inset_1px_0_var(--color-border),inset_-1px_0_var(--color-border),inset_0_-1px_var(--color-border),inset_0_1px_transparent,0_8px_30px_transparent]'
             : 'rounded-xl shadow-[inset_1px_0_var(--color-border),inset_-1px_0_var(--color-border),inset_0_-1px_var(--color-border),inset_0_1px_var(--color-border),0_8px_30px_rgb(0_0_0/0.12)]',
@@ -127,7 +127,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
         <CardHeader>
           <CardTitle>{t(($) => $.proposal.votingStatus)}</CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col gap-6">
+        <CardContent className="@container flex flex-col gap-6">
           <div className="flex flex-col gap-1">
             <div className="flex justify-between text-sm font-medium">
               <span className="text-emerald-800 dark:text-emerald-400">
@@ -157,7 +157,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-2 xs:grid-cols-2">
+          <div className="grid grid-cols-1 gap-2 wrap-anywhere @min-[16rem]:grid-cols-2">
             <div className="flex flex-col gap-1">
               <span className="text-xs text-muted-foreground">
                 {t(($) => $.proposal.totalVotingPower)}
@@ -237,7 +237,7 @@ export const ProposalDetailsVoting: React.FC<Props> = ({ proposal }) => {
 
       {canVote && (
         <DockingFooter>
-          <div className="flex w-full items-center gap-2">
+          <div className="flex w-full flex-col gap-2 @min-[14.5rem]:flex-row @min-[14.5rem]:items-center">
             <Button
               aria-busy={isVoting}
               aria-label={t(($) => $.proposal.ariaLabelVote, {

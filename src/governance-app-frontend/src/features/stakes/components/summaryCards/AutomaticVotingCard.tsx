@@ -203,7 +203,7 @@ export function AutomaticVotingCard({ neurons }: AutomaticVotingCardProps) {
   return (
     <Card
       className={cn(
-        'gap-3 overflow-hidden py-4',
+        'gap-3 overflow-hidden py-4 wrap-anywhere',
         !isLoading && styles.card,
         !isLoading && action && [CLICKABLE_CARD_CLASS, styles.hover],
       )}
