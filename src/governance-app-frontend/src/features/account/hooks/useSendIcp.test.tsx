@@ -146,6 +146,45 @@ describe('useSendIcp', () => {
     });
   });
 
+  it('keeps the createdAt of an uncertain transfer when an older transfer of a closed dialog settles', async () => {
+    const { result } = renderSendIcp();
+    const send = () =>
+      result.current.mutateAsync({
+        toAccount: ICP_ADDRESS,
+        amount: '1',
+        analytics: analyticsParams,
+      });
+
+    // Transfer A waits for the ledger.
+    const transferA = deferred<bigint>();
+    mocks.iiLedger.transfer.mockReturnValueOnce(transferA.promise);
+    let runA!: Promise<unknown>;
+    act(() => {
+      runA = send();
+    });
+    await flush();
+    expect(mocks.iiLedger.transfer).toHaveBeenCalledOnce();
+
+    // The dialog closes and opens again. Transfer B ends with an uncertain network error.
+    act(() => result.current.resetCreatedAt());
+    mocks.iiLedger.transfer.mockRejectedValueOnce(new Error('Network error'));
+    await act(async () => {
+      await expect(send()).rejects.toThrow('Network error');
+    });
+
+    // Transfer A settles, then the user retries transfer B.
+    await act(async () => {
+      transferA.resolve(1n);
+      await runA;
+    });
+    await act(() => send());
+
+    const createdAts = mocks.iiLedger.transfer.mock.calls.map(([args]) => args.createdAt);
+    expect(createdAts).toHaveLength(3);
+    expect(createdAts[0]).not.toBe(createdAts[1]);
+    expect(createdAts[2]).toBe(createdAts[1]);
+  });
+
   it('sends to an ICRC-1 account with the session', async () => {
     const { result } = renderSendIcp();
 

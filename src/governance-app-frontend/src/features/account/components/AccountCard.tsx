@@ -1,6 +1,6 @@
 import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import { isNullish, nonNullish } from '@dfinity/utils';
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { List, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -27,6 +27,7 @@ import { SendICPButton } from './SendICPButton';
 export function AccountCard() {
   const { t } = useTranslation();
   const { identity } = useInternetIdentity();
+  const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { icpPrice, formatFiat, isLoading: isIcpPriceLoading } = useIcpPrice();
@@ -103,7 +104,13 @@ export function AccountCard() {
                 {t(($) => $.account.addIcp)}
               </Link>
             </Button>
-            <SendICPButton balance={balanceICP} />
+            {/* The dashboard route renders the dialog, so the command palette can open it. */}
+            <SendICPButton
+              balance={balanceICP}
+              onOpen={() =>
+                navigate({ to: '/dashboard', search: { sendModal: true }, replace: true })
+              }
+            />
           </div>
         </CardContent>
       </Card>

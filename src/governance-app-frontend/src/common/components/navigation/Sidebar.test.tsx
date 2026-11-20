@@ -8,19 +8,17 @@ import {
   Outlet,
   RouterProvider,
 } from '@tanstack/react-router';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { SIDEBAR_COLLAPSED_KEY } from '@constants/extra';
+import { COMMAND_PALETTE_SETTINGS_KEY, SIDEBAR_COLLAPSED_KEY } from '@constants/extra';
+import { registerCommandPalette } from '@hooks/useCommandPaletteOpen';
+import { useSidebarShortcut } from '@hooks/useSidebarShortcut';
 
 import { Sidebar } from './Sidebar';
 
-const mocks = vi.hoisted(() => ({
-  shortcutsEnabled: false,
-  login: vi.fn(),
-  setLoginSource: vi.fn(),
-}));
+const mocks = vi.hoisted(() => ({ login: vi.fn(), setLoginSource: vi.fn() }));
 
 // The real Radix tooltip, so the tests cover when a row label shows.
 vi.unmock('@components/Tooltip');
@@ -37,8 +35,9 @@ vi.mock('@hooks/useAdvancedFeatures', () => ({
   useAdvancedFeatures: () => ({ features: {} }),
 }));
 vi.mock('@hooks/useShortcutSettings', () => ({
-  useShortcutSettings: () => ({ enabled: mocks.shortcutsEnabled }),
+  useShortcutSettings: () => ({ enabled: true }),
 }));
+vi.mock('@features/analytics/service', () => ({ analytics: { event: vi.fn() } }));
 vi.mock('@hooks/useInternetIdentity', () => ({
   useInternetIdentity: () => ({
     identity: { getPrincipal: () => ({ toText: () => 'rrkah-fqaaa-aaaaa-aaaaq-cai' }) },
@@ -62,12 +61,18 @@ const createStorage = (entries: Record<string, string> = {}) => {
   };
 };
 
+/** The `[` shortcut is the only way to toggle the sidebar. */
+const ShortcutSidebar = ({ variant }: { variant?: 'app' | 'reader' }) => {
+  useSidebarShortcut();
+  return <Sidebar variant={variant} />;
+};
+
 const renderSidebar = async (variant?: 'app' | 'reader') => {
   const rootRoute = createRootRoute({
     component: () => (
       <>
         <Outlet />
-        <Sidebar variant={variant} />
+        <ShortcutSidebar variant={variant} />
       </>
     ),
   });
@@ -85,6 +90,11 @@ const renderSidebar = async (variant?: 'app' | 'reader') => {
   await waitFor(() => expect(screen.getByText('page')).toBeTruthy());
 };
 
+const pressToggleKey = (target: EventTarget = document.body) =>
+  act(() => {
+    target.dispatchEvent(new KeyboardEvent('keydown', { key: '[', bubbles: true }));
+  });
+
 describe('Sidebar', () => {
   let storage: ReturnType<typeof createStorage>;
 
@@ -95,7 +105,6 @@ describe('Sidebar', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
-    mocks.shortcutsEnabled = false;
     mocks.login.mockClear();
     mocks.setLoginSource.mockClear();
   });
@@ -130,39 +139,71 @@ describe('Sidebar', () => {
 
     expect(screen.getByText('Dashboard').className).not.toContain('sr-only');
     expect(screen.getByText('rrkah-f...aaq-cai')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Collapse sidebar' })).toBeTruthy();
   });
 
-  it('collapses to the icons and stores the state.', async () => {
+  it('has no toggle button.', async () => {
     await renderSidebar();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Collapse sidebar' }));
+    expect(
+      screen.getAllByRole('button').map((button) => button.getAttribute('aria-label')),
+    ).toEqual(['Logout']);
+  });
+
+  it('collapses to the icons on the shortcut and stores the state.', async () => {
+    await renderSidebar();
+
+    pressToggleKey();
 
     expect(storage.items.get(SIDEBAR_COLLAPSED_KEY)).toBe('true');
     expect(screen.getByRole('complementary').dataset.collapsed).toBe('true');
     // The link keeps its name for screen readers.
     expect(screen.getByRole('link', { name: /Dashboard/ })).toBeTruthy();
     expect(screen.queryByText('rrkah-f...aaq-cai')).toBeNull();
-    expect(screen.getByRole('button', { name: 'Expand sidebar' })).toBeTruthy();
   });
 
   it('starts collapsed when the stored state is collapsed.', async () => {
     vi.stubGlobal('localStorage', createStorage({ [SIDEBAR_COLLAPSED_KEY]: 'true' }));
     await renderSidebar();
+    expect(screen.getByRole('complementary').dataset.collapsed).toBe('true');
 
-    await userEvent.click(screen.getByRole('button', { name: 'Expand sidebar' }));
+    pressToggleKey();
 
     expect(screen.getByRole('complementary').dataset.collapsed).toBeUndefined();
     expect(screen.getByText('rrkah-f...aaq-cai')).toBeTruthy();
   });
 
-  it('keeps the keyboard focus on the toggle.', async () => {
+  it('shows the search button while the command palette is on.', async () => {
+    const unregister = registerCommandPalette();
     await renderSidebar();
-    screen.getByRole('button', { name: 'Collapse sidebar' }).focus();
 
-    await userEvent.keyboard('{Enter}');
+    expect(screen.getByRole('button', { name: /Search/ })).toBeTruthy();
+    unregister();
+  });
 
-    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Expand sidebar' }));
+  it('hides the search button while the command palette is off.', async () => {
+    const unregister = registerCommandPalette();
+    vi.stubGlobal('localStorage', createStorage({ [COMMAND_PALETTE_SETTINGS_KEY]: 'false' }));
+    await renderSidebar();
+
+    expect(screen.queryByRole('button', { name: /Search/ })).toBeNull();
+    unregister();
+  });
+
+  it('hides the search button on a screen without a palette.', async () => {
+    await renderSidebar();
+
+    expect(screen.queryByRole('button', { name: /Search/ })).toBeNull();
+  });
+
+  it('keeps the keyboard focus on a row.', async () => {
+    await renderSidebar();
+    const link = screen.getByRole('link', { name: /Dashboard/ });
+    link.focus();
+
+    pressToggleKey(link);
+
+    expect(screen.getByRole('complementary').dataset.collapsed).toBe('true');
+    expect(document.activeElement).toBe(screen.getByRole('link', { name: /Dashboard/ }));
   });
 
   it('collapses when the browser denies the storage.', async () => {
@@ -172,7 +213,7 @@ describe('Sidebar', () => {
     vi.stubGlobal('localStorage', { getItem: denied, setItem: denied });
     await renderSidebar();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Collapse sidebar' }));
+    pressToggleKey();
 
     expect(screen.getByRole('complementary').dataset.collapsed).toBe('true');
   });
@@ -192,20 +233,8 @@ describe('Sidebar', () => {
     await userEvent.hover(link);
     await userEvent.unhover(link);
 
-    await userEvent.click(screen.getByRole('button', { name: 'Collapse sidebar' }));
+    pressToggleKey();
 
     expect(screen.queryByRole('tooltip', { name: 'Dashboard' })).toBeNull();
-  });
-
-  it('hides the shortcut key when the keyboard shortcuts are off.', async () => {
-    await renderSidebar();
-    expect(screen.queryByText('[')).toBeNull();
-  });
-
-  it('shows the shortcut key when the keyboard shortcuts are on.', async () => {
-    mocks.shortcutsEnabled = true;
-    await renderSidebar();
-
-    expect(screen.getByText('[')).toBeTruthy();
   });
 });

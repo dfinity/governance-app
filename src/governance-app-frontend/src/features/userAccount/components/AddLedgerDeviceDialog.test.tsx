@@ -205,4 +205,36 @@ describe('AddLedgerDeviceDialog', () => {
     );
     expect(mocks.errorNotification).not.toHaveBeenCalled();
   });
+
+  it('follows the open prop and reports a close to onOpenChange', async () => {
+    const user = userEvent.setup({ delay: null });
+    const onOpenChange = vi.fn();
+    const queryClient = new QueryClient();
+    const { rerender } = render(
+      <QueryClientProvider client={queryClient}>
+        <AddLedgerDeviceDialog
+          open={false}
+          onOpenChange={onOpenChange}
+          trigger={(open) => <button onClick={open}>Add</button>}
+        />
+      </QueryClientProvider>,
+    );
+
+    await user.click(screen.getByText('Add'));
+    expect(onOpenChange).toHaveBeenCalledWith(true);
+    expect(screen.queryByRole('button', { name: 'Connect' })).toBeNull();
+
+    rerender(
+      <QueryClientProvider client={queryClient}>
+        <AddLedgerDeviceDialog
+          open
+          onOpenChange={onOpenChange}
+          trigger={(open) => <button onClick={open}>Add</button>}
+        />
+      </QueryClientProvider>,
+    );
+    await user.click(await screen.findByRole('button', { name: 'Cancel' }));
+
+    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+  });
 });

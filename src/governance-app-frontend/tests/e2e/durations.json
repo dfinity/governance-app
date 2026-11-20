@@ -1,0 +1,18 @@
+{
+  "chromium": {
+    "address-book.spec.ts": 188,
+    "advanced-following.spec.ts": 120,
+    "login.spec.ts": 26,
+    "neuron-detail-modal.spec.ts": 50,
+    "session.spec.ts": 108,
+    "staking-wizard.spec.ts": 90
+  },
+  "mobile": {
+    "address-book.spec.ts": 266,
+    "advanced-following.spec.ts": 160,
+    "login.spec.ts": 28,
+    "neuron-detail-modal.spec.ts": 70,
+    "session.spec.ts": 117,
+    "staking-wizard.spec.ts": 101
+  }
+}
