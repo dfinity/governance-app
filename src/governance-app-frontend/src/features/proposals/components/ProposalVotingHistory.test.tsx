@@ -157,9 +157,25 @@ describe('ProposalVotingHistory', () => {
       isError: false,
     });
 
-    // The dot that comes last in the document paints on top.
+    // The marker that comes last in the document paints on top.
     const latestDotFills = () =>
-      Array.from(document.querySelectorAll('circle[r="4"]')).map((dot) => dot.getAttribute('fill'));
+      screen.queryAllByTestId('voting-history-latest').map((dot) => dot.getAttribute('fill'));
+
+    it('marks the latest Yes value with a circle and the latest No value with a square', async () => {
+      mocks.query = tally(30n, 10n);
+      render(<ProposalVotingHistory proposal={proposal()} />);
+
+      await waitFor(() =>
+        expect(
+          screen
+            .queryAllByTestId('voting-history-latest')
+            .map((dot) => [dot.tagName, dot.getAttribute('fill')]),
+        ).toEqual([
+          ['rect', 'var(--color-no)'],
+          ['circle', 'var(--color-yes)'],
+        ]),
+      );
+    });
 
     it('paints the Yes dot on top when Yes leads', async () => {
       mocks.query = tally(30n, 10n);

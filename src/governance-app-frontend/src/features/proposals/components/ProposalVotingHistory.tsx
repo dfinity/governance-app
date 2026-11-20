@@ -32,7 +32,6 @@ type Props = {
   proposal: ProposalInfo;
 };
 
-const NO_DASH = '5 4';
 const REFERENCE_DASH = '2 3';
 const CHART_HEIGHT = 'h-45';
 
@@ -43,17 +42,70 @@ const formatDay = (seconds: number) =>
     day: 'numeric',
   });
 
+// Yes and No have similar lightness, so a shape tells the lines apart without color.
+type MarkerShape = 'circle' | 'square';
+
+type MarkerProps = {
+  shape: MarkerShape;
+  cx?: number;
+  cy?: number;
+  // Half the width of the mark.
+  size: number;
+  fill: string;
+  strokeWidth: number;
+  testId?: string;
+};
+
+const Marker = ({ shape, cx = 0, cy = 0, size, fill, strokeWidth, testId }: MarkerProps) =>
+  shape === 'circle' ? (
+    <circle
+      data-testid={testId}
+      cx={cx}
+      cy={cy}
+      r={size}
+      fill={fill}
+      stroke="var(--card)"
+      strokeWidth={strokeWidth}
+    />
+  ) : (
+    <rect
+      data-testid={testId}
+      x={cx - size}
+      y={cy - size}
+      width={size * 2}
+      height={size * 2}
+      fill={fill}
+      stroke="var(--card)"
+      strokeWidth={strokeWidth}
+    />
+  );
+
 type DotProps = { index: number; cx?: number; cy?: number };
 
-// Marks the latest value of a line with a filled dot.
+// Marks the latest value of a line.
 const latestDot =
-  (lastIndex: number, fill: string) =>
+  (lastIndex: number, shape: MarkerShape, fill: string) =>
   ({ index, cx, cy }: DotProps) =>
     index === lastIndex ? (
-      <circle key="latest" cx={cx} cy={cy} r={4} fill={fill} stroke="var(--card)" strokeWidth={2} />
+      <Marker
+        key="latest"
+        testId="voting-history-latest"
+        shape={shape}
+        cx={cx}
+        cy={cy}
+        size={4}
+        fill={fill}
+        strokeWidth={2}
+      />
     ) : (
       <g key={index} />
     );
+
+const activeDot =
+  (shape: MarkerShape, fill: string) =>
+  ({ cx, cy }: { cx?: number; cy?: number }) => (
+    <Marker shape={shape} cx={cx} cy={cy} size={3} fill={fill} strokeWidth={1} />
+  );
 
 // A live region, so screen readers read the point that the arrow keys select.
 const VotingHistoryTooltipContent = (props: ComponentProps<typeof ChartTooltipContent>) => (
@@ -62,9 +114,20 @@ const VotingHistoryTooltipContent = (props: ComponentProps<typeof ChartTooltipCo
   </div>
 );
 
-const LegendItem = ({ label, className }: { label: string; className: string }) => (
+const LegendItem = ({
+  label,
+  shape,
+  className,
+}: {
+  label: string;
+  shape: MarkerShape;
+  className: string;
+}) => (
   <span className="flex items-center gap-1.5">
-    <span aria-hidden className={cn('w-3.5 border-t-2', className)} />
+    <svg aria-hidden width={18} height={10} className={cn('overflow-visible', className)}>
+      <line x1={0} x2={18} y1={5} y2={5} stroke="currentColor" strokeWidth={2} />
+      <Marker shape={shape} cx={9} cy={5} size={3.5} fill="currentColor" strokeWidth={0} />
+    </svg>
     {label}
   </span>
 );
@@ -101,7 +164,7 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
   const lastIndex = points.length - 1;
   const latest = points[lastIndex];
   const shareAxis = getShareAxis(points);
-  // The line with more votes paints last, so its dot sits on top when the dots overlap.
+  // The line with more votes paints last, so its marker sits on top when the markers overlap.
   const yesOnTop = (latest?.yes ?? 0) >= (latest?.no ?? 0);
   const yesLine = (
     <Line
@@ -111,8 +174,8 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
       stroke="var(--color-yes)"
       strokeWidth={2}
       strokeLinejoin="round"
-      dot={latestDot(lastIndex, 'var(--color-yes)')}
-      activeDot={{ r: 3 }}
+      dot={latestDot(lastIndex, 'circle', 'var(--color-yes)')}
+      activeDot={activeDot('circle', 'var(--color-yes)')}
       isAnimationActive={false}
     />
   );
@@ -123,9 +186,9 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
       type="stepAfter"
       stroke="var(--color-no)"
       strokeWidth={2}
-      strokeDasharray={NO_DASH}
-      dot={latestDot(lastIndex, 'var(--color-no)')}
-      activeDot={{ r: 3 }}
+      strokeLinejoin="round"
+      dot={latestDot(lastIndex, 'square', 'var(--color-no)')}
+      activeDot={activeDot('square', 'var(--color-no)')}
       isAnimationActive={false}
     />
   );
@@ -150,11 +213,12 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
       <CardHeader>
         <CardTitle>{t(($) => $.proposal.votingHistory.title)}</CardTitle>
         <CardAction className="flex gap-3 self-center text-xs text-foreground-secondary">
-          <LegendItem label={yesLabel} className="border-emerald-800 dark:border-emerald-400" />
           <LegendItem
-            label={noLabel}
-            className="border-dashed border-red-800 dark:border-red-400"
+            label={yesLabel}
+            shape="circle"
+            className="text-emerald-800 dark:text-emerald-400"
           />
+          <LegendItem label={noLabel} shape="square" className="text-red-800 dark:text-red-400" />
         </CardAction>
       </CardHeader>
       <CardContent>
@@ -216,7 +280,10 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
                     formatter={(value, name, item) => (
                       <div className="flex w-full items-center gap-2">
                         <span
-                          className="size-2.5 shrink-0 rounded-[2px]"
+                          className={cn(
+                            'size-2.5 shrink-0',
+                            name === 'yes' ? 'rounded-full' : 'rounded-[2px]',
+                          )}
                           style={{ backgroundColor: item.color }}
                         />
                         <span className="text-foreground-secondary">
