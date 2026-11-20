@@ -32,7 +32,6 @@ type Props = {
   proposal: ProposalInfo;
 };
 
-const NO_DASH = '5 4';
 const REFERENCE_DASH = '2 3';
 const CHART_HEIGHT = 'h-45';
 
@@ -123,7 +122,7 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
       type="stepAfter"
       stroke="var(--color-no)"
       strokeWidth={2}
-      strokeDasharray={NO_DASH}
+      strokeLinejoin="round"
       dot={latestDot(lastIndex, 'var(--color-no)')}
       activeDot={{ r: 3 }}
       isAnimationActive={false}
@@ -151,10 +150,7 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
         <CardTitle>{t(($) => $.proposal.votingHistory.title)}</CardTitle>
         <CardAction className="flex gap-3 self-center text-xs text-foreground-secondary">
           <LegendItem label={yesLabel} className="border-emerald-800 dark:border-emerald-400" />
-          <LegendItem
-            label={noLabel}
-            className="border-dashed border-red-800 dark:border-red-400"
-          />
+          <LegendItem label={noLabel} className="border-red-800 dark:border-red-400" />
         </CardAction>
       </CardHeader>
       <CardContent>
