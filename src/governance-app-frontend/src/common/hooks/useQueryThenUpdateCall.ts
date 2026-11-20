@@ -50,6 +50,9 @@ export const useQueryThenUpdateCall = <TData>({
   }
 
   // Return the query call (fast) in case the update call (slow/certified) is still loading, also
-  // while it shows placeholder data.
-  return updateQuery.isLoading || updateQuery.isPlaceholderData ? queryQuery : updateQuery;
+  // while it shows placeholder data. A certified placeholder stays when the fast call has no data.
+  if (updateQuery.isLoading) return queryQuery;
+  if (updateQuery.isPlaceholderData)
+    return queryQuery.data === undefined ? updateQuery : queryQuery;
+  return updateQuery;
 };
