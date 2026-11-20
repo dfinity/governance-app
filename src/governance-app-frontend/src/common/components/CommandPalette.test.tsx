@@ -264,17 +264,41 @@ describe('CommandPalette', () => {
     openPalette();
 
     const { classList } = screen.getByRole('dialog');
-    expect(classList.contains('top-[20vh]')).toBe(true);
+    expect(
+      classList.contains(
+        'top-[calc(var(--visible-top,0px)+min(20vh,var(--visible-height,100vh)*0.2))]',
+      ),
+    ).toBe(true);
     expect(classList.contains('translate-y-0')).toBe(true);
     expect(classList.contains('top-[50%]')).toBe(false);
   });
 
-  it('caps the list height to the screen below the fixed top.', () => {
+  it('caps the list height to the visible area below the fixed top.', () => {
     openPalette();
 
     const list = document.querySelector('[cmdk-list]');
-    expect(list?.classList.contains('max-h-[min(300px,calc(80dvh-6rem))]')).toBe(true);
+    expect(
+      list?.classList.contains('max-h-[min(300px,calc(var(--visible-height,100dvh)*0.8-6rem))]'),
+    ).toBe(true);
     expect(list?.classList.contains('max-h-[300px]')).toBe(false);
+  });
+
+  it('follows the visible area when an on-screen keyboard opens.', () => {
+    const viewport = Object.assign(new EventTarget(), { offsetTop: 0, height: 800 });
+    vi.stubGlobal('visualViewport', viewport);
+    openPalette();
+    const dialog = screen.getByRole('dialog');
+    expect(dialog.style.getPropertyValue('--visible-top')).toBe('0px');
+    expect(dialog.style.getPropertyValue('--visible-height')).toBe('800px');
+
+    act(() => {
+      Object.assign(viewport, { offsetTop: 120, height: 330.4 });
+      viewport.dispatchEvent(new Event('resize'));
+    });
+
+    expect(dialog.style.getPropertyValue('--visible-top')).toBe('120px');
+    expect(dialog.style.getPropertyValue('--visible-height')).toBe('330px');
+    vi.stubGlobal('visualViewport', undefined);
   });
 
   it('scrolls the list to the top when the search changes.', () => {

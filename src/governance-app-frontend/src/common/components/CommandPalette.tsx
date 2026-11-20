@@ -32,7 +32,7 @@ import {
   UsersIcon,
   WalletIcon,
 } from 'lucide-react';
-import type { ComponentProps, ElementType } from 'react';
+import type { ComponentProps, CSSProperties, ElementType } from 'react';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -86,6 +86,7 @@ import { useMediaQuery } from '@hooks/useMediaQuery';
 import { useShortcutSettings } from '@hooks/useShortcutSettings';
 import { useTheme } from '@hooks/useTheme';
 import { getShortcutTheme, THEME_SHORTCUT_KEY } from '@hooks/useThemeShortcut';
+import { useVisibleViewport } from '@hooks/useVisibleViewport';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { isAccountsAreaEnabled, notifyAdvancedFeatureChange } from '@utils/advancedFeatures';
 import { copyToClipboard } from '@utils/clipboard';
@@ -365,6 +366,8 @@ export const CommandPalette = () => {
   // selection after a search change, and it can sort the rows after it selects the new first one.
   // So the list checks again after each selection change and each row move. A wheel or touch
   // scroll stops this until the next search change.
+  const visibleViewport = useVisibleViewport(open);
+
   const keepTopRef = useRef(true);
   useEffect(() => {
     if (!list) return;
@@ -806,8 +809,16 @@ export const CommandPalette = () => {
 
   return (
     <CommandDialog
-      // A fixed top keeps the search field in place while the result list changes its height.
-      className="top-[20vh] translate-y-0"
+      // A fixed top keeps the search field in place while the result list changes its height. The
+      // top and the list height follow the visible area, which an on-screen keyboard makes smaller.
+      className="top-[calc(var(--visible-top,0px)+min(20vh,var(--visible-height,100vh)*0.2))] translate-y-0"
+      style={
+        visibleViewport &&
+        ({
+          '--visible-top': `${visibleViewport.top}px`,
+          '--visible-height': `${visibleViewport.height}px`,
+        } as CSSProperties)
+      }
       open={open}
       onOpenChange={handleOpenChange}
       onCloseAutoFocus={(event) => {
@@ -824,8 +835,11 @@ export const CommandPalette = () => {
         onValueChange={setSearch}
         placeholder={t(($) => $.commandPalette.placeholder)}
       />
-      {/* The list shrinks on a short screen, so the input and the footer stay below the fixed top. */}
-      <CommandList ref={setList} className="max-h-[min(300px,calc(80dvh-6rem))]">
+      {/* The list shrinks on a short visible area, so the input and the footer stay in view. */}
+      <CommandList
+        ref={setList}
+        className="max-h-[min(300px,calc(var(--visible-height,100dvh)*0.8-6rem))]"
+      >
         <CommandEmpty>{t(($) => $.commandPalette.empty)}</CommandEmpty>
 
         {recentCommands.length > 0 && (
