@@ -119,4 +119,20 @@ describe('KnownNeuronGrid', () => {
 
     expect(tooltip()?.textContent).toBe('Beta no');
   });
+
+  it('closes the tooltip on a scroll until the pointer moves again', () => {
+    const { square } = renderGrid();
+    const scroller = document.createElement('main');
+    document.body.append(scroller);
+
+    hover(square(1n));
+    fireEvent.scroll(scroller);
+
+    expect(tooltip()).toBeNull();
+
+    hover(square(1n));
+
+    expect(tooltip()?.textContent).toBe('Alpha yes');
+    scroller.remove();
+  });
 });

@@ -68,14 +68,21 @@ export const KnownNeuronGrid = ({ votes, newIds, label }: Props) => {
     });
   };
 
-  // Escape hides the tooltip until the pointer moves to another square.
+  // Escape hides the tooltip until the pointer moves to another square. A scroll moves the squares
+  // under a still pointer, so it closes the tooltip until the next pointer move.
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setHovered((value) => value && { ...value, dismissed: true });
     };
+    const onScroll = () => setHovered(null);
     document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
+    // The capture phase also catches a scroll of an inner element, such as the page main.
+    document.addEventListener('scroll', onScroll, { capture: true, passive: true });
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('scroll', onScroll, { capture: true });
+    };
   }, [open]);
 
   const hoveredVote = open ? votes[index] : undefined;
