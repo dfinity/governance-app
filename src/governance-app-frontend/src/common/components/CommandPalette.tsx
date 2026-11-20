@@ -795,7 +795,8 @@ export const CommandPalette = () => {
         onValueChange={setSearch}
         placeholder={t(($) => $.commandPalette.placeholder)}
       />
-      <CommandList ref={listRef}>
+      {/* The list shrinks on a short screen, so the input and the footer stay below the fixed top. */}
+      <CommandList ref={listRef} className="max-h-[min(300px,calc(80dvh-6rem))]">
         <CommandEmpty>{t(($) => $.commandPalette.empty)}</CommandEmpty>
 
         {recentCommands.length > 0 && (

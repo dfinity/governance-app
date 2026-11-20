@@ -269,6 +269,14 @@ describe('CommandPalette', () => {
     expect(classList.contains('top-[50%]')).toBe(false);
   });
 
+  it('caps the list height to the screen below the fixed top.', () => {
+    openPalette();
+
+    const list = document.querySelector('[cmdk-list]');
+    expect(list?.classList.contains('max-h-[min(300px,calc(80dvh-6rem))]')).toBe(true);
+    expect(list?.classList.contains('max-h-[300px]')).toBe(false);
+  });
+
   it('scrolls the list to the top when the search changes.', () => {
     openPalette();
     const list = document.querySelector<HTMLElement>('[cmdk-list]');
