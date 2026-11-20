@@ -1,14 +1,11 @@
 import { AnyRouter, ParsedLocation, redirect } from '@tanstack/react-router';
 
-import {
-  consumeLogoutRedirect,
-  ensureInitialized,
-  hasStoredSession,
-} from '@common/auth/internetIdentity';
+import { consumeLogout, ensureInitialized, hasStoredSession } from '@common/auth/internetIdentity';
 
 import i18n from '@/i18n/config';
 
 import { warningNotification } from './notification';
+import { isPublicPath } from './publicRoutes';
 
 /**
  * Returns true only for values safe to use as a post-login redirect destination:
@@ -31,11 +28,17 @@ export const requireIdentity = async ({ location }: { location: ParsedLocation }
   if (!identity) {
     console.log('[🔐 Protected Route]: identity not found, redirecting to login page.');
 
-    const isManualLogout = consumeLogoutRedirect();
+    const logout = consumeLogout();
+
+    // A public page stays open without a session, except after a logout in this tab.
+    if (isPublicPath(location.pathname)) {
+      if (logout === 'this-tab') throw redirect({ to: '/' });
+      return;
+    }
 
     // If the user logs out, we don't want to save their last location
     // and don't show warning if user intentionally logged out
-    if (isManualLogout) throw redirect({ to: '/' });
+    if (logout) throw redirect({ to: '/' });
 
     warningNotification({
       title: i18n.t(($) => $.common.restricted),
@@ -54,11 +57,11 @@ const sessionDestination = ({ pathname, search }: ParsedLocation<{ redirect?: un
 };
 
 /**
- * Starts the route code for a visitor with a stored session, so it downloads during the session
- * read. It fetches no data: the loaders still run after the route guards.
+ * Starts the route code for a visitor with a stored session or on a public page, so it downloads
+ * during the session read. It fetches no data: the loaders still run after the route guards.
  */
 export const preloadSessionRouteChunks = (router: AnyRouter) => {
-  if (!hasStoredSession()) return;
+  if (!hasStoredSession() && !isPublicPath(router.latestLocation.pathname)) return;
 
   const [routes] = router.getMatchedRoutes(sessionDestination(router.latestLocation));
 

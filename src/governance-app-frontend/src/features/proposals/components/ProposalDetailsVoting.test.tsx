@@ -1,7 +1,7 @@
 import '@/i18n/config';
 
-import { ProposalInfo, Vote } from '@icp-sdk/canisters/nns';
-import { act, render, screen } from '@testing-library/react';
+import { ProposalInfo, ProposalRewardStatus, ProposalStatus, Vote } from '@icp-sdk/canisters/nns';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ProposalDetailsVoting } from './ProposalDetailsVoting';
@@ -11,6 +11,11 @@ import { ProposalDetailsVoting } from './ProposalDetailsVoting';
 const mocks = vi.hoisted(() => ({
   canVote: true,
   hasVoted: false,
+  identity: {} as object | undefined,
+  canLogin: true,
+  isLoggingIn: false,
+  login: vi.fn(),
+  setLoginSource: vi.fn(),
   observer: undefined as
     | { callback: IntersectionObserverCallback; options?: IntersectionObserverInit }
     | undefined,
@@ -18,7 +23,16 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@hooks/useInternetIdentity', () => ({
-  useInternetIdentity: () => ({ identity: {} }),
+  useInternetIdentity: () => ({
+    identity: mocks.identity,
+    canLogin: mocks.canLogin,
+    isLoggingIn: mocks.isLoggingIn,
+    login: mocks.login,
+  }),
+}));
+
+vi.mock('@features/analytics/useLoginAnalytics', () => ({
+  setLoginSource: mocks.setLoginSource,
 }));
 
 vi.mock('../hooks/useVoting', () => ({
@@ -54,15 +68,23 @@ vi.stubGlobal('ResizeObserver', FakeResizeObserver);
 
 const proposal = {
   id: 1n,
-  latestTally: { yes: 0n, no: 0n, total: 0n, timestampSeconds: 0n },
+  status: ProposalStatus.Open,
+  rewardStatus: ProposalRewardStatus.AcceptVotes,
+  deadlineTimestampSeconds: BigInt(Math.floor(Date.now() / 1000) + 3600),
+  latestTally: {
+    yes: 3n * 100_000_000n,
+    no: 1n * 100_000_000n,
+    total: 4n * 100_000_000n,
+    timestampSeconds: 0n,
+  },
   ballots: [],
 } as unknown as ProposalInfo;
 
-const renderInMain = () => {
+const renderInMain = (props: Partial<ProposalInfo> = {}) => {
   const main = document.createElement('main');
   main.style.paddingBottom = '8px';
   document.body.appendChild(main);
-  render(<ProposalDetailsVoting proposal={proposal} />, { container: main });
+  render(<ProposalDetailsVoting proposal={{ ...proposal, ...props }} />, { container: main });
   return main;
 };
 
@@ -85,6 +107,11 @@ const footerState = () =>
 beforeEach(() => {
   mocks.canVote = true;
   mocks.hasVoted = false;
+  mocks.identity = {};
+  mocks.canLogin = true;
+  mocks.isLoggingIn = false;
+  mocks.login.mockClear();
+  mocks.setLoginSource.mockClear();
   mocks.observer = undefined;
   mocks.resize = undefined;
 });
@@ -153,5 +180,99 @@ describe('ProposalDetailsVoting', () => {
 
     expect(screen.getByText('Yes', { selector: 'strong' })).toBeTruthy();
     expect(document.querySelector('[data-state]')).toBeNull();
+  });
+
+  describe('signed out', () => {
+    beforeEach(() => {
+      mocks.identity = undefined;
+      mocks.canVote = false;
+    });
+
+    it('shows the tally and a login in place of the vote buttons', () => {
+      renderInMain();
+
+      expect(screen.getByText('Yes: 75.00%')).toBeTruthy();
+      expect(screen.getByText('Log in to vote with your neurons.')).toBeTruthy();
+      expect(screen.queryByRole('button', { name: 'Vote Yes on proposal 1' })).toBeNull();
+      expect(document.querySelector('[data-state]')).toBeNull();
+    });
+
+    it('starts the login from the vote row', () => {
+      renderInMain();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Log in to vote' }));
+
+      expect(mocks.setLoginSource).toHaveBeenCalledWith('reader_vote_row');
+      expect(mocks.login).toHaveBeenCalledTimes(1);
+    });
+
+    it('disables the login during a logout', () => {
+      mocks.canLogin = false;
+      renderInMain();
+
+      expect(
+        (screen.getByRole('button', { name: 'Log in to vote' }) as HTMLButtonElement).disabled,
+      ).toBe(true);
+    });
+
+    it('starts a waiting login again on a second click', () => {
+      mocks.canLogin = false;
+      mocks.isLoggingIn = true;
+      renderInMain();
+
+      const button = screen.getByRole('button', { name: 'Log in to vote' });
+      expect(button.getAttribute('aria-busy')).toBe('true');
+      fireEvent.click(button);
+
+      expect(mocks.login).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows the login for an adopted proposal that still takes votes', () => {
+      renderInMain({ status: ProposalStatus.Executed });
+
+      expect(screen.getByRole('button', { name: 'Log in to vote' })).toBeTruthy();
+    });
+
+    it('shows no login once the proposal takes no votes', () => {
+      renderInMain({ rewardStatus: ProposalRewardStatus.Settled });
+
+      expect(screen.getByText('Yes: 75.00%')).toBeTruthy();
+      expect(screen.queryByRole('button', { name: 'Log in to vote' })).toBeNull();
+    });
+
+    it('shows no login after the deadline', () => {
+      renderInMain({ deadlineTimestampSeconds: BigInt(Math.floor(Date.now() / 1000) - 1) });
+
+      expect(screen.queryByRole('button', { name: 'Log in to vote' })).toBeNull();
+    });
+
+    it('hides the login when the deadline passes with no new proposal data', () => {
+      vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
+      try {
+        const nowInSeconds = Math.floor(Date.now() / 1000);
+        renderInMain({ deadlineTimestampSeconds: BigInt(nowInSeconds + 2) });
+        expect(screen.getByRole('button', { name: 'Log in to vote' })).toBeTruthy();
+
+        act(() => vi.advanceTimersByTime(3000));
+
+        expect(screen.queryByRole('button', { name: 'Log in to vote' })).toBeNull();
+        expect(screen.getByText('Yes: 75.00%')).toBeTruthy();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('does not show a cast vote', () => {
+      mocks.hasVoted = true;
+      renderInMain();
+
+      expect(screen.queryByText('Yes', { selector: 'strong' })).toBeNull();
+    });
+  });
+
+  it('shows no login row to a signed-in user', () => {
+    renderInMain();
+
+    expect(screen.queryByRole('button', { name: 'Log in to vote' })).toBeNull();
   });
 });

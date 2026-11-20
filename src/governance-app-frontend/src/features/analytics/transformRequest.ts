@@ -1,6 +1,6 @@
 import type { PlausibleRequestPayload } from '@plausible-analytics/tracker';
 
-const PROPOSAL_PATH = /^\/voting\/proposals\/(\d+)\/?$/;
+import { PROPOSAL_PATH } from '@utils/publicRoutes';
 
 // The app pages that have no ID in the path.
 const STATIC_PATHS = new Set(['/dashboard', '/neurons', '/voting', '/accounts', '/settings']);

@@ -819,6 +819,26 @@ describe('internetIdentity', () => {
     expect(auth.consumeLogoutRedirect()).toBe(false);
   });
 
+  it('tells a logout in this tab from a logout in another tab.', async () => {
+    const identity = Ed25519KeyIdentity.generate();
+    const client = mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });
+    const auth = await loadModule();
+    await auth.ensureInitialized();
+    expect(auth.consumeLogout()).toBeUndefined();
+
+    auth.logout();
+    await vi.waitFor(() => expect(auth.getAuthState().status).toBe('idle'));
+    expect(auth.consumeLogout()).toBe('this-tab');
+    expect(auth.consumeLogout()).toBeUndefined();
+
+    client.identity = identity;
+    client.change(identity, signedIn(identity, Date.now() + ONE_HOUR_MS));
+    await vi.waitFor(() => expect(auth.getAuthState().status).toBe('authenticated'));
+    client.change(undefined, { state: 'signed-out' });
+    await vi.waitFor(() => expect(auth.getAuthState().status).toBe('idle'));
+    expect(auth.consumeLogout()).toBe('other-tab');
+  });
+
   it('gives a logout from another tab to one route guard.', async () => {
     const identity = Ed25519KeyIdentity.generate();
     const client = mockAuthClient({ identity, expiresAtMs: Date.now() + ONE_HOUR_MS });

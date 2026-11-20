@@ -5,8 +5,18 @@ import { analytics } from '@features/analytics/service';
 
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 
+/** The control that started a login. */
+export type LoginSource = 'login_page' | 'reader_sidebar' | 'reader_top_bar' | 'reader_vote_row';
+
+let loginSource: LoginSource = 'login_page';
+
+/** Sets the `source` property of the next `login_success` or `login_error`. */
+export const setLoginSource = (source: LoginSource) => {
+  loginSource = source;
+};
+
 /**
- * Starts the tracker on the login page and sends the result of each login attempt.
+ * Starts the tracker and sends the result of each login attempt, with the control that started it.
  * The auth module does not keep the login error, so `login_error` also counts a closed popup.
  */
 export const useLoginAnalytics = () => {
@@ -19,7 +29,10 @@ export const useLoginAnalytics = () => {
 
   useEffect(() => {
     if (wasLoggingIn.current && !isLoggingIn) {
-      analytics.event(identity ? AnalyticsEvent.LoginSuccess : AnalyticsEvent.LoginError);
+      analytics.event(identity ? AnalyticsEvent.LoginSuccess : AnalyticsEvent.LoginError, {
+        source: loginSource,
+      });
+      loginSource = 'login_page';
     }
     wasLoggingIn.current = isLoggingIn;
   }, [isLoggingIn, identity]);

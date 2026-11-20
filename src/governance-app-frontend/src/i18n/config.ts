@@ -22,6 +22,7 @@ import stakingRatioModal from './en/modals/stakingRatio.json';
 import welcomeModal from './en/modals/welcome.json';
 import neuron from './en/neuron.json';
 import proposal from './en/proposal.json';
+import reader from './en/reader.json';
 import userAccount from './en/userAccount.json';
 import voting from './en/voting.json';
 
@@ -53,6 +54,7 @@ export const resources = {
       depositModal,
       disburseModal,
       login,
+      reader,
     },
   },
 };

@@ -1,7 +1,9 @@
+import { ProposalInfo, ProposalRewardStatus } from '@icp-sdk/canisters/nns';
 import { describe, expect, it } from 'vitest';
 
 import {
   getKnownNeuronNames,
+  isAcceptingVotes,
   isProposalFilter,
   isValidProposalId,
   parseProposalId,
@@ -144,5 +146,22 @@ describe('validateProposalsSearch', () => {
         proposalFilter: ProposalFilter.Open,
       });
     });
+  });
+});
+
+describe('isAcceptingVotes', () => {
+  const proposal = (rewardStatus: ProposalRewardStatus) =>
+    ({ rewardStatus, deadlineTimestampSeconds: 100n }) as ProposalInfo;
+
+  it('is true before the deadline', () => {
+    expect(isAcceptingVotes(proposal(ProposalRewardStatus.AcceptVotes), 99)).toBe(true);
+  });
+
+  it('is false at the deadline', () => {
+    expect(isAcceptingVotes(proposal(ProposalRewardStatus.AcceptVotes), 100)).toBe(false);
+  });
+
+  it('is false once the rewards settle', () => {
+    expect(isAcceptingVotes(proposal(ProposalRewardStatus.Settled), 0)).toBe(false);
   });
 });
