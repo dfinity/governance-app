@@ -13,11 +13,15 @@ const votes: KnownNeuronVote[] = [
 const label = ({ name, state }: KnownNeuronVote) => `${name} ${state}`;
 
 const renderGrid = () => {
-  render(<KnownNeuronGrid votes={votes} newIds={new Set()} label={label} />);
+  const { rerender } = render(<KnownNeuronGrid votes={votes} newIds={new Set()} label={label} />);
   const grid = screen.getByTestId('known-neuron-grid');
   const square = (id: bigint) => grid.querySelector(`[data-vote-id="${id}"]`)!;
-  return { grid, square };
+  const setVotes = (next: KnownNeuronVote[]) =>
+    rerender(<KnownNeuronGrid votes={next} newIds={new Set()} label={label} />);
+  return { grid, square, setVotes };
 };
+
+const tooltip = () => screen.queryByTestId('known-neuron-tooltip');
 
 const hover = (element: Element, pointerType = 'mouse') =>
   fireEvent.pointerMove(element, { pointerType });
@@ -66,5 +70,53 @@ describe('KnownNeuronGrid', () => {
     hover(square(1n), 'touch');
 
     expect(screen.queryByTestId('known-neuron-tooltip')).toBeNull();
+  });
+
+  it('lets the pointer through the tooltip', () => {
+    const { square } = renderGrid();
+
+    hover(square(1n));
+
+    expect(tooltip()?.className).toContain('pointer-events-none');
+  });
+
+  it('closes the tooltip when a new vote moves the hovered square', () => {
+    const { square, setVotes } = renderGrid();
+
+    hover(square(3n));
+    setVotes([{ ...votes[2], state: KnownNeuronVoteState.Yes }, votes[0], votes[1]]);
+
+    expect(tooltip()).toBeNull();
+
+    hover(square(1n));
+
+    expect(tooltip()?.textContent).toBe('Alpha yes');
+  });
+
+  it('keeps the tooltip open when a new vote does not move the hovered square', () => {
+    const { square, setVotes } = renderGrid();
+
+    hover(square(1n));
+    setVotes([votes[0], votes[1], { ...votes[2], state: KnownNeuronVoteState.No }]);
+
+    expect(tooltip()?.textContent).toBe('Alpha yes');
+  });
+
+  it('hides the tooltip on Escape until the pointer reaches another square', () => {
+    const { grid, square } = renderGrid();
+
+    hover(square(1n));
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(tooltip()).toBeNull();
+
+    hover(square(1n));
+    hover(grid);
+
+    expect(tooltip()).toBeNull();
+
+    hover(square(2n));
+
+    expect(tooltip()?.textContent).toBe('Beta no');
   });
 });

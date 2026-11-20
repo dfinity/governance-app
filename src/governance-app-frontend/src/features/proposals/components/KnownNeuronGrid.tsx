@@ -1,5 +1,5 @@
 import { arrow, autoUpdate, flip, offset, shift, useFloating } from '@floating-ui/react-dom';
-import { PointerEvent, useState } from 'react';
+import { PointerEvent, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { cn } from '@utils/shadcn';
@@ -15,7 +15,13 @@ type Props = {
   label: (vote: KnownNeuronVote) => string;
 };
 
-type Hovered = { id: string; element: HTMLElement; moved: boolean };
+type Hovered = {
+  id: string;
+  index: number;
+  element: HTMLElement;
+  moved: boolean;
+  dismissed: boolean;
+};
 
 /**
  * One tooltip serves the whole grid. It follows the pointer from square to square and stays open
@@ -26,10 +32,16 @@ export const KnownNeuronGrid = ({ votes, newIds, label }: Props) => {
   const [floatingElement, setFloatingElement] = useState<HTMLElement | null>(null);
   const [arrowElement, setArrowElement] = useState<HTMLElement | null>(null);
 
+  const index = hovered ? votes.findIndex((vote) => String(vote.id) === hovered.id) : -1;
+  // A new vote reorders the squares, so the hovered square can move away from the pointer. The
+  // tooltip then closes until the next pointer move.
+  const current = hovered && index === hovered.index ? hovered : null;
+  const open = current !== null && !current.dismissed;
+
   const { floatingStyles, placement, middlewareData, isPositioned } = useFloating({
-    open: hovered !== null,
+    open,
     placement: 'top',
-    elements: { reference: hovered?.element, floating: floatingElement },
+    elements: { reference: current?.element, floating: floatingElement },
     whileElementsMounted: autoUpdate,
     middleware: [
       offset(6),
@@ -45,11 +57,28 @@ export const KnownNeuronGrid = ({ votes, newIds, label }: Props) => {
     if (!(event.target instanceof Element)) return;
     const square = event.target.closest<HTMLElement>('[data-vote-id]');
     // Over a gap, the tooltip stays on the last square.
-    if (!square?.dataset.voteId || square.dataset.voteId === hovered?.id) return;
-    setHovered({ id: square.dataset.voteId, element: square, moved: hovered !== null });
+    const id = square?.dataset.voteId;
+    if (!square || !id || id === current?.id) return;
+    setHovered({
+      id,
+      index: votes.findIndex((vote) => String(vote.id) === id),
+      element: square,
+      moved: open,
+      dismissed: false,
+    });
   };
 
-  const hoveredVote = hovered && votes.find((vote) => String(vote.id) === hovered.id);
+  // Escape hides the tooltip until the pointer moves to another square.
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setHovered((value) => value && { ...value, dismissed: true });
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [open]);
+
+  const hoveredVote = open ? votes[index] : undefined;
   const side = placement.split('-')[0];
 
   return (
@@ -78,16 +107,17 @@ export const KnownNeuronGrid = ({ votes, newIds, label }: Props) => {
       </div>
       {hoveredVote &&
         createPortal(
-          // The squares are in a screen reader list, so the tooltip is for sight only.
+          // The squares are in a screen reader list, so the tooltip is for sight only. It lets the
+          // pointer through, so it does not cover the squares under it.
           <div
             ref={setFloatingElement}
             aria-hidden
             data-testid="known-neuron-tooltip"
             style={floatingStyles}
             className={cn(
-              'z-50',
+              'pointer-events-none z-50',
               !isPositioned && 'invisible',
-              hovered.moved &&
+              current?.moved &&
                 'transition-transform duration-100 ease-out motion-reduce:transition-none',
             )}
           >
@@ -95,7 +125,7 @@ export const KnownNeuronGrid = ({ votes, newIds, label }: Props) => {
             <div
               className={cn(
                 'relative max-w-64 rounded-md bg-foreground px-3 py-1.5 text-xs text-pretty text-background',
-                !hovered.moved && 'animate-in fade-in-0 zoom-in-95',
+                !current?.moved && 'animate-in fade-in-0 zoom-in-95',
                 side === 'top' ? 'origin-bottom' : 'origin-top',
               )}
             >
