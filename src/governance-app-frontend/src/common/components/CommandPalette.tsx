@@ -156,6 +156,13 @@ const toWords = (text: string) =>
     .split(/[^\p{L}\p{N}]+/u)
     .filter((word) => word !== '');
 
+/**
+ * Below this visible height, the normal layout leaves room for fewer than 3 results, for example
+ * on a phone in landscape with the on-screen keyboard open. The palette then starts at the top of
+ * the visible area and has no hint footer, so the list gets all the space below the input.
+ */
+const SHORT_VISIBLE_HEIGHT = 280;
+
 const scrollToTop = (list: HTMLElement) => {
   list.scrollTop = 0;
 };
@@ -367,6 +374,7 @@ export const CommandPalette = () => {
   // So the list checks again after each selection change and each row move. A wheel or touch
   // scroll stops this until the next search change.
   const visibleViewport = useVisibleViewport(open);
+  const isShort = visibleViewport !== undefined && visibleViewport.height < SHORT_VISIBLE_HEIGHT;
 
   const keepTopRef = useRef(true);
   useEffect(() => {
@@ -811,7 +819,11 @@ export const CommandPalette = () => {
     <CommandDialog
       // A fixed top keeps the search field in place while the result list changes its height. The
       // top and the list height follow the visible area, which an on-screen keyboard makes smaller.
-      className="top-[calc(var(--visible-top,0px)+min(20vh,var(--visible-height,100vh)*0.2))] translate-y-0"
+      className={
+        isShort
+          ? 'top-[var(--visible-top,0px)] translate-y-0'
+          : 'top-[calc(var(--visible-top,0px)+min(20vh,var(--visible-height,100vh)*0.2))] translate-y-0'
+      }
       style={
         visibleViewport &&
         ({
@@ -835,12 +847,18 @@ export const CommandPalette = () => {
         onValueChange={setSearch}
         placeholder={t(($) => $.commandPalette.placeholder)}
       />
-      {/* The list shrinks on a short visible area, so the input and the footer stay in view. */}
+      {/* The list shrinks with the visible area, so the input and the footer stay in view. */}
       <CommandList
         ref={setList}
-        className="max-h-[min(300px,calc(var(--visible-height,100dvh)*0.8-6rem))]"
+        className={
+          isShort
+            ? 'max-h-[calc(var(--visible-height)-3.25rem)]'
+            : 'max-h-[min(300px,calc(var(--visible-height,100dvh)*0.8-6rem))]'
+        }
       >
-        <CommandEmpty>{t(($) => $.commandPalette.empty)}</CommandEmpty>
+        <CommandEmpty className={isShort ? 'py-2' : undefined}>
+          {t(($) => $.commandPalette.empty)}
+        </CommandEmpty>
 
         {recentCommands.length > 0 && (
           <CommandGroup heading={t(($) => $.commandPalette.groups.recent)}>
@@ -864,7 +882,7 @@ export const CommandPalette = () => {
           );
         })}
       </CommandList>
-      <CommandHintFooter />
+      {!isShort && <CommandHintFooter />}
       <CommandPaletteNoResultTracker open={open} />
     </CommandDialog>
   );

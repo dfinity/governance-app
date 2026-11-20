@@ -283,6 +283,28 @@ describe('CommandPalette', () => {
     expect(list?.classList.contains('max-h-[300px]')).toBe(false);
   });
 
+  it('gives the list all the space below the input on a short visible area.', () => {
+    vi.stubGlobal(
+      'visualViewport',
+      Object.assign(new EventTarget(), { offsetTop: 0, height: 800 }),
+    );
+    openPalette();
+    expect(screen.getByText('Copy to clipboard')).toBeTruthy();
+
+    act(() => {
+      Object.assign(window.visualViewport ?? {}, { height: 150 });
+      window.visualViewport?.dispatchEvent(new Event('resize'));
+    });
+
+    expect(screen.getByRole('dialog').classList.contains('top-[var(--visible-top,0px)]')).toBe(
+      true,
+    );
+    const list = document.querySelector('[cmdk-list]');
+    expect(list?.classList.contains('max-h-[calc(var(--visible-height)-3.25rem)]')).toBe(true);
+    expect(screen.queryByText('Copy to clipboard')).toBeNull();
+    vi.stubGlobal('visualViewport', undefined);
+  });
+
   it('follows the visible area when an on-screen keyboard opens.', () => {
     const viewport = Object.assign(new EventTarget(), { offsetTop: 0, height: 800 });
     vi.stubGlobal('visualViewport', viewport);
