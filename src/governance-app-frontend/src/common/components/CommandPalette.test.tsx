@@ -305,48 +305,72 @@ describe('CommandPalette', () => {
     vi.stubGlobal('visualViewport', undefined);
   });
 
-  it('runs the selected command on Return when its row fits.', () => {
+  // Gives the list and the element the vertical bounds of a layout.
+  const layOut = (element: Element, [top, bottom]: [number, number]) => {
+    element.getBoundingClientRect = () => ({ top, bottom }) as DOMRect;
+  };
+
+  const layOutSelected = (list: [number, number], row: [number, number]) => {
+    const listElement = document.querySelector('[cmdk-list]');
+    const selected = document.querySelector('[cmdk-item][aria-selected="true"]');
+    if (!listElement || !selected) throw new Error('no list');
+    layOut(listElement, list);
+    layOut(selected, row);
+  };
+
+  it('runs the selected command on Return when its row is in view.', () => {
     openPalette();
     search('send');
-    const list = document.querySelector('[cmdk-list]');
-    const selected = document.querySelector<HTMLElement>('[cmdk-item][aria-selected="true"]');
-    if (!list || !selected) throw new Error('no list');
-    Object.defineProperty(list, 'clientHeight', { configurable: true, value: 300 });
-    Object.defineProperty(selected, 'offsetHeight', { configurable: true, value: 36 });
+    layOutSelected([0, 300], [8, 44]);
 
     fireEvent.keyDown(screen.getByRole('combobox'), { key: 'Enter' });
 
     expect(mocks.navigate).toHaveBeenCalledWith({ to: '/dashboard', search: { sendModal: true } });
   });
 
-  it('closes the keyboard on Return when no result row fits.', () => {
+  it.each([
+    ['no row fits', [0, 8], [8, 44]],
+    ['the row is below a heading in a short list', [0, 88], [60, 96]],
+  ] satisfies Array<[string, [number, number], [number, number]]>)(
+    'closes the keyboard on Return when %s.',
+    (_, list, row) => {
+      openPalette();
+      search('send');
+      const input = screen.getByRole('combobox');
+      layOutSelected(list, row);
+      input.focus();
+
+      fireEvent.keyDown(input, { key: 'Enter' });
+
+      expect(mocks.navigate).not.toHaveBeenCalled();
+      expect(document.activeElement).not.toBe(input);
+      expect(screen.getByRole('dialog')).toBeTruthy();
+      expect((input as HTMLInputElement).value).toBe('send');
+    },
+  );
+
+  it('closes the keyboard on Return when the no-results message is cut off.', () => {
     openPalette();
-    search('send');
+    search('zzqqxx');
     const input = screen.getByRole('combobox');
     const list = document.querySelector('[cmdk-list]');
-    const selected = document.querySelector<HTMLElement>('[cmdk-item][aria-selected="true"]');
-    if (!list || !selected) throw new Error('no list');
-    Object.defineProperty(list, 'clientHeight', { configurable: true, value: 8 });
-    Object.defineProperty(selected, 'offsetHeight', { configurable: true, value: 36 });
+    const empty = screen.getByText('No results found.');
+    if (!list) throw new Error('no list');
+    layOut(list, [0, 8]);
+    layOut(empty, [0, 44]);
     input.focus();
 
     fireEvent.keyDown(input, { key: 'Enter' });
 
-    expect(mocks.navigate).not.toHaveBeenCalled();
     expect(document.activeElement).not.toBe(input);
-    expect(screen.getByRole('dialog')).toBeTruthy();
-    expect((input as HTMLInputElement).value).toBe('send');
+    expect((input as HTMLInputElement).value).toBe('zzqqxx');
   });
 
   it('leaves the Return of an IME composition to the IME when no result row fits.', () => {
     openPalette();
     search('send');
     const input = screen.getByRole('combobox');
-    const list = document.querySelector('[cmdk-list]');
-    const selected = document.querySelector<HTMLElement>('[cmdk-item][aria-selected="true"]');
-    if (!list || !selected) throw new Error('no list');
-    Object.defineProperty(list, 'clientHeight', { configurable: true, value: 8 });
-    Object.defineProperty(selected, 'offsetHeight', { configurable: true, value: 36 });
+    layOutSelected([0, 8], [8, 44]);
     input.focus();
 
     fireEvent.keyDown(input, { key: 'Enter', keyCode: 229 });

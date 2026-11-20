@@ -403,15 +403,20 @@ export const CommandPalette = () => {
     };
   }, [list]);
 
-  // If the list has no room for one full row, for example in landscape with the on-screen keyboard
-  // open, Return closes the keyboard and keeps the search, so the user can read the results first.
+  // If the selected row or the no-results message is not fully in view, for example in landscape
+  // with the on-screen keyboard open, Return closes the keyboard and keeps the search. The user can
+  // then read the results before a command runs.
   const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     // The Enter that confirms an input method editor (IME) composition belongs to the IME. Safari
     // sends it with key code 229.
     if (event.nativeEvent.isComposing || event.keyCode === 229) return;
     if (event.key !== 'Enter' || !list) return;
-    const selected = list.querySelector<HTMLElement>('[cmdk-item][aria-selected="true"]');
-    if (!selected || list.clientHeight >= selected.offsetHeight) return;
+    const target = list.querySelector('[cmdk-item][aria-selected="true"], [cmdk-empty]');
+    if (!target) return;
+    const area = list.getBoundingClientRect();
+    const { top, bottom } = target.getBoundingClientRect();
+    // 1px covers rounding.
+    if (top >= area.top - 1 && bottom <= area.bottom + 1) return;
     event.preventDefault();
     event.currentTarget.blur();
   };
