@@ -66,6 +66,18 @@ fn list_usd_to_fiat_exchange_rates() -> Vec<FiatExchangeRate> {
     exchange_rate::list_usd_to_fiat_exchange_rates()
 }
 
+/// A markdown guide to the API, for the facts that the Candid types do not give.
+const API_DOC: &str = include_str!("api_doc.md");
+
+/// Returns a markdown guide to the API of this canister.
+///
+/// An agent finds this method in the `candid:service` metadata.
+/// See <https://docs.internetcomputer.org/guides/frontends/service-discoverability/>
+#[query]
+fn get_api_doc() -> String {
+    API_DOC.to_string()
+}
+
 #[cfg(feature = "testnet")]
 #[update]
 fn set_mock_exchange_rate(current_rate_e8s: u64, rate_one_day_ago_e8s: u64) {
@@ -76,4 +88,35 @@ fn set_mock_exchange_rate(current_rate_e8s: u64, rate_one_day_ago_e8s: u64) {
 #[update]
 fn set_mock_fiat_exchange_rate(symbol: String, rate_e8s: u64) {
     exchange_rate::set_mock_fiat_exchange_rate(symbol, rate_e8s);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::API_DOC;
+
+    /// Returns the names of the methods in the `service` block of `backend.did`.
+    fn declared_method_names() -> Vec<String> {
+        let did = std::fs::read_to_string("backend.did").unwrap();
+        let service = did
+            .split_once("service : {")
+            .expect("backend.did declares no service")
+            .1;
+        let method = regex::Regex::new(r"(?m)^\s*([a-z_][a-z0-9_]*)\s*:").unwrap();
+        method
+            .captures_iter(service)
+            .map(|captures| captures[1].to_string())
+            .collect()
+    }
+
+    #[test]
+    fn api_doc_names_every_declared_method() {
+        let methods = declared_method_names();
+        assert!(methods.contains(&"get_api_doc".to_string()));
+        for method in methods {
+            assert!(
+                API_DOC.contains(&format!("`{method}`")),
+                "api_doc.md does not name the method `{method}`."
+            );
+        }
+    }
 }

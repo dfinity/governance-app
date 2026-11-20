@@ -19,3 +19,8 @@ RUN cargo build --target wasm32-unknown-unknown --release -p governance-app-back
 RUN ic-wasm target/wasm32-unknown-unknown/release/governance_app_backend.wasm \
     -o target/wasm32-unknown-unknown/release/governance_app_backend.wasm \
     metadata git_commit_id -d "$GIT_COMMIT" -v public
+
+# The public Candid interface lets an agent find the methods, `get_api_doc` among them.
+RUN ic-wasm target/wasm32-unknown-unknown/release/governance_app_backend.wasm \
+    -o target/wasm32-unknown-unknown/release/governance_app_backend.wasm \
+    metadata candid:service -f src/governance-app-backend/backend.did -v public
