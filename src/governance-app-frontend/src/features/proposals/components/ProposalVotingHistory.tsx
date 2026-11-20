@@ -17,15 +17,14 @@ import { secondsToDate, secondsToTime } from '@utils/date';
 import { formatPercentage } from '@utils/numbers';
 import { cn } from '@utils/shadcn';
 
-import { useProposalTallyHistory } from '../hooks/useProposalTallyHistory';
+import { useVotingHistoryChart } from '../hooks/useVotingHistoryChart';
 import {
   getDayTicks,
   getShareAxis,
-  hasTallyHistory,
   MAJORITY_SHARE,
   QUORUM_SHARE,
   TallyPoint,
-  toTallyChart,
+  VOTING_HISTORY_CARD_ID,
 } from '../tallyHistory';
 
 type Props = {
@@ -71,19 +70,9 @@ const LegendItem = ({ label, className }: { label: string; className: string }) 
 
 export const ProposalVotingHistory = ({ proposal }: Props) => {
   const { t } = useTranslation();
-  const historyQuery = useProposalTallyHistory(proposal);
+  const chart = useVotingHistoryChart(proposal);
 
-  if (!hasTallyHistory(proposal) || historyQuery.isError) return null;
-
-  const chart = historyQuery.data
-    ? toTallyChart({
-        history: historyQuery.data,
-        proposal,
-        // A poll with unchanged data still updates this, so the held line keeps up.
-        readAtSeconds: Math.floor(historyQuery.dataUpdatedAt / MILLISECONDS_IN_SECOND),
-      })
-    : undefined;
-  if (!historyQuery.isPending && chart === undefined) return null;
+  if (chart === null) return null;
 
   const yesLabel = t(($) => $.proposal.yes);
   const noLabel = t(($) => $.proposal.no);
@@ -146,7 +135,11 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
   ].filter(({ share }) => share <= shareAxis.max);
 
   return (
-    <Card data-testid="proposal-voting-history">
+    <Card
+      id={VOTING_HISTORY_CARD_ID}
+      data-testid="proposal-voting-history"
+      className="scroll-mt-16"
+    >
       <CardHeader>
         <CardTitle>{t(($) => $.proposal.votingHistory.title)}</CardTitle>
         <CardAction className="flex gap-3 self-center text-xs text-foreground-secondary">

@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 
 import { ProposalDetailsVoting } from '@features/proposals/components/ProposalDetailsVoting';
 import { ProposalLiveActivity } from '@features/proposals/components/ProposalLiveActivity';
+import { ProposalResultSummary } from '@features/proposals/components/ProposalResultSummary';
 import { ProposalVotingHistory } from '@features/proposals/components/ProposalVotingHistory';
 import { ProposerBadge } from '@features/proposals/components/ProposerBadge';
 import { SelfDescribingActionView } from '@features/proposals/components/SelfDescribingActionView';
@@ -178,6 +179,7 @@ function ProposalDetailsRouteComponent() {
                             </a>
                           )}
                         </div>
+                        <ProposalResultSummary proposal={liveProposal} />
                       </CardHeader>
                       <CardContent className="flex flex-col gap-4">
                         {spamCheckResult && CheckResultKey.Abusive in spamCheckResult && (
