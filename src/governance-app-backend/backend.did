@@ -91,6 +91,31 @@ type FiatExchangeRate = record {
     symbol : text;
     rate : opt CachedRate;
 };
+
+// The rates at 00:00 UTC of one day.
+type DailyRate = record {
+    // 00:00 UTC of the day.
+    timestamp_seconds : nat64;
+    // For example, 264_000_000 means that 1 ICP buys 2.64 USD.
+    icp_to_usd_e8s : opt nat64;
+    // Units of the requested fiat currency for one USD.
+    // For example, 92_000_000 for "EUR" means that 1 USD buys 0.92 EUR.
+    usd_to_fiat_e8s : opt nat64;
+};
+
+type ListDailyExchangeRatesRequest = record {
+    // The list includes each day whose 00:00 UTC is at or after this time.
+    from_timestamp_seconds : nat64;
+    // The list includes each day whose 00:00 UTC is before this time.
+    to_timestamp_seconds : nat64;
+    // ISO 4217 currency code, e.g. "EUR". Without it, the list has only the ICP/USD rates.
+    fiat_symbol : opt text;
+};
+
+type ListDailyExchangeRatesResponse = variant {
+    Ok : vec DailyRate;
+    UnsupportedFiatSymbol : record { symbol : text };
+};
 // End Exchange Rate
 
 service : {
@@ -113,5 +138,8 @@ service : {
     // The rates of the last 30 days, oldest first. Slots without a rate have no entry.
     list_icp_to_usd_past_month_rates : () -> (vec PastMonthRate) query;
     list_usd_to_fiat_exchange_rates : () -> (vec FiatExchangeRate) query;
+    // The rates of the requested days, oldest first. Days without a rate have no entry.
+    // The history starts on 1 January 2025.
+    list_daily_exchange_rates : (ListDailyExchangeRatesRequest) -> (ListDailyExchangeRatesResponse) query;
     // End Exchange Rate
 }
