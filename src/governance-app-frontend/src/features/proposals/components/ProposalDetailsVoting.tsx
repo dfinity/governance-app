@@ -34,22 +34,27 @@ const DockingFooter = ({ children }: { children: ReactNode }) => {
     if (!main || !footer || !sentinel) return;
 
     let observer: IntersectionObserver | undefined;
-    let inset: number | undefined;
+    let observedRoot: Element | null | undefined;
+    let observedInset: number | undefined;
 
-    // The sticky footer stops at its `bottom` offset above the bottom padding of `main`, so the
-    // root ends there too. Both change with the breakpoint, so the observer follows `main`.
+    // `main` scrolls on desktop and the document scrolls on mobile. The footer sticks at its
+    // `bottom` offset, above the bottom padding of `main` when `main` is the scroller.
+    // Both change with the breakpoint, so the observer follows the size of `main`.
     const observe = () => {
-      const nextInset =
-        (parseFloat(getComputedStyle(main).paddingBottom) || 0) +
-        (parseFloat(getComputedStyle(footer).bottom) || 0);
-      if (nextInset === inset) return;
+      const mainStyle = getComputedStyle(main);
+      const root = mainStyle.overflowY === 'visible' ? null : main;
+      const inset =
+        (parseFloat(getComputedStyle(footer).bottom) || 0) +
+        (root ? parseFloat(mainStyle.paddingBottom) || 0 : 0);
+      if (root === observedRoot && inset === observedInset) return;
 
-      inset = nextInset;
+      observedRoot = root;
+      observedInset = inset;
       observer?.disconnect();
       observer = new IntersectionObserver(
         ([entry]) => setIsDocked(entry.boundingClientRect.top <= (entry.rootBounds?.bottom ?? 0)),
         // The large top margin leaves one boundary, so a scroll jump over the card still reports.
-        { root: main, rootMargin: `100000px 0px -${inset}px 0px` },
+        { root, rootMargin: `100000px 0px -${inset}px 0px` },
       );
       observer.observe(sentinel);
     };
@@ -71,7 +76,7 @@ const DockingFooter = ({ children }: { children: ReactNode }) => {
         ref={footerRef}
         data-state={isDocked ? 'docked' : 'floating'}
         className={cn(
-          'sticky bottom-[env(safe-area-inset-bottom)] z-10 -mt-6 bg-card px-6 py-5 transition-[border-radius,box-shadow] duration-200 ease-out motion-reduce:transition-none',
+          'sticky bottom-[max(1rem,env(safe-area-inset-bottom))] z-10 -mt-6 bg-card px-6 py-5 transition-[border-radius,box-shadow] duration-200 ease-out motion-reduce:transition-none lg:bottom-0',
           isDocked
             ? 'rounded-t-none rounded-b-[6px] shadow-[inset_1px_0_var(--color-border),inset_-1px_0_var(--color-border),inset_0_-1px_var(--color-border),inset_0_1px_transparent,0_8px_30px_transparent]'
             : 'rounded-xl shadow-[inset_1px_0_var(--color-border),inset_-1px_0_var(--color-border),inset_0_-1px_var(--color-border),inset_0_1px_var(--color-border),0_8px_30px_rgb(0_0_0/0.12)]',
