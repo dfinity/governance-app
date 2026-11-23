@@ -51,11 +51,13 @@ describe('maskSearchQuery', () => {
     expect(maskSearchQuery('abandon ability able about above')).toBeUndefined();
   });
 
-  it('counts the words between commas and dashes, after the mask.', () => {
+  it('counts the words between commas and dashes, also in a masked long word.', () => {
     expect(
       maskSearchQuery('legal,winner,thank year,wave,sausage worth,useful,legal winner,thank'),
     ).toBeUndefined();
     expect(maskSearchQuery('act-add-age-aim-air')).toBeUndefined();
+    expect(maskSearchQuery('legal,winner,thank,year,wave,sausage legal winner')).toBeUndefined();
+    expect(maskSearchQuery('pay me@example.com 2 icp')).toBe('pay * # icp');
     expect(maskSearchQuery('light-theme stake-all')).toBe('light-theme stake-all');
     expect(maskSearchQuery('rrkah-fqaaa-aaaaa-aaaaq-cai')).toBe('*');
   });

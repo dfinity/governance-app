@@ -41,12 +41,22 @@ const toParts = (word: string): string[] => {
 const isPrivateWord = (word: string, privateParts: string[]): boolean =>
   toParts(word).some((part) => privateParts.some((privatePart) => privatePart.startsWith(part)));
 
+// A command name such as `light-theme` also matches the pattern. The checksum tells them apart.
+const isPrincipal = (word: string): boolean =>
+  PRINCIPAL_PATTERN.test(word) && nonNullish(getPrincipalFromString(word));
+
+/**
+ * Counts the runs of letters and digits. Commas, dashes, and other marks also separate words,
+ * for example in a pasted recovery phrase. A principal or an email address is one word.
+ */
+const countWords = (word: string): number =>
+  word.includes('@') || isPrincipal(word) ? 1 : (word.match(/[\p{L}\p{N}]+/gu)?.length ?? 0);
+
 const maskWord = (word: string, privateParts: string[]): string => {
   // An amount, a neuron ID, a proposal ID, or a hex account ID.
   if (/\d/.test(word)) return '#';
   if (word.length > MAX_WORD_LENGTH || word.includes('@')) return '*';
-  // A command name such as `light-theme` also matches the pattern. The checksum tells them apart.
-  if (PRINCIPAL_PATTERN.test(word) && nonNullish(getPrincipalFromString(word))) return '*';
+  if (isPrincipal(word)) return '*';
   // Only punctuation, for example `"!!!"`. A private name can be only punctuation too.
   if (!/[\p{L}\p{N}\p{S}]/u.test(word)) return '*';
   // A prefix too, because a pause in typing sends the search before the user types the full name.
@@ -70,19 +80,19 @@ export const maskSearchQuery = (
 
   const words = toWords(normalized);
   if (words.length > MAX_QUERY_WORDS) return undefined;
+  // Before the mask, so the words in a masked long word also count.
+  const wordCount = words.reduce((count, word) => count + countWords(word), 0);
+  if (wordCount > MAX_QUERY_WORDS) return undefined;
 
   const privateParts = privateNames
     .flatMap(toWords)
     .flatMap(toParts)
     .filter((part) => part.length > 0);
-  const masked = words.map((word) => maskWord(word, privateParts)).join(' ');
-
-  // Commas, dashes, and other marks also separate words, for example in a pasted recovery phrase.
-  // The count is after the mask, so a masked principal or email address is one word.
-  const wordCount = masked.match(/[\p{L}\p{N}]+/gu)?.length ?? 0;
-  if (wordCount > MAX_QUERY_WORDS) return undefined;
-
-  return masked.slice(0, MAX_QUERY_LENGTH).trimEnd();
+  return words
+    .map((word) => maskWord(word, privateParts))
+    .join(' ')
+    .slice(0, MAX_QUERY_LENGTH)
+    .trimEnd();
 };
 
 /**
