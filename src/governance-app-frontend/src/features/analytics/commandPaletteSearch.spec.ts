@@ -91,6 +91,13 @@ describe('maskSearchQuery', () => {
     expect(maskSearchQuery('send 𝒜lice', ['Alice'])).toBe('send *');
   });
 
+  it('masks the start of a private name with accents, a final sigma, or ß.', () => {
+    expect(maskSearchQuery('jose', ['José'])).toBe('*');
+    expect(maskSearchQuery('josé', ['Jose'])).toBe('*');
+    expect(maskSearchQuery('ΚΟΣ', ['ΚΟΣΤΑΣ'])).toBe('*');
+    expect(maskSearchQuery('strasse', ['Straße'])).toBe('*');
+  });
+
   it('keeps a word that only contains a private name.', () => {
     expect(maskSearchQuery('alicesmith', ['Alice'])).toBe('alicesmith');
   });

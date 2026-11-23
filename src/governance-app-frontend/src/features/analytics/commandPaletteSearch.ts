@@ -15,14 +15,27 @@ const PRINCIPAL_PATTERN = /^[a-z2-7]{5}(-[a-z2-7]{1,5})+$/;
 const toWords = (text: string): string[] => text.trim().toLowerCase().split(/\s+/);
 
 /**
- * Splits a word into runs of letters and digits, and runs of symbols such as emoji. Quotes,
- * dashes, slashes, and other punctuation separate the parts. A word with only punctuation stays
- * as one part. NFKC gives the same form to the same text, before the lower case.
+ * Gives one form to text that reads the same: compatibility characters, case (`ß` becomes `ss`),
+ * accents, and the Greek final sigma. A prefix of a name then matches the folded name.
+ */
+const fold = (text: string): string =>
+  text
+    .normalize('NFKD')
+    .toUpperCase()
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/\p{M}/gu, '')
+    .replace(/ς/g, 'σ');
+
+/**
+ * Splits a folded word into runs of letters and digits, and runs of symbols such as emoji.
+ * Quotes, dashes, slashes, and other punctuation separate the parts. A word with only
+ * punctuation stays as one part.
  */
 const toParts = (word: string): string[] => {
-  const normalized = word.normalize('NFKC').toLowerCase();
-  const parts = normalized.match(/[\p{L}\p{M}\p{N}]+|\p{S}+/gu) ?? [];
-  return parts.length > 0 ? parts : [normalized];
+  const folded = fold(word);
+  const parts = folded.match(/[\p{L}\p{N}]+|\p{S}+/gu) ?? [];
+  return parts.length > 0 ? parts : [folded];
 };
 
 const isPrivateWord = (word: string, privateParts: string[]): boolean =>
