@@ -14,6 +14,14 @@ const PRINCIPAL_PATTERN = /^[a-z2-7]{5}(-[a-z2-7]{1,5})+$/;
 
 const toWords = (text: string): string[] => text.trim().toLowerCase().split(/\s+/);
 
+// Removes quotes, commas, and other marks at the start and the end of a word.
+const trimMarks = (word: string): string => word.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '');
+
+const isPrivateWord = (word: string, privateWords: string[]): boolean => {
+  const core = trimMarks(word);
+  return core.length > 0 && privateWords.some((privateWord) => privateWord.startsWith(core));
+};
+
 const maskWord = (word: string, privateWords: string[]): string => {
   // An amount, a neuron ID, a proposal ID, or a hex account ID.
   if (/\d/.test(word)) return '#';
@@ -21,7 +29,7 @@ const maskWord = (word: string, privateWords: string[]): string => {
   // A command name such as `light-theme` also matches the pattern. The checksum tells them apart.
   if (PRINCIPAL_PATTERN.test(word) && nonNullish(getPrincipalFromString(word))) return '*';
   // A prefix too, because a pause in typing sends the search before the user types the full name.
-  if (privateWords.some((privateWord) => privateWord.startsWith(word))) return '*';
+  if (isPrivateWord(word, privateWords)) return '*';
   return word;
 };
 
@@ -42,7 +50,10 @@ export const maskSearchQuery = (
   const words = toWords(normalized);
   if (words.length > MAX_QUERY_WORDS) return undefined;
 
-  const privateWords = privateNames.flatMap(toWords).filter((word) => word.length > 0);
+  const privateWords = privateNames
+    .flatMap(toWords)
+    .map(trimMarks)
+    .filter((word) => word.length > 0);
   return words
     .map((word) => maskWord(word, privateWords))
     .join(' ')
@@ -52,7 +63,7 @@ export const maskSearchQuery = (
 
 /**
  * Sends a search that has no result after a pause in typing, or when `flush` runs.
- * A search with results or an empty search cancels the pending send.
+ * A search with results, an empty search, or `undefined` private names cancels the pending send.
  * The same query is sent one time only.
  */
 export const createNoResultReporter = (send: (query: string) => void) => {
@@ -69,9 +80,15 @@ export const createNoResultReporter = (send: (query: string) => void) => {
     send(query);
   };
 
-  const update = (search: string, hasResults: boolean, privateNames: readonly string[] = []) => {
+  const update = (
+    search: string,
+    hasResults: boolean,
+    privateNames: readonly string[] | undefined,
+  ) => {
     clearTimeout(timer);
-    pending = hasResults ? undefined : maskSearchQuery(search, privateNames);
+    // While the private names load, the mask cannot hide them.
+    pending =
+      hasResults || privateNames === undefined ? undefined : maskSearchQuery(search, privateNames);
     if (pending !== undefined) timer = setTimeout(flush, NO_RESULT_DELAY_MS);
   };
 

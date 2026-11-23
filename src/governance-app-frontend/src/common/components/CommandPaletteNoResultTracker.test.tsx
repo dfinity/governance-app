@@ -8,7 +8,7 @@ import { analytics } from '@features/analytics/service';
 
 import { CommandPaletteNoResultTracker } from './CommandPaletteNoResultTracker';
 
-const mocks = vi.hoisted(() => ({ privateNames: [] as string[] }));
+const mocks = vi.hoisted(() => ({ privateNames: [] as string[] | undefined }));
 
 vi.mock('@features/analytics/service', () => ({ analytics: { event: vi.fn() } }));
 vi.mock('@features/analytics/usePrivateNames', () => ({
@@ -74,6 +74,17 @@ describe('CommandPaletteNoResultTracker', () => {
     expect(analytics.event).toHaveBeenCalledExactlyOnceWith(AnalyticsEvent.CommandPaletteNoResult, {
       query: 'export *',
     });
+  });
+
+  it('does not report a search while the names load.', () => {
+    mocks.privateNames = undefined;
+    const { rerender } = renderPalette();
+
+    search('export alice');
+    act(() => vi.advanceTimersByTime(NO_RESULT_DELAY_MS));
+    rerender(<Palette open={false} />);
+
+    expect(analytics.event).not.toHaveBeenCalled();
   });
 
   it('does not report a search with results.', () => {

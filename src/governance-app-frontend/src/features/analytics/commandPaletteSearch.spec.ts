@@ -61,6 +61,15 @@ describe('maskSearchQuery', () => {
     expect(maskSearchQuery('export', privateNames)).toBe('export');
   });
 
+  it('masks a private name in quotes or before a comma.', () => {
+    const privateNames = ['Alice', '"Bob"'];
+
+    expect(maskSearchQuery('send "alice"', privateNames)).toBe('send *');
+    expect(maskSearchQuery('alice, bob', privateNames)).toBe('* *');
+    expect(maskSearchQuery('(bo)', privateNames)).toBe('*');
+    expect(maskSearchQuery('send ""', privateNames)).toBe('send ""');
+  });
+
   it('keeps a word that only contains a private name.', () => {
     expect(maskSearchQuery('alicesmith', ['Alice'])).toBe('alicesmith');
   });
@@ -79,11 +88,11 @@ describe('createNoResultReporter', () => {
     const send = vi.fn();
     const reporter = createNoResultReporter(send);
 
-    reporter.update('ex', false);
+    reporter.update('ex', false, []);
     vi.advanceTimersByTime(NO_RESULT_DELAY_MS - 1);
-    reporter.update('exp', false);
+    reporter.update('exp', false, []);
     vi.advanceTimersByTime(NO_RESULT_DELAY_MS - 1);
-    reporter.update('export', false);
+    reporter.update('export', false, []);
     expect(send).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(NO_RESULT_DELAY_MS);
@@ -94,8 +103,8 @@ describe('createNoResultReporter', () => {
     const send = vi.fn();
     const reporter = createNoResultReporter(send);
 
-    reporter.update('stak', false);
-    reporter.update('stake', true);
+    reporter.update('stak', false, []);
+    reporter.update('stake', true, []);
     vi.advanceTimersByTime(NO_RESULT_DELAY_MS);
     reporter.flush();
 
@@ -106,7 +115,7 @@ describe('createNoResultReporter', () => {
     const send = vi.fn();
     const reporter = createNoResultReporter(send);
 
-    reporter.update('export', false);
+    reporter.update('export', false, []);
     reporter.flush();
     expect(send).toHaveBeenCalledExactlyOnceWith('export');
 
@@ -118,8 +127,8 @@ describe('createNoResultReporter', () => {
     const send = vi.fn();
     const reporter = createNoResultReporter(send);
 
-    reporter.update('export', false);
-    reporter.update('', true);
+    reporter.update('export', false, []);
+    reporter.update('', true, []);
     vi.advanceTimersByTime(NO_RESULT_DELAY_MS);
     reporter.flush();
 
@@ -130,9 +139,9 @@ describe('createNoResultReporter', () => {
     const send = vi.fn();
     const reporter = createNoResultReporter(send);
 
-    reporter.update('export', false);
+    reporter.update('export', false, []);
     vi.advanceTimersByTime(NO_RESULT_DELAY_MS);
-    reporter.update('export', false);
+    reporter.update('export', false, []);
     vi.advanceTimersByTime(NO_RESULT_DELAY_MS);
     reporter.flush();
 
@@ -143,7 +152,7 @@ describe('createNoResultReporter', () => {
     const send = vi.fn();
     const reporter = createNoResultReporter(send);
 
-    reporter.update('send 25 icp', false);
+    reporter.update('send 25 icp', false, []);
     vi.advanceTimersByTime(NO_RESULT_DELAY_MS);
 
     expect(send).toHaveBeenCalledExactlyOnceWith('send # icp');
@@ -157,5 +166,17 @@ describe('createNoResultReporter', () => {
     vi.advanceTimersByTime(NO_RESULT_DELAY_MS);
 
     expect(send).toHaveBeenCalledExactlyOnceWith('send *');
+  });
+
+  it('does not send a search while the private names load.', () => {
+    const send = vi.fn();
+    const reporter = createNoResultReporter(send);
+
+    reporter.update('send alice', false, []);
+    reporter.update('send alice', false, undefined);
+    vi.advanceTimersByTime(NO_RESULT_DELAY_MS);
+    reporter.flush();
+
+    expect(send).not.toHaveBeenCalled();
   });
 });
