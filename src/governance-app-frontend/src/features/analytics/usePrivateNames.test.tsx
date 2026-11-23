@@ -92,6 +92,24 @@ describe('usePrivateNames', () => {
     expect(mocks.getAddressBook).toHaveBeenCalledOnce();
   });
 
+  it('does not join a read that started before the mount.', async () => {
+    const client = new QueryClient();
+    let resolveOldRead: (value: unknown) => void = () => {};
+    void client.fetchQuery({
+      queryKey: nonCertifiedQueryKey(['addressBook', 'aaaaa-aa']),
+      queryFn: () =>
+        new Promise((resolve) => {
+          resolveOldRead = resolve;
+        }),
+    });
+    mocks.getAddressBook.mockResolvedValue(addressBook('New'));
+
+    const { result } = renderPrivateNames(client);
+
+    await waitFor(() => expect(result.current).toEqual(['New', 'Savings', 'Cold storage']));
+    resolveOldRead({ response: addressBook('Old'), certified: false });
+  });
+
   it('returns no names when a read fails.', async () => {
     mocks.getAccount.mockRejectedValue(new Error('offline'));
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });

@@ -7,30 +7,26 @@ import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { addressBookQuery } from '@common/queries/addressBook';
 import { type CertifiedQuery, nonCertifiedQueryKey } from '@common/queries/certified';
 import { nnsDappAccountQuery } from '@common/queries/nnsDapp';
-import type { CertifiedData } from '@common/typings/queries';
 
 /**
- * Reads the data again when the component mounts, with a query call that is not certified.
- * Returns the data only after a read since the mount succeeds, because the cache can miss a name
- * that the user changed in another tab. Shares the cache with `useQueryThenUpdateCall`.
+ * Reads the data one time for each mount, with a query call that is not certified. The key of
+ * this mount keeps the read apart from the cache and from a request that started before the
+ * mount, because those can miss a name that the user changed in another tab.
  */
 const useFreshData = <TData>(
   { queryKey, queryFn }: CertifiedQuery<TData>,
   enabled: boolean,
 ): TData | undefined => {
-  const [mountedAt] = useState(() => Date.now());
+  const [readId] = useState(() => crypto.randomUUID());
   const query = useQuery({
-    queryKey: nonCertifiedQueryKey(queryKey),
-    queryFn: async (): Promise<CertifiedData<TData>> => ({
-      response: await queryFn(),
-      certified: false,
-    }),
+    queryKey: [...nonCertifiedQueryKey(queryKey), 'fresh', readId],
+    queryFn: () => queryFn(),
     enabled,
-    staleTime: 0,
+    staleTime: Infinity,
+    gcTime: 0,
   });
 
-  const fresh = query.isSuccess && !query.isFetching && query.dataUpdatedAt >= mountedAt;
-  return fresh ? query.data.response : undefined;
+  return query.isSuccess ? query.data : undefined;
 };
 
 /**
