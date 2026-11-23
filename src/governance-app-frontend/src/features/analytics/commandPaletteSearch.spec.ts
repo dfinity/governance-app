@@ -70,6 +70,21 @@ describe('maskSearchQuery', () => {
     expect(maskSearchQuery('send ""', privateNames)).toBe('send ""');
   });
 
+  it('masks a word when a part of it matches a private name.', () => {
+    expect(maskSearchQuery('send alice/bob', ['Alice', 'Bob'])).toBe('send *');
+    expect(maskSearchQuery('marie', ['Anne-Marie'])).toBe('*');
+    expect(maskSearchQuery("o'brien", ["O'Brien"])).toBe('*');
+  });
+
+  it('masks a private name with no letters, for example an emoji.', () => {
+    expect(maskSearchQuery('send 🏠💰', ['🏠💰'])).toBe('send *');
+    expect(maskSearchQuery('send 🏠', ['🏠💰'])).toBe('send *');
+  });
+
+  it('masks a private name in another Unicode form.', () => {
+    expect(maskSearchQuery('josé', ['José'])).toBe('*');
+  });
+
   it('keeps a word that only contains a private name.', () => {
     expect(maskSearchQuery('alicesmith', ['Alice'])).toBe('alicesmith');
   });

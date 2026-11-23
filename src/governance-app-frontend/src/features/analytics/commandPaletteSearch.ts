@@ -14,22 +14,27 @@ const PRINCIPAL_PATTERN = /^[a-z2-7]{5}(-[a-z2-7]{1,5})+$/;
 
 const toWords = (text: string): string[] => text.trim().toLowerCase().split(/\s+/);
 
-// Removes quotes, commas, and other marks at the start and the end of a word.
-const trimMarks = (word: string): string => word.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '');
-
-const isPrivateWord = (word: string, privateWords: string[]): boolean => {
-  const core = trimMarks(word);
-  return core.length > 0 && privateWords.some((privateWord) => privateWord.startsWith(core));
+/**
+ * Splits a word at quotes, dashes, slashes, and other marks. A word with no letter or digit, for
+ * example an emoji, stays as one part. NFKC gives the same form to the same text.
+ */
+const toParts = (word: string): string[] => {
+  const normalized = word.normalize('NFKC');
+  const parts = normalized.split(/[^\p{L}\p{M}\p{N}]+/u).filter((part) => part.length > 0);
+  return parts.length > 0 ? parts : [normalized];
 };
 
-const maskWord = (word: string, privateWords: string[]): string => {
+const isPrivateWord = (word: string, privateParts: string[]): boolean =>
+  toParts(word).some((part) => privateParts.some((privatePart) => privatePart.startsWith(part)));
+
+const maskWord = (word: string, privateParts: string[]): string => {
   // An amount, a neuron ID, a proposal ID, or a hex account ID.
   if (/\d/.test(word)) return '#';
   if (word.length > MAX_WORD_LENGTH || word.includes('@')) return '*';
   // A command name such as `light-theme` also matches the pattern. The checksum tells them apart.
   if (PRINCIPAL_PATTERN.test(word) && nonNullish(getPrincipalFromString(word))) return '*';
   // A prefix too, because a pause in typing sends the search before the user types the full name.
-  if (isPrivateWord(word, privateWords)) return '*';
+  if (isPrivateWord(word, privateParts)) return '*';
   return word;
 };
 
@@ -50,12 +55,12 @@ export const maskSearchQuery = (
   const words = toWords(normalized);
   if (words.length > MAX_QUERY_WORDS) return undefined;
 
-  const privateWords = privateNames
+  const privateParts = privateNames
     .flatMap(toWords)
-    .map(trimMarks)
-    .filter((word) => word.length > 0);
+    .flatMap(toParts)
+    .filter((part) => part.length > 0);
   return words
-    .map((word) => maskWord(word, privateWords))
+    .map((word) => maskWord(word, privateParts))
     .join(' ')
     .slice(0, MAX_QUERY_LENGTH)
     .trimEnd();
