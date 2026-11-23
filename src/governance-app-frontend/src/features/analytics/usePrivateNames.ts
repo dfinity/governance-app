@@ -5,22 +5,22 @@ import { useGovernanceAppCanister } from '@hooks/addressBook/useGovernanceAppCan
 import { useNnsDapp } from '@hooks/nnsDapp/useNnsDapp';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { addressBookQuery } from '@common/queries/addressBook';
-import { type CertifiedQuery, nonCertifiedQueryKey } from '@common/queries/certified';
+import { type CertifiedQuery, certifiedQueryKey } from '@common/queries/certified';
 import { nnsDappAccountQuery } from '@common/queries/nnsDapp';
 
 /**
- * Reads the data one time for each `readId`, with a query call that is not certified. The key of
- * the read keeps it apart from the cache and from a request that started before it, because
- * those can miss a name that the user changed in another tab.
+ * Reads the data one time for each `readId`, with a certified call. A query call can go to a
+ * replica that lags behind. The key of the read keeps it apart from the cache and from a request
+ * that started before it. All of these can miss a name that the user changed in another tab.
  */
 const useFreshData = <TData>(
-  { queryKey, queryFn }: CertifiedQuery<TData>,
+  { queryKey, updateFn }: CertifiedQuery<TData>,
   enabled: boolean,
   readId: string,
 ): TData | undefined => {
   const query = useQuery({
-    queryKey: [...nonCertifiedQueryKey(queryKey), 'fresh', readId],
-    queryFn: () => queryFn(),
+    queryKey: [...certifiedQueryKey(queryKey), 'fresh', readId],
+    queryFn: () => updateFn(),
     enabled,
     staleTime: Infinity,
     gcTime: 0,

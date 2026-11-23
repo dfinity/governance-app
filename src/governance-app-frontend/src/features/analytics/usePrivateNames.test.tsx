@@ -3,13 +3,14 @@ import { renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { nonCertifiedQueryKey } from '@common/queries/certified';
+import { certifiedQueryKey } from '@common/queries/certified';
 
 import { usePrivateNames } from './usePrivateNames';
 
 const mocks = vi.hoisted(() => ({
   getAddressBook: vi.fn(),
   getAccount: vi.fn(),
+  queryCall: vi.fn(),
 }));
 
 vi.mock('@hooks/useInternetIdentity', () => ({
@@ -24,15 +25,15 @@ vi.mock('@hooks/nnsDapp/useNnsDapp', () => ({
 vi.mock('@common/queries/addressBook', () => ({
   addressBookQuery: (principal: string) => ({
     queryKey: ['addressBook', principal],
-    queryFn: mocks.getAddressBook,
-    updateFn: vi.fn(),
+    queryFn: mocks.queryCall,
+    updateFn: mocks.getAddressBook,
   }),
 }));
 vi.mock('@common/queries/nnsDapp', () => ({
   nnsDappAccountQuery: () => ({
     queryKey: ['nnsDappAccount'],
-    queryFn: mocks.getAccount,
-    updateFn: vi.fn(),
+    queryFn: mocks.queryCall,
+    updateFn: mocks.getAccount,
   }),
 }));
 
@@ -65,6 +66,8 @@ describe('usePrivateNames', () => {
 
     expect(result.current).toBeUndefined();
     await waitFor(() => expect(result.current).toEqual(['Alice', 'Savings', 'Cold storage']));
+    // A query call can go to a replica that lags behind.
+    expect(mocks.queryCall).not.toHaveBeenCalled();
   });
 
   it('returns the address book names when the user has no NNS dapp account.', async () => {
@@ -76,11 +79,11 @@ describe('usePrivateNames', () => {
 
   it('reads the names again instead of the cached names.', async () => {
     const client = new QueryClient();
-    client.setQueryData(nonCertifiedQueryKey(['addressBook', 'aaaaa-aa']), {
+    client.setQueryData(certifiedQueryKey(['addressBook', 'aaaaa-aa']), {
       response: addressBook('Old'),
       certified: false,
     });
-    client.setQueryData(nonCertifiedQueryKey(['nnsDappAccount']), {
+    client.setQueryData(certifiedQueryKey(['nnsDappAccount']), {
       response: account,
       certified: false,
     });
@@ -97,7 +100,7 @@ describe('usePrivateNames', () => {
     const client = new QueryClient();
     let resolveOldRead: (value: unknown) => void = () => {};
     void client.fetchQuery({
-      queryKey: nonCertifiedQueryKey(['addressBook', 'aaaaa-aa']),
+      queryKey: certifiedQueryKey(['addressBook', 'aaaaa-aa']),
       queryFn: () =>
         new Promise((resolve) => {
           resolveOldRead = resolve;
