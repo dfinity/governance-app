@@ -15,12 +15,13 @@ const PRINCIPAL_PATTERN = /^[a-z2-7]{5}(-[a-z2-7]{1,5})+$/;
 const toWords = (text: string): string[] => text.trim().toLowerCase().split(/\s+/);
 
 /**
- * Splits a word at quotes, dashes, slashes, and other marks. A word with no letter or digit, for
- * example an emoji, stays as one part. NFKC gives the same form to the same text.
+ * Splits a word into runs of letters and digits, and runs of symbols such as emoji. Quotes,
+ * dashes, slashes, and other punctuation separate the parts. A word with only punctuation stays
+ * as one part. NFKC gives the same form to the same text, before the lower case.
  */
 const toParts = (word: string): string[] => {
-  const normalized = word.normalize('NFKC');
-  const parts = normalized.split(/[^\p{L}\p{M}\p{N}]+/u).filter((part) => part.length > 0);
+  const normalized = word.normalize('NFKC').toLowerCase();
+  const parts = normalized.match(/[\p{L}\p{M}\p{N}]+|\p{S}+/gu) ?? [];
   return parts.length > 0 ? parts : [normalized];
 };
 

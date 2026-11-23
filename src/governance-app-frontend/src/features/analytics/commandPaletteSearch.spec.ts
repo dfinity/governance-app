@@ -79,10 +79,16 @@ describe('maskSearchQuery', () => {
   it('masks a private name with no letters, for example an emoji.', () => {
     expect(maskSearchQuery('send 🏠💰', ['🏠💰'])).toBe('send *');
     expect(maskSearchQuery('send 🏠', ['🏠💰'])).toBe('send *');
+    expect(maskSearchQuery('send "🏠💰"', ['🏠💰'])).toBe('send *');
+    expect(maskSearchQuery('send 🏠💰,', ['🏠💰'])).toBe('send *');
+    expect(maskSearchQuery('send 🏠💰', ['"🏠💰"'])).toBe('send *');
+    expect(maskSearchQuery('$alice', ['Alice'])).toBe('*');
   });
 
   it('masks a private name in another Unicode form.', () => {
     expect(maskSearchQuery('josé', ['José'])).toBe('*');
+    expect(maskSearchQuery('send alice', ['𝒜lice'])).toBe('send *');
+    expect(maskSearchQuery('send 𝒜lice', ['Alice'])).toBe('send *');
   });
 
   it('keeps a word that only contains a private name.', () => {
