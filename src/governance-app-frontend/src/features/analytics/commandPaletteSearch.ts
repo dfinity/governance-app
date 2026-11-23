@@ -75,11 +75,14 @@ export const maskSearchQuery = (
     .flatMap(toWords)
     .flatMap(toParts)
     .filter((part) => part.length > 0);
-  return words
-    .map((word) => maskWord(word, privateParts))
-    .join(' ')
-    .slice(0, MAX_QUERY_LENGTH)
-    .trimEnd();
+  const masked = words.map((word) => maskWord(word, privateParts)).join(' ');
+
+  // Commas, dashes, and other marks also separate words, for example in a pasted recovery phrase.
+  // The count is after the mask, so a masked principal or email address is one word.
+  const wordCount = masked.match(/[\p{L}\p{N}]+/gu)?.length ?? 0;
+  if (wordCount > MAX_QUERY_WORDS) return undefined;
+
+  return masked.slice(0, MAX_QUERY_LENGTH).trimEnd();
 };
 
 /**

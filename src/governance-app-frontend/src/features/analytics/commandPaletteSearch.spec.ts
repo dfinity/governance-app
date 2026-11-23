@@ -51,6 +51,15 @@ describe('maskSearchQuery', () => {
     expect(maskSearchQuery('abandon ability able about above')).toBeUndefined();
   });
 
+  it('counts the words between commas and dashes, after the mask.', () => {
+    expect(
+      maskSearchQuery('legal,winner,thank year,wave,sausage worth,useful,legal winner,thank'),
+    ).toBeUndefined();
+    expect(maskSearchQuery('act-add-age-aim-air')).toBeUndefined();
+    expect(maskSearchQuery('light-theme stake-all')).toBe('light-theme stake-all');
+    expect(maskSearchQuery('rrkah-fqaaa-aaaaa-aaaaq-cai')).toBe('*');
+  });
+
   it('masks a word of a private name, and the start of the word.', () => {
     const privateNames = ['Alice Smith', '  Cold   Storage '];
 
