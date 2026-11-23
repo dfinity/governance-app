@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   getDayTicks,
   getShareAxis,
+  getTickPoints,
   hasTallyHistory,
   isTallyHistoryClosed,
   QUORUM_SHARE,
@@ -354,5 +355,31 @@ describe('getShareAxis', () => {
       expect(ticks[0]).toBe(0);
       expect(ticks.at(-1)).toBe(max);
     }
+  });
+});
+
+describe('getTickPoints', () => {
+  const points = [
+    { timestampSeconds: 100, yes: 0.1, no: 0 },
+    { timestampSeconds: 200, yes: 0.2, no: 0.05 },
+    { timestampSeconds: 300, yes: 0.6, no: 0.05 },
+  ];
+
+  it('takes the value of the last point at or before each tick', () => {
+    expect(getTickPoints(points, [150, 200, 299])).toEqual([
+      { timestampSeconds: 150, yes: 0.1, no: 0 },
+      { timestampSeconds: 200, yes: 0.2, no: 0.05 },
+      { timestampSeconds: 299, yes: 0.2, no: 0.05 },
+    ]);
+  });
+
+  it('skips a tick before the first point or after the last one', () => {
+    expect(getTickPoints(points, [50, 300, 301])).toEqual([
+      { timestampSeconds: 300, yes: 0.6, no: 0.05 },
+    ]);
+  });
+
+  it('returns no point without points', () => {
+    expect(getTickPoints([], [100])).toEqual([]);
   });
 });

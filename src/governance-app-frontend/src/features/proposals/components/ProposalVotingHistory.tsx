@@ -1,7 +1,15 @@
 import { ProposalInfo } from '@icp-sdk/canisters/nns';
 import { type ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CartesianGrid, Line, LineChart, ReferenceLine, XAxis, YAxis } from 'recharts';
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ReferenceDot,
+  ReferenceLine,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@components/Card';
 import {
@@ -21,6 +29,7 @@ import { useProposalTallyHistory } from '../hooks/useProposalTallyHistory';
 import {
   getDayTicks,
   getShareAxis,
+  getTickPoints,
   hasTallyHistory,
   MAJORITY_SHARE,
   QUORUM_SHARE,
@@ -192,7 +201,32 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
       isAnimationActive={false}
     />
   );
+  const dayTicks = chart === undefined ? [] : getDayTicks(chart.startSeconds, chart.endSeconds);
+  // Repeats the shapes along the lines, so each line stays known where the lines meet.
+  const tickPoints = getTickPoints(points, dayTicks);
+  const dayMarks = (key: 'yes' | 'no', shape: MarkerShape) =>
+    tickPoints.map((point) => (
+      <ReferenceDot
+        key={`${key}-${point.timestampSeconds}`}
+        x={point.timestampSeconds}
+        y={point[key]}
+        shape={({ cx, cy }: { cx?: number; cy?: number }) => (
+          <Marker
+            testId={`voting-history-day-mark-${key}`}
+            shape={shape}
+            cx={cx}
+            cy={cy}
+            size={3}
+            fill={`var(--color-${key})`}
+            strokeWidth={1.5}
+          />
+        )}
+      />
+    ));
+  const yesDayMarks = dayMarks('yes', 'circle');
+  const noDayMarks = dayMarks('no', 'square');
   const lines = yesOnTop ? [noLine, yesLine] : [yesLine, noLine];
+  const marks = yesOnTop ? [...noDayMarks, ...yesDayMarks] : [...yesDayMarks, ...noDayMarks];
   const referenceLines = [
     // Above its line, so the label stays clear of the date ticks when the line is near the bottom.
     {
@@ -246,7 +280,7 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
                 dataKey="timestampSeconds"
                 type="number"
                 domain={[chart.startSeconds, chart.endSeconds]}
-                ticks={getDayTicks(chart.startSeconds, chart.endSeconds)}
+                ticks={dayTicks}
                 interval={0}
                 tickFormatter={formatDay}
                 tickLine={false}
@@ -317,6 +351,7 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
                 />
               ))}
               {lines}
+              {marks}
             </LineChart>
           </ChartContainer>
         )}

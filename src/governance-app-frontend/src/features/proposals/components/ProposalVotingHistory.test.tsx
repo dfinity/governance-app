@@ -4,7 +4,7 @@ import { ProposalInfo, Topic } from '@icp-sdk/canisters/nns';
 import { render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { TALLY_RECORDING_SINCE_SECONDS, TallyHistory } from '../tallyHistory';
+import { getDayTicks, TALLY_RECORDING_SINCE_SECONDS, TallyHistory } from '../tallyHistory';
 import { ProposalVotingHistory } from './ProposalVotingHistory';
 
 const mocks = vi.hoisted(() => ({
@@ -155,6 +155,29 @@ describe('ProposalVotingHistory', () => {
       data: history([{ t: BigInt(CREATED + 60), yes, no }]),
       isPending: false,
       isError: false,
+    });
+
+    it('repeats the line shapes at each day tick that the lines reach', async () => {
+      mocks.query = {
+        data: history([
+          { t: BigInt(CREATED + 60), yes: 10n, no: 10n },
+          { t: BigInt(DEADLINE - 60), yes: 600n, no: 20n },
+        ]),
+        isPending: false,
+        isError: false,
+      };
+      render(<ProposalVotingHistory proposal={proposal()} />);
+
+      const ticks = getDayTicks(CREATED, DEADLINE).filter((seconds) => seconds <= DEADLINE - 60);
+      expect(ticks.length).toBeGreaterThan(0);
+      await waitFor(() =>
+        expect(screen.queryAllByTestId('voting-history-day-mark-yes')).toHaveLength(ticks.length),
+      );
+      const yesMarks = screen.getAllByTestId('voting-history-day-mark-yes');
+      const noMarks = screen.getAllByTestId('voting-history-day-mark-no');
+      expect(noMarks).toHaveLength(ticks.length);
+      expect(yesMarks.every((mark) => mark.tagName === 'circle')).toBe(true);
+      expect(noMarks.every((mark) => mark.tagName === 'rect')).toBe(true);
     });
 
     // The marker that comes last in the document paints on top.

@@ -56,6 +56,21 @@ export type TallyChart = {
   endSeconds: number;
 };
 
+/**
+ * The value of the lines at each tick that they reach. A line holds a value until its next point.
+ */
+export const getTickPoints = (points: TallyPoint[], ticks: number[]): TallyPoint[] => {
+  const lastSeconds = points.at(-1)?.timestampSeconds;
+  if (isNullish(lastSeconds)) return [];
+
+  return ticks.flatMap((timestampSeconds) => {
+    const point = points.findLast((point) => point.timestampSeconds <= timestampSeconds);
+    return isNullish(point) || timestampSeconds > lastSeconds
+      ? []
+      : [{ ...point, timestampSeconds }];
+  });
+};
+
 // At the deadline, a proposal needs Yes votes of 3% of the total voting power or more.
 export const QUORUM_SHARE = 0.03;
 // Yes votes of more than half the total voting power decide a proposal before its deadline.
