@@ -41,9 +41,28 @@ describe('maskSearchQuery', () => {
   });
 
   it('cuts the query to 40 characters.', () => {
-    const masked = maskSearchQuery('word '.repeat(20));
+    const masked = maskSearchQuery('abcdefghijklmnopqrs '.repeat(3));
     expect(masked).toHaveLength(39);
     expect(masked?.endsWith(' ')).toBe(false);
+  });
+
+  it('drops a query that has more than four words, for example a pasted recovery phrase.', () => {
+    expect(maskSearchQuery('change the dissolve delay')).toBe('change the dissolve delay');
+    expect(maskSearchQuery('abandon ability able about above')).toBeUndefined();
+  });
+
+  it('masks a word of a private name, and the start of the word.', () => {
+    const privateNames = ['Alice Smith', '  Cold   Storage '];
+
+    expect(maskSearchQuery('send to Alice', privateNames)).toBe('send to *');
+    expect(maskSearchQuery('smith', privateNames)).toBe('*');
+    expect(maskSearchQuery('send ali', privateNames)).toBe('send *');
+    expect(maskSearchQuery('cold storage', privateNames)).toBe('* *');
+    expect(maskSearchQuery('export', privateNames)).toBe('export');
+  });
+
+  it('keeps a word that only contains a private name.', () => {
+    expect(maskSearchQuery('alicesmith', ['Alice'])).toBe('alicesmith');
   });
 });
 
@@ -128,5 +147,15 @@ describe('createNoResultReporter', () => {
     vi.advanceTimersByTime(NO_RESULT_DELAY_MS);
 
     expect(send).toHaveBeenCalledExactlyOnceWith('send # icp');
+  });
+
+  it('masks the private names.', () => {
+    const send = vi.fn();
+    const reporter = createNoResultReporter(send);
+
+    reporter.update('send alice', false, ['Alice']);
+    vi.advanceTimersByTime(NO_RESULT_DELAY_MS);
+
+    expect(send).toHaveBeenCalledExactlyOnceWith('send *');
   });
 });

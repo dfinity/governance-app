@@ -59,6 +59,7 @@ const mocks = vi.hoisted(() => ({
   finePointer: true,
   icpLedgerReady: true,
   webHid: false,
+  privateNames: [] as string[],
 }));
 
 vi.mock('@tanstack/react-router', () => ({
@@ -118,6 +119,9 @@ vi.mock('@hooks/useForecastPeriod', () => ({
 vi.mock('@hooks/useMediaQuery', () => ({ useMediaQuery: () => mocks.finePointer }));
 
 vi.mock('@features/analytics/service', () => ({ analytics: { event: vi.fn() } }));
+vi.mock('@features/analytics/usePrivateNames', () => ({
+  usePrivateNames: () => mocks.privateNames,
+}));
 
 vi.mock('@utils/notification', () => ({
   errorNotification: vi.fn(),

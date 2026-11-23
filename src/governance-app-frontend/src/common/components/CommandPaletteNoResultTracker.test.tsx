@@ -8,7 +8,12 @@ import { analytics } from '@features/analytics/service';
 
 import { CommandPaletteNoResultTracker } from './CommandPaletteNoResultTracker';
 
+const mocks = vi.hoisted(() => ({ privateNames: [] as string[] }));
+
 vi.mock('@features/analytics/service', () => ({ analytics: { event: vi.fn() } }));
+vi.mock('@features/analytics/usePrivateNames', () => ({
+  usePrivateNames: () => mocks.privateNames,
+}));
 
 const Palette = ({ open = true }: { open?: boolean }) => (
   <Command>
@@ -30,6 +35,7 @@ const search = (query: string) =>
 describe('CommandPaletteNoResultTracker', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.privateNames = [];
     vi.useFakeTimers();
     vi.stubGlobal(
       'ResizeObserver',
@@ -55,6 +61,18 @@ describe('CommandPaletteNoResultTracker', () => {
 
     expect(analytics.event).toHaveBeenCalledExactlyOnceWith(AnalyticsEvent.CommandPaletteNoResult, {
       query: 'export',
+    });
+  });
+
+  it('masks the names that the user gave.', () => {
+    mocks.privateNames = ['Alice Smith'];
+    renderPalette();
+
+    search('export alice');
+    act(() => vi.advanceTimersByTime(NO_RESULT_DELAY_MS));
+
+    expect(analytics.event).toHaveBeenCalledExactlyOnceWith(AnalyticsEvent.CommandPaletteNoResult, {
+      query: 'export *',
     });
   });
 
