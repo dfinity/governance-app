@@ -142,11 +142,33 @@ const latestDot =
       <g key={index} />
     );
 
+// Marks the point that the pointer or the arrow keys select.
 const activeDot =
-  (shape: MarkerShape, fill: string) =>
-  ({ cx, cy }: { cx?: number; cy?: number }) => (
-    <Marker shape={shape} cx={cx} cy={cy} size={3} fill={fill} strokeWidth={1} />
-  );
+  ({
+    key,
+    shape,
+    fill,
+    axisMax,
+  }: {
+    key: LineKey;
+    shape: MarkerShape;
+    fill: string;
+    axisMax: number;
+  }) =>
+  ({ cx, cy, payload }: { cx?: number; cy?: number; payload?: TallyPoint }) => {
+    const shift = getMarkShift({ point: payload, key, axisMax });
+    return (
+      <Marker
+        testId={`voting-history-active-${key}`}
+        shape={shape}
+        cx={cx === undefined ? undefined : cx + shift}
+        cy={cy}
+        size={3}
+        fill={fill}
+        strokeWidth={1}
+      />
+    );
+  };
 
 // A live region, so screen readers read the point that the arrow keys select.
 const VotingHistoryTooltipContent = (props: ComponentProps<typeof ChartTooltipContent>) => (
@@ -221,7 +243,12 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
         fill: 'var(--color-yes)',
         shift: getMarkShift({ point: latest, key: 'yes', axisMax: shareAxis.max }),
       })}
-      activeDot={activeDot('circle', 'var(--color-yes)')}
+      activeDot={activeDot({
+        key: 'yes',
+        shape: 'circle',
+        fill: 'var(--color-yes)',
+        axisMax: shareAxis.max,
+      })}
       isAnimationActive={false}
     />
   );
@@ -239,7 +266,12 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
         fill: 'var(--color-no)',
         shift: getMarkShift({ point: latest, key: 'no', axisMax: shareAxis.max }),
       })}
-      activeDot={activeDot('square', 'var(--color-no)')}
+      activeDot={activeDot({
+        key: 'no',
+        shape: 'square',
+        fill: 'var(--color-no)',
+        axisMax: shareAxis.max,
+      })}
       isAnimationActive={false}
     />
   );

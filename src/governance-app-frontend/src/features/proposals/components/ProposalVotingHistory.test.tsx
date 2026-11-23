@@ -1,7 +1,7 @@
 import '@/i18n/config';
 
 import { ProposalInfo, Topic } from '@icp-sdk/canisters/nns';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { getDayTicks, TALLY_RECORDING_SINCE_SECONDS, TallyHistory } from '../tallyHistory';
@@ -204,6 +204,31 @@ describe('ProposalVotingHistory', () => {
       expect(noCenters.map((center, index) => center - yesCenters[index])).toEqual(
         yesCenters.map(() => 10),
       );
+    });
+
+    it('puts the selected Yes and No marks side by side at a tied reading', async () => {
+      mocks.query = {
+        data: history([
+          { t: BigInt(CREATED + 60), yes: 100n, no: 100n },
+          { t: BigInt(CREATED + 3_600), yes: 300n, no: 300n },
+        ]),
+        isPending: false,
+        isError: false,
+      };
+      const { container } = render(<ProposalVotingHistory proposal={proposal()} />);
+      const surface = await waitFor(() => {
+        const element = container.querySelector<SVGElement>('.recharts-surface');
+        expect(element).not.toBeNull();
+        return element!;
+      });
+
+      surface.focus();
+      fireEvent.keyDown(surface, { key: 'ArrowRight' });
+
+      const yesMark = await screen.findByTestId('voting-history-active-yes');
+      const noMark = screen.getByTestId('voting-history-active-no');
+      // A selected No mark is a square of 6 pixels, so its center is 3 pixels from its corner.
+      expect(Number(noMark.getAttribute('x')) + 3 - Number(yesMark.getAttribute('cx'))).toBe(10);
     });
 
     // The marker that comes last in the document paints on top.
