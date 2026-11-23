@@ -46,7 +46,8 @@ const account = {
 };
 
 const renderPrivateNames = (client = new QueryClient()) =>
-  renderHook(() => usePrivateNames(), {
+  renderHook(({ open }: { open: boolean }) => usePrivateNames(open), {
+    initialProps: { open: true },
     wrapper: ({ children }: { children: ReactNode }) => (
       <QueryClientProvider client={client}>{children}</QueryClientProvider>
     ),
@@ -108,6 +109,21 @@ describe('usePrivateNames', () => {
 
     await waitFor(() => expect(result.current).toEqual(['New', 'Savings', 'Cold storage']));
     resolveOldRead({ response: addressBook('Old'), certified: false });
+  });
+
+  it('reads the names again when the palette opens again before it unmounts.', async () => {
+    const { result, rerender } = renderPrivateNames();
+    await waitFor(() => expect(result.current).toEqual(['Alice', 'Savings', 'Cold storage']));
+
+    mocks.getAddressBook.mockResolvedValue(addressBook('Alice', 'Bob'));
+    rerender({ open: false });
+    rerender({ open: true });
+
+    expect(result.current).toBeUndefined();
+    await waitFor(() =>
+      expect(result.current).toEqual(['Alice', 'Bob', 'Savings', 'Cold storage']),
+    );
+    expect(mocks.getAddressBook).toHaveBeenCalledTimes(2);
   });
 
   it('returns no names when a read fails.', async () => {

@@ -13,7 +13,7 @@ import { usePrivateNames } from '@features/analytics/usePrivateNames';
 export const CommandPaletteNoResultTracker = ({ open }: { open: boolean }) => {
   const search = useCommandState((state) => state.search);
   const hasResults = useCommandState((state) => state.filtered.count > 0);
-  const privateNames = usePrivateNames();
+  const privateNames = usePrivateNames(open);
   const [reporter] = useState(() =>
     createNoResultReporter((query) =>
       analytics.event(AnalyticsEvent.CommandPaletteNoResult, { query }),
