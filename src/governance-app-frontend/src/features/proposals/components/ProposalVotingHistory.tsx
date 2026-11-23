@@ -43,6 +43,10 @@ type Props = {
 
 const REFERENCE_DASH = '2 3';
 const CHART_HEIGHT = 'h-45';
+// Lines closer than this share of the axis would put one mark over the other.
+const MARK_OVERLAP_RATIO = 0.05;
+// The side shift, in pixels, of each of two marks that would overlap.
+const MARK_SPREAD = 5;
 
 // We only support English for now.
 const formatDay = (seconds: number) =>
@@ -89,18 +93,46 @@ const Marker = ({ shape, cx = 0, cy = 0, size, fill, strokeWidth, testId }: Mark
     />
   );
 
+type LineKey = 'yes' | 'no';
+
+// Puts the two marks side by side where the lines are too close, so both shapes show.
+const getMarkShift = ({
+  point,
+  key,
+  axisMax,
+}: {
+  point: TallyPoint | undefined;
+  key: LineKey;
+  axisMax: number;
+}): number =>
+  point !== undefined && Math.abs(point.yes - point.no) < axisMax * MARK_OVERLAP_RATIO
+    ? key === 'yes'
+      ? -MARK_SPREAD
+      : MARK_SPREAD
+    : 0;
+
 type DotProps = { index: number; cx?: number; cy?: number };
 
 // Marks the latest value of a line.
 const latestDot =
-  (lastIndex: number, shape: MarkerShape, fill: string) =>
+  ({
+    lastIndex,
+    shape,
+    fill,
+    shift,
+  }: {
+    lastIndex: number;
+    shape: MarkerShape;
+    fill: string;
+    shift: number;
+  }) =>
   ({ index, cx, cy }: DotProps) =>
     index === lastIndex ? (
       <Marker
         key="latest"
         testId="voting-history-latest"
         shape={shape}
-        cx={cx}
+        cx={cx === undefined ? undefined : cx + shift}
         cy={cy}
         size={4}
         fill={fill}
@@ -183,7 +215,12 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
       stroke="var(--color-yes)"
       strokeWidth={2}
       strokeLinejoin="round"
-      dot={latestDot(lastIndex, 'circle', 'var(--color-yes)')}
+      dot={latestDot({
+        lastIndex,
+        shape: 'circle',
+        fill: 'var(--color-yes)',
+        shift: getMarkShift({ point: latest, key: 'yes', axisMax: shareAxis.max }),
+      })}
       activeDot={activeDot('circle', 'var(--color-yes)')}
       isAnimationActive={false}
     />
@@ -196,7 +233,12 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
       stroke="var(--color-no)"
       strokeWidth={2}
       strokeLinejoin="round"
-      dot={latestDot(lastIndex, 'square', 'var(--color-no)')}
+      dot={latestDot({
+        lastIndex,
+        shape: 'square',
+        fill: 'var(--color-no)',
+        shift: getMarkShift({ point: latest, key: 'no', axisMax: shareAxis.max }),
+      })}
       activeDot={activeDot('square', 'var(--color-no)')}
       isAnimationActive={false}
     />
@@ -204,25 +246,28 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
   const dayTicks = chart === undefined ? [] : getDayTicks(chart.startSeconds, chart.endSeconds);
   // Repeats the shapes along the lines, so each line stays known where the lines meet.
   const tickPoints = getTickPoints(points, dayTicks);
-  const dayMarks = (key: 'yes' | 'no', shape: MarkerShape) =>
-    tickPoints.map((point) => (
-      <ReferenceDot
-        key={`${key}-${point.timestampSeconds}`}
-        x={point.timestampSeconds}
-        y={point[key]}
-        shape={({ cx, cy }: { cx?: number; cy?: number }) => (
-          <Marker
-            testId={`voting-history-day-mark-${key}`}
-            shape={shape}
-            cx={cx}
-            cy={cy}
-            size={3}
-            fill={`var(--color-${key})`}
-            strokeWidth={1.5}
-          />
-        )}
-      />
-    ));
+  const dayMarks = (key: LineKey, shape: MarkerShape) =>
+    tickPoints.map((point) => {
+      const shift = getMarkShift({ point, key, axisMax: shareAxis.max });
+      return (
+        <ReferenceDot
+          key={`${key}-${point.timestampSeconds}`}
+          x={point.timestampSeconds}
+          y={point[key]}
+          shape={({ cx, cy }: { cx?: number; cy?: number }) => (
+            <Marker
+              testId={`voting-history-day-mark-${key}`}
+              shape={shape}
+              cx={cx === undefined ? undefined : cx + shift}
+              cy={cy}
+              size={3}
+              fill={`var(--color-${key})`}
+              strokeWidth={1.5}
+            />
+          )}
+        />
+      );
+    });
   const yesDayMarks = dayMarks('yes', 'circle');
   const noDayMarks = dayMarks('no', 'square');
   const lines = yesOnTop ? [noLine, yesLine] : [yesLine, noLine];

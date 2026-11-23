@@ -180,6 +180,32 @@ describe('ProposalVotingHistory', () => {
       expect(noMarks.every((mark) => mark.tagName === 'rect')).toBe(true);
     });
 
+    it('puts the Yes and No marks side by side where the lines meet', async () => {
+      mocks.query = {
+        data: history([
+          { t: BigInt(CREATED + 60), yes: 100n, no: 100n },
+          { t: BigInt(DEADLINE - 60), yes: 200n, no: 200n },
+        ]),
+        isPending: false,
+        isError: false,
+      };
+      render(<ProposalVotingHistory proposal={proposal()} />);
+
+      await waitFor(() =>
+        expect(screen.queryAllByTestId('voting-history-day-mark-yes').length).toBeGreaterThan(0),
+      );
+      const yesCenters = screen
+        .getAllByTestId('voting-history-day-mark-yes')
+        .map((mark) => Number(mark.getAttribute('cx')));
+      // A No mark is a square of 6 pixels, so its center is 3 pixels from its corner.
+      const noCenters = screen
+        .getAllByTestId('voting-history-day-mark-no')
+        .map((mark) => Number(mark.getAttribute('x')) + 3);
+      expect(noCenters.map((center, index) => center - yesCenters[index])).toEqual(
+        yesCenters.map(() => 10),
+      );
+    });
+
     // The marker that comes last in the document paints on top.
     const latestDotFills = () =>
       screen.queryAllByTestId('voting-history-latest').map((dot) => dot.getAttribute('fill'));
