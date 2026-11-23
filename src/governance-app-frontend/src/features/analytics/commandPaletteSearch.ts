@@ -47,6 +47,8 @@ const maskWord = (word: string, privateParts: string[]): string => {
   if (word.length > MAX_WORD_LENGTH || word.includes('@')) return '*';
   // A command name such as `light-theme` also matches the pattern. The checksum tells them apart.
   if (PRINCIPAL_PATTERN.test(word) && nonNullish(getPrincipalFromString(word))) return '*';
+  // Only punctuation, for example `"!!!"`. A private name can be only punctuation too.
+  if (!/[\p{L}\p{N}\p{S}]/u.test(word)) return '*';
   // A prefix too, because a pause in typing sends the search before the user types the full name.
   if (isPrivateWord(word, privateParts)) return '*';
   return word;

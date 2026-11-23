@@ -67,7 +67,12 @@ describe('maskSearchQuery', () => {
     expect(maskSearchQuery('send "alice"', privateNames)).toBe('send *');
     expect(maskSearchQuery('alice, bob', privateNames)).toBe('* *');
     expect(maskSearchQuery('(bo)', privateNames)).toBe('*');
-    expect(maskSearchQuery('send ""', privateNames)).toBe('send ""');
+    expect(maskSearchQuery('send ""', privateNames)).toBe('send *');
+  });
+
+  it('masks a word with only punctuation, for example a private name in quotes.', () => {
+    expect(maskSearchQuery('send "!!!"', ['!!!'])).toBe('send *');
+    expect(maskSearchQuery('send (...)')).toBe('send *');
   });
 
   it('masks a word when a part of it matches a private name.', () => {
