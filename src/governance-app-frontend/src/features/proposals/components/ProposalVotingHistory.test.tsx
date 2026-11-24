@@ -171,13 +171,33 @@ describe('ProposalVotingHistory', () => {
       const ticks = getDayTicks(CREATED, DEADLINE).filter((seconds) => seconds <= DEADLINE - 60);
       expect(ticks.length).toBeGreaterThan(0);
       await waitFor(() =>
-        expect(screen.queryAllByTestId('voting-history-day-mark-yes')).toHaveLength(ticks.length),
+        expect(screen.queryAllByTestId('voting-history-mark-yes')).toHaveLength(ticks.length),
       );
-      const yesMarks = screen.getAllByTestId('voting-history-day-mark-yes');
-      const noMarks = screen.getAllByTestId('voting-history-day-mark-no');
+      const yesMarks = screen.getAllByTestId('voting-history-mark-yes');
+      const noMarks = screen.getAllByTestId('voting-history-mark-no');
       expect(noMarks).toHaveLength(ticks.length);
       expect(yesMarks.every((mark) => mark.tagName === 'circle')).toBe(true);
       expect(noMarks.every((mark) => mark.tagName === 'rect')).toBe(true);
+    });
+
+    it('puts one mark on each line when the lines end before the first day tick', async () => {
+      mocks.query = {
+        data: history([
+          { t: BigInt(CREATED + 60), yes: 10n, no: 10n },
+          { t: BigInt(CREATED + 3_600), yes: 600n, no: 20n },
+        ]),
+        isPending: false,
+        isError: false,
+      };
+      render(<ProposalVotingHistory proposal={proposal()} />);
+
+      expect(getDayTicks(CREATED, DEADLINE).every((seconds) => seconds > CREATED + 3_600)).toBe(
+        true,
+      );
+      await waitFor(() =>
+        expect(screen.queryAllByTestId('voting-history-mark-yes')).toHaveLength(1),
+      );
+      expect(screen.getAllByTestId('voting-history-mark-no')).toHaveLength(1);
     });
 
     it('puts the Yes and No marks side by side where the lines meet', async () => {
@@ -192,14 +212,14 @@ describe('ProposalVotingHistory', () => {
       render(<ProposalVotingHistory proposal={proposal()} />);
 
       await waitFor(() =>
-        expect(screen.queryAllByTestId('voting-history-day-mark-yes').length).toBeGreaterThan(0),
+        expect(screen.queryAllByTestId('voting-history-mark-yes').length).toBeGreaterThan(0),
       );
       const yesCenters = screen
-        .getAllByTestId('voting-history-day-mark-yes')
+        .getAllByTestId('voting-history-mark-yes')
         .map((mark) => Number(mark.getAttribute('cx')));
       // A No mark is a square of 6 pixels, so its center is 3 pixels from its corner.
       const noCenters = screen
-        .getAllByTestId('voting-history-day-mark-no')
+        .getAllByTestId('voting-history-mark-no')
         .map((mark) => Number(mark.getAttribute('x')) + 3);
       expect(noCenters.map((center, index) => center - yesCenters[index])).toEqual(
         yesCenters.map(() => 10),

@@ -28,8 +28,8 @@ import { cn } from '@utils/shadcn';
 import { useProposalTallyHistory } from '../hooks/useProposalTallyHistory';
 import {
   getDayTicks,
+  getMarkPoints,
   getShareAxis,
-  getTickPoints,
   hasTallyHistory,
   MAJORITY_SHARE,
   QUORUM_SHARE,
@@ -277,9 +277,9 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
   );
   const dayTicks = chart === undefined ? [] : getDayTicks(chart.startSeconds, chart.endSeconds);
   // Repeats the shapes along the lines, so each line stays known where the lines meet.
-  const tickPoints = getTickPoints(points, dayTicks);
-  const dayMarks = (key: LineKey, shape: MarkerShape) =>
-    tickPoints.map((point) => {
+  const markPoints = getMarkPoints(points, dayTicks);
+  const lineMarks = (key: LineKey, shape: MarkerShape) =>
+    markPoints.map((point) => {
       const shift = getMarkShift({ point, key, axisMax: shareAxis.max });
       return (
         <ReferenceDot
@@ -288,7 +288,7 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
           y={point[key]}
           shape={({ cx, cy }: { cx?: number; cy?: number }) => (
             <Marker
-              testId={`voting-history-day-mark-${key}`}
+              testId={`voting-history-mark-${key}`}
               shape={shape}
               cx={cx === undefined ? undefined : cx + shift}
               cy={cy}
@@ -300,10 +300,10 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
         />
       );
     });
-  const yesDayMarks = dayMarks('yes', 'circle');
-  const noDayMarks = dayMarks('no', 'square');
+  const yesMarks = lineMarks('yes', 'circle');
+  const noMarks = lineMarks('no', 'square');
   const lines = yesOnTop ? [noLine, yesLine] : [yesLine, noLine];
-  const marks = yesOnTop ? [...noDayMarks, ...yesDayMarks] : [...yesDayMarks, ...noDayMarks];
+  const marks = yesOnTop ? [...noMarks, ...yesMarks] : [...yesMarks, ...noMarks];
   const referenceLines = [
     // Above its line, so the label stays clear of the date ticks when the line is near the bottom.
     {

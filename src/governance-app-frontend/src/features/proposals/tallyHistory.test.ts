@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   getDayTicks,
+  getMarkPoints,
   getShareAxis,
-  getTickPoints,
   hasTallyHistory,
   isTallyHistoryClosed,
   QUORUM_SHARE,
@@ -358,7 +358,7 @@ describe('getShareAxis', () => {
   });
 });
 
-describe('getTickPoints', () => {
+describe('getMarkPoints', () => {
   const points = [
     { timestampSeconds: 100, yes: 0.1, no: 0 },
     { timestampSeconds: 200, yes: 0.2, no: 0.05 },
@@ -366,20 +366,27 @@ describe('getTickPoints', () => {
   ];
 
   it('takes the value of the last point at or before each tick', () => {
-    expect(getTickPoints(points, [150, 200, 299])).toEqual([
+    expect(getMarkPoints(points, [150, 200, 299])).toEqual([
       { timestampSeconds: 150, yes: 0.1, no: 0 },
       { timestampSeconds: 200, yes: 0.2, no: 0.05 },
       { timestampSeconds: 299, yes: 0.2, no: 0.05 },
     ]);
   });
 
-  it('skips a tick before the first point or after the last one', () => {
-    expect(getTickPoints(points, [50, 300, 301])).toEqual([
+  it('skips a tick before the first point or after the last one when another tick fits', () => {
+    expect(getMarkPoints(points, [50, 300, 301])).toEqual([
       { timestampSeconds: 300, yes: 0.6, no: 0.05 },
     ]);
   });
 
-  it('returns no point without points', () => {
-    expect(getTickPoints([], [100])).toEqual([]);
+  it('puts one mark in the middle of the lines when no tick falls inside them', () => {
+    expect(getMarkPoints(points, [50, 400])).toEqual([
+      { timestampSeconds: 200, yes: 0.2, no: 0.05 },
+    ]);
+  });
+
+  it('returns no point without points or for a single point', () => {
+    expect(getMarkPoints([], [100])).toEqual([]);
+    expect(getMarkPoints([points[0]], [])).toEqual([]);
   });
 });
