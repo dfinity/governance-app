@@ -57,6 +57,53 @@ export type TallyChart = {
 };
 
 /**
+ * The value of the lines at each tick that they reach. A line holds a value until its next point.
+ * When no tick falls inside the lines, the middle of the lines takes its place, so the lines
+ * always carry a mark before their end.
+ */
+export const getMarkPoints = (points: TallyPoint[], ticks: number[]): TallyPoint[] => {
+  const firstSeconds = points.at(0)?.timestampSeconds;
+  const lastSeconds = points.at(-1)?.timestampSeconds;
+  if (isNullish(firstSeconds) || isNullish(lastSeconds)) return [];
+
+  const valueAt = (timestampSeconds: number): TallyPoint[] => {
+    const point = points.findLast((point) => point.timestampSeconds <= timestampSeconds);
+    return isNullish(point) ? [] : [{ ...point, timestampSeconds }];
+  };
+
+  const insideTicks = ticks.filter((seconds) => seconds >= firstSeconds && seconds <= lastSeconds);
+  if (insideTicks.length > 0) return insideTicks.flatMap(valueAt);
+  if (lastSeconds <= firstSeconds) return [];
+  return valueAt((firstSeconds + lastSeconds) / 2);
+};
+
+// At the deadline, a proposal needs Yes votes of 3% of the total voting power or more.
+export const QUORUM_SHARE = 0.03;
+// Yes votes of more than half the total voting power decide a proposal before its deadline.
+export const MAJORITY_SHARE = 0.5;
+
+// The axis tops, smallest first. The smallest one keeps the quorum line in view.
+const SHARE_AXES: { max: number; ticks: number[] }[] = [
+  { max: 0.05, ticks: [0, 0.01, 0.02, 0.03, 0.04, 0.05] },
+  { max: 0.1, ticks: [0, 0.02, 0.04, 0.06, 0.08, 0.1] },
+  { max: 0.25, ticks: [0, 0.05, 0.1, 0.15, 0.2, 0.25] },
+  { max: 0.5, ticks: [0, 0.1, 0.2, 0.3, 0.4, 0.5] },
+  { max: 1, ticks: [0, 0.25, 0.5, 0.75, 1] },
+];
+// The highest line stays this far below the top of the axis, as a share of the axis.
+const SHARE_AXIS_HEADROOM = 0.08;
+
+/**
+ * The smallest axis that holds the highest Yes or No share with some headroom. Shares only rise,
+ * so the axis only grows while the proposal takes votes.
+ */
+export const getShareAxis = (points: TallyPoint[]): { max: number; ticks: number[] } => {
+  const highest = Math.max(0, ...points.map(({ yes, no }) => Math.max(yes, no)));
+  const fullAxis = SHARE_AXES[SHARE_AXES.length - 1];
+  return SHARE_AXES.find(({ max }) => highest <= max * (1 - SHARE_AXIS_HEADROOM)) ?? fullAxis;
+};
+
+/**
  * The collector records only the proposals that took votes after it began to record.
  * Neuron Management proposals get no voting rewards, so it never sees them.
  */

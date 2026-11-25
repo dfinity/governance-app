@@ -16,6 +16,7 @@ import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useLogoutShortcut } from '@hooks/useLogoutShortcut';
 import { useNewFeatureCheck } from '@hooks/useNewFeatureCheck';
 import { useScrollResetOnNavigation } from '@hooks/useScrollResetOnNavigation';
+import { useSidebarShortcut } from '@hooks/useSidebarShortcut';
 import { useThemeShortcut } from '@hooks/useThemeShortcut';
 import { requireIdentity } from '@utils/router';
 
@@ -35,6 +36,7 @@ function AuthLayout() {
   useThemeShortcut();
   useLogoutShortcut();
   useHideBalancesShortcut();
+  useSidebarShortcut();
   useScrollResetOnNavigation();
   useNewFeatureCheck();
   useAnalyticsProperties();

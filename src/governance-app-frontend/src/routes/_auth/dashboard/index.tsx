@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { AccountCard } from '@features/account/components/AccountCard';
 import { DepositICPModal } from '@features/account/components/DepositICPModal';
+import { SendICPDialog } from '@features/account/components/SendICPButton';
 import { AccountsCard } from '@features/accounts/components/AccountsCard';
 import { DailyRewardsCard } from '@features/dashboard/components/DailyRewardsCard';
 import { ExecutiveSummaryCard } from '@features/dashboard/components/ExecutiveSummaryCard';
@@ -15,23 +16,30 @@ import { TotalStakedCard } from '@features/dashboard/components/TotalStakedCard'
 import { StakedCard } from '@features/stakes/components/StakedCard';
 
 import { DashboardSkeleton } from '@components/skeletons/DashboardSkeleton';
+import { E8Sn } from '@constants/extra';
+import { useIcpLedgerAccountBalance } from '@hooks/icpLedger';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { isAccountsAreaEnabled } from '@utils/advancedFeatures';
+import { bigIntDiv } from '@utils/bigInt';
 import { prefetchDashboardRoute } from '@common/queries/routeLoaders';
 
 import i18n from '@/i18n/config';
 
 type DashboardSearchParams = {
   depositModal?: boolean;
+  sendModal?: boolean;
 };
+
+const isTrue = (value: unknown) => (value === 'true' || value === true ? true : undefined);
 
 export const Route = createFileRoute('/_auth/dashboard/')({
   validateSearch: (search: Record<string, unknown>): DashboardSearchParams => ({
-    depositModal: search.depositModal === 'true' || search.depositModal === true ? true : undefined,
+    depositModal: isTrue(search.depositModal),
+    sendModal: isTrue(search.sendModal),
   }),
   loader: ({ context }) => prefetchDashboardRoute(context.queryClient),
   pendingComponent: DashboardPending,
-  // Entry only — `?depositModal` toggles must not rerun the loader.
+  // Entry only — `?depositModal` and `?sendModal` toggles must not rerun the loader.
   staleTime: Infinity,
   component: Dashboard,
   head: () => {
@@ -55,11 +63,13 @@ function DashboardPending() {
 function Dashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate({ from: Route.fullPath });
-  const { depositModal } = Route.useSearch();
+  const { depositModal, sendModal } = Route.useSearch();
   const { features } = useAdvancedFeatures();
   const accountsEnabled = isAccountsAreaEnabled(features);
+  const balanceQuery = useIcpLedgerAccountBalance();
+  const mainBalance = bigIntDiv(balanceQuery.data?.response || 0n, E8Sn);
 
-  const handleDepositModalOpenChange = (isOpen: boolean) => {
+  const handleModalOpenChange = (isOpen: boolean) => {
     if (!isOpen) navigate({ search: {}, replace: true });
   };
 
@@ -93,7 +103,12 @@ function Dashboard() {
         <ExecutiveSummaryCard />
       </div>
 
-      <DepositICPModal open={!!depositModal} onOpenChange={handleDepositModalOpenChange} />
+      <DepositICPModal open={!!depositModal} onOpenChange={handleModalOpenChange} />
+      <SendICPDialog
+        open={!!sendModal}
+        onOpenChange={handleModalOpenChange}
+        balance={mainBalance}
+      />
     </div>
   );
 }

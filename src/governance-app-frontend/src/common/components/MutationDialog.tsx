@@ -62,8 +62,10 @@ export function MutationDialog({
   children,
 }: MutationDialogProps) {
   const { t } = useTranslation();
-  const [phase, setPhase] = useState(Phase.Idle);
-  const [errorMessage, setErrorMessage] = useState('');
+  // `opening` counts the closes. A mutation that ends after its opening closed leaves the phase
+  // alone, so it does not show its result over the next opening.
+  const [state, setState] = useState({ phase: Phase.Idle, errorMessage: '', opening: 0 });
+  const { phase, errorMessage } = state;
   const [lastMutation, setLastMutation] = useState<{ fn: () => Promise<unknown> } | null>(null);
 
   const isProcessing = phase === Phase.Processing;
@@ -71,23 +73,28 @@ export function MutationDialog({
   const close = useCallback(() => onOpenChange(false), [onOpenChange]);
 
   const execute = async (fn: () => Promise<unknown>) => {
+    const startedIn = state.opening;
+    const settle = (next: { phase: Phase; errorMessage?: string }) =>
+      setState((prev) => (prev.opening === startedIn ? { ...prev, ...next } : prev));
+
     setLastMutation({ fn });
-    setPhase(Phase.Processing);
+    settle({ phase: Phase.Processing });
     try {
       await fn();
-      setPhase(Phase.Success);
+      settle({ phase: Phase.Success });
     } catch (err) {
       // A cancel on the Ledger approval dialog is not an error: the form shows again.
       if (isDeviceActionCancelled(err)) {
-        setPhase(Phase.Idle);
+        settle({ phase: Phase.Idle });
         return;
       }
-      setErrorMessage(
-        err instanceof Error
-          ? mapCanisterError(err)
-          : (errorFallbackMessage ?? t(($) => $.common.unknownError)),
-      );
-      setPhase(Phase.Error);
+      settle({
+        phase: Phase.Error,
+        errorMessage:
+          err instanceof Error
+            ? mapCanisterError(err)
+            : (errorFallbackMessage ?? t(($) => $.common.unknownError)),
+      });
     }
   };
 
@@ -103,10 +110,13 @@ export function MutationDialog({
   }, [phase, close]);
 
   const resetPhase = useEffectEvent(() => {
-    setPhase(Phase.Idle);
-    setErrorMessage('');
+    setState((prev) => ({ ...prev, phase: Phase.Idle, errorMessage: '' }));
     setLastMutation(null);
   });
+
+  const endOpening = useEffectEvent(() =>
+    setState((prev) => ({ ...prev, opening: prev.opening + 1 })),
+  );
 
   // The reset waits for the close animation. A reopen within that delay
   // cancels the timer, so the open resets at once instead.
@@ -115,6 +125,7 @@ export function MutationDialog({
       resetPhase();
       return;
     }
+    endOpening();
     const timer = setTimeout(resetPhase, DIALOG_RESET_DELAY_MS);
     return () => clearTimeout(timer);
   }, [open]);

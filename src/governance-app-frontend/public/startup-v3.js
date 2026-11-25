@@ -6,12 +6,16 @@
   var theme = null;
   var sessionExpiry = 0;
   var features = {};
+  var sidebarCollapsed = false;
+  var commandPaletteOff = false;
 
   try {
     theme = localStorage.getItem('nns-theme');
     // The auth client keeps `<principal>|<expiration in nanoseconds>` here while a session lives.
     sessionExpiry = (localStorage.getItem('ic-session-state') || '').split('|')[1] / 1e6;
     features = JSON.parse(localStorage.getItem('nns-advanced-features')) || {};
+    sidebarCollapsed = localStorage.getItem('nns-sidebar-collapsed') === 'true';
+    commandPaletteOff = localStorage.getItem('nns-command-palette-settings') === 'false';
   } catch (e) {
     // Storage is blocked or holds bad data: use the system theme and the logged-out frame.
   }
@@ -35,5 +39,7 @@
     html.dataset.nav = path[1] || 'dashboard';
     if (path[2] === 'proposals') html.dataset.detail = '';
     if (features.subaccounts || features.ledgerDevice) html.dataset.accounts = '';
+    if (sidebarCollapsed) html.dataset.sidebarCollapsed = '';
+    if (commandPaletteOff) html.dataset.commandPaletteOff = '';
   }
 })();

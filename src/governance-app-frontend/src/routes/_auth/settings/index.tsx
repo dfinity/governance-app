@@ -34,12 +34,15 @@ import i18n from '@/i18n/config';
 
 type SettingsSearchParams = {
   openAddressBook?: boolean;
+  addLedgerDevice?: boolean;
 };
+
+const isTrue = (value: unknown) => (value === 'true' || value === true ? true : undefined);
 
 export const Route = createFileRoute('/_auth/settings/')({
   validateSearch: (search: Record<string, unknown>): SettingsSearchParams => ({
-    openAddressBook:
-      search.openAddressBook === 'true' || search.openAddressBook === true ? true : undefined,
+    openAddressBook: isTrue(search.openAddressBook),
+    addLedgerDevice: isTrue(search.addLedgerDevice),
   }),
   component: Settings,
   pendingComponent: SettingsSkeleton,
@@ -60,13 +63,17 @@ function Settings() {
   const { t } = useTranslation();
   const timeLeft = useSessionTimeLeft();
   const navigate = useNavigate({ from: Route.fullPath });
-  const { openAddressBook } = Route.useSearch();
+  const { openAddressBook, addLedgerDevice } = Route.useSearch();
   const logout = useLogout('settings');
   const { features } = useAdvancedFeatures();
   const showLedgerDevices = features.ledgerDevice && isWebHidSupported();
 
   const handleAddressBookOpenChange = (open: boolean) => {
     navigate({ search: open ? { openAddressBook: true } : {}, replace: true });
+  };
+
+  const handleAddLedgerDeviceOpenChange = (open: boolean) => {
+    navigate({ search: open ? { addLedgerDevice: true } : {}, replace: true });
   };
 
   if (isNullish(identity)) return null;
@@ -98,7 +105,10 @@ function Settings() {
             </div>
             {showLedgerDevices && (
               <div className="px-6 py-5">
-                <LedgerDevicesCard />
+                <LedgerDevicesCard
+                  isAddOpen={!!addLedgerDevice}
+                  onAddOpenChange={handleAddLedgerDeviceOpenChange}
+                />
               </div>
             )}
           </div>

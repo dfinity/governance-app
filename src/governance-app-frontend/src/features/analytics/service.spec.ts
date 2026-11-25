@@ -315,6 +315,18 @@ describe('analytics service', () => {
       expect(transformRequest({ ...event, r: external })?.r).toBe(external);
     });
 
+    it('adds the redirect target to every event on the login page', async () => {
+      const analytics = await loadService();
+      analytics.init();
+      const u = 'https://nns.internetcomputer.org/?redirect=%2Fvoting%2Fproposals%2F7';
+
+      for (const name of ['pageview', 'login_success', 'Outbound Link: Click']) {
+        const result = transformRequest(payload(name, u));
+        expect(result?.u).toBe('https://nns.internetcomputer.org/');
+        expect(result?.p).toEqual({ redirect_target: '/voting/proposals/:id' });
+      }
+    });
+
     it('groups the proposal pages', async () => {
       const analytics = await loadService();
       analytics.init();

@@ -3,7 +3,7 @@
 
 set -euo pipefail
 
-# E2E is sharded per Playwright project, so each shard uploads its own artifact.
+# E2E runs in shards (per Playwright project and shard), so each shard uploads its own artifact.
 ARTIFACT_PATTERN="updated-snapshots-*"
 
 # --- Usage ---
