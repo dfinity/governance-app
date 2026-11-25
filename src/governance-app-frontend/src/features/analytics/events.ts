@@ -85,6 +85,7 @@ export enum AnalyticsEvent {
   LedgerDeviceSendError = 'ledger_device_send_error',
 
   // Session
+  LoginStart = 'login_start',
   LoginSuccess = 'login_success',
   LoginError = 'login_error',
   SessionLogout = 'session_logout',

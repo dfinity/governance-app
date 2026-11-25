@@ -10,14 +10,15 @@ export type LoginSource = 'login_page' | 'reader_sidebar' | 'reader_top_bar' | '
 
 let loginSource: LoginSource = 'login_page';
 
-/** Sets the `source` property of the next `login_success` or `login_error`. */
+/** Sets the `source` property of the next login events. */
 export const setLoginSource = (source: LoginSource) => {
   loginSource = source;
 };
 
 /**
- * Starts the tracker and sends the result of each login attempt, with the control that started it.
- * The auth module does not keep the login error, so `login_error` also counts a closed popup.
+ * Starts the tracker, and sends the start and the result of each login attempt with the control
+ * that started it. The auth module does not keep the login error, so `login_error` also counts a
+ * closed popup. A login that never ends sends only `login_start`.
  */
 export const useLoginAnalytics = () => {
   const { identity, isLoggingIn } = useInternetIdentity();
@@ -28,7 +29,9 @@ export const useLoginAnalytics = () => {
   }, []);
 
   useEffect(() => {
-    if (wasLoggingIn.current && !isLoggingIn) {
+    if (!wasLoggingIn.current && isLoggingIn) {
+      analytics.event(AnalyticsEvent.LoginStart, { source: loginSource });
+    } else if (wasLoggingIn.current && !isLoggingIn) {
       analytics.event(identity ? AnalyticsEvent.LoginSuccess : AnalyticsEvent.LoginError, {
         source: loginSource,
       });

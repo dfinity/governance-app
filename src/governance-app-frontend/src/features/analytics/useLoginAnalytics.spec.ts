@@ -46,7 +46,7 @@ describe('useLoginAnalytics', () => {
     setAuth({ isLoggingIn: true });
     setAuth({ isLoggingIn: false, identity: IDENTITY });
 
-    expect(analytics.event).toHaveBeenCalledExactlyOnceWith(AnalyticsEvent.LoginSuccess, {
+    expect(analytics.event).toHaveBeenLastCalledWith(AnalyticsEvent.LoginSuccess, {
       source: 'login_page',
     });
   });
@@ -57,12 +57,31 @@ describe('useLoginAnalytics', () => {
     setAuth({ isLoggingIn: true });
     setAuth({ isLoggingIn: false });
 
-    expect(analytics.event).toHaveBeenCalledExactlyOnceWith(AnalyticsEvent.LoginError, {
+    expect(analytics.event).toHaveBeenLastCalledWith(AnalyticsEvent.LoginError, {
       source: 'login_page',
     });
   });
 
-  it('sends one event for each login attempt', () => {
+  it('sends login_start when a login begins, also for a login that never ends', () => {
+    const setAuth = renderLoginPage();
+
+    setAuth({ isLoggingIn: true });
+    // A second click during the login starts it again, and is not a new attempt.
+    setAuth({ isLoggingIn: true });
+
+    expect(analytics.event).toHaveBeenCalledExactlyOnceWith(AnalyticsEvent.LoginStart, {
+      source: 'login_page',
+    });
+  });
+
+  it('sends no login_start for a login that runs at mount', () => {
+    auth.isLoggingIn = true;
+    renderLoginPage();
+
+    expect(analytics.event).not.toHaveBeenCalled();
+  });
+
+  it('sends a start and a result for each login attempt', () => {
     const setAuth = renderLoginPage();
 
     setAuth({ isLoggingIn: true });
@@ -71,10 +90,12 @@ describe('useLoginAnalytics', () => {
     setAuth({ isLoggingIn: true });
     setAuth({ isLoggingIn: false, identity: IDENTITY });
 
-    expect(analytics.event).toHaveBeenCalledTimes(2);
-    expect(analytics.event).toHaveBeenLastCalledWith(AnalyticsEvent.LoginSuccess, {
-      source: 'login_page',
-    });
+    expect(vi.mocked(analytics.event).mock.calls.map(([name]) => name)).toEqual([
+      AnalyticsEvent.LoginStart,
+      AnalyticsEvent.LoginError,
+      AnalyticsEvent.LoginStart,
+      AnalyticsEvent.LoginSuccess,
+    ]);
   });
 
   it('sends the control that started the login, then falls back to the login page', () => {
@@ -86,12 +107,12 @@ describe('useLoginAnalytics', () => {
     setAuth({ isLoggingIn: true });
     setAuth({ isLoggingIn: false, identity: IDENTITY });
 
-    expect(analytics.event).toHaveBeenNthCalledWith(1, AnalyticsEvent.LoginError, {
-      source: 'reader_vote_row',
-    });
-    expect(analytics.event).toHaveBeenNthCalledWith(2, AnalyticsEvent.LoginSuccess, {
-      source: 'login_page',
-    });
+    expect(vi.mocked(analytics.event).mock.calls).toEqual([
+      [AnalyticsEvent.LoginStart, { source: 'reader_vote_row' }],
+      [AnalyticsEvent.LoginError, { source: 'reader_vote_row' }],
+      [AnalyticsEvent.LoginStart, { source: 'login_page' }],
+      [AnalyticsEvent.LoginSuccess, { source: 'login_page' }],
+    ]);
   });
 
   it('does not send an event without a login attempt', () => {
