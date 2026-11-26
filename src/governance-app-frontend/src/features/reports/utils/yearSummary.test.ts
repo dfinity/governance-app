@@ -4,7 +4,7 @@ import { mockNeuron } from '@fixtures/neuron';
 
 import type { EntityHistory } from './loadReportData';
 import type { ReportRateLookup } from './rates';
-import { MAIN, mintTx, NEURON, OTHER, SAVINGS, transferTx } from './testUtils';
+import { approveTx, MAIN, mintTx, NEURON, OTHER, SAVINGS, transferTx } from './testUtils';
 import { mapReportTransaction, type ReportEntity } from './transactionsCsv';
 import { buildYearSummary, getSummaryYears, getYearPeriod } from './yearSummary';
 
@@ -94,6 +94,37 @@ describe('buildYearSummary', () => {
     expect(summary.sentE8s).toBe(50n * ICP);
     expect(summary.feesE8s).toBe(3n * FEE);
     expect(summary.complete).toBe(true);
+  });
+
+  it('adds back the amount and the fee of each later debit for a past year', () => {
+    const LATER_MS = Date.UTC(2026, 1, 1);
+    const approvalToMain = approveTx({ id: 13n, ms: LATER_MS, from: SAVINGS, spender: MAIN });
+
+    const summary = buildYearSummary({
+      period: getYearPeriod(2025, NOW),
+      histories: [
+        history(main, 1_000n * ICP, [
+          transferTx({ id: 10n, ms: LATER_MS, from: MAIN, to: OTHER, e8s: 30n * ICP }),
+          approveTx({ id: 11n, ms: LATER_MS, from: MAIN, spender: OTHER }),
+          transferTx({ id: 12n, ms: LATER_MS, from: MAIN, to: MAIN, e8s: 5n * ICP }),
+          approvalToMain,
+        ]),
+        history(savings, 20n * ICP, [approvalToMain]),
+      ],
+      complete: true,
+      neurons: [],
+      rateLookup: twoPerIcp,
+    });
+
+    // The outgoing transfer gives back its amount and fee. The approval and the self transfer give
+    // back only the fee. The approval to Main as spender gives back the fee only to Savings.
+    expect(
+      summary.holdings.map(({ entity, balanceE8s }) => [entity.accountId, balanceE8s]),
+    ).toEqual([
+      [MAIN, 1_030n * ICP + 3n * FEE],
+      [SAVINGS, 20n * ICP + FEE],
+    ]);
+    expect(summary.holdingsTotalE8s).toBe(1_050n * ICP + 4n * FEE);
   });
 
   it('gives the current balances and the maturity for the current year', () => {
