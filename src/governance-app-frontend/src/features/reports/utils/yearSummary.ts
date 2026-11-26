@@ -1,6 +1,10 @@
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 
-import { getNeuronFreeMaturityE8s, getNeuronStakedMaturityE8s } from '@utils/neuron';
+import {
+  getNeuronFeesE8s,
+  getNeuronFreeMaturityE8s,
+  getNeuronStakedMaturityE8s,
+} from '@utils/neuron';
 
 import type { EntityHistory } from './loadReportData';
 import { type ReportRate, type ReportRateLookup, toFiatHundredths } from './rates';
@@ -136,6 +140,12 @@ export const buildYearSummary = ({
     })
     .toSorted(byNewestFirst);
 
+  // The ledger balance of a neuron still holds its fees. Only today's fees are known.
+  const neuronFeesE8s = new Map(
+    period.isCurrentYear
+      ? neurons.map((neuron) => [neuron.neuronId, getNeuronFeesE8s(neuron)])
+      : [],
+  );
   const holdings = histories
     .map(({ entity, balanceE8s, transactions }): HoldingRow => {
       const laterChangesE8s = sum(
@@ -143,7 +153,9 @@ export const buildYearSummary = ({
           .filter(({ timestampMs }) => timestampMs !== undefined && timestampMs >= period.toMs)
           .map(getBalanceChangeE8s),
       );
-      return { entity, balanceE8s: balanceE8s - laterChangesE8s };
+      const feesE8s = entity.kind === 'neuron' ? (neuronFeesE8s.get(entity.neuronId) ?? 0n) : 0n;
+      const yearEndE8s = balanceE8s - laterChangesE8s - feesE8s;
+      return { entity, balanceE8s: yearEndE8s > 0n ? yearEndE8s : 0n };
     })
     .filter(({ balanceE8s }) => balanceE8s !== 0n);
   const holdingsTotalE8s = sum(holdings.map(({ balanceE8s }) => balanceE8s));
@@ -191,6 +203,11 @@ export const buildYearSummary = ({
         .map(({ transaction }) => -transaction.amountE8s),
     ),
     feesE8s: sum(periodRows.map(({ transaction }) => transaction.feeE8s ?? 0n)),
-    complete,
+    // A transaction without a timestamp cannot go into a period or into the rollback.
+    complete:
+      complete &&
+      histories.every(({ transactions }) =>
+        transactions.every(({ timestampMs }) => timestampMs !== undefined),
+      ),
   };
 };

@@ -148,6 +148,39 @@ describe('buildYearSummary', () => {
     expect(summary.complete).toBe(false);
   });
 
+  it('takes the neuron fees off the current neuron balance', () => {
+    const summary = buildYearSummary({
+      period: getYearPeriod(2026, NOW),
+      histories: [history(neuron, 10n * ICP, [])],
+      complete: true,
+      neurons: [mockNeuron({ neuronId: 7n, fullNeuron: { neuronFees: 1n * ICP } })],
+      rateLookup: twoPerIcp,
+    });
+
+    expect(summary.holdings.map(({ balanceE8s }) => balanceE8s)).toEqual([9n * ICP]);
+  });
+
+  it('marks the summary incomplete when a transaction has no timestamp', () => {
+    const [undated] = history(main, 0n, [
+      mintTx({ id: 1n, ms: 0, to: MAIN, e8s: ICP }),
+    ]).transactions;
+    const summary = buildYearSummary({
+      period: getYearPeriod(2025, NOW),
+      histories: [
+        {
+          entity: main,
+          balanceE8s: 1n * ICP,
+          transactions: [{ ...undated, timestampMs: undefined }],
+        },
+      ],
+      complete: true,
+      neurons: [],
+      rateLookup: twoPerIcp,
+    });
+
+    expect(summary.complete).toBe(false);
+  });
+
   it('counts a reward without a rate, but not in the fiat total', () => {
     const summary = buildYearSummary({
       period: getYearPeriod(2025, NOW),
