@@ -186,6 +186,19 @@ describe('loadReportRates', () => {
     });
   });
 
+  it('asks from 1970 at the earliest', async () => {
+    listDailyExchangeRates.mockResolvedValue({ Ok: [] });
+
+    await loadReportRates({
+      range: { fromMs: 0, toMs: 86_400_000 },
+      currency: FiatCurrency.EUR,
+    });
+
+    expect(listDailyExchangeRates).toHaveBeenCalledWith(
+      expect.objectContaining({ from_timestamp_seconds: 0n, to_timestamp_seconds: 86_400n }),
+    );
+  });
+
   it('sends no fiat symbol for USD', async () => {
     listDailyExchangeRates.mockResolvedValue({ Ok: [dailyRate] });
 

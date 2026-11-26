@@ -38,8 +38,9 @@ export const loadReportRates = async ({
   const actor = await getGovernanceAppActor({ certified: false });
   const { fromMs, toMs } = getRateRange(range);
   const response = await actor.list_daily_exchange_rates({
-    from_timestamp_seconds: BigInt(Math.floor(fromMs / 1_000)),
-    to_timestamp_seconds: BigInt(Math.ceil(toMs / 1_000)),
+    // The lookback can reach before 1970, and both fields are `nat64`.
+    from_timestamp_seconds: BigInt(Math.max(0, Math.floor(fromMs / 1_000))),
+    to_timestamp_seconds: BigInt(Math.max(0, Math.ceil(toMs / 1_000))),
     fiat_symbol: toFiatSymbolParam(currency),
   });
 
