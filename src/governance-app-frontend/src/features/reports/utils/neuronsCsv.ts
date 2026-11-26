@@ -1,6 +1,6 @@
 import { type NeuronInfo, NeuronState } from '@icp-sdk/canisters/nns';
 
-import { SECONDS_IN_DAY } from '@constants/extra';
+import { E8S, SECONDS_IN_DAY } from '@constants/extra';
 import {
   getNeuronDissolveDelaySeconds,
   getNeuronFreeMaturityE8s,
@@ -10,7 +10,15 @@ import {
   isUserController,
 } from '@utils/neuron';
 
-import { asSpreadsheetText, buildCsv, type CsvColumn, formatE8sForCsv, formatUtcDate } from './csv';
+import {
+  asSpreadsheetText,
+  buildCsv,
+  type CsvColumn,
+  formatE8sForCsv,
+  formatHundredthsForCsv,
+  formatUtcDate,
+} from './csv';
+import { toFiatHundredths } from './rates';
 
 export enum NeuronAccess {
   Controller = 'controller',
@@ -25,6 +33,7 @@ export type NeuronsCsvLabels = {
     controller: string;
     access: string;
     stake: string;
+    stakeValue: string;
     availableMaturity: string;
     stakedMaturity: string;
     disbursingMaturity: string;
@@ -69,21 +78,31 @@ const byStakeDesc = (a: NeuronInfo, b: NeuronInfo): number => {
   return diff > 0n ? 1 : diff < 0n ? -1 : 0;
 };
 
-/** One row for each neuron, sorted by stake. The values are as of `now`. */
+/**
+ * One row for each neuron, sorted by stake. The values are as of `now`. Without `icpPrice`, the
+ * stake value cells are empty.
+ */
 export const buildNeuronsCsv = ({
   neurons,
   principalId,
   ledgerPrincipals,
   labels,
   now,
+  icpPrice,
 }: {
   neurons: NeuronInfo[];
   principalId: string;
   ledgerPrincipals: readonly string[];
   labels: NeuronsCsvLabels;
   now: Date;
+  /** Today's price of 1 ICP in the currency of `labels.headers.stakeValue`. */
+  icpPrice: number | undefined;
 }): string => {
   const { headers } = labels;
+  const icpPriceE8s =
+    icpPrice === undefined || !Number.isFinite(icpPrice)
+      ? undefined
+      : BigInt(Math.round(icpPrice * E8S));
 
   const columns: CsvColumn<NeuronRow>[] = [
     { header: headers.neuronId, value: ({ neuron }) => asSpreadsheetText(String(neuron.neuronId)) },
@@ -96,6 +115,18 @@ export const buildNeuronsCsv = ({
     {
       header: headers.stake,
       value: ({ neuron }) => formatE8sForCsv(getNeuronStakeAfterFeesE8s(neuron)),
+    },
+    {
+      header: headers.stakeValue,
+      value: ({ neuron }) =>
+        icpPriceE8s === undefined
+          ? ''
+          : formatHundredthsForCsv(
+              toFiatHundredths({
+                amountE8s: getNeuronStakeAfterFeesE8s(neuron),
+                icpToFiatE8s: icpPriceE8s,
+              }),
+            ),
     },
     {
       header: headers.availableMaturity,

@@ -19,6 +19,7 @@ const labels: NeuronsCsvLabels = {
     controller: 'Controller',
     access: 'Access',
     stake: 'Stake',
+    stakeValue: 'Value',
     availableMaturity: 'Maturity',
     stakedMaturity: 'Staked',
     disbursingMaturity: 'Disbursing',
@@ -86,14 +87,29 @@ describe('buildNeuronsCsv', () => {
       ledgerPrincipals: [DEVICE],
       labels,
       now: NOW,
+      icpPrice: 2.5,
     });
 
     expect(csv.split('\r\n')).toEqual([
-      '﻿ID,Account,Controller,Access,Stake,Maturity,Staked,Disbursing,Delay,Dissolve,Created,State',
-      `"=""22""",dissolving-account,${DEVICE},Ledger,5.00000000,0.00000000,0.00000000,0.00000000,30,2026-12-15,2026-11-15,Dissolving`,
-      `"=""11""",locked-account,${II},Controller,1.00000000,0.02500000,0.00000001,3.00000000,180,,2025-10-11,Locked`,
-      `"=""33""",hotkey-account,${OTHER},Hotkey,0.00000000,0.00000000,0.00000000,0.00000000,0,2026-11-05,1970-01-01,Dissolved`,
+      '﻿ID,Account,Controller,Access,Stake,Value,Maturity,Staked,Disbursing,Delay,Dissolve,Created,State',
+      `"=""22""",dissolving-account,${DEVICE},Ledger,5.00000000,12.50,0.00000000,0.00000000,0.00000000,30,2026-12-15,2026-11-15,Dissolving`,
+      `"=""11""",locked-account,${II},Controller,1.00000000,2.50,0.02500000,0.00000001,3.00000000,180,,2025-10-11,Locked`,
+      `"=""33""",hotkey-account,${OTHER},Hotkey,0.00000000,0.00,0.00000000,0.00000000,0.00000000,0,2026-11-05,1970-01-01,Dissolved`,
       '',
     ]);
+  });
+
+  it('leaves the stake value empty without a price', () => {
+    const csv = buildNeuronsCsv({
+      neurons: [mockNeuron({ neuronId: 1n, fullNeuron: { controller: II } })],
+      principalId: II,
+      ledgerPrincipals: [],
+      labels,
+      now: NOW,
+      icpPrice: undefined,
+    });
+
+    const [, row] = csv.split('\r\n');
+    expect(row.split(',')[5]).toBe('');
   });
 });

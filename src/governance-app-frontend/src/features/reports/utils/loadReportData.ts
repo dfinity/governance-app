@@ -2,7 +2,12 @@ import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import type { Identity } from '@icp-sdk/core/agent';
 
-import { getIcpIndexCanister, getNnsGovernanceCanister } from '@common/canisters';
+import type { FiatCurrency } from '@constants/fiat';
+import {
+  getGovernanceAppActor,
+  getIcpIndexCanister,
+  getNnsGovernanceCanister,
+} from '@common/canisters';
 import { neuronsRequest } from '@common/queries/governance';
 import { nnsDappAccountQuery } from '@common/queries/nnsDapp';
 import { isUserController } from '@common/utils/neuron';
@@ -10,11 +15,41 @@ import { isUserController } from '@common/utils/neuron';
 import { fetchTransactionsSince, type GetTransactionsPage } from './fetchTransactions';
 import type { ReportRange } from './period';
 import {
+  createReportRateLookup,
+  getRateRange,
+  type ReportRateLookup,
+  toFiatSymbolParam,
+} from './rates';
+import {
   type EntityTransactions,
   isInRange,
   mapReportTransaction,
   type ReportEntity,
 } from './transactionsCsv';
+
+/** The daily ICP prices in `currency` for the range, from the backend history. */
+export const loadReportRates = async ({
+  range,
+  currency,
+}: {
+  range: ReportRange;
+  currency: FiatCurrency;
+}): Promise<ReportRateLookup> => {
+  const actor = await getGovernanceAppActor({ certified: false });
+  const { fromMs, toMs } = getRateRange(range);
+  const response = await actor.list_daily_exchange_rates({
+    // The lookback can reach before 1970, and both fields are `nat64`.
+    from_timestamp_seconds: BigInt(Math.max(0, Math.floor(fromMs / 1_000))),
+    to_timestamp_seconds: BigInt(Math.max(0, Math.ceil(toMs / 1_000))),
+    fiat_symbol: toFiatSymbolParam(currency),
+  });
+
+  if ('UnsupportedFiatSymbol' in response) {
+    throw new Error(`The backend has no daily rates for ${currency}.`);
+  }
+
+  return createReportRateLookup({ rates: response.Ok, currency });
+};
 
 /** All neurons of the user, empty ones too. A certified call, because the data goes into a file. */
 export const loadReportNeurons = async (): Promise<NeuronInfo[]> => {

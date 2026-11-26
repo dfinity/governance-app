@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
 
+import { useIcpPrice } from '@hooks/tickers/useIcpPrice';
+import { useFiatCurrency } from '@hooks/useFiatCurrency';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { errorNotification, infoNotification, warningNotification } from '@utils/notification';
 
@@ -12,6 +14,7 @@ import {
   getReportEntities,
   loadNnsDappAccounts,
   loadReportNeurons,
+  loadReportRates,
   loadReportTransactions,
 } from '../utils/loadReportData';
 import { buildNeuronsCsv } from '../utils/neuronsCsv';
@@ -31,7 +34,8 @@ const useIdentityOrThrow = () => {
 export const useNeuronsReportDownload = () => {
   const { t } = useTranslation();
   const getIdentity = useIdentityOrThrow();
-  const labels = useNeuronsCsvLabels();
+  const { icpPrice, currency } = useIcpPrice();
+  const labels = useNeuronsCsvLabels(currency);
 
   return useMutation({
     mutationFn: async () => {
@@ -57,6 +61,7 @@ export const useNeuronsReportDownload = () => {
           ),
           labels,
           now,
+          icpPrice,
         }),
       });
       analytics.event(AnalyticsEvent.ReportDownload, { report: 'neurons' });
@@ -71,15 +76,18 @@ export const useNeuronsReportDownload = () => {
 export const useTransactionsReportDownload = () => {
   const { t } = useTranslation();
   const getIdentity = useIdentityOrThrow();
-  const labels = useTransactionsCsvLabels();
+  const { fiatCurrency } = useFiatCurrency();
+  const labels = useTransactionsCsvLabels(fiatCurrency);
   const mainAccountName = t(($) => $.accounts.mainAccount);
 
   return useMutation({
     mutationFn: async ({ range, period }: { range: ReportRange; period: ReportPeriod }) => {
       const identity = getIdentity();
-      const [neurons, nnsDappAccounts] = await Promise.all([
+      // The rates load before the transaction scan, so that a failed rate load leaves no scan running.
+      const [neurons, nnsDappAccounts, rateLookup] = await Promise.all([
         loadReportNeurons(),
         loadNnsDappAccounts(),
+        loadReportRates({ range, currency: fiatCurrency }),
       ]);
       const entities = getReportEntities({ identity, mainAccountName, nnsDappAccounts, neurons });
       const { results, complete } = await loadReportTransactions({ entities, range });
@@ -100,7 +108,7 @@ export const useTransactionsReportDownload = () => {
         fileName: complete
           ? t(($) => $.reports.transactions.fileName, fileNameDates)
           : t(($) => $.reports.transactions.incompleteFileName, fileNameDates),
-        content: buildTransactionsCsv({ results, labels }),
+        content: buildTransactionsCsv({ results, labels, rateLookup }),
       });
       if (!complete) {
         warningNotification({
