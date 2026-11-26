@@ -59,6 +59,10 @@ const deviceTransferKey = ({ toAccount, amount, fromSubAccount, memo, signer }: 
   ].join('|');
 };
 
+// The `createdAt` of each attempt. A settled attempt clears only its own `createdAt`, so a late
+// attempt from a closed dialog does not clear the one that a newer transfer keeps for its retry.
+const attemptCreatedAt = new WeakMap<SendIcpParams, bigint>();
+
 /**
  * Sends ICP to an ICP or ICRC-1 account.
  *
@@ -74,6 +78,14 @@ export function useSendIcp() {
   const createdAtRef = useRef<bigint | null>(null);
   const resetCreatedAt = () => {
     createdAtRef.current = null;
+  };
+
+  const forgetCreatedAt = (params: SendIcpParams) => {
+    const createdAt = attemptCreatedAt.get(params);
+    if (createdAt === undefined) return;
+    if (createdAtRef.current === createdAt) resetCreatedAt();
+    const key = deviceTransferKey(params);
+    if (deviceCreatedAt.get(key) === createdAt) deviceCreatedAt.delete(key);
   };
 
   const sendProperties = ({ toAccount, analytics: properties }: SendIcpParams) => ({
@@ -92,6 +104,7 @@ export function useSendIcp() {
       const createdAt = stored ?? nowInBigIntNanoSeconds();
       if (signer.kind === 'ledger') deviceCreatedAt.set(deviceTransferKey(params), createdAt);
       else createdAtRef.current = createdAt;
+      attemptCreatedAt.set(params, createdAt);
       const transferAmount = bigIntMul(E8Sn, Number(amount));
       const subAccountArr = fromSubAccount ? Array.from(fromSubAccount) : undefined;
 
@@ -146,8 +159,7 @@ export function useSendIcp() {
       );
     },
     onSuccess: (_, params) => {
-      resetCreatedAt();
-      deviceCreatedAt.delete(deviceTransferKey(params));
+      forgetCreatedAt(params);
       const properties = {
         ...sendProperties(params),
         amount_range: getAmountRange(Number(params.amount)),
@@ -165,8 +177,7 @@ export function useSendIcp() {
         error instanceof TransferError ||
         error instanceof IcrcTransferError
       ) {
-        resetCreatedAt();
-        deviceCreatedAt.delete(deviceTransferKey(params));
+        forgetCreatedAt(params);
       }
       const properties = { ...sendProperties(params), reason: getErrorReason(error) };
       analytics.event(AnalyticsEvent.AccountSendIcpError, properties);

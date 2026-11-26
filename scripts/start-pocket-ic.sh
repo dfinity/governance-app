@@ -10,6 +10,7 @@ source "$DIR/clap.sh"
 
 # Define options
 clap.define short=b long=background desc="Run the network in the background" variable=BACKGROUND nargs=0
+clap.define short=s long=skip-deploy desc="Start the network and create the canister, but do not deploy it" variable=SKIP_DEPLOY nargs=0
 clap.define short=e long=environment desc="icp environment: local (2s delay on update calls) or e2e (1s delay)" variable=ENVIRONMENT default="local"
 
 # Source the output file
@@ -60,6 +61,11 @@ else
   icp canister link governance-app-backend "$CANISTER_ID_SELF" --environment "$ENVIRONMENT"
 
   trap - ERR
+fi
+
+if [ "${SKIP_DEPLOY:-false}" = "true" ]; then
+  echo "Skipped the deploy of governance-app-backend."
+  exit 0
 fi
 
 icp deploy governance-app-backend --environment "$ENVIRONMENT" --yes

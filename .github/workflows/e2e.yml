@@ -4,22 +4,27 @@ on:
 
 jobs:
   tests:
-    name: E2E Tests (${{ matrix.project }})
+    name: E2E Shard (${{ matrix.project }} ${{ matrix.shard }})
     permissions:
       contents: read
     timeout-minutes: 30
     runs-on: dind-small
-    # Sharded per Playwright project: each project gets its own runner and its own replica, so
-    # the two no longer queue behind each other on a single machine.
+    # Each Playwright project is split into shards. Each shard gets its own runner and its own
+    # replica. scripts/e2e-shards.ts fills the shards with whole spec files, balanced by the time
+    # in tests/e2e/durations.json. A serial spec file cannot be split, so the longest one is the
+    # lower bound of a shard. More shards than that bound allows only add runners.
     strategy:
       fail-fast: false
       matrix:
         project: [chromium, mobile]
+        shard: [1, 2]
     # NOTE: NOT using the GitHub Actions `container:` directive, but instead running docker "manually"
     # This fixes Playwright connectivity issues found in GitHub Actions default containers
     env:
       BASE_URL: http://mc7vh-sqaaa-aaaai-q33na-cai.localhost:8080
       CONTAINER_IMAGE: ghcr.io/dfinity/governance-app/builder-base:0.0.11
+      # The number of entries in matrix.shard.
+      SHARD_TOTAL: 2
       # Cache dirs live inside the workspace so they are visible both to actions/cache on the
       # host and to the tooling running inside the mounted container.
       NPM_CACHE_DIR: .ci-cache/npm
@@ -34,12 +39,12 @@ jobs:
           ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
 
-      - name: Restore npm cache
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+      # npm ci runs in the container, with the Node version of the builder image.
+      - name: Restore node_modules
+        id: node_modules
+        uses: ./.github/actions/npm-ci
         with:
-          path: ${{ env.NPM_CACHE_DIR }}
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: npm-${{ runner.os }}-
+          run-npm-ci: 'false'
 
       - name: Restore cargo cache
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
@@ -78,6 +83,11 @@ jobs:
             -e BASE_URL="$BASE_URL" \
             -e CI=true \
             -e PROJECT="${{ matrix.project }}" \
+            -e SHARD="${{ matrix.shard }}" \
+            -e SHARD_TOTAL \
+            -e NODE_MODULES_HIT="${{ steps.node_modules.outputs.cache-hit }}" \
+            -e HOST_UID="$(id -u)" \
+            -e HOST_GID="$(id -g)" \
             -e npm_config_cache="/app/$NPM_CACHE_DIR" \
             -e CARGO_HOME="/app/$CARGO_HOME_DIR" \
             -e PLAYWRIGHT_BROWSERS_PATH="/app/$PLAYWRIGHT_BROWSERS_DIR" \
@@ -86,22 +96,58 @@ jobs:
             $CONTAINER_IMAGE \
             bash -c '
               set -e
+              # The files that this container makes belong to root. The cache steps run on the
+              # host after this step, and they cannot read some root files. Give the files back.
+              trap '"'"'chown -R "$HOST_UID:$HOST_GID" /app'"'"' EXIT
+
               echo "=== Container Environment ==="
               echo "Hostname: $(hostname)"
               echo "User: $(whoami)"
               echo "Node: $(node -v)"
               echo "Project: $PROJECT"
+              echo "Shard: $SHARD/$SHARD_TOTAL"
               echo ""
 
+              echo "=== Planning the shard ==="
+              SPECS=$(node src/governance-app-frontend/scripts/e2e-shards.ts plan \
+                --project "$PROJECT" --shard "$SHARD" --total "$SHARD_TOTAL")
+              if [ -z "$SPECS" ]; then
+                echo "This shard has no spec files."
+                exit 0
+              fi
+              echo "$SPECS"
+
               echo "=== Installing dependencies ==="
-              npm ci
+              if [ "$NODE_MODULES_HIT" = "true" ]; then
+                echo "node_modules came from the cache."
+              else
+                npm ci
+              fi
               echo "icp: $(npx icp --version)"
 
               echo "=== Generating .env file ==="
               ./scripts/config.sh -n local
 
+              # The build does not need the network, so it runs while the network starts.
+              echo "=== Building governance-app-backend in the background ==="
+              WASM=/tmp/governance-app-backend.wasm.gz
+              ./scripts/build-local-wasm.sh "$WASM" > /tmp/build.log 2>&1 &
+              build_pid=$!
+
               echo "=== Starting local network ==="
-              ./scripts/start-pocket-ic.sh --background --environment e2e
+              ./scripts/start-pocket-ic.sh --background --environment e2e --skip-deploy
+
+              echo "=== Waiting for the build ==="
+              build_status=0
+              wait "$build_pid" || build_status=$?
+              cat /tmp/build.log
+              if [ "$build_status" -ne 0 ]; then
+                echo "The build failed."
+                exit 1
+              fi
+
+              echo "=== Deploying governance-app-backend ==="
+              GOVERNANCE_APP_WASM="$WASM" npx icp deploy governance-app-backend --environment e2e --yes
 
               echo "=== Waiting for server ==="
               max_attempts=30
@@ -125,7 +171,9 @@ jobs:
               echo ""
               echo "=== Running E2E tests (updating snapshots) ==="
               cd src/governance-app-frontend
-              npx playwright test --project="$PROJECT" --update-snapshots --reporter=list,html
+              # The JSON report records the time of each spec file. See scripts/update-e2e-durations.sh.
+              PLAYWRIGHT_JSON_OUTPUT_FILE=/app/e2e-timings.json npx playwright test \
+                --project="$PROJECT" --update-snapshots --reporter=list,html,json $SPECS
 
               echo ""
               echo "=== Stopping local network ==="
@@ -170,7 +218,7 @@ jobs:
         if: ${{ steps.collect_snaps.outputs.has_changes == 'true' && !cancelled() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: updated-snapshots-${{ matrix.project }}
+          name: updated-snapshots-${{ matrix.project }}-${{ matrix.shard }}
           path: ${{ steps.collect_snaps.outputs.files }}
           if-no-files-found: error
           retention-days: 1
@@ -178,8 +226,17 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report-${{ matrix.project }}
+          name: playwright-report-${{ matrix.project }}-${{ matrix.shard }}
           path: src/governance-app-frontend/playwright-report/
+          retention-days: 30
+
+      - name: Upload test times
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: ${{ !cancelled() }}
+        with:
+          name: e2e-timings-${{ matrix.project }}-${{ matrix.shard }}
+          path: e2e-timings.json
+          if-no-files-found: ignore
           retention-days: 30
 
       - name: Snapshots changed. Run ./scripts/update-snapshots.sh to update.
@@ -188,3 +245,22 @@ jobs:
         run: |
           echo "::error:: Snapshots have changed. Please run ./scripts/update-snapshots.sh locally and commit the updated PNG files."
           exit 1
+
+  # The branch rules require one "E2E Tests (<project>)" check for each project. These jobs keep
+  # those names, so the rules do not change when the number of shards changes.
+  result:
+    name: E2E Tests (${{ matrix.project }})
+    needs: [tests]
+    if: ${{ always() }}
+    permissions: {}
+    runs-on: dind-small
+    strategy:
+      matrix:
+        project: [chromium, mobile]
+    steps:
+      - name: Check the shard results
+        env:
+          RESULT: ${{ needs.tests.result }}
+        run: |
+          echo "E2E shards: $RESULT"
+          [ "$RESULT" = "success" ]
