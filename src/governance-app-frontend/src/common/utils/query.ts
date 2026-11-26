@@ -49,6 +49,10 @@ const SPAM_FILTER = {
   SPAM_CHECK: 'spamFilterSpamCheck',
 };
 
+const REPORTS = {
+  YEAR_SUMMARY: 'reportsYearSummary',
+};
+
 const DASHBOARD_COLLECTOR = {
   TALLY_HISTORY: 'dashboardCollectorTallyHistory',
 };
@@ -62,6 +66,7 @@ export const QUERY_KEYS = {
   GOVERNANCE_APP_BACKEND,
   SPAM_FILTER,
   DASHBOARD_COLLECTOR,
+  REPORTS,
 };
 
 export const stringifyKeys = (keys: readonly unknown[]) => {

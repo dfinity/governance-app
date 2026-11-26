@@ -2,7 +2,12 @@ import { AccountIdentifier } from '@icp-sdk/canisters/ledger/icp';
 import type { NeuronInfo } from '@icp-sdk/canisters/nns';
 import type { Identity } from '@icp-sdk/core/agent';
 
-import { getIcpIndexCanister, getNnsGovernanceCanister } from '@common/canisters';
+import type { FiatCurrency } from '@constants/fiat';
+import {
+  getGovernanceAppActor,
+  getIcpIndexCanister,
+  getNnsGovernanceCanister,
+} from '@common/canisters';
 import { neuronsRequest } from '@common/queries/governance';
 import { nnsDappAccountQuery } from '@common/queries/nnsDapp';
 import { isUserController } from '@common/utils/neuron';
@@ -10,11 +15,41 @@ import { isUserController } from '@common/utils/neuron';
 import { fetchTransactionsSince, type GetTransactionsPage } from './fetchTransactions';
 import type { ReportRange } from './period';
 import {
+  createReportRateLookup,
+  getRateRange,
+  type ReportRateLookup,
+  toFiatSymbolParam,
+} from './rates';
+import {
   type EntityTransactions,
   isInRange,
   mapReportTransaction,
   type ReportEntity,
 } from './transactionsCsv';
+
+/** The daily ICP prices in `currency` for the range, from the backend history. */
+export const loadReportRates = async ({
+  range,
+  currency,
+}: {
+  range: ReportRange;
+  currency: FiatCurrency;
+}): Promise<ReportRateLookup> => {
+  const actor = await getGovernanceAppActor({ certified: false });
+  const { fromMs, toMs } = getRateRange(range);
+  const response = await actor.list_daily_exchange_rates({
+    // The lookback can reach before 1970, and both fields are `nat64`.
+    from_timestamp_seconds: BigInt(Math.max(0, Math.floor(fromMs / 1_000))),
+    to_timestamp_seconds: BigInt(Math.max(0, Math.ceil(toMs / 1_000))),
+    fiat_symbol: toFiatSymbolParam(currency),
+  });
+
+  if ('UnsupportedFiatSymbol' in response) {
+    throw new Error(`The backend has no daily rates for ${currency}.`);
+  }
+
+  return createReportRateLookup({ rates: response.Ok, currency });
+};
 
 /** All neurons of the user, empty ones too. A certified call, because the data goes into a file. */
 export const loadReportNeurons = async (): Promise<NeuronInfo[]> => {
@@ -39,6 +74,26 @@ export const loadNnsDappAccounts = async () => {
   };
 };
 
+/**
+ * Returns the neurons that the user or a Ledger device of the user controls.
+ * A neuron where the user is only a hotkey belongs to someone else.
+ */
+export const getOwnNeurons = ({
+  identity,
+  nnsDappAccounts,
+  neurons,
+}: {
+  identity: Identity;
+  nnsDappAccounts: Awaited<ReturnType<typeof loadNnsDappAccounts>>;
+  neurons: NeuronInfo[];
+}): NeuronInfo[] => {
+  const principalId = identity.getPrincipal().toText();
+  const ledgerPrincipals = nnsDappAccounts.hardwareWallets.map(({ principal }) =>
+    principal.toText(),
+  );
+  return neurons.filter((neuron) => isUserController({ neuron, principalId, ledgerPrincipals }));
+};
+
 export const getReportEntities = ({
   identity,
   mainAccountName,
@@ -50,14 +105,7 @@ export const getReportEntities = ({
   nnsDappAccounts: Awaited<ReturnType<typeof loadNnsDappAccounts>>;
   neurons: NeuronInfo[];
 }): ReportEntity[] => {
-  const principalId = identity.getPrincipal().toText();
-  const ledgerPrincipals = nnsDappAccounts.hardwareWallets.map(({ principal }) =>
-    principal.toText(),
-  );
-  // A neuron where the user is only a hotkey belongs to someone else.
-  const ownNeurons = neurons.filter((neuron) =>
-    isUserController({ neuron, principalId, ledgerPrincipals }),
-  );
+  const ownNeurons = getOwnNeurons({ identity, nnsDappAccounts, neurons });
 
   return [
     {
@@ -137,39 +185,71 @@ export const mapWithLimit = async <Item, Result>(
 
 const CONCURRENT_ACCOUNTS = 6;
 
-export const loadReportTransactions = async ({
+/** The current balance of an entity, and its transactions from now back to a start time. */
+export type EntityHistory = EntityTransactions & { balanceE8s: bigint };
+
+/**
+ * Loads the transactions of each entity from now back to `fromMs`, as each entity sees them.
+ * The list can have transactions before `fromMs`, from the last page.
+ */
+export const loadEntityHistories = async ({
   entities,
-  range,
+  fromMs,
   getPage = getIndexPage,
 }: {
   entities: ReportEntity[];
-  range: ReportRange;
+  fromMs: number;
   getPage?: GetTransactionsPage;
-}): Promise<{ results: EntityTransactions[]; complete: boolean }> => {
+}): Promise<{ histories: EntityHistory[]; complete: boolean }> => {
   const neuronAccountIds = new Set(
     entities.filter(({ kind }) => kind === 'neuron').map(({ accountId }) => accountId),
   );
 
   const fetched = await mapWithLimit(entities, CONCURRENT_ACCOUNTS, async (entity) => {
-    const { transactions, complete } = await fetchTransactionsSince({
+    const { balanceE8s, transactions, complete } = await fetchTransactionsSince({
       accountIdentifier: entity.accountId,
-      range,
+      fromMs,
       getPage,
     });
 
     return {
       complete,
-      result: {
+      history: {
         entity,
-        transactions: transactions
-          .map((transaction) => mapReportTransaction({ entity, transaction, neuronAccountIds }))
-          .filter((transaction) => isInRange(transaction, range)),
+        balanceE8s,
+        transactions: transactions.map((transaction) =>
+          mapReportTransaction({ entity, transaction, neuronAccountIds }),
+        ),
       },
     };
   });
 
   return {
-    results: fetched.map(({ result }) => result),
+    histories: fetched.map(({ history }) => history),
     complete: fetched.every(({ complete }) => complete),
+  };
+};
+
+export const loadReportTransactions = async ({
+  entities,
+  range,
+  getPage,
+}: {
+  entities: ReportEntity[];
+  range: ReportRange;
+  getPage?: GetTransactionsPage;
+}): Promise<{ results: EntityTransactions[]; complete: boolean }> => {
+  const { histories, complete } = await loadEntityHistories({
+    entities,
+    fromMs: range.fromMs,
+    getPage,
+  });
+
+  return {
+    results: histories.map(({ entity, transactions }) => ({
+      entity,
+      transactions: transactions.filter((transaction) => isInRange(transaction, range)),
+    })),
+    complete,
   };
 };

@@ -8,29 +8,46 @@ export type CsvColumn<Row> = {
 const escapeCell = (cell: string): string =>
   /[",\r\n]/.test(cell) ? `"${cell.replaceAll('"', '""')}"` : cell;
 
-/** Lines end with CRLF, as RFC 4180 says. The byte order mark makes Excel read UTF-8. */
-export const buildCsv = <Row>(columns: CsvColumn<Row>[], rows: Row[]): string => {
-  const lines = [
-    columns.map(({ header }) => escapeCell(header)),
-    ...rows.map((row) => columns.map(({ value }) => escapeCell(value(row)))),
-  ];
+/** One CSV line, without the line end. */
+export const toCsvLine = (cells: string[]): string => cells.map(escapeCell).join(',');
 
-  return `\uFEFF${lines.map((cells) => cells.join(',')).join('\r\n')}\r\n`;
-};
+/** The header line, then one line for each row. */
+export const buildCsvLines = <Row>(columns: CsvColumn<Row>[], rows: Row[]): string[] => [
+  toCsvLine(columns.map(({ header }) => header)),
+  ...rows.map((row) => toCsvLine(columns.map(({ value }) => value(row)))),
+];
+
+/** Lines end with CRLF, as RFC 4180 says. The byte order mark makes Excel read UTF-8. */
+export const joinCsvLines = (lines: string[]): string => `\uFEFF${lines.join('\r\n')}\r\n`;
+
+export const buildCsv = <Row>(columns: CsvColumn<Row>[], rows: Row[]): string =>
+  joinCsvLines(buildCsvLines(columns, rows));
 
 /**
- * An amount in ICP with all 8 decimals and no group separators, so that spreadsheets read it as
- * a number. For example, `150_000_000n` gives `1.50000000`.
+ * A fixed-point number with all its decimals and no group separators, so that spreadsheets read
+ * it as a number. For example, `150n` with 2 decimals gives `1.50`.
  */
-export const formatE8sForCsv = (e8s: bigint, { signed = false } = {}): string => {
-  const negative = e8s < 0n;
-  const abs = negative ? -e8s : e8s;
-  const unit = 10n ** BigInt(E8S_PRECISION);
-  const fraction = (abs % unit).toString().padStart(E8S_PRECISION, '0');
+const formatFixedForCsv = (
+  value: bigint,
+  decimals: number,
+  { signed = false }: { signed?: boolean },
+): string => {
+  const negative = value < 0n;
+  const abs = negative ? -value : value;
+  const unit = 10n ** BigInt(decimals);
+  const fraction = (abs % unit).toString().padStart(decimals, '0');
   const sign = negative ? '-' : signed && abs > 0n ? '+' : '';
 
   return `${sign}${abs / unit}.${fraction}`;
 };
+
+/** An amount in ICP with all 8 decimals. For example, `150_000_000n` gives `1.50000000`. */
+export const formatE8sForCsv = (e8s: bigint, { signed = false } = {}): string =>
+  formatFixedForCsv(e8s, E8S_PRECISION, { signed });
+
+/** A fiat value with 2 decimals. For example, `396n` gives `3.96`. */
+export const formatHundredthsForCsv = (hundredths: bigint, { signed = false } = {}): string =>
+  formatFixedForCsv(hundredths, 2, { signed });
 
 /** A UTC date and time, for example `2026-11-12 14:03:22`. */
 export const formatUtcDateTime = (ms: number): string =>
