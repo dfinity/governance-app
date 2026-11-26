@@ -99,8 +99,10 @@ upgrade.
   and, if you give `fiat_symbol`, the USD/fiat rate. A day without a rate has
   no entry, and a missing rate is empty. The canister gets a USD/fiat rate
   only 3 days after the day starts, because the XRC can change it until then.
-  The canister tries again every 6 hours to fetch the missing rates. A
-  `fiat_symbol` that is not in the list above returns `UnsupportedFiatSymbol`.
+  Every 6 hours, the canister fetches the missing rates. After a failed fetch,
+  a rate waits 5 hours before the next try, and each new failure doubles the
+  wait, up to 30 days. So a gap can stay for a long time. A `fiat_symbol` that
+  is not in the list above returns `UnsupportedFiatSymbol`.
 
 ## HTTP
 
