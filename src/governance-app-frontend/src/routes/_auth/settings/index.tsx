@@ -4,6 +4,7 @@ import { LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { AddressBookCard } from '@features/addressBook/components/AddressBookCard';
+import { ReportsSettingsRow } from '@features/reports/components/ReportsSettingsRow';
 import { AccountIdCard } from '@features/userAccount/components/AccountIdCard';
 import { AdvancedFeaturesCard } from '@features/userAccount/components/AdvancedFeaturesCard';
 import { CommandPaletteCard } from '@features/userAccount/components/CommandPaletteCard';
@@ -23,11 +24,13 @@ import { Card } from '@components/Card';
 import { PageHeader } from '@components/PageHeader';
 import { SettingsSkeleton } from '@components/skeletons/SettingsSkeleton';
 import { BUILD_DATE, GIT_COMMIT } from '@constants/extra';
+import { FeatureFlag } from '@constants/featureFlags';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useLogout } from '@hooks/useLogout';
 import { useSessionTimeLeft } from '@hooks/useSessionTimeLeft';
 import { getSessionTimeLeftForUi } from '@utils/date';
+import { isFeatureFlagEnabled } from '@utils/featureFlags';
 import { isWebHidSupported } from '@common/ledger/webhid';
 
 import i18n from '@/i18n/config';
@@ -67,6 +70,7 @@ function Settings() {
   const logout = useLogout('settings');
   const { features } = useAdvancedFeatures();
   const showLedgerDevices = features.ledgerDevice && isWebHidSupported();
+  const showReports = isFeatureFlagEnabled(FeatureFlag.Reports);
 
   const handleAddressBookOpenChange = (open: boolean) => {
     navigate({ search: open ? { openAddressBook: true } : {}, replace: true });
@@ -129,6 +133,18 @@ function Settings() {
         </Card>
       </section>
 
+      {showReports && (
+        <section className="flex flex-col gap-4">
+          <div className="space-y-2">
+            <h2 className="text-2xl font-normal">{t(($) => $.reports.title)}</h2>
+          </div>
+          <Card className="overflow-hidden p-0">
+            <div className="px-6 py-5">
+              <ReportsSettingsRow />
+            </div>
+          </Card>
+        </section>
+      )}
       <section className="flex flex-col gap-4">
         <div className="space-y-2">
           <h2 className="text-2xl font-normal">{t(($) => $.userAccount.advancedFeatures.title)}</h2>
