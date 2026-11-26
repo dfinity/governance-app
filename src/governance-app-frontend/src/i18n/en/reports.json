@@ -2,7 +2,7 @@
   "title": "Reports",
   "description": "See a summary of a year, or download your neurons and transactions as CSV files.",
   "exports": "Exports",
-  "footnote": "All dates are in UTC. These reports are not financial or tax advice.",
+  "footnote": "All dates are in UTC. The price of a day is the ICP price at 00:00 UTC on that day. These reports are not financial or tax advice.",
   "download": "Download CSV",
   "yearSummary": {
     "title": "Year summary",
@@ -109,7 +109,7 @@
       "to": "To",
       "amount": "Amount (ICP)",
       "fee": "Fee (ICP)",
-      "price": "ICP price ({{currency}})",
+      "price": "ICP price at 00:00 UTC ({{currency}})",
       "value": "Value ({{currency}})",
       "rateDate": "Rate date (UTC)"
     },
