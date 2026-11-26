@@ -56,6 +56,27 @@ export type TallyChart = {
   endSeconds: number;
 };
 
+/**
+ * The value of the lines at each tick that they reach. A line holds a value until its next point.
+ * When no tick falls inside the lines, the middle of the lines takes its place, so the lines
+ * always carry a mark before their end.
+ */
+export const getMarkPoints = (points: TallyPoint[], ticks: number[]): TallyPoint[] => {
+  const firstSeconds = points.at(0)?.timestampSeconds;
+  const lastSeconds = points.at(-1)?.timestampSeconds;
+  if (isNullish(firstSeconds) || isNullish(lastSeconds)) return [];
+
+  const valueAt = (timestampSeconds: number): TallyPoint[] => {
+    const point = points.findLast((point) => point.timestampSeconds <= timestampSeconds);
+    return isNullish(point) ? [] : [{ ...point, timestampSeconds }];
+  };
+
+  const insideTicks = ticks.filter((seconds) => seconds >= firstSeconds && seconds <= lastSeconds);
+  if (insideTicks.length > 0) return insideTicks.flatMap(valueAt);
+  if (lastSeconds <= firstSeconds) return [];
+  return valueAt((firstSeconds + lastSeconds) / 2);
+};
+
 // At the deadline, a proposal needs Yes votes of 3% of the total voting power or more.
 export const QUORUM_SHARE = 0.03;
 // Yes votes of more than half the total voting power decide a proposal before its deadline.

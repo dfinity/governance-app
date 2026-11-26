@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@components/Card';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { MILLISECONDS_IN_SECOND } from '@constants/extra';
 import { secondsToTime } from '@utils/date';
 import { formatCompactNumber } from '@utils/numbers';
@@ -19,6 +18,7 @@ import {
   KnownNeuronVoteState,
   TallyChange,
 } from '../knownNeuronVotes';
+import { KnownNeuronGrid } from './KnownNeuronGrid';
 
 type Props = {
   proposal: ProposalInfo;
@@ -84,29 +84,6 @@ const useVoteLabel = () => {
         return t(($) => $.proposal.liveActivity.unknownVote, { name });
     }
   };
-};
-
-const NeuronSquare = ({ vote, isNew }: { vote: KnownNeuronVote; isNew: boolean }) => {
-  const label = useVoteLabel()(vote);
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span
-          aria-hidden
-          className={cn(
-            'aspect-square rounded-[2px] border',
-            vote.state === KnownNeuronVoteState.Yes && cn(YES_FILL, 'border-transparent'),
-            vote.state === KnownNeuronVoteState.No && cn(NO_FILL, 'border-transparent'),
-            vote.state === KnownNeuronVoteState.NotVoted && 'border-border',
-            vote.state === KnownNeuronVoteState.Unknown && 'border-dashed border-border',
-            isNew && 'outline-2 outline-offset-1 outline-primary',
-          )}
-        />
-      </TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
-    </Tooltip>
-  );
 };
 
 const TimelineDot = ({ highlighted, className }: { highlighted: boolean; className?: string }) => (
@@ -264,11 +241,7 @@ export const ProposalLiveActivity = ({ proposal, knownNeuronVotes, seenVotes }: 
               )}
             </span>
           </div>
-          <div className="grid grid-cols-[repeat(25,minmax(0,1fr))] gap-[3px]">
-            {votes.map((vote) => (
-              <NeuronSquare key={String(vote.id)} vote={vote} isNew={newIds.has(vote.id)} />
-            ))}
-          </div>
+          <KnownNeuronGrid votes={votes} newIds={newIds} label={voteLabel} />
           <ul className="sr-only">
             {votes.map((vote) => (
               <li key={String(vote.id)}>{voteLabel(vote)}</li>

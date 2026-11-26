@@ -1,10 +1,10 @@
 import '@/i18n/config';
 
 import { ProposalInfo, Topic } from '@icp-sdk/canisters/nns';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { TALLY_RECORDING_SINCE_SECONDS, TallyHistory } from '../tallyHistory';
+import { getDayTicks, TALLY_RECORDING_SINCE_SECONDS, TallyHistory } from '../tallyHistory';
 import { ProposalVotingHistory } from './ProposalVotingHistory';
 
 const mocks = vi.hoisted(() => ({
@@ -157,9 +157,119 @@ describe('ProposalVotingHistory', () => {
       isError: false,
     });
 
-    // The dot that comes last in the document paints on top.
+    it('repeats the line shapes at each day tick that the lines reach', async () => {
+      mocks.query = {
+        data: history([
+          { t: BigInt(CREATED + 60), yes: 10n, no: 10n },
+          { t: BigInt(DEADLINE - 60), yes: 600n, no: 20n },
+        ]),
+        isPending: false,
+        isError: false,
+      };
+      render(<ProposalVotingHistory proposal={proposal()} />);
+
+      const ticks = getDayTicks(CREATED, DEADLINE).filter((seconds) => seconds <= DEADLINE - 60);
+      expect(ticks.length).toBeGreaterThan(0);
+      await waitFor(() =>
+        expect(screen.queryAllByTestId('voting-history-mark-yes')).toHaveLength(ticks.length),
+      );
+      const yesMarks = screen.getAllByTestId('voting-history-mark-yes');
+      const noMarks = screen.getAllByTestId('voting-history-mark-no');
+      expect(noMarks).toHaveLength(ticks.length);
+      expect(yesMarks.every((mark) => mark.tagName === 'circle')).toBe(true);
+      expect(noMarks.every((mark) => mark.tagName === 'rect')).toBe(true);
+    });
+
+    it('puts one mark on each line when the lines end before the first day tick', async () => {
+      mocks.query = {
+        data: history([
+          { t: BigInt(CREATED + 60), yes: 10n, no: 10n },
+          { t: BigInt(CREATED + 3_600), yes: 600n, no: 20n },
+        ]),
+        isPending: false,
+        isError: false,
+      };
+      render(<ProposalVotingHistory proposal={proposal()} />);
+
+      expect(getDayTicks(CREATED, DEADLINE).every((seconds) => seconds > CREATED + 3_600)).toBe(
+        true,
+      );
+      await waitFor(() =>
+        expect(screen.queryAllByTestId('voting-history-mark-yes')).toHaveLength(1),
+      );
+      expect(screen.getAllByTestId('voting-history-mark-no')).toHaveLength(1);
+    });
+
+    it('puts the Yes and No marks side by side where the lines meet', async () => {
+      mocks.query = {
+        data: history([
+          { t: BigInt(CREATED + 60), yes: 100n, no: 100n },
+          { t: BigInt(DEADLINE - 60), yes: 200n, no: 200n },
+        ]),
+        isPending: false,
+        isError: false,
+      };
+      render(<ProposalVotingHistory proposal={proposal()} />);
+
+      await waitFor(() =>
+        expect(screen.queryAllByTestId('voting-history-mark-yes').length).toBeGreaterThan(0),
+      );
+      const yesCenters = screen
+        .getAllByTestId('voting-history-mark-yes')
+        .map((mark) => Number(mark.getAttribute('cx')));
+      // A No mark is a square of 6 pixels, so its center is 3 pixels from its corner.
+      const noCenters = screen
+        .getAllByTestId('voting-history-mark-no')
+        .map((mark) => Number(mark.getAttribute('x')) + 3);
+      expect(noCenters.map((center, index) => center - yesCenters[index])).toEqual(
+        yesCenters.map(() => 10),
+      );
+    });
+
+    it('puts the selected Yes and No marks side by side at a tied reading', async () => {
+      mocks.query = {
+        data: history([
+          { t: BigInt(CREATED + 60), yes: 100n, no: 100n },
+          { t: BigInt(CREATED + 3_600), yes: 300n, no: 300n },
+        ]),
+        isPending: false,
+        isError: false,
+      };
+      const { container } = render(<ProposalVotingHistory proposal={proposal()} />);
+      const surface = await waitFor(() => {
+        const element = container.querySelector<SVGElement>('.recharts-surface');
+        expect(element).not.toBeNull();
+        return element!;
+      });
+
+      surface.focus();
+      fireEvent.keyDown(surface, { key: 'ArrowRight' });
+
+      const yesMark = await screen.findByTestId('voting-history-active-yes');
+      const noMark = screen.getByTestId('voting-history-active-no');
+      // A selected No mark is a square of 6 pixels, so its center is 3 pixels from its corner.
+      expect(Number(noMark.getAttribute('x')) + 3 - Number(yesMark.getAttribute('cx'))).toBe(10);
+    });
+
+    // The marker that comes last in the document paints on top.
     const latestDotFills = () =>
-      Array.from(document.querySelectorAll('circle[r="4"]')).map((dot) => dot.getAttribute('fill'));
+      screen.queryAllByTestId('voting-history-latest').map((dot) => dot.getAttribute('fill'));
+
+    it('marks the latest Yes value with a circle and the latest No value with a square', async () => {
+      mocks.query = tally(30n, 10n);
+      render(<ProposalVotingHistory proposal={proposal()} />);
+
+      await waitFor(() =>
+        expect(
+          screen
+            .queryAllByTestId('voting-history-latest')
+            .map((dot) => [dot.tagName, dot.getAttribute('fill')]),
+        ).toEqual([
+          ['rect', 'var(--color-no)'],
+          ['circle', 'var(--color-yes)'],
+        ]),
+      );
+    });
 
     it('paints the Yes dot on top when Yes leads', async () => {
       mocks.query = tally(30n, 10n);
