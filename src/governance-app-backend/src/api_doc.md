@@ -8,6 +8,9 @@ This canister holds no tokens. No method of this canister transfers tokens,
 charges a fee, stakes, votes, or changes a neuron. The web app does these
 actions with direct calls to the ICP ledger and the NNS governance canisters.
 
+The manifest of the app also declares the NNS governance canister. It has no
+`get_api_doc`, so the "NNS governance" section of this guide covers it.
+
 ## Identity
 
 - The canister keys each address book by the principal of the caller.
@@ -118,3 +121,103 @@ upgrade.
 ## Documentation
 
 - `get_api_doc` (query) returns this text.
+
+## NNS governance
+
+The NNS governance canister, `rrkah-fqaaa-aaaaa-aaaaq-cai`, keeps the neurons
+and the proposals. This section covers only how to read proposals and neurons,
+and how to vote.
+
+### Identity and access
+
+- Use the principal of the user for `https://nns.ic0.app`, as for this
+  canister. It is the controller or a hotkey of the neurons of the user.
+- Each proposal and its tally are public. The anonymous principal can read
+  them.
+- `ballots` holds only the ballots of the neurons that the caller controls or
+  is a hotkey of.
+- A vote needs a call from the controller or a hotkey of the neuron.
+
+### Codes
+
+- `status`: 1 is open, 2 is rejected, 3 is adopted, 4 is executed, and 5 is
+  failed.
+- `reward_status`: 1 means that the proposal accepts votes. A proposal can be
+  adopted or rejected and still accept votes until its deadline.
+- `vote`, in a ballot and in a vote: 0 is no vote yet, 1 is yes, and 2 is no.
+- `topic`: 1 neuron management, 2 exchange rate, 3 network economics,
+  4 governance, 5 node admin, 6 participant management, 7 subnet management,
+  8 application canister management, 9 KYC, 10 node provider rewards,
+  11 SNS decentralization sale (no longer used),
+  12 IC OS version deployment, 13 IC OS version election, 14 SNS and Neurons'
+  Fund, 15 API boundary node management, 16 subnet rental, 17 protocol canister
+  management, and 18 service nervous system management.
+- Timestamps are Unix times in seconds. `deadline_timestamp_seconds` is the
+  end of the voting period.
+- The `yes`, `no`, and `total` values of `latest_tally` are voting power, not
+  ICP. The share of yes is `yes / total`.
+
+### Read proposals
+
+- `get_proposal_info` (query) takes a proposal ID and returns the proposal, or
+  `null` if the ID is unknown.
+- `list_proposals` (query) returns 100 proposals or fewer, newest first. Give
+  `limit`, and set `omit_large_fields = opt true` to drop the large payloads.
+  To get the next page, set `before_proposal` to the smallest ID of the last
+  page.
+- To list only the open proposals, set `include_status = vec { 1 }`. An empty
+  `vec` in `include_status`, `exclude_topic`, or `include_reward_status` does
+  not filter.
+- Before a vote, read the proposal as an update call. A query response is not
+  certified.
+
+### Read the neurons of the user
+
+- `list_neurons` (query) with `neuron_ids = vec {}` and
+  `include_neurons_readable_by_caller = true` returns the neurons of the
+  caller. If `total_pages_available` is more than 1, read the next
+  `page_number`.
+- `full_neurons` has the full data of each neuron, `neuron_infos` has a short
+  view. A neuron ID is a `nat64`.
+
+### Vote
+
+Call `manage_neuron` (update) one time for each neuron:
+
+```candid
+(record {
+  neuron_id_or_subaccount = opt variant { NeuronId = record { id = 123 : nat64 } };
+  command = opt variant {
+    RegisterVote = record { vote = 1 : int32; proposal = opt record { id = 456 : nat64 } }
+  };
+})
+```
+
+- If the vote succeeds, the response is
+  `command = opt variant { RegisterVote = record {} }`. If it fails, the
+  response is `command = opt variant { Error = ... }`.
+- A neuron can vote on a proposal only if the proposal has a ballot for it.
+  The proposal makes the ballots when it is made, for each neuron with a
+  dissolve delay of 14 days or more at that time. A neuron management proposal
+  (topic 1) is the exception: it has ballots only for the followees of the
+  managed neuron on topic 1.
+- A vote cannot be changed or undone. A second vote with the same neuron
+  returns an error.
+- A vote can make the neurons that follow this neuron vote. A follower votes
+  yes if more than half of its followees for the topic vote yes. It votes no if
+  half or more of them vote no. So with two followees, one no vote is enough.
+  Do not report the votes of followers. Read their ballots instead.
+
+Correct use of a vote:
+
+- Vote only if the user asks for that vote.
+- Before the call, show the user the proposal ID, its title, the vote (yes or
+  no), and each neuron ID that votes.
+- Vote only after the user confirms these.
+
+### Other methods
+
+`manage_neuron` has other commands, for example `Disburse`, `Split`,
+`Configure`, and `SetFollowing`. They move ICP or change a neuron, and most of
+them cannot be undone. Do not use them, and do not call the other update
+methods of NNS governance. The user can do these actions in the web app.

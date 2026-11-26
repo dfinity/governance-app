@@ -57,6 +57,8 @@ const II_DERIVATION_ORIGIN_FILE_NAME: &str = "ii-derivation-origin";
 /// The origin for which the web app derives the principal on mainnet.
 /// It must be equal to `II_DERIVATION_ORIGIN` in the frontend constants.
 const II_DERIVATION_ORIGIN: &str = "https://nns.ic0.app";
+/// The NNS governance canister has the same ID on mainnet and on the local network.
+const NNS_GOVERNANCE_CANISTER_ID: &str = "rrkah-fqaaa-aaaaa-aaaaq-cai";
 
 /// Content Security Policy directives. Each entry is joined with "; " to form the header value.
 const CSP_DIRECTIVES: &[&str] = &[
@@ -296,7 +298,9 @@ fn service_discoverability_assets(own_canister_id: &str) -> Vec<Asset<'static, '
 
 /// Returns the manifest that lists the canisters of the app.
 ///
-/// The manifest declares only this canister, which serves the web app and the backend API.
+/// The manifest declares this canister, which serves the web app and the backend API, and the NNS
+/// governance canister, so that an agent can read proposals and vote. NNS governance has no
+/// `get_api_doc`, so the guide of this canister covers it.
 fn ic_architecture_manifest(own_canister_id: &str) -> String {
     format!(
         r#"{{
@@ -307,6 +311,12 @@ fn ic_architecture_manifest(own_canister_id: &str) -> String {
       "name": "governance-app",
       "role": "the frontend and the backend",
       "description": "Serves the NNS web app. Keeps the address book of each user and a cache of ICP and fiat exchange rates. Holds no tokens. get_api_doc returns a guide to the API."
+    }},
+    {{
+      "id": "{NNS_GOVERNANCE_CANISTER_ID}",
+      "name": "nns-governance",
+      "role": "the NNS governance canister",
+      "description": "Keeps the NNS neurons and proposals. The web app reads proposals and votes through it. It has no get_api_doc: get_api_doc of {own_canister_id} is its guide."
     }}
   ]
 }}
@@ -606,13 +616,14 @@ mod tests {
     }
 
     #[test]
-    fn ic_architecture_is_json_that_declares_only_this_canister() {
+    fn ic_architecture_is_json_that_declares_this_canister_and_nns_governance() {
         let response = serve_well_known_asset("/.well-known/ic-architecture");
         let body = std::str::from_utf8(response.body()).unwrap();
 
         assert_eq!(header(&response, "content-type"), Some("application/json"));
         assert!(body.contains(&format!(r#""id": "{OWN_CANISTER_ID}","#)));
-        assert_eq!(body.matches(r#""id":"#).count(), 1);
+        assert!(body.contains(r#""id": "rrkah-fqaaa-aaaaa-aaaaq-cai","#));
+        assert_eq!(body.matches(r#""id":"#).count(), 2);
     }
 
     #[test]
