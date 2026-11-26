@@ -32,8 +32,8 @@ import {
   UsersIcon,
   WalletIcon,
 } from 'lucide-react';
-import type { ComponentProps, ElementType } from 'react';
-import { Fragment, useEffect, useState } from 'react';
+import type { ComponentProps, CSSProperties, ElementType, KeyboardEvent } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AnalyticsEvent } from '@features/analytics/events';
@@ -86,6 +86,7 @@ import { useMediaQuery } from '@hooks/useMediaQuery';
 import { useShortcutSettings } from '@hooks/useShortcutSettings';
 import { useTheme } from '@hooks/useTheme';
 import { getShortcutTheme, THEME_SHORTCUT_KEY } from '@hooks/useThemeShortcut';
+import { useVisibleViewport } from '@hooks/useVisibleViewport';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { isAccountsAreaEnabled, notifyAdvancedFeatureChange } from '@utils/advancedFeatures';
 import { copyToClipboard } from '@utils/clipboard';
@@ -143,8 +144,42 @@ const NEURON_COMMAND_ICONS: Record<NeuronCommand, ElementType> = {
   [NeuronCommand.StakeMaturity]: PackagePlusIcon,
 };
 
-const filterCommands = (value: string, search: string, keywords?: string[]) => {
+// A command whose label or keywords hold a word that starts with each search word ranks above
+// all fuzzy matches. The cmdk score orders the commands inside each tier. The cmdk value is the
+// command id, for example `action:stake`, so the tiers read only the label and the keywords.
+const LABEL_MATCH = 2;
+const KEYWORD_MATCH = 1;
+
+const toWords = (text: string) =>
+  text
+    .toLowerCase()
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter((word) => word !== '');
+
+/**
+ * Below this visible height, the normal layout leaves room for fewer than 3 results, for example
+ * on a phone in landscape with the on-screen keyboard open. The palette then starts at the top of
+ * the visible area and has no hint footer, so the list gets all the space below the input.
+ */
+const SHORT_VISIBLE_HEIGHT = 280;
+
+const scrollToTop = (list: HTMLElement) => {
+  list.scrollTop = 0;
+};
+
+const filterCommands = (value: string, search: string, keywords: string[] = []) => {
   const score = defaultFilter(value, search, keywords);
+  const terms = toWords(search);
+  if (terms.length > 0) {
+    // `renderItem` puts the label first in the keywords.
+    const [label = '', ...rest] = keywords;
+    const startsWords = (text: string) => {
+      const words = toWords(text);
+      return terms.every((term) => words.some((word) => word.startsWith(term)));
+    };
+    if (startsWords(label)) return LABEL_MATCH + score;
+    if (startsWords(rest.join(' '))) return KEYWORD_MATCH + score;
+  }
   return score >= MIN_MATCH_SCORE ? score : 0;
 };
 
@@ -314,6 +349,7 @@ export const CommandPalette = () => {
   const proposalMatch = useMatch({ from: '/_auth/voting/proposals/$id/', shouldThrow: false });
   const open = useCommandPaletteOpen();
   const [search, setSearch] = useState('');
+  const [list, setList] = useState<HTMLDivElement | null>(null);
   // Read on open, so the Recent items do not move while the palette is open. A button can open
   // the palette too, so this follows the shared open state.
   const [recentIds, setRecentIds] = useState<string[]>([]);
@@ -332,6 +368,58 @@ export const CommandPalette = () => {
   useCommandPaletteShortcut(() => handleOpenChange(!open));
 
   useEffect(() => registerCommandPalette(), []);
+
+  // While the first result is selected, the list stays at the top. cmdk can scroll to the old
+  // selection after a search change, and it can sort the rows after it selects the new first one.
+  // So the list checks again after each selection change and each row move. A wheel or touch
+  // scroll stops this until the next search change.
+  const visibleViewport = useVisibleViewport(open);
+  const isShort = visibleViewport !== undefined && visibleViewport.height < SHORT_VISIBLE_HEIGHT;
+
+  const keepTopRef = useRef(true);
+  useEffect(() => {
+    if (!list) return;
+    scrollToTop(list);
+    keepTopRef.current = true;
+  }, [list, search]);
+
+  useEffect(() => {
+    if (!list) return;
+    const observer = new MutationObserver(() => {
+      if (!keepTopRef.current) return;
+      const first = list.querySelector('[cmdk-item]:not([aria-disabled="true"])');
+      if (first?.getAttribute('aria-selected') === 'true') scrollToTop(list);
+    });
+    observer.observe(list, { subtree: true, childList: true, attributeFilter: ['aria-selected'] });
+    const stopKeepTop = () => {
+      keepTopRef.current = false;
+    };
+    list.addEventListener('wheel', stopKeepTop, { passive: true });
+    list.addEventListener('touchmove', stopKeepTop, { passive: true });
+    return () => {
+      observer.disconnect();
+      list.removeEventListener('wheel', stopKeepTop);
+      list.removeEventListener('touchmove', stopKeepTop);
+    };
+  }, [list]);
+
+  // If the selected row or the no-results message is not fully in view, for example in landscape
+  // with the on-screen keyboard open, Return closes the keyboard and keeps the search. The user can
+  // then read the results before a command runs.
+  const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    // The Enter that confirms an input method editor (IME) composition belongs to the IME. Safari
+    // sends it with key code 229.
+    if (event.nativeEvent.isComposing || event.keyCode === 229) return;
+    if (event.key !== 'Enter' || !list) return;
+    const target = list.querySelector('[cmdk-item][aria-selected="true"], [cmdk-empty]');
+    if (!target) return;
+    const area = list.getBoundingClientRect();
+    const { top, bottom } = target.getBoundingClientRect();
+    // 1px covers rounding.
+    if (top >= area.top - 1 && bottom <= area.bottom + 1) return;
+    event.preventDefault();
+    event.currentTarget.blur();
+  };
 
   const runAndClose = (fn: () => void) => {
     fn();
@@ -747,6 +835,20 @@ export const CommandPalette = () => {
 
   return (
     <CommandDialog
+      // A fixed top keeps the search field in place while the result list changes its height. The
+      // top and the list height follow the visible area, which an on-screen keyboard makes smaller.
+      className={
+        isShort
+          ? 'top-[var(--visible-top,0px)] translate-y-0'
+          : 'top-[calc(var(--visible-top,0px)+min(20vh,var(--visible-height,100vh)*0.2))] translate-y-0'
+      }
+      style={
+        visibleViewport &&
+        ({
+          '--visible-top': `${visibleViewport.top}px`,
+          '--visible-height': `${visibleViewport.height}px`,
+        } as CSSProperties)
+      }
       open={open}
       onOpenChange={handleOpenChange}
       onCloseAutoFocus={(event) => {
@@ -761,10 +863,21 @@ export const CommandPalette = () => {
       <CommandInput
         value={search}
         onValueChange={setSearch}
+        onKeyDown={handleInputKeyDown}
         placeholder={t(($) => $.commandPalette.placeholder)}
       />
-      <CommandList>
-        <CommandEmpty>{t(($) => $.commandPalette.empty)}</CommandEmpty>
+      {/* The list shrinks with the visible area, so the input and the footer stay in view. */}
+      <CommandList
+        ref={setList}
+        className={
+          isShort
+            ? 'max-h-[calc(var(--visible-height)-3.25rem)]'
+            : 'max-h-[min(300px,calc(var(--visible-height,100dvh)*0.8-6rem))]'
+        }
+      >
+        <CommandEmpty className={isShort ? 'py-2' : undefined}>
+          {t(($) => $.commandPalette.empty)}
+        </CommandEmpty>
 
         {recentCommands.length > 0 && (
           <CommandGroup heading={t(($) => $.commandPalette.groups.recent)}>
@@ -788,7 +901,7 @@ export const CommandPalette = () => {
           );
         })}
       </CommandList>
-      <CommandHintFooter />
+      {!isShort && <CommandHintFooter />}
       <CommandPaletteNoResultTracker open={open} />
     </CommandDialog>
   );

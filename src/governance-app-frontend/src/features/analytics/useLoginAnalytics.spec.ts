@@ -46,7 +46,7 @@ describe('useLoginAnalytics', () => {
     setAuth({ isLoggingIn: true });
     setAuth({ isLoggingIn: false, identity: IDENTITY });
 
-    expect(analytics.event).toHaveBeenCalledExactlyOnceWith(AnalyticsEvent.LoginSuccess);
+    expect(analytics.event).toHaveBeenLastCalledWith(AnalyticsEvent.LoginSuccess);
   });
 
   it('sends login_error when the login ends without an identity', () => {
@@ -55,10 +55,27 @@ describe('useLoginAnalytics', () => {
     setAuth({ isLoggingIn: true });
     setAuth({ isLoggingIn: false });
 
-    expect(analytics.event).toHaveBeenCalledExactlyOnceWith(AnalyticsEvent.LoginError);
+    expect(analytics.event).toHaveBeenLastCalledWith(AnalyticsEvent.LoginError);
   });
 
-  it('sends one event for each login attempt', () => {
+  it('sends login_start when a login begins, also for a login that never ends', () => {
+    const setAuth = renderLoginPage();
+
+    setAuth({ isLoggingIn: true });
+    // A second click during the login starts it again, and is not a new attempt.
+    setAuth({ isLoggingIn: true });
+
+    expect(analytics.event).toHaveBeenCalledExactlyOnceWith(AnalyticsEvent.LoginStart);
+  });
+
+  it('sends no login_start for a login that runs at mount', () => {
+    auth.isLoggingIn = true;
+    renderLoginPage();
+
+    expect(analytics.event).not.toHaveBeenCalled();
+  });
+
+  it('sends a start and a result for each login attempt', () => {
     const setAuth = renderLoginPage();
 
     setAuth({ isLoggingIn: true });
@@ -67,8 +84,12 @@ describe('useLoginAnalytics', () => {
     setAuth({ isLoggingIn: true });
     setAuth({ isLoggingIn: false, identity: IDENTITY });
 
-    expect(analytics.event).toHaveBeenCalledTimes(2);
-    expect(analytics.event).toHaveBeenLastCalledWith(AnalyticsEvent.LoginSuccess);
+    expect(vi.mocked(analytics.event).mock.calls.map(([name]) => name)).toEqual([
+      AnalyticsEvent.LoginStart,
+      AnalyticsEvent.LoginError,
+      AnalyticsEvent.LoginStart,
+      AnalyticsEvent.LoginSuccess,
+    ]);
   });
 
   it('does not send an event without a login attempt', () => {
