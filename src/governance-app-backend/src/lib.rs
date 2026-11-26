@@ -11,6 +11,7 @@ mod user_data;
 use address_book::{AddressBook, GetAddressBookResponse, SetAddressBookResponse};
 use exchange_rate::cache::{CachedRate, FiatExchangeRate, IcpExchangeRateResponse};
 use exchange_rate::month_history::PastMonthRate;
+use exchange_rate::{ListDailyExchangeRatesRequest, ListDailyExchangeRatesResponse};
 
 #[init]
 fn init() {
@@ -64,6 +65,13 @@ fn list_icp_to_usd_past_month_rates() -> Vec<PastMonthRate> {
 #[query]
 fn list_usd_to_fiat_exchange_rates() -> Vec<FiatExchangeRate> {
     exchange_rate::list_usd_to_fiat_exchange_rates()
+}
+
+#[query]
+fn list_daily_exchange_rates(
+    request: ListDailyExchangeRatesRequest,
+) -> ListDailyExchangeRatesResponse {
+    exchange_rate::list_daily_exchange_rates(request)
 }
 
 /// A markdown guide to the API, for the facts that the Candid types do not give.

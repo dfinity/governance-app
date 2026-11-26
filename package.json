@@ -30,7 +30,7 @@
   ],
   "devDependencies": {
     "@icp-sdk/icp-cli": "1.6.0",
-    "eslint": "10.0.0"
+    "eslint": "10.15.0"
   },
   "overrides": {
     "postcss-selector-parser": "6.1.5",

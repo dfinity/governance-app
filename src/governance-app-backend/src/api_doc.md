@@ -92,6 +92,15 @@ upgrade.
   `EUR`, `GBP`, `CHF`, `JPY`, `CNY`, `CAD`, and `AUD`, in this order. The
   canister updates them every hour. The XRC changes its fiat rates one time
   each day. The `rate` is empty until its first fetch succeeds.
+- `list_daily_exchange_rates` (query) returns the rates at 00:00 UTC of each
+  day that starts at or after `from_timestamp_seconds` and before
+  `to_timestamp_seconds`, oldest first. The history starts on 1 January 2025,
+  and the canister keeps it in stable memory. Each day has the ICP/USD rate
+  and, if you give `fiat_symbol`, the USD/fiat rate. A day without a rate has
+  no entry, and a missing rate is empty. The canister gets a USD/fiat rate
+  only 3 days after the day starts, because the XRC can change it until then.
+  The canister tries again every 6 hours to fetch the missing rates. A
+  `fiat_symbol` that is not in the list above returns `UnsupportedFiatSymbol`.
 
 ## HTTP
 

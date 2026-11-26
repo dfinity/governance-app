@@ -3,8 +3,11 @@ import { describe, expect, it } from 'vitest';
 
 import {
   getDayTicks,
+  getMarkPoints,
+  getShareAxis,
   hasTallyHistory,
   isTallyHistoryClosed,
+  QUORUM_SHARE,
   shouldPollTallyHistory,
   TALLY_RECORDING_SINCE_SECONDS,
   TallyHistory,
@@ -309,5 +312,81 @@ describe('getDayTicks', () => {
 
   it('returns no tick for an empty span', () => {
     expect(getDayTicks(start, start)).toEqual([]);
+  });
+});
+
+describe('getShareAxis', () => {
+  const point = (yes: number, no: number) => ({ timestampSeconds: CREATED, yes, no });
+
+  it('uses the 5% axis for small shares, so the quorum line shows', () => {
+    const axis = getShareAxis([point(0, 0), point(0.00107, 0.00044)]);
+
+    expect(axis.max).toBe(0.05);
+    expect(axis.ticks.at(-1)).toBe(0.05);
+    expect(axis.max).toBeGreaterThan(QUORUM_SHARE);
+  });
+
+  it('uses the 5% axis when there is no point', () => {
+    expect(getShareAxis([]).max).toBe(0.05);
+  });
+
+  it('takes the higher of Yes and No', () => {
+    expect(getShareAxis([point(0.01, 0.07)]).max).toBe(0.1);
+  });
+
+  it('moves up a step when the highest share is too close to the top', () => {
+    expect(getShareAxis([point(0.045, 0)]).max).toBe(0.05);
+    expect(getShareAxis([point(0.048, 0)]).max).toBe(0.1);
+  });
+
+  it('grows to the full axis for a majority', () => {
+    expect(getShareAxis([point(0.2, 0)]).max).toBe(0.25);
+    expect(getShareAxis([point(0.4, 0)]).max).toBe(0.5);
+    expect(getShareAxis([point(0.55, 0.01)])).toEqual({
+      max: 1,
+      ticks: [0, 0.25, 0.5, 0.75, 1],
+    });
+    expect(getShareAxis([point(1, 0)]).max).toBe(1);
+  });
+
+  it('starts each axis at 0 and ends it at its top', () => {
+    for (const share of [0, 0.06, 0.2, 0.4, 0.9]) {
+      const { max, ticks } = getShareAxis([point(share, 0)]);
+      expect(ticks[0]).toBe(0);
+      expect(ticks.at(-1)).toBe(max);
+    }
+  });
+});
+
+describe('getMarkPoints', () => {
+  const points = [
+    { timestampSeconds: 100, yes: 0.1, no: 0 },
+    { timestampSeconds: 200, yes: 0.2, no: 0.05 },
+    { timestampSeconds: 300, yes: 0.6, no: 0.05 },
+  ];
+
+  it('takes the value of the last point at or before each tick', () => {
+    expect(getMarkPoints(points, [150, 200, 299])).toEqual([
+      { timestampSeconds: 150, yes: 0.1, no: 0 },
+      { timestampSeconds: 200, yes: 0.2, no: 0.05 },
+      { timestampSeconds: 299, yes: 0.2, no: 0.05 },
+    ]);
+  });
+
+  it('skips a tick before the first point or after the last one when another tick fits', () => {
+    expect(getMarkPoints(points, [50, 300, 301])).toEqual([
+      { timestampSeconds: 300, yes: 0.6, no: 0.05 },
+    ]);
+  });
+
+  it('puts one mark in the middle of the lines when no tick falls inside them', () => {
+    expect(getMarkPoints(points, [50, 400])).toEqual([
+      { timestampSeconds: 200, yes: 0.2, no: 0.05 },
+    ]);
+  });
+
+  it('returns no point without points or for a single point', () => {
+    expect(getMarkPoints([], [100])).toEqual([]);
+    expect(getMarkPoints([points[0]], [])).toEqual([]);
   });
 });

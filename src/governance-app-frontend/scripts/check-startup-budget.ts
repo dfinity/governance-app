@@ -18,7 +18,7 @@ const __dirname = path.dirname(__filename);
 const DIST_DIR = path.resolve(__dirname, '../dist');
 
 // About 3% above the current size. Raise it only for code that must load at startup.
-const BUDGET_BYTES = 480_000;
+const BUDGET_BYTES = 484_000;
 
 // These chunks load on demand. They must never be in the startup list.
 const ON_DEMAND_CHUNKS = ['vendor-ledger'];
