@@ -14,6 +14,7 @@ import {
   CoinsIcon,
   EyeIcon,
   EyeOffIcon,
+  FileSpreadsheetIcon,
   FileTextIcon,
   FingerprintIcon,
   KeyboardIcon,
@@ -61,6 +62,7 @@ import { NeuronIcon } from '@components/icons/NeuronIcon';
 import { Kbd } from '@components/Kbd';
 import { getNavigationItems } from '@components/navigation/NavigationItems';
 import { getSupportedAdvancedFeatures } from '@constants/advancedFeatures';
+import { FeatureFlag } from '@constants/featureFlags';
 import { FiatCurrency } from '@constants/fiat';
 import { ForecastPeriod } from '@constants/forecast';
 import { Theme } from '@constants/theme';
@@ -90,6 +92,7 @@ import { useVisibleViewport } from '@hooks/useVisibleViewport';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { isAccountsAreaEnabled, notifyAdvancedFeatureChange } from '@utils/advancedFeatures';
 import { copyToClipboard } from '@utils/clipboard';
+import { isFeatureFlagEnabled } from '@utils/featureFlags';
 import { shortenNeuronId } from '@utils/neuron';
 import { warningNotification } from '@utils/notification';
 import { addRecentCommand, readRecentCommands } from '@utils/recentCommands';
@@ -577,6 +580,18 @@ export const CommandPalette = () => {
         run: () => navigate({ to: item.href }),
       }),
     ),
+    ...(isFeatureFlagEnabled(FeatureFlag.Reports)
+      ? [
+          {
+            id: 'nav:/reports',
+            group: 'navigate',
+            label: t(($) => $.reports.title),
+            keywords: ['csv', 'export', 'download', 'year summary', 'transactions'],
+            icon: FileSpreadsheetIcon,
+            run: () => navigate({ to: '/reports' }),
+          } satisfies PaletteCommand,
+        ]
+      : []),
     {
       id: 'action:receive',
       group: 'actions',
