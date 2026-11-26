@@ -67,7 +67,6 @@ i18n.use(initReactI18next).init({
   interpolation: { escapeValue: false }, // Done by React.
   returnNull: false,
   returnObjects: true,
-  showSupportNotice: false,
 });
 
 export default i18n;
