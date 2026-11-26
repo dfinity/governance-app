@@ -60,6 +60,7 @@ const reward = mapReportTransaction({
   entity: main,
   transaction: mintTx({ id: 1n, ms: Date.UTC(2026, 5, 1), to: 'main', e8s: 1n }),
   neuronAccountIds: new Set(),
+  ownAccountIds: new Set(['main']),
 });
 
 const runTransactionsReport = async () => {

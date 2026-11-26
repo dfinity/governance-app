@@ -15,6 +15,7 @@ const main: ReportEntity = { kind: 'account', accountId: MAIN, name: 'Main' };
 const savings: ReportEntity = { kind: 'account', accountId: SAVINGS, name: 'Savings' };
 const neuron: ReportEntity = { kind: 'neuron', accountId: NEURON, neuronId: 7n };
 const neuronAccountIds = new Set([NEURON]);
+const ownAccountIds = new Set([MAIN, SAVINGS, NEURON]);
 
 const history = (
   entity: ReportEntity,
@@ -24,7 +25,7 @@ const history = (
   entity,
   balanceE8s,
   transactions: transactions.map((transaction) =>
-    mapReportTransaction({ entity, transaction, neuronAccountIds }),
+    mapReportTransaction({ entity, transaction, neuronAccountIds, ownAccountIds }),
   ),
 });
 

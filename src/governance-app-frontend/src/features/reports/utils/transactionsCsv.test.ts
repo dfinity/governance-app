@@ -13,10 +13,11 @@ import {
 const main: ReportEntity = { kind: 'account', accountId: MAIN, name: 'Main' };
 const neuron: ReportEntity = { kind: 'neuron', accountId: NEURON, neuronId: 12345678901234567n };
 const neuronAccountIds = new Set([NEURON]);
+const ownAccountIds = new Set([MAIN, SAVINGS, NEURON]);
 const MS = Date.UTC(2026, 2, 1, 10);
 
 const map = (entity: ReportEntity, transaction: ReturnType<typeof transferTx>) =>
-  mapReportTransaction({ entity, transaction, neuronAccountIds });
+  mapReportTransaction({ entity, transaction, neuronAccountIds, ownAccountIds });
 
 describe('mapReportTransaction', () => {
   it('maps an outgoing transfer to a debit with the fee', () => {
@@ -53,6 +54,28 @@ describe('mapReportTransaction', () => {
     ).toMatchObject({ type: ReportTransactionType.Disburse, amountE8s: -5n, feeE8s: 10_000n });
   });
 
+  it('maps a disburse to an own account on the account side', () => {
+    expect(
+      map(main, transferTx({ id: 1n, ms: MS, from: NEURON, to: MAIN, e8s: 5n })),
+    ).toMatchObject({ type: ReportTransactionType.Disburse, amountE8s: 5n, feeE8s: undefined });
+  });
+
+  it('maps both sides of a transfer between two own accounts to an own transfer', () => {
+    const own = transferTx({ id: 1n, ms: MS, from: MAIN, to: SAVINGS, e8s: 5n });
+    const savings: ReportEntity = { kind: 'account', accountId: SAVINGS, name: 'Savings' };
+
+    expect(map(main, own)).toMatchObject({
+      type: ReportTransactionType.OwnTransfer,
+      amountE8s: -5n,
+      feeE8s: 10_000n,
+    });
+    expect(map(savings, own)).toMatchObject({
+      type: ReportTransactionType.OwnTransfer,
+      amountE8s: 5n,
+      feeE8s: undefined,
+    });
+  });
+
   it('maps a self transfer to no change of balance', () => {
     expect(map(main, transferTx({ id: 1n, ms: MS, from: MAIN, to: MAIN, e8s: 5n }))).toMatchObject({
       type: ReportTransactionType.SelfTransfer,
@@ -87,7 +110,9 @@ const labels: TransactionsCsvLabels = {
     accountId: 'Account ID',
     neuronId: 'Neuron ID',
     type: 'Type',
+    fromName: 'From name',
     from: 'From',
+    toName: 'To name',
     to: 'To',
     amount: 'Amount',
     fee: 'Fee',
@@ -101,11 +126,13 @@ const labels: TransactionsCsvLabels = {
     [ReportTransactionType.Stake]: 'Stake',
     [ReportTransactionType.Disburse]: 'Disburse',
     [ReportTransactionType.SelfTransfer]: 'Self',
+    [ReportTransactionType.OwnTransfer]: 'Own',
     [ReportTransactionType.Reward]: 'Reward',
     [ReportTransactionType.Burn]: 'Burn',
     [ReportTransactionType.Approve]: 'Approve',
     [ReportTransactionType.Unknown]: 'Unknown',
   },
+  neuronName: (id) => `Neuron ${id}`,
 };
 
 const noRate: ReportRateLookup = () => undefined;
@@ -130,10 +157,10 @@ describe('buildTransactionsCsv', () => {
     });
 
     expect(csv.split('\r\n')).toEqual([
-      '\uFEFFIndex,Date,Account,Account ID,Neuron ID,Type,From,To,Amount,Fee,Price,Value,Rate date',
-      `2,2026-03-01 10:00:01,Main,${MAIN},,Sent,${MAIN},${SAVINGS},-1.00000000,0.00010000,2.64000000,-2.64,2026-02-28`,
-      `2,2026-03-01 10:00:01,Savings,${SAVINGS},,Received,${MAIN},${SAVINGS},+1.00000000,,2.64000000,+2.64,2026-02-28`,
-      `1,2026-03-01 10:00:00,Main,${MAIN},,Reward,,${MAIN},+0.50000000,,2.64000000,+1.32,2026-02-28`,
+      '\uFEFFIndex,Date,Account,Account ID,Neuron ID,Type,From name,From,To name,To,Amount,Fee,Price,Value,Rate date',
+      `2,2026-03-01 10:00:01,Main,${MAIN},,Own,Main,${MAIN},Savings,${SAVINGS},-1.00000000,0.00010000,2.64000000,-2.64,2026-02-28`,
+      `2,2026-03-01 10:00:01,Savings,${SAVINGS},,Own,Main,${MAIN},Savings,${SAVINGS},+1.00000000,,2.64000000,+2.64,2026-02-28`,
+      `1,2026-03-01 10:00:00,Main,${MAIN},,Reward,,,Main,${MAIN},+0.50000000,,2.64000000,+1.32,2026-02-28`,
       '',
     ]);
   });
@@ -147,7 +174,7 @@ describe('buildTransactionsCsv', () => {
       rateLookup: noRate,
     });
 
-    expect(csv).toContain(`,Reward,,${MAIN},+0.00000001,,,,\r\n`);
+    expect(csv).toContain(`,Reward,,,Main,${MAIN},+0.00000001,,,,\r\n`);
   });
 
   it('keeps an account name from running as a formula', () => {
@@ -182,7 +209,27 @@ describe('buildTransactionsCsv', () => {
       rateLookup: noRate,
     });
 
-    expect(csv).toContain(`,'=HYPERLINK(1),${MAIN},`);
+    expect(csv).toContain(`,'=HYPERLINK(1),Main,${MAIN},`);
+  });
+
+  it('names a neuron of the user in the to cell, and leaves an outside account unnamed', () => {
+    const csv = buildTransactionsCsv({
+      results: [
+        {
+          entity: main,
+          transactions: [
+            map(main, transferTx({ id: 3n, ms: MS, from: MAIN, to: NEURON, e8s: 1n })),
+            map(main, transferTx({ id: 4n, ms: MS + 1, from: MAIN, to: OTHER, e8s: 1n })),
+          ],
+        },
+        { entity: neuron, transactions: [] },
+      ],
+      labels,
+      rateLookup: noRate,
+    });
+
+    expect(csv).toContain(`,Stake,Main,${MAIN},Neuron 12345678901234567,${NEURON},`);
+    expect(csv).toContain(`,Sent,Main,${MAIN},,${OTHER},`);
   });
 
   it('writes the neuron ID as spreadsheet text', () => {
