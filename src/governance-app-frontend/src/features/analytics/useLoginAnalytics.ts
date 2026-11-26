@@ -23,6 +23,8 @@ export const setLoginSource = (source: LoginSource) => {
 export const useLoginAnalytics = () => {
   const { identity, isLoggingIn } = useInternetIdentity();
   const wasLoggingIn = useRef(isLoggingIn);
+  // A second click during a login can set another source. The attempt keeps the first one.
+  const attemptSource = useRef(loginSource);
 
   useEffect(() => {
     analytics.init();
@@ -30,10 +32,11 @@ export const useLoginAnalytics = () => {
 
   useEffect(() => {
     if (!wasLoggingIn.current && isLoggingIn) {
-      analytics.event(AnalyticsEvent.LoginStart, { source: loginSource });
+      attemptSource.current = loginSource;
+      analytics.event(AnalyticsEvent.LoginStart, { source: attemptSource.current });
     } else if (wasLoggingIn.current && !isLoggingIn) {
       analytics.event(identity ? AnalyticsEvent.LoginSuccess : AnalyticsEvent.LoginError, {
-        source: loginSource,
+        source: attemptSource.current,
       });
       loginSource = 'login_page';
     }

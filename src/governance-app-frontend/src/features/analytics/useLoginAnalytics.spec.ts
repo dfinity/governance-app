@@ -115,6 +115,21 @@ describe('useLoginAnalytics', () => {
     ]);
   });
 
+  it('keeps the source of the start when another control restarts the login', () => {
+    const setAuth = renderLoginPage();
+
+    setLoginSource('reader_vote_row');
+    setAuth({ isLoggingIn: true });
+    setLoginSource('reader_sidebar');
+    setAuth({ isLoggingIn: true });
+    setAuth({ isLoggingIn: false, identity: IDENTITY });
+
+    expect(vi.mocked(analytics.event).mock.calls).toEqual([
+      [AnalyticsEvent.LoginStart, { source: 'reader_vote_row' }],
+      [AnalyticsEvent.LoginSuccess, { source: 'reader_vote_row' }],
+    ]);
+  });
+
   it('does not send an event without a login attempt', () => {
     const setAuth = renderLoginPage();
 
