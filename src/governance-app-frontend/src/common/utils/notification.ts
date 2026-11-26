@@ -32,10 +32,14 @@ export const successNotification = ({ title, description }: NotificationOptions)
     ...ephemeralNotification,
   });
 
-export const warningNotification = ({ title, description }: NotificationOptions) =>
+export const warningNotification = ({
+  title,
+  description,
+  persistent = false,
+}: NotificationOptions & { persistent?: boolean }) =>
   toast.warning(title, {
     description,
-    ...ephemeralNotification,
+    ...(persistent ? persistentNotification : ephemeralNotification),
   });
 
 export const infoNotification = ({ title, description }: NotificationOptions) =>

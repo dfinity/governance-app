@@ -112,6 +112,9 @@
     },
     "settings": {
       "title": "Settings | Network Nervous System"
+    },
+    "reports": {
+      "title": "Reports | Network Nervous System"
     }
   },
   "newFeatureCheck": {
