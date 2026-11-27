@@ -132,6 +132,7 @@ export const buildYearSummaryCsv = ({
       // A total without the rewards that have no rate would look complete.
       summary.rewardsWithoutRate > 0 ? '' : formatHundredthsForCsv(summary.rewardsTotalHundredths),
       '',
+      ...(headers.fiatRateDate === undefined ? [] : ['']),
     ]),
     '',
     toCsvLine([labels.holdings]),

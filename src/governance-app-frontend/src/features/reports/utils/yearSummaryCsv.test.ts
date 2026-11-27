@@ -135,7 +135,9 @@ describe('buildYearSummaryCsv', () => {
     expect(csv).toContain(
       '\r\nDate,Account,Account ID,Neuron ID,Amount,Price,Value,Rate date,EUR rate date\r\n',
     );
-    expect(csv).toContain(',20.00,2025-12-20,2025-12-17\r\n');
+    expect(csv).toContain(
+      `\r\n2025-12-20 09:00:00,Main,${MAIN},,10.00000000,2.00000000,20.00,2025-12-20,2025-12-17\r\nTotal,,,,10.00000000,,20.00,,\r\n`,
+    );
     expect(csv).toContain('\r\nRate date,2025-12-20\r\nEUR rate date,2025-12-17\r\n');
   });
 
