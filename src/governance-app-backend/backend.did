@@ -100,7 +100,12 @@ type DailyRate = record {
     icp_to_usd_e8s : opt nat64;
     // Units of the requested fiat currency for one USD.
     // For example, 92_000_000 for "EUR" means that 1 USD buys 0.92 EUR.
+    // For a day in the last 3 days, the XRC can still change the rate. Thus the rate of such a
+    // day is the newest non-final rate, and it can be the rate of an earlier day.
     usd_to_fiat_e8s : opt nat64;
+    // true if `usd_to_fiat_e8s` is the final rate of the day.
+    // false if it is a non-final rate, or if `usd_to_fiat_e8s` is empty.
+    usd_to_fiat_is_final : bool;
 };
 
 type ListDailyExchangeRatesRequest = record {

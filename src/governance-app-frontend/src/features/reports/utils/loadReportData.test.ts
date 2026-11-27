@@ -168,6 +168,7 @@ describe('loadReportRates', () => {
     timestamp_seconds: BigInt(Date.UTC(2025, 5, 1) / 1_000),
     icp_to_usd_e8s: [400_000_000n] as [bigint],
     usd_to_fiat_e8s: [90_000_000n] as [bigint],
+    usd_to_fiat_is_final: true,
   };
 
   it('asks for the range plus the lookback days, with the fiat symbol', async () => {

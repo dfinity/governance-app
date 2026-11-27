@@ -9,8 +9,8 @@ const MS_IN_DAY = SECONDS_IN_DAY * 1_000;
 
 /**
  * If a day has no rate, the report uses the rate of the nearest earlier day, at most this many
- * days back. The backend fetches a USD/fiat rate 3 days after its day, and forex markets close on
- * weekends.
+ * days back. The backend has a final USD/fiat rate only 3 days after its day, and forex markets
+ * close on weekends.
  */
 export const MAX_RATE_LOOKBACK_DAYS = 7;
 
@@ -20,7 +20,7 @@ export type ReportRate = {
   dayMs: number;
   /**
    * 00:00 UTC of the day of the USD/fiat rate. It can be before `dayMs`, because the backend has
-   * no USD/fiat rate for the last 3 days. For USD, it is `dayMs`.
+   * no final USD/fiat rate for the last 3 days. For USD, it is `dayMs`.
    */
   fiatDayMs: number;
   icpToFiatE8s: bigint;
@@ -71,12 +71,20 @@ export const createReportRateLookup = ({
   const icpToUsdByDayMs = new Map<number, bigint>();
   const usdToFiatByDayMs = new Map<number, bigint>();
 
-  for (const { timestamp_seconds, icp_to_usd_e8s, usd_to_fiat_e8s } of rates) {
+  for (const {
+    timestamp_seconds,
+    icp_to_usd_e8s,
+    usd_to_fiat_e8s,
+    usd_to_fiat_is_final,
+  } of rates) {
     const dayMs = Number(timestamp_seconds) * 1_000;
     const [icpToUsdE8s] = icp_to_usd_e8s;
     const [usdToFiatE8s] = usd_to_fiat_e8s;
     if (icpToUsdE8s !== undefined) icpToUsdByDayMs.set(dayMs, icpToUsdE8s);
-    if (usdToFiatE8s !== undefined) usdToFiatByDayMs.set(dayMs, usdToFiatE8s);
+    // The CSVs cannot mark a non-final rate yet, so a day with one uses the earlier final rate.
+    if (usdToFiatE8s !== undefined && usd_to_fiat_is_final) {
+      usdToFiatByDayMs.set(dayMs, usdToFiatE8s);
+    }
   }
 
   return (timestampMs) => {

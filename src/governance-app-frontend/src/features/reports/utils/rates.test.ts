@@ -15,10 +15,14 @@ import {
 const DAY_MS = 86_400_000;
 const JAN_1 = Date.UTC(2026, 0, 1);
 
-const rate = (dayMs: number, { icp, fiat }: { icp?: bigint; fiat?: bigint }): DailyRate => ({
+const rate = (
+  dayMs: number,
+  { icp, fiat, isFinal = true }: { icp?: bigint; fiat?: bigint; isFinal?: boolean },
+): DailyRate => ({
   timestamp_seconds: BigInt(dayMs / 1_000),
   icp_to_usd_e8s: icp === undefined ? [] : [icp],
   usd_to_fiat_e8s: fiat === undefined ? [] : [fiat],
+  usd_to_fiat_is_final: fiat !== undefined && isFinal,
 });
 
 describe('createReportRateLookup', () => {
@@ -45,6 +49,22 @@ describe('createReportRateLookup', () => {
     });
 
     expect(lookup(JAN_1 + 2 * DAY_MS)).toEqual({
+      dayMs: JAN_1 + DAY_MS,
+      fiatDayMs: JAN_1,
+      icpToFiatE8s: 279_000_000n,
+    });
+  });
+
+  it('uses the earlier final USD/fiat rate instead of a non-final rate', () => {
+    const lookup = createReportRateLookup({
+      rates: [
+        rate(JAN_1, { icp: 300_000_000n, fiat: 90_000_000n }),
+        rate(JAN_1 + DAY_MS, { icp: 310_000_000n, fiat: 95_000_000n, isFinal: false }),
+      ],
+      currency: FiatCurrency.EUR,
+    });
+
+    expect(lookup(JAN_1 + DAY_MS)).toEqual({
       dayMs: JAN_1 + DAY_MS,
       fiatDayMs: JAN_1,
       icpToFiatE8s: 279_000_000n,
