@@ -12,7 +12,7 @@ use std::time::Duration;
 
 use cache::{CachedRate, FiatExchangeRate, IcpExchangeRateResponse};
 use candid::CandidType;
-use daily_history::{DailyRate, DailyRatePair};
+use daily_history::{DailyRate, DailyRatePair, MissingDailyRate};
 use month_history::PastMonthRate;
 use serde::Deserialize;
 use xrc_client::{Asset, AssetClass, GetExchangeRateRequest};
@@ -212,24 +212,61 @@ async fn fill_daily_history_gaps() {
     }
 }
 
-/// Fetches up to `DAILY_HISTORY_BATCH_SIZE` rates that the daily history misses, newest day first.
-/// A failed fetch is tried again after a retry delay, which doubles after each failure.
+/// One rate that a daily history batch fetches.
+#[derive(Clone, Copy, Debug)]
+enum DailyHistoryFetch {
+    /// A final rate that the history misses.
+    Missing(MissingDailyRate),
+    /// The non-final USD/fiat rate of a day in the delay window.
+    NonFinal {
+        day_start_seconds: u64,
+        symbol: &'static str,
+    },
+}
+
+/// Fetches up to `DAILY_HISTORY_BATCH_SIZE` rates for the daily history.
+/// The non-final USD/fiat rates of the days in the delay window come first. A failed fetch of
+/// such a rate keeps the previous rate, and the next run tries again.
+/// Then come the rates that the history misses, newest day first. A failed fetch of a missing
+/// rate is tried again after a retry delay, which doubles after each failure.
 /// A batch that starts while another batch is in progress returns at once.
-/// Returns `true` if the batch was full and stored a rate, so that the next batch can start
-/// at once. A batch that stores no rate leaves the next try to the next interval.
+/// Returns `true` if the batch was full and stored a rate or fetched a non-final rate, so that
+/// the next batch can start at once. A non-final rate is not fetched again in the same run, so
+/// failed non-final fetches do not block the missing rates. A batch of failed missing rates
+/// leaves the next try to the next interval.
 async fn fill_daily_history_batch() -> bool {
     let Some(_guard) = DailyHistoryFillGuard::acquire() else {
         return false;
     };
 
-    let batch = daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS)
+    daily_history::remove_outdated_non_final_fiat_rates();
+    let non_final_fetches =
+        daily_history::list_non_final_fiat_rates_to_fetch(&SUPPORTED_FIAT_SYMBOLS)
+            .into_iter()
+            .map(|(day_start_seconds, symbol)| DailyHistoryFetch::NonFinal {
+                day_start_seconds,
+                symbol,
+            });
+    let missing_fetches = daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS)
         .into_iter()
+        .map(DailyHistoryFetch::Missing);
+    let batch = non_final_fetches
+        .chain(missing_fetches)
         .take(DAILY_HISTORY_BATCH_SIZE)
         .collect::<Vec<_>>();
     let mut stored_count = 0;
 
-    for missing_rate in &batch {
-        let (base_asset, quote_asset) = match missing_rate.pair {
+    for fetch in &batch {
+        let (pair, day_start_seconds) = match *fetch {
+            DailyHistoryFetch::Missing(missing_rate) => {
+                (missing_rate.pair, missing_rate.day_start_seconds)
+            }
+            DailyHistoryFetch::NonFinal {
+                day_start_seconds,
+                symbol,
+            } => (DailyRatePair::UsdToFiat(symbol), day_start_seconds),
+        };
+        let (base_asset, quote_asset) = match pair {
             DailyRatePair::IcpToUsd => (icp_asset(), fiat_asset("USD")),
             DailyRatePair::UsdToFiat(symbol) => (fiat_asset("USD"), fiat_asset(symbol)),
         };
@@ -238,13 +275,13 @@ async fn fill_daily_history_batch() -> bool {
         let daily_rate = fetch_rate(
             base_asset,
             quote_asset,
-            Some(missing_rate.day_start_seconds),
+            Some(day_start_seconds),
             "daily-history",
         )
         .await;
 
-        match daily_rate {
-            Some(rate) => {
+        match (*fetch, daily_rate) {
+            (DailyHistoryFetch::Missing(missing_rate), Some(rate)) => {
                 daily_history::add_rate(
                     missing_rate.pair,
                     missing_rate.day_start_seconds,
@@ -252,11 +289,33 @@ async fn fill_daily_history_batch() -> bool {
                 );
                 stored_count += 1;
             }
-            None => daily_history::record_failed_fetch(*missing_rate),
+            (DailyHistoryFetch::Missing(missing_rate), None) => {
+                daily_history::record_failed_fetch(missing_rate)
+            }
+            (
+                DailyHistoryFetch::NonFinal {
+                    day_start_seconds,
+                    symbol,
+                },
+                Some(rate),
+            ) => {
+                daily_history::add_non_final_fiat_rate(symbol, day_start_seconds, rate.rate_e8s);
+                stored_count += 1;
+            }
+            (
+                DailyHistoryFetch::NonFinal {
+                    day_start_seconds,
+                    symbol,
+                },
+                None,
+            ) => daily_history::record_failed_non_final_fetch(symbol, day_start_seconds),
         }
     }
 
-    batch.len() == DAILY_HISTORY_BATCH_SIZE && stored_count > 0
+    let fetched_non_final = batch
+        .iter()
+        .any(|fetch| matches!(fetch, DailyHistoryFetch::NonFinal { .. }));
+    batch.len() == DAILY_HISTORY_BATCH_SIZE && (stored_count > 0 || fetched_non_final)
 }
 
 /// Marks a daily history fill as in progress, until the guard is dropped.
