@@ -61,6 +61,8 @@ export type TransactionsCsvLabels = {
     price: string;
     value: string;
     rateDate: string;
+    /** The date of the USD/fiat rate, for a currency other than USD. */
+    fiatRateDate?: string;
   };
   types: Record<ReportTransactionType, string>;
   /** For example, "Neuron 123". */
@@ -259,6 +261,15 @@ export const buildTransactionsCsv = ({
       header: headers.rateDate,
       value: ({ rate }) => (rate === undefined ? '' : formatUtcDate(rate.dayMs)),
     },
+    ...(headers.fiatRateDate === undefined
+      ? []
+      : [
+          {
+            header: headers.fiatRateDate,
+            value: ({ rate }: { rate: ReportRate | undefined }) =>
+              rate === undefined ? '' : formatUtcDate(rate.fiatDayMs),
+          },
+        ]),
   ];
 
   const rows = results

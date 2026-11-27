@@ -1,13 +1,27 @@
 import { NeuronState } from '@icp-sdk/canisters/nns';
 import { useTranslation } from 'react-i18next';
 
-import type { FiatCurrency } from '@constants/fiat';
+import { FiatCurrency } from '@constants/fiat';
 
 import { formatUtcDate } from '../utils/csv';
 import { NeuronAccess, type NeuronsCsvLabels } from '../utils/neuronsCsv';
 import { ReportTransactionType, type TransactionsCsvLabels } from '../utils/transactionsCsv';
 import type { YearPeriod } from '../utils/yearSummary';
 import type { YearSummaryCsvLabels } from '../utils/yearSummaryCsv';
+
+/** For a currency other than USD, the ICP/USD and USD/fiat rates can come from different days. */
+const useRateDateHeaders = (
+  currency: FiatCurrency,
+): { rateDate: string; fiatRateDate?: string } => {
+  const { t } = useTranslation();
+
+  return currency === FiatCurrency.USD
+    ? { rateDate: t(($) => $.reports.csv.transactions.rateDate) }
+    : {
+        rateDate: t(($) => $.reports.csv.transactions.icpRateDate),
+        fiatRateDate: t(($) => $.reports.csv.transactions.fiatRateDate, { currency }),
+      };
+};
 
 export const useNeuronsCsvLabels = (currency: FiatCurrency): NeuronsCsvLabels => {
   const { t } = useTranslation();
@@ -45,6 +59,7 @@ export const useNeuronsCsvLabels = (currency: FiatCurrency): NeuronsCsvLabels =>
 
 export const useTransactionsCsvLabels = (currency: FiatCurrency): TransactionsCsvLabels => {
   const { t } = useTranslation();
+  const rateDateHeaders = useRateDateHeaders(currency);
 
   return {
     headers: {
@@ -62,7 +77,7 @@ export const useTransactionsCsvLabels = (currency: FiatCurrency): TransactionsCs
       fee: t(($) => $.reports.csv.transactions.fee),
       price: t(($) => $.reports.csv.transactions.price, { currency }),
       value: t(($) => $.reports.csv.transactions.value, { currency }),
-      rateDate: t(($) => $.reports.csv.transactions.rateDate),
+      ...rateDateHeaders,
     },
     types: {
       [ReportTransactionType.Received]: t(($) => $.reports.csv.types.received),
@@ -101,6 +116,7 @@ export const useYearSummaryCsvLabels = ({
 }): YearSummaryCsvLabels => {
   const { t } = useTranslation();
   const limits = useYearSummaryLimits();
+  const rateDateHeaders = useRateDateHeaders(currency);
 
   return {
     title: t(($) => $.reports.csv.yearSummary.title),
@@ -123,7 +139,7 @@ export const useYearSummaryCsvLabels = ({
       balance: t(($) => $.reports.csv.yearSummary.balance),
       price: t(($) => $.reports.csv.transactions.price, { currency }),
       value: t(($) => $.reports.csv.transactions.value, { currency }),
-      rateDate: t(($) => $.reports.csv.transactions.rateDate),
+      ...rateDateHeaders,
       maturity: t(($) => $.reports.csv.yearSummary.maturity),
       received: t(($) => $.reports.csv.yearSummary.received),
       sent: t(($) => $.reports.csv.yearSummary.sent),

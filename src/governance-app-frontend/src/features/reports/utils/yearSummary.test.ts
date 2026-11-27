@@ -59,7 +59,11 @@ const histories = [
 ];
 
 const RATE_DAY_MS = Date.UTC(2025, 11, 31);
-const twoPerIcp: ReportRateLookup = () => ({ dayMs: RATE_DAY_MS, icpToFiatE8s: 2n * ICP });
+const twoPerIcp: ReportRateLookup = () => ({
+  dayMs: RATE_DAY_MS,
+  fiatDayMs: RATE_DAY_MS,
+  icpToFiatE8s: 2n * ICP,
+});
 const NOW = Date.UTC(2026, 2, 1);
 
 describe('buildYearSummary', () => {

@@ -141,7 +141,11 @@ describe('buildTransactionsCsv', () => {
   it('writes one flat table, newest first, with one row for each side of an own transfer', () => {
     // The rate of the day before, as for a day without a rate.
     const rateDayMs = Date.UTC(2026, 1, 28);
-    const rateLookup: ReportRateLookup = () => ({ dayMs: rateDayMs, icpToFiatE8s: 264_000_000n });
+    const rateLookup: ReportRateLookup = () => ({
+      dayMs: rateDayMs,
+      fiatDayMs: rateDayMs,
+      icpToFiatE8s: 264_000_000n,
+    });
     const savings: ReportEntity = { kind: 'account', accountId: SAVINGS, name: 'Savings' };
     const own = transferTx({ id: 2n, ms: MS + 1_000, from: MAIN, to: SAVINGS, e8s: 100_000_000n });
     const reward = mintTx({ id: 1n, ms: MS, to: MAIN, e8s: 50_000_000n });
@@ -163,6 +167,29 @@ describe('buildTransactionsCsv', () => {
       `1,2026-03-01 10:00:00,Main,${MAIN},,Reward,,,Main,${MAIN},+0.50000000,,2.64000000,+1.32,2026-02-28`,
       '',
     ]);
+  });
+
+  it('adds the date of the USD/fiat rate for a currency other than USD', () => {
+    const rateLookup: ReportRateLookup = () => ({
+      dayMs: Date.UTC(2026, 2, 1),
+      fiatDayMs: Date.UTC(2026, 1, 26),
+      icpToFiatE8s: 264_000_000n,
+    });
+
+    const csv = buildTransactionsCsv({
+      results: [
+        { entity: main, transactions: [map(main, mintTx({ id: 1n, ms: MS, to: MAIN, e8s: 1n }))] },
+      ],
+      labels: {
+        ...labels,
+        headers: { ...labels.headers, rateDate: 'ICP rate date', fiatRateDate: 'EUR rate date' },
+      },
+      rateLookup,
+    });
+
+    const [header, row] = csv.split('\r\n');
+    expect(header.endsWith(',Value,ICP rate date,EUR rate date')).toBe(true);
+    expect(row.endsWith(',2026-03-01,2026-02-26')).toBe(true);
   });
 
   it('leaves the fiat cells empty without a rate', () => {
