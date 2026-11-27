@@ -201,7 +201,26 @@ describe('buildYearSummary', () => {
     expect(summary.rewardsWithoutRate).toBe(1);
   });
 
-  it('gives the date when the fiat values are final, for rewards and holdings', () => {
+  it('gives the date when the fiat value of a reward is final', () => {
+    const rewardDayMs = Date.UTC(2025, 11, 20);
+    const summary = buildYearSummary({
+      period: getYearPeriod(2025, NOW),
+      histories,
+      complete: true,
+      neurons: [],
+      // Only the reward day has a non-final rate. The holdings rate is final.
+      rateLookup: (timestampMs) => ({
+        ...twoPerIcp(timestampMs)!,
+        fiatDayMs: timestampMs < RATE_DAY_MS ? rewardDayMs : RATE_DAY_MS,
+        fiatIsFinal: timestampMs >= RATE_DAY_MS,
+      }),
+    });
+
+    expect(summary.rewards).toHaveLength(1);
+    expect(summary.fiatRatesFinalAtMs).toBe(Date.UTC(2025, 11, 23));
+  });
+
+  it('gives the date when the fiat value of the holdings is final', () => {
     const nonFinalDayMs = Date.UTC(2026, 10, 14);
     const summary = buildYearSummary({
       period: getYearPeriod(2026, NOW),
@@ -215,6 +234,7 @@ describe('buildYearSummary', () => {
       }),
     });
 
+    expect(summary.rewards).toEqual([]);
     expect(summary.fiatRatesFinalAtMs).toBe(Date.UTC(2026, 10, 17));
   });
 
