@@ -230,8 +230,10 @@ enum DailyHistoryFetch {
 /// Then come the rates that the history misses, newest day first. A failed fetch of a missing
 /// rate is tried again after a retry delay, which doubles after each failure.
 /// A batch that starts while another batch is in progress returns at once.
-/// Returns `true` if the batch was full and stored a rate, so that the next batch can start
-/// at once. A batch that stores no rate leaves the next try to the next interval.
+/// Returns `true` if the batch was full and stored a rate or fetched a non-final rate, so that
+/// the next batch can start at once. A non-final rate is not fetched again in the same run, so
+/// failed non-final fetches do not block the missing rates. A batch of failed missing rates
+/// leaves the next try to the next interval.
 async fn fill_daily_history_batch() -> bool {
     let Some(_guard) = DailyHistoryFillGuard::acquire() else {
         return false;
@@ -310,7 +312,10 @@ async fn fill_daily_history_batch() -> bool {
         }
     }
 
-    batch.len() == DAILY_HISTORY_BATCH_SIZE && stored_count > 0
+    let fetched_non_final = batch
+        .iter()
+        .any(|fetch| matches!(fetch, DailyHistoryFetch::NonFinal { .. }));
+    batch.len() == DAILY_HISTORY_BATCH_SIZE && (stored_count > 0 || fetched_non_final)
 }
 
 /// Marks a daily history fill as in progress, until the guard is dropped.

@@ -1012,6 +1012,7 @@ async fn test_fill_daily_history_batch_stops_after_failed_batch() {
     // Step 1: Prepare the world.
     let tenth_day_seconds = FIRST_DAY_START_SECONDS + 9 * ONE_DAY_SECS + 5 * ONE_HOUR_SECS;
     set_time_seconds(tenth_day_seconds);
+    skip_non_final_fetches();
     for _ in 0..DAILY_HISTORY_BATCH_SIZE {
         testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
     }
@@ -1138,6 +1139,9 @@ fn test_daily_history_fill_guard_allows_one_fill_at_a_time() {
 const THIRD_DAY_START_SECONDS: u64 = FIRST_DAY_START_SECONDS + 2 * ONE_DAY_SECS;
 const FOURTH_DAY_START_SECONDS: u64 = FIRST_DAY_START_SECONDS + 3 * ONE_DAY_SECS;
 const FIFTH_DAY_START_SECONDS: u64 = FIRST_DAY_START_SECONDS + 4 * ONE_DAY_SECS;
+
+/// The number of non-final rates at `FIFTH_DAY_SECONDS`: 3 days, each with each fiat currency.
+const NON_FINAL_RATE_COUNT: usize = 3 * SUPPORTED_FIAT_SYMBOLS.len();
 
 /// Stores each final rate that is missing now, so that a batch fetches only non-final rates.
 fn add_missing_final_rates() {
@@ -1302,15 +1306,16 @@ async fn test_fill_daily_history_batch_tries_a_failed_non_final_rate_again_witho
         set_time_seconds(
             FIFTH_DAY_SECONDS + run_index * daily_history::NON_FINAL_REFETCH_DELAY_SECS,
         );
-        for _ in 0..DAILY_HISTORY_BATCH_SIZE {
+        for _ in 0..NON_FINAL_RATE_COUNT {
             testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
         }
+        assert!(fill_daily_history_batch().await);
         assert!(!fill_daily_history_batch().await);
         request_counts.push(testing::drain_requests().len());
     }
 
     // Step 3: Verify result(s). Each run tries the rates again, and the previous rate stays.
-    assert_eq!(request_counts, vec![DAILY_HISTORY_BATCH_SIZE; 4]);
+    assert_eq!(request_counts, vec![NON_FINAL_RATE_COUNT; 4]);
     let fifth_day_eur_rate =
         daily_history::list_rates(FIFTH_DAY_START_SECONDS, FIFTH_DAY_SECONDS, Some("EUR"))
             .pop()
@@ -1324,6 +1329,54 @@ async fn test_fill_daily_history_batch_tries_a_failed_non_final_rate_again_witho
             day_start_seconds: THIRD_DAY_START_SECONDS,
             pair: DailyRatePair::UsdToFiat("EUR"),
         })
+    );
+}
+
+#[tokio::test]
+async fn test_fill_daily_history_batch_fetches_missing_rates_after_failed_non_final_rates() {
+    // Step 1: Prepare the world. Only the non-final rates and the ICP/USD rate of day 5 are
+    // missing. Each non-final fetch fails.
+    set_time_seconds(FIFTH_DAY_SECONDS);
+    let day_five_icp_rate = MissingDailyRate {
+        day_start_seconds: FIFTH_DAY_START_SECONDS,
+        pair: DailyRatePair::IcpToUsd,
+    };
+    for missing_rate in daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS) {
+        if missing_rate != day_five_icp_rate {
+            daily_history::add_rate(
+                missing_rate.pair,
+                missing_rate.day_start_seconds,
+                100_000_000,
+            );
+        }
+    }
+    for _ in 0..NON_FINAL_RATE_COUNT {
+        testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
+    }
+    let response = make_exchange_rate(300_000_000, E8S_DECIMALS, FIFTH_DAY_START_SECONDS);
+    testing::add_exchange_rate_response(Ok(Ok(response)));
+
+    // Step 2: Run the code under test.
+    let first_should_continue = fill_daily_history_batch().await;
+    let second_should_continue = fill_daily_history_batch().await;
+
+    // Step 3: Verify result(s).
+    assert!(first_should_continue);
+    assert!(!second_should_continue);
+    let request_quotes = drain_request_quotes();
+    assert_eq!(request_quotes.len(), NON_FINAL_RATE_COUNT + 1);
+    assert_eq!(
+        request_quotes.last(),
+        Some(&("USD".to_string(), Some(FIFTH_DAY_START_SECONDS)))
+    );
+    assert_eq!(
+        daily_history::list_rates(FIFTH_DAY_START_SECONDS, FIFTH_DAY_SECONDS, None),
+        vec![DailyRate {
+            timestamp_seconds: FIFTH_DAY_START_SECONDS,
+            icp_to_usd_e8s: Some(300_000_000),
+            usd_to_fiat_e8s: None,
+            usd_to_fiat_is_final: false,
+        }]
     );
 }
 
