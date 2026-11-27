@@ -182,6 +182,7 @@ describe('loadReportRates', () => {
     });
     expect(lookup(Date.UTC(2025, 5, 1, 12))).toEqual({
       dayMs: Date.UTC(2025, 5, 1),
+      fiatDayMs: Date.UTC(2025, 5, 1),
       icpToFiatE8s: 360_000_000n,
     });
   });
