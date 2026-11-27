@@ -129,7 +129,7 @@ describe('YearSummarySection', () => {
     render(<YearSummarySection />);
 
     expect(screen.getByTestId('year-summary-non-final-note').textContent).toBe(
-      'The USD values of the last days can still change. Download the report again after 00:00 UTC on Nov 19, 2026.',
+      'The USD values of the last days can still change. Download the report again after 00:00 UTC on Nov 19, 2026 at the earliest. If this note shows again, try again a few hours later.',
     );
   });
 

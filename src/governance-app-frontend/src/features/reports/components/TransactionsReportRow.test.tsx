@@ -60,7 +60,7 @@ describe('TransactionsReportRow', () => {
     render(<TransactionsReportRow />);
 
     expect(screen.getByTestId('transactions-report-non-final-note').textContent).toBe(
-      'The EUR values of the last days can still change. Download the report again after 00:00 UTC on Nov 18, 2026.',
+      'The EUR values of the last days can still change. Download the report again after 00:00 UTC on Nov 18, 2026 at the earliest. If this note shows again, try again a few hours later.',
     );
   });
 
