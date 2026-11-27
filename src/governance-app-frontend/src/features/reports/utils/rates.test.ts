@@ -19,6 +19,7 @@ const rate = (dayMs: number, { icp, fiat }: { icp?: bigint; fiat?: bigint }): Da
   timestamp_seconds: BigInt(dayMs / 1_000),
   icp_to_usd_e8s: icp === undefined ? [] : [icp],
   usd_to_fiat_e8s: fiat === undefined ? [] : [fiat],
+  usd_to_fiat_is_final: fiat !== undefined,
 });
 
 describe('createReportRateLookup', () => {

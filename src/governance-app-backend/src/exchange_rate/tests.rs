@@ -713,6 +713,16 @@ fn missing_rates_on_fifth_day() -> Vec<MissingDailyRate> {
         .collect()
 }
 
+/// Records a fetch of each non-final rate that is due, so that the next batches fetch only the
+/// missing final rates.
+fn skip_non_final_fetches() {
+    for (day_start_seconds, symbol) in
+        daily_history::list_non_final_fiat_rates_to_fetch(&SUPPORTED_FIAT_SYMBOLS)
+    {
+        daily_history::record_failed_non_final_fetch(symbol, day_start_seconds);
+    }
+}
+
 #[test]
 fn test_daily_history_lists_missing_rates_newest_day_first() {
     // Step 1: Prepare the world.
@@ -819,11 +829,13 @@ fn test_daily_history_lists_rates_of_one_fiat_currency_in_the_range() {
                 timestamp_seconds: FIRST_DAY_START_SECONDS,
                 icp_to_usd_e8s: Some(700_000_000),
                 usd_to_fiat_e8s: Some(96_000_000),
+                usd_to_fiat_is_final: true,
             },
             DailyRate {
                 timestamp_seconds: SECOND_DAY_START_SECONDS,
                 icp_to_usd_e8s: Some(710_000_000),
                 usd_to_fiat_e8s: None,
+                usd_to_fiat_is_final: false,
             },
         ]
     );
@@ -834,11 +846,13 @@ fn test_daily_history_lists_rates_of_one_fiat_currency_in_the_range() {
                 timestamp_seconds: SECOND_DAY_START_SECONDS,
                 icp_to_usd_e8s: Some(710_000_000),
                 usd_to_fiat_e8s: None,
+                usd_to_fiat_is_final: false,
             },
             DailyRate {
                 timestamp_seconds: third_day_start_seconds,
                 icp_to_usd_e8s: Some(720_000_000),
                 usd_to_fiat_e8s: None,
+                usd_to_fiat_is_final: false,
             },
         ]
     );
@@ -868,6 +882,7 @@ fn test_daily_history_lists_a_fiat_rate_without_an_icp_rate() {
             timestamp_seconds: FIRST_DAY_START_SECONDS,
             icp_to_usd_e8s: None,
             usd_to_fiat_e8s: Some(90_000_000),
+            usd_to_fiat_is_final: true,
         }]
     );
 }
@@ -876,6 +891,7 @@ fn test_daily_history_lists_a_fiat_rate_without_an_icp_rate() {
 async fn test_fill_daily_history_gaps_fetches_failed_rate_on_next_run() {
     // Step 1: Prepare the world.
     set_time_seconds(FIFTH_DAY_SECONDS);
+    skip_non_final_fetches();
     let missing_rates = daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS);
     let failed_rate = MissingDailyRate {
         day_start_seconds: FIRST_DAY_START_SECONDS,
@@ -945,6 +961,7 @@ async fn test_fill_daily_history_gaps_fetches_failed_rate_on_next_run() {
     assert_eq!(listed_eur_rates, expected_eur_rates);
 
     // Step 4: Run the code under test again. Only the failed rate is fetched.
+    skip_non_final_fetches();
     let response = make_exchange_rate(15_000_000_000, E8S_DECIMALS, FIRST_DAY_START_SECONDS);
     testing::add_exchange_rate_response(Ok(Ok(response)));
 
@@ -970,6 +987,7 @@ async fn test_fill_daily_history_batch_fetches_at_most_one_batch() {
     // Step 1: Prepare the world.
     let tenth_day_seconds = FIRST_DAY_START_SECONDS + 9 * ONE_DAY_SECS + 5 * ONE_HOUR_SECS;
     set_time_seconds(tenth_day_seconds);
+    skip_non_final_fetches();
     let missing_rates = daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS);
     for missing_rate in missing_rates.iter().take(DAILY_HISTORY_BATCH_SIZE) {
         let response =
@@ -1011,6 +1029,7 @@ async fn test_fill_daily_history_batch_waits_before_it_tries_a_failed_rate_again
     // Step 1: Prepare the world. The first rate of the first batch fails.
     let tenth_day_seconds = FIRST_DAY_START_SECONDS + 9 * ONE_DAY_SECS + 5 * ONE_HOUR_SECS;
     set_time_seconds(tenth_day_seconds);
+    skip_non_final_fetches();
     let missing_rates = daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS);
     let failed_rate = missing_rates[0];
     testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
@@ -1054,6 +1073,7 @@ async fn test_fill_daily_history_batch_doubles_the_retry_delay_after_each_failur
     // Step 1: Prepare the world. On the first day, only the ICP/USD rate is missing.
     let first_failure_seconds = FIRST_DAY_START_SECONDS + 5 * ONE_HOUR_SECS;
     set_time_seconds(first_failure_seconds);
+    skip_non_final_fetches();
     let missing_rate = MissingDailyRate {
         day_start_seconds: FIRST_DAY_START_SECONDS,
         pair: DailyRatePair::IcpToUsd,
@@ -1065,6 +1085,7 @@ async fn test_fill_daily_history_batch_doubles_the_retry_delay_after_each_failur
     fill_daily_history_batch().await;
     let second_failure_seconds = first_failure_seconds + daily_history::FETCH_RETRY_DELAY_SECS;
     set_time_seconds(second_failure_seconds);
+    skip_non_final_fetches();
     fill_daily_history_batch().await;
 
     // Step 3: Verify result(s). The second delay is twice as long as the first one.
@@ -1112,6 +1133,247 @@ fn test_daily_history_fill_guard_allows_one_fill_at_a_time() {
     assert!(third_guard.is_some());
 }
 
+/// The start of the third day of the daily history. At `FIFTH_DAY_SECONDS`, the third, fourth,
+/// and fifth days are in the delay window.
+const THIRD_DAY_START_SECONDS: u64 = FIRST_DAY_START_SECONDS + 2 * ONE_DAY_SECS;
+const FOURTH_DAY_START_SECONDS: u64 = FIRST_DAY_START_SECONDS + 3 * ONE_DAY_SECS;
+const FIFTH_DAY_START_SECONDS: u64 = FIRST_DAY_START_SECONDS + 4 * ONE_DAY_SECS;
+
+/// Stores each final rate that is missing now, so that a batch fetches only non-final rates.
+fn add_missing_final_rates() {
+    for missing_rate in daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS) {
+        daily_history::add_rate(
+            missing_rate.pair,
+            missing_rate.day_start_seconds,
+            100_000_000,
+        );
+    }
+}
+
+/// Returns the quote symbol and the timestamp of each request since the last call.
+fn drain_request_quotes() -> Vec<(String, Option<u64>)> {
+    testing::drain_requests()
+        .into_iter()
+        .map(|request| (request.quote_asset.symbol, request.timestamp))
+        .collect()
+}
+
+#[tokio::test]
+async fn test_fill_daily_history_batch_fetches_non_final_rates_first() {
+    // Step 1: Prepare the world. Only the non-final rates of days 5, 4, and 3 are missing.
+    set_time_seconds(FIFTH_DAY_SECONDS);
+    add_missing_final_rates();
+    let expected_requests = [
+        FIFTH_DAY_START_SECONDS,
+        FOURTH_DAY_START_SECONDS,
+        THIRD_DAY_START_SECONDS,
+    ]
+    .into_iter()
+    .flat_map(|day_start_seconds| {
+        SUPPORTED_FIAT_SYMBOLS
+            .iter()
+            .map(move |&symbol| (symbol.to_string(), Some(day_start_seconds)))
+    })
+    .collect::<Vec<(String, Option<u64>)>>();
+    for (index, (_, timestamp)) in expected_requests.iter().enumerate() {
+        let rate_e8s = 90_000_000 + index as u64;
+        let response = make_exchange_rate(rate_e8s, E8S_DECIMALS, timestamp.unwrap());
+        testing::add_exchange_rate_response(Ok(Ok(response)));
+    }
+
+    // Step 2: Run the code under test. 21 rates need two batches.
+    let first_should_continue = fill_daily_history_batch().await;
+    let second_should_continue = fill_daily_history_batch().await;
+    let third_should_continue = fill_daily_history_batch().await;
+
+    // Step 3: Verify result(s). The third batch fetches nothing, because each rate was fetched.
+    assert!(first_should_continue);
+    assert!(!second_should_continue);
+    assert!(!third_should_continue);
+    assert_eq!(drain_request_quotes(), expected_requests);
+    assert_eq!(
+        daily_history::list_rates(SECOND_DAY_START_SECONDS, FIFTH_DAY_SECONDS, Some("EUR")),
+        vec![
+            DailyRate {
+                timestamp_seconds: SECOND_DAY_START_SECONDS,
+                icp_to_usd_e8s: Some(100_000_000),
+                usd_to_fiat_e8s: Some(100_000_000),
+                usd_to_fiat_is_final: true,
+            },
+            DailyRate {
+                timestamp_seconds: THIRD_DAY_START_SECONDS,
+                icp_to_usd_e8s: Some(100_000_000),
+                usd_to_fiat_e8s: Some(90_000_014),
+                usd_to_fiat_is_final: false,
+            },
+            DailyRate {
+                timestamp_seconds: FOURTH_DAY_START_SECONDS,
+                icp_to_usd_e8s: Some(100_000_000),
+                usd_to_fiat_e8s: Some(90_000_007),
+                usd_to_fiat_is_final: false,
+            },
+            DailyRate {
+                timestamp_seconds: FIFTH_DAY_START_SECONDS,
+                icp_to_usd_e8s: Some(100_000_000),
+                usd_to_fiat_e8s: Some(90_000_000),
+                usd_to_fiat_is_final: false,
+            },
+        ]
+    );
+
+    // Step 4: The next run fetches the non-final rates again and replaces them.
+    set_time_seconds(FIFTH_DAY_SECONDS + daily_history::NON_FINAL_REFETCH_DELAY_SECS);
+    let response = make_exchange_rate(91_000_000, E8S_DECIMALS, FIFTH_DAY_START_SECONDS);
+    testing::add_exchange_rate_response(Ok(Ok(response)));
+    for _ in 1..DAILY_HISTORY_BATCH_SIZE {
+        testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
+    }
+
+    fill_daily_history_batch().await;
+
+    // Step 5: Verify result(s).
+    assert_eq!(
+        drain_request_quotes(),
+        expected_requests[..DAILY_HISTORY_BATCH_SIZE].to_vec()
+    );
+    let fifth_day_eur_rate =
+        daily_history::list_rates(FIFTH_DAY_START_SECONDS, FIFTH_DAY_SECONDS, Some("EUR"))
+            .pop()
+            .and_then(|rate| rate.usd_to_fiat_e8s);
+    assert_eq!(fifth_day_eur_rate, Some(91_000_000));
+}
+
+#[test]
+fn test_daily_history_lists_a_final_rate_before_a_non_final_rate() {
+    // Step 1: Prepare the world.
+    set_time_seconds(FIFTH_DAY_SECONDS);
+    daily_history::add_non_final_fiat_rate("EUR", THIRD_DAY_START_SECONDS, 95_000_000);
+    daily_history::add_non_final_fiat_rate("EUR", FOURTH_DAY_START_SECONDS, 94_000_000);
+    daily_history::add_non_final_fiat_rate("GBP", FOURTH_DAY_START_SECONDS, 80_000_000);
+    daily_history::add_rate(
+        DailyRatePair::UsdToFiat("EUR"),
+        THIRD_DAY_START_SECONDS,
+        96_000_000,
+    );
+    // A failed fetch keeps the previous non-final rate.
+    daily_history::record_failed_non_final_fetch("EUR", FOURTH_DAY_START_SECONDS);
+
+    // Step 2: Run the code under test.
+    let eur_rates = daily_history::list_rates(
+        THIRD_DAY_START_SECONDS,
+        FIFTH_DAY_START_SECONDS,
+        Some("EUR"),
+    );
+    let icp_rates =
+        daily_history::list_rates(THIRD_DAY_START_SECONDS, FIFTH_DAY_START_SECONDS, None);
+
+    // Step 3: Verify result(s).
+    assert_eq!(
+        eur_rates,
+        vec![
+            DailyRate {
+                timestamp_seconds: THIRD_DAY_START_SECONDS,
+                icp_to_usd_e8s: None,
+                usd_to_fiat_e8s: Some(96_000_000),
+                usd_to_fiat_is_final: true,
+            },
+            DailyRate {
+                timestamp_seconds: FOURTH_DAY_START_SECONDS,
+                icp_to_usd_e8s: None,
+                usd_to_fiat_e8s: Some(94_000_000),
+                usd_to_fiat_is_final: false,
+            },
+        ]
+    );
+    assert_eq!(icp_rates, vec![]);
+}
+
+#[tokio::test]
+async fn test_fill_daily_history_batch_tries_a_failed_non_final_rate_again_without_backoff() {
+    // Step 1: Prepare the world. The XRC fails each fetch.
+    set_time_seconds(FIFTH_DAY_START_SECONDS);
+    daily_history::add_non_final_fiat_rate("EUR", FIFTH_DAY_START_SECONDS, 95_000_000);
+    set_time_seconds(FIFTH_DAY_SECONDS);
+    add_missing_final_rates();
+
+    // Step 2: Run the code under test. Four runs, 5 hours apart, fail.
+    let mut request_counts = vec![];
+    for run_index in 0..4 {
+        set_time_seconds(
+            FIFTH_DAY_SECONDS + run_index * daily_history::NON_FINAL_REFETCH_DELAY_SECS,
+        );
+        for _ in 0..DAILY_HISTORY_BATCH_SIZE {
+            testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
+        }
+        assert!(!fill_daily_history_batch().await);
+        request_counts.push(testing::drain_requests().len());
+    }
+
+    // Step 3: Verify result(s). Each run tries the rates again, and the previous rate stays.
+    assert_eq!(request_counts, vec![DAILY_HISTORY_BATCH_SIZE; 4]);
+    let fifth_day_eur_rate =
+        daily_history::list_rates(FIFTH_DAY_START_SECONDS, FIFTH_DAY_SECONDS, Some("EUR"))
+            .pop()
+            .and_then(|rate| rate.usd_to_fiat_e8s);
+    assert_eq!(fifth_day_eur_rate, Some(95_000_000));
+    // The failed fetches do not delay the final rate. With a doubled retry delay after 4 failures,
+    // the final rate of day 3 would not be listed on day 6.
+    set_time_seconds(THIRD_DAY_START_SECONDS + FIAT_RATE_DELAY_SECS);
+    assert!(
+        daily_history::list_missing_rates(&SUPPORTED_FIAT_SYMBOLS).contains(&MissingDailyRate {
+            day_start_seconds: THIRD_DAY_START_SECONDS,
+            pair: DailyRatePair::UsdToFiat("EUR"),
+        })
+    );
+}
+
+#[tokio::test]
+async fn test_fill_daily_history_batch_removes_outdated_non_final_rates() {
+    // Step 1: Prepare the world.
+    set_time_seconds(FIFTH_DAY_SECONDS);
+    daily_history::add_non_final_fiat_rate("EUR", THIRD_DAY_START_SECONDS, 95_000_000);
+    daily_history::add_non_final_fiat_rate("EUR", FOURTH_DAY_START_SECONDS, 94_000_000);
+    daily_history::add_non_final_fiat_rate("EUR", FIFTH_DAY_START_SECONDS, 93_000_000);
+    // On day 6, day 3 leaves the delay window, and day 4 has a final rate.
+    let sixth_day_seconds = THIRD_DAY_START_SECONDS + FIAT_RATE_DELAY_SECS + ONE_HOUR_SECS;
+    set_time_seconds(sixth_day_seconds);
+    daily_history::add_rate(
+        DailyRatePair::UsdToFiat("EUR"),
+        FOURTH_DAY_START_SECONDS,
+        96_000_000,
+    );
+    for _ in 0..DAILY_HISTORY_BATCH_SIZE {
+        testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
+    }
+
+    // Step 2: Run the code under test.
+    fill_daily_history_batch().await;
+
+    // Step 3: Verify result(s). Only the rate of day 5 stays non-final, and the batch does not
+    // fetch a non-final rate for day 4.
+    let request_quotes = drain_request_quotes();
+    assert!(request_quotes.contains(&("EUR".to_string(), Some(FIFTH_DAY_START_SECONDS))));
+    assert!(!request_quotes.contains(&("EUR".to_string(), Some(FOURTH_DAY_START_SECONDS))));
+    let eur_rates =
+        daily_history::list_rates(THIRD_DAY_START_SECONDS, sixth_day_seconds, Some("EUR"))
+            .into_iter()
+            .map(|rate| {
+                (
+                    rate.timestamp_seconds,
+                    rate.usd_to_fiat_e8s,
+                    rate.usd_to_fiat_is_final,
+                )
+            })
+            .collect::<Vec<(u64, Option<u64>, bool)>>();
+    assert_eq!(
+        eur_rates,
+        vec![
+            (FOURTH_DAY_START_SECONDS, Some(96_000_000), true),
+            (FIFTH_DAY_START_SECONDS, Some(93_000_000), false),
+        ]
+    );
+}
+
 #[test]
 fn test_list_daily_exchange_rates_rejects_unsupported_fiat_symbol() {
     // Step 1: Prepare the world.
@@ -1146,6 +1408,7 @@ fn test_list_daily_exchange_rates_rejects_unsupported_fiat_symbol() {
             timestamp_seconds: FIRST_DAY_START_SECONDS,
             icp_to_usd_e8s: Some(700_000_000),
             usd_to_fiat_e8s: None,
+            usd_to_fiat_is_final: false,
         }])
     );
 }
