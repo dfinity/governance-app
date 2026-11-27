@@ -352,17 +352,20 @@ export const CommandPalette = () => {
   const [search, setSearch] = useState('');
   const [list, setList] = useState<HTMLDivElement | null>(null);
   // Read on open, so the Recent items do not move while the palette is open. A button can open
-  // the palette too, so this follows the shared open state.
+  // the palette too, so this follows the shared open state. The search also resets on open, so
+  // the list keeps the results during the exit animation.
   const [recentIds, setRecentIds] = useState<string[]>([]);
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
     setPrevOpen(open);
-    if (open) setRecentIds(readRecentCommands());
+    if (open) {
+      setRecentIds(readRecentCommands());
+      setSearch('');
+    }
   }
 
   const handleOpenChange = (next: boolean) => {
     if (next) return openCommandPalette('shortcut');
-    setSearch('');
     closeCommandPalette();
   };
 

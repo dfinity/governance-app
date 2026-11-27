@@ -14,7 +14,7 @@ import {
   within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
@@ -684,6 +684,42 @@ describe('CommandPalette', () => {
     fireEvent.click(screen.getByRole('option', { name: 'Reports' }));
 
     expect(mocks.navigate).toHaveBeenCalledWith({ to: '/reports' });
+  });
+
+  it('keeps the results during the exit animation and starts empty on the next open.', () => {
+    // jsdom has no CSS animations, so Radix removes the dialog at once. This gives the dialog an
+    // exit animation, which ends at an `animationend` event.
+    const getComputedStyle = window.getComputedStyle.bind(window);
+    const spy = vi.spyOn(window, 'getComputedStyle').mockImplementation((element, pseudo) => {
+      const styles = getComputedStyle(element, pseudo);
+      if (element.getAttribute('role') === 'dialog') {
+        Object.defineProperty(styles, 'animationName', {
+          get: () => (element.getAttribute('data-state') === 'closed' ? 'exit' : 'enter'),
+        });
+      }
+      return styles;
+    });
+    onTestFinished(() => spy.mockRestore());
+    vi.stubGlobal('CSS', { escape: (value: string) => value });
+    storeRecent(['action:stake']);
+    openPalette();
+    search('csv');
+    const results = optionNames();
+
+    fireEvent.click(screen.getByRole('option', { name: 'Reports' }));
+
+    const dialog = screen.getByRole('dialog');
+    expect(dialog.getAttribute('data-state')).toBe('closed');
+    expect(screen.getByRole('combobox')).toHaveProperty('value', 'csv');
+    expect(optionNames()).toEqual(results);
+
+    // jsdom has no `AnimationEvent`.
+    fireEvent(dialog, Object.assign(new Event('animationend'), { animationName: 'exit' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    togglePalette();
+
+    expect(screen.getByRole('combobox')).toHaveProperty('value', '');
+    expect(recentNames()).toEqual(['Reports', 'Stake ICP']);
   });
 
   describe('neuron commands', () => {
