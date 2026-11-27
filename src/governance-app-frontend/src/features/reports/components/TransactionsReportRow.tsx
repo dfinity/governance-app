@@ -6,7 +6,10 @@ import { Label } from '@components/Label';
 import { NativeSelect, NativeSelectOption } from '@components/NativeSelect';
 import { useFiatCurrency } from '@hooks/useFiatCurrency';
 
-import { useTransactionsReportDownload } from '../hooks/useReportDownloads';
+import {
+  type TransactionsReportFile,
+  useTransactionsReportDownload,
+} from '../hooks/useReportDownloads';
 import { getReportRange, isCustomRangeTooLong, ReportPeriod, toIsoDate } from '../utils/period';
 import { NonFinalRatesNote } from './NonFinalRatesNote';
 import { ReportDownloadButton } from './ReportDownloadButton';
@@ -22,6 +25,8 @@ export const TransactionsReportRow = () => {
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
   const [rangeError, setRangeError] = useState<RangeError>();
+  // The last file stays until a new file or a new range, so that a failed retry keeps its note.
+  const [lastFile, setLastFile] = useState<TransactionsReportFile>();
 
   const [today] = useState(() => toIsoDate(Date.now()));
   const periodLabels: Record<ReportPeriod, string> = {
@@ -43,16 +48,21 @@ export const TransactionsReportRow = () => {
     }
 
     setRangeError(undefined);
-    download.mutate({ range, period });
+    download.mutate(
+      { range, period },
+      {
+        onSuccess: (file) => {
+          if (file) setLastFile(file);
+        },
+      },
+    );
   };
-
-  const lastFile = download.data;
 
   // The note is about the last file, so a new range removes it.
   const handlePeriodChange = (value: ReportPeriod) => {
     setPeriod(value);
     setRangeError(undefined);
-    download.reset();
+    setLastFile(undefined);
   };
 
   return (
@@ -104,7 +114,7 @@ export const TransactionsReportRow = () => {
                   max={today}
                   onChange={(e) => {
                     setCustomFrom(e.target.value);
-                    download.reset();
+                    setLastFile(undefined);
                   }}
                   aria-invalid={rangeError !== undefined}
                   disabled={download.isPending}
@@ -123,7 +133,7 @@ export const TransactionsReportRow = () => {
                   max={today}
                   onChange={(e) => {
                     setCustomTo(e.target.value);
-                    download.reset();
+                    setLastFile(undefined);
                   }}
                   aria-invalid={rangeError !== undefined}
                   disabled={download.isPending}

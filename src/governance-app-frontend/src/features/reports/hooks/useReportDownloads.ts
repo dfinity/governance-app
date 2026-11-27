@@ -75,6 +75,12 @@ export const useNeuronsReportDownload = () => {
   });
 };
 
+/** The currency of a downloaded transactions file, and when its fiat values are final. */
+export type TransactionsReportFile = {
+  currency: FiatCurrency;
+  fiatRatesFinalAtMs: number | undefined;
+};
+
 export const useTransactionsReportDownload = () => {
   const { t } = useTranslation();
   const getIdentity = useIdentityOrThrow();
@@ -83,14 +89,13 @@ export const useTransactionsReportDownload = () => {
   const mainAccountName = t(($) => $.accounts.mainAccount);
 
   return useMutation({
-    /** Gives 00:00 UTC of the day when the fiat values of the file are final, if they are not now. */
     mutationFn: async ({
       range,
       period,
     }: {
       range: ReportRange;
       period: ReportPeriod;
-    }): Promise<{ currency: FiatCurrency; fiatRatesFinalAtMs: number | undefined } | undefined> => {
+    }): Promise<TransactionsReportFile | undefined> => {
       const identity = getIdentity();
       // The rates load before the transaction scan, so that a failed rate load leaves no scan running.
       const [neurons, nnsDappAccounts, rateLookup] = await Promise.all([
