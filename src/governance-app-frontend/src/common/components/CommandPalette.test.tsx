@@ -25,7 +25,6 @@ import {
   SHORTCUTS_SETTINGS_KEY,
   THEME_STORAGE_KEY,
 } from '@constants/extra';
-import { FEATURE_FLAGS_STORAGE_KEY } from '@constants/featureFlags';
 import { FiatCurrency } from '@constants/fiat';
 import { ForecastPeriod } from '@constants/forecast';
 import { Theme } from '@constants/theme';
@@ -678,21 +677,13 @@ describe('CommandPalette', () => {
     expect(screen.queryByRole('option', { name: 'Add Ledger device' })).toBeNull();
   });
 
-  it('opens the Reports page with the reports flag on.', () => {
-    localStorage.setItem(FEATURE_FLAGS_STORAGE_KEY, JSON.stringify({ reports: true }));
+  it('opens the Reports page.', () => {
     openPalette();
     search('csv');
 
     fireEvent.click(screen.getByRole('option', { name: 'Reports' }));
 
     expect(mocks.navigate).toHaveBeenCalledWith({ to: '/reports' });
-  });
-
-  it('hides the Reports command with the reports flag off.', () => {
-    openPalette();
-    search('reports');
-
-    expect(screen.queryByRole('option', { name: 'Reports' })).toBeNull();
   });
 
   describe('neuron commands', () => {

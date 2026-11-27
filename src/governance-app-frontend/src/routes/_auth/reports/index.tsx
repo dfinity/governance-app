@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
 import { NeuronsReportRow } from '@features/reports/components/NeuronsReportRow';
@@ -7,18 +7,11 @@ import { YearSummarySection } from '@features/reports/components/YearSummarySect
 
 import { Card } from '@components/Card';
 import { PageHeader } from '@components/PageHeader';
-import { FeatureFlag } from '@constants/featureFlags';
-import { isFeatureFlagEnabled } from '@utils/featureFlags';
 
 import i18n from '@/i18n/config';
 
 export const Route = createFileRoute('/_auth/reports/')({
   component: ReportsPage,
-  beforeLoad: () => {
-    if (!isFeatureFlagEnabled(FeatureFlag.Reports)) {
-      throw redirect({ to: '/dashboard', replace: true });
-    }
-  },
   head: () => {
     const title = i18n.t(($) => $.common.head.reports.title);
 

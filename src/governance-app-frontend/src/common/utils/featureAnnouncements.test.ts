@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SEEN_FEATURE_ANNOUNCEMENTS_STORAGE_KEY } from '@constants/extra';
-import { FEATURE_FLAGS_STORAGE_KEY } from '@constants/featureFlags';
+import { PAGE_ANNOUNCEMENTS } from '@constants/pageAnnouncements';
 import { ADVANCED_FEATURES_DEFAULTS, AdvancedFeature } from '@typings/advancedFeatures';
 import { PageAnnouncement } from '@typings/featureAnnouncements';
 
@@ -12,6 +12,12 @@ import {
   markAnnouncementsSeen,
   splitUnseenAnnouncements,
 } from './featureAnnouncements';
+
+/** Keeps the Reports page out of the tests of the features. */
+const setReportsAvailable = (available: boolean) =>
+  vi
+    .spyOn(PAGE_ANNOUNCEMENTS.find(({ key }) => key === PageAnnouncement.Reports)!, 'isEnabled')
+    .mockReturnValue(available);
 
 const webHid = vi.hoisted(() => ({ isWebHidSupported: vi.fn() }));
 vi.mock('@common/ledger/webhid', () => webHid);
@@ -34,10 +40,12 @@ describe('featureAnnouncements', () => {
     storage = createStorage();
     vi.stubGlobal('localStorage', storage);
     webHid.isWebHidSupported.mockReturnValue(true);
+    setReportsAvailable(false);
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it('lists the Ledger device feature until the user sees it', () => {
@@ -100,10 +108,9 @@ describe('featureAnnouncements', () => {
   });
 
   describe('pages', () => {
-    const enableReports = () =>
-      storage.items.set(FEATURE_FLAGS_STORAGE_KEY, JSON.stringify({ reports: true }));
+    const enableReports = () => setReportsAvailable(true);
 
-    it('lists the Reports page after the features, only while its flag is on', () => {
+    it('lists the Reports page after the features, only while it is available', () => {
       expect(getUnseenAnnouncements()).toEqual([AdvancedFeature.LedgerDevice]);
 
       enableReports();

@@ -9,7 +9,7 @@ import {
   SEEN_FEATURE_ANNOUNCEMENTS_STORAGE_KEY,
   WELCOME_MODAL_STORAGE_KEY,
 } from '@constants/extra';
-import { FEATURE_FLAGS_STORAGE_KEY } from '@constants/featureFlags';
+import { PAGE_ANNOUNCEMENTS } from '@constants/pageAnnouncements';
 import {
   ADVANCED_FEATURES_DEFAULTS,
   AdvancedFeature,
@@ -68,6 +68,12 @@ const mockFeatures = ({
     missingFeatureKeys: missing,
   });
 
+/** Keeps the Reports page out of the tests of the features. */
+const setReportsAvailable = (available: boolean) =>
+  vi
+    .spyOn(PAGE_ANNOUNCEMENTS.find(({ key }) => key === PageAnnouncement.Reports)!, 'isEnabled')
+    .mockReturnValue(available);
+
 const seenAnnouncements = (storage: ReturnType<typeof createStorage>) =>
   JSON.parse(storage.items.get(SEEN_FEATURE_ANNOUNCEMENTS_STORAGE_KEY) ?? '[]');
 
@@ -83,10 +89,12 @@ describe('NewFeatureModal', () => {
     mocks.detect.mockReturnValue({ isDetecting: false, detectedFeatures: {}, error: undefined });
     mocks.isLoginHandoffActive.mockReturnValue(false);
     mocks.isPaletteMounted.mockReturnValue(true);
+    setReportsAvailable(false);
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it('presents an unseen feature to a returning user and turns it on', async () => {
@@ -171,7 +179,7 @@ describe('NewFeatureModal', () => {
 
   describe('Reports page', () => {
     beforeEach(() => {
-      storage.items.set(FEATURE_FLAGS_STORAGE_KEY, JSON.stringify({ reports: true }));
+      setReportsAvailable(true);
       storage.items.set(SEEN_FEATURE_ANNOUNCEMENTS_STORAGE_KEY, '["ledgerDevice"]');
     });
 
