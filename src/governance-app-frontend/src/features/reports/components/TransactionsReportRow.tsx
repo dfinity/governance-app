@@ -8,6 +8,7 @@ import { useFiatCurrency } from '@hooks/useFiatCurrency';
 
 import { useTransactionsReportDownload } from '../hooks/useReportDownloads';
 import { getReportRange, isCustomRangeTooLong, ReportPeriod, toIsoDate } from '../utils/period';
+import { NonFinalRatesNote } from './NonFinalRatesNote';
 import { ReportDownloadButton } from './ReportDownloadButton';
 
 type RangeError = 'invalidRange' | 'rangeTooLong';
@@ -45,9 +46,13 @@ export const TransactionsReportRow = () => {
     download.mutate({ range, period });
   };
 
+  const fiatRatesFinalAtMs = download.data?.fiatRatesFinalAtMs;
+
+  // The note is about the last file, so a new range removes it.
   const handlePeriodChange = (value: ReportPeriod) => {
     setPeriod(value);
     setRangeError(undefined);
+    download.reset();
   };
 
   return (
@@ -96,7 +101,10 @@ export const TransactionsReportRow = () => {
                   type="date"
                   value={customFrom}
                   max={today}
-                  onChange={(e) => setCustomFrom(e.target.value)}
+                  onChange={(e) => {
+                    setCustomFrom(e.target.value);
+                    download.reset();
+                  }}
                   aria-invalid={rangeError !== undefined}
                   className="sm:w-44"
                   data-testid="transactions-report-from"
@@ -111,7 +119,10 @@ export const TransactionsReportRow = () => {
                   type="date"
                   value={customTo}
                   max={today}
-                  onChange={(e) => setCustomTo(e.target.value)}
+                  onChange={(e) => {
+                    setCustomTo(e.target.value);
+                    download.reset();
+                  }}
                   aria-invalid={rangeError !== undefined}
                   className="sm:w-44"
                   data-testid="transactions-report-to"
@@ -129,6 +140,14 @@ export const TransactionsReportRow = () => {
           >
             {rangeErrorLabels[rangeError]}
           </p>
+        )}
+
+        {fiatRatesFinalAtMs !== undefined && (
+          <NonFinalRatesNote
+            finalAtMs={fiatRatesFinalAtMs}
+            currency={fiatCurrency}
+            testId="transactions-report-non-final-note"
+          />
         )}
       </div>
 

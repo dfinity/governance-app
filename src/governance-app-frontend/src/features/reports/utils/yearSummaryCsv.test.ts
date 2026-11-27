@@ -11,6 +11,7 @@ const neuron: ReportEntity = { kind: 'neuron', accountId: 'neuron-account', neur
 const rate = {
   dayMs: Date.UTC(2025, 11, 20),
   fiatDayMs: Date.UTC(2025, 11, 20),
+  fiatIsFinal: true,
   icpToFiatE8s: 2n * ICP,
 };
 
@@ -67,6 +68,7 @@ const summary: YearSummary = {
   holdingsTotalE8s: 1_100n * ICP,
   holdingsRate: rate,
   holdingsTotalHundredths: 220_000n,
+  fiatRatesFinalAtMs: undefined,
   maturityE8s: undefined,
   receivedE8s: 500n * ICP,
   sentE8s: 50n * ICP,

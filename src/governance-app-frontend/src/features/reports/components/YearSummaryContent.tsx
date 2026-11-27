@@ -15,6 +15,7 @@ import { useYearSummaryCsvLabels, useYearSummaryLimits } from '../hooks/useRepor
 import { downloadCsv } from '../utils/csv';
 import type { YearSummary } from '../utils/yearSummary';
 import { buildYearSummaryCsv } from '../utils/yearSummaryCsv';
+import { NonFinalRatesNote } from './NonFinalRatesNote';
 import { ReportDownloadButton } from './ReportDownloadButton';
 
 const utcDateFormat = new Intl.DateTimeFormat('en-GB', {
@@ -175,6 +176,14 @@ export const YearSummaryContent = ({ summary, currency, sectionTitleId }: Props)
         <p role="status" className="text-sm text-muted-foreground">
           {t(($) => $.reports.yearSummary.incomplete)}
         </p>
+      )}
+
+      {summary.fiatRatesFinalAtMs !== undefined && (
+        <NonFinalRatesNote
+          finalAtMs={summary.fiatRatesFinalAtMs}
+          currency={currency}
+          testId="year-summary-non-final-note"
+        />
       )}
 
       <div className="flex flex-col gap-4 border-t pt-4 md:flex-row md:items-start md:justify-between">

@@ -13,11 +13,15 @@ export const getSessionTimeLeftForUi = (timeLeft: { minutes: number; seconds: nu
 });
 
 // Source: https://github.com/dfinity/nns-dapp/blob/c32c35d280aa5b5046cc46b1fe566193f8f7555b/frontend/src/lib/utils/date.utils.ts#L97
-export const secondsToDate = (seconds: number): string => {
+export const secondsToDate = (
+  seconds: number,
+  { timeZone }: { timeZone?: string } = {},
+): string => {
   const options: Intl.DateTimeFormatOptions = {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
+    timeZone,
   };
   const milliseconds = seconds * MILLISECONDS_IN_SECOND;
   // We only support english for now.

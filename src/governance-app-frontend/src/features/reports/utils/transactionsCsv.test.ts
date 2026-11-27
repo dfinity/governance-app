@@ -144,6 +144,7 @@ describe('buildTransactionsCsv', () => {
     const rateLookup: ReportRateLookup = () => ({
       dayMs: rateDayMs,
       fiatDayMs: rateDayMs,
+      fiatIsFinal: true,
       icpToFiatE8s: 264_000_000n,
     });
     const savings: ReportEntity = { kind: 'account', accountId: SAVINGS, name: 'Savings' };
@@ -173,6 +174,7 @@ describe('buildTransactionsCsv', () => {
     const rateLookup: ReportRateLookup = () => ({
       dayMs: Date.UTC(2026, 2, 1),
       fiatDayMs: Date.UTC(2026, 1, 26),
+      fiatIsFinal: true,
       icpToFiatE8s: 264_000_000n,
     });
 

@@ -36,9 +36,11 @@ const summary: YearSummary = {
   holdingsRate: {
     dayMs: Date.UTC(2025, 11, 31),
     fiatDayMs: Date.UTC(2025, 11, 31),
+    fiatIsFinal: true,
     icpToFiatE8s: 3n * ICP,
   },
   holdingsTotalHundredths: 1_500n,
+  fiatRatesFinalAtMs: undefined,
   maturityE8s: undefined,
   receivedE8s: 5n * ICP,
   sentE8s: 0n,
@@ -116,6 +118,26 @@ describe('YearSummarySection', () => {
       'Amount (ICP)',
       'Value (USD)',
     ]);
+  });
+
+  it('says when the fiat values are final, as a UTC date', () => {
+    mocks.useYearSummary.mockReturnValue({
+      isPending: false,
+      isError: false,
+      data: { ...summary, fiatRatesFinalAtMs: Date.UTC(2026, 10, 19) },
+    });
+    render(<YearSummarySection />);
+
+    expect(screen.getByTestId('year-summary-non-final-note').textContent).toBe(
+      'The USD values of the last days can still change. Download the report again after 00:00 UTC on Nov 19, 2026.',
+    );
+  });
+
+  it('shows no note when the fiat values are final', () => {
+    mocks.useYearSummary.mockReturnValue({ isPending: false, isError: false, data: summary });
+    render(<YearSummarySection />);
+
+    expect(screen.queryByTestId('year-summary-non-final-note')).toBeNull();
   });
 
   it('shows no fiat reward income when a reward has no rate', () => {

@@ -6,7 +6,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ReportPeriod } from '../utils/period';
 import { TransactionsReportRow } from './TransactionsReportRow';
 
-const download = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
+const download = vi.hoisted(() => ({
+  mutate: vi.fn(),
+  reset: vi.fn(),
+  isPending: false,
+  data: undefined as { fiatRatesFinalAtMs: number | undefined } | undefined,
+}));
 vi.mock('../hooks/useReportDownloads', () => ({
   useTransactionsReportDownload: () => download,
 }));
@@ -30,6 +35,8 @@ describe('TransactionsReportRow', () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(NOW);
     download.mutate.mockReset();
+    download.reset.mockReset();
+    download.data = undefined;
   });
 
   afterEach(() => {
@@ -45,6 +52,25 @@ describe('TransactionsReportRow', () => {
       period: ReportPeriod.YearToDate,
       range: { fromMs: Date.UTC(2026, 0, 1), toMs: NOW },
     });
+  });
+
+  it('shows the note after a download with non-final fiat values', () => {
+    download.data = { fiatRatesFinalAtMs: Date.UTC(2026, 10, 18) };
+    render(<TransactionsReportRow />);
+
+    expect(screen.getByTestId('transactions-report-non-final-note').textContent).toContain(
+      'Download the report again after 00:00 UTC on Nov 18, 2026.',
+    );
+  });
+
+  it('removes the note of the last file when the range changes', () => {
+    render(<TransactionsReportRow />);
+    expect(screen.queryByTestId('transactions-report-non-final-note')).toBeNull();
+
+    selectPeriod(ReportPeriod.Custom);
+    setDates('2026-01-01', '2026-02-01');
+
+    expect(download.reset).toHaveBeenCalledTimes(3);
   });
 
   it('names the download button after the report', () => {

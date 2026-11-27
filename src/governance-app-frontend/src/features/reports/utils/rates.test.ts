@@ -6,6 +6,7 @@ import { FiatCurrency } from '@constants/fiat';
 
 import {
   createReportRateLookup,
+  getFiatRatesFinalAtMs,
   getRateRange,
   MAX_RATE_LOOKBACK_DAYS,
   toFiatHundredths,
@@ -35,6 +36,7 @@ describe('createReportRateLookup', () => {
     expect(lookup(JAN_1 + 15 * 3_600_000)).toEqual({
       dayMs: JAN_1,
       fiatDayMs: JAN_1,
+      fiatIsFinal: true,
       icpToFiatE8s: 270_000_000n,
     });
   });
@@ -51,11 +53,12 @@ describe('createReportRateLookup', () => {
     expect(lookup(JAN_1 + 2 * DAY_MS)).toEqual({
       dayMs: JAN_1 + DAY_MS,
       fiatDayMs: JAN_1,
+      fiatIsFinal: true,
       icpToFiatE8s: 279_000_000n,
     });
   });
 
-  it('uses the earlier final USD/fiat rate instead of a non-final rate', () => {
+  it('uses the non-final USD/fiat rate of the day and marks it', () => {
     const lookup = createReportRateLookup({
       rates: [
         rate(JAN_1, { icp: 300_000_000n, fiat: 90_000_000n }),
@@ -66,8 +69,9 @@ describe('createReportRateLookup', () => {
 
     expect(lookup(JAN_1 + DAY_MS)).toEqual({
       dayMs: JAN_1 + DAY_MS,
-      fiatDayMs: JAN_1,
-      icpToFiatE8s: 279_000_000n,
+      fiatDayMs: JAN_1 + DAY_MS,
+      fiatIsFinal: false,
+      icpToFiatE8s: 294_500_000n,
     });
   });
 
@@ -92,6 +96,7 @@ describe('createReportRateLookup', () => {
     expect(lookup(JAN_1)).toEqual({
       dayMs: JAN_1,
       fiatDayMs: JAN_1,
+      fiatIsFinal: true,
       icpToFiatE8s: 300_000_000n,
     });
   });
@@ -105,6 +110,31 @@ describe('createReportRateLookup', () => {
     expect(lookup(JAN_1 + MAX_RATE_LOOKBACK_DAYS * DAY_MS)?.dayMs).toBe(JAN_1);
     expect(lookup(JAN_1 + (MAX_RATE_LOOKBACK_DAYS + 1) * DAY_MS)).toBeUndefined();
     expect(lookup(JAN_1 - 1)).toBeUndefined();
+  });
+});
+
+describe('getFiatRatesFinalAtMs', () => {
+  const reportRate = (fiatDayMs: number, fiatIsFinal: boolean) => ({
+    dayMs: fiatDayMs,
+    fiatDayMs,
+    fiatIsFinal,
+    icpToFiatE8s: 1n,
+  });
+
+  it('gives 00:00 UTC, 3 days after the newest day with a non-final rate', () => {
+    expect(
+      getFiatRatesFinalAtMs([
+        reportRate(JAN_1 + DAY_MS, false),
+        reportRate(JAN_1 + 2 * DAY_MS, true),
+        undefined,
+        reportRate(JAN_1, false),
+      ]),
+    ).toBe(JAN_1 + 4 * DAY_MS);
+  });
+
+  it('gives nothing when all rates are final', () => {
+    expect(getFiatRatesFinalAtMs([reportRate(JAN_1, true), undefined])).toBeUndefined();
+    expect(getFiatRatesFinalAtMs([])).toBeUndefined();
   });
 });
 

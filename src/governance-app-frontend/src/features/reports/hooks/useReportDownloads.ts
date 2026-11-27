@@ -19,6 +19,7 @@ import {
 } from '../utils/loadReportData';
 import { buildNeuronsCsv } from '../utils/neuronsCsv';
 import { type ReportPeriod, type ReportRange, toIsoDate } from '../utils/period';
+import { getFiatRatesFinalAtMs } from '../utils/rates';
 import { buildTransactionsCsv } from '../utils/transactionsCsv';
 import { useNeuronsCsvLabels, useTransactionsCsvLabels } from './useReportCsvLabels';
 
@@ -81,7 +82,14 @@ export const useTransactionsReportDownload = () => {
   const mainAccountName = t(($) => $.accounts.mainAccount);
 
   return useMutation({
-    mutationFn: async ({ range, period }: { range: ReportRange; period: ReportPeriod }) => {
+    /** Gives 00:00 UTC of the day when the fiat values of the file are final, if they are not now. */
+    mutationFn: async ({
+      range,
+      period,
+    }: {
+      range: ReportRange;
+      period: ReportPeriod;
+    }): Promise<{ fiatRatesFinalAtMs: number | undefined } | undefined> => {
       const identity = getIdentity();
       // The rates load before the transaction scan, so that a failed rate load leaves no scan running.
       const [neurons, nnsDappAccounts, rateLookup] = await Promise.all([
@@ -117,6 +125,16 @@ export const useTransactionsReportDownload = () => {
         });
       }
       analytics.event(AnalyticsEvent.ReportDownload, { report: 'transactions', period });
+
+      return {
+        fiatRatesFinalAtMs: getFiatRatesFinalAtMs(
+          results.flatMap(({ transactions }) =>
+            transactions.map(({ timestampMs }) =>
+              timestampMs === undefined ? undefined : rateLookup(timestampMs),
+            ),
+          ),
+        ),
+      };
     },
     onError: (_, { period }) => {
       errorNotification({ description: t(($) => $.reports.transactions.error) });
