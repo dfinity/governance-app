@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
 
+import type { FiatCurrency } from '@constants/fiat';
 import { useIcpPrice } from '@hooks/tickers/useIcpPrice';
 import { useFiatCurrency } from '@hooks/useFiatCurrency';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
@@ -89,7 +90,7 @@ export const useTransactionsReportDownload = () => {
     }: {
       range: ReportRange;
       period: ReportPeriod;
-    }): Promise<{ fiatRatesFinalAtMs: number | undefined } | undefined> => {
+    }): Promise<{ currency: FiatCurrency; fiatRatesFinalAtMs: number | undefined } | undefined> => {
       const identity = getIdentity();
       // The rates load before the transaction scan, so that a failed rate load leaves no scan running.
       const [neurons, nnsDappAccounts, rateLookup] = await Promise.all([
@@ -127,6 +128,7 @@ export const useTransactionsReportDownload = () => {
       analytics.event(AnalyticsEvent.ReportDownload, { report: 'transactions', period });
 
       return {
+        currency: fiatCurrency,
         fiatRatesFinalAtMs: getFiatRatesFinalAtMs(
           results.flatMap(({ transactions }) =>
             transactions.map(({ timestampMs }) =>

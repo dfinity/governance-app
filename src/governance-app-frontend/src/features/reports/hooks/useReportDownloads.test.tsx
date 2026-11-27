@@ -113,7 +113,10 @@ describe('useTransactionsReportDownload', () => {
     result.current.mutate({ range: RANGE, period: ReportPeriod.YearToDate });
 
     await waitFor(() =>
-      expect(result.current.data).toEqual({ fiatRatesFinalAtMs: Date.UTC(2026, 5, 4) }),
+      expect(result.current.data).toEqual({
+        currency: 'USD',
+        fiatRatesFinalAtMs: Date.UTC(2026, 5, 4),
+      }),
     );
   });
 

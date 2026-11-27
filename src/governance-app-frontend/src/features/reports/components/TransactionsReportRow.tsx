@@ -46,7 +46,7 @@ export const TransactionsReportRow = () => {
     download.mutate({ range, period });
   };
 
-  const fiatRatesFinalAtMs = download.data?.fiatRatesFinalAtMs;
+  const lastFile = download.data;
 
   // The note is about the last file, so a new range removes it.
   const handlePeriodChange = (value: ReportPeriod) => {
@@ -79,6 +79,7 @@ export const TransactionsReportRow = () => {
               id="transactions-report-period"
               value={period}
               onChange={(e) => handlePeriodChange(e.target.value as ReportPeriod)}
+              disabled={download.isPending}
               className="sm:w-48"
               data-testid="transactions-report-period"
             >
@@ -106,6 +107,7 @@ export const TransactionsReportRow = () => {
                     download.reset();
                   }}
                   aria-invalid={rangeError !== undefined}
+                  disabled={download.isPending}
                   className="sm:w-44"
                   data-testid="transactions-report-from"
                 />
@@ -124,6 +126,7 @@ export const TransactionsReportRow = () => {
                     download.reset();
                   }}
                   aria-invalid={rangeError !== undefined}
+                  disabled={download.isPending}
                   className="sm:w-44"
                   data-testid="transactions-report-to"
                 />
@@ -142,10 +145,10 @@ export const TransactionsReportRow = () => {
           </p>
         )}
 
-        {fiatRatesFinalAtMs !== undefined && (
+        {lastFile?.fiatRatesFinalAtMs !== undefined && (
           <NonFinalRatesNote
-            finalAtMs={fiatRatesFinalAtMs}
-            currency={fiatCurrency}
+            finalAtMs={lastFile.fiatRatesFinalAtMs}
+            currency={lastFile.currency}
             testId="transactions-report-non-final-note"
           />
         )}

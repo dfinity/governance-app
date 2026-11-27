@@ -10,7 +10,7 @@ const download = vi.hoisted(() => ({
   mutate: vi.fn(),
   reset: vi.fn(),
   isPending: false,
-  data: undefined as { fiatRatesFinalAtMs: number | undefined } | undefined,
+  data: undefined as { currency: string; fiatRatesFinalAtMs: number | undefined } | undefined,
 }));
 vi.mock('../hooks/useReportDownloads', () => ({
   useTransactionsReportDownload: () => download,
@@ -37,6 +37,7 @@ describe('TransactionsReportRow', () => {
     download.mutate.mockReset();
     download.reset.mockReset();
     download.data = undefined;
+    download.isPending = false;
   });
 
   afterEach(() => {
@@ -55,12 +56,19 @@ describe('TransactionsReportRow', () => {
   });
 
   it('shows the note after a download with non-final fiat values', () => {
-    download.data = { fiatRatesFinalAtMs: Date.UTC(2026, 10, 18) };
+    download.data = { currency: 'EUR', fiatRatesFinalAtMs: Date.UTC(2026, 10, 18) };
     render(<TransactionsReportRow />);
 
-    expect(screen.getByTestId('transactions-report-non-final-note').textContent).toContain(
-      'Download the report again after 00:00 UTC on Nov 18, 2026.',
+    expect(screen.getByTestId('transactions-report-non-final-note').textContent).toBe(
+      'The EUR values of the last days can still change. Download the report again after 00:00 UTC on Nov 18, 2026.',
     );
+  });
+
+  it('locks the period while a download runs', () => {
+    download.isPending = true;
+    render(<TransactionsReportRow />);
+
+    expect(screen.getByTestId<HTMLSelectElement>('transactions-report-period').disabled).toBe(true);
   });
 
   it('removes the note of the last file when the range changes', () => {
