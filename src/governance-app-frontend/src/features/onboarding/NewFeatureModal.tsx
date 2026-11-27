@@ -144,10 +144,10 @@ export function NewFeatureModal() {
     >
       <ResponsiveDialogContent
         onPointerDownOutside={(e) => e.preventDefault()}
-        className="flex flex-col gap-0 p-0 md:max-w-md"
+        className="flex flex-col gap-0 p-0 md:max-h-[90dvh] md:max-w-md"
         data-testid="new-feature-modal"
       >
-        <div className="flex flex-col gap-3 px-6 pt-6 md:px-6">
+        <div className="flex min-h-0 flex-col gap-3 overflow-y-auto px-6 pt-6 md:px-6">
           <div className="flex items-center justify-between">
             {Icon && (
               <div className="flex size-10 items-center justify-center rounded-full bg-primary/10">
