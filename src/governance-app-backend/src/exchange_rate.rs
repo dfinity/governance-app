@@ -239,7 +239,6 @@ async fn fill_daily_history_batch() -> bool {
         return false;
     };
 
-    daily_history::remove_outdated_non_final_fiat_rates();
     let non_final_fetches =
         daily_history::list_non_final_fiat_rates_to_fetch(&SUPPORTED_FIAT_SYMBOLS)
             .into_iter()
