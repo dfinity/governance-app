@@ -38,7 +38,7 @@ export const LedgerDevicesMenu = ({ variant, onSelectDevice }: Props) => {
       <DropdownMenuTrigger asChild>
         {variant === 'split' ? (
           <Button
-            size="xl"
+            size="lg"
             className="rounded-l-none border-l border-primary-foreground/25 px-4 has-[>svg]:px-4"
             aria-label={label}
             title={label}

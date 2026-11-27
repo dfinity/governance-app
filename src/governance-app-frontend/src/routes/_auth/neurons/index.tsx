@@ -127,7 +127,7 @@ function NeuronsComponent() {
                 onClick={() => handleOpenStakingWizard('neurons_header')}
                 data-testid="staking-wizard-trigger-btn"
                 className={cn('flex-1 sm:flex-initial', hasLedgerMenu && 'rounded-r-none')}
-                size="xl"
+                size="lg"
               >
                 <Plus />
                 {t(($) => $.stakeWizardModal.title)}
