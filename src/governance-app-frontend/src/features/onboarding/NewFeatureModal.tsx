@@ -8,6 +8,7 @@ import { ADVANCED_FEATURES } from '@constants/advancedFeatures';
 import { WELCOME_MODAL_STORAGE_KEY } from '@constants/extra';
 import { PAGE_ANNOUNCEMENTS } from '@constants/pageAnnouncements';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { useCommandPaletteMounted } from '@hooks/useCommandPaletteOpen';
 import { useCommandPaletteSettings } from '@hooks/useCommandPaletteSettings';
 import { useDetectAdvancedFeatures } from '@hooks/useDetectAdvancedFeatures';
 import { AdvancedFeature } from '@typings/advancedFeatures';
@@ -60,6 +61,8 @@ export function NewFeatureModal() {
   const [shown, setShown] = useState<AnnouncementKey | undefined>(toShow[0]);
   const navigate = useNavigate();
   const { enabled: isCommandPaletteEnabled } = useCommandPaletteSettings();
+  // Some signed-in screens, such as the 404 page, have no palette.
+  const isCommandPaletteMounted = useCommandPaletteMounted();
 
   // A feature that the user turned on in Settings needs no modal.
   useEffect(() => {
@@ -85,11 +88,12 @@ export function NewFeatureModal() {
       description: t(($) => $.newFeatureModal.pages.reports.description),
       confirm: t(($) => $.newFeatureModal.pages.reports.open),
       hint: t(($) => $.newFeatureModal.pages.reports.hint),
-      shortcutHint: isCommandPaletteEnabled
-        ? t(($) => $.newFeatureModal.pages.reports.hintShortcut, {
-            shortcut: isApplePlatform ? '⌘K' : 'Ctrl K',
-          })
-        : undefined,
+      shortcutHint:
+        isCommandPaletteEnabled && isCommandPaletteMounted
+          ? t(($) => $.newFeatureModal.pages.reports.hintShortcut, {
+              shortcut: isApplePlatform ? '⌘K' : 'Ctrl K',
+            })
+          : undefined,
       highlights: [
         { icon: ChartColumn, label: t(($) => $.newFeatureModal.pages.reports.yearSummary) },
         { icon: Download, label: t(($) => $.newFeatureModal.pages.reports.csv) },

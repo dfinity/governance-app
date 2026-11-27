@@ -26,6 +26,11 @@ const mocks = vi.hoisted(() => ({
   notify: vi.fn(),
   isLoginHandoffActive: vi.fn(),
   navigate: vi.fn(),
+  isPaletteMounted: vi.fn(),
+}));
+
+vi.mock('@hooks/useCommandPaletteOpen', () => ({
+  useCommandPaletteMounted: mocks.isPaletteMounted,
 }));
 
 vi.mock('@tanstack/react-router', () => ({ useNavigate: () => mocks.navigate }));
@@ -77,6 +82,7 @@ describe('NewFeatureModal', () => {
     mockFeatures();
     mocks.detect.mockReturnValue({ isDetecting: false, detectedFeatures: {}, error: undefined });
     mocks.isLoginHandoffActive.mockReturnValue(false);
+    mocks.isPaletteMounted.mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -212,6 +218,15 @@ describe('NewFeatureModal', () => {
 
       expect(modal.textContent).toContain('You can also open it from Settings.');
       expect(modal.textContent).not.toContain('Settings or with');
+    });
+
+    it('names no shortcut on a screen without the command palette', async () => {
+      mocks.isPaletteMounted.mockReturnValue(false);
+      render(<NewFeatureModal />);
+
+      expect((await screen.findByTestId('new-feature-modal')).textContent).not.toContain(
+        'Settings or with',
+      );
     });
 
     it('comes after an unseen feature', async () => {
