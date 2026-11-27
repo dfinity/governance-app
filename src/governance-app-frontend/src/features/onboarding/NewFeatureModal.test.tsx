@@ -182,7 +182,7 @@ describe('NewFeatureModal', () => {
       expect(screen.getAllByRole('listitem').map(({ textContent }) => textContent)).toEqual([
         'Year summary: reward income, holdings, and fees',
         'CSV of your neurons and of your transactions',
-        'Values in your currency, at the ICP price of each day',
+        'Values in your currency for each transaction and reward',
       ]);
 
       await userEvent.click(screen.getByTestId('new-feature-turn-on-btn'));

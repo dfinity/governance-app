@@ -15,7 +15,7 @@
       "description": "See a summary of a year, or download your neurons and transactions as CSV files.",
       "yearSummary": "Year summary: reward income, holdings, and fees",
       "csv": "CSV of your neurons and of your transactions",
-      "fiat": "Values in your currency, at the ICP price of each day",
+      "fiat": "Values in your currency for each transaction and reward",
       "open": "Open Reports",
       "hint": "You can also open it from Settings.",
       "hintShortcut": "You can also open it from Settings or with {{shortcut}}."
