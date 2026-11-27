@@ -8,6 +8,7 @@ import { ADVANCED_FEATURES } from '@constants/advancedFeatures';
 import { WELCOME_MODAL_STORAGE_KEY } from '@constants/extra';
 import { PAGE_ANNOUNCEMENTS } from '@constants/pageAnnouncements';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
+import { useCommandPaletteSettings } from '@hooks/useCommandPaletteSettings';
 import { useDetectAdvancedFeatures } from '@hooks/useDetectAdvancedFeatures';
 import { AdvancedFeature } from '@typings/advancedFeatures';
 import { type AnnouncementKey, PageAnnouncement } from '@typings/featureAnnouncements';
@@ -58,6 +59,7 @@ export function NewFeatureModal() {
   // The announcement on screen. It stays after the last choice, so the modal can animate out.
   const [shown, setShown] = useState<AnnouncementKey | undefined>(toShow[0]);
   const navigate = useNavigate();
+  const { enabled: isCommandPaletteEnabled } = useCommandPaletteSettings();
 
   // A feature that the user turned on in Settings needs no modal.
   useEffect(() => {
@@ -83,9 +85,11 @@ export function NewFeatureModal() {
       description: t(($) => $.newFeatureModal.pages.reports.description),
       confirm: t(($) => $.newFeatureModal.pages.reports.open),
       hint: t(($) => $.newFeatureModal.pages.reports.hint),
-      shortcutHint: t(($) => $.newFeatureModal.pages.reports.hintShortcut, {
-        shortcut: isApplePlatform ? '⌘K' : 'Ctrl K',
-      }),
+      shortcutHint: isCommandPaletteEnabled
+        ? t(($) => $.newFeatureModal.pages.reports.hintShortcut, {
+            shortcut: isApplePlatform ? '⌘K' : 'Ctrl K',
+          })
+        : undefined,
       highlights: [
         { icon: ChartColumn, label: t(($) => $.newFeatureModal.pages.reports.yearSummary) },
         { icon: Download, label: t(($) => $.newFeatureModal.pages.reports.csv) },

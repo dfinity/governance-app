@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  COMMAND_PALETTE_SETTINGS_KEY,
   SEEN_FEATURE_ANNOUNCEMENTS_STORAGE_KEY,
   WELCOME_MODAL_STORAGE_KEY,
 } from '@constants/extra';
@@ -196,6 +197,21 @@ describe('NewFeatureModal', () => {
 
       expect(mocks.navigate).not.toHaveBeenCalled();
       expect(seenAnnouncements(storage)).toContain(PageAnnouncement.Reports);
+    });
+
+    it('names the shortcut only while the command palette is on', async () => {
+      const { unmount } = render(<NewFeatureModal />);
+      expect((await screen.findByTestId('new-feature-modal')).textContent).toContain(
+        'Settings or with',
+      );
+      unmount();
+
+      storage.items.set(COMMAND_PALETTE_SETTINGS_KEY, 'false');
+      render(<NewFeatureModal />);
+      const modal = await screen.findByTestId('new-feature-modal');
+
+      expect(modal.textContent).toContain('You can also open it from Settings.');
+      expect(modal.textContent).not.toContain('Settings or with');
     });
 
     it('comes after an unseen feature', async () => {
