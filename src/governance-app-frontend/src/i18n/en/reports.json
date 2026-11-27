@@ -19,7 +19,6 @@
     "receivedSent": "Received · sent",
     "fees": "ICP · fees {{fees}} ICP",
     "rewards": "Rewards ({{count}})",
-    "latestFirst": "Latest first",
     "columns": {
       "date": "Date (UTC)",
       "account": "Account",

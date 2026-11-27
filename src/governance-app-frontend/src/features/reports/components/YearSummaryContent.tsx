@@ -110,16 +110,9 @@ export const YearSummaryContent = ({ summary, currency, sectionTitleId }: Props)
       </div>
 
       <div className="flex flex-col gap-1">
-        <div className="flex items-baseline justify-between">
-          <h3 id={titleId} className="font-sans text-sm font-medium">
-            {t(($) => $.reports.yearSummary.rewards, { count: summary.rewards.length })}
-          </h3>
-          {summary.rewards.length > 0 && (
-            <span className="text-xs text-muted-foreground">
-              {t(($) => $.reports.yearSummary.latestFirst)}
-            </span>
-          )}
-        </div>
+        <h3 id={titleId} className="font-sans text-sm font-medium">
+          {t(($) => $.reports.yearSummary.rewards, { count: summary.rewards.length })}
+        </h3>
         {summary.rewards.length === 0 ? (
           <p className="border-t py-3 text-sm text-muted-foreground">
             {t(($) => $.reports.yearSummary.noRewards)}
