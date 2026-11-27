@@ -129,7 +129,7 @@ describe('YearSummarySection', () => {
     render(<YearSummarySection />);
 
     expect(screen.getByTestId('year-summary-non-final-note').textContent).toBe(
-      'The USD values of the last days can still change. Download the report again after 00:00 UTC on Nov 19, 2026 at the earliest. If this note shows again, try again a few hours later.',
+      'The USD values of the last days can still change. Download the report again after 00:00 UTC on Nov 19, 2026 at the earliest. In the new file, check the USD/USD rate date of the last days. If it is earlier than the date of the row, or if this note shows again, try again a few hours later.',
     );
   });
 

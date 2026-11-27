@@ -4,7 +4,7 @@
   "exports": "Exports",
   "footnote": "All dates are in UTC. In the transactions and the year summary, each price is the ICP price at 00:00 UTC on its rate date. For a currency other than USD, the USD exchange rate is final only after 3 days, so the values of a recent day can still change. If a day has no rate, they use the rate of an earlier day, at most 7 days before. The neurons report uses the price of today. These reports are not financial or tax advice.",
   "download": "Download CSV",
-  "nonFinalRates": "The {{currency}} values of the last days can still change. Download the report again after 00:00 UTC on {{date}} at the earliest. If this note shows again, try again a few hours later.",
+  "nonFinalRates": "The {{currency}} values of the last days can still change. Download the report again after 00:00 UTC on {{date}} at the earliest. In the new file, check the USD/{{currency}} rate date of the last days. If it is earlier than the date of the row, or if this note shows again, try again a few hours later.",
   "yearSummary": {
     "title": "Year summary",
     "subtitle": "Values in {{currency}}, at the rate of each day.",

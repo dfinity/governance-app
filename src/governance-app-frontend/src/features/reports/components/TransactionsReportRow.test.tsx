@@ -61,7 +61,7 @@ describe('TransactionsReportRow', () => {
     downloadFile(nonFinalFile);
 
     expect(screen.getByTestId('transactions-report-non-final-note').textContent).toBe(
-      'The EUR values of the last days can still change. Download the report again after 00:00 UTC on Nov 18, 2026 at the earliest. If this note shows again, try again a few hours later.',
+      'The EUR values of the last days can still change. Download the report again after 00:00 UTC on Nov 18, 2026 at the earliest. In the new file, check the USD/EUR rate date of the last days. If it is earlier than the date of the row, or if this note shows again, try again a few hours later.',
     );
   });
 
