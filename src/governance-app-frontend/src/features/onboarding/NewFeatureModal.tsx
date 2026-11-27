@@ -208,10 +208,10 @@ export function NewFeatureModal() {
           </div>
           {content.shortcutHint ? (
             <>
-              <p className="text-center text-xs text-muted-foreground pointer-coarse:hidden">
+              <p className="hidden text-center text-xs text-muted-foreground pointer-fine:block">
                 {content.shortcutHint}
               </p>
-              <p className="hidden text-center text-xs text-muted-foreground pointer-coarse:block">
+              <p className="text-center text-xs text-muted-foreground pointer-fine:hidden">
                 {content.hint}
               </p>
             </>
