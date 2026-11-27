@@ -10,6 +10,7 @@ import {
   joinCsvLines,
   toCsvLine,
 } from './csv';
+import type { ReportRate } from './rates';
 import type { ReportEntity } from './transactionsCsv';
 import type { HoldingRow, RewardRow, YearSummary } from './yearSummary';
 
@@ -35,6 +36,8 @@ export type YearSummaryCsvLabels = {
     price: string;
     value: string;
     rateDate: string;
+    /** The date of the USD/fiat rate, for a currency other than USD. */
+    fiatRateDate?: string;
     maturity: string;
     received: string;
     sent: string;
@@ -93,6 +96,15 @@ export const buildYearSummaryCsv = ({
       header: headers.rateDate,
       value: ({ rate }) => (rate === undefined ? '' : formatUtcDate(rate.dayMs)),
     },
+    ...(headers.fiatRateDate === undefined
+      ? []
+      : [
+          {
+            header: headers.fiatRateDate,
+            value: ({ rate }: { rate: ReportRate | undefined }) =>
+              rate === undefined ? '' : formatUtcDate(rate.fiatDayMs),
+          },
+        ]),
   ];
 
   const holdingColumns: CsvColumn<HoldingRow>[] = [
@@ -134,6 +146,14 @@ export const buildYearSummaryCsv = ({
       headers.rateDate,
       holdingsRate === undefined ? '' : formatUtcDate(holdingsRate.dayMs),
     ]),
+    ...(headers.fiatRateDate === undefined
+      ? []
+      : [
+          toCsvLine([
+            headers.fiatRateDate,
+            holdingsRate === undefined ? '' : formatUtcDate(holdingsRate.fiatDayMs),
+          ]),
+        ]),
     ...(summary.maturityE8s === undefined
       ? []
       : [toCsvLine([headers.maturity, formatE8sForCsv(summary.maturityE8s)])]),

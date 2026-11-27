@@ -9,15 +9,20 @@ const MS_IN_DAY = SECONDS_IN_DAY * 1_000;
 
 /**
  * If a day has no rate, the report uses the rate of the nearest earlier day, at most this many
- * days back. The backend fetches a fiat rate 3 days after its day, and forex markets close on
+ * days back. The backend fetches a USD/fiat rate 3 days after its day, and forex markets close on
  * weekends.
  */
 export const MAX_RATE_LOOKBACK_DAYS = 7;
 
 /** The ICP price of one UTC day, in the fiat currency of the report. */
 export type ReportRate = {
-  /** 00:00 UTC of the day of the rate. It can be before the day of the transaction. */
+  /** 00:00 UTC of the day of the ICP/USD rate. It can be before the day of the transaction. */
   dayMs: number;
+  /**
+   * 00:00 UTC of the day of the USD/fiat rate. It can be before `dayMs`, because the backend has
+   * no USD/fiat rate for the last 3 days. For USD, it is `dayMs`.
+   */
+  fiatDayMs: number;
   icpToFiatE8s: bigint;
 };
 
@@ -36,9 +41,24 @@ export const getRateRange = ({ fromMs, toMs }: ReportRange): ReportRange => ({
 export const toFiatSymbolParam = (currency: FiatCurrency): [] | [string] =>
   currency === FiatCurrency.USD ? [] : [currency];
 
+/** The rate of the day, or of the nearest earlier day within the lookback. */
+const findRate = (
+  ratesByDayMs: Map<number, bigint>,
+  dayMs: number,
+): { dayMs: number; rateE8s: bigint } | undefined => {
+  for (let daysBack = 0; daysBack <= MAX_RATE_LOOKBACK_DAYS; daysBack++) {
+    const rateDayMs = dayMs - daysBack * MS_IN_DAY;
+    const rateE8s = ratesByDayMs.get(rateDayMs);
+    if (rateE8s !== undefined) return { dayMs: rateDayMs, rateE8s };
+  }
+
+  return undefined;
+};
+
 /**
- * Gives the ICP price of the UTC day of a timestamp. A day counts only if it has both the ICP/USD
- * rate and, for a currency other than USD, the USD/fiat rate. Thus each price comes from one day.
+ * Gives the ICP price of the UTC day of a timestamp. The ICP/USD rate and the USD/fiat rate each
+ * come from the nearest day that has one. ICP moves much more than forex, so a recent day keeps
+ * its own ICP/USD rate while its USD/fiat rate is not stored yet.
  */
 export const createReportRateLookup = ({
   rates,
@@ -47,26 +67,33 @@ export const createReportRateLookup = ({
   rates: DailyRate[];
   currency: FiatCurrency;
 }): ReportRateLookup => {
-  const pricesByDayMs = new Map<number, bigint>();
+  const isUsd = currency === FiatCurrency.USD;
+  const icpToUsdByDayMs = new Map<number, bigint>();
+  const usdToFiatByDayMs = new Map<number, bigint>();
 
   for (const { timestamp_seconds, icp_to_usd_e8s, usd_to_fiat_e8s } of rates) {
+    const dayMs = Number(timestamp_seconds) * 1_000;
     const [icpToUsdE8s] = icp_to_usd_e8s;
-    const [usdToFiatE8s] = currency === FiatCurrency.USD ? [E8Sn] : usd_to_fiat_e8s;
-    if (icpToUsdE8s === undefined || usdToFiatE8s === undefined) continue;
-
-    pricesByDayMs.set(Number(timestamp_seconds) * 1_000, (icpToUsdE8s * usdToFiatE8s) / E8Sn);
+    const [usdToFiatE8s] = usd_to_fiat_e8s;
+    if (icpToUsdE8s !== undefined) icpToUsdByDayMs.set(dayMs, icpToUsdE8s);
+    if (usdToFiatE8s !== undefined) usdToFiatByDayMs.set(dayMs, usdToFiatE8s);
   }
 
   return (timestampMs) => {
     const dayMs = startOfUtcDayMs(timestampMs);
+    const icpToUsd = findRate(icpToUsdByDayMs, dayMs);
+    if (icpToUsd === undefined) return undefined;
 
-    for (let daysBack = 0; daysBack <= MAX_RATE_LOOKBACK_DAYS; daysBack++) {
-      const rateDayMs = dayMs - daysBack * MS_IN_DAY;
-      const icpToFiatE8s = pricesByDayMs.get(rateDayMs);
-      if (icpToFiatE8s !== undefined) return { dayMs: rateDayMs, icpToFiatE8s };
-    }
+    const usdToFiat = isUsd
+      ? { dayMs: icpToUsd.dayMs, rateE8s: E8Sn }
+      : findRate(usdToFiatByDayMs, dayMs);
+    if (usdToFiat === undefined) return undefined;
 
-    return undefined;
+    return {
+      dayMs: icpToUsd.dayMs,
+      fiatDayMs: usdToFiat.dayMs,
+      icpToFiatE8s: (icpToUsd.rateE8s * usdToFiat.rateE8s) / E8Sn,
+    };
   };
 };
 

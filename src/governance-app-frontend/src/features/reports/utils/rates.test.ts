@@ -28,10 +28,14 @@ describe('createReportRateLookup', () => {
       currency: FiatCurrency.EUR,
     });
 
-    expect(lookup(JAN_1 + 15 * 3_600_000)).toEqual({ dayMs: JAN_1, icpToFiatE8s: 270_000_000n });
+    expect(lookup(JAN_1 + 15 * 3_600_000)).toEqual({
+      dayMs: JAN_1,
+      fiatDayMs: JAN_1,
+      icpToFiatE8s: 270_000_000n,
+    });
   });
 
-  it('uses the nearest earlier day that has both rates', () => {
+  it('takes each rate from the nearest earlier day that has it', () => {
     const lookup = createReportRateLookup({
       rates: [
         rate(JAN_1, { icp: 300_000_000n, fiat: 90_000_000n }),
@@ -40,7 +44,23 @@ describe('createReportRateLookup', () => {
       currency: FiatCurrency.EUR,
     });
 
-    expect(lookup(JAN_1 + 2 * DAY_MS)).toEqual({ dayMs: JAN_1, icpToFiatE8s: 270_000_000n });
+    expect(lookup(JAN_1 + 2 * DAY_MS)).toEqual({
+      dayMs: JAN_1 + DAY_MS,
+      fiatDayMs: JAN_1,
+      icpToFiatE8s: 279_000_000n,
+    });
+  });
+
+  it('gives no price without a USD/fiat rate in the lookback', () => {
+    const lookup = createReportRateLookup({
+      rates: [
+        rate(JAN_1, { fiat: 90_000_000n }),
+        rate(JAN_1 + (MAX_RATE_LOOKBACK_DAYS + 1) * DAY_MS, { icp: 300_000_000n }),
+      ],
+      currency: FiatCurrency.EUR,
+    });
+
+    expect(lookup(JAN_1 + (MAX_RATE_LOOKBACK_DAYS + 1) * DAY_MS)).toBeUndefined();
   });
 
   it('needs no fiat rate for USD', () => {
@@ -49,7 +69,11 @@ describe('createReportRateLookup', () => {
       currency: FiatCurrency.USD,
     });
 
-    expect(lookup(JAN_1)).toEqual({ dayMs: JAN_1, icpToFiatE8s: 300_000_000n });
+    expect(lookup(JAN_1)).toEqual({
+      dayMs: JAN_1,
+      fiatDayMs: JAN_1,
+      icpToFiatE8s: 300_000_000n,
+    });
   });
 
   it(`looks back at most ${MAX_RATE_LOOKBACK_DAYS} days`, () => {

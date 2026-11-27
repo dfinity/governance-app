@@ -2,7 +2,7 @@
   "title": "Reports",
   "description": "See a summary of a year, or download your neurons and transactions as CSV files.",
   "exports": "Exports",
-  "footnote": "All dates are in UTC. In the transactions and the year summary, each price is the ICP price at 00:00 UTC on its rate date. If a day has no rate, they use the rate of an earlier day, at most 7 days before. The neurons report uses the price of today. These reports are not financial or tax advice.",
+  "footnote": "All dates are in UTC. In the transactions and the year summary, each price is the ICP price at 00:00 UTC on its rate date. For a currency other than USD, the USD exchange rate is final only after 3 days, so a recent day uses the latest final one. If a day has no rate, they use the rate of an earlier day, at most 7 days before. The neurons report uses the price of today. These reports are not financial or tax advice.",
   "download": "Download CSV",
   "yearSummary": {
     "title": "Year summary",
@@ -111,7 +111,9 @@
       "fee": "Fee (ICP)",
       "price": "ICP price at 00:00 UTC ({{currency}})",
       "value": "Value ({{currency}})",
-      "rateDate": "Rate date (UTC)"
+      "rateDate": "Rate date (UTC)",
+      "icpRateDate": "ICP/USD rate date (UTC)",
+      "fiatRateDate": "USD/{{currency}} rate date (UTC)"
     },
     "types": {
       "received": "Received",

@@ -33,7 +33,11 @@ const summary: YearSummary = {
   rewardsWithoutRate: 0,
   holdings: [{ entity: { kind: 'account', accountId: MAIN, name: 'Main' }, balanceE8s: 5n * ICP }],
   holdingsTotalE8s: 5n * ICP,
-  holdingsRate: { dayMs: Date.UTC(2025, 11, 31), icpToFiatE8s: 3n * ICP },
+  holdingsRate: {
+    dayMs: Date.UTC(2025, 11, 31),
+    fiatDayMs: Date.UTC(2025, 11, 31),
+    icpToFiatE8s: 3n * ICP,
+  },
   holdingsTotalHundredths: 1_500n,
   maturityE8s: undefined,
   receivedE8s: 5n * ICP,

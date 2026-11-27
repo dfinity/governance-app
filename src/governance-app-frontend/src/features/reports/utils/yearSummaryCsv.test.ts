@@ -8,7 +8,11 @@ import { buildYearSummaryCsv, type YearSummaryCsvLabels } from './yearSummaryCsv
 const ICP = 100_000_000n;
 const main: ReportEntity = { kind: 'account', accountId: MAIN, name: 'Main' };
 const neuron: ReportEntity = { kind: 'neuron', accountId: 'neuron-account', neuronId: 7n };
-const rate = { dayMs: Date.UTC(2025, 11, 20), icpToFiatE8s: 2n * ICP };
+const rate = {
+  dayMs: Date.UTC(2025, 11, 20),
+  fiatDayMs: Date.UTC(2025, 11, 20),
+  icpToFiatE8s: 2n * ICP,
+};
 
 const labels: YearSummaryCsvLabels = {
   title: 'Year summary',
@@ -114,6 +118,25 @@ describe('buildYearSummaryCsv', () => {
     expect(csv).toContain(
       '\r\nNot included\r\nSome transactions are missing.\r\n"No maturity, sorry."\r\n',
     );
+  });
+
+  it('adds the date of the USD/fiat rate for a currency other than USD', () => {
+    const fiatRate = { ...rate, fiatDayMs: Date.UTC(2025, 11, 17) };
+    const csv = buildYearSummaryCsv({
+      summary: {
+        ...summary,
+        rewards: summary.rewards.map((reward) => ({ ...reward, rate: fiatRate })),
+        holdingsRate: fiatRate,
+      },
+      currency: 'EUR',
+      labels: { ...labels, headers: { ...labels.headers, fiatRateDate: 'EUR rate date' } },
+    });
+
+    expect(csv).toContain(
+      '\r\nDate,Account,Account ID,Neuron ID,Amount,Price,Value,Rate date,EUR rate date\r\n',
+    );
+    expect(csv).toContain(',20.00,2025-12-20,2025-12-17\r\n');
+    expect(csv).toContain('\r\nRate date,2025-12-20\r\nEUR rate date,2025-12-17\r\n');
   });
 
   it('adds the maturity for the current year', () => {
