@@ -6,8 +6,12 @@ import { Label } from '@components/Label';
 import { NativeSelect, NativeSelectOption } from '@components/NativeSelect';
 import { useFiatCurrency } from '@hooks/useFiatCurrency';
 
-import { useTransactionsReportDownload } from '../hooks/useReportDownloads';
+import {
+  type TransactionsReportFile,
+  useTransactionsReportDownload,
+} from '../hooks/useReportDownloads';
 import { getReportRange, isCustomRangeTooLong, ReportPeriod, toIsoDate } from '../utils/period';
+import { NonFinalRatesNote } from './NonFinalRatesNote';
 import { ReportDownloadButton } from './ReportDownloadButton';
 
 type RangeError = 'invalidRange' | 'rangeTooLong';
@@ -21,6 +25,8 @@ export const TransactionsReportRow = () => {
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
   const [rangeError, setRangeError] = useState<RangeError>();
+  // The last file stays until a new file or a new range, so that a failed retry keeps its note.
+  const [lastFile, setLastFile] = useState<TransactionsReportFile>();
 
   const [today] = useState(() => toIsoDate(Date.now()));
   const periodLabels: Record<ReportPeriod, string> = {
@@ -42,12 +48,21 @@ export const TransactionsReportRow = () => {
     }
 
     setRangeError(undefined);
-    download.mutate({ range, period });
+    download.mutate(
+      { range, period },
+      {
+        onSuccess: (file) => {
+          if (file) setLastFile(file);
+        },
+      },
+    );
   };
 
+  // The note is about the last file, so a new range removes it.
   const handlePeriodChange = (value: ReportPeriod) => {
     setPeriod(value);
     setRangeError(undefined);
+    setLastFile(undefined);
   };
 
   return (
@@ -74,6 +89,7 @@ export const TransactionsReportRow = () => {
               id="transactions-report-period"
               value={period}
               onChange={(e) => handlePeriodChange(e.target.value as ReportPeriod)}
+              disabled={download.isPending}
               className="sm:w-48"
               data-testid="transactions-report-period"
             >
@@ -96,8 +112,12 @@ export const TransactionsReportRow = () => {
                   type="date"
                   value={customFrom}
                   max={today}
-                  onChange={(e) => setCustomFrom(e.target.value)}
+                  onChange={(e) => {
+                    setCustomFrom(e.target.value);
+                    setLastFile(undefined);
+                  }}
                   aria-invalid={rangeError !== undefined}
+                  disabled={download.isPending}
                   className="sm:w-44"
                   data-testid="transactions-report-from"
                 />
@@ -111,8 +131,12 @@ export const TransactionsReportRow = () => {
                   type="date"
                   value={customTo}
                   max={today}
-                  onChange={(e) => setCustomTo(e.target.value)}
+                  onChange={(e) => {
+                    setCustomTo(e.target.value);
+                    setLastFile(undefined);
+                  }}
                   aria-invalid={rangeError !== undefined}
+                  disabled={download.isPending}
                   className="sm:w-44"
                   data-testid="transactions-report-to"
                 />
@@ -129,6 +153,14 @@ export const TransactionsReportRow = () => {
           >
             {rangeErrorLabels[rangeError]}
           </p>
+        )}
+
+        {lastFile?.fiatRatesFinalAtMs !== undefined && (
+          <NonFinalRatesNote
+            finalAtMs={lastFile.fiatRatesFinalAtMs}
+            currency={lastFile.currency}
+            testId="transactions-report-non-final-note"
+          />
         )}
       </div>
 

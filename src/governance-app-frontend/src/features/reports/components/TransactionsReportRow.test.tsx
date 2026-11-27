@@ -1,6 +1,6 @@
 import '@/i18n/config';
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ReportPeriod } from '../utils/period';
@@ -25,11 +25,20 @@ const setDates = (from: string, to: string) => {
 
 const clickDownload = () => fireEvent.click(screen.getByTestId('transactions-report-download-btn'));
 
+const nonFinalFile = { currency: 'EUR', fiatRatesFinalAtMs: Date.UTC(2026, 10, 18) };
+
+/** Clicks the download, and the download gives `file`. */
+const downloadFile = (file: typeof nonFinalFile) => {
+  download.mutate.mockImplementationOnce((_, { onSuccess }) => act(() => onSuccess(file)));
+  clickDownload();
+};
+
 describe('TransactionsReportRow', () => {
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(NOW);
     download.mutate.mockReset();
+    download.isPending = false;
   });
 
   afterEach(() => {
@@ -41,10 +50,43 @@ describe('TransactionsReportRow', () => {
 
     clickDownload();
 
-    expect(download.mutate).toHaveBeenCalledWith({
+    expect(download.mutate.mock.calls[0][0]).toEqual({
       period: ReportPeriod.YearToDate,
       range: { fromMs: Date.UTC(2026, 0, 1), toMs: NOW },
     });
+  });
+
+  it('shows the note after a download with non-final fiat values', () => {
+    render(<TransactionsReportRow />);
+    downloadFile(nonFinalFile);
+
+    expect(screen.getByTestId('transactions-report-non-final-note').textContent).toBe(
+      'The EUR values of the last days can still change. Download the report again after 00:00 UTC on Nov 18, 2026 at the earliest. In the new file, check the USD/EUR rate date of the last days. If it is earlier than the date of the row, or if this note shows again, try again a few hours later.',
+    );
+  });
+
+  it('keeps the note of the last file when a retry fails', () => {
+    render(<TransactionsReportRow />);
+    downloadFile(nonFinalFile);
+    clickDownload();
+
+    expect(screen.getByTestId('transactions-report-non-final-note')).toBeTruthy();
+  });
+
+  it('removes the note of the last file when the range changes', () => {
+    render(<TransactionsReportRow />);
+    downloadFile(nonFinalFile);
+
+    selectPeriod(ReportPeriod.LastYear);
+
+    expect(screen.queryByTestId('transactions-report-non-final-note')).toBeNull();
+  });
+
+  it('locks the period while a download runs', () => {
+    download.isPending = true;
+    render(<TransactionsReportRow />);
+
+    expect(screen.getByTestId<HTMLSelectElement>('transactions-report-period').disabled).toBe(true);
   });
 
   it('names the download button after the report', () => {
@@ -93,7 +135,7 @@ describe('TransactionsReportRow', () => {
     clickDownload();
 
     expect(screen.queryByRole('alert')).toBeNull();
-    expect(download.mutate).toHaveBeenCalledWith({
+    expect(download.mutate.mock.calls[0][0]).toEqual({
       period: ReportPeriod.Custom,
       range: { fromMs: Date.UTC(2025, 6, 1), toMs: Date.UTC(2026, 6, 1) },
     });

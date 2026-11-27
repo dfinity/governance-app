@@ -62,6 +62,7 @@ const RATE_DAY_MS = Date.UTC(2025, 11, 31);
 const twoPerIcp: ReportRateLookup = () => ({
   dayMs: RATE_DAY_MS,
   fiatDayMs: RATE_DAY_MS,
+  fiatIsFinal: true,
   icpToFiatE8s: 2n * ICP,
 });
 const NOW = Date.UTC(2026, 2, 1);
@@ -198,6 +199,69 @@ describe('buildYearSummary', () => {
     expect(summary.rewards[0].valueHundredths).toBeUndefined();
     expect(summary.rewardsTotalHundredths).toBe(0n);
     expect(summary.rewardsWithoutRate).toBe(1);
+  });
+
+  it('gives the date when the fiat value of a reward is final', () => {
+    const rewardDayMs = Date.UTC(2025, 11, 20);
+    const summary = buildYearSummary({
+      period: getYearPeriod(2025, NOW),
+      histories,
+      complete: true,
+      neurons: [],
+      // Only the reward day has a non-final rate. The holdings rate is final.
+      rateLookup: (timestampMs) => ({
+        ...twoPerIcp(timestampMs)!,
+        fiatDayMs: timestampMs < RATE_DAY_MS ? rewardDayMs : RATE_DAY_MS,
+        fiatIsFinal: timestampMs >= RATE_DAY_MS,
+      }),
+    });
+
+    expect(summary.rewards).toHaveLength(1);
+    expect(summary.fiatRatesFinalAtMs).toBe(Date.UTC(2025, 11, 23));
+  });
+
+  it('gives the date when the fiat value of the holdings is final', () => {
+    const nonFinalDayMs = Date.UTC(2026, 10, 14);
+    const summary = buildYearSummary({
+      period: getYearPeriod(2026, NOW),
+      histories,
+      complete: true,
+      neurons: [],
+      rateLookup: (timestampMs) => ({
+        ...twoPerIcp(timestampMs)!,
+        fiatDayMs: nonFinalDayMs,
+        fiatIsFinal: false,
+      }),
+    });
+
+    expect(summary.rewards).toEqual([]);
+    expect(summary.fiatRatesFinalAtMs).toBe(Date.UTC(2026, 10, 17));
+  });
+
+  it('ignores the rate of zero holdings and gives no date for final rates', () => {
+    const nonFinal: ReportRateLookup = (timestampMs) => ({
+      ...twoPerIcp(timestampMs)!,
+      fiatIsFinal: false,
+    });
+
+    expect(
+      buildYearSummary({
+        period: getYearPeriod(2026, NOW),
+        histories: [history(main, 0n, [])],
+        complete: true,
+        neurons: [],
+        rateLookup: nonFinal,
+      }).fiatRatesFinalAtMs,
+    ).toBeUndefined();
+    expect(
+      buildYearSummary({
+        period: getYearPeriod(2026, NOW),
+        histories,
+        complete: true,
+        neurons: [],
+        rateLookup: twoPerIcp,
+      }).fiatRatesFinalAtMs,
+    ).toBeUndefined();
   });
 });
 

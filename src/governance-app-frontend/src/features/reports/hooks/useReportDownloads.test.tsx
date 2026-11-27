@@ -97,6 +97,29 @@ describe('useTransactionsReportDownload', () => {
     expect(mocks.warningNotification).not.toHaveBeenCalled();
   });
 
+  it('gives the date when the fiat values of the file are final', async () => {
+    mocks.loadReportTransactions.mockResolvedValue({
+      results: [{ entity: main, transactions: [reward] }],
+      complete: true,
+    });
+    mocks.loadReportRates.mockResolvedValue(() => ({
+      dayMs: Date.UTC(2026, 5, 1),
+      fiatDayMs: Date.UTC(2026, 5, 1),
+      fiatIsFinal: false,
+      icpToFiatE8s: 300_000_000n,
+    }));
+
+    const { result } = renderHook(() => useTransactionsReportDownload(), { wrapper });
+    result.current.mutate({ range: RANGE, period: ReportPeriod.YearToDate });
+
+    await waitFor(() =>
+      expect(result.current.data).toEqual({
+        currency: 'USD',
+        fiatRatesFinalAtMs: Date.UTC(2026, 5, 4),
+      }),
+    );
+  });
+
   it('starts no transaction scan and saves no file when the rates fail to load', async () => {
     mocks.loadReportRates.mockRejectedValue(new Error('down'));
 

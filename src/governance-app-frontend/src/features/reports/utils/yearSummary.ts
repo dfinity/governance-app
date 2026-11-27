@@ -7,7 +7,12 @@ import {
 } from '@utils/neuron';
 
 import type { EntityHistory } from './loadReportData';
-import { type ReportRate, type ReportRateLookup, toFiatHundredths } from './rates';
+import {
+  getFiatRatesFinalAtMs,
+  type ReportRate,
+  type ReportRateLookup,
+  toFiatHundredths,
+} from './rates';
 import {
   type ReportEntity,
   type ReportTransaction,
@@ -73,6 +78,8 @@ export type YearSummary = {
   holdingsTotalE8s: bigint;
   holdingsRate: ReportRate | undefined;
   holdingsTotalHundredths: bigint | undefined;
+  /** 00:00 UTC of the day when the fiat values are final, or `undefined` if they are final now. */
+  fiatRatesFinalAtMs: number | undefined;
   /** The maturity of the neurons today. `undefined` for a past year, because no history exists. */
   maturityE8s: bigint | undefined;
   /** The ICP from accounts that are not the user's. Rewards do not count. */
@@ -181,6 +188,11 @@ export const buildYearSummary = ({
             amountE8s: holdingsTotalE8s,
             icpToFiatE8s: holdingsRate.icpToFiatE8s,
           }),
+    // A value of zero does not change with the rate.
+    fiatRatesFinalAtMs: getFiatRatesFinalAtMs([
+      ...rewards.map(({ rate }) => rate),
+      holdingsTotalE8s === 0n ? undefined : holdingsRate,
+    ]),
     maturityE8s: period.isCurrentYear
       ? sum(
           neurons.map(

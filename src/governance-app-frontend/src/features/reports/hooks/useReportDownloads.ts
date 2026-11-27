@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
 
+import type { FiatCurrency } from '@constants/fiat';
 import { useIcpPrice } from '@hooks/tickers/useIcpPrice';
 import { useFiatCurrency } from '@hooks/useFiatCurrency';
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
@@ -19,6 +20,7 @@ import {
 } from '../utils/loadReportData';
 import { buildNeuronsCsv } from '../utils/neuronsCsv';
 import { type ReportPeriod, type ReportRange, toIsoDate } from '../utils/period';
+import { getFiatRatesFinalAtMs } from '../utils/rates';
 import { buildTransactionsCsv } from '../utils/transactionsCsv';
 import { useNeuronsCsvLabels, useTransactionsCsvLabels } from './useReportCsvLabels';
 
@@ -73,6 +75,12 @@ export const useNeuronsReportDownload = () => {
   });
 };
 
+/** The currency of a downloaded transactions file, and when its fiat values are final. */
+export type TransactionsReportFile = {
+  currency: FiatCurrency;
+  fiatRatesFinalAtMs: number | undefined;
+};
+
 export const useTransactionsReportDownload = () => {
   const { t } = useTranslation();
   const getIdentity = useIdentityOrThrow();
@@ -81,7 +89,13 @@ export const useTransactionsReportDownload = () => {
   const mainAccountName = t(($) => $.accounts.mainAccount);
 
   return useMutation({
-    mutationFn: async ({ range, period }: { range: ReportRange; period: ReportPeriod }) => {
+    mutationFn: async ({
+      range,
+      period,
+    }: {
+      range: ReportRange;
+      period: ReportPeriod;
+    }): Promise<TransactionsReportFile | undefined> => {
       const identity = getIdentity();
       // The rates load before the transaction scan, so that a failed rate load leaves no scan running.
       const [neurons, nnsDappAccounts, rateLookup] = await Promise.all([
@@ -117,6 +131,17 @@ export const useTransactionsReportDownload = () => {
         });
       }
       analytics.event(AnalyticsEvent.ReportDownload, { report: 'transactions', period });
+
+      return {
+        currency: fiatCurrency,
+        fiatRatesFinalAtMs: getFiatRatesFinalAtMs(
+          results.flatMap(({ transactions }) =>
+            transactions.map(({ timestampMs }) =>
+              timestampMs === undefined ? undefined : rateLookup(timestampMs),
+            ),
+          ),
+        ),
+      };
     },
     onError: (_, { period }) => {
       errorNotification({ description: t(($) => $.reports.transactions.error) });

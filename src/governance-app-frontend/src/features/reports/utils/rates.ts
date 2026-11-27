@@ -9,8 +9,7 @@ const MS_IN_DAY = SECONDS_IN_DAY * 1_000;
 
 /**
  * If a day has no rate, the report uses the rate of the nearest earlier day, at most this many
- * days back. The backend has a final USD/fiat rate only 3 days after its day, and forex markets
- * close on weekends.
+ * days back. Forex markets close on weekends.
  */
 export const MAX_RATE_LOOKBACK_DAYS = 7;
 
@@ -19,10 +18,12 @@ export type ReportRate = {
   /** 00:00 UTC of the day of the ICP/USD rate. It can be before the day of the transaction. */
   dayMs: number;
   /**
-   * 00:00 UTC of the day of the USD/fiat rate. It can be before `dayMs`, because the backend has
-   * no final USD/fiat rate for the last 3 days. For USD, it is `dayMs`.
+   * 00:00 UTC of the day of the USD/fiat rate. It can be before `dayMs` if the day has no USD/fiat
+   * rate. For USD, it is `dayMs`.
    */
   fiatDayMs: number;
+  /** `false` if the backend can still change the USD/fiat rate. Always `true` for USD. */
+  fiatIsFinal: boolean;
   icpToFiatE8s: bigint;
 };
 
@@ -42,14 +43,14 @@ export const toFiatSymbolParam = (currency: FiatCurrency): [] | [string] =>
   currency === FiatCurrency.USD ? [] : [currency];
 
 /** The rate of the day, or of the nearest earlier day within the lookback. */
-const findRate = (
-  ratesByDayMs: Map<number, bigint>,
+const findRate = <Rate>(
+  ratesByDayMs: Map<number, Rate>,
   dayMs: number,
-): { dayMs: number; rateE8s: bigint } | undefined => {
+): { dayMs: number; rate: Rate } | undefined => {
   for (let daysBack = 0; daysBack <= MAX_RATE_LOOKBACK_DAYS; daysBack++) {
     const rateDayMs = dayMs - daysBack * MS_IN_DAY;
-    const rateE8s = ratesByDayMs.get(rateDayMs);
-    if (rateE8s !== undefined) return { dayMs: rateDayMs, rateE8s };
+    const rate = ratesByDayMs.get(rateDayMs);
+    if (rate !== undefined) return { dayMs: rateDayMs, rate };
   }
 
   return undefined;
@@ -69,7 +70,7 @@ export const createReportRateLookup = ({
 }): ReportRateLookup => {
   const isUsd = currency === FiatCurrency.USD;
   const icpToUsdByDayMs = new Map<number, bigint>();
-  const usdToFiatByDayMs = new Map<number, bigint>();
+  const usdToFiatByDayMs = new Map<number, { rateE8s: bigint; isFinal: boolean }>();
 
   for (const {
     timestamp_seconds,
@@ -81,9 +82,8 @@ export const createReportRateLookup = ({
     const [icpToUsdE8s] = icp_to_usd_e8s;
     const [usdToFiatE8s] = usd_to_fiat_e8s;
     if (icpToUsdE8s !== undefined) icpToUsdByDayMs.set(dayMs, icpToUsdE8s);
-    // The CSVs cannot mark a non-final rate yet, so a day with one uses the earlier final rate.
-    if (usdToFiatE8s !== undefined && usd_to_fiat_is_final) {
-      usdToFiatByDayMs.set(dayMs, usdToFiatE8s);
+    if (usdToFiatE8s !== undefined) {
+      usdToFiatByDayMs.set(dayMs, { rateE8s: usdToFiatE8s, isFinal: usd_to_fiat_is_final });
     }
   }
 
@@ -93,16 +93,36 @@ export const createReportRateLookup = ({
     if (icpToUsd === undefined) return undefined;
 
     const usdToFiat = isUsd
-      ? { dayMs: icpToUsd.dayMs, rateE8s: E8Sn }
+      ? { dayMs: icpToUsd.dayMs, rate: { rateE8s: E8Sn, isFinal: true } }
       : findRate(usdToFiatByDayMs, dayMs);
     if (usdToFiat === undefined) return undefined;
 
     return {
       dayMs: icpToUsd.dayMs,
       fiatDayMs: usdToFiat.dayMs,
-      icpToFiatE8s: (icpToUsd.rateE8s * usdToFiat.rateE8s) / E8Sn,
+      fiatIsFinal: usdToFiat.rate.isFinal,
+      icpToFiatE8s: (icpToUsd.rate * usdToFiat.rate.rateE8s) / E8Sn,
     };
   };
+};
+
+/** The XRC can change the USD/fiat rate of a day until 00:00 UTC, this many days after the day. */
+export const FIAT_RATE_FINAL_AFTER_DAYS = 3;
+
+/**
+ * 00:00 UTC of the day when all the given USD/fiat rates are final, or `undefined` if they are
+ * final now. The newest day with a non-final rate gives the date.
+ */
+export const getFiatRatesFinalAtMs = (rates: (ReportRate | undefined)[]): number | undefined => {
+  let newestNonFinalDayMs: number | undefined;
+  for (const rate of rates) {
+    if (rate === undefined || rate.fiatIsFinal) continue;
+    newestNonFinalDayMs = Math.max(newestNonFinalDayMs ?? rate.fiatDayMs, rate.fiatDayMs);
+  }
+
+  return newestNonFinalDayMs === undefined
+    ? undefined
+    : newestNonFinalDayMs + FIAT_RATE_FINAL_AFTER_DAYS * MS_IN_DAY;
 };
 
 /**
