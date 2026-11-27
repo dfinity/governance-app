@@ -8,5 +8,17 @@
     "subaccounts": "Your account has more than one ICP account.",
     "advancedFollowing": "Your neurons follow different neurons on different topics.",
     "ledgerDevice": "A Ledger device is registered on your account."
+  },
+  "pages": {
+    "reports": {
+      "title": "Reports",
+      "description": "See a summary of a year, or download your neurons and transactions as CSV files.",
+      "yearSummary": "Year summary: reward income, holdings, and fees",
+      "csv": "CSV of your neurons and of your transactions",
+      "fiat": "Values in your currency for each transaction and reward",
+      "open": "Open Reports",
+      "hint": "You can also open it from Settings.",
+      "hintShortcut": "You can also open it from Settings or with {{shortcut}}."
+    }
   }
 }

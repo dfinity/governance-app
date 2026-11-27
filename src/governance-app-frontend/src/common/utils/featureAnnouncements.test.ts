@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SEEN_FEATURE_ANNOUNCEMENTS_STORAGE_KEY } from '@constants/extra';
+import { FEATURE_FLAGS_STORAGE_KEY } from '@constants/featureFlags';
 import { ADVANCED_FEATURES_DEFAULTS, AdvancedFeature } from '@typings/advancedFeatures';
+import { PageAnnouncement } from '@typings/featureAnnouncements';
 
 import {
   getUnseenAnnouncements,
@@ -94,6 +96,55 @@ describe('featureAnnouncements', () => {
     expect(splitUnseenAnnouncements(ADVANCED_FEATURES_DEFAULTS)).toEqual({
       toShow: [AdvancedFeature.LedgerDevice],
       alreadyOn: [],
+    });
+  });
+
+  describe('pages', () => {
+    const enableReports = () =>
+      storage.items.set(FEATURE_FLAGS_STORAGE_KEY, JSON.stringify({ reports: true }));
+
+    it('lists the Reports page after the features, only while its flag is on', () => {
+      expect(getUnseenAnnouncements()).toEqual([AdvancedFeature.LedgerDevice]);
+
+      enableReports();
+
+      expect(getUnseenAnnouncements()).toEqual([
+        AdvancedFeature.LedgerDevice,
+        PageAnnouncement.Reports,
+      ]);
+    });
+
+    it('keeps a seen page in the record', () => {
+      enableReports();
+
+      markAnnouncementsSeen([PageAnnouncement.Reports]);
+
+      expect(getUnseenAnnouncements()).toEqual([AdvancedFeature.LedgerDevice]);
+    });
+
+    it('leaves a page that is not available unseen after the welcome', () => {
+      markAllAnnouncementsSeen();
+      enableReports();
+
+      expect(getUnseenAnnouncements()).toEqual([PageAnnouncement.Reports]);
+    });
+
+    it('marks an available page as seen after the welcome', () => {
+      enableReports();
+
+      markAllAnnouncementsSeen();
+
+      expect(getUnseenAnnouncements()).toEqual([]);
+    });
+
+    it('shows a page whatever the features are', () => {
+      enableReports();
+      const features = { ...ADVANCED_FEATURES_DEFAULTS, [AdvancedFeature.LedgerDevice]: true };
+
+      expect(splitUnseenAnnouncements(features)).toEqual({
+        toShow: [PageAnnouncement.Reports],
+        alreadyOn: [AdvancedFeature.LedgerDevice],
+      });
     });
   });
 });
