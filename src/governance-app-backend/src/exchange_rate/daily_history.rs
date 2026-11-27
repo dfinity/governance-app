@@ -18,8 +18,9 @@ pub(super) const FIRST_DAY_START_SECONDS: u64 = 1_735_689_600;
 /// rate yet, the XRC returns the rate of an earlier day. Thus the history stores the final
 /// USD/fiat rate of a day in stable memory only when the day started at least this long ago,
 /// and keeps that rate.
-/// For the days in this delay window, the history keeps a non-final USD/fiat rate on the heap.
-/// Each gap fill fetches it again, and the list marks it as not final.
+/// For the days in this delay window, the history fetches a non-final USD/fiat rate and keeps it
+/// on the heap. Each gap fill fetches it again, and the list marks it as not final. When a day
+/// leaves the window, its non-final rate stays until the final rate of the day is stored.
 pub(super) const FIAT_RATE_DELAY_SECS: u64 = 3 * ONE_DAY_SECS;
 
 /// After the first failed fetch, a rate is not listed as missing for this long.
@@ -100,14 +101,15 @@ thread_local! {
     /// It lives on the heap, so an upgrade clears it.
     static FAILED_FETCHES: RefCell<BTreeMap<MissingDailyRate, FailedFetches>> = RefCell::default();
 
-    /// Maps the fiat symbol and 00:00 UTC of each day in the delay window, in seconds, to the
-    /// non-final USD/fiat rate. It lives on the heap, so an upgrade clears it, and the next gap
-    /// fill fetches the rates again.
+    /// Maps the fiat symbol and 00:00 UTC of each day without a final USD/fiat rate, in seconds,
+    /// to the non-final USD/fiat rate. It lives on the heap, so an upgrade clears it, and the next
+    /// gap fill fetches the rates of the delay window again.
     static NON_FINAL_USD_TO_FIAT_RATES: RefCell<BTreeMap<(FiatSymbolBytes, u64), NonFinalFiatRate>> =
         RefCell::default();
 }
 
 /// Stores the rate of the day that starts at `day_start_seconds`.
+/// A USD/fiat rate is final, so it also removes the non-final rate of the day.
 pub fn add_rate(pair: DailyRatePair, day_start_seconds: u64, rate_e8s: u64) {
     match pair {
         DailyRatePair::IcpToUsd => ICP_TO_USD_RATES_E8S.with(|rates_e8s| {
@@ -122,6 +124,11 @@ pub fn add_rate(pair: DailyRatePair, day_start_seconds: u64, rate_e8s: u64) {
                 let _previous_rate_e8s = rates_e8s
                     .borrow_mut()
                     .insert((symbol_bytes, day_start_seconds), rate_e8s);
+            });
+            NON_FINAL_USD_TO_FIAT_RATES.with(|non_final_rates| {
+                let _previous_rate = non_final_rates
+                    .borrow_mut()
+                    .remove(&(symbol_bytes, day_start_seconds));
             });
         }
     }
@@ -308,23 +315,6 @@ pub fn list_non_final_fiat_rates_to_fetch(
             rates_to_fetch
         })
     })
-}
-
-/// Removes each non-final USD/fiat rate whose day left the delay window or that has a final
-/// rate now.
-pub fn remove_outdated_non_final_fiat_rates() {
-    let now_seconds = time_seconds();
-    USD_TO_FIAT_RATES_E8S.with(|final_rates_e8s| {
-        let final_rates_e8s = final_rates_e8s.borrow();
-        NON_FINAL_USD_TO_FIAT_RATES.with(|non_final_rates| {
-            non_final_rates
-                .borrow_mut()
-                .retain(|&(symbol_bytes, day_start_seconds), _| {
-                    is_in_fiat_delay_window(day_start_seconds, now_seconds)
-                        && !final_rates_e8s.contains_key(&(symbol_bytes, day_start_seconds))
-                });
-        });
-    });
 }
 
 /// Sets the time of the last fetch of a non-final USD/fiat rate to now.

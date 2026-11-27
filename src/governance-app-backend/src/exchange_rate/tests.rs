@@ -1380,50 +1380,94 @@ async fn test_fill_daily_history_batch_fetches_missing_rates_after_failed_non_fi
     );
 }
 
+/// Returns the USD/fiat rate and its final flag of each day in `from_seconds..to_seconds`.
+fn list_fiat_rates(
+    from_seconds: u64,
+    to_seconds: u64,
+    symbol: &str,
+) -> Vec<(u64, Option<u64>, bool)> {
+    daily_history::list_rates(from_seconds, to_seconds, Some(symbol))
+        .into_iter()
+        .map(|rate| {
+            (
+                rate.timestamp_seconds,
+                rate.usd_to_fiat_e8s,
+                rate.usd_to_fiat_is_final,
+            )
+        })
+        .collect()
+}
+
 #[tokio::test]
-async fn test_fill_daily_history_batch_removes_outdated_non_final_rates() {
-    // Step 1: Prepare the world.
+async fn test_fill_daily_history_batch_keeps_a_non_final_rate_until_the_final_rate_is_stored() {
+    // Step 1: Prepare the world. Days 3, 4, and 5 have non-final rates.
     set_time_seconds(FIFTH_DAY_SECONDS);
+    add_missing_final_rates();
     daily_history::add_non_final_fiat_rate("EUR", THIRD_DAY_START_SECONDS, 95_000_000);
+    daily_history::add_non_final_fiat_rate("GBP", THIRD_DAY_START_SECONDS, 80_000_000);
     daily_history::add_non_final_fiat_rate("EUR", FOURTH_DAY_START_SECONDS, 94_000_000);
     daily_history::add_non_final_fiat_rate("EUR", FIFTH_DAY_START_SECONDS, 93_000_000);
-    // On day 6, day 3 leaves the delay window, and day 4 has a final rate.
-    let sixth_day_seconds = THIRD_DAY_START_SECONDS + FIAT_RATE_DELAY_SECS + ONE_HOUR_SECS;
+    // On day 6, day 3 leaves the delay window, and its final rates are missing.
+    let sixth_day_start_seconds = THIRD_DAY_START_SECONDS + FIAT_RATE_DELAY_SECS;
+    let sixth_day_seconds = sixth_day_start_seconds + ONE_HOUR_SECS;
     set_time_seconds(sixth_day_seconds);
     daily_history::add_rate(
-        DailyRatePair::UsdToFiat("EUR"),
-        FOURTH_DAY_START_SECONDS,
-        96_000_000,
+        DailyRatePair::IcpToUsd,
+        sixth_day_start_seconds,
+        100_000_000,
     );
-    for _ in 0..DAILY_HISTORY_BATCH_SIZE {
-        testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
-    }
 
-    // Step 2: Run the code under test.
-    fill_daily_history_batch().await;
-
-    // Step 3: Verify result(s). Only the rate of day 5 stays non-final, and the batch does not
-    // fetch a non-final rate for day 4.
-    let request_quotes = drain_request_quotes();
-    assert!(request_quotes.contains(&("EUR".to_string(), Some(FIFTH_DAY_START_SECONDS))));
-    assert!(!request_quotes.contains(&("EUR".to_string(), Some(FOURTH_DAY_START_SECONDS))));
-    let eur_rates =
-        daily_history::list_rates(THIRD_DAY_START_SECONDS, sixth_day_seconds, Some("EUR"))
-            .into_iter()
-            .map(|rate| {
-                (
-                    rate.timestamp_seconds,
-                    rate.usd_to_fiat_e8s,
-                    rate.usd_to_fiat_is_final,
-                )
-            })
-            .collect::<Vec<(u64, Option<u64>, bool)>>();
+    // Step 2: Verify result(s) before the next gap fill. The non-final rates of day 3 stay,
+    // and the non-final fetches do not include day 3.
     assert_eq!(
-        eur_rates,
+        list_fiat_rates(THIRD_DAY_START_SECONDS, sixth_day_start_seconds, "EUR"),
         vec![
-            (FOURTH_DAY_START_SECONDS, Some(96_000_000), true),
+            (THIRD_DAY_START_SECONDS, Some(95_000_000), false),
+            (FOURTH_DAY_START_SECONDS, Some(94_000_000), false),
             (FIFTH_DAY_START_SECONDS, Some(93_000_000), false),
         ]
+    );
+    let non_final_fetches =
+        daily_history::list_non_final_fiat_rates_to_fetch(&SUPPORTED_FIAT_SYMBOLS);
+    assert_eq!(non_final_fetches.len(), NON_FINAL_RATE_COUNT);
+    assert!(non_final_fetches
+        .iter()
+        .all(|&(day_start_seconds, _)| day_start_seconds > THIRD_DAY_START_SECONDS));
+
+    // Step 3: Run the code under test. The non-final fetches of days 6, 5, and 4 fail. Then the
+    // final EUR rate of day 3 succeeds, and the other final rates of day 3 fail.
+    for _ in 0..NON_FINAL_RATE_COUNT {
+        testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
+    }
+    let response = make_exchange_rate(96_000_000, E8S_DECIMALS, THIRD_DAY_START_SECONDS);
+    testing::add_exchange_rate_response(Ok(Ok(response)));
+    for _ in 1..SUPPORTED_FIAT_SYMBOLS.len() {
+        testing::add_exchange_rate_response(Err("canister unreachable".to_string()));
+    }
+    let first_should_continue = fill_daily_history_batch().await;
+    let second_should_continue = fill_daily_history_batch().await;
+
+    // Step 4: Verify result(s). Day 3 has one fetch for each currency, which is the final rate.
+    // The final EUR rate replaces the non-final one. The GBP rate stays non-final.
+    assert!(first_should_continue);
+    assert!(!second_should_continue);
+    let request_quotes = drain_request_quotes();
+    assert_eq!(
+        request_quotes.len(),
+        NON_FINAL_RATE_COUNT + SUPPORTED_FIAT_SYMBOLS.len()
+    );
+    let third_day_request_count = request_quotes
+        .iter()
+        .filter(|(_, timestamp)| *timestamp == Some(THIRD_DAY_START_SECONDS))
+        .count();
+    assert_eq!(third_day_request_count, SUPPORTED_FIAT_SYMBOLS.len());
+    assert_eq!(
+        list_fiat_rates(THIRD_DAY_START_SECONDS, FOURTH_DAY_START_SECONDS, "EUR"),
+        vec![(THIRD_DAY_START_SECONDS, Some(96_000_000), true)]
+    );
+    assert_eq!(
+        list_fiat_rates(THIRD_DAY_START_SECONDS, FOURTH_DAY_START_SECONDS, "GBP"),
+        vec![(THIRD_DAY_START_SECONDS, Some(80_000_000), false)]
     );
 }
 
