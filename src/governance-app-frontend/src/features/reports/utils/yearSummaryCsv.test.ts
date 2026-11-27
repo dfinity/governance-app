@@ -47,6 +47,7 @@ const summary: YearSummary = {
         entity: main,
         transaction: mintTx({ id: 7n, ms: Date.UTC(2025, 11, 20, 9), to: MAIN, e8s: 10n * ICP }),
         neuronAccountIds: new Set(),
+        ownAccountIds: new Set([MAIN]),
       }),
       rate,
       valueHundredths: 2_000n,

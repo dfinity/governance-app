@@ -93,6 +93,7 @@
       "dissolved": "Dissolved",
       "spawning": "Spawning"
     },
+    "neuronName": "Neuron {{id}}",
     "access": {
       "controller": "Controller",
       "ledgerDevice": "Ledger device",
@@ -105,7 +106,9 @@
       "accountId": "Account ID",
       "neuronId": "Neuron ID",
       "type": "Type",
+      "fromName": "From name",
       "from": "From",
+      "toName": "To name",
       "to": "To",
       "amount": "Amount (ICP)",
       "fee": "Fee (ICP)",
@@ -119,6 +122,7 @@
       "stake": "Stake",
       "disburse": "Disburse",
       "selfTransfer": "Self transfer",
+      "ownTransfer": "Transfer between own accounts",
       "reward": "Reward (minted)",
       "burn": "Burn",
       "approve": "Approve",

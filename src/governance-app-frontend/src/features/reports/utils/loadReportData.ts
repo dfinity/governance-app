@@ -204,6 +204,7 @@ export const loadEntityHistories = async ({
   const neuronAccountIds = new Set(
     entities.filter(({ kind }) => kind === 'neuron').map(({ accountId }) => accountId),
   );
+  const ownAccountIds = new Set(entities.map(({ accountId }) => accountId));
 
   const fetched = await mapWithLimit(entities, CONCURRENT_ACCOUNTS, async (entity) => {
     const { balanceE8s, transactions, complete } = await fetchTransactionsSince({
@@ -218,7 +219,7 @@ export const loadEntityHistories = async ({
         entity,
         balanceE8s,
         transactions: transactions.map((transaction) =>
-          mapReportTransaction({ entity, transaction, neuronAccountIds }),
+          mapReportTransaction({ entity, transaction, neuronAccountIds, ownAccountIds }),
         ),
       },
     };

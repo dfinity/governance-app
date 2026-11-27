@@ -54,7 +54,9 @@ export const useTransactionsCsvLabels = (currency: FiatCurrency): TransactionsCs
       accountId: t(($) => $.reports.csv.transactions.accountId),
       neuronId: t(($) => $.reports.csv.transactions.neuronId),
       type: t(($) => $.reports.csv.transactions.type),
+      fromName: t(($) => $.reports.csv.transactions.fromName),
       from: t(($) => $.reports.csv.transactions.from),
+      toName: t(($) => $.reports.csv.transactions.toName),
       to: t(($) => $.reports.csv.transactions.to),
       amount: t(($) => $.reports.csv.transactions.amount),
       fee: t(($) => $.reports.csv.transactions.fee),
@@ -68,11 +70,13 @@ export const useTransactionsCsvLabels = (currency: FiatCurrency): TransactionsCs
       [ReportTransactionType.Stake]: t(($) => $.reports.csv.types.stake),
       [ReportTransactionType.Disburse]: t(($) => $.reports.csv.types.disburse),
       [ReportTransactionType.SelfTransfer]: t(($) => $.reports.csv.types.selfTransfer),
+      [ReportTransactionType.OwnTransfer]: t(($) => $.reports.csv.types.ownTransfer),
       [ReportTransactionType.Reward]: t(($) => $.reports.csv.types.reward),
       [ReportTransactionType.Burn]: t(($) => $.reports.csv.types.burn),
       [ReportTransactionType.Approve]: t(($) => $.reports.csv.types.approve),
       [ReportTransactionType.Unknown]: t(($) => $.reports.csv.types.unknown),
     },
+    neuronName: (id) => t(($) => $.reports.csv.neuronName, { id }),
   };
 };
 

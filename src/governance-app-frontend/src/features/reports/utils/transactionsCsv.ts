@@ -24,6 +24,8 @@ export enum ReportTransactionType {
   Stake = 'stake',
   Disburse = 'disburse',
   SelfTransfer = 'selfTransfer',
+  /** A transfer between two accounts of the user. */
+  OwnTransfer = 'ownTransfer',
   Reward = 'reward',
   Burn = 'burn',
   Approve = 'approve',
@@ -50,7 +52,9 @@ export type TransactionsCsvLabels = {
     accountId: string;
     neuronId: string;
     type: string;
+    fromName: string;
     from: string;
+    toName: string;
     to: string;
     amount: string;
     fee: string;
@@ -59,6 +63,8 @@ export type TransactionsCsvLabels = {
     rateDate: string;
   };
   types: Record<ReportTransactionType, string>;
+  /** For example, "Neuron 123". */
+  neuronName: (neuronId: string) => string;
 };
 
 export const getTransactionTimestampMs = (
@@ -73,11 +79,13 @@ const transferType = ({
   from,
   to,
   neuronAccountIds,
+  ownAccountIds,
 }: {
   entity: ReportEntity;
   from: string;
   to: string;
   neuronAccountIds: ReadonlySet<string>;
+  ownAccountIds: ReadonlySet<string>;
 }): ReportTransactionType => {
   const { accountId } = entity;
 
@@ -86,6 +94,8 @@ const transferType = ({
     return to === accountId ? ReportTransactionType.Stake : ReportTransactionType.Disburse;
   }
   if (from === accountId && neuronAccountIds.has(to)) return ReportTransactionType.Stake;
+  if (to === accountId && neuronAccountIds.has(from)) return ReportTransactionType.Disburse;
+  if (ownAccountIds.has(from) && ownAccountIds.has(to)) return ReportTransactionType.OwnTransfer;
   if (from === accountId) return ReportTransactionType.Sent;
   if (to === accountId) return ReportTransactionType.Received;
   return ReportTransactionType.Unknown;
@@ -96,10 +106,13 @@ export const mapReportTransaction = ({
   entity,
   transaction: { id, transaction },
   neuronAccountIds,
+  ownAccountIds,
 }: {
   entity: ReportEntity;
   transaction: IcpIndexDid.TransactionWithId;
   neuronAccountIds: ReadonlySet<string>;
+  /** The accounts and the neuron accounts of the user. */
+  ownAccountIds: ReadonlySet<string>;
 }): ReportTransaction => {
   const { operation } = transaction;
   const base = { id, timestampMs: getTransactionTimestampMs(transaction) };
@@ -145,7 +158,7 @@ export const mapReportTransaction = ({
 
   return {
     ...base,
-    type: transferType({ entity, from, to, neuronAccountIds }),
+    type: transferType({ entity, from, to, neuronAccountIds, ownAccountIds }),
     from,
     to,
     amountE8s: isDebit && !isCredit ? -amount.e8s : isCredit && !isDebit ? amount.e8s : 0n,
@@ -186,6 +199,13 @@ export const buildTransactionsCsv = ({
   rateLookup: ReportRateLookup;
 }): string => {
   const { headers } = labels;
+  const ownNames = new Map(
+    results.map(({ entity }) => [
+      entity.accountId,
+      entity.kind === 'account' ? entity.name : labels.neuronName(entity.neuronId.toString()),
+    ]),
+  );
+  const ownName = (accountId: string) => asSafeSpreadsheetText(ownNames.get(accountId) ?? '');
 
   const columns: CsvColumn<TransactionRow>[] = [
     { header: headers.index, value: ({ transaction }) => transaction.id.toString() },
@@ -205,7 +225,9 @@ export const buildTransactionsCsv = ({
         entity.kind === 'neuron' ? asSpreadsheetText(entity.neuronId.toString()) : '',
     },
     { header: headers.type, value: ({ transaction }) => labels.types[transaction.type] },
+    { header: headers.fromName, value: ({ transaction }) => ownName(transaction.from) },
     { header: headers.from, value: ({ transaction }) => asSafeSpreadsheetText(transaction.from) },
+    { header: headers.toName, value: ({ transaction }) => ownName(transaction.to) },
     { header: headers.to, value: ({ transaction }) => asSafeSpreadsheetText(transaction.to) },
     {
       header: headers.amount,
