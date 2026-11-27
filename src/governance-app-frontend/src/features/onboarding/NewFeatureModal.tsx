@@ -1,15 +1,23 @@
-import { CheckCircle2 } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
+import { ChartColumn, CheckCircle2, Coins, Download, type LucideIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@components/button';
 import { ADVANCED_FEATURES } from '@constants/advancedFeatures';
 import { WELCOME_MODAL_STORAGE_KEY } from '@constants/extra';
+import { PAGE_ANNOUNCEMENTS } from '@constants/pageAnnouncements';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
 import { useDetectAdvancedFeatures } from '@hooks/useDetectAdvancedFeatures';
 import { AdvancedFeature } from '@typings/advancedFeatures';
+import { type AnnouncementKey, PageAnnouncement } from '@typings/featureAnnouncements';
 import { notifyAdvancedFeatureChange } from '@utils/advancedFeatures';
-import { markAnnouncementsSeen, splitUnseenAnnouncements } from '@utils/featureAnnouncements';
+import {
+  isAdvancedFeature,
+  markAnnouncementsSeen,
+  splitUnseenAnnouncements,
+} from '@utils/featureAnnouncements';
+import { isApplePlatform } from '@utils/platform';
 import { getStorageItem } from '@utils/storage';
 import { useIsLoginHandoffActive } from '@common/auth/loginHandoff';
 import {
@@ -20,9 +28,21 @@ import {
   ResponsiveDialogTitle,
 } from '@common/components/ResponsiveDialog';
 
+type AnnouncementContent = {
+  icon?: LucideIcon;
+  title: string;
+  description: string;
+  confirm: string;
+  hint: string;
+  /** The hint for a device with a keyboard, which can open the command palette. */
+  shortcutHint?: string;
+  highlights?: { icon: LucideIcon; label: string }[];
+};
+
 /**
- * Presents each advanced feature with `announce` that a returning user did not see, one modal at
- * a time. New users get the Welcome modal instead, which marks the features as seen.
+ * Presents each advanced feature with `announce` and each available page in `PAGE_ANNOUNCEMENTS`
+ * that a returning user did not see, one modal at a time. New users get the Welcome modal
+ * instead, which marks them as seen.
  */
 export function NewFeatureModal() {
   const { t } = useTranslation();
@@ -34,9 +54,10 @@ export function NewFeatureModal() {
       ? splitUnseenAnnouncements(features)
       : { toShow: [], alreadyOn: [] },
   );
-  const [queue, setQueue] = useState<AdvancedFeature[]>(toShow);
-  // The feature on screen. It stays after the last choice, so the modal can animate out.
-  const [shown, setShown] = useState<AdvancedFeature | undefined>(toShow[0]);
+  const [queue, setQueue] = useState<AnnouncementKey[]>(toShow);
+  // The announcement on screen. It stays after the last choice, so the modal can animate out.
+  const [shown, setShown] = useState<AnnouncementKey | undefined>(toShow[0]);
+  const navigate = useNavigate();
 
   // A feature that the user turned on in Settings needs no modal.
   useEffect(() => {
@@ -44,7 +65,9 @@ export function NewFeatureModal() {
   }, [alreadyOn]);
 
   const isLoginHandoffActive = useIsLoginHandoffActive();
-  const { isDetecting, detectedFeatures } = useDetectAdvancedFeatures(queue);
+  const { isDetecting, detectedFeatures } = useDetectAdvancedFeatures(
+    queue.filter(isAdvancedFeature),
+  );
 
   const isOpen = queue.length > 0 && !isDetecting && !isLoginHandoffActive;
 
@@ -54,17 +77,49 @@ export function NewFeatureModal() {
     [AdvancedFeature.LedgerDevice]: t(($) => $.newFeatureModal.detected.ledgerDevice),
   };
 
+  const pageContent: Record<PageAnnouncement, AnnouncementContent> = {
+    [PageAnnouncement.Reports]: {
+      title: t(($) => $.newFeatureModal.pages.reports.title),
+      description: t(($) => $.newFeatureModal.pages.reports.description),
+      confirm: t(($) => $.newFeatureModal.pages.reports.open),
+      hint: t(($) => $.newFeatureModal.pages.reports.hint),
+      shortcutHint: t(($) => $.newFeatureModal.pages.reports.hintShortcut, {
+        shortcut: isApplePlatform ? '⌘K' : 'Ctrl K',
+      }),
+      highlights: [
+        { icon: ChartColumn, label: t(($) => $.newFeatureModal.pages.reports.yearSummary) },
+        { icon: Download, label: t(($) => $.newFeatureModal.pages.reports.csv) },
+        { icon: Coins, label: t(($) => $.newFeatureModal.pages.reports.fiat) },
+      ],
+    },
+  };
+
   if (shown === undefined) return null;
 
-  const Icon = ADVANCED_FEATURES.find(({ key }) => key === shown)?.icon;
-  const detectedLabel = detectedFeatures[shown] === true ? detectedLabels[shown] : undefined;
+  const content: AnnouncementContent = isAdvancedFeature(shown)
+    ? {
+        icon: ADVANCED_FEATURES.find(({ key }) => key === shown)?.icon,
+        title: t(($) => $.userAccount.advancedFeatures.items[shown].label),
+        description: t(($) => $.userAccount.advancedFeatures.items[shown].description),
+        confirm: t(($) => $.newFeatureModal.turnOn),
+        hint: t(($) => $.newFeatureModal.hint),
+      }
+    : { ...pageContent[shown], icon: PAGE_ANNOUNCEMENTS.find(({ key }) => key === shown)?.icon };
+  const Icon = content.icon;
+  const detectedLabel =
+    isAdvancedFeature(shown) && detectedFeatures[shown] === true
+      ? detectedLabels[shown]
+      : undefined;
   const position = toShow.indexOf(shown) + 1;
 
-  const close = (turnOn: boolean) => {
+  const close = (confirm: boolean) => {
     const current = queue[0];
     if (current === undefined) return;
 
-    if (turnOn) {
+    if (!isAdvancedFeature(current)) {
+      const page = PAGE_ANNOUNCEMENTS.find(({ key }) => key === current);
+      if (confirm && page) void navigate({ to: page.to });
+    } else if (confirm) {
       setFeature(current, true);
       notifyAdvancedFeatureChange(t, current, true);
     } else if (missingFeatureKeys.includes(current)) {
@@ -104,12 +159,26 @@ export function NewFeatureModal() {
           <p className="text-xs font-medium tracking-wider text-primary uppercase">
             {t(($) => $.newFeatureModal.eyebrow)}
           </p>
-          <ResponsiveDialogTitle className="text-2xl">
-            {t(($) => $.userAccount.advancedFeatures.items[shown].label)}
-          </ResponsiveDialogTitle>
+          <ResponsiveDialogTitle className="text-2xl">{content.title}</ResponsiveDialogTitle>
           <ResponsiveDialogDescription className="text-sm text-muted-foreground">
-            {t(($) => $.userAccount.advancedFeatures.items[shown].description)}
+            {content.description}
           </ResponsiveDialogDescription>
+          {content.highlights && (
+            <ul
+              className="flex flex-col gap-2 rounded-lg bg-muted px-3 py-2.5 text-sm"
+              data-testid="new-feature-highlights"
+            >
+              {content.highlights.map(({ icon: HighlightIcon, label }) => (
+                <li key={label} className="flex items-start gap-2.5">
+                  <HighlightIcon
+                    className="mt-0.5 size-4 shrink-0 text-primary"
+                    aria-hidden="true"
+                  />
+                  {label}
+                </li>
+              ))}
+            </ul>
+          )}
           {detectedLabel && (
             <div
               className="flex items-center gap-2.5 rounded-lg bg-muted px-3 py-2.5 text-sm"
@@ -130,12 +199,21 @@ export function NewFeatureModal() {
               {t(($) => $.newFeatureModal.notNow)}
             </Button>
             <Button onClick={() => close(true)} data-testid="new-feature-turn-on-btn">
-              {t(($) => $.newFeatureModal.turnOn)}
+              {content.confirm}
             </Button>
           </div>
-          <p className="text-center text-xs text-muted-foreground">
-            {t(($) => $.newFeatureModal.hint)}
-          </p>
+          {content.shortcutHint ? (
+            <>
+              <p className="text-center text-xs text-muted-foreground pointer-coarse:hidden">
+                {content.shortcutHint}
+              </p>
+              <p className="hidden text-center text-xs text-muted-foreground pointer-coarse:block">
+                {content.hint}
+              </p>
+            </>
+          ) : (
+            <p className="text-center text-xs text-muted-foreground">{content.hint}</p>
+          )}
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>
     </ResponsiveDialog>

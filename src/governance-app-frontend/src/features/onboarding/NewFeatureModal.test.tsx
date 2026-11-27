@@ -8,11 +8,13 @@ import {
   SEEN_FEATURE_ANNOUNCEMENTS_STORAGE_KEY,
   WELCOME_MODAL_STORAGE_KEY,
 } from '@constants/extra';
+import { FEATURE_FLAGS_STORAGE_KEY } from '@constants/featureFlags';
 import {
   ADVANCED_FEATURES_DEFAULTS,
   AdvancedFeature,
   type AdvancedFeaturesSettings,
 } from '@typings/advancedFeatures';
+import { PageAnnouncement } from '@typings/featureAnnouncements';
 
 import { NewFeatureModal } from './NewFeatureModal';
 
@@ -22,7 +24,10 @@ const mocks = vi.hoisted(() => ({
   detect: vi.fn(),
   notify: vi.fn(),
   isLoginHandoffActive: vi.fn(),
+  navigate: vi.fn(),
 }));
+
+vi.mock('@tanstack/react-router', () => ({ useNavigate: () => mocks.navigate }));
 
 vi.mock('@hooks/useMediaQuery', () => ({ useMediaQuery: () => true }));
 vi.mock('@common/ledger/webhid', () => ({ isWebHidSupported: () => true }));
@@ -155,5 +160,55 @@ describe('NewFeatureModal', () => {
 
     expect(screen.queryByTestId('new-feature-modal')).toBeNull();
     expect(seenAnnouncements(storage)).toEqual([AdvancedFeature.LedgerDevice]);
+  });
+
+  describe('Reports page', () => {
+    beforeEach(() => {
+      storage.items.set(FEATURE_FLAGS_STORAGE_KEY, JSON.stringify({ reports: true }));
+      storage.items.set(SEEN_FEATURE_ANNOUNCEMENTS_STORAGE_KEY, '["ledgerDevice"]');
+    });
+
+    it('presents the page and opens it', async () => {
+      render(<NewFeatureModal />);
+
+      expect((await screen.findByTestId('new-feature-modal')).textContent).toContain('Reports');
+      expect(screen.getAllByRole('listitem').map(({ textContent }) => textContent)).toEqual([
+        'Year summary: reward income, holdings, and fees',
+        'CSV of your neurons and of your transactions',
+        'Values in your currency, at the ICP price of each day',
+      ]);
+
+      await userEvent.click(screen.getByTestId('new-feature-turn-on-btn'));
+
+      expect(mocks.navigate).toHaveBeenCalledWith({ to: '/reports' });
+      expect(mocks.setFeature).not.toHaveBeenCalled();
+      expect(seenAnnouncements(storage)).toEqual([
+        AdvancedFeature.LedgerDevice,
+        PageAnnouncement.Reports,
+      ]);
+      await waitFor(() => expect(screen.queryByTestId('new-feature-modal')).toBeNull());
+    });
+
+    it('stays on the current page on "Not now"', async () => {
+      render(<NewFeatureModal />);
+
+      await userEvent.click(await screen.findByTestId('new-feature-not-now-btn'));
+
+      expect(mocks.navigate).not.toHaveBeenCalled();
+      expect(seenAnnouncements(storage)).toContain(PageAnnouncement.Reports);
+    });
+
+    it('comes after an unseen feature', async () => {
+      storage.items.delete(SEEN_FEATURE_ANNOUNCEMENTS_STORAGE_KEY);
+      render(<NewFeatureModal />);
+
+      expect((await screen.findByTestId('new-feature-position')).textContent).toBe('1 of 2');
+      expect(mocks.detect).toHaveBeenLastCalledWith([AdvancedFeature.LedgerDevice]);
+
+      await userEvent.click(screen.getByTestId('new-feature-not-now-btn'));
+
+      expect((await screen.findByTestId('new-feature-position')).textContent).toBe('2 of 2');
+      expect(screen.getByTestId('new-feature-modal').textContent).toContain('Reports');
+    });
   });
 });
