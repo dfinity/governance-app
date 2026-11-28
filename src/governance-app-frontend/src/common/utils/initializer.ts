@@ -14,6 +14,11 @@ declare module '@tanstack/react-router' {
     hidesBottomNav?: boolean;
   }
 
+  interface HistoryState {
+    /** Set on a proposal detail entry that the proposal list pushed. */
+    fromProposalList?: boolean;
+  }
+
   interface Register {
     router: typeof routerConfig;
   }
