@@ -323,7 +323,7 @@ export const ProposalVotingHistory = ({ proposal }: Props) => {
     <Card data-testid="proposal-voting-history">
       <CardHeader>
         <CardTitle>{t(($) => $.proposal.votingHistory.title)}</CardTitle>
-        <CardAction className="flex gap-3 self-center text-xs text-foreground-secondary">
+        <CardAction className="flex flex-wrap gap-x-3 gap-y-1 self-center text-xs text-foreground-secondary">
           <LegendItem
             label={yesLabel}
             shape="circle"

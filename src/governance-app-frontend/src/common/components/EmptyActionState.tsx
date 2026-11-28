@@ -35,7 +35,7 @@ export const EmptyActionState = ({
       <Icon className="size-10 text-muted-foreground" />
     </div>
     <div className="mt-6 flex w-full max-w-sm flex-col items-center gap-3">
-      <h3 className="flex min-h-9 w-full items-center justify-center text-3xl leading-9 font-normal">
+      <h3 className="flex min-h-9 w-full items-center justify-center text-3xl leading-9 font-normal wrap-anywhere">
         {title}
       </h3>
       <p className="text-base text-muted-foreground">{description}</p>

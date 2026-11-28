@@ -48,7 +48,7 @@ export function AccountCard() {
     <>
       <Card className="pt-4 pb-6" data-testid="available-balance-card">
         <CardHeader className="flex flex-col gap-0">
-          <div className="flex min-h-9 w-full items-center justify-between">
+          <div className="flex min-h-9 w-full flex-wrap items-center justify-between gap-x-3">
             <p className="text-sm tracking-wide text-muted-foreground uppercase">
               {t(($) => $.account.available)}
             </p>
@@ -70,7 +70,7 @@ export function AccountCard() {
             {balanceQuery.isLoading ? (
               <Skeleton className="h-8 w-32" />
             ) : (
-              <p className="text-2xl font-semibold">
+              <p className="text-2xl font-semibold wrap-anywhere">
                 <SensitiveValue>
                   {t(($) => $.common.inIcp, { value: formatNumber(balanceICP) })}
                 </SensitiveValue>

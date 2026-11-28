@@ -19,9 +19,9 @@ export const MobileHeader = () => {
     // The negative margin takes the space from the top padding of `main`, so the sticky offsets of
     // the pages stay the same.
     <header className="-mt-5 mb-3 flex h-9 items-center justify-between lg:hidden">
-      <div className="flex items-center gap-2">
-        <img src="/infinity-mark.png" alt="" className="h-5 w-auto" aria-hidden="true" />
-        <NnsWordmark className="h-[1.125rem] w-auto text-foreground" />
+      <div className="flex min-w-0 items-center gap-2">
+        <img src="/infinity-mark.png" alt="" className="h-5 w-auto shrink-0" aria-hidden="true" />
+        <NnsWordmark className="h-[1.125rem] w-auto min-w-0 shrink text-foreground" />
       </div>
       <CommandPaletteButton variant="header" className="-mr-2" />
     </header>

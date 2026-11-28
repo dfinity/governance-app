@@ -110,7 +110,7 @@ const TallyChangeRow = ({
   return (
     <li className="relative">
       <TimelineDot highlighted={false} />
-      <div className="flex items-baseline justify-between gap-2 text-xs">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-2 text-xs">
         <span className="text-muted-foreground">{time}</span>
         <span className="text-right">
           {change.yes > 0 && (

@@ -110,12 +110,14 @@ export function ProposalListItem({
             {timeLeft.length > 0 && (
               <Badge variant="secondary" className="gap-1.5 font-normal">
                 <Clock className="size-3.5" />
-                {t(($) => $.proposal.timeLeft, { timeLeft })}
+                <span className="truncate">{t(($) => $.proposal.timeLeft, { timeLeft })}</span>
               </Badge>
             )}
             <Badge variant="secondary" className="gap-1.5 font-normal">
               <Tag className="size-3.5" />
-              {Topic[proposal.topic] ?? t(($) => $.proposal.unknownTopic, { id: proposal.topic })}
+              <span className="truncate">
+                {Topic[proposal.topic] ?? t(($) => $.proposal.unknownTopic, { id: proposal.topic })}
+              </span>
             </Badge>
             {nonNullish(proposal.proposer) && (
               <ProposerBadge proposer={proposal.proposer} knownNeuronNames={knownNeuronNames} />
@@ -164,7 +166,7 @@ export function ProposalListItem({
       </CardHeader>
 
       {(canVote || hasVoted) && (
-        <CardFooter className="py-2">
+        <CardFooter className="@container py-2">
           {hasVoted ? (
             <div
               className={cn(
@@ -207,7 +209,7 @@ export function ProposalListItem({
               )}
             </div>
           ) : (
-            <div className="flex w-full items-center gap-2">
+            <div className="flex w-full flex-col gap-2 @min-[14.5rem]:flex-row @min-[14.5rem]:items-center">
               <Button
                 aria-busy={isVoting}
                 aria-label={t(($) => $.proposal.ariaLabelVote, {
