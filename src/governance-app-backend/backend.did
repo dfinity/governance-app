@@ -147,4 +147,7 @@ service : {
     // The history starts on 1 January 2025.
     list_daily_exchange_rates : (ListDailyExchangeRatesRequest) -> (ListDailyExchangeRatesResponse) query;
     // End Exchange Rate
+
+    // A markdown guide to the API, for AI agents.
+    get_api_doc : () -> (text) query;
 }
