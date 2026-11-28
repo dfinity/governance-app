@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { useLoginAnalytics } from '@features/analytics/useLoginAnalytics';
+import { useSignedInProperty } from '@features/analytics/useSignedInProperty';
 import { AnimatedGovernanceLogo } from '@features/login/components/AnimatedGovernanceLogo';
 import { LoginRestart } from '@features/login/components/LoginRestart';
 
@@ -53,6 +54,7 @@ function LoginPage() {
   const { identity, canLogin, login, isLoggingIn, isFinishingLogin } = useInternetIdentity();
   const { t } = useTranslation();
 
+  useSignedInProperty();
   useLoginAnalytics();
 
   const [isVideoReady, setIsVideoReady] = useState(false);

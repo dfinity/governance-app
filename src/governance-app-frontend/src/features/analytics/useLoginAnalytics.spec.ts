@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AnalyticsEvent } from '@features/analytics/events';
 import { analytics } from '@features/analytics/service';
 
-import { useLoginAnalytics } from './useLoginAnalytics';
+import { setLoginSource, useLoginAnalytics } from './useLoginAnalytics';
 
 const { auth } = vi.hoisted(() => ({
   auth: { isLoggingIn: false, identity: undefined as Identity | undefined },
@@ -46,7 +46,9 @@ describe('useLoginAnalytics', () => {
     setAuth({ isLoggingIn: true });
     setAuth({ isLoggingIn: false, identity: IDENTITY });
 
-    expect(analytics.event).toHaveBeenLastCalledWith(AnalyticsEvent.LoginSuccess);
+    expect(analytics.event).toHaveBeenLastCalledWith(AnalyticsEvent.LoginSuccess, {
+      source: 'login_page',
+    });
   });
 
   it('sends login_error when the login ends without an identity', () => {
@@ -55,7 +57,9 @@ describe('useLoginAnalytics', () => {
     setAuth({ isLoggingIn: true });
     setAuth({ isLoggingIn: false });
 
-    expect(analytics.event).toHaveBeenLastCalledWith(AnalyticsEvent.LoginError);
+    expect(analytics.event).toHaveBeenLastCalledWith(AnalyticsEvent.LoginError, {
+      source: 'login_page',
+    });
   });
 
   it('sends login_start when a login begins, also for a login that never ends', () => {
@@ -65,7 +69,9 @@ describe('useLoginAnalytics', () => {
     // A second click during the login starts it again, and is not a new attempt.
     setAuth({ isLoggingIn: true });
 
-    expect(analytics.event).toHaveBeenCalledExactlyOnceWith(AnalyticsEvent.LoginStart);
+    expect(analytics.event).toHaveBeenCalledExactlyOnceWith(AnalyticsEvent.LoginStart, {
+      source: 'login_page',
+    });
   });
 
   it('sends no login_start for a login that runs at mount', () => {
@@ -89,6 +95,38 @@ describe('useLoginAnalytics', () => {
       AnalyticsEvent.LoginError,
       AnalyticsEvent.LoginStart,
       AnalyticsEvent.LoginSuccess,
+    ]);
+  });
+
+  it('sends the control that started the login, then falls back to the login page', () => {
+    const setAuth = renderLoginPage();
+
+    setLoginSource('reader_vote_row');
+    setAuth({ isLoggingIn: true });
+    setAuth({ isLoggingIn: false });
+    setAuth({ isLoggingIn: true });
+    setAuth({ isLoggingIn: false, identity: IDENTITY });
+
+    expect(vi.mocked(analytics.event).mock.calls).toEqual([
+      [AnalyticsEvent.LoginStart, { source: 'reader_vote_row' }],
+      [AnalyticsEvent.LoginError, { source: 'reader_vote_row' }],
+      [AnalyticsEvent.LoginStart, { source: 'login_page' }],
+      [AnalyticsEvent.LoginSuccess, { source: 'login_page' }],
+    ]);
+  });
+
+  it('keeps the source of the start when another control restarts the login', () => {
+    const setAuth = renderLoginPage();
+
+    setLoginSource('reader_vote_row');
+    setAuth({ isLoggingIn: true });
+    setLoginSource('reader_sidebar');
+    setAuth({ isLoggingIn: true });
+    setAuth({ isLoggingIn: false, identity: IDENTITY });
+
+    expect(vi.mocked(analytics.event).mock.calls).toEqual([
+      [AnalyticsEvent.LoginStart, { source: 'reader_vote_row' }],
+      [AnalyticsEvent.LoginSuccess, { source: 'reader_vote_row' }],
     ]);
   });
 

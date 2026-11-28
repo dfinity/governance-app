@@ -1,5 +1,5 @@
 import { ListProposalsRequest, ProposalInfo } from '@icp-sdk/canisters/nns';
-import { isNullish } from '@dfinity/utils';
+import { isNullish, nonNullish } from '@dfinity/utils';
 
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useQueryThenUpdateCall } from '@hooks/useQueryThenUpdateCall';
@@ -13,7 +13,7 @@ import { useNnsGovernance } from './useGovernance';
  */
 export const useGovernanceProposal = (props?: { proposalId: bigint }) => {
   const { identity } = useInternetIdentity();
-  const { ready, canister } = useNnsGovernance();
+  const { ready, canister, authenticated } = useNnsGovernance();
 
   const { proposalId } = props ?? {};
 
@@ -35,7 +35,9 @@ export const useGovernanceProposal = (props?: { proposalId: bigint }) => {
     isNullish(proposalId) || proposal?.id === proposalId ? proposal : undefined;
 
   return useQueryThenUpdateCall({
-    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL, proposalId, request, principal],
+    // The ballots depend on the caller. At a login, the authenticated agent starts after the
+    // identity, so the key also names the agent.
+    queryKey: [QUERY_KEYS.NNS_GOVERNANCE.PROPOSAL, proposalId, request, principal, authenticated],
     queryFn: async () => {
       const res = await canister!.listProposals({ request, certified: false });
       return matchesRequestedId(res.proposals[0]);
@@ -46,6 +48,12 @@ export const useGovernanceProposal = (props?: { proposalId: bigint }) => {
     },
     options: {
       enabled: ready,
+      // A login on the proposal page changes the principal only: keep the proposal on screen
+      // while the ballots of the new caller load.
+      placeholderData: (previous, previousQuery) =>
+        nonNullish(proposalId) && previousQuery?.queryKey[1] === proposalId.toString()
+          ? previous
+          : undefined,
     },
   });
 };

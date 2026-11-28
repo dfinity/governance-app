@@ -2,6 +2,8 @@ import { Link } from '@tanstack/react-router';
 import { type ReactElement, type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { ReaderIntro } from '@features/reader/components/ReaderIntro';
+
 import { NnsWordmark } from '@components/icons/NnsWordmark';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/Tooltip';
 import { useAdvancedFeatures } from '@hooks/useAdvancedFeatures';
@@ -56,13 +58,21 @@ const RowTooltip = ({
   );
 };
 
-export const Sidebar = ({ activeHref }: { activeHref?: string }) => {
+type Props = {
+  activeHref?: string;
+  /** `reader`: a signed-out visitor on a public page, who gets an intro in place of the nav. */
+  variant?: 'app' | 'reader';
+};
+
+export const Sidebar = ({ activeHref, variant = 'app' }: Props) => {
   const { t } = useTranslation();
   const { features } = useAdvancedFeatures();
   const accountsEnabled = isAccountsAreaEnabled(features);
   const navigationItems = getNavigationItems({ accountsEnabled });
   const iconMotion = useIconMotion();
-  const { collapsed } = useSidebarCollapsed();
+  const { collapsed: storedCollapsed } = useSidebarCollapsed();
+  // The reader intro needs the full width.
+  const collapsed = variant === 'app' && storedCollapsed;
   const { enabled: commandPaletteEnabled } = useCommandPaletteSettings();
   const commandPaletteMounted = useCommandPaletteMounted();
 
@@ -99,50 +109,56 @@ export const Sidebar = ({ activeHref }: { activeHref?: string }) => {
         />
         {!collapsed && <NnsWordmark className="h-[1.625rem] w-auto text-foreground" />}
       </div>
-      <nav className="flex-1 space-y-1 p-2">
-        {navigationItems.map((item) => {
-          const label = t(item.label as never);
+      {variant === 'reader' ? (
+        <ReaderIntro />
+      ) : (
+        <>
+          <nav className="flex-1 space-y-1 p-2">
+            {navigationItems.map((item) => {
+              const label = t(item.label as never);
 
-          return (
-            <RowTooltip key={item.href} collapsed={collapsed} label={label}>
-              <Link
-                to={item.href}
-                {...iconMotion}
-                className={cn(
-                  ROW_CLASS,
-                  shouldAnimate && item.href === '/accounts' && 'animate-highlight-pulse',
-                  activeHref?.startsWith(item.href) && ACTIVE_ITEM_CLASS,
-                )}
-                onAnimationEnd={
-                  item.href === '/accounts' ? () => setShouldAnimate(false) : undefined
+              return (
+                <RowTooltip key={item.href} collapsed={collapsed} label={label}>
+                  <Link
+                    to={item.href}
+                    {...iconMotion}
+                    className={cn(
+                      ROW_CLASS,
+                      shouldAnimate && item.href === '/accounts' && 'animate-highlight-pulse',
+                      activeHref?.startsWith(item.href) && ACTIVE_ITEM_CLASS,
+                    )}
+                    onAnimationEnd={
+                      item.href === '/accounts' ? () => setShouldAnimate(false) : undefined
+                    }
+                    activeProps={{ className: ACTIVE_ITEM_CLASS }}
+                  >
+                    <item.icon className="size-5 shrink-0" />
+                    <span className={cn(collapsed && 'sr-only')}>{label}</span>
+                  </Link>
+                </RowTooltip>
+              );
+            })}
+          </nav>
+          {commandPaletteEnabled && commandPaletteMounted && (
+            <div className="p-2">
+              <RowTooltip
+                collapsed={collapsed}
+                label={
+                  <>
+                    {t(($) => $.common.commandPalette.search)}
+                    <CommandPaletteShortcutHint />
+                  </>
                 }
-                activeProps={{ className: ACTIVE_ITEM_CLASS }}
               >
-                <item.icon className="size-5 shrink-0" />
-                <span className={cn(collapsed && 'sr-only')}>{label}</span>
-              </Link>
-            </RowTooltip>
-          );
-        })}
-      </nav>
-      {commandPaletteEnabled && commandPaletteMounted && (
-        <div className="p-2">
-          <RowTooltip
-            collapsed={collapsed}
-            label={
-              <>
-                {t(($) => $.common.commandPalette.search)}
-                <CommandPaletteShortcutHint />
-              </>
-            }
-          >
-            <CommandPaletteButton variant="sidebar" collapsed={collapsed} />
-          </RowTooltip>
-        </div>
+                <CommandPaletteButton variant="sidebar" collapsed={collapsed} />
+              </RowTooltip>
+            </div>
+          )}
+          <div className="border-t p-3">
+            <UserMenu collapsed={collapsed} />
+          </div>
+        </>
       )}
-      <div className="border-t p-3">
-        <UserMenu collapsed={collapsed} />
-      </div>
     </aside>
   );
 };

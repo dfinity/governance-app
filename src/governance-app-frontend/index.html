@@ -71,7 +71,7 @@
     <meta name="theme-color" content="#faf9f5" />
 
     <!-- Sets the theme and picks the static frame. The CSP blocks inline scripts. -->
-    <script src="/startup-v3.js"></script>
+    <script src="/startup-v4.js"></script>
 
     <!-- Apple iOS Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -92,8 +92,15 @@
       [data-nav-item='accounts'] {
         display: none;
       }
-      html[data-session] [data-startup='login'] {
+      html[data-session] [data-startup='login'],
+      html[data-reader] [data-startup='login'],
+      html[data-reader] [data-startup-nav],
+      html[data-reader] [data-startup-bottom],
+      html:not([data-reader]) [data-startup-reader] {
         display: none;
+      }
+      html[data-reader] [data-startup='app'] {
+        display: flex;
       }
       html[data-session] [data-startup='app'],
       html[data-accounts] [data-nav-item='accounts'] {
@@ -150,10 +157,12 @@
   <body>
     <!--
       Static frame: the first paint, before the JavaScript arrives. `main.tsx` removes it when React
-      first renders. `public/startup-v3.js` picks the frame with the `html` data attributes.
+      first renders. `public/startup-v4.js` picks the frame with the `html` data attributes.
       - The login frame has only the background and the logo. `LoginPage` fades in the rest.
       - The app frame matches `MainLayout`, `Sidebar`, and `BottomNav`. Keep the classes, the nav
         order, and the labels (`common.dashboard`, `common.accounts`, ...) in sync.
+      - The reader frame is the app frame of a signed-out visitor on a proposal page. It matches
+        `ReaderIntro` and `ReaderTopBar`, and their labels (`reader.intro`, ...).
       - The search row matches `CommandPaletteButton` without the shortcut keys, which depend on
         the platform.
     -->
@@ -292,7 +301,18 @@
               <use href="#startup-wordmark" />
             </svg>
           </div>
-          <div class="flex-1 space-y-1 p-2">
+          <div data-startup-reader class="flex flex-1 flex-col gap-6 px-6 pt-4">
+            <p class="font-serif text-2xl leading-snug text-foreground">
+              Read and vote on Internet Computer proposals.
+            </p>
+            <ul class="flex flex-col gap-2 text-muted-foreground">
+              <li>Stake ICP in neurons</li>
+              <li>Vote on proposals</li>
+              <li>Earn voting rewards</li>
+            </ul>
+            <div class="h-11 w-full rounded-full bg-primary"></div>
+          </div>
+          <div data-startup-nav class="flex-1 space-y-1 p-2">
             <div
               data-nav-item="dashboard"
               class="relative flex items-center gap-3 rounded-md px-4 py-3 text-foreground-secondary"
@@ -325,17 +345,41 @@
               <svg class="size-5"><use href="#startup-settings" /></svg><span>Settings</span>
             </div>
           </div>
-          <div data-startup-search-row class="p-2">
+          <div data-startup-nav data-startup-search-row class="p-2">
             <div
               class="relative flex items-center gap-3 rounded-md px-4 py-3 text-muted-foreground"
             >
               <svg class="size-5 shrink-0"><use href="#startup-search" /></svg><span>Search</span>
             </div>
           </div>
-          <div class="border-t p-3"><div class="h-12"></div></div>
+          <div data-startup-nav class="border-t p-3"><div class="h-12"></div></div>
         </aside>
         <div class="flex h-full w-full flex-col overflow-hidden">
-          <div class="relative flex-1 bg-main-content"></div>
+          <div class="relative flex-1 bg-main-content">
+            <div
+              data-startup-reader
+              class="flex items-center justify-between gap-4 px-4 pt-[calc(2rem+env(safe-area-inset-top))] lg:hidden"
+            >
+              <div class="flex min-w-0 items-center gap-3">
+                <img
+                  src="/infinity-mark.png"
+                  alt=""
+                  width="195"
+                  height="92"
+                  class="h-6 w-auto"
+                /><svg
+                  class="hidden h-5 w-auto shrink-0 text-foreground min-[360px]:block"
+                  style="aspect-ratio: 559 / 76"
+                >
+                  <use href="#startup-wordmark" />
+                </svg>
+              </div>
+              <div
+                data-startup-login
+                class="h-11 w-[5.75rem] shrink-0 rounded-full bg-primary"
+              ></div>
+            </div>
+          </div>
           <div
             data-startup-bottom
             class="z-50 shrink-0 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm lg:hidden"

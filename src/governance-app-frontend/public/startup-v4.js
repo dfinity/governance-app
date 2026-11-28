@@ -17,7 +17,7 @@
     sidebarCollapsed = localStorage.getItem('nns-sidebar-collapsed') === 'true';
     commandPaletteOff = localStorage.getItem('nns-command-palette-settings') === 'false';
   } catch (e) {
-    // Storage is blocked or holds bad data: use the system theme and the logged-out frame.
+    // Storage is blocked or holds bad data: use the system theme and the signed-out frame.
   }
 
   // Same result as `applyTheme` in `useTheme.ts`. The colors are `THEME_COLOR`.
@@ -41,5 +41,8 @@
     if (features.subaccounts || features.ledgerDevice) html.dataset.accounts = '';
     if (sidebarCollapsed) html.dataset.sidebarCollapsed = '';
     if (commandPaletteOff) html.dataset.commandPaletteOff = '';
+  } else if (/^\/voting\/proposals\/[1-9]\d*\/?$/.test(location.pathname)) {
+    // Same rule as `isPublicPath` in `publicRoutes.ts`: a signed-out reader of a public page.
+    html.dataset.reader = '';
   }
 })();

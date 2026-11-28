@@ -74,6 +74,8 @@ let expiryTimeout: ReturnType<typeof setTimeout> | undefined;
 let sessionExpiresAtMs: number | undefined;
 // Set when a logout ends the session, for the route guard that runs on that change.
 let logoutRedirectPending = false;
+// Set only by a logout in this tab, not by a logout that another tab made.
+let logoutInThisTab = false;
 // A session that ended in this tab while the auth client can still hold it: a logout that failed,
 // or the last seconds before the expiry.
 let endedSessionExpiresAtMs: number | undefined;
@@ -189,6 +191,7 @@ const authenticate = (identity: Identity, expiresAtMs: number) => {
   clearTimeout(expiryTimeout);
   sessionExpiresAtMs = expiresAtMs;
   logoutRedirectPending = false;
+  logoutInThisTab = false;
   setState({ status: 'authenticated', identity });
 
   void icTimeDiffMs().then((timeDiffMs) => {
@@ -427,10 +430,18 @@ export const hasStoredSession = (): boolean => {
  * Whether the route guard runs for a logout, which needs no notice. It answers `true` once.
  * `useSessionChange` drops a logout that no guard consumed, once the guards ran.
  */
-export const consumeLogoutRedirect = (): boolean => {
+export const consumeLogoutRedirect = (): boolean => consumeLogout() !== undefined;
+
+/**
+ * Like `consumeLogoutRedirect`, and also tells a logout in this tab from a logout in another tab.
+ */
+export const consumeLogout = (): 'this-tab' | 'other-tab' | undefined => {
   const pending = logoutRedirectPending;
+  const inThisTab = logoutInThisTab;
   logoutRedirectPending = false;
-  return pending;
+  logoutInThisTab = false;
+  if (!pending) return undefined;
+  return inThisTab ? 'this-tab' : 'other-tab';
 };
 
 /** Also starts reading the stored session, so any subscriber gets it without a route guard. */
@@ -522,6 +533,7 @@ export const logout = () => {
   supersedeReads();
   clearTimeout(expiryTimeout);
   logoutRedirectPending = true;
+  logoutInThisTab = true;
   setState({ status: 'logging-out', sessionEnd: 'logout' });
   void endSession(client, expiresAtMs);
 };

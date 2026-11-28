@@ -5,14 +5,26 @@ import { analytics } from '@features/analytics/service';
 
 import { useInternetIdentity } from '@hooks/useInternetIdentity';
 
+/** The control that started a login. */
+export type LoginSource = 'login_page' | 'reader_sidebar' | 'reader_top_bar' | 'reader_vote_row';
+
+let loginSource: LoginSource = 'login_page';
+
+/** Sets the `source` property of the next login events. */
+export const setLoginSource = (source: LoginSource) => {
+  loginSource = source;
+};
+
 /**
- * Starts the tracker on the login page, and sends the start and the result of each login attempt.
- * The auth module does not keep the login error, so `login_error` also counts a closed popup. A
- * login that never ends sends only `login_start`.
+ * Starts the tracker, and sends the start and the result of each login attempt with the control
+ * that started it. The auth module does not keep the login error, so `login_error` also counts a
+ * closed popup. A login that never ends sends only `login_start`.
  */
 export const useLoginAnalytics = () => {
   const { identity, isLoggingIn } = useInternetIdentity();
   const wasLoggingIn = useRef(isLoggingIn);
+  // A second click during a login can set another source. The attempt keeps the first one.
+  const attemptSource = useRef(loginSource);
 
   useEffect(() => {
     analytics.init();
@@ -20,9 +32,13 @@ export const useLoginAnalytics = () => {
 
   useEffect(() => {
     if (!wasLoggingIn.current && isLoggingIn) {
-      analytics.event(AnalyticsEvent.LoginStart);
+      attemptSource.current = loginSource;
+      analytics.event(AnalyticsEvent.LoginStart, { source: attemptSource.current });
     } else if (wasLoggingIn.current && !isLoggingIn) {
-      analytics.event(identity ? AnalyticsEvent.LoginSuccess : AnalyticsEvent.LoginError);
+      analytics.event(identity ? AnalyticsEvent.LoginSuccess : AnalyticsEvent.LoginError, {
+        source: attemptSource.current,
+      });
+      loginSource = 'login_page';
     }
     wasLoggingIn.current = isLoggingIn;
   }, [isLoggingIn, identity]);

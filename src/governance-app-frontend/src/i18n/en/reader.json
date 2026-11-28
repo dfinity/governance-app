@@ -1,0 +1,15 @@
+{
+  "intro": {
+    "title": "Read and vote on Internet Computer proposals.",
+    "stake": "Stake ICP in neurons",
+    "vote": "Vote on proposals",
+    "earn": "Earn voting rewards"
+  },
+  "introLabel": "About the Network Nervous System",
+  "login": "Log in",
+  "loginPending": "Waiting for Internet Identity…",
+  "voteRow": {
+    "text": "Log in to vote with your neurons.",
+    "action": "Log in to vote"
+  }
+}

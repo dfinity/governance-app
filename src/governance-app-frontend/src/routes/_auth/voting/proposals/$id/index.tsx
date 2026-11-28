@@ -1,5 +1,5 @@
 import { ProposalInfo, ProposalStatus, Topic } from '@icp-sdk/canisters/nns';
-import { nonNullish, secondsToDuration } from '@dfinity/utils';
+import { isNullish, nonNullish, secondsToDuration } from '@dfinity/utils';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { ArrowLeft, Clock, Link as LinkIcon, Tag } from 'lucide-react';
 import { type ReactNode } from 'react';
@@ -22,6 +22,7 @@ import {
   isValidProposalId,
   validateProposalsSearch,
 } from '@features/proposals/utils';
+import { ReaderTopBar } from '@features/reader/components/ReaderTopBar';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/Alert';
 import { Badge } from '@components/badge';
@@ -38,9 +39,11 @@ import {
 import { useGovernanceKnownNeurons } from '@hooks/governance/useGovernanceKnownNeurons';
 import { useGovernanceProposal } from '@hooks/governance/useGovernanceProposal';
 import { CheckResultKey, useSpamCheck } from '@hooks/spamFilter';
+import { useInternetIdentity } from '@hooks/useInternetIdentity';
 import { useMediaQuery } from '@hooks/useMediaQuery';
 import { CertifiedData } from '@typings/queries';
 import { stringToBigInt } from '@utils/bigInt';
+import { cn } from '@utils/shadcn';
 import { safeParseUrl } from '@utils/urls';
 
 import i18n from '@/i18n/config';
@@ -64,7 +67,8 @@ export const Route = createFileRoute('/_auth/voting/proposals/$id/')({
     const title = i18n.t(($) => $.common.head.proposalDetails.title, { proposalId });
 
     return {
-      meta: [{ title }],
+      // Proposals are public, so search engines can list them. Proposers write the links.
+      meta: [{ title }, { name: 'robots', content: 'index, nofollow' }],
     };
   },
   staticData: {
@@ -78,6 +82,8 @@ function ProposalDetailsRouteComponent() {
   const { id } = Route.useParams();
   const search = Route.useSearch();
 
+  // A signed-out visitor: the proposals list and the rest of the app need a login.
+  const isReader = isNullish(useInternetIdentity().identity);
   const proposalQuery = useGovernanceProposal({
     proposalId: id!,
   });
@@ -87,16 +93,26 @@ function ProposalDetailsRouteComponent() {
   return (
     <div className="flex flex-col gap-6 pb-[env(safe-area-inset-bottom)] lg:pb-0">
       {/* Sticky offsets start after the top padding of `main`, so -2rem reaches the safe area. */}
-      <div className="sticky -top-8 z-30 -mx-4 -my-2 bg-main-content/95 px-4 py-2 backdrop-blur-sm lg:static lg:m-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
-        <Button variant="link" asChild className="p-0! font-normal">
-          <Link
-            to="/voting"
-            search={{ showProposals: true, proposalFilter: search.proposalFilter }}
-          >
-            <ArrowLeft className="size-5" />
-            {t(($) => $.proposal.backToProposals)}
-          </Link>
-        </Button>
+      <div
+        className={cn(
+          'sticky -top-8 z-30 -mx-4 -my-2 bg-main-content/95 px-4 py-2 backdrop-blur-sm lg:static lg:m-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none',
+          // The sidebar holds the login on large screens.
+          isReader && 'lg:hidden',
+        )}
+      >
+        {isReader ? (
+          <ReaderTopBar />
+        ) : (
+          <Button variant="link" asChild className="p-0! font-normal">
+            <Link
+              to="/voting"
+              search={{ showProposals: true, proposalFilter: search.proposalFilter }}
+            >
+              <ArrowLeft className="size-5" />
+              {t(($) => $.proposal.backToProposals)}
+            </Link>
+          </Button>
+        )}
       </div>
 
       <QueryStates<CertifiedData<ProposalInfo | undefined>>
@@ -162,7 +178,7 @@ function ProposalDetailsRouteComponent() {
                             <a
                               href={proposalUrl.href}
                               target="_blank"
-                              rel="noopener noreferrer"
+                              rel="nofollow ugc noopener noreferrer"
                               className="no-underline"
                             >
                               <Badge

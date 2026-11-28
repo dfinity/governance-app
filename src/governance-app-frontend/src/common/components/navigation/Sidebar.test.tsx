@@ -8,7 +8,7 @@ import {
   Outlet,
   RouterProvider,
 } from '@tanstack/react-router';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -17,6 +17,8 @@ import { registerCommandPalette } from '@hooks/useCommandPaletteOpen';
 import { useSidebarShortcut } from '@hooks/useSidebarShortcut';
 
 import { Sidebar } from './Sidebar';
+
+const mocks = vi.hoisted(() => ({ login: vi.fn(), setLoginSource: vi.fn() }));
 
 // The real Radix tooltip, so the tests cover when a row label shows.
 vi.unmock('@components/Tooltip');
@@ -39,8 +41,12 @@ vi.mock('@features/analytics/service', () => ({ analytics: { event: vi.fn() } })
 vi.mock('@hooks/useInternetIdentity', () => ({
   useInternetIdentity: () => ({
     identity: { getPrincipal: () => ({ toText: () => 'rrkah-fqaaa-aaaaa-aaaaq-cai' }) },
+    canLogin: true,
+    isLoggingIn: false,
+    login: mocks.login,
   }),
 }));
+vi.mock('@features/analytics/useLoginAnalytics', () => ({ setLoginSource: mocks.setLoginSource }));
 vi.mock('@hooks/useLogout', () => ({ useLogout: () => vi.fn() }));
 vi.mock('@hooks/useSessionTimeLeft', () => ({ useSessionTimeLeft: () => null }));
 
@@ -56,17 +62,17 @@ const createStorage = (entries: Record<string, string> = {}) => {
 };
 
 /** The `[` shortcut is the only way to toggle the sidebar. */
-const ShortcutSidebar = () => {
+const ShortcutSidebar = ({ variant }: { variant?: 'app' | 'reader' }) => {
   useSidebarShortcut();
-  return <Sidebar />;
+  return <Sidebar variant={variant} />;
 };
 
-const renderSidebar = async () => {
+const renderSidebar = async (variant?: 'app' | 'reader') => {
   const rootRoute = createRootRoute({
     component: () => (
       <>
         <Outlet />
-        <ShortcutSidebar />
+        <ShortcutSidebar variant={variant} />
       </>
     ),
   });
@@ -99,6 +105,33 @@ describe('Sidebar', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    mocks.login.mockClear();
+    mocks.setLoginSource.mockClear();
+  });
+
+  it('shows an intro and one login, and no links, to a reader.', async () => {
+    await renderSidebar('reader');
+
+    expect(screen.queryByRole('navigation')).toBeNull();
+    expect(screen.queryAllByRole('link')).toHaveLength(0);
+    expect(screen.getByRole('region', { name: 'About the Network Nervous System' })).toBeTruthy();
+    expect(screen.getAllByRole('button')).toHaveLength(1);
+  });
+
+  it('starts the login from the sidebar.', async () => {
+    await renderSidebar('reader');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Log in' }));
+
+    expect(mocks.setLoginSource).toHaveBeenCalledWith('reader_sidebar');
+    expect(mocks.login).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the full width for a reader when the stored state is collapsed.', async () => {
+    vi.stubGlobal('localStorage', createStorage({ [SIDEBAR_COLLAPSED_KEY]: 'true' }));
+    await renderSidebar('reader');
+
+    expect(screen.getByRole('complementary').dataset.collapsed).toBeUndefined();
   });
 
   it('shows the labels and the principal when expanded.', async () => {
