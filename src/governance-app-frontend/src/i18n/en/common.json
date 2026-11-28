@@ -60,6 +60,13 @@
   "accounts": "ICP accounts",
   "stakes": "Voting neurons",
   "settings": "Settings",
+  "tabs": {
+    "dashboard": "Dashboard",
+    "accounts": "Accounts",
+    "stakes": "Neurons",
+    "voting": "Vote",
+    "settings": "Settings"
+  },
   "commandPalette": {
     "search": "Search"
   },
