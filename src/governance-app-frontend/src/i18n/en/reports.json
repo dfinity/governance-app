@@ -16,8 +16,8 @@
     "holdingsOn": "Holdings on {{date}}",
     "withMaturity": "{{icp}} ICP + {{maturity}} maturity",
     "noMaturity": "{{icp}} ICP · no maturity",
-    "receivedSent": "Received · sent",
-    "fees": "ICP · fees {{fees}} ICP",
+    "receivedSent": "Received · sent (ICP)",
+    "fees": "Fees {{fees}} ICP",
     "rewards": "Rewards ({{count}})",
     "columns": {
       "date": "Date (UTC)",
