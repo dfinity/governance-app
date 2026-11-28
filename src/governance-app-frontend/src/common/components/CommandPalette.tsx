@@ -318,20 +318,27 @@ const getAnalyticsItem = (value: string): string => {
  * CommandItem that reports the selected item to analytics. A proposal ID is reported as
  * `proposal`. A neuron command is reported without the neuron ID. A Recent item is reported as its
  * command id with `source: 'recent'`.
+ *
+ * During the exit animation the list keeps the results, so Return or a click can still select an
+ * item. The item ignores such a selection.
  */
-const TrackedCommandItem = ({ onSelect, ...props }: ComponentProps<typeof CommandItem>) => (
-  <CommandItem
-    {...props}
-    onSelect={(value) => {
-      const { id, recent } = parseItemValue(value);
-      analytics.event(AnalyticsEvent.CommandPaletteSelect, {
-        item: getAnalyticsItem(id),
-        ...(recent && { source: 'recent' }),
-      });
-      onSelect?.(value);
-    }}
-  />
-);
+const TrackedCommandItem = ({ onSelect, ...props }: ComponentProps<typeof CommandItem>) => {
+  const open = useCommandPaletteOpen();
+  return (
+    <CommandItem
+      {...props}
+      onSelect={(value) => {
+        if (!open) return;
+        const { id, recent } = parseItemValue(value);
+        analytics.event(AnalyticsEvent.CommandPaletteSelect, {
+          item: getAnalyticsItem(id),
+          ...(recent && { source: 'recent' }),
+        });
+        onSelect?.(value);
+      }}
+    />
+  );
+};
 
 export const CommandPalette = () => {
   const { t } = useTranslation();

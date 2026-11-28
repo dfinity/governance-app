@@ -177,6 +177,25 @@ const optionNames = () =>
     .filter((option) => option.getAttribute('aria-disabled') !== 'true')
     .map((option) => option.textContent ?? '');
 
+/**
+ * jsdom has no CSS animations, so Radix removes the dialog at once. This gives the dialog an exit
+ * animation, which ends at an `animationend` event.
+ */
+const stubExitAnimation = () => {
+  const getComputedStyle = window.getComputedStyle.bind(window);
+  const spy = vi.spyOn(window, 'getComputedStyle').mockImplementation((element, pseudo) => {
+    const styles = getComputedStyle(element, pseudo);
+    if (element.getAttribute('role') === 'dialog') {
+      Object.defineProperty(styles, 'animationName', {
+        get: () => (element.getAttribute('data-state') === 'closed' ? 'exit' : 'enter'),
+      });
+    }
+    return styles;
+  });
+  onTestFinished(() => spy.mockRestore());
+  vi.stubGlobal('CSS', { escape: (value: string) => value });
+};
+
 describe('CommandPalette', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -687,20 +706,7 @@ describe('CommandPalette', () => {
   });
 
   it('keeps the results during the exit animation and starts empty on the next open.', () => {
-    // jsdom has no CSS animations, so Radix removes the dialog at once. This gives the dialog an
-    // exit animation, which ends at an `animationend` event.
-    const getComputedStyle = window.getComputedStyle.bind(window);
-    const spy = vi.spyOn(window, 'getComputedStyle').mockImplementation((element, pseudo) => {
-      const styles = getComputedStyle(element, pseudo);
-      if (element.getAttribute('role') === 'dialog') {
-        Object.defineProperty(styles, 'animationName', {
-          get: () => (element.getAttribute('data-state') === 'closed' ? 'exit' : 'enter'),
-        });
-      }
-      return styles;
-    });
-    onTestFinished(() => spy.mockRestore());
-    vi.stubGlobal('CSS', { escape: (value: string) => value });
+    stubExitAnimation();
     storeRecent(['action:stake']);
     openPalette();
     search('csv');
@@ -720,6 +726,25 @@ describe('CommandPalette', () => {
 
     expect(screen.getByRole('combobox')).toHaveProperty('value', '');
     expect(recentNames()).toEqual(['Reports', 'Stake ICP']);
+  });
+
+  it('ignores a selection during the exit animation.', () => {
+    stubExitAnimation();
+    openPalette();
+    search('euro');
+    const input = screen.getByRole('combobox');
+
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(screen.getByRole('dialog').getAttribute('data-state')).toBe('closed');
+    fireEvent.keyDown(input, { key: 'Enter' });
+    fireEvent.click(screen.getByRole('option', { name: 'Show values in Euro (EUR)' }));
+
+    expect(mocks.setFiatCurrency).not.toHaveBeenCalled();
+    expect(analytics.event).not.toHaveBeenCalledWith(
+      AnalyticsEvent.CommandPaletteSelect,
+      expect.anything(),
+    );
+    expect(storedRecent()).toEqual([]);
   });
 
   describe('neuron commands', () => {
