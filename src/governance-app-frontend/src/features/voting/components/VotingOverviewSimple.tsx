@@ -45,7 +45,7 @@ export function VotingOverviewSimple({
           title={t(($) => $.voting.title)}
           description={t(($) => $.voting.description)}
           actions={
-            <Button size="xl" className="w-full sm:w-auto" onClick={onManageFollowing}>
+            <Button size="lg" className="w-full sm:w-auto" onClick={onManageFollowing}>
               <Users />
               {t(($) => $.voting.cta)}
             </Button>
@@ -80,7 +80,7 @@ export function VotingOverviewSimple({
         title={t(($) => $.voting.title)}
         description={t(($) => $.voting.description)}
         actions={
-          <Button size="xl" className="w-full sm:w-auto" onClick={onManageFollowing}>
+          <Button size="lg" className="w-full sm:w-auto" onClick={onManageFollowing}>
             <Users />
             {t(($) => $.voting.cta)}
           </Button>

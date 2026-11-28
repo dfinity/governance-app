@@ -55,7 +55,7 @@ export function VotingOverviewAdvanced({
             : t(($) => $.voting.overview.description)
         }
         actions={
-          <Button size="xl" className="w-full sm:w-auto" onClick={onManageFollowing}>
+          <Button size="lg" className="w-full sm:w-auto" onClick={onManageFollowing}>
             <Users />
             {t(($) => $.voting.overview.cta)}
           </Button>

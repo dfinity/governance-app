@@ -18,7 +18,7 @@ export const CreateSubAccountDialog = () => {
       initialName=""
       onSubmit={createSubAccount.mutateAsync}
       trigger={(open) => (
-        <Button variant="secondary" onClick={open}>
+        <Button size="lg" className="w-full sm:w-auto" onClick={open}>
           <Plus aria-hidden="true" />
           {t(($) => $.accounts.createSubAccount.button)}
         </Button>

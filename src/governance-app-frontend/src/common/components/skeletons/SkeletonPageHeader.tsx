@@ -13,6 +13,6 @@ export const SkeletonPageHeader = ({ description = true, action = false }: Props
       <Skeleton className="h-9 w-56" />
       {description && <Skeleton className="h-5 w-72 max-w-full" />}
     </div>
-    {action && <Skeleton className="h-12 w-full sm:w-40" />}
+    {action && <Skeleton className="h-10 w-full sm:w-40" />}
   </div>
 );
