@@ -318,20 +318,27 @@ const getAnalyticsItem = (value: string): string => {
  * CommandItem that reports the selected item to analytics. A proposal ID is reported as
  * `proposal`. A neuron command is reported without the neuron ID. A Recent item is reported as its
  * command id with `source: 'recent'`.
+ *
+ * During the exit animation the list keeps the results, so Return or a click can still select an
+ * item. The item ignores such a selection.
  */
-const TrackedCommandItem = ({ onSelect, ...props }: ComponentProps<typeof CommandItem>) => (
-  <CommandItem
-    {...props}
-    onSelect={(value) => {
-      const { id, recent } = parseItemValue(value);
-      analytics.event(AnalyticsEvent.CommandPaletteSelect, {
-        item: getAnalyticsItem(id),
-        ...(recent && { source: 'recent' }),
-      });
-      onSelect?.(value);
-    }}
-  />
-);
+const TrackedCommandItem = ({ onSelect, ...props }: ComponentProps<typeof CommandItem>) => {
+  const open = useCommandPaletteOpen();
+  return (
+    <CommandItem
+      {...props}
+      onSelect={(value) => {
+        if (!open) return;
+        const { id, recent } = parseItemValue(value);
+        analytics.event(AnalyticsEvent.CommandPaletteSelect, {
+          item: getAnalyticsItem(id),
+          ...(recent && { source: 'recent' }),
+        });
+        onSelect?.(value);
+      }}
+    />
+  );
+};
 
 export const CommandPalette = () => {
   const { t } = useTranslation();
@@ -352,17 +359,20 @@ export const CommandPalette = () => {
   const [search, setSearch] = useState('');
   const [list, setList] = useState<HTMLDivElement | null>(null);
   // Read on open, so the Recent items do not move while the palette is open. A button can open
-  // the palette too, so this follows the shared open state.
+  // the palette too, so this follows the shared open state. The search also resets on open, so
+  // the list keeps the results during the exit animation.
   const [recentIds, setRecentIds] = useState<string[]>([]);
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
     setPrevOpen(open);
-    if (open) setRecentIds(readRecentCommands());
+    if (open) {
+      setRecentIds(readRecentCommands());
+      setSearch('');
+    }
   }
 
   const handleOpenChange = (next: boolean) => {
     if (next) return openCommandPalette('shortcut');
-    setSearch('');
     closeCommandPalette();
   };
 
